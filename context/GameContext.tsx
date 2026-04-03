@@ -20,6 +20,10 @@ type Creature = {
   name: string;
   theme: string;
   stats: CreatureStats;
+  giver: string | null;
+  receiver: string | null;
+  bornOnDay: number;
+  generation: number;
 };
 
 type Egg = {
@@ -76,6 +80,10 @@ const horseTemplate: Creature = {
     intelligence: 4,
     speed: 5,
   },
+  giver: null,
+  receiver: null,
+  bornOnDay: 1,
+  generation: 1,
 };
 
 const catTemplate: Creature = {
@@ -88,6 +96,10 @@ const catTemplate: Creature = {
     intelligence: 8,
     speed: 8,
   },
+  giver: null,
+  receiver: null,
+  bornOnDay: 1,
+  generation: 1,
 };
 
 function getCreatureTemplateByName(name: string): Creature | null {
@@ -110,11 +122,20 @@ function createVariedStats(baseStats: CreatureStats): CreatureStats {
   };
 }
 
-function createCreatureFromTemplate(template: Creature): Creature {
+function createCreatureFromTemplate(
+  template: Creature,
+  giver: string,
+  receiver: string,
+  currentDay: number
+): Creature {
   return {
     ...template,
     id: Date.now() + Math.floor(Math.random() * 100000),
     stats: createVariedStats(template.stats),
+    giver,
+    receiver,
+    bornOnDay: currentDay,
+    generation: 2,
   };
 }
 
@@ -241,7 +262,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const newCreature = createCreatureFromTemplate(template);
+    const newCreature = createCreatureFromTemplate(
+      template,
+      eggToHatch.giver,
+      eggToHatch.receiver,
+      currentDay
+    );
 
     setCreatures((prev) => [...prev, newCreature]);
     setEggs((prev) => prev.filter((egg) => egg.id !== eggId));

@@ -15,7 +15,7 @@ export default function CreaturesPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-sky-100 to-cyan-200 p-6">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-6xl">
         <h1 className="mb-6 text-4xl font-bold text-sky-900">Creatures</h1>
 
         <div className="grid gap-4 md:grid-cols-2">
@@ -42,6 +42,35 @@ export default function CreaturesPage() {
                   <p className="text-stone-700">{creature.theme}</p>
                   <p className="text-sm text-stone-500">ID: {creature.id}</p>
                 </div>
+              </div>
+
+              <div className="mb-4 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-2xl bg-sky-50 p-3">
+                  <p className="text-sm text-stone-500">Generation</p>
+                  <p className="font-semibold text-stone-900">
+                    Gen {creature.generation}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-sky-50 p-3">
+                  <p className="text-sm text-stone-500">Born On Day</p>
+                  <p className="font-semibold text-stone-900">
+                    Day {creature.bornOnDay}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4 rounded-2xl bg-stone-100 p-3">
+                <p className="text-sm text-stone-500">Lineage</p>
+                {creature.giver && creature.receiver ? (
+                  <p className="font-semibold text-stone-900">
+                    {creature.giver} → {creature.receiver}
+                  </p>
+                ) : (
+                  <p className="font-semibold text-stone-900">
+                    Starter Creature
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1 text-stone-800">
