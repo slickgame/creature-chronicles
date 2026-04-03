@@ -15,6 +15,8 @@ type CreatureStats = {
   speed: number;
 };
 
+type InbreedingRisk = "none" | "parent_child" | "full_sibling";
+
 type Creature = {
   id: number;
   name: string;
@@ -29,6 +31,7 @@ type Creature = {
   receiverIsPlayer: boolean;
   bornOnDay: number;
   generation: number;
+  inbreedingRisk: InbreedingRisk;
 };
 
 type Egg = {
@@ -162,6 +165,7 @@ const horseTemplate: Creature = {
   receiverIsPlayer: false,
   bornOnDay: 1,
   generation: 1,
+  inbreedingRisk: "none",
 };
 
 const catTemplate: Creature = {
@@ -183,6 +187,7 @@ const catTemplate: Creature = {
   receiverIsPlayer: false,
   bornOnDay: 1,
   generation: 1,
+  inbreedingRisk: "none",
 };
 
 function getCreatureTemplateByName(name: string): Creature | null {
@@ -205,6 +210,59 @@ function createVariedStats(baseStats: CreatureStats): CreatureStats {
   };
 }
 
+function calculateInbreedingRisk(
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null,
+  giverIsPlayer: boolean,
+  receiverIsPlayer: boolean
+): InbreedingRisk {
+  if (
+    giverIsPlayer &&
+    receiverCreature &&
+    (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
+  ) {
+    return "parent_child";
+  }
+
+  if (
+    receiverIsPlayer &&
+    giverCreature &&
+    (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
+  ) {
+    return "parent_child";
+  }
+
+  if (!giverCreature || !receiverCreature) {
+    return "none";
+  }
+
+  const isParentChild =
+    giverCreature.id === receiverCreature.giverId ||
+    giverCreature.id === receiverCreature.receiverId ||
+    receiverCreature.id === giverCreature.giverId ||
+    receiverCreature.id === giverCreature.receiverId;
+
+  if (isParentChild) {
+    return "parent_child";
+  }
+
+  const sameGiverSide =
+    (giverCreature.giverId !== null &&
+      giverCreature.giverId === receiverCreature.giverId) ||
+    (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
+
+  const sameReceiverSide =
+    (giverCreature.receiverId !== null &&
+      giverCreature.receiverId === receiverCreature.receiverId) ||
+    (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+
+  if (sameGiverSide && sameReceiverSide) {
+    return "full_sibling";
+  }
+
+  return "none";
+}
+
 function createCreatureFromTemplate(
   template: Creature,
   giver: string,
@@ -214,7 +272,8 @@ function createCreatureFromTemplate(
   giverIsPlayer: boolean,
   receiverIsPlayer: boolean,
   currentDay: number,
-  generation: number
+  generation: number,
+  inbreedingRisk: InbreedingRisk
 ): Creature {
   return {
     ...template,
@@ -229,6 +288,7 @@ function createCreatureFromTemplate(
     receiverIsPlayer,
     bornOnDay: currentDay,
     generation,
+    inbreedingRisk,
   };
 }
 
@@ -244,11 +304,13 @@ const defaultCreatures: Creature[] = [
     ...horseTemplate,
     id: 1,
     nickname: "Starter Horse",
+    inbreedingRisk: "none",
   },
   {
     ...catTemplate,
     id: 2,
     nickname: "Starter Cat",
+    inbreedingRisk: "none",
   },
 ];
 
@@ -378,6 +440,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const childGeneration = Math.max(...parentGenerations) + 1;
 
+    const inbreedingRisk = calculateInbreedingRisk(
+      giverCreature,
+      receiverCreature,
+      eggToHatch.giverIsPlayer,
+      eggToHatch.receiverIsPlayer
+    );
+
     const newCreature = createCreatureFromTemplate(
       template,
       eggToHatch.giver,
@@ -387,7 +456,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       eggToHatch.giverIsPlayer,
       eggToHatch.receiverIsPlayer,
       currentDay,
-      childGeneration
+      childGeneration,
+      inbreedingRisk
     );
 
     setCreatures((prev) => [...prev, newCreature]);
@@ -425,9 +495,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ? playerData.name
       : receiverCreature?.nickname ?? "";
 
-    const giverSpecies = giverIsPlayer
-      ? "Player"
-      : giverCreature?.name ?? "";
+    const giverSpecies = giverIsPlayer ? "Player" : giverCreature?.name ?? "";
     const receiverSpecies = receiverIsPlayer
       ? "Player"
       : receiverCreature?.name ?? "";
@@ -501,12 +569,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ...horseTemplate,
       id: 1,
       nickname: generateNickname("Horse"),
+      inbreedingRisk: "none" as InbreedingRisk,
     };
 
     const freshCat = {
       ...catTemplate,
       id: 2,
       nickname: generateNickname("Cat"),
+      inbreedingRisk: "none" as InbreedingRisk,
     };
 
     setCurrentDay(1);

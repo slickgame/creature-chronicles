@@ -16,6 +16,19 @@ export default function CreaturesPage() {
     return "/images/egg.png";
   }
 
+  function getRiskLabel(risk: "none" | "parent_child" | "full_sibling") {
+    if (risk === "parent_child") return "Parent/Child Risk";
+    if (risk === "full_sibling") return "Full Sibling Risk";
+    return "No Risk";
+  }
+
+  function getRiskClasses(risk: "none" | "parent_child" | "full_sibling") {
+    if (risk === "none") {
+      return "bg-green-100 text-green-900 border-green-300";
+    }
+    return "bg-red-100 text-red-900 border-red-300";
+  }
+
   function startEditing(creatureId: number, currentNickname: string) {
     setEditingCreatureId(creatureId);
     setNicknameInput(currentNickname);
@@ -70,13 +83,13 @@ export default function CreaturesPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => saveNickname(creature.id)}
-                            className="rounded-xl bg-sky-700 px-3 py-2 text-sm text-white font-semibold"
+                            className="rounded-xl bg-sky-700 px-3 py-2 text-sm font-semibold text-white"
                           >
                             Save
                           </button>
                           <button
                             onClick={cancelEditing}
-                            className="rounded-xl bg-gray-500 px-3 py-2 text-sm text-white font-semibold"
+                            className="rounded-xl bg-gray-500 px-3 py-2 text-sm font-semibold text-white"
                           >
                             Cancel
                           </button>
@@ -92,7 +105,7 @@ export default function CreaturesPage() {
                         <p className="text-sm text-stone-500">ID: {creature.id}</p>
                         <button
                           onClick={() => startEditing(creature.id, creature.nickname)}
-                          className="mt-2 rounded-xl bg-sky-700 px-3 py-2 text-sm text-white font-semibold"
+                          className="mt-2 rounded-xl bg-sky-700 px-3 py-2 text-sm font-semibold text-white"
                         >
                           Edit Name
                         </button>
@@ -133,6 +146,16 @@ export default function CreaturesPage() {
                       Starter Creature
                     </p>
                   )}
+                </div>
+
+                <div className="mb-4">
+                  <div
+                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
+                      creature.inbreedingRisk
+                    )}`}
+                  >
+                    {getRiskLabel(creature.inbreedingRisk)}
+                  </div>
                 </div>
 
                 <div className="space-y-1 text-stone-800">
