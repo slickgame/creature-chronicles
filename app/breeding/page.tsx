@@ -42,6 +42,35 @@ export default function BreedingPage() {
     breedingSelection.giverCreatureId !== null &&
     breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
 
+  function isParentChild() {
+    if (!giverCreature || !receiverCreature) return false;
+
+    return (
+      giverCreature.id === receiverCreature.giverId ||
+      giverCreature.id === receiverCreature.receiverId ||
+      receiverCreature.id === giverCreature.giverId ||
+      receiverCreature.id === giverCreature.receiverId
+    );
+  }
+
+  function isFullSibling() {
+    if (!giverCreature || !receiverCreature) return false;
+    if (giverCreature.giverId === null || giverCreature.receiverId === null) {
+      return false;
+    }
+    if (receiverCreature.giverId === null || receiverCreature.receiverId === null) {
+      return false;
+    }
+
+    return (
+      giverCreature.giverId === receiverCreature.giverId &&
+      giverCreature.receiverId === receiverCreature.receiverId
+    );
+  }
+
+  const parentChildWarning = isParentChild();
+  const fullSiblingWarning = isFullSibling();
+
   const hasValidSelection =
     (breedingSelection.giverType === "player" ||
       breedingSelection.giverCreatureId !== null) &&
@@ -76,7 +105,7 @@ export default function BreedingPage() {
                     giverCreatureId: null,
                   })
                 }
-                className={`rounded-3xl border-4 p-4 text-left shadow transition w-full sm:w-72 ${
+                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
                   breedingSelection.giverType === "player"
                     ? "border-rose-700 bg-rose-100"
                     : "border-rose-200 bg-white hover:border-rose-400"
@@ -153,7 +182,7 @@ export default function BreedingPage() {
                     receiverCreatureId: null,
                   })
                 }
-                className={`rounded-3xl border-4 p-4 text-left shadow transition w-full sm:w-72 ${
+                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
                   breedingSelection.receiverType === "player"
                     ? "border-rose-700 bg-rose-100"
                     : "border-rose-200 bg-white hover:border-rose-400"
@@ -243,6 +272,28 @@ export default function BreedingPage() {
               <p className="font-semibold text-red-700">
                 The same creature cannot be both giver and receiver.
               </p>
+            )}
+
+            {parentChildWarning && !sameCreatureSelected && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Family Warning</p>
+                <p>
+                  These creatures appear to be a direct parent and child. Breeding
+                  is allowed for now, but this pairing may later cause severe
+                  negative inherited traits.
+                </p>
+              </div>
+            )}
+
+            {fullSiblingWarning && !sameCreatureSelected && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Family Warning</p>
+                <p>
+                  These creatures appear to be full siblings. Breeding is allowed
+                  for now, but this pairing may later cause severe negative
+                  inherited traits.
+                </p>
+              </div>
             )}
           </div>
 
