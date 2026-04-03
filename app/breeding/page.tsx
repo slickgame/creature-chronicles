@@ -11,12 +11,12 @@ export default function BreedingPage() {
     breedingSelection,
     setBreedingSelection,
     creatures,
+    currentDay,
+    currentHour,
+    currentMinute,
   } = useGame();
 
-  const canAffordBreed =
-    playerData.gold >= 50 &&
-    playerData.energy >= 10 &&
-    playerData.breedingStamina >= 15;
+  const canAffordBreed = playerData.energy >= 8;
 
   const giverCreature = breedingSelection.giverCreatureId
     ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
@@ -102,6 +102,25 @@ export default function BreedingPage() {
     return sameGiverSide || sameReceiverSide;
   }
 
+  function getBreedingMinutes() {
+    const speeds = [giverCreature?.stats.speed, receiverCreature?.stats.speed]
+      .filter((value): value is number => typeof value === "number");
+
+    if (speeds.length === 0) return 120;
+
+    const avgSpeed =
+      speeds.reduce((sum, value) => sum + value, 0) / speeds.length;
+
+    return Math.max(30, 120 - Math.round(avgSpeed * 6));
+  }
+
+  function getCreatureStaminaCost(creatureId: number | null) {
+    if (!creatureId) return null;
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return null;
+    return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
+  }
+
   const parentChildWarning = isParentChild();
   const fullSiblingWarning = isFullSibling();
   const halfSiblingWarning = isHalfSibling();
@@ -113,7 +132,21 @@ export default function BreedingPage() {
       breedingSelection.receiverCreatureId !== null) &&
     !sameCreatureSelected;
 
-  const canBreed = canAffordBreed && hasValidSelection;
+  const giverCreatureReady =
+    !giverCreature ||
+    (giverCreature.breedingsToday < giverCreature.dailyBreedingLimit &&
+      giverCreature.breedingStamina >=
+        Math.max(8, 22 - Math.floor(giverCreature.stats.endurance / 2)));
+
+  const receiverCreatureReady =
+    !receiverCreature ||
+    (receiverCreature.breedingsToday < receiverCreature.dailyBreedingLimit &&
+      receiverCreature.breedingStamina >=
+        Math.max(8, 22 - Math.floor(receiverCreature.stats.endurance / 2)));
+
+  const canBreed =
+    canAffordBreed && hasValidSelection && giverCreatureReady && receiverCreatureReady;
+
   const playerIsReceiver = breedingSelection.receiverType === "player";
 
   function getCreatureImage(name: string) {
@@ -122,10 +155,24 @@ export default function BreedingPage() {
     return "/images/egg.png";
   }
 
+  function formatTime(hour: number, minute: number) {
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    const displayMinute = minute.toString().padStart(2, "0");
+    return `${displayHour}:${displayMinute} ${suffix}`;
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-pink-100 to-rose-200 p-6">
       <div className="mx-auto max-w-6xl">
         <h1 className="mb-6 text-4xl font-bold text-rose-900">💞 Breeding</h1>
+
+        <div className="mb-4 rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
+          <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+          <p><strong>Player Energy:</strong> {playerData.energy}</p>
+          <p><strong>Session Time Cost:</strong> {getBreedingMinutes()} minutes</p>
+          <p><strong>Gold Cost:</strong> None</p>
+        </div>
 
         <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
           <div className="mb-6">
@@ -195,7 +242,13 @@ export default function BreedingPage() {
                       {creature.nickname}
                     </p>
                     <p className="text-sm text-stone-600">
-                      {creature.name} • Gen {creature.generation} • ID {creature.id}
+                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
+                    </p>
+                    <p className="text-xs text-stone-500">
+                      Cost: {getCreatureStaminaCost(creature.id)} stamina
                     </p>
                   </button>
                 );
@@ -272,7 +325,13 @@ export default function BreedingPage() {
                       {creature.nickname}
                     </p>
                     <p className="text-sm text-stone-600">
-                      {creature.name} • Gen {creature.generation} • ID {creature.id}
+                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
+                    </p>
+                    <p className="text-xs text-stone-500">
+                      Cost: {getCreatureStaminaCost(creature.id)} stamina
                     </p>
                   </button>
                 );
@@ -285,12 +344,19 @@ export default function BreedingPage() {
               <strong>Current Pair:</strong> {giverLabel} → {receiverLabel}
             </p>
             <p>
-              <strong>Breeding Cost:</strong> 50 Gold, 10 Energy, 15 Stamina
+              <strong>Breeding Cost:</strong> 8 Player Energy + stamina from selected creatures
             </p>
             <p>
               <strong>Rule:</strong> If the giver is Player, offspring will always
               be the receiver species. Otherwise, offspring rolls between giver
               and receiver species.
+            </p>
+            <p>
+              <strong>Speed Effect:</strong> Higher speed reduces session time.
+            </p>
+            <p>
+              <strong>Intelligence Effect:</strong> Reserved groundwork for future
+              inbreeding reduction mechanics.
             </p>
 
             {playerIsReceiver && (
@@ -306,6 +372,18 @@ export default function BreedingPage() {
             {sameCreatureSelected && (
               <p className="font-semibold text-red-700">
                 The same creature cannot be both giver and receiver.
+              </p>
+            )}
+
+            {!giverCreatureReady && giverCreature && (
+              <p className="font-semibold text-red-700">
+                {giverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
+              </p>
+            )}
+
+            {!receiverCreatureReady && receiverCreature && (
+              <p className="font-semibold text-red-700">
+                {receiverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
               </p>
             )}
 
@@ -346,7 +424,7 @@ export default function BreedingPage() {
           <div className="mb-5 rounded-2xl bg-stone-100 p-4 space-y-1">
             <p><strong>Your Gold:</strong> {playerData.gold}</p>
             <p><strong>Your Energy:</strong> {playerData.energy}</p>
-            <p><strong>Your Stamina:</strong> {playerData.breedingStamina}</p>
+            <p><strong>Current Time:</strong> Day {currentDay}</p>
           </div>
 
           <button

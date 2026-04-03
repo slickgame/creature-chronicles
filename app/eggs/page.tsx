@@ -18,12 +18,20 @@ type HatchedCreature = {
   id: number;
   name: string;
   nickname: string;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
   stats: {
     strength: number;
     endurance: number;
     intelligence: number;
     speed: number;
+    fertility: number;
+    vitality: number;
   };
+  breedingStamina: number;
+  maxBreedingStamina: number;
+  dailyBreedingLimit: number;
   generation: number;
   bornOnDay: number;
   inbreedingRisk: InbreedingRisk;
@@ -231,6 +239,21 @@ export default function EggsPage() {
                   </p>
                 </div>
 
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-emerald-50 p-3">
+                    <p className="text-sm text-stone-500">Level</p>
+                    <p className="font-semibold text-stone-900">
+                      {hatchedCreature.level}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-emerald-50 p-3">
+                    <p className="text-sm text-stone-500">XP</p>
+                    <p className="font-semibold text-stone-900">
+                      {hatchedCreature.xp} / {hatchedCreature.xpToNextLevel}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   <div
                     className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
@@ -266,6 +289,13 @@ export default function EggsPage() {
                     </p>
                   </div>
                 </div>
+
+                <div className="rounded-2xl bg-emerald-50 p-3">
+                  <p className="text-sm text-stone-500">Breeding Capacity</p>
+                  <p className="font-semibold text-stone-900">
+                    Stamina {hatchedCreature.breedingStamina}/{hatchedCreature.maxBreedingStamina} • Daily Limit {hatchedCreature.dailyBreedingLimit}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -276,6 +306,8 @@ export default function EggsPage() {
                 <p><strong>Endurance:</strong> {hatchedCreature.stats.endurance}</p>
                 <p><strong>Intelligence:</strong> {hatchedCreature.stats.intelligence}</p>
                 <p><strong>Speed:</strong> {hatchedCreature.stats.speed}</p>
+                <p><strong>Fertility:</strong> {hatchedCreature.stats.fertility}</p>
+                <p><strong>Vitality:</strong> {hatchedCreature.stats.vitality}</p>
               </div>
             </div>
 

@@ -1,790 +1,452 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
-
-type CreatureStats = {
-  strength: number;
-  endurance: number;
-  intelligence: number;
-  speed: number;
-};
-
-type InbreedingRisk =
-  | "none"
-  | "half_sibling"
-  | "parent_child"
-  | "full_sibling";
-
-type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
-type InbredTraitSeverity = "none" | "mild" | "severe";
-
-type Creature = {
-  id: number;
-  name: string;
-  nickname: string;
-  theme: string;
-  stats: CreatureStats;
-  giver: string | null;
-  receiver: string | null;
-  giverId: number | null;
-  receiverId: number | null;
-  giverIsPlayer: boolean;
-  receiverIsPlayer: boolean;
-  bornOnDay: number;
-  generation: number;
-  inbreedingRisk: InbreedingRisk;
-  inbredTrait: InbredTrait;
-  inbredTraitSeverity: InbredTraitSeverity;
-};
-
-type Egg = {
-  id: number;
-  name: string;
-  parents: string;
-  hatchDaysRemaining: number;
-  giver: string;
-  receiver: string;
-  giverId: number | null;
-  receiverId: number | null;
-  giverIsPlayer: boolean;
-  receiverIsPlayer: boolean;
-  inbreedingRisk: InbreedingRisk;
-};
-
-type PlayerData = {
-  name: string;
-  gold: number;
-  energy: number;
-  breedingStamina: number;
-};
-
-type BreedingSelection = {
-  giverType: "player" | "creature";
-  giverCreatureId: number | null;
-  receiverType: "player" | "creature";
-  receiverCreatureId: number | null;
-};
-
-type SaveData = {
-  currentDay: number;
-  playerData: PlayerData;
-  creatures: Creature[];
-  eggs: Egg[];
-  breedingSelection: BreedingSelection;
-};
-
-type GameContextType = {
-  currentDay: number;
-  playerData: PlayerData;
-  creatures: Creature[];
-  eggs: Egg[];
-  breedingSelection: BreedingSelection;
-  nextDay: () => void;
-  hatchEgg: (eggId: number) => Creature | null;
-  breedCreatures: () => void;
-  setBreedingSelection: (selection: BreedingSelection) => void;
-  resetGame: () => void;
-  renameCreature: (creatureId: number, newNickname: string) => void;
-  renamePlayer: (newName: string) => void;
-};
-
-const GameContext = createContext<GameContextType | undefined>(undefined);
-
-const horseFirstNames = [
-  "Dusty",
-  "Clover",
-  "Rowan",
-  "Bramble",
-  "Flint",
-  "Maple",
-  "Sable",
-  "Thorn",
-];
-
-const horseLastNames = [
-  "Carter",
-  "Vale",
-  "Hoof",
-  "Hollow",
-  "Briar",
-  "Reed",
-  "Stone",
-  "Meadow",
-];
-
-const catFirstNames = [
-  "Velvet",
-  "Misty",
-  "Sable",
-  "Luna",
-  "Poppy",
-  "Ivy",
-  "Mochi",
-  "Pearl",
-];
-
-const catLastNames = [
-  "Whisk",
-  "Bell",
-  "Thorn",
-  "Silk",
-  "Mire",
-  "Moon",
-  "Bloom",
-  "Shade",
-];
-
-const INBRED_TRAITS: InbredTrait[] = ["weak", "frail", "dull", "slow"];
-
-function randomFrom<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
-}
-
-function generateNickname(speciesName: string): string {
-  if (speciesName === "Horse") {
-    return `${randomFrom(horseFirstNames)} ${randomFrom(horseLastNames)}`;
-  }
-
-  if (speciesName === "Cat") {
-    return `${randomFrom(catFirstNames)} ${randomFrom(catLastNames)}`;
-  }
-
-  return `Creature ${Math.floor(Math.random() * 1000)}`;
-}
-
-const horseTemplate: Creature = {
-  id: 1,
-  name: "Horse",
-  nickname: "Starter Horse",
-  theme: "Field Worker",
-  stats: {
-    strength: 8,
-    endurance: 8,
-    intelligence: 4,
-    speed: 5,
-  },
-  giver: null,
-  receiver: null,
-  giverId: null,
-  receiverId: null,
-  giverIsPlayer: false,
-  receiverIsPlayer: false,
-  bornOnDay: 1,
-  generation: 1,
-  inbreedingRisk: "none",
-  inbredTrait: "none",
-  inbredTraitSeverity: "none",
-};
-
-const catTemplate: Creature = {
-  id: 2,
-  name: "Cat",
-  nickname: "Starter Cat",
-  theme: "House Maid",
-  stats: {
-    strength: 4,
-    endurance: 5,
-    intelligence: 8,
-    speed: 8,
-  },
-  giver: null,
-  receiver: null,
-  giverId: null,
-  receiverId: null,
-  giverIsPlayer: false,
-  receiverIsPlayer: false,
-  bornOnDay: 1,
-  generation: 1,
-  inbreedingRisk: "none",
-  inbredTrait: "none",
-  inbredTraitSeverity: "none",
-};
-
-function getCreatureTemplateByName(name: string): Creature | null {
-  if (name === "Horse") return horseTemplate;
-  if (name === "Cat") return catTemplate;
-  return null;
-}
-
-function rollStatVariation(): number {
-  const options = [-1, 0, 1];
-  return options[Math.floor(Math.random() * options.length)];
-}
-
-function average(numbers: number[]): number {
-  if (numbers.length === 0) return 0;
-  return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
-}
-
-function calculateInbreedingRisk(
-  giverCreature: Creature | null,
-  receiverCreature: Creature | null,
-  giverIsPlayer: boolean,
-  receiverIsPlayer: boolean
-): InbreedingRisk {
-  if (
-    giverIsPlayer &&
-    receiverCreature &&
-    (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
-  ) {
-    return "parent_child";
-  }
-
-  if (
-    receiverIsPlayer &&
-    giverCreature &&
-    (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
-  ) {
-    return "parent_child";
-  }
-
-  if (!giverCreature || !receiverCreature) {
-    return "none";
-  }
-
-  const isParentChild =
-    giverCreature.id === receiverCreature.giverId ||
-    giverCreature.id === receiverCreature.receiverId ||
-    receiverCreature.id === giverCreature.giverId ||
-    receiverCreature.id === giverCreature.receiverId;
-
-  if (isParentChild) {
-    return "parent_child";
-  }
-
-  const sameGiverSide =
-    (giverCreature.giverId !== null &&
-      giverCreature.giverId === receiverCreature.giverId) ||
-    (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
-
-  const sameReceiverSide =
-    (giverCreature.receiverId !== null &&
-      giverCreature.receiverId === receiverCreature.receiverId) ||
-    (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
-
-  if (sameGiverSide && sameReceiverSide) {
-    return "full_sibling";
-  }
-
-  if (sameGiverSide || sameReceiverSide) {
-    return "half_sibling";
-  }
-
-  return "none";
-}
-
-function createInheritedStats(
-  baseStats: CreatureStats,
-  giverCreature: Creature | null,
-  receiverCreature: Creature | null
-): CreatureStats {
-  const parentStats = [giverCreature?.stats, receiverCreature?.stats].filter(
-    Boolean
-  ) as CreatureStats[];
-
-  if (parentStats.length === 0) {
-    return {
-      strength: Math.max(1, baseStats.strength + rollStatVariation()),
-      endurance: Math.max(1, baseStats.endurance + rollStatVariation()),
-      intelligence: Math.max(1, baseStats.intelligence + rollStatVariation()),
-      speed: Math.max(1, baseStats.speed + rollStatVariation()),
-    };
-  }
-
-  const strengthParentAvg = average(parentStats.map((p) => p.strength));
-  const enduranceParentAvg = average(parentStats.map((p) => p.endurance));
-  const intelligenceParentAvg = average(parentStats.map((p) => p.intelligence));
-  const speedParentAvg = average(parentStats.map((p) => p.speed));
-
-  return {
-    strength: Math.max(
-      1,
-      Math.round((baseStats.strength + strengthParentAvg) / 2) +
-        rollStatVariation()
-    ),
-    endurance: Math.max(
-      1,
-      Math.round((baseStats.endurance + enduranceParentAvg) / 2) +
-        rollStatVariation()
-    ),
-    intelligence: Math.max(
-      1,
-      Math.round((baseStats.intelligence + intelligenceParentAvg) / 2) +
-        rollStatVariation()
-    ),
-    speed: Math.max(
-      1,
-      Math.round((baseStats.speed + speedParentAvg) / 2) +
-        rollStatVariation()
-    ),
-  };
-}
-
-function applyInbreedingPenalty(
-  stats: CreatureStats,
-  risk: InbreedingRisk
-): {
-  stats: CreatureStats;
-  inbredTrait: InbredTrait;
-  inbredTraitSeverity: InbredTraitSeverity;
-} {
-  if (risk === "none") {
-    return {
-      stats,
-      inbredTrait: "none",
-      inbredTraitSeverity: "none",
-    };
-  }
-
-  const inbredTrait = randomFrom(INBRED_TRAITS);
-  const penalty = risk === "half_sibling" ? 1 : 2;
-  const severity: InbredTraitSeverity =
-    risk === "half_sibling" ? "mild" : "severe";
-
-  const adjustedStats = { ...stats };
-
-  if (inbredTrait === "weak") {
-    adjustedStats.strength = Math.max(1, adjustedStats.strength - penalty);
-  }
-
-  if (inbredTrait === "frail") {
-    adjustedStats.endurance = Math.max(1, adjustedStats.endurance - penalty);
-  }
-
-  if (inbredTrait === "dull") {
-    adjustedStats.intelligence = Math.max(
-      1,
-      adjustedStats.intelligence - penalty
-    );
-  }
-
-  if (inbredTrait === "slow") {
-    adjustedStats.speed = Math.max(1, adjustedStats.speed - penalty);
-  }
-
-  return {
-    stats: adjustedStats,
-    inbredTrait,
-    inbredTraitSeverity: severity,
-  };
-}
-
-function createCreatureFromTemplate(
-  template: Creature,
-  giver: string,
-  receiver: string,
-  giverId: number | null,
-  receiverId: number | null,
-  giverIsPlayer: boolean,
-  receiverIsPlayer: boolean,
-  currentDay: number,
-  generation: number,
-  inbreedingRisk: InbreedingRisk,
-  giverCreature: Creature | null,
-  receiverCreature: Creature | null
-): Creature {
-  const inheritedStats = createInheritedStats(
-    template.stats,
-    giverCreature,
-    receiverCreature
-  );
-
-  const penaltyResult = applyInbreedingPenalty(inheritedStats, inbreedingRisk);
-
-  return {
-    ...template,
-    id: Date.now() + Math.floor(Math.random() * 100000),
-    nickname: generateNickname(template.name),
-    stats: penaltyResult.stats,
-    giver,
-    receiver,
-    giverId,
-    receiverId,
-    giverIsPlayer,
-    receiverIsPlayer,
-    bornOnDay: currentDay,
-    generation,
-    inbreedingRisk,
-    inbredTrait: penaltyResult.inbredTrait,
-    inbredTraitSeverity: penaltyResult.inbredTraitSeverity,
-  };
-}
-
-function normalizeCreature(creature: Creature): Creature {
-  return {
-    ...creature,
-    inbreedingRisk: creature.inbreedingRisk ?? "none",
-    inbredTrait: creature.inbredTrait ?? "none",
-    inbredTraitSeverity: creature.inbredTraitSeverity ?? "none",
-  };
-}
-
-function normalizeEgg(egg: Egg): Egg {
-  return {
-    ...egg,
-    inbreedingRisk: egg.inbreedingRisk ?? "none",
-  };
-}
-
-const defaultPlayerData: PlayerData = {
-  name: "Player",
-  gold: 500,
-  energy: 100,
-  breedingStamina: 100,
-};
-
-const defaultCreatures: Creature[] = [
-  {
-    ...horseTemplate,
-    id: 1,
-    nickname: "Starter Horse",
-  },
-  {
-    ...catTemplate,
-    id: 2,
-    nickname: "Starter Cat",
-  },
-];
-
-const defaultBreedingSelection: BreedingSelection = {
-  giverType: "creature",
-  giverCreatureId: 1,
-  receiverType: "creature",
-  receiverCreatureId: 2,
-};
-
-const defaultEggs: Egg[] = [
-  {
-    id: 1,
-    name: "Test Egg",
-    parents: "Starter Horse + Starter Cat",
-    hatchDaysRemaining: 3,
-    giver: "Horse",
-    receiver: "Cat",
-    giverId: 1,
-    receiverId: 2,
-    giverIsPlayer: false,
-    receiverIsPlayer: false,
-    inbreedingRisk: "none",
-  },
-];
-
-const defaultSaveData: SaveData = {
-  currentDay: 1,
-  playerData: defaultPlayerData,
-  creatures: defaultCreatures,
-  eggs: defaultEggs,
-  breedingSelection: defaultBreedingSelection,
-};
-
-const STORAGE_KEY = "creature-chronicles-save";
-
-export function GameProvider({ children }: { children: ReactNode }) {
-  const [hasLoaded, setHasLoaded] = useState(false);
-
-  const [currentDay, setCurrentDay] = useState(defaultSaveData.currentDay);
-  const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
-  const [creatures, setCreatures] = useState(defaultSaveData.creatures);
-  const [eggs, setEggs] = useState(defaultSaveData.eggs);
-  const [breedingSelection, setBreedingSelection] = useState(
-    defaultSaveData.breedingSelection
-  );
-
-  useEffect(() => {
-    const savedGame = localStorage.getItem(STORAGE_KEY);
-
-    if (savedGame) {
-      try {
-        const parsedSave: SaveData = JSON.parse(savedGame);
-
-        setCurrentDay(parsedSave.currentDay);
-        setPlayerData(parsedSave.playerData);
-        setCreatures(parsedSave.creatures.map(normalizeCreature));
-        setEggs(parsedSave.eggs.map(normalizeEgg));
-        setBreedingSelection(parsedSave.breedingSelection);
-      } catch (error) {
-        console.error("Failed to load save data:", error);
-      }
-    }
-
-    setHasLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!hasLoaded) return;
-
-    const saveData: SaveData = {
-      currentDay,
-      playerData,
-      creatures,
-      eggs,
-      breedingSelection,
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-  }, [hasLoaded, currentDay, playerData, creatures, eggs, breedingSelection]);
-
-  function nextDay() {
-    setCurrentDay((prev) => prev + 1);
-
-    setEggs((prevEggs) =>
-      prevEggs.map((egg) => ({
-        ...egg,
-        hatchDaysRemaining:
-          egg.hatchDaysRemaining > 0 ? egg.hatchDaysRemaining - 1 : 0,
-      }))
-    );
-  }
-
-  function hatchEgg(eggId: number): Creature | null {
-    const eggToHatch = eggs.find((egg) => egg.id === eggId);
-
-    if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) {
-      return null;
-    }
-
-    let childSpeciesName = "Cat";
-
-    if (eggToHatch.giver === "Player") {
-      childSpeciesName = eggToHatch.receiver;
-    } else {
-      childSpeciesName =
-        Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
-    }
-
-    const template = getCreatureTemplateByName(childSpeciesName);
-
-    if (!template) {
-      return null;
-    }
-
-    const giverCreature = eggToHatch.giverId
-      ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null
-      : null;
-
-    const receiverCreature = eggToHatch.receiverId
-      ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null
-      : null;
-
-    const parentGenerations = [
-      giverCreature?.generation ?? 1,
-      receiverCreature?.generation ?? 1,
-    ];
-
-    const childGeneration = Math.max(...parentGenerations) + 1;
-
-    const inbreedingRisk =
-      eggToHatch.inbreedingRisk ??
-      calculateInbreedingRisk(
-        giverCreature,
-        receiverCreature,
-        eggToHatch.giverIsPlayer,
-        eggToHatch.receiverIsPlayer
-      );
-
-    const newCreature = createCreatureFromTemplate(
-      template,
-      eggToHatch.giver,
-      eggToHatch.receiver,
-      eggToHatch.giverId,
-      eggToHatch.receiverId,
-      eggToHatch.giverIsPlayer,
-      eggToHatch.receiverIsPlayer,
-      currentDay,
-      childGeneration,
-      inbreedingRisk,
-      giverCreature,
-      receiverCreature
-    );
-
-    setCreatures((prev) => [...prev, newCreature]);
-    setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
-
-    return newCreature;
-  }
-
-  function breedCreatures() {
-    const goldCost = 50;
-    const energyCost = 10;
-    const staminaCost = 15;
-
-    const hasEnoughGold = playerData.gold >= goldCost;
-    const hasEnoughEnergy = playerData.energy >= energyCost;
-    const hasEnoughStamina = playerData.breedingStamina >= staminaCost;
-
-    if (!hasEnoughGold || !hasEnoughEnergy || !hasEnoughStamina) {
-      return;
-    }
-
-    const giverIsPlayer = breedingSelection.giverType === "player";
-    const receiverIsPlayer = breedingSelection.receiverType === "player";
-
-    const giverCreature = breedingSelection.giverCreatureId
-      ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
-      : null;
-
-    const receiverCreature = breedingSelection.receiverCreatureId
-      ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
-      : null;
-
-    const giverLabel = giverIsPlayer
+import Image from "next/image";
+import Link from "next/link";
+import { useGame } from "@/context/GameContext";
+
+export default function BreedingPage() {
+  const {
+    breedCreatures,
+    playerData,
+    breedingSelection,
+    setBreedingSelection,
+    creatures,
+    currentDay,
+    currentHour,
+    currentMinute,
+  } = useGame();
+
+  const canAffordBreed = playerData.energy >= 8;
+
+  const giverCreature = breedingSelection.giverCreatureId
+    ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
+    : null;
+
+  const receiverCreature = breedingSelection.receiverCreatureId
+    ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
+    : null;
+
+  const giverLabel =
+    breedingSelection.giverType === "player"
       ? playerData.name
-      : giverCreature?.nickname ?? "";
-    const receiverLabel = receiverIsPlayer
+      : giverCreature?.nickname ?? "None";
+
+  const receiverLabel =
+    breedingSelection.receiverType === "player"
       ? playerData.name
-      : receiverCreature?.nickname ?? "";
+      : receiverCreature?.nickname ?? "None";
 
-    const giverSpecies = giverIsPlayer ? "Player" : giverCreature?.name ?? "";
-    const receiverSpecies = receiverIsPlayer
-      ? "Player"
-      : receiverCreature?.name ?? "";
+  const sameCreatureSelected =
+    breedingSelection.giverType === "creature" &&
+    breedingSelection.receiverType === "creature" &&
+    breedingSelection.giverCreatureId !== null &&
+    breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
 
-    if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) {
-      return;
+  function isParentChild() {
+    if (
+      breedingSelection.giverType === "player" &&
+      receiverCreature &&
+      (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
+    ) {
+      return true;
     }
 
     if (
-      !giverIsPlayer &&
-      !receiverIsPlayer &&
+      breedingSelection.receiverType === "player" &&
       giverCreature &&
-      receiverCreature &&
-      giverCreature.id === receiverCreature.id
+      (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
     ) {
-      return;
+      return true;
     }
 
-    const inbreedingRisk = calculateInbreedingRisk(
-      giverCreature,
-      receiverCreature,
-      giverIsPlayer,
-      receiverIsPlayer
-    );
+    if (!giverCreature || !receiverCreature) return false;
 
-    setPlayerData((prev) => ({
-      ...prev,
-      gold: prev.gold - goldCost,
-      energy: prev.energy - energyCost,
-      breedingStamina: prev.breedingStamina - staminaCost,
-    }));
-
-    if (receiverIsPlayer) {
-      return;
-    }
-
-    const newEgg: Egg = {
-      id: Date.now(),
-      name: `${giverLabel} x ${receiverLabel} Egg`,
-      parents: `${giverLabel} + ${receiverLabel}`,
-      hatchDaysRemaining: 3,
-      giver: giverSpecies,
-      receiver: receiverSpecies,
-      giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
-      receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
-      giverIsPlayer,
-      receiverIsPlayer,
-      inbreedingRisk,
-    };
-
-    setEggs((prev) => [...prev, newEgg]);
-  }
-
-  function renameCreature(creatureId: number, newNickname: string) {
-    const trimmedName = newNickname.trim();
-    if (!trimmedName) return;
-
-    setCreatures((prev) =>
-      prev.map((creature) =>
-        creature.id === creatureId
-          ? { ...creature, nickname: trimmedName }
-          : creature
-      )
+    return (
+      giverCreature.id === receiverCreature.giverId ||
+      giverCreature.id === receiverCreature.receiverId ||
+      receiverCreature.id === giverCreature.giverId ||
+      receiverCreature.id === giverCreature.receiverId
     );
   }
 
-  function renamePlayer(newName: string) {
-    const trimmedName = newName.trim();
-    if (!trimmedName) return;
+  function isFullSibling() {
+    if (!giverCreature || !receiverCreature) return false;
 
-    setPlayerData((prev) => ({
-      ...prev,
-      name: trimmedName,
-    }));
+    const sameGiverSide =
+      (giverCreature.giverId !== null &&
+        giverCreature.giverId === receiverCreature.giverId) ||
+      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
+
+    const sameReceiverSide =
+      (giverCreature.receiverId !== null &&
+        giverCreature.receiverId === receiverCreature.receiverId) ||
+      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+
+    return sameGiverSide && sameReceiverSide;
   }
 
-  function resetGame() {
-    const freshHorse = {
-      ...horseTemplate,
-      id: 1,
-      nickname: generateNickname("Horse"),
-    };
+  function isHalfSibling() {
+    if (!giverCreature || !receiverCreature) return false;
+    if (isParentChild() || isFullSibling()) return false;
 
-    const freshCat = {
-      ...catTemplate,
-      id: 2,
-      nickname: generateNickname("Cat"),
-    };
+    const sameGiverSide =
+      (giverCreature.giverId !== null &&
+        giverCreature.giverId === receiverCreature.giverId) ||
+      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
 
-    setCurrentDay(1);
-    setPlayerData(defaultPlayerData);
-    setCreatures([freshHorse, freshCat]);
-    setEggs([
-      {
-        id: 1,
-        name: `${freshHorse.nickname} x ${freshCat.nickname} Egg`,
-        parents: `${freshHorse.nickname} + ${freshCat.nickname}`,
-        hatchDaysRemaining: 3,
-        giver: "Horse",
-        receiver: "Cat",
-        giverId: freshHorse.id,
-        receiverId: freshCat.id,
-        giverIsPlayer: false,
-        receiverIsPlayer: false,
-        inbreedingRisk: "none",
-      },
-    ]);
-    setBreedingSelection({
-      giverType: "creature",
-      giverCreatureId: freshHorse.id,
-      receiverType: "creature",
-      receiverCreatureId: freshCat.id,
-    });
-    localStorage.removeItem(STORAGE_KEY);
+    const sameReceiverSide =
+      (giverCreature.receiverId !== null &&
+        giverCreature.receiverId === receiverCreature.receiverId) ||
+      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+
+    return sameGiverSide || sameReceiverSide;
+  }
+
+  function getBreedingMinutes() {
+    const speeds = [giverCreature?.stats.speed, receiverCreature?.stats.speed]
+      .filter((value): value is number => typeof value === "number");
+
+    if (speeds.length === 0) return 120;
+
+    const avgSpeed =
+      speeds.reduce((sum, value) => sum + value, 0) / speeds.length;
+
+    return Math.max(30, 120 - Math.round(avgSpeed * 6));
+  }
+
+  function getCreatureStaminaCost(creatureId: number | null) {
+    if (!creatureId) return null;
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return null;
+    return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
+  }
+
+  const parentChildWarning = isParentChild();
+  const fullSiblingWarning = isFullSibling();
+  const halfSiblingWarning = isHalfSibling();
+
+  const hasValidSelection =
+    (breedingSelection.giverType === "player" ||
+      breedingSelection.giverCreatureId !== null) &&
+    (breedingSelection.receiverType === "player" ||
+      breedingSelection.receiverCreatureId !== null) &&
+    !sameCreatureSelected;
+
+  const giverCreatureReady =
+    !giverCreature ||
+    (giverCreature.breedingsToday < giverCreature.dailyBreedingLimit &&
+      giverCreature.breedingStamina >=
+        Math.max(8, 22 - Math.floor(giverCreature.stats.endurance / 2)));
+
+  const receiverCreatureReady =
+    !receiverCreature ||
+    (receiverCreature.breedingsToday < receiverCreature.dailyBreedingLimit &&
+      receiverCreature.breedingStamina >=
+        Math.max(8, 22 - Math.floor(receiverCreature.stats.endurance / 2)));
+
+  const canBreed =
+    canAffordBreed && hasValidSelection && giverCreatureReady && receiverCreatureReady;
+
+  const playerIsReceiver = breedingSelection.receiverType === "player";
+
+  function getCreatureImage(name: string) {
+    if (name === "Horse") return "/images/horse.png";
+    if (name === "Cat") return "/images/cat.png";
+    return "/images/egg.png";
+  }
+
+  function formatTime(hour: number, minute: number) {
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    const displayMinute = minute.toString().padStart(2, "0");
+    return `${displayHour}:${displayMinute} ${suffix}`;
   }
 
   return (
-    <GameContext.Provider
-      value={{
-        currentDay,
-        playerData,
-        creatures,
-        eggs,
-        breedingSelection,
-        nextDay,
-        hatchEgg,
-        breedCreatures,
-        setBreedingSelection,
-        resetGame,
-        renameCreature,
-        renamePlayer,
-      }}
-    >
-      {children}
-    </GameContext.Provider>
+    <main className="min-h-screen bg-gradient-to-b from-pink-100 to-rose-200 p-6">
+      <div className="mx-auto max-w-6xl">
+        <h1 className="mb-6 text-4xl font-bold text-rose-900">💞 Breeding</h1>
+
+        <div className="mb-4 rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
+          <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+          <p><strong>Player Energy:</strong> {playerData.energy}</p>
+          <p><strong>Session Time Cost:</strong> {getBreedingMinutes()} minutes</p>
+          <p><strong>Gold Cost:</strong> None</p>
+        </div>
+
+        <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
+          <div className="mb-6">
+            <h2 className="mb-3 text-2xl font-bold text-rose-950">Choose Giver</h2>
+
+            <div className="mb-4">
+              <button
+                onClick={() =>
+                  setBreedingSelection({
+                    ...breedingSelection,
+                    giverType: "player",
+                    giverCreatureId: null,
+                  })
+                }
+                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
+                  breedingSelection.giverType === "player"
+                    ? "border-rose-700 bg-rose-100"
+                    : "border-rose-200 bg-white hover:border-rose-400"
+                }`}
+              >
+                <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                  <Image
+                    src="/images/player.png"
+                    alt="Player"
+                    width={300}
+                    height={300}
+                    className="max-h-full w-auto object-contain"
+                  />
+                </div>
+                <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
+                <p className="text-sm text-stone-600">Player</p>
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {creatures.map((creature) => {
+                const isSelected =
+                  breedingSelection.giverType === "creature" &&
+                  breedingSelection.giverCreatureId === creature.id;
+
+                return (
+                  <button
+                    key={creature.id}
+                    onClick={() =>
+                      setBreedingSelection({
+                        ...breedingSelection,
+                        giverType: "creature",
+                        giverCreatureId: creature.id,
+                      })
+                    }
+                    className={`rounded-3xl border-4 p-4 text-left shadow transition ${
+                      isSelected
+                        ? "border-rose-700 bg-rose-100"
+                        : "border-rose-200 bg-white hover:border-rose-400"
+                    }`}
+                  >
+                    <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                      <Image
+                        src={getCreatureImage(creature.name)}
+                        alt={creature.name}
+                        width={300}
+                        height={300}
+                        className="max-h-full w-auto object-contain"
+                      />
+                    </div>
+                    <p className="text-xl font-bold text-stone-900">
+                      {creature.nickname}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
+                    </p>
+                    <p className="text-xs text-stone-500">
+                      Cost: {getCreatureStaminaCost(creature.id)} stamina
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="mb-3 text-2xl font-bold text-rose-950">
+              Choose Receiver
+            </h2>
+
+            <div className="mb-4">
+              <button
+                onClick={() =>
+                  setBreedingSelection({
+                    ...breedingSelection,
+                    receiverType: "player",
+                    receiverCreatureId: null,
+                  })
+                }
+                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
+                  breedingSelection.receiverType === "player"
+                    ? "border-rose-700 bg-rose-100"
+                    : "border-rose-200 bg-white hover:border-rose-400"
+                }`}
+              >
+                <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                  <Image
+                    src="/images/player.png"
+                    alt="Player"
+                    width={300}
+                    height={300}
+                    className="max-h-full w-auto object-contain"
+                  />
+                </div>
+                <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
+                <p className="text-sm text-stone-600">Player</p>
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {creatures.map((creature) => {
+                const isSelected =
+                  breedingSelection.receiverType === "creature" &&
+                  breedingSelection.receiverCreatureId === creature.id;
+
+                return (
+                  <button
+                    key={creature.id}
+                    onClick={() =>
+                      setBreedingSelection({
+                        ...breedingSelection,
+                        receiverType: "creature",
+                        receiverCreatureId: creature.id,
+                      })
+                    }
+                    className={`rounded-3xl border-4 p-4 text-left shadow transition ${
+                      isSelected
+                        ? "border-rose-700 bg-rose-100"
+                        : "border-rose-200 bg-white hover:border-rose-400"
+                    }`}
+                  >
+                    <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                      <Image
+                        src={getCreatureImage(creature.name)}
+                        alt={creature.name}
+                        width={300}
+                        height={300}
+                        className="max-h-full w-auto object-contain"
+                      />
+                    </div>
+                    <p className="text-xl font-bold text-stone-900">
+                      {creature.nickname}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
+                    </p>
+                    <p className="text-xs text-stone-500">
+                      Cost: {getCreatureStaminaCost(creature.id)} stamina
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mb-5 rounded-2xl bg-rose-50 p-4 space-y-2">
+            <p>
+              <strong>Current Pair:</strong> {giverLabel} → {receiverLabel}
+            </p>
+            <p>
+              <strong>Breeding Cost:</strong> 8 Player Energy + stamina from selected creatures
+            </p>
+            <p>
+              <strong>Rule:</strong> If the giver is Player, offspring will always
+              be the receiver species. Otherwise, offspring rolls between giver
+              and receiver species.
+            </p>
+            <p>
+              <strong>Speed Effect:</strong> Higher speed reduces session time.
+            </p>
+            <p>
+              <strong>Intelligence Effect:</strong> Reserved groundwork for future
+              inbreeding reduction mechanics.
+            </p>
+
+            {playerIsReceiver && (
+              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
+                <p className="font-semibold">Notice</p>
+                <p>
+                  If Player is selected as the receiver, breeding will not produce
+                  an egg.
+                </p>
+              </div>
+            )}
+
+            {sameCreatureSelected && (
+              <p className="font-semibold text-red-700">
+                The same creature cannot be both giver and receiver.
+              </p>
+            )}
+
+            {!giverCreatureReady && giverCreature && (
+              <p className="font-semibold text-red-700">
+                {giverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
+              </p>
+            )}
+
+            {!receiverCreatureReady && receiverCreature && (
+              <p className="font-semibold text-red-700">
+                {receiverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
+              </p>
+            )}
+
+            {parentChildWarning && !sameCreatureSelected && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Family Warning</p>
+                <p>
+                  These creatures appear to be a direct parent and child. Breeding is
+                  allowed for now, but offspring from this pairing can hatch with a
+                  severe negative inherited trait.
+                </p>
+              </div>
+            )}
+
+            {fullSiblingWarning && !sameCreatureSelected && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Family Warning</p>
+                <p>
+                  These creatures appear to be full siblings. Breeding is allowed for
+                  now, but offspring from this pairing can hatch with a severe negative
+                  inherited trait.
+                </p>
+              </div>
+            )}
+
+            {halfSiblingWarning && !sameCreatureSelected && (
+              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
+                <p className="font-semibold">Family Warning</p>
+                <p>
+                  These creatures appear to be half siblings. Breeding is allowed for
+                  now, but offspring from this pairing can hatch with a mild negative
+                  inherited trait.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="mb-5 rounded-2xl bg-stone-100 p-4 space-y-1">
+            <p><strong>Your Gold:</strong> {playerData.gold}</p>
+            <p><strong>Your Energy:</strong> {playerData.energy}</p>
+            <p><strong>Current Time:</strong> Day {currentDay}</p>
+          </div>
+
+          <button
+            onClick={breedCreatures}
+            disabled={!canBreed}
+            className={`w-full rounded-2xl px-4 py-3 text-white font-semibold shadow ${
+              canBreed ? "bg-pink-600" : "bg-gray-500"
+            }`}
+          >
+            {canBreed ? "Breed" : "Cannot Breed"}
+          </button>
+        </div>
+
+        <div className="mt-6">
+          <Link
+            href="/ranch"
+            className="inline-block rounded-2xl bg-stone-800 px-5 py-3 text-white font-semibold shadow"
+          >
+            Back to Ranch
+          </Link>
+        </div>
+      </div>
+    </main>
   );
-}
-
-export function useGame() {
-  const context = useContext(GameContext);
-
-  if (!context) {
-    throw new Error("useGame must be used inside a GameProvider");
-  }
-
-  return context;
 }

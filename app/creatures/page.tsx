@@ -163,7 +163,21 @@ export default function CreaturesPage() {
                   </div>
                 </div>
 
-                <div className="mb-4 grid gap-2 sm:grid-cols-2">
+                <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-sm text-stone-500">Level</p>
+                    <p className="font-semibold text-stone-900">
+                      {creature.level}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-sm text-stone-500">XP</p>
+                    <p className="font-semibold text-stone-900">
+                      {creature.xp} / {creature.xpToNextLevel}
+                    </p>
+                  </div>
+
                   <div className="rounded-2xl bg-sky-50 p-3">
                     <p className="text-sm text-stone-500">Generation</p>
                     <p className="font-semibold text-stone-900">
@@ -175,6 +189,20 @@ export default function CreaturesPage() {
                     <p className="text-sm text-stone-500">Born On Day</p>
                     <p className="font-semibold text-stone-900">
                       Day {creature.bornOnDay}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-sm text-stone-500">Breeding Stamina</p>
+                    <p className="font-semibold text-stone-900">
+                      {creature.breedingStamina} / {creature.maxBreedingStamina}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-sm text-stone-500">Breedings Today</p>
+                    <p className="font-semibold text-stone-900">
+                      {creature.breedingsToday} / {creature.dailyBreedingLimit}
                     </p>
                   </div>
                 </div>
@@ -218,11 +246,13 @@ export default function CreaturesPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1 text-stone-800">
+                <div className="grid gap-2 text-stone-800 sm:grid-cols-2">
                   <p><strong>Strength:</strong> {creature.stats.strength}</p>
                   <p><strong>Endurance:</strong> {creature.stats.endurance}</p>
                   <p><strong>Intelligence:</strong> {creature.stats.intelligence}</p>
                   <p><strong>Speed:</strong> {creature.stats.speed}</p>
+                  <p><strong>Fertility:</strong> {creature.stats.fertility}</p>
+                  <p><strong>Vitality:</strong> {creature.stats.vitality}</p>
                 </div>
               </div>
             );

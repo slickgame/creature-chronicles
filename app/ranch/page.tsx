@@ -77,9 +77,18 @@ function getTraitClasses(severity: InbredTraitSeverity) {
   return "bg-red-100 text-red-900 border-red-300";
 }
 
+function formatTime(hour: number, minute: number) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+  const displayMinute = minute.toString().padStart(2, "0");
+  return `${displayHour}:${displayMinute} ${suffix}`;
+}
+
 export default function RanchPage() {
   const {
     currentDay,
+    currentHour,
+    currentMinute,
     playerData,
     nextDay,
     resetGame,
@@ -206,10 +215,10 @@ export default function RanchPage() {
         <div className="rounded-3xl border-4 border-green-900 bg-white/85 p-6 shadow-xl">
           <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2">
             <p><strong>Day:</strong> {currentDay}</p>
+            <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
             <p><strong>Player:</strong> {playerData.name}</p>
             <p><strong>Gold:</strong> {playerData.gold}</p>
             <p><strong>Energy:</strong> {playerData.energy}</p>
-            <p><strong>Breeding Stamina:</strong> {playerData.breedingStamina}</p>
             <p><strong>Total Creatures:</strong> {creatures.length}</p>
           </div>
 
@@ -256,7 +265,13 @@ export default function RanchPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <Link
+            href="/town"
+            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            Go to Town
+          </Link>
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
@@ -393,7 +408,7 @@ export default function RanchPage() {
                             {creature.nickname}
                           </h3>
                           <p className="text-stone-700">
-                            {creature.name} • Gen {creature.generation}
+                            {creature.name} • Lv {creature.level} • Gen {creature.generation}
                           </p>
                           <p className="text-sm text-stone-500">
                             Born Day {creature.bornOnDay}
@@ -436,11 +451,18 @@ export default function RanchPage() {
                         </div>
                       </div>
 
-                      <div className="grid gap-2 text-sm text-stone-800 sm:grid-cols-2">
+                      <div className="mb-3 grid gap-2 text-sm text-stone-800 sm:grid-cols-2">
                         <p><strong>STR:</strong> {creature.stats.strength}</p>
                         <p><strong>END:</strong> {creature.stats.endurance}</p>
                         <p><strong>INT:</strong> {creature.stats.intelligence}</p>
                         <p><strong>SPD:</strong> {creature.stats.speed}</p>
+                        <p><strong>FER:</strong> {creature.stats.fertility}</p>
+                        <p><strong>VIT:</strong> {creature.stats.vitality}</p>
+                      </div>
+
+                      <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
+                        <p><strong>XP:</strong> {creature.xp}/{creature.xpToNextLevel}</p>
+                        <p><strong>Stamina:</strong> {creature.breedingStamina}/{creature.maxBreedingStamina}</p>
                       </div>
                     </div>
                   ))}
