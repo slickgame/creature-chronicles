@@ -1,452 +1,1568 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
-import { useGame } from "@/context/GameContext";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
-export default function BreedingPage() {
-  const {
-    breedCreatures,
-    playerData,
-    breedingSelection,
-    setBreedingSelection,
-    creatures,
-    currentDay,
-    currentHour,
-    currentMinute,
-  } = useGame();
+type CreatureStats = {
+  strength: number;
+  endurance: number;
+  intelligence: number;
+  speed: number;
+  fertility: number;
+  vitality: number;
+};
 
-  const canAffordBreed = playerData.energy >= 8;
+type InbreedingRisk =
+  | "none"
+  | "half_sibling"
+  | "parent_child"
+  | "full_sibling";
 
-  const giverCreature = breedingSelection.giverCreatureId
-    ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
-    : null;
+type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
+type InbredTraitSeverity = "none" | "mild" | "severe";
 
-  const receiverCreature = breedingSelection.receiverCreatureId
-    ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
-    : null;
+type Creature = {
+  id: number;
+  name: string;
+  nickname: string;
+  theme: string;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
+  stats: CreatureStats;
+  breedingStamina: number;
+  maxBreedingStamina: number;
+  breedingsToday: number;
+  dailyBreedingLimit: number;
+  giver: string | null;
+  receiver: string | null;
+  giverId: number | null;
+  receiverId: number | null;
+  giverIsPlayer: boolean;
+  receiverIsPlayer: boolean;
+  bornOnDay: number;
+  generation: number;
+  inbreedingRisk: InbreedingRisk;
+  inbredTrait: InbredTrait;
+  inbredTraitSeverity: InbredTraitSeverity;
+};
 
-  const giverLabel =
-    breedingSelection.giverType === "player"
-      ? playerData.name
-      : giverCreature?.nickname ?? "None";
+type Egg = {
+  id: number;
+  name: string;
+  parents: string;
+  hatchDaysRemaining: number;
+  giver: string;
+  receiver: string;
+  giverId: number | null;
+  receiverId: number | null;
+  giverIsPlayer: boolean;
+  receiverIsPlayer: boolean;
+  inbreedingRisk: InbreedingRisk;
+};
 
-  const receiverLabel =
-    breedingSelection.receiverType === "player"
-      ? playerData.name
-      : receiverCreature?.nickname ?? "None";
+type PlayerData = {
+  name: string;
+  gold: number;
+  energy: number;
+};
 
-  const sameCreatureSelected =
-    breedingSelection.giverType === "creature" &&
-    breedingSelection.receiverType === "creature" &&
-    breedingSelection.giverCreatureId !== null &&
-    breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
+type BreedingSelection = {
+  giverType: "player" | "creature";
+  giverCreatureId: number | null;
+  receiverType: "player" | "creature";
+  receiverCreatureId: number | null;
+};
 
-  function isParentChild() {
-    if (
-      breedingSelection.giverType === "player" &&
-      receiverCreature &&
-      (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
-    ) {
-      return true;
-    }
+type TownStockEntry = {
+  id: number;
+  creature: Creature;
+  price: number;
+};
 
-    if (
-      breedingSelection.receiverType === "player" &&
-      giverCreature &&
-      (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
-    ) {
-      return true;
-    }
+type QuestRequirement = {
+  species: string;
+  minimumLevel: number;
+  minimumStats: Partial<CreatureStats>;
+};
 
-    if (!giverCreature || !receiverCreature) return false;
+type TownQuest = {
+  id: number;
+  title: string;
+  description: string;
+  rewardGold: number;
+  rewardXp: number;
+  deadlineDay: number;
+  deadlineHour: number;
+  deadlineMinute: number;
+  requirement: QuestRequirement;
+  completed: boolean;
+};
 
-    return (
-      giverCreature.id === receiverCreature.giverId ||
-      giverCreature.id === receiverCreature.receiverId ||
-      receiverCreature.id === giverCreature.giverId ||
-      receiverCreature.id === giverCreature.receiverId
+type SaveData = {
+  currentDay: number;
+  currentHour: number;
+  currentMinute: number;
+  playerData: PlayerData;
+  creatures: Creature[];
+  eggs: Egg[];
+  breedingSelection: BreedingSelection;
+  townStock: TownStockEntry[];
+  townQuests: TownQuest[];
+};
+
+type GameContextType = {
+  currentDay: number;
+  currentHour: number;
+  currentMinute: number;
+  playerData: PlayerData;
+  creatures: Creature[];
+  eggs: Egg[];
+  breedingSelection: BreedingSelection;
+  townStock: TownStockEntry[];
+  townQuests: TownQuest[];
+  nextDay: () => void;
+  hatchEgg: (eggId: number) => Creature | null;
+  breedCreatures: () => void;
+  setBreedingSelection: (selection: BreedingSelection) => void;
+  resetGame: () => void;
+  renameCreature: (creatureId: number, newNickname: string) => void;
+  renamePlayer: (newName: string) => void;
+  purchaseTownCreature: (stockEntryId: number) => void;
+  submitCreatureToQuest: (questId: number, creatureId: number) => void;
+};
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
+const horseFirstNames = [
+  "Dusty",
+  "Clover",
+  "Rowan",
+  "Bramble",
+  "Flint",
+  "Maple",
+  "Sable",
+  "Thorn",
+];
+
+const horseLastNames = [
+  "Carter",
+  "Vale",
+  "Hoof",
+  "Hollow",
+  "Briar",
+  "Reed",
+  "Stone",
+  "Meadow",
+];
+
+const catFirstNames = [
+  "Velvet",
+  "Misty",
+  "Sable",
+  "Luna",
+  "Poppy",
+  "Ivy",
+  "Mochi",
+  "Pearl",
+];
+
+const catLastNames = [
+  "Whisk",
+  "Bell",
+  "Thorn",
+  "Silk",
+  "Mire",
+  "Moon",
+  "Bloom",
+  "Shade",
+];
+
+const INBRED_TRAITS: InbredTrait[] = ["weak", "frail", "dull", "slow"];
+
+function randomFrom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function generateNickname(speciesName: string): string {
+  if (speciesName === "Horse") {
+    return `${randomFrom(horseFirstNames)} ${randomFrom(horseLastNames)}`;
+  }
+
+  if (speciesName === "Cat") {
+    return `${randomFrom(catFirstNames)} ${randomFrom(catLastNames)}`;
+  }
+
+  return `Creature ${Math.floor(Math.random() * 1000)}`;
+}
+
+function getXpToNextLevel(level: number): number {
+  return 50 + level * 25;
+}
+
+function getMaxBreedingStaminaFromStats(stats: CreatureStats): number {
+  return 40 + stats.endurance * 4 + stats.vitality * 3;
+}
+
+function getDailyBreedingLimitFromStats(stats: CreatureStats): number {
+  return Math.max(1, 1 + Math.floor((stats.vitality + stats.fertility) / 8));
+}
+
+function createCreatureBase(
+  partial: Omit<
+    Creature,
+    | "level"
+    | "xp"
+    | "xpToNextLevel"
+    | "breedingStamina"
+    | "maxBreedingStamina"
+    | "breedingsToday"
+    | "dailyBreedingLimit"
+  >
+): Creature {
+  const maxBreedingStamina = getMaxBreedingStaminaFromStats(partial.stats);
+  const dailyBreedingLimit = getDailyBreedingLimitFromStats(partial.stats);
+
+  return {
+    ...partial,
+    level: 1,
+    xp: 0,
+    xpToNextLevel: getXpToNextLevel(1),
+    breedingStamina: maxBreedingStamina,
+    maxBreedingStamina,
+    breedingsToday: 0,
+    dailyBreedingLimit,
+  };
+}
+
+const horseTemplate: Creature = createCreatureBase({
+  id: 1,
+  name: "Horse",
+  nickname: "Starter Horse",
+  theme: "Field Worker",
+  stats: {
+    strength: 8,
+    endurance: 8,
+    intelligence: 4,
+    speed: 5,
+    fertility: 6,
+    vitality: 7,
+  },
+  giver: null,
+  receiver: null,
+  giverId: null,
+  receiverId: null,
+  giverIsPlayer: false,
+  receiverIsPlayer: false,
+  bornOnDay: 1,
+  generation: 1,
+  inbreedingRisk: "none",
+  inbredTrait: "none",
+  inbredTraitSeverity: "none",
+});
+
+const catTemplate: Creature = createCreatureBase({
+  id: 2,
+  name: "Cat",
+  nickname: "Starter Cat",
+  theme: "House Maid",
+  stats: {
+    strength: 4,
+    endurance: 5,
+    intelligence: 8,
+    speed: 8,
+    fertility: 7,
+    vitality: 5,
+  },
+  giver: null,
+  receiver: null,
+  giverId: null,
+  receiverId: null,
+  giverIsPlayer: false,
+  receiverIsPlayer: false,
+  bornOnDay: 1,
+  generation: 1,
+  inbreedingRisk: "none",
+  inbredTrait: "none",
+  inbredTraitSeverity: "none",
+});
+
+function getCreatureTemplateByName(name: string): Creature | null {
+  if (name === "Horse") return horseTemplate;
+  if (name === "Cat") return catTemplate;
+  return null;
+}
+
+function rollStatVariation(): number {
+  const options = [-1, 0, 1];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+function average(numbers: number[]): number {
+  if (numbers.length === 0) return 0;
+  return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
+}
+
+function calculateInbreedingRisk(
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null,
+  giverIsPlayer: boolean,
+  receiverIsPlayer: boolean
+): InbreedingRisk {
+  if (
+    giverIsPlayer &&
+    receiverCreature &&
+    (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
+  ) {
+    return "parent_child";
+  }
+
+  if (
+    receiverIsPlayer &&
+    giverCreature &&
+    (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
+  ) {
+    return "parent_child";
+  }
+
+  if (!giverCreature || !receiverCreature) {
+    return "none";
+  }
+
+  const isParentChild =
+    giverCreature.id === receiverCreature.giverId ||
+    giverCreature.id === receiverCreature.receiverId ||
+    receiverCreature.id === giverCreature.giverId ||
+    receiverCreature.id === giverCreature.receiverId;
+
+  if (isParentChild) {
+    return "parent_child";
+  }
+
+  const sameGiverSide =
+    (giverCreature.giverId !== null &&
+      giverCreature.giverId === receiverCreature.giverId) ||
+    (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
+
+  const sameReceiverSide =
+    (giverCreature.receiverId !== null &&
+      giverCreature.receiverId === receiverCreature.receiverId) ||
+    (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+
+  if (sameGiverSide && sameReceiverSide) {
+    return "full_sibling";
+  }
+
+  if (sameGiverSide || sameReceiverSide) {
+    return "half_sibling";
+  }
+
+  return "none";
+}
+
+function createInheritedStats(
+  baseStats: CreatureStats,
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null
+): CreatureStats {
+  const parentStats = [giverCreature?.stats, receiverCreature?.stats].filter(
+    Boolean
+  ) as CreatureStats[];
+
+  if (parentStats.length === 0) {
+    return {
+      strength: Math.max(1, baseStats.strength + rollStatVariation()),
+      endurance: Math.max(1, baseStats.endurance + rollStatVariation()),
+      intelligence: Math.max(1, baseStats.intelligence + rollStatVariation()),
+      speed: Math.max(1, baseStats.speed + rollStatVariation()),
+      fertility: Math.max(1, baseStats.fertility + rollStatVariation()),
+      vitality: Math.max(1, baseStats.vitality + rollStatVariation()),
+    };
+  }
+
+  return {
+    strength: Math.max(
+      1,
+      Math.round(
+        (baseStats.strength + average(parentStats.map((p) => p.strength))) / 2
+      ) + rollStatVariation()
+    ),
+    endurance: Math.max(
+      1,
+      Math.round(
+        (baseStats.endurance + average(parentStats.map((p) => p.endurance))) / 2
+      ) + rollStatVariation()
+    ),
+    intelligence: Math.max(
+      1,
+      Math.round(
+        (baseStats.intelligence +
+          average(parentStats.map((p) => p.intelligence))) /
+          2
+      ) + rollStatVariation()
+    ),
+    speed: Math.max(
+      1,
+      Math.round(
+        (baseStats.speed + average(parentStats.map((p) => p.speed))) / 2
+      ) + rollStatVariation()
+    ),
+    fertility: Math.max(
+      1,
+      Math.round(
+        (baseStats.fertility + average(parentStats.map((p) => p.fertility))) / 2
+      ) + rollStatVariation()
+    ),
+    vitality: Math.max(
+      1,
+      Math.round(
+        (baseStats.vitality + average(parentStats.map((p) => p.vitality))) / 2
+      ) + rollStatVariation()
+    ),
+  };
+}
+
+function applyInbreedingPenalty(
+  stats: CreatureStats,
+  risk: InbreedingRisk
+): {
+  stats: CreatureStats;
+  inbredTrait: InbredTrait;
+  inbredTraitSeverity: InbredTraitSeverity;
+} {
+  if (risk === "none") {
+    return {
+      stats,
+      inbredTrait: "none",
+      inbredTraitSeverity: "none",
+    };
+  }
+
+  const inbredTrait = randomFrom(INBRED_TRAITS);
+  const penalty = risk === "half_sibling" ? 1 : 2;
+  const severity: InbredTraitSeverity =
+    risk === "half_sibling" ? "mild" : "severe";
+
+  const adjustedStats = { ...stats };
+
+  if (inbredTrait === "weak") {
+    adjustedStats.strength = Math.max(1, adjustedStats.strength - penalty);
+  }
+
+  if (inbredTrait === "frail") {
+    adjustedStats.endurance = Math.max(1, adjustedStats.endurance - penalty);
+    adjustedStats.vitality = Math.max(1, adjustedStats.vitality - 1);
+  }
+
+  if (inbredTrait === "dull") {
+    adjustedStats.intelligence = Math.max(
+      1,
+      adjustedStats.intelligence - penalty
     );
   }
 
-  function isFullSibling() {
-    if (!giverCreature || !receiverCreature) return false;
-
-    const sameGiverSide =
-      (giverCreature.giverId !== null &&
-        giverCreature.giverId === receiverCreature.giverId) ||
-      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
-
-    const sameReceiverSide =
-      (giverCreature.receiverId !== null &&
-        giverCreature.receiverId === receiverCreature.receiverId) ||
-      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
-
-    return sameGiverSide && sameReceiverSide;
+  if (inbredTrait === "slow") {
+    adjustedStats.speed = Math.max(1, adjustedStats.speed - penalty);
   }
 
-  function isHalfSibling() {
-    if (!giverCreature || !receiverCreature) return false;
-    if (isParentChild() || isFullSibling()) return false;
+  return {
+    stats: adjustedStats,
+    inbredTrait,
+    inbredTraitSeverity: severity,
+  };
+}
 
-    const sameGiverSide =
-      (giverCreature.giverId !== null &&
-        giverCreature.giverId === receiverCreature.giverId) ||
-      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
+function createCreatureFromTemplate(
+  template: Creature,
+  giver: string,
+  receiver: string,
+  giverId: number | null,
+  receiverId: number | null,
+  giverIsPlayer: boolean,
+  receiverIsPlayer: boolean,
+  currentDay: number,
+  generation: number,
+  inbreedingRisk: InbreedingRisk,
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null
+): Creature {
+  const inheritedStats = createInheritedStats(
+    template.stats,
+    giverCreature,
+    receiverCreature
+  );
 
-    const sameReceiverSide =
-      (giverCreature.receiverId !== null &&
-        giverCreature.receiverId === receiverCreature.receiverId) ||
-      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+  const penaltyResult = applyInbreedingPenalty(inheritedStats, inbreedingRisk);
 
-    return sameGiverSide || sameReceiverSide;
+  const maxBreedingStamina = getMaxBreedingStaminaFromStats(
+    penaltyResult.stats
+  );
+  const dailyBreedingLimit = getDailyBreedingLimitFromStats(
+    penaltyResult.stats
+  );
+
+  return {
+    ...template,
+    id: Date.now() + Math.floor(Math.random() * 100000),
+    nickname: generateNickname(template.name),
+    level: 1,
+    xp: 0,
+    xpToNextLevel: getXpToNextLevel(1),
+    stats: penaltyResult.stats,
+    breedingStamina: maxBreedingStamina,
+    maxBreedingStamina,
+    breedingsToday: 0,
+    dailyBreedingLimit,
+    giver,
+    receiver,
+    giverId,
+    receiverId,
+    giverIsPlayer,
+    receiverIsPlayer,
+    bornOnDay: currentDay,
+    generation,
+    inbreedingRisk,
+    inbredTrait: penaltyResult.inbredTrait,
+    inbredTraitSeverity: penaltyResult.inbredTraitSeverity,
+  };
+}
+
+function normalizeCreature(creature: Creature): Creature {
+  const normalizedStats = {
+    strength: creature.stats?.strength ?? 1,
+    endurance: creature.stats?.endurance ?? 1,
+    intelligence: creature.stats?.intelligence ?? 1,
+    speed: creature.stats?.speed ?? 1,
+    fertility: creature.stats?.fertility ?? 5,
+    vitality: creature.stats?.vitality ?? 5,
+  };
+
+  const maxBreedingStamina =
+    creature.maxBreedingStamina ??
+    getMaxBreedingStaminaFromStats(normalizedStats);
+
+  const dailyBreedingLimit =
+    creature.dailyBreedingLimit ??
+    getDailyBreedingLimitFromStats(normalizedStats);
+
+  return {
+    ...creature,
+    level: creature.level ?? 1,
+    xp: creature.xp ?? 0,
+    xpToNextLevel: creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
+    stats: normalizedStats,
+    breedingStamina: creature.breedingStamina ?? maxBreedingStamina,
+    maxBreedingStamina,
+    breedingsToday: creature.breedingsToday ?? 0,
+    dailyBreedingLimit,
+    inbreedingRisk: creature.inbreedingRisk ?? "none",
+    inbredTrait: creature.inbredTrait ?? "none",
+    inbredTraitSeverity: creature.inbredTraitSeverity ?? "none",
+  };
+}
+
+function normalizeEgg(egg: Egg): Egg {
+  return {
+    ...egg,
+    inbreedingRisk: egg.inbreedingRisk ?? "none",
+  };
+}
+
+function createTownSellerCreature(
+  template: Creature,
+  currentDay: number
+): Creature {
+  const stats = {
+    strength: Math.max(1, template.stats.strength + rollStatVariation()),
+    endurance: Math.max(1, template.stats.endurance + rollStatVariation()),
+    intelligence: Math.max(1, template.stats.intelligence + rollStatVariation()),
+    speed: Math.max(1, template.stats.speed + rollStatVariation()),
+    fertility: Math.max(1, template.stats.fertility + rollStatVariation()),
+    vitality: Math.max(1, template.stats.vitality + rollStatVariation()),
+  };
+
+  const maxBreedingStamina = getMaxBreedingStaminaFromStats(stats);
+  const dailyBreedingLimit = getDailyBreedingLimitFromStats(stats);
+
+  return {
+    ...template,
+    id: Date.now() + Math.floor(Math.random() * 100000),
+    nickname: generateNickname(template.name),
+    level: 1 + Math.floor(Math.random() * 3),
+    xp: 0,
+    xpToNextLevel: getXpToNextLevel(1),
+    stats,
+    breedingStamina: maxBreedingStamina,
+    maxBreedingStamina,
+    breedingsToday: 0,
+    dailyBreedingLimit,
+    giver: null,
+    receiver: null,
+    giverId: null,
+    receiverId: null,
+    giverIsPlayer: false,
+    receiverIsPlayer: false,
+    bornOnDay: currentDay,
+    generation: 1,
+    inbreedingRisk: "none",
+    inbredTrait: "none",
+    inbredTraitSeverity: "none",
+  };
+}
+
+function generateTownStock(currentDay: number): TownStockEntry[] {
+  const templates = [horseTemplate, catTemplate];
+
+  return Array.from({ length: 3 }).map((_, index) => {
+    const template = randomFrom(templates);
+    const creature = createTownSellerCreature(template, currentDay);
+    const statTotal =
+      creature.stats.strength +
+      creature.stats.endurance +
+      creature.stats.intelligence +
+      creature.stats.speed +
+      creature.stats.fertility +
+      creature.stats.vitality;
+
+    return {
+      id: currentDay * 100 + index + 1,
+      creature,
+      price: 80 + statTotal * 3,
+    };
+  });
+}
+
+function generateTownQuests(currentDay: number): TownQuest[] {
+  return Array.from({ length: 10 }).map((_, index) =>
+    createSingleTownQuest(currentDay, currentDay * 1000 + index + 1)
+  );
+}
+
+function createSingleTownQuest(
+  currentDay: number,
+  questIdSeed: number
+): TownQuest {
+  const questTemplates = [
+    {
+      title: "Stable Delivery",
+      description: "Submit a sturdy Horse with strong endurance.",
+      rewardGold: 140,
+      rewardXp: 30,
+      deadlineOffsetDays: 2,
+      deadlineHour: 18,
+      deadlineMinute: 0,
+      requirement: {
+        species: "Horse",
+        minimumLevel: 1,
+        minimumStats: {
+          endurance: 8,
+        },
+      },
+    },
+    {
+      title: "Household Companion",
+      description: "Submit a quick Cat with sharp intelligence.",
+      rewardGold: 145,
+      rewardXp: 30,
+      deadlineOffsetDays: 2,
+      deadlineHour: 20,
+      deadlineMinute: 0,
+      requirement: {
+        species: "Cat",
+        minimumLevel: 1,
+        minimumStats: {
+          intelligence: 8,
+          speed: 7,
+        },
+      },
+    },
+    {
+      title: "Healthy Bloodline",
+      description:
+        "Submit any creature with no inbreeding risk and solid vitality.",
+      rewardGold: 175,
+      rewardXp: 35,
+      deadlineOffsetDays: 3,
+      deadlineHour: 12,
+      deadlineMinute: 0,
+      requirement: {
+        species: "any",
+        minimumLevel: 2,
+        minimumStats: {
+          vitality: 7,
+        },
+      },
+    },
+    {
+      title: "Swift Courier",
+      description: "Submit a fast creature suited for urgent deliveries.",
+      rewardGold: 155,
+      rewardXp: 30,
+      deadlineOffsetDays: 2,
+      deadlineHour: 16,
+      deadlineMinute: 0,
+      requirement: {
+        species: "any",
+        minimumLevel: 1,
+        minimumStats: {
+          speed: 8,
+        },
+      },
+    },
+    {
+      title: "Fertile Prospect",
+      description: "Submit a breeding candidate with strong fertility.",
+      rewardGold: 165,
+      rewardXp: 35,
+      deadlineOffsetDays: 3,
+      deadlineHour: 14,
+      deadlineMinute: 0,
+      requirement: {
+        species: "any",
+        minimumLevel: 2,
+        minimumStats: {
+          fertility: 8,
+        },
+      },
+    },
+  ] as const;
+
+  const template = randomFrom(questTemplates);
+
+  return {
+    id: questIdSeed,
+    title: template.title,
+    description: template.description,
+    rewardGold: template.rewardGold,
+    rewardXp: template.rewardXp,
+    deadlineDay: currentDay + template.deadlineOffsetDays,
+    deadlineHour: template.deadlineHour,
+    deadlineMinute: template.deadlineMinute,
+    requirement: {
+      species: template.requirement.species,
+      minimumLevel: template.requirement.minimumLevel,
+      minimumStats: { ...template.requirement.minimumStats },
+    },
+    completed: false,
+  };
+}
+
+function ensureQuestBoardSize(
+  quests: TownQuest[],
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number,
+  desiredCount = 10
+): TownQuest[] {
+  const activeQuests = quests.filter(
+    (quest) =>
+      !quest.completed &&
+      !isQuestExpired(quest, currentDay, currentHour, currentMinute)
+  );
+
+  let nextIdSeed =
+    activeQuests.length > 0
+      ? Math.max(...activeQuests.map((quest) => quest.id)) + 1
+      : currentDay * 1000 + 1;
+
+  const nextQuests = [...activeQuests];
+
+  while (nextQuests.length < desiredCount) {
+    nextQuests.push(createSingleTownQuest(currentDay, nextIdSeed));
+    nextIdSeed += 1;
   }
 
-  function getBreedingMinutes() {
-    const speeds = [giverCreature?.stats.speed, receiverCreature?.stats.speed]
-      .filter((value): value is number => typeof value === "number");
+  return nextQuests.slice(0, desiredCount);
+}
 
-    if (speeds.length === 0) return 120;
+function applyTownActionTimeCost(
+  day: number,
+  hour: number,
+  minute: number,
+  minutesToAdd: number
+) {
+  return addMinutesToClock(day, hour, minute, minutesToAdd);
+}
 
-    const avgSpeed =
-      speeds.reduce((sum, value) => sum + value, 0) / speeds.length;
-
-    return Math.max(30, 120 - Math.round(avgSpeed * 6));
+function applyIntelligenceRiskMitigation(
+  baseRisk: InbreedingRisk,
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null
+): InbreedingRisk {
+  if (baseRisk === "none") {
+    return "none";
   }
 
-  function getCreatureStaminaCost(creatureId: number | null) {
-    if (!creatureId) return null;
-    const creature = creatures.find((c) => c.id === creatureId);
-    if (!creature) return null;
-    return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
+  const intelligenceValues = [
+    giverCreature?.stats.intelligence,
+    receiverCreature?.stats.intelligence,
+  ].filter((value): value is number => typeof value === "number");
+
+  if (intelligenceValues.length === 0) {
+    return baseRisk;
   }
 
-  const parentChildWarning = isParentChild();
-  const fullSiblingWarning = isFullSibling();
-  const halfSiblingWarning = isHalfSibling();
+  const avgIntelligence = average(intelligenceValues);
 
-  const hasValidSelection =
-    (breedingSelection.giverType === "player" ||
-      breedingSelection.giverCreatureId !== null) &&
-    (breedingSelection.receiverType === "player" ||
-      breedingSelection.receiverCreatureId !== null) &&
-    !sameCreatureSelected;
-
-  const giverCreatureReady =
-    !giverCreature ||
-    (giverCreature.breedingsToday < giverCreature.dailyBreedingLimit &&
-      giverCreature.breedingStamina >=
-        Math.max(8, 22 - Math.floor(giverCreature.stats.endurance / 2)));
-
-  const receiverCreatureReady =
-    !receiverCreature ||
-    (receiverCreature.breedingsToday < receiverCreature.dailyBreedingLimit &&
-      receiverCreature.breedingStamina >=
-        Math.max(8, 22 - Math.floor(receiverCreature.stats.endurance / 2)));
-
-  const canBreed =
-    canAffordBreed && hasValidSelection && giverCreatureReady && receiverCreatureReady;
-
-  const playerIsReceiver = breedingSelection.receiverType === "player";
-
-  function getCreatureImage(name: string) {
-    if (name === "Horse") return "/images/horse.png";
-    if (name === "Cat") return "/images/cat.png";
-    return "/images/egg.png";
+  if (baseRisk === "half_sibling") {
+    const mitigationChance = Math.min(0.45, Math.max(0, (avgIntelligence - 6) * 0.05));
+    if (Math.random() < mitigationChance) {
+      return "none";
+    }
   }
 
-  function formatTime(hour: number, minute: number) {
-    const suffix = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    const displayMinute = minute.toString().padStart(2, "0");
-    return `${displayHour}:${displayMinute} ${suffix}`;
+  if (baseRisk === "parent_child" || baseRisk === "full_sibling") {
+    const downgradeChance = Math.min(0.35, Math.max(0, (avgIntelligence - 7) * 0.04));
+    if (Math.random() < downgradeChance) {
+      return "half_sibling";
+    }
+  }
+
+  return baseRisk;
+}
+
+function getBreedingSessionMinutes(
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null
+): number {
+  const speedValues = [giverCreature?.stats.speed, receiverCreature?.stats.speed]
+    .filter((value): value is number => typeof value === "number");
+
+  if (speedValues.length === 0) {
+    return 120;
+  }
+
+  const avgSpeed = average(speedValues);
+  return Math.max(30, 120 - Math.round(avgSpeed * 6));
+}
+
+function getBreedingStaminaCost(creature: Creature): number {
+  return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
+}
+
+function addMinutesToClock(
+  day: number,
+  hour: number,
+  minute: number,
+  minutesToAdd: number
+) {
+  let totalMinutes = hour * 60 + minute + minutesToAdd;
+  let newDay = day;
+
+  while (totalMinutes >= 24 * 60) {
+    totalMinutes -= 24 * 60;
+    newDay += 1;
+  }
+
+  return {
+    day: newDay,
+    hour: Math.floor(totalMinutes / 60),
+    minute: totalMinutes % 60,
+  };
+}
+
+function applyXpGain(creature: Creature, xpGain: number): Creature {
+  let updatedCreature = {
+    ...creature,
+    xp: creature.xp + xpGain,
+  };
+
+  while (updatedCreature.xp >= updatedCreature.xpToNextLevel) {
+    updatedCreature = {
+      ...updatedCreature,
+      xp: updatedCreature.xp - updatedCreature.xpToNextLevel,
+      level: updatedCreature.level + 1,
+      xpToNextLevel: getXpToNextLevel(updatedCreature.level + 1),
+      stats: {
+        strength:
+          updatedCreature.stats.strength +
+          (updatedCreature.level % 2 === 0 ? 1 : 0),
+        endurance: updatedCreature.stats.endurance + 1,
+        intelligence:
+          updatedCreature.stats.intelligence +
+          (updatedCreature.level % 3 === 0 ? 1 : 0),
+        speed:
+          updatedCreature.stats.speed +
+          (updatedCreature.level % 2 !== 0 ? 1 : 0),
+        fertility:
+          updatedCreature.stats.fertility +
+          (updatedCreature.level % 3 === 0 ? 1 : 0),
+        vitality: updatedCreature.stats.vitality + 1,
+      },
+    };
+
+    const recalculatedMaxStamina = getMaxBreedingStaminaFromStats(
+      updatedCreature.stats
+    );
+    const recalculatedDailyLimit = getDailyBreedingLimitFromStats(
+      updatedCreature.stats
+    );
+
+    updatedCreature = {
+      ...updatedCreature,
+      maxBreedingStamina: recalculatedMaxStamina,
+      breedingStamina: Math.min(
+        recalculatedMaxStamina,
+        updatedCreature.breedingStamina + 6
+      ),
+      dailyBreedingLimit: recalculatedDailyLimit,
+    };
+  }
+
+  return updatedCreature;
+}
+
+function isQuestExpired(
+  quest: TownQuest,
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number
+) {
+  if (currentDay > quest.deadlineDay) return true;
+  if (currentDay < quest.deadlineDay) return false;
+  if (currentHour > quest.deadlineHour) return true;
+  if (currentHour < quest.deadlineHour) return false;
+  return currentMinute > quest.deadlineMinute;
+}
+
+function doesCreatureMeetQuest(
+  creature: Creature,
+  quest: TownQuest
+): boolean {
+  if (
+    quest.requirement.species !== "any" &&
+    creature.name !== quest.requirement.species
+  ) {
+    return false;
+  }
+
+  if (creature.level < quest.requirement.minimumLevel) {
+    return false;
+  }
+
+  const minimumStats = quest.requirement.minimumStats;
+
+  if (
+    minimumStats.strength !== undefined &&
+    creature.stats.strength < minimumStats.strength
+  ) {
+    return false;
+  }
+
+  if (
+    minimumStats.endurance !== undefined &&
+    creature.stats.endurance < minimumStats.endurance
+  ) {
+    return false;
+  }
+
+  if (
+    minimumStats.intelligence !== undefined &&
+    creature.stats.intelligence < minimumStats.intelligence
+  ) {
+    return false;
+  }
+
+  if (
+    minimumStats.speed !== undefined &&
+    creature.stats.speed < minimumStats.speed
+  ) {
+    return false;
+  }
+
+  if (
+    minimumStats.fertility !== undefined &&
+    creature.stats.fertility < minimumStats.fertility
+  ) {
+    return false;
+  }
+
+  if (
+    minimumStats.vitality !== undefined &&
+    creature.stats.vitality < minimumStats.vitality
+  ) {
+    return false;
+  }
+
+  if (
+    quest.title === "Healthy Bloodline" &&
+    creature.inbreedingRisk !== "none"
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+const defaultPlayerData: PlayerData = {
+  name: "Player",
+  gold: 500,
+  energy: 100,
+};
+
+const defaultCreatures: Creature[] = [
+  normalizeCreature({
+    ...horseTemplate,
+    id: 1,
+    nickname: "Starter Horse",
+  }),
+  normalizeCreature({
+    ...catTemplate,
+    id: 2,
+    nickname: "Starter Cat",
+  }),
+];
+
+const defaultBreedingSelection: BreedingSelection = {
+  giverType: "creature",
+  giverCreatureId: 1,
+  receiverType: "creature",
+  receiverCreatureId: 2,
+};
+
+const defaultEggs: Egg[] = [
+  {
+    id: 1,
+    name: "Test Egg",
+    parents: "Starter Horse + Starter Cat",
+    hatchDaysRemaining: 3,
+    giver: "Horse",
+    receiver: "Cat",
+    giverId: 1,
+    receiverId: 2,
+    giverIsPlayer: false,
+    receiverIsPlayer: false,
+    inbreedingRisk: "none",
+  },
+];
+
+const defaultSaveData: SaveData = {
+  currentDay: 1,
+  currentHour: 8,
+  currentMinute: 0,
+  playerData: defaultPlayerData,
+  creatures: defaultCreatures,
+  eggs: defaultEggs,
+  breedingSelection: defaultBreedingSelection,
+  townStock: generateTownStock(1),
+  townQuests: generateTownQuests(1),
+};
+
+const STORAGE_KEY = "creature-chronicles-save";
+
+export function GameProvider({ children }: { children: ReactNode }) {
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  const [currentDay, setCurrentDay] = useState(defaultSaveData.currentDay);
+  const [currentHour, setCurrentHour] = useState(defaultSaveData.currentHour);
+  const [currentMinute, setCurrentMinute] = useState(defaultSaveData.currentMinute);
+  const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
+  const [creatures, setCreatures] = useState(defaultSaveData.creatures);
+  const [eggs, setEggs] = useState(defaultSaveData.eggs);
+  const [breedingSelection, setBreedingSelection] = useState(
+    defaultSaveData.breedingSelection
+  );
+  const [townStock, setTownStock] = useState(defaultSaveData.townStock);
+  const [townQuests, setTownQuests] = useState(defaultSaveData.townQuests);
+
+  useEffect(() => {
+    const savedGame = localStorage.getItem(STORAGE_KEY);
+
+    if (savedGame) {
+      try {
+        const parsedSave: SaveData = JSON.parse(savedGame);
+
+        setCurrentDay(parsedSave.currentDay);
+        setCurrentHour(parsedSave.currentHour ?? 8);
+        setCurrentMinute(parsedSave.currentMinute ?? 0);
+        setPlayerData(parsedSave.playerData);
+        setCreatures(parsedSave.creatures.map(normalizeCreature));
+        setEggs(parsedSave.eggs.map(normalizeEgg));
+        setBreedingSelection(parsedSave.breedingSelection);
+        setTownStock(
+          parsedSave.townStock?.map((entry) => ({
+            ...entry,
+            creature: normalizeCreature(entry.creature),
+          })) ?? generateTownStock(parsedSave.currentDay ?? 1)
+        );
+                setTownQuests(
+        ensureQuestBoardSize(
+            parsedSave.townQuests ?? generateTownQuests(parsedSave.currentDay ?? 1),
+            parsedSave.currentDay ?? 1,
+            parsedSave.currentHour ?? 8,
+            parsedSave.currentMinute ?? 0,
+            10
+        )
+        );
+      } catch (error) {
+        console.error("Failed to load save data:", error);
+      }
+    }
+
+    setHasLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoaded) return;
+
+    const saveData: SaveData = {
+      currentDay,
+      currentHour,
+      currentMinute,
+      playerData,
+      creatures,
+      eggs,
+      breedingSelection,
+      townStock,
+      townQuests,
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+  }, [
+    hasLoaded,
+    currentDay,
+    currentHour,
+    currentMinute,
+    playerData,
+    creatures,
+    eggs,
+    breedingSelection,
+    townStock,
+    townQuests,
+  ]);
+
+  function nextDay() {
+    const newDay = currentDay + 1;
+
+    setCurrentDay(newDay);
+    setCurrentHour(8);
+    setCurrentMinute(0);
+
+    setEggs((prevEggs) =>
+      prevEggs.map((egg) => ({
+        ...egg,
+        hatchDaysRemaining:
+          egg.hatchDaysRemaining > 0 ? egg.hatchDaysRemaining - 1 : 0,
+      }))
+    );
+
+    setCreatures((prevCreatures) =>
+      prevCreatures.map((creature) => ({
+        ...creature,
+        breedingStamina: creature.maxBreedingStamina,
+        breedingsToday: 0,
+      }))
+    );
+
+    setPlayerData((prev) => ({
+      ...prev,
+      energy: Math.min(100, prev.energy + 25),
+    }));
+
+    setTownStock(generateTownStock(newDay));
+    setTownQuests((prev) =>
+    ensureQuestBoardSize(prev, newDay, 8, 0, 10)
+    );
+  }
+
+  function hatchEgg(eggId: number): Creature | null {
+    const eggToHatch = eggs.find((egg) => egg.id === eggId);
+
+    if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) {
+      return null;
+    }
+
+    let childSpeciesName = "Cat";
+
+    if (eggToHatch.giver === "Player") {
+      childSpeciesName = eggToHatch.receiver;
+    } else {
+      childSpeciesName =
+        Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
+    }
+
+    const template = getCreatureTemplateByName(childSpeciesName);
+
+    if (!template) {
+      return null;
+    }
+
+    const giverCreature = eggToHatch.giverId
+      ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null
+      : null;
+
+    const receiverCreature = eggToHatch.receiverId
+      ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null
+      : null;
+
+    const parentGenerations = [
+      giverCreature?.generation ?? 1,
+      receiverCreature?.generation ?? 1,
+    ];
+
+    const childGeneration = Math.max(...parentGenerations) + 1;
+
+    const inbreedingRisk =
+      eggToHatch.inbreedingRisk ??
+      calculateInbreedingRisk(
+        giverCreature,
+        receiverCreature,
+        eggToHatch.giverIsPlayer,
+        eggToHatch.receiverIsPlayer
+      );
+
+    const newCreature = createCreatureFromTemplate(
+      template,
+      eggToHatch.giver,
+      eggToHatch.receiver,
+      eggToHatch.giverId,
+      eggToHatch.receiverId,
+      eggToHatch.giverIsPlayer,
+      eggToHatch.receiverIsPlayer,
+      currentDay,
+      childGeneration,
+      inbreedingRisk,
+      giverCreature,
+      receiverCreature
+    );
+
+    setCreatures((prev) => [...prev, newCreature]);
+    setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
+
+    return newCreature;
+  }
+
+  function breedCreatures() {
+    const energyCost = 8;
+
+    if (playerData.energy < energyCost) {
+      return;
+    }
+
+    const giverIsPlayer = breedingSelection.giverType === "player";
+    const receiverIsPlayer = breedingSelection.receiverType === "player";
+
+    const giverCreature = breedingSelection.giverCreatureId
+      ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
+      : null;
+
+    const receiverCreature = breedingSelection.receiverCreatureId
+      ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
+      : null;
+
+    const giverLabel = giverIsPlayer
+      ? playerData.name
+      : giverCreature?.nickname ?? "";
+    const receiverLabel = receiverIsPlayer
+      ? playerData.name
+      : receiverCreature?.nickname ?? "";
+
+    const giverSpecies = giverIsPlayer ? "Player" : giverCreature?.name ?? "";
+    const receiverSpecies = receiverIsPlayer
+      ? "Player"
+      : receiverCreature?.name ?? "";
+
+    if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) {
+      return;
+    }
+
+    if (
+      !giverIsPlayer &&
+      !receiverIsPlayer &&
+      giverCreature &&
+      receiverCreature &&
+      giverCreature.id === receiverCreature.id
+    ) {
+      return;
+    }
+
+    if (giverCreature) {
+      if (
+        giverCreature.breedingsToday >= giverCreature.dailyBreedingLimit ||
+        giverCreature.breedingStamina < getBreedingStaminaCost(giverCreature)
+      ) {
+        return;
+      }
+    }
+
+    if (receiverCreature) {
+      if (
+        receiverCreature.breedingsToday >= receiverCreature.dailyBreedingLimit ||
+        receiverCreature.breedingStamina < getBreedingStaminaCost(receiverCreature)
+      ) {
+        return;
+      }
+    }
+
+    const baseInbreedingRisk = calculateInbreedingRisk(
+    giverCreature,
+    receiverCreature,
+    giverIsPlayer,
+    receiverIsPlayer
+    );
+
+    const inbreedingRisk = applyIntelligenceRiskMitigation(
+    baseInbreedingRisk,
+    giverCreature,
+    receiverCreature
+    );
+
+    const minutesSpent = getBreedingSessionMinutes(giverCreature, receiverCreature);
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setPlayerData((prev) => ({
+      ...prev,
+      energy: prev.energy - energyCost,
+    }));
+
+    setCreatures((prev) =>
+      prev.map((creature) => {
+        if (giverCreature && creature.id === giverCreature.id) {
+          return applyXpGain(
+            {
+              ...creature,
+              breedingStamina:
+                creature.breedingStamina - getBreedingStaminaCost(creature),
+              breedingsToday: creature.breedingsToday + 1,
+            },
+            18
+          );
+        }
+
+        if (receiverCreature && creature.id === receiverCreature.id) {
+          return applyXpGain(
+            {
+              ...creature,
+              breedingStamina:
+                creature.breedingStamina - getBreedingStaminaCost(creature),
+              breedingsToday: creature.breedingsToday + 1,
+            },
+            18
+          );
+        }
+
+        return creature;
+      })
+    );
+
+    if (receiverIsPlayer) {
+      return;
+    }
+
+    const newEgg: Egg = {
+      id: Date.now(),
+      name: `${giverLabel} x ${receiverLabel} Egg`,
+      parents: `${giverLabel} + ${receiverLabel}`,
+      hatchDaysRemaining: 3,
+      giver: giverSpecies,
+      receiver: receiverSpecies,
+      giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
+      receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
+      giverIsPlayer,
+      receiverIsPlayer,
+      inbreedingRisk,
+    };
+
+    setEggs((prev) => [...prev, newEgg]);
+  }
+
+  function renameCreature(creatureId: number, newNickname: string) {
+    const trimmedName = newNickname.trim();
+    if (!trimmedName) return;
+
+    setCreatures((prev) =>
+      prev.map((creature) =>
+        creature.id === creatureId
+          ? { ...creature, nickname: trimmedName }
+          : creature
+      )
+    );
+  }
+
+  function renamePlayer(newName: string) {
+    const trimmedName = newName.trim();
+    if (!trimmedName) return;
+
+    setPlayerData((prev) => ({
+      ...prev,
+      name: trimmedName,
+    }));
+  }
+
+    function purchaseTownCreature(stockEntryId: number) {
+    const entry = townStock.find((item) => item.id === stockEntryId);
+    if (!entry) return;
+    if (playerData.gold < entry.price) return;
+
+    const updatedClock = applyTownActionTimeCost(
+        currentDay,
+        currentHour,
+        currentMinute,
+        20
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setPlayerData((prev) => ({
+        ...prev,
+        gold: prev.gold - entry.price,
+    }));
+
+    setCreatures((prev) => [...prev, entry.creature]);
+    setTownStock((prev) => prev.filter((item) => item.id !== stockEntryId));
+
+    setTownQuests((prev) =>
+        ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+        )
+    );
+    }
+
+    function submitCreatureToQuest(questId: number, creatureId: number) {
+    const quest = townQuests.find((item) => item.id === questId);
+    const creature = creatures.find((item) => item.id === creatureId);
+
+    if (!quest || !creature || quest.completed) return;
+    if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) return;
+    if (!doesCreatureMeetQuest(creature, quest)) return;
+
+    const updatedClock = applyTownActionTimeCost(
+        currentDay,
+        currentHour,
+        currentMinute,
+        30
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setCreatures((prev) => prev.filter((item) => item.id !== creatureId));
+
+    setPlayerData((prev) => ({
+        ...prev,
+        gold: prev.gold + quest.rewardGold,
+    }));
+
+    setTownQuests((prev) => {
+        const completedSet = prev.map((item) =>
+        item.id === questId ? { ...item, completed: true } : item
+        );
+
+        return ensureQuestBoardSize(
+        completedSet,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+        );
+    });
+    }
+
+  function resetGame() {
+    const freshHorse = normalizeCreature({
+      ...horseTemplate,
+      id: 1,
+      nickname: generateNickname("Horse"),
+      inbreedingRisk: "none",
+      inbredTrait: "none",
+      inbredTraitSeverity: "none",
+    });
+
+    const freshCat = normalizeCreature({
+      ...catTemplate,
+      id: 2,
+      nickname: generateNickname("Cat"),
+      inbreedingRisk: "none",
+      inbredTrait: "none",
+      inbredTraitSeverity: "none",
+    });
+
+    setCurrentDay(1);
+    setCurrentHour(8);
+    setCurrentMinute(0);
+    setPlayerData(defaultPlayerData);
+    setCreatures([freshHorse, freshCat]);
+    setEggs([
+      {
+        id: 1,
+        name: `${freshHorse.nickname} x ${freshCat.nickname} Egg`,
+        parents: `${freshHorse.nickname} + ${freshCat.nickname}`,
+        hatchDaysRemaining: 3,
+        giver: "Horse",
+        receiver: "Cat",
+        giverId: freshHorse.id,
+        receiverId: freshCat.id,
+        giverIsPlayer: false,
+        receiverIsPlayer: false,
+        inbreedingRisk: "none",
+      },
+    ]);
+    setBreedingSelection({
+      giverType: "creature",
+      giverCreatureId: freshHorse.id,
+      receiverType: "creature",
+      receiverCreatureId: freshCat.id,
+    });
+    setTownStock(generateTownStock(1));
+    setTownQuests(generateTownQuests(1));
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-pink-100 to-rose-200 p-6">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="mb-6 text-4xl font-bold text-rose-900">💞 Breeding</h1>
-
-        <div className="mb-4 rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
-          <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
-          <p><strong>Player Energy:</strong> {playerData.energy}</p>
-          <p><strong>Session Time Cost:</strong> {getBreedingMinutes()} minutes</p>
-          <p><strong>Gold Cost:</strong> None</p>
-        </div>
-
-        <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
-          <div className="mb-6">
-            <h2 className="mb-3 text-2xl font-bold text-rose-950">Choose Giver</h2>
-
-            <div className="mb-4">
-              <button
-                onClick={() =>
-                  setBreedingSelection({
-                    ...breedingSelection,
-                    giverType: "player",
-                    giverCreatureId: null,
-                  })
-                }
-                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
-                  breedingSelection.giverType === "player"
-                    ? "border-rose-700 bg-rose-100"
-                    : "border-rose-200 bg-white hover:border-rose-400"
-                }`}
-              >
-                <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                  <Image
-                    src="/images/player.png"
-                    alt="Player"
-                    width={300}
-                    height={300}
-                    className="max-h-full w-auto object-contain"
-                  />
-                </div>
-                <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
-                <p className="text-sm text-stone-600">Player</p>
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {creatures.map((creature) => {
-                const isSelected =
-                  breedingSelection.giverType === "creature" &&
-                  breedingSelection.giverCreatureId === creature.id;
-
-                return (
-                  <button
-                    key={creature.id}
-                    onClick={() =>
-                      setBreedingSelection({
-                        ...breedingSelection,
-                        giverType: "creature",
-                        giverCreatureId: creature.id,
-                      })
-                    }
-                    className={`rounded-3xl border-4 p-4 text-left shadow transition ${
-                      isSelected
-                        ? "border-rose-700 bg-rose-100"
-                        : "border-rose-200 bg-white hover:border-rose-400"
-                    }`}
-                  >
-                    <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                      <Image
-                        src={getCreatureImage(creature.name)}
-                        alt={creature.name}
-                        width={300}
-                        height={300}
-                        className="max-h-full w-auto object-contain"
-                      />
-                    </div>
-                    <p className="text-xl font-bold text-stone-900">
-                      {creature.nickname}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
-                    </p>
-                    <p className="text-xs text-stone-500">
-                      Cost: {getCreatureStaminaCost(creature.id)} stamina
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h2 className="mb-3 text-2xl font-bold text-rose-950">
-              Choose Receiver
-            </h2>
-
-            <div className="mb-4">
-              <button
-                onClick={() =>
-                  setBreedingSelection({
-                    ...breedingSelection,
-                    receiverType: "player",
-                    receiverCreatureId: null,
-                  })
-                }
-                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
-                  breedingSelection.receiverType === "player"
-                    ? "border-rose-700 bg-rose-100"
-                    : "border-rose-200 bg-white hover:border-rose-400"
-                }`}
-              >
-                <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                  <Image
-                    src="/images/player.png"
-                    alt="Player"
-                    width={300}
-                    height={300}
-                    className="max-h-full w-auto object-contain"
-                  />
-                </div>
-                <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
-                <p className="text-sm text-stone-600">Player</p>
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {creatures.map((creature) => {
-                const isSelected =
-                  breedingSelection.receiverType === "creature" &&
-                  breedingSelection.receiverCreatureId === creature.id;
-
-                return (
-                  <button
-                    key={creature.id}
-                    onClick={() =>
-                      setBreedingSelection({
-                        ...breedingSelection,
-                        receiverType: "creature",
-                        receiverCreatureId: creature.id,
-                      })
-                    }
-                    className={`rounded-3xl border-4 p-4 text-left shadow transition ${
-                      isSelected
-                        ? "border-rose-700 bg-rose-100"
-                        : "border-rose-200 bg-white hover:border-rose-400"
-                    }`}
-                  >
-                    <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                      <Image
-                        src={getCreatureImage(creature.name)}
-                        alt={creature.name}
-                        width={300}
-                        height={300}
-                        className="max-h-full w-auto object-contain"
-                      />
-                    </div>
-                    <p className="text-xl font-bold text-stone-900">
-                      {creature.nickname}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
-                    </p>
-                    <p className="text-xs text-stone-500">
-                      Cost: {getCreatureStaminaCost(creature.id)} stamina
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-5 rounded-2xl bg-rose-50 p-4 space-y-2">
-            <p>
-              <strong>Current Pair:</strong> {giverLabel} → {receiverLabel}
-            </p>
-            <p>
-              <strong>Breeding Cost:</strong> 8 Player Energy + stamina from selected creatures
-            </p>
-            <p>
-              <strong>Rule:</strong> If the giver is Player, offspring will always
-              be the receiver species. Otherwise, offspring rolls between giver
-              and receiver species.
-            </p>
-            <p>
-              <strong>Speed Effect:</strong> Higher speed reduces session time.
-            </p>
-            <p>
-              <strong>Intelligence Effect:</strong> Reserved groundwork for future
-              inbreeding reduction mechanics.
-            </p>
-
-            {playerIsReceiver && (
-              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
-                <p className="font-semibold">Notice</p>
-                <p>
-                  If Player is selected as the receiver, breeding will not produce
-                  an egg.
-                </p>
-              </div>
-            )}
-
-            {sameCreatureSelected && (
-              <p className="font-semibold text-red-700">
-                The same creature cannot be both giver and receiver.
-              </p>
-            )}
-
-            {!giverCreatureReady && giverCreature && (
-              <p className="font-semibold text-red-700">
-                {giverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
-              </p>
-            )}
-
-            {!receiverCreatureReady && receiverCreature && (
-              <p className="font-semibold text-red-700">
-                {receiverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
-              </p>
-            )}
-
-            {parentChildWarning && !sameCreatureSelected && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Family Warning</p>
-                <p>
-                  These creatures appear to be a direct parent and child. Breeding is
-                  allowed for now, but offspring from this pairing can hatch with a
-                  severe negative inherited trait.
-                </p>
-              </div>
-            )}
-
-            {fullSiblingWarning && !sameCreatureSelected && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Family Warning</p>
-                <p>
-                  These creatures appear to be full siblings. Breeding is allowed for
-                  now, but offspring from this pairing can hatch with a severe negative
-                  inherited trait.
-                </p>
-              </div>
-            )}
-
-            {halfSiblingWarning && !sameCreatureSelected && (
-              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
-                <p className="font-semibold">Family Warning</p>
-                <p>
-                  These creatures appear to be half siblings. Breeding is allowed for
-                  now, but offspring from this pairing can hatch with a mild negative
-                  inherited trait.
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="mb-5 rounded-2xl bg-stone-100 p-4 space-y-1">
-            <p><strong>Your Gold:</strong> {playerData.gold}</p>
-            <p><strong>Your Energy:</strong> {playerData.energy}</p>
-            <p><strong>Current Time:</strong> Day {currentDay}</p>
-          </div>
-
-          <button
-            onClick={breedCreatures}
-            disabled={!canBreed}
-            className={`w-full rounded-2xl px-4 py-3 text-white font-semibold shadow ${
-              canBreed ? "bg-pink-600" : "bg-gray-500"
-            }`}
-          >
-            {canBreed ? "Breed" : "Cannot Breed"}
-          </button>
-        </div>
-
-        <div className="mt-6">
-          <Link
-            href="/ranch"
-            className="inline-block rounded-2xl bg-stone-800 px-5 py-3 text-white font-semibold shadow"
-          >
-            Back to Ranch
-          </Link>
-        </div>
-      </div>
-    </main>
+    <GameContext.Provider
+      value={{
+        currentDay,
+        currentHour,
+        currentMinute,
+        playerData,
+        creatures,
+        eggs,
+        breedingSelection,
+        townStock,
+        townQuests,
+        nextDay,
+        hatchEgg,
+        breedCreatures,
+        setBreedingSelection,
+        resetGame,
+        renameCreature,
+        renamePlayer,
+        purchaseTownCreature,
+        submitCreatureToQuest,
+      }}
+    >
+      {children}
+    </GameContext.Provider>
   );
+}
+
+export function useGame() {
+  const context = useContext(GameContext);
+
+  if (!context) {
+    throw new Error("useGame must be used inside a GameProvider");
+  }
+
+  return context;
 }

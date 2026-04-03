@@ -58,7 +58,7 @@ export default function TownPage() {
               🐾 Creature Seller
             </h2>
             <p className="mb-5 text-stone-600">
-              New stock rotates each day to help you avoid inbreeding.
+            New stock rotates each day to help you avoid inbreeding. Buying a creature takes 20 in-game minutes.
             </p>
 
             {townStock.length === 0 ? (
@@ -123,7 +123,7 @@ export default function TownPage() {
               📋 Breeding Quest Board
             </h2>
             <p className="mb-5 text-stone-600">
-              Submit bred creatures that meet stat and species requirements.
+            Submit bred creatures that meet stat and species requirements. Turning in a quest takes 30 in-game minutes, and the board always maintains 10 active quests.
             </p>
 
             <div className="space-y-4">
