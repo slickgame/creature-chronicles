@@ -85,8 +85,40 @@ export default function BreedingPage() {
     return sameGiverSide && sameReceiverSide;
   }
 
-  const parentChildWarning = isParentChild();
-  const fullSiblingWarning = isFullSibling();
+const parentChildWarning = isParentChild();
+const fullSiblingWarning = isFullSibling();
+
+const halfSiblingWarning =
+  !parentChildWarning &&
+  !fullSiblingWarning &&
+  giverCreature !== null &&
+  receiverCreature !== null &&
+  (
+    (
+      giverCreature.giverId !== null &&
+      giverCreature.giverId === receiverCreature.giverId
+    ) ||
+    (
+      giverCreature.receiverId !== null &&
+      giverCreature.receiverId === receiverCreature.receiverId
+    ) ||
+    (
+      giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer
+    ) ||
+    (
+      giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer
+    )
+  );
+
+  {halfSiblingWarning && !sameCreatureSelected && (
+  <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
+    <p className="font-semibold">Family Warning</p>
+    <p>
+      These creatures appear to be half siblings. Breeding is allowed for now,
+      but this pairing may later cause negative inherited traits.
+    </p>
+  </div>
+)}
 
   const hasValidSelection =
     (breedingSelection.giverType === "player" ||

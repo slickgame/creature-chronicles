@@ -15,7 +15,7 @@ type CreatureStats = {
   speed: number;
 };
 
-type InbreedingRisk = "none" | "parent_child" | "full_sibling";
+type InbreedingRisk = "none" | "half_sibling" | "parent_child" | "full_sibling";
 
 type Creature = {
   id: number;
@@ -249,6 +249,10 @@ function calculateInbreedingRisk(
 
   if (sameGiverSide && sameReceiverSide) {
     return "full_sibling";
+  }
+
+  if (sameGiverSide || sameReceiverSide) {
+    return "half_sibling";
   }
 
   return "none";

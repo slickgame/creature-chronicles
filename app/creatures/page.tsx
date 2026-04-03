@@ -16,18 +16,28 @@ export default function CreaturesPage() {
     return "/images/egg.png";
   }
 
-  function getRiskLabel(risk: "none" | "parent_child" | "full_sibling") {
+  function getRiskLabel(
+    risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
+  ) {
     if (risk === "parent_child") return "Parent/Child Risk";
     if (risk === "full_sibling") return "Full Sibling Risk";
+    if (risk === "half_sibling") return "Half Sibling Risk";
     return "No Risk";
   }
 
-  function getRiskClasses(risk: "none" | "parent_child" | "full_sibling") {
-    if (risk === "none") {
-      return "bg-green-100 text-green-900 border-green-300";
-    }
-    return "bg-red-100 text-red-900 border-red-300";
+  function getRiskClasses(
+  risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
+) {
+  if (risk === "none") {
+    return "bg-green-100 text-green-900 border-green-300";
   }
+
+  if (risk === "half_sibling") {
+    return "bg-amber-100 text-amber-900 border-amber-300";
+  }
+
+  return "bg-red-100 text-red-900 border-red-300";
+}
 
   function startEditing(creatureId: number, currentNickname: string) {
     setEditingCreatureId(creatureId);
