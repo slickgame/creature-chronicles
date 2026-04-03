@@ -201,15 +201,6 @@ function rollStatVariation(): number {
   return options[Math.floor(Math.random() * options.length)];
 }
 
-function createVariedStats(baseStats: CreatureStats): CreatureStats {
-  return {
-    strength: Math.max(1, baseStats.strength + rollStatVariation()),
-    endurance: Math.max(1, baseStats.endurance + rollStatVariation()),
-    intelligence: Math.max(1, baseStats.intelligence + rollStatVariation()),
-    speed: Math.max(1, baseStats.speed + rollStatVariation()),
-  };
-}
-
 function calculateInbreedingRisk(
   giverCreature: Creature | null,
   receiverCreature: Creature | null,
@@ -263,6 +254,58 @@ function calculateInbreedingRisk(
   return "none";
 }
 
+function average(numbers: number[]): number {
+  if (numbers.length === 0) return 0;
+  return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
+}
+
+function createInheritedStats(
+  baseStats: CreatureStats,
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null
+): CreatureStats {
+  const parentStats = [giverCreature?.stats, receiverCreature?.stats].filter(
+    Boolean
+  ) as CreatureStats[];
+
+  if (parentStats.length === 0) {
+    return {
+      strength: Math.max(1, baseStats.strength + rollStatVariation()),
+      endurance: Math.max(1, baseStats.endurance + rollStatVariation()),
+      intelligence: Math.max(1, baseStats.intelligence + rollStatVariation()),
+      speed: Math.max(1, baseStats.speed + rollStatVariation()),
+    };
+  }
+
+  const strengthParentAvg = average(parentStats.map((p) => p.strength));
+  const enduranceParentAvg = average(parentStats.map((p) => p.endurance));
+  const intelligenceParentAvg = average(parentStats.map((p) => p.intelligence));
+  const speedParentAvg = average(parentStats.map((p) => p.speed));
+
+  return {
+    strength: Math.max(
+      1,
+      Math.round((baseStats.strength + strengthParentAvg) / 2) +
+        rollStatVariation()
+    ),
+    endurance: Math.max(
+      1,
+      Math.round((baseStats.endurance + enduranceParentAvg) / 2) +
+        rollStatVariation()
+    ),
+    intelligence: Math.max(
+      1,
+      Math.round((baseStats.intelligence + intelligenceParentAvg) / 2) +
+        rollStatVariation()
+    ),
+    speed: Math.max(
+      1,
+      Math.round((baseStats.speed + speedParentAvg) / 2) +
+        rollStatVariation()
+    ),
+  };
+}
+
 function createCreatureFromTemplate(
   template: Creature,
   giver: string,
@@ -273,13 +316,15 @@ function createCreatureFromTemplate(
   receiverIsPlayer: boolean,
   currentDay: number,
   generation: number,
-  inbreedingRisk: InbreedingRisk
+  inbreedingRisk: InbreedingRisk,
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null
 ): Creature {
   return {
     ...template,
     id: Date.now() + Math.floor(Math.random() * 100000),
     nickname: generateNickname(template.name),
-    stats: createVariedStats(template.stats),
+    stats: createInheritedStats(template.stats, giverCreature, receiverCreature),
     giver,
     receiver,
     giverId,
@@ -457,7 +502,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       eggToHatch.receiverIsPlayer,
       currentDay,
       childGeneration,
-      inbreedingRisk
+      inbreedingRisk,
+      giverCreature,
+      receiverCreature
     );
 
     setCreatures((prev) => [...prev, newCreature]);
