@@ -218,44 +218,48 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }
 
   function breedCreatures() {
-    const goldCost = 50;
-    const energyCost = 10;
-    const staminaCost = 15;
+  const goldCost = 50;
+  const energyCost = 10;
+  const staminaCost = 15;
 
-    const hasEnoughGold = playerData.gold >= goldCost;
-    const hasEnoughEnergy = playerData.energy >= energyCost;
-    const hasEnoughStamina = playerData.breedingStamina >= staminaCost;
+  const hasEnoughGold = playerData.gold >= goldCost;
+  const hasEnoughEnergy = playerData.energy >= energyCost;
+  const hasEnoughStamina = playerData.breedingStamina >= staminaCost;
 
-    if (!hasEnoughGold || !hasEnoughEnergy || !hasEnoughStamina) {
-      return;
-    }
-
-    if (!breedingSelection.giver || !breedingSelection.receiver) {
-      return;
-    }
-
-    if (breedingSelection.giver === breedingSelection.receiver) {
-      return;
-    }
-
-    setPlayerData((prev) => ({
-      ...prev,
-      gold: prev.gold - goldCost,
-      energy: prev.energy - energyCost,
-      breedingStamina: prev.breedingStamina - staminaCost,
-    }));
-
-    const newEgg: Egg = {
-      id: Date.now(),
-      name: `${breedingSelection.giver} x ${breedingSelection.receiver} Egg`,
-      parents: `${breedingSelection.giver} + ${breedingSelection.receiver}`,
-      hatchDaysRemaining: 3,
-      giver: breedingSelection.giver,
-      receiver: breedingSelection.receiver,
-    };
-
-    setEggs((prev) => [...prev, newEgg]);
+  if (!hasEnoughGold || !hasEnoughEnergy || !hasEnoughStamina) {
+    return;
   }
+
+  if (!breedingSelection.giver || !breedingSelection.receiver) {
+    return;
+  }
+
+  if (breedingSelection.giver === breedingSelection.receiver) {
+    return;
+  }
+
+  setPlayerData((prev) => ({
+    ...prev,
+    gold: prev.gold - goldCost,
+    energy: prev.energy - energyCost,
+    breedingStamina: prev.breedingStamina - staminaCost,
+  }));
+
+  if (breedingSelection.receiver === "Player") {
+    return;
+  }
+
+  const newEgg: Egg = {
+    id: Date.now(),
+    name: `${breedingSelection.giver} x ${breedingSelection.receiver} Egg`,
+    parents: `${breedingSelection.giver} + ${breedingSelection.receiver}`,
+    hatchDaysRemaining: 3,
+    giver: breedingSelection.giver,
+    receiver: breedingSelection.receiver,
+  };
+
+  setEggs((prev) => [...prev, newEgg]);
+}
 
   function resetGame() {
     setCurrentDay(defaultSaveData.currentDay);
