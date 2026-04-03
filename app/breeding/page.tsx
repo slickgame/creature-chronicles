@@ -43,6 +43,22 @@ export default function BreedingPage() {
     breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
 
   function isParentChild() {
+    if (
+      breedingSelection.giverType === "player" &&
+      receiverCreature &&
+      (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
+    ) {
+      return true;
+    }
+
+    if (
+      breedingSelection.receiverType === "player" &&
+      giverCreature &&
+      (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
+    ) {
+      return true;
+    }
+
     if (!giverCreature || !receiverCreature) return false;
 
     return (
@@ -55,17 +71,18 @@ export default function BreedingPage() {
 
   function isFullSibling() {
     if (!giverCreature || !receiverCreature) return false;
-    if (giverCreature.giverId === null || giverCreature.receiverId === null) {
-      return false;
-    }
-    if (receiverCreature.giverId === null || receiverCreature.receiverId === null) {
-      return false;
-    }
 
-    return (
-      giverCreature.giverId === receiverCreature.giverId &&
-      giverCreature.receiverId === receiverCreature.receiverId
-    );
+    const sameGiverSide =
+      (giverCreature.giverId !== null &&
+        giverCreature.giverId === receiverCreature.giverId) ||
+      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
+
+    const sameReceiverSide =
+      (giverCreature.receiverId !== null &&
+        giverCreature.receiverId === receiverCreature.receiverId) ||
+      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+
+    return sameGiverSide && sameReceiverSide;
   }
 
   const parentChildWarning = isParentChild();

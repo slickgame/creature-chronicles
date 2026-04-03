@@ -25,6 +25,8 @@ type Creature = {
   receiver: string | null;
   giverId: number | null;
   receiverId: number | null;
+  giverIsPlayer: boolean;
+  receiverIsPlayer: boolean;
   bornOnDay: number;
   generation: number;
 };
@@ -38,6 +40,8 @@ type Egg = {
   receiver: string;
   giverId: number | null;
   receiverId: number | null;
+  giverIsPlayer: boolean;
+  receiverIsPlayer: boolean;
 };
 
 type PlayerData = {
@@ -154,6 +158,8 @@ const horseTemplate: Creature = {
   receiver: null,
   giverId: null,
   receiverId: null,
+  giverIsPlayer: false,
+  receiverIsPlayer: false,
   bornOnDay: 1,
   generation: 1,
 };
@@ -173,6 +179,8 @@ const catTemplate: Creature = {
   receiver: null,
   giverId: null,
   receiverId: null,
+  giverIsPlayer: false,
+  receiverIsPlayer: false,
   bornOnDay: 1,
   generation: 1,
 };
@@ -203,6 +211,8 @@ function createCreatureFromTemplate(
   receiver: string,
   giverId: number | null,
   receiverId: number | null,
+  giverIsPlayer: boolean,
+  receiverIsPlayer: boolean,
   currentDay: number,
   generation: number
 ): Creature {
@@ -215,6 +225,8 @@ function createCreatureFromTemplate(
     receiver,
     giverId,
     receiverId,
+    giverIsPlayer,
+    receiverIsPlayer,
     bornOnDay: currentDay,
     generation,
   };
@@ -257,6 +269,8 @@ const defaultEggs: Egg[] = [
     receiver: "Cat",
     giverId: 1,
     receiverId: 2,
+    giverIsPlayer: false,
+    receiverIsPlayer: false,
   },
 ];
 
@@ -370,6 +384,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       eggToHatch.receiver,
       eggToHatch.giverId,
       eggToHatch.receiverId,
+      eggToHatch.giverIsPlayer,
+      eggToHatch.receiverIsPlayer,
       currentDay,
       childGeneration
     );
@@ -403,10 +419,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       : null;
 
     const giverLabel = giverIsPlayer
-      ? "Player"
+      ? playerData.name
       : giverCreature?.nickname ?? "";
     const receiverLabel = receiverIsPlayer
-      ? "Player"
+      ? playerData.name
       : receiverCreature?.nickname ?? "";
 
     const giverSpecies = giverIsPlayer
@@ -450,6 +466,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       receiver: receiverSpecies,
       giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
       receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
+      giverIsPlayer,
+      receiverIsPlayer,
     };
 
     setEggs((prev) => [...prev, newEgg]);
@@ -504,6 +522,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         receiver: "Cat",
         giverId: freshHorse.id,
         receiverId: freshCat.id,
+        giverIsPlayer: false,
+        receiverIsPlayer: false,
       },
     ]);
     setBreedingSelection({
