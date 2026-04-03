@@ -313,9 +313,9 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be a direct parent and child. Breeding
-                  is allowed for now, but this pairing may later cause severe
-                  negative inherited traits.
+                  These creatures appear to be a direct parent and child. Breeding is
+                  allowed for now, but offspring from this pairing can hatch with a
+                  severe negative inherited trait.
                 </p>
               </div>
             )}
@@ -324,9 +324,9 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be full siblings. Breeding is allowed
-                  for now, but this pairing may later cause severe negative
-                  inherited traits.
+                  These creatures appear to be full siblings. Breeding is allowed for
+                  now, but offspring from this pairing can hatch with a severe negative
+                  inherited trait.
                 </p>
               </div>
             )}
@@ -335,9 +335,9 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be half siblings. Breeding is allowed
-                  for now, but this pairing may later cause negative inherited
-                  traits.
+                  These creatures appear to be half siblings. Breeding is allowed for
+                  now, but offspring from this pairing can hatch with a mild negative
+                  inherited trait.
                 </p>
               </div>
             )}

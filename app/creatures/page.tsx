@@ -5,6 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
+type InbreedingRisk =
+  | "none"
+  | "half_sibling"
+  | "parent_child"
+  | "full_sibling";
+
+type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
+type InbredTraitSeverity = "none" | "mild" | "severe";
+
 export default function CreaturesPage() {
   const { creatures, renameCreature } = useGame();
   const [editingCreatureId, setEditingCreatureId] = useState<number | null>(null);
@@ -16,28 +25,58 @@ export default function CreaturesPage() {
     return "/images/egg.png";
   }
 
-  function getRiskLabel(
-  risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
-) {
-  if (risk === "parent_child") return "Parent/Child Risk";
-  if (risk === "full_sibling") return "Full Sibling Risk";
-  if (risk === "half_sibling") return "Half Sibling Risk";
-  return "No Risk";
-}
-
-function getRiskClasses(
-  risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
-) {
-  if (risk === "none") {
-    return "bg-green-100 text-green-900 border-green-300";
+  function getRiskLabel(risk: InbreedingRisk) {
+    if (risk === "parent_child") return "Parent/Child Risk";
+    if (risk === "full_sibling") return "Full Sibling Risk";
+    if (risk === "half_sibling") return "Half Sibling Risk";
+    return "No Risk";
   }
 
-  if (risk === "half_sibling") {
-    return "bg-amber-100 text-amber-900 border-amber-300";
+  function getRiskClasses(risk: InbreedingRisk) {
+    if (risk === "none") {
+      return "bg-green-100 text-green-900 border-green-300";
+    }
+
+    if (risk === "half_sibling") {
+      return "bg-amber-100 text-amber-900 border-amber-300";
+    }
+
+    return "bg-red-100 text-red-900 border-red-300";
   }
 
-  return "bg-red-100 text-red-900 border-red-300";
-}
+  function getTraitLabel(
+    trait: InbredTrait,
+    severity: InbredTraitSeverity
+  ) {
+    if (trait === "none" || severity === "none") {
+      return "No Inbred Trait";
+    }
+
+    const traitName =
+      trait === "weak"
+        ? "Weakness"
+        : trait === "frail"
+        ? "Frailty"
+        : trait === "dull"
+        ? "Dullness"
+        : "Slowness";
+
+    const severityName = severity === "mild" ? "Mild" : "Severe";
+
+    return `${severityName} ${traitName}`;
+  }
+
+  function getTraitClasses(severity: InbredTraitSeverity) {
+    if (severity === "none") {
+      return "bg-stone-100 text-stone-700 border-stone-300";
+    }
+
+    if (severity === "mild") {
+      return "bg-amber-100 text-amber-900 border-amber-300";
+    }
+
+    return "bg-red-100 text-red-900 border-red-300";
+  }
 
   function startEditing(creatureId: number, currentNickname: string) {
     setEditingCreatureId(creatureId);
@@ -158,13 +197,24 @@ function getRiskClasses(
                   )}
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 flex flex-wrap gap-2">
                   <div
                     className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
                       creature.inbreedingRisk
                     )}`}
                   >
                     {getRiskLabel(creature.inbreedingRisk)}
+                  </div>
+
+                  <div
+                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                      creature.inbredTraitSeverity
+                    )}`}
+                  >
+                    {getTraitLabel(
+                      creature.inbredTrait,
+                      creature.inbredTraitSeverity
+                    )}
                   </div>
                 </div>
 

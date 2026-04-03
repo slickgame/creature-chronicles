@@ -21,6 +21,9 @@ type InbreedingRisk =
   | "parent_child"
   | "full_sibling";
 
+type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
+type InbredTraitSeverity = "none" | "mild" | "severe";
+
 type Creature = {
   id: number;
   name: string;
@@ -36,6 +39,8 @@ type Creature = {
   bornOnDay: number;
   generation: number;
   inbreedingRisk: InbreedingRisk;
+  inbredTrait: InbredTrait;
+  inbredTraitSeverity: InbredTraitSeverity;
 };
 
 type Egg = {
@@ -49,6 +54,7 @@ type Egg = {
   receiverId: number | null;
   giverIsPlayer: boolean;
   receiverIsPlayer: boolean;
+  inbreedingRisk: InbreedingRisk;
 };
 
 type PlayerData = {
@@ -134,6 +140,8 @@ const catLastNames = [
   "Shade",
 ];
 
+const INBRED_TRAITS: InbredTrait[] = ["weak", "frail", "dull", "slow"];
+
 function randomFrom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
@@ -170,6 +178,8 @@ const horseTemplate: Creature = {
   bornOnDay: 1,
   generation: 1,
   inbreedingRisk: "none",
+  inbredTrait: "none",
+  inbredTraitSeverity: "none",
 };
 
 const catTemplate: Creature = {
@@ -192,6 +202,8 @@ const catTemplate: Creature = {
   bornOnDay: 1,
   generation: 1,
   inbreedingRisk: "none",
+  inbredTrait: "none",
+  inbredTraitSeverity: "none",
 };
 
 function getCreatureTemplateByName(name: string): Creature | null {
@@ -314,6 +326,55 @@ function createInheritedStats(
   };
 }
 
+function applyInbreedingPenalty(
+  stats: CreatureStats,
+  risk: InbreedingRisk
+): {
+  stats: CreatureStats;
+  inbredTrait: InbredTrait;
+  inbredTraitSeverity: InbredTraitSeverity;
+} {
+  if (risk === "none") {
+    return {
+      stats,
+      inbredTrait: "none",
+      inbredTraitSeverity: "none",
+    };
+  }
+
+  const inbredTrait = randomFrom(INBRED_TRAITS);
+  const penalty = risk === "half_sibling" ? 1 : 2;
+  const severity: InbredTraitSeverity =
+    risk === "half_sibling" ? "mild" : "severe";
+
+  const adjustedStats = { ...stats };
+
+  if (inbredTrait === "weak") {
+    adjustedStats.strength = Math.max(1, adjustedStats.strength - penalty);
+  }
+
+  if (inbredTrait === "frail") {
+    adjustedStats.endurance = Math.max(1, adjustedStats.endurance - penalty);
+  }
+
+  if (inbredTrait === "dull") {
+    adjustedStats.intelligence = Math.max(
+      1,
+      adjustedStats.intelligence - penalty
+    );
+  }
+
+  if (inbredTrait === "slow") {
+    adjustedStats.speed = Math.max(1, adjustedStats.speed - penalty);
+  }
+
+  return {
+    stats: adjustedStats,
+    inbredTrait,
+    inbredTraitSeverity: severity,
+  };
+}
+
 function createCreatureFromTemplate(
   template: Creature,
   giver: string,
@@ -328,11 +389,19 @@ function createCreatureFromTemplate(
   giverCreature: Creature | null,
   receiverCreature: Creature | null
 ): Creature {
+  const inheritedStats = createInheritedStats(
+    template.stats,
+    giverCreature,
+    receiverCreature
+  );
+
+  const penaltyResult = applyInbreedingPenalty(inheritedStats, inbreedingRisk);
+
   return {
     ...template,
     id: Date.now() + Math.floor(Math.random() * 100000),
     nickname: generateNickname(template.name),
-    stats: createInheritedStats(template.stats, giverCreature, receiverCreature),
+    stats: penaltyResult.stats,
     giver,
     receiver,
     giverId,
@@ -342,6 +411,24 @@ function createCreatureFromTemplate(
     bornOnDay: currentDay,
     generation,
     inbreedingRisk,
+    inbredTrait: penaltyResult.inbredTrait,
+    inbredTraitSeverity: penaltyResult.inbredTraitSeverity,
+  };
+}
+
+function normalizeCreature(creature: Creature): Creature {
+  return {
+    ...creature,
+    inbreedingRisk: creature.inbreedingRisk ?? "none",
+    inbredTrait: creature.inbredTrait ?? "none",
+    inbredTraitSeverity: creature.inbredTraitSeverity ?? "none",
+  };
+}
+
+function normalizeEgg(egg: Egg): Egg {
+  return {
+    ...egg,
+    inbreedingRisk: egg.inbreedingRisk ?? "none",
   };
 }
 
@@ -357,13 +444,11 @@ const defaultCreatures: Creature[] = [
     ...horseTemplate,
     id: 1,
     nickname: "Starter Horse",
-    inbreedingRisk: "none",
   },
   {
     ...catTemplate,
     id: 2,
     nickname: "Starter Cat",
-    inbreedingRisk: "none",
   },
 ];
 
@@ -386,6 +471,7 @@ const defaultEggs: Egg[] = [
     receiverId: 2,
     giverIsPlayer: false,
     receiverIsPlayer: false,
+    inbreedingRisk: "none",
   },
 ];
 
@@ -419,8 +505,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         setCurrentDay(parsedSave.currentDay);
         setPlayerData(parsedSave.playerData);
-        setCreatures(parsedSave.creatures);
-        setEggs(parsedSave.eggs);
+        setCreatures(parsedSave.creatures.map(normalizeCreature));
+        setEggs(parsedSave.eggs.map(normalizeEgg));
         setBreedingSelection(parsedSave.breedingSelection);
       } catch (error) {
         console.error("Failed to load save data:", error);
@@ -493,12 +579,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const childGeneration = Math.max(...parentGenerations) + 1;
 
-    const inbreedingRisk = calculateInbreedingRisk(
-      giverCreature,
-      receiverCreature,
-      eggToHatch.giverIsPlayer,
-      eggToHatch.receiverIsPlayer
-    );
+    const inbreedingRisk =
+      eggToHatch.inbreedingRisk ??
+      calculateInbreedingRisk(
+        giverCreature,
+        receiverCreature,
+        eggToHatch.giverIsPlayer,
+        eggToHatch.receiverIsPlayer
+      );
 
     const newCreature = createCreatureFromTemplate(
       template,
@@ -569,6 +657,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const inbreedingRisk = calculateInbreedingRisk(
+      giverCreature,
+      receiverCreature,
+      giverIsPlayer,
+      receiverIsPlayer
+    );
+
     setPlayerData((prev) => ({
       ...prev,
       gold: prev.gold - goldCost,
@@ -591,6 +686,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
       giverIsPlayer,
       receiverIsPlayer,
+      inbreedingRisk,
     };
 
     setEggs((prev) => [...prev, newEgg]);
@@ -624,14 +720,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ...horseTemplate,
       id: 1,
       nickname: generateNickname("Horse"),
-      inbreedingRisk: "none" as InbreedingRisk,
     };
 
     const freshCat = {
       ...catTemplate,
       id: 2,
       nickname: generateNickname("Cat"),
-      inbreedingRisk: "none" as InbreedingRisk,
     };
 
     setCurrentDay(1);
@@ -649,6 +743,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         receiverId: freshCat.id,
         giverIsPlayer: false,
         receiverIsPlayer: false,
+        inbreedingRisk: "none",
       },
     ]);
     setBreedingSelection({

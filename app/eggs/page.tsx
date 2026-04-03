@@ -3,6 +3,43 @@
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
+type InbreedingRisk =
+  | "none"
+  | "half_sibling"
+  | "parent_child"
+  | "full_sibling";
+
+function getRiskLabel(risk: InbreedingRisk) {
+  if (risk === "parent_child") return "Parent/Child Risk";
+  if (risk === "full_sibling") return "Full Sibling Risk";
+  if (risk === "half_sibling") return "Half Sibling Risk";
+  return "No Risk";
+}
+
+function getRiskClasses(risk: InbreedingRisk) {
+  if (risk === "none") {
+    return "bg-green-100 text-green-900 border-green-300";
+  }
+
+  if (risk === "half_sibling") {
+    return "bg-amber-100 text-amber-900 border-amber-300";
+  }
+
+  return "bg-red-100 text-red-900 border-red-300";
+}
+
+function getPenaltyPreview(risk: InbreedingRisk) {
+  if (risk === "half_sibling") {
+    return "Potential hatch penalty: one mild negative inherited trait.";
+  }
+
+  if (risk === "parent_child" || risk === "full_sibling") {
+    return "Potential hatch penalty: one severe negative inherited trait.";
+  }
+
+  return "No inherited penalty risk on hatch.";
+}
+
 export default function EggsPage() {
   const { eggs, hatchEgg } = useGame();
 
@@ -32,8 +69,22 @@ export default function EggsPage() {
                   </div>
                 </div>
 
-                <p className="mb-3 text-stone-800">
+                <div className="mb-3">
+                  <div
+                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
+                      egg.inbreedingRisk
+                    )}`}
+                  >
+                    {getRiskLabel(egg.inbreedingRisk)}
+                  </div>
+                </div>
+
+                <p className="mb-2 text-stone-800">
                   <strong>Hatch Time Remaining:</strong> {egg.hatchDaysRemaining} in-game days
+                </p>
+
+                <p className="mb-3 text-sm text-stone-600">
+                  {getPenaltyPreview(egg.inbreedingRisk)}
                 </p>
 
                 {egg.hatchDaysRemaining === 0 && (
