@@ -67,6 +67,8 @@ type GameContextType = {
   breedCreatures: () => void;
   setBreedingSelection: (selection: BreedingSelection) => void;
   resetGame: () => void;
+  renameCreature: (creatureId: number, newNickname: string) => void;
+  renamePlayer: (newName: string) => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -134,7 +136,7 @@ function generateNickname(speciesName: string): string {
 const horseTemplate: Creature = {
   id: 1,
   name: "Horse",
-  nickname: generateNickname("Horse"),
+  nickname: "Starter Horse",
   theme: "Field Worker",
   stats: {
     strength: 8,
@@ -151,7 +153,7 @@ const horseTemplate: Creature = {
 const catTemplate: Creature = {
   id: 2,
   name: "Cat",
-  nickname: generateNickname("Cat"),
+  nickname: "Starter Cat",
   theme: "House Maid",
   stats: {
     strength: 4,
@@ -214,12 +216,12 @@ const defaultCreatures: Creature[] = [
   {
     ...horseTemplate,
     id: 1,
-    nickname: generateNickname("Horse"),
+    nickname: "Starter Horse",
   },
   {
     ...catTemplate,
     id: 2,
-    nickname: generateNickname("Cat"),
+    nickname: "Starter Cat",
   },
 ];
 
@@ -383,6 +385,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setEggs((prev) => [...prev, newEgg]);
   }
 
+  function renameCreature(creatureId: number, newNickname: string) {
+    const trimmedName = newNickname.trim();
+
+    if (!trimmedName) return;
+
+    setCreatures((prev) =>
+      prev.map((creature) =>
+        creature.id === creatureId
+          ? { ...creature, nickname: trimmedName }
+          : creature
+      )
+    );
+  }
+
+  function renamePlayer(newName: string) {
+    const trimmedName = newName.trim();
+
+    if (!trimmedName) return;
+
+    setPlayerData((prev) => ({
+      ...prev,
+      name: trimmedName,
+    }));
+  }
+
   function resetGame() {
     const freshHorse = {
       ...horseTemplate,
@@ -417,6 +444,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         breedCreatures,
         setBreedingSelection,
         resetGame,
+        renameCreature,
+        renamePlayer,
       }}
     >
       {children}
