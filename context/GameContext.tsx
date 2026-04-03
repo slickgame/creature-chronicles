@@ -15,7 +15,11 @@ type CreatureStats = {
   speed: number;
 };
 
-type InbreedingRisk = "none" | "half_sibling" | "parent_child" | "full_sibling";
+type InbreedingRisk =
+  | "none"
+  | "half_sibling"
+  | "parent_child"
+  | "full_sibling";
 
 type Creature = {
   id: number;
@@ -201,6 +205,11 @@ function rollStatVariation(): number {
   return options[Math.floor(Math.random() * options.length)];
 }
 
+function average(numbers: number[]): number {
+  if (numbers.length === 0) return 0;
+  return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
+}
+
 function calculateInbreedingRisk(
   giverCreature: Creature | null,
   receiverCreature: Creature | null,
@@ -256,11 +265,6 @@ function calculateInbreedingRisk(
   }
 
   return "none";
-}
-
-function average(numbers: number[]): number {
-  if (numbers.length === 0) return 0;
-  return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
 }
 
 function createInheritedStats(

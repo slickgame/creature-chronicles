@@ -85,40 +85,26 @@ export default function BreedingPage() {
     return sameGiverSide && sameReceiverSide;
   }
 
-const parentChildWarning = isParentChild();
-const fullSiblingWarning = isFullSibling();
+  function isHalfSibling() {
+    if (!giverCreature || !receiverCreature) return false;
+    if (isParentChild() || isFullSibling()) return false;
 
-const halfSiblingWarning =
-  !parentChildWarning &&
-  !fullSiblingWarning &&
-  giverCreature !== null &&
-  receiverCreature !== null &&
-  (
-    (
-      giverCreature.giverId !== null &&
-      giverCreature.giverId === receiverCreature.giverId
-    ) ||
-    (
-      giverCreature.receiverId !== null &&
-      giverCreature.receiverId === receiverCreature.receiverId
-    ) ||
-    (
-      giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer
-    ) ||
-    (
-      giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer
-    )
-  );
+    const sameGiverSide =
+      (giverCreature.giverId !== null &&
+        giverCreature.giverId === receiverCreature.giverId) ||
+      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
 
-  {halfSiblingWarning && !sameCreatureSelected && (
-  <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
-    <p className="font-semibold">Family Warning</p>
-    <p>
-      These creatures appear to be half siblings. Breeding is allowed for now,
-      but this pairing may later cause negative inherited traits.
-    </p>
-  </div>
-)}
+    const sameReceiverSide =
+      (giverCreature.receiverId !== null &&
+        giverCreature.receiverId === receiverCreature.receiverId) ||
+      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
+
+    return sameGiverSide || sameReceiverSide;
+  }
+
+  const parentChildWarning = isParentChild();
+  const fullSiblingWarning = isFullSibling();
+  const halfSiblingWarning = isHalfSibling();
 
   const hasValidSelection =
     (breedingSelection.giverType === "player" ||
@@ -341,6 +327,17 @@ const halfSiblingWarning =
                   These creatures appear to be full siblings. Breeding is allowed
                   for now, but this pairing may later cause severe negative
                   inherited traits.
+                </p>
+              </div>
+            )}
+
+            {halfSiblingWarning && !sameCreatureSelected && (
+              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
+                <p className="font-semibold">Family Warning</p>
+                <p>
+                  These creatures appear to be half siblings. Breeding is allowed
+                  for now, but this pairing may later cause negative inherited
+                  traits.
                 </p>
               </div>
             )}

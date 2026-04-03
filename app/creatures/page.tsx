@@ -17,15 +17,15 @@ export default function CreaturesPage() {
   }
 
   function getRiskLabel(
-    risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
-  ) {
-    if (risk === "parent_child") return "Parent/Child Risk";
-    if (risk === "full_sibling") return "Full Sibling Risk";
-    if (risk === "half_sibling") return "Half Sibling Risk";
-    return "No Risk";
-  }
+  risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
+) {
+  if (risk === "parent_child") return "Parent/Child Risk";
+  if (risk === "full_sibling") return "Full Sibling Risk";
+  if (risk === "half_sibling") return "Half Sibling Risk";
+  return "No Risk";
+}
 
-  function getRiskClasses(
+function getRiskClasses(
   risk: "none" | "half_sibling" | "parent_child" | "full_sibling"
 ) {
   if (risk === "none") {
