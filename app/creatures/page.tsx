@@ -6,30 +6,51 @@ import { useGame } from "@/context/GameContext";
 export default function CreaturesPage() {
   const { creatures } = useGame();
 
+  function getCreatureEmoji(name: string) {
+    if (name === "Horse") return "🐴";
+    if (name === "Cat") return "🐱";
+    return "✨";
+  }
+
   return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-3xl font-bold mb-4">Creatures</h1>
+    <main className="min-h-screen bg-gradient-to-b from-sky-100 to-cyan-200 p-6">
+      <div className="mx-auto max-w-5xl">
+        <h1 className="mb-6 text-4xl font-bold text-sky-900">Creatures</h1>
 
-      <div className="grid gap-4 max-w-xl">
-        {creatures.map((creature) => (
-          <div key={creature.id} className="rounded-2xl border p-4">
-            <h2 className="text-2xl font-semibold">{creature.name}</h2>
-            <p>Theme: {creature.theme}</p>
-            <p>Strength: {creature.stats.strength}</p>
-            <p>Endurance: {creature.stats.endurance}</p>
-            <p>Intelligence: {creature.stats.intelligence}</p>
-            <p>Speed: {creature.stats.speed}</p>
-          </div>
-        ))}
-      </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          {creatures.map((creature) => (
+            <div
+              key={creature.id}
+              className="rounded-3xl border-4 border-sky-900 bg-white/85 p-5 shadow-xl"
+            >
+              <div className="mb-3 flex items-center gap-3">
+                <div className="text-5xl">{getCreatureEmoji(creature.name)}</div>
+                <div>
+                  <h2 className="text-2xl font-bold text-sky-950">
+                    {creature.name}
+                  </h2>
+                  <p className="text-stone-700">{creature.theme}</p>
+                </div>
+              </div>
 
-      <div className="mt-6">
-        <Link
-          href="/ranch"
-          className="rounded-xl bg-gray-800 px-4 py-3 text-white inline-block"
-        >
-          Back to Ranch
-        </Link>
+              <div className="space-y-1 text-stone-800">
+                <p><strong>Strength:</strong> {creature.stats.strength}</p>
+                <p><strong>Endurance:</strong> {creature.stats.endurance}</p>
+                <p><strong>Intelligence:</strong> {creature.stats.intelligence}</p>
+                <p><strong>Speed:</strong> {creature.stats.speed}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-6">
+          <Link
+            href="/ranch"
+            className="inline-block rounded-2xl bg-stone-800 px-5 py-3 text-white font-semibold shadow"
+          >
+            Back to Ranch
+          </Link>
+        </div>
       </div>
     </main>
   );

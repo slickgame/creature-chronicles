@@ -7,39 +7,55 @@ export default function RanchPage() {
   const { currentDay, playerData, nextDay } = useGame();
 
   return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-3xl font-bold mb-4">Ranch</h1>
+    <main className="min-h-screen bg-gradient-to-b from-green-100 to-lime-200 p-6">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="mb-6 text-4xl font-bold text-green-900">🌿 Ranch</h1>
 
-      <div className="rounded-2xl border p-4 mb-6 max-w-md space-y-1">
-        <p><strong>Day:</strong> {currentDay}</p>
-        <p><strong>Player:</strong> {playerData.name}</p>
-        <p><strong>Gold:</strong> {playerData.gold}</p>
-        <p><strong>Energy:</strong> {playerData.energy}</p>
-        <p><strong>Breeding Stamina:</strong> {playerData.breedingStamina}</p>
-      </div>
+        <div className="rounded-3xl border-4 border-green-900 bg-white/85 p-6 shadow-xl">
+          <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2">
+            <p><strong>Day:</strong> {currentDay}</p>
+            <p><strong>Player:</strong> {playerData.name}</p>
+            <p><strong>Gold:</strong> {playerData.gold}</p>
+            <p><strong>Energy:</strong> {playerData.energy}</p>
+            <p><strong>Breeding Stamina:</strong> {playerData.breedingStamina}</p>
+          </div>
 
-      <div className="mb-6 max-w-xs">
-        <button
-          onClick={nextDay}
-          className="rounded-xl bg-orange-600 px-4 py-3 text-white w-full"
-        >
-          Next Day
-        </button>
-      </div>
+          <div className="mt-6 max-w-xs">
+            <button
+              onClick={nextDay}
+              className="w-full rounded-2xl bg-orange-600 px-4 py-3 text-white font-semibold shadow"
+            >
+              Next Day
+            </button>
+          </div>
+        </div>
 
-      <div className="flex flex-col gap-3 max-w-xs">
-        <Link href="/creatures" className="rounded-xl bg-gray-800 px-4 py-3 text-white text-center">
-          View Creatures
-        </Link>
-        <Link href="/breeding" className="rounded-xl bg-gray-800 px-4 py-3 text-white text-center">
-          Go to Breeding
-        </Link>
-        <Link href="/eggs" className="rounded-xl bg-gray-800 px-4 py-3 text-white text-center">
-          View Eggs
-        </Link>
-        <Link href="/" className="rounded-xl bg-red-600 px-4 py-3 text-white text-center">
-          Back to Title
-        </Link>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Link
+            href="/creatures"
+            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            View Creatures
+          </Link>
+          <Link
+            href="/breeding"
+            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            Go to Breeding
+          </Link>
+          <Link
+            href="/eggs"
+            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            View Eggs
+          </Link>
+          <Link
+            href="/"
+            className="rounded-2xl bg-red-600 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            Back to Title
+          </Link>
+        </div>
       </div>
     </main>
   );
