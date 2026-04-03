@@ -1,15 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
 export default function CreaturesPage() {
   const { creatures } = useGame();
 
-  function getCreatureEmoji(name: string) {
-    if (name === "Horse") return "🐴";
-    if (name === "Cat") return "🐱";
-    return "✨";
+  function getCreatureImage(name: string) {
+    if (name === "Horse") return "/images/horse.png";
+    if (name === "Cat") return "/images/cat.png";
+    return "/images/egg.png";
   }
 
   return (
@@ -18,18 +19,28 @@ export default function CreaturesPage() {
         <h1 className="mb-6 text-4xl font-bold text-sky-900">Creatures</h1>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {creatures.map((creature) => (
+          {creatures.map((creature, index) => (
             <div
               key={creature.id}
               className="rounded-3xl border-4 border-sky-900 bg-white/85 p-5 shadow-xl"
             >
-              <div className="mb-3 flex items-center gap-3">
-                <div className="text-5xl">{getCreatureEmoji(creature.name)}</div>
+              <div className="mb-4 flex items-center gap-4">
+                <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                  <Image
+                    src={getCreatureImage(creature.name)}
+                    alt={creature.name}
+                    width={200}
+                    height={200}
+                    className="max-h-full w-auto object-contain"
+                  />
+                </div>
+
                 <div>
                   <h2 className="text-2xl font-bold text-sky-950">
-                    {creature.name}
+                    {creature.name} #{index + 1}
                   </h2>
                   <p className="text-stone-700">{creature.theme}</p>
+                  <p className="text-sm text-stone-500">ID: {creature.id}</p>
                 </div>
               </div>
 

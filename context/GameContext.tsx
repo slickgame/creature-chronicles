@@ -8,16 +8,18 @@ import {
   useEffect,
 } from "react";
 
+type CreatureStats = {
+  strength: number;
+  endurance: number;
+  intelligence: number;
+  speed: number;
+};
+
 type Creature = {
   id: number;
   name: string;
   theme: string;
-  stats: {
-    strength: number;
-    endurance: number;
-    intelligence: number;
-    speed: number;
-  };
+  stats: CreatureStats;
 };
 
 type Egg = {
@@ -94,6 +96,28 @@ function getCreatureTemplateByName(name: string): Creature | null {
   return null;
 }
 
+function rollStatVariation(): number {
+  const options = [-1, 0, 1];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+function createVariedStats(baseStats: CreatureStats): CreatureStats {
+  return {
+    strength: Math.max(1, baseStats.strength + rollStatVariation()),
+    endurance: Math.max(1, baseStats.endurance + rollStatVariation()),
+    intelligence: Math.max(1, baseStats.intelligence + rollStatVariation()),
+    speed: Math.max(1, baseStats.speed + rollStatVariation()),
+  };
+}
+
+function createCreatureFromTemplate(template: Creature): Creature {
+  return {
+    ...template,
+    id: Date.now() + Math.floor(Math.random() * 100000),
+    stats: createVariedStats(template.stats),
+  };
+}
+
 const defaultPlayerData: PlayerData = {
   name: "Player",
   gold: 500,
@@ -101,7 +125,16 @@ const defaultPlayerData: PlayerData = {
   breedingStamina: 100,
 };
 
-const defaultCreatures: Creature[] = [horseTemplate, catTemplate];
+const defaultCreatures: Creature[] = [
+  {
+    ...horseTemplate,
+    id: 1,
+  },
+  {
+    ...catTemplate,
+    id: 2,
+  },
+];
 
 const defaultBreedingSelection: BreedingSelection = {
   giver: "Horse",
@@ -208,58 +241,55 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const newCreature: Creature = {
-      ...template,
-      id: Date.now(),
-    };
+    const newCreature = createCreatureFromTemplate(template);
 
     setCreatures((prev) => [...prev, newCreature]);
     setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
   }
 
   function breedCreatures() {
-  const goldCost = 50;
-  const energyCost = 10;
-  const staminaCost = 15;
+    const goldCost = 50;
+    const energyCost = 10;
+    const staminaCost = 15;
 
-  const hasEnoughGold = playerData.gold >= goldCost;
-  const hasEnoughEnergy = playerData.energy >= energyCost;
-  const hasEnoughStamina = playerData.breedingStamina >= staminaCost;
+    const hasEnoughGold = playerData.gold >= goldCost;
+    const hasEnoughEnergy = playerData.energy >= energyCost;
+    const hasEnoughStamina = playerData.breedingStamina >= staminaCost;
 
-  if (!hasEnoughGold || !hasEnoughEnergy || !hasEnoughStamina) {
-    return;
+    if (!hasEnoughGold || !hasEnoughEnergy || !hasEnoughStamina) {
+      return;
+    }
+
+    if (!breedingSelection.giver || !breedingSelection.receiver) {
+      return;
+    }
+
+    if (breedingSelection.giver === breedingSelection.receiver) {
+      return;
+    }
+
+    setPlayerData((prev) => ({
+      ...prev,
+      gold: prev.gold - goldCost,
+      energy: prev.energy - energyCost,
+      breedingStamina: prev.breedingStamina - staminaCost,
+    }));
+
+    if (breedingSelection.receiver === "Player") {
+      return;
+    }
+
+    const newEgg: Egg = {
+      id: Date.now(),
+      name: `${breedingSelection.giver} x ${breedingSelection.receiver} Egg`,
+      parents: `${breedingSelection.giver} + ${breedingSelection.receiver}`,
+      hatchDaysRemaining: 3,
+      giver: breedingSelection.giver,
+      receiver: breedingSelection.receiver,
+    };
+
+    setEggs((prev) => [...prev, newEgg]);
   }
-
-  if (!breedingSelection.giver || !breedingSelection.receiver) {
-    return;
-  }
-
-  if (breedingSelection.giver === breedingSelection.receiver) {
-    return;
-  }
-
-  setPlayerData((prev) => ({
-    ...prev,
-    gold: prev.gold - goldCost,
-    energy: prev.energy - energyCost,
-    breedingStamina: prev.breedingStamina - staminaCost,
-  }));
-
-  if (breedingSelection.receiver === "Player") {
-    return;
-  }
-
-  const newEgg: Egg = {
-    id: Date.now(),
-    name: `${breedingSelection.giver} x ${breedingSelection.receiver} Egg`,
-    parents: `${breedingSelection.giver} + ${breedingSelection.receiver}`,
-    hatchDaysRemaining: 3,
-    giver: breedingSelection.giver,
-    receiver: breedingSelection.receiver,
-  };
-
-  setEggs((prev) => [...prev, newEgg]);
-}
 
   function resetGame() {
     setCurrentDay(defaultSaveData.currentDay);
