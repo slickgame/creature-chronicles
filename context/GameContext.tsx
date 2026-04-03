@@ -19,6 +19,8 @@ type Egg = {
   name: string;
   parents: string;
   hatchDaysRemaining: number;
+  giver: string;
+  receiver: string;
 };
 
 type PlayerData = {
@@ -28,14 +30,21 @@ type PlayerData = {
   breedingStamina: number;
 };
 
+type BreedingSelection = {
+  giver: string;
+  receiver: string;
+};
+
 type GameContextType = {
   currentDay: number;
   playerData: PlayerData;
   creatures: Creature[];
   eggs: Egg[];
+  breedingSelection: BreedingSelection;
   nextDay: () => void;
   hatchEgg: (eggId: number) => void;
   breedCreatures: () => void;
+  setBreedingSelection: (selection: BreedingSelection) => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -64,11 +73,17 @@ const catTemplate: Creature = {
   },
 };
 
+function getCreatureTemplateByName(name: string): Creature | null {
+  if (name === "Horse") return horseTemplate;
+  if (name === "Cat") return catTemplate;
+  return null;
+}
+
 export function GameProvider({ children }: { children: ReactNode }) {
   const [currentDay, setCurrentDay] = useState(1);
 
   const [playerData, setPlayerData] = useState<PlayerData>({
-    name: "Farmer",
+    name: "Player",
     gold: 500,
     energy: 100,
     breedingStamina: 100,
@@ -79,12 +94,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
     catTemplate,
   ]);
 
+  const [breedingSelection, setBreedingSelection] = useState<BreedingSelection>({
+    giver: "Horse",
+    receiver: "Cat",
+  });
+
   const [eggs, setEggs] = useState<Egg[]>([
     {
       id: 1,
       name: "Test Egg",
       parents: "Horse + Cat",
       hatchDaysRemaining: 3,
+      giver: "Horse",
+      receiver: "Cat",
     },
   ]);
 
@@ -107,8 +129,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const randomSpecies = Math.random() < 0.5 ? "Horse" : "Cat";
-    const template = randomSpecies === "Horse" ? horseTemplate : catTemplate;
+    let childSpeciesName = "Cat";
+
+    if (eggToHatch.giver === "Player") {
+      childSpeciesName = eggToHatch.receiver;
+    } else {
+      childSpeciesName =
+        Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
+    }
+
+    const template = getCreatureTemplateByName(childSpeciesName);
+
+    if (!template) {
+      return;
+    }
 
     const newCreature: Creature = {
       ...template,
@@ -132,6 +166,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    if (!breedingSelection.giver || !breedingSelection.receiver) {
+      return;
+    }
+
+    if (breedingSelection.giver === breedingSelection.receiver) {
+      return;
+    }
+
     setPlayerData((prev) => ({
       ...prev,
       gold: prev.gold - goldCost,
@@ -141,9 +183,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const newEgg: Egg = {
       id: Date.now(),
-      name: "New Egg",
-      parents: "Horse + Cat",
+      name: `${breedingSelection.giver} x ${breedingSelection.receiver} Egg`,
+      parents: `${breedingSelection.giver} + ${breedingSelection.receiver}`,
       hatchDaysRemaining: 3,
+      giver: breedingSelection.giver,
+      receiver: breedingSelection.receiver,
     };
 
     setEggs((prev) => [...prev, newEgg]);
@@ -156,9 +200,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         playerData,
         creatures,
         eggs,
+        breedingSelection,
         nextDay,
         hatchEgg,
         breedCreatures,
+        setBreedingSelection,
       }}
     >
       {children}
