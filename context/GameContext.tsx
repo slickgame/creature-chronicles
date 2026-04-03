@@ -18,6 +18,7 @@ type CreatureStats = {
 type Creature = {
   id: number;
   name: string;
+  nickname: string;
   theme: string;
   stats: CreatureStats;
   giver: string | null;
@@ -70,9 +71,70 @@ type GameContextType = {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+const horseFirstNames = [
+  "Dusty",
+  "Clover",
+  "Rowan",
+  "Bramble",
+  "Flint",
+  "Maple",
+  "Sable",
+  "Thorn",
+];
+
+const horseLastNames = [
+  "Carter",
+  "Vale",
+  "Hoof",
+  "Hollow",
+  "Briar",
+  "Reed",
+  "Stone",
+  "Meadow",
+];
+
+const catFirstNames = [
+  "Velvet",
+  "Misty",
+  "Sable",
+  "Luna",
+  "Poppy",
+  "Ivy",
+  "Mochi",
+  "Pearl",
+];
+
+const catLastNames = [
+  "Whisk",
+  "Bell",
+  "Thorn",
+  "Silk",
+  "Mire",
+  "Moon",
+  "Bloom",
+  "Shade",
+];
+
+function randomFrom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function generateNickname(speciesName: string): string {
+  if (speciesName === "Horse") {
+    return `${randomFrom(horseFirstNames)} ${randomFrom(horseLastNames)}`;
+  }
+
+  if (speciesName === "Cat") {
+    return `${randomFrom(catFirstNames)} ${randomFrom(catLastNames)}`;
+  }
+
+  return `Creature ${Math.floor(Math.random() * 1000)}`;
+}
+
 const horseTemplate: Creature = {
   id: 1,
   name: "Horse",
+  nickname: generateNickname("Horse"),
   theme: "Field Worker",
   stats: {
     strength: 8,
@@ -89,6 +151,7 @@ const horseTemplate: Creature = {
 const catTemplate: Creature = {
   id: 2,
   name: "Cat",
+  nickname: generateNickname("Cat"),
   theme: "House Maid",
   stats: {
     strength: 4,
@@ -131,6 +194,7 @@ function createCreatureFromTemplate(
   return {
     ...template,
     id: Date.now() + Math.floor(Math.random() * 100000),
+    nickname: generateNickname(template.name),
     stats: createVariedStats(template.stats),
     giver,
     receiver,
@@ -150,10 +214,12 @@ const defaultCreatures: Creature[] = [
   {
     ...horseTemplate,
     id: 1,
+    nickname: generateNickname("Horse"),
   },
   {
     ...catTemplate,
     id: 2,
+    nickname: generateNickname("Cat"),
   },
 ];
 
@@ -318,11 +384,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }
 
   function resetGame() {
-    setCurrentDay(defaultSaveData.currentDay);
-    setPlayerData(defaultSaveData.playerData);
-    setCreatures(defaultSaveData.creatures);
-    setEggs(defaultSaveData.eggs);
-    setBreedingSelection(defaultSaveData.breedingSelection);
+    const freshHorse = {
+      ...horseTemplate,
+      id: 1,
+      nickname: generateNickname("Horse"),
+    };
+
+    const freshCat = {
+      ...catTemplate,
+      id: 2,
+      nickname: generateNickname("Cat"),
+    };
+
+    setCurrentDay(1);
+    setPlayerData(defaultPlayerData);
+    setCreatures([freshHorse, freshCat]);
+    setEggs(defaultEggs);
+    setBreedingSelection(defaultBreedingSelection);
     localStorage.removeItem(STORAGE_KEY);
   }
 

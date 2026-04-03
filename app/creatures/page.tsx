@@ -19,7 +19,7 @@ export default function CreaturesPage() {
         <h1 className="mb-6 text-4xl font-bold text-sky-900">Creatures</h1>
 
         <div className="grid gap-4 md:grid-cols-2">
-          {creatures.map((creature, index) => (
+          {creatures.map((creature) => (
             <div
               key={creature.id}
               className="rounded-3xl border-4 border-sky-900 bg-white/85 p-5 shadow-xl"
@@ -37,9 +37,10 @@ export default function CreaturesPage() {
 
                 <div>
                   <h2 className="text-2xl font-bold text-sky-950">
-                    {creature.name} #{index + 1}
+                    {creature.nickname}
                   </h2>
-                  <p className="text-stone-700">{creature.theme}</p>
+                  <p className="text-stone-700">{creature.name}</p>
+                  <p className="text-sm text-stone-500">{creature.theme}</p>
                   <p className="text-sm text-stone-500">ID: {creature.id}</p>
                 </div>
               </div>
