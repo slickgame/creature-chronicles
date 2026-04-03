@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
 export default function RanchPage() {
-  const { currentDay, playerData, nextDay } = useGame();
+  const { currentDay, playerData, nextDay, resetGame } = useGame();
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-green-100 to-lime-200 p-6">
@@ -20,12 +20,19 @@ export default function RanchPage() {
             <p><strong>Breeding Stamina:</strong> {playerData.breedingStamina}</p>
           </div>
 
-          <div className="mt-6 max-w-xs">
+          <div className="mt-6 flex flex-col gap-3 max-w-xs">
             <button
               onClick={nextDay}
               className="w-full rounded-2xl bg-orange-600 px-4 py-3 text-white font-semibold shadow"
             >
               Next Day
+            </button>
+
+            <button
+              onClick={resetGame}
+              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow"
+            >
+              Reset Save
             </button>
           </div>
         </div>
@@ -51,7 +58,7 @@ export default function RanchPage() {
           </Link>
           <Link
             href="/"
-            className="rounded-2xl bg-red-600 px-4 py-4 text-center text-white font-semibold shadow"
+            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
           >
             Back to Title
           </Link>

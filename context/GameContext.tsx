@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 type Creature = {
   id: number;
@@ -35,6 +41,14 @@ type BreedingSelection = {
   receiver: string;
 };
 
+type SaveData = {
+  currentDay: number;
+  playerData: PlayerData;
+  creatures: Creature[];
+  eggs: Egg[];
+  breedingSelection: BreedingSelection;
+};
+
 type GameContextType = {
   currentDay: number;
   playerData: PlayerData;
@@ -45,6 +59,7 @@ type GameContextType = {
   hatchEgg: (eggId: number) => void;
   breedCreatures: () => void;
   setBreedingSelection: (selection: BreedingSelection) => void;
+  resetGame: () => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -79,36 +94,85 @@ function getCreatureTemplateByName(name: string): Creature | null {
   return null;
 }
 
-export function GameProvider({ children }: { children: ReactNode }) {
-  const [currentDay, setCurrentDay] = useState(1);
+const defaultPlayerData: PlayerData = {
+  name: "Player",
+  gold: 500,
+  energy: 100,
+  breedingStamina: 100,
+};
 
-  const [playerData, setPlayerData] = useState<PlayerData>({
-    name: "Player",
-    gold: 500,
-    energy: 100,
-    breedingStamina: 100,
-  });
+const defaultCreatures: Creature[] = [horseTemplate, catTemplate];
 
-  const [creatures, setCreatures] = useState<Creature[]>([
-    horseTemplate,
-    catTemplate,
-  ]);
+const defaultBreedingSelection: BreedingSelection = {
+  giver: "Horse",
+  receiver: "Cat",
+};
 
-  const [breedingSelection, setBreedingSelection] = useState<BreedingSelection>({
+const defaultEggs: Egg[] = [
+  {
+    id: 1,
+    name: "Test Egg",
+    parents: "Horse + Cat",
+    hatchDaysRemaining: 3,
     giver: "Horse",
     receiver: "Cat",
-  });
+  },
+];
 
-  const [eggs, setEggs] = useState<Egg[]>([
-    {
-      id: 1,
-      name: "Test Egg",
-      parents: "Horse + Cat",
-      hatchDaysRemaining: 3,
-      giver: "Horse",
-      receiver: "Cat",
-    },
-  ]);
+const defaultSaveData: SaveData = {
+  currentDay: 1,
+  playerData: defaultPlayerData,
+  creatures: defaultCreatures,
+  eggs: defaultEggs,
+  breedingSelection: defaultBreedingSelection,
+};
+
+const STORAGE_KEY = "creature-chronicles-save";
+
+export function GameProvider({ children }: { children: ReactNode }) {
+  const [hasLoaded, setHasLoaded] = useState(false);
+
+  const [currentDay, setCurrentDay] = useState(defaultSaveData.currentDay);
+  const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
+  const [creatures, setCreatures] = useState(defaultSaveData.creatures);
+  const [eggs, setEggs] = useState(defaultSaveData.eggs);
+  const [breedingSelection, setBreedingSelection] = useState(
+    defaultSaveData.breedingSelection
+  );
+
+  useEffect(() => {
+    const savedGame = localStorage.getItem(STORAGE_KEY);
+
+    if (savedGame) {
+      try {
+        const parsedSave: SaveData = JSON.parse(savedGame);
+
+        setCurrentDay(parsedSave.currentDay);
+        setPlayerData(parsedSave.playerData);
+        setCreatures(parsedSave.creatures);
+        setEggs(parsedSave.eggs);
+        setBreedingSelection(parsedSave.breedingSelection);
+      } catch (error) {
+        console.error("Failed to load save data:", error);
+      }
+    }
+
+    setHasLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoaded) return;
+
+    const saveData: SaveData = {
+      currentDay,
+      playerData,
+      creatures,
+      eggs,
+      breedingSelection,
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+  }, [hasLoaded, currentDay, playerData, creatures, eggs, breedingSelection]);
 
   function nextDay() {
     setCurrentDay((prev) => prev + 1);
@@ -193,6 +257,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setEggs((prev) => [...prev, newEgg]);
   }
 
+  function resetGame() {
+    setCurrentDay(defaultSaveData.currentDay);
+    setPlayerData(defaultSaveData.playerData);
+    setCreatures(defaultSaveData.creatures);
+    setEggs(defaultSaveData.eggs);
+    setBreedingSelection(defaultSaveData.breedingSelection);
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
   return (
     <GameContext.Provider
       value={{
@@ -205,6 +278,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         hatchEgg,
         breedCreatures,
         setBreedingSelection,
+        resetGame,
       }}
     >
       {children}
