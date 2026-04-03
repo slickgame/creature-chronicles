@@ -86,7 +86,7 @@ type GameContextType = {
   eggs: Egg[];
   breedingSelection: BreedingSelection;
   nextDay: () => void;
-  hatchEgg: (eggId: number) => void;
+  hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
   setBreedingSelection: (selection: BreedingSelection) => void;
   resetGame: () => void;
@@ -542,11 +542,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  function hatchEgg(eggId: number) {
+  function hatchEgg(eggId: number): Creature | null {
     const eggToHatch = eggs.find((egg) => egg.id === eggId);
 
     if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) {
-      return;
+      return null;
     }
 
     let childSpeciesName = "Cat";
@@ -561,7 +561,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const template = getCreatureTemplateByName(childSpeciesName);
 
     if (!template) {
-      return;
+      return null;
     }
 
     const giverCreature = eggToHatch.giverId
@@ -605,6 +605,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     setCreatures((prev) => [...prev, newCreature]);
     setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
+
+    return newCreature;
   }
 
   function breedCreatures() {
