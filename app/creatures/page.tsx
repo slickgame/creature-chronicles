@@ -117,12 +117,17 @@ export default function CreaturesPage() {
                   </div>
                 </div>
 
-                <div className="mb-4 rounded-2xl bg-stone-100 p-3">
+                <div className="mb-4 rounded-2xl bg-stone-100 p-3 space-y-1">
                   <p className="text-sm text-stone-500">Lineage</p>
                   {creature.giver && creature.receiver ? (
-                    <p className="font-semibold text-stone-900">
-                      {creature.giver} → {creature.receiver}
-                    </p>
+                    <>
+                      <p className="font-semibold text-stone-900">
+                        {creature.giver} → {creature.receiver}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        Parent IDs: {creature.giverId ?? "Player"} / {creature.receiverId ?? "Player"}
+                      </p>
+                    </>
                   ) : (
                     <p className="font-semibold text-stone-900">
                       Starter Creature

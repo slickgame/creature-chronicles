@@ -23,6 +23,8 @@ type Creature = {
   stats: CreatureStats;
   giver: string | null;
   receiver: string | null;
+  giverId: number | null;
+  receiverId: number | null;
   bornOnDay: number;
   generation: number;
 };
@@ -34,6 +36,8 @@ type Egg = {
   hatchDaysRemaining: number;
   giver: string;
   receiver: string;
+  giverId: number | null;
+  receiverId: number | null;
 };
 
 type PlayerData = {
@@ -44,8 +48,10 @@ type PlayerData = {
 };
 
 type BreedingSelection = {
-  giver: string;
-  receiver: string;
+  giverType: "player" | "creature";
+  giverCreatureId: number | null;
+  receiverType: "player" | "creature";
+  receiverCreatureId: number | null;
 };
 
 type SaveData = {
@@ -146,6 +152,8 @@ const horseTemplate: Creature = {
   },
   giver: null,
   receiver: null,
+  giverId: null,
+  receiverId: null,
   bornOnDay: 1,
   generation: 1,
 };
@@ -163,6 +171,8 @@ const catTemplate: Creature = {
   },
   giver: null,
   receiver: null,
+  giverId: null,
+  receiverId: null,
   bornOnDay: 1,
   generation: 1,
 };
@@ -191,7 +201,10 @@ function createCreatureFromTemplate(
   template: Creature,
   giver: string,
   receiver: string,
-  currentDay: number
+  giverId: number | null,
+  receiverId: number | null,
+  currentDay: number,
+  generation: number
 ): Creature {
   return {
     ...template,
@@ -200,8 +213,10 @@ function createCreatureFromTemplate(
     stats: createVariedStats(template.stats),
     giver,
     receiver,
+    giverId,
+    receiverId,
     bornOnDay: currentDay,
-    generation: 2,
+    generation,
   };
 }
 
@@ -226,18 +241,22 @@ const defaultCreatures: Creature[] = [
 ];
 
 const defaultBreedingSelection: BreedingSelection = {
-  giver: "Horse",
-  receiver: "Cat",
+  giverType: "creature",
+  giverCreatureId: 1,
+  receiverType: "creature",
+  receiverCreatureId: 2,
 };
 
 const defaultEggs: Egg[] = [
   {
     id: 1,
     name: "Test Egg",
-    parents: "Horse + Cat",
+    parents: "Starter Horse + Starter Cat",
     hatchDaysRemaining: 3,
     giver: "Horse",
     receiver: "Cat",
+    giverId: 1,
+    receiverId: 2,
   },
 ];
 
@@ -330,11 +349,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const giverCreature = eggToHatch.giverId
+      ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null
+      : null;
+
+    const receiverCreature = eggToHatch.receiverId
+      ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null
+      : null;
+
+    const parentGenerations = [
+      giverCreature?.generation ?? 1,
+      receiverCreature?.generation ?? 1,
+    ];
+
+    const childGeneration = Math.max(...parentGenerations) + 1;
+
     const newCreature = createCreatureFromTemplate(
       template,
       eggToHatch.giver,
       eggToHatch.receiver,
-      currentDay
+      eggToHatch.giverId,
+      eggToHatch.receiverId,
+      currentDay,
+      childGeneration
     );
 
     setCreatures((prev) => [...prev, newCreature]);
@@ -354,11 +391,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (!breedingSelection.giver || !breedingSelection.receiver) {
+    const giverIsPlayer = breedingSelection.giverType === "player";
+    const receiverIsPlayer = breedingSelection.receiverType === "player";
+
+    const giverCreature = breedingSelection.giverCreatureId
+      ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
+      : null;
+
+    const receiverCreature = breedingSelection.receiverCreatureId
+      ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
+      : null;
+
+    const giverLabel = giverIsPlayer
+      ? "Player"
+      : giverCreature?.nickname ?? "";
+    const receiverLabel = receiverIsPlayer
+      ? "Player"
+      : receiverCreature?.nickname ?? "";
+
+    const giverSpecies = giverIsPlayer
+      ? "Player"
+      : giverCreature?.name ?? "";
+    const receiverSpecies = receiverIsPlayer
+      ? "Player"
+      : receiverCreature?.name ?? "";
+
+    if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) {
       return;
     }
 
-    if (breedingSelection.giver === breedingSelection.receiver) {
+    if (
+      !giverIsPlayer &&
+      !receiverIsPlayer &&
+      giverCreature &&
+      receiverCreature &&
+      giverCreature.id === receiverCreature.id
+    ) {
       return;
     }
 
@@ -369,17 +437,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
       breedingStamina: prev.breedingStamina - staminaCost,
     }));
 
-    if (breedingSelection.receiver === "Player") {
+    if (receiverIsPlayer) {
       return;
     }
 
     const newEgg: Egg = {
       id: Date.now(),
-      name: `${breedingSelection.giver} x ${breedingSelection.receiver} Egg`,
-      parents: `${breedingSelection.giver} + ${breedingSelection.receiver}`,
+      name: `${giverLabel} x ${receiverLabel} Egg`,
+      parents: `${giverLabel} + ${receiverLabel}`,
       hatchDaysRemaining: 3,
-      giver: breedingSelection.giver,
-      receiver: breedingSelection.receiver,
+      giver: giverSpecies,
+      receiver: receiverSpecies,
+      giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
+      receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
     };
 
     setEggs((prev) => [...prev, newEgg]);
@@ -387,7 +457,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   function renameCreature(creatureId: number, newNickname: string) {
     const trimmedName = newNickname.trim();
-
     if (!trimmedName) return;
 
     setCreatures((prev) =>
@@ -401,7 +470,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   function renamePlayer(newName: string) {
     const trimmedName = newName.trim();
-
     if (!trimmedName) return;
 
     setPlayerData((prev) => ({
@@ -426,8 +494,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentDay(1);
     setPlayerData(defaultPlayerData);
     setCreatures([freshHorse, freshCat]);
-    setEggs(defaultEggs);
-    setBreedingSelection(defaultBreedingSelection);
+    setEggs([
+      {
+        id: 1,
+        name: `${freshHorse.nickname} x ${freshCat.nickname} Egg`,
+        parents: `${freshHorse.nickname} + ${freshCat.nickname}`,
+        hatchDaysRemaining: 3,
+        giver: "Horse",
+        receiver: "Cat",
+        giverId: freshHorse.id,
+        receiverId: freshCat.id,
+      },
+    ]);
+    setBreedingSelection({
+      giverType: "creature",
+      giverCreatureId: freshHorse.id,
+      receiverType: "creature",
+      receiverCreatureId: freshCat.id,
+    });
     localStorage.removeItem(STORAGE_KEY);
   }
 
