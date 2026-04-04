@@ -54,10 +54,6 @@ function handleTravelToHome() {
   router.push("/home");
 }
 
-<p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
-<p><strong>Food Stock:</strong> {homeState.foodStock}</p>
-<p><strong>Wheat Stock:</strong> {homeState.wheatStock}</p>
-
 function getTraitLabel(
   trait: InbredTrait,
   severity: InbredTraitSeverity
@@ -107,6 +103,7 @@ export default function RanchPage() {
     currentMinute,
     currentLocation,
     playerData,
+    homeState,
     nextDay,
     resetGame,
     renamePlayer,
@@ -236,17 +233,20 @@ export default function RanchPage() {
         <h1 className="mb-6 text-4xl font-bold text-green-900">🌿 Ranch</h1>
 
         <div className="rounded-3xl border-4 border-green-900 bg-white/85 p-6 shadow-xl">
-          <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2">
-            <p><strong>Day:</strong> {currentDay}</p>
-            <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
-            <p><strong>Location:</strong> {currentLocation}</p>
-            <p><strong>Player:</strong> {playerData.name}</p>
-            <p><strong>Player Level:</strong> {playerData.level}</p>
-            <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
-            <p><strong>Gold:</strong> {playerData.gold}</p>
-            <p><strong>Energy:</strong> {playerData.energy}</p>
-            <p><strong>Total Creatures:</strong> {creatures.length}</p>
-          </div>
+        <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2">
+          <p><strong>Day:</strong> {currentDay}</p>
+          <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
+          <p><strong>Location:</strong> {currentLocation}</p>
+          <p><strong>Player:</strong> {playerData.name}</p>
+          <p><strong>Player Level:</strong> {playerData.level}</p>
+          <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
+          <p><strong>Gold:</strong> {playerData.gold}</p>
+          <p><strong>Energy:</strong> {playerData.energy}</p>
+          <p><strong>Total Creatures:</strong> {creatures.length}</p>
+          <p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
+          <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
+          <p><strong>Wheat Stock:</strong> {homeState.wheatStock}</p>
+        </div>
 
           <div className="mt-6 rounded-2xl bg-green-50 p-4">
             <p className="mb-2 font-semibold text-green-950">Rename Player</p>
