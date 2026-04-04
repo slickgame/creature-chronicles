@@ -122,27 +122,91 @@ export default function BreedingPage() {
     return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
   }
 
-  function getRefusalRiskLabel() {
+  function getAverageHappiness() {
     const happinessValues = [giverCreature?.happiness, receiverCreature?.happiness]
       .filter((value): value is number => typeof value === "number");
 
-    const avgHappiness =
-      happinessValues.length > 0
-        ? happinessValues.reduce((sum, value) => sum + value, 0) / happinessValues.length
-        : 60;
+    if (happinessValues.length === 0) return 60;
 
-    if (avgHappiness < 20 || homeState.cleanliness < 25 || homeState.foodStock <= 0) {
-      return "High";
+    return (
+      happinessValues.reduce((sum, value) => sum + value, 0) /
+      happinessValues.length
+    );
+  }
+
+  function getAverageBreedingCare() {
+    const skillValues = [
+      giverCreature?.skills.breedingCare.level,
+      receiverCreature?.skills.breedingCare.level,
+    ].filter((value): value is number => typeof value === "number");
+
+    if (skillValues.length === 0) return 1;
+
+    return skillValues.reduce((sum, value) => sum + value, 0) / skillValues.length;
+  }
+
+  function getRefusalChanceEstimate() {
+    let refusalChance = 0;
+
+    const avgHappiness = getAverageHappiness();
+    const avgBreedingCare = getAverageBreedingCare();
+
+    if (avgHappiness < 20) {
+      refusalChance += 0.45;
+    } else if (avgHappiness < 35) {
+      refusalChance += 0.28;
+    } else if (avgHappiness < 50) {
+      refusalChance += 0.14;
     }
 
-    if (avgHappiness < 50 || homeState.cleanliness < 50 || homeState.foodStock <= 2) {
-      return "Moderate";
+    if (homeState.cleanliness < 25) {
+      refusalChance += 0.25;
+    } else if (homeState.cleanliness < 50) {
+      refusalChance += 0.12;
     }
 
+    if (homeState.foodStock <= 0) {
+      refusalChance += 0.15;
+    } else if (homeState.foodStock <= 2) {
+      refusalChance += 0.06;
+    }
+
+    refusalChance -= Math.min(0.12, avgBreedingCare * 0.015);
+
+    refusalChance = Math.max(0, Math.min(0.75, refusalChance));
+
+    return refusalChance;
+  }
+
+  function getRefusalRiskLabel() {
+    const chance = getRefusalChanceEstimate();
+
+    if (chance >= 0.4) return "High";
+    if (chance >= 0.18) return "Moderate";
     return "Low";
   }
 
-  const refusalRiskLabel = getRefusalRiskLabel();
+  function getRefusalRiskClasses() {
+    const chance = getRefusalChanceEstimate();
+
+    if (chance >= 0.4) {
+      return "bg-red-100 text-red-900 border-red-300";
+    }
+
+    if (chance >= 0.18) {
+      return "bg-amber-100 text-amber-900 border-amber-300";
+    }
+
+    return "bg-green-100 text-green-900 border-green-300";
+  }
+
+  function getHappinessLabel(happiness: number) {
+    if (happiness >= 80) return "Very Happy";
+    if (happiness >= 60) return "Content";
+    if (happiness >= 40) return "Uneasy";
+    if (happiness >= 20) return "Unhappy";
+    return "Miserable";
+  }
 
   const parentChildWarning = isParentChild();
   const fullSiblingWarning = isFullSibling();
@@ -195,9 +259,52 @@ export default function BreedingPage() {
           <p><strong>Player Energy:</strong> {playerData.energy}</p>
           <p><strong>Session Time Cost:</strong> {getBreedingMinutes()} minutes</p>
           <p><strong>Gold Cost:</strong> None</p>
-          <p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
-          <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
-          <p><strong>Estimated Refusal Risk:</strong> {refusalRiskLabel}</p>
+        </div>
+
+        <div className="mb-4 rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
+          <h2 className="mb-3 text-2xl font-bold text-rose-950">Home Breeding Conditions</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <p><strong>Cleanliness:</strong> {homeState.cleanliness}/100</p>
+            <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
+            <p><strong>Average Happiness:</strong> {Math.round(getAverageHappiness())}</p>
+            <p><strong>Average Breeding Care:</strong> Lv {getAverageBreedingCare().toFixed(1)}</p>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <div
+              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRefusalRiskClasses()}`}
+            >
+              Refusal Risk: {getRefusalRiskLabel()} ({Math.round(getRefusalChanceEstimate() * 100)}%)
+            </div>
+
+            {homeState.cleanliness < 50 && (
+              <div className="inline-block rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
+                Dirty Home
+              </div>
+            )}
+
+            {homeState.cleanliness < 25 && (
+              <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
+                Filthy Home
+              </div>
+            )}
+
+            {homeState.foodStock <= 2 && homeState.foodStock > 0 && (
+              <div className="inline-block rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
+                Low Food
+              </div>
+            )}
+
+            {homeState.foodStock <= 0 && (
+              <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
+                No Food
+              </div>
+            )}
+          </div>
+
+          <p className="mt-3 text-sm text-stone-600">
+            Low happiness, poor cleanliness, and low food increase refusal chance. Breeding Care skill helps reduce it.
+          </p>
         </div>
 
         <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
@@ -271,7 +378,10 @@ export default function BreedingPage() {
                       {creature.name} • Lv {creature.level} • Gen {creature.generation}
                     </p>
                     <p className="text-sm text-stone-600">
-                      Happiness {creature.happiness}/100 • Breeding Care Lv {creature.skills.breedingCare.level}
+                      Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Breeding Care Lv {creature.skills.breedingCare.level}
                     </p>
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
@@ -357,7 +467,10 @@ export default function BreedingPage() {
                       {creature.name} • Lv {creature.level} • Gen {creature.generation}
                     </p>
                     <p className="text-sm text-stone-600">
-                      Happiness {creature.happiness}/100 • Breeding Care Lv {creature.skills.breedingCare.level}
+                      Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Breeding Care Lv {creature.skills.breedingCare.level}
                     </p>
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
@@ -379,16 +492,18 @@ export default function BreedingPage() {
               <strong>Breeding Cost:</strong> 8 Player Energy + stamina from selected creatures
             </p>
             <p>
+              <strong>Estimated Refusal Risk:</strong> {getRefusalRiskLabel()} ({Math.round(getRefusalChanceEstimate() * 100)}%)
+            </p>
+            <p>
+              <strong>Rule:</strong> If the giver is Player, offspring will always
+              be the receiver species. Otherwise, offspring rolls between giver
+              and receiver species.
+            </p>
+            <p>
               <strong>Speed Effect:</strong> Higher speed reduces session time.
             </p>
             <p>
-              <strong>Intelligence Effect:</strong> Helps mitigate genetic risk.
-            </p>
-            <p>
-              <strong>Breeding Care Skill:</strong> Helps reduce refusal chance.
-            </p>
-            <p>
-              <strong>Home Effect:</strong> Dirty homes and low food increase refusal risk and hurt happiness.
+              <strong>Home Effect:</strong> Dirty homes and lack of food can reduce happiness and raise refusal chance.
             </p>
 
             {playerIsReceiver && (
@@ -419,42 +534,13 @@ export default function BreedingPage() {
               </p>
             )}
 
-            {homeState.cleanliness < 25 && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Home Condition Warning</p>
-                <p>
-                  Your home is filthy. Refusal chance is heavily increased and creature happiness will keep dropping.
-                </p>
-              </div>
-            )}
-
-            {homeState.foodStock <= 0 && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Food Warning</p>
-                <p>
-                  Food stock is empty. Unfed creatures are less happy and more likely to refuse breeding.
-                </p>
-              </div>
-            )}
-
-            {giverCreature && giverCreature.happiness < 35 && (
-              <p className="font-semibold text-red-700">
-                {giverCreature.nickname} is unhappy and may refuse.
-              </p>
-            )}
-
-            {receiverCreature && receiverCreature.happiness < 35 && (
-              <p className="font-semibold text-red-700">
-                {receiverCreature.nickname} is unhappy and may refuse.
-              </p>
-            )}
-
             {parentChildWarning && !sameCreatureSelected && (
               <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
                   These creatures appear to be a direct parent and child. Breeding is
-                  allowed, but offspring can hatch with a severe negative inherited trait.
+                  allowed for now, but offspring from this pairing can hatch with a
+                  severe negative inherited trait.
                 </p>
               </div>
             )}
@@ -463,7 +549,9 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be full siblings. Breeding is allowed, but offspring can hatch with a severe negative inherited trait.
+                  These creatures appear to be full siblings. Breeding is allowed for
+                  now, but offspring from this pairing can hatch with a severe negative
+                  inherited trait.
                 </p>
               </div>
             )}
@@ -472,7 +560,19 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be half siblings. Breeding is allowed, but offspring can hatch with a mild negative inherited trait.
+                  These creatures appear to be half siblings. Breeding is allowed for
+                  now, but offspring from this pairing can hatch with a mild negative
+                  inherited trait.
+                </p>
+              </div>
+            )}
+
+            {getRefusalChanceEstimate() >= 0.4 && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Breeding Readiness Warning</p>
+                <p>
+                  This pair has a high chance to refuse. Improve food stock, cleanliness,
+                  happiness, or breeding care skill first.
                 </p>
               </div>
             )}
@@ -482,8 +582,6 @@ export default function BreedingPage() {
             <p><strong>Your Gold:</strong> {playerData.gold}</p>
             <p><strong>Your Energy:</strong> {playerData.energy}</p>
             <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
-            <p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
-            <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
           </div>
 
           <button
