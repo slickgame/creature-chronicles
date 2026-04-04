@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
@@ -25,40 +26,115 @@ function isExpired(
   return currentMinute > deadlineMinute;
 }
 
+function isExpiringSoon(
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number,
+  deadlineDay: number,
+  deadlineHour: number,
+  deadlineMinute: number
+) {
+  if (
+    isExpired(
+      currentDay,
+      currentHour,
+      currentMinute,
+      deadlineDay,
+      deadlineHour,
+      deadlineMinute
+    )
+  ) {
+    return false;
+  }
+
+  const currentTotal =
+    currentDay * 24 * 60 + currentHour * 60 + currentMinute;
+  const deadlineTotal =
+    deadlineDay * 24 * 60 + deadlineHour * 60 + deadlineMinute;
+
+  return deadlineTotal - currentTotal <= 24 * 60;
+}
+
 export default function TownPage() {
+  const router = useRouter();
   const {
     currentDay,
     currentHour,
     currentMinute,
+    currentLocation,
     playerData,
     creatures,
     townStock,
     townQuests,
+    travelLog,
     purchaseTownCreature,
     submitCreatureToQuest,
+    travelTo,
   } = useGame();
+
+  function handleTravelTo(destination: "ranch" | "market" | "guild_hall") {
+    travelTo(destination);
+
+    if (destination === "ranch") {
+      router.push("/ranch");
+      return;
+    }
+
+    router.push("/town");
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-stone-100 to-amber-200 p-6">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 text-4xl font-bold text-stone-900">🏘️ Town</h1>
 
         <div className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
           <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2 lg:grid-cols-4">
             <p><strong>Day:</strong> {currentDay}</p>
             <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
+            <p><strong>Location:</strong> {currentLocation}</p>
             <p><strong>Gold:</strong> {playerData.gold}</p>
             <p><strong>Energy:</strong> {playerData.energy}</p>
+            <p><strong>Player Level:</strong> {playerData.level}</p>
+            <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <button
+              onClick={() => handleTravelTo("ranch")}
+              className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+            >
+              Travel to Ranch (30m)
+            </button>
+            <button
+              onClick={() => handleTravelTo("market")}
+              className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+            >
+              Visit Market (15m)
+            </button>
+            <button
+              onClick={() => handleTravelTo("guild_hall")}
+              className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+            >
+              Visit Guild Hall (20m)
+            </button>
+            <button
+              onClick={() => handleTravelTo("town")}
+              className="rounded-2xl bg-gray-500 px-4 py-3 text-white font-semibold shadow"
+              disabled
+            >
+              Already in Town
+            </button>
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="mb-6 grid gap-6 xl:grid-cols-3">
           <section className="rounded-3xl border-4 border-amber-800 bg-white/85 p-6 shadow-xl">
             <h2 className="mb-2 text-3xl font-bold text-amber-900">
               🐾 Creature Seller
             </h2>
             <p className="mb-5 text-stone-600">
-            New stock rotates each day to help you avoid inbreeding. Buying a creature takes 20 in-game minutes.
+              New stock rotates each day to help you avoid inbreeding. Buying a creature takes 20 in-game minutes.
             </p>
 
             {townStock.length === 0 ? (
@@ -118,17 +194,26 @@ export default function TownPage() {
             )}
           </section>
 
-          <section className="rounded-3xl border-4 border-sky-800 bg-white/85 p-6 shadow-xl">
+          <section className="rounded-3xl border-4 border-sky-800 bg-white/85 p-6 shadow-xl xl:col-span-2">
             <h2 className="mb-2 text-3xl font-bold text-sky-900">
               📋 Breeding Quest Board
             </h2>
             <p className="mb-5 text-stone-600">
-            Submit bred creatures that meet stat and species requirements. Turning in a quest takes 30 in-game minutes, and the board always maintains 10 active quests.
+              Submit bred creatures that meet stat and species requirements. Turning in a quest takes 30 in-game minutes, and this board scrolls independently for readability.
             </p>
 
-            <div className="space-y-4">
+            <div className="max-h-[720px] overflow-y-auto pr-2 space-y-4">
               {townQuests.map((quest) => {
                 const expired = isExpired(
+                  currentDay,
+                  currentHour,
+                  currentMinute,
+                  quest.deadlineDay,
+                  quest.deadlineHour,
+                  quest.deadlineMinute
+                );
+
+                const expiringSoon = isExpiringSoon(
                   currentDay,
                   currentHour,
                   currentMinute,
@@ -199,7 +284,7 @@ export default function TownPage() {
                         <p className="text-stone-700">{quest.description}</p>
                       </div>
 
-                      <div className="text-right text-sm">
+                      <div className="flex flex-col gap-2 text-right text-sm">
                         {quest.completed ? (
                           <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">
                             Completed
@@ -207,6 +292,10 @@ export default function TownPage() {
                         ) : expired ? (
                           <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">
                             Expired
+                          </span>
+                        ) : expiringSoon ? (
+                          <span className="rounded-full border border-orange-300 bg-orange-100 px-3 py-1 font-semibold text-orange-900">
+                            Expires Soon
                           </span>
                         ) : (
                           <span className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-semibold text-amber-900">
@@ -224,7 +313,7 @@ export default function TownPage() {
                         {formatTime(quest.deadlineHour, quest.deadlineMinute)}
                       </p>
                       <p>
-                        <strong>Rewards:</strong> {quest.rewardGold} Gold, {quest.rewardXp} bonus quest XP
+                        <strong>Rewards:</strong> {quest.rewardGold} Gold, {quest.rewardXp} Player XP
                       </p>
                       <div className="mt-2">
                         <p className="font-semibold">Minimum Stats:</p>
@@ -264,13 +353,41 @@ export default function TownPage() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Link
-            href="/ranch"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            Back to Ranch
-          </Link>
+        <section className="mb-6 rounded-3xl border-4 border-emerald-800 bg-white/85 p-6 shadow-xl">
+          <h2 className="mb-2 text-3xl font-bold text-emerald-900">
+            🧭 Travel Log
+          </h2>
+          <p className="mb-4 text-stone-600">
+            Recent movements and time spent traveling.
+          </p>
+
+          {travelLog.length === 0 ? (
+            <div className="rounded-2xl bg-emerald-50 p-4 text-stone-700">
+              No travel logged yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {travelLog.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4"
+                >
+                  <p className="font-semibold text-stone-900">
+                    {entry.from} → {entry.to}
+                  </p>
+                  <p className="text-sm text-stone-700">
+                    Day {entry.day}, {formatTime(entry.hour, entry.minute)}
+                  </p>
+                  <p className="text-sm text-stone-600">
+                    Travel time: {entry.minutesSpent} minutes
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"

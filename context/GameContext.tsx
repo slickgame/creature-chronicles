@@ -26,6 +26,18 @@ type InbreedingRisk =
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
 
+type LocationName = "ranch" | "town" | "market" | "guild_hall";
+
+type TravelLogEntry = {
+  id: number;
+  from: LocationName;
+  to: LocationName;
+  day: number;
+  hour: number;
+  minute: number;
+  minutesSpent: number;
+};
+
 type Creature = {
   id: number;
   name: string;
@@ -70,6 +82,9 @@ type PlayerData = {
   name: string;
   gold: number;
   energy: number;
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
 };
 
 type BreedingSelection = {
@@ -108,24 +123,28 @@ type SaveData = {
   currentDay: number;
   currentHour: number;
   currentMinute: number;
+  currentLocation: LocationName;
   playerData: PlayerData;
   creatures: Creature[];
   eggs: Egg[];
   breedingSelection: BreedingSelection;
   townStock: TownStockEntry[];
   townQuests: TownQuest[];
+  travelLog: TravelLogEntry[];
 };
 
 type GameContextType = {
   currentDay: number;
   currentHour: number;
   currentMinute: number;
+  currentLocation: LocationName;
   playerData: PlayerData;
   creatures: Creature[];
   eggs: Egg[];
   breedingSelection: BreedingSelection;
   townStock: TownStockEntry[];
   townQuests: TownQuest[];
+  travelLog: TravelLogEntry[];
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -135,6 +154,7 @@ type GameContextType = {
   renamePlayer: (newName: string) => void;
   purchaseTownCreature: (stockEntryId: number) => void;
   submitCreatureToQuest: (questId: number, creatureId: number) => void;
+  travelTo: (destination: LocationName) => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -203,6 +223,10 @@ function generateNickname(speciesName: string): string {
 
 function getXpToNextLevel(level: number): number {
   return 50 + level * 25;
+}
+
+function getPlayerXpToNextLevel(level: number): number {
+  return 80 + level * 40;
 }
 
 function getMaxBreedingStaminaFromStats(stats: CreatureStats): number {
@@ -554,7 +578,8 @@ function normalizeCreature(creature: Creature): Creature {
     ...creature,
     level: creature.level ?? 1,
     xp: creature.xp ?? 0,
-    xpToNextLevel: creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
+    xpToNextLevel:
+      creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
     stats: normalizedStats,
     breedingStamina: creature.breedingStamina ?? maxBreedingStamina,
     maxBreedingStamina,
@@ -570,6 +595,16 @@ function normalizeEgg(egg: Egg): Egg {
   return {
     ...egg,
     inbreedingRisk: egg.inbreedingRisk ?? "none",
+  };
+}
+
+function normalizePlayerData(playerData: PlayerData): PlayerData {
+  return {
+    ...playerData,
+    level: playerData.level ?? 1,
+    xp: playerData.xp ?? 0,
+    xpToNextLevel:
+      playerData.xpToNextLevel ?? getPlayerXpToNextLevel(playerData.level ?? 1),
   };
 }
 
@@ -635,12 +670,6 @@ function generateTownStock(currentDay: number): TownStockEntry[] {
       price: 80 + statTotal * 3,
     };
   });
-}
-
-function generateTownQuests(currentDay: number): TownQuest[] {
-  return Array.from({ length: 10 }).map((_, index) =>
-    createSingleTownQuest(currentDay, currentDay * 1000 + index + 1)
-  );
 }
 
 function createSingleTownQuest(
@@ -752,6 +781,45 @@ function createSingleTownQuest(
   };
 }
 
+function generateTownQuests(currentDay: number): TownQuest[] {
+  return Array.from({ length: 10 }).map((_, index) =>
+    createSingleTownQuest(currentDay, currentDay * 1000 + index + 1)
+  );
+}
+
+function isQuestExpired(
+  quest: TownQuest,
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number
+) {
+  if (currentDay > quest.deadlineDay) return true;
+  if (currentDay < quest.deadlineDay) return false;
+  if (currentHour > quest.deadlineHour) return true;
+  if (currentHour < quest.deadlineHour) return false;
+  return currentMinute > quest.deadlineMinute;
+}
+
+function isQuestExpiringSoon(
+  quest: TownQuest,
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number
+) {
+  if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) {
+    return false;
+  }
+
+  const currentTotal =
+    currentDay * 24 * 60 + currentHour * 60 + currentMinute;
+  const deadlineTotal =
+    quest.deadlineDay * 24 * 60 +
+    quest.deadlineHour * 60 +
+    quest.deadlineMinute;
+
+  return deadlineTotal - currentTotal <= 24 * 60;
+}
+
 function ensureQuestBoardSize(
   quests: TownQuest[],
   currentDay: number,
@@ -810,14 +878,20 @@ function applyIntelligenceRiskMitigation(
   const avgIntelligence = average(intelligenceValues);
 
   if (baseRisk === "half_sibling") {
-    const mitigationChance = Math.min(0.45, Math.max(0, (avgIntelligence - 6) * 0.05));
+    const mitigationChance = Math.min(
+      0.45,
+      Math.max(0, (avgIntelligence - 6) * 0.05)
+    );
     if (Math.random() < mitigationChance) {
       return "none";
     }
   }
 
   if (baseRisk === "parent_child" || baseRisk === "full_sibling") {
-    const downgradeChance = Math.min(0.35, Math.max(0, (avgIntelligence - 7) * 0.04));
+    const downgradeChance = Math.min(
+      0.35,
+      Math.max(0, (avgIntelligence - 7) * 0.04)
+    );
     if (Math.random() < downgradeChance) {
       return "half_sibling";
     }
@@ -917,17 +991,23 @@ function applyXpGain(creature: Creature, xpGain: number): Creature {
   return updatedCreature;
 }
 
-function isQuestExpired(
-  quest: TownQuest,
-  currentDay: number,
-  currentHour: number,
-  currentMinute: number
-) {
-  if (currentDay > quest.deadlineDay) return true;
-  if (currentDay < quest.deadlineDay) return false;
-  if (currentHour > quest.deadlineHour) return true;
-  if (currentHour < quest.deadlineHour) return false;
-  return currentMinute > quest.deadlineMinute;
+function applyPlayerXpGain(playerData: PlayerData, xpGain: number): PlayerData {
+  let updatedPlayer = {
+    ...playerData,
+    xp: playerData.xp + xpGain,
+  };
+
+  while (updatedPlayer.xp >= updatedPlayer.xpToNextLevel) {
+    updatedPlayer = {
+      ...updatedPlayer,
+      xp: updatedPlayer.xp - updatedPlayer.xpToNextLevel,
+      level: updatedPlayer.level + 1,
+      xpToNextLevel: getPlayerXpToNextLevel(updatedPlayer.level + 1),
+      energy: Math.min(100, updatedPlayer.energy + 10),
+    };
+  }
+
+  return updatedPlayer;
 }
 
 function doesCreatureMeetQuest(
@@ -999,10 +1079,46 @@ function doesCreatureMeetQuest(
   return true;
 }
 
+function getTravelMinutes(from: LocationName, to: LocationName): number {
+  if (from === to) return 0;
+
+  const travelTimes: Record<LocationName, Record<LocationName, number>> = {
+    ranch: {
+      ranch: 0,
+      town: 30,
+      market: 40,
+      guild_hall: 45,
+    },
+    town: {
+      ranch: 30,
+      town: 0,
+      market: 15,
+      guild_hall: 20,
+    },
+    market: {
+      ranch: 40,
+      town: 15,
+      market: 0,
+      guild_hall: 10,
+    },
+    guild_hall: {
+      ranch: 45,
+      town: 20,
+      market: 10,
+      guild_hall: 0,
+    },
+  };
+
+  return travelTimes[from][to];
+}
+
 const defaultPlayerData: PlayerData = {
   name: "Player",
   gold: 500,
   energy: 100,
+  level: 1,
+  xp: 0,
+  xpToNextLevel: getPlayerXpToNextLevel(1),
 };
 
 const defaultCreatures: Creature[] = [
@@ -1045,12 +1161,14 @@ const defaultSaveData: SaveData = {
   currentDay: 1,
   currentHour: 8,
   currentMinute: 0,
+  currentLocation: "ranch",
   playerData: defaultPlayerData,
   creatures: defaultCreatures,
   eggs: defaultEggs,
   breedingSelection: defaultBreedingSelection,
   townStock: generateTownStock(1),
   townQuests: generateTownQuests(1),
+  travelLog: [],
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -1061,6 +1179,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [currentDay, setCurrentDay] = useState(defaultSaveData.currentDay);
   const [currentHour, setCurrentHour] = useState(defaultSaveData.currentHour);
   const [currentMinute, setCurrentMinute] = useState(defaultSaveData.currentMinute);
+  const [currentLocation, setCurrentLocation] = useState<LocationName>(
+    defaultSaveData.currentLocation
+  );
   const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
   const [creatures, setCreatures] = useState(defaultSaveData.creatures);
   const [eggs, setEggs] = useState(defaultSaveData.eggs);
@@ -1069,6 +1190,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
   const [townStock, setTownStock] = useState(defaultSaveData.townStock);
   const [townQuests, setTownQuests] = useState(defaultSaveData.townQuests);
+  const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(
+    defaultSaveData.travelLog
+  );
 
   useEffect(() => {
     const savedGame = localStorage.getItem(STORAGE_KEY);
@@ -1080,7 +1204,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setCurrentDay(parsedSave.currentDay);
         setCurrentHour(parsedSave.currentHour ?? 8);
         setCurrentMinute(parsedSave.currentMinute ?? 0);
-        setPlayerData(parsedSave.playerData);
+        setCurrentLocation(parsedSave.currentLocation ?? "ranch");
+        setPlayerData(normalizePlayerData(parsedSave.playerData));
         setCreatures(parsedSave.creatures.map(normalizeCreature));
         setEggs(parsedSave.eggs.map(normalizeEgg));
         setBreedingSelection(parsedSave.breedingSelection);
@@ -1090,15 +1215,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
             creature: normalizeCreature(entry.creature),
           })) ?? generateTownStock(parsedSave.currentDay ?? 1)
         );
-                setTownQuests(
-        ensureQuestBoardSize(
+        setTownQuests(
+          ensureQuestBoardSize(
             parsedSave.townQuests ?? generateTownQuests(parsedSave.currentDay ?? 1),
             parsedSave.currentDay ?? 1,
             parsedSave.currentHour ?? 8,
             parsedSave.currentMinute ?? 0,
             10
-        )
+          )
         );
+        setTravelLog(parsedSave.travelLog ?? []);
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -1114,12 +1240,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
       currentDay,
       currentHour,
       currentMinute,
+      currentLocation,
       playerData,
       creatures,
       eggs,
       breedingSelection,
       townStock,
       townQuests,
+      travelLog,
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -1128,12 +1256,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     currentDay,
     currentHour,
     currentMinute,
+    currentLocation,
     playerData,
     creatures,
     eggs,
     breedingSelection,
     townStock,
     townQuests,
+    travelLog,
   ]);
 
   function nextDay() {
@@ -1166,7 +1296,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     setTownStock(generateTownStock(newDay));
     setTownQuests((prev) =>
-    ensureQuestBoardSize(prev, newDay, 8, 0, 10)
+      ensureQuestBoardSize(prev, newDay, 8, 0, 10)
     );
   }
 
@@ -1300,16 +1430,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
 
     const baseInbreedingRisk = calculateInbreedingRisk(
-    giverCreature,
-    receiverCreature,
-    giverIsPlayer,
-    receiverIsPlayer
+      giverCreature,
+      receiverCreature,
+      giverIsPlayer,
+      receiverIsPlayer
     );
 
     const inbreedingRisk = applyIntelligenceRiskMitigation(
-    baseInbreedingRisk,
-    giverCreature,
-    receiverCreature
+      baseInbreedingRisk,
+      giverCreature,
+      receiverCreature
     );
 
     const minutesSpent = getBreedingSessionMinutes(giverCreature, receiverCreature);
@@ -1403,16 +1533,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }));
   }
 
-    function purchaseTownCreature(stockEntryId: number) {
+  function purchaseTownCreature(stockEntryId: number) {
     const entry = townStock.find((item) => item.id === stockEntryId);
     if (!entry) return;
     if (playerData.gold < entry.price) return;
 
     const updatedClock = applyTownActionTimeCost(
-        currentDay,
-        currentHour,
-        currentMinute,
-        20
+      currentDay,
+      currentHour,
+      currentMinute,
+      20
     );
 
     setCurrentDay(updatedClock.day);
@@ -1420,25 +1550,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentMinute(updatedClock.minute);
 
     setPlayerData((prev) => ({
-        ...prev,
-        gold: prev.gold - entry.price,
+      ...prev,
+      gold: prev.gold - entry.price,
     }));
 
     setCreatures((prev) => [...prev, entry.creature]);
     setTownStock((prev) => prev.filter((item) => item.id !== stockEntryId));
 
     setTownQuests((prev) =>
-        ensureQuestBoardSize(
+      ensureQuestBoardSize(
         prev,
         updatedClock.day,
         updatedClock.hour,
         updatedClock.minute,
         10
-        )
+      )
     );
-    }
+  }
 
-    function submitCreatureToQuest(questId: number, creatureId: number) {
+  function submitCreatureToQuest(questId: number, creatureId: number) {
     const quest = townQuests.find((item) => item.id === questId);
     const creature = creatures.find((item) => item.id === creatureId);
 
@@ -1447,10 +1577,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!doesCreatureMeetQuest(creature, quest)) return;
 
     const updatedClock = applyTownActionTimeCost(
-        currentDay,
-        currentHour,
-        currentMinute,
-        30
+      currentDay,
+      currentHour,
+      currentMinute,
+      30
     );
 
     setCurrentDay(updatedClock.day);
@@ -1459,25 +1589,68 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     setCreatures((prev) => prev.filter((item) => item.id !== creatureId));
 
-    setPlayerData((prev) => ({
-        ...prev,
-        gold: prev.gold + quest.rewardGold,
-    }));
+    setPlayerData((prev) =>
+      applyPlayerXpGain(
+        {
+          ...prev,
+          gold: prev.gold + quest.rewardGold,
+        },
+        quest.rewardXp
+      )
+    );
 
     setTownQuests((prev) => {
-        const completedSet = prev.map((item) =>
+      const completedSet = prev.map((item) =>
         item.id === questId ? { ...item, completed: true } : item
-        );
+      );
 
-        return ensureQuestBoardSize(
+      return ensureQuestBoardSize(
         completedSet,
         updatedClock.day,
         updatedClock.hour,
         updatedClock.minute,
         10
-        );
+      );
     });
-    }
+  }
+
+  function travelTo(destination: LocationName) {
+    if (destination === currentLocation) return;
+
+    const travelMinutes = getTravelMinutes(currentLocation, destination);
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      travelMinutes
+    );
+
+    const newLogEntry: TravelLogEntry = {
+      id: Date.now(),
+      from: currentLocation,
+      to: destination,
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      minutesSpent: travelMinutes,
+    };
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    setCurrentLocation(destination);
+    setTravelLog((prev) => [newLogEntry, ...prev].slice(0, 20));
+
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
+  }
 
   function resetGame() {
     const freshHorse = normalizeCreature({
@@ -1501,6 +1674,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentDay(1);
     setCurrentHour(8);
     setCurrentMinute(0);
+    setCurrentLocation("ranch");
     setPlayerData(defaultPlayerData);
     setCreatures([freshHorse, freshCat]);
     setEggs([
@@ -1526,6 +1700,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
     setTownStock(generateTownStock(1));
     setTownQuests(generateTownQuests(1));
+    setTravelLog([]);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -1535,12 +1710,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
         currentDay,
         currentHour,
         currentMinute,
+        currentLocation,
         playerData,
         creatures,
         eggs,
         breedingSelection,
         townStock,
         townQuests,
+        travelLog,
         nextDay,
         hatchEgg,
         breedCreatures,
@@ -1550,6 +1727,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         renamePlayer,
         purchaseTownCreature,
         submitCreatureToQuest,
+        travelTo,
       }}
     >
       {children}

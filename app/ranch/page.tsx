@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
@@ -85,15 +86,18 @@ function formatTime(hour: number, minute: number) {
 }
 
 export default function RanchPage() {
+  const router = useRouter();
   const {
     currentDay,
     currentHour,
     currentMinute,
+    currentLocation,
     playerData,
     nextDay,
     resetGame,
     renamePlayer,
     creatures,
+    travelTo,
   } = useGame();
 
   const [playerNameInput, setPlayerNameInput] = useState(playerData.name);
@@ -106,6 +110,11 @@ export default function RanchPage() {
 
   function handleSavePlayerName() {
     renamePlayer(playerNameInput);
+  }
+
+  function handleTravelToTown() {
+    travelTo("town");
+    router.push("/town");
   }
 
   const registryCreatures = useMemo(() => {
@@ -216,7 +225,10 @@ export default function RanchPage() {
           <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2">
             <p><strong>Day:</strong> {currentDay}</p>
             <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
+            <p><strong>Location:</strong> {currentLocation}</p>
             <p><strong>Player:</strong> {playerData.name}</p>
+            <p><strong>Player Level:</strong> {playerData.level}</p>
+            <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
             <p><strong>Gold:</strong> {playerData.gold}</p>
             <p><strong>Energy:</strong> {playerData.energy}</p>
             <p><strong>Total Creatures:</strong> {creatures.length}</p>
@@ -250,6 +262,13 @@ export default function RanchPage() {
             </button>
 
             <button
+              onClick={handleTravelToTown}
+              className="w-full rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+            >
+              Travel to Town (30m)
+            </button>
+
+            <button
               onClick={nextDay}
               className="w-full rounded-2xl bg-orange-600 px-4 py-3 text-white font-semibold shadow"
             >
@@ -265,13 +284,7 @@ export default function RanchPage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Link
-            href="/town"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            Go to Town
-          </Link>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
