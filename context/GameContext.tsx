@@ -1685,361 +1685,462 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }))
     );
 
-    setCreatures((prevCreatures) =>
-      prevCreatures.map((creature, index) => {
-        const wasFed = index < foodConsumed;
-        const happinessDelta = getHomeConditionHappinessDelta(
-          homeState.cleanliness,
-          wasFed
-        );
+ }
 
-        return {
-          ...creature,
-          breedingStamina: creature.maxBreedingStamina,
-          breedingsToday: 0,
-          happiness: clamp(creature.happiness + happinessDelta, 0, 100),
-        };
-      })
+  function renameCreature(creatureId: number, newNickname: string) {
+    const trimmedName = newNickname.trim();
+    if (!trimmedName) return;
+
+    setCreatures((prev) =>
+      prev.map((creature) =>
+        creature.id === creatureId
+          ? { ...creature, nickname: trimmedName }
+          : creature
+      )
     );
+  }
+
+  function renamePlayer(newName: string) {
+    const trimmedName = newName.trim();
+    if (!trimmedName) return;
 
     setPlayerData((prev) => ({
       ...prev,
-      energy: Math.min(100, prev.energy + 25),
+      name: trimmedName,
     }));
-
-    setHomeState((prev) => ({
-      ...prev,
-      cleanliness: Math.max(0, prev.cleanliness - 8),
-      foodStock: Math.max(0, prev.foodStock - foodConsumed),
-    }));
-
-    setTownStock(generateTownStock(newDay));
-    setTownQuests((prev) =>
-      ensureQuestBoardSize(prev, newDay, 8, 0, 10)
-    );
   }
 
-  function hatchEgg(eggId: number): Creature | null {
-    const eggToHatch = eggs.find((egg) => egg.id === eggId);
+  function purchaseTownCreature(stockEntryId: number) {
+    const entry = townStock.find((item) => item.id === stockEntryId);
+    if (!entry) return;
+    if (playerData.gold < entry.price) return;
 
-    if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) {
-      return null;
-    }
-
-    let childSpeciesName = "Cat";
-
-    if (eggToHatch.giver === "Player") {
-      childSpeciesName = eggToHatch.receiver;
-    } else {
-      childSpeciesName =
-        Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
-    }
-
-    const template = getCreatureTemplateByName(childSpeciesName);
-
-    if (!template) {
-      return null;
-    }
-
-    const giverCreature = eggToHatch.giverId
-      ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null
-      : null;
-
-    const receiverCreature = eggToHatch.receiverId
-      ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null
-      : null;
-
-    const parentGenerations = [
-      giverCreature?.generation ?? 1,
-      receiverCreature?.generation ?? 1,
-    ];
-
-    const childGeneration = Math.max(...parentGenerations) + 1;
-
-    const inbreedingRisk =
-      eggToHatch.inbreedingRisk ??
-      calculateInbreedingRisk(
-        giverCreature,
-        receiverCreature,
-        eggToHatch.giverIsPlayer,
-        eggToHatch.receiverIsPlayer
-      );
-
-    const newCreature = createCreatureFromTemplate(
-      template,
-      eggToHatch.giver,
-      eggToHatch.receiver,
-      eggToHatch.giverId,
-      eggToHatch.receiverId,
-      eggToHatch.giverIsPlayer,
-      eggToHatch.receiverIsPlayer,
-      currentDay,
-      childGeneration,
-      inbreedingRisk,
-      giverCreature,
-      receiverCreature
-    );
-
-    setCreatures((prev) => [...prev, newCreature]);
-    setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
-
-    return newCreature;
-  }
-
-function breedCreatures() {
-  const energyCost = 8;
-
-  if (playerData.energy < energyCost) {
-    return;
-  }
-
-  const giverIsPlayer = breedingSelection.giverType === "player";
-  const receiverIsPlayer = breedingSelection.receiverType === "player";
-
-  const giverCreature = breedingSelection.giverCreatureId
-    ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
-    : null;
-
-  const receiverCreature = breedingSelection.receiverCreatureId
-    ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
-    : null;
-
-  const giverLabel = giverIsPlayer
-    ? playerData.name
-    : giverCreature?.nickname ?? "";
-  const receiverLabel = receiverIsPlayer
-    ? playerData.name
-    : receiverCreature?.nickname ?? "";
-
-  const giverSpecies = giverIsPlayer ? "Player" : giverCreature?.name ?? "";
-  const receiverSpecies = receiverIsPlayer
-    ? "Player"
-    : receiverCreature?.name ?? "";
-
-  if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) {
-    return;
-  }
-
-  if (
-    !giverIsPlayer &&
-    !receiverIsPlayer &&
-    giverCreature &&
-    receiverCreature &&
-    giverCreature.id === receiverCreature.id
-  ) {
-    return;
-  }
-
-  if (giverCreature) {
-    if (
-      giverCreature.breedingsToday >= giverCreature.dailyBreedingLimit ||
-      giverCreature.breedingStamina < getBreedingStaminaCost(giverCreature)
-    ) {
-      return;
-    }
-  }
-
-  if (receiverCreature) {
-    if (
-      receiverCreature.breedingsToday >= receiverCreature.dailyBreedingLimit ||
-      receiverCreature.breedingStamina < getBreedingStaminaCost(receiverCreature)
-    ) {
-      return;
-    }
-  }
-
-  const giverParticipant = getParticipantSnapshot(
-    breedingSelection.giverType,
-    giverCreature,
-    playerData
-  );
-
-  const receiverParticipant = getParticipantSnapshot(
-    breedingSelection.receiverType,
-    receiverCreature,
-    playerData
-  );
-
-  const refusalChance = getBreedingRefusalChance(
-    giverParticipant,
-    receiverParticipant,
-    homeState
-  );
-
-  if (Math.random() < refusalChance) {
-    const updatedClock = addMinutesToClock(
+    const updatedClock = applyTownActionTimeCost(
       currentDay,
       currentHour,
       currentMinute,
-      10
+      20
     );
 
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setPlayerData((prev) => {
-      let updatedPlayer = {
-        ...prev,
-        energy: Math.max(0, prev.energy - 2),
-      };
+    setPlayerData((prev) => ({
+      ...prev,
+      gold: prev.gold - entry.price,
+    }));
 
-      if (
-        breedingSelection.giverType === "player" ||
-        breedingSelection.receiverType === "player"
-      ) {
-        updatedPlayer = {
-          ...updatedPlayer,
-          happiness: clamp(updatedPlayer.happiness - 4, 0, 100),
-          breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 4),
-        };
-      }
+    setCreatures((prev) => [...prev, entry.creature]);
+    setTownStock((prev) => prev.filter((item) => item.id !== stockEntryId));
 
-      return updatedPlayer;
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
+  }
+
+  function submitCreatureToQuest(questId: number, creatureId: number) {
+    const quest = townQuests.find((item) => item.id === questId);
+    const creature = creatures.find((item) => item.id === creatureId);
+
+    if (!quest || !creature || quest.completed) return;
+    if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) return;
+    if (!doesCreatureMeetQuest(creature, quest)) return;
+
+    const updatedClock = applyTownActionTimeCost(
+      currentDay,
+      currentHour,
+      currentMinute,
+      30
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setCreatures((prev) => prev.filter((item) => item.id !== creatureId));
+
+    setPlayerData((prev) =>
+      applyPlayerXpGain(
+        {
+          ...prev,
+          gold: prev.gold + quest.rewardGold,
+        },
+        quest.rewardXp
+      )
+    );
+
+    setTownQuests((prev) => {
+      const completedSet = prev.map((item) =>
+        item.id === questId ? { ...item, completed: true } : item
+      );
+
+      return ensureQuestBoardSize(
+        completedSet,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      );
     });
+  }
+
+  function travelTo(destination: LocationName) {
+    if (destination === currentLocation) return;
+
+    const travelMinutes = getTravelMinutes(currentLocation, destination);
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      travelMinutes
+    );
+
+    const newLogEntry: TravelLogEntry = {
+      id: Date.now(),
+      from: currentLocation,
+      to: destination,
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      minutesSpent: travelMinutes,
+    };
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    setCurrentLocation(destination);
+    setTravelLog((prev) => [newLogEntry, ...prev].slice(0, 20));
+
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
+  }
+
+  function cookMeal(creatureId: number) {
+    if (currentLocation !== "home") return;
+    if (homeState.wheatStock < 1) return;
+
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return;
+
+    const speciesBonus = creature.name === "Cat" ? 2 : 0;
+    const minutesSpent = Math.max(
+      15,
+      45 -
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cooking.level +
+            speciesBonus) / 2
+        )
+    );
+    const staminaCost = Math.max(
+      6,
+      14 - Math.floor((creature.stats.endurance + creature.stats.vitality) / 6)
+    );
+    const foodGain = Math.max(
+      1,
+      1 +
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cooking.level +
+            speciesBonus) / 8
+        )
+    );
+
+    if (creature.breedingStamina < staminaCost) return;
+
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setHomeState((prev) => ({
+      ...prev,
+      wheatStock: prev.wheatStock - 1,
+      foodStock: prev.foodStock + foodGain,
+    }));
 
     setCreatures((prev) =>
-      prev.map((creature) => {
-        if (
-          (giverCreature && creature.id === giverCreature.id) ||
-          (receiverCreature && creature.id === receiverCreature.id)
-        ) {
-          const updated = {
-            ...creature,
-            happiness: clamp(creature.happiness - 4, 0, 100),
-          };
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
 
-          return applyCreatureSkillXp(updated, "breedingCare", 4);
-        }
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - staminaCost,
+        };
 
-        return creature;
+        return applyCreatureSkillXp(updated, "cooking", 12);
       })
     );
 
-    return;
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
   }
 
-  const baseInbreedingRisk = calculateInbreedingRisk(
-    giverCreature,
-    receiverCreature,
-    giverIsPlayer,
-    receiverIsPlayer
-  );
+  function cleanHome(creatureId: number) {
+    if (currentLocation !== "home") return;
 
-  const inbreedingRisk = applyIntelligenceRiskMitigation(
-    baseInbreedingRisk,
-    giverCreature,
-    receiverCreature
-  );
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return;
 
-  const minutesSpent = getBreedingSessionMinutes(giverCreature, receiverCreature);
-  const updatedClock = addMinutesToClock(
-    currentDay,
-    currentHour,
-    currentMinute,
-    minutesSpent
-  );
+    const speciesBonus = creature.name === "Cat" ? 2 : 0;
+    const minutesSpent = Math.max(
+      10,
+      35 -
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cleaning.level +
+            speciesBonus) / 2
+        )
+    );
+    const staminaCost = Math.max(
+      5,
+      12 - Math.floor((creature.stats.endurance + creature.stats.speed) / 6)
+    );
+    const cleanGain = Math.max(
+      6,
+      10 +
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cleaning.level +
+            speciesBonus) / 3
+        )
+    );
 
-  setCurrentDay(updatedClock.day);
-  setCurrentHour(updatedClock.hour);
-  setCurrentMinute(updatedClock.minute);
+    if (creature.breedingStamina < staminaCost) return;
 
-  setPlayerData((prev) => {
-    let updatedPlayer = {
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setHomeState((prev) => ({
       ...prev,
-      energy: prev.energy - energyCost,
-    };
+      cleanliness: Math.min(100, prev.cleanliness + cleanGain),
+    }));
 
-    if (
-      breedingSelection.giverType === "player" ||
-      breedingSelection.receiverType === "player"
-    ) {
-      updatedPlayer = {
-        ...updatedPlayer,
-        happiness: clamp(updatedPlayer.happiness + 2, 0, 100),
-        breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 8),
-      };
-    }
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
 
-    return updatedPlayer;
-  });
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - staminaCost,
+        };
 
-  setCreatures((prev) =>
-    prev.map((creature) => {
-      if (giverCreature && creature.id === giverCreature.id) {
-        return applyCreatureSkillXp(
-          applyXpGain(
-            {
-              ...creature,
-              happiness: clamp(creature.happiness + 2, 0, 100),
-              breedingStamina:
-                creature.breedingStamina - getBreedingStaminaCost(creature),
-              breedingsToday: creature.breedingsToday + 1,
-            },
-            18
-          ),
-          "breedingCare",
-          8
-        );
-      }
+        return applyCreatureSkillXp(updated, "cleaning", 12);
+      })
+    );
 
-      if (receiverCreature && creature.id === receiverCreature.id) {
-        return applyCreatureSkillXp(
-          applyXpGain(
-            {
-              ...creature,
-              happiness: clamp(creature.happiness + 2, 0, 100),
-              breedingStamina:
-                creature.breedingStamina - getBreedingStaminaCost(creature),
-              breedingsToday: creature.breedingsToday + 1,
-            },
-            18
-          ),
-          "breedingCare",
-          8
-        );
-      }
-
-      return creature;
-    })
-  );
-
-  if (receiverIsPlayer) {
-    return;
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
   }
 
-  const eggProductionChance = getEggProductionChance(
-    giverParticipant,
-    receiverParticipant,
-    homeState
-  );
+  function workFields(creatureId: number) {
+    if (currentLocation !== "home") return;
 
-  if (Math.random() > eggProductionChance) {
-    return;
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return;
+
+    const speciesBonus = creature.name === "Horse" ? 3 : 0;
+    const minutesSpent = Math.max(
+      30,
+      90 -
+        Math.floor(
+          (creature.stats.strength +
+            creature.stats.endurance +
+            creature.skills.fieldWork.level * 2 +
+            speciesBonus) / 2
+        )
+    );
+    const staminaCost = Math.max(
+      8,
+      18 - Math.floor((creature.stats.endurance + creature.stats.strength) / 6)
+    );
+    const wheatGain = Math.max(
+      1,
+      2 +
+        Math.floor(
+          (creature.stats.strength +
+            creature.stats.endurance +
+            creature.skills.fieldWork.level +
+            speciesBonus) / 8
+        )
+    );
+
+    if (creature.breedingStamina < staminaCost) return;
+
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setHomeState((prev) => ({
+      ...prev,
+      wheatStock: prev.wheatStock + wheatGain,
+      cleanliness: Math.max(0, prev.cleanliness - 2),
+    }));
+
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - staminaCost,
+        };
+
+        return applyCreatureSkillXp(updated, "fieldWork", 12);
+      })
+    );
+
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
   }
 
-  const eggQuality = getEggQualityFromPairing(
-    giverParticipant,
-    receiverParticipant,
-    homeState
+  function resetGame() {
+    const freshHorse = normalizeCreature({
+      ...horseTemplate,
+      id: 1,
+      nickname: generateNickname("Horse"),
+      inbreedingRisk: "none",
+      inbredTrait: "none",
+      inbredTraitSeverity: "none",
+    });
+
+    const freshCat = normalizeCreature({
+      ...catTemplate,
+      id: 2,
+      nickname: generateNickname("Cat"),
+      inbreedingRisk: "none",
+      inbredTrait: "none",
+      inbredTraitSeverity: "none",
+    });
+
+    setCurrentDay(1);
+    setCurrentHour(8);
+    setCurrentMinute(0);
+    setCurrentLocation("ranch");
+    setPlayerData(defaultPlayerData);
+    setHomeState(defaultHomeState);
+    setCreatures([freshHorse, freshCat]);
+    setEggs([
+      {
+        id: 1,
+        name: `${freshHorse.nickname} x ${freshCat.nickname} Egg`,
+        parents: `${freshHorse.nickname} + ${freshCat.nickname}`,
+        hatchDaysRemaining: 3,
+        giver: "Horse",
+        receiver: "Cat",
+        giverId: freshHorse.id,
+        receiverId: freshCat.id,
+        giverIsPlayer: false,
+        receiverIsPlayer: false,
+        inbreedingRisk: "none",
+        quality: "normal",
+      },
+    ]);
+    setBreedingSelection({
+      giverType: "creature",
+      giverCreatureId: freshHorse.id,
+      receiverType: "creature",
+      receiverCreatureId: freshCat.id,
+    });
+    setTownStock(generateTownStock(1));
+    setTownQuests(generateTownQuests(1));
+    setTravelLog([]);
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  return (
+    <GameContext.Provider
+      value={{
+        currentDay,
+        currentHour,
+        currentMinute,
+        currentLocation,
+        playerData,
+        homeState,
+        creatures,
+        eggs,
+        breedingSelection,
+        townStock,
+        townQuests,
+        travelLog,
+        nextDay,
+        hatchEgg,
+        breedCreatures,
+        setBreedingSelection,
+        resetGame,
+        renameCreature,
+        renamePlayer,
+        purchaseTownCreature,
+        submitCreatureToQuest,
+        travelTo,
+        cookMeal,
+        cleanHome,
+        workFields,
+      }}
+    >
+      {children}
+    </GameContext.Provider>
   );
-
-  const newEgg: Egg = {
-    id: Date.now(),
-    name: `${giverLabel} x ${receiverLabel} Egg`,
-    parents: `${giverLabel} + ${receiverLabel}`,
-    hatchDaysRemaining: 3,
-    giver: giverSpecies,
-    receiver: receiverSpecies,
-    giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
-    receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
-    giverIsPlayer,
-    receiverIsPlayer,
-    inbreedingRisk,
-    quality: eggQuality,
-  };
-
-  setEggs((prev) => [...prev, newEgg]);
 }
 
 export function useGame() {
