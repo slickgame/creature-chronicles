@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
+type EggQuality = "poor" | "normal" | "strong" | "exceptional";
+
 export default function BreedingPage() {
   const {
     breedCreatures,
@@ -27,15 +29,47 @@ export default function BreedingPage() {
     ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
     : null;
 
-  const giverLabel =
-    breedingSelection.giverType === "player"
-      ? playerData.name
-      : giverCreature?.nickname ?? "None";
+  function getParticipantSnapshot(
+    participantType: "player" | "creature",
+    creature: typeof giverCreature
+  ) {
+    if (participantType === "player") {
+      return {
+        label: playerData.name,
+        happiness: playerData.happiness,
+        fertility: playerData.stats.fertility,
+        vitality: playerData.stats.vitality,
+        intelligence: playerData.stats.intelligence,
+        speed: playerData.stats.speed,
+        breedingCareLevel: playerData.breedingCare.level,
+      };
+    }
 
-  const receiverLabel =
-    breedingSelection.receiverType === "player"
-      ? playerData.name
-      : receiverCreature?.nickname ?? "None";
+    if (!creature) return null;
+
+    return {
+      label: creature.nickname,
+      happiness: creature.happiness,
+      fertility: creature.stats.fertility,
+      vitality: creature.stats.vitality,
+      intelligence: creature.stats.intelligence,
+      speed: creature.stats.speed,
+      breedingCareLevel: creature.skills.breedingCare.level,
+    };
+  }
+
+  const giverParticipant = getParticipantSnapshot(
+    breedingSelection.giverType,
+    giverCreature
+  );
+
+  const receiverParticipant = getParticipantSnapshot(
+    breedingSelection.receiverType,
+    receiverCreature
+  );
+
+  const giverLabel = giverParticipant?.label ?? "None";
+  const receiverLabel = receiverParticipant?.label ?? "None";
 
   const sameCreatureSelected =
     breedingSelection.giverType === "creature" &&
@@ -104,8 +138,9 @@ export default function BreedingPage() {
   }
 
   function getBreedingMinutes() {
-    const speeds = [giverCreature?.stats.speed, receiverCreature?.stats.speed]
-      .filter((value): value is number => typeof value === "number");
+    const speeds = [giverParticipant?.speed, receiverParticipant?.speed].filter(
+      (value): value is number => typeof value === "number"
+    );
 
     if (speeds.length === 0) return 120;
 
@@ -123,7 +158,7 @@ export default function BreedingPage() {
   }
 
   function getAverageHappiness() {
-    const happinessValues = [giverCreature?.happiness, receiverCreature?.happiness]
+    const happinessValues = [giverParticipant?.happiness, receiverParticipant?.happiness]
       .filter((value): value is number => typeof value === "number");
 
     if (happinessValues.length === 0) return 60;
@@ -136,8 +171,8 @@ export default function BreedingPage() {
 
   function getAverageBreedingCare() {
     const skillValues = [
-      giverCreature?.skills.breedingCare.level,
-      receiverCreature?.skills.breedingCare.level,
+      giverParticipant?.breedingCareLevel,
+      receiverParticipant?.breedingCareLevel,
     ].filter((value): value is number => typeof value === "number");
 
     if (skillValues.length === 0) return 1;
@@ -176,6 +211,155 @@ export default function BreedingPage() {
     refusalChance = Math.max(0, Math.min(0.75, refusalChance));
 
     return refusalChance;
+  }
+
+  function getEggChanceEstimate() {
+    if (breedingSelection.receiverType === "player") {
+      return 0;
+    }
+
+    const fertilities = [giverParticipant?.fertility, receiverParticipant?.fertility]
+      .filter((value): value is number => typeof value === "number");
+    const vitalities = [giverParticipant?.vitality, receiverParticipant?.vitality]
+      .filter((value): value is number => typeof value === "number");
+    const happinessValues = [giverParticipant?.happiness, receiverParticipant?.happiness]
+      .filter((value): value is number => typeof value === "number");
+    const breedingCareValues = [
+      giverParticipant?.breedingCareLevel,
+      receiverParticipant?.breedingCareLevel,
+    ].filter((value): value is number => typeof value === "number");
+
+    const avgFertility =
+      fertilities.length > 0
+        ? fertilities.reduce((sum, value) => sum + value, 0) / fertilities.length
+        : 5;
+
+    const avgVitality =
+      vitalities.length > 0
+        ? vitalities.reduce((sum, value) => sum + value, 0) / vitalities.length
+        : 5;
+
+    const avgHappiness =
+      happinessValues.length > 0
+        ? happinessValues.reduce((sum, value) => sum + value, 0) / happinessValues.length
+        : 60;
+
+    const avgBreedingCare =
+      breedingCareValues.length > 0
+        ? breedingCareValues.reduce((sum, value) => sum + value, 0) / breedingCareValues.length
+        : 1;
+
+    let chance = 0.45;
+    chance += (avgFertility - 5) * 0.05;
+    chance += (avgVitality - 5) * 0.02;
+    chance += (avgHappiness - 50) * 0.003;
+    chance += avgBreedingCare * 0.015;
+
+    if (homeState.cleanliness >= 80) {
+      chance += 0.08;
+    } else if (homeState.cleanliness >= 50) {
+      chance += 0.03;
+    } else if (homeState.cleanliness < 25) {
+      chance -= 0.15;
+    } else if (homeState.cleanliness < 50) {
+      chance -= 0.07;
+    }
+
+    if (homeState.foodStock >= 8) {
+      chance += 0.04;
+    } else if (homeState.foodStock <= 0) {
+      chance -= 0.12;
+    } else if (homeState.foodStock <= 2) {
+      chance -= 0.05;
+    }
+
+    return Math.max(0.1, Math.min(0.95, chance));
+  }
+
+  function getEggQualityPreview(): EggQuality {
+    const fertilities = [giverParticipant?.fertility, receiverParticipant?.fertility]
+      .filter((value): value is number => typeof value === "number");
+    const vitalities = [giverParticipant?.vitality, receiverParticipant?.vitality]
+      .filter((value): value is number => typeof value === "number");
+    const intelligences = [giverParticipant?.intelligence, receiverParticipant?.intelligence]
+      .filter((value): value is number => typeof value === "number");
+    const happinessValues = [giverParticipant?.happiness, receiverParticipant?.happiness]
+      .filter((value): value is number => typeof value === "number");
+    const breedingCareValues = [
+      giverParticipant?.breedingCareLevel,
+      receiverParticipant?.breedingCareLevel,
+    ].filter((value): value is number => typeof value === "number");
+
+    const avgFertility =
+      fertilities.length > 0
+        ? fertilities.reduce((sum, value) => sum + value, 0) / fertilities.length
+        : 5;
+
+    const avgVitality =
+      vitalities.length > 0
+        ? vitalities.reduce((sum, value) => sum + value, 0) / vitalities.length
+        : 5;
+
+    const avgIntelligence =
+      intelligences.length > 0
+        ? intelligences.reduce((sum, value) => sum + value, 0) / intelligences.length
+        : 5;
+
+    const avgHappiness =
+      happinessValues.length > 0
+        ? happinessValues.reduce((sum, value) => sum + value, 0) / happinessValues.length
+        : 60;
+
+    const avgBreedingCare =
+      breedingCareValues.length > 0
+        ? breedingCareValues.reduce((sum, value) => sum + value, 0) / breedingCareValues.length
+        : 1;
+
+    const score =
+      avgFertility +
+      avgVitality +
+      avgIntelligence +
+      avgBreedingCare * 1.5 +
+      avgHappiness / 10 +
+      homeState.cleanliness / 20 +
+      Math.min(homeState.foodStock, 10) / 2;
+
+    if (score >= 34) return "exceptional";
+    if (score >= 28) return "strong";
+    if (score >= 22) return "normal";
+    return "poor";
+  }
+
+  function getQualityClasses(quality: EggQuality) {
+    if (quality === "exceptional") {
+      return "bg-purple-100 text-purple-900 border-purple-300";
+    }
+
+    if (quality === "strong") {
+      return "bg-sky-100 text-sky-900 border-sky-300";
+    }
+
+    if (quality === "normal") {
+      return "bg-green-100 text-green-900 border-green-300";
+    }
+
+    return "bg-stone-100 text-stone-800 border-stone-300";
+  }
+
+  function getQualityDescription(quality: EggQuality) {
+    if (quality === "exceptional") {
+      return "Exceptional hatch preview: major bonus start.";
+    }
+
+    if (quality === "strong") {
+      return "Strong hatch preview: minor bonus start.";
+    }
+
+    if (quality === "normal") {
+      return "Normal hatch preview: standard start.";
+    }
+
+    return "Poor hatch preview: no bonus start.";
   }
 
   function getRefusalRiskLabel() {
@@ -277,6 +461,14 @@ export default function BreedingPage() {
               Refusal Risk: {getRefusalRiskLabel()} ({Math.round(getRefusalChanceEstimate() * 100)}%)
             </div>
 
+            <div
+              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getQualityClasses(
+                getEggQualityPreview()
+              )}`}
+            >
+              Egg Quality Preview: {getEggQualityPreview()}
+            </div>
+
             {homeState.cleanliness < 50 && (
               <div className="inline-block rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
                 Dirty Home
@@ -303,7 +495,7 @@ export default function BreedingPage() {
           </div>
 
           <p className="mt-3 text-sm text-stone-600">
-            Low happiness, poor cleanliness, and low food increase refusal chance. Breeding Care skill helps reduce it.
+            Fertility now affects whether a successful pairing actually produces an egg. Home conditions and breeding care help both egg odds and egg quality.
           </p>
         </div>
 
@@ -337,6 +529,15 @@ export default function BreedingPage() {
                 </div>
                 <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
                 <p className="text-sm text-stone-600">Player</p>
+                <p className="text-sm text-stone-600">
+                  Happiness {playerData.happiness} • {getHappinessLabel(playerData.happiness)}
+                </p>
+                <p className="text-sm text-stone-600">
+                  Fertility {playerData.stats.fertility} • Vitality {playerData.stats.vitality}
+                </p>
+                <p className="text-sm text-stone-600">
+                  Breeding Care Lv {playerData.breedingCare.level}
+                </p>
               </button>
             </div>
 
@@ -379,6 +580,9 @@ export default function BreedingPage() {
                     </p>
                     <p className="text-sm text-stone-600">
                       Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Fertility {creature.stats.fertility} • Vitality {creature.stats.vitality}
                     </p>
                     <p className="text-sm text-stone-600">
                       Breeding Care Lv {creature.skills.breedingCare.level}
@@ -426,6 +630,15 @@ export default function BreedingPage() {
                 </div>
                 <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
                 <p className="text-sm text-stone-600">Player</p>
+                <p className="text-sm text-stone-600">
+                  Happiness {playerData.happiness} • {getHappinessLabel(playerData.happiness)}
+                </p>
+                <p className="text-sm text-stone-600">
+                  Fertility {playerData.stats.fertility} • Vitality {playerData.stats.vitality}
+                </p>
+                <p className="text-sm text-stone-600">
+                  Breeding Care Lv {playerData.breedingCare.level}
+                </p>
               </button>
             </div>
 
@@ -470,6 +683,9 @@ export default function BreedingPage() {
                       Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
                     </p>
                     <p className="text-sm text-stone-600">
+                      Fertility {creature.stats.fertility} • Vitality {creature.stats.vitality}
+                    </p>
+                    <p className="text-sm text-stone-600">
                       Breeding Care Lv {creature.skills.breedingCare.level}
                     </p>
                     <p className="text-sm text-stone-600">
@@ -495,15 +711,22 @@ export default function BreedingPage() {
               <strong>Estimated Refusal Risk:</strong> {getRefusalRiskLabel()} ({Math.round(getRefusalChanceEstimate() * 100)}%)
             </p>
             <p>
+              <strong>Estimated Egg Chance:</strong>{" "}
+              {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}
+            </p>
+            <p>
+              <strong>Egg Quality Preview:</strong> {getEggQualityPreview()} — {getQualityDescription(getEggQualityPreview())}
+            </p>
+            <p>
               <strong>Rule:</strong> If the giver is Player, offspring will always
               be the receiver species. Otherwise, offspring rolls between giver
               and receiver species.
             </p>
             <p>
-              <strong>Speed Effect:</strong> Higher speed reduces session time.
+              <strong>Fertility Effect:</strong> Higher fertility improves the chance that breeding produces an egg.
             </p>
             <p>
-              <strong>Home Effect:</strong> Dirty homes and lack of food can reduce happiness and raise refusal chance.
+              <strong>Home Effect:</strong> Cleanliness, food, happiness, and breeding care improve both egg odds and egg quality.
             </p>
 
             {playerIsReceiver && (
@@ -572,7 +795,7 @@ export default function BreedingPage() {
                 <p className="font-semibold">Breeding Readiness Warning</p>
                 <p>
                   This pair has a high chance to refuse. Improve food stock, cleanliness,
-                  happiness, or breeding care skill first.
+                  happiness, or breeding care first.
                 </p>
               </div>
             )}

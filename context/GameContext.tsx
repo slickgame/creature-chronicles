@@ -86,6 +86,8 @@ type Creature = {
   inbredTraitSeverity: InbredTraitSeverity;
 };
 
+type EggQuality = "poor" | "normal" | "strong" | "exceptional";
+
 type Egg = {
   id: number;
   name: string;
@@ -98,6 +100,7 @@ type Egg = {
   giverIsPlayer: boolean;
   receiverIsPlayer: boolean;
   inbreedingRisk: InbreedingRisk;
+  quality: EggQuality;
 };
 
 type PlayerData = {
@@ -107,6 +110,9 @@ type PlayerData = {
   level: number;
   xp: number;
   xpToNextLevel: number;
+  happiness: number;
+  stats: CreatureStats;
+  breedingCare: SkillProgress;
 };
 
 type BreedingSelection = {
@@ -673,16 +679,29 @@ function normalizeEgg(egg: Egg): Egg {
   return {
     ...egg,
     inbreedingRisk: egg.inbreedingRisk ?? "none",
+    quality: egg.quality ?? "normal",
   };
 }
 
 function normalizePlayerData(playerData: PlayerData): PlayerData {
+  const level = playerData.level ?? 1;
+
   return {
     ...playerData,
-    level: playerData.level ?? 1,
+    level,
     xp: playerData.xp ?? 0,
     xpToNextLevel:
-      playerData.xpToNextLevel ?? getPlayerXpToNextLevel(playerData.level ?? 1),
+      playerData.xpToNextLevel ?? getPlayerXpToNextLevel(level),
+    happiness: playerData.happiness ?? 60,
+    stats: {
+      strength: playerData.stats?.strength ?? 6,
+      endurance: playerData.stats?.endurance ?? 6,
+      intelligence: playerData.stats?.intelligence ?? 6,
+      speed: playerData.stats?.speed ?? 6,
+      fertility: playerData.stats?.fertility ?? 6,
+      vitality: playerData.stats?.vitality ?? 6,
+    },
+    breedingCare: normalizeSkillProgress(playerData.breedingCare),
   };
 }
 
@@ -1110,6 +1129,185 @@ function applyCreatureSkillXp(
   };
 }
 
+function getParticipantSnapshot(
+  participantType: "player" | "creature",
+  creature: Creature | null,
+  playerData: PlayerData
+) {
+  if (participantType === "player") {
+    return {
+      isPlayer: true,
+      happiness: playerData.happiness,
+      stats: playerData.stats,
+      breedingCareLevel: playerData.breedingCare.level,
+    };
+  }
+
+  if (!creature) {
+    return null;
+  }
+
+  return {
+    isPlayer: false,
+    happiness: creature.happiness,
+    stats: creature.stats,
+    breedingCareLevel: creature.skills.breedingCare.level,
+  };
+}
+
+function getEggProductionChance(
+  giverParticipant: {
+    happiness: number;
+    stats: CreatureStats;
+    breedingCareLevel: number;
+  } | null,
+  receiverParticipant: {
+    happiness: number;
+    stats: CreatureStats;
+    breedingCareLevel: number;
+  } | null,
+  homeState: HomeState
+) {
+  const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
+    happiness: number;
+    stats: CreatureStats;
+    breedingCareLevel: number;
+  }[];
+
+  if (participants.length === 0) {
+    return 0.5;
+  }
+
+  const avgFertility = average(participants.map((p) => p.stats.fertility));
+  const avgVitality = average(participants.map((p) => p.stats.vitality));
+  const avgHappiness = average(participants.map((p) => p.happiness));
+  const avgBreedingCare = average(participants.map((p) => p.breedingCareLevel));
+
+  let chance = 0.45;
+
+  chance += (avgFertility - 5) * 0.05;
+  chance += (avgVitality - 5) * 0.02;
+  chance += (avgHappiness - 50) * 0.003;
+  chance += avgBreedingCare * 0.015;
+
+  if (homeState.cleanliness >= 80) {
+    chance += 0.08;
+  } else if (homeState.cleanliness >= 50) {
+    chance += 0.03;
+  } else if (homeState.cleanliness < 25) {
+    chance -= 0.15;
+  } else if (homeState.cleanliness < 50) {
+    chance -= 0.07;
+  }
+
+  if (homeState.foodStock >= 8) {
+    chance += 0.04;
+  } else if (homeState.foodStock <= 0) {
+    chance -= 0.12;
+  } else if (homeState.foodStock <= 2) {
+    chance -= 0.05;
+  }
+
+  return clamp(chance, 0.1, 0.95);
+}
+
+function getEggQualityFromPairing(
+  giverParticipant: {
+    happiness: number;
+    stats: CreatureStats;
+    breedingCareLevel: number;
+  } | null,
+  receiverParticipant: {
+    happiness: number;
+    stats: CreatureStats;
+    breedingCareLevel: number;
+  } | null,
+  homeState: HomeState
+): EggQuality {
+  const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
+    happiness: number;
+    stats: CreatureStats;
+    breedingCareLevel: number;
+  }[];
+
+  if (participants.length === 0) {
+    return "normal";
+  }
+
+  const avgFertility = average(participants.map((p) => p.stats.fertility));
+  const avgVitality = average(participants.map((p) => p.stats.vitality));
+  const avgIntelligence = average(participants.map((p) => p.stats.intelligence));
+  const avgHappiness = average(participants.map((p) => p.happiness));
+  const avgBreedingCare = average(participants.map((p) => p.breedingCareLevel));
+
+  const score =
+    avgFertility +
+    avgVitality +
+    avgIntelligence +
+    avgBreedingCare * 1.5 +
+    avgHappiness / 10 +
+    homeState.cleanliness / 20 +
+    Math.min(homeState.foodStock, 10) / 2;
+
+  if (score >= 34) return "exceptional";
+  if (score >= 28) return "strong";
+  if (score >= 22) return "normal";
+  return "poor";
+}
+
+function applyEggQualityBonuses(
+  creature: Creature,
+  quality: EggQuality
+): Creature {
+  if (quality === "poor" || quality === "normal") {
+    return creature;
+  }
+
+  const statKeys: (keyof CreatureStats)[] = [
+    "strength",
+    "endurance",
+    "intelligence",
+    "speed",
+    "fertility",
+    "vitality",
+  ];
+
+  const updatedStats = { ...creature.stats };
+
+  if (quality === "strong") {
+    const statKey = randomFrom(statKeys);
+    updatedStats[statKey] += 1;
+
+    return applyXpGain(
+      {
+        ...creature,
+        stats: updatedStats,
+        happiness: clamp(creature.happiness + 5, 0, 100),
+      },
+      10
+    );
+  }
+
+  const firstStat = randomFrom(statKeys);
+  let secondStat = randomFrom(statKeys);
+
+  while (secondStat === firstStat) {
+    secondStat = randomFrom(statKeys);
+  }
+
+  updatedStats[firstStat] += 1;
+  updatedStats[secondStat] += 1;
+
+  return applyXpGain(
+    {
+      ...creature,
+      stats: updatedStats,
+      happiness: clamp(creature.happiness + 10, 0, 100),
+    },
+    20
+  );
+}
+
 function getHomeConditionHappinessDelta(cleanliness: number, wasFed: boolean) {
   let delta = 0;
 
@@ -1131,23 +1329,28 @@ function getHomeConditionHappinessDelta(cleanliness: number, wasFed: boolean) {
 }
 
 function getBreedingRefusalChance(
-  giverCreature: Creature | null,
-  receiverCreature: Creature | null,
+  giverParticipant: {
+    happiness: number;
+    breedingCareLevel: number;
+  } | null,
+  receiverParticipant: {
+    happiness: number;
+    breedingCareLevel: number;
+  } | null,
   homeState: HomeState
 ) {
-  const happinessValues = [giverCreature?.happiness, receiverCreature?.happiness]
-    .filter((value): value is number => typeof value === "number");
+  const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
+    happiness: number;
+    breedingCareLevel: number;
+  }[];
 
   const avgHappiness =
-    happinessValues.length > 0 ? average(happinessValues) : 60;
-
-  const breedingCareLevels = [
-    giverCreature?.skills.breedingCare.level,
-    receiverCreature?.skills.breedingCare.level,
-  ].filter((value): value is number => typeof value === "number");
+    participants.length > 0 ? average(participants.map((p) => p.happiness)) : 60;
 
   const avgBreedingCare =
-    breedingCareLevels.length > 0 ? average(breedingCareLevels) : 1;
+    participants.length > 0
+      ? average(participants.map((p) => p.breedingCareLevel))
+      : 1;
 
   let refusalChance = 0;
 
@@ -1296,6 +1499,16 @@ const defaultPlayerData: PlayerData = {
   level: 1,
   xp: 0,
   xpToNextLevel: getPlayerXpToNextLevel(1),
+  happiness: 60,
+  stats: {
+    strength: 6,
+    endurance: 6,
+    intelligence: 6,
+    speed: 6,
+    fertility: 6,
+    vitality: 6,
+  },
+  breedingCare: createSkillProgress(),
 };
 
 const defaultHomeState: HomeState = {
@@ -1324,21 +1537,24 @@ const defaultBreedingSelection: BreedingSelection = {
   receiverCreatureId: 2,
 };
 
-const defaultEggs: Egg[] = [
-  {
-    id: 1,
-    name: "Test Egg",
-    parents: "Starter Horse + Starter Cat",
-    hatchDaysRemaining: 3,
-    giver: "Horse",
-    receiver: "Cat",
-    giverId: 1,
-    receiverId: 2,
-    giverIsPlayer: false,
-    receiverIsPlayer: false,
-    inbreedingRisk: "none",
+const defaultPlayerData: PlayerData = {
+  name: "Player",
+  gold: 500,
+  energy: 100,
+  level: 1,
+  xp: 0,
+  xpToNextLevel: getPlayerXpToNextLevel(1),
+  happiness: 60,
+  stats: {
+    strength: 6,
+    endurance: 6,
+    intelligence: 6,
+    speed: 6,
+    fertility: 6,
+    vitality: 6,
   },
-];
+  breedingCare: createSkillProgress(),
+};
 
 const defaultSaveData: SaveData = {
   currentDay: 1,
@@ -1634,11 +1850,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const refusalChance = getBreedingRefusalChance(
+  const giverParticipant = getParticipantSnapshot(
+      breedingSelection.giverType,
       giverCreature,
+      playerData
+      );
+
+  const receiverParticipant = getParticipantSnapshot(
+      breedingSelection.receiverType,
       receiverCreature,
+      playerData
+      );
+
+    const refusalChance = getBreedingRefusalChance(
+      giverParticipant,
+      receiverParticipant,
       homeState
-    );
+      );
 
     if (Math.random() < refusalChance) {
       const updatedClock = addMinutesToClock(
@@ -1657,24 +1885,43 @@ export function GameProvider({ children }: { children: ReactNode }) {
         energy: Math.max(0, prev.energy - 2),
       }));
 
-      setCreatures((prev) =>
-        prev.map((creature) => {
-          if (
-            (giverCreature && creature.id === giverCreature.id) ||
-            (receiverCreature && creature.id === receiverCreature.id)
-          ) {
-            const updated = {
-              ...creature,
-              happiness: clamp(creature.happiness - 4, 0, 100),
-            };
+setPlayerData((prev) => {
+  let updatedPlayer = {
+    ...prev,
+    energy: Math.max(0, prev.energy - 2),
+  };
 
-            return applyCreatureSkillXp(updated, "breedingCare", 4);
-          }
+  if (
+    breedingSelection.giverType === "player" ||
+    breedingSelection.receiverType === "player"
+  ) {
+    updatedPlayer = {
+      ...updatedPlayer,
+      happiness: clamp(updatedPlayer.happiness - 4, 0, 100),
+      breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 4),
+    };
+  }
 
-          return creature;
-        })
-      );
+  return updatedPlayer;
+});
 
+    setCreatures((prev) =>
+      prev.map((creature) => {
+        if (
+          (giverCreature && creature.id === giverCreature.id) ||
+          (receiverCreature && creature.id === receiverCreature.id)
+        ) {
+          const updated = {
+            ...creature,
+            happiness: clamp(creature.happiness - 4, 0, 100),
+          };
+
+          return applyCreatureSkillXp(updated, "breedingCare", 4);
+        }
+
+        return creature;
+      })
+    );
       return;
     }
 
@@ -1748,26 +1995,42 @@ export function GameProvider({ children }: { children: ReactNode }) {
       })
     );
 
-    if (receiverIsPlayer) {
-      return;
-    }
+if (receiverIsPlayer) {
+  return;
+}
 
-    const newEgg: Egg = {
-      id: Date.now(),
-      name: `${giverLabel} x ${receiverLabel} Egg`,
-      parents: `${giverLabel} + ${receiverLabel}`,
-      hatchDaysRemaining: 3,
-      giver: giverSpecies,
-      receiver: receiverSpecies,
-      giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
-      receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
-      giverIsPlayer,
-      receiverIsPlayer,
-      inbreedingRisk,
-    };
+const eggProductionChance = getEggProductionChance(
+  giverParticipant,
+  receiverParticipant,
+  homeState
+);
 
-    setEggs((prev) => [...prev, newEgg]);
-  }
+if (Math.random() > eggProductionChance) {
+  return;
+}
+
+const eggQuality = getEggQualityFromPairing(
+  giverParticipant,
+  receiverParticipant,
+  homeState
+);
+
+const newEgg: Egg = {
+  id: Date.now(),
+  name: `${giverLabel} x ${receiverLabel} Egg`,
+  parents: `${giverLabel} + ${receiverLabel}`,
+  hatchDaysRemaining: 3,
+  giver: giverSpecies,
+  receiver: receiverSpecies,
+  giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
+  receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
+  giverIsPlayer,
+  receiverIsPlayer,
+  inbreedingRisk,
+  quality: eggQuality,
+};
+
+setEggs((prev) => [...prev, newEgg]);
 
   function renameCreature(creatureId: number, newNickname: string) {
     const trimmedName = newNickname.trim();
@@ -2165,7 +2428,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerData(defaultPlayerData);
     setHomeState(defaultHomeState);
     setCreatures([freshHorse, freshCat]);
-    setEggs([
+    setEggs([ 
       {
         id: 1,
         name: `${freshHorse.nickname} x ${freshCat.nickname} Egg`,
@@ -2173,6 +2436,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         hatchDaysRemaining: 3,
         giver: "Horse",
         receiver: "Cat",
+        quality: "normal",
         giverId: freshHorse.id,
         receiverId: freshCat.id,
         giverIsPlayer: false,
