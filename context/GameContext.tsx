@@ -66,6 +66,7 @@ type Creature = {
   level: number;
   xp: number;
   xpToNextLevel: number;
+  happiness: number;
   stats: CreatureStats;
   skills: CreatureSkills;
   breedingStamina: number;
@@ -235,6 +236,10 @@ function randomFrom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
 function generateNickname(speciesName: string): string {
   if (speciesName === "Horse") {
     return `${randomFrom(horseFirstNames)} ${randomFrom(horseLastNames)}`;
@@ -319,6 +324,7 @@ const horseTemplate: Creature = createCreatureBase({
   name: "Horse",
   nickname: "Starter Horse",
   theme: "Field Worker",
+  happiness: 60,
   stats: {
     strength: 8,
     endurance: 8,
@@ -345,6 +351,7 @@ const catTemplate: Creature = createCreatureBase({
   name: "Cat",
   nickname: "Starter Cat",
   theme: "House Maid",
+  happiness: 60,
   stats: {
     strength: 4,
     endurance: 5,
@@ -587,6 +594,7 @@ function createCreatureFromTemplate(
     level: 1,
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
+    happiness: 60,
     stats: penaltyResult.stats,
     skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
@@ -642,6 +650,7 @@ function normalizeCreature(creature: Creature): Creature {
     xp: creature.xp ?? 0,
     xpToNextLevel:
       creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
+    happiness: creature.happiness ?? 60,
     stats: normalizedStats,
     skills: {
       cooking: normalizeSkillProgress(creature.skills?.cooking),
@@ -708,6 +717,7 @@ function createTownSellerCreature(
     level: 1 + Math.floor(Math.random() * 3),
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
+    happiness: 65,
     stats,
     skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
@@ -1100,6 +1110,72 @@ function applyCreatureSkillXp(
   };
 }
 
+function getHomeConditionHappinessDelta(cleanliness: number, wasFed: boolean) {
+  let delta = 0;
+
+  if (wasFed) {
+    delta += 6;
+  } else {
+    delta -= 10;
+  }
+
+  if (cleanliness >= 80) {
+    delta += 3;
+  } else if (cleanliness < 25) {
+    delta -= 12;
+  } else if (cleanliness < 50) {
+    delta -= 6;
+  }
+
+  return delta;
+}
+
+function getBreedingRefusalChance(
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null,
+  homeState: HomeState
+) {
+  const happinessValues = [giverCreature?.happiness, receiverCreature?.happiness]
+    .filter((value): value is number => typeof value === "number");
+
+  const avgHappiness =
+    happinessValues.length > 0 ? average(happinessValues) : 60;
+
+  const breedingCareLevels = [
+    giverCreature?.skills.breedingCare.level,
+    receiverCreature?.skills.breedingCare.level,
+  ].filter((value): value is number => typeof value === "number");
+
+  const avgBreedingCare =
+    breedingCareLevels.length > 0 ? average(breedingCareLevels) : 1;
+
+  let refusalChance = 0;
+
+  if (avgHappiness < 20) {
+    refusalChance += 0.45;
+  } else if (avgHappiness < 35) {
+    refusalChance += 0.28;
+  } else if (avgHappiness < 50) {
+    refusalChance += 0.14;
+  }
+
+  if (homeState.cleanliness < 25) {
+    refusalChance += 0.25;
+  } else if (homeState.cleanliness < 50) {
+    refusalChance += 0.12;
+  }
+
+  if (homeState.foodStock <= 0) {
+    refusalChance += 0.15;
+  } else if (homeState.foodStock <= 2) {
+    refusalChance += 0.06;
+  }
+
+  refusalChance -= Math.min(0.12, avgBreedingCare * 0.015);
+
+  return clamp(refusalChance, 0, 0.75);
+}
+
 function doesCreatureMeetQuest(
   creature: Creature,
   quest: TownQuest
@@ -1380,6 +1456,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   function nextDay() {
     const newDay = currentDay + 1;
+    const currentCreatureCount = creatures.length;
+    const foodConsumed = Math.min(homeState.foodStock, currentCreatureCount);
 
     setCurrentDay(newDay);
     setCurrentHour(8);
@@ -1394,11 +1472,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
 
     setCreatures((prevCreatures) =>
-      prevCreatures.map((creature) => ({
-        ...creature,
-        breedingStamina: creature.maxBreedingStamina,
-        breedingsToday: 0,
-      }))
+      prevCreatures.map((creature, index) => {
+        const wasFed = index < foodConsumed;
+        const happinessDelta = getHomeConditionHappinessDelta(
+          homeState.cleanliness,
+          wasFed
+        );
+
+        return {
+          ...creature,
+          breedingStamina: creature.maxBreedingStamina,
+          breedingsToday: 0,
+          happiness: clamp(creature.happiness + happinessDelta, 0, 100),
+        };
+      })
     );
 
     setPlayerData((prev) => ({
@@ -1409,6 +1496,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setHomeState((prev) => ({
       ...prev,
       cleanliness: Math.max(0, prev.cleanliness - 8),
+      foodStock: Math.max(0, prev.foodStock - foodConsumed),
     }));
 
     setTownStock(generateTownStock(newDay));
@@ -1546,6 +1634,50 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const refusalChance = getBreedingRefusalChance(
+      giverCreature,
+      receiverCreature,
+      homeState
+    );
+
+    if (Math.random() < refusalChance) {
+      const updatedClock = addMinutesToClock(
+        currentDay,
+        currentHour,
+        currentMinute,
+        10
+      );
+
+      setCurrentDay(updatedClock.day);
+      setCurrentHour(updatedClock.hour);
+      setCurrentMinute(updatedClock.minute);
+
+      setPlayerData((prev) => ({
+        ...prev,
+        energy: Math.max(0, prev.energy - 2),
+      }));
+
+      setCreatures((prev) =>
+        prev.map((creature) => {
+          if (
+            (giverCreature && creature.id === giverCreature.id) ||
+            (receiverCreature && creature.id === receiverCreature.id)
+          ) {
+            const updated = {
+              ...creature,
+              happiness: clamp(creature.happiness - 4, 0, 100),
+            };
+
+            return applyCreatureSkillXp(updated, "breedingCare", 4);
+          }
+
+          return creature;
+        })
+      );
+
+      return;
+    }
+
     const baseInbreedingRisk = calculateInbreedingRisk(
       giverCreature,
       receiverCreature,
@@ -1579,26 +1711,36 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCreatures((prev) =>
       prev.map((creature) => {
         if (giverCreature && creature.id === giverCreature.id) {
-          return applyXpGain(
-            {
-              ...creature,
-              breedingStamina:
-                creature.breedingStamina - getBreedingStaminaCost(creature),
-              breedingsToday: creature.breedingsToday + 1,
-            },
-            18
+          return applyCreatureSkillXp(
+            applyXpGain(
+              {
+                ...creature,
+                happiness: clamp(creature.happiness + 2, 0, 100),
+                breedingStamina:
+                  creature.breedingStamina - getBreedingStaminaCost(creature),
+                breedingsToday: creature.breedingsToday + 1,
+              },
+              18
+            ),
+            "breedingCare",
+            8
           );
         }
 
         if (receiverCreature && creature.id === receiverCreature.id) {
-          return applyXpGain(
-            {
-              ...creature,
-              breedingStamina:
-                creature.breedingStamina - getBreedingStaminaCost(creature),
-              breedingsToday: creature.breedingsToday + 1,
-            },
-            18
+          return applyCreatureSkillXp(
+            applyXpGain(
+              {
+                ...creature,
+                happiness: clamp(creature.happiness + 2, 0, 100),
+                breedingStamina:
+                  creature.breedingStamina - getBreedingStaminaCost(creature),
+                breedingsToday: creature.breedingsToday + 1,
+              },
+              18
+            ),
+            "breedingCare",
+            8
           );
         }
 
@@ -1827,6 +1969,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const updated = {
           ...c,
+          happiness: clamp(c.happiness + 2, 0, 100),
           breedingStamina: c.breedingStamina - staminaCost,
         };
 
@@ -1901,6 +2044,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const updated = {
           ...c,
+          happiness: clamp(c.happiness + 1, 0, 100),
           breedingStamina: c.breedingStamina - staminaCost,
         };
 
@@ -1976,6 +2120,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
         const updated = {
           ...c,
+          happiness: clamp(c.happiness + 1, 0, 100),
           breedingStamina: c.breedingStamina - staminaCost,
         };
 

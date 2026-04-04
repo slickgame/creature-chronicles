@@ -8,6 +8,7 @@ export default function BreedingPage() {
   const {
     breedCreatures,
     playerData,
+    homeState,
     breedingSelection,
     setBreedingSelection,
     creatures,
@@ -121,6 +122,28 @@ export default function BreedingPage() {
     return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
   }
 
+  function getRefusalRiskLabel() {
+    const happinessValues = [giverCreature?.happiness, receiverCreature?.happiness]
+      .filter((value): value is number => typeof value === "number");
+
+    const avgHappiness =
+      happinessValues.length > 0
+        ? happinessValues.reduce((sum, value) => sum + value, 0) / happinessValues.length
+        : 60;
+
+    if (avgHappiness < 20 || homeState.cleanliness < 25 || homeState.foodStock <= 0) {
+      return "High";
+    }
+
+    if (avgHappiness < 50 || homeState.cleanliness < 50 || homeState.foodStock <= 2) {
+      return "Moderate";
+    }
+
+    return "Low";
+  }
+
+  const refusalRiskLabel = getRefusalRiskLabel();
+
   const parentChildWarning = isParentChild();
   const fullSiblingWarning = isFullSibling();
   const halfSiblingWarning = isHalfSibling();
@@ -172,6 +195,9 @@ export default function BreedingPage() {
           <p><strong>Player Energy:</strong> {playerData.energy}</p>
           <p><strong>Session Time Cost:</strong> {getBreedingMinutes()} minutes</p>
           <p><strong>Gold Cost:</strong> None</p>
+          <p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
+          <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
+          <p><strong>Estimated Refusal Risk:</strong> {refusalRiskLabel}</p>
         </div>
 
         <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
@@ -243,6 +269,9 @@ export default function BreedingPage() {
                     </p>
                     <p className="text-sm text-stone-600">
                       {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                    </p>
+                    <p className="text-sm text-stone-600">
+                      Happiness {creature.happiness}/100 • Breeding Care Lv {creature.skills.breedingCare.level}
                     </p>
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
@@ -328,6 +357,9 @@ export default function BreedingPage() {
                       {creature.name} • Lv {creature.level} • Gen {creature.generation}
                     </p>
                     <p className="text-sm text-stone-600">
+                      Happiness {creature.happiness}/100 • Breeding Care Lv {creature.skills.breedingCare.level}
+                    </p>
+                    <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
                     </p>
                     <p className="text-xs text-stone-500">
@@ -347,16 +379,16 @@ export default function BreedingPage() {
               <strong>Breeding Cost:</strong> 8 Player Energy + stamina from selected creatures
             </p>
             <p>
-              <strong>Rule:</strong> If the giver is Player, offspring will always
-              be the receiver species. Otherwise, offspring rolls between giver
-              and receiver species.
-            </p>
-            <p>
               <strong>Speed Effect:</strong> Higher speed reduces session time.
             </p>
             <p>
-              <strong>Intelligence Effect:</strong> Reserved groundwork for future
-              inbreeding reduction mechanics.
+              <strong>Intelligence Effect:</strong> Helps mitigate genetic risk.
+            </p>
+            <p>
+              <strong>Breeding Care Skill:</strong> Helps reduce refusal chance.
+            </p>
+            <p>
+              <strong>Home Effect:</strong> Dirty homes and low food increase refusal risk and hurt happiness.
             </p>
 
             {playerIsReceiver && (
@@ -387,13 +419,42 @@ export default function BreedingPage() {
               </p>
             )}
 
+            {homeState.cleanliness < 25 && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Home Condition Warning</p>
+                <p>
+                  Your home is filthy. Refusal chance is heavily increased and creature happiness will keep dropping.
+                </p>
+              </div>
+            )}
+
+            {homeState.foodStock <= 0 && (
+              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
+                <p className="font-semibold">Food Warning</p>
+                <p>
+                  Food stock is empty. Unfed creatures are less happy and more likely to refuse breeding.
+                </p>
+              </div>
+            )}
+
+            {giverCreature && giverCreature.happiness < 35 && (
+              <p className="font-semibold text-red-700">
+                {giverCreature.nickname} is unhappy and may refuse.
+              </p>
+            )}
+
+            {receiverCreature && receiverCreature.happiness < 35 && (
+              <p className="font-semibold text-red-700">
+                {receiverCreature.nickname} is unhappy and may refuse.
+              </p>
+            )}
+
             {parentChildWarning && !sameCreatureSelected && (
               <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
                   These creatures appear to be a direct parent and child. Breeding is
-                  allowed for now, but offspring from this pairing can hatch with a
-                  severe negative inherited trait.
+                  allowed, but offspring can hatch with a severe negative inherited trait.
                 </p>
               </div>
             )}
@@ -402,9 +463,7 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be full siblings. Breeding is allowed for
-                  now, but offspring from this pairing can hatch with a severe negative
-                  inherited trait.
+                  These creatures appear to be full siblings. Breeding is allowed, but offspring can hatch with a severe negative inherited trait.
                 </p>
               </div>
             )}
@@ -413,9 +472,7 @@ export default function BreedingPage() {
               <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
                 <p className="font-semibold">Family Warning</p>
                 <p>
-                  These creatures appear to be half siblings. Breeding is allowed for
-                  now, but offspring from this pairing can hatch with a mild negative
-                  inherited trait.
+                  These creatures appear to be half siblings. Breeding is allowed, but offspring can hatch with a mild negative inherited trait.
                 </p>
               </div>
             )}
@@ -424,7 +481,9 @@ export default function BreedingPage() {
           <div className="mb-5 rounded-2xl bg-stone-100 p-4 space-y-1">
             <p><strong>Your Gold:</strong> {playerData.gold}</p>
             <p><strong>Your Energy:</strong> {playerData.energy}</p>
-            <p><strong>Current Time:</strong> Day {currentDay}</p>
+            <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+            <p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
+            <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
           </div>
 
           <button

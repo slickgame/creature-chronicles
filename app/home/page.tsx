@@ -99,8 +99,7 @@ export default function HomePage() {
             🍲 Home Systems
           </h2>
           <p className="text-stone-700">
-            Cats are naturally better at cooking and cleaning. Horses are naturally better at field work.
-            Stats and skill levels both affect outcomes.
+            Creatures consume food at the start of each new day. Low food and low cleanliness reduce happiness and raise breeding refusal risk.
           </p>
           <div className="mt-4 grid gap-3 text-sm text-stone-700 sm:grid-cols-3">
             <div className="rounded-2xl bg-orange-50 p-4">
@@ -134,6 +133,9 @@ export default function HomePage() {
                 >
                   <p className="text-lg font-bold text-stone-900">
                     {creature.nickname} ({creature.name})
+                  </p>
+                  <p className="text-sm text-stone-700">
+                    Happiness {creature.happiness}/100
                   </p>
                   <p className="text-sm text-stone-700">
                     INT {creature.stats.intelligence} • SPD {creature.stats.speed}
@@ -174,6 +176,9 @@ export default function HomePage() {
                     {creature.nickname} ({creature.name})
                   </p>
                   <p className="text-sm text-stone-700">
+                    Happiness {creature.happiness}/100
+                  </p>
+                  <p className="text-sm text-stone-700">
                     INT {creature.stats.intelligence} • SPD {creature.stats.speed}
                   </p>
                   <p className="text-sm text-stone-700">
@@ -210,6 +215,9 @@ export default function HomePage() {
                 >
                   <p className="text-lg font-bold text-stone-900">
                     {creature.nickname} ({creature.name})
+                  </p>
+                  <p className="text-sm text-stone-700">
+                    Happiness {creature.happiness}/100
                   </p>
                   <p className="text-sm text-stone-700">
                     STR {creature.stats.strength} • END {creature.stats.endurance}
