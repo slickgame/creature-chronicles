@@ -17,6 +17,20 @@ type CreatureStats = {
   vitality: number;
 };
 
+type SkillProgress = {
+  level: number;
+  xp: number;
+  xpToNextLevel: number;
+};
+
+type CreatureSkills = {
+  cooking: SkillProgress;
+  cleaning: SkillProgress;
+  breedingCare: SkillProgress;
+  fieldWork: SkillProgress;
+  hauling: SkillProgress;
+};
+
 type InbreedingRisk =
   | "none"
   | "half_sibling"
@@ -26,7 +40,7 @@ type InbreedingRisk =
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
 
-type LocationName = "ranch" | "town" | "market" | "guild_hall";
+type LocationName = "home" | "ranch" | "town" | "market" | "guild_hall";
 
 type TravelLogEntry = {
   id: number;
@@ -38,6 +52,12 @@ type TravelLogEntry = {
   minutesSpent: number;
 };
 
+type HomeState = {
+  cleanliness: number;
+  foodStock: number;
+  wheatStock: number;
+};
+
 type Creature = {
   id: number;
   name: string;
@@ -47,6 +67,7 @@ type Creature = {
   xp: number;
   xpToNextLevel: number;
   stats: CreatureStats;
+  skills: CreatureSkills;
   breedingStamina: number;
   maxBreedingStamina: number;
   breedingsToday: number;
@@ -125,6 +146,7 @@ type SaveData = {
   currentMinute: number;
   currentLocation: LocationName;
   playerData: PlayerData;
+  homeState: HomeState;
   creatures: Creature[];
   eggs: Egg[];
   breedingSelection: BreedingSelection;
@@ -139,6 +161,7 @@ type GameContextType = {
   currentMinute: number;
   currentLocation: LocationName;
   playerData: PlayerData;
+  homeState: HomeState;
   creatures: Creature[];
   eggs: Egg[];
   breedingSelection: BreedingSelection;
@@ -155,6 +178,9 @@ type GameContextType = {
   purchaseTownCreature: (stockEntryId: number) => void;
   submitCreatureToQuest: (questId: number, creatureId: number) => void;
   travelTo: (destination: LocationName) => void;
+  cookMeal: (creatureId: number) => void;
+  cleanHome: (creatureId: number) => void;
+  workFields: (creatureId: number) => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -229,6 +255,28 @@ function getPlayerXpToNextLevel(level: number): number {
   return 80 + level * 40;
 }
 
+function getSkillXpToNextLevel(level: number): number {
+  return 40 + level * 20;
+}
+
+function createSkillProgress(): SkillProgress {
+  return {
+    level: 1,
+    xp: 0,
+    xpToNextLevel: getSkillXpToNextLevel(1),
+  };
+}
+
+function createDefaultSkills(): CreatureSkills {
+  return {
+    cooking: createSkillProgress(),
+    cleaning: createSkillProgress(),
+    breedingCare: createSkillProgress(),
+    fieldWork: createSkillProgress(),
+    hauling: createSkillProgress(),
+  };
+}
+
 function getMaxBreedingStaminaFromStats(stats: CreatureStats): number {
   return 40 + stats.endurance * 4 + stats.vitality * 3;
 }
@@ -243,6 +291,7 @@ function createCreatureBase(
     | "level"
     | "xp"
     | "xpToNextLevel"
+    | "skills"
     | "breedingStamina"
     | "maxBreedingStamina"
     | "breedingsToday"
@@ -257,6 +306,7 @@ function createCreatureBase(
     level: 1,
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
+    skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
     maxBreedingStamina,
     breedingsToday: 0,
@@ -538,6 +588,7 @@ function createCreatureFromTemplate(
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
     stats: penaltyResult.stats,
+    skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
     maxBreedingStamina,
     breedingsToday: 0,
@@ -553,6 +604,17 @@ function createCreatureFromTemplate(
     inbreedingRisk,
     inbredTrait: penaltyResult.inbredTrait,
     inbredTraitSeverity: penaltyResult.inbredTraitSeverity,
+  };
+}
+
+function normalizeSkillProgress(
+  skill?: SkillProgress
+): SkillProgress {
+  const level = skill?.level ?? 1;
+  return {
+    level,
+    xp: skill?.xp ?? 0,
+    xpToNextLevel: skill?.xpToNextLevel ?? getSkillXpToNextLevel(level),
   };
 }
 
@@ -581,6 +643,13 @@ function normalizeCreature(creature: Creature): Creature {
     xpToNextLevel:
       creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
     stats: normalizedStats,
+    skills: {
+      cooking: normalizeSkillProgress(creature.skills?.cooking),
+      cleaning: normalizeSkillProgress(creature.skills?.cleaning),
+      breedingCare: normalizeSkillProgress(creature.skills?.breedingCare),
+      fieldWork: normalizeSkillProgress(creature.skills?.fieldWork),
+      hauling: normalizeSkillProgress(creature.skills?.hauling),
+    },
     breedingStamina: creature.breedingStamina ?? maxBreedingStamina,
     maxBreedingStamina,
     breedingsToday: creature.breedingsToday ?? 0,
@@ -608,6 +677,14 @@ function normalizePlayerData(playerData: PlayerData): PlayerData {
   };
 }
 
+function normalizeHomeState(homeState?: HomeState): HomeState {
+  return {
+    cleanliness: homeState?.cleanliness ?? 70,
+    foodStock: homeState?.foodStock ?? 10,
+    wheatStock: homeState?.wheatStock ?? 5,
+  };
+}
+
 function createTownSellerCreature(
   template: Creature,
   currentDay: number
@@ -632,6 +709,7 @@ function createTownSellerCreature(
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
     stats,
+    skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
     maxBreedingStamina,
     breedingsToday: 0,
@@ -798,26 +876,6 @@ function isQuestExpired(
   if (currentHour > quest.deadlineHour) return true;
   if (currentHour < quest.deadlineHour) return false;
   return currentMinute > quest.deadlineMinute;
-}
-
-function isQuestExpiringSoon(
-  quest: TownQuest,
-  currentDay: number,
-  currentHour: number,
-  currentMinute: number
-) {
-  if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) {
-    return false;
-  }
-
-  const currentTotal =
-    currentDay * 24 * 60 + currentHour * 60 + currentMinute;
-  const deadlineTotal =
-    quest.deadlineDay * 24 * 60 +
-    quest.deadlineHour * 60 +
-    quest.deadlineMinute;
-
-  return deadlineTotal - currentTotal <= 24 * 60;
 }
 
 function ensureQuestBoardSize(
@@ -1010,6 +1068,38 @@ function applyPlayerXpGain(playerData: PlayerData, xpGain: number): PlayerData {
   return updatedPlayer;
 }
 
+function applySkillXpGain(skill: SkillProgress, xpGain: number): SkillProgress {
+  let updatedSkill = {
+    ...skill,
+    xp: skill.xp + xpGain,
+  };
+
+  while (updatedSkill.xp >= updatedSkill.xpToNextLevel) {
+    updatedSkill = {
+      ...updatedSkill,
+      xp: updatedSkill.xp - updatedSkill.xpToNextLevel,
+      level: updatedSkill.level + 1,
+      xpToNextLevel: getSkillXpToNextLevel(updatedSkill.level + 1),
+    };
+  }
+
+  return updatedSkill;
+}
+
+function applyCreatureSkillXp(
+  creature: Creature,
+  skillName: keyof CreatureSkills,
+  xpGain: number
+): Creature {
+  return {
+    ...creature,
+    skills: {
+      ...creature.skills,
+      [skillName]: applySkillXpGain(creature.skills[skillName], xpGain),
+    },
+  };
+}
+
 function doesCreatureMeetQuest(
   creature: Creature,
   quest: TownQuest
@@ -1083,25 +1173,36 @@ function getTravelMinutes(from: LocationName, to: LocationName): number {
   if (from === to) return 0;
 
   const travelTimes: Record<LocationName, Record<LocationName, number>> = {
+    home: {
+      home: 0,
+      ranch: 10,
+      town: 35,
+      market: 45,
+      guild_hall: 50,
+    },
     ranch: {
+      home: 10,
       ranch: 0,
       town: 30,
       market: 40,
       guild_hall: 45,
     },
     town: {
+      home: 35,
       ranch: 30,
       town: 0,
       market: 15,
       guild_hall: 20,
     },
     market: {
+      home: 45,
       ranch: 40,
       town: 15,
       market: 0,
       guild_hall: 10,
     },
     guild_hall: {
+      home: 50,
       ranch: 45,
       town: 20,
       market: 10,
@@ -1119,6 +1220,12 @@ const defaultPlayerData: PlayerData = {
   level: 1,
   xp: 0,
   xpToNextLevel: getPlayerXpToNextLevel(1),
+};
+
+const defaultHomeState: HomeState = {
+  cleanliness: 70,
+  foodStock: 10,
+  wheatStock: 5,
 };
 
 const defaultCreatures: Creature[] = [
@@ -1163,6 +1270,7 @@ const defaultSaveData: SaveData = {
   currentMinute: 0,
   currentLocation: "ranch",
   playerData: defaultPlayerData,
+  homeState: defaultHomeState,
   creatures: defaultCreatures,
   eggs: defaultEggs,
   breedingSelection: defaultBreedingSelection,
@@ -1183,6 +1291,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     defaultSaveData.currentLocation
   );
   const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
+  const [homeState, setHomeState] = useState(defaultSaveData.homeState);
   const [creatures, setCreatures] = useState(defaultSaveData.creatures);
   const [eggs, setEggs] = useState(defaultSaveData.eggs);
   const [breedingSelection, setBreedingSelection] = useState(
@@ -1206,6 +1315,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setCurrentMinute(parsedSave.currentMinute ?? 0);
         setCurrentLocation(parsedSave.currentLocation ?? "ranch");
         setPlayerData(normalizePlayerData(parsedSave.playerData));
+        setHomeState(normalizeHomeState(parsedSave.homeState));
         setCreatures(parsedSave.creatures.map(normalizeCreature));
         setEggs(parsedSave.eggs.map(normalizeEgg));
         setBreedingSelection(parsedSave.breedingSelection);
@@ -1242,6 +1352,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       currentMinute,
       currentLocation,
       playerData,
+      homeState,
       creatures,
       eggs,
       breedingSelection,
@@ -1258,6 +1369,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     currentMinute,
     currentLocation,
     playerData,
+    homeState,
     creatures,
     eggs,
     breedingSelection,
@@ -1292,6 +1404,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerData((prev) => ({
       ...prev,
       energy: Math.min(100, prev.energy + 25),
+    }));
+
+    setHomeState((prev) => ({
+      ...prev,
+      cleanliness: Math.max(0, prev.cleanliness - 8),
     }));
 
     setTownStock(generateTownStock(newDay));
@@ -1652,6 +1769,231 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
   }
 
+  function cookMeal(creatureId: number) {
+    if (currentLocation !== "home") return;
+    if (homeState.wheatStock < 1) return;
+
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return;
+
+    const speciesBonus = creature.name === "Cat" ? 2 : 0;
+    const minutesSpent = Math.max(
+      15,
+      45 -
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cooking.level +
+            speciesBonus) / 2
+        )
+    );
+    const staminaCost = Math.max(
+      6,
+      14 - Math.floor((creature.stats.endurance + creature.stats.vitality) / 6)
+    );
+    const foodGain = Math.max(
+      1,
+      1 +
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cooking.level +
+            speciesBonus) / 8
+        )
+    );
+
+    if (creature.breedingStamina < staminaCost) return;
+
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setHomeState((prev) => ({
+      ...prev,
+      wheatStock: prev.wheatStock - 1,
+      foodStock: prev.foodStock + foodGain,
+    }));
+
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - staminaCost,
+        };
+
+        return applyCreatureSkillXp(updated, "cooking", 12);
+      })
+    );
+
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
+  }
+
+  function cleanHome(creatureId: number) {
+    if (currentLocation !== "home") return;
+
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return;
+
+    const speciesBonus = creature.name === "Cat" ? 2 : 0;
+    const minutesSpent = Math.max(
+      10,
+      35 -
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cleaning.level +
+            speciesBonus) / 2
+        )
+    );
+    const staminaCost = Math.max(
+      5,
+      12 - Math.floor((creature.stats.endurance + creature.stats.speed) / 6)
+    );
+    const cleanGain = Math.max(
+      6,
+      10 +
+        Math.floor(
+          (creature.stats.intelligence +
+            creature.stats.speed +
+            creature.skills.cleaning.level +
+            speciesBonus) / 3
+        )
+    );
+
+    if (creature.breedingStamina < staminaCost) return;
+
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setHomeState((prev) => ({
+      ...prev,
+      cleanliness: Math.min(100, prev.cleanliness + cleanGain),
+    }));
+
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - staminaCost,
+        };
+
+        return applyCreatureSkillXp(updated, "cleaning", 12);
+      })
+    );
+
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
+  }
+
+  function workFields(creatureId: number) {
+    if (currentLocation !== "home") return;
+
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!creature) return;
+
+    const speciesBonus = creature.name === "Horse" ? 3 : 0;
+    const minutesSpent = Math.max(
+      30,
+      90 -
+        Math.floor(
+          (creature.stats.strength +
+            creature.stats.endurance +
+            creature.skills.fieldWork.level * 2 +
+            speciesBonus) / 2
+        )
+    );
+    const staminaCost = Math.max(
+      8,
+      18 - Math.floor((creature.stats.endurance + creature.stats.strength) / 6)
+    );
+    const wheatGain = Math.max(
+      1,
+      2 +
+        Math.floor(
+          (creature.stats.strength +
+            creature.stats.endurance +
+            creature.skills.fieldWork.level +
+            speciesBonus) / 8
+        )
+    );
+
+    if (creature.breedingStamina < staminaCost) return;
+
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setHomeState((prev) => ({
+      ...prev,
+      wheatStock: prev.wheatStock + wheatGain,
+      cleanliness: Math.max(0, prev.cleanliness - 2),
+    }));
+
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - staminaCost,
+        };
+
+        return applyCreatureSkillXp(updated, "fieldWork", 12);
+      })
+    );
+
+    setTownQuests((prev) =>
+      ensureQuestBoardSize(
+        prev,
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        10
+      )
+    );
+  }
+
   function resetGame() {
     const freshHorse = normalizeCreature({
       ...horseTemplate,
@@ -1676,6 +2018,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentMinute(0);
     setCurrentLocation("ranch");
     setPlayerData(defaultPlayerData);
+    setHomeState(defaultHomeState);
     setCreatures([freshHorse, freshCat]);
     setEggs([
       {
@@ -1712,6 +2055,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         currentMinute,
         currentLocation,
         playerData,
+        homeState,
         creatures,
         eggs,
         breedingSelection,
@@ -1728,6 +2072,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         purchaseTownCreature,
         submitCreatureToQuest,
         travelTo,
+        cookMeal,
+        cleanHome,
+        workFields,
       }}
     >
       {children}

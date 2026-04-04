@@ -44,6 +44,20 @@ function getRiskClasses(risk: InbreedingRisk) {
   return "bg-red-100 text-red-900 border-red-300";
 }
 
+function handleTravelToHome() {
+  travelTo("home");
+  router.push("/home");
+}
+
+function handleTravelToHome() {
+  travelTo("home");
+  router.push("/home");
+}
+
+<p><strong>Home Cleanliness:</strong> {homeState.cleanliness}/100</p>
+<p><strong>Food Stock:</strong> {homeState.foodStock}</p>
+<p><strong>Wheat Stock:</strong> {homeState.wheatStock}</p>
+
 function getTraitLabel(
   trait: InbredTrait,
   severity: InbredTraitSeverity
