@@ -5,6 +5,44 @@ import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
 type EggQuality = "poor" | "normal" | "strong" | "exceptional";
+type CreatureTrait =
+  | "none"
+  | "domestic"
+  | "industrious"
+  | "calm"
+  | "fertile"
+  | "quick"
+  | "sturdy";
+
+function getTraitLabel(trait: CreatureTrait) {
+  if (trait === "domestic") return "Domestic";
+  if (trait === "industrious") return "Industrious";
+  if (trait === "calm") return "Calm";
+  if (trait === "fertile") return "Fertile";
+  if (trait === "quick") return "Quick";
+  if (trait === "sturdy") return "Sturdy";
+  return "No Trait";
+}
+
+function getTraitClasses(trait: CreatureTrait) {
+  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
+  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
+  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
+  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
+  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
+  return "bg-stone-100 text-stone-700 border-stone-300";
+}
+
+function getTraitDescription(trait: CreatureTrait) {
+  if (trait === "domestic") return "Better cooking and cleaning performance.";
+  if (trait === "industrious") return "Better field work and labor performance.";
+  if (trait === "calm") return "Lower breeding refusal chance.";
+  if (trait === "fertile") return "Higher egg production chance.";
+  if (trait === "quick") return "Lower time costs for tasks and breeding.";
+  if (trait === "sturdy") return "Lower stamina costs for tasks and breeding.";
+  return "No special trait bonuses.";
+}
 
 export default function BreedingPage() {
   const {
@@ -42,6 +80,7 @@ export default function BreedingPage() {
         intelligence: playerData.stats.intelligence,
         speed: playerData.stats.speed,
         breedingCareLevel: playerData.breedingCare.level,
+        trait: "none" as CreatureTrait,
       };
     }
 
@@ -55,6 +94,7 @@ export default function BreedingPage() {
       intelligence: creature.stats.intelligence,
       speed: creature.stats.speed,
       breedingCareLevel: creature.skills.breedingCare.level,
+      trait: creature.trait,
     };
   }
 
@@ -142,19 +182,24 @@ export default function BreedingPage() {
       (value): value is number => typeof value === "number"
     );
 
-    if (speeds.length === 0) return 120;
-
     const avgSpeed =
-      speeds.reduce((sum, value) => sum + value, 0) / speeds.length;
+      speeds.length > 0
+        ? speeds.reduce((sum, value) => sum + value, 0) / speeds.length
+        : 6;
 
-    return Math.max(30, 120 - Math.round(avgSpeed * 6));
+    const traitBonus =
+      (giverParticipant?.trait === "quick" ? 10 : 0) +
+      (receiverParticipant?.trait === "quick" ? 10 : 0);
+
+    return Math.max(25, 120 - Math.round(avgSpeed * 6) - traitBonus);
   }
 
   function getCreatureStaminaCost(creatureId: number | null) {
     if (!creatureId) return null;
     const creature = creatures.find((c) => c.id === creatureId);
     if (!creature) return null;
-    return Math.max(8, 22 - Math.floor(creature.stats.endurance / 2));
+    const sturdyDiscount = creature.trait === "sturdy" ? 3 : 0;
+    return Math.max(6, 22 - Math.floor(creature.stats.endurance / 2) - sturdyDiscount);
   }
 
   function getAverageHappiness() {
@@ -185,6 +230,9 @@ export default function BreedingPage() {
 
     const avgHappiness = getAverageHappiness();
     const avgBreedingCare = getAverageBreedingCare();
+    const calmReduction =
+      (giverParticipant?.trait === "calm" ? 0.08 : 0) +
+      (receiverParticipant?.trait === "calm" ? 0.08 : 0);
 
     if (avgHappiness < 20) {
       refusalChance += 0.45;
@@ -207,6 +255,7 @@ export default function BreedingPage() {
     }
 
     refusalChance -= Math.min(0.12, avgBreedingCare * 0.015);
+    refusalChance -= calmReduction;
 
     refusalChance = Math.max(0, Math.min(0.75, refusalChance));
 
@@ -249,11 +298,16 @@ export default function BreedingPage() {
         ? breedingCareValues.reduce((sum, value) => sum + value, 0) / breedingCareValues.length
         : 1;
 
+    const fertileBonus =
+      (giverParticipant?.trait === "fertile" ? 0.07 : 0) +
+      (receiverParticipant?.trait === "fertile" ? 0.07 : 0);
+
     let chance = 0.45;
     chance += (avgFertility - 5) * 0.05;
     chance += (avgVitality - 5) * 0.02;
     chance += (avgHappiness - 50) * 0.003;
     chance += avgBreedingCare * 0.015;
+    chance += fertileBonus;
 
     if (homeState.cleanliness >= 80) {
       chance += 0.08;
@@ -315,6 +369,12 @@ export default function BreedingPage() {
         ? breedingCareValues.reduce((sum, value) => sum + value, 0) / breedingCareValues.length
         : 1;
 
+    const extraTraitScore =
+      (giverParticipant?.trait === "calm" ? 1 : 0) +
+      (receiverParticipant?.trait === "calm" ? 1 : 0) +
+      (giverParticipant?.trait === "fertile" ? 1 : 0) +
+      (receiverParticipant?.trait === "fertile" ? 1 : 0);
+
     const score =
       avgFertility +
       avgVitality +
@@ -322,7 +382,8 @@ export default function BreedingPage() {
       avgBreedingCare * 1.5 +
       avgHappiness / 10 +
       homeState.cleanliness / 20 +
-      Math.min(homeState.foodStock, 10) / 2;
+      Math.min(homeState.foodStock, 10) / 2 +
+      extraTraitScore;
 
     if (score >= 34) return "exceptional";
     if (score >= 28) return "strong";
@@ -407,13 +468,23 @@ export default function BreedingPage() {
     !giverCreature ||
     (giverCreature.breedingsToday < giverCreature.dailyBreedingLimit &&
       giverCreature.breedingStamina >=
-        Math.max(8, 22 - Math.floor(giverCreature.stats.endurance / 2)));
+        Math.max(
+          6,
+          22 -
+            Math.floor(giverCreature.stats.endurance / 2) -
+            (giverCreature.trait === "sturdy" ? 3 : 0)
+        ));
 
   const receiverCreatureReady =
     !receiverCreature ||
     (receiverCreature.breedingsToday < receiverCreature.dailyBreedingLimit &&
       receiverCreature.breedingStamina >=
-        Math.max(8, 22 - Math.floor(receiverCreature.stats.endurance / 2)));
+        Math.max(
+          6,
+          22 -
+            Math.floor(receiverCreature.stats.endurance / 2) -
+            (receiverCreature.trait === "sturdy" ? 3 : 0)
+        ));
 
   const canBreed =
     canAffordBreed && hasValidSelection && giverCreatureReady && receiverCreatureReady;
@@ -495,7 +566,7 @@ export default function BreedingPage() {
           </div>
 
           <p className="mt-3 text-sm text-stone-600">
-            Fertility now affects whether a successful pairing actually produces an egg. Home conditions and breeding care help both egg odds and egg quality.
+            Fertility affects egg production. Calm lowers refusal chance. Quick lowers time cost. Sturdy lowers stamina cost. Home conditions and breeding care improve both egg odds and egg quality.
           </p>
         </div>
 
@@ -538,6 +609,9 @@ export default function BreedingPage() {
                 <p className="text-sm text-stone-600">
                   Breeding Care Lv {playerData.breedingCare.level}
                 </p>
+                <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses("none")}`}>
+                  No Trait
+                </div>
               </button>
             </div>
 
@@ -590,6 +664,12 @@ export default function BreedingPage() {
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
                     </p>
+                    <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(creature.trait)}`}>
+                      {getTraitLabel(creature.trait)}
+                    </div>
+                    <p className="mt-2 text-xs text-stone-500">
+                      {getTraitDescription(creature.trait)}
+                    </p>
                     <p className="text-xs text-stone-500">
                       Cost: {getCreatureStaminaCost(creature.id)} stamina
                     </p>
@@ -639,6 +719,9 @@ export default function BreedingPage() {
                 <p className="text-sm text-stone-600">
                   Breeding Care Lv {playerData.breedingCare.level}
                 </p>
+                <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses("none")}`}>
+                  No Trait
+                </div>
               </button>
             </div>
 
@@ -691,6 +774,12 @@ export default function BreedingPage() {
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
                     </p>
+                    <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(creature.trait)}`}>
+                      {getTraitLabel(creature.trait)}
+                    </div>
+                    <p className="mt-2 text-xs text-stone-500">
+                      {getTraitDescription(creature.trait)}
+                    </p>
                     <p className="text-xs text-stone-500">
                       Cost: {getCreatureStaminaCost(creature.id)} stamina
                     </p>
@@ -718,15 +807,15 @@ export default function BreedingPage() {
               <strong>Egg Quality Preview:</strong> {getEggQualityPreview()} — {getQualityDescription(getEggQualityPreview())}
             </p>
             <p>
+              <strong>Trait Preview:</strong>{" "}
+              {giverParticipant?.trait && giverParticipant.trait !== "none" ? getTraitLabel(giverParticipant.trait) : "No Trait"}
+              {" / "}
+              {receiverParticipant?.trait && receiverParticipant.trait !== "none" ? getTraitLabel(receiverParticipant.trait) : "No Trait"}
+            </p>
+            <p>
               <strong>Rule:</strong> If the giver is Player, offspring will always
               be the receiver species. Otherwise, offspring rolls between giver
               and receiver species.
-            </p>
-            <p>
-              <strong>Fertility Effect:</strong> Higher fertility improves the chance that breeding produces an egg.
-            </p>
-            <p>
-              <strong>Home Effect:</strong> Cleanliness, food, happiness, and breeding care improve both egg odds and egg quality.
             </p>
 
             {playerIsReceiver && (
