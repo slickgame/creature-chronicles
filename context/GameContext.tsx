@@ -621,9 +621,7 @@ function createCreatureFromTemplate(
   };
 }
 
-function normalizeSkillProgress(
-  skill?: SkillProgress
-): SkillProgress {
+function normalizeSkillProgress(skill?: SkillProgress): SkillProgress {
   const level = skill?.level ?? 1;
   return {
     level,
@@ -1685,7 +1683,374 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }))
     );
 
- }
+    setCreatures((prevCreatures) =>
+      prevCreatures.map((creature, index) => {
+        const wasFed = index < foodConsumed;
+        const happinessDelta = getHomeConditionHappinessDelta(
+          homeState.cleanliness,
+          wasFed
+        );
+
+        return {
+          ...creature,
+          happiness: clamp(creature.happiness + happinessDelta, 0, 100),
+          breedingStamina: creature.maxBreedingStamina,
+          breedingsToday: 0,
+        };
+      })
+    );
+
+    setPlayerData((prev) => ({
+      ...prev,
+      energy: Math.min(100, prev.energy + 25),
+      happiness: clamp(
+        prev.happiness +
+          getHomeConditionHappinessDelta(
+            homeState.cleanliness,
+            homeState.foodStock > 0
+          ),
+        0,
+        100
+      ),
+    }));
+
+    setHomeState((prev) => ({
+      ...prev,
+      cleanliness: Math.max(0, prev.cleanliness - 8),
+      foodStock: Math.max(0, prev.foodStock - currentCreatureCount),
+    }));
+
+    setTownStock(generateTownStock(newDay));
+    setTownQuests((prev) => ensureQuestBoardSize(prev, newDay, 8, 0, 10));
+  }
+
+  function hatchEgg(eggId: number): Creature | null {
+    const eggToHatch = eggs.find((egg) => egg.id === eggId);
+
+    if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) {
+      return null;
+    }
+
+    let childSpeciesName = "Cat";
+
+    if (eggToHatch.giver === "Player") {
+      childSpeciesName = eggToHatch.receiver;
+    } else {
+      childSpeciesName =
+        Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
+    }
+
+    const template = getCreatureTemplateByName(childSpeciesName);
+
+    if (!template) {
+      return null;
+    }
+
+    const giverCreature = eggToHatch.giverId
+      ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null
+      : null;
+
+    const receiverCreature = eggToHatch.receiverId
+      ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null
+      : null;
+
+    const parentGenerations = [
+      giverCreature?.generation ?? 1,
+      receiverCreature?.generation ?? 1,
+    ];
+
+    const childGeneration = Math.max(...parentGenerations) + 1;
+
+    const inbreedingRisk =
+      eggToHatch.inbreedingRisk ??
+      calculateInbreedingRisk(
+        giverCreature,
+        receiverCreature,
+        eggToHatch.giverIsPlayer,
+        eggToHatch.receiverIsPlayer
+      );
+
+    let newCreature = createCreatureFromTemplate(
+      template,
+      eggToHatch.giver,
+      eggToHatch.receiver,
+      eggToHatch.giverId,
+      eggToHatch.receiverId,
+      eggToHatch.giverIsPlayer,
+      eggToHatch.receiverIsPlayer,
+      currentDay,
+      childGeneration,
+      inbreedingRisk,
+      giverCreature,
+      receiverCreature
+    );
+
+    newCreature = applyEggQualityBonuses(
+      newCreature,
+      eggToHatch.quality ?? "normal"
+    );
+
+    setCreatures((prev) => [...prev, newCreature]);
+    setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
+
+    return newCreature;
+  }
+
+  function breedCreatures() {
+    const energyCost = 8;
+
+    if (playerData.energy < energyCost) {
+      return;
+    }
+
+    const giverIsPlayer = breedingSelection.giverType === "player";
+    const receiverIsPlayer = breedingSelection.receiverType === "player";
+
+    const giverCreature = breedingSelection.giverCreatureId
+      ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
+      : null;
+
+    const receiverCreature = breedingSelection.receiverCreatureId
+      ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
+      : null;
+
+    const giverLabel = giverIsPlayer
+      ? playerData.name
+      : giverCreature?.nickname ?? "";
+    const receiverLabel = receiverIsPlayer
+      ? playerData.name
+      : receiverCreature?.nickname ?? "";
+
+    const giverSpecies = giverIsPlayer ? "Player" : giverCreature?.name ?? "";
+    const receiverSpecies = receiverIsPlayer
+      ? "Player"
+      : receiverCreature?.name ?? "";
+
+    if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) {
+      return;
+    }
+
+    if (
+      !giverIsPlayer &&
+      !receiverIsPlayer &&
+      giverCreature &&
+      receiverCreature &&
+      giverCreature.id === receiverCreature.id
+    ) {
+      return;
+    }
+
+    if (giverCreature) {
+      if (
+        giverCreature.breedingsToday >= giverCreature.dailyBreedingLimit ||
+        giverCreature.breedingStamina < getBreedingStaminaCost(giverCreature)
+      ) {
+        return;
+      }
+    }
+
+    if (receiverCreature) {
+      if (
+        receiverCreature.breedingsToday >= receiverCreature.dailyBreedingLimit ||
+        receiverCreature.breedingStamina < getBreedingStaminaCost(receiverCreature)
+      ) {
+        return;
+      }
+    }
+
+    const giverParticipant = getParticipantSnapshot(
+      breedingSelection.giverType,
+      giverCreature,
+      playerData
+    );
+
+    const receiverParticipant = getParticipantSnapshot(
+      breedingSelection.receiverType,
+      receiverCreature,
+      playerData
+    );
+
+    const refusalChance = getBreedingRefusalChance(
+      giverParticipant,
+      receiverParticipant,
+      homeState
+    );
+
+    if (Math.random() < refusalChance) {
+      const updatedClock = addMinutesToClock(
+        currentDay,
+        currentHour,
+        currentMinute,
+        10
+      );
+
+      setCurrentDay(updatedClock.day);
+      setCurrentHour(updatedClock.hour);
+      setCurrentMinute(updatedClock.minute);
+
+      setPlayerData((prev) => {
+        let updatedPlayer = {
+          ...prev,
+          energy: Math.max(0, prev.energy - 2),
+        };
+
+        if (
+          breedingSelection.giverType === "player" ||
+          breedingSelection.receiverType === "player"
+        ) {
+          updatedPlayer = {
+            ...updatedPlayer,
+            happiness: clamp(updatedPlayer.happiness - 4, 0, 100),
+            breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 4),
+          };
+        }
+
+        return updatedPlayer;
+      });
+
+      setCreatures((prev) =>
+        prev.map((creature) => {
+          if (
+            (giverCreature && creature.id === giverCreature.id) ||
+            (receiverCreature && creature.id === receiverCreature.id)
+          ) {
+            const updated = {
+              ...creature,
+              happiness: clamp(creature.happiness - 4, 0, 100),
+            };
+
+            return applyCreatureSkillXp(updated, "breedingCare", 4);
+          }
+
+          return creature;
+        })
+      );
+
+      return;
+    }
+
+    const baseInbreedingRisk = calculateInbreedingRisk(
+      giverCreature,
+      receiverCreature,
+      giverIsPlayer,
+      receiverIsPlayer
+    );
+
+    const inbreedingRisk = applyIntelligenceRiskMitigation(
+      baseInbreedingRisk,
+      giverCreature,
+      receiverCreature
+    );
+
+    const minutesSpent = getBreedingSessionMinutes(giverCreature, receiverCreature);
+    const updatedClock = addMinutesToClock(
+      currentDay,
+      currentHour,
+      currentMinute,
+      minutesSpent
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setPlayerData((prev) => {
+      let updatedPlayer = {
+        ...prev,
+        energy: prev.energy - energyCost,
+      };
+
+      if (
+        breedingSelection.giverType === "player" ||
+        breedingSelection.receiverType === "player"
+      ) {
+        updatedPlayer = {
+          ...updatedPlayer,
+          happiness: clamp(updatedPlayer.happiness + 2, 0, 100),
+          breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 8),
+        };
+      }
+
+      return updatedPlayer;
+    });
+
+    setCreatures((prev) =>
+      prev.map((creature) => {
+        if (giverCreature && creature.id === giverCreature.id) {
+          return applyCreatureSkillXp(
+            applyXpGain(
+              {
+                ...creature,
+                happiness: clamp(creature.happiness + 2, 0, 100),
+                breedingStamina:
+                  creature.breedingStamina - getBreedingStaminaCost(creature),
+                breedingsToday: creature.breedingsToday + 1,
+              },
+              18
+            ),
+            "breedingCare",
+            8
+          );
+        }
+
+        if (receiverCreature && creature.id === receiverCreature.id) {
+          return applyCreatureSkillXp(
+            applyXpGain(
+              {
+                ...creature,
+                happiness: clamp(creature.happiness + 2, 0, 100),
+                breedingStamina:
+                  creature.breedingStamina - getBreedingStaminaCost(creature),
+                breedingsToday: creature.breedingsToday + 1,
+              },
+              18
+            ),
+            "breedingCare",
+            8
+          );
+        }
+
+        return creature;
+      })
+    );
+
+    if (receiverIsPlayer) {
+      return;
+    }
+
+    const eggProductionChance = getEggProductionChance(
+      giverParticipant,
+      receiverParticipant,
+      homeState
+    );
+
+    if (Math.random() > eggProductionChance) {
+      return;
+    }
+
+    const eggQuality = getEggQualityFromPairing(
+      giverParticipant,
+      receiverParticipant,
+      homeState
+    );
+
+    const newEgg: Egg = {
+      id: Date.now(),
+      name: `${giverLabel} x ${receiverLabel} Egg`,
+      parents: `${giverLabel} + ${receiverLabel}`,
+      hatchDaysRemaining: 3,
+      giver: giverSpecies,
+      receiver: receiverSpecies,
+      giverId: giverIsPlayer ? null : giverCreature?.id ?? null,
+      receiverId: receiverIsPlayer ? null : receiverCreature?.id ?? null,
+      giverIsPlayer,
+      receiverIsPlayer,
+      inbreedingRisk,
+      quality: eggQuality,
+    };
+
+    setEggs((prev) => [...prev, newEgg]);
+  }
 
   function renameCreature(creatureId: number, newNickname: string) {
     const trimmedName = newNickname.trim();
