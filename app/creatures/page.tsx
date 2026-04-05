@@ -13,6 +13,44 @@ type InbreedingRisk =
 
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
+type CreatureTrait =
+  | "none"
+  | "domestic"
+  | "industrious"
+  | "calm"
+  | "fertile"
+  | "quick"
+  | "sturdy";
+
+function getTraitLabel(trait: CreatureTrait) {
+  if (trait === "domestic") return "Domestic";
+  if (trait === "industrious") return "Industrious";
+  if (trait === "calm") return "Calm";
+  if (trait === "fertile") return "Fertile";
+  if (trait === "quick") return "Quick";
+  if (trait === "sturdy") return "Sturdy";
+  return "No Trait";
+}
+
+function getTraitClasses(trait: CreatureTrait) {
+  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
+  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
+  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
+  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
+  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
+  return "bg-stone-100 text-stone-700 border-stone-300";
+}
+
+function getTraitDescription(trait: CreatureTrait) {
+  if (trait === "domestic") return "Boosts cooking and cleaning.";
+  if (trait === "industrious") return "Boosts field work and hauling.";
+  if (trait === "calm") return "Reduces breeding refusal chance.";
+  if (trait === "fertile") return "Improves egg production chance.";
+  if (trait === "quick") return "Reduces time costs.";
+  if (trait === "sturdy") return "Reduces stamina costs.";
+  return "No special bonuses.";
+}
 
 export default function CreaturesPage() {
   const { creatures, renameCreature } = useGame();
@@ -44,7 +82,7 @@ export default function CreaturesPage() {
     return "bg-red-100 text-red-900 border-red-300";
   }
 
-  function getTraitLabel(
+  function getInbredTraitLabel(
     trait: InbredTrait,
     severity: InbredTraitSeverity
   ) {
@@ -66,7 +104,7 @@ export default function CreaturesPage() {
     return `${severityName} ${traitName}`;
   }
 
-  function getTraitClasses(severity: InbredTraitSeverity) {
+  function getInbredTraitClasses(severity: InbredTraitSeverity) {
     if (severity === "none") {
       return "bg-stone-100 text-stone-700 border-stone-300";
     }
@@ -163,6 +201,42 @@ export default function CreaturesPage() {
                   </div>
                 </div>
 
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <div
+                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
+                      creature.inbreedingRisk
+                    )}`}
+                  >
+                    {getRiskLabel(creature.inbreedingRisk)}
+                  </div>
+
+                  <div
+                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(
+                      creature.inbredTraitSeverity
+                    )}`}
+                  >
+                    {getInbredTraitLabel(
+                      creature.inbredTrait,
+                      creature.inbredTraitSeverity
+                    )}
+                  </div>
+
+                  <div
+                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                      creature.trait
+                    )}`}
+                  >
+                    {getTraitLabel(creature.trait)}
+                  </div>
+                </div>
+
+                <div className="mb-4 rounded-2xl bg-sky-50 p-3">
+                  <p className="text-sm text-stone-500">Trait Bonus</p>
+                  <p className="font-semibold text-stone-900">
+                    {getTraitDescription(creature.trait)}
+                  </p>
+                </div>
+
                 <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   <div className="rounded-2xl bg-sky-50 p-3">
                     <p className="text-sm text-stone-500">Level</p>
@@ -175,6 +249,13 @@ export default function CreaturesPage() {
                     <p className="text-sm text-stone-500">XP</p>
                     <p className="font-semibold text-stone-900">
                       {creature.xp} / {creature.xpToNextLevel}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-sm text-stone-500">Happiness</p>
+                    <p className="font-semibold text-stone-900">
+                      {creature.happiness}
                     </p>
                   </div>
 
@@ -225,34 +306,20 @@ export default function CreaturesPage() {
                   )}
                 </div>
 
-                <div className="mb-4 flex flex-wrap gap-2">
-                  <div
-                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
-                      creature.inbreedingRisk
-                    )}`}
-                  >
-                    {getRiskLabel(creature.inbreedingRisk)}
-                  </div>
-
-                  <div
-                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
-                      creature.inbredTraitSeverity
-                    )}`}
-                  >
-                    {getTraitLabel(
-                      creature.inbredTrait,
-                      creature.inbredTraitSeverity
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid gap-2 text-stone-800 sm:grid-cols-2">
+                <div className="mb-4 grid gap-2 text-stone-800 sm:grid-cols-2">
                   <p><strong>Strength:</strong> {creature.stats.strength}</p>
                   <p><strong>Endurance:</strong> {creature.stats.endurance}</p>
                   <p><strong>Intelligence:</strong> {creature.stats.intelligence}</p>
                   <p><strong>Speed:</strong> {creature.stats.speed}</p>
                   <p><strong>Fertility:</strong> {creature.stats.fertility}</p>
                   <p><strong>Vitality:</strong> {creature.stats.vitality}</p>
+                </div>
+
+                <div className="grid gap-2 text-stone-800 sm:grid-cols-2">
+                  <p><strong>Cooking Skill:</strong> Lv {creature.skills.cooking.level}</p>
+                  <p><strong>Cleaning Skill:</strong> Lv {creature.skills.cleaning.level}</p>
+                  <p><strong>Breeding Care:</strong> Lv {creature.skills.breedingCare.level}</p>
+                  <p><strong>Field Work:</strong> Lv {creature.skills.fieldWork.level}</p>
                 </div>
               </div>
             );

@@ -4,6 +4,35 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 
+type CreatureTrait =
+  | "none"
+  | "domestic"
+  | "industrious"
+  | "calm"
+  | "fertile"
+  | "quick"
+  | "sturdy";
+
+function getTraitLabel(trait: CreatureTrait) {
+  if (trait === "domestic") return "Domestic";
+  if (trait === "industrious") return "Industrious";
+  if (trait === "calm") return "Calm";
+  if (trait === "fertile") return "Fertile";
+  if (trait === "quick") return "Quick";
+  if (trait === "sturdy") return "Sturdy";
+  return "No Trait";
+}
+
+function getTraitClasses(trait: CreatureTrait) {
+  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
+  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
+  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
+  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
+  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
+  return "bg-stone-100 text-stone-700 border-stone-300";
+}
+
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
@@ -73,8 +102,8 @@ export default function TownPage() {
   } = useGame();
 
   function handleTravelTo(
-  destination: "ranch" | "town" | "market" | "guild_hall"
-) {
+    destination: "ranch" | "town" | "market" | "guild_hall"
+  ) {
     travelTo(destination);
 
     if (destination === "ranch") {
@@ -161,6 +190,9 @@ export default function TownPage() {
                         <p className="text-sm text-stone-500">
                           Theme: {entry.creature.theme}
                         </p>
+                        <div className={`mt-2 inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(entry.creature.trait)}`}>
+                          Trait: {getTraitLabel(entry.creature.trait)}
+                        </div>
                       </div>
 
                       <div className="text-right">
@@ -201,7 +233,7 @@ export default function TownPage() {
               📋 Breeding Quest Board
             </h2>
             <p className="mb-5 text-stone-600">
-              Submit bred creatures that meet stat and species requirements. Turning in a quest takes 30 in-game minutes, and this board scrolls independently for readability.
+              Submit bred creatures that meet stat, species, and now trait requirements. Turning in a quest takes 30 in-game minutes.
             </p>
 
             <div className="max-h-[720px] overflow-y-auto pr-2 space-y-4">
@@ -233,6 +265,13 @@ export default function TownPage() {
                     return false;
                   }
                   if (creature.level < quest.requirement.minimumLevel) {
+                    return false;
+                  }
+
+                  if (
+                    quest.requirement.requiredTrait &&
+                    creature.trait !== quest.requirement.requiredTrait
+                  ) {
                     return false;
                   }
 
@@ -311,6 +350,12 @@ export default function TownPage() {
                       <p><strong>Species:</strong> {quest.requirement.species}</p>
                       <p><strong>Minimum Level:</strong> {quest.requirement.minimumLevel}</p>
                       <p>
+                        <strong>Required Trait:</strong>{" "}
+                        {quest.requirement.requiredTrait
+                          ? getTraitLabel(quest.requirement.requiredTrait)
+                          : "None"}
+                      </p>
+                      <p>
                         <strong>Deadline:</strong> Day {quest.deadlineDay}{" "}
                         {formatTime(quest.deadlineHour, quest.deadlineMinute)}
                       </p>
@@ -343,7 +388,7 @@ export default function TownPage() {
                             onClick={() => submitCreatureToQuest(quest.id, creature.id)}
                             className="w-full rounded-2xl bg-sky-700 px-4 py-3 text-left font-semibold text-white shadow"
                           >
-                            Submit {creature.nickname} ({creature.name}, Lv {creature.level})
+                            Submit {creature.nickname} ({creature.name}, Lv {creature.level}, {getTraitLabel(creature.trait)})
                           </button>
                         ))}
                       </div>
