@@ -238,7 +238,7 @@ const catLastNames = [
 
 const INBRED_TRAITS: InbredTrait[] = ["weak", "frail", "dull", "slow"];
 
-function randomFrom<T>(items: T[]): T {
+function randomFrom<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 

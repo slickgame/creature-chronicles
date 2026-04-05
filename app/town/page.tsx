@@ -72,7 +72,9 @@ export default function TownPage() {
     travelTo,
   } = useGame();
 
-  function handleTravelTo(destination: "ranch" | "market" | "guild_hall") {
+  function handleTravelTo(
+  destination: "ranch" | "town" | "market" | "guild_hall"
+) {
     travelTo(destination);
 
     if (destination === "ranch") {
