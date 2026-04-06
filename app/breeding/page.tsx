@@ -6,7 +6,6 @@ import { useGame } from "@/context/GameContext";
 
 type EggQuality = "poor" | "normal" | "strong" | "exceptional";
 type CreatureTrait =
-  | "none"
   | "domestic"
   | "industrious"
   | "calm"
@@ -14,14 +13,20 @@ type CreatureTrait =
   | "quick"
   | "sturdy";
 
+type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+
+type CreatureTraitEntry = {
+  trait: CreatureTrait;
+  grade: TraitGrade;
+};
+
 function getTraitLabel(trait: CreatureTrait) {
   if (trait === "domestic") return "Domestic";
   if (trait === "industrious") return "Industrious";
   if (trait === "calm") return "Calm";
   if (trait === "fertile") return "Fertile";
   if (trait === "quick") return "Quick";
-  if (trait === "sturdy") return "Sturdy";
-  return "No Trait";
+  return "Sturdy";
 }
 
 function getTraitClasses(trait: CreatureTrait) {
@@ -30,8 +35,7 @@ function getTraitClasses(trait: CreatureTrait) {
   if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
   if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
   if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
-  return "bg-stone-100 text-stone-700 border-stone-300";
+  return "bg-stone-200 text-stone-900 border-stone-400";
 }
 
 function getTraitDescription(trait: CreatureTrait) {
@@ -40,8 +44,34 @@ function getTraitDescription(trait: CreatureTrait) {
   if (trait === "calm") return "Lower breeding refusal chance.";
   if (trait === "fertile") return "Higher egg production chance.";
   if (trait === "quick") return "Lower time costs for tasks and breeding.";
-  if (trait === "sturdy") return "Lower stamina costs for tasks and breeding.";
-  return "No special trait bonuses.";
+  return "Lower stamina costs for tasks and breeding.";
+}
+
+function getGradeClasses(grade: TraitGrade) {
+  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
+  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
+  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
+  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
+  return "bg-rose-100 text-rose-900 border-rose-300";
+}
+
+function getGradeMultiplier(grade: TraitGrade) {
+  if (grade === "F") return 0.35;
+  if (grade === "D") return 0.5;
+  if (grade === "C") return 0.7;
+  if (grade === "B") return 0.9;
+  if (grade === "A") return 1.15;
+  return 1.4;
+}
+
+function getGradeDescription(grade: TraitGrade) {
+  if (grade === "F") return "Very weak version";
+  if (grade === "D") return "Weak version";
+  if (grade === "C") return "Average version";
+  if (grade === "B") return "Strong version";
+  if (grade === "A") return "Excellent version";
+  return "Exceptional version";
 }
 
 export default function BreedingPage() {
@@ -80,7 +110,7 @@ export default function BreedingPage() {
         intelligence: playerData.stats.intelligence,
         speed: playerData.stats.speed,
         breedingCareLevel: playerData.breedingCare.level,
-        trait: "none" as CreatureTrait,
+        traits: [] as CreatureTraitEntry[],
       };
     }
 
@@ -94,8 +124,41 @@ export default function BreedingPage() {
       intelligence: creature.stats.intelligence,
       speed: creature.stats.speed,
       breedingCareLevel: creature.skills.breedingCare.level,
-      trait: creature.trait,
+      traits: Array.isArray(creature.traits) ? creature.traits : [],
     };
+  }
+
+  function getBestTraitEntry(
+    traits: CreatureTraitEntry[],
+    trait: CreatureTrait
+  ): CreatureTraitEntry | null {
+    const matches = traits.filter((entry) => entry.trait === trait);
+    if (matches.length === 0) return null;
+
+    return matches.reduce((best, current) =>
+      getGradeMultiplier(current.grade) > getGradeMultiplier(best.grade)
+        ? current
+        : best
+    );
+  }
+
+  function hasTrait(
+    participant: { traits: CreatureTraitEntry[] } | null,
+    trait: CreatureTrait
+  ) {
+    if (!participant) return false;
+    return participant.traits.some((entry) => entry.trait === trait);
+  }
+
+  function getTraitScaledBonus(
+    participant: { traits: CreatureTraitEntry[] } | null,
+    trait: CreatureTrait,
+    maxBonus: number
+  ) {
+    if (!participant) return 0;
+    const best = getBestTraitEntry(participant.traits, trait);
+    if (!best) return 0;
+    return Math.max(1, Math.round(maxBonus * getGradeMultiplier(best.grade)));
   }
 
   const giverParticipant = getParticipantSnapshot(
@@ -188,8 +251,8 @@ export default function BreedingPage() {
         : 6;
 
     const traitBonus =
-      (giverParticipant?.trait === "quick" ? 10 : 0) +
-      (receiverParticipant?.trait === "quick" ? 10 : 0);
+      getTraitScaledBonus(giverParticipant, "quick", 10) +
+      getTraitScaledBonus(receiverParticipant, "quick", 10);
 
     return Math.max(25, 120 - Math.round(avgSpeed * 6) - traitBonus);
   }
@@ -198,8 +261,17 @@ export default function BreedingPage() {
     if (!creatureId) return null;
     const creature = creatures.find((c) => c.id === creatureId);
     if (!creature) return null;
-    const sturdyDiscount = creature.trait === "sturdy" ? 3 : 0;
-    return Math.max(6, 22 - Math.floor(creature.stats.endurance / 2) - sturdyDiscount);
+
+    const sturdyDiscount = getTraitScaledBonus(
+      { traits: Array.isArray(creature.traits) ? creature.traits : [] },
+      "sturdy",
+      3
+    );
+
+    return Math.max(
+      6,
+      22 - Math.floor(creature.stats.endurance / 2) - sturdyDiscount
+    );
   }
 
   function getAverageHappiness() {
@@ -231,8 +303,8 @@ export default function BreedingPage() {
     const avgHappiness = getAverageHappiness();
     const avgBreedingCare = getAverageBreedingCare();
     const calmReduction =
-      (giverParticipant?.trait === "calm" ? 0.08 : 0) +
-      (receiverParticipant?.trait === "calm" ? 0.08 : 0);
+      getTraitScaledBonus(giverParticipant, "calm", 8) / 100 +
+      getTraitScaledBonus(receiverParticipant, "calm", 8) / 100;
 
     if (avgHappiness < 20) {
       refusalChance += 0.45;
@@ -299,8 +371,8 @@ export default function BreedingPage() {
         : 1;
 
     const fertileBonus =
-      (giverParticipant?.trait === "fertile" ? 0.07 : 0) +
-      (receiverParticipant?.trait === "fertile" ? 0.07 : 0);
+      getTraitScaledBonus(giverParticipant, "fertile", 7) / 100 +
+      getTraitScaledBonus(receiverParticipant, "fertile", 7) / 100;
 
     let chance = 0.45;
     chance += (avgFertility - 5) * 0.05;
@@ -370,10 +442,10 @@ export default function BreedingPage() {
         : 1;
 
     const extraTraitScore =
-      (giverParticipant?.trait === "calm" ? 1 : 0) +
-      (receiverParticipant?.trait === "calm" ? 1 : 0) +
-      (giverParticipant?.trait === "fertile" ? 1 : 0) +
-      (receiverParticipant?.trait === "fertile" ? 1 : 0);
+      (hasTrait(giverParticipant, "calm") ? 1 : 0) +
+      (hasTrait(receiverParticipant, "calm") ? 1 : 0) +
+      (hasTrait(giverParticipant, "fertile") ? 1 : 0) +
+      (hasTrait(receiverParticipant, "fertile") ? 1 : 0);
 
     const score =
       avgFertility +
@@ -453,6 +525,42 @@ export default function BreedingPage() {
     return "Miserable";
   }
 
+  function renderTraitList(traits: CreatureTraitEntry[]) {
+    if (!traits || traits.length === 0) {
+      return (
+        <div className="mt-2 inline-block rounded-full border border-stone-300 bg-stone-100 px-3 py-1 text-sm font-semibold text-stone-700">
+          No Traits
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {traits.map((entry, index) => (
+          <div
+            key={`${entry.trait}-${entry.grade}-${index}`}
+            className="flex items-center gap-2"
+          >
+            <div
+              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                entry.trait
+              )}`}
+            >
+              {getTraitLabel(entry.trait)}
+            </div>
+            <div
+              className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                entry.grade
+              )}`}
+            >
+              {entry.grade}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const parentChildWarning = isParentChild();
   const fullSiblingWarning = isFullSibling();
   const halfSiblingWarning = isHalfSibling();
@@ -472,7 +580,11 @@ export default function BreedingPage() {
           6,
           22 -
             Math.floor(giverCreature.stats.endurance / 2) -
-            (giverCreature.trait === "sturdy" ? 3 : 0)
+            getTraitScaledBonus(
+              { traits: Array.isArray(giverCreature.traits) ? giverCreature.traits : [] },
+              "sturdy",
+              3
+            )
         ));
 
   const receiverCreatureReady =
@@ -483,7 +595,11 @@ export default function BreedingPage() {
           6,
           22 -
             Math.floor(receiverCreature.stats.endurance / 2) -
-            (receiverCreature.trait === "sturdy" ? 3 : 0)
+            getTraitScaledBonus(
+              { traits: Array.isArray(receiverCreature.traits) ? receiverCreature.traits : [] },
+              "sturdy",
+              3
+            )
         ));
 
   const canBreed =
@@ -609,9 +725,7 @@ export default function BreedingPage() {
                 <p className="text-sm text-stone-600">
                   Breeding Care Lv {playerData.breedingCare.level}
                 </p>
-                <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses("none")}`}>
-                  No Trait
-                </div>
+                {renderTraitList([])}
               </button>
             </div>
 
@@ -620,6 +734,10 @@ export default function BreedingPage() {
                 const isSelected =
                   breedingSelection.giverType === "creature" &&
                   breedingSelection.giverCreatureId === creature.id;
+
+                const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+                  ? creature.traits
+                  : [];
 
                 return (
                   <button
@@ -664,13 +782,20 @@ export default function BreedingPage() {
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
                     </p>
-                    <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(creature.trait)}`}>
-                      {getTraitLabel(creature.trait)}
-                    </div>
+
+                    {renderTraitList(creatureTraits)}
+
+                    {creatureTraits.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {creatureTraits.map((entry, index) => (
+                          <p key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`} className="text-xs text-stone-500">
+                            {getTraitLabel(entry.trait)} ({entry.grade}) — {getTraitDescription(entry.trait)} — {getGradeDescription(entry.grade)}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+
                     <p className="mt-2 text-xs text-stone-500">
-                      {getTraitDescription(creature.trait)}
-                    </p>
-                    <p className="text-xs text-stone-500">
                       Cost: {getCreatureStaminaCost(creature.id)} stamina
                     </p>
                   </button>
@@ -719,9 +844,7 @@ export default function BreedingPage() {
                 <p className="text-sm text-stone-600">
                   Breeding Care Lv {playerData.breedingCare.level}
                 </p>
-                <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses("none")}`}>
-                  No Trait
-                </div>
+                {renderTraitList([])}
               </button>
             </div>
 
@@ -730,6 +853,10 @@ export default function BreedingPage() {
                 const isSelected =
                   breedingSelection.receiverType === "creature" &&
                   breedingSelection.receiverCreatureId === creature.id;
+
+                const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+                  ? creature.traits
+                  : [];
 
                 return (
                   <button
@@ -774,13 +901,20 @@ export default function BreedingPage() {
                     <p className="text-sm text-stone-600">
                       Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
                     </p>
-                    <div className={`mt-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(creature.trait)}`}>
-                      {getTraitLabel(creature.trait)}
-                    </div>
+
+                    {renderTraitList(creatureTraits)}
+
+                    {creatureTraits.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {creatureTraits.map((entry, index) => (
+                          <p key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`} className="text-xs text-stone-500">
+                            {getTraitLabel(entry.trait)} ({entry.grade}) — {getTraitDescription(entry.trait)} — {getGradeDescription(entry.grade)}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+
                     <p className="mt-2 text-xs text-stone-500">
-                      {getTraitDescription(creature.trait)}
-                    </p>
-                    <p className="text-xs text-stone-500">
                       Cost: {getCreatureStaminaCost(creature.id)} stamina
                     </p>
                   </button>
@@ -806,12 +940,27 @@ export default function BreedingPage() {
             <p>
               <strong>Egg Quality Preview:</strong> {getEggQualityPreview()} — {getQualityDescription(getEggQualityPreview())}
             </p>
-            <p>
-              <strong>Trait Preview:</strong>{" "}
-              {giverParticipant?.trait && giverParticipant.trait !== "none" ? getTraitLabel(giverParticipant.trait) : "No Trait"}
-              {" / "}
-              {receiverParticipant?.trait && receiverParticipant.trait !== "none" ? getTraitLabel(receiverParticipant.trait) : "No Trait"}
-            </p>
+
+            <div className="rounded-2xl bg-white/70 p-3">
+              <p className="mb-2 font-semibold text-stone-900">Trait Preview</p>
+
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-stone-700">Giver Traits</p>
+                  {renderTraitList(giverParticipant?.traits ?? [])}
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-stone-700">Receiver Traits</p>
+                  {renderTraitList(receiverParticipant?.traits ?? [])}
+                </div>
+              </div>
+
+              <p className="mt-3 text-sm text-stone-600">
+                Offspring can inherit multiple traits, duplicate traits are merged, and shared parent traits have a better chance to pass on with stronger grades.
+              </p>
+            </div>
+
             <p>
               <strong>Rule:</strong> If the giver is Player, offspring will always
               be the receiver species. Otherwise, offspring rolls between giver

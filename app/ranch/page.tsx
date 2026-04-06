@@ -14,6 +14,21 @@ type InbreedingRisk =
 type InbredTraitSeverity = "none" | "mild" | "severe";
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 
+type CreatureTrait =
+  | "domestic"
+  | "industrious"
+  | "calm"
+  | "fertile"
+  | "quick"
+  | "sturdy";
+
+type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+
+type CreatureTraitEntry = {
+  trait: CreatureTrait;
+  grade: TraitGrade;
+};
+
 type SortOption =
   | "newest"
   | "oldest"
@@ -44,7 +59,7 @@ function getRiskClasses(risk: InbreedingRisk) {
   return "bg-red-100 text-red-900 border-red-300";
 }
 
-function getTraitLabel(
+function getInbredTraitLabel(
   trait: InbredTrait,
   severity: InbredTraitSeverity
 ) {
@@ -66,7 +81,7 @@ function getTraitLabel(
   return `${severityName} ${traitName}`;
 }
 
-function getTraitClasses(severity: InbredTraitSeverity) {
+function getInbredTraitClasses(severity: InbredTraitSeverity) {
   if (severity === "none") {
     return "bg-stone-100 text-stone-700 border-stone-300";
   }
@@ -76,6 +91,33 @@ function getTraitClasses(severity: InbredTraitSeverity) {
   }
 
   return "bg-red-100 text-red-900 border-red-300";
+}
+
+function getCreatureTraitLabel(trait: CreatureTrait) {
+  if (trait === "domestic") return "Domestic";
+  if (trait === "industrious") return "Industrious";
+  if (trait === "calm") return "Calm";
+  if (trait === "fertile") return "Fertile";
+  if (trait === "quick") return "Quick";
+  return "Sturdy";
+}
+
+function getCreatureTraitClasses(trait: CreatureTrait) {
+  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
+  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
+  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
+  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
+  return "bg-stone-200 text-stone-900 border-stone-400";
+}
+
+function getGradeClasses(grade: TraitGrade) {
+  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
+  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
+  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
+  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
+  return "bg-rose-100 text-rose-900 border-rose-300";
 }
 
 function formatTime(hour: number, minute: number) {
@@ -138,13 +180,20 @@ export default function RanchPage() {
     const loweredSearch = searchText.trim().toLowerCase();
 
     const filtered = registryCreatures.filter((creature) => {
+      const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+        ? creature.traits
+        : [];
+
       const matchesSearch =
         loweredSearch.length === 0 ||
         creature.nickname.toLowerCase().includes(loweredSearch) ||
         creature.name.toLowerCase().includes(loweredSearch) ||
         `${creature.giver ?? ""} ${creature.receiver ?? ""}`
           .toLowerCase()
-          .includes(loweredSearch);
+          .includes(loweredSearch) ||
+        creatureTraits.some((entry) =>
+          entry.trait.toLowerCase().includes(loweredSearch)
+        );
 
       const matchesSpecies =
         speciesFilter === "all" || creature.name === speciesFilter;
@@ -153,7 +202,8 @@ export default function RanchPage() {
         riskFilter === "all" || creature.inbreedingRisk === riskFilter;
 
       const matchesTrait =
-        traitFilter === "all" || creature.inbredTraitSeverity === traitFilter;
+        traitFilter === "all" ||
+        creatureTraits.some((entry) => entry.trait === traitFilter);
 
       return matchesSearch && matchesSpecies && matchesRisk && matchesTrait;
     });
@@ -357,7 +407,7 @@ export default function RanchPage() {
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   className="rounded-xl border border-emerald-300 bg-white px-3 py-2"
-                  placeholder="Search by name, species, or lineage"
+                  placeholder="Search by name, species, lineage, or trait"
                 />
 
                 <select
@@ -390,10 +440,13 @@ export default function RanchPage() {
                   onChange={(e) => setTraitFilter(e.target.value)}
                   className="rounded-xl border border-emerald-300 bg-white px-3 py-2"
                 >
-                  <option value="all">All Trait Severities</option>
-                  <option value="none">No Inbred Trait</option>
-                  <option value="mild">Mild Trait</option>
-                  <option value="severe">Severe Trait</option>
+                  <option value="all">All Positive Traits</option>
+                  <option value="domestic">Domestic</option>
+                  <option value="industrious">Industrious</option>
+                  <option value="calm">Calm</option>
+                  <option value="fertile">Fertile</option>
+                  <option value="quick">Quick</option>
+                  <option value="sturdy">Sturdy</option>
                 </select>
 
                 <select
@@ -427,75 +480,116 @@ export default function RanchPage() {
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {filteredRegistry.map((creature) => (
-                    <div
-                      key={creature.id}
-                      className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4"
-                    >
-                      <div className="mb-3 flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="text-xl font-bold text-stone-900">
-                            {creature.nickname}
-                          </h3>
-                          <p className="text-stone-700">
-                            {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                  {filteredRegistry.map((creature) => {
+                    const creatureTraits: CreatureTraitEntry[] = Array.isArray(
+                      creature.traits
+                    )
+                      ? creature.traits
+                      : [];
+
+                    return (
+                      <div
+                        key={creature.id}
+                        className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4"
+                      >
+                        <div className="mb-3 flex items-start justify-between gap-3">
+                          <div>
+                            <h3 className="text-xl font-bold text-stone-900">
+                              {creature.nickname}
+                            </h3>
+                            <p className="text-stone-700">
+                              {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                            </p>
+                            <p className="text-sm text-stone-500">
+                              Born Day {creature.bornOnDay}
+                            </p>
+                          </div>
+
+                          <div className="text-right text-sm text-stone-500">
+                            ID {creature.id}
+                          </div>
+                        </div>
+
+                        <div className="mb-3 rounded-2xl bg-white/80 p-3">
+                          <p className="text-sm text-stone-500">Lineage</p>
+                          <p className="font-semibold text-stone-900">
+                            {creature.giver} → {creature.receiver}
                           </p>
-                          <p className="text-sm text-stone-500">
-                            Born Day {creature.bornOnDay}
+                          <p className="text-sm text-stone-600">
+                            Parent IDs: {creature.giverId ?? "Player"} / {creature.receiverId ?? "Player"}
                           </p>
                         </div>
 
-                        <div className="text-right text-sm text-stone-500">
-                          ID {creature.id}
-                        </div>
-                      </div>
+                        <div className="mb-3 flex flex-wrap gap-2">
+                          <div
+                            className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
+                              creature.inbreedingRisk
+                            )}`}
+                          >
+                            {getRiskLabel(creature.inbreedingRisk)}
+                          </div>
 
-                      <div className="mb-3 rounded-2xl bg-white/80 p-3">
-                        <p className="text-sm text-stone-500">Lineage</p>
-                        <p className="font-semibold text-stone-900">
-                          {creature.giver} → {creature.receiver}
-                        </p>
-                        <p className="text-sm text-stone-600">
-                          Parent IDs: {creature.giverId ?? "Player"} / {creature.receiverId ?? "Player"}
-                        </p>
-                      </div>
-
-                      <div className="mb-3 flex flex-wrap gap-2">
-                        <div
-                          className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
-                            creature.inbreedingRisk
-                          )}`}
-                        >
-                          {getRiskLabel(creature.inbreedingRisk)}
+                          <div
+                            className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(
+                              creature.inbredTraitSeverity
+                            )}`}
+                          >
+                            {getInbredTraitLabel(
+                              creature.inbredTrait,
+                              creature.inbredTraitSeverity
+                            )}
+                          </div>
                         </div>
 
-                        <div
-                          className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
-                            creature.inbredTraitSeverity
-                          )}`}
-                        >
-                          {getTraitLabel(
-                            creature.inbredTrait,
-                            creature.inbredTraitSeverity
+                        <div className="mb-3 rounded-2xl bg-white/80 p-3">
+                          <p className="mb-2 text-sm text-stone-500">Positive Traits</p>
+
+                          {creatureTraits.length === 0 ? (
+                            <p className="font-semibold text-stone-700">No Traits</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {creatureTraits.map((entry, index) => (
+                                <div
+                                  key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`}
+                                  className="flex flex-wrap items-center gap-2"
+                                >
+                                  <div
+                                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
+                                      entry.trait
+                                    )}`}
+                                  >
+                                    {getCreatureTraitLabel(entry.trait)}
+                                  </div>
+
+                                  <div
+                                    className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                                      entry.grade
+                                    )}`}
+                                  >
+                                    {entry.grade}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
-                      </div>
 
-                      <div className="mb-3 grid gap-2 text-sm text-stone-800 sm:grid-cols-2">
-                        <p><strong>STR:</strong> {creature.stats.strength}</p>
-                        <p><strong>END:</strong> {creature.stats.endurance}</p>
-                        <p><strong>INT:</strong> {creature.stats.intelligence}</p>
-                        <p><strong>SPD:</strong> {creature.stats.speed}</p>
-                        <p><strong>FER:</strong> {creature.stats.fertility}</p>
-                        <p><strong>VIT:</strong> {creature.stats.vitality}</p>
-                      </div>
+                        <div className="mb-3 grid gap-2 text-sm text-stone-800 sm:grid-cols-2">
+                          <p><strong>STR:</strong> {creature.stats.strength}</p>
+                          <p><strong>END:</strong> {creature.stats.endurance}</p>
+                          <p><strong>INT:</strong> {creature.stats.intelligence}</p>
+                          <p><strong>SPD:</strong> {creature.stats.speed}</p>
+                          <p><strong>FER:</strong> {creature.stats.fertility}</p>
+                          <p><strong>VIT:</strong> {creature.stats.vitality}</p>
+                        </div>
 
-                      <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
-                        <p><strong>XP:</strong> {creature.xp}/{creature.xpToNextLevel}</p>
-                        <p><strong>Stamina:</strong> {creature.breedingStamina}/{creature.maxBreedingStamina}</p>
+                        <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
+                          <p><strong>XP:</strong> {creature.xp}/{creature.xpToNextLevel}</p>
+                          <p><strong>Stamina:</strong> {creature.breedingStamina}/{creature.maxBreedingStamina}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

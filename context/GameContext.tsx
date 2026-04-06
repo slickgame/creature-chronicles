@@ -41,6 +41,21 @@ type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
 
 type CreatureTrait =
+  | "domestic"
+  | "industrious"
+  | "calm"
+  | "fertile"
+  | "quick"
+  | "sturdy";
+
+type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+
+type CreatureTraitEntry = {
+  trait: CreatureTrait;
+  grade: TraitGrade;
+};
+
+type LegacyCreatureTrait =
   | "none"
   | "domestic"
   | "industrious"
@@ -76,7 +91,7 @@ type Creature = {
   xp: number;
   xpToNextLevel: number;
   happiness: number;
-  trait: CreatureTrait;
+  traits: CreatureTraitEntry[];
   stats: CreatureStats;
   skills: CreatureSkills;
   breedingStamina: number;
@@ -94,6 +109,7 @@ type Creature = {
   inbreedingRisk: InbreedingRisk;
   inbredTrait: InbredTrait;
   inbredTraitSeverity: InbredTraitSeverity;
+  trait?: LegacyCreatureTrait;
 };
 
 type EggQuality = "poor" | "normal" | "strong" | "exceptional";
@@ -256,6 +272,7 @@ const BREEDABLE_TRAITS: CreatureTrait[] = [
   "quick",
   "sturdy",
 ];
+const TRAIT_GRADES: TraitGrade[] = ["F", "D", "C", "B", "A", "S"];
 
 function randomFrom<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)];
@@ -315,6 +332,133 @@ function generateNickname(speciesName: string): string {
   return `Creature ${Math.floor(Math.random() * 1000)}`;
 }
 
+function createSkillTraitEntry(trait: CreatureTrait, grade: TraitGrade): CreatureTraitEntry {
+  return { trait, grade };
+}
+
+function getGradeRank(grade: TraitGrade): number {
+  return TRAIT_GRADES.indexOf(grade);
+}
+
+function rankToGrade(rank: number): TraitGrade {
+  return TRAIT_GRADES[clamp(rank, 0, TRAIT_GRADES.length - 1)];
+}
+
+function rollRandomTraitGrade(): TraitGrade {
+  const roll = Math.random();
+  if (roll < 0.2) return "F";
+  if (roll < 0.4) return "D";
+  if (roll < 0.65) return "C";
+  if (roll < 0.82) return "B";
+  if (roll < 0.94) return "A";
+  return "S";
+}
+
+function maybeUpgradeGrade(grade: TraitGrade, chance: number): TraitGrade {
+  if (Math.random() >= chance) return grade;
+  return rankToGrade(getGradeRank(grade) + 1);
+}
+
+function maybeDowngradeGrade(grade: TraitGrade, chance: number): TraitGrade {
+  if (Math.random() >= chance) return grade;
+  return rankToGrade(getGradeRank(grade) - 1);
+}
+
+function getHighestTraitGrade(
+  creature: Creature | null,
+  trait: CreatureTrait
+): TraitGrade | null {
+  if (!creature) return null;
+
+  const matches = creature.traits.filter((entry) => entry.trait === trait);
+  if (matches.length === 0) return null;
+
+  return matches.reduce((best, current) =>
+    getGradeRank(current.grade) > getGradeRank(best.grade) ? current : best
+  ).grade;
+}
+
+function hasTrait(creature: Creature | null, trait: CreatureTrait): boolean {
+  if (!creature) return false;
+  return creature.traits.some((entry) => entry.trait === trait);
+}
+
+function getBestTraitEntry(
+  creature: Creature | null,
+  trait: CreatureTrait
+): CreatureTraitEntry | null {
+  const grade = getHighestTraitGrade(creature, trait);
+  return grade ? { trait, grade } : null;
+}
+
+function traitsToLegacyPrimaryTrait(
+  traits: CreatureTraitEntry[]
+): LegacyCreatureTrait {
+  if (traits.length === 0) return "none";
+
+  const sorted = [...traits].sort(
+    (a, b) => getGradeRank(b.grade) - getGradeRank(a.grade)
+  );
+
+  return sorted[0]?.trait ?? "none";
+}
+
+function normalizeTraitList(
+  traits?: CreatureTraitEntry[],
+  legacyTrait?: LegacyCreatureTrait
+): CreatureTraitEntry[] {
+  const list: CreatureTraitEntry[] = Array.isArray(traits) ? traits : [];
+
+  const deduped = new Map<CreatureTrait, CreatureTraitEntry>();
+
+  for (const entry of list) {
+    if (!entry?.trait) continue;
+    if (!BREEDABLE_TRAITS.includes(entry.trait)) continue;
+
+    const normalizedGrade: TraitGrade = TRAIT_GRADES.includes(entry.grade)
+      ? entry.grade
+      : "C";
+
+    const existing = deduped.get(entry.trait);
+
+    if (!existing || getGradeRank(normalizedGrade) > getGradeRank(existing.grade)) {
+      deduped.set(entry.trait, {
+        trait: entry.trait,
+        grade: normalizedGrade,
+      });
+    }
+  }
+
+  if (
+    deduped.size === 0 &&
+    legacyTrait &&
+    legacyTrait !== "none" &&
+    BREEDABLE_TRAITS.includes(legacyTrait)
+  ) {
+    deduped.set(legacyTrait, {
+      trait: legacyTrait,
+      grade: "C",
+    });
+  }
+
+  return Array.from(deduped.values()).sort(
+    (a, b) => getGradeRank(b.grade) - getGradeRank(a.grade)
+  );
+}
+
+function getTraitPowerMultiplier(grade: TraitGrade): number {
+  if (grade === "F") return 0.35;
+  if (grade === "D") return 0.5;
+  if (grade === "C") return 0.7;
+  if (grade === "B") return 0.9;
+  if (grade === "A") return 1.15;
+  return 1.4;
+}
+
+function getTraitFlatBonus(grade: TraitGrade, maxBonus: number): number {
+  return Math.max(1, Math.round(maxBonus * getTraitPowerMultiplier(grade)));
+}
+
 function createCreatureBase(
   partial: Omit<
     Creature,
@@ -326,6 +470,7 @@ function createCreatureBase(
     | "maxBreedingStamina"
     | "breedingsToday"
     | "dailyBreedingLimit"
+    | "trait"
   >
 ): Creature {
   const maxBreedingStamina = getMaxBreedingStaminaFromStats(partial.stats);
@@ -341,6 +486,7 @@ function createCreatureBase(
     maxBreedingStamina,
     breedingsToday: 0,
     dailyBreedingLimit,
+    trait: traitsToLegacyPrimaryTrait(partial.traits),
   };
 }
 
@@ -350,7 +496,7 @@ const horseTemplate: Creature = createCreatureBase({
   nickname: "Starter Horse",
   theme: "Field Worker",
   happiness: 60,
-  trait: "industrious",
+  traits: [createSkillTraitEntry("industrious", "B")],
   stats: {
     strength: 8,
     endurance: 8,
@@ -378,7 +524,7 @@ const catTemplate: Creature = createCreatureBase({
   nickname: "Starter Cat",
   theme: "House Maid",
   happiness: 60,
-  trait: "domestic",
+  traits: [createSkillTraitEntry("domestic", "B")],
   stats: {
     strength: 4,
     endurance: 5,
@@ -510,8 +656,7 @@ function createInheritedStats(
       1,
       Math.round(
         (baseStats.intelligence +
-          average(parentStats.map((p) => p.intelligence))) /
-          2
+          average(parentStats.map((p) => p.intelligence))) / 2
       ) + rollStatVariation()
     ),
     speed: Math.max(
@@ -535,30 +680,118 @@ function createInheritedStats(
   };
 }
 
-function rollInheritedTrait(
-  giverCreature: Creature | null,
-  receiverCreature: Creature | null
-): CreatureTrait {
-  const parentTraits = [giverCreature?.trait, receiverCreature?.trait].filter(
-    (trait): trait is CreatureTrait => Boolean(trait && trait !== "none")
-  );
+function rollWildTraitSet(
+  templateTraits: CreatureTraitEntry[] = [],
+  minTraits = 0,
+  maxTraits = 2
+): CreatureTraitEntry[] {
+  const desiredCount =
+    minTraits +
+    Math.floor(Math.random() * (Math.max(minTraits, maxTraits) - minTraits + 1));
 
-  if (parentTraits.length === 0) {
-    return Math.random() < 0.2 ? randomFrom(BREEDABLE_TRAITS) : "none";
-  }
+  const picked = new Map<CreatureTrait, CreatureTraitEntry>();
 
-  if (parentTraits.length === 2 && parentTraits[0] === parentTraits[1]) {
-    return Math.random() < 0.75 ? parentTraits[0] : randomFrom(BREEDABLE_TRAITS);
-  }
-
-  if (parentTraits.length >= 1) {
-    const inheritedParentTrait = randomFrom(parentTraits);
-    if (Math.random() < 0.6) {
-      return inheritedParentTrait;
+  for (const entry of templateTraits) {
+    if (Math.random() < 0.45) {
+      picked.set(entry.trait, {
+        trait: entry.trait,
+        grade: maybeDowngradeGrade(entry.grade, 0.25),
+      });
     }
   }
 
-  return Math.random() < 0.2 ? randomFrom(BREEDABLE_TRAITS) : "none";
+  while (picked.size < desiredCount) {
+    const trait = randomFrom(BREEDABLE_TRAITS);
+    if (picked.has(trait)) continue;
+
+    picked.set(trait, {
+      trait,
+      grade: rollRandomTraitGrade(),
+    });
+  }
+
+  return Array.from(picked.values()).sort(
+    (a, b) => getGradeRank(b.grade) - getGradeRank(a.grade)
+  );
+}
+
+function createInheritedTraitSet(
+  giverCreature: Creature | null,
+  receiverCreature: Creature | null,
+  inbreedingRisk: InbreedingRisk
+): CreatureTraitEntry[] {
+  const parentTraitMap = new Map<CreatureTrait, TraitGrade[]>();
+
+  for (const parent of [giverCreature, receiverCreature]) {
+    if (!parent) continue;
+
+    for (const entry of parent.traits) {
+      if (!parentTraitMap.has(entry.trait)) {
+        parentTraitMap.set(entry.trait, []);
+      }
+      parentTraitMap.get(entry.trait)!.push(entry.grade);
+    }
+  }
+
+  const inherited = new Map<CreatureTrait, CreatureTraitEntry>();
+
+  for (const [trait, grades] of parentTraitMap.entries()) {
+    const bestParentGrade = grades.reduce((best, current) =>
+      getGradeRank(current) > getGradeRank(best) ? current : best
+    );
+
+    const appearsInBothParents = grades.length >= 2;
+    const inheritChance = appearsInBothParents ? 0.82 : 0.52;
+
+    if (Math.random() < inheritChance) {
+      let rolledGrade = bestParentGrade;
+
+      if (appearsInBothParents) {
+        rolledGrade = maybeUpgradeGrade(bestParentGrade, 0.18);
+      } else {
+        rolledGrade = maybeUpgradeGrade(bestParentGrade, 0.08);
+      }
+
+      if (inbreedingRisk !== "none") {
+        rolledGrade = maybeDowngradeGrade(rolledGrade, 0.12);
+      }
+
+      inherited.set(trait, {
+        trait,
+        grade: rolledGrade,
+      });
+    }
+  }
+
+  let desiredCount = inherited.size;
+
+  if (desiredCount === 0) {
+    desiredCount = Math.random() < 0.7 ? 1 : 2;
+  } else if (desiredCount === 1 && Math.random() < 0.45) {
+    desiredCount = 2;
+  } else if (desiredCount >= 2 && Math.random() < 0.18) {
+    desiredCount = Math.min(3, desiredCount + 1);
+  }
+
+  while (inherited.size < desiredCount) {
+    const randomTrait = randomFrom(BREEDABLE_TRAITS);
+    if (inherited.has(randomTrait)) continue;
+
+    let grade = rollRandomTraitGrade();
+
+    if (inbreedingRisk !== "none") {
+      grade = maybeDowngradeGrade(grade, 0.15);
+    }
+
+    inherited.set(randomTrait, {
+      trait: randomTrait,
+      grade,
+    });
+  }
+
+  return Array.from(inherited.values())
+    .sort((a, b) => getGradeRank(b.grade) - getGradeRank(a.grade))
+    .slice(0, 3);
 }
 
 function applyInbreedingPenalty(
@@ -632,6 +865,11 @@ function createCreatureFromTemplate(
   );
 
   const penaltyResult = applyInbreedingPenalty(inheritedStats, inbreedingRisk);
+  const inheritedTraits = createInheritedTraitSet(
+    giverCreature,
+    receiverCreature,
+    inbreedingRisk
+  );
 
   const maxBreedingStamina = getMaxBreedingStaminaFromStats(
     penaltyResult.stats
@@ -648,7 +886,8 @@ function createCreatureFromTemplate(
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
     happiness: 60,
-    trait: rollInheritedTrait(giverCreature, receiverCreature),
+    traits: inheritedTraits,
+    trait: traitsToLegacyPrimaryTrait(inheritedTraits),
     stats: penaltyResult.stats,
     skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
@@ -688,6 +927,8 @@ function normalizeCreature(creature: Creature): Creature {
     vitality: creature.stats?.vitality ?? 5,
   };
 
+  const normalizedTraits = normalizeTraitList(creature.traits, creature.trait);
+
   const maxBreedingStamina =
     creature.maxBreedingStamina ??
     getMaxBreedingStaminaFromStats(normalizedStats);
@@ -703,7 +944,8 @@ function normalizeCreature(creature: Creature): Creature {
     xpToNextLevel:
       creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
     happiness: creature.happiness ?? 60,
-    trait: creature.trait ?? "none",
+    traits: normalizedTraits,
+    trait: traitsToLegacyPrimaryTrait(normalizedTraits),
     stats: normalizedStats,
     skills: {
       cooking: normalizeSkillProgress(creature.skills?.cooking),
@@ -760,13 +1002,6 @@ function normalizeHomeState(homeState?: HomeState): HomeState {
   };
 }
 
-function rollTownTrait(templateTrait: CreatureTrait): CreatureTrait {
-  const roll = Math.random();
-  if (roll < 0.35) return templateTrait;
-  if (roll < 0.55) return randomFrom(BREEDABLE_TRAITS);
-  return "none";
-}
-
 function createTownSellerCreature(
   template: Creature,
   currentDay: number
@@ -782,6 +1017,7 @@ function createTownSellerCreature(
 
   const maxBreedingStamina = getMaxBreedingStaminaFromStats(stats);
   const dailyBreedingLimit = getDailyBreedingLimitFromStats(stats);
+  const rolledTraits = rollWildTraitSet(template.traits, 0, 2);
 
   return {
     ...template,
@@ -791,7 +1027,8 @@ function createTownSellerCreature(
     xp: 0,
     xpToNextLevel: getXpToNextLevel(1),
     happiness: 65,
-    trait: rollTownTrait(template.trait),
+    traits: rolledTraits,
+    trait: traitsToLegacyPrimaryTrait(rolledTraits),
     stats,
     skills: createDefaultSkills(),
     breedingStamina: maxBreedingStamina,
@@ -829,7 +1066,7 @@ function generateTownStock(currentDay: number): TownStockEntry[] {
     return {
       id: currentDay * 100 + index + 1,
       creature,
-      price: 80 + statTotal * 3 + (creature.trait === "none" ? 0 : 20),
+      price: 80 + statTotal * 3 + creature.traits.length * 20,
     };
   });
 }
@@ -1095,15 +1332,26 @@ function applyIntelligenceRiskMitigation(
   return baseRisk;
 }
 
-function getTraitSpeedBonus(participantType: "player" | "creature", creature: Creature | null) {
+function getQuickTraitSpeedBonus(
+  participantType: "player" | "creature",
+  creature: Creature | null
+) {
   if (participantType === "player") return 0;
   if (!creature) return 0;
-  return creature.trait === "quick" ? 10 : 0;
+
+  const quickEntry = getBestTraitEntry(creature, "quick");
+  if (!quickEntry) return 0;
+
+  return getTraitFlatBonus(quickEntry.grade, 10);
 }
 
-function getTraitStaminaDiscount(creature: Creature | null) {
+function getSturdyTraitStaminaDiscount(creature: Creature | null) {
   if (!creature) return 0;
-  return creature.trait === "sturdy" ? 3 : 0;
+
+  const sturdyEntry = getBestTraitEntry(creature, "sturdy");
+  if (!sturdyEntry) return 0;
+
+  return getTraitFlatBonus(sturdyEntry.grade, 3);
 }
 
 function getBreedingSessionMinutes(
@@ -1117,8 +1365,8 @@ function getBreedingSessionMinutes(
 
   const avgSpeed = speedValues.length > 0 ? average(speedValues) : 6;
   const traitBonus =
-    getTraitSpeedBonus(giverType, giverCreature) +
-    getTraitSpeedBonus(receiverType, receiverCreature);
+    getQuickTraitSpeedBonus(giverType, giverCreature) +
+    getQuickTraitSpeedBonus(receiverType, receiverCreature);
 
   return Math.max(25, 120 - Math.round(avgSpeed * 6) - traitBonus);
 }
@@ -1126,7 +1374,9 @@ function getBreedingSessionMinutes(
 function getBreedingStaminaCost(creature: Creature): number {
   return Math.max(
     6,
-    22 - Math.floor(creature.stats.endurance / 2) - getTraitStaminaDiscount(creature)
+    22 -
+      Math.floor(creature.stats.endurance / 2) -
+      getSturdyTraitStaminaDiscount(creature)
   );
 }
 
@@ -1264,7 +1514,7 @@ function getParticipantSnapshot(
       happiness: playerData.happiness,
       stats: playerData.stats,
       breedingCareLevel: playerData.breedingCare.level,
-      trait: "none" as CreatureTrait,
+      traits: [] as CreatureTraitEntry[],
     };
   }
 
@@ -1277,7 +1527,7 @@ function getParticipantSnapshot(
     happiness: creature.happiness,
     stats: creature.stats,
     breedingCareLevel: creature.skills.breedingCare.level,
-    trait: creature.trait,
+    traits: creature.traits,
   };
 }
 
@@ -1286,13 +1536,13 @@ function getEggProductionChance(
     happiness: number;
     stats: CreatureStats;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   } | null,
   receiverParticipant: {
     happiness: number;
     stats: CreatureStats;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   } | null,
   homeState: HomeState
 ) {
@@ -1300,7 +1550,7 @@ function getEggProductionChance(
     happiness: number;
     stats: CreatureStats;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   }[];
 
   if (participants.length === 0) {
@@ -1311,7 +1561,10 @@ function getEggProductionChance(
   const avgVitality = average(participants.map((p) => p.stats.vitality));
   const avgHappiness = average(participants.map((p) => p.happiness));
   const avgBreedingCare = average(participants.map((p) => p.breedingCareLevel));
-  const fertileTraitBonus = participants.filter((p) => p.trait === "fertile").length * 0.07;
+  const fertileTraitBonus = participants.reduce((sum, p) => {
+    const fertile = p.traits.find((entry) => entry.trait === "fertile");
+    return sum + (fertile ? getTraitPowerMultiplier(fertile.grade) * 0.07 : 0);
+  }, 0);
 
   let chance = 0.45;
 
@@ -1347,13 +1600,13 @@ function getEggQualityFromPairing(
     happiness: number;
     stats: CreatureStats;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   } | null,
   receiverParticipant: {
     happiness: number;
     stats: CreatureStats;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   } | null,
   homeState: HomeState
 ): EggQuality {
@@ -1361,7 +1614,7 @@ function getEggQualityFromPairing(
     happiness: number;
     stats: CreatureStats;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   }[];
 
   if (participants.length === 0) {
@@ -1373,8 +1626,16 @@ function getEggQualityFromPairing(
   const avgIntelligence = average(participants.map((p) => p.stats.intelligence));
   const avgHappiness = average(participants.map((p) => p.happiness));
   const avgBreedingCare = average(participants.map((p) => p.breedingCareLevel));
-  const calmTraitBonus = participants.filter((p) => p.trait === "calm").length;
-  const fertileTraitBonus = participants.filter((p) => p.trait === "fertile").length;
+
+  const calmTraitBonus = participants.reduce((sum, p) => {
+    const calm = p.traits.find((entry) => entry.trait === "calm");
+    return sum + (calm ? getTraitPowerMultiplier(calm.grade) : 0);
+  }, 0);
+
+  const fertileTraitBonus = participants.reduce((sum, p) => {
+    const fertile = p.traits.find((entry) => entry.trait === "fertile");
+    return sum + (fertile ? getTraitPowerMultiplier(fertile.grade) : 0);
+  }, 0);
 
   const score =
     avgFertility +
@@ -1470,19 +1731,19 @@ function getBreedingRefusalChance(
   giverParticipant: {
     happiness: number;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   } | null,
   receiverParticipant: {
     happiness: number;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   } | null,
   homeState: HomeState
 ) {
   const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
     happiness: number;
     breedingCareLevel: number;
-    trait: CreatureTrait;
+    traits: CreatureTraitEntry[];
   }[];
 
   const avgHappiness =
@@ -1493,7 +1754,10 @@ function getBreedingRefusalChance(
       ? average(participants.map((p) => p.breedingCareLevel))
       : 1;
 
-  const calmTraitReduction = participants.filter((p) => p.trait === "calm").length * 0.08;
+  const calmTraitReduction = participants.reduce((sum, p) => {
+    const calm = p.traits.find((entry) => entry.trait === "calm");
+    return sum + (calm ? getTraitPowerMultiplier(calm.grade) * 0.08 : 0);
+  }, 0);
 
   let refusalChance = 0;
 
@@ -1540,7 +1804,7 @@ function doesCreatureMeetQuest(
 
   if (
     quest.requirement.requiredTrait &&
-    creature.trait !== quest.requirement.requiredTrait
+    !hasTrait(creature, quest.requirement.requiredTrait)
   ) {
     return false;
   }
@@ -2360,7 +2624,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!creature) return;
 
     const speciesBonus = creature.name === "Cat" ? 2 : 0;
-    const traitBonus = creature.trait === "domestic" ? 3 : creature.trait === "quick" ? 2 : 0;
+    const domesticEntry = getBestTraitEntry(creature, "domestic");
+    const quickEntry = getBestTraitEntry(creature, "quick");
+    const traitBonus =
+      (domesticEntry ? getTraitFlatBonus(domesticEntry.grade, 3) : 0) +
+      (quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0);
+
     const minutesSpent = Math.max(
       12,
       45 -
@@ -2376,7 +2645,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       4,
       14 -
         Math.floor((creature.stats.endurance + creature.stats.vitality) / 6) -
-        getTraitStaminaDiscount(creature)
+        getSturdyTraitStaminaDiscount(creature)
     );
     const foodGain = Math.max(
       1,
@@ -2440,7 +2709,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!creature) return;
 
     const speciesBonus = creature.name === "Cat" ? 2 : 0;
-    const traitBonus = creature.trait === "domestic" ? 3 : creature.trait === "quick" ? 2 : 0;
+    const domesticEntry = getBestTraitEntry(creature, "domestic");
+    const quickEntry = getBestTraitEntry(creature, "quick");
+    const traitBonus =
+      (domesticEntry ? getTraitFlatBonus(domesticEntry.grade, 3) : 0) +
+      (quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0);
+
     const minutesSpent = Math.max(
       8,
       35 -
@@ -2456,7 +2730,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       4,
       12 -
         Math.floor((creature.stats.endurance + creature.stats.speed) / 6) -
-        getTraitStaminaDiscount(creature)
+        getSturdyTraitStaminaDiscount(creature)
     );
     const cleanGain = Math.max(
       6,
@@ -2519,7 +2793,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!creature) return;
 
     const speciesBonus = creature.name === "Horse" ? 3 : 0;
-    const traitBonus = creature.trait === "industrious" ? 4 : creature.trait === "quick" ? 2 : 0;
+    const industriousEntry = getBestTraitEntry(creature, "industrious");
+    const quickEntry = getBestTraitEntry(creature, "quick");
+    const traitBonus =
+      (industriousEntry ? getTraitFlatBonus(industriousEntry.grade, 4) : 0) +
+      (quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0);
+
     const minutesSpent = Math.max(
       25,
       90 -
@@ -2535,7 +2814,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       6,
       18 -
         Math.floor((creature.stats.endurance + creature.stats.strength) / 6) -
-        getTraitStaminaDiscount(creature)
+        getSturdyTraitStaminaDiscount(creature)
     );
     const wheatGain = Math.max(
       1,

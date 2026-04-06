@@ -13,8 +13,8 @@ type InbreedingRisk =
 
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
+
 type CreatureTrait =
-  | "none"
   | "domestic"
   | "industrious"
   | "calm"
@@ -22,14 +22,20 @@ type CreatureTrait =
   | "quick"
   | "sturdy";
 
+type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+
+type CreatureTraitEntry = {
+  trait: CreatureTrait;
+  grade: TraitGrade;
+};
+
 function getTraitLabel(trait: CreatureTrait) {
   if (trait === "domestic") return "Domestic";
   if (trait === "industrious") return "Industrious";
   if (trait === "calm") return "Calm";
   if (trait === "fertile") return "Fertile";
   if (trait === "quick") return "Quick";
-  if (trait === "sturdy") return "Sturdy";
-  return "No Trait";
+  return "Sturdy";
 }
 
 function getTraitClasses(trait: CreatureTrait) {
@@ -38,8 +44,7 @@ function getTraitClasses(trait: CreatureTrait) {
   if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
   if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
   if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
-  return "bg-stone-100 text-stone-700 border-stone-300";
+  return "bg-stone-200 text-stone-900 border-stone-400";
 }
 
 function getTraitDescription(trait: CreatureTrait) {
@@ -48,8 +53,25 @@ function getTraitDescription(trait: CreatureTrait) {
   if (trait === "calm") return "Reduces breeding refusal chance.";
   if (trait === "fertile") return "Improves egg production chance.";
   if (trait === "quick") return "Reduces time costs.";
-  if (trait === "sturdy") return "Reduces stamina costs.";
-  return "No special bonuses.";
+  return "Reduces stamina costs.";
+}
+
+function getGradeClasses(grade: TraitGrade) {
+  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
+  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
+  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
+  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
+  return "bg-rose-100 text-rose-900 border-rose-300";
+}
+
+function getGradeDescription(grade: TraitGrade) {
+  if (grade === "F") return "Very weak version";
+  if (grade === "D") return "Weak version";
+  if (grade === "C") return "Average version";
+  if (grade === "B") return "Strong version";
+  if (grade === "A") return "Excellent version";
+  return "Exceptional version";
 }
 
 export default function CreaturesPage() {
@@ -140,6 +162,9 @@ export default function CreaturesPage() {
         <div className="grid gap-4 md:grid-cols-2">
           {creatures.map((creature) => {
             const isEditing = editingCreatureId === creature.id;
+            const traits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+              ? creature.traits
+              : [];
 
             return (
               <div
@@ -220,21 +245,48 @@ export default function CreaturesPage() {
                       creature.inbredTraitSeverity
                     )}
                   </div>
-
-                  <div
-                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
-                      creature.trait
-                    )}`}
-                  >
-                    {getTraitLabel(creature.trait)}
-                  </div>
                 </div>
 
                 <div className="mb-4 rounded-2xl bg-sky-50 p-3">
-                  <p className="text-sm text-stone-500">Trait Bonus</p>
-                  <p className="font-semibold text-stone-900">
-                    {getTraitDescription(creature.trait)}
-                  </p>
+                  <p className="mb-2 text-sm text-stone-500">Traits</p>
+
+                  {traits.length > 0 ? (
+                    <div className="space-y-3">
+                      {traits.map((entry, index) => (
+                        <div
+                          key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`}
+                          className="rounded-2xl border border-sky-200 bg-white p-3"
+                        >
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <div
+                              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                                entry.trait
+                              )}`}
+                            >
+                              {getTraitLabel(entry.trait)}
+                            </div>
+
+                            <div
+                              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getGradeClasses(
+                                entry.grade
+                              )}`}
+                            >
+                              Grade {entry.grade}
+                            </div>
+                          </div>
+
+                          <p className="font-semibold text-stone-900">
+                            {getTraitDescription(entry.trait)}
+                          </p>
+                          <p className="mt-1 text-sm text-stone-600">
+                            {getGradeDescription(entry.grade)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="font-semibold text-stone-700">No Traits</p>
+                  )}
                 </div>
 
                 <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

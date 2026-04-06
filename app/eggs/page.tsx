@@ -14,14 +14,21 @@ type InbreedingRisk =
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
 type EggQuality = "poor" | "normal" | "strong" | "exceptional";
+
 type CreatureTrait =
-  | "none"
   | "domestic"
   | "industrious"
   | "calm"
   | "fertile"
   | "quick"
   | "sturdy";
+
+type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+
+type CreatureTraitEntry = {
+  trait: CreatureTrait;
+  grade: TraitGrade;
+};
 
 type HatchedCreature = {
   id: number;
@@ -31,7 +38,7 @@ type HatchedCreature = {
   xp: number;
   xpToNextLevel: number;
   happiness: number;
-  trait: CreatureTrait;
+  traits: CreatureTraitEntry[];
   stats: {
     strength: number;
     endurance: number;
@@ -153,8 +160,7 @@ function getCreatureTraitLabel(trait: CreatureTrait) {
   if (trait === "calm") return "Calm";
   if (trait === "fertile") return "Fertile";
   if (trait === "quick") return "Quick";
-  if (trait === "sturdy") return "Sturdy";
-  return "No Trait";
+  return "Sturdy";
 }
 
 function getCreatureTraitClasses(trait: CreatureTrait) {
@@ -163,8 +169,7 @@ function getCreatureTraitClasses(trait: CreatureTrait) {
   if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
   if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
   if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
-  return "bg-stone-100 text-stone-700 border-stone-300";
+  return "bg-stone-200 text-stone-900 border-stone-400";
 }
 
 function getCreatureTraitDescription(trait: CreatureTrait) {
@@ -173,8 +178,25 @@ function getCreatureTraitDescription(trait: CreatureTrait) {
   if (trait === "calm") return "Lower breeding refusal chance.";
   if (trait === "fertile") return "Higher egg production chance.";
   if (trait === "quick") return "Lower time costs.";
-  if (trait === "sturdy") return "Lower stamina costs.";
-  return "No special trait bonuses.";
+  return "Lower stamina costs.";
+}
+
+function getGradeClasses(grade: TraitGrade) {
+  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
+  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
+  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
+  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
+  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
+  return "bg-rose-100 text-rose-900 border-rose-300";
+}
+
+function getGradeDescription(grade: TraitGrade) {
+  if (grade === "F") return "Very weak version";
+  if (grade === "D") return "Weak version";
+  if (grade === "C") return "Average version";
+  if (grade === "B") return "Strong version";
+  if (grade === "A") return "Excellent version";
+  return "Exceptional version";
 }
 
 function getCreatureImage(name: string) {
@@ -195,7 +217,7 @@ export default function EggsPage() {
 
     if (!newCreature) return;
 
-    setHatchedCreature(newCreature);
+    setHatchedCreature(newCreature as HatchedCreature);
     setNicknameInput(newCreature.nickname);
   }
 
@@ -210,6 +232,56 @@ export default function EggsPage() {
   function handleCloseWithoutRename() {
     setHatchedCreature(null);
     setNicknameInput("");
+  }
+
+  function renderTraitList(traits: CreatureTraitEntry[]) {
+    if (!traits || traits.length === 0) {
+      return (
+        <div className="rounded-2xl bg-emerald-50 p-3">
+          <p className="text-sm text-stone-500">Traits</p>
+          <p className="font-semibold text-stone-900">No Traits</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="rounded-2xl bg-emerald-50 p-3">
+        <p className="mb-3 text-sm text-stone-500">Traits</p>
+        <div className="space-y-3">
+          {traits.map((entry, index) => (
+            <div
+              key={`${entry.trait}-${entry.grade}-${index}`}
+              className="rounded-2xl border border-emerald-200 bg-white p-3"
+            >
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <div
+                  className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
+                    entry.trait
+                  )}`}
+                >
+                  {getCreatureTraitLabel(entry.trait)}
+                </div>
+
+                <div
+                  className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getGradeClasses(
+                    entry.grade
+                  )}`}
+                >
+                  Grade {entry.grade}
+                </div>
+              </div>
+
+              <p className="font-semibold text-stone-900">
+                {getCreatureTraitDescription(entry.trait)}
+              </p>
+              <p className="mt-1 text-sm text-stone-600">
+                {getGradeDescription(entry.grade)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -358,21 +430,6 @@ export default function EggsPage() {
                       hatchedCreature.inbredTraitSeverity
                     )}
                   </div>
-
-                  <div
-                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
-                      hatchedCreature.trait
-                    )}`}
-                  >
-                    {getCreatureTraitLabel(hatchedCreature.trait)}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-emerald-50 p-3">
-                  <p className="text-sm text-stone-500">Trait Bonus</p>
-                  <p className="font-semibold text-stone-900">
-                    {getCreatureTraitDescription(hatchedCreature.trait)}
-                  </p>
                 </div>
 
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -399,7 +456,9 @@ export default function EggsPage() {
               </div>
             </div>
 
-            <div className="mb-5 rounded-2xl bg-stone-100 p-4">
+            {renderTraitList(hatchedCreature.traits)}
+
+            <div className="mb-5 mt-5 rounded-2xl bg-stone-100 p-4">
               <p className="mb-2 text-sm text-stone-500">Stats</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 <p><strong>Strength:</strong> {hatchedCreature.stats.strength}</p>
