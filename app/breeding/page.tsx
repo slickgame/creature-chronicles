@@ -561,6 +561,75 @@ export default function BreedingPage() {
     );
   }
 
+  const allBreedableTraits: CreatureTrait[] = [
+    "domestic",
+    "industrious",
+    "calm",
+    "fertile",
+    "quick",
+    "sturdy",
+  ];
+
+  const sharedTraits = allBreedableTraits
+    .map((trait) => {
+      const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
+      const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
+
+      if (!giverBest || !receiverBest) return null;
+
+      const strongerGrade =
+        getGradeMultiplier(giverBest.grade) >= getGradeMultiplier(receiverBest.grade)
+          ? giverBest.grade
+          : receiverBest.grade;
+
+      return {
+        trait,
+        giverGrade: giverBest.grade,
+        receiverGrade: receiverBest.grade,
+        strongestGrade: strongerGrade,
+      };
+    })
+    .filter(Boolean) as {
+    trait: CreatureTrait;
+    giverGrade: TraitGrade;
+    receiverGrade: TraitGrade;
+    strongestGrade: TraitGrade;
+  }[];
+
+  const giverOnlyTraits = allBreedableTraits
+    .map((trait) => {
+      const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
+      const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
+
+      if (!giverBest || receiverBest) return null;
+
+      return {
+        trait,
+        grade: giverBest.grade,
+      };
+    })
+    .filter(Boolean) as {
+    trait: CreatureTrait;
+    grade: TraitGrade;
+  }[];
+
+  const receiverOnlyTraits = allBreedableTraits
+    .map((trait) => {
+      const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
+      const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
+
+      if (giverBest || !receiverBest) return null;
+
+      return {
+        trait,
+        grade: receiverBest.grade,
+      };
+    })
+    .filter(Boolean) as {
+    trait: CreatureTrait;
+    grade: TraitGrade;
+  }[];
+
   const parentChildWarning = isParentChild();
   const fullSiblingWarning = isFullSibling();
   const halfSiblingWarning = isHalfSibling();
@@ -959,6 +1028,166 @@ export default function BreedingPage() {
               <p className="mt-3 text-sm text-stone-600">
                 Offspring can inherit multiple traits, duplicate traits are merged, and shared parent traits have a better chance to pass on with stronger grades.
               </p>
+            </div>
+
+            <div className="rounded-2xl bg-white/70 p-4">
+              <p className="mb-3 font-semibold text-stone-900">
+                Trait Inheritance Preview
+              </p>
+
+              {!hasValidSelection ? (
+                <p className="text-sm text-stone-600">
+                  Select a valid giver and receiver to preview likely inherited traits.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {sharedTraits.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-sm font-semibold text-stone-700">
+                        Shared Parent Traits — High chance to inherit
+                      </p>
+                      <div className="space-y-2">
+                        {sharedTraits.map((entry) => (
+                          <div
+                            key={`shared-${entry.trait}`}
+                            className="rounded-2xl border border-rose-200 bg-rose-50 p-3"
+                          >
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <div
+                                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                                  entry.trait
+                                )}`}
+                              >
+                                {getTraitLabel(entry.trait)}
+                              </div>
+
+                              <div
+                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                                  entry.giverGrade
+                                )}`}
+                              >
+                                Giver {entry.giverGrade}
+                              </div>
+
+                              <div
+                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                                  entry.receiverGrade
+                                )}`}
+                              >
+                                Receiver {entry.receiverGrade}
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-stone-800">
+                              Strong inheritance likelihood. Best visible parent grade is{" "}
+                              <strong>{entry.strongestGrade}</strong>.
+                            </p>
+                            <p className="mt-1 text-xs text-stone-600">
+                              Shared traits also have the best chance to roll upward on hatch.
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {giverOnlyTraits.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-sm font-semibold text-stone-700">
+                        Giver-Only Traits — Good chance to inherit
+                      </p>
+                      <div className="space-y-2">
+                        {giverOnlyTraits.map((entry) => (
+                          <div
+                            key={`giver-only-${entry.trait}`}
+                            className="rounded-2xl border border-stone-200 bg-stone-50 p-3"
+                          >
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <div
+                                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                                  entry.trait
+                                )}`}
+                              >
+                                {getTraitLabel(entry.trait)}
+                              </div>
+
+                              <div
+                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                                  entry.grade
+                                )}`}
+                              >
+                                {entry.grade}
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-stone-800">
+                              Possible inherited trait from the giver side.
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {receiverOnlyTraits.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-sm font-semibold text-stone-700">
+                        Receiver-Only Traits — Good chance to inherit
+                      </p>
+                      <div className="space-y-2">
+                        {receiverOnlyTraits.map((entry) => (
+                          <div
+                            key={`receiver-only-${entry.trait}`}
+                            className="rounded-2xl border border-stone-200 bg-stone-50 p-3"
+                          >
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <div
+                                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                                  entry.trait
+                                )}`}
+                              >
+                                {getTraitLabel(entry.trait)}
+                              </div>
+
+                              <div
+                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                                  entry.grade
+                                )}`}
+                              >
+                                {entry.grade}
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-stone-800">
+                              Possible inherited trait from the receiver side.
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
+                    <p className="text-sm font-semibold text-stone-800">
+                      Random Trait Roll
+                    </p>
+                    <p className="mt-1 text-sm text-stone-600">
+                      If the hatch has open trait slots, it may also gain a random extra trait that neither parent currently shows.
+                    </p>
+                  </div>
+
+                  {(parentChildWarning || fullSiblingWarning || halfSiblingWarning) && (
+                    <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
+                      <p className="text-sm font-semibold text-red-900">
+                        Inbreeding Warning
+                      </p>
+                      <p className="mt-1 text-sm text-red-800">
+                        This pairing may still inherit strong traits, but grade downgrades and negative hatch outcomes are more likely.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <p>

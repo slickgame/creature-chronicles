@@ -365,137 +365,150 @@ export default function EggsPage() {
 
       {hatchedCreature && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-3xl rounded-3xl border-4 border-emerald-900 bg-white p-6 shadow-2xl">
-            <h2 className="mb-4 text-3xl font-bold text-emerald-900">
-              🎉 Egg Hatched!
-            </h2>
+          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border-4 border-emerald-900 bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-emerald-200 px-6 py-4">
+              <h2 className="text-3xl font-bold text-emerald-900">
+                🎉 Egg Hatched!
+              </h2>
 
-            <div className="mb-5 flex flex-col gap-5 md:flex-row">
-              <div className="flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-stone-100 md:w-72">
-                <Image
-                  src={getCreatureImage(hatchedCreature.name)}
-                  alt={hatchedCreature.name}
-                  width={320}
-                  height={320}
-                  className="max-h-full w-auto object-contain"
-                />
-              </div>
-
-              <div className="flex-1 space-y-3">
-                <div>
-                  <p className="text-sm text-stone-500">Species</p>
-                  <p className="text-2xl font-bold text-stone-900">
-                    {hatchedCreature.name}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm text-stone-500">Current Name</p>
-                  <p className="text-xl font-semibold text-stone-900">
-                    {hatchedCreature.nickname}
-                  </p>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-emerald-50 p-3">
-                    <p className="text-sm text-stone-500">Level</p>
-                    <p className="font-semibold text-stone-900">
-                      {hatchedCreature.level}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-emerald-50 p-3">
-                    <p className="text-sm text-stone-500">XP</p>
-                    <p className="font-semibold text-stone-900">
-                      {hatchedCreature.xp} / {hatchedCreature.xpToNextLevel}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <div
-                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
-                      hatchedCreature.inbreedingRisk
-                    )}`}
-                  >
-                    {getRiskLabel(hatchedCreature.inbreedingRisk)}
-                  </div>
-
-                  <div
-                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(
-                      hatchedCreature.inbredTraitSeverity
-                    )}`}
-                  >
-                    {getInbredTraitLabel(
-                      hatchedCreature.inbredTrait,
-                      hatchedCreature.inbredTraitSeverity
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-emerald-50 p-3">
-                    <p className="text-sm text-stone-500">Generation</p>
-                    <p className="font-semibold text-stone-900">
-                      Gen {hatchedCreature.generation}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-emerald-50 p-3">
-                    <p className="text-sm text-stone-500">Born On Day</p>
-                    <p className="font-semibold text-stone-900">
-                      Day {hatchedCreature.bornOnDay}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-emerald-50 p-3">
-                  <p className="text-sm text-stone-500">Breeding Capacity</p>
-                  <p className="font-semibold text-stone-900">
-                    Stamina {hatchedCreature.breedingStamina}/{hatchedCreature.maxBreedingStamina} • Daily Limit {hatchedCreature.dailyBreedingLimit}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {renderTraitList(hatchedCreature.traits)}
-
-            <div className="mb-5 mt-5 rounded-2xl bg-stone-100 p-4">
-              <p className="mb-2 text-sm text-stone-500">Stats</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <p><strong>Strength:</strong> {hatchedCreature.stats.strength}</p>
-                <p><strong>Endurance:</strong> {hatchedCreature.stats.endurance}</p>
-                <p><strong>Intelligence:</strong> {hatchedCreature.stats.intelligence}</p>
-                <p><strong>Speed:</strong> {hatchedCreature.stats.speed}</p>
-                <p><strong>Fertility:</strong> {hatchedCreature.stats.fertility}</p>
-                <p><strong>Vitality:</strong> {hatchedCreature.stats.vitality}</p>
-              </div>
-            </div>
-
-            <div className="mb-5 rounded-2xl bg-emerald-50 p-4">
-              <p className="mb-2 font-semibold text-emerald-950">
-                Rename Newborn
-              </p>
-              <input
-                type="text"
-                value={nicknameInput}
-                onChange={(e) => setNicknameInput(e.target.value)}
-                className="w-full rounded-xl border border-emerald-300 bg-white px-3 py-2"
-                placeholder="Enter new name"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <button
-                onClick={handleSaveAndClose}
-                className="w-full rounded-2xl bg-emerald-700 px-4 py-3 font-semibold text-white shadow"
-              >
-                Save Name and Close
-              </button>
               <button
                 onClick={handleCloseWithoutRename}
-                className="w-full rounded-2xl bg-stone-700 px-4 py-3 font-semibold text-white shadow"
+                className="rounded-xl bg-stone-200 px-3 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-300"
               >
-                Keep Current Name
+                ✕
               </button>
+            </div>
+
+            <div className="overflow-y-auto px-6 py-5">
+              <div className="mb-5 flex flex-col gap-5 md:flex-row">
+                <div className="flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-stone-100 md:w-72">
+                  <Image
+                    src={getCreatureImage(hatchedCreature.name)}
+                    alt={hatchedCreature.name}
+                    width={320}
+                    height={320}
+                    className="max-h-full w-auto object-contain"
+                  />
+                </div>
+
+                <div className="flex-1 space-y-3">
+                  <div>
+                    <p className="text-sm text-stone-500">Species</p>
+                    <p className="text-2xl font-bold text-stone-900">
+                      {hatchedCreature.name}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-stone-500">Current Name</p>
+                    <p className="text-xl font-semibold text-stone-900">
+                      {hatchedCreature.nickname}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-emerald-50 p-3">
+                      <p className="text-sm text-stone-500">Level</p>
+                      <p className="font-semibold text-stone-900">
+                        {hatchedCreature.level}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-emerald-50 p-3">
+                      <p className="text-sm text-stone-500">XP</p>
+                      <p className="font-semibold text-stone-900">
+                        {hatchedCreature.xp} / {hatchedCreature.xpToNextLevel}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <div
+                      className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
+                        hatchedCreature.inbreedingRisk
+                      )}`}
+                    >
+                      {getRiskLabel(hatchedCreature.inbreedingRisk)}
+                    </div>
+
+                    <div
+                      className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(
+                        hatchedCreature.inbredTraitSeverity
+                      )}`}
+                    >
+                      {getInbredTraitLabel(
+                        hatchedCreature.inbredTrait,
+                        hatchedCreature.inbredTraitSeverity
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-emerald-50 p-3">
+                      <p className="text-sm text-stone-500">Generation</p>
+                      <p className="font-semibold text-stone-900">
+                        Gen {hatchedCreature.generation}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-emerald-50 p-3">
+                      <p className="text-sm text-stone-500">Born On Day</p>
+                      <p className="font-semibold text-stone-900">
+                        Day {hatchedCreature.bornOnDay}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-emerald-50 p-3">
+                    <p className="text-sm text-stone-500">Breeding Capacity</p>
+                    <p className="font-semibold text-stone-900">
+                      Stamina {hatchedCreature.breedingStamina}/{hatchedCreature.maxBreedingStamina} • Daily Limit {hatchedCreature.dailyBreedingLimit}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {renderTraitList(hatchedCreature.traits)}
+
+              <div className="mb-5 mt-5 rounded-2xl bg-stone-100 p-4">
+                <p className="mb-2 text-sm text-stone-500">Stats</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <p><strong>Strength:</strong> {hatchedCreature.stats.strength}</p>
+                  <p><strong>Endurance:</strong> {hatchedCreature.stats.endurance}</p>
+                  <p><strong>Intelligence:</strong> {hatchedCreature.stats.intelligence}</p>
+                  <p><strong>Speed:</strong> {hatchedCreature.stats.speed}</p>
+                  <p><strong>Fertility:</strong> {hatchedCreature.stats.fertility}</p>
+                  <p><strong>Vitality:</strong> {hatchedCreature.stats.vitality}</p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-emerald-50 p-4">
+                <p className="mb-2 font-semibold text-emerald-950">
+                  Rename Newborn
+                </p>
+                <input
+                  type="text"
+                  value={nicknameInput}
+                  onChange={(e) => setNicknameInput(e.target.value)}
+                  className="w-full rounded-xl border border-emerald-300 bg-white px-3 py-2"
+                  placeholder="Enter new name"
+                />
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 border-t border-emerald-200 bg-white px-6 py-4">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  onClick={handleSaveAndClose}
+                  className="w-full rounded-2xl bg-emerald-700 px-4 py-3 font-semibold text-white shadow"
+                >
+                  Save Name and Close
+                </button>
+                <button
+                  onClick={handleCloseWithoutRename}
+                  className="w-full rounded-2xl bg-stone-700 px-4 py-3 font-semibold text-white shadow"
+                >
+                  Keep Current Name
+                </button>
+              </div>
             </div>
           </div>
         </div>
