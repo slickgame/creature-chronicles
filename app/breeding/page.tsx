@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
@@ -39,12 +40,12 @@ function getTraitClasses(trait: CreatureTrait) {
 }
 
 function getTraitDescription(trait: CreatureTrait) {
-  if (trait === "domestic") return "Better cooking and cleaning performance.";
-  if (trait === "industrious") return "Better field work and labor performance.";
-  if (trait === "calm") return "Lower breeding refusal chance.";
-  if (trait === "fertile") return "Higher egg production chance.";
-  if (trait === "quick") return "Lower time costs for tasks and breeding.";
-  return "Lower stamina costs for tasks and breeding.";
+  if (trait === "domestic") return "Improves cooking and cleaning tasks.";
+  if (trait === "industrious") return "Improves field work and labor tasks.";
+  if (trait === "calm") return "Reduces breeding refusal chance.";
+  if (trait === "fertile") return "Improves egg production chance.";
+  if (trait === "quick") return "Reduces time costs.";
+  return "Reduces stamina costs.";
 }
 
 function getGradeClasses(grade: TraitGrade) {
@@ -66,12 +67,72 @@ function getGradeMultiplier(grade: TraitGrade) {
 }
 
 function getGradeDescription(grade: TraitGrade) {
-  if (grade === "F") return "Very weak version";
-  if (grade === "D") return "Weak version";
-  if (grade === "C") return "Average version";
-  if (grade === "B") return "Strong version";
-  if (grade === "A") return "Excellent version";
-  return "Exceptional version";
+  if (grade === "F") return "Very weak";
+  if (grade === "D") return "Weak";
+  if (grade === "C") return "Average";
+  if (grade === "B") return "Strong";
+  if (grade === "A") return "Excellent";
+  return "Exceptional";
+}
+
+function InfoButton({
+  onClick,
+  label,
+}: {
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-rose-300 bg-white text-xs font-bold text-rose-900 shadow-sm hover:bg-rose-50"
+      aria-label={label}
+      title={label}
+    >
+      ?
+    </button>
+  );
+}
+
+function HelpModal({
+  open,
+  title,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border-4 border-rose-900 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-rose-200 px-5 py-4">
+          <h2 className="text-2xl font-bold text-rose-950">{title}</h2>
+          <button
+            onClick={onClose}
+            className="rounded-xl bg-stone-200 px-3 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-300"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="overflow-y-auto p-5 text-stone-800">{children}</div>
+
+        <div className="border-t border-rose-200 bg-white px-5 py-4">
+          <button
+            onClick={onClose}
+            className="w-full rounded-2xl bg-rose-700 px-4 py-3 font-semibold text-white shadow"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function BreedingPage() {
@@ -86,6 +147,10 @@ export default function BreedingPage() {
     currentHour,
     currentMinute,
   } = useGame();
+
+  const [traitHelpOpen, setTraitHelpOpen] = useState(false);
+  const [gradeGuideOpen, setGradeGuideOpen] = useState(false);
+  const [inheritanceHelpOpen, setInheritanceHelpOpen] = useState(false);
 
   const canAffordBreed = playerData.energy >= 8;
 
@@ -329,9 +394,7 @@ export default function BreedingPage() {
     refusalChance -= Math.min(0.12, avgBreedingCare * 0.015);
     refusalChance -= calmReduction;
 
-    refusalChance = Math.max(0, Math.min(0.75, refusalChance));
-
-    return refusalChance;
+    return Math.max(0, Math.min(0.75, refusalChance));
   }
 
   function getEggChanceEstimate() {
@@ -479,22 +542,6 @@ export default function BreedingPage() {
     return "bg-stone-100 text-stone-800 border-stone-300";
   }
 
-  function getQualityDescription(quality: EggQuality) {
-    if (quality === "exceptional") {
-      return "Exceptional hatch preview: major bonus start.";
-    }
-
-    if (quality === "strong") {
-      return "Strong hatch preview: minor bonus start.";
-    }
-
-    if (quality === "normal") {
-      return "Normal hatch preview: standard start.";
-    }
-
-    return "Poor hatch preview: no bonus start.";
-  }
-
   function getRefusalRiskLabel() {
     const chance = getRefusalChanceEstimate();
 
@@ -539,7 +586,7 @@ export default function BreedingPage() {
         {traits.map((entry, index) => (
           <div
             key={`${entry.trait}-${entry.grade}-${index}`}
-            className="flex items-center gap-2"
+            className="group relative flex items-center gap-2"
           >
             <div
               className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
@@ -554,6 +601,16 @@ export default function BreedingPage() {
               )}`}
             >
               {entry.grade}
+            </div>
+
+            <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
+              <p className="font-semibold text-stone-900">
+                {getTraitLabel(entry.trait)} ({entry.grade})
+              </p>
+              <p className="mt-1">{getTraitDescription(entry.trait)}</p>
+              <p className="mt-1 text-stone-500">
+                Grade: {getGradeDescription(entry.grade)}
+              </p>
             </div>
           </div>
         ))}
@@ -570,65 +627,67 @@ export default function BreedingPage() {
     "sturdy",
   ];
 
-  const sharedTraits = allBreedableTraits
-    .map((trait) => {
-      const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
-      const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
+  const inheritancePreview = useMemo(() => {
+    const shared = allBreedableTraits
+      .map((trait) => {
+        const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
+        const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
 
-      if (!giverBest || !receiverBest) return null;
+        if (!giverBest || !receiverBest) return null;
 
-      const strongerGrade =
-        getGradeMultiplier(giverBest.grade) >= getGradeMultiplier(receiverBest.grade)
-          ? giverBest.grade
-          : receiverBest.grade;
+        const strongestGrade =
+          getGradeMultiplier(giverBest.grade) >= getGradeMultiplier(receiverBest.grade)
+            ? giverBest.grade
+            : receiverBest.grade;
 
-      return {
-        trait,
-        giverGrade: giverBest.grade,
-        receiverGrade: receiverBest.grade,
-        strongestGrade: strongerGrade,
-      };
-    })
-    .filter(Boolean) as {
-    trait: CreatureTrait;
-    giverGrade: TraitGrade;
-    receiverGrade: TraitGrade;
-    strongestGrade: TraitGrade;
-  }[];
+        return {
+          type: "shared" as const,
+          trait,
+          strongestGrade,
+          note: "High chance",
+        };
+      })
+      .filter(Boolean);
 
-  const giverOnlyTraits = allBreedableTraits
-    .map((trait) => {
-      const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
-      const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
+    const giverOnly = allBreedableTraits
+      .map((trait) => {
+        const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
+        const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
 
-      if (!giverBest || receiverBest) return null;
+        if (!giverBest || receiverBest) return null;
 
-      return {
-        trait,
-        grade: giverBest.grade,
-      };
-    })
-    .filter(Boolean) as {
-    trait: CreatureTrait;
-    grade: TraitGrade;
-  }[];
+        return {
+          type: "giver" as const,
+          trait,
+          strongestGrade: giverBest.grade,
+          note: "Good chance",
+        };
+      })
+      .filter(Boolean);
 
-  const receiverOnlyTraits = allBreedableTraits
-    .map((trait) => {
-      const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
-      const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
+    const receiverOnly = allBreedableTraits
+      .map((trait) => {
+        const giverBest = getBestTraitEntry(giverParticipant?.traits ?? [], trait);
+        const receiverBest = getBestTraitEntry(receiverParticipant?.traits ?? [], trait);
 
-      if (giverBest || !receiverBest) return null;
+        if (giverBest || !receiverBest) return null;
 
-      return {
-        trait,
-        grade: receiverBest.grade,
-      };
-    })
-    .filter(Boolean) as {
-    trait: CreatureTrait;
-    grade: TraitGrade;
-  }[];
+        return {
+          type: "receiver" as const,
+          trait,
+          strongestGrade: receiverBest.grade,
+          note: "Good chance",
+        };
+      })
+      .filter(Boolean);
+
+    return [...shared, ...giverOnly, ...receiverOnly] as {
+      type: "shared" | "giver" | "receiver";
+      trait: CreatureTrait;
+      strongestGrade: TraitGrade;
+      note: string;
+    }[];
+  }, [giverParticipant, receiverParticipant]);
 
   const parentChildWarning = isParentChild();
   const fullSiblingWarning = isFullSibling();
@@ -690,610 +749,457 @@ export default function BreedingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-pink-100 to-rose-200 p-6">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="mb-6 text-4xl font-bold text-rose-900">💞 Breeding</h1>
+    <>
+      <main className="min-h-screen bg-gradient-to-b from-pink-100 to-rose-200 p-6">
+        <div className="mx-auto max-w-6xl">
+          <h1 className="mb-6 text-4xl font-bold text-rose-900">💞 Breeding</h1>
 
-        <div className="mb-4 rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
-          <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
-          <p><strong>Player Energy:</strong> {playerData.energy}</p>
-          <p><strong>Session Time Cost:</strong> {getBreedingMinutes()} minutes</p>
-          <p><strong>Gold Cost:</strong> None</p>
-        </div>
-
-        <div className="mb-4 rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
-          <h2 className="mb-3 text-2xl font-bold text-rose-950">Home Breeding Conditions</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <p><strong>Cleanliness:</strong> {homeState.cleanliness}/100</p>
-            <p><strong>Food Stock:</strong> {homeState.foodStock}</p>
-            <p><strong>Average Happiness:</strong> {Math.round(getAverageHappiness())}</p>
-            <p><strong>Average Breeding Care:</strong> Lv {getAverageBreedingCare().toFixed(1)}</p>
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <div
-              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRefusalRiskClasses()}`}
-            >
-              Refusal Risk: {getRefusalRiskLabel()} ({Math.round(getRefusalChanceEstimate() * 100)}%)
+          <div className="mb-4 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
+              <p><strong>Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+              <p><strong>Energy:</strong> {playerData.energy}</p>
+              <p><strong>Session Cost:</strong> {getBreedingMinutes()}m</p>
             </div>
 
-            <div
-              className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getQualityClasses(
-                getEggQualityPreview()
-              )}`}
-            >
-              Egg Quality Preview: {getEggQualityPreview()}
+            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
+              <p><strong>Egg Chance:</strong> {playerIsReceiver ? "None" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
+              <p><strong>Refusal:</strong> {getRefusalRiskLabel()}</p>
+              <p><strong>Quality:</strong> {getEggQualityPreview()}</p>
             </div>
 
-            {homeState.cleanliness < 50 && (
-              <div className="inline-block rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
-                Dirty Home
+            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-4 text-stone-800 shadow">
+              <div className="flex flex-wrap gap-2">
+                <InfoButton onClick={() => setTraitHelpOpen(true)} label="How traits work" />
+                <InfoButton onClick={() => setGradeGuideOpen(true)} label="Grade guide" />
+                <InfoButton onClick={() => setInheritanceHelpOpen(true)} label="Inheritance help" />
               </div>
-            )}
-
-            {homeState.cleanliness < 25 && (
-              <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
-                Filthy Home
-              </div>
-            )}
-
-            {homeState.foodStock <= 2 && homeState.foodStock > 0 && (
-              <div className="inline-block rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
-                Low Food
-              </div>
-            )}
-
-            {homeState.foodStock <= 0 && (
-              <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
-                No Food
-              </div>
-            )}
-          </div>
-
-          <p className="mt-3 text-sm text-stone-600">
-            Fertility affects egg production. Calm lowers refusal chance. Quick lowers time cost. Sturdy lowers stamina cost. Home conditions and breeding care improve both egg odds and egg quality.
-          </p>
-        </div>
-
-        <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
-          <div className="mb-6">
-            <h2 className="mb-3 text-2xl font-bold text-rose-950">Choose Giver</h2>
-
-            <div className="mb-4">
-              <button
-                onClick={() =>
-                  setBreedingSelection({
-                    ...breedingSelection,
-                    giverType: "player",
-                    giverCreatureId: null,
-                  })
-                }
-                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
-                  breedingSelection.giverType === "player"
-                    ? "border-rose-700 bg-rose-100"
-                    : "border-rose-200 bg-white hover:border-rose-400"
-                }`}
-              >
-                <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                  <Image
-                    src="/images/player.png"
-                    alt="Player"
-                    width={300}
-                    height={300}
-                    className="max-h-full w-auto object-contain"
-                  />
-                </div>
-                <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
-                <p className="text-sm text-stone-600">Player</p>
-                <p className="text-sm text-stone-600">
-                  Happiness {playerData.happiness} • {getHappinessLabel(playerData.happiness)}
-                </p>
-                <p className="text-sm text-stone-600">
-                  Fertility {playerData.stats.fertility} • Vitality {playerData.stats.vitality}
-                </p>
-                <p className="text-sm text-stone-600">
-                  Breeding Care Lv {playerData.breedingCare.level}
-                </p>
-                {renderTraitList([])}
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {creatures.map((creature) => {
-                const isSelected =
-                  breedingSelection.giverType === "creature" &&
-                  breedingSelection.giverCreatureId === creature.id;
-
-                const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
-                  ? creature.traits
-                  : [];
-
-                return (
-                  <button
-                    key={creature.id}
-                    onClick={() =>
-                      setBreedingSelection({
-                        ...breedingSelection,
-                        giverType: "creature",
-                        giverCreatureId: creature.id,
-                      })
-                    }
-                    className={`rounded-3xl border-4 p-4 text-left shadow transition ${
-                      isSelected
-                        ? "border-rose-700 bg-rose-100"
-                        : "border-rose-200 bg-white hover:border-rose-400"
-                    }`}
-                  >
-                    <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                      <Image
-                        src={getCreatureImage(creature.name)}
-                        alt={creature.name}
-                        width={300}
-                        height={300}
-                        className="max-h-full w-auto object-contain"
-                      />
-                    </div>
-                    <p className="text-xl font-bold text-stone-900">
-                      {creature.nickname}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Fertility {creature.stats.fertility} • Vitality {creature.stats.vitality}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Breeding Care Lv {creature.skills.breedingCare.level}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
-                    </p>
-
-                    {renderTraitList(creatureTraits)}
-
-                    {creatureTraits.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {creatureTraits.map((entry, index) => (
-                          <p key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`} className="text-xs text-stone-500">
-                            {getTraitLabel(entry.trait)} ({entry.grade}) — {getTraitDescription(entry.trait)} — {getGradeDescription(entry.grade)}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-
-                    <p className="mt-2 text-xs text-stone-500">
-                      Cost: {getCreatureStaminaCost(creature.id)} stamina
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h2 className="mb-3 text-2xl font-bold text-rose-950">
-              Choose Receiver
-            </h2>
-
-            <div className="mb-4">
-              <button
-                onClick={() =>
-                  setBreedingSelection({
-                    ...breedingSelection,
-                    receiverType: "player",
-                    receiverCreatureId: null,
-                  })
-                }
-                className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
-                  breedingSelection.receiverType === "player"
-                    ? "border-rose-700 bg-rose-100"
-                    : "border-rose-200 bg-white hover:border-rose-400"
-                }`}
-              >
-                <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                  <Image
-                    src="/images/player.png"
-                    alt="Player"
-                    width={300}
-                    height={300}
-                    className="max-h-full w-auto object-contain"
-                  />
-                </div>
-                <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
-                <p className="text-sm text-stone-600">Player</p>
-                <p className="text-sm text-stone-600">
-                  Happiness {playerData.happiness} • {getHappinessLabel(playerData.happiness)}
-                </p>
-                <p className="text-sm text-stone-600">
-                  Fertility {playerData.stats.fertility} • Vitality {playerData.stats.vitality}
-                </p>
-                <p className="text-sm text-stone-600">
-                  Breeding Care Lv {playerData.breedingCare.level}
-                </p>
-                {renderTraitList([])}
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {creatures.map((creature) => {
-                const isSelected =
-                  breedingSelection.receiverType === "creature" &&
-                  breedingSelection.receiverCreatureId === creature.id;
-
-                const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
-                  ? creature.traits
-                  : [];
-
-                return (
-                  <button
-                    key={creature.id}
-                    onClick={() =>
-                      setBreedingSelection({
-                        ...breedingSelection,
-                        receiverType: "creature",
-                        receiverCreatureId: creature.id,
-                      })
-                    }
-                    className={`rounded-3xl border-4 p-4 text-left shadow transition ${
-                      isSelected
-                        ? "border-rose-700 bg-rose-100"
-                        : "border-rose-200 bg-white hover:border-rose-400"
-                    }`}
-                  >
-                    <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                      <Image
-                        src={getCreatureImage(creature.name)}
-                        alt={creature.name}
-                        width={300}
-                        height={300}
-                        className="max-h-full w-auto object-contain"
-                      />
-                    </div>
-                    <p className="text-xl font-bold text-stone-900">
-                      {creature.nickname}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      {creature.name} • Lv {creature.level} • Gen {creature.generation}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Fertility {creature.stats.fertility} • Vitality {creature.stats.vitality}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Breeding Care Lv {creature.skills.breedingCare.level}
-                    </p>
-                    <p className="text-sm text-stone-600">
-                      Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} • Uses {creature.breedingsToday}/{creature.dailyBreedingLimit}
-                    </p>
-
-                    {renderTraitList(creatureTraits)}
-
-                    {creatureTraits.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {creatureTraits.map((entry, index) => (
-                          <p key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`} className="text-xs text-stone-500">
-                            {getTraitLabel(entry.trait)} ({entry.grade}) — {getTraitDescription(entry.trait)} — {getGradeDescription(entry.grade)}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-
-                    <p className="mt-2 text-xs text-stone-500">
-                      Cost: {getCreatureStaminaCost(creature.id)} stamina
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-5 rounded-2xl bg-rose-50 p-4 space-y-2">
-            <p>
-              <strong>Current Pair:</strong> {giverLabel} → {receiverLabel}
-            </p>
-            <p>
-              <strong>Breeding Cost:</strong> 8 Player Energy + stamina from selected creatures
-            </p>
-            <p>
-              <strong>Estimated Refusal Risk:</strong> {getRefusalRiskLabel()} ({Math.round(getRefusalChanceEstimate() * 100)}%)
-            </p>
-            <p>
-              <strong>Estimated Egg Chance:</strong>{" "}
-              {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}
-            </p>
-            <p>
-              <strong>Egg Quality Preview:</strong> {getEggQualityPreview()} — {getQualityDescription(getEggQualityPreview())}
-            </p>
-
-            <div className="rounded-2xl bg-white/70 p-3">
-              <p className="mb-2 font-semibold text-stone-900">Trait Preview</p>
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-semibold text-stone-700">Giver Traits</p>
-                  {renderTraitList(giverParticipant?.traits ?? [])}
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-stone-700">Receiver Traits</p>
-                  {renderTraitList(receiverParticipant?.traits ?? [])}
-                </div>
-              </div>
-
               <p className="mt-3 text-sm text-stone-600">
-                Offspring can inherit multiple traits, duplicate traits are merged, and shared parent traits have a better chance to pass on with stronger grades.
+                Hover over trait badges for quick explanations.
               </p>
             </div>
+          </div>
 
-            <div className="rounded-2xl bg-white/70 p-4">
-              <p className="mb-3 font-semibold text-stone-900">
-                Trait Inheritance Preview
-              </p>
+          <div className="rounded-3xl border-4 border-rose-900 bg-white/85 p-6 shadow-xl">
+            <div className="mb-6">
+              <h2 className="mb-3 text-2xl font-bold text-rose-950">Choose Giver</h2>
 
-              {!hasValidSelection ? (
-                <p className="text-sm text-stone-600">
-                  Select a valid giver and receiver to preview likely inherited traits.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {sharedTraits.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-sm font-semibold text-stone-700">
-                        Shared Parent Traits — High chance to inherit
-                      </p>
-                      <div className="space-y-2">
-                        {sharedTraits.map((entry) => (
-                          <div
-                            key={`shared-${entry.trait}`}
-                            className="rounded-2xl border border-rose-200 bg-rose-50 p-3"
-                          >
-                            <div className="mb-2 flex flex-wrap items-center gap-2">
-                              <div
-                                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
-                                  entry.trait
-                                )}`}
-                              >
-                                {getTraitLabel(entry.trait)}
-                              </div>
-
-                              <div
-                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
-                                  entry.giverGrade
-                                )}`}
-                              >
-                                Giver {entry.giverGrade}
-                              </div>
-
-                              <div
-                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
-                                  entry.receiverGrade
-                                )}`}
-                              >
-                                Receiver {entry.receiverGrade}
-                              </div>
-                            </div>
-
-                            <p className="text-sm text-stone-800">
-                              Strong inheritance likelihood. Best visible parent grade is{" "}
-                              <strong>{entry.strongestGrade}</strong>.
-                            </p>
-                            <p className="mt-1 text-xs text-stone-600">
-                              Shared traits also have the best chance to roll upward on hatch.
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {giverOnlyTraits.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-sm font-semibold text-stone-700">
-                        Giver-Only Traits — Good chance to inherit
-                      </p>
-                      <div className="space-y-2">
-                        {giverOnlyTraits.map((entry) => (
-                          <div
-                            key={`giver-only-${entry.trait}`}
-                            className="rounded-2xl border border-stone-200 bg-stone-50 p-3"
-                          >
-                            <div className="mb-2 flex flex-wrap items-center gap-2">
-                              <div
-                                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
-                                  entry.trait
-                                )}`}
-                              >
-                                {getTraitLabel(entry.trait)}
-                              </div>
-
-                              <div
-                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
-                                  entry.grade
-                                )}`}
-                              >
-                                {entry.grade}
-                              </div>
-                            </div>
-
-                            <p className="text-sm text-stone-800">
-                              Possible inherited trait from the giver side.
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {receiverOnlyTraits.length > 0 && (
-                    <div>
-                      <p className="mb-2 text-sm font-semibold text-stone-700">
-                        Receiver-Only Traits — Good chance to inherit
-                      </p>
-                      <div className="space-y-2">
-                        {receiverOnlyTraits.map((entry) => (
-                          <div
-                            key={`receiver-only-${entry.trait}`}
-                            className="rounded-2xl border border-stone-200 bg-stone-50 p-3"
-                          >
-                            <div className="mb-2 flex flex-wrap items-center gap-2">
-                              <div
-                                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
-                                  entry.trait
-                                )}`}
-                              >
-                                {getTraitLabel(entry.trait)}
-                              </div>
-
-                              <div
-                                className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
-                                  entry.grade
-                                )}`}
-                              >
-                                {entry.grade}
-                              </div>
-                            </div>
-
-                            <p className="text-sm text-stone-800">
-                              Possible inherited trait from the receiver side.
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
-                    <p className="text-sm font-semibold text-stone-800">
-                      Random Trait Roll
-                    </p>
-                    <p className="mt-1 text-sm text-stone-600">
-                      If the hatch has open trait slots, it may also gain a random extra trait that neither parent currently shows.
-                    </p>
+              <div className="mb-4">
+                <button
+                  onClick={() =>
+                    setBreedingSelection({
+                      ...breedingSelection,
+                      giverType: "player",
+                      giverCreatureId: null,
+                    })
+                  }
+                  className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
+                    breedingSelection.giverType === "player"
+                      ? "border-rose-700 bg-rose-100"
+                      : "border-rose-200 bg-white hover:border-rose-400"
+                  }`}
+                >
+                  <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                    <Image
+                      src="/images/player.png"
+                      alt="Player"
+                      width={300}
+                      height={300}
+                      className="max-h-full w-auto object-contain"
+                    />
                   </div>
+                  <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
+                  <p className="text-sm text-stone-600">Player</p>
+                  <p className="text-sm text-stone-600">
+                    Happiness {playerData.happiness} • {getHappinessLabel(playerData.happiness)}
+                  </p>
+                  <p className="text-sm text-stone-600">
+                    Fertility {playerData.stats.fertility} • Vitality {playerData.stats.vitality}
+                  </p>
+                  {renderTraitList([])}
+                </button>
+              </div>
 
-                  {(parentChildWarning || fullSiblingWarning || halfSiblingWarning) && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-3">
-                      <p className="text-sm font-semibold text-red-900">
-                        Inbreeding Warning
+              <div className="grid gap-4 md:grid-cols-2">
+                {creatures.map((creature) => {
+                  const isSelected =
+                    breedingSelection.giverType === "creature" &&
+                    breedingSelection.giverCreatureId === creature.id;
+
+                  const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+                    ? creature.traits
+                    : [];
+
+                  return (
+                    <button
+                      key={creature.id}
+                      onClick={() =>
+                        setBreedingSelection({
+                          ...breedingSelection,
+                          giverType: "creature",
+                          giverCreatureId: creature.id,
+                        })
+                      }
+                      className={`rounded-3xl border-4 p-4 text-left shadow transition ${
+                        isSelected
+                          ? "border-rose-700 bg-rose-100"
+                          : "border-rose-200 bg-white hover:border-rose-400"
+                      }`}
+                    >
+                      <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                        <Image
+                          src={getCreatureImage(creature.name)}
+                          alt={creature.name}
+                          width={300}
+                          height={300}
+                          className="max-h-full w-auto object-contain"
+                        />
+                      </div>
+                      <p className="text-xl font-bold text-stone-900">
+                        {creature.nickname}
                       </p>
-                      <p className="mt-1 text-sm text-red-800">
-                        This pairing may still inherit strong traits, but grade downgrades and negative hatch outcomes are more likely.
+                      <p className="text-sm text-stone-600">
+                        {creature.name} • Lv {creature.level} • Gen {creature.generation}
                       </p>
-                    </div>
-                  )}
+                      <p className="text-sm text-stone-600">
+                        Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        Fertility {creature.stats.fertility} • Vitality {creature.stats.vitality}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        Stamina {creature.breedingStamina}/{creature.maxBreedingStamina}
+                      </p>
+
+                      {renderTraitList(creatureTraits)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="mb-3 text-2xl font-bold text-rose-950">
+                Choose Receiver
+              </h2>
+
+              <div className="mb-4">
+                <button
+                  onClick={() =>
+                    setBreedingSelection({
+                      ...breedingSelection,
+                      receiverType: "player",
+                      receiverCreatureId: null,
+                    })
+                  }
+                  className={`w-full rounded-3xl border-4 p-4 text-left shadow transition sm:w-72 ${
+                    breedingSelection.receiverType === "player"
+                      ? "border-rose-700 bg-rose-100"
+                      : "border-rose-200 bg-white hover:border-rose-400"
+                  }`}
+                >
+                  <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                    <Image
+                      src="/images/player.png"
+                      alt="Player"
+                      width={300}
+                      height={300}
+                      className="max-h-full w-auto object-contain"
+                    />
+                  </div>
+                  <p className="text-xl font-bold text-stone-900">{playerData.name}</p>
+                  <p className="text-sm text-stone-600">Player</p>
+                  <p className="text-sm text-stone-600">
+                    Happiness {playerData.happiness} • {getHappinessLabel(playerData.happiness)}
+                  </p>
+                  <p className="text-sm text-stone-600">
+                    Fertility {playerData.stats.fertility} • Vitality {playerData.stats.vitality}
+                  </p>
+                  {renderTraitList([])}
+                </button>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {creatures.map((creature) => {
+                  const isSelected =
+                    breedingSelection.receiverType === "creature" &&
+                    breedingSelection.receiverCreatureId === creature.id;
+
+                  const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+                    ? creature.traits
+                    : [];
+
+                  return (
+                    <button
+                      key={creature.id}
+                      onClick={() =>
+                        setBreedingSelection({
+                          ...breedingSelection,
+                          receiverType: "creature",
+                          receiverCreatureId: creature.id,
+                        })
+                      }
+                      className={`rounded-3xl border-4 p-4 text-left shadow transition ${
+                        isSelected
+                          ? "border-rose-700 bg-rose-100"
+                          : "border-rose-200 bg-white hover:border-rose-400"
+                      }`}
+                    >
+                      <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                        <Image
+                          src={getCreatureImage(creature.name)}
+                          alt={creature.name}
+                          width={300}
+                          height={300}
+                          className="max-h-full w-auto object-contain"
+                        />
+                      </div>
+                      <p className="text-xl font-bold text-stone-900">
+                        {creature.nickname}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        {creature.name} • Lv {creature.level} • Gen {creature.generation}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        Happiness {creature.happiness} • {getHappinessLabel(creature.happiness)}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        Fertility {creature.stats.fertility} • Vitality {creature.stats.vitality}
+                      </p>
+                      <p className="text-sm text-stone-600">
+                        Stamina {creature.breedingStamina}/{creature.maxBreedingStamina}
+                      </p>
+
+                      {renderTraitList(creatureTraits)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mb-5 grid gap-4 lg:grid-cols-2">
+              <div className="rounded-2xl bg-rose-50 p-4">
+                <p><strong>Current Pair:</strong> {giverLabel} → {receiverLabel}</p>
+                <p><strong>Breeding Cost:</strong> 8 Energy + creature stamina</p>
+                <p><strong>Egg Chance:</strong> {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
+                <p><strong>Refusal Risk:</strong> {getRefusalRiskLabel()}</p>
+              </div>
+
+              <div className="rounded-2xl bg-rose-50 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <p className="font-semibold text-stone-900">Inheritance Preview</p>
+                  <InfoButton
+                    onClick={() => setInheritanceHelpOpen(true)}
+                    label="Inheritance help"
+                  />
+                </div>
+
+                {!hasValidSelection ? (
+                  <p className="text-sm text-stone-600">
+                    Select a valid pair to preview likely inherited traits.
+                  </p>
+                ) : inheritancePreview.length === 0 ? (
+                  <p className="text-sm text-stone-600">
+                    No visible inherited traits from this pair. A random trait may still appear.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {inheritancePreview.map((entry, index) => (
+                      <div
+                        key={`${entry.trait}-${entry.strongestGrade}-${index}`}
+                        className="group relative"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                              entry.trait
+                            )}`}
+                          >
+                            {getTraitLabel(entry.trait)}
+                          </div>
+                          <div
+                            className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
+                              entry.strongestGrade
+                            )}`}
+                          >
+                            {entry.strongestGrade}
+                          </div>
+                        </div>
+
+                        <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
+                          <p className="font-semibold text-stone-900">
+                            {getTraitLabel(entry.trait)} — {entry.note}
+                          </p>
+                          <p className="mt-1">
+                            Strongest visible parent grade: {entry.strongestGrade}
+                          </p>
+                          <p className="mt-1 text-stone-500">
+                            {entry.type === "shared"
+                              ? "Shared by both parents. Best odds, and better upgrade potential."
+                              : "Present on one parent only. Still a realistic inheritance outcome."}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-5 flex flex-wrap gap-2">
+              <div
+                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRefusalRiskClasses()}`}
+              >
+                Refusal: {getRefusalRiskLabel()}
+              </div>
+
+              <div
+                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getQualityClasses(
+                  getEggQualityPreview()
+                )}`}
+              >
+                Quality: {getEggQualityPreview()}
+              </div>
+
+              {playerIsReceiver && (
+                <div className="inline-block rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-900">
+                  No egg if Player is receiver
+                </div>
+              )}
+
+              {sameCreatureSelected && (
+                <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
+                  Same creature cannot fill both roles
+                </div>
+              )}
+
+              {(parentChildWarning || fullSiblingWarning || halfSiblingWarning) && (
+                <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
+                  Family-risk pairing
+                </div>
+              )}
+
+              {!giverCreatureReady && giverCreature && (
+                <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
+                  {giverCreature.nickname} not ready
+                </div>
+              )}
+
+              {!receiverCreatureReady && receiverCreature && (
+                <div className="inline-block rounded-full border border-red-300 bg-red-100 px-3 py-1 text-sm font-semibold text-red-900">
+                  {receiverCreature.nickname} not ready
                 </div>
               )}
             </div>
 
-            <p>
-              <strong>Rule:</strong> If the giver is Player, offspring will always
-              be the receiver species. Otherwise, offspring rolls between giver
-              and receiver species.
+            <button
+              onClick={breedCreatures}
+              disabled={!canBreed}
+              className={`w-full rounded-2xl px-4 py-3 text-white font-semibold shadow ${
+                canBreed ? "bg-pink-600" : "bg-gray-500"
+              }`}
+            >
+              {canBreed ? "Breed" : "Cannot Breed"}
+            </button>
+          </div>
+
+          <div className="mt-6">
+            <Link
+              href="/ranch"
+              className="inline-block rounded-2xl bg-stone-800 px-5 py-3 text-white font-semibold shadow"
+            >
+              Back to Ranch
+            </Link>
+          </div>
+        </div>
+      </main>
+
+      <HelpModal
+        open={traitHelpOpen}
+        title="How Traits Work"
+        onClose={() => setTraitHelpOpen(false)}
+      >
+        <div className="space-y-4">
+          {allBreedableTraits.map((trait) => (
+            <div key={trait} className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+              <div className="mb-2 inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(trait)}">
+                <span className={getTraitClasses(trait).replace("inline-block rounded-full border px-3 py-1 text-sm font-semibold ", "")}>
+                  {getTraitLabel(trait)}
+                </span>
+              </div>
+              <p className="font-semibold text-stone-900">{getTraitDescription(trait)}</p>
+            </div>
+          ))}
+        </div>
+      </HelpModal>
+
+      <HelpModal
+        open={gradeGuideOpen}
+        title="Grade Guide"
+        onClose={() => setGradeGuideOpen(false)}
+      >
+        <div className="space-y-3">
+          {(["F", "D", "C", "B", "A", "S"] as TraitGrade[]).map((grade) => (
+            <div key={grade} className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+              <div
+                className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getGradeClasses(
+                  grade
+                )}`}
+              >
+                Grade {grade}
+              </div>
+              <p className="mt-2 font-semibold text-stone-900">
+                {getGradeDescription(grade)}
+              </p>
+              <p className="mt-1 text-sm text-stone-600">
+                Higher grades make the trait’s bonus stronger.
+              </p>
+            </div>
+          ))}
+        </div>
+      </HelpModal>
+
+      <HelpModal
+        open={inheritanceHelpOpen}
+        title="Inheritance Help"
+        onClose={() => setInheritanceHelpOpen(false)}
+      >
+        <div className="space-y-4 text-sm">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="font-semibold text-stone-900">Shared traits</p>
+            <p className="mt-1 text-stone-700">
+              If both parents have the same trait, that trait has the best inheritance odds.
             </p>
-
-            {playerIsReceiver && (
-              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
-                <p className="font-semibold">Notice</p>
-                <p>
-                  If Player is selected as the receiver, breeding will not produce
-                  an egg.
-                </p>
-              </div>
-            )}
-
-            {sameCreatureSelected && (
-              <p className="font-semibold text-red-700">
-                The same creature cannot be both giver and receiver.
-              </p>
-            )}
-
-            {!giverCreatureReady && giverCreature && (
-              <p className="font-semibold text-red-700">
-                {giverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
-              </p>
-            )}
-
-            {!receiverCreatureReady && receiverCreature && (
-              <p className="font-semibold text-red-700">
-                {receiverCreature.nickname} does not have enough stamina or has reached the daily breeding limit.
-              </p>
-            )}
-
-            {parentChildWarning && !sameCreatureSelected && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Family Warning</p>
-                <p>
-                  These creatures appear to be a direct parent and child. Breeding is
-                  allowed for now, but offspring from this pairing can hatch with a
-                  severe negative inherited trait.
-                </p>
-              </div>
-            )}
-
-            {fullSiblingWarning && !sameCreatureSelected && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Family Warning</p>
-                <p>
-                  These creatures appear to be full siblings. Breeding is allowed for
-                  now, but offspring from this pairing can hatch with a severe negative
-                  inherited trait.
-                </p>
-              </div>
-            )}
-
-            {halfSiblingWarning && !sameCreatureSelected && (
-              <div className="rounded-xl border-2 border-amber-500 bg-amber-100 p-3 text-amber-900">
-                <p className="font-semibold">Family Warning</p>
-                <p>
-                  These creatures appear to be half siblings. Breeding is allowed for
-                  now, but offspring from this pairing can hatch with a mild negative
-                  inherited trait.
-                </p>
-              </div>
-            )}
-
-            {getRefusalChanceEstimate() >= 0.4 && (
-              <div className="rounded-xl border-2 border-red-500 bg-red-100 p-3 text-red-900">
-                <p className="font-semibold">Breeding Readiness Warning</p>
-                <p>
-                  This pair has a high chance to refuse. Improve food stock, cleanliness,
-                  happiness, or breeding care first.
-                </p>
-              </div>
-            )}
           </div>
 
-          <div className="mb-5 rounded-2xl bg-stone-100 p-4 space-y-1">
-            <p><strong>Your Gold:</strong> {playerData.gold}</p>
-            <p><strong>Your Energy:</strong> {playerData.energy}</p>
-            <p><strong>Current Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="font-semibold text-stone-900">Single-parent traits</p>
+            <p className="mt-1 text-stone-700">
+              Traits present on only one parent can still pass down, just less consistently.
+            </p>
           </div>
 
-          <button
-            onClick={breedCreatures}
-            disabled={!canBreed}
-            className={`w-full rounded-2xl px-4 py-3 text-white font-semibold shadow ${
-              canBreed ? "bg-pink-600" : "bg-gray-500"
-            }`}
-          >
-            {canBreed ? "Breed" : "Cannot Breed"}
-          </button>
-        </div>
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="font-semibold text-stone-900">Grade upgrades</p>
+            <p className="mt-1 text-stone-700">
+              Shared traits have the best chance to inherit at a strong grade or improve upward.
+            </p>
+          </div>
 
-        <div className="mt-6">
-          <Link
-            href="/ranch"
-            className="inline-block rounded-2xl bg-stone-800 px-5 py-3 text-white font-semibold shadow"
-          >
-            Back to Ranch
-          </Link>
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="font-semibold text-stone-900">Random extra traits</p>
+            <p className="mt-1 text-stone-700">
+              Some offspring may gain an extra trait that is not clearly shown on either parent.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4">
+            <p className="font-semibold text-red-900">Family-risk pairings</p>
+            <p className="mt-1 text-red-800">
+              Parent-child and sibling pairings increase the chance of negative outcomes and can reduce trait quality.
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </HelpModal>
+    </>
   );
 }
