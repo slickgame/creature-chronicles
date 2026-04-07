@@ -15,6 +15,7 @@ type CreatureTrait =
   | "sturdy";
 
 type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+type SortDirection = "asc" | "desc";
 
 type CreatureTraitEntry = {
   trait: CreatureTrait;
@@ -186,6 +187,41 @@ function FilterChip({
     >
       {label}
     </button>
+  );
+}
+
+function SortDirectionButtons({
+  direction,
+  setDirection,
+}: {
+  direction: SortDirection;
+  setDirection: (direction: SortDirection) => void;
+}) {
+  return (
+    <div className="flex gap-2">
+      <button
+        type="button"
+        onClick={() => setDirection("asc")}
+        className={`rounded-xl px-3 py-2 text-xs font-semibold shadow ${
+          direction === "asc"
+            ? "bg-rose-700 text-white"
+            : "border border-rose-300 bg-white text-stone-800"
+        }`}
+      >
+        Asc
+      </button>
+      <button
+        type="button"
+        onClick={() => setDirection("desc")}
+        className={`rounded-xl px-3 py-2 text-xs font-semibold shadow ${
+          direction === "desc"
+            ? "bg-rose-700 text-white"
+            : "border border-rose-300 bg-white text-stone-800"
+        }`}
+      >
+        Desc
+      </button>
+    </div>
   );
 }
 
@@ -384,6 +420,9 @@ export default function BreedingPage() {
   const [receiverFamilySafeOnly, setReceiverFamilySafeOnly] = useState(false);
   const [giverSort, setGiverSort] = useState<SortOption>("name");
   const [receiverSort, setReceiverSort] = useState<SortOption>("name");
+  const [giverSortDirection, setGiverSortDirection] = useState<SortDirection>("asc");
+  const [receiverSortDirection, setReceiverSortDirection] =
+    useState<SortDirection>("asc");
 
   const canAffordBreed = playerData.energy >= 8;
 
@@ -529,12 +568,14 @@ export default function BreedingPage() {
   }
 
   function isParentChild() {
-    return calculateRelationshipRisk(
-      giverCreature,
-      receiverCreature,
-      breedingSelection.giverType === "player",
-      breedingSelection.receiverType === "player"
-    ) === "parent_child";
+    return (
+      calculateRelationshipRisk(
+        giverCreature,
+        receiverCreature,
+        breedingSelection.giverType === "player",
+        breedingSelection.receiverType === "player"
+      ) === "parent_child"
+    );
   }
 
   function isFullSibling() {
@@ -968,15 +1009,24 @@ export default function BreedingPage() {
     });
   }
 
-  function sortCreatures(list: typeof creatures, sort: SortOption) {
+  function sortCreatures(
+    list: typeof creatures,
+    sort: SortOption,
+    direction: SortDirection
+  ) {
     const sorted = [...list];
 
     sorted.sort((a, b) => {
-      if (sort === "fertility") return b.stats.fertility - a.stats.fertility;
-      if (sort === "happiness") return b.happiness - a.happiness;
-      if (sort === "generation") return b.generation - a.generation;
-      if (sort === "ready") return Number(isCreatureReady(b)) - Number(isCreatureReady(a));
-      return a.nickname.localeCompare(b.nickname);
+      let result = 0;
+
+      if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
+      else if (sort === "happiness") result = b.happiness - a.happiness;
+      else if (sort === "generation") result = b.generation - a.generation;
+      else if (sort === "ready")
+        result = Number(isCreatureReady(b)) - Number(isCreatureReady(a));
+      else result = a.nickname.localeCompare(b.nickname);
+
+      return direction === "asc" ? -result : result;
     });
 
     return sorted;
@@ -988,6 +1038,7 @@ export default function BreedingPage() {
     traitsOnly: boolean,
     familySafeOnly: boolean,
     sort: SortOption,
+    direction: SortDirection,
     role: "giver" | "receiver"
   ) {
     const lowered = search.trim().toLowerCase();
@@ -1009,7 +1060,7 @@ export default function BreedingPage() {
       return matchesSearch && matchesReady && matchesTraits && matchesFamilySafe;
     });
 
-    return sortCreatures(filtered, sort);
+    return sortCreatures(filtered, sort, direction);
   }
 
   const filteredGiverCreatures = useMemo(
@@ -1020,6 +1071,7 @@ export default function BreedingPage() {
         giverTraitsOnly,
         giverFamilySafeOnly,
         giverSort,
+        giverSortDirection,
         "giver"
       ),
     [
@@ -1029,6 +1081,7 @@ export default function BreedingPage() {
       giverTraitsOnly,
       giverFamilySafeOnly,
       giverSort,
+      giverSortDirection,
       receiverCreature,
       breedingSelection.receiverType,
     ]
@@ -1042,6 +1095,7 @@ export default function BreedingPage() {
         receiverTraitsOnly,
         receiverFamilySafeOnly,
         receiverSort,
+        receiverSortDirection,
         "receiver"
       ),
     [
@@ -1051,6 +1105,7 @@ export default function BreedingPage() {
       receiverTraitsOnly,
       receiverFamilySafeOnly,
       receiverSort,
+      receiverSortDirection,
       giverCreature,
       breedingSelection.giverType,
     ]
@@ -1145,17 +1200,24 @@ export default function BreedingPage() {
                   />
                 </div>
 
-                <select
-                  value={giverSort}
-                  onChange={(e) => setGiverSort(e.target.value as SortOption)}
-                  className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
-                >
-                  <option value="name">Sort: Name</option>
-                  <option value="fertility">Sort: Fertility</option>
-                  <option value="happiness">Sort: Happiness</option>
-                  <option value="generation">Sort: Generation</option>
-                  <option value="ready">Sort: Ready Status</option>
-                </select>
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <select
+                    value={giverSort}
+                    onChange={(e) => setGiverSort(e.target.value as SortOption)}
+                    className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="name">Sort: Name</option>
+                    <option value="fertility">Sort: Fertility</option>
+                    <option value="happiness">Sort: Happiness</option>
+                    <option value="generation">Sort: Generation</option>
+                    <option value="ready">Sort: Ready Status</option>
+                  </select>
+
+                  <SortDirectionButtons
+                    direction={giverSortDirection}
+                    setDirection={setGiverSortDirection}
+                  />
+                </div>
               </div>
 
               <div className="min-h-0 space-y-3 overflow-y-auto pr-1">
@@ -1263,17 +1325,24 @@ export default function BreedingPage() {
                   />
                 </div>
 
-                <select
-                  value={receiverSort}
-                  onChange={(e) => setReceiverSort(e.target.value as SortOption)}
-                  className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
-                >
-                  <option value="name">Sort: Name</option>
-                  <option value="fertility">Sort: Fertility</option>
-                  <option value="happiness">Sort: Happiness</option>
-                  <option value="generation">Sort: Generation</option>
-                  <option value="ready">Sort: Ready Status</option>
-                </select>
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <select
+                    value={receiverSort}
+                    onChange={(e) => setReceiverSort(e.target.value as SortOption)}
+                    className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="name">Sort: Name</option>
+                    <option value="fertility">Sort: Fertility</option>
+                    <option value="happiness">Sort: Happiness</option>
+                    <option value="generation">Sort: Generation</option>
+                    <option value="ready">Sort: Ready Status</option>
+                  </select>
+
+                  <SortDirectionButtons
+                    direction={receiverSortDirection}
+                    setDirection={setReceiverSortDirection}
+                  />
+                </div>
               </div>
 
               <div className="min-h-0 space-y-3 overflow-y-auto pr-1">
@@ -1459,7 +1528,7 @@ export default function BreedingPage() {
                   disabled={!hasValidSelection}
                   className={`w-full rounded-2xl px-4 py-3 font-semibold shadow ${
                     hasValidSelection
-                      ? "bg-white text-stone-900 border border-rose-300"
+                      ? "border border-rose-300 bg-white text-stone-900"
                       : "bg-stone-200 text-stone-500"
                   }`}
                   type="button"
