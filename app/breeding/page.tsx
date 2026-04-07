@@ -38,6 +38,14 @@ type BreedingPreset = {
   receiverCreatureId: number | null;
 };
 
+type PresetValidation = {
+  giverMissing: boolean;
+  receiverMissing: boolean;
+  sameCreature: boolean;
+  familyRisk: "none" | "half_sibling" | "full_sibling" | "parent_child";
+  canLoad: boolean;
+};
+
 type DetailTarget =
   | {
       type: "player";
@@ -514,6 +522,98 @@ export default function BreedingPage() {
     return creature ? creature.nickname : "Missing Creature";
   }
 
+  function findCreatureBySavedId(id: number | null) {
+    if (id === null) return null;
+    return creatures.find((c) => c.id === id) ?? null;
+  }
+
+  function calculateRelationshipRiskFromSavedPair(
+    giverType: "player" | "creature",
+    giverCreatureId: number | null,
+    receiverType: "player" | "creature",
+    receiverCreatureId: number | null
+  ): PresetValidation["familyRisk"] {
+    const leftCreature = giverType === "creature" ? findCreatureBySavedId(giverCreatureId) : null;
+    const rightCreature =
+      receiverType === "creature" ? findCreatureBySavedId(receiverCreatureId) : null;
+
+    if (
+      giverType === "player" &&
+      rightCreature &&
+      (rightCreature.giverIsPlayer || rightCreature.receiverIsPlayer)
+    ) {
+      return "parent_child";
+    }
+
+    if (
+      receiverType === "player" &&
+      leftCreature &&
+      (leftCreature.giverIsPlayer || leftCreature.receiverIsPlayer)
+    ) {
+      return "parent_child";
+    }
+
+    if (!leftCreature || !rightCreature) {
+      return "none";
+    }
+
+    const isParentChild =
+      leftCreature.id === rightCreature.giverId ||
+      leftCreature.id === rightCreature.receiverId ||
+      rightCreature.id === leftCreature.giverId ||
+      rightCreature.id === leftCreature.receiverId;
+
+    if (isParentChild) return "parent_child";
+
+    const sameGiverSide =
+      (leftCreature.giverId !== null && leftCreature.giverId === rightCreature.giverId) ||
+      (leftCreature.giverIsPlayer && rightCreature.giverIsPlayer);
+
+    const sameReceiverSide =
+      (leftCreature.receiverId !== null &&
+        leftCreature.receiverId === rightCreature.receiverId) ||
+      (leftCreature.receiverIsPlayer && rightCreature.receiverIsPlayer);
+
+    if (sameGiverSide && sameReceiverSide) return "full_sibling";
+    if (sameGiverSide || sameReceiverSide) return "half_sibling";
+
+    return "none";
+  }
+
+  function validatePreset(preset: BreedingPreset): PresetValidation {
+    const giverMissing =
+      preset.giverType === "creature" &&
+      !creatures.some((c) => c.id === preset.giverCreatureId);
+
+    const receiverMissing =
+      preset.receiverType === "creature" &&
+      !creatures.some((c) => c.id === preset.receiverCreatureId);
+
+    const sameCreature =
+      preset.giverType === "creature" &&
+      preset.receiverType === "creature" &&
+      preset.giverCreatureId !== null &&
+      preset.giverCreatureId === preset.receiverCreatureId;
+
+    const familyRisk =
+      giverMissing || receiverMissing || sameCreature
+        ? "none"
+        : calculateRelationshipRiskFromSavedPair(
+            preset.giverType,
+            preset.giverCreatureId,
+            preset.receiverType,
+            preset.receiverCreatureId
+          );
+
+    return {
+      giverMissing,
+      receiverMissing,
+      sameCreature,
+      familyRisk,
+      canLoad: !giverMissing && !receiverMissing && !sameCreature,
+    };
+  }
+
   function savePresetToSlot(slot: number) {
     if (
       (breedingSelection.giverType !== "player" &&
@@ -551,19 +651,8 @@ export default function BreedingPage() {
     const preset = getPresetAtSlot(slot);
     if (!preset) return;
 
-    if (
-      preset.giverType === "creature" &&
-      !creatures.some((c) => c.id === preset.giverCreatureId)
-    ) {
-      return;
-    }
-
-    if (
-      preset.receiverType === "creature" &&
-      !creatures.some((c) => c.id === preset.receiverCreatureId)
-    ) {
-      return;
-    }
+    const validation = validatePreset(preset);
+    if (!validation.canLoad) return;
 
     setBreedingSelection({
       ...breedingSelection,
@@ -1648,6 +1737,7 @@ export default function BreedingPage() {
                   <div className="space-y-2">
                     {Array.from({ length: PRESET_SLOT_COUNT }, (_, i) => i + 1).map((slot) => {
                       const preset = getPresetAtSlot(slot);
+                      const validation = preset ? validatePreset(preset) : null;
 
                       return (
                         <div
@@ -1672,11 +1762,71 @@ export default function BreedingPage() {
                                 )}
                               </p>
 
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {validation?.giverMissing && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Missing giver
+                                  </div>
+                                )}
+
+                                {validation?.receiverMissing && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Missing receiver
+                                  </div>
+                                )}
+
+                                {validation?.sameCreature && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Invalid same-creature pair
+                                  </div>
+                                )}
+
+                                {validation?.familyRisk === "parent_child" && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Parent/child risk
+                                  </div>
+                                )}
+
+                                {validation?.familyRisk === "full_sibling" && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Full sibling risk
+                                  </div>
+                                )}
+
+                                {validation?.familyRisk === "half_sibling" && (
+                                  <div className="rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">
+                                    Half sibling risk
+                                  </div>
+                                )}
+                              </div>
+
+                              {(validation?.giverMissing ||
+                                validation?.receiverMissing ||
+                                validation?.sameCreature) && (
+                                <p className="mt-2 text-xs text-red-700">
+                                  This preset cannot be loaded until the invalid pairing is fixed.
+                                </p>
+                              )}
+
+                              {!validation?.giverMissing &&
+                                !validation?.receiverMissing &&
+                                !validation?.sameCreature &&
+                                validation?.familyRisk !== "none" && (
+                                  <p className="mt-2 text-xs text-stone-600">
+                                    This preset can still be loaded, but it carries a family-risk warning.
+                                  </p>
+                                )}
+
                               <div className="mt-2 flex gap-2">
                                 <button
                                   type="button"
                                   onClick={() => loadPreset(slot)}
-                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                  disabled={!validation?.canLoad}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    validation?.canLoad
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
                                 >
                                   Load
                                 </button>
