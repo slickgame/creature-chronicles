@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
@@ -46,6 +46,11 @@ type PresetValidation = {
   canLoad: boolean;
 };
 
+type SavedBreedingUiState = {
+  favoriteCreatureIds: number[];
+  presets: BreedingPreset[];
+};
+
 type DetailTarget =
   | {
       type: "player";
@@ -87,6 +92,8 @@ type DetailTarget =
         traits?: CreatureTraitEntry[];
       };
     };
+
+const BREEDING_UI_STORAGE_KEY = "creature-chronicles-breeding-ui-v1";
 
 function getTraitLabel(trait: CreatureTrait) {
   if (trait === "domestic") return "Domestic";
@@ -498,6 +505,57 @@ export default function BreedingPage() {
   const receiverCreature = breedingSelection.receiverCreatureId
     ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
     : null;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(BREEDING_UI_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<SavedBreedingUiState>;
+
+      if (Array.isArray(parsed.favoriteCreatureIds)) {
+        const cleanedFavorites = parsed.favoriteCreatureIds.filter(
+          (id): id is number => typeof id === "number"
+        );
+        setFavoriteCreatureIds(cleanedFavorites);
+      }
+
+      if (Array.isArray(parsed.presets)) {
+        const cleanedPresets = parsed.presets.filter((preset): preset is BreedingPreset => {
+          return (
+            typeof preset === "object" &&
+            preset !== null &&
+            typeof preset.slot === "number" &&
+            typeof preset.name === "string" &&
+            (preset.giverType === "player" || preset.giverType === "creature") &&
+            (preset.receiverType === "player" || preset.receiverType === "creature") &&
+            (typeof preset.giverCreatureId === "number" || preset.giverCreatureId === null) &&
+            (typeof preset.receiverCreatureId === "number" || preset.receiverCreatureId === null)
+          );
+        });
+
+        setPresets(cleanedPresets.sort((a, b) => a.slot - b.slot));
+      }
+    } catch (error) {
+      console.error("Failed to load breeding UI state from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const payload: SavedBreedingUiState = {
+        favoriteCreatureIds,
+        presets,
+      };
+      window.localStorage.setItem(BREEDING_UI_STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.error("Failed to save breeding UI state to localStorage", error);
+    }
+  }, [favoriteCreatureIds, presets]);
 
   function toggleFavoriteCreature(creatureId: number) {
     setFavoriteCreatureIds((current) =>
@@ -1756,9 +1814,26 @@ export default function BreedingPage() {
                 </div>
 
                 <div className="rounded-2xl bg-rose-50 p-3">
-                  <p className="mb-2 text-sm font-semibold text-stone-900">
-                    Saved Presets
-                  </p>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-stone-900">
+                      Saved Presets
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFavoriteCreatureIds([]);
+                        setPresets([]);
+                        setRenamingPresetSlot(null);
+                        setRenamePresetInput("");
+                        if (typeof window !== "undefined") {
+                          window.localStorage.removeItem(BREEDING_UI_STORAGE_KEY);
+                        }
+                      }}
+                      className="rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700"
+                    >
+                      Clear Saved UI Data
+                    </button>
+                  </div>
 
                   <input
                     type="text"
@@ -1793,6 +1868,10 @@ export default function BreedingPage() {
                     >
                       Save
                     </button>
+                  </div>
+
+                  <div className="mb-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900">
+                    Favorites and presets now persist in your browser with localStorage.
                   </div>
 
                   <div className="space-y-2">
