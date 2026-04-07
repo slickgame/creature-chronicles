@@ -485,6 +485,8 @@ export default function BreedingPage() {
   const [presetNameInput, setPresetNameInput] = useState("");
   const [presetOverwriteSlot, setPresetOverwriteSlot] = useState<number>(1);
   const [presets, setPresets] = useState<BreedingPreset[]>([]);
+  const [renamingPresetSlot, setRenamingPresetSlot] = useState<number | null>(null);
+  const [renamePresetInput, setRenamePresetInput] = useState("");
 
   const PRESET_SLOT_COUNT = 5;
   const canAffordBreed = playerData.energy >= 8;
@@ -614,6 +616,14 @@ export default function BreedingPage() {
     };
   }
 
+  function getNextEmptyPresetSlot(excludeSlot?: number) {
+    for (let slot = 1; slot <= PRESET_SLOT_COUNT; slot += 1) {
+      if (slot === excludeSlot) continue;
+      if (!getPresetAtSlot(slot)) return slot;
+    }
+    return null;
+  }
+
   function savePresetToSlot(slot: number) {
     if (
       (breedingSelection.giverType !== "player" &&
@@ -665,6 +675,57 @@ export default function BreedingPage() {
 
   function deletePreset(slot: number) {
     setPresets((current) => current.filter((preset) => preset.slot !== slot));
+    if (renamingPresetSlot === slot) {
+      setRenamingPresetSlot(null);
+      setRenamePresetInput("");
+    }
+  }
+
+  function startRenamePreset(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+    setRenamingPresetSlot(slot);
+    setRenamePresetInput(preset.name);
+  }
+
+  function cancelRenamePreset() {
+    setRenamingPresetSlot(null);
+    setRenamePresetInput("");
+  }
+
+  function saveRenamePreset(slot: number) {
+    const trimmed = renamePresetInput.trim();
+    if (trimmed.length === 0) return;
+
+    setPresets((current) =>
+      current.map((preset) =>
+        preset.slot === slot ? { ...preset, name: trimmed } : preset
+      )
+    );
+
+    setRenamingPresetSlot(null);
+    setRenamePresetInput("");
+  }
+
+  function duplicatePreset(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+
+    const nextEmpty = getNextEmptyPresetSlot(slot);
+    if (nextEmpty === null) return;
+
+    let duplicateName = `${preset.name} Copy`;
+    if (duplicateName.length > 32) {
+      duplicateName = duplicateName.slice(0, 32);
+    }
+
+    const duplicated: BreedingPreset = {
+      ...preset,
+      slot: nextEmpty,
+      name: duplicateName,
+    };
+
+    setPresets((current) => [...current, duplicated].sort((a, b) => a.slot - b.slot));
   }
 
   function getParticipantSnapshot(
@@ -1738,18 +1799,53 @@ export default function BreedingPage() {
                     {Array.from({ length: PRESET_SLOT_COUNT }, (_, i) => i + 1).map((slot) => {
                       const preset = getPresetAtSlot(slot);
                       const validation = preset ? validatePreset(preset) : null;
+                      const duplicateTargetSlot = preset ? getNextEmptyPresetSlot(slot) : null;
+                      const isRenaming = renamingPresetSlot === slot;
 
                       return (
                         <div
                           key={slot}
                           className="rounded-2xl border border-rose-200 bg-white p-3 text-sm"
                         >
-                          <p className="font-semibold text-stone-900">
-                            Slot {slot}: {preset ? preset.name : "Empty"}
-                          </p>
-
                           {preset ? (
                             <>
+                              {isRenaming ? (
+                                <div className="mb-2 space-y-2">
+                                  <input
+                                    type="text"
+                                    value={renamePresetInput}
+                                    onChange={(e) => setRenamePresetInput(e.target.value)}
+                                    placeholder="Preset name..."
+                                    className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveRenamePreset(slot)}
+                                      disabled={renamePresetInput.trim().length === 0}
+                                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                        renamePresetInput.trim().length > 0
+                                          ? "bg-rose-700 text-white"
+                                          : "bg-stone-200 text-stone-500"
+                                      }`}
+                                    >
+                                      Save Name
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={cancelRenamePreset}
+                                      className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="font-semibold text-stone-900">
+                                  Slot {slot}: {preset.name}
+                                </p>
+                              )}
+
                               <p className="mt-1 text-xs text-stone-600">
                                 {getPresetParticipantLabel(
                                   preset.giverType,
@@ -1798,6 +1894,12 @@ export default function BreedingPage() {
                                     Half sibling risk
                                   </div>
                                 )}
+
+                                {duplicateTargetSlot !== null && (
+                                  <div className="rounded-full border border-sky-300 bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-900">
+                                    Duplicate → Slot {duplicateTargetSlot}
+                                  </div>
+                                )}
                               </div>
 
                               {(validation?.giverMissing ||
@@ -1817,7 +1919,13 @@ export default function BreedingPage() {
                                   </p>
                                 )}
 
-                              <div className="mt-2 flex gap-2">
+                              {duplicateTargetSlot === null && (
+                                <p className="mt-2 text-xs text-stone-500">
+                                  No empty slot available for duplication.
+                                </p>
+                              )}
+
+                              <div className="mt-2 flex flex-wrap gap-2">
                                 <button
                                   type="button"
                                   onClick={() => loadPreset(slot)}
@@ -1829,6 +1937,25 @@ export default function BreedingPage() {
                                   }`}
                                 >
                                   Load
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => startRenamePreset(slot)}
+                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                >
+                                  Rename
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => duplicatePreset(slot)}
+                                  disabled={duplicateTargetSlot === null}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    duplicateTargetSlot !== null
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Duplicate
                                 </button>
                                 <button
                                   type="button"
@@ -1847,9 +1974,14 @@ export default function BreedingPage() {
                               </div>
                             </>
                           ) : (
-                            <p className="mt-1 text-xs text-stone-500">
-                              Save the current pair here for quick reuse.
-                            </p>
+                            <>
+                              <p className="font-semibold text-stone-900">
+                                Slot {slot}: Empty
+                              </p>
+                              <p className="mt-1 text-xs text-stone-500">
+                                Save the current pair here for quick reuse.
+                              </p>
+                            </>
                           )}
                         </div>
                       );
