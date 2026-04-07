@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
@@ -28,6 +28,28 @@ type SortOption =
   | "happiness"
   | "generation"
   | "ready";
+
+type BreedingPreset = {
+  slot: number;
+  name: string;
+  giverType: "player" | "creature";
+  giverCreatureId: number | null;
+  receiverType: "player" | "creature";
+  receiverCreatureId: number | null;
+};
+
+type PresetValidation = {
+  giverMissing: boolean;
+  receiverMissing: boolean;
+  sameCreature: boolean;
+  familyRisk: "none" | "half_sibling" | "full_sibling" | "parent_child";
+  canLoad: boolean;
+};
+
+type SavedBreedingUiState = {
+  favoriteCreatureIds: number[];
+  presets: BreedingPreset[];
+};
 
 type DetailTarget =
   | {
@@ -70,6 +92,8 @@ type DetailTarget =
         traits?: CreatureTraitEntry[];
       };
     };
+
+const BREEDING_UI_STORAGE_KEY = "creature-chronicles-breeding-ui-v1";
 
 function getTraitLabel(trait: CreatureTrait) {
   if (trait === "domestic") return "Domestic";
@@ -225,6 +249,33 @@ function SortDirectionButtons({
   );
 }
 
+function StarButton({
+  isFavorited,
+  onClick,
+}: {
+  isFavorited: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold shadow-sm ${
+        isFavorited
+          ? "border-amber-400 bg-amber-100 text-amber-800"
+          : "border-stone-300 bg-white text-stone-500 hover:bg-stone-50"
+      }`}
+      aria-label={isFavorited ? "Unfavorite candidate" : "Favorite candidate"}
+      title={isFavorited ? "Unfavorite candidate" : "Favorite candidate"}
+    >
+      ★
+    </button>
+  );
+}
+
 function HelpModal({
   open,
   title,
@@ -326,6 +377,8 @@ function CompactParticipantCard({
   traits,
   imageSrc,
   staminaCostLabel,
+  isFavorited = false,
+  onToggleFavorite,
   onSelect,
   onOpenDetails,
 }: {
@@ -336,6 +389,8 @@ function CompactParticipantCard({
   traits: CreatureTraitEntry[];
   imageSrc: string;
   staminaCostLabel?: string;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
   onSelect: () => void;
   onOpenDetails: () => void;
 }) {
@@ -367,11 +422,19 @@ function CompactParticipantCard({
               <p className="truncate text-xs text-stone-600">{subtitle}</p>
             </div>
 
-            <InfoButton
-              onClick={onOpenDetails}
-              label={`View full details for ${title}`}
-              small
-            />
+            <div className="flex items-center gap-1">
+              {onToggleFavorite && (
+                <StarButton
+                  isFavorited={isFavorited}
+                  onClick={onToggleFavorite}
+                />
+              )}
+              <InfoButton
+                onClick={onOpenDetails}
+                label={`View full details for ${title}`}
+                small
+              />
+            </div>
           </div>
 
           <p className="mt-1 text-xs text-stone-600">{meta}</p>
@@ -418,12 +481,21 @@ export default function BreedingPage() {
   const [receiverTraitsOnly, setReceiverTraitsOnly] = useState(false);
   const [giverFamilySafeOnly, setGiverFamilySafeOnly] = useState(false);
   const [receiverFamilySafeOnly, setReceiverFamilySafeOnly] = useState(false);
+  const [giverFavoritesOnly, setGiverFavoritesOnly] = useState(false);
+  const [receiverFavoritesOnly, setReceiverFavoritesOnly] = useState(false);
   const [giverSort, setGiverSort] = useState<SortOption>("name");
   const [receiverSort, setReceiverSort] = useState<SortOption>("name");
   const [giverSortDirection, setGiverSortDirection] = useState<SortDirection>("asc");
   const [receiverSortDirection, setReceiverSortDirection] =
     useState<SortDirection>("asc");
+  const [favoriteCreatureIds, setFavoriteCreatureIds] = useState<number[]>([]);
+  const [presetNameInput, setPresetNameInput] = useState("");
+  const [presetOverwriteSlot, setPresetOverwriteSlot] = useState<number>(1);
+  const [presets, setPresets] = useState<BreedingPreset[]>([]);
+  const [renamingPresetSlot, setRenamingPresetSlot] = useState<number | null>(null);
+  const [renamePresetInput, setRenamePresetInput] = useState("");
 
+  const PRESET_SLOT_COUNT = 5;
   const canAffordBreed = playerData.energy >= 8;
 
   const giverCreature = breedingSelection.giverCreatureId
@@ -433,6 +505,318 @@ export default function BreedingPage() {
   const receiverCreature = breedingSelection.receiverCreatureId
     ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
     : null;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(BREEDING_UI_STORAGE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Partial<SavedBreedingUiState>;
+
+      if (Array.isArray(parsed.favoriteCreatureIds)) {
+        const cleanedFavorites = parsed.favoriteCreatureIds.filter(
+          (id): id is number => typeof id === "number"
+        );
+        setFavoriteCreatureIds(cleanedFavorites);
+      }
+
+      if (Array.isArray(parsed.presets)) {
+        const cleanedPresets = parsed.presets.filter((preset): preset is BreedingPreset => {
+          return (
+            typeof preset === "object" &&
+            preset !== null &&
+            typeof preset.slot === "number" &&
+            typeof preset.name === "string" &&
+            (preset.giverType === "player" || preset.giverType === "creature") &&
+            (preset.receiverType === "player" || preset.receiverType === "creature") &&
+            (typeof preset.giverCreatureId === "number" || preset.giverCreatureId === null) &&
+            (typeof preset.receiverCreatureId === "number" || preset.receiverCreatureId === null)
+          );
+        });
+
+        setPresets(cleanedPresets.sort((a, b) => a.slot - b.slot));
+      }
+    } catch (error) {
+      console.error("Failed to load breeding UI state from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const payload: SavedBreedingUiState = {
+        favoriteCreatureIds,
+        presets,
+      };
+      window.localStorage.setItem(BREEDING_UI_STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.error("Failed to save breeding UI state to localStorage", error);
+    }
+  }, [favoriteCreatureIds, presets]);
+
+  function toggleFavoriteCreature(creatureId: number) {
+    setFavoriteCreatureIds((current) =>
+      current.includes(creatureId)
+        ? current.filter((id) => id !== creatureId)
+        : [...current, creatureId]
+    );
+  }
+
+  function isFavoritedCreature(creatureId: number) {
+    return favoriteCreatureIds.includes(creatureId);
+  }
+
+  function getPresetAtSlot(slot: number) {
+    return presets.find((preset) => preset.slot === slot) ?? null;
+  }
+
+  function getPresetParticipantLabel(
+    type: "player" | "creature",
+    creatureId: number | null
+  ) {
+    if (type === "player") return playerData.name;
+    const creature = creatures.find((c) => c.id === creatureId);
+    return creature ? creature.nickname : "Missing Creature";
+  }
+
+  function findCreatureBySavedId(id: number | null) {
+    if (id === null) return null;
+    return creatures.find((c) => c.id === id) ?? null;
+  }
+
+  function calculateRelationshipRiskFromSavedPair(
+    giverType: "player" | "creature",
+    giverCreatureId: number | null,
+    receiverType: "player" | "creature",
+    receiverCreatureId: number | null
+  ): PresetValidation["familyRisk"] {
+    const leftCreature = giverType === "creature" ? findCreatureBySavedId(giverCreatureId) : null;
+    const rightCreature =
+      receiverType === "creature" ? findCreatureBySavedId(receiverCreatureId) : null;
+
+    if (
+      giverType === "player" &&
+      rightCreature &&
+      (rightCreature.giverIsPlayer || rightCreature.receiverIsPlayer)
+    ) {
+      return "parent_child";
+    }
+
+    if (
+      receiverType === "player" &&
+      leftCreature &&
+      (leftCreature.giverIsPlayer || leftCreature.receiverIsPlayer)
+    ) {
+      return "parent_child";
+    }
+
+    if (!leftCreature || !rightCreature) {
+      return "none";
+    }
+
+    const isParentChild =
+      leftCreature.id === rightCreature.giverId ||
+      leftCreature.id === rightCreature.receiverId ||
+      rightCreature.id === leftCreature.giverId ||
+      rightCreature.id === leftCreature.receiverId;
+
+    if (isParentChild) return "parent_child";
+
+    const sameGiverSide =
+      (leftCreature.giverId !== null && leftCreature.giverId === rightCreature.giverId) ||
+      (leftCreature.giverIsPlayer && rightCreature.giverIsPlayer);
+
+    const sameReceiverSide =
+      (leftCreature.receiverId !== null &&
+        leftCreature.receiverId === rightCreature.receiverId) ||
+      (leftCreature.receiverIsPlayer && rightCreature.receiverIsPlayer);
+
+    if (sameGiverSide && sameReceiverSide) return "full_sibling";
+    if (sameGiverSide || sameReceiverSide) return "half_sibling";
+
+    return "none";
+  }
+
+  function validatePreset(preset: BreedingPreset): PresetValidation {
+    const giverMissing =
+      preset.giverType === "creature" &&
+      !creatures.some((c) => c.id === preset.giverCreatureId);
+
+    const receiverMissing =
+      preset.receiverType === "creature" &&
+      !creatures.some((c) => c.id === preset.receiverCreatureId);
+
+    const sameCreature =
+      preset.giverType === "creature" &&
+      preset.receiverType === "creature" &&
+      preset.giverCreatureId !== null &&
+      preset.giverCreatureId === preset.receiverCreatureId;
+
+    const familyRisk =
+      giverMissing || receiverMissing || sameCreature
+        ? "none"
+        : calculateRelationshipRiskFromSavedPair(
+            preset.giverType,
+            preset.giverCreatureId,
+            preset.receiverType,
+            preset.receiverCreatureId
+          );
+
+    return {
+      giverMissing,
+      receiverMissing,
+      sameCreature,
+      familyRisk,
+      canLoad: !giverMissing && !receiverMissing && !sameCreature,
+    };
+  }
+
+  function getNextEmptyPresetSlot(excludeSlot?: number) {
+    for (let slot = 1; slot <= PRESET_SLOT_COUNT; slot += 1) {
+      if (slot === excludeSlot) continue;
+      if (!getPresetAtSlot(slot)) return slot;
+    }
+    return null;
+  }
+
+  function movePreset(slot: number, direction: "up" | "down") {
+    const targetSlot = direction === "up" ? slot - 1 : slot + 1;
+    if (targetSlot < 1 || targetSlot > PRESET_SLOT_COUNT) return;
+
+    const currentPreset = getPresetAtSlot(slot);
+    if (!currentPreset) return;
+
+    const targetPreset = getPresetAtSlot(targetSlot);
+
+    setPresets((current) => {
+      const updated = current.map((preset) => {
+        if (preset.slot === slot) return { ...preset, slot: targetSlot };
+        if (preset.slot === targetSlot && targetPreset) return { ...preset, slot };
+        return preset;
+      });
+
+      return [...updated].sort((a, b) => a.slot - b.slot);
+    });
+
+    if (renamingPresetSlot === slot) {
+      setRenamingPresetSlot(targetSlot);
+    } else if (renamingPresetSlot === targetSlot) {
+      setRenamingPresetSlot(slot);
+    }
+
+    if (presetOverwriteSlot === slot) {
+      setPresetOverwriteSlot(targetSlot);
+    } else if (presetOverwriteSlot === targetSlot) {
+      setPresetOverwriteSlot(slot);
+    }
+  }
+
+  function savePresetToSlot(slot: number) {
+    if (
+      (breedingSelection.giverType !== "player" &&
+        breedingSelection.giverCreatureId === null) ||
+      (breedingSelection.receiverType !== "player" &&
+        breedingSelection.receiverCreatureId === null)
+    ) {
+      return;
+    }
+
+    const trimmedName = presetNameInput.trim();
+    const existing = getPresetAtSlot(slot);
+
+    const newPreset: BreedingPreset = {
+      slot,
+      name:
+        trimmedName.length > 0
+          ? trimmedName
+          : existing?.name ?? `Preset ${slot}`,
+      giverType: breedingSelection.giverType,
+      giverCreatureId: breedingSelection.giverCreatureId,
+      receiverType: breedingSelection.receiverType,
+      receiverCreatureId: breedingSelection.receiverCreatureId,
+    };
+
+    setPresets((current) => {
+      const withoutSlot = current.filter((preset) => preset.slot !== slot);
+      return [...withoutSlot, newPreset].sort((a, b) => a.slot - b.slot);
+    });
+
+    setPresetNameInput("");
+  }
+
+  function loadPreset(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+
+    const validation = validatePreset(preset);
+    if (!validation.canLoad) return;
+
+    setBreedingSelection({
+      ...breedingSelection,
+      giverType: preset.giverType,
+      giverCreatureId: preset.giverCreatureId,
+      receiverType: preset.receiverType,
+      receiverCreatureId: preset.receiverCreatureId,
+    });
+  }
+
+  function deletePreset(slot: number) {
+    setPresets((current) => current.filter((preset) => preset.slot !== slot));
+    if (renamingPresetSlot === slot) {
+      setRenamingPresetSlot(null);
+      setRenamePresetInput("");
+    }
+  }
+
+  function startRenamePreset(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+    setRenamingPresetSlot(slot);
+    setRenamePresetInput(preset.name);
+  }
+
+  function cancelRenamePreset() {
+    setRenamingPresetSlot(null);
+    setRenamePresetInput("");
+  }
+
+  function saveRenamePreset(slot: number) {
+    const trimmed = renamePresetInput.trim();
+    if (trimmed.length === 0) return;
+
+    setPresets((current) =>
+      current.map((preset) =>
+        preset.slot === slot ? { ...preset, name: trimmed } : preset
+      )
+    );
+
+    setRenamingPresetSlot(null);
+    setRenamePresetInput("");
+  }
+
+  function duplicatePreset(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+
+    const nextEmpty = getNextEmptyPresetSlot(slot);
+    if (nextEmpty === null) return;
+
+    let duplicateName = `${preset.name} Copy`;
+    if (duplicateName.length > 32) {
+      duplicateName = duplicateName.slice(0, 32);
+    }
+
+    const duplicated: BreedingPreset = {
+      ...preset,
+      slot: nextEmpty,
+      name: duplicateName,
+    };
+
+    setPresets((current) => [...current, duplicated].sort((a, b) => a.slot - b.slot));
+  }
 
   function getParticipantSnapshot(
     participantType: "player" | "creature",
@@ -1017,6 +1401,13 @@ export default function BreedingPage() {
     const sorted = [...list];
 
     sorted.sort((a, b) => {
+      const aFav = isFavoritedCreature(a.id);
+      const bFav = isFavoritedCreature(b.id);
+
+      if (aFav !== bFav) {
+        return bFav ? 1 : -1;
+      }
+
       let result = 0;
 
       if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
@@ -1037,6 +1428,7 @@ export default function BreedingPage() {
     readyOnly: boolean,
     traitsOnly: boolean,
     familySafeOnly: boolean,
+    favoritesOnly: boolean,
     sort: SortOption,
     direction: SortDirection,
     role: "giver" | "receiver"
@@ -1056,8 +1448,15 @@ export default function BreedingPage() {
       const matchesReady = !readyOnly || isCreatureReady(creature);
       const matchesTraits = !traitsOnly || traits.length > 0;
       const matchesFamilySafe = !familySafeOnly || isFamilySafeCandidate(creature, role);
+      const matchesFavorite = !favoritesOnly || isFavoritedCreature(creature.id);
 
-      return matchesSearch && matchesReady && matchesTraits && matchesFamilySafe;
+      return (
+        matchesSearch &&
+        matchesReady &&
+        matchesTraits &&
+        matchesFamilySafe &&
+        matchesFavorite
+      );
     });
 
     return sortCreatures(filtered, sort, direction);
@@ -1070,6 +1469,7 @@ export default function BreedingPage() {
         giverReadyOnly,
         giverTraitsOnly,
         giverFamilySafeOnly,
+        giverFavoritesOnly,
         giverSort,
         giverSortDirection,
         "giver"
@@ -1080,10 +1480,12 @@ export default function BreedingPage() {
       giverReadyOnly,
       giverTraitsOnly,
       giverFamilySafeOnly,
+      giverFavoritesOnly,
       giverSort,
       giverSortDirection,
       receiverCreature,
       breedingSelection.receiverType,
+      favoriteCreatureIds,
     ]
   );
 
@@ -1094,6 +1496,7 @@ export default function BreedingPage() {
         receiverReadyOnly,
         receiverTraitsOnly,
         receiverFamilySafeOnly,
+        receiverFavoritesOnly,
         receiverSort,
         receiverSortDirection,
         "receiver"
@@ -1104,10 +1507,12 @@ export default function BreedingPage() {
       receiverReadyOnly,
       receiverTraitsOnly,
       receiverFamilySafeOnly,
+      receiverFavoritesOnly,
       receiverSort,
       receiverSortDirection,
       giverCreature,
       breedingSelection.giverType,
+      favoriteCreatureIds,
     ]
   );
 
@@ -1198,6 +1603,11 @@ export default function BreedingPage() {
                     label="Family Safe"
                     onClick={() => setGiverFamilySafeOnly((v) => !v)}
                   />
+                  <FilterChip
+                    active={giverFavoritesOnly}
+                    label="Favorites"
+                    onClick={() => setGiverFavoritesOnly((v) => !v)}
+                  />
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -1256,6 +1666,8 @@ export default function BreedingPage() {
                       staminaCostLabel={`Cost ${getCreatureStaminaCost(creature.id)} stamina`}
                       traits={traits}
                       imageSrc={getCreatureImage(creature.name)}
+                      isFavorited={isFavoritedCreature(creature.id)}
+                      onToggleFavorite={() => toggleFavoriteCreature(creature.id)}
                       onSelect={() =>
                         setBreedingSelection({
                           ...breedingSelection,
@@ -1323,6 +1735,11 @@ export default function BreedingPage() {
                     label="Family Safe"
                     onClick={() => setReceiverFamilySafeOnly((v) => !v)}
                   />
+                  <FilterChip
+                    active={receiverFavoritesOnly}
+                    label="Favorites"
+                    onClick={() => setReceiverFavoritesOnly((v) => !v)}
+                  />
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -1381,6 +1798,8 @@ export default function BreedingPage() {
                       staminaCostLabel={`Cost ${getCreatureStaminaCost(creature.id)} stamina`}
                       traits={traits}
                       imageSrc={getCreatureImage(creature.name)}
+                      isFavorited={isFavoritedCreature(creature.id)}
+                      onToggleFavorite={() => toggleFavoriteCreature(creature.id)}
                       onSelect={() =>
                         setBreedingSelection({
                           ...breedingSelection,
@@ -1417,6 +1836,292 @@ export default function BreedingPage() {
                   <p><strong>Egg Chance:</strong> {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
                   <p><strong>Refusal:</strong> {getRefusalRiskLabel()}</p>
                   <p><strong>Quality:</strong> {getEggQualityPreview()}</p>
+                </div>
+
+                <div className="rounded-2xl bg-rose-50 p-3 text-sm text-stone-800">
+                  <p><strong>Favorites:</strong> {favoriteCreatureIds.length}</p>
+                  <p className="text-xs text-stone-600">
+                    Favorited candidates stay pinned near the top of both lists.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-rose-50 p-3">
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-stone-900">
+                      Saved Presets
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFavoriteCreatureIds([]);
+                        setPresets([]);
+                        setRenamingPresetSlot(null);
+                        setRenamePresetInput("");
+                        if (typeof window !== "undefined") {
+                          window.localStorage.removeItem(BREEDING_UI_STORAGE_KEY);
+                        }
+                      }}
+                      className="rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-700"
+                    >
+                      Clear Saved UI Data
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={presetNameInput}
+                    onChange={(e) => setPresetNameInput(e.target.value)}
+                    placeholder="Optional preset name..."
+                    className="mb-2 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                  />
+
+                  <div className="mb-3 grid grid-cols-[1fr_auto] gap-2">
+                    <select
+                      value={presetOverwriteSlot}
+                      onChange={(e) => setPresetOverwriteSlot(Number(e.target.value))}
+                      className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                    >
+                      {Array.from({ length: PRESET_SLOT_COUNT }, (_, i) => i + 1).map((slot) => (
+                        <option key={slot} value={slot}>
+                          Save to Slot {slot}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => savePresetToSlot(presetOverwriteSlot)}
+                      disabled={!hasValidSelection}
+                      className={`rounded-xl px-4 py-2 text-sm font-semibold shadow ${
+                        hasValidSelection
+                          ? "bg-rose-700 text-white"
+                          : "bg-stone-200 text-stone-500"
+                      }`}
+                    >
+                      Save
+                    </button>
+                  </div>
+
+                  <div className="mb-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-900">
+                    Favorites and presets now persist in your browser with localStorage.
+                  </div>
+
+                  <div className="space-y-2">
+                    {Array.from({ length: PRESET_SLOT_COUNT }, (_, i) => i + 1).map((slot) => {
+                      const preset = getPresetAtSlot(slot);
+                      const validation = preset ? validatePreset(preset) : null;
+                      const duplicateTargetSlot = preset ? getNextEmptyPresetSlot(slot) : null;
+                      const isRenaming = renamingPresetSlot === slot;
+
+                      return (
+                        <div
+                          key={slot}
+                          className="rounded-2xl border border-rose-200 bg-white p-3 text-sm"
+                        >
+                          {preset ? (
+                            <>
+                              {isRenaming ? (
+                                <div className="mb-2 space-y-2">
+                                  <input
+                                    type="text"
+                                    value={renamePresetInput}
+                                    onChange={(e) => setRenamePresetInput(e.target.value)}
+                                    placeholder="Preset name..."
+                                    className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => saveRenamePreset(slot)}
+                                      disabled={renamePresetInput.trim().length === 0}
+                                      className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                        renamePresetInput.trim().length > 0
+                                          ? "bg-rose-700 text-white"
+                                          : "bg-stone-200 text-stone-500"
+                                      }`}
+                                    >
+                                      Save Name
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={cancelRenamePreset}
+                                      className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="font-semibold text-stone-900">
+                                  Slot {slot}: {preset.name}
+                                </p>
+                              )}
+
+                              <p className="mt-1 text-xs text-stone-600">
+                                {getPresetParticipantLabel(
+                                  preset.giverType,
+                                  preset.giverCreatureId
+                                )}{" "}
+                                →{" "}
+                                {getPresetParticipantLabel(
+                                  preset.receiverType,
+                                  preset.receiverCreatureId
+                                )}
+                              </p>
+
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {validation?.giverMissing && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Missing giver
+                                  </div>
+                                )}
+
+                                {validation?.receiverMissing && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Missing receiver
+                                  </div>
+                                )}
+
+                                {validation?.sameCreature && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Invalid same-creature pair
+                                  </div>
+                                )}
+
+                                {validation?.familyRisk === "parent_child" && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Parent/child risk
+                                  </div>
+                                )}
+
+                                {validation?.familyRisk === "full_sibling" && (
+                                  <div className="rounded-full border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-semibold text-red-900">
+                                    Full sibling risk
+                                  </div>
+                                )}
+
+                                {validation?.familyRisk === "half_sibling" && (
+                                  <div className="rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-900">
+                                    Half sibling risk
+                                  </div>
+                                )}
+
+                                {duplicateTargetSlot !== null && (
+                                  <div className="rounded-full border border-sky-300 bg-sky-100 px-2 py-1 text-[11px] font-semibold text-sky-900">
+                                    Duplicate → Slot {duplicateTargetSlot}
+                                  </div>
+                                )}
+                              </div>
+
+                              {(validation?.giverMissing ||
+                                validation?.receiverMissing ||
+                                validation?.sameCreature) && (
+                                <p className="mt-2 text-xs text-red-700">
+                                  This preset cannot be loaded until the invalid pairing is fixed.
+                                </p>
+                              )}
+
+                              {!validation?.giverMissing &&
+                                !validation?.receiverMissing &&
+                                !validation?.sameCreature &&
+                                validation?.familyRisk !== "none" && (
+                                  <p className="mt-2 text-xs text-stone-600">
+                                    This preset can still be loaded, but it carries a family-risk warning.
+                                  </p>
+                                )}
+
+                              {duplicateTargetSlot === null && (
+                                <p className="mt-2 text-xs text-stone-500">
+                                  No empty slot available for duplication.
+                                </p>
+                              )}
+
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => movePreset(slot, "up")}
+                                  disabled={slot === 1}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    slot > 1
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Move Up
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => movePreset(slot, "down")}
+                                  disabled={slot === PRESET_SLOT_COUNT}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    slot < PRESET_SLOT_COUNT
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Move Down
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => loadPreset(slot)}
+                                  disabled={!validation?.canLoad}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    validation?.canLoad
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Load
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => startRenamePreset(slot)}
+                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                >
+                                  Rename
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => duplicatePreset(slot)}
+                                  disabled={duplicateTargetSlot === null}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    duplicateTargetSlot !== null
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Duplicate
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => savePresetToSlot(slot)}
+                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                >
+                                  Overwrite
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deletePreset(slot)}
+                                  className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-semibold text-stone-900">
+                                Slot {slot}: Empty
+                              </p>
+                              <p className="mt-1 text-xs text-stone-500">
+                                Save the current pair here for quick reuse.
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="rounded-2xl bg-rose-50 p-3">
