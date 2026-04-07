@@ -21,6 +21,13 @@ type CreatureTraitEntry = {
   grade: TraitGrade;
 };
 
+type SortOption =
+  | "name"
+  | "fertility"
+  | "happiness"
+  | "generation"
+  | "ready";
+
 type DetailTarget =
   | {
       type: "player";
@@ -62,13 +69,6 @@ type DetailTarget =
         traits?: CreatureTraitEntry[];
       };
     };
-
-type SortOption =
-  | "name"
-  | "fertility"
-  | "happiness"
-  | "generation"
-  | "ready";
 
 function getTraitLabel(trait: CreatureTrait) {
   if (trait === "domestic") return "Domestic";
@@ -289,6 +289,7 @@ function CompactParticipantCard({
   meta,
   traits,
   imageSrc,
+  staminaCostLabel,
   onSelect,
   onOpenDetails,
 }: {
@@ -298,6 +299,7 @@ function CompactParticipantCard({
   meta: string;
   traits: CreatureTraitEntry[];
   imageSrc: string;
+  staminaCostLabel?: string;
   onSelect: () => void;
   onOpenDetails: () => void;
 }) {
@@ -338,6 +340,12 @@ function CompactParticipantCard({
 
           <p className="mt-1 text-xs text-stone-600">{meta}</p>
 
+          {staminaCostLabel && (
+            <p className="mt-1 text-[11px] font-semibold text-stone-700">
+              {staminaCostLabel}
+            </p>
+          )}
+
           <div className="mt-2">
             <TraitBadgeRow traits={traits} />
           </div>
@@ -364,6 +372,7 @@ export default function BreedingPage() {
   const [gradeGuideOpen, setGradeGuideOpen] = useState(false);
   const [inheritanceHelpOpen, setInheritanceHelpOpen] = useState(false);
   const [detailTarget, setDetailTarget] = useState<DetailTarget | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
 
   const [giverSearch, setGiverSearch] = useState("");
   const [receiverSearch, setReceiverSearch] = useState("");
@@ -371,6 +380,8 @@ export default function BreedingPage() {
   const [receiverReadyOnly, setReceiverReadyOnly] = useState(false);
   const [giverTraitsOnly, setGiverTraitsOnly] = useState(false);
   const [receiverTraitsOnly, setReceiverTraitsOnly] = useState(false);
+  const [giverFamilySafeOnly, setGiverFamilySafeOnly] = useState(false);
+  const [receiverFamilySafeOnly, setReceiverFamilySafeOnly] = useState(false);
   const [giverSort, setGiverSort] = useState<SortOption>("name");
   const [receiverSort, setReceiverSort] = useState<SortOption>("name");
 
@@ -467,64 +478,71 @@ export default function BreedingPage() {
     breedingSelection.giverCreatureId !== null &&
     breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
 
+  function calculateRelationshipRisk(
+    leftCreature: typeof giverCreature,
+    rightCreature: typeof receiverCreature,
+    leftIsPlayer = false,
+    rightIsPlayer = false
+  ) {
+    if (
+      leftIsPlayer &&
+      rightCreature &&
+      (rightCreature.giverIsPlayer || rightCreature.receiverIsPlayer)
+    ) {
+      return "parent_child";
+    }
+
+    if (
+      rightIsPlayer &&
+      leftCreature &&
+      (leftCreature.giverIsPlayer || leftCreature.receiverIsPlayer)
+    ) {
+      return "parent_child";
+    }
+
+    if (!leftCreature || !rightCreature) {
+      return "none";
+    }
+
+    const isParentChild =
+      leftCreature.id === rightCreature.giverId ||
+      leftCreature.id === rightCreature.receiverId ||
+      rightCreature.id === leftCreature.giverId ||
+      rightCreature.id === leftCreature.receiverId;
+
+    if (isParentChild) return "parent_child";
+
+    const sameGiverSide =
+      (leftCreature.giverId !== null &&
+        leftCreature.giverId === rightCreature.giverId) ||
+      (leftCreature.giverIsPlayer && rightCreature.giverIsPlayer);
+
+    const sameReceiverSide =
+      (leftCreature.receiverId !== null &&
+        leftCreature.receiverId === rightCreature.receiverId) ||
+      (leftCreature.receiverIsPlayer && rightCreature.receiverIsPlayer);
+
+    if (sameGiverSide && sameReceiverSide) return "full_sibling";
+    if (sameGiverSide || sameReceiverSide) return "half_sibling";
+
+    return "none";
+  }
+
   function isParentChild() {
-    if (
-      breedingSelection.giverType === "player" &&
-      receiverCreature &&
-      (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
-    ) {
-      return true;
-    }
-
-    if (
-      breedingSelection.receiverType === "player" &&
-      giverCreature &&
-      (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
-    ) {
-      return true;
-    }
-
-    if (!giverCreature || !receiverCreature) return false;
-
-    return (
-      giverCreature.id === receiverCreature.giverId ||
-      giverCreature.id === receiverCreature.receiverId ||
-      receiverCreature.id === giverCreature.giverId ||
-      receiverCreature.id === giverCreature.receiverId
-    );
+    return calculateRelationshipRisk(
+      giverCreature,
+      receiverCreature,
+      breedingSelection.giverType === "player",
+      breedingSelection.receiverType === "player"
+    ) === "parent_child";
   }
 
   function isFullSibling() {
-    if (!giverCreature || !receiverCreature) return false;
-
-    const sameGiverSide =
-      (giverCreature.giverId !== null &&
-        giverCreature.giverId === receiverCreature.giverId) ||
-      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
-
-    const sameReceiverSide =
-      (giverCreature.receiverId !== null &&
-        giverCreature.receiverId === receiverCreature.receiverId) ||
-      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
-
-    return sameGiverSide && sameReceiverSide;
+    return calculateRelationshipRisk(giverCreature, receiverCreature) === "full_sibling";
   }
 
   function isHalfSibling() {
-    if (!giverCreature || !receiverCreature) return false;
-    if (isParentChild() || isFullSibling()) return false;
-
-    const sameGiverSide =
-      (giverCreature.giverId !== null &&
-        giverCreature.giverId === receiverCreature.giverId) ||
-      (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
-
-    const sameReceiverSide =
-      (giverCreature.receiverId !== null &&
-        giverCreature.receiverId === receiverCreature.receiverId) ||
-      (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
-
-    return sameGiverSide || sameReceiverSide;
+    return calculateRelationshipRisk(giverCreature, receiverCreature) === "half_sibling";
   }
 
   function getBreedingMinutes() {
@@ -566,6 +584,31 @@ export default function BreedingPage() {
     return (
       creature.breedingsToday < creature.dailyBreedingLimit &&
       creature.breedingStamina >= cost
+    );
+  }
+
+  function isFamilySafeCandidate(
+    candidate: (typeof creatures)[number],
+    role: "giver" | "receiver"
+  ) {
+    if (role === "giver") {
+      return (
+        calculateRelationshipRisk(
+          candidate,
+          receiverCreature,
+          false,
+          breedingSelection.receiverType === "player"
+        ) === "none"
+      );
+    }
+
+    return (
+      calculateRelationshipRisk(
+        giverCreature,
+        candidate,
+        breedingSelection.giverType === "player",
+        false
+      ) === "none"
     );
   }
 
@@ -943,7 +986,9 @@ export default function BreedingPage() {
     search: string,
     readyOnly: boolean,
     traitsOnly: boolean,
-    sort: SortOption
+    familySafeOnly: boolean,
+    sort: SortOption,
+    role: "giver" | "receiver"
   ) {
     const lowered = search.trim().toLowerCase();
 
@@ -959,16 +1004,34 @@ export default function BreedingPage() {
 
       const matchesReady = !readyOnly || isCreatureReady(creature);
       const matchesTraits = !traitsOnly || traits.length > 0;
+      const matchesFamilySafe = !familySafeOnly || isFamilySafeCandidate(creature, role);
 
-      return matchesSearch && matchesReady && matchesTraits;
+      return matchesSearch && matchesReady && matchesTraits && matchesFamilySafe;
     });
 
     return sortCreatures(filtered, sort);
   }
 
   const filteredGiverCreatures = useMemo(
-    () => filterCreatures(giverSearch, giverReadyOnly, giverTraitsOnly, giverSort),
-    [creatures, giverSearch, giverReadyOnly, giverTraitsOnly, giverSort]
+    () =>
+      filterCreatures(
+        giverSearch,
+        giverReadyOnly,
+        giverTraitsOnly,
+        giverFamilySafeOnly,
+        giverSort,
+        "giver"
+      ),
+    [
+      creatures,
+      giverSearch,
+      giverReadyOnly,
+      giverTraitsOnly,
+      giverFamilySafeOnly,
+      giverSort,
+      receiverCreature,
+      breedingSelection.receiverType,
+    ]
   );
 
   const filteredReceiverCreatures = useMemo(
@@ -977,9 +1040,20 @@ export default function BreedingPage() {
         receiverSearch,
         receiverReadyOnly,
         receiverTraitsOnly,
-        receiverSort
+        receiverFamilySafeOnly,
+        receiverSort,
+        "receiver"
       ),
-    [creatures, receiverSearch, receiverReadyOnly, receiverTraitsOnly, receiverSort]
+    [
+      creatures,
+      receiverSearch,
+      receiverReadyOnly,
+      receiverTraitsOnly,
+      receiverFamilySafeOnly,
+      receiverSort,
+      giverCreature,
+      breedingSelection.giverType,
+    ]
   );
 
   return (
@@ -1064,6 +1138,11 @@ export default function BreedingPage() {
                     label="Has Traits"
                     onClick={() => setGiverTraitsOnly((v) => !v)}
                   />
+                  <FilterChip
+                    active={giverFamilySafeOnly}
+                    label="Family Safe"
+                    onClick={() => setGiverFamilySafeOnly((v) => !v)}
+                  />
                 </div>
 
                 <select
@@ -1112,6 +1191,7 @@ export default function BreedingPage() {
                       title={creature.nickname}
                       subtitle={`${creature.name} • Lv ${creature.level} • Gen ${creature.generation}`}
                       meta={`Happy ${creature.happiness} • Fertility ${creature.stats.fertility} • Vitality ${creature.stats.vitality}`}
+                      staminaCostLabel={`Cost ${getCreatureStaminaCost(creature.id)} stamina`}
                       traits={traits}
                       imageSrc={getCreatureImage(creature.name)}
                       onSelect={() =>
@@ -1176,6 +1256,11 @@ export default function BreedingPage() {
                     label="Has Traits"
                     onClick={() => setReceiverTraitsOnly((v) => !v)}
                   />
+                  <FilterChip
+                    active={receiverFamilySafeOnly}
+                    label="Family Safe"
+                    onClick={() => setReceiverFamilySafeOnly((v) => !v)}
+                  />
                 </div>
 
                 <select
@@ -1224,6 +1309,7 @@ export default function BreedingPage() {
                       title={creature.nickname}
                       subtitle={`${creature.name} • Lv ${creature.level} • Gen ${creature.generation}`}
                       meta={`Happy ${creature.happiness} • Fertility ${creature.stats.fertility} • Vitality ${creature.stats.vitality}`}
+                      staminaCostLabel={`Cost ${getCreatureStaminaCost(creature.id)} stamina`}
                       traits={traits}
                       imageSrc={getCreatureImage(creature.name)}
                       onSelect={() =>
@@ -1367,7 +1453,20 @@ export default function BreedingPage() {
                 </div>
               </div>
 
-              <div className="mt-4 shrink-0">
+              <div className="mt-4 shrink-0 space-y-3">
+                <button
+                  onClick={() => setCompareOpen(true)}
+                  disabled={!hasValidSelection}
+                  className={`w-full rounded-2xl px-4 py-3 font-semibold shadow ${
+                    hasValidSelection
+                      ? "bg-white text-stone-900 border border-rose-300"
+                      : "bg-stone-200 text-stone-500"
+                  }`}
+                  type="button"
+                >
+                  Compare Selected Pair
+                </button>
+
                 <button
                   onClick={breedCreatures}
                   disabled={!canBreed}
@@ -1379,7 +1478,7 @@ export default function BreedingPage() {
                   {canBreed ? "Breed" : "Cannot Breed"}
                 </button>
 
-                <div className="mt-3">
+                <div>
                   <Link
                     href="/ranch"
                     className="block rounded-2xl bg-stone-800 px-5 py-3 text-center font-semibold text-white shadow"
@@ -1644,6 +1743,89 @@ export default function BreedingPage() {
             </div>
           </div>
         )}
+      </HelpModal>
+
+      <HelpModal
+        open={compareOpen}
+        title="Compare Selected Pair"
+        onClose={() => setCompareOpen(false)}
+        maxWidth="max-w-4xl"
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="mb-2 text-sm text-stone-500">Giver</p>
+            <p className="text-xl font-bold text-stone-900">{giverLabel}</p>
+            {breedingSelection.giverType === "player" ? (
+              <>
+                <p className="text-sm text-stone-600">Player</p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <p><strong>Happiness:</strong> {playerData.happiness}</p>
+                  <p><strong>Fertility:</strong> {playerData.stats.fertility}</p>
+                  <p><strong>Vitality:</strong> {playerData.stats.vitality}</p>
+                  <p><strong>Speed:</strong> {playerData.stats.speed}</p>
+                </div>
+              </>
+            ) : giverCreature ? (
+              <>
+                <p className="text-sm text-stone-600">
+                  {giverCreature.name} • Lv {giverCreature.level} • Gen {giverCreature.generation}
+                </p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <p><strong>Happiness:</strong> {giverCreature.happiness}</p>
+                  <p><strong>Fertility:</strong> {giverCreature.stats.fertility}</p>
+                  <p><strong>Vitality:</strong> {giverCreature.stats.vitality}</p>
+                  <p><strong>Speed:</strong> {giverCreature.stats.speed}</p>
+                  <p><strong>Stamina:</strong> {giverCreature.breedingStamina}/{giverCreature.maxBreedingStamina}</p>
+                  <p><strong>Cost:</strong> {getCreatureStaminaCost(giverCreature.id)} stamina</p>
+                </div>
+                <div className="mt-3">
+                  <TraitBadgeRow traits={Array.isArray(giverCreature.traits) ? giverCreature.traits : []} />
+                </div>
+              </>
+            ) : null}
+          </div>
+
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <p className="mb-2 text-sm text-stone-500">Receiver</p>
+            <p className="text-xl font-bold text-stone-900">{receiverLabel}</p>
+            {breedingSelection.receiverType === "player" ? (
+              <>
+                <p className="text-sm text-stone-600">Player</p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <p><strong>Happiness:</strong> {playerData.happiness}</p>
+                  <p><strong>Fertility:</strong> {playerData.stats.fertility}</p>
+                  <p><strong>Vitality:</strong> {playerData.stats.vitality}</p>
+                  <p><strong>Speed:</strong> {playerData.stats.speed}</p>
+                </div>
+              </>
+            ) : receiverCreature ? (
+              <>
+                <p className="text-sm text-stone-600">
+                  {receiverCreature.name} • Lv {receiverCreature.level} • Gen {receiverCreature.generation}
+                </p>
+                <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                  <p><strong>Happiness:</strong> {receiverCreature.happiness}</p>
+                  <p><strong>Fertility:</strong> {receiverCreature.stats.fertility}</p>
+                  <p><strong>Vitality:</strong> {receiverCreature.stats.vitality}</p>
+                  <p><strong>Speed:</strong> {receiverCreature.stats.speed}</p>
+                  <p><strong>Stamina:</strong> {receiverCreature.breedingStamina}/{receiverCreature.maxBreedingStamina}</p>
+                  <p><strong>Cost:</strong> {getCreatureStaminaCost(receiverCreature.id)} stamina</p>
+                </div>
+                <div className="mt-3">
+                  <TraitBadgeRow traits={Array.isArray(receiverCreature.traits) ? receiverCreature.traits : []} />
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-stone-100 p-4 text-sm text-stone-800">
+          <p><strong>Egg Chance:</strong> {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
+          <p><strong>Refusal Risk:</strong> {getRefusalRiskLabel()}</p>
+          <p><strong>Egg Quality:</strong> {getEggQualityPreview()}</p>
+          <p><strong>Session Time:</strong> {getBreedingMinutes()} minutes</p>
+          <p><strong>Family Risk:</strong> {parentChildWarning ? "Parent/Child" : fullSiblingWarning ? "Full Sibling" : halfSiblingWarning ? "Half Sibling" : "None"}</p>
+        </div>
       </HelpModal>
     </>
   );
