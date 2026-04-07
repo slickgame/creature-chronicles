@@ -174,6 +174,17 @@ type TownQuest = {
   completed: boolean;
 };
 
+type TownQuestTemplate = {
+  title: string;
+  description: string;
+  rewardGold: number;
+  rewardXp: number;
+  deadlineOffsetDays: number;
+  deadlineHour: number;
+  deadlineMinute: number;
+  requirement: QuestRequirement;
+};
+
 type SaveData = {
   currentDay: number;
   currentHour: number;
@@ -1075,7 +1086,7 @@ function createSingleTownQuest(
   currentDay: number,
   questIdSeed: number
 ): TownQuest {
-  const questTemplates = [
+  const questTemplates: TownQuestTemplate[] = [
     {
       title: "Stable Delivery",
       description: "Submit a sturdy Horse with strong endurance.",
@@ -1172,7 +1183,7 @@ function createSingleTownQuest(
         minimumStats: {
           intelligence: 7,
         },
-        requiredTrait: "domestic" as CreatureTrait,
+        requiredTrait: "domestic",
       },
     },
     {
@@ -1190,7 +1201,7 @@ function createSingleTownQuest(
           strength: 7,
           endurance: 7,
         },
-        requiredTrait: "industrious" as CreatureTrait,
+        requiredTrait: "industrious",
       },
     },
     {
@@ -1207,10 +1218,10 @@ function createSingleTownQuest(
         minimumStats: {
           vitality: 6,
         },
-        requiredTrait: "calm" as CreatureTrait,
+        requiredTrait: "calm",
       },
     },
-  ] as const;
+  ];
 
   const template = randomFrom(questTemplates);
 
