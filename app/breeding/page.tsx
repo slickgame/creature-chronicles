@@ -225,6 +225,33 @@ function SortDirectionButtons({
   );
 }
 
+function StarButton({
+  isFavorited,
+  onClick,
+}: {
+  isFavorited: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`inline-flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold shadow-sm ${
+        isFavorited
+          ? "border-amber-400 bg-amber-100 text-amber-800"
+          : "border-stone-300 bg-white text-stone-500 hover:bg-stone-50"
+      }`}
+      aria-label={isFavorited ? "Unfavorite candidate" : "Favorite candidate"}
+      title={isFavorited ? "Unfavorite candidate" : "Favorite candidate"}
+    >
+      ★
+    </button>
+  );
+}
+
 function HelpModal({
   open,
   title,
@@ -326,6 +353,8 @@ function CompactParticipantCard({
   traits,
   imageSrc,
   staminaCostLabel,
+  isFavorited = false,
+  onToggleFavorite,
   onSelect,
   onOpenDetails,
 }: {
@@ -336,6 +365,8 @@ function CompactParticipantCard({
   traits: CreatureTraitEntry[];
   imageSrc: string;
   staminaCostLabel?: string;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
   onSelect: () => void;
   onOpenDetails: () => void;
 }) {
@@ -367,11 +398,19 @@ function CompactParticipantCard({
               <p className="truncate text-xs text-stone-600">{subtitle}</p>
             </div>
 
-            <InfoButton
-              onClick={onOpenDetails}
-              label={`View full details for ${title}`}
-              small
-            />
+            <div className="flex items-center gap-1">
+              {onToggleFavorite && (
+                <StarButton
+                  isFavorited={isFavorited}
+                  onClick={onToggleFavorite}
+                />
+              )}
+              <InfoButton
+                onClick={onOpenDetails}
+                label={`View full details for ${title}`}
+                small
+              />
+            </div>
           </div>
 
           <p className="mt-1 text-xs text-stone-600">{meta}</p>
@@ -418,11 +457,14 @@ export default function BreedingPage() {
   const [receiverTraitsOnly, setReceiverTraitsOnly] = useState(false);
   const [giverFamilySafeOnly, setGiverFamilySafeOnly] = useState(false);
   const [receiverFamilySafeOnly, setReceiverFamilySafeOnly] = useState(false);
+  const [giverFavoritesOnly, setGiverFavoritesOnly] = useState(false);
+  const [receiverFavoritesOnly, setReceiverFavoritesOnly] = useState(false);
   const [giverSort, setGiverSort] = useState<SortOption>("name");
   const [receiverSort, setReceiverSort] = useState<SortOption>("name");
   const [giverSortDirection, setGiverSortDirection] = useState<SortDirection>("asc");
   const [receiverSortDirection, setReceiverSortDirection] =
     useState<SortDirection>("asc");
+  const [favoriteCreatureIds, setFavoriteCreatureIds] = useState<number[]>([]);
 
   const canAffordBreed = playerData.energy >= 8;
 
@@ -433,6 +475,18 @@ export default function BreedingPage() {
   const receiverCreature = breedingSelection.receiverCreatureId
     ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
     : null;
+
+  function toggleFavoriteCreature(creatureId: number) {
+    setFavoriteCreatureIds((current) =>
+      current.includes(creatureId)
+        ? current.filter((id) => id !== creatureId)
+        : [...current, creatureId]
+    );
+  }
+
+  function isFavoritedCreature(creatureId: number) {
+    return favoriteCreatureIds.includes(creatureId);
+  }
 
   function getParticipantSnapshot(
     participantType: "player" | "creature",
@@ -1017,6 +1071,13 @@ export default function BreedingPage() {
     const sorted = [...list];
 
     sorted.sort((a, b) => {
+      const aFav = isFavoritedCreature(a.id);
+      const bFav = isFavoritedCreature(b.id);
+
+      if (aFav !== bFav) {
+        return bFav ? 1 : -1;
+      }
+
       let result = 0;
 
       if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
@@ -1037,6 +1098,7 @@ export default function BreedingPage() {
     readyOnly: boolean,
     traitsOnly: boolean,
     familySafeOnly: boolean,
+    favoritesOnly: boolean,
     sort: SortOption,
     direction: SortDirection,
     role: "giver" | "receiver"
@@ -1056,8 +1118,15 @@ export default function BreedingPage() {
       const matchesReady = !readyOnly || isCreatureReady(creature);
       const matchesTraits = !traitsOnly || traits.length > 0;
       const matchesFamilySafe = !familySafeOnly || isFamilySafeCandidate(creature, role);
+      const matchesFavorite = !favoritesOnly || isFavoritedCreature(creature.id);
 
-      return matchesSearch && matchesReady && matchesTraits && matchesFamilySafe;
+      return (
+        matchesSearch &&
+        matchesReady &&
+        matchesTraits &&
+        matchesFamilySafe &&
+        matchesFavorite
+      );
     });
 
     return sortCreatures(filtered, sort, direction);
@@ -1070,6 +1139,7 @@ export default function BreedingPage() {
         giverReadyOnly,
         giverTraitsOnly,
         giverFamilySafeOnly,
+        giverFavoritesOnly,
         giverSort,
         giverSortDirection,
         "giver"
@@ -1080,10 +1150,12 @@ export default function BreedingPage() {
       giverReadyOnly,
       giverTraitsOnly,
       giverFamilySafeOnly,
+      giverFavoritesOnly,
       giverSort,
       giverSortDirection,
       receiverCreature,
       breedingSelection.receiverType,
+      favoriteCreatureIds,
     ]
   );
 
@@ -1094,6 +1166,7 @@ export default function BreedingPage() {
         receiverReadyOnly,
         receiverTraitsOnly,
         receiverFamilySafeOnly,
+        receiverFavoritesOnly,
         receiverSort,
         receiverSortDirection,
         "receiver"
@@ -1104,10 +1177,12 @@ export default function BreedingPage() {
       receiverReadyOnly,
       receiverTraitsOnly,
       receiverFamilySafeOnly,
+      receiverFavoritesOnly,
       receiverSort,
       receiverSortDirection,
       giverCreature,
       breedingSelection.giverType,
+      favoriteCreatureIds,
     ]
   );
 
@@ -1198,6 +1273,11 @@ export default function BreedingPage() {
                     label="Family Safe"
                     onClick={() => setGiverFamilySafeOnly((v) => !v)}
                   />
+                  <FilterChip
+                    active={giverFavoritesOnly}
+                    label="Favorites"
+                    onClick={() => setGiverFavoritesOnly((v) => !v)}
+                  />
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -1256,6 +1336,8 @@ export default function BreedingPage() {
                       staminaCostLabel={`Cost ${getCreatureStaminaCost(creature.id)} stamina`}
                       traits={traits}
                       imageSrc={getCreatureImage(creature.name)}
+                      isFavorited={isFavoritedCreature(creature.id)}
+                      onToggleFavorite={() => toggleFavoriteCreature(creature.id)}
                       onSelect={() =>
                         setBreedingSelection({
                           ...breedingSelection,
@@ -1323,6 +1405,11 @@ export default function BreedingPage() {
                     label="Family Safe"
                     onClick={() => setReceiverFamilySafeOnly((v) => !v)}
                   />
+                  <FilterChip
+                    active={receiverFavoritesOnly}
+                    label="Favorites"
+                    onClick={() => setReceiverFavoritesOnly((v) => !v)}
+                  />
                 </div>
 
                 <div className="grid grid-cols-[1fr_auto] gap-2">
@@ -1381,6 +1468,8 @@ export default function BreedingPage() {
                       staminaCostLabel={`Cost ${getCreatureStaminaCost(creature.id)} stamina`}
                       traits={traits}
                       imageSrc={getCreatureImage(creature.name)}
+                      isFavorited={isFavoritedCreature(creature.id)}
+                      onToggleFavorite={() => toggleFavoriteCreature(creature.id)}
                       onSelect={() =>
                         setBreedingSelection({
                           ...breedingSelection,
@@ -1417,6 +1506,13 @@ export default function BreedingPage() {
                   <p><strong>Egg Chance:</strong> {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
                   <p><strong>Refusal:</strong> {getRefusalRiskLabel()}</p>
                   <p><strong>Quality:</strong> {getEggQualityPreview()}</p>
+                </div>
+
+                <div className="rounded-2xl bg-rose-50 p-3 text-sm text-stone-800">
+                  <p><strong>Favorites:</strong> {favoriteCreatureIds.length}</p>
+                  <p className="text-xs text-stone-600">
+                    Favorited candidates stay pinned near the top of both lists.
+                  </p>
                 </div>
 
                 <div className="rounded-2xl bg-rose-50 p-3">
