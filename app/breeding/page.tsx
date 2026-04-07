@@ -29,6 +29,15 @@ type SortOption =
   | "generation"
   | "ready";
 
+type BreedingPreset = {
+  slot: number;
+  name: string;
+  giverType: "player" | "creature";
+  giverCreatureId: number | null;
+  receiverType: "player" | "creature";
+  receiverCreatureId: number | null;
+};
+
 type DetailTarget =
   | {
       type: "player";
@@ -465,7 +474,11 @@ export default function BreedingPage() {
   const [receiverSortDirection, setReceiverSortDirection] =
     useState<SortDirection>("asc");
   const [favoriteCreatureIds, setFavoriteCreatureIds] = useState<number[]>([]);
+  const [presetNameInput, setPresetNameInput] = useState("");
+  const [presetOverwriteSlot, setPresetOverwriteSlot] = useState<number>(1);
+  const [presets, setPresets] = useState<BreedingPreset[]>([]);
 
+  const PRESET_SLOT_COUNT = 5;
   const canAffordBreed = playerData.energy >= 8;
 
   const giverCreature = breedingSelection.giverCreatureId
@@ -486,6 +499,83 @@ export default function BreedingPage() {
 
   function isFavoritedCreature(creatureId: number) {
     return favoriteCreatureIds.includes(creatureId);
+  }
+
+  function getPresetAtSlot(slot: number) {
+    return presets.find((preset) => preset.slot === slot) ?? null;
+  }
+
+  function getPresetParticipantLabel(
+    type: "player" | "creature",
+    creatureId: number | null
+  ) {
+    if (type === "player") return playerData.name;
+    const creature = creatures.find((c) => c.id === creatureId);
+    return creature ? creature.nickname : "Missing Creature";
+  }
+
+  function savePresetToSlot(slot: number) {
+    if (
+      (breedingSelection.giverType !== "player" &&
+        breedingSelection.giverCreatureId === null) ||
+      (breedingSelection.receiverType !== "player" &&
+        breedingSelection.receiverCreatureId === null)
+    ) {
+      return;
+    }
+
+    const trimmedName = presetNameInput.trim();
+    const existing = getPresetAtSlot(slot);
+
+    const newPreset: BreedingPreset = {
+      slot,
+      name:
+        trimmedName.length > 0
+          ? trimmedName
+          : existing?.name ?? `Preset ${slot}`,
+      giverType: breedingSelection.giverType,
+      giverCreatureId: breedingSelection.giverCreatureId,
+      receiverType: breedingSelection.receiverType,
+      receiverCreatureId: breedingSelection.receiverCreatureId,
+    };
+
+    setPresets((current) => {
+      const withoutSlot = current.filter((preset) => preset.slot !== slot);
+      return [...withoutSlot, newPreset].sort((a, b) => a.slot - b.slot);
+    });
+
+    setPresetNameInput("");
+  }
+
+  function loadPreset(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+
+    if (
+      preset.giverType === "creature" &&
+      !creatures.some((c) => c.id === preset.giverCreatureId)
+    ) {
+      return;
+    }
+
+    if (
+      preset.receiverType === "creature" &&
+      !creatures.some((c) => c.id === preset.receiverCreatureId)
+    ) {
+      return;
+    }
+
+    setBreedingSelection({
+      ...breedingSelection,
+      giverType: preset.giverType,
+      giverCreatureId: preset.giverCreatureId,
+      receiverType: preset.receiverType,
+      receiverCreatureId: preset.receiverCreatureId,
+    });
+  }
+
+  function deletePreset(slot: number) {
+    setPresets((current) => current.filter((preset) => preset.slot !== slot));
   }
 
   function getParticipantSnapshot(
@@ -1513,6 +1603,108 @@ export default function BreedingPage() {
                   <p className="text-xs text-stone-600">
                     Favorited candidates stay pinned near the top of both lists.
                   </p>
+                </div>
+
+                <div className="rounded-2xl bg-rose-50 p-3">
+                  <p className="mb-2 text-sm font-semibold text-stone-900">
+                    Saved Presets
+                  </p>
+
+                  <input
+                    type="text"
+                    value={presetNameInput}
+                    onChange={(e) => setPresetNameInput(e.target.value)}
+                    placeholder="Optional preset name..."
+                    className="mb-2 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                  />
+
+                  <div className="mb-3 grid grid-cols-[1fr_auto] gap-2">
+                    <select
+                      value={presetOverwriteSlot}
+                      onChange={(e) => setPresetOverwriteSlot(Number(e.target.value))}
+                      className="w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                    >
+                      {Array.from({ length: PRESET_SLOT_COUNT }, (_, i) => i + 1).map((slot) => (
+                        <option key={slot} value={slot}>
+                          Save to Slot {slot}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      onClick={() => savePresetToSlot(presetOverwriteSlot)}
+                      disabled={!hasValidSelection}
+                      className={`rounded-xl px-4 py-2 text-sm font-semibold shadow ${
+                        hasValidSelection
+                          ? "bg-rose-700 text-white"
+                          : "bg-stone-200 text-stone-500"
+                      }`}
+                    >
+                      Save
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {Array.from({ length: PRESET_SLOT_COUNT }, (_, i) => i + 1).map((slot) => {
+                      const preset = getPresetAtSlot(slot);
+
+                      return (
+                        <div
+                          key={slot}
+                          className="rounded-2xl border border-rose-200 bg-white p-3 text-sm"
+                        >
+                          <p className="font-semibold text-stone-900">
+                            Slot {slot}: {preset ? preset.name : "Empty"}
+                          </p>
+
+                          {preset ? (
+                            <>
+                              <p className="mt-1 text-xs text-stone-600">
+                                {getPresetParticipantLabel(
+                                  preset.giverType,
+                                  preset.giverCreatureId
+                                )}{" "}
+                                →{" "}
+                                {getPresetParticipantLabel(
+                                  preset.receiverType,
+                                  preset.receiverCreatureId
+                                )}
+                              </p>
+
+                              <div className="mt-2 flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => loadPreset(slot)}
+                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                >
+                                  Load
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => savePresetToSlot(slot)}
+                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                >
+                                  Overwrite
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deletePreset(slot)}
+                                  className="rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="mt-1 text-xs text-stone-500">
+                              Save the current pair here for quick reuse.
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="rounded-2xl bg-rose-50 p-3">
