@@ -682,6 +682,38 @@ export default function BreedingPage() {
     return null;
   }
 
+  function movePreset(slot: number, direction: "up" | "down") {
+    const targetSlot = direction === "up" ? slot - 1 : slot + 1;
+    if (targetSlot < 1 || targetSlot > PRESET_SLOT_COUNT) return;
+
+    const currentPreset = getPresetAtSlot(slot);
+    if (!currentPreset) return;
+
+    const targetPreset = getPresetAtSlot(targetSlot);
+
+    setPresets((current) => {
+      const updated = current.map((preset) => {
+        if (preset.slot === slot) return { ...preset, slot: targetSlot };
+        if (preset.slot === targetSlot && targetPreset) return { ...preset, slot };
+        return preset;
+      });
+
+      return [...updated].sort((a, b) => a.slot - b.slot);
+    });
+
+    if (renamingPresetSlot === slot) {
+      setRenamingPresetSlot(targetSlot);
+    } else if (renamingPresetSlot === targetSlot) {
+      setRenamingPresetSlot(slot);
+    }
+
+    if (presetOverwriteSlot === slot) {
+      setPresetOverwriteSlot(targetSlot);
+    } else if (presetOverwriteSlot === targetSlot) {
+      setPresetOverwriteSlot(slot);
+    }
+  }
+
   function savePresetToSlot(slot: number) {
     if (
       (breedingSelection.giverType !== "player" &&
@@ -2005,6 +2037,30 @@ export default function BreedingPage() {
                               )}
 
                               <div className="mt-2 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => movePreset(slot, "up")}
+                                  disabled={slot === 1}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    slot > 1
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Move Up
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => movePreset(slot, "down")}
+                                  disabled={slot === PRESET_SLOT_COUNT}
+                                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                                    slot < PRESET_SLOT_COUNT
+                                      ? "border border-rose-300 bg-white text-stone-800"
+                                      : "bg-stone-200 text-stone-500"
+                                  }`}
+                                >
+                                  Move Down
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => loadPreset(slot)}
