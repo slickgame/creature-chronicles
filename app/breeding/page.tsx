@@ -95,6 +95,11 @@ type DetailTarget =
       };
     };
 
+type PresetPreviewTarget = {
+  slot: number;
+  preset: BreedingPreset;
+};
+
 const BREEDING_UI_STORAGE_KEY = "creature-chronicles-breeding-ui-v1";
 
 function getTraitLabel(trait: CreatureTrait) {
@@ -474,6 +479,8 @@ export default function BreedingPage() {
   const [inheritanceHelpOpen, setInheritanceHelpOpen] = useState(false);
   const [detailTarget, setDetailTarget] = useState<DetailTarget | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [presetPreviewTarget, setPresetPreviewTarget] =
+    useState<PresetPreviewTarget | null>(null);
 
   const [giverSearch, setGiverSearch] = useState("");
   const [receiverSearch, setReceiverSearch] = useState("");
@@ -776,11 +783,33 @@ export default function BreedingPage() {
     });
   }
 
+  function loadPresetIntoCompare(slot: number) {
+    const preset = getPresetAtSlot(slot);
+    if (!preset) return;
+
+    const validation = validatePreset(preset);
+    if (!validation.canLoad) return;
+
+    setBreedingSelection({
+      ...breedingSelection,
+      giverType: preset.giverType,
+      giverCreatureId: preset.giverCreatureId,
+      receiverType: preset.receiverType,
+      receiverCreatureId: preset.receiverCreatureId,
+    });
+
+    setPresetPreviewTarget(null);
+    setCompareOpen(true);
+  }
+
   function deletePreset(slot: number) {
     setPresets((current) => current.filter((preset) => preset.slot !== slot));
     if (renamingPresetSlot === slot) {
       setRenamingPresetSlot(null);
       setRenamePresetInput("");
+    }
+    if (presetPreviewTarget?.slot === slot) {
+      setPresetPreviewTarget(null);
     }
   }
 
@@ -1628,7 +1657,41 @@ export default function BreedingPage() {
     if (giverReady && receiverReady && validation.familyRisk === "none" && eggChance >= 0.7)
       label = "Strong Match";
 
-    return { score, label };
+    return { score, label, eggChance, refusalChance, giverReady, receiverReady };
+  }
+
+  function getPresetPreviewData(preset: BreedingPreset) {
+    const validation = validatePreset(preset);
+    const scoreData = getPresetScore(preset);
+
+    const presetGiver =
+      preset.giverType === "creature"
+        ? creatures.find((c) => c.id === preset.giverCreatureId) ?? null
+        : null;
+
+    const presetReceiver =
+      preset.receiverType === "creature"
+        ? creatures.find((c) => c.id === preset.receiverCreatureId) ?? null
+        : null;
+
+    const giverName =
+      preset.giverType === "player"
+        ? playerData.name
+        : presetGiver?.nickname ?? "Missing Creature";
+
+    const receiverName =
+      preset.receiverType === "player"
+        ? playerData.name
+        : presetReceiver?.nickname ?? "Missing Creature";
+
+    return {
+      validation,
+      scoreData,
+      presetGiver,
+      presetReceiver,
+      giverName,
+      receiverName,
+    };
   }
 
   const sortedPresetSlots = useMemo(() => {
@@ -2051,6 +2114,7 @@ export default function BreedingPage() {
                         setRenamingPresetSlot(null);
                         setRenamePresetInput("");
                         setPresetSortMode("custom");
+                        setPresetPreviewTarget(null);
                         if (typeof window !== "undefined") {
                           window.localStorage.removeItem(BREEDING_UI_STORAGE_KEY);
                         }
@@ -2300,6 +2364,18 @@ export default function BreedingPage() {
                               )}
 
                               <div className="mt-2 flex flex-wrap gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPresetPreviewTarget({
+                                      slot,
+                                      preset,
+                                    })
+                                  }
+                                  className="rounded-xl border border-rose-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800"
+                                >
+                                  Preview
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => movePreset(slot, "up")}
@@ -2863,6 +2939,146 @@ export default function BreedingPage() {
           <p><strong>Session Time:</strong> {getBreedingMinutes()} minutes</p>
           <p><strong>Family Risk:</strong> {parentChildWarning ? "Parent/Child" : fullSiblingWarning ? "Full Sibling" : halfSiblingWarning ? "Half Sibling" : "None"}</p>
         </div>
+      </HelpModal>
+
+      <HelpModal
+        open={presetPreviewTarget !== null}
+        title={
+          presetPreviewTarget
+            ? `Preset Preview — Slot ${presetPreviewTarget.slot}`
+            : "Preset Preview"
+        }
+        onClose={() => setPresetPreviewTarget(null)}
+        maxWidth="max-w-4xl"
+      >
+        {presetPreviewTarget && (() => {
+          const { preset, slot } = presetPreviewTarget;
+          const preview = getPresetPreviewData(preset);
+
+          return (
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-rose-50 p-4">
+                <p className="text-lg font-bold text-stone-900">{preset.name}</p>
+                <p className="text-sm text-stone-600">
+                  Slot {slot} • {preview.giverName} → {preview.receiverName}
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="mb-2 text-sm text-stone-500">Giver</p>
+                  <p className="text-xl font-bold text-stone-900">{preview.giverName}</p>
+                  {preset.giverType === "player" ? (
+                    <>
+                      <p className="text-sm text-stone-600">Player</p>
+                      <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                        <p><strong>Happiness:</strong> {playerData.happiness}</p>
+                        <p><strong>Fertility:</strong> {playerData.stats.fertility}</p>
+                        <p><strong>Vitality:</strong> {playerData.stats.vitality}</p>
+                        <p><strong>Speed:</strong> {playerData.stats.speed}</p>
+                      </div>
+                    </>
+                  ) : preview.presetGiver ? (
+                    <>
+                      <p className="text-sm text-stone-600">
+                        {preview.presetGiver.name} • Lv {preview.presetGiver.level} • Gen {preview.presetGiver.generation}
+                      </p>
+                      <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                        <p><strong>Happiness:</strong> {preview.presetGiver.happiness}</p>
+                        <p><strong>Fertility:</strong> {preview.presetGiver.stats.fertility}</p>
+                        <p><strong>Vitality:</strong> {preview.presetGiver.stats.vitality}</p>
+                        <p><strong>Speed:</strong> {preview.presetGiver.stats.speed}</p>
+                        <p><strong>Stamina:</strong> {preview.presetGiver.breedingStamina}/{preview.presetGiver.maxBreedingStamina}</p>
+                        <p><strong>Cost:</strong> {getCreatureStaminaCost(preview.presetGiver.id)} stamina</p>
+                      </div>
+                      <div className="mt-3">
+                        <TraitBadgeRow
+                          traits={Array.isArray(preview.presetGiver.traits) ? preview.presetGiver.traits : []}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-red-700">Missing creature data.</p>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="mb-2 text-sm text-stone-500">Receiver</p>
+                  <p className="text-xl font-bold text-stone-900">{preview.receiverName}</p>
+                  {preset.receiverType === "player" ? (
+                    <>
+                      <p className="text-sm text-stone-600">Player</p>
+                      <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                        <p><strong>Happiness:</strong> {playerData.happiness}</p>
+                        <p><strong>Fertility:</strong> {playerData.stats.fertility}</p>
+                        <p><strong>Vitality:</strong> {playerData.stats.vitality}</p>
+                        <p><strong>Speed:</strong> {playerData.stats.speed}</p>
+                      </div>
+                    </>
+                  ) : preview.presetReceiver ? (
+                    <>
+                      <p className="text-sm text-stone-600">
+                        {preview.presetReceiver.name} • Lv {preview.presetReceiver.level} • Gen {preview.presetReceiver.generation}
+                      </p>
+                      <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                        <p><strong>Happiness:</strong> {preview.presetReceiver.happiness}</p>
+                        <p><strong>Fertility:</strong> {preview.presetReceiver.stats.fertility}</p>
+                        <p><strong>Vitality:</strong> {preview.presetReceiver.stats.vitality}</p>
+                        <p><strong>Speed:</strong> {preview.presetReceiver.stats.speed}</p>
+                        <p><strong>Stamina:</strong> {preview.presetReceiver.breedingStamina}/{preview.presetReceiver.maxBreedingStamina}</p>
+                        <p><strong>Cost:</strong> {getCreatureStaminaCost(preview.presetReceiver.id)} stamina</p>
+                      </div>
+                      <div className="mt-3">
+                        <TraitBadgeRow
+                          traits={Array.isArray(preview.presetReceiver.traits) ? preview.presetReceiver.traits : []}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-red-700">Missing creature data.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-stone-100 p-4 text-sm text-stone-800">
+                <p><strong>Status:</strong> {preview.scoreData.label}</p>
+                <p><strong>Score:</strong> {preview.scoreData.score}</p>
+                <p><strong>Estimated Egg Chance:</strong> {preset.receiverType === "player" ? "No egg possible" : `${Math.round(preview.scoreData.eggChance * 100)}%`}</p>
+                <p><strong>Estimated Refusal:</strong> {Math.round(preview.scoreData.refusalChance * 100)}%</p>
+                <p><strong>Family Risk:</strong> {preview.validation.familyRisk}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {preview.validation.canLoad ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        loadPreset(slot);
+                        setPresetPreviewTarget(null);
+                      }}
+                      className="rounded-2xl bg-rose-700 px-4 py-3 text-sm font-semibold text-white shadow"
+                    >
+                      Load Preset
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => loadPresetIntoCompare(slot)}
+                      className="rounded-2xl border border-rose-300 bg-white px-4 py-3 text-sm font-semibold text-stone-900 shadow"
+                    >
+                      Load + Compare
+                    </button>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+                    This preset cannot be loaded yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </HelpModal>
     </>
   );
