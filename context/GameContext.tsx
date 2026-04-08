@@ -197,6 +197,33 @@ type TownQuestTemplate = {
   requirement: QuestRequirement;
 };
 
+type TownNpcRelationshipTier = "stranger" | "friendly" | "trusted" | "close";
+
+type TownNpc = {
+  id: string;
+  name: string;
+  role: string;
+  personality: string;
+  relationship: number;
+  rewardMilestonesClaimed: number[];
+};
+
+type TownNpcQuest = {
+  id: number;
+  npcId: string;
+  npcName: string;
+  title: string;
+  description: string;
+  rewardGold: number;
+  rewardXp: number;
+  relationshipGain: number;
+  deadlineDay: number;
+  deadlineHour: number;
+  deadlineMinute: number;
+  requirement: QuestRequirement;
+  completed: boolean;
+};
+
 type SaveData = {
   currentDay: number;
   currentHour: number;
@@ -209,6 +236,8 @@ type SaveData = {
   breedingSelection: BreedingSelection;
   townStock: TownStockEntry[];
   townQuests: TownQuest[];
+  townNpcs: TownNpc[];
+  townNpcQuests: TownNpcQuest[];
   travelLog: TravelLogEntry[];
 };
 
@@ -224,6 +253,8 @@ type GameContextType = {
   breedingSelection: BreedingSelection;
   townStock: TownStockEntry[];
   townQuests: TownQuest[];
+  townNpcs: TownNpc[];
+  townNpcQuests: TownNpcQuest[];
   travelLog: TravelLogEntry[];
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
@@ -234,6 +265,7 @@ type GameContextType = {
   renamePlayer: (newName: string) => void;
   purchaseTownCreature: (stockEntryId: number) => void;
   submitCreatureToQuest: (questId: number, creatureId: number) => void;
+  submitCreatureToNpcQuest: (questId: number, creatureId: number) => void;
   travelTo: (destination: LocationName) => void;
   cookMeal: (creatureId: number) => void;
   cleanHome: (creatureId: number) => void;
@@ -242,68 +274,18 @@ type GameContextType = {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-const horseFirstNames = [
-  "Dusty",
-  "Clover",
-  "Rowan",
-  "Bramble",
-  "Flint",
-  "Maple",
-  "Sable",
-  "Thorn",
-];
-
-const horseLastNames = [
-  "Carter",
-  "Vale",
-  "Hoof",
-  "Hollow",
-  "Briar",
-  "Reed",
-  "Stone",
-  "Meadow",
-];
-
-const catFirstNames = [
-  "Velvet",
-  "Misty",
-  "Sable",
-  "Luna",
-  "Poppy",
-  "Ivy",
-  "Mochi",
-  "Pearl",
-];
-
-const catLastNames = [
-  "Whisk",
-  "Bell",
-  "Thorn",
-  "Silk",
-  "Mire",
-  "Moon",
-  "Bloom",
-  "Shade",
-];
+const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
+const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
+const catFirstNames = ["Velvet","Misty","Sable","Luna","Poppy","Ivy","Mochi","Pearl"];
+const catLastNames = ["Whisk","Bell","Thorn","Silk","Mire","Moon","Bloom","Shade"];
 
 const INBRED_TRAITS: InbredTrait[] = ["weak", "frail", "dull", "slow"];
 const GENERAL_TRAITS: CreatureTrait[] = [
-  "domestic",
-  "industrious",
-  "calm",
-  "fertile",
-  "quick",
-  "sturdy",
-  "affectionate",
-  "keen",
+  "domestic","industrious","calm","fertile","quick","sturdy","affectionate","keen",
 ];
 const HORSE_SPECIFIC_TRAITS: CreatureTrait[] = ["barnwise", "surefooted"];
 const CAT_SPECIFIC_TRAITS: CreatureTrait[] = ["night_prawler", "graceful"];
-const BREEDABLE_TRAITS: CreatureTrait[] = [
-  ...GENERAL_TRAITS,
-  ...HORSE_SPECIFIC_TRAITS,
-  ...CAT_SPECIFIC_TRAITS,
-];
+const BREEDABLE_TRAITS: CreatureTrait[] = [...GENERAL_TRAITS, ...HORSE_SPECIFIC_TRAITS, ...CAT_SPECIFIC_TRAITS];
 const TRAIT_GRADES: TraitGrade[] = ["F", "D", "C", "B", "A", "S"];
 
 function randomFrom<T>(items: readonly T[]): T {
@@ -315,12 +297,8 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function getAllowedTraitsForSpecies(speciesName: string): CreatureTrait[] {
-  if (speciesName === "Horse") {
-    return [...GENERAL_TRAITS, ...HORSE_SPECIFIC_TRAITS];
-  }
-  if (speciesName === "Cat") {
-    return [...GENERAL_TRAITS, ...CAT_SPECIFIC_TRAITS];
-  }
+  if (speciesName === "Horse") return [...GENERAL_TRAITS, ...HORSE_SPECIFIC_TRAITS];
+  if (speciesName === "Cat") return [...GENERAL_TRAITS, ...CAT_SPECIFIC_TRAITS];
   return [...GENERAL_TRAITS];
 }
 
@@ -337,24 +315,12 @@ function getTraitGradePriceBonus(grade: TraitGrade) {
   return 85;
 }
 
-function getXpToNextLevel(level: number): number {
-  return 50 + level * 25;
-}
-
-function getPlayerXpToNextLevel(level: number): number {
-  return 80 + level * 40;
-}
-
-function getSkillXpToNextLevel(level: number): number {
-  return 40 + level * 20;
-}
+function getXpToNextLevel(level: number): number { return 50 + level * 25; }
+function getPlayerXpToNextLevel(level: number): number { return 80 + level * 40; }
+function getSkillXpToNextLevel(level: number): number { return 40 + level * 20; }
 
 function createSkillProgress(): SkillProgress {
-  return {
-    level: 1,
-    xp: 0,
-    xpToNextLevel: getSkillXpToNextLevel(1),
-  };
+  return { level: 1, xp: 0, xpToNextLevel: getSkillXpToNextLevel(1) };
 }
 
 function createDefaultSkills(): CreatureSkills {
@@ -376,14 +342,8 @@ function getDailyBreedingLimitFromStats(stats: CreatureStats): number {
 }
 
 function generateNickname(speciesName: string): string {
-  if (speciesName === "Horse") {
-    return `${randomFrom(horseFirstNames)} ${randomFrom(horseLastNames)}`;
-  }
-
-  if (speciesName === "Cat") {
-    return `${randomFrom(catFirstNames)} ${randomFrom(catLastNames)}`;
-  }
-
+  if (speciesName === "Horse") return `${randomFrom(horseFirstNames)} ${randomFrom(horseLastNames)}`;
+  if (speciesName === "Cat") return `${randomFrom(catFirstNames)} ${randomFrom(catLastNames)}`;
   return `Creature ${Math.floor(Math.random() * 1000)}`;
 }
 
@@ -419,15 +379,10 @@ function maybeDowngradeGrade(grade: TraitGrade, chance: number): TraitGrade {
   return rankToGrade(getGradeRank(grade) - 1);
 }
 
-function getHighestTraitGrade(
-  creature: Creature | null,
-  trait: CreatureTrait
-): TraitGrade | null {
+function getHighestTraitGrade(creature: Creature | null, trait: CreatureTrait): TraitGrade | null {
   if (!creature) return null;
-
   const matches = creature.traits.filter((entry) => entry.trait === trait);
   if (matches.length === 0) return null;
-
   return matches.reduce((best, current) =>
     getGradeRank(current.grade) > getGradeRank(best.grade) ? current : best
   ).grade;
@@ -438,23 +393,14 @@ function hasTrait(creature: Creature | null, trait: CreatureTrait): boolean {
   return creature.traits.some((entry) => entry.trait === trait);
 }
 
-function getBestTraitEntry(
-  creature: Creature | null,
-  trait: CreatureTrait
-): CreatureTraitEntry | null {
+function getBestTraitEntry(creature: Creature | null, trait: CreatureTrait): CreatureTraitEntry | null {
   const grade = getHighestTraitGrade(creature, trait);
   return grade ? { trait, grade } : null;
 }
 
-function traitsToLegacyPrimaryTrait(
-  traits: CreatureTraitEntry[]
-): LegacyCreatureTrait {
+function traitsToLegacyPrimaryTrait(traits: CreatureTraitEntry[]): LegacyCreatureTrait {
   if (traits.length === 0) return "none";
-
-  const sorted = [...traits].sort(
-    (a, b) => getGradeRank(b.grade) - getGradeRank(a.grade)
-  );
-
+  const sorted = [...traits].sort((a, b) => getGradeRank(b.grade) - getGradeRank(a.grade));
   return sorted[0]?.trait ?? "none";
 }
 
@@ -464,25 +410,16 @@ function normalizeTraitList(
   speciesName?: string
 ): CreatureTraitEntry[] {
   const list: CreatureTraitEntry[] = Array.isArray(traits) ? traits : [];
-
   const deduped = new Map<CreatureTrait, CreatureTraitEntry>();
 
   for (const entry of list) {
     if (!entry?.trait) continue;
     if (!BREEDABLE_TRAITS.includes(entry.trait)) continue;
     if (speciesName && !isTraitAllowedForSpecies(speciesName, entry.trait)) continue;
-
-    const normalizedGrade: TraitGrade = TRAIT_GRADES.includes(entry.grade)
-      ? entry.grade
-      : "C";
-
+    const normalizedGrade: TraitGrade = TRAIT_GRADES.includes(entry.grade) ? entry.grade : "C";
     const existing = deduped.get(entry.trait);
-
     if (!existing || getGradeRank(normalizedGrade) > getGradeRank(existing.grade)) {
-      deduped.set(entry.trait, {
-        trait: entry.trait,
-        grade: normalizedGrade,
-      });
+      deduped.set(entry.trait, { trait: entry.trait, grade: normalizedGrade });
     }
   }
 
@@ -493,15 +430,10 @@ function normalizeTraitList(
     BREEDABLE_TRAITS.includes(legacyTrait) &&
     (!speciesName || isTraitAllowedForSpecies(speciesName, legacyTrait))
   ) {
-    deduped.set(legacyTrait, {
-      trait: legacyTrait,
-      grade: "C",
-    });
+    deduped.set(legacyTrait, { trait: legacyTrait, grade: "C" });
   }
 
-  return Array.from(deduped.values()).sort(
-    (a, b) => getGradeRank(b.grade) - getGradeRank(a.grade)
-  );
+  return Array.from(deduped.values()).sort((a, b) => getGradeRank(b.grade) - getGradeRank(a.grade));
 }
 
 function getTraitPowerMultiplier(grade: TraitGrade): number {
@@ -520,15 +452,9 @@ function getTraitFlatBonus(grade: TraitGrade, maxBonus: number): number {
 function createCreatureBase(
   partial: Omit<
     Creature,
-    | "level"
-    | "xp"
-    | "xpToNextLevel"
-    | "skills"
-    | "breedingStamina"
-    | "maxBreedingStamina"
-    | "breedingsToday"
-    | "dailyBreedingLimit"
-    | "trait"
+    | "level" | "xp" | "xpToNextLevel" | "skills"
+    | "breedingStamina" | "maxBreedingStamina"
+    | "breedingsToday" | "dailyBreedingLimit" | "trait"
   >
 ): Creature {
   const maxBreedingStamina = getMaxBreedingStaminaFromStats(partial.stats);
@@ -554,29 +480,11 @@ const horseTemplate: Creature = createCreatureBase({
   nickname: "Starter Horse",
   theme: "Field Worker",
   happiness: 60,
-  traits: [
-    createSkillTraitEntry("industrious", "B"),
-    createSkillTraitEntry("surefooted", "C"),
-  ],
-  stats: {
-    strength: 8,
-    endurance: 8,
-    intelligence: 4,
-    speed: 5,
-    fertility: 6,
-    vitality: 7,
-  },
-  giver: null,
-  receiver: null,
-  giverId: null,
-  receiverId: null,
-  giverIsPlayer: false,
-  receiverIsPlayer: false,
-  bornOnDay: 1,
-  generation: 1,
-  inbreedingRisk: "none",
-  inbredTrait: "none",
-  inbredTraitSeverity: "none",
+  traits: [createSkillTraitEntry("industrious", "B"), createSkillTraitEntry("surefooted", "C")],
+  stats: { strength: 8, endurance: 8, intelligence: 4, speed: 5, fertility: 6, vitality: 7 },
+  giver: null, receiver: null, giverId: null, receiverId: null,
+  giverIsPlayer: false, receiverIsPlayer: false, bornOnDay: 1, generation: 1,
+  inbreedingRisk: "none", inbredTrait: "none", inbredTraitSeverity: "none",
 });
 
 const catTemplate: Creature = createCreatureBase({
@@ -585,29 +493,11 @@ const catTemplate: Creature = createCreatureBase({
   nickname: "Starter Cat",
   theme: "House Maid",
   happiness: 60,
-  traits: [
-    createSkillTraitEntry("domestic", "B"),
-    createSkillTraitEntry("graceful", "C"),
-  ],
-  stats: {
-    strength: 4,
-    endurance: 5,
-    intelligence: 8,
-    speed: 8,
-    fertility: 7,
-    vitality: 5,
-  },
-  giver: null,
-  receiver: null,
-  giverId: null,
-  receiverId: null,
-  giverIsPlayer: false,
-  receiverIsPlayer: false,
-  bornOnDay: 1,
-  generation: 1,
-  inbreedingRisk: "none",
-  inbredTrait: "none",
-  inbredTraitSeverity: "none",
+  traits: [createSkillTraitEntry("domestic", "B"), createSkillTraitEntry("graceful", "C")],
+  stats: { strength: 4, endurance: 5, intelligence: 8, speed: 8, fertility: 7, vitality: 5 },
+  giver: null, receiver: null, giverId: null, receiverId: null,
+  giverIsPlayer: false, receiverIsPlayer: false, bornOnDay: 1, generation: 1,
+  inbreedingRisk: "none", inbredTrait: "none", inbredTraitSeverity: "none",
 });
 
 function getCreatureTemplateByName(name: string): Creature | null {
@@ -632,25 +522,13 @@ function calculateInbreedingRisk(
   giverIsPlayer: boolean,
   receiverIsPlayer: boolean
 ): InbreedingRisk {
-  if (
-    giverIsPlayer &&
-    receiverCreature &&
-    (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)
-  ) {
+  if (giverIsPlayer && receiverCreature && (receiverCreature.giverIsPlayer || receiverCreature.receiverIsPlayer)) {
     return "parent_child";
   }
-
-  if (
-    receiverIsPlayer &&
-    giverCreature &&
-    (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)
-  ) {
+  if (receiverIsPlayer && giverCreature && (giverCreature.giverIsPlayer || giverCreature.receiverIsPlayer)) {
     return "parent_child";
   }
-
-  if (!giverCreature || !receiverCreature) {
-    return "none";
-  }
+  if (!giverCreature || !receiverCreature) return "none";
 
   const isParentChild =
     giverCreature.id === receiverCreature.giverId ||
@@ -658,28 +536,18 @@ function calculateInbreedingRisk(
     receiverCreature.id === giverCreature.giverId ||
     receiverCreature.id === giverCreature.receiverId;
 
-  if (isParentChild) {
-    return "parent_child";
-  }
+  if (isParentChild) return "parent_child";
 
   const sameGiverSide =
-    (giverCreature.giverId !== null &&
-      giverCreature.giverId === receiverCreature.giverId) ||
+    (giverCreature.giverId !== null && giverCreature.giverId === receiverCreature.giverId) ||
     (giverCreature.giverIsPlayer && receiverCreature.giverIsPlayer);
 
   const sameReceiverSide =
-    (giverCreature.receiverId !== null &&
-      giverCreature.receiverId === receiverCreature.receiverId) ||
+    (giverCreature.receiverId !== null && giverCreature.receiverId === receiverCreature.receiverId) ||
     (giverCreature.receiverIsPlayer && receiverCreature.receiverIsPlayer);
 
-  if (sameGiverSide && sameReceiverSide) {
-    return "full_sibling";
-  }
-
-  if (sameGiverSide || sameReceiverSide) {
-    return "half_sibling";
-  }
-
+  if (sameGiverSide && sameReceiverSide) return "full_sibling";
+  if (sameGiverSide || sameReceiverSide) return "half_sibling";
   return "none";
 }
 
@@ -688,9 +556,7 @@ function createInheritedStats(
   giverCreature: Creature | null,
   receiverCreature: Creature | null
 ): CreatureStats {
-  const parentStats = [giverCreature?.stats, receiverCreature?.stats].filter(
-    Boolean
-  ) as CreatureStats[];
+  const parentStats = [giverCreature?.stats, receiverCreature?.stats].filter(Boolean) as CreatureStats[];
 
   if (parentStats.length === 0) {
     return {
@@ -704,43 +570,12 @@ function createInheritedStats(
   }
 
   return {
-    strength: Math.max(
-      1,
-      Math.round(
-        (baseStats.strength + average(parentStats.map((p) => p.strength))) / 2
-      ) + rollStatVariation()
-    ),
-    endurance: Math.max(
-      1,
-      Math.round(
-        (baseStats.endurance + average(parentStats.map((p) => p.endurance))) / 2
-      ) + rollStatVariation()
-    ),
-    intelligence: Math.max(
-      1,
-      Math.round(
-        (baseStats.intelligence +
-          average(parentStats.map((p) => p.intelligence))) / 2
-      ) + rollStatVariation()
-    ),
-    speed: Math.max(
-      1,
-      Math.round(
-        (baseStats.speed + average(parentStats.map((p) => p.speed))) / 2
-      ) + rollStatVariation()
-    ),
-    fertility: Math.max(
-      1,
-      Math.round(
-        (baseStats.fertility + average(parentStats.map((p) => p.fertility))) / 2
-      ) + rollStatVariation()
-    ),
-    vitality: Math.max(
-      1,
-      Math.round(
-        (baseStats.vitality + average(parentStats.map((p) => p.vitality))) / 2
-      ) + rollStatVariation()
-    ),
+    strength: Math.max(1, Math.round((baseStats.strength + average(parentStats.map((p) => p.strength))) / 2) + rollStatVariation()),
+    endurance: Math.max(1, Math.round((baseStats.endurance + average(parentStats.map((p) => p.endurance))) / 2) + rollStatVariation()),
+    intelligence: Math.max(1, Math.round((baseStats.intelligence + average(parentStats.map((p) => p.intelligence))) / 2) + rollStatVariation()),
+    speed: Math.max(1, Math.round((baseStats.speed + average(parentStats.map((p) => p.speed))) / 2) + rollStatVariation()),
+    fertility: Math.max(1, Math.round((baseStats.fertility + average(parentStats.map((p) => p.fertility))) / 2) + rollStatVariation()),
+    vitality: Math.max(1, Math.round((baseStats.vitality + average(parentStats.map((p) => p.vitality))) / 2) + rollStatVariation()),
   };
 }
 
@@ -754,31 +589,20 @@ function rollWildTraitSet(
   minTraits = 1,
   maxTraits = 3
 ): CreatureTraitEntry[] {
-  const desiredCount =
-    minTraits +
-    Math.floor(Math.random() * (Math.max(minTraits, maxTraits) - minTraits + 1));
-
+  const desiredCount = minTraits + Math.floor(Math.random() * (Math.max(minTraits, maxTraits) - minTraits + 1));
   const picked = new Map<CreatureTrait, CreatureTraitEntry>();
 
   for (const entry of templateTraits) {
     if (!isTraitAllowedForSpecies(speciesName, entry.trait)) continue;
-
     if (Math.random() < 0.5) {
-      picked.set(entry.trait, {
-        trait: entry.trait,
-        grade: maybeDowngradeGrade(entry.grade, 0.25),
-      });
+      picked.set(entry.trait, { trait: entry.trait, grade: maybeDowngradeGrade(entry.grade, 0.25) });
     }
   }
 
   while (picked.size < desiredCount) {
     const trait = rollRandomAllowedTrait(speciesName);
     if (picked.has(trait)) continue;
-
-    picked.set(trait, {
-      trait,
-      grade: rollRandomTraitGrade(),
-    });
+    picked.set(trait, { trait, grade: rollRandomTraitGrade() });
   }
 
   return Array.from(picked.values())
@@ -798,88 +622,52 @@ function createInheritedTraitSet(
 
   for (const parent of [giverCreature, receiverCreature]) {
     if (!parent) continue;
-
     for (const entry of parent.traits) {
       if (!allowedTraits.includes(entry.trait)) continue;
-
-      if (!parentTraitMap.has(entry.trait)) {
-        parentTraitMap.set(entry.trait, []);
-      }
+      if (!parentTraitMap.has(entry.trait)) parentTraitMap.set(entry.trait, []);
       parentTraitMap.get(entry.trait)!.push(entry.grade);
     }
   }
 
   const inherited = new Map<CreatureTrait, CreatureTraitEntry>();
-  const qualityUpgradeChance =
-    eggQuality === "exceptional" ? 0.22 : eggQuality === "strong" ? 0.12 : 0.05;
+  const qualityUpgradeChance = eggQuality === "exceptional" ? 0.22 : eggQuality === "strong" ? 0.12 : 0.05;
 
   for (const [trait, grades] of parentTraitMap.entries()) {
     const bestParentGrade = grades.reduce((best, current) =>
       getGradeRank(current) > getGradeRank(best) ? current : best
     );
-
     const appearsInBothParents = grades.length >= 2;
     let inheritChance = appearsInBothParents ? 0.84 : 0.56;
-
     if (eggQuality === "strong") inheritChance += 0.04;
     if (eggQuality === "exceptional") inheritChance += 0.08;
 
     if (Math.random() < inheritChance) {
       let rolledGrade = bestParentGrade;
-
       rolledGrade = maybeUpgradeGrade(
         rolledGrade,
         appearsInBothParents ? 0.18 + qualityUpgradeChance : 0.08 + qualityUpgradeChance
       );
-
-      if (inbreedingRisk !== "none") {
-        rolledGrade = maybeDowngradeGrade(rolledGrade, 0.12);
-      }
-
-      inherited.set(trait, {
-        trait,
-        grade: rolledGrade,
-      });
+      if (inbreedingRisk !== "none") rolledGrade = maybeDowngradeGrade(rolledGrade, 0.12);
+      inherited.set(trait, { trait, grade: rolledGrade });
     }
   }
 
   let desiredCount = inherited.size;
+  if (desiredCount === 0) desiredCount = Math.random() < 0.7 ? 1 : 2;
+  else if (desiredCount === 1 && Math.random() < 0.5) desiredCount = 2;
+  else if (desiredCount >= 2 && Math.random() < 0.25) desiredCount = Math.min(3, desiredCount + 1);
 
-  if (desiredCount === 0) {
-    desiredCount = Math.random() < 0.7 ? 1 : 2;
-  } else if (desiredCount === 1 && Math.random() < 0.5) {
-    desiredCount = 2;
-  } else if (desiredCount >= 2 && Math.random() < 0.25) {
-    desiredCount = Math.min(3, desiredCount + 1);
-  }
-
-  const mutationChance =
-    eggQuality === "exceptional" ? 0.28 : eggQuality === "strong" ? 0.18 : 0.1;
-
-  if (Math.random() < mutationChance) {
-    desiredCount = Math.min(3, desiredCount + 1);
-  }
+  const mutationChance = eggQuality === "exceptional" ? 0.28 : eggQuality === "strong" ? 0.18 : 0.1;
+  if (Math.random() < mutationChance) desiredCount = Math.min(3, desiredCount + 1);
 
   while (inherited.size < desiredCount) {
     const randomTrait = rollRandomAllowedTrait(childSpeciesName);
     if (inherited.has(randomTrait)) continue;
-
     let grade = rollRandomTraitGrade();
-
-    if (eggQuality === "strong") {
-      grade = maybeUpgradeGrade(grade, 0.08);
-    } else if (eggQuality === "exceptional") {
-      grade = maybeUpgradeGrade(grade, 0.14);
-    }
-
-    if (inbreedingRisk !== "none") {
-      grade = maybeDowngradeGrade(grade, 0.15);
-    }
-
-    inherited.set(randomTrait, {
-      trait: randomTrait,
-      grade,
-    });
+    if (eggQuality === "strong") grade = maybeUpgradeGrade(grade, 0.08);
+    else if (eggQuality === "exceptional") grade = maybeUpgradeGrade(grade, 0.14);
+    if (inbreedingRisk !== "none") grade = maybeDowngradeGrade(grade, 0.15);
+    inherited.set(randomTrait, { trait: randomTrait, grade });
   }
 
   return Array.from(inherited.values())
@@ -890,51 +678,23 @@ function createInheritedTraitSet(
 function applyInbreedingPenalty(
   stats: CreatureStats,
   risk: InbreedingRisk
-): {
-  stats: CreatureStats;
-  inbredTrait: InbredTrait;
-  inbredTraitSeverity: InbredTraitSeverity;
-} {
-  if (risk === "none") {
-    return {
-      stats,
-      inbredTrait: "none",
-      inbredTraitSeverity: "none",
-    };
-  }
+): { stats: CreatureStats; inbredTrait: InbredTrait; inbredTraitSeverity: InbredTraitSeverity } {
+  if (risk === "none") return { stats, inbredTrait: "none", inbredTraitSeverity: "none" };
 
   const inbredTrait = randomFrom(INBRED_TRAITS);
   const penalty = risk === "half_sibling" ? 1 : 2;
-  const severity: InbredTraitSeverity =
-    risk === "half_sibling" ? "mild" : "severe";
-
+  const severity: InbredTraitSeverity = risk === "half_sibling" ? "mild" : "severe";
   const adjustedStats = { ...stats };
 
-  if (inbredTrait === "weak") {
-    adjustedStats.strength = Math.max(1, adjustedStats.strength - penalty);
-  }
-
+  if (inbredTrait === "weak") adjustedStats.strength = Math.max(1, adjustedStats.strength - penalty);
   if (inbredTrait === "frail") {
     adjustedStats.endurance = Math.max(1, adjustedStats.endurance - penalty);
     adjustedStats.vitality = Math.max(1, adjustedStats.vitality - 1);
   }
+  if (inbredTrait === "dull") adjustedStats.intelligence = Math.max(1, adjustedStats.intelligence - penalty);
+  if (inbredTrait === "slow") adjustedStats.speed = Math.max(1, adjustedStats.speed - penalty);
 
-  if (inbredTrait === "dull") {
-    adjustedStats.intelligence = Math.max(
-      1,
-      adjustedStats.intelligence - penalty
-    );
-  }
-
-  if (inbredTrait === "slow") {
-    adjustedStats.speed = Math.max(1, adjustedStats.speed - penalty);
-  }
-
-  return {
-    stats: adjustedStats,
-    inbredTrait,
-    inbredTraitSeverity: severity,
-  };
+  return { stats: adjustedStats, inbredTrait, inbredTraitSeverity: severity };
 }
 
 function createCreatureFromTemplate(
@@ -952,12 +712,7 @@ function createCreatureFromTemplate(
   receiverCreature: Creature | null,
   eggQuality: EggQuality
 ): Creature {
-  const inheritedStats = createInheritedStats(
-    template.stats,
-    giverCreature,
-    receiverCreature
-  );
-
+  const inheritedStats = createInheritedStats(template.stats, giverCreature, receiverCreature);
   const penaltyResult = applyInbreedingPenalty(inheritedStats, inbreedingRisk);
   const inheritedTraits = createInheritedTraitSet(
     template.name,
@@ -967,12 +722,8 @@ function createCreatureFromTemplate(
     eggQuality
   );
 
-  const maxBreedingStamina = getMaxBreedingStaminaFromStats(
-    penaltyResult.stats
-  );
-  const dailyBreedingLimit = getDailyBreedingLimitFromStats(
-    penaltyResult.stats
-  );
+  const maxBreedingStamina = getMaxBreedingStaminaFromStats(penaltyResult.stats);
+  const dailyBreedingLimit = getDailyBreedingLimitFromStats(penaltyResult.stats);
 
   return {
     ...template,
@@ -1006,11 +757,7 @@ function createCreatureFromTemplate(
 
 function normalizeSkillProgress(skill?: SkillProgress): SkillProgress {
   const level = skill?.level ?? 1;
-  return {
-    level,
-    xp: skill?.xp ?? 0,
-    xpToNextLevel: skill?.xpToNextLevel ?? getSkillXpToNextLevel(level),
-  };
+  return { level, xp: skill?.xp ?? 0, xpToNextLevel: skill?.xpToNextLevel ?? getSkillXpToNextLevel(level) };
 }
 
 function normalizeCreature(creature: Creature): Creature {
@@ -1023,26 +770,15 @@ function normalizeCreature(creature: Creature): Creature {
     vitality: creature.stats?.vitality ?? 5,
   };
 
-  const normalizedTraits = normalizeTraitList(
-    creature.traits,
-    creature.trait,
-    creature.name
-  );
-
-  const maxBreedingStamina =
-    creature.maxBreedingStamina ??
-    getMaxBreedingStaminaFromStats(normalizedStats);
-
-  const dailyBreedingLimit =
-    creature.dailyBreedingLimit ??
-    getDailyBreedingLimitFromStats(normalizedStats);
+  const normalizedTraits = normalizeTraitList(creature.traits, creature.trait, creature.name);
+  const maxBreedingStamina = creature.maxBreedingStamina ?? getMaxBreedingStaminaFromStats(normalizedStats);
+  const dailyBreedingLimit = creature.dailyBreedingLimit ?? getDailyBreedingLimitFromStats(normalizedStats);
 
   return {
     ...creature,
     level: creature.level ?? 1,
     xp: creature.xp ?? 0,
-    xpToNextLevel:
-      creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
+    xpToNextLevel: creature.xpToNextLevel ?? getXpToNextLevel(creature.level ?? 1),
     happiness: creature.happiness ?? 60,
     traits: normalizedTraits,
     trait: traitsToLegacyPrimaryTrait(normalizedTraits),
@@ -1065,22 +801,16 @@ function normalizeCreature(creature: Creature): Creature {
 }
 
 function normalizeEgg(egg: Egg): Egg {
-  return {
-    ...egg,
-    inbreedingRisk: egg.inbreedingRisk ?? "none",
-    quality: egg.quality ?? "normal",
-  };
+  return { ...egg, inbreedingRisk: egg.inbreedingRisk ?? "none", quality: egg.quality ?? "normal" };
 }
 
 function normalizePlayerData(playerData: PlayerData): PlayerData {
   const level = playerData.level ?? 1;
-
   return {
     ...playerData,
     level,
     xp: playerData.xp ?? 0,
-    xpToNextLevel:
-      playerData.xpToNextLevel ?? getPlayerXpToNextLevel(level),
+    xpToNextLevel: playerData.xpToNextLevel ?? getPlayerXpToNextLevel(level),
     happiness: playerData.happiness ?? 60,
     stats: {
       strength: playerData.stats?.strength ?? 6,
@@ -1102,6 +832,54 @@ function normalizeHomeState(homeState?: HomeState): HomeState {
   };
 }
 
+function getRelationshipTier(relationship: number): TownNpcRelationshipTier {
+  if (relationship >= 75) return "close";
+  if (relationship >= 50) return "trusted";
+  if (relationship >= 25) return "friendly";
+  return "stranger";
+}
+
+const defaultTownNpcs: TownNpc[] = [
+  {
+    id: "mira",
+    name: "Mira",
+    role: "Stable Keeper",
+    personality: "Practical and ranch-focused.",
+    relationship: 0,
+    rewardMilestonesClaimed: [],
+  },
+  {
+    id: "tobin",
+    name: "Tobin",
+    role: "Courier Captain",
+    personality: "Busy, efficient, and speed-obsessed.",
+    relationship: 0,
+    rewardMilestonesClaimed: [],
+  },
+  {
+    id: "selene",
+    name: "Selene",
+    role: "House Steward",
+    personality: "Warm, observant, and fond of gentle creatures.",
+    relationship: 0,
+    rewardMilestonesClaimed: [],
+  },
+];
+
+function normalizeTownNpc(npc: TownNpc): TownNpc {
+  return {
+    ...npc,
+    relationship: npc.relationship ?? 0,
+    rewardMilestonesClaimed: Array.isArray(npc.rewardMilestonesClaimed)
+      ? npc.rewardMilestonesClaimed
+      : [],
+  };
+}
+
+function normalizeTownNpcQuest(quest: TownNpcQuest): TownNpcQuest {
+  return { ...quest, completed: quest.completed ?? false };
+}
+
 function calculateTownCreaturePrice(creature: Creature): number {
   const statTotal =
     creature.stats.strength +
@@ -1114,35 +892,21 @@ function calculateTownCreaturePrice(creature: Creature): number {
   const traitValue = creature.traits.reduce((sum, entry) => {
     const gradeValue = getTraitGradePriceBonus(entry.grade);
     const speciesLockedBonus =
-      HORSE_SPECIFIC_TRAITS.includes(entry.trait) ||
-      CAT_SPECIFIC_TRAITS.includes(entry.trait)
+      HORSE_SPECIFIC_TRAITS.includes(entry.trait) || CAT_SPECIFIC_TRAITS.includes(entry.trait)
         ? 18
         : 0;
     return sum + gradeValue + speciesLockedBonus;
   }, 0);
 
   const multipleTraitBonus =
-    creature.traits.length >= 3
-      ? 45
-      : creature.traits.length === 2
-      ? 18
-      : creature.traits.length === 1
-      ? 8
-      : 0;
+    creature.traits.length >= 3 ? 45 :
+    creature.traits.length === 2 ? 18 :
+    creature.traits.length === 1 ? 8 : 0;
 
-  return (
-    80 +
-    statTotal * 3 +
-    traitValue +
-    multipleTraitBonus +
-    Math.max(0, creature.level - 1) * 10
-  );
+  return 80 + statTotal * 3 + traitValue + multipleTraitBonus + Math.max(0, creature.level - 1) * 10;
 }
 
-function createTownSellerCreature(
-  template: Creature,
-  currentDay: number
-): Creature {
+function createTownSellerCreature(template: Creature, currentDay: number): Creature {
   const stats = {
     strength: Math.max(1, template.stats.strength + rollStatVariation()),
     endurance: Math.max(1, template.stats.endurance + rollStatVariation()),
@@ -1188,11 +952,9 @@ function createTownSellerCreature(
 
 function generateTownStock(currentDay: number): TownStockEntry[] {
   const templates = [horseTemplate, catTemplate];
-
   return Array.from({ length: 3 }).map((_, index) => {
     const template = randomFrom(templates);
     const creature = createTownSellerCreature(template, currentDay);
-
     return {
       id: currentDay * 100 + index + 1,
       creature,
@@ -1201,10 +963,7 @@ function generateTownStock(currentDay: number): TownStockEntry[] {
   });
 }
 
-function createSingleTownQuest(
-  currentDay: number,
-  questIdSeed: number
-): TownQuest {
+function createSingleTownQuest(currentDay: number, questIdSeed: number): TownQuest {
   const questTemplates: TownQuestTemplate[] = [
     {
       title: "Stable Delivery",
@@ -1214,13 +973,7 @@ function createSingleTownQuest(
       deadlineOffsetDays: 2,
       deadlineHour: 18,
       deadlineMinute: 0,
-      requirement: {
-        species: "Horse",
-        minimumLevel: 1,
-        minimumStats: {
-          endurance: 8,
-        },
-      },
+      requirement: { species: "Horse", minimumLevel: 1, minimumStats: { endurance: 8 } },
     },
     {
       title: "Household Companion",
@@ -1230,31 +983,17 @@ function createSingleTownQuest(
       deadlineOffsetDays: 2,
       deadlineHour: 20,
       deadlineMinute: 0,
-      requirement: {
-        species: "Cat",
-        minimumLevel: 1,
-        minimumStats: {
-          intelligence: 8,
-          speed: 7,
-        },
-      },
+      requirement: { species: "Cat", minimumLevel: 1, minimumStats: { intelligence: 8, speed: 7 } },
     },
     {
       title: "Healthy Bloodline",
-      description:
-        "Submit any creature with no inbreeding risk and solid vitality.",
+      description: "Submit any creature with no inbreeding risk and solid vitality.",
       rewardGold: 175,
       rewardXp: 35,
       deadlineOffsetDays: 3,
       deadlineHour: 12,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: {
-          vitality: 7,
-        },
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { vitality: 7 } },
     },
     {
       title: "Swift Courier",
@@ -1264,13 +1003,7 @@ function createSingleTownQuest(
       deadlineOffsetDays: 2,
       deadlineHour: 16,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 1,
-        minimumStats: {
-          speed: 8,
-        },
-      },
+      requirement: { species: "any", minimumLevel: 1, minimumStats: { speed: 8 } },
     },
     {
       title: "Fertile Prospect",
@@ -1280,13 +1013,7 @@ function createSingleTownQuest(
       deadlineOffsetDays: 3,
       deadlineHour: 14,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: {
-          fertility: 8,
-        },
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { fertility: 8 } },
     },
     {
       title: "Kitchen Assistant",
@@ -1299,9 +1026,7 @@ function createSingleTownQuest(
       requirement: {
         species: "any",
         minimumLevel: 2,
-        minimumStats: {
-          intelligence: 7,
-        },
+        minimumStats: { intelligence: 7 },
         requiredTrait: "domestic",
       },
     },
@@ -1316,10 +1041,7 @@ function createSingleTownQuest(
       requirement: {
         species: "any",
         minimumLevel: 2,
-        minimumStats: {
-          strength: 7,
-          endurance: 7,
-        },
+        minimumStats: { strength: 7, endurance: 7 },
         requiredTrait: "industrious",
       },
     },
@@ -1334,16 +1056,43 @@ function createSingleTownQuest(
       requirement: {
         species: "any",
         minimumLevel: 2,
-        minimumStats: {
-          vitality: 6,
-        },
+        minimumStats: { vitality: 6 },
         requiredTrait: "calm",
+      },
+    },
+    {
+      title: "Barn Scout",
+      description: "Submit a Horse with a Surefooted or Keen edge for route scouting.",
+      rewardGold: 190,
+      rewardXp: 40,
+      deadlineOffsetDays: 3,
+      deadlineHour: 18,
+      deadlineMinute: 30,
+      requirement: {
+        species: "Horse",
+        minimumLevel: 2,
+        minimumStats: { speed: 7, intelligence: 5 },
+        requiredTrait: "surefooted",
+      },
+    },
+    {
+      title: "Night Watch",
+      description: "Submit a Cat suited for late patrol work.",
+      rewardGold: 195,
+      rewardXp: 40,
+      deadlineOffsetDays: 3,
+      deadlineHour: 22,
+      deadlineMinute: 0,
+      requirement: {
+        species: "Cat",
+        minimumLevel: 2,
+        minimumStats: { speed: 8 },
+        requiredTrait: "night_prawler",
       },
     },
   ];
 
   const template = randomFrom(questTemplates);
-
   return {
     id: questIdSeed,
     title: template.title,
@@ -1369,8 +1118,75 @@ function generateTownQuests(currentDay: number): TownQuest[] {
   );
 }
 
+function createNpcQuestTemplates(currentDay: number, seedBase: number): TownNpcQuest[] {
+  const templates: Omit<TownNpcQuest, "id" | "deadlineDay" | "completed">[] = [
+    {
+      npcId: "mira",
+      npcName: "Mira",
+      title: "Stable Hands Needed",
+      description: "Mira wants a reliable ranch helper with endurance and a work trait.",
+      rewardGold: 120,
+      rewardXp: 24,
+      relationshipGain: 12,
+      deadlineHour: 18,
+      deadlineMinute: 0,
+      requirement: {
+        species: "Horse",
+        minimumLevel: 2,
+        minimumStats: { endurance: 8 },
+        requiredTrait: "barnwise",
+      },
+    },
+    {
+      npcId: "tobin",
+      npcName: "Tobin",
+      title: "Courier Trial",
+      description: "Tobin is looking for a fast escort creature for urgent deliveries.",
+      rewardGold: 115,
+      rewardXp: 24,
+      relationshipGain: 12,
+      deadlineHour: 16,
+      deadlineMinute: 0,
+      requirement: {
+        species: "any",
+        minimumLevel: 2,
+        minimumStats: { speed: 8 },
+        requiredTrait: "keen",
+      },
+    },
+    {
+      npcId: "selene",
+      npcName: "Selene",
+      title: "Comfort Companion",
+      description: "Selene wants a gentle household companion for guest support.",
+      rewardGold: 110,
+      rewardXp: 24,
+      relationshipGain: 12,
+      deadlineHour: 20,
+      deadlineMinute: 0,
+      requirement: {
+        species: "any",
+        minimumLevel: 2,
+        minimumStats: { intelligence: 6 },
+        requiredTrait: "affectionate",
+      },
+    },
+  ];
+
+  return templates.map((template, index) => ({
+    ...template,
+    id: seedBase + index + 1,
+    deadlineDay: currentDay + 2,
+    completed: false,
+  }));
+}
+
+function generateTownNpcQuests(currentDay: number): TownNpcQuest[] {
+  return createNpcQuestTemplates(currentDay, currentDay * 2000);
+}
+
 function isQuestExpired(
-  quest: TownQuest,
+  quest: { deadlineDay: number; deadlineHour: number; deadlineMinute: number },
   currentDay: number,
   currentHour: number,
   currentMinute: number
@@ -1390,32 +1206,53 @@ function ensureQuestBoardSize(
   desiredCount = 10
 ): TownQuest[] {
   const activeQuests = quests.filter(
-    (quest) =>
-      !quest.completed &&
-      !isQuestExpired(quest, currentDay, currentHour, currentMinute)
+    (quest) => !quest.completed && !isQuestExpired(quest, currentDay, currentHour, currentMinute)
   );
 
   let nextIdSeed =
-    activeQuests.length > 0
-      ? Math.max(...activeQuests.map((quest) => quest.id)) + 1
-      : currentDay * 1000 + 1;
+    activeQuests.length > 0 ? Math.max(...activeQuests.map((quest) => quest.id)) + 1 : currentDay * 1000 + 1;
 
   const nextQuests = [...activeQuests];
-
   while (nextQuests.length < desiredCount) {
     nextQuests.push(createSingleTownQuest(currentDay, nextIdSeed));
     nextIdSeed += 1;
+  }
+  return nextQuests.slice(0, desiredCount);
+}
+
+function ensureNpcQuestBoardSize(
+  quests: TownNpcQuest[],
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number,
+  desiredCount = 3
+): TownNpcQuest[] {
+  const activeQuests = quests.filter(
+    (quest) => !quest.completed && !isQuestExpired(quest, currentDay, currentHour, currentMinute)
+  );
+
+  let nextSeed =
+    activeQuests.length > 0 ? Math.max(...activeQuests.map((quest) => quest.id)) + 1 : currentDay * 2000 + 1;
+
+  const nextQuests = [...activeQuests];
+  const refillTemplates = createNpcQuestTemplates(currentDay, nextSeed);
+
+  for (const template of refillTemplates) {
+    if (nextQuests.length >= desiredCount) break;
+    if (!nextQuests.some((quest) => quest.npcId === template.npcId && quest.title === template.title)) {
+      nextQuests.push({ ...template, id: nextSeed++ });
+    }
+  }
+
+  while (nextQuests.length < desiredCount) {
+    const fallback = randomFrom(createNpcQuestTemplates(currentDay, nextSeed));
+    nextQuests.push({ ...fallback, id: nextSeed++ });
   }
 
   return nextQuests.slice(0, desiredCount);
 }
 
-function applyTownActionTimeCost(
-  day: number,
-  hour: number,
-  minute: number,
-  minutesToAdd: number
-) {
+function applyTownActionTimeCost(day: number, hour: number, minute: number, minutesToAdd: number) {
   return addMinutesToClock(day, hour, minute, minutesToAdd);
 }
 
@@ -1424,63 +1261,39 @@ function applyIntelligenceRiskMitigation(
   giverCreature: Creature | null,
   receiverCreature: Creature | null
 ): InbreedingRisk {
-  if (baseRisk === "none") {
-    return "none";
-  }
+  if (baseRisk === "none") return "none";
 
-  const intelligenceValues = [
-    giverCreature?.stats.intelligence,
-    receiverCreature?.stats.intelligence,
-  ].filter((value): value is number => typeof value === "number");
+  const intelligenceValues = [giverCreature?.stats.intelligence, receiverCreature?.stats.intelligence]
+    .filter((value): value is number => typeof value === "number");
 
-  if (intelligenceValues.length === 0) {
-    return baseRisk;
-  }
+  if (intelligenceValues.length === 0) return baseRisk;
 
   const avgIntelligence = average(intelligenceValues);
 
   if (baseRisk === "half_sibling") {
-    const mitigationChance = Math.min(
-      0.45,
-      Math.max(0, (avgIntelligence - 6) * 0.05)
-    );
-    if (Math.random() < mitigationChance) {
-      return "none";
-    }
+    const mitigationChance = Math.min(0.45, Math.max(0, (avgIntelligence - 6) * 0.05));
+    if (Math.random() < mitigationChance) return "none";
   }
 
   if (baseRisk === "parent_child" || baseRisk === "full_sibling") {
-    const downgradeChance = Math.min(
-      0.35,
-      Math.max(0, (avgIntelligence - 7) * 0.04)
-    );
-    if (Math.random() < downgradeChance) {
-      return "half_sibling";
-    }
+    const downgradeChance = Math.min(0.35, Math.max(0, (avgIntelligence - 7) * 0.04));
+    if (Math.random() < downgradeChance) return "half_sibling";
   }
 
   return baseRisk;
 }
 
-function getQuickTraitSpeedBonus(
-  participantType: "player" | "creature",
-  creature: Creature | null
-) {
-  if (participantType === "player") return 0;
-  if (!creature) return 0;
-
+function getQuickTraitSpeedBonus(participantType: "player" | "creature", creature: Creature | null) {
+  if (participantType === "player" || !creature) return 0;
   const quickEntry = getBestTraitEntry(creature, "quick");
   if (!quickEntry) return 0;
-
   return getTraitFlatBonus(quickEntry.grade, 10);
 }
 
 function getSturdyTraitStaminaDiscount(creature: Creature | null) {
   if (!creature) return 0;
-
   const sturdyEntry = getBestTraitEntry(creature, "sturdy");
   if (!sturdyEntry) return 0;
-
   return getTraitFlatBonus(sturdyEntry.grade, 3);
 }
 
@@ -1492,30 +1305,19 @@ function getBreedingSessionMinutes(
 ): number {
   const speedValues = [giverCreature?.stats.speed, receiverCreature?.stats.speed]
     .filter((value): value is number => typeof value === "number");
-
   const avgSpeed = speedValues.length > 0 ? average(speedValues) : 6;
-  const traitBonus =
-    getQuickTraitSpeedBonus(giverType, giverCreature) +
-    getQuickTraitSpeedBonus(receiverType, receiverCreature);
-
+  const traitBonus = getQuickTraitSpeedBonus(giverType, giverCreature) + getQuickTraitSpeedBonus(receiverType, receiverCreature);
   return Math.max(25, 120 - Math.round(avgSpeed * 6) - traitBonus);
 }
 
 function getBreedingStaminaCost(creature: Creature): number {
   return Math.max(
     6,
-    22 -
-      Math.floor(creature.stats.endurance / 2) -
-      getSturdyTraitStaminaDiscount(creature)
+    22 - Math.floor(creature.stats.endurance / 2) - getSturdyTraitStaminaDiscount(creature)
   );
 }
 
-function addMinutesToClock(
-  day: number,
-  hour: number,
-  minute: number,
-  minutesToAdd: number
-) {
+function addMinutesToClock(day: number, hour: number, minute: number, minutesToAdd: number) {
   let totalMinutes = hour * 60 + minute + minutesToAdd;
   let newDay = day;
 
@@ -1524,18 +1326,11 @@ function addMinutesToClock(
     newDay += 1;
   }
 
-  return {
-    day: newDay,
-    hour: Math.floor(totalMinutes / 60),
-    minute: totalMinutes % 60,
-  };
+  return { day: newDay, hour: Math.floor(totalMinutes / 60), minute: totalMinutes % 60 };
 }
 
 function applyXpGain(creature: Creature, xpGain: number): Creature {
-  let updatedCreature = {
-    ...creature,
-    xp: creature.xp + xpGain,
-  };
+  let updatedCreature = { ...creature, xp: creature.xp + xpGain };
 
   while (updatedCreature.xp >= updatedCreature.xpToNextLevel) {
     updatedCreature = {
@@ -1544,37 +1339,22 @@ function applyXpGain(creature: Creature, xpGain: number): Creature {
       level: updatedCreature.level + 1,
       xpToNextLevel: getXpToNextLevel(updatedCreature.level + 1),
       stats: {
-        strength:
-          updatedCreature.stats.strength +
-          (updatedCreature.level % 2 === 0 ? 1 : 0),
+        strength: updatedCreature.stats.strength + (updatedCreature.level % 2 === 0 ? 1 : 0),
         endurance: updatedCreature.stats.endurance + 1,
-        intelligence:
-          updatedCreature.stats.intelligence +
-          (updatedCreature.level % 3 === 0 ? 1 : 0),
-        speed:
-          updatedCreature.stats.speed +
-          (updatedCreature.level % 2 !== 0 ? 1 : 0),
-        fertility:
-          updatedCreature.stats.fertility +
-          (updatedCreature.level % 3 === 0 ? 1 : 0),
+        intelligence: updatedCreature.stats.intelligence + (updatedCreature.level % 3 === 0 ? 1 : 0),
+        speed: updatedCreature.stats.speed + (updatedCreature.level % 2 !== 0 ? 1 : 0),
+        fertility: updatedCreature.stats.fertility + (updatedCreature.level % 3 === 0 ? 1 : 0),
         vitality: updatedCreature.stats.vitality + 1,
       },
     };
 
-    const recalculatedMaxStamina = getMaxBreedingStaminaFromStats(
-      updatedCreature.stats
-    );
-    const recalculatedDailyLimit = getDailyBreedingLimitFromStats(
-      updatedCreature.stats
-    );
+    const recalculatedMaxStamina = getMaxBreedingStaminaFromStats(updatedCreature.stats);
+    const recalculatedDailyLimit = getDailyBreedingLimitFromStats(updatedCreature.stats);
 
     updatedCreature = {
       ...updatedCreature,
       maxBreedingStamina: recalculatedMaxStamina,
-      breedingStamina: Math.min(
-        recalculatedMaxStamina,
-        updatedCreature.breedingStamina + 6
-      ),
+      breedingStamina: Math.min(recalculatedMaxStamina, updatedCreature.breedingStamina + 6),
       dailyBreedingLimit: recalculatedDailyLimit,
     };
   }
@@ -1583,10 +1363,7 @@ function applyXpGain(creature: Creature, xpGain: number): Creature {
 }
 
 function applyPlayerXpGain(playerData: PlayerData, xpGain: number): PlayerData {
-  let updatedPlayer = {
-    ...playerData,
-    xp: playerData.xp + xpGain,
-  };
+  let updatedPlayer = { ...playerData, xp: playerData.xp + xpGain };
 
   while (updatedPlayer.xp >= updatedPlayer.xpToNextLevel) {
     updatedPlayer = {
@@ -1602,10 +1379,7 @@ function applyPlayerXpGain(playerData: PlayerData, xpGain: number): PlayerData {
 }
 
 function applySkillXpGain(skill: SkillProgress, xpGain: number): SkillProgress {
-  let updatedSkill = {
-    ...skill,
-    xp: skill.xp + xpGain,
-  };
+  let updatedSkill = { ...skill, xp: skill.xp + xpGain };
 
   while (updatedSkill.xp >= updatedSkill.xpToNextLevel) {
     updatedSkill = {
@@ -1619,11 +1393,7 @@ function applySkillXpGain(skill: SkillProgress, xpGain: number): SkillProgress {
   return updatedSkill;
 }
 
-function applyCreatureSkillXp(
-  creature: Creature,
-  skillName: keyof CreatureSkills,
-  xpGain: number
-): Creature {
+function applyCreatureSkillXp(creature: Creature, skillName: keyof CreatureSkills, xpGain: number): Creature {
   return {
     ...creature,
     skills: {
@@ -1648,9 +1418,7 @@ function getParticipantSnapshot(
     };
   }
 
-  if (!creature) {
-    return null;
-  }
+  if (!creature) return null;
 
   return {
     isPlayer: false,
@@ -1662,30 +1430,15 @@ function getParticipantSnapshot(
 }
 
 function getEggProductionChance(
-  giverParticipant: {
-    happiness: number;
-    stats: CreatureStats;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
-  } | null,
-  receiverParticipant: {
-    happiness: number;
-    stats: CreatureStats;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
-  } | null,
+  giverParticipant: { happiness: number; stats: CreatureStats; breedingCareLevel: number; traits: CreatureTraitEntry[] } | null,
+  receiverParticipant: { happiness: number; stats: CreatureStats; breedingCareLevel: number; traits: CreatureTraitEntry[] } | null,
   homeState: HomeState
 ) {
   const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
-    happiness: number;
-    stats: CreatureStats;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
+    happiness: number; stats: CreatureStats; breedingCareLevel: number; traits: CreatureTraitEntry[];
   }[];
 
-  if (participants.length === 0) {
-    return 0.5;
-  }
+  if (participants.length === 0) return 0.5;
 
   const avgFertility = average(participants.map((p) => p.stats.fertility));
   const avgVitality = average(participants.map((p) => p.stats.vitality));
@@ -1697,59 +1450,34 @@ function getEggProductionChance(
   }, 0);
 
   let chance = 0.45;
-
   chance += (avgFertility - 5) * 0.05;
   chance += (avgVitality - 5) * 0.02;
   chance += (avgHappiness - 50) * 0.003;
   chance += avgBreedingCare * 0.015;
   chance += fertileTraitBonus;
 
-  if (homeState.cleanliness >= 80) {
-    chance += 0.08;
-  } else if (homeState.cleanliness >= 50) {
-    chance += 0.03;
-  } else if (homeState.cleanliness < 25) {
-    chance -= 0.15;
-  } else if (homeState.cleanliness < 50) {
-    chance -= 0.07;
-  }
+  if (homeState.cleanliness >= 80) chance += 0.08;
+  else if (homeState.cleanliness >= 50) chance += 0.03;
+  else if (homeState.cleanliness < 25) chance -= 0.15;
+  else if (homeState.cleanliness < 50) chance -= 0.07;
 
-  if (homeState.foodStock >= 8) {
-    chance += 0.04;
-  } else if (homeState.foodStock <= 0) {
-    chance -= 0.12;
-  } else if (homeState.foodStock <= 2) {
-    chance -= 0.05;
-  }
+  if (homeState.foodStock >= 8) chance += 0.04;
+  else if (homeState.foodStock <= 0) chance -= 0.12;
+  else if (homeState.foodStock <= 2) chance -= 0.05;
 
   return clamp(chance, 0.1, 0.95);
 }
 
 function getEggQualityFromPairing(
-  giverParticipant: {
-    happiness: number;
-    stats: CreatureStats;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
-  } | null,
-  receiverParticipant: {
-    happiness: number;
-    stats: CreatureStats;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
-  } | null,
+  giverParticipant: { happiness: number; stats: CreatureStats; breedingCareLevel: number; traits: CreatureTraitEntry[] } | null,
+  receiverParticipant: { happiness: number; stats: CreatureStats; breedingCareLevel: number; traits: CreatureTraitEntry[] } | null,
   homeState: HomeState
 ): EggQuality {
   const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
-    happiness: number;
-    stats: CreatureStats;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
+    happiness: number; stats: CreatureStats; breedingCareLevel: number; traits: CreatureTraitEntry[];
   }[];
 
-  if (participants.length === 0) {
-    return "normal";
-  }
+  if (participants.length === 0) return "normal";
 
   const avgFertility = average(participants.map((p) => p.stats.fertility));
   const avgVitality = average(participants.map((p) => p.stats.vitality));
@@ -1784,212 +1512,85 @@ function getEggQualityFromPairing(
   return "poor";
 }
 
-function applyEggQualityBonuses(
-  creature: Creature,
-  quality: EggQuality
-): Creature {
-  if (quality === "poor" || quality === "normal") {
-    return creature;
-  }
+function applyEggQualityBonuses(creature: Creature, quality: EggQuality): Creature {
+  if (quality === "poor" || quality === "normal") return creature;
 
-  const statKeys: (keyof CreatureStats)[] = [
-    "strength",
-    "endurance",
-    "intelligence",
-    "speed",
-    "fertility",
-    "vitality",
-  ];
-
+  const statKeys: (keyof CreatureStats)[] = ["strength","endurance","intelligence","speed","fertility","vitality"];
   const updatedStats = { ...creature.stats };
 
   if (quality === "strong") {
     const statKey = randomFrom(statKeys);
     updatedStats[statKey] += 1;
-
-    return applyXpGain(
-      {
-        ...creature,
-        stats: updatedStats,
-        happiness: clamp(creature.happiness + 5, 0, 100),
-      },
-      10
-    );
+    return applyXpGain({ ...creature, stats: updatedStats, happiness: clamp(creature.happiness + 5, 0, 100) }, 10);
   }
 
   const firstStat = randomFrom(statKeys);
   let secondStat = randomFrom(statKeys);
-
-  while (secondStat === firstStat) {
-    secondStat = randomFrom(statKeys);
-  }
-
+  while (secondStat === firstStat) secondStat = randomFrom(statKeys);
   updatedStats[firstStat] += 1;
   updatedStats[secondStat] += 1;
 
-  return applyXpGain(
-    {
-      ...creature,
-      stats: updatedStats,
-      happiness: clamp(creature.happiness + 10, 0, 100),
-    },
-    20
-  );
+  return applyXpGain({ ...creature, stats: updatedStats, happiness: clamp(creature.happiness + 10, 0, 100) }, 20);
 }
 
 function getHomeConditionHappinessDelta(cleanliness: number, wasFed: boolean) {
   let delta = 0;
-
-  if (wasFed) {
-    delta += 6;
-  } else {
-    delta -= 10;
-  }
-
-  if (cleanliness >= 80) {
-    delta += 3;
-  } else if (cleanliness < 25) {
-    delta -= 12;
-  } else if (cleanliness < 50) {
-    delta -= 6;
-  }
-
+  if (wasFed) delta += 6;
+  else delta -= 10;
+  if (cleanliness >= 80) delta += 3;
+  else if (cleanliness < 25) delta -= 12;
+  else if (cleanliness < 50) delta -= 6;
   return delta;
 }
 
 function getBreedingRefusalChance(
-  giverParticipant: {
-    happiness: number;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
-  } | null,
-  receiverParticipant: {
-    happiness: number;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
-  } | null,
+  giverParticipant: { happiness: number; breedingCareLevel: number; traits: CreatureTraitEntry[] } | null,
+  receiverParticipant: { happiness: number; breedingCareLevel: number; traits: CreatureTraitEntry[] } | null,
   homeState: HomeState
 ) {
   const participants = [giverParticipant, receiverParticipant].filter(Boolean) as {
-    happiness: number;
-    breedingCareLevel: number;
-    traits: CreatureTraitEntry[];
+    happiness: number; breedingCareLevel: number; traits: CreatureTraitEntry[];
   }[];
 
-  const avgHappiness =
-    participants.length > 0 ? average(participants.map((p) => p.happiness)) : 60;
-
-  const avgBreedingCare =
-    participants.length > 0
-      ? average(participants.map((p) => p.breedingCareLevel))
-      : 1;
-
+  const avgHappiness = participants.length > 0 ? average(participants.map((p) => p.happiness)) : 60;
+  const avgBreedingCare = participants.length > 0 ? average(participants.map((p) => p.breedingCareLevel)) : 1;
   const calmTraitReduction = participants.reduce((sum, p) => {
     const calm = p.traits.find((entry) => entry.trait === "calm");
     return sum + (calm ? getTraitPowerMultiplier(calm.grade) * 0.08 : 0);
   }, 0);
 
   let refusalChance = 0;
+  if (avgHappiness < 20) refusalChance += 0.45;
+  else if (avgHappiness < 35) refusalChance += 0.28;
+  else if (avgHappiness < 50) refusalChance += 0.14;
 
-  if (avgHappiness < 20) {
-    refusalChance += 0.45;
-  } else if (avgHappiness < 35) {
-    refusalChance += 0.28;
-  } else if (avgHappiness < 50) {
-    refusalChance += 0.14;
-  }
+  if (homeState.cleanliness < 25) refusalChance += 0.25;
+  else if (homeState.cleanliness < 50) refusalChance += 0.12;
 
-  if (homeState.cleanliness < 25) {
-    refusalChance += 0.25;
-  } else if (homeState.cleanliness < 50) {
-    refusalChance += 0.12;
-  }
-
-  if (homeState.foodStock <= 0) {
-    refusalChance += 0.15;
-  } else if (homeState.foodStock <= 2) {
-    refusalChance += 0.06;
-  }
+  if (homeState.foodStock <= 0) refusalChance += 0.15;
+  else if (homeState.foodStock <= 2) refusalChance += 0.06;
 
   refusalChance -= Math.min(0.12, avgBreedingCare * 0.015);
   refusalChance -= calmTraitReduction;
-
   return clamp(refusalChance, 0, 0.75);
 }
 
 function doesCreatureMeetQuest(
   creature: Creature,
-  quest: TownQuest
+  quest: { title?: string; requirement: QuestRequirement }
 ): boolean {
-  if (
-    quest.requirement.species !== "any" &&
-    creature.name !== quest.requirement.species
-  ) {
-    return false;
-  }
-
-  if (creature.level < quest.requirement.minimumLevel) {
-    return false;
-  }
-
-  if (
-    quest.requirement.requiredTrait &&
-    !hasTrait(creature, quest.requirement.requiredTrait)
-  ) {
-    return false;
-  }
+  if (quest.requirement.species !== "any" && creature.name !== quest.requirement.species) return false;
+  if (creature.level < quest.requirement.minimumLevel) return false;
+  if (quest.requirement.requiredTrait && !hasTrait(creature, quest.requirement.requiredTrait)) return false;
 
   const minimumStats = quest.requirement.minimumStats;
-
-  if (
-    minimumStats.strength !== undefined &&
-    creature.stats.strength < minimumStats.strength
-  ) {
-    return false;
-  }
-
-  if (
-    minimumStats.endurance !== undefined &&
-    creature.stats.endurance < minimumStats.endurance
-  ) {
-    return false;
-  }
-
-  if (
-    minimumStats.intelligence !== undefined &&
-    creature.stats.intelligence < minimumStats.intelligence
-  ) {
-    return false;
-  }
-
-  if (
-    minimumStats.speed !== undefined &&
-    creature.stats.speed < minimumStats.speed
-  ) {
-    return false;
-  }
-
-  if (
-    minimumStats.fertility !== undefined &&
-    creature.stats.fertility < minimumStats.fertility
-  ) {
-    return false;
-  }
-
-  if (
-    minimumStats.vitality !== undefined &&
-    creature.stats.vitality < minimumStats.vitality
-  ) {
-    return false;
-  }
-
-  if (
-    quest.title === "Healthy Bloodline" &&
-    creature.inbreedingRisk !== "none"
-  ) {
-    return false;
-  }
-
+  if (minimumStats.strength !== undefined && creature.stats.strength < minimumStats.strength) return false;
+  if (minimumStats.endurance !== undefined && creature.stats.endurance < minimumStats.endurance) return false;
+  if (minimumStats.intelligence !== undefined && creature.stats.intelligence < minimumStats.intelligence) return false;
+  if (minimumStats.speed !== undefined && creature.stats.speed < minimumStats.speed) return false;
+  if (minimumStats.fertility !== undefined && creature.stats.fertility < minimumStats.fertility) return false;
+  if (minimumStats.vitality !== undefined && creature.stats.vitality < minimumStats.vitality) return false;
+  if (quest.title === "Healthy Bloodline" && creature.inbreedingRisk !== "none") return false;
   return true;
 }
 
@@ -1997,41 +1598,11 @@ function getTravelMinutes(from: LocationName, to: LocationName): number {
   if (from === to) return 0;
 
   const travelTimes: Record<LocationName, Record<LocationName, number>> = {
-    home: {
-      home: 0,
-      ranch: 10,
-      town: 35,
-      market: 45,
-      guild_hall: 50,
-    },
-    ranch: {
-      home: 10,
-      ranch: 0,
-      town: 30,
-      market: 40,
-      guild_hall: 45,
-    },
-    town: {
-      home: 35,
-      ranch: 30,
-      town: 0,
-      market: 15,
-      guild_hall: 20,
-    },
-    market: {
-      home: 45,
-      ranch: 40,
-      town: 15,
-      market: 0,
-      guild_hall: 10,
-    },
-    guild_hall: {
-      home: 50,
-      ranch: 45,
-      town: 20,
-      market: 10,
-      guild_hall: 0,
-    },
+    home: { home: 0, ranch: 10, town: 35, market: 45, guild_hall: 50 },
+    ranch: { home: 10, ranch: 0, town: 30, market: 40, guild_hall: 45 },
+    town: { home: 35, ranch: 30, town: 0, market: 15, guild_hall: 20 },
+    market: { home: 45, ranch: 40, town: 15, market: 0, guild_hall: 10 },
+    guild_hall: { home: 50, ranch: 45, town: 20, market: 10, guild_hall: 0 },
   };
 
   return travelTimes[from][to];
@@ -2045,34 +1616,15 @@ const defaultPlayerData: PlayerData = {
   xp: 0,
   xpToNextLevel: getPlayerXpToNextLevel(1),
   happiness: 60,
-  stats: {
-    strength: 6,
-    endurance: 6,
-    intelligence: 6,
-    speed: 6,
-    fertility: 6,
-    vitality: 6,
-  },
+  stats: { strength: 6, endurance: 6, intelligence: 6, speed: 6, fertility: 6, vitality: 6 },
   breedingCare: createSkillProgress(),
 };
 
-const defaultHomeState: HomeState = {
-  cleanliness: 70,
-  foodStock: 10,
-  wheatStock: 5,
-};
+const defaultHomeState: HomeState = { cleanliness: 70, foodStock: 10, wheatStock: 5 };
 
 const defaultCreatures: Creature[] = [
-  normalizeCreature({
-    ...horseTemplate,
-    id: 1,
-    nickname: "Starter Horse",
-  }),
-  normalizeCreature({
-    ...catTemplate,
-    id: 2,
-    nickname: "Starter Cat",
-  }),
+  normalizeCreature({ ...horseTemplate, id: 1, nickname: "Starter Horse" }),
+  normalizeCreature({ ...catTemplate, id: 2, nickname: "Starter Cat" }),
 ];
 
 const defaultBreedingSelection: BreedingSelection = {
@@ -2111,6 +1663,8 @@ const defaultSaveData: SaveData = {
   breedingSelection: defaultBreedingSelection,
   townStock: generateTownStock(1),
   townQuests: generateTownQuests(1),
+  townNpcs: defaultTownNpcs,
+  townNpcQuests: generateTownNpcQuests(1),
   travelLog: [],
 };
 
@@ -2122,29 +1676,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [currentDay, setCurrentDay] = useState(defaultSaveData.currentDay);
   const [currentHour, setCurrentHour] = useState(defaultSaveData.currentHour);
   const [currentMinute, setCurrentMinute] = useState(defaultSaveData.currentMinute);
-  const [currentLocation, setCurrentLocation] = useState<LocationName>(
-    defaultSaveData.currentLocation
-  );
+  const [currentLocation, setCurrentLocation] = useState<LocationName>(defaultSaveData.currentLocation);
   const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
   const [homeState, setHomeState] = useState(defaultSaveData.homeState);
   const [creatures, setCreatures] = useState(defaultSaveData.creatures);
   const [eggs, setEggs] = useState(defaultSaveData.eggs);
-  const [breedingSelection, setBreedingSelection] = useState(
-    defaultSaveData.breedingSelection
-  );
+  const [breedingSelection, setBreedingSelection] = useState(defaultSaveData.breedingSelection);
   const [townStock, setTownStock] = useState(defaultSaveData.townStock);
   const [townQuests, setTownQuests] = useState(defaultSaveData.townQuests);
-  const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(
-    defaultSaveData.travelLog
-  );
+  const [townNpcs, setTownNpcs] = useState(defaultSaveData.townNpcs);
+  const [townNpcQuests, setTownNpcQuests] = useState(defaultSaveData.townNpcQuests);
+  const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
 
   useEffect(() => {
     const savedGame = localStorage.getItem(STORAGE_KEY);
-
     if (savedGame) {
       try {
         const parsedSave: SaveData = JSON.parse(savedGame);
-
         setCurrentDay(parsedSave.currentDay);
         setCurrentHour(parsedSave.currentHour ?? 8);
         setCurrentMinute(parsedSave.currentMinute ?? 0);
@@ -2170,12 +1718,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
             10
           )
         );
+        setTownNpcs((parsedSave.townNpcs ?? defaultTownNpcs).map(normalizeTownNpc));
+        setTownNpcQuests(
+          ensureNpcQuestBoardSize(
+            (parsedSave.townNpcQuests ?? generateTownNpcQuests(parsedSave.currentDay ?? 1)).map(normalizeTownNpcQuest),
+            parsedSave.currentDay ?? 1,
+            parsedSave.currentHour ?? 8,
+            parsedSave.currentMinute ?? 0,
+            3
+          )
+        );
         setTravelLog(parsedSave.travelLog ?? []);
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
     }
-
     setHasLoaded(true);
   }, []);
 
@@ -2194,6 +1751,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       breedingSelection,
       townStock,
       townQuests,
+      townNpcs,
+      townNpcQuests,
       travelLog,
     };
 
@@ -2211,6 +1770,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     breedingSelection,
     townStock,
     townQuests,
+    townNpcs,
+    townNpcQuests,
     travelLog,
   ]);
 
@@ -2226,19 +1787,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setEggs((prevEggs) =>
       prevEggs.map((egg) => ({
         ...egg,
-        hatchDaysRemaining:
-          egg.hatchDaysRemaining > 0 ? egg.hatchDaysRemaining - 1 : 0,
+        hatchDaysRemaining: egg.hatchDaysRemaining > 0 ? egg.hatchDaysRemaining - 1 : 0,
       }))
     );
 
     setCreatures((prevCreatures) =>
       prevCreatures.map((creature, index) => {
         const wasFed = index < foodConsumed;
-        const happinessDelta = getHomeConditionHappinessDelta(
-          homeState.cleanliness,
-          wasFed
-        );
-
+        const happinessDelta = getHomeConditionHappinessDelta(homeState.cleanliness, wasFed);
         return {
           ...creature,
           happiness: clamp(creature.happiness + happinessDelta, 0, 100),
@@ -2252,11 +1808,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ...prev,
       energy: Math.min(100, prev.energy + 25),
       happiness: clamp(
-        prev.happiness +
-          getHomeConditionHappinessDelta(
-            homeState.cleanliness,
-            homeState.foodStock > 0
-          ),
+        prev.happiness + getHomeConditionHappinessDelta(homeState.cleanliness, homeState.foodStock > 0),
         0,
         100
       ),
@@ -2270,53 +1822,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     setTownStock(generateTownStock(newDay));
     setTownQuests((prev) => ensureQuestBoardSize(prev, newDay, 8, 0, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, newDay, 8, 0, 3));
   }
 
   function hatchEgg(eggId: number): Creature | null {
     const eggToHatch = eggs.find((egg) => egg.id === eggId);
-
-    if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) {
-      return null;
-    }
+    if (!eggToHatch || eggToHatch.hatchDaysRemaining > 0) return null;
 
     let childSpeciesName = "Cat";
-
-    if (eggToHatch.giver === "Player") {
-      childSpeciesName = eggToHatch.receiver;
-    } else {
-      childSpeciesName =
-        Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
-    }
+    if (eggToHatch.giver === "Player") childSpeciesName = eggToHatch.receiver;
+    else childSpeciesName = Math.random() < 0.5 ? eggToHatch.giver : eggToHatch.receiver;
 
     const template = getCreatureTemplateByName(childSpeciesName);
+    if (!template) return null;
 
-    if (!template) {
-      return null;
-    }
-
-    const giverCreature = eggToHatch.giverId
-      ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null
-      : null;
-
-    const receiverCreature = eggToHatch.receiverId
-      ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null
-      : null;
-
-    const parentGenerations = [
-      giverCreature?.generation ?? 1,
-      receiverCreature?.generation ?? 1,
-    ];
-
+    const giverCreature = eggToHatch.giverId ? creatures.find((c) => c.id === eggToHatch.giverId) ?? null : null;
+    const receiverCreature = eggToHatch.receiverId ? creatures.find((c) => c.id === eggToHatch.receiverId) ?? null : null;
+    const parentGenerations = [giverCreature?.generation ?? 1, receiverCreature?.generation ?? 1];
     const childGeneration = Math.max(...parentGenerations) + 1;
 
     const inbreedingRisk =
       eggToHatch.inbreedingRisk ??
-      calculateInbreedingRisk(
-        giverCreature,
-        receiverCreature,
-        eggToHatch.giverIsPlayer,
-        eggToHatch.receiverIsPlayer
-      );
+      calculateInbreedingRisk(giverCreature, receiverCreature, eggToHatch.giverIsPlayer, eggToHatch.receiverIsPlayer);
 
     let newCreature = createCreatureFromTemplate(
       template,
@@ -2334,23 +1861,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
       eggToHatch.quality ?? "normal"
     );
 
-    newCreature = applyEggQualityBonuses(
-      newCreature,
-      eggToHatch.quality ?? "normal"
-    );
+    newCreature = applyEggQualityBonuses(newCreature, eggToHatch.quality ?? "normal");
 
     setCreatures((prev) => [...prev, newCreature]);
     setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
-
     return newCreature;
   }
 
   function breedCreatures() {
     const energyCost = 8;
-
-    if (playerData.energy < energyCost) {
-      return;
-    }
+    if (playerData.energy < energyCost) return;
 
     const giverIsPlayer = breedingSelection.giverType === "player";
     const receiverIsPlayer = breedingSelection.receiverType === "player";
@@ -2358,34 +1878,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const giverCreature = breedingSelection.giverCreatureId
       ? creatures.find((c) => c.id === breedingSelection.giverCreatureId) ?? null
       : null;
-
     const receiverCreature = breedingSelection.receiverCreatureId
       ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
       : null;
 
-    const giverLabel = giverIsPlayer
-      ? playerData.name
-      : giverCreature?.nickname ?? "";
-    const receiverLabel = receiverIsPlayer
-      ? playerData.name
-      : receiverCreature?.nickname ?? "";
-
+    const giverLabel = giverIsPlayer ? playerData.name : giverCreature?.nickname ?? "";
+    const receiverLabel = receiverIsPlayer ? playerData.name : receiverCreature?.nickname ?? "";
     const giverSpecies = giverIsPlayer ? "Player" : giverCreature?.name ?? "";
-    const receiverSpecies = receiverIsPlayer
-      ? "Player"
-      : receiverCreature?.name ?? "";
+    const receiverSpecies = receiverIsPlayer ? "Player" : receiverCreature?.name ?? "";
 
-    if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) {
-      return;
-    }
+    if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) return;
 
-    if (
-      !giverIsPlayer &&
-      !receiverIsPlayer &&
-      giverCreature &&
-      receiverCreature &&
-      giverCreature.id === receiverCreature.id
-    ) {
+    if (!giverIsPlayer && !receiverIsPlayer && giverCreature && receiverCreature && giverCreature.id === receiverCreature.id) {
       return;
     }
 
@@ -2393,84 +1897,44 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (
         giverCreature.breedingsToday >= giverCreature.dailyBreedingLimit ||
         giverCreature.breedingStamina < getBreedingStaminaCost(giverCreature)
-      ) {
-        return;
-      }
+      ) return;
     }
 
     if (receiverCreature) {
       if (
         receiverCreature.breedingsToday >= receiverCreature.dailyBreedingLimit ||
         receiverCreature.breedingStamina < getBreedingStaminaCost(receiverCreature)
-      ) {
-        return;
-      }
+      ) return;
     }
 
-    const giverParticipant = getParticipantSnapshot(
-      breedingSelection.giverType,
-      giverCreature,
-      playerData
-    );
-
-    const receiverParticipant = getParticipantSnapshot(
-      breedingSelection.receiverType,
-      receiverCreature,
-      playerData
-    );
-
-    const refusalChance = getBreedingRefusalChance(
-      giverParticipant,
-      receiverParticipant,
-      homeState
-    );
+    const giverParticipant = getParticipantSnapshot(breedingSelection.giverType, giverCreature, playerData);
+    const receiverParticipant = getParticipantSnapshot(breedingSelection.receiverType, receiverCreature, playerData);
+    const refusalChance = getBreedingRefusalChance(giverParticipant, receiverParticipant, homeState);
 
     if (Math.random() < refusalChance) {
-      const updatedClock = addMinutesToClock(
-        currentDay,
-        currentHour,
-        currentMinute,
-        10
-      );
-
+      const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, 10);
       setCurrentDay(updatedClock.day);
       setCurrentHour(updatedClock.hour);
       setCurrentMinute(updatedClock.minute);
 
       setPlayerData((prev) => {
-        let updatedPlayer = {
-          ...prev,
-          energy: Math.max(0, prev.energy - 2),
-        };
-
-        if (
-          breedingSelection.giverType === "player" ||
-          breedingSelection.receiverType === "player"
-        ) {
+        let updatedPlayer = { ...prev, energy: Math.max(0, prev.energy - 2) };
+        if (breedingSelection.giverType === "player" || breedingSelection.receiverType === "player") {
           updatedPlayer = {
             ...updatedPlayer,
             happiness: clamp(updatedPlayer.happiness - 4, 0, 100),
             breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 4),
           };
         }
-
         return updatedPlayer;
       });
 
       setCreatures((prev) =>
         prev.map((creature) => {
-          if (
-            (giverCreature && creature.id === giverCreature.id) ||
-            (receiverCreature && creature.id === receiverCreature.id)
-          ) {
-            const updated = {
-              ...creature,
-              happiness: clamp(creature.happiness - 4, 0, 100),
-            };
-
+          if ((giverCreature && creature.id === giverCreature.id) || (receiverCreature && creature.id === receiverCreature.id)) {
+            const updated = { ...creature, happiness: clamp(creature.happiness - 4, 0, 100) };
             return applyCreatureSkillXp(updated, "breedingCare", 4);
           }
-
           return creature;
         })
       );
@@ -2478,53 +1942,29 @@ export function GameProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const baseInbreedingRisk = calculateInbreedingRisk(
-      giverCreature,
-      receiverCreature,
-      giverIsPlayer,
-      receiverIsPlayer
-    );
-
-    const inbreedingRisk = applyIntelligenceRiskMitigation(
-      baseInbreedingRisk,
-      giverCreature,
-      receiverCreature
-    );
-
+    const baseInbreedingRisk = calculateInbreedingRisk(giverCreature, receiverCreature, giverIsPlayer, receiverIsPlayer);
+    const inbreedingRisk = applyIntelligenceRiskMitigation(baseInbreedingRisk, giverCreature, receiverCreature);
     const minutesSpent = getBreedingSessionMinutes(
       giverCreature,
       receiverCreature,
       breedingSelection.giverType,
       breedingSelection.receiverType
     );
-    const updatedClock = addMinutesToClock(
-      currentDay,
-      currentHour,
-      currentMinute,
-      minutesSpent
-    );
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
 
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
     setPlayerData((prev) => {
-      let updatedPlayer = {
-        ...prev,
-        energy: prev.energy - energyCost,
-      };
-
-      if (
-        breedingSelection.giverType === "player" ||
-        breedingSelection.receiverType === "player"
-      ) {
+      let updatedPlayer = { ...prev, energy: prev.energy - energyCost };
+      if (breedingSelection.giverType === "player" || breedingSelection.receiverType === "player") {
         updatedPlayer = {
           ...updatedPlayer,
           happiness: clamp(updatedPlayer.happiness + 2, 0, 100),
           breedingCare: applySkillXpGain(updatedPlayer.breedingCare, 8),
         };
       }
-
       return updatedPlayer;
     });
 
@@ -2536,8 +1976,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               {
                 ...creature,
                 happiness: clamp(creature.happiness + 2, 0, 100),
-                breedingStamina:
-                  creature.breedingStamina - getBreedingStaminaCost(creature),
+                breedingStamina: creature.breedingStamina - getBreedingStaminaCost(creature),
                 breedingsToday: creature.breedingsToday + 1,
               },
               18
@@ -2553,8 +1992,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
               {
                 ...creature,
                 happiness: clamp(creature.happiness + 2, 0, 100),
-                breedingStamina:
-                  creature.breedingStamina - getBreedingStaminaCost(creature),
+                breedingStamina: creature.breedingStamina - getBreedingStaminaCost(creature),
                 breedingsToday: creature.breedingsToday + 1,
               },
               18
@@ -2568,26 +2006,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       })
     );
 
-    if (receiverIsPlayer) {
-      return;
-    }
+    if (receiverIsPlayer) return;
 
-    const eggProductionChance = getEggProductionChance(
-      giverParticipant,
-      receiverParticipant,
-      homeState
-    );
+    const eggProductionChance = getEggProductionChance(giverParticipant, receiverParticipant, homeState);
+    if (Math.random() > eggProductionChance) return;
 
-    if (Math.random() > eggProductionChance) {
-      return;
-    }
-
-    const eggQuality = getEggQualityFromPairing(
-      giverParticipant,
-      receiverParticipant,
-      homeState
-    );
-
+    const eggQuality = getEggQualityFromPairing(giverParticipant, receiverParticipant, homeState);
     const newEgg: Egg = {
       id: Date.now(),
       name: `${giverLabel} x ${receiverLabel} Egg`,
@@ -2611,22 +2035,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!trimmedName) return;
 
     setCreatures((prev) =>
-      prev.map((creature) =>
-        creature.id === creatureId
-          ? { ...creature, nickname: trimmedName }
-          : creature
-      )
+      prev.map((creature) => (creature.id === creatureId ? { ...creature, nickname: trimmedName } : creature))
     );
   }
 
   function renamePlayer(newName: string) {
     const trimmedName = newName.trim();
     if (!trimmedName) return;
-
-    setPlayerData((prev) => ({
-      ...prev,
-      name: trimmedName,
-    }));
+    setPlayerData((prev) => ({ ...prev, name: trimmedName }));
   }
 
   function purchaseTownCreature(stockEntryId: number) {
@@ -2634,79 +2050,83 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!entry) return;
     if (playerData.gold < entry.price) return;
 
-    const updatedClock = applyTownActionTimeCost(
-      currentDay,
-      currentHour,
-      currentMinute,
-      20
-    );
-
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 20);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setPlayerData((prev) => ({
-      ...prev,
-      gold: prev.gold - entry.price,
-    }));
-
+    setPlayerData((prev) => ({ ...prev, gold: prev.gold - entry.price }));
     setCreatures((prev) => [...prev, entry.creature]);
     setTownStock((prev) => prev.filter((item) => item.id !== stockEntryId));
-
-    setTownQuests((prev) =>
-      ensureQuestBoardSize(
-        prev,
-        updatedClock.day,
-        updatedClock.hour,
-        updatedClock.minute,
-        10
-      )
-    );
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
   function submitCreatureToQuest(questId: number, creatureId: number) {
     const quest = townQuests.find((item) => item.id === questId);
     const creature = creatures.find((item) => item.id === creatureId);
-
     if (!quest || !creature || quest.completed) return;
     if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) return;
     if (!doesCreatureMeetQuest(creature, quest)) return;
 
-    const updatedClock = applyTownActionTimeCost(
-      currentDay,
-      currentHour,
-      currentMinute,
-      30
-    );
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 30);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    setCreatures((prev) => prev.filter((item) => item.id !== creatureId));
+    setPlayerData((prev) => applyPlayerXpGain({ ...prev, gold: prev.gold + quest.rewardGold }, quest.rewardXp));
 
+    setTownQuests((prev) => {
+      const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
+      return ensureQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 10);
+    });
+  }
+
+  function submitCreatureToNpcQuest(questId: number, creatureId: number) {
+    const quest = townNpcQuests.find((item) => item.id === questId);
+    const creature = creatures.find((item) => item.id === creatureId);
+    if (!quest || !creature || quest.completed) return;
+    if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) return;
+    if (!doesCreatureMeetQuest(creature, { title: quest.title, requirement: quest.requirement })) return;
+
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 25);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
     setCreatures((prev) => prev.filter((item) => item.id !== creatureId));
+    setPlayerData((prev) => applyPlayerXpGain({ ...prev, gold: prev.gold + quest.rewardGold }, quest.rewardXp));
 
-    setPlayerData((prev) =>
-      applyPlayerXpGain(
-        {
-          ...prev,
-          gold: prev.gold + quest.rewardGold,
-        },
-        quest.rewardXp
-      )
+    setTownNpcs((prev) =>
+      prev.map((npc) => {
+        if (npc.id !== quest.npcId) return npc;
+
+        const newRelationship = clamp(npc.relationship + quest.relationshipGain, 0, 100);
+        const nextClaimed = [...npc.rewardMilestonesClaimed];
+        let bonusGold = 0;
+
+        for (const milestone of [25, 50, 75]) {
+          if (newRelationship >= milestone && !nextClaimed.includes(milestone)) {
+            nextClaimed.push(milestone);
+            bonusGold += milestone === 25 ? 50 : milestone === 50 ? 120 : 250;
+          }
+        }
+
+        if (bonusGold > 0) {
+          setPlayerData((prevPlayer) => ({ ...prevPlayer, gold: prevPlayer.gold + bonusGold }));
+        }
+
+        return {
+          ...npc,
+          relationship: newRelationship,
+          rewardMilestonesClaimed: nextClaimed,
+        };
+      })
     );
 
-    setTownQuests((prev) => {
-      const completedSet = prev.map((item) =>
-        item.id === questId ? { ...item, completed: true } : item
-      );
-
-      return ensureQuestBoardSize(
-        completedSet,
-        updatedClock.day,
-        updatedClock.hour,
-        updatedClock.minute,
-        10
-      );
+    setTownNpcQuests((prev) => {
+      const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
+      return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
   }
 
@@ -2714,12 +2134,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (destination === currentLocation) return;
 
     const travelMinutes = getTravelMinutes(currentLocation, destination);
-    const updatedClock = addMinutesToClock(
-      currentDay,
-      currentHour,
-      currentMinute,
-      travelMinutes
-    );
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, travelMinutes);
 
     const newLogEntry: TravelLogEntry = {
       id: Date.now(),
@@ -2736,16 +2151,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentMinute(updatedClock.minute);
     setCurrentLocation(destination);
     setTravelLog((prev) => [newLogEntry, ...prev].slice(0, 20));
-
-    setTownQuests((prev) =>
-      ensureQuestBoardSize(
-        prev,
-        updatedClock.day,
-        updatedClock.hour,
-        updatedClock.minute,
-        10
-      )
-    );
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
   function cookMeal(creatureId: number) {
@@ -2766,72 +2173,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
       12,
       45 -
         Math.floor(
-          (creature.stats.intelligence +
-            creature.stats.speed +
-            creature.skills.cooking.level +
-            speciesBonus +
-            traitBonus) / 2
+          (creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level + speciesBonus + traitBonus) / 2
         )
     );
     const staminaCost = Math.max(
       4,
-      14 -
-        Math.floor((creature.stats.endurance + creature.stats.vitality) / 6) -
-        getSturdyTraitStaminaDiscount(creature)
+      14 - Math.floor((creature.stats.endurance + creature.stats.vitality) / 6) - getSturdyTraitStaminaDiscount(creature)
     );
     const foodGain = Math.max(
       1,
-      1 +
-        Math.floor(
-          (creature.stats.intelligence +
-            creature.stats.speed +
-            creature.skills.cooking.level +
-            speciesBonus +
-            traitBonus) / 8
-        )
+      1 + Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level + speciesBonus + traitBonus) / 8)
     );
 
     if (creature.breedingStamina < staminaCost) return;
 
-    const updatedClock = addMinutesToClock(
-      currentDay,
-      currentHour,
-      currentMinute,
-      minutesSpent
-    );
-
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setHomeState((prev) => ({
-      ...prev,
-      wheatStock: prev.wheatStock - 1,
-      foodStock: prev.foodStock + foodGain,
-    }));
+    setHomeState((prev) => ({ ...prev, wheatStock: prev.wheatStock - 1, foodStock: prev.foodStock + foodGain }));
 
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== creatureId) return c;
-
-        const updated = {
-          ...c,
-          breedingStamina: c.breedingStamina - staminaCost,
-        };
-
+        const updated = { ...c, breedingStamina: c.breedingStamina - staminaCost };
         return applyCreatureSkillXp(updated, "cooking", 12);
       })
     );
 
-    setTownQuests((prev) =>
-      ensureQuestBoardSize(
-        prev,
-        updatedClock.day,
-        updatedClock.hour,
-        updatedClock.minute,
-        10
-      )
-    );
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
   function cleanHome(creatureId: number) {
@@ -2851,71 +2223,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
       8,
       35 -
         Math.floor(
-          (creature.stats.intelligence +
-            creature.stats.speed +
-            creature.skills.cleaning.level +
-            speciesBonus +
-            traitBonus) / 2
+          (creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level + speciesBonus + traitBonus) / 2
         )
     );
     const staminaCost = Math.max(
       4,
-      12 -
-        Math.floor((creature.stats.endurance + creature.stats.speed) / 6) -
-        getSturdyTraitStaminaDiscount(creature)
+      12 - Math.floor((creature.stats.endurance + creature.stats.speed) / 6) - getSturdyTraitStaminaDiscount(creature)
     );
     const cleanGain = Math.max(
       6,
-      10 +
-        Math.floor(
-          (creature.stats.intelligence +
-            creature.stats.speed +
-            creature.skills.cleaning.level +
-            speciesBonus +
-            traitBonus) / 3
-        )
+      10 + Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level + speciesBonus + traitBonus) / 3)
     );
 
     if (creature.breedingStamina < staminaCost) return;
 
-    const updatedClock = addMinutesToClock(
-      currentDay,
-      currentHour,
-      currentMinute,
-      minutesSpent
-    );
-
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setHomeState((prev) => ({
-      ...prev,
-      cleanliness: Math.min(100, prev.cleanliness + cleanGain),
-    }));
+    setHomeState((prev) => ({ ...prev, cleanliness: Math.min(100, prev.cleanliness + cleanGain) }));
 
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== creatureId) return c;
-
-        const updated = {
-          ...c,
-          breedingStamina: c.breedingStamina - staminaCost,
-        };
-
+        const updated = { ...c, breedingStamina: c.breedingStamina - staminaCost };
         return applyCreatureSkillXp(updated, "cleaning", 12);
       })
     );
 
-    setTownQuests((prev) =>
-      ensureQuestBoardSize(
-        prev,
-        updatedClock.day,
-        updatedClock.hour,
-        updatedClock.minute,
-        10
-      )
-    );
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
   function workFields(creatureId: number) {
@@ -2935,40 +2273,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
       25,
       90 -
         Math.floor(
-          (creature.stats.strength +
-            creature.stats.endurance +
-            creature.skills.fieldWork.level * 2 +
-            speciesBonus +
-            traitBonus) / 2
+          (creature.stats.strength + creature.stats.endurance + creature.skills.fieldWork.level * 2 + speciesBonus + traitBonus) / 2
         )
     );
     const staminaCost = Math.max(
       6,
-      18 -
-        Math.floor((creature.stats.endurance + creature.stats.strength) / 6) -
-        getSturdyTraitStaminaDiscount(creature)
+      18 - Math.floor((creature.stats.endurance + creature.stats.strength) / 6) - getSturdyTraitStaminaDiscount(creature)
     );
     const wheatGain = Math.max(
       1,
-      2 +
-        Math.floor(
-          (creature.stats.strength +
-            creature.stats.endurance +
-            creature.skills.fieldWork.level +
-            speciesBonus +
-            traitBonus) / 8
-        )
+      2 + Math.floor((creature.stats.strength + creature.stats.endurance + creature.skills.fieldWork.level + speciesBonus + traitBonus) / 8)
     );
 
     if (creature.breedingStamina < staminaCost) return;
 
-    const updatedClock = addMinutesToClock(
-      currentDay,
-      currentHour,
-      currentMinute,
-      minutesSpent
-    );
-
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
@@ -2982,25 +2301,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== creatureId) return c;
-
-        const updated = {
-          ...c,
-          breedingStamina: c.breedingStamina - staminaCost,
-        };
-
+        const updated = { ...c, breedingStamina: c.breedingStamina - staminaCost };
         return applyCreatureSkillXp(updated, "fieldWork", 12);
       })
     );
 
-    setTownQuests((prev) =>
-      ensureQuestBoardSize(
-        prev,
-        updatedClock.day,
-        updatedClock.hour,
-        updatedClock.minute,
-        10
-      )
-    );
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
   function resetGame() {
@@ -3053,6 +2360,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     });
     setTownStock(generateTownStock(1));
     setTownQuests(generateTownQuests(1));
+    setTownNpcs(defaultTownNpcs);
+    setTownNpcQuests(generateTownNpcQuests(1));
     setTravelLog([]);
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -3071,6 +2380,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         breedingSelection,
         townStock,
         townQuests,
+        townNpcs,
+        townNpcQuests,
         travelLog,
         nextDay,
         hatchEgg,
@@ -3081,6 +2392,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         renamePlayer,
         purchaseTownCreature,
         submitCreatureToQuest,
+        submitCreatureToNpcQuest,
         travelTo,
         cookMeal,
         cleanHome,
