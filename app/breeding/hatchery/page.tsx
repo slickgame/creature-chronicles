@@ -15,6 +15,28 @@ export default function BreedingHatcheryPage() {
   const [filter, setFilter] = useState<HatcheryFilter>("all");
   const [search, setSearch] = useState("");
   const [lastHatchedName, setLastHatchedName] = useState<string | null>(null);
+  const [lastBatchCount, setLastBatchCount] = useState<number>(0);
+
+  const readyEggIds = useMemo(
+    () => eggs.filter((egg) => egg.hatchDaysRemaining <= 0).map((egg) => egg.id),
+    [eggs]
+  );
+
+  function hatchAllReadyEggs() {
+    let hatchedCount = 0;
+    let lastName: string | null = null;
+
+    for (const eggId of readyEggIds) {
+      const hatched = hatchEgg(eggId);
+      if (hatched) {
+        hatchedCount += 1;
+        lastName = hatched.nickname;
+      }
+    }
+
+    setLastBatchCount(hatchedCount);
+    setLastHatchedName(lastName);
+  }
 
   const entries = useMemo<HatcheryEggEntry[]>(() => {
     return eggs.map((egg) => ({
@@ -31,6 +53,7 @@ export default function BreedingHatcheryPage() {
         const hatched = hatchEgg(egg.id);
         if (hatched) {
           setLastHatchedName(hatched.nickname);
+          setLastBatchCount(1);
         }
       },
     }));
@@ -91,7 +114,7 @@ export default function BreedingHatcheryPage() {
             </Link>
             <Link
               href="/breeding/history"
-              className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-rose-900 shadow border border-rose-300"
+              className="rounded-2xl border border-rose-300 bg-white px-4 py-3 text-sm font-semibold text-rose-900 shadow"
             >
               View History
             </Link>
@@ -100,7 +123,15 @@ export default function BreedingHatcheryPage() {
 
         {lastHatchedName && (
           <div className="mb-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900 shadow">
-            <strong>Hatched:</strong> {lastHatchedName}
+            {lastBatchCount > 1 ? (
+              <>
+                <strong>Batch Hatched:</strong> {lastBatchCount} eggs. Most recent offspring: {lastHatchedName}
+              </>
+            ) : (
+              <>
+                <strong>Hatched:</strong> {lastHatchedName}
+              </>
+            )}
           </div>
         )}
 
@@ -120,30 +151,53 @@ export default function BreedingHatcheryPage() {
         </div>
 
         <div className="mb-4 rounded-3xl border-4 border-rose-900 bg-white/85 p-4 shadow-xl">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search eggs, parents, or species..."
-              className="w-full rounded-2xl border border-rose-300 bg-white px-4 py-3 text-sm text-stone-800 md:max-w-md"
-            />
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search eggs, parents, or species..."
+                className="w-full rounded-2xl border border-rose-300 bg-white px-4 py-3 text-sm text-stone-800 md:max-w-md"
+              />
 
-            <div className="flex flex-wrap gap-2">
-              {(["all", "ready", "risk"] as HatcheryFilter[]).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFilter(value)}
-                  className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${
-                    filter === value
-                      ? "border-rose-700 bg-rose-700 text-white"
-                      : "border-rose-300 bg-white text-stone-700 hover:border-rose-400"
-                  }`}
-                >
-                  {value === "all" ? "All" : value === "ready" ? "Ready" : "Risk Only"}
-                </button>
-              ))}
+              <div className="flex flex-wrap gap-2">
+                {(["all", "ready", "risk"] as HatcheryFilter[]).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setFilter(value)}
+                    className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${
+                      filter === value
+                        ? "border-rose-700 bg-rose-700 text-white"
+                        : "border-rose-300 bg-white text-stone-700 hover:border-rose-400"
+                    }`}
+                  >
+                    {value === "all" ? "All" : value === "ready" ? "Ready" : "Risk Only"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-3">
+              <p className="text-sm text-stone-700">
+                {summary.readyCount > 0
+                  ? `${summary.readyCount} egg(s) are ready to hatch.`
+                  : "No eggs are ready right now."}
+              </p>
+
+              <button
+                type="button"
+                onClick={hatchAllReadyEggs}
+                disabled={summary.readyCount === 0}
+                className={`rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
+                  summary.readyCount > 0
+                    ? "bg-rose-700 text-white"
+                    : "bg-stone-200 text-stone-500"
+                }`}
+              >
+                Hatch All Ready
+              </button>
             </div>
           </div>
         </div>
