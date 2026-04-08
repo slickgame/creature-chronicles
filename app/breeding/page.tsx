@@ -767,6 +767,37 @@ export default function BreedingPage() {
     });
   }, [presetSortMode, presets, creatures, playerData]);
 
+  function sortCreatures(
+  list: typeof creatures,
+  sort: SortOption,
+  direction: SortDirection
+) {
+  const sorted = [...list];
+
+  sorted.sort((a, b) => {
+    const aFav = isFavoritedCreature(a.id);
+    const bFav = isFavoritedCreature(b.id);
+
+    if (aFav !== bFav) {
+      return bFav ? 1 : -1;
+    }
+
+    let result = 0;
+
+    if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
+    else if (sort === "happiness") result = b.happiness - a.happiness;
+    else if (sort === "generation") result = b.generation - a.generation;
+    else if (sort === "ready")
+      result = Number(isCreatureReady(b)) - Number(isCreatureReady(a));
+    else result = a.nickname.localeCompare(b.nickname);
+
+    return direction === "asc" ? -result : result;
+  });
+
+  return sorted;
+}
+
+
 function filterCreatures(
   search: string,
   readyOnly: boolean,
