@@ -1,6 +1,11 @@
 "use client";
 
-export type BreedingHistoryFilter = "all" | "eggs" | "hatched" | "risk";
+export type BreedingHistoryFilter =
+  | "all"
+  | "eggs"
+  | "hatched"
+  | "risk"
+  | "ready";
 
 export function BreedingHistoryFilters({
   filter,
@@ -16,6 +21,7 @@ export function BreedingHistoryFilters({
   const filters: { value: BreedingHistoryFilter; label: string }[] = [
     { value: "all", label: "All" },
     { value: "eggs", label: "Eggs" },
+    { value: "ready", label: "Ready Eggs" },
     { value: "hatched", label: "Hatched" },
     { value: "risk", label: "Risk Only" },
   ];
