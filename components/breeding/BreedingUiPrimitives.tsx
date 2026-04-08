@@ -11,7 +11,9 @@ import {
   getGradeDescription,
   getTraitClasses,
   getTraitDescription,
+  getTraitGradeEffectText,
   getTraitLabel,
+  getTraitSpeciesNote,
 } from "@/lib/breeding/uiHelpers";
 
 export function InfoButton({
@@ -205,11 +207,17 @@ export function TraitBadgeRow({ traits }: { traits: CreatureTraitEntry[] }) {
             {entry.grade}
           </div>
 
-          <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-60 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
+          <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-72 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
             <p className="font-semibold text-stone-900">
               {getTraitLabel(entry.trait)} ({entry.grade})
             </p>
-            <p className="mt-1">{getTraitDescription(entry.trait)}</p>
+            <p className="mt-1 text-stone-500">
+              {getTraitSpeciesNote(entry.trait)}
+            </p>
+            <p className="mt-2">{getTraitDescription(entry.trait)}</p>
+            <p className="mt-2 font-medium text-stone-800">
+              Grade Effect: {getTraitGradeEffectText(entry.trait, entry.grade)}
+            </p>
             <p className="mt-1 text-stone-500">
               Grade: {getGradeDescription(entry.grade)}
             </p>

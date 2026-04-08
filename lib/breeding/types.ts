@@ -6,7 +6,13 @@ export type CreatureTrait =
   | "calm"
   | "fertile"
   | "quick"
-  | "sturdy";
+  | "sturdy"
+  | "affectionate"
+  | "keen"
+  | "barnwise"
+  | "surefooted"
+  | "night_prawler"
+  | "graceful";
 
 export type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
 
@@ -97,11 +103,29 @@ export type PresetPreviewTarget = {
 
 export const BREEDING_UI_STORAGE_KEY = "creature-chronicles-breeding-ui-v1";
 
-export const ALL_BREEDABLE_TRAITS: CreatureTrait[] = [
+export const HORSE_SPECIFIC_TRAITS: CreatureTrait[] = [
+  "barnwise",
+  "surefooted",
+];
+
+export const CAT_SPECIFIC_TRAITS: CreatureTrait[] = [
+  "night_prawler",
+  "graceful",
+];
+
+export const GENERAL_BREEDABLE_TRAITS: CreatureTrait[] = [
   "domestic",
   "industrious",
   "calm",
   "fertile",
   "quick",
   "sturdy",
+  "affectionate",
+  "keen",
+];
+
+export const ALL_BREEDABLE_TRAITS: CreatureTrait[] = [
+  ...GENERAL_BREEDABLE_TRAITS,
+  ...HORSE_SPECIFIC_TRAITS,
+  ...CAT_SPECIFIC_TRAITS,
 ];
