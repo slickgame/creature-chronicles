@@ -13,7 +13,9 @@ export type HatcheryEggEntry = {
   inbreedingRisk: HatcheryRisk;
   quality: EggQuality;
   readyToHatch: boolean;
+  canReloadParents: boolean;
   onHatch: () => void;
+  onReloadParents: () => void;
 };
 
 function getRiskLabel(risk: HatcheryRisk) {
@@ -95,18 +97,31 @@ export function HatcheryEggCard({
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="shrink-0 space-y-2">
           <button
             type="button"
             onClick={egg.onHatch}
             disabled={!egg.readyToHatch}
-            className={`rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
+            className={`block w-full rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
               egg.readyToHatch
                 ? "bg-rose-700 text-white"
                 : "bg-stone-200 text-stone-500"
             }`}
           >
             {egg.readyToHatch ? "Hatch Egg" : "Not Ready"}
+          </button>
+
+          <button
+            type="button"
+            onClick={egg.onReloadParents}
+            disabled={!egg.canReloadParents}
+            className={`block w-full rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
+              egg.canReloadParents
+                ? "border border-rose-300 bg-white text-rose-900"
+                : "bg-stone-200 text-stone-500"
+            }`}
+          >
+            {egg.canReloadParents ? "Load Parents Into Breeding" : "Parents Unavailable"}
           </button>
         </div>
       </div>

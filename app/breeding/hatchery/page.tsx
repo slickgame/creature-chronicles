@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useGame } from "@/context/GameContext";
 import {
   HatcheryEggCard,
@@ -11,7 +12,8 @@ import {
 type HatcheryFilter = "all" | "ready" | "risk";
 
 export default function BreedingHatcheryPage() {
-  const { eggs, hatchEgg, creatures } = useGame();
+  const { eggs, hatchEgg, creatures, setBreedingSelection } = useGame();
+  const router = useRouter();
   const [filter, setFilter] = useState<HatcheryFilter>("all");
   const [search, setSearch] = useState("");
   const [lastHatchedName, setLastHatchedName] = useState<string | null>(null);
@@ -39,25 +41,55 @@ export default function BreedingHatcheryPage() {
   }
 
   const entries = useMemo<HatcheryEggEntry[]>(() => {
-    return eggs.map((egg) => ({
-      id: egg.id,
-      name: egg.name,
-      parents: egg.parents,
-      giver: egg.giver,
-      receiver: egg.receiver,
-      hatchDaysRemaining: egg.hatchDaysRemaining,
-      inbreedingRisk: egg.inbreedingRisk ?? "none",
-      quality: egg.quality ?? "normal",
-      readyToHatch: egg.hatchDaysRemaining <= 0,
-      onHatch: () => {
-        const hatched = hatchEgg(egg.id);
-        if (hatched) {
-          setLastHatchedName(hatched.nickname);
-          setLastBatchCount(1);
-        }
-      },
-    }));
-  }, [eggs, hatchEgg]);
+    return eggs.map((egg) => {
+      const giverCreature =
+        egg.giverId !== null
+          ? creatures.find((c) => c.id === egg.giverId) ?? null
+          : null;
+      const receiverCreature =
+        egg.receiverId !== null
+          ? creatures.find((c) => c.id === egg.receiverId) ?? null
+          : null;
+
+      const canReloadParents =
+        egg.giverIsPlayer ||
+        egg.receiverIsPlayer ||
+        giverCreature !== null ||
+        receiverCreature !== null;
+
+      return {
+        id: egg.id,
+        name: egg.name,
+        parents: egg.parents,
+        giver: egg.giver,
+        receiver: egg.receiver,
+        hatchDaysRemaining: egg.hatchDaysRemaining,
+        inbreedingRisk: egg.inbreedingRisk ?? "none",
+        quality: egg.quality ?? "normal",
+        readyToHatch: egg.hatchDaysRemaining <= 0,
+        canReloadParents,
+        onHatch: () => {
+          const hatched = hatchEgg(egg.id);
+          if (hatched) {
+            setLastHatchedName(hatched.nickname);
+            setLastBatchCount(1);
+          }
+        },
+        onReloadParents: () => {
+          if (!canReloadParents) return;
+
+          setBreedingSelection({
+            giverType: egg.giverIsPlayer ? "player" : "creature",
+            giverCreatureId: egg.giverIsPlayer ? null : egg.giverId,
+            receiverType: egg.receiverIsPlayer ? "player" : "creature",
+            receiverCreatureId: egg.receiverIsPlayer ? null : egg.receiverId,
+          });
+
+          router.push("/breeding");
+        },
+      };
+    });
+  }, [eggs, hatchEgg, creatures, router, setBreedingSelection]);
 
   const filteredEntries = useMemo(() => {
     const lowered = search.trim().toLowerCase();
@@ -101,7 +133,7 @@ export default function BreedingHatcheryPage() {
               🥚 Hatchery
             </h1>
             <p className="mt-1 text-sm text-stone-700">
-              Manage eggs, check timers, and hatch any eggs that are ready.
+              Manage eggs, check timers, hatch any eggs that are ready, or jump back into breeding with the original parents loaded.
             </p>
           </div>
 
