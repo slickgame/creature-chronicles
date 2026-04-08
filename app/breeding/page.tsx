@@ -768,76 +768,73 @@ export default function BreedingPage() {
   }, [presetSortMode, presets, creatures, playerData]);
 
   function sortCreatures(
-  list: typeof creatures,
-  sort: SortOption,
-  direction: SortDirection
-) {
-  const sorted = [...list];
+    list: typeof creatures,
+    sort: SortOption,
+    direction: SortDirection
+  ) {
+    const sorted = [...list];
 
-  sorted.sort((a, b) => {
-    const aFav = isFavoritedCreature(a.id);
-    const bFav = isFavoritedCreature(b.id);
+    sorted.sort((a, b) => {
+      const aFav = isFavoritedCreature(a.id);
+      const bFav = isFavoritedCreature(b.id);
 
-    if (aFav !== bFav) {
-      return bFav ? 1 : -1;
-    }
+      if (aFav !== bFav) {
+        return bFav ? 1 : -1;
+      }
 
-    let result = 0;
+      let result = 0;
 
-    if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
-    else if (sort === "happiness") result = b.happiness - a.happiness;
-    else if (sort === "generation") result = b.generation - a.generation;
-    else if (sort === "ready")
-      result = Number(isCreatureReady(b)) - Number(isCreatureReady(a));
-    else result = a.nickname.localeCompare(b.nickname);
+      if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
+      else if (sort === "happiness") result = b.happiness - a.happiness;
+      else if (sort === "generation") result = b.generation - a.generation;
+      else if (sort === "ready")
+        result = Number(isCreatureReady(b)) - Number(isCreatureReady(a));
+      else result = a.nickname.localeCompare(b.nickname);
 
-    return direction === "asc" ? -result : result;
-  });
+      return direction === "asc" ? -result : result;
+    });
 
-  return sorted;
-}
+    return sorted;
+  }
 
+  function filterCreatures(
+    search: string,
+    readyOnly: boolean,
+    traitsOnly: boolean,
+    familySafeOnly: boolean,
+    favoritesOnly: boolean,
+    sort: SortOption,
+    direction: SortDirection,
+    role: "giver" | "receiver"
+  ) {
+    const lowered = search.trim().toLowerCase();
 
-function filterCreatures(
-  search: string,
-  readyOnly: boolean,
-  traitsOnly: boolean,
-  familySafeOnly: boolean,
-  favoritesOnly: boolean,
-  sort: SortOption,
-  direction: SortDirection,
-  role: "giver" | "receiver"
-) {
-  const lowered = search.trim().toLowerCase();
+    const filtered = creatures.filter((creature: (typeof creatures)[number]) => {
+      const traits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+        ? creature.traits
+        : [];
 
-  const filtered = creatures.filter((creature: (typeof creatures)[number]) => {
-    const traits: CreatureTraitEntry[] = Array.isArray(creature.traits)
-      ? creature.traits
-      : [];
+      const matchesSearch =
+        lowered.length === 0 ||
+        creature.nickname.toLowerCase().includes(lowered) ||
+        creature.name.toLowerCase().includes(lowered);
 
-    const matchesSearch =
-      lowered.length === 0 ||
-      creature.nickname.toLowerCase().includes(lowered) ||
-      creature.name.toLowerCase().includes(lowered);
+      const matchesReady = !readyOnly || isCreatureReady(creature);
+      const matchesTraits = !traitsOnly || traits.length > 0;
+      const matchesFamilySafe = !familySafeOnly || isFamilySafeCandidate(creature, role);
+      const matchesFavorite = !favoritesOnly || isFavoritedCreature(creature.id);
 
-    const matchesReady = !readyOnly || isCreatureReady(creature);
-    const matchesTraits = !traitsOnly || traits.length > 0;
-    const matchesFamilySafe = !familySafeOnly || isFamilySafeCandidate(creature, role);
-    const matchesFavorite = !favoritesOnly || isFavoritedCreature(creature.id);
+      return (
+        matchesSearch &&
+        matchesReady &&
+        matchesTraits &&
+        matchesFamilySafe &&
+        matchesFavorite
+      );
+    });
 
-    return (
-      matchesSearch &&
-      matchesReady &&
-      matchesTraits &&
-      matchesFamilySafe &&
-      matchesFavorite
-    );
-  });
-
-  return sortCreatures(filtered, sort, direction);
-}
-
-
+    return sortCreatures(filtered, sort, direction);
+  }
 
   const filteredGiverCreatures = useMemo(
     () =>
@@ -1307,6 +1304,13 @@ function filterCreatures(
                   className="block rounded-2xl bg-white px-5 py-3 text-center font-semibold text-rose-900 shadow border border-rose-300"
                 >
                   View Breeding History
+                </Link>
+
+                <Link
+                  href="/breeding/hatchery"
+                  className="block rounded-2xl bg-white px-5 py-3 text-center font-semibold text-rose-900 shadow border border-rose-300"
+                >
+                  View Hatchery
                 </Link>
 
                 <Link
