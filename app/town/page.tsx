@@ -334,7 +334,7 @@ export default function TownPage() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
@@ -352,12 +352,6 @@ export default function TownPage() {
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
           >
             View Eggs
-          </Link>
-          <Link
-            href="/news"
-            className="rounded-2xl bg-orange-700 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            News Board
           </Link>
         </div>
       </div>

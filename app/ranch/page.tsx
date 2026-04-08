@@ -328,20 +328,6 @@ export default function RanchPage() {
               Travel to Town (30m)
             </button>
 
-            <Link
-              href="/calendar"
-              className="w-full rounded-2xl bg-indigo-700 px-4 py-3 text-center text-white font-semibold shadow"
-            >
-              Open Calendar
-            </Link>
-
-            <Link
-              href="/news"
-              className="w-full rounded-2xl bg-orange-700 px-4 py-3 text-center text-white font-semibold shadow"
-            >
-              Open News Board
-            </Link>
-
             <button
               onClick={nextDay}
               className="w-full rounded-2xl bg-orange-600 px-4 py-3 text-white font-semibold shadow"
@@ -351,14 +337,14 @@ export default function RanchPage() {
 
             <button
               onClick={resetGame}
-              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow sm:col-span-2 lg:col-span-3"
+              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow sm:col-span-2 lg:col-span-2"
             >
               Reset Save
             </button>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
@@ -376,18 +362,6 @@ export default function RanchPage() {
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
           >
             View Eggs
-          </Link>
-          <Link
-            href="/calendar"
-            className="rounded-2xl bg-indigo-700 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            Calendar
-          </Link>
-          <Link
-            href="/news"
-            className="rounded-2xl bg-orange-700 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            News Board
           </Link>
         </div>
       </div>

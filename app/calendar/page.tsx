@@ -207,12 +207,6 @@ export default function CalendarPage() {
             >
               Town
             </Link>
-            <Link
-              href="/news"
-              className="rounded-2xl bg-indigo-700 px-4 py-3 text-white font-semibold shadow"
-            >
-              News Board
-            </Link>
           </div>
         </div>
 

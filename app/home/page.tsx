@@ -71,7 +71,7 @@ export default function HomePage() {
             <p><strong>Home State:</strong> {cleanlinessStatus}</p>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-5">
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <button
               onClick={() => handleTravelTo("ranch")}
               className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
@@ -91,18 +91,6 @@ export default function HomePage() {
             >
               Already Home
             </button>
-            <Link
-              href="/calendar"
-              className="rounded-2xl bg-indigo-700 px-4 py-3 text-center text-white font-semibold shadow"
-            >
-              Open Calendar
-            </Link>
-            <Link
-              href="/news"
-              className="rounded-2xl bg-orange-700 px-4 py-3 text-center text-white font-semibold shadow"
-            >
-              Open News Board
-            </Link>
           </div>
         </div>
 
@@ -257,7 +245,7 @@ export default function HomePage() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/ranch"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
@@ -281,18 +269,6 @@ export default function HomePage() {
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
           >
             Eggs
-          </Link>
-          <Link
-            href="/calendar"
-            className="rounded-2xl bg-indigo-700 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            Calendar
-          </Link>
-          <Link
-            href="/news"
-            className="rounded-2xl bg-orange-700 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            News Board
           </Link>
         </div>
       </div>

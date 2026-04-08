@@ -102,12 +102,6 @@ export default function NewsPage() {
 
           <div className="flex flex-wrap gap-2">
             <Link
-              href="/calendar"
-              className="rounded-2xl bg-indigo-700 px-4 py-3 text-white font-semibold shadow"
-            >
-              Calendar
-            </Link>
-            <Link
               href="/ranch"
               className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
             >
