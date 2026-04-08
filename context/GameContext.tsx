@@ -197,8 +197,6 @@ type TownQuestTemplate = {
   requirement: QuestRequirement;
 };
 
-type TownNpcRelationshipTier = "stranger" | "friendly" | "trusted" | "close";
-
 type TownNpc = {
   id: string;
   name: string;
@@ -238,6 +236,7 @@ type SaveData = {
   townQuests: TownQuest[];
   townNpcs: TownNpc[];
   townNpcQuests: TownNpcQuest[];
+  paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
 };
 
@@ -255,6 +254,7 @@ type GameContextType = {
   townQuests: TownQuest[];
   townNpcs: TownNpc[];
   townNpcQuests: TownNpcQuest[];
+  paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
@@ -266,6 +266,7 @@ type GameContextType = {
   purchaseTownCreature: (stockEntryId: number) => void;
   submitCreatureToQuest: (questId: number, creatureId: number) => void;
   submitCreatureToNpcQuest: (questId: number, creatureId: number) => void;
+  payMonthlyTax: () => void;
   travelTo: (destination: LocationName) => void;
   cookMeal: (creatureId: number) => void;
   cleanHome: (creatureId: number) => void;
@@ -273,6 +274,9 @@ type GameContextType = {
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
+
+const MONTH_LENGTH = 28;
+const TAX_WARNING_DAY = 24;
 
 const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
 const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
@@ -294,6 +298,23 @@ function randomFrom<T>(items: readonly T[]): T {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function getMonthFromAbsoluteDay(day: number) {
+  return Math.floor((day - 1) / MONTH_LENGTH) + 1;
+}
+
+function getDayOfMonthFromAbsoluteDay(day: number) {
+  return ((day - 1) % MONTH_LENGTH) + 1;
+}
+
+function getMonthlyTaxAmount(playerData: PlayerData, creatures: Creature[], eggs: Egg[]) {
+  return (
+    60 +
+    playerData.level * 20 +
+    creatures.length * 15 +
+    eggs.length * 8
+  );
 }
 
 function getAllowedTraitsForSpecies(speciesName: string): CreatureTrait[] {
@@ -832,47 +853,17 @@ function normalizeHomeState(homeState?: HomeState): HomeState {
   };
 }
 
-function getRelationshipTier(relationship: number): TownNpcRelationshipTier {
-  if (relationship >= 75) return "close";
-  if (relationship >= 50) return "trusted";
-  if (relationship >= 25) return "friendly";
-  return "stranger";
-}
-
 const defaultTownNpcs: TownNpc[] = [
-  {
-    id: "mira",
-    name: "Mira",
-    role: "Stable Keeper",
-    personality: "Practical and ranch-focused.",
-    relationship: 0,
-    rewardMilestonesClaimed: [],
-  },
-  {
-    id: "tobin",
-    name: "Tobin",
-    role: "Courier Captain",
-    personality: "Busy, efficient, and speed-obsessed.",
-    relationship: 0,
-    rewardMilestonesClaimed: [],
-  },
-  {
-    id: "selene",
-    name: "Selene",
-    role: "House Steward",
-    personality: "Warm, observant, and fond of gentle creatures.",
-    relationship: 0,
-    rewardMilestonesClaimed: [],
-  },
+  { id: "mira", name: "Mira", role: "Stable Keeper", personality: "Practical and ranch-focused.", relationship: 0, rewardMilestonesClaimed: [] },
+  { id: "tobin", name: "Tobin", role: "Courier Captain", personality: "Busy, efficient, and speed-obsessed.", relationship: 0, rewardMilestonesClaimed: [] },
+  { id: "selene", name: "Selene", role: "House Steward", personality: "Warm, observant, and fond of gentle creatures.", relationship: 0, rewardMilestonesClaimed: [] },
 ];
 
 function normalizeTownNpc(npc: TownNpc): TownNpc {
   return {
     ...npc,
     relationship: npc.relationship ?? 0,
-    rewardMilestonesClaimed: Array.isArray(npc.rewardMilestonesClaimed)
-      ? npc.rewardMilestonesClaimed
-      : [],
+    rewardMilestonesClaimed: Array.isArray(npc.rewardMilestonesClaimed) ? npc.rewardMilestonesClaimed : [],
   };
 }
 
@@ -1023,12 +1014,7 @@ function createSingleTownQuest(currentDay: number, questIdSeed: number): TownQue
       deadlineOffsetDays: 3,
       deadlineHour: 19,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: { intelligence: 7 },
-        requiredTrait: "domestic",
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { intelligence: 7 }, requiredTrait: "domestic" },
     },
     {
       title: "Field Contract",
@@ -1038,12 +1024,7 @@ function createSingleTownQuest(currentDay: number, questIdSeed: number): TownQue
       deadlineOffsetDays: 3,
       deadlineHour: 15,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: { strength: 7, endurance: 7 },
-        requiredTrait: "industrious",
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { strength: 7, endurance: 7 }, requiredTrait: "industrious" },
     },
     {
       title: "Gentle Temperament",
@@ -1053,27 +1034,17 @@ function createSingleTownQuest(currentDay: number, questIdSeed: number): TownQue
       deadlineOffsetDays: 3,
       deadlineHour: 17,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: { vitality: 6 },
-        requiredTrait: "calm",
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { vitality: 6 }, requiredTrait: "calm" },
     },
     {
       title: "Barn Scout",
-      description: "Submit a Horse with a Surefooted or Keen edge for route scouting.",
+      description: "Submit a Horse with a Surefooted edge for route scouting.",
       rewardGold: 190,
       rewardXp: 40,
       deadlineOffsetDays: 3,
       deadlineHour: 18,
       deadlineMinute: 30,
-      requirement: {
-        species: "Horse",
-        minimumLevel: 2,
-        minimumStats: { speed: 7, intelligence: 5 },
-        requiredTrait: "surefooted",
-      },
+      requirement: { species: "Horse", minimumLevel: 2, minimumStats: { speed: 7, intelligence: 5 }, requiredTrait: "surefooted" },
     },
     {
       title: "Night Watch",
@@ -1083,12 +1054,7 @@ function createSingleTownQuest(currentDay: number, questIdSeed: number): TownQue
       deadlineOffsetDays: 3,
       deadlineHour: 22,
       deadlineMinute: 0,
-      requirement: {
-        species: "Cat",
-        minimumLevel: 2,
-        minimumStats: { speed: 8 },
-        requiredTrait: "night_prawler",
-      },
+      requirement: { species: "Cat", minimumLevel: 2, minimumStats: { speed: 8 }, requiredTrait: "night_prawler" },
     },
   ];
 
@@ -1130,12 +1096,7 @@ function createNpcQuestTemplates(currentDay: number, seedBase: number): TownNpcQ
       relationshipGain: 12,
       deadlineHour: 18,
       deadlineMinute: 0,
-      requirement: {
-        species: "Horse",
-        minimumLevel: 2,
-        minimumStats: { endurance: 8 },
-        requiredTrait: "barnwise",
-      },
+      requirement: { species: "Horse", minimumLevel: 2, minimumStats: { endurance: 8 }, requiredTrait: "barnwise" },
     },
     {
       npcId: "tobin",
@@ -1147,12 +1108,7 @@ function createNpcQuestTemplates(currentDay: number, seedBase: number): TownNpcQ
       relationshipGain: 12,
       deadlineHour: 16,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: { speed: 8 },
-        requiredTrait: "keen",
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { speed: 8 }, requiredTrait: "keen" },
     },
     {
       npcId: "selene",
@@ -1164,12 +1120,7 @@ function createNpcQuestTemplates(currentDay: number, seedBase: number): TownNpcQ
       relationshipGain: 12,
       deadlineHour: 20,
       deadlineMinute: 0,
-      requirement: {
-        species: "any",
-        minimumLevel: 2,
-        minimumStats: { intelligence: 6 },
-        requiredTrait: "affectionate",
-      },
+      requirement: { species: "any", minimumLevel: 2, minimumStats: { intelligence: 6 }, requiredTrait: "affectionate" },
     },
   ];
 
@@ -1665,6 +1616,7 @@ const defaultSaveData: SaveData = {
   townQuests: generateTownQuests(1),
   townNpcs: defaultTownNpcs,
   townNpcQuests: generateTownNpcQuests(1),
+  paidTaxMonths: [],
   travelLog: [],
 };
 
@@ -1686,6 +1638,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [townQuests, setTownQuests] = useState(defaultSaveData.townQuests);
   const [townNpcs, setTownNpcs] = useState(defaultSaveData.townNpcs);
   const [townNpcQuests, setTownNpcQuests] = useState(defaultSaveData.townNpcQuests);
+  const [paidTaxMonths, setPaidTaxMonths] = useState<number[]>(defaultSaveData.paidTaxMonths);
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
 
   useEffect(() => {
@@ -1728,6 +1681,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             3
           )
         );
+        setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
       } catch (error) {
         console.error("Failed to load save data:", error);
@@ -1753,6 +1707,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       townQuests,
       townNpcs,
       townNpcQuests,
+      paidTaxMonths,
       travelLog,
     };
 
@@ -1772,11 +1727,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     townQuests,
     townNpcs,
     townNpcQuests,
+    paidTaxMonths,
     travelLog,
   ]);
 
   function nextDay() {
+    const previousMonth = getMonthFromAbsoluteDay(currentDay);
     const newDay = currentDay + 1;
+    const newMonth = getMonthFromAbsoluteDay(newDay);
     const currentCreatureCount = creatures.length;
     const foodConsumed = Math.min(homeState.foodStock, currentCreatureCount);
 
@@ -1795,6 +1753,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       prevCreatures.map((creature, index) => {
         const wasFed = index < foodConsumed;
         const happinessDelta = getHomeConditionHappinessDelta(homeState.cleanliness, wasFed);
+
         return {
           ...creature,
           happiness: clamp(creature.happiness + happinessDelta, 0, 100),
@@ -1819,6 +1778,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
       cleanliness: Math.max(0, prev.cleanliness - 8),
       foodStock: Math.max(0, prev.foodStock - currentCreatureCount),
     }));
+
+    if (newMonth !== previousMonth && !paidTaxMonths.includes(previousMonth)) {
+      const taxDue = getMonthlyTaxAmount(playerData, creatures, eggs);
+
+      setPlayerData((prev) => ({
+        ...prev,
+        gold: Math.max(0, prev.gold - taxDue),
+        energy: Math.max(0, prev.energy - 15),
+        happiness: clamp(prev.happiness - 12, 0, 100),
+      }));
+
+      setCreatures((prev) =>
+        prev.map((creature) => ({
+          ...creature,
+          happiness: clamp(creature.happiness - 8, 0, 100),
+        }))
+      );
+    }
 
     setTownStock(generateTownStock(newDay));
     setTownQuests((prev) => ensureQuestBoardSize(prev, newDay, 8, 0, 10));
@@ -1862,7 +1839,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     );
 
     newCreature = applyEggQualityBonuses(newCreature, eggToHatch.quality ?? "normal");
-
     setCreatures((prev) => [...prev, newCreature]);
     setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
     return newCreature;
@@ -1888,10 +1864,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const receiverSpecies = receiverIsPlayer ? "Player" : receiverCreature?.name ?? "";
 
     if (!giverLabel || !receiverLabel || !giverSpecies || !receiverSpecies) return;
-
-    if (!giverIsPlayer && !receiverIsPlayer && giverCreature && receiverCreature && giverCreature.id === receiverCreature.id) {
-      return;
-    }
+    if (!giverIsPlayer && !receiverIsPlayer && giverCreature && receiverCreature && giverCreature.id === receiverCreature.id) return;
 
     if (giverCreature) {
       if (
@@ -1944,12 +1917,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const baseInbreedingRisk = calculateInbreedingRisk(giverCreature, receiverCreature, giverIsPlayer, receiverIsPlayer);
     const inbreedingRisk = applyIntelligenceRiskMitigation(baseInbreedingRisk, giverCreature, receiverCreature);
-    const minutesSpent = getBreedingSessionMinutes(
-      giverCreature,
-      receiverCreature,
-      breedingSelection.giverType,
-      breedingSelection.receiverType
-    );
+    const minutesSpent = getBreedingSessionMinutes(giverCreature, receiverCreature, breedingSelection.giverType, breedingSelection.receiverType);
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
 
     setCurrentDay(updatedClock.day);
@@ -2128,6 +2096,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+  }
+
+  function payMonthlyTax() {
+    const currentMonth = getMonthFromAbsoluteDay(currentDay);
+    if (paidTaxMonths.includes(currentMonth)) return;
+
+    const taxDue = getMonthlyTaxAmount(playerData, creatures, eggs);
+    if (playerData.gold < taxDue) return;
+
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 15);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setPlayerData((prev) => ({
+      ...prev,
+      gold: prev.gold - taxDue,
+      happiness: clamp(prev.happiness + 2, 0, 100),
+    }));
+    setPaidTaxMonths((prev) => [...prev, currentMonth]);
   }
 
   function travelTo(destination: LocationName) {
@@ -2362,6 +2350,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setTownQuests(generateTownQuests(1));
     setTownNpcs(defaultTownNpcs);
     setTownNpcQuests(generateTownNpcQuests(1));
+    setPaidTaxMonths([]);
     setTravelLog([]);
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -2382,6 +2371,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         townQuests,
         townNpcs,
         townNpcQuests,
+        paidTaxMonths,
         travelLog,
         nextDay,
         hatchEgg,
@@ -2393,6 +2383,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         purchaseTownCreature,
         submitCreatureToQuest,
         submitCreatureToNpcQuest,
+        payMonthlyTax,
         travelTo,
         cookMeal,
         cleanHome,

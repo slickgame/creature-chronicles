@@ -20,7 +20,13 @@ type CreatureTrait =
   | "calm"
   | "fertile"
   | "quick"
-  | "sturdy";
+  | "sturdy"
+  | "affectionate"
+  | "keen"
+  | "barnwise"
+  | "surefooted"
+  | "night_prawler"
+  | "graceful";
 
 type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
 
@@ -48,14 +54,8 @@ function getRiskLabel(risk: InbreedingRisk) {
 }
 
 function getRiskClasses(risk: InbreedingRisk) {
-  if (risk === "none") {
-    return "bg-green-100 text-green-900 border-green-300";
-  }
-
-  if (risk === "half_sibling") {
-    return "bg-amber-100 text-amber-900 border-amber-300";
-  }
-
+  if (risk === "none") return "bg-green-100 text-green-900 border-green-300";
+  if (risk === "half_sibling") return "bg-amber-100 text-amber-900 border-amber-300";
   return "bg-red-100 text-red-900 border-red-300";
 }
 
@@ -82,14 +82,8 @@ function getInbredTraitLabel(
 }
 
 function getInbredTraitClasses(severity: InbredTraitSeverity) {
-  if (severity === "none") {
-    return "bg-stone-100 text-stone-700 border-stone-300";
-  }
-
-  if (severity === "mild") {
-    return "bg-amber-100 text-amber-900 border-amber-300";
-  }
-
+  if (severity === "none") return "bg-stone-100 text-stone-700 border-stone-300";
+  if (severity === "mild") return "bg-amber-100 text-amber-900 border-amber-300";
   return "bg-red-100 text-red-900 border-red-300";
 }
 
@@ -99,7 +93,13 @@ function getCreatureTraitLabel(trait: CreatureTrait) {
   if (trait === "calm") return "Calm";
   if (trait === "fertile") return "Fertile";
   if (trait === "quick") return "Quick";
-  return "Sturdy";
+  if (trait === "sturdy") return "Sturdy";
+  if (trait === "affectionate") return "Affectionate";
+  if (trait === "keen") return "Keen";
+  if (trait === "barnwise") return "Barnwise";
+  if (trait === "surefooted") return "Surefooted";
+  if (trait === "night_prawler") return "Night Prawler";
+  return "Graceful";
 }
 
 function getCreatureTraitClasses(trait: CreatureTrait) {
@@ -108,7 +108,13 @@ function getCreatureTraitClasses(trait: CreatureTrait) {
   if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
   if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
   if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  return "bg-stone-200 text-stone-900 border-stone-400";
+  if (trait === "sturdy") return "bg-stone-200 text-stone-900 border-stone-400";
+  if (trait === "affectionate") return "bg-rose-100 text-rose-900 border-rose-300";
+  if (trait === "keen") return "bg-cyan-100 text-cyan-900 border-cyan-300";
+  if (trait === "barnwise") return "bg-orange-100 text-orange-900 border-orange-300";
+  if (trait === "surefooted") return "bg-yellow-100 text-yellow-900 border-yellow-300";
+  if (trait === "night_prawler") return "bg-indigo-100 text-indigo-900 border-indigo-300";
+  return "bg-fuchsia-100 text-fuchsia-900 border-fuchsia-300";
 }
 
 function getGradeClasses(grade: TraitGrade) {
@@ -219,13 +225,8 @@ export default function RanchPage() {
         return a.id - b.id;
       }
 
-      if (sortOption === "name_asc") {
-        return a.nickname.localeCompare(b.nickname);
-      }
-
-      if (sortOption === "name_desc") {
-        return b.nickname.localeCompare(a.nickname);
-      }
+      if (sortOption === "name_asc") return a.nickname.localeCompare(b.nickname);
+      if (sortOption === "name_desc") return b.nickname.localeCompare(a.nickname);
 
       if (sortOption === "generation_desc") {
         if (b.generation !== a.generation) return b.generation - a.generation;
@@ -233,30 +234,22 @@ export default function RanchPage() {
       }
 
       if (sortOption === "strength_desc") {
-        if (b.stats.strength !== a.stats.strength) {
-          return b.stats.strength - a.stats.strength;
-        }
+        if (b.stats.strength !== a.stats.strength) return b.stats.strength - a.stats.strength;
         return b.id - a.id;
       }
 
       if (sortOption === "endurance_desc") {
-        if (b.stats.endurance !== a.stats.endurance) {
-          return b.stats.endurance - a.stats.endurance;
-        }
+        if (b.stats.endurance !== a.stats.endurance) return b.stats.endurance - a.stats.endurance;
         return b.id - a.id;
       }
 
       if (sortOption === "intelligence_desc") {
-        if (b.stats.intelligence !== a.stats.intelligence) {
-          return b.stats.intelligence - a.stats.intelligence;
-        }
+        if (b.stats.intelligence !== a.stats.intelligence) return b.stats.intelligence - a.stats.intelligence;
         return b.id - a.id;
       }
 
       if (sortOption === "speed_desc") {
-        if (b.stats.speed !== a.stats.speed) {
-          return b.stats.speed - a.stats.speed;
-        }
+        if (b.stats.speed !== a.stats.speed) return b.stats.speed - a.stats.speed;
         return b.id - a.id;
       }
 
@@ -313,7 +306,7 @@ export default function RanchPage() {
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col gap-3 sm:max-w-sm">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <button
               onClick={() => setRegistryOpen(true)}
               className="w-full rounded-2xl bg-emerald-700 px-4 py-3 text-white font-semibold shadow"
@@ -325,7 +318,7 @@ export default function RanchPage() {
               onClick={handleTravelToHome}
               className="w-full rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
             >
-              Travel to Home (10m)
+              Travel to Home
             </button>
 
             <button
@@ -334,6 +327,20 @@ export default function RanchPage() {
             >
               Travel to Town (30m)
             </button>
+
+            <Link
+              href="/calendar"
+              className="w-full rounded-2xl bg-indigo-700 px-4 py-3 text-center text-white font-semibold shadow"
+            >
+              Open Calendar
+            </Link>
+
+            <Link
+              href="/news"
+              className="w-full rounded-2xl bg-orange-700 px-4 py-3 text-center text-white font-semibold shadow"
+            >
+              Open News Board
+            </Link>
 
             <button
               onClick={nextDay}
@@ -344,14 +351,14 @@ export default function RanchPage() {
 
             <button
               onClick={resetGame}
-              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow"
+              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow sm:col-span-2 lg:col-span-3"
             >
               Reset Save
             </button>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
@@ -371,10 +378,16 @@ export default function RanchPage() {
             View Eggs
           </Link>
           <Link
-            href="/"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
+            href="/calendar"
+            className="rounded-2xl bg-indigo-700 px-4 py-4 text-center text-white font-semibold shadow"
           >
-            Back to Title
+            Calendar
+          </Link>
+          <Link
+            href="/news"
+            className="rounded-2xl bg-orange-700 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            News Board
           </Link>
         </div>
       </div>
@@ -447,6 +460,12 @@ export default function RanchPage() {
                   <option value="fertile">Fertile</option>
                   <option value="quick">Quick</option>
                   <option value="sturdy">Sturdy</option>
+                  <option value="affectionate">Affectionate</option>
+                  <option value="keen">Keen</option>
+                  <option value="barnwise">Barnwise</option>
+                  <option value="surefooted">Surefooted</option>
+                  <option value="night_prawler">Night Prawler</option>
+                  <option value="graceful">Graceful</option>
                 </select>
 
                 <select
@@ -481,9 +500,7 @@ export default function RanchPage() {
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {filteredRegistry.map((creature) => {
-                    const creatureTraits: CreatureTraitEntry[] = Array.isArray(
-                      creature.traits
-                    )
+                    const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
                       ? creature.traits
                       : [];
 

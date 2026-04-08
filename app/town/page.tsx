@@ -156,7 +156,7 @@ export default function TownPage() {
             <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <button
               onClick={() => handleTravelTo("ranch")}
               className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
@@ -167,21 +167,26 @@ export default function TownPage() {
               onClick={() => handleTravelTo("market")}
               className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
             >
-              Visit Market (15m)
+              Visit Market
             </button>
             <button
               onClick={() => handleTravelTo("guild_hall")}
               className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
             >
-              Visit Guild Hall (20m)
+              Visit Guild Hall
             </button>
-            <button
-              onClick={() => handleTravelTo("town")}
-              className="rounded-2xl bg-gray-500 px-4 py-3 text-white font-semibold shadow"
-              disabled
+            <Link
+              href="/calendar"
+              className="rounded-2xl bg-indigo-700 px-4 py-3 text-center text-white font-semibold shadow"
             >
-              Already in Town
-            </button>
+              Open Calendar
+            </Link>
+            <Link
+              href="/news"
+              className="rounded-2xl bg-orange-700 px-4 py-3 text-center text-white font-semibold shadow"
+            >
+              Open News Board
+            </Link>
           </div>
         </div>
 
@@ -503,7 +508,7 @@ export default function TownPage() {
           )}
         </section>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/creatures"
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
@@ -521,6 +526,12 @@ export default function TownPage() {
             className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
           >
             View Eggs
+          </Link>
+          <Link
+            href="/calendar"
+            className="rounded-2xl bg-indigo-700 px-4 py-4 text-center text-white font-semibold shadow"
+          >
+            Calendar
           </Link>
         </div>
       </div>
