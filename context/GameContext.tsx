@@ -46,7 +46,13 @@ type CreatureTrait =
   | "calm"
   | "fertile"
   | "quick"
-  | "sturdy";
+  | "sturdy"
+  | "affectionate"
+  | "keen"
+  | "barnwise"
+  | "surefooted"
+  | "night_prawler"
+  | "graceful";
 
 type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
 
@@ -62,7 +68,13 @@ type LegacyCreatureTrait =
   | "calm"
   | "fertile"
   | "quick"
-  | "sturdy";
+  | "sturdy"
+  | "affectionate"
+  | "keen"
+  | "barnwise"
+  | "surefooted"
+  | "night_prawler"
+  | "graceful";
 
 type LocationName = "home" | "ranch" | "town" | "market" | "guild_hall";
 
@@ -275,13 +287,22 @@ const catLastNames = [
 ];
 
 const INBRED_TRAITS: InbredTrait[] = ["weak", "frail", "dull", "slow"];
-const BREEDABLE_TRAITS: CreatureTrait[] = [
+const GENERAL_TRAITS: CreatureTrait[] = [
   "domestic",
   "industrious",
   "calm",
   "fertile",
   "quick",
   "sturdy",
+  "affectionate",
+  "keen",
+];
+const HORSE_SPECIFIC_TRAITS: CreatureTrait[] = ["barnwise", "surefooted"];
+const CAT_SPECIFIC_TRAITS: CreatureTrait[] = ["night_prawler", "graceful"];
+const BREEDABLE_TRAITS: CreatureTrait[] = [
+  ...GENERAL_TRAITS,
+  ...HORSE_SPECIFIC_TRAITS,
+  ...CAT_SPECIFIC_TRAITS,
 ];
 const TRAIT_GRADES: TraitGrade[] = ["F", "D", "C", "B", "A", "S"];
 
@@ -291,6 +312,29 @@ function randomFrom<T>(items: readonly T[]): T {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function getAllowedTraitsForSpecies(speciesName: string): CreatureTrait[] {
+  if (speciesName === "Horse") {
+    return [...GENERAL_TRAITS, ...HORSE_SPECIFIC_TRAITS];
+  }
+  if (speciesName === "Cat") {
+    return [...GENERAL_TRAITS, ...CAT_SPECIFIC_TRAITS];
+  }
+  return [...GENERAL_TRAITS];
+}
+
+function isTraitAllowedForSpecies(speciesName: string, trait: CreatureTrait) {
+  return getAllowedTraitsForSpecies(speciesName).includes(trait);
+}
+
+function getTraitGradePriceBonus(grade: TraitGrade) {
+  if (grade === "F") return 6;
+  if (grade === "D") return 12;
+  if (grade === "C") return 20;
+  if (grade === "B") return 35;
+  if (grade === "A") return 55;
+  return 85;
 }
 
 function getXpToNextLevel(level: number): number {
@@ -416,7 +460,8 @@ function traitsToLegacyPrimaryTrait(
 
 function normalizeTraitList(
   traits?: CreatureTraitEntry[],
-  legacyTrait?: LegacyCreatureTrait
+  legacyTrait?: LegacyCreatureTrait,
+  speciesName?: string
 ): CreatureTraitEntry[] {
   const list: CreatureTraitEntry[] = Array.isArray(traits) ? traits : [];
 
@@ -425,6 +470,7 @@ function normalizeTraitList(
   for (const entry of list) {
     if (!entry?.trait) continue;
     if (!BREEDABLE_TRAITS.includes(entry.trait)) continue;
+    if (speciesName && !isTraitAllowedForSpecies(speciesName, entry.trait)) continue;
 
     const normalizedGrade: TraitGrade = TRAIT_GRADES.includes(entry.grade)
       ? entry.grade
@@ -444,7 +490,8 @@ function normalizeTraitList(
     deduped.size === 0 &&
     legacyTrait &&
     legacyTrait !== "none" &&
-    BREEDABLE_TRAITS.includes(legacyTrait)
+    BREEDABLE_TRAITS.includes(legacyTrait) &&
+    (!speciesName || isTraitAllowedForSpecies(speciesName, legacyTrait))
   ) {
     deduped.set(legacyTrait, {
       trait: legacyTrait,
@@ -507,7 +554,10 @@ const horseTemplate: Creature = createCreatureBase({
   nickname: "Starter Horse",
   theme: "Field Worker",
   happiness: 60,
-  traits: [createSkillTraitEntry("industrious", "B")],
+  traits: [
+    createSkillTraitEntry("industrious", "B"),
+    createSkillTraitEntry("surefooted", "C"),
+  ],
   stats: {
     strength: 8,
     endurance: 8,
@@ -535,7 +585,10 @@ const catTemplate: Creature = createCreatureBase({
   nickname: "Starter Cat",
   theme: "House Maid",
   happiness: 60,
-  traits: [createSkillTraitEntry("domestic", "B")],
+  traits: [
+    createSkillTraitEntry("domestic", "B"),
+    createSkillTraitEntry("graceful", "C"),
+  ],
   stats: {
     strength: 4,
     endurance: 5,
@@ -691,10 +744,15 @@ function createInheritedStats(
   };
 }
 
+function rollRandomAllowedTrait(speciesName: string): CreatureTrait {
+  return randomFrom(getAllowedTraitsForSpecies(speciesName));
+}
+
 function rollWildTraitSet(
+  speciesName: string,
   templateTraits: CreatureTraitEntry[] = [],
-  minTraits = 0,
-  maxTraits = 2
+  minTraits = 1,
+  maxTraits = 3
 ): CreatureTraitEntry[] {
   const desiredCount =
     minTraits +
@@ -703,7 +761,9 @@ function rollWildTraitSet(
   const picked = new Map<CreatureTrait, CreatureTraitEntry>();
 
   for (const entry of templateTraits) {
-    if (Math.random() < 0.45) {
+    if (!isTraitAllowedForSpecies(speciesName, entry.trait)) continue;
+
+    if (Math.random() < 0.5) {
       picked.set(entry.trait, {
         trait: entry.trait,
         grade: maybeDowngradeGrade(entry.grade, 0.25),
@@ -712,7 +772,7 @@ function rollWildTraitSet(
   }
 
   while (picked.size < desiredCount) {
-    const trait = randomFrom(BREEDABLE_TRAITS);
+    const trait = rollRandomAllowedTrait(speciesName);
     if (picked.has(trait)) continue;
 
     picked.set(trait, {
@@ -721,22 +781,27 @@ function rollWildTraitSet(
     });
   }
 
-  return Array.from(picked.values()).sort(
-    (a, b) => getGradeRank(b.grade) - getGradeRank(a.grade)
-  );
+  return Array.from(picked.values())
+    .sort((a, b) => getGradeRank(b.grade) - getGradeRank(a.grade))
+    .slice(0, 3);
 }
 
 function createInheritedTraitSet(
+  childSpeciesName: string,
   giverCreature: Creature | null,
   receiverCreature: Creature | null,
-  inbreedingRisk: InbreedingRisk
+  inbreedingRisk: InbreedingRisk,
+  eggQuality: EggQuality
 ): CreatureTraitEntry[] {
+  const allowedTraits = getAllowedTraitsForSpecies(childSpeciesName);
   const parentTraitMap = new Map<CreatureTrait, TraitGrade[]>();
 
   for (const parent of [giverCreature, receiverCreature]) {
     if (!parent) continue;
 
     for (const entry of parent.traits) {
+      if (!allowedTraits.includes(entry.trait)) continue;
+
       if (!parentTraitMap.has(entry.trait)) {
         parentTraitMap.set(entry.trait, []);
       }
@@ -745,6 +810,8 @@ function createInheritedTraitSet(
   }
 
   const inherited = new Map<CreatureTrait, CreatureTraitEntry>();
+  const qualityUpgradeChance =
+    eggQuality === "exceptional" ? 0.22 : eggQuality === "strong" ? 0.12 : 0.05;
 
   for (const [trait, grades] of parentTraitMap.entries()) {
     const bestParentGrade = grades.reduce((best, current) =>
@@ -752,16 +819,18 @@ function createInheritedTraitSet(
     );
 
     const appearsInBothParents = grades.length >= 2;
-    const inheritChance = appearsInBothParents ? 0.82 : 0.52;
+    let inheritChance = appearsInBothParents ? 0.84 : 0.56;
+
+    if (eggQuality === "strong") inheritChance += 0.04;
+    if (eggQuality === "exceptional") inheritChance += 0.08;
 
     if (Math.random() < inheritChance) {
       let rolledGrade = bestParentGrade;
 
-      if (appearsInBothParents) {
-        rolledGrade = maybeUpgradeGrade(bestParentGrade, 0.18);
-      } else {
-        rolledGrade = maybeUpgradeGrade(bestParentGrade, 0.08);
-      }
+      rolledGrade = maybeUpgradeGrade(
+        rolledGrade,
+        appearsInBothParents ? 0.18 + qualityUpgradeChance : 0.08 + qualityUpgradeChance
+      );
 
       if (inbreedingRisk !== "none") {
         rolledGrade = maybeDowngradeGrade(rolledGrade, 0.12);
@@ -778,17 +847,30 @@ function createInheritedTraitSet(
 
   if (desiredCount === 0) {
     desiredCount = Math.random() < 0.7 ? 1 : 2;
-  } else if (desiredCount === 1 && Math.random() < 0.45) {
+  } else if (desiredCount === 1 && Math.random() < 0.5) {
     desiredCount = 2;
-  } else if (desiredCount >= 2 && Math.random() < 0.18) {
+  } else if (desiredCount >= 2 && Math.random() < 0.25) {
+    desiredCount = Math.min(3, desiredCount + 1);
+  }
+
+  const mutationChance =
+    eggQuality === "exceptional" ? 0.28 : eggQuality === "strong" ? 0.18 : 0.1;
+
+  if (Math.random() < mutationChance) {
     desiredCount = Math.min(3, desiredCount + 1);
   }
 
   while (inherited.size < desiredCount) {
-    const randomTrait = randomFrom(BREEDABLE_TRAITS);
+    const randomTrait = rollRandomAllowedTrait(childSpeciesName);
     if (inherited.has(randomTrait)) continue;
 
     let grade = rollRandomTraitGrade();
+
+    if (eggQuality === "strong") {
+      grade = maybeUpgradeGrade(grade, 0.08);
+    } else if (eggQuality === "exceptional") {
+      grade = maybeUpgradeGrade(grade, 0.14);
+    }
 
     if (inbreedingRisk !== "none") {
       grade = maybeDowngradeGrade(grade, 0.15);
@@ -867,7 +949,8 @@ function createCreatureFromTemplate(
   generation: number,
   inbreedingRisk: InbreedingRisk,
   giverCreature: Creature | null,
-  receiverCreature: Creature | null
+  receiverCreature: Creature | null,
+  eggQuality: EggQuality
 ): Creature {
   const inheritedStats = createInheritedStats(
     template.stats,
@@ -877,9 +960,11 @@ function createCreatureFromTemplate(
 
   const penaltyResult = applyInbreedingPenalty(inheritedStats, inbreedingRisk);
   const inheritedTraits = createInheritedTraitSet(
+    template.name,
     giverCreature,
     receiverCreature,
-    inbreedingRisk
+    inbreedingRisk,
+    eggQuality
   );
 
   const maxBreedingStamina = getMaxBreedingStaminaFromStats(
@@ -938,7 +1023,11 @@ function normalizeCreature(creature: Creature): Creature {
     vitality: creature.stats?.vitality ?? 5,
   };
 
-  const normalizedTraits = normalizeTraitList(creature.traits, creature.trait);
+  const normalizedTraits = normalizeTraitList(
+    creature.traits,
+    creature.trait,
+    creature.name
+  );
 
   const maxBreedingStamina =
     creature.maxBreedingStamina ??
@@ -1013,6 +1102,43 @@ function normalizeHomeState(homeState?: HomeState): HomeState {
   };
 }
 
+function calculateTownCreaturePrice(creature: Creature): number {
+  const statTotal =
+    creature.stats.strength +
+    creature.stats.endurance +
+    creature.stats.intelligence +
+    creature.stats.speed +
+    creature.stats.fertility +
+    creature.stats.vitality;
+
+  const traitValue = creature.traits.reduce((sum, entry) => {
+    const gradeValue = getTraitGradePriceBonus(entry.grade);
+    const speciesLockedBonus =
+      HORSE_SPECIFIC_TRAITS.includes(entry.trait) ||
+      CAT_SPECIFIC_TRAITS.includes(entry.trait)
+        ? 18
+        : 0;
+    return sum + gradeValue + speciesLockedBonus;
+  }, 0);
+
+  const multipleTraitBonus =
+    creature.traits.length >= 3
+      ? 45
+      : creature.traits.length === 2
+      ? 18
+      : creature.traits.length === 1
+      ? 8
+      : 0;
+
+  return (
+    80 +
+    statTotal * 3 +
+    traitValue +
+    multipleTraitBonus +
+    Math.max(0, creature.level - 1) * 10
+  );
+}
+
 function createTownSellerCreature(
   template: Creature,
   currentDay: number
@@ -1028,7 +1154,7 @@ function createTownSellerCreature(
 
   const maxBreedingStamina = getMaxBreedingStaminaFromStats(stats);
   const dailyBreedingLimit = getDailyBreedingLimitFromStats(stats);
-  const rolledTraits = rollWildTraitSet(template.traits, 0, 2);
+  const rolledTraits = rollWildTraitSet(template.name, template.traits, 1, 3);
 
   return {
     ...template,
@@ -1066,18 +1192,11 @@ function generateTownStock(currentDay: number): TownStockEntry[] {
   return Array.from({ length: 3 }).map((_, index) => {
     const template = randomFrom(templates);
     const creature = createTownSellerCreature(template, currentDay);
-    const statTotal =
-      creature.stats.strength +
-      creature.stats.endurance +
-      creature.stats.intelligence +
-      creature.stats.speed +
-      creature.stats.fertility +
-      creature.stats.vitality;
 
     return {
       id: currentDay * 100 + index + 1,
       creature,
-      price: 80 + statTotal * 3 + creature.traits.length * 20,
+      price: calculateTownCreaturePrice(creature),
     };
   });
 }
@@ -2039,6 +2158,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           parsedSave.townStock?.map((entry) => ({
             ...entry,
             creature: normalizeCreature(entry.creature),
+            price: calculateTownCreaturePrice(normalizeCreature(entry.creature)),
           })) ?? generateTownStock(parsedSave.currentDay ?? 1)
         );
         setTownQuests(
@@ -2210,7 +2330,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       childGeneration,
       inbreedingRisk,
       giverCreature,
-      receiverCreature
+      receiverCreature,
+      eggToHatch.quality ?? "normal"
     );
 
     newCreature = applyEggQualityBonuses(
