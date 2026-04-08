@@ -766,36 +766,6 @@ export default function BreedingPage() {
       return getPresetScore(presetB).score - getPresetScore(presetA).score;
     });
   }, [presetSortMode, presets, creatures, playerData]);
-function sortCreatures(
-  list: typeof creatures,
-  sort: SortOption,
-  direction: SortDirection
-) {
-  const sorted = [...list];
-
-  sorted.sort((a, b) => {
-    const aFav = isFavoritedCreature(a.id);
-    const bFav = isFavoritedCreature(b.id);
-
-    if (aFav !== bFav) {
-      return bFav ? 1 : -1;
-    }
-
-    let result = 0;
-
-    if (sort === "fertility") result = b.stats.fertility - a.stats.fertility;
-    else if (sort === "happiness") result = b.happiness - a.happiness;
-    else if (sort === "generation") result = b.generation - a.generation;
-    else if (sort === "ready")
-      result = Number(isCreatureReady(b)) - Number(isCreatureReady(a));
-    else result = a.nickname.localeCompare(b.nickname);
-
-    return direction === "asc" ? -result : result;
-  });
-
-  return sorted;
-}
-
 
 function filterCreatures(
   search: string,
@@ -1300,6 +1270,13 @@ function filterCreatures(
                 >
                   {canBreed ? "Breed" : "Cannot Breed"}
                 </button>
+
+                <Link
+                  href="/breeding/history"
+                  className="block rounded-2xl bg-white px-5 py-3 text-center font-semibold text-rose-900 shadow border border-rose-300"
+                >
+                  View Breeding History
+                </Link>
 
                 <Link
                   href="/ranch"
