@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { GameProvider } from "@/context/GameContext";
+import { GlobalHudNav } from "@/components/game/GlobalHudNav";
 
 export const metadata: Metadata = {
   title: "Creature Chronicles",
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <GameProvider>{children}</GameProvider>
+        <GameProvider>
+          <GlobalHudNav />
+          {children}
+        </GameProvider>
       </body>
     </html>
   );
