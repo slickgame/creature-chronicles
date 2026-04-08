@@ -19,6 +19,9 @@ export type BreedingHistoryEntry = {
   risk: HistoryRisk;
   canReload: boolean;
   onReload: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
+  secondaryActionDisabled?: boolean;
 };
 
 function getRiskClasses(risk: HistoryRisk) {
@@ -112,12 +115,27 @@ export function BreedingHistoryCard({
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="shrink-0 space-y-2">
+          {entry.secondaryActionLabel && entry.onSecondaryAction && (
+            <button
+              type="button"
+              onClick={entry.onSecondaryAction}
+              disabled={entry.secondaryActionDisabled}
+              className={`block w-full rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
+                entry.secondaryActionDisabled
+                  ? "bg-stone-200 text-stone-500"
+                  : "border border-rose-300 bg-white text-rose-900"
+              }`}
+            >
+              {entry.secondaryActionLabel}
+            </button>
+          )}
+
           <button
             type="button"
             onClick={entry.onReload}
             disabled={!entry.canReload}
-            className={`rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
+            className={`block w-full rounded-2xl px-4 py-3 text-sm font-semibold shadow ${
               entry.canReload
                 ? "bg-rose-700 text-white"
                 : "bg-stone-200 text-stone-500"
