@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import {
   CreatureTraitEntry,
   SortDirection,
@@ -176,6 +176,57 @@ export function HelpModal({
   );
 }
 
+function TraitBadgeItem({ entry }: { entry: CreatureTraitEntry }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="w-full rounded-2xl border border-rose-200 bg-white/80 p-2">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        className="flex w-full flex-wrap items-center gap-1 text-left"
+      >
+        <div
+          className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
+            entry.trait
+          )}`}
+        >
+          {getTraitLabel(entry.trait)}
+        </div>
+        <div
+          className={`inline-block rounded-full border px-2 py-1 text-[10px] font-semibold ${getGradeClasses(
+            entry.grade
+          )}`}
+        >
+          {entry.grade}
+        </div>
+        <div className="ml-auto rounded-full border border-rose-300 bg-rose-50 px-2 py-1 text-[10px] font-semibold text-rose-900">
+          {open ? "Hide Info" : "Show Info"}
+        </div>
+      </button>
+
+      {open ? (
+        <div className="mt-2 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-sm">
+          <p className="font-semibold text-stone-900">
+            {getTraitLabel(entry.trait)} ({entry.grade})
+          </p>
+          <p className="mt-1 text-stone-500">{getTraitSpeciesNote(entry.trait)}</p>
+          <p className="mt-2">{getTraitDescription(entry.trait)}</p>
+          <p className="mt-2 font-medium text-stone-800">
+            Grade Effect: {getTraitGradeEffectText(entry.trait, entry.grade)}
+          </p>
+          <p className="mt-1 text-stone-500">
+            Grade: {getGradeDescription(entry.grade)}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function TraitBadgeRow({ traits }: { traits: CreatureTraitEntry[] }) {
   if (!traits || traits.length === 0) {
     return (
@@ -186,43 +237,12 @@ export function TraitBadgeRow({ traits }: { traits: CreatureTraitEntry[] }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5 overflow-visible">
+    <div className="space-y-2">
       {traits.map((entry, index) => (
-        <div
+        <TraitBadgeItem
           key={`${entry.trait}-${entry.grade}-${index}`}
-          className="group relative flex items-center gap-1 overflow-visible"
-        >
-          <div
-            className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
-              entry.trait
-            )}`}
-          >
-            {getTraitLabel(entry.trait)}
-          </div>
-          <div
-            className={`inline-block rounded-full border px-2 py-1 text-[10px] font-semibold ${getGradeClasses(
-              entry.grade
-            )}`}
-          >
-            {entry.grade}
-          </div>
-
-          <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-72 max-w-[calc(100vw-2rem)] -translate-x-1/2 break-words rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
-            <p className="font-semibold text-stone-900">
-              {getTraitLabel(entry.trait)} ({entry.grade})
-            </p>
-            <p className="mt-1 text-stone-500">
-              {getTraitSpeciesNote(entry.trait)}
-            </p>
-            <p className="mt-2">{getTraitDescription(entry.trait)}</p>
-            <p className="mt-2 font-medium text-stone-800">
-              Grade Effect: {getTraitGradeEffectText(entry.trait, entry.grade)}
-            </p>
-            <p className="mt-1 text-stone-500">
-              Grade: {getGradeDescription(entry.grade)}
-            </p>
-          </div>
-        </div>
+          entry={entry}
+        />
       ))}
     </div>
   );
