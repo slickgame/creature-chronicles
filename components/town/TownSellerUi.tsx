@@ -15,6 +15,8 @@ type CreatureTrait =
   | "night_prawler"
   | "graceful";
 
+type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+
 function getTraitLabel(trait: CreatureTrait) {
   if (trait === "domestic") return "Domestic";
   if (trait === "industrious") return "Industrious";
@@ -47,21 +49,68 @@ function getTraitClasses(trait: CreatureTrait) {
   return "bg-stone-100 text-stone-700 border-stone-300";
 }
 
+function getTraitDescription(trait: CreatureTrait) {
+  if (trait === "domestic") return "Helps with home tasks and comfort-focused activities.";
+  if (trait === "industrious") return "Improves work output and productive routines.";
+  if (trait === "calm") return "Supports stable moods and smoother breeding behavior.";
+  if (trait === "fertile") return "Improves egg and offspring-related outcomes.";
+  if (trait === "quick") return "Improves time-sensitive tasks and general responsiveness.";
+  if (trait === "sturdy") return "Improves stamina efficiency and physical resilience.";
+  if (trait === "affectionate") return "Tends to improve bonding and relationship-focused interactions.";
+  if (trait === "keen") return "Improves awareness, learning, and sharp reactions.";
+  if (trait === "barnwise") return "Performs especially well in ranch and barn environments.";
+  if (trait === "surefooted") return "Improves stability, reliability, and movement safety.";
+  if (trait === "night_prawler") return "Performs best in late hours or low-light routines.";
+  if (trait === "graceful") return "Improves elegant movement, poise, and refined handling.";
+  return "No special effect.";
+}
+
+function getGradeDescription(grade: TraitGrade | string) {
+  if (grade === "F") return "Very weak expression";
+  if (grade === "D") return "Weak expression";
+  if (grade === "C") return "Average expression";
+  if (grade === "B") return "Strong expression";
+  if (grade === "A") return "Excellent expression";
+  if (grade === "S") return "Exceptional expression";
+  return "Unknown grade";
+}
+
 export function TraitBadgeRow({
   traits,
 }: {
   traits: { trait: CreatureTrait; grade: string }[];
 }) {
+  if (!traits || traits.length === 0) {
+    return (
+      <div className="mt-2">
+        <div className="inline-block rounded-full border border-stone-300 bg-stone-100 px-2 py-1 text-xs font-semibold text-stone-700">
+          No Traits
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-2 flex flex-wrap gap-2">
       {traits.map((traitEntry, index) => (
-        <div
-          key={`${traitEntry.trait}-${traitEntry.grade}-${index}`}
-          className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
-            traitEntry.trait
-          )}`}
-        >
-          {getTraitLabel(traitEntry.trait)} {traitEntry.grade}
+        <div key={`${traitEntry.trait}-${traitEntry.grade}-${index}`} className="group relative">
+          <div
+            className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
+              traitEntry.trait
+            )}`}
+          >
+            {getTraitLabel(traitEntry.trait)} {traitEntry.grade}
+          </div>
+
+          <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-64 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
+            <p className="font-semibold text-stone-900">
+              {getTraitLabel(traitEntry.trait)} ({traitEntry.grade})
+            </p>
+            <p className="mt-1">{getTraitDescription(traitEntry.trait)}</p>
+            <p className="mt-1 text-stone-500">
+              {getGradeDescription(traitEntry.grade)}
+            </p>
+          </div>
         </div>
       ))}
     </div>
