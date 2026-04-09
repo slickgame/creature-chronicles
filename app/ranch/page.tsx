@@ -5,6 +5,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import RanchPlannerPanel from "@/components/ranch/RanchPlannerPanel";
+import {
+  DEFAULT_BUILDINGS,
+  FeedQuality,
+  PlannerCreature,
+  RanchRecapSlide,
+  TaskAssignmentMap,
+  generateRecapSlides,
+  getFeedQualityFromStocks,
+  getWeatherForDay,
+} from "@/lib/ranch/planner";
+
+const PLANNER_DRAFT_KEY = "creature-chronicles-ranch-planner-draft";
+const PLANNER_COMMITTED_KEY = "creature-chronicles-ranch-planner-committed";
 
 type InbreedingRisk =
   | "none"
@@ -64,9 +77,7 @@ function getInbredTraitLabel(
   trait: InbredTrait,
   severity: InbredTraitSeverity
 ) {
-  if (trait === "none" || severity === "none") {
-    return "No Inbred Trait";
-  }
+  if (trait === "none" || severity === "none") return "No Inbred Trait";
 
   const traitName =
     trait === "weak"
@@ -77,9 +88,7 @@ function getInbredTraitLabel(
       ? "Dullness"
       : "Slowness";
 
-  const severityName = severity === "mild" ? "Mild" : "Severe";
-
-  return `${severityName} ${traitName}`;
+  return `${severity === "mild" ? "Mild" : "Severe"} ${traitName}`;
 }
 
 function getInbredTraitClasses(severity: InbredTraitSeverity) {
@@ -130,13 +139,11 @@ function getGradeClasses(grade: TraitGrade) {
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-  const displayMinute = minute.toString().padStart(2, "0");
-  return `${displayHour}:${displayMinute} ${suffix}`;
+  return `${displayHour}:${minute.toString().padStart(2, "0")} ${suffix}`;
 }
 
 export default function RanchPage() {
   const router = useRouter();
-
   const {
     currentDay,
     currentHour,
@@ -154,6 +161,10 @@ export default function RanchPage() {
   const [playerNameInput, setPlayerNameInput] = useState(playerData.name);
   const [registryOpen, setRegistryOpen] = useState(false);
   const [plannerOpen, setPlannerOpen] = useState(false);
+  const [plannerWarning, setPlannerWarning] = useState<string | null>(null);
+  const [recapOpen, setRecapOpen] = useState(false);
+  const [recapSlides, setRecapSlides] = useState<RanchRecapSlide[]>([]);
+  const [recapIndex, setRecapIndex] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [speciesFilter, setSpeciesFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -174,44 +185,80 @@ export default function RanchPage() {
     router.push("/home");
   }
 
-  const registryCreatures = useMemo(() => {
-    return creatures.filter(
-      (creature) => creature.giver !== null || creature.receiver !== null
-    );
-  }, [creatures]);
+  function handleCommitSchedule() {
+    setPlannerWarning(null);
+  }
 
-  const speciesOptions = useMemo(() => {
-    return Array.from(new Set(registryCreatures.map((c) => c.name))).sort();
-  }, [registryCreatures]);
+  function handleNextDayWithRecap() {
+    try {
+      const committedRaw = localStorage.getItem(PLANNER_COMMITTED_KEY);
+      if (!committedRaw) {
+        setPlannerWarning("Commit a ranch schedule before ending the day.");
+        setPlannerOpen(true);
+        return;
+      }
+
+      const parsed = JSON.parse(committedRaw) as TaskAssignmentMap;
+      const weather = getWeatherForDay(currentDay);
+      const feedQuality: FeedQuality = getFeedQualityFromStocks(homeState.foodStock);
+      const slides = generateRecapSlides(
+        parsed,
+        creatures as PlannerCreature[],
+        weather,
+        feedQuality,
+        homeState.cleanliness,
+        DEFAULT_BUILDINGS
+      );
+
+      setRecapSlides(slides);
+      setRecapIndex(0);
+      setRecapOpen(true);
+    } catch {
+      setPlannerWarning("The saved schedule could not be read. Open the planner and commit it again.");
+      setPlannerOpen(true);
+    }
+  }
+
+  function handleAdvanceRecap() {
+    if (recapIndex < recapSlides.length - 1) {
+      setRecapIndex((prev) => prev + 1);
+      return;
+    }
+
+    setRecapOpen(false);
+    localStorage.removeItem(PLANNER_COMMITTED_KEY);
+    localStorage.removeItem(PLANNER_DRAFT_KEY);
+    nextDay();
+  }
+
+  const currentSlide = recapSlides[recapIndex] ?? null;
+
+  const registryCreatures = useMemo(
+    () => creatures.filter((creature) => creature.giver !== null || creature.receiver !== null),
+    [creatures]
+  );
+
+  const speciesOptions = useMemo(
+    () => Array.from(new Set(registryCreatures.map((c) => c.name))).sort(),
+    [registryCreatures]
+  );
 
   const filteredRegistry = useMemo(() => {
     const loweredSearch = searchText.trim().toLowerCase();
 
     const filtered = registryCreatures.filter((creature) => {
-      const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
-        ? creature.traits
-        : [];
+      const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits) ? creature.traits : [];
 
       const matchesSearch =
         loweredSearch.length === 0 ||
         creature.nickname.toLowerCase().includes(loweredSearch) ||
         creature.name.toLowerCase().includes(loweredSearch) ||
-        `${creature.giver ?? ""} ${creature.receiver ?? ""}`
-          .toLowerCase()
-          .includes(loweredSearch) ||
-        creatureTraits.some((entry) =>
-          entry.trait.toLowerCase().includes(loweredSearch)
-        );
+        `${creature.giver ?? ""} ${creature.receiver ?? ""}`.toLowerCase().includes(loweredSearch) ||
+        creatureTraits.some((entry) => entry.trait.toLowerCase().includes(loweredSearch));
 
-      const matchesSpecies =
-        speciesFilter === "all" || creature.name === speciesFilter;
-
-      const matchesRisk =
-        riskFilter === "all" || creature.inbreedingRisk === riskFilter;
-
-      const matchesTrait =
-        traitFilter === "all" ||
-        creatureTraits.some((entry) => entry.trait === traitFilter);
+      const matchesSpecies = speciesFilter === "all" || creature.name === speciesFilter;
+      const matchesRisk = riskFilter === "all" || creature.inbreedingRisk === riskFilter;
+      const matchesTrait = traitFilter === "all" || creatureTraits.some((entry) => entry.trait === traitFilter);
 
       return matchesSearch && matchesSpecies && matchesRisk && matchesTrait;
     });
@@ -221,52 +268,37 @@ export default function RanchPage() {
         if (b.bornOnDay !== a.bornOnDay) return b.bornOnDay - a.bornOnDay;
         return b.id - a.id;
       }
-
       if (sortOption === "oldest") {
         if (a.bornOnDay !== b.bornOnDay) return a.bornOnDay - b.bornOnDay;
         return a.id - b.id;
       }
-
       if (sortOption === "name_asc") return a.nickname.localeCompare(b.nickname);
       if (sortOption === "name_desc") return b.nickname.localeCompare(a.nickname);
-
       if (sortOption === "generation_desc") {
         if (b.generation !== a.generation) return b.generation - a.generation;
         return b.id - a.id;
       }
-
       if (sortOption === "strength_desc") {
         if (b.stats.strength !== a.stats.strength) return b.stats.strength - a.stats.strength;
         return b.id - a.id;
       }
-
       if (sortOption === "endurance_desc") {
         if (b.stats.endurance !== a.stats.endurance) return b.stats.endurance - a.stats.endurance;
         return b.id - a.id;
       }
-
       if (sortOption === "intelligence_desc") {
         if (b.stats.intelligence !== a.stats.intelligence) return b.stats.intelligence - a.stats.intelligence;
         return b.id - a.id;
       }
-
       if (sortOption === "speed_desc") {
         if (b.stats.speed !== a.stats.speed) return b.stats.speed - a.stats.speed;
         return b.id - a.id;
       }
-
       return 0;
     });
 
     return filtered;
-  }, [
-    registryCreatures,
-    searchText,
-    speciesFilter,
-    riskFilter,
-    traitFilter,
-    sortOption,
-  ]);
+  }, [registryCreatures, searchText, speciesFilter, riskFilter, traitFilter, sortOption]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-green-100 to-lime-200 p-6">
@@ -289,6 +321,12 @@ export default function RanchPage() {
             <p><strong>Wheat Stock:</strong> {homeState.wheatStock}</p>
           </div>
 
+          {plannerWarning ? (
+            <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+              {plannerWarning}
+            </div>
+          ) : null}
+
           <div className="mt-6 rounded-2xl bg-green-50 p-4">
             <p className="mb-2 font-semibold text-green-950">Rename Player</p>
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -301,7 +339,7 @@ export default function RanchPage() {
               />
               <button
                 onClick={handleSavePlayerName}
-                className="rounded-xl bg-green-700 px-4 py-2 text-white font-semibold"
+                className="rounded-xl bg-green-700 px-4 py-2 font-semibold text-white"
               >
                 Save Name
               </button>
@@ -311,42 +349,42 @@ export default function RanchPage() {
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <button
               onClick={() => setPlannerOpen(true)}
-              className="w-full rounded-2xl bg-emerald-700 px-4 py-3 text-white font-semibold shadow"
+              className="w-full rounded-2xl bg-emerald-700 px-4 py-3 font-semibold text-white shadow"
             >
               Open Ranch Planner
             </button>
 
             <button
               onClick={() => setRegistryOpen(true)}
-              className="w-full rounded-2xl bg-emerald-700 px-4 py-3 text-white font-semibold shadow"
+              className="w-full rounded-2xl bg-emerald-700 px-4 py-3 font-semibold text-white shadow"
             >
               Open Birth Registry
             </button>
 
             <button
               onClick={handleTravelToHome}
-              className="w-full rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+              className="w-full rounded-2xl bg-stone-800 px-4 py-3 font-semibold text-white shadow"
             >
               Travel to Home
             </button>
 
             <button
               onClick={handleTravelToTown}
-              className="w-full rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+              className="w-full rounded-2xl bg-stone-800 px-4 py-3 font-semibold text-white shadow"
             >
               Travel to Town (30m)
             </button>
 
             <button
-              onClick={nextDay}
-              className="w-full rounded-2xl bg-orange-600 px-4 py-3 text-white font-semibold shadow"
+              onClick={handleNextDayWithRecap}
+              className="w-full rounded-2xl bg-orange-600 px-4 py-3 font-semibold text-white shadow"
             >
               Next Day
             </button>
 
             <button
               onClick={resetGame}
-              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow sm:col-span-2 lg:col-span-1"
+              className="w-full rounded-2xl bg-red-700 px-4 py-3 font-semibold text-white shadow sm:col-span-2 lg:col-span-1"
             >
               Reset Save
             </button>
@@ -354,41 +392,32 @@ export default function RanchPage() {
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Link
-            href="/creatures"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
+          <Link href="/creatures" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">
             View Creatures
           </Link>
-          <Link
-            href="/breeding"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
+          <Link href="/breeding" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">
             Go to Breeding
           </Link>
-          <Link
-            href="/eggs"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
+          <Link href="/eggs" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">
             View Eggs
           </Link>
         </div>
       </div>
 
-      {plannerOpen && (
+      {plannerOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl border-4 border-emerald-900 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-emerald-200 px-5 py-4">
               <div>
                 <h2 className="text-3xl font-bold text-emerald-950">Ranch Planner</h2>
                 <p className="text-sm text-stone-600">
-                  Program the full day, review projected stamina costs, and protect breeding availability.
+                  Draft the workday, commit it, then use whatever stamina remains for breeding and the rest of the day.
                 </p>
               </div>
 
               <button
                 onClick={() => setPlannerOpen(false)}
-                className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+                className="rounded-2xl bg-stone-800 px-4 py-3 font-semibold text-white shadow"
               >
                 Close Planner
               </button>
@@ -396,34 +425,75 @@ export default function RanchPage() {
 
             <div className="flex-1 overflow-y-auto p-5">
               <RanchPlannerPanel
-                creatures={creatures}
+                creatures={creatures as PlannerCreature[]}
                 currentDay={currentDay}
                 cleanliness={homeState.cleanliness}
                 foodStock={homeState.foodStock}
-                onAdvanceDay={nextDay}
+                onCommitSchedule={handleCommitSchedule}
               />
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {registryOpen && (
+      {recapOpen && currentSlide ? (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4">
+          <div className="flex h-[84vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border-4 border-rose-900 bg-white shadow-2xl">
+            <div className="border-b border-rose-200 px-6 py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-rose-700">
+                    End of Day Recap • Slide {recapIndex + 1} / {recapSlides.length}
+                  </p>
+                  <h3 className="text-3xl font-bold text-rose-950">{currentSlide.headline}</h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setRecapOpen(false)}
+                  className="rounded-2xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex min-h-full flex-col items-center justify-center rounded-3xl bg-rose-50 p-6 text-center">
+                <div className="mb-5 text-8xl">{currentSlide.image}</div>
+                <p className="max-w-2xl text-lg text-stone-800">{currentSlide.body}</p>
+                <p className="mt-5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-stone-700 shadow">
+                  {currentSlide.resultLine}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-rose-200 bg-white px-6 py-4">
+              <button
+                type="button"
+                onClick={handleAdvanceRecap}
+                className="w-full rounded-2xl bg-rose-700 px-4 py-3 font-semibold text-white shadow"
+              >
+                {recapIndex < recapSlides.length - 1 ? "Next Scene" : "Finish Day"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {registryOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="flex h-[90vh] w-full max-w-6xl flex-col rounded-3xl border-4 border-emerald-900 bg-white shadow-2xl">
             <div className="border-b border-emerald-200 p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                  <h2 className="text-3xl font-bold text-emerald-900">
-                    📜 Full Birth Registry
-                  </h2>
-                  <p className="text-stone-600">
-                    Browse all hatched creatures with filters and sorting.
-                  </p>
+                  <h2 className="text-3xl font-bold text-emerald-900">📜 Full Birth Registry</h2>
+                  <p className="text-stone-600">Browse all hatched creatures with filters and sorting.</p>
                 </div>
 
                 <button
                   onClick={() => setRegistryOpen(false)}
-                  className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+                  className="rounded-2xl bg-stone-800 px-4 py-3 font-semibold text-white shadow"
                 >
                   Close Registry
                 </button>
@@ -438,24 +508,14 @@ export default function RanchPage() {
                   placeholder="Search by name, species, lineage, or trait"
                 />
 
-                <select
-                  value={speciesFilter}
-                  onChange={(e) => setSpeciesFilter(e.target.value)}
-                  className="rounded-xl border border-emerald-300 bg-white px-3 py-2"
-                >
+                <select value={speciesFilter} onChange={(e) => setSpeciesFilter(e.target.value)} className="rounded-xl border border-emerald-300 bg-white px-3 py-2">
                   <option value="all">All Species</option>
                   {speciesOptions.map((species) => (
-                    <option key={species} value={species}>
-                      {species}
-                    </option>
+                    <option key={species} value={species}>{species}</option>
                   ))}
                 </select>
 
-                <select
-                  value={riskFilter}
-                  onChange={(e) => setRiskFilter(e.target.value)}
-                  className="rounded-xl border border-emerald-300 bg-white px-3 py-2"
-                >
+                <select value={riskFilter} onChange={(e) => setRiskFilter(e.target.value)} className="rounded-xl border border-emerald-300 bg-white px-3 py-2">
                   <option value="all">All Risk Levels</option>
                   <option value="none">No Risk</option>
                   <option value="half_sibling">Half Sibling Risk</option>
@@ -463,11 +523,7 @@ export default function RanchPage() {
                   <option value="full_sibling">Full Sibling Risk</option>
                 </select>
 
-                <select
-                  value={traitFilter}
-                  onChange={(e) => setTraitFilter(e.target.value)}
-                  className="rounded-xl border border-emerald-300 bg-white px-3 py-2"
-                >
+                <select value={traitFilter} onChange={(e) => setTraitFilter(e.target.value)} className="rounded-xl border border-emerald-300 bg-white px-3 py-2">
                   <option value="all">All Positive Traits</option>
                   <option value="domestic">Domestic</option>
                   <option value="industrious">Industrious</option>
@@ -483,11 +539,7 @@ export default function RanchPage() {
                   <option value="graceful">Graceful</option>
                 </select>
 
-                <select
-                  value={sortOption}
-                  onChange={(e) => setSortOption(e.target.value as SortOption)}
-                  className="rounded-xl border border-emerald-300 bg-white px-3 py-2"
-                >
+                <select value={sortOption} onChange={(e) => setSortOption(e.target.value as SortOption)} className="rounded-xl border border-emerald-300 bg-white px-3 py-2">
                   <option value="newest">Newest First</option>
                   <option value="oldest">Oldest First</option>
                   <option value="name_asc">Name A–Z</option>
@@ -508,96 +560,51 @@ export default function RanchPage() {
             <div className="flex-1 overflow-y-auto p-5">
               {filteredRegistry.length === 0 ? (
                 <div className="rounded-2xl bg-emerald-50 p-4">
-                  <p className="text-stone-700">
-                    No births match your current filters.
-                  </p>
+                  <p className="text-stone-700">No births match your current filters.</p>
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {filteredRegistry.map((creature) => {
-                    const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits)
-                      ? creature.traits
-                      : [];
+                    const creatureTraits: CreatureTraitEntry[] = Array.isArray(creature.traits) ? creature.traits : [];
 
                     return (
-                      <div
-                        key={creature.id}
-                        className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4"
-                      >
+                      <div key={creature.id} className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
                         <div className="mb-3 flex items-start justify-between gap-3">
                           <div>
-                            <h3 className="text-xl font-bold text-stone-900">
-                              {creature.nickname}
-                            </h3>
-                            <p className="text-stone-700">
-                              {creature.name} • Lv {creature.level} • Gen {creature.generation}
-                            </p>
-                            <p className="text-sm text-stone-500">
-                              Born Day {creature.bornOnDay}
-                            </p>
+                            <h3 className="text-xl font-bold text-stone-900">{creature.nickname}</h3>
+                            <p className="text-stone-700">{creature.name} • Lv {creature.level} • Gen {creature.generation}</p>
+                            <p className="text-sm text-stone-500">Born Day {creature.bornOnDay}</p>
                           </div>
-
-                          <div className="text-right text-sm text-stone-500">
-                            ID {creature.id}
-                          </div>
+                          <div className="text-right text-sm text-stone-500">ID {creature.id}</div>
                         </div>
 
                         <div className="mb-3 rounded-2xl bg-white/80 p-3">
                           <p className="text-sm text-stone-500">Lineage</p>
-                          <p className="font-semibold text-stone-900">
-                            {creature.giver} → {creature.receiver}
-                          </p>
-                          <p className="text-sm text-stone-600">
-                            Parent IDs: {creature.giverId ?? "Player"} / {creature.receiverId ?? "Player"}
-                          </p>
+                          <p className="font-semibold text-stone-900">{creature.giver} → {creature.receiver}</p>
+                          <p className="text-sm text-stone-600">Parent IDs: {creature.giverId ?? "Player"} / {creature.receiverId ?? "Player"}</p>
                         </div>
 
                         <div className="mb-3 flex flex-wrap gap-2">
-                          <div
-                            className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
-                              creature.inbreedingRisk
-                            )}`}
-                          >
+                          <div className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(creature.inbreedingRisk)}`}>
                             {getRiskLabel(creature.inbreedingRisk)}
                           </div>
-
-                          <div
-                            className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(
-                              creature.inbredTraitSeverity
-                            )}`}
-                          >
-                            {getInbredTraitLabel(
-                              creature.inbredTrait,
-                              creature.inbredTraitSeverity
-                            )}
+                          <div className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(creature.inbredTraitSeverity)}`}>
+                            {getInbredTraitLabel(creature.inbredTrait, creature.inbredTraitSeverity)}
                           </div>
                         </div>
 
                         <div className="mb-3 rounded-2xl bg-white/80 p-3">
                           <p className="mb-2 text-sm text-stone-500">Positive Traits</p>
-
                           {creatureTraits.length === 0 ? (
                             <p className="font-semibold text-stone-700">No Traits</p>
                           ) : (
                             <div className="space-y-2">
                               {creatureTraits.map((entry, index) => (
-                                <div
-                                  key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`}
-                                  className="flex flex-wrap items-center gap-2"
-                                >
-                                  <div
-                                    className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
-                                      entry.trait
-                                    )}`}
-                                  >
+                                <div key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`} className="flex flex-wrap items-center gap-2">
+                                  <div className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(entry.trait)}`}>
                                     {getCreatureTraitLabel(entry.trait)}
                                   </div>
-
-                                  <div
-                                    className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(
-                                      entry.grade
-                                    )}`}
-                                  >
+                                  <div className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getGradeClasses(entry.grade)}`}>
                                     {entry.grade}
                                   </div>
                                 </div>
@@ -627,7 +634,7 @@ export default function RanchPage() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }

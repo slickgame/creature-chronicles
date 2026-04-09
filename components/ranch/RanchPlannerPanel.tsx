@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_BUILDINGS,
   FeedQuality,
   PlannerCreature,
   RANCH_TASKS,
-  RanchRecapSlide,
   RanchShift,
   RanchTaskId,
   SHIFTS,
   TaskAssignmentMap,
   calculateTaskProjection,
   createEmptyAssignments,
-  generateRecapSlides,
   getCreaturePortrait,
   getCreatureRoleTags,
   getFeedQualityFromStocks,
@@ -25,17 +23,10 @@ import {
   getWeatherLabel,
   toggleAssignment,
 } from "@/lib/ranch/planner";
+import StaminaStatusBar from "@/components/ui/StaminaStatusBar";
 
-function staminaBarWidth(current: number, max: number) {
-  if (max <= 0) return "0%";
-  return `${Math.max(0, Math.min(100, Math.round((current / max) * 100)))}%`;
-}
-
-function projectedBarWidth(current: number, cost: number, max: number) {
-  if (max <= 0) return "0%";
-  const remaining = Math.max(0, current - cost);
-  return `${Math.max(0, Math.min(100, Math.round((remaining / max) * 100)))}%`;
-}
+const PLANNER_DRAFT_KEY = "creature-chronicles-ranch-planner-draft";
+const PLANNER_COMMITTED_KEY = "creature-chronicles-ranch-planner-committed";
 
 function sanitizeAssignmentsForCurrentCreatures(
   assignments: TaskAssignmentMap,
@@ -75,11 +66,9 @@ function sanitizeAssignmentsForCurrentCreatures(
         );
 
         const currentScheduledCost = perCreatureCost.get(creatureId) ?? 0;
-        const nextScheduledCost = currentScheduledCost + projected.projectedStaminaCost;
+        const nextScheduledCost = currentScheduledCost + Math.max(0, projected.projectedStaminaCost);
 
-        if (nextScheduledCost > creature.breedingStamina) {
-          continue;
-        }
+        if (nextScheduledCost > creature.breedingStamina) continue;
 
         cleaned[shift][task.id].push(creatureId);
         perCreatureCost.set(creatureId, nextScheduledCost);
@@ -101,6 +90,7 @@ function AssignCreatureModal({
   weather,
   feedQuality,
   cleanliness,
+  locked,
 }: {
   open: boolean;
   onClose: () => void;
@@ -112,6 +102,7 @@ function AssignCreatureModal({
   weather: ReturnType<typeof getWeatherForDay>;
   feedQuality: FeedQuality;
   cleanliness: number;
+  locked: boolean;
 }) {
   if (!open) return null;
 
@@ -143,22 +134,19 @@ function AssignCreatureModal({
     const currentlyInTask = assignments[shift][taskId].includes(creature.id);
 
     const nextProjectedTotal = currentlyInTask
-      ? currentTotalProjected - projection.projectedStaminaCost
-      : currentTotalProjected + projection.projectedStaminaCost;
+      ? Math.max(0, currentTotalProjected - Math.max(0, projection.projectedStaminaCost))
+      : currentTotalProjected + Math.max(0, projection.projectedStaminaCost);
 
     const exceedsAvailableStamina = nextProjectedTotal > creature.breedingStamina;
-
-    const roleTags = getCreatureRoleTags(creature);
 
     return {
       creature,
       projection,
       alreadyAssignedThisShift,
       currentlyInTask,
-      currentTotalProjected,
       nextProjectedTotal,
       exceedsAvailableStamina,
-      roleTags,
+      roleTags: getCreatureRoleTags(creature),
     };
   });
 
@@ -168,17 +156,19 @@ function AssignCreatureModal({
         <div className="flex items-center justify-between border-b border-emerald-200 px-5 py-4">
           <div>
             <h3 className="text-2xl font-bold text-emerald-950">
-              Assign Creatures — {selectedTask.title}
+              {locked ? "View Assignments" : "Assign Creatures"} — {selectedTask.title}
             </h3>
             <p className="text-sm text-stone-600">
-              Click a creature to fill or clear a slot for the {shift} shift.
+              {locked
+                ? "This schedule is already committed for the day."
+                : `Click a creature to fill or clear a slot for the ${shift} shift.`}
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+            className="rounded-2xl bg-stone-800 px-4 py-3 font-semibold text-white shadow"
           >
             Close
           </button>
@@ -226,6 +216,7 @@ function AssignCreatureModal({
                         <button
                           type="button"
                           disabled={
+                            locked ||
                             (alreadyAssignedThisShift && !currentlyInTask) ||
                             (!currentlyInTask && exceedsAvailableStamina)
                           }
@@ -244,13 +235,17 @@ function AssignCreatureModal({
                           className={`rounded-xl px-3 py-2 text-sm font-semibold ${
                             currentlyInTask
                               ? "bg-red-600 text-white"
-                              : alreadyAssignedThisShift || exceedsAvailableStamina
+                              : locked || alreadyAssignedThisShift || exceedsAvailableStamina
                               ? "bg-stone-300 text-stone-600"
                               : "bg-emerald-700 text-white"
                           }`}
                         >
                           {currentlyInTask
-                            ? "Remove"
+                            ? locked
+                              ? "Assigned"
+                              : "Remove"
+                            : locked
+                            ? "Locked"
                             : alreadyAssignedThisShift
                             ? "Busy This Shift"
                             : exceedsAvailableStamina
@@ -271,44 +266,16 @@ function AssignCreatureModal({
                       </div>
 
                       <div className="mt-3 rounded-2xl bg-stone-50 p-3">
-                        <div className="mb-1 flex items-center justify-between text-xs text-stone-600">
-                          <span>Breeding Stamina</span>
-                          <span>{creature.breedingStamina}/{creature.maxBreedingStamina}</span>
-                        </div>
-                        <div className="relative h-3 overflow-hidden rounded-full bg-stone-200">
-                          <div
-                            className="absolute left-0 top-0 h-full rounded-full bg-emerald-500"
-                            style={{
-                              width: staminaBarWidth(
-                                creature.breedingStamina,
-                                creature.maxBreedingStamina
-                              ),
-                            }}
-                          />
-                          <div
-                            className="absolute left-0 top-0 h-full rounded-full bg-rose-400/70"
-                            style={{
-                              width: projectedBarWidth(
-                                creature.breedingStamina,
-                                nextProjectedTotal,
-                                creature.maxBreedingStamina
-                              ),
-                            }}
-                          />
-                        </div>
+                        <StaminaStatusBar
+                          current={creature.breedingStamina}
+                          max={creature.maxBreedingStamina}
+                          reserved={nextProjectedTotal}
+                          label="Breeding Stamina"
+                        />
                         <div className="mt-2 grid gap-1 text-xs text-stone-700">
-                          <p><strong>Task Cost (day total if assigned):</strong> {nextProjectedTotal}</p>
-                          <p>
-                            <strong>Remaining After Tasks:</strong>{" "}
-                            {Math.max(0, creature.breedingStamina - nextProjectedTotal)}
-                          </p>
-                          <p
-                            className={
-                              Math.max(0, creature.breedingStamina - nextProjectedTotal) < 12
-                                ? "font-semibold text-red-700"
-                                : "font-semibold text-emerald-700"
-                            }
-                          >
+                          <p><strong>Total Reserved Cost:</strong> {nextProjectedTotal}</p>
+                          <p><strong>Remaining After Tasks:</strong> {Math.max(0, creature.breedingStamina - nextProjectedTotal)}</p>
+                          <p className={Math.max(0, creature.breedingStamina - nextProjectedTotal) < 12 ? "font-semibold text-red-700" : "font-semibold text-emerald-700"}>
                             {Math.max(0, creature.breedingStamina - nextProjectedTotal) < 12
                               ? "Breeding blocked after this schedule."
                               : "Enough stamina remains for breeding."}
@@ -318,18 +285,11 @@ function AssignCreatureModal({
 
                       <div className="mt-3 grid gap-1 text-xs text-stone-700 sm:grid-cols-2">
                         <p><strong>Projected Task Score:</strong> {projection.score}</p>
-                        <p>
-                          <strong>Task Range:</strong> {projection.projectedOutputMin}–
-                          {projection.projectedOutputMax} {selectedTask.outputLabel}
-                        </p>
+                        <p><strong>Task Range:</strong> {projection.projectedOutputMin}–{projection.projectedOutputMax} {selectedTask.outputLabel}</p>
                         <p><strong>Shift Cost:</strong> {projection.projectedStaminaCost}</p>
                         <p><strong>Injury Risk:</strong> {projection.injuryRisk}</p>
                         <p><strong>Mood Change:</strong> {projection.moodDelta >= 0 ? "+" : ""}{projection.moodDelta}</p>
-                        <p>
-                          <strong>Cleanliness Change:</strong>{" "}
-                          {projection.cleanlinessDelta >= 0 ? "+" : ""}
-                          {projection.cleanlinessDelta}
-                        </p>
+                        <p><strong>Cleanliness Change:</strong> {projection.cleanlinessDelta >= 0 ? "+" : ""}{projection.cleanlinessDelta}</p>
                       </div>
 
                       <div className="mt-2 space-y-1 text-xs text-stone-600">
@@ -354,15 +314,14 @@ export default function RanchPlannerPanel({
   currentDay,
   cleanliness,
   foodStock,
-  onAdvanceDay,
+  onCommitSchedule,
 }: {
   creatures: PlannerCreature[];
   currentDay: number;
   cleanliness: number;
   foodStock: number;
-  onAdvanceDay?: () => void;
+  onCommitSchedule?: (assignments: TaskAssignmentMap) => void;
 }) {
-  const storageKey = "creature-chronicles-ranch-planner";
   const weather = useMemo(() => getWeatherForDay(currentDay), [currentDay]);
   const feedQuality = useMemo<FeedQuality>(() => getFeedQualityFromStocks(foodStock), [foodStock]);
 
@@ -371,30 +330,53 @@ export default function RanchPlannerPanel({
   const [selectedTaskId, setSelectedTaskId] = useState(RANCH_TASKS[0].id);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [assignModalTaskId, setAssignModalTaskId] = useState<RanchTaskId>(RANCH_TASKS[0].id);
-  const [recapOpen, setRecapOpen] = useState(false);
-  const [recapSlides, setRecapSlides] = useState<RanchRecapSlide[]>([]);
-  const [recapIndex, setRecapIndex] = useState(0);
+  const [scheduleCommitted, setScheduleCommitted] = useState(false);
+  const [plannerMessage, setPlannerMessage] = useState<string | null>(null);
+  const hasLoadedFromStorage = useRef(false);
 
   useEffect(() => {
+    if (hasLoadedFromStorage.current) return;
     try {
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as TaskAssignmentMap;
-      if (parsed?.morning && parsed?.afternoon && parsed?.evening) {
-        setAssignments(
-          sanitizeAssignmentsForCurrentCreatures(
-            parsed,
-            creatures,
-            weather,
-            feedQuality,
-            cleanliness
-          )
-        );
+      const committedRaw = localStorage.getItem(PLANNER_COMMITTED_KEY);
+      if (committedRaw) {
+        const parsed = JSON.parse(committedRaw) as TaskAssignmentMap;
+        if (parsed?.morning && parsed?.afternoon && parsed?.evening) {
+          setAssignments(
+            sanitizeAssignmentsForCurrentCreatures(
+              parsed,
+              creatures,
+              weather,
+              feedQuality,
+              cleanliness
+            )
+          );
+          setScheduleCommitted(true);
+          hasLoadedFromStorage.current = true;
+          return;
+        }
+      }
+
+      const draftRaw = localStorage.getItem(PLANNER_DRAFT_KEY);
+      if (draftRaw) {
+        const parsed = JSON.parse(draftRaw) as TaskAssignmentMap;
+        if (parsed?.morning && parsed?.afternoon && parsed?.evening) {
+          setAssignments(
+            sanitizeAssignmentsForCurrentCreatures(
+              parsed,
+              creatures,
+              weather,
+              feedQuality,
+              cleanliness
+            )
+          );
+        }
       }
     } catch {}
+    hasLoadedFromStorage.current = true;
   }, [creatures, weather, feedQuality, cleanliness]);
 
   useEffect(() => {
+    if (!hasLoadedFromStorage.current) return;
     const cleaned = sanitizeAssignmentsForCurrentCreatures(
       assignments,
       creatures,
@@ -402,8 +384,14 @@ export default function RanchPlannerPanel({
       feedQuality,
       cleanliness
     );
-    localStorage.setItem(storageKey, JSON.stringify(cleaned));
-  }, [assignments, creatures, weather, feedQuality, cleanliness]);
+
+    if (scheduleCommitted) {
+      localStorage.setItem(PLANNER_COMMITTED_KEY, JSON.stringify(cleaned));
+      localStorage.removeItem(PLANNER_DRAFT_KEY);
+    } else {
+      localStorage.setItem(PLANNER_DRAFT_KEY, JSON.stringify(cleaned));
+    }
+  }, [assignments, creatures, weather, feedQuality, cleanliness, scheduleCommitted]);
 
   const selectedTask = getTaskById(selectedTaskId);
 
@@ -429,92 +417,36 @@ export default function RanchPlannerPanel({
     });
   }, [creatures, assignments, weather, feedQuality, cleanliness]);
 
-  const taskProjection = useMemo(() => {
-    return getShiftTaskProjection(
-      activeShift,
-      selectedTask,
-      assignments,
-      creatures,
-      weather,
-      feedQuality,
-      cleanliness,
-      DEFAULT_BUILDINGS
-    );
-  }, [activeShift, selectedTask, assignments, creatures, weather, feedQuality, cleanliness]);
-
   const dashboard = useMemo(() => {
-    const totalProjectedCost = projectedCreatureSummaries.reduce(
-      (sum, item) => sum + item.totalProjectedCost,
-      0
-    );
-    const breedingReady = projectedCreatureSummaries.filter(
-      (item) => !item.breedingLocked
-    ).length;
+    const totalProjectedCost = projectedCreatureSummaries.reduce((sum, item) => sum + item.totalProjectedCost, 0);
+    const breedingReady = projectedCreatureSummaries.filter((item) => !item.breedingLocked).length;
     const totalOutputMin = SHIFTS.reduce((sum, shift) => {
-      return (
-        sum +
-        RANCH_TASKS.reduce((taskSum, task) => {
-          return (
-            taskSum +
-            getShiftTaskProjection(
-              shift,
-              task,
-              assignments,
-              creatures,
-              weather,
-              feedQuality,
-              cleanliness,
-              DEFAULT_BUILDINGS
-            ).projectedOutputMin
-          );
-        }, 0)
-      );
+      return sum + RANCH_TASKS.reduce((taskSum, task) => {
+        return taskSum + getShiftTaskProjection(
+          shift,
+          task,
+          assignments,
+          creatures,
+          weather,
+          feedQuality,
+          cleanliness,
+          DEFAULT_BUILDINGS
+        ).projectedOutputMin;
+      }, 0);
     }, 0);
     const totalOutputMax = SHIFTS.reduce((sum, shift) => {
-      return (
-        sum +
-        RANCH_TASKS.reduce((taskSum, task) => {
-          return (
-            taskSum +
-            getShiftTaskProjection(
-              shift,
-              task,
-              assignments,
-              creatures,
-              weather,
-              feedQuality,
-              cleanliness,
-              DEFAULT_BUILDINGS
-            ).projectedOutputMax
-          );
-        }, 0)
-      );
-    }, 0);
-    const averageCleanlinessTrend = SHIFTS.reduce((sum, shift) => {
-      return (
-        sum +
-        RANCH_TASKS.reduce((taskSum, task) => {
-          const ids = assignments[shift][task.id];
-          return (
-            taskSum +
-            ids.reduce((creatureSum, creatureId) => {
-              const creature = creatures.find((item) => item.id === creatureId);
-              if (!creature) return creatureSum;
-              return (
-                creatureSum +
-                calculateTaskProjection(
-                  creature,
-                  task,
-                  weather,
-                  feedQuality,
-                  cleanliness,
-                  DEFAULT_BUILDINGS
-                ).cleanlinessDelta
-              );
-            }, 0)
-          );
-        }, 0)
-      );
+      return sum + RANCH_TASKS.reduce((taskSum, task) => {
+        return taskSum + getShiftTaskProjection(
+          shift,
+          task,
+          assignments,
+          creatures,
+          weather,
+          feedQuality,
+          cleanliness,
+          DEFAULT_BUILDINGS
+        ).projectedOutputMax;
+      }, 0);
     }, 0);
 
     return {
@@ -522,7 +454,6 @@ export default function RanchPlannerPanel({
       breedingReady,
       totalOutputMin,
       totalOutputMax,
-      averageCleanlinessTrend,
     };
   }, [projectedCreatureSummaries, assignments, creatures, weather, feedQuality, cleanliness]);
 
@@ -532,7 +463,7 @@ export default function RanchPlannerPanel({
     setAssignModalOpen(true);
   }
 
-  function handleResolveDay() {
+  function handleCommitSchedule() {
     const cleaned = sanitizeAssignmentsForCurrentCreatures(
       assignments,
       creatures,
@@ -541,33 +472,10 @@ export default function RanchPlannerPanel({
       cleanliness
     );
     setAssignments(cleaned);
-
-    const slides = generateRecapSlides(
-      cleaned,
-      creatures,
-      weather,
-      feedQuality,
-      cleanliness,
-      DEFAULT_BUILDINGS
-    );
-    setRecapSlides(slides);
-    setRecapIndex(0);
-    setRecapOpen(true);
+    setScheduleCommitted(true);
+    setPlannerMessage("Schedule committed. These task reservations now define today's available stamina.");
+    onCommitSchedule?.(cleaned);
   }
-
-  function handleAdvanceRecap() {
-    if (recapIndex < recapSlides.length - 1) {
-      setRecapIndex((prev) => prev + 1);
-      return;
-    }
-
-    setRecapOpen(false);
-    setAssignments(createEmptyAssignments());
-    localStorage.removeItem(storageKey);
-    onAdvanceDay?.();
-  }
-
-  const currentSlide = recapSlides[recapIndex] ?? null;
 
   return (
     <>
@@ -576,7 +484,7 @@ export default function RanchPlannerPanel({
           <div>
             <h2 className="text-3xl font-bold text-emerald-950">Ranch Planner</h2>
             <p className="text-stone-600">
-              Assign daily jobs by shift. Projections use stats, skills, species fit, role tags, feed, weather, and traits.
+              Draft the workday first, then commit the schedule. Remaining stamina after reservation is what the creatures truly have left.
             </p>
           </div>
 
@@ -590,11 +498,19 @@ export default function RanchPlannerPanel({
               <p className="font-semibold text-stone-900">{getFeedQualityLabel(feedQuality)}</p>
             </div>
             <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm">
-              <p className="text-stone-500">Cleanliness</p>
-              <p className="font-semibold text-stone-900">{cleanliness}/100</p>
+              <p className="text-stone-500">Planner Status</p>
+              <p className="font-semibold text-stone-900">
+                {scheduleCommitted ? "Committed" : "Draft"}
+              </p>
             </div>
           </div>
         </div>
+
+        {plannerMessage ? (
+          <div className="mb-4 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+            {plannerMessage}
+          </div>
+        ) : null}
 
         <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
@@ -604,19 +520,16 @@ export default function RanchPlannerPanel({
             </p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm text-stone-500">Projected Stamina Burn</p>
+            <p className="text-sm text-stone-500">Reserved Stamina</p>
             <p className="text-lg font-bold text-stone-900">{dashboard.totalProjectedCost}</p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm text-stone-500">Breeding Ready After Tasks</p>
+            <p className="text-sm text-stone-500">Breeding Ready After Reservation</p>
             <p className="text-lg font-bold text-stone-900">{dashboard.breedingReady}/{creatures.length}</p>
           </div>
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm text-stone-500">Cleanliness Trend</p>
-            <p className="text-lg font-bold text-stone-900">
-              {dashboard.averageCleanlinessTrend >= 0 ? "+" : ""}
-              {dashboard.averageCleanlinessTrend}
-            </p>
+            <p className="text-sm text-stone-500">Cleanliness</p>
+            <p className="text-lg font-bold text-stone-900">{cleanliness}/100</p>
           </div>
         </div>
 
@@ -638,11 +551,45 @@ export default function RanchPlannerPanel({
 
           <button
             type="button"
-            onClick={handleResolveDay}
-            className="ml-auto rounded-2xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white shadow"
+            onClick={handleCommitSchedule}
+            disabled={scheduleCommitted}
+            className={`ml-auto rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow ${
+              scheduleCommitted ? "bg-stone-400" : "bg-rose-700"
+            }`}
           >
-            Resolve Day
+            {scheduleCommitted ? "Schedule Committed" : "Commit Schedule"}
           </button>
+        </div>
+
+        <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {projectedCreatureSummaries.map(({ creature, totalProjectedCost, projectedRemaining, breedingLocked }) => (
+            <div key={creature.id} className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-2xl">
+                  {getCreaturePortrait(creature.name)}
+                </div>
+                <div>
+                  <p className="font-bold text-stone-900">{creature.nickname}</p>
+                  <p className="text-xs text-stone-600">{creature.name}</p>
+                </div>
+              </div>
+
+              <StaminaStatusBar
+                current={creature.breedingStamina}
+                max={creature.maxBreedingStamina}
+                reserved={totalProjectedCost}
+                label="Breeding Stamina"
+                compact
+              />
+              <div className="mt-2 text-xs text-stone-700">
+                <p><strong>Reserved:</strong> {totalProjectedCost}</p>
+                <p><strong>Remaining:</strong> {projectedRemaining}</p>
+                <p className={breedingLocked ? "font-semibold text-red-700" : "font-semibold text-emerald-700"}>
+                  {breedingLocked ? "Breeding blocked." : "Breeding still possible."}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="grid gap-5">
@@ -733,52 +680,8 @@ export default function RanchPlannerPanel({
         weather={weather}
         feedQuality={feedQuality}
         cleanliness={cleanliness}
+        locked={scheduleCommitted}
       />
-
-      {recapOpen && currentSlide ? (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4">
-          <div className="flex h-[84vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border-4 border-rose-900 bg-white shadow-2xl">
-            <div className="border-b border-rose-200 px-6 py-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-rose-700">
-                    End of Day Recap • Slide {recapIndex + 1} / {recapSlides.length}
-                  </p>
-                  <h3 className="text-3xl font-bold text-rose-950">{currentSlide.headline}</h3>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setRecapOpen(false)}
-                  className="rounded-2xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="flex min-h-full flex-col items-center justify-center rounded-3xl bg-rose-50 p-6 text-center">
-                <div className="mb-5 text-8xl">{currentSlide.image}</div>
-                <p className="max-w-2xl text-lg text-stone-800">{currentSlide.body}</p>
-                <p className="mt-5 rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-stone-700 shadow">
-                  {currentSlide.resultLine}
-                </p>
-              </div>
-            </div>
-
-            <div className="border-t border-rose-200 bg-white px-6 py-4">
-              <button
-                type="button"
-                onClick={handleAdvanceRecap}
-                className="w-full rounded-2xl bg-rose-700 px-4 py-3 font-semibold text-white shadow"
-              >
-                {recapIndex < recapSlides.length - 1 ? "Next Scene" : "Finish Day"}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </>
   );
 }

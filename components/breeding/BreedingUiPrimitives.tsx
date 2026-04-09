@@ -16,6 +16,7 @@ import {
   getTraitLabel,
   getTraitSpeciesNote,
 } from "@/lib/breeding/uiHelpers";
+import StaminaStatusBar from "@/components/ui/StaminaStatusBar";
 
 export function InfoButton({
   onClick,
@@ -257,6 +258,9 @@ export function CompactParticipantCard({
   traits,
   imageSrc,
   staminaCostLabel,
+  currentStamina,
+  maxStamina,
+  reservedCost = 0,
   isFavorited = false,
   onToggleFavorite,
   onSelect,
@@ -269,6 +273,9 @@ export function CompactParticipantCard({
   traits: CreatureTraitEntry[];
   imageSrc: string;
   staminaCostLabel?: string;
+  currentStamina?: number;
+  maxStamina?: number;
+  reservedCost?: number;
   isFavorited?: boolean;
   onToggleFavorite?: () => void;
   onSelect: () => void;
@@ -318,6 +325,18 @@ export function CompactParticipantCard({
           </div>
 
           <p className="mt-1 text-xs text-stone-600">{meta}</p>
+
+          {typeof currentStamina === "number" && typeof maxStamina === "number" ? (
+            <div className="mt-2">
+              <StaminaStatusBar
+                current={currentStamina}
+                max={maxStamina}
+                reserved={reservedCost}
+                label="Breeding Stamina"
+                compact
+              />
+            </div>
+          ) : null}
 
           {staminaCostLabel && (
             <p className="mt-1 text-[11px] font-semibold text-stone-700">
