@@ -186,11 +186,11 @@ export function TraitBadgeRow({ traits }: { traits: CreatureTraitEntry[] }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1.5 overflow-visible">
       {traits.map((entry, index) => (
         <div
           key={`${entry.trait}-${entry.grade}-${index}`}
-          className="group relative flex items-center gap-1"
+          className="group relative flex items-center gap-1 overflow-visible"
         >
           <div
             className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
@@ -207,7 +207,7 @@ export function TraitBadgeRow({ traits }: { traits: CreatureTraitEntry[] }) {
             {entry.grade}
           </div>
 
-          <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-72 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
+          <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-72 max-w-[calc(100vw-2rem)] -translate-x-1/2 break-words rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
             <p className="font-semibold text-stone-900">
               {getTraitLabel(entry.trait)} ({entry.grade})
             </p>

@@ -81,11 +81,11 @@ export function CreatureTraitBadgeRow({
   const remaining = typeof maxVisible === "number" ? Math.max(0, traits.length - maxVisible) : 0;
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1.5 overflow-visible">
       {visibleTraits.map((entry, index) => (
         <div
           key={`${entry.trait}-${entry.grade}-${index}`}
-          className="group relative flex items-center gap-1"
+          className="group relative flex items-center gap-1 overflow-visible"
         >
           <div
             className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureTraitClasses(
@@ -102,7 +102,7 @@ export function CreatureTraitBadgeRow({
             {compact ? entry.grade : `Grade ${entry.grade}`}
           </div>
 
-          <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-56 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
+          <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-56 max-w-[calc(100vw-2rem)] -translate-x-1/2 break-words rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
             <p className="font-semibold text-stone-900">
               {getCreatureTraitLabel(entry.trait)} ({entry.grade})
             </p>
