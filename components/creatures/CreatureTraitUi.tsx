@@ -28,6 +28,15 @@ export type CreatureTraitEntry = {
   grade: TraitGrade;
 };
 
+export const getCreatureTraitLabel = getPlayerTraitLabel;
+export const getCreatureTraitClasses = getPlayerTraitClasses;
+export const getCreatureTraitDescription = getPlayerTraitDescription;
+export const getCreatureGradeClasses = getPlayerGradeClasses;
+export const getCreatureGradeDescription = getPlayerGradeDescription;
+export const getCreatureGradeMultiplierLabel = getPlayerGradeMultiplierLabel;
+export const getCreatureTraitGradeEffectText = getPlayerTraitGradeEffectText;
+export const getCreatureTraitSpeciesNote = getPlayerTraitSpeciesNote;
+
 function CreatureTraitBadgeItem({
   entry,
   compact,
@@ -48,14 +57,14 @@ function CreatureTraitBadgeItem({
         className="flex w-full flex-wrap items-center gap-1 text-left"
       >
         <div
-          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getPlayerTraitClasses(
+          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureTraitClasses(
             entry.trait
           )} ${compact ? "text-[11px]" : "text-sm"}`}
         >
-          {getPlayerTraitLabel(entry.trait)}
+          {getCreatureTraitLabel(entry.trait)}
         </div>
         <div
-          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getPlayerGradeClasses(
+          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureGradeClasses(
             entry.grade
           )} ${compact ? "text-[10px]" : "text-xs"}`}
         >
@@ -69,17 +78,17 @@ function CreatureTraitBadgeItem({
       {open ? (
         <div className="mt-2 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-sm">
           <p className="font-semibold text-stone-900">
-            {getPlayerTraitLabel(entry.trait)} ({entry.grade})
+            {getCreatureTraitLabel(entry.trait)} ({entry.grade})
           </p>
           <p className="mt-1 text-stone-500">
-            {getPlayerTraitSpeciesNote(entry.trait)}
+            {getCreatureTraitSpeciesNote(entry.trait)}
           </p>
-          <p className="mt-2">{getPlayerTraitDescription(entry.trait)}</p>
+          <p className="mt-2">{getCreatureTraitDescription(entry.trait)}</p>
           <p className="mt-2 font-medium text-stone-800">
-            Grade Effect: {getPlayerTraitGradeEffectText(entry.trait, entry.grade)}
+            Grade Effect: {getCreatureTraitGradeEffectText(entry.trait, entry.grade)}
           </p>
           <p className="mt-1 text-stone-500">
-            Grade: {getPlayerGradeDescription(entry.grade)} • {getPlayerGradeMultiplierLabel(entry.grade)}
+            Grade: {getCreatureGradeDescription(entry.grade)} • {getCreatureGradeMultiplierLabel(entry.grade)}
           </p>
         </div>
       ) : null}

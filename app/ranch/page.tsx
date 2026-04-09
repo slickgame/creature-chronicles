@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
+import RanchPlannerPanel from "@/components/ranch/RanchPlannerPanel";
 
 type InbreedingRisk =
   | "none"
@@ -268,11 +269,11 @@ export default function RanchPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-green-100 to-lime-200 p-6">
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 text-4xl font-bold text-green-900">🌿 Ranch</h1>
 
         <div className="rounded-3xl border-4 border-green-900 bg-white/85 p-6 shadow-xl">
-          <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2">
+          <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2 lg:grid-cols-4">
             <p><strong>Day:</strong> {currentDay}</p>
             <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
             <p><strong>Location:</strong> {currentLocation}</p>
@@ -343,6 +344,13 @@ export default function RanchPage() {
             </button>
           </div>
         </div>
+
+        <RanchPlannerPanel
+          creatures={creatures}
+          currentDay={currentDay}
+          cleanliness={homeState.cleanliness}
+          foodStock={homeState.foodStock}
+        />
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
