@@ -4,10 +4,12 @@ import { useState } from "react";
 import {
   getPlayerGradeClasses,
   getPlayerGradeDescription,
+  getPlayerGradeMultiplierLabel,
   getPlayerTraitClasses,
   getPlayerTraitDescription,
   getPlayerTraitGradeEffectText,
   getPlayerTraitLabel,
+  getPlayerTraitSpeciesNote,
   type PlayerFacingTraitGrade,
 } from "@/lib/traits/playerTraitInfo";
 
@@ -69,12 +71,15 @@ function CreatureTraitBadgeItem({
           <p className="font-semibold text-stone-900">
             {getPlayerTraitLabel(entry.trait)} ({entry.grade})
           </p>
-          <p className="mt-1">{getPlayerTraitDescription(entry.trait)}</p>
+          <p className="mt-1 text-stone-500">
+            {getPlayerTraitSpeciesNote(entry.trait)}
+          </p>
+          <p className="mt-2">{getPlayerTraitDescription(entry.trait)}</p>
           <p className="mt-2 font-medium text-stone-800">
             Grade Effect: {getPlayerTraitGradeEffectText(entry.trait, entry.grade)}
           </p>
           <p className="mt-1 text-stone-500">
-            Grade: {getPlayerGradeDescription(entry.grade)}
+            Grade: {getPlayerGradeDescription(entry.grade)} • {getPlayerGradeMultiplierLabel(entry.grade)}
           </p>
         </div>
       ) : null}

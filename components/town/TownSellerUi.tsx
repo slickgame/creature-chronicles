@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   getPlayerGradeDescription,
+  getPlayerGradeMultiplierLabel,
   getPlayerTraitClasses,
   getPlayerTraitDescription,
   getPlayerTraitGradeEffectText,
@@ -58,7 +59,7 @@ function TraitBadgeItem({
             Grade Effect: {getPlayerTraitGradeEffectText(trait, grade as TraitGrade)}
           </p>
           <p className="mt-1 text-stone-500">
-            Grade: {getPlayerGradeDescription(grade as TraitGrade)}
+            Grade: {getPlayerGradeDescription(grade as TraitGrade)} • {getPlayerGradeMultiplierLabel(grade as TraitGrade)}
           </p>
         </div>
       ) : null}
