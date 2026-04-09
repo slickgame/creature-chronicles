@@ -8,10 +8,10 @@ import {
   RANCH_TASKS,
   RanchRecapSlide,
   RanchShift,
+  RanchTaskId,
   SHIFTS,
   TaskAssignmentMap,
   calculateTaskProjection,
-  creatureCanBeAssigned,
   createEmptyAssignments,
   generateRecapSlides,
   getCreaturePortrait,
@@ -37,6 +37,318 @@ function projectedBarWidth(current: number, cost: number, max: number) {
   return `${Math.max(0, Math.min(100, Math.round((remaining / max) * 100)))}%`;
 }
 
+function sanitizeAssignmentsForCurrentCreatures(
+  assignments: TaskAssignmentMap,
+  creatures: PlannerCreature[],
+  weather: ReturnType<typeof getWeatherForDay>,
+  feedQuality: FeedQuality,
+  cleanliness: number
+): TaskAssignmentMap {
+  const validCreatureIds = new Set(creatures.map((creature) => creature.id));
+  const cleaned = createEmptyAssignments();
+  const perCreatureCost = new Map<number, number>();
+
+  for (const shift of SHIFTS) {
+    for (const task of RANCH_TASKS) {
+      const taskDef = getTaskById(task.id);
+      const originalIds = assignments?.[shift]?.[task.id] ?? [];
+      const uniqueIds = Array.from(new Set(originalIds)).filter((id) => validCreatureIds.has(id));
+
+      for (const creatureId of uniqueIds) {
+        if (cleaned[shift][task.id].length >= taskDef.slotCount) continue;
+
+        const creature = creatures.find((item) => item.id === creatureId);
+        if (!creature) continue;
+
+        const alreadyAssignedThisShift = Object.values(cleaned[shift]).some((ids) =>
+          ids.includes(creatureId)
+        );
+        if (alreadyAssignedThisShift) continue;
+
+        const projected = calculateTaskProjection(
+          creature,
+          taskDef,
+          weather,
+          feedQuality,
+          cleanliness,
+          DEFAULT_BUILDINGS
+        );
+
+        const currentScheduledCost = perCreatureCost.get(creatureId) ?? 0;
+        const nextScheduledCost = currentScheduledCost + projected.projectedStaminaCost;
+
+        if (nextScheduledCost > creature.breedingStamina) {
+          continue;
+        }
+
+        cleaned[shift][task.id].push(creatureId);
+        perCreatureCost.set(creatureId, nextScheduledCost);
+      }
+    }
+  }
+
+  return cleaned;
+}
+
+function AssignCreatureModal({
+  open,
+  onClose,
+  shift,
+  taskId,
+  creatures,
+  assignments,
+  setAssignments,
+  weather,
+  feedQuality,
+  cleanliness,
+}: {
+  open: boolean;
+  onClose: () => void;
+  shift: RanchShift;
+  taskId: RanchTaskId;
+  creatures: PlannerCreature[];
+  assignments: TaskAssignmentMap;
+  setAssignments: React.Dispatch<React.SetStateAction<TaskAssignmentMap>>;
+  weather: ReturnType<typeof getWeatherForDay>;
+  feedQuality: FeedQuality;
+  cleanliness: number;
+}) {
+  if (!open) return null;
+
+  const selectedTask = getTaskById(taskId);
+
+  const candidateCards = creatures.map((creature) => {
+    const projection = calculateTaskProjection(
+      creature,
+      selectedTask,
+      weather,
+      feedQuality,
+      cleanliness,
+      DEFAULT_BUILDINGS
+    );
+
+    const alreadyAssignedThisShift =
+      Object.values(assignments[shift]).some((ids) => ids.includes(creature.id)) &&
+      !assignments[shift][taskId].includes(creature.id);
+
+    const currentTotalProjected = getTotalProjectedCostForCreature(
+      creature,
+      assignments,
+      weather,
+      feedQuality,
+      cleanliness,
+      DEFAULT_BUILDINGS
+    );
+
+    const currentlyInTask = assignments[shift][taskId].includes(creature.id);
+
+    const nextProjectedTotal = currentlyInTask
+      ? currentTotalProjected - projection.projectedStaminaCost
+      : currentTotalProjected + projection.projectedStaminaCost;
+
+    const exceedsAvailableStamina = nextProjectedTotal > creature.breedingStamina;
+
+    const roleTags = getCreatureRoleTags(creature);
+
+    return {
+      creature,
+      projection,
+      alreadyAssignedThisShift,
+      currentlyInTask,
+      currentTotalProjected,
+      nextProjectedTotal,
+      exceedsAvailableStamina,
+      roleTags,
+    };
+  });
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4">
+      <div className="flex h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border-4 border-emerald-900 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-emerald-200 px-5 py-4">
+          <div>
+            <h3 className="text-2xl font-bold text-emerald-950">
+              Assign Creatures — {selectedTask.title}
+            </h3>
+            <p className="text-sm text-stone-600">
+              Click a creature to fill or clear a slot for the {shift} shift.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5">
+          <div className="mb-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow">
+            <h4 className="text-xl font-bold text-stone-900">{selectedTask.title}</h4>
+            <p className="text-sm text-stone-700">{selectedTask.description}</p>
+            <div className="mt-3 grid gap-1 text-sm text-stone-800">
+              <p><strong>Location:</strong> {selectedTask.location}</p>
+              <p><strong>Current Assignments:</strong> {assignments[shift][taskId].length}/{selectedTask.slotCount}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {candidateCards.map(
+              ({
+                creature,
+                projection,
+                alreadyAssignedThisShift,
+                currentlyInTask,
+                exceedsAvailableStamina,
+                nextProjectedTotal,
+                roleTags,
+              }) => (
+                <div
+                  key={creature.id}
+                  className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-3xl">
+                      {getCreaturePortrait(creature.name)}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-lg font-bold text-stone-900">{creature.nickname}</p>
+                          <p className="text-sm text-stone-600">
+                            {creature.name} • Lv {creature.level}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={
+                            (alreadyAssignedThisShift && !currentlyInTask) ||
+                            (!currentlyInTask && exceedsAvailableStamina)
+                          }
+                          onClick={() => {
+                            setAssignments((prev) => {
+                              const next = toggleAssignment(prev, shift, taskId, creature.id);
+                              return sanitizeAssignmentsForCurrentCreatures(
+                                next,
+                                creatures,
+                                weather,
+                                feedQuality,
+                                cleanliness
+                              );
+                            });
+                          }}
+                          className={`rounded-xl px-3 py-2 text-sm font-semibold ${
+                            currentlyInTask
+                              ? "bg-red-600 text-white"
+                              : alreadyAssignedThisShift || exceedsAvailableStamina
+                              ? "bg-stone-300 text-stone-600"
+                              : "bg-emerald-700 text-white"
+                          }`}
+                        >
+                          {currentlyInTask
+                            ? "Remove"
+                            : alreadyAssignedThisShift
+                            ? "Busy This Shift"
+                            : exceedsAvailableStamina
+                            ? "Not Enough Stamina"
+                            : "Assign"}
+                        </button>
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {roleTags.map((tag) => (
+                          <div
+                            key={`${creature.id}-${tag}`}
+                            className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-900"
+                          >
+                            {tag}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-3 rounded-2xl bg-stone-50 p-3">
+                        <div className="mb-1 flex items-center justify-between text-xs text-stone-600">
+                          <span>Breeding Stamina</span>
+                          <span>{creature.breedingStamina}/{creature.maxBreedingStamina}</span>
+                        </div>
+                        <div className="relative h-3 overflow-hidden rounded-full bg-stone-200">
+                          <div
+                            className="absolute left-0 top-0 h-full rounded-full bg-emerald-500"
+                            style={{
+                              width: staminaBarWidth(
+                                creature.breedingStamina,
+                                creature.maxBreedingStamina
+                              ),
+                            }}
+                          />
+                          <div
+                            className="absolute left-0 top-0 h-full rounded-full bg-rose-400/70"
+                            style={{
+                              width: projectedBarWidth(
+                                creature.breedingStamina,
+                                nextProjectedTotal,
+                                creature.maxBreedingStamina
+                              ),
+                            }}
+                          />
+                        </div>
+                        <div className="mt-2 grid gap-1 text-xs text-stone-700">
+                          <p><strong>Task Cost (day total if assigned):</strong> {nextProjectedTotal}</p>
+                          <p>
+                            <strong>Remaining After Tasks:</strong>{" "}
+                            {Math.max(0, creature.breedingStamina - nextProjectedTotal)}
+                          </p>
+                          <p
+                            className={
+                              Math.max(0, creature.breedingStamina - nextProjectedTotal) < 12
+                                ? "font-semibold text-red-700"
+                                : "font-semibold text-emerald-700"
+                            }
+                          >
+                            {Math.max(0, creature.breedingStamina - nextProjectedTotal) < 12
+                              ? "Breeding blocked after this schedule."
+                              : "Enough stamina remains for breeding."}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 grid gap-1 text-xs text-stone-700 sm:grid-cols-2">
+                        <p><strong>Projected Task Score:</strong> {projection.score}</p>
+                        <p>
+                          <strong>Task Range:</strong> {projection.projectedOutputMin}–
+                          {projection.projectedOutputMax} {selectedTask.outputLabel}
+                        </p>
+                        <p><strong>Shift Cost:</strong> {projection.projectedStaminaCost}</p>
+                        <p><strong>Injury Risk:</strong> {projection.injuryRisk}</p>
+                        <p><strong>Mood Change:</strong> {projection.moodDelta >= 0 ? "+" : ""}{projection.moodDelta}</p>
+                        <p>
+                          <strong>Cleanliness Change:</strong>{" "}
+                          {projection.cleanlinessDelta >= 0 ? "+" : ""}
+                          {projection.cleanlinessDelta}
+                        </p>
+                      </div>
+
+                      <div className="mt-2 space-y-1 text-xs text-stone-600">
+                        {projection.notes.slice(0, 3).map((note, index) => (
+                          <p key={`${creature.id}-note-${index}`}>• {note}</p>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RanchPlannerPanel({
   creatures,
   currentDay,
@@ -57,6 +369,8 @@ export default function RanchPlannerPanel({
   const [assignments, setAssignments] = useState<TaskAssignmentMap>(createEmptyAssignments());
   const [activeShift, setActiveShift] = useState<RanchShift>("morning");
   const [selectedTaskId, setSelectedTaskId] = useState(RANCH_TASKS[0].id);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [assignModalTaskId, setAssignModalTaskId] = useState<RanchTaskId>(RANCH_TASKS[0].id);
   const [recapOpen, setRecapOpen] = useState(false);
   const [recapSlides, setRecapSlides] = useState<RanchRecapSlide[]>([]);
   const [recapIndex, setRecapIndex] = useState(0);
@@ -67,14 +381,29 @@ export default function RanchPlannerPanel({
       if (!raw) return;
       const parsed = JSON.parse(raw) as TaskAssignmentMap;
       if (parsed?.morning && parsed?.afternoon && parsed?.evening) {
-        setAssignments(parsed);
+        setAssignments(
+          sanitizeAssignmentsForCurrentCreatures(
+            parsed,
+            creatures,
+            weather,
+            feedQuality,
+            cleanliness
+          )
+        );
       }
     } catch {}
-  }, []);
+  }, [creatures, weather, feedQuality, cleanliness]);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(assignments));
-  }, [assignments]);
+    const cleaned = sanitizeAssignmentsForCurrentCreatures(
+      assignments,
+      creatures,
+      weather,
+      feedQuality,
+      cleanliness
+    );
+    localStorage.setItem(storageKey, JSON.stringify(cleaned));
+  }, [assignments, creatures, weather, feedQuality, cleanliness]);
 
   const selectedTask = getTaskById(selectedTaskId);
 
@@ -113,67 +442,54 @@ export default function RanchPlannerPanel({
     );
   }, [activeShift, selectedTask, assignments, creatures, weather, feedQuality, cleanliness]);
 
-  const candidateCards = useMemo(() => {
-    return creatures.map((creature) => {
-      const projection = calculateTaskProjection(
-        creature,
-        selectedTask,
-        weather,
-        feedQuality,
-        cleanliness,
-        DEFAULT_BUILDINGS
-      );
-      const alreadyAssignedThisShift =
-        !creatureCanBeAssigned(creature.id, activeShift, assignments) &&
-        !assignments[activeShift][selectedTask.id].includes(creature.id);
-
-      return {
-        creature,
-        projection,
-        alreadyAssignedThisShift,
-        currentlyInTask: assignments[activeShift][selectedTask.id].includes(creature.id),
-      };
-    });
-  }, [creatures, selectedTask, weather, feedQuality, cleanliness, activeShift, assignments]);
-
   const dashboard = useMemo(() => {
-    const totalProjectedCost = projectedCreatureSummaries.reduce((sum, item) => sum + item.totalProjectedCost, 0);
-    const breedingReady = projectedCreatureSummaries.filter((item) => !item.breedingLocked).length;
+    const totalProjectedCost = projectedCreatureSummaries.reduce(
+      (sum, item) => sum + item.totalProjectedCost,
+      0
+    );
+    const breedingReady = projectedCreatureSummaries.filter(
+      (item) => !item.breedingLocked
+    ).length;
     const totalOutputMin = SHIFTS.reduce((sum, shift) => {
-      return sum + RANCH_TASKS.reduce((taskSum, task) => {
-        return (
-          taskSum +
-          getShiftTaskProjection(
-            shift,
-            task,
-            assignments,
-            creatures,
-            weather,
-            feedQuality,
-            cleanliness,
-            DEFAULT_BUILDINGS
-          ).projectedOutputMin
-        );
-      }, 0);
+      return (
+        sum +
+        RANCH_TASKS.reduce((taskSum, task) => {
+          return (
+            taskSum +
+            getShiftTaskProjection(
+              shift,
+              task,
+              assignments,
+              creatures,
+              weather,
+              feedQuality,
+              cleanliness,
+              DEFAULT_BUILDINGS
+            ).projectedOutputMin
+          );
+        }, 0)
+      );
     }, 0);
     const totalOutputMax = SHIFTS.reduce((sum, shift) => {
-      return sum + RANCH_TASKS.reduce((taskSum, task) => {
-        return (
-          taskSum +
-          getShiftTaskProjection(
-            shift,
-            task,
-            assignments,
-            creatures,
-            weather,
-            feedQuality,
-            cleanliness,
-            DEFAULT_BUILDINGS
-          ).projectedOutputMax
-        );
-      }, 0);
+      return (
+        sum +
+        RANCH_TASKS.reduce((taskSum, task) => {
+          return (
+            taskSum +
+            getShiftTaskProjection(
+              shift,
+              task,
+              assignments,
+              creatures,
+              weather,
+              feedQuality,
+              cleanliness,
+              DEFAULT_BUILDINGS
+            ).projectedOutputMax
+          );
+        }, 0)
+      );
     }, 0);
-
     const averageCleanlinessTrend = SHIFTS.reduce((sum, shift) => {
       return (
         sum +
@@ -210,9 +526,24 @@ export default function RanchPlannerPanel({
     };
   }, [projectedCreatureSummaries, assignments, creatures, weather, feedQuality, cleanliness]);
 
+  function openAssignModal(taskId: RanchTaskId) {
+    setSelectedTaskId(taskId);
+    setAssignModalTaskId(taskId);
+    setAssignModalOpen(true);
+  }
+
   function handleResolveDay() {
-    const slides = generateRecapSlides(
+    const cleaned = sanitizeAssignmentsForCurrentCreatures(
       assignments,
+      creatures,
+      weather,
+      feedQuality,
+      cleanliness
+    );
+    setAssignments(cleaned);
+
+    const slides = generateRecapSlides(
+      cleaned,
       creatures,
       weather,
       feedQuality,
@@ -314,10 +645,10 @@ export default function RanchPlannerPanel({
           </button>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1.15fr_0.95fr]">
+        <div className="grid gap-5">
           <div>
             <h3 className="mb-3 text-xl font-bold text-stone-900">Task Boxes</h3>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {RANCH_TASKS.map((task) => {
                 const shiftProjection = getShiftTaskProjection(
                   activeShift,
@@ -334,163 +665,54 @@ export default function RanchPlannerPanel({
                 );
 
                 return (
-                  <button
+                  <div
                     key={task.id}
-                    type="button"
-                    onClick={() => setSelectedTaskId(task.id)}
                     className={`rounded-2xl border-2 p-4 text-left shadow ${
                       selectedTaskId === task.id
                         ? "border-emerald-700 bg-emerald-100"
-                        : "border-emerald-200 bg-white hover:border-emerald-400"
+                        : "border-emerald-200 bg-white"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTaskId(task.id)}
+                        className="text-left"
+                      >
                         <p className="text-lg font-bold text-stone-900">{task.title}</p>
                         <p className="text-sm text-stone-600">{task.location}</p>
-                      </div>
+                      </button>
+
                       <div className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-900">
                         {assignedCreatures.length}/{task.slotCount}
                       </div>
                     </div>
 
-                    <p className="mt-2 text-sm text-stone-700">{task.description}</p>
+                    <p className="mb-3 text-sm text-stone-700">{task.description}</p>
 
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mb-3 flex flex-wrap gap-2">
                       {Array.from({ length: task.slotCount }).map((_, index) => {
                         const assigned = assignedCreatures[index];
                         return (
-                          <div
+                          <button
                             key={`${task.id}-slot-${index}`}
-                            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-300 bg-emerald-50 text-2xl"
-                            title={assigned ? assigned.nickname : "Empty slot"}
+                            type="button"
+                            onClick={() => openAssignModal(task.id)}
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-300 bg-emerald-50 text-2xl hover:border-emerald-500"
+                            title={assigned ? `${assigned.nickname} — click to manage` : "Open slot — click to assign"}
                           >
                             {assigned ? getCreaturePortrait(assigned.name) : "＋"}
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
 
-                    <div className="mt-3 grid gap-1 text-xs text-stone-700">
+                    <div className="grid gap-1 text-xs text-stone-700">
                       <p><strong>Projected Outcome:</strong> {shiftProjection.projectedOutputMin}–{shiftProjection.projectedOutputMax} {task.outputLabel}</p>
                       <p><strong>Projected Cost:</strong> {shiftProjection.totalProjectedCost} stamina</p>
                       {shiftProjection.summaryNotes.length > 0 ? (
                         <p><strong>Notes:</strong> {shiftProjection.summaryNotes[0]}</p>
                       ) : null}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow">
-              <h3 className="text-xl font-bold text-stone-900">{selectedTask.title}</h3>
-              <p className="text-sm text-stone-700">{selectedTask.description}</p>
-              <div className="mt-3 grid gap-1 text-sm text-stone-800">
-                <p><strong>Location:</strong> {selectedTask.location}</p>
-                <p><strong>Projected Range:</strong> {taskProjection.projectedOutputMin}–{taskProjection.projectedOutputMax} {selectedTask.outputLabel}</p>
-                <p><strong>Shift Cost:</strong> {taskProjection.totalProjectedCost} stamina</p>
-              </div>
-            </div>
-
-            <h4 className="mt-4 mb-3 text-lg font-bold text-stone-900">Assign Creatures</h4>
-            <div className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
-              {candidateCards.map(({ creature, projection, alreadyAssignedThisShift, currentlyInTask }) => {
-                const totalProjected = projectedCreatureSummaries.find((item) => item.creature.id === creature.id)!;
-
-                return (
-                  <div key={creature.id} className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-3xl">
-                        {getCreaturePortrait(creature.name)}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="text-lg font-bold text-stone-900">{creature.nickname}</p>
-                            <p className="text-sm text-stone-600">{creature.name} • Lv {creature.level}</p>
-                          </div>
-                          <button
-                            type="button"
-                            disabled={alreadyAssignedThisShift && !currentlyInTask}
-                            onClick={() =>
-                              setAssignments((prev) =>
-                                toggleAssignment(prev, activeShift, selectedTask.id, creature.id)
-                              )
-                            }
-                            className={`rounded-xl px-3 py-2 text-sm font-semibold ${
-                              currentlyInTask
-                                ? "bg-red-600 text-white"
-                                : alreadyAssignedThisShift
-                                ? "bg-stone-300 text-stone-600"
-                                : "bg-emerald-700 text-white"
-                            }`}
-                          >
-                            {currentlyInTask ? "Remove" : alreadyAssignedThisShift ? "Busy This Shift" : "Assign"}
-                          </button>
-                        </div>
-
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {totalProjected.roleTags.map((tag) => (
-                            <div
-                              key={`${creature.id}-${tag}`}
-                              className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-900"
-                            >
-                              {tag}
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="mt-3 rounded-2xl bg-stone-50 p-3">
-                          <div className="mb-1 flex items-center justify-between text-xs text-stone-600">
-                            <span>Breeding Stamina</span>
-                            <span>{creature.breedingStamina}/{creature.maxBreedingStamina}</span>
-                          </div>
-                          <div className="relative h-3 overflow-hidden rounded-full bg-stone-200">
-                            <div
-                              className="absolute left-0 top-0 h-full rounded-full bg-emerald-500"
-                              style={{ width: staminaBarWidth(creature.breedingStamina, creature.maxBreedingStamina) }}
-                            />
-                            <div
-                              className="absolute left-0 top-0 h-full rounded-full bg-rose-400/70"
-                              style={{
-                                width: projectedBarWidth(
-                                  creature.breedingStamina,
-                                  totalProjected.totalProjectedCost,
-                                  creature.maxBreedingStamina
-                                ),
-                              }}
-                            />
-                          </div>
-                          <div className="mt-2 grid gap-1 text-xs text-stone-700">
-                            <p><strong>Task Cost (day total):</strong> {totalProjected.totalProjectedCost}</p>
-                            <p><strong>Remaining After Tasks:</strong> {totalProjected.projectedRemaining}</p>
-                            <p className={totalProjected.breedingLocked ? "font-semibold text-red-700" : "font-semibold text-emerald-700"}>
-                              {totalProjected.breedingLocked
-                                ? "Breeding blocked after current schedule."
-                                : "Enough stamina remains for breeding."}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 grid gap-1 text-xs text-stone-700 sm:grid-cols-2">
-                          <p><strong>Projected Task Score:</strong> {projection.score}</p>
-                          <p><strong>Task Range:</strong> {projection.projectedOutputMin}–{projection.projectedOutputMax} {selectedTask.outputLabel}</p>
-                          <p><strong>Shift Cost:</strong> {projection.projectedStaminaCost}</p>
-                          <p><strong>Injury Risk:</strong> {projection.injuryRisk}</p>
-                          <p><strong>Mood Change:</strong> {projection.moodDelta >= 0 ? "+" : ""}{projection.moodDelta}</p>
-                          <p><strong>Cleanliness Change:</strong> {projection.cleanlinessDelta >= 0 ? "+" : ""}{projection.cleanlinessDelta}</p>
-                        </div>
-
-                        <div className="mt-2 space-y-1 text-xs text-stone-600">
-                          {projection.notes.slice(0, 3).map((note, index) => (
-                            <p key={`${creature.id}-note-${index}`}>• {note}</p>
-                          ))}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 );
@@ -499,6 +721,19 @@ export default function RanchPlannerPanel({
           </div>
         </div>
       </section>
+
+      <AssignCreatureModal
+        open={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        shift={activeShift}
+        taskId={assignModalTaskId}
+        creatures={creatures}
+        assignments={assignments}
+        setAssignments={setAssignments}
+        weather={weather}
+        feedQuality={feedQuality}
+        cleanliness={cleanliness}
+      />
 
       {recapOpen && currentSlide ? (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4">
