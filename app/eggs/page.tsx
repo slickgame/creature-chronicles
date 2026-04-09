@@ -4,31 +4,24 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
-
-type InbreedingRisk =
-  | "none"
-  | "half_sibling"
-  | "parent_child"
-  | "full_sibling";
+import {
+  CreatureTraitBadgeRow,
+  CreatureTraitEntry,
+} from "@/components/creatures/CreatureTraitUi";
+import {
+  EggCard,
+  EggQuality,
+  getEggQualityClasses,
+  getEggQualityDescription,
+  getPenaltyPreview,
+  getQualityRank,
+  getRiskClasses,
+  getRiskLabel,
+  InbreedingRisk,
+} from "@/components/eggs/EggUi";
 
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
-type EggQuality = "poor" | "normal" | "strong" | "exceptional";
-
-type CreatureTrait =
-  | "domestic"
-  | "industrious"
-  | "calm"
-  | "fertile"
-  | "quick"
-  | "sturdy";
-
-type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
-
-type CreatureTraitEntry = {
-  trait: CreatureTrait;
-  grade: TraitGrade;
-};
 
 type HatchedCreature = {
   id: number;
@@ -64,37 +57,6 @@ type SortOption =
   | "quality_best"
   | "quality_worst";
 
-function getRiskLabel(risk: InbreedingRisk) {
-  if (risk === "parent_child") return "Parent/Child Risk";
-  if (risk === "full_sibling") return "Full Sibling Risk";
-  if (risk === "half_sibling") return "Half Sibling Risk";
-  return "No Risk";
-}
-
-function getRiskClasses(risk: InbreedingRisk) {
-  if (risk === "none") {
-    return "bg-green-100 text-green-900 border-green-300";
-  }
-
-  if (risk === "half_sibling") {
-    return "bg-amber-100 text-amber-900 border-amber-300";
-  }
-
-  return "bg-red-100 text-red-900 border-red-300";
-}
-
-function getPenaltyPreview(risk: InbreedingRisk) {
-  if (risk === "half_sibling") {
-    return "Potential hatch penalty: one mild negative inherited trait.";
-  }
-
-  if (risk === "parent_child" || risk === "full_sibling") {
-    return "Potential hatch penalty: one severe negative inherited trait.";
-  }
-
-  return "No inherited penalty risk on hatch.";
-}
-
 function getInbredTraitLabel(
   trait: InbredTrait,
   severity: InbredTraitSeverity
@@ -127,90 +89,6 @@ function getInbredTraitClasses(severity: InbredTraitSeverity) {
   }
 
   return "bg-red-100 text-red-900 border-red-300";
-}
-
-function getEggQualityClasses(quality: EggQuality) {
-  if (quality === "exceptional") {
-    return "bg-purple-100 text-purple-900 border-purple-300";
-  }
-
-  if (quality === "strong") {
-    return "bg-sky-100 text-sky-900 border-sky-300";
-  }
-
-  if (quality === "normal") {
-    return "bg-green-100 text-green-900 border-green-300";
-  }
-
-  return "bg-stone-100 text-stone-800 border-stone-300";
-}
-
-function getEggQualityDescription(quality: EggQuality) {
-  if (quality === "exceptional") {
-    return "Hatches with the strongest starting bonuses.";
-  }
-
-  if (quality === "strong") {
-    return "Hatches with a smaller starting bonus.";
-  }
-
-  if (quality === "normal") {
-    return "Standard hatch quality.";
-  }
-
-  return "No quality bonus on hatch.";
-}
-
-function getQualityRank(quality: EggQuality) {
-  if (quality === "exceptional") return 4;
-  if (quality === "strong") return 3;
-  if (quality === "normal") return 2;
-  return 1;
-}
-
-function getCreatureTraitLabel(trait: CreatureTrait) {
-  if (trait === "domestic") return "Domestic";
-  if (trait === "industrious") return "Industrious";
-  if (trait === "calm") return "Calm";
-  if (trait === "fertile") return "Fertile";
-  if (trait === "quick") return "Quick";
-  return "Sturdy";
-}
-
-function getCreatureTraitClasses(trait: CreatureTrait) {
-  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
-  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
-  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
-  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
-  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  return "bg-stone-200 text-stone-900 border-stone-400";
-}
-
-function getCreatureTraitDescription(trait: CreatureTrait) {
-  if (trait === "domestic") return "Better cooking and cleaning performance.";
-  if (trait === "industrious") return "Better field work and labor performance.";
-  if (trait === "calm") return "Lower breeding refusal chance.";
-  if (trait === "fertile") return "Higher egg production chance.";
-  if (trait === "quick") return "Lower time costs.";
-  return "Lower stamina costs.";
-}
-
-function getGradeClasses(grade: TraitGrade) {
-  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
-  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
-  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
-  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
-  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
-  return "bg-rose-100 text-rose-900 border-rose-300";
-}
-
-function getGradeDescription(grade: TraitGrade) {
-  if (grade === "F") return "Very weak version";
-  if (grade === "D") return "Weak version";
-  if (grade === "C") return "Average version";
-  if (grade === "B") return "Strong version";
-  if (grade === "A") return "Excellent version";
-  return "Exceptional version";
 }
 
 function getCreatureImage(name: string) {
@@ -442,43 +320,7 @@ function HatchedCreatureModal({
 
           <div className="mb-5 rounded-2xl bg-emerald-50 p-3">
             <p className="mb-3 text-sm text-stone-500">Traits</p>
-            {traits.length === 0 ? (
-              <p className="font-semibold text-stone-900">No Traits</p>
-            ) : (
-              <div className="space-y-3">
-                {traits.map((entry, index) => (
-                  <div
-                    key={`${entry.trait}-${entry.grade}-${index}`}
-                    className="rounded-2xl border border-emerald-200 bg-white p-3"
-                  >
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <div
-                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
-                          entry.trait
-                        )}`}
-                      >
-                        {getCreatureTraitLabel(entry.trait)}
-                      </div>
-
-                      <div
-                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getGradeClasses(
-                          entry.grade
-                        )}`}
-                      >
-                        Grade {entry.grade}
-                      </div>
-                    </div>
-
-                    <p className="font-semibold text-stone-900">
-                      {getCreatureTraitDescription(entry.trait)}
-                    </p>
-                    <p className="mt-1 text-sm text-stone-600">
-                      {getGradeDescription(entry.grade)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <CreatureTraitBadgeRow traits={traits} maxVisible={traits.length} />
           </div>
 
           <div className="mb-5 rounded-2xl bg-stone-100 p-4">
@@ -582,11 +424,11 @@ export default function EggsPage() {
       }
 
       if (sortOption === "quality_best") {
-        return getQualityRank(b.quality) - getQualityRank(a.quality);
+        return getQualityRank(b.quality as EggQuality) - getQualityRank(a.quality as EggQuality);
       }
 
       if (sortOption === "quality_worst") {
-        return getQualityRank(a.quality) - getQualityRank(b.quality);
+        return getQualityRank(a.quality as EggQuality) - getQualityRank(b.quality as EggQuality);
       }
 
       return 0;
@@ -635,59 +477,18 @@ export default function EggsPage() {
               </div>
             ) : (
               sortedEggs.map((egg) => (
-                <button
+                <EggCard
                   key={egg.id}
-                  type="button"
+                  egg={{
+                    id: egg.id,
+                    name: egg.name,
+                    parents: egg.parents,
+                    hatchDaysRemaining: egg.hatchDaysRemaining,
+                    inbreedingRisk: egg.inbreedingRisk as InbreedingRisk,
+                    quality: egg.quality as EggQuality,
+                  }}
                   onClick={() => setSelectedEggId(egg.id)}
-                  className="rounded-2xl border-2 border-amber-300 bg-white/90 p-3 text-left shadow transition hover:border-amber-500 hover:bg-white"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-stone-100 text-5xl">
-                      🥚
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-lg font-bold text-amber-950">
-                            {egg.name}
-                          </p>
-                          <p className="truncate text-sm text-stone-600">
-                            {egg.parents}
-                          </p>
-                        </div>
-
-                        <div className="rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900">
-                          {egg.hatchDaysRemaining === 0
-                            ? "Ready"
-                            : `${egg.hatchDaysRemaining}d`}
-                        </div>
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <div
-                          className={`inline-block rounded-full border px-2 py-1 text-[11px] font-semibold ${getRiskClasses(
-                            egg.inbreedingRisk
-                          )}`}
-                        >
-                          {getRiskLabel(egg.inbreedingRisk)}
-                        </div>
-
-                        <div
-                          className={`inline-block rounded-full border px-2 py-1 text-[11px] font-semibold ${getEggQualityClasses(
-                            egg.quality
-                          )}`}
-                        >
-                          {egg.quality}
-                        </div>
-                      </div>
-
-                      <p className="mt-2 text-xs text-stone-700">
-                        {getPenaltyPreview(egg.inbreedingRisk)}
-                      </p>
-                    </div>
-                  </div>
-                </button>
+                />
               ))
             )}
           </div>
