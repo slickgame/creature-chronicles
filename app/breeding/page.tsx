@@ -59,6 +59,7 @@ export default function BreedingPage() {
   const [inheritanceHelpOpen, setInheritanceHelpOpen] = useState(false);
   const [detailTarget, setDetailTarget] = useState<DetailTarget | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
+  const [presetManagerOpen, setPresetManagerOpen] = useState(false);
   const [presetPreviewTarget, setPresetPreviewTarget] =
     useState<PresetPreviewTarget | null>(null);
 
@@ -95,7 +96,6 @@ export default function BreedingPage() {
   const receiverCreature = breedingSelection.receiverCreatureId
     ? creatures.find((c) => c.id === breedingSelection.receiverCreatureId) ?? null
     : null;
-
 
   const totalEggCount = eggs.length;
   const readyEggCount = eggs.filter((egg) => egg.hatchDaysRemaining <= 0).length;
@@ -905,78 +905,37 @@ export default function BreedingPage() {
           </h1>
 
           <div className="mb-4 shrink-0 rounded-3xl border-4 border-rose-900 bg-white/85 p-4 shadow-xl">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-rose-900">
-                  Hatchery Status
-                </p>
-                <p className="mt-1 text-sm text-stone-700">
-                  {readyEggCount > 0
-                    ? `${readyEggCount} egg(s) are ready to hatch right now.`
-                    : totalEggCount > 0
-                    ? `${totalEggCount} egg(s) are incubating in the hatchery.`
-                    : "You do not have any eggs in the hatchery yet."}
-                </p>
+            <div className="grid gap-3 lg:grid-cols-4">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-stone-800">
+                <p><strong>Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+                <p><strong>Energy:</strong> {playerData.energy}</p>
+                <p><strong>Session:</strong> {getBreedingMinutes()}m</p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <div className="rounded-full border border-rose-300 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-900">
-                  Eggs: {totalEggCount}
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-stone-800">
+                <p><strong>Eggs:</strong> {totalEggCount}</p>
+                <p><strong>Ready:</strong> {readyEggCount}</p>
+                <p><strong>Risk Eggs:</strong> {riskEggCount}</p>
+              </div>
+
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-stone-800">
+                <p><strong>Egg Chance:</strong> {playerIsReceiver ? "None" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
+                <p><strong>Refusal:</strong> {getRefusalRiskLabel()}</p>
+                <p><strong>Quality:</strong> {getEggQualityPreview()}</p>
+              </div>
+
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-stone-800">
+                <div className="flex flex-wrap gap-2">
+                  <InfoButton onClick={() => setTraitHelpOpen(true)} label="Traits" />
+                  <InfoButton onClick={() => setGradeGuideOpen(true)} label="Grades" />
+                  <InfoButton onClick={() => setInheritanceHelpOpen(true)} label="Inheritance" />
                 </div>
-                <div className={`rounded-full border px-3 py-2 text-xs font-semibold ${
-                  readyEggCount > 0
-                    ? "border-emerald-300 bg-emerald-100 text-emerald-900"
-                    : "border-stone-300 bg-stone-100 text-stone-700"
-                }`}>
-                  Ready: {readyEggCount}
-                </div>
-                <div className={`rounded-full border px-3 py-2 text-xs font-semibold ${
-                  riskEggCount > 0
-                    ? "border-amber-300 bg-amber-100 text-amber-900"
-                    : "border-stone-300 bg-stone-100 text-stone-700"
-                }`}>
-                  Risk Eggs: {riskEggCount}
-                </div>
-                <Link
-                  href="/breeding/hatchery"
-                  className="rounded-2xl bg-rose-700 px-4 py-3 text-sm font-semibold text-white shadow"
-                >
-                  Open Hatchery
-                </Link>
+                <p className="mt-2 text-xs text-stone-600">Hover trait badges for quick help.</p>
               </div>
             </div>
           </div>
 
-          <div className="mb-4 shrink-0 grid gap-3 lg:grid-cols-4">
-            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-3 text-sm text-stone-800 shadow">
-              <p><strong>Time:</strong> Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
-              <p><strong>Energy:</strong> {playerData.energy}</p>
-              <p><strong>Session:</strong> {getBreedingMinutes()}m</p>
-            </div>
-
-            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-3 text-sm text-stone-800 shadow">
-              <p><strong>Egg Chance:</strong> {playerIsReceiver ? "None" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
-              <p><strong>Refusal:</strong> {getRefusalRiskLabel()}</p>
-              <p><strong>Quality:</strong> {getEggQualityPreview()}</p>
-            </div>
-
-            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-3 text-sm text-stone-800 shadow">
-              <p><strong>Home:</strong> Clean {homeState.cleanliness}/100</p>
-              <p><strong>Food:</strong> {homeState.foodStock}</p>
-              <p><strong>Breeding Care:</strong> {getAverageBreedingCare().toFixed(1)}</p>
-            </div>
-
-            <div className="rounded-2xl border-2 border-rose-300 bg-white/80 p-3 text-sm text-stone-800 shadow">
-              <div className="flex flex-wrap gap-2">
-                <InfoButton onClick={() => setTraitHelpOpen(true)} label="How traits work" />
-                <InfoButton onClick={() => setGradeGuideOpen(true)} label="Grade guide" />
-                <InfoButton onClick={() => setInheritanceHelpOpen(true)} label="Inheritance help" />
-              </div>
-              <p className="mt-2 text-xs text-stone-600">Hover trait badges for quick help.</p>
-            </div>
-          </div>
-
-          <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_1fr_360px]">
+          <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_1fr_320px]">
             <section className="flex min-h-0 flex-col rounded-3xl border-4 border-rose-900 bg-white/85 p-4 shadow-xl">
               <div className="mb-3 shrink-0">
                 <div className="mb-3 flex items-center justify-between">
@@ -1223,21 +1182,18 @@ export default function BreedingPage() {
                   <p><strong>Egg Chance:</strong> {playerIsReceiver ? "No egg possible" : `${Math.round(getEggChanceEstimate() * 100)}%`}</p>
                   <p><strong>Refusal:</strong> {getRefusalRiskLabel()}</p>
                   <p><strong>Quality:</strong> {getEggQualityPreview()}</p>
+                  <p><strong>Home:</strong> Clean {homeState.cleanliness}/100 • Food {homeState.foodStock}</p>
                 </div>
 
-                <div className="rounded-2xl bg-rose-50 p-3">
-                  <div className="mb-2 flex items-center gap-2">
-                    <p className="text-sm font-semibold text-stone-900">Inheritance Preview</p>
-                    <InfoButton onClick={() => setInheritanceHelpOpen(true)} label="Inheritance help" small />
-                  </div>
-
+                <div className="rounded-2xl bg-rose-50 p-3 text-sm text-stone-800">
+                  <p className="font-semibold text-stone-900">Inheritance Preview</p>
                   {!hasValidSelection ? (
-                    <p className="text-sm text-stone-600">Select a valid pair to preview likely inherited traits.</p>
+                    <p className="mt-1 text-stone-600">Select a valid pair to preview inheritance.</p>
                   ) : inheritancePreview.length === 0 ? (
-                    <p className="text-sm text-stone-600">No clear visible inherited traits from this pair.</p>
+                    <p className="mt-1 text-stone-600">No clear visible inherited traits from this pair.</p>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {inheritancePreview.map((entry, index) => (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {inheritancePreview.slice(0, 4).map((entry, index) => (
                         <div key={`${entry.trait}-${entry.strongestGrade}-${index}`} className="group relative">
                           <div className="flex items-center gap-1">
                             <div className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(entry.trait)}`}>
@@ -1247,12 +1203,13 @@ export default function BreedingPage() {
                               {entry.strongestGrade}
                             </div>
                           </div>
-                          <div className="pointer-events-none absolute right-0 top-full z-20 mt-2 hidden w-60 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
-                            <p className="font-semibold text-stone-900">{getTraitLabel(entry.trait)} — {entry.note}</p>
-                            <p className="mt-1">Strongest visible parent grade: {entry.strongestGrade}</p>
-                          </div>
                         </div>
                       ))}
+                      {inheritancePreview.length > 4 && (
+                        <div className="inline-block rounded-full border border-stone-300 bg-white px-2 py-1 text-xs font-semibold text-stone-700">
+                          +{inheritancePreview.length - 4} more
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1280,47 +1237,6 @@ export default function BreedingPage() {
                     </div>
                   )}
                 </div>
-
-                <BreedingPresetPanel
-                  presetSlotCount={PRESET_SLOT_COUNT}
-                  presetSortMode={presetSortMode}
-                  setPresetSortMode={setPresetSortMode}
-                  presetNameInput={presetNameInput}
-                  setPresetNameInput={setPresetNameInput}
-                  presetOverwriteSlot={presetOverwriteSlot}
-                  setPresetOverwriteSlot={setPresetOverwriteSlot}
-                  hasValidSelection={hasValidSelection}
-                  savePresetToSlot={savePresetToSlot}
-                  favoriteCreatureIds={favoriteCreatureIds}
-                  clearSavedUiData={() => {
-                    setFavoriteCreatureIds([]);
-                    setPresets([]);
-                    setRenamingPresetSlot(null);
-                    setRenamePresetInput("");
-                    setPresetSortMode("custom");
-                    setPresetPreviewTarget(null);
-                    if (typeof window !== "undefined") {
-                      window.localStorage.removeItem(BREEDING_UI_STORAGE_KEY);
-                    }
-                  }}
-                  sortedPresetSlots={sortedPresetSlots}
-                  getPresetAtSlot={getPresetAtSlot}
-                  validatePreset={validatePreset}
-                  getPresetScore={getPresetScore}
-                  getNextEmptyPresetSlot={getNextEmptyPresetSlot}
-                  renamingPresetSlot={renamingPresetSlot}
-                  renamePresetInput={renamePresetInput}
-                  setRenamePresetInput={setRenamePresetInput}
-                  saveRenamePreset={saveRenamePreset}
-                  cancelRenamePreset={cancelRenamePreset}
-                  startRenamePreset={startRenamePreset}
-                  getPresetParticipantLabel={getPresetParticipantLabel}
-                  setPresetPreviewTarget={setPresetPreviewTarget}
-                  movePreset={movePreset}
-                  loadPreset={loadPreset}
-                  duplicatePreset={duplicatePreset}
-                  deletePreset={deletePreset}
-                />
               </div>
 
               <div className="mt-4 shrink-0 space-y-3">
@@ -1335,6 +1251,14 @@ export default function BreedingPage() {
                   type="button"
                 >
                   Compare Selected Pair
+                </button>
+
+                <button
+                  onClick={() => setPresetManagerOpen(true)}
+                  className="w-full rounded-2xl border border-rose-300 bg-white px-4 py-3 font-semibold text-stone-900 shadow"
+                  type="button"
+                >
+                  Open Breeding Presets
                 </button>
 
                 <button
@@ -1481,6 +1405,77 @@ export default function BreedingPage() {
           <p><strong>Egg Quality:</strong> {getEggQualityPreview()}</p>
           <p><strong>Session Time:</strong> {getBreedingMinutes()} minutes</p>
         </div>
+        <div className="mt-4 rounded-2xl bg-rose-50 p-4">
+          <p className="mb-2 text-sm font-semibold text-stone-900">Inheritance Preview</p>
+          {!hasValidSelection ? (
+            <p className="text-sm text-stone-600">Select a valid pair to preview inheritance.</p>
+          ) : inheritancePreview.length === 0 ? (
+            <p className="text-sm text-stone-600">No clear visible inherited traits from this pair.</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {inheritancePreview.map((entry, index) => (
+                <div key={`${entry.trait}-${entry.strongestGrade}-${index}`} className="group relative">
+                  <div className="flex items-center gap-1">
+                    <div className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(entry.trait)}`}>
+                      {getTraitLabel(entry.trait)}
+                    </div>
+                    <div className={`inline-block rounded-full border px-2 py-1 text-[10px] font-semibold ${getGradeClasses(entry.strongestGrade)}`}>
+                      {entry.strongestGrade}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </HelpModal>
+
+      <HelpModal
+        open={presetManagerOpen}
+        title="Breeding Presets"
+        onClose={() => setPresetManagerOpen(false)}
+        maxWidth="max-w-5xl"
+      >
+        <BreedingPresetPanel
+          presetSlotCount={PRESET_SLOT_COUNT}
+          presetSortMode={presetSortMode}
+          setPresetSortMode={setPresetSortMode}
+          presetNameInput={presetNameInput}
+          setPresetNameInput={setPresetNameInput}
+          presetOverwriteSlot={presetOverwriteSlot}
+          setPresetOverwriteSlot={setPresetOverwriteSlot}
+          hasValidSelection={hasValidSelection}
+          savePresetToSlot={savePresetToSlot}
+          favoriteCreatureIds={favoriteCreatureIds}
+          clearSavedUiData={() => {
+            setFavoriteCreatureIds([]);
+            setPresets([]);
+            setRenamingPresetSlot(null);
+            setRenamePresetInput("");
+            setPresetSortMode("custom");
+            setPresetPreviewTarget(null);
+            if (typeof window !== "undefined") {
+              window.localStorage.removeItem(BREEDING_UI_STORAGE_KEY);
+            }
+          }}
+          sortedPresetSlots={sortedPresetSlots}
+          getPresetAtSlot={getPresetAtSlot}
+          validatePreset={validatePreset}
+          getPresetScore={getPresetScore}
+          getNextEmptyPresetSlot={getNextEmptyPresetSlot}
+          renamingPresetSlot={renamingPresetSlot}
+          renamePresetInput={renamePresetInput}
+          setRenamePresetInput={setRenamePresetInput}
+          saveRenamePreset={saveRenamePreset}
+          cancelRenamePreset={cancelRenamePreset}
+          startRenamePreset={startRenamePreset}
+          getPresetParticipantLabel={getPresetParticipantLabel}
+          setPresetPreviewTarget={setPresetPreviewTarget}
+          movePreset={movePreset}
+          loadPreset={loadPreset}
+          duplicatePreset={duplicatePreset}
+          deletePreset={deletePreset}
+        />
       </HelpModal>
 
       <HelpModal
