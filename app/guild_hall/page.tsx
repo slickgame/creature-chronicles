@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
+import { HubCard, PopupWindow } from "@/components/town/TownUi";
 
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
@@ -17,41 +18,6 @@ function getRelationshipTierLabel(relationship: number) {
   if (relationship >= 50) return "Trusted";
   if (relationship >= 25) return "Friendly";
   return "Stranger";
-}
-
-function PopupWindow({
-  open,
-  title,
-  onClose,
-  children,
-  maxWidth = "max-w-5xl",
-}: {
-  open: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  maxWidth?: string;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
-      <div className={`flex h-[88vh] w-full ${maxWidth} flex-col overflow-hidden rounded-3xl border-4 border-stone-900 bg-white shadow-2xl`}>
-        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
-          <h2 className="text-2xl font-bold text-stone-900">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
-          >
-            Close
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
-      </div>
-    </div>
-  );
 }
 
 export default function GuildHallPage() {
@@ -113,124 +79,96 @@ export default function GuildHallPage() {
               <p><strong>Guild Contacts:</strong> {townNpcs.length}</p>
               <p><strong>Open Requests:</strong> {activeNpcRequests.length}</p>
             </div>
+          </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <button
-                onClick={() => handleTravelTo("town")}
-                className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
-              >
-                Return to Town
-              </button>
-              <button
-                onClick={() => handleTravelTo("ranch")}
-                className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
-              >
-                Travel to Ranch
-              </button>
-              <button
-                onClick={() => handleTravelTo("guild_hall")}
-                disabled
-                className="rounded-2xl bg-gray-500 px-4 py-3 text-white font-semibold shadow"
-              >
-                Already at Guild Hall
-              </button>
+          <section className="mb-6 rounded-3xl border-4 border-violet-900 bg-white/85 p-6 shadow-xl">
+            <div className="mb-4">
+              <h2 className="text-3xl font-bold text-violet-900">Guild Destinations</h2>
+              <p className="mt-1 text-stone-600">
+                Navigate the guild hall through hub cards instead of plain section blocks.
+              </p>
             </div>
-          </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <section className="rounded-3xl border-4 border-violet-800 bg-white/85 p-6 shadow-xl">
-              <h2 className="mb-2 text-3xl font-bold text-violet-900">📋 Guild Jobs</h2>
-              <p className="mb-5 text-stone-600">
-                Requests, contract leads, and future guild progression all live behind one popup.
-              </p>
-
-              <button
-                type="button"
+            <div className="grid gap-4 lg:grid-cols-3">
+              <HubCard
+                icon="📋"
+                title="Guild Jobs"
+                subtitle="Open personal requests, job leads, and future contract work."
+                meta={`${activeNpcRequests.length} active requests`}
+                accentClasses="border-violet-300 bg-violet-50"
                 onClick={() => setJobsOpen(true)}
-                className="w-full rounded-2xl bg-violet-700 px-4 py-4 text-left text-white font-semibold shadow"
-              >
-                Open Job Board
-                <div className="mt-1 text-sm font-medium text-violet-100">
-                  {activeNpcRequests.length} active personal requests
-                </div>
-              </button>
-            </section>
+              />
 
-            <section className="rounded-3xl border-4 border-sky-800 bg-white/85 p-6 shadow-xl">
-              <h2 className="mb-2 text-3xl font-bold text-sky-900">👥 Members</h2>
-              <p className="mb-5 text-stone-600">
-                Track important town contacts and who you are building trust with.
-              </p>
-
-              <button
-                type="button"
+              <HubCard
+                icon="👥"
+                title="Members"
+                subtitle="Track town contacts, bond levels, and trusted allies."
+                meta={strongestBond ? `Best bond: ${strongestBond.name}` : "No tracked contacts"}
+                accentClasses="border-sky-300 bg-sky-50"
                 onClick={() => setMembersOpen(true)}
-                className="w-full rounded-2xl bg-sky-700 px-4 py-4 text-left text-white font-semibold shadow"
-              >
-                Open Member List
-                <div className="mt-1 text-sm font-medium text-sky-100">
-                  {strongestBond ? `Best bond: ${strongestBond.name}` : "No tracked contacts"}
-                </div>
-              </button>
-            </section>
+              />
 
-            <section className="rounded-3xl border-4 border-amber-800 bg-white/85 p-6 shadow-xl">
-              <h2 className="mb-2 text-3xl font-bold text-amber-900">📌 Notices</h2>
-              <p className="mb-5 text-stone-600">
-                This board is the future home for guild ranks, exams, and rotating organization events.
-              </p>
-
-              <button
-                type="button"
+              <HubCard
+                icon="📌"
+                title="Notices"
+                subtitle="Preview ranks, exams, organization events, and future guild systems."
+                meta="Future guild progression hub"
+                accentClasses="border-amber-300 bg-amber-50"
                 onClick={() => setNoticesOpen(true)}
-                className="w-full rounded-2xl bg-amber-700 px-4 py-4 text-left text-white font-semibold shadow"
-              >
-                Open Guild Notices
-                <div className="mt-1 text-sm font-medium text-amber-100">
-                  Preview future guild systems
-                </div>
-              </button>
-            </section>
-          </div>
+              />
+            </div>
+          </section>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <Link
-              href="/town"
-              className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-            >
-              Town
-            </Link>
-            <Link
-              href="/ranch"
-              className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-            >
-              Ranch
-            </Link>
-            <Link
-              href="/breeding"
-              className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-            >
-              Breeding
-            </Link>
-            <Link
-              href="/breeding/history"
-              className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-            >
-              History
-            </Link>
+          <section className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
+            <div className="mb-4">
+              <h2 className="text-3xl font-bold text-stone-900">Travel</h2>
+              <p className="mt-1 text-stone-600">
+                Return to town or head back to the ranch from the guild hall.
+              </p>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <HubCard
+                icon="🏘️"
+                title="Town"
+                subtitle="Return to the central town hub."
+                meta="Travel back to town"
+                accentClasses="border-stone-300 bg-stone-50"
+                onClick={() => handleTravelTo("town")}
+              />
+
+              <HubCard
+                icon="🌿"
+                title="Ranch"
+                subtitle="Head home to creatures, eggs, and daily management."
+                meta="Travel back to ranch"
+                accentClasses="border-emerald-300 bg-emerald-50"
+                onClick={() => handleTravelTo("ranch")}
+              />
+
+              <HubCard
+                icon="🏛️"
+                title="Current Location"
+                subtitle="You are already inside the guild hall."
+                meta="No travel needed"
+                accentClasses="border-violet-300 bg-violet-50"
+                onClick={() => {}}
+              />
+            </div>
+          </section>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/town" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">Town</Link>
+            <Link href="/ranch" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">Ranch</Link>
+            <Link href="/breeding" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">Breeding</Link>
+            <Link href="/breeding/history" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">History</Link>
           </div>
         </div>
       </main>
 
-      <PopupWindow
-        open={jobsOpen}
-        onClose={() => setJobsOpen(false)}
-        title="Guild Job Board"
-      >
+      <PopupWindow open={jobsOpen} onClose={() => setJobsOpen(false)} title="Guild Job Board">
         {activeNpcRequests.length === 0 ? (
-          <div className="rounded-2xl bg-violet-50 p-4 text-stone-700">
-            No active guild-linked requests right now.
-          </div>
+          <div className="rounded-2xl bg-violet-50 p-4 text-stone-700">No active guild-linked requests right now.</div>
         ) : (
           <div className="space-y-4">
             {activeNpcRequests.map((quest) => (
@@ -250,12 +188,7 @@ export default function GuildHallPage() {
         )}
       </PopupWindow>
 
-      <PopupWindow
-        open={membersOpen}
-        onClose={() => setMembersOpen(false)}
-        title="Guild Contacts"
-        maxWidth="max-w-4xl"
-      >
+      <PopupWindow open={membersOpen} onClose={() => setMembersOpen(false)} title="Guild Contacts" maxWidth="max-w-4xl">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {townNpcs.map((npc) => (
             <div key={npc.id} className="rounded-2xl border-2 border-sky-200 bg-sky-50 p-4">
@@ -275,22 +208,14 @@ export default function GuildHallPage() {
               </p>
 
               <div className="mt-2 h-3 overflow-hidden rounded-full bg-stone-200">
-                <div
-                  className="h-full rounded-full bg-sky-600"
-                  style={{ width: `${Math.min(100, npc.relationship)}%` }}
-                />
+                <div className="h-full rounded-full bg-sky-600" style={{ width: `${Math.min(100, npc.relationship)}%` }} />
               </div>
             </div>
           ))}
         </div>
       </PopupWindow>
 
-      <PopupWindow
-        open={noticesOpen}
-        onClose={() => setNoticesOpen(false)}
-        title="Guild Notices"
-        maxWidth="max-w-3xl"
-      >
+      <PopupWindow open={noticesOpen} onClose={() => setNoticesOpen(false)} title="Guild Notices" maxWidth="max-w-3xl">
         <div className="space-y-4">
           <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4">
             <h3 className="text-xl font-bold text-stone-900">Planned Guild Features</h3>

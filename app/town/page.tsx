@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
+import { HubCard, PopupWindow } from "@/components/town/TownUi";
 
 type CreatureTrait =
   | "none"
@@ -105,70 +106,6 @@ function getRelationshipTierLabel(relationship: number) {
   if (relationship >= 50) return "Trusted";
   if (relationship >= 25) return "Friendly";
   return "Stranger";
-}
-
-function PopupWindow({
-  open,
-  title,
-  onClose,
-  children,
-  maxWidth = "max-w-5xl",
-}: {
-  open: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  maxWidth?: string;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
-      <div className={`flex h-[88vh] w-full ${maxWidth} flex-col overflow-hidden rounded-3xl border-4 border-stone-900 bg-white shadow-2xl`}>
-        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
-          <h2 className="text-2xl font-bold text-stone-900">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
-          >
-            Close
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function TownHubCard({
-  icon,
-  title,
-  subtitle,
-  meta,
-  accentClasses,
-  onClick,
-}: {
-  icon: string;
-  title: string;
-  subtitle: string;
-  meta: string;
-  accentClasses: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-3xl border-2 p-5 text-left shadow transition hover:-translate-y-0.5 hover:shadow-xl ${accentClasses}`}
-    >
-      <div className="mb-3 text-4xl">{icon}</div>
-      <p className="text-2xl font-bold text-stone-900">{title}</p>
-      <p className="mt-1 text-sm text-stone-700">{subtitle}</p>
-      <p className="mt-3 text-xs font-semibold text-stone-600">{meta}</p>
-    </button>
-  );
 }
 
 export default function TownPage() {
@@ -285,7 +222,7 @@ export default function TownPage() {
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
-            <TownHubCard
+            <HubCard
               icon="🌿"
               title="Ranch"
               subtitle="Return home to your creatures, eggs, and daily management."
@@ -294,7 +231,7 @@ export default function TownPage() {
               onClick={() => handleTravelTo("ranch")}
             />
 
-            <TownHubCard
+            <HubCard
               icon="🛒"
               title="Market"
               subtitle="Browse creature offers and future stall inventory."
@@ -303,7 +240,7 @@ export default function TownPage() {
               onClick={() => handleTravelTo("market")}
             />
 
-            <TownHubCard
+            <HubCard
               icon="🏛️"
               title="Guild Hall"
               subtitle="Check jobs, contacts, and future guild progression."
@@ -391,32 +328,13 @@ export default function TownPage() {
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Link
-            href="/creatures"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            View Creatures
-          </Link>
-          <Link
-            href="/breeding"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            Go to Breeding
-          </Link>
-          <Link
-            href="/eggs"
-            className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow"
-          >
-            View Eggs
-          </Link>
+          <Link href="/creatures" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">View Creatures</Link>
+          <Link href="/breeding" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">Go to Breeding</Link>
+          <Link href="/eggs" className="rounded-2xl bg-stone-800 px-4 py-4 text-center text-white font-semibold shadow">View Eggs</Link>
         </div>
       </div>
 
-      <PopupWindow
-        open={sellerOpen}
-        onClose={() => setSellerOpen(false)}
-        title="Creature Seller"
-      >
+      <PopupWindow open={sellerOpen} onClose={() => setSellerOpen(false)} title="Creature Seller">
         {townStock.length === 0 ? (
           <div className="rounded-2xl bg-amber-50 p-4 text-stone-700">
             The seller is sold out for today.
@@ -432,10 +350,7 @@ export default function TownPage() {
                     <p className="text-sm text-stone-500">Theme: {entry.creature.theme}</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {entry.creature.traits.map((traitEntry, index) => (
-                        <div
-                          key={`${entry.id}-${traitEntry.trait}-${index}`}
-                          className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(traitEntry.trait)}`}
-                        >
+                        <div key={`${entry.id}-${traitEntry.trait}-${index}`} className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(traitEntry.trait)}`}>
                           {getTraitLabel(traitEntry.trait)} {traitEntry.grade}
                         </div>
                       ))}
@@ -471,11 +386,7 @@ export default function TownPage() {
         )}
       </PopupWindow>
 
-      <PopupWindow
-        open={boardOpen}
-        onClose={() => setBoardOpen(false)}
-        title="Breeding Quest Board"
-      >
+      <PopupWindow open={boardOpen} onClose={() => setBoardOpen(false)} title="Breeding Quest Board">
         <div className="space-y-4">
           {townQuests.map((quest) => {
             const expired = isExpired(
@@ -524,21 +435,13 @@ export default function TownPage() {
 
                   <div className="flex flex-col gap-2 text-right text-sm">
                     {quest.completed ? (
-                      <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">
-                        Completed
-                      </span>
+                      <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">Completed</span>
                     ) : expired ? (
-                      <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">
-                        Expired
-                      </span>
+                      <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">Expired</span>
                     ) : expiringSoon ? (
-                      <span className="rounded-full border border-orange-300 bg-orange-100 px-3 py-1 font-semibold text-orange-900">
-                        Expires Soon
-                      </span>
+                      <span className="rounded-full border border-orange-300 bg-orange-100 px-3 py-1 font-semibold text-orange-900">Expires Soon</span>
                     ) : (
-                      <span className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-semibold text-amber-900">
-                        Open
-                      </span>
+                      <span className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-semibold text-amber-900">Open</span>
                     )}
                   </div>
                 </div>
@@ -572,12 +475,7 @@ export default function TownPage() {
         </div>
       </PopupWindow>
 
-      <PopupWindow
-        open={relationshipsOpen}
-        onClose={() => setRelationshipsOpen(false)}
-        title="Town Relationships"
-        maxWidth="max-w-4xl"
-      >
+      <PopupWindow open={relationshipsOpen} onClose={() => setRelationshipsOpen(false)} title="Town Relationships" maxWidth="max-w-4xl">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {townNpcs.map((npc) => (
             <div key={npc.id} className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4">
@@ -592,30 +490,19 @@ export default function TownPage() {
               </div>
 
               <p className="mt-2 text-sm text-stone-700">{npc.personality}</p>
-              <p className="mt-3 text-sm text-stone-800">
-                <strong>Relationship:</strong> {npc.relationship}/100
-              </p>
+              <p className="mt-3 text-sm text-stone-800"><strong>Relationship:</strong> {npc.relationship}/100</p>
 
               <div className="mt-2 h-3 overflow-hidden rounded-full bg-stone-200">
-                <div
-                  className="h-full rounded-full bg-rose-600"
-                  style={{ width: `${Math.min(100, npc.relationship)}%` }}
-                />
+                <div className="h-full rounded-full bg-rose-600" style={{ width: `${Math.min(100, npc.relationship)}%` }} />
               </div>
 
-              <p className="mt-3 text-xs text-stone-600">
-                Milestones: 25 / 50 / 75 relationship award bonus gold once.
-              </p>
+              <p className="mt-3 text-xs text-stone-600">Milestones: 25 / 50 / 75 relationship award bonus gold once.</p>
             </div>
           ))}
         </div>
       </PopupWindow>
 
-      <PopupWindow
-        open={npcRequestsOpen}
-        onClose={() => setNpcRequestsOpen(false)}
-        title="NPC Requests"
-      >
+      <PopupWindow open={npcRequestsOpen} onClose={() => setNpcRequestsOpen(false)} title="NPC Requests">
         <div className="space-y-4">
           {townNpcQuests.map((quest) => {
             const expired = isExpired(
@@ -655,17 +542,11 @@ export default function TownPage() {
 
                   <div className="text-right text-sm">
                     {quest.completed ? (
-                      <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">
-                        Completed
-                      </span>
+                      <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">Completed</span>
                     ) : expired ? (
-                      <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">
-                        Expired
-                      </span>
+                      <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">Expired</span>
                     ) : (
-                      <span className="rounded-full border border-purple-300 bg-white px-3 py-1 font-semibold text-purple-900">
-                        Open
-                      </span>
+                      <span className="rounded-full border border-purple-300 bg-white px-3 py-1 font-semibold text-purple-900">Open</span>
                     )}
                   </div>
                 </div>
@@ -699,29 +580,16 @@ export default function TownPage() {
         </div>
       </PopupWindow>
 
-      <PopupWindow
-        open={travelLogOpen}
-        onClose={() => setTravelLogOpen(false)}
-        title="Travel Log"
-        maxWidth="max-w-3xl"
-      >
+      <PopupWindow open={travelLogOpen} onClose={() => setTravelLogOpen(false)} title="Travel Log" maxWidth="max-w-3xl">
         {travelLog.length === 0 ? (
-          <div className="rounded-2xl bg-emerald-50 p-4 text-stone-700">
-            No travel logged yet.
-          </div>
+          <div className="rounded-2xl bg-emerald-50 p-4 text-stone-700">No travel logged yet.</div>
         ) : (
           <div className="space-y-3">
             {travelLog.map((entry) => (
               <div key={entry.id} className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
-                <p className="font-semibold text-stone-900">
-                  {entry.from} → {entry.to}
-                </p>
-                <p className="text-sm text-stone-700">
-                  Day {entry.day}, {formatTime(entry.hour, entry.minute)}
-                </p>
-                <p className="text-sm text-stone-600">
-                  Travel time: {entry.minutesSpent} minutes
-                </p>
+                <p className="font-semibold text-stone-900">{entry.from} → {entry.to}</p>
+                <p className="text-sm text-stone-700">Day {entry.day}, {formatTime(entry.hour, entry.minute)}</p>
+                <p className="text-sm text-stone-600">Travel time: {entry.minutesSpent} minutes</p>
               </div>
             ))}
           </div>
