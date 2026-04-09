@@ -178,6 +178,16 @@ export default function TownPage() {
       return;
     }
 
+    if (destination === "market") {
+      router.push("/market");
+      return;
+    }
+
+    if (destination === "guild_hall") {
+      router.push("/guild_hall");
+      return;
+    }
+
     router.push("/town");
   }
 
