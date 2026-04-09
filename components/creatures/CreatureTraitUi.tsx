@@ -1,6 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import {
+  getPlayerGradeClasses,
+  getPlayerGradeDescription,
+  getPlayerTraitClasses,
+  getPlayerTraitDescription,
+  getPlayerTraitGradeEffectText,
+  getPlayerTraitLabel,
+  type PlayerFacingTraitGrade,
+} from "@/lib/traits/playerTraitInfo";
 
 type CreatureTrait =
   | "domestic"
@@ -10,96 +19,12 @@ type CreatureTrait =
   | "quick"
   | "sturdy";
 
-type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
+type TraitGrade = PlayerFacingTraitGrade;
 
 export type CreatureTraitEntry = {
   trait: CreatureTrait;
   grade: TraitGrade;
 };
-
-export function getCreatureTraitLabel(trait: CreatureTrait) {
-  if (trait === "domestic") return "Domestic";
-  if (trait === "industrious") return "Industrious";
-  if (trait === "calm") return "Calm";
-  if (trait === "fertile") return "Fertile";
-  if (trait === "quick") return "Quick";
-  return "Sturdy";
-}
-
-export function getCreatureTraitClasses(trait: CreatureTrait) {
-  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
-  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
-  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
-  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
-  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  return "bg-stone-200 text-stone-900 border-stone-400";
-}
-
-export function getCreatureTraitDescription(trait: CreatureTrait) {
-  if (trait === "domestic") return "Improves cooking and cleaning tasks around the home.";
-  if (trait === "industrious") return "Improves field work, hauling, and labor-heavy tasks.";
-  if (trait === "calm") return "Reduces breeding refusal chance and helps settle tense pairings.";
-  if (trait === "fertile") return "Improves egg production chance and supports stronger breeding outcomes.";
-  if (trait === "quick") return "Reduces time costs for breeding sessions and work actions.";
-  return "Reduces stamina costs and helps creatures endure repeated work.";
-}
-
-export function getCreatureGradeClasses(grade: TraitGrade) {
-  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
-  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
-  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
-  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
-  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
-  return "bg-rose-100 text-rose-900 border-rose-300";
-}
-
-function getGradeMultiplier(grade: TraitGrade) {
-  if (grade === "F") return 0.35;
-  if (grade === "D") return 0.5;
-  if (grade === "C") return 0.7;
-  if (grade === "B") return 0.9;
-  if (grade === "A") return 1.15;
-  return 1.4;
-}
-
-export function getCreatureGradeDescription(grade: TraitGrade) {
-  if (grade === "F") return "Very weak";
-  if (grade === "D") return "Weak";
-  if (grade === "C") return "Average";
-  if (grade === "B") return "Strong";
-  if (grade === "A") return "Excellent";
-  return "Exceptional";
-}
-
-function scaledPercent(grade: TraitGrade, basePercent: number) {
-  return Math.max(1, Math.round(basePercent * getGradeMultiplier(grade)));
-}
-
-function scaledFlat(grade: TraitGrade, baseFlat: number) {
-  return Math.max(1, Math.round(baseFlat * getGradeMultiplier(grade)));
-}
-
-export function getCreatureTraitGradeEffectText(
-  trait: CreatureTrait,
-  grade: TraitGrade
-) {
-  if (trait === "domestic") {
-    return `Cooking and cleaning efficiency about +${scaledPercent(grade, 12)}%.`;
-  }
-  if (trait === "industrious") {
-    return `Field work and labor efficiency about +${scaledPercent(grade, 12)}%.`;
-  }
-  if (trait === "calm") {
-    return `Breeding refusal chance reduced by about ${scaledPercent(grade, 8)}%.`;
-  }
-  if (trait === "fertile") {
-    return `Egg chance support worth about +${scaledPercent(grade, 7)}%.`;
-  }
-  if (trait === "quick") {
-    return `Action time reduced by about ${scaledFlat(grade, 10)} minutes at full effect.`;
-  }
-  return `Stamina costs reduced by about ${scaledFlat(grade, 3)} points at full effect.`;
-}
 
 function CreatureTraitBadgeItem({
   entry,
@@ -121,14 +46,14 @@ function CreatureTraitBadgeItem({
         className="flex w-full flex-wrap items-center gap-1 text-left"
       >
         <div
-          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureTraitClasses(
+          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getPlayerTraitClasses(
             entry.trait
           )} ${compact ? "text-[11px]" : "text-sm"}`}
         >
-          {getCreatureTraitLabel(entry.trait)}
+          {getPlayerTraitLabel(entry.trait)}
         </div>
         <div
-          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureGradeClasses(
+          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getPlayerGradeClasses(
             entry.grade
           )} ${compact ? "text-[10px]" : "text-xs"}`}
         >
@@ -142,14 +67,14 @@ function CreatureTraitBadgeItem({
       {open ? (
         <div className="mt-2 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-sm">
           <p className="font-semibold text-stone-900">
-            {getCreatureTraitLabel(entry.trait)} ({entry.grade})
+            {getPlayerTraitLabel(entry.trait)} ({entry.grade})
           </p>
-          <p className="mt-1">{getCreatureTraitDescription(entry.trait)}</p>
+          <p className="mt-1">{getPlayerTraitDescription(entry.trait)}</p>
           <p className="mt-2 font-medium text-stone-800">
-            Grade Effect: {getCreatureTraitGradeEffectText(entry.trait, entry.grade)}
+            Grade Effect: {getPlayerTraitGradeEffectText(entry.trait, entry.grade)}
           </p>
           <p className="mt-1 text-stone-500">
-            Grade: {getCreatureGradeDescription(entry.grade)}
+            Grade: {getPlayerGradeDescription(entry.grade)}
           </p>
         </div>
       ) : null}
