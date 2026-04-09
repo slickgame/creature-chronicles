@@ -4,6 +4,15 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
+import {
+  CreatureTraitBadgeRow,
+  CreatureTraitEntry,
+  getCreatureGradeClasses,
+  getCreatureGradeDescription,
+  getCreatureTraitClasses,
+  getCreatureTraitDescription,
+  getCreatureTraitLabel,
+} from "@/components/creatures/CreatureTraitUi";
 
 type InbreedingRisk =
   | "none"
@@ -14,21 +23,6 @@ type InbreedingRisk =
 type InbredTrait = "none" | "weak" | "frail" | "dull" | "slow";
 type InbredTraitSeverity = "none" | "mild" | "severe";
 
-type CreatureTrait =
-  | "domestic"
-  | "industrious"
-  | "calm"
-  | "fertile"
-  | "quick"
-  | "sturdy";
-
-type TraitGrade = "F" | "D" | "C" | "B" | "A" | "S";
-
-type CreatureTraitEntry = {
-  trait: CreatureTrait;
-  grade: TraitGrade;
-};
-
 type SortOption =
   | "newest"
   | "oldest"
@@ -37,51 +31,6 @@ type SortOption =
   | "level_desc"
   | "generation_desc"
   | "happiness_desc";
-
-function getTraitLabel(trait: CreatureTrait) {
-  if (trait === "domestic") return "Domestic";
-  if (trait === "industrious") return "Industrious";
-  if (trait === "calm") return "Calm";
-  if (trait === "fertile") return "Fertile";
-  if (trait === "quick") return "Quick";
-  return "Sturdy";
-}
-
-function getTraitClasses(trait: CreatureTrait) {
-  if (trait === "domestic") return "bg-pink-100 text-pink-900 border-pink-300";
-  if (trait === "industrious") return "bg-amber-100 text-amber-900 border-amber-300";
-  if (trait === "calm") return "bg-sky-100 text-sky-900 border-sky-300";
-  if (trait === "fertile") return "bg-emerald-100 text-emerald-900 border-emerald-300";
-  if (trait === "quick") return "bg-violet-100 text-violet-900 border-violet-300";
-  return "bg-stone-200 text-stone-900 border-stone-400";
-}
-
-function getTraitDescription(trait: CreatureTrait) {
-  if (trait === "domestic") return "Boosts cooking and cleaning.";
-  if (trait === "industrious") return "Boosts field work and hauling.";
-  if (trait === "calm") return "Reduces breeding refusal chance.";
-  if (trait === "fertile") return "Improves egg production chance.";
-  if (trait === "quick") return "Reduces time costs.";
-  return "Reduces stamina costs.";
-}
-
-function getGradeClasses(grade: TraitGrade) {
-  if (grade === "F") return "bg-stone-100 text-stone-700 border-stone-300";
-  if (grade === "D") return "bg-slate-100 text-slate-800 border-slate-300";
-  if (grade === "C") return "bg-blue-100 text-blue-900 border-blue-300";
-  if (grade === "B") return "bg-emerald-100 text-emerald-900 border-emerald-300";
-  if (grade === "A") return "bg-amber-100 text-amber-900 border-amber-300";
-  return "bg-rose-100 text-rose-900 border-rose-300";
-}
-
-function getGradeDescription(grade: TraitGrade) {
-  if (grade === "F") return "Very weak version";
-  if (grade === "D") return "Weak version";
-  if (grade === "C") return "Average version";
-  if (grade === "B") return "Strong version";
-  if (grade === "A") return "Excellent version";
-  return "Exceptional version";
-}
 
 function getCreatureImage(name: string) {
   if (name === "Horse") return "/images/horse.png";
@@ -140,58 +89,6 @@ function getInbredTraitClasses(severity: InbredTraitSeverity) {
   }
 
   return "bg-red-100 text-red-900 border-red-300";
-}
-
-function TraitBadgeRow({ traits }: { traits: CreatureTraitEntry[] }) {
-  if (traits.length === 0) {
-    return (
-      <div className="inline-block rounded-full border border-stone-300 bg-stone-100 px-2 py-1 text-[11px] font-semibold text-stone-700">
-        No Traits
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {traits.slice(0, 2).map((entry, index) => (
-        <div
-          key={`${entry.trait}-${entry.grade}-${index}`}
-          className="group relative flex items-center gap-1"
-        >
-          <div
-            className={`inline-block rounded-full border px-2 py-1 text-[11px] font-semibold ${getTraitClasses(
-              entry.trait
-            )}`}
-          >
-            {getTraitLabel(entry.trait)}
-          </div>
-          <div
-            className={`inline-block rounded-full border px-2 py-1 text-[10px] font-semibold ${getGradeClasses(
-              entry.grade
-            )}`}
-          >
-            {entry.grade}
-          </div>
-
-          <div className="pointer-events-none absolute left-0 top-full z-20 mt-2 hidden w-56 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
-            <p className="font-semibold text-stone-900">
-              {getTraitLabel(entry.trait)} ({entry.grade})
-            </p>
-            <p className="mt-1">{getTraitDescription(entry.trait)}</p>
-            <p className="mt-1 text-stone-500">
-              {getGradeDescription(entry.grade)}
-            </p>
-          </div>
-        </div>
-      ))}
-
-      {traits.length > 2 && (
-        <div className="inline-block rounded-full border border-stone-300 bg-white px-2 py-1 text-[11px] font-semibold text-stone-700">
-          +{traits.length - 2} more
-        </div>
-      )}
-    </div>
-  );
 }
 
 function CreatureModal({
@@ -325,15 +222,15 @@ function CreatureModal({
                   >
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <div
-                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getTraitClasses(
+                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
                           entry.trait
                         )}`}
                       >
-                        {getTraitLabel(entry.trait)}
+                        {getCreatureTraitLabel(entry.trait)}
                       </div>
 
                       <div
-                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getGradeClasses(
+                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureGradeClasses(
                           entry.grade
                         )}`}
                       >
@@ -342,10 +239,10 @@ function CreatureModal({
                     </div>
 
                     <p className="font-semibold text-stone-900">
-                      {getTraitDescription(entry.trait)}
+                      {getCreatureTraitDescription(entry.trait)}
                     </p>
                     <p className="mt-1 text-sm text-stone-600">
-                      {getGradeDescription(entry.grade)}
+                      {getCreatureGradeDescription(entry.grade)}
                     </p>
                   </div>
                 ))}
@@ -611,7 +508,7 @@ export default function CreaturesPage() {
                       </div>
 
                       <div className="mt-2">
-                        <TraitBadgeRow traits={traits} />
+                        <CreatureTraitBadgeRow traits={traits} compact maxVisible={2} />
                       </div>
                     </div>
                   </div>
