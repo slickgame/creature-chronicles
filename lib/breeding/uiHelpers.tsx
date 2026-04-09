@@ -2,6 +2,7 @@ import { CreatureTrait, TraitGrade } from "@/lib/breeding/types";
 import {
   getPlayerGradeClasses,
   getPlayerGradeDescription,
+  getPlayerGradeMultiplier,
   getPlayerGradeMultiplierLabel,
   getPlayerTraitClasses,
   getPlayerTraitDescription,
@@ -34,6 +35,10 @@ export function getGradeDescription(grade: TraitGrade) {
   return getPlayerGradeDescription(grade);
 }
 
+export function getGradeMultiplier(grade: TraitGrade) {
+  return getPlayerGradeMultiplier(grade);
+}
+
 export function getGradeMultiplierLabel(grade: TraitGrade) {
   return getPlayerGradeMultiplierLabel(grade);
 }
@@ -45,6 +50,12 @@ export function getTraitGradeEffectText(trait: CreatureTrait, grade: TraitGrade)
 export function getCreatureImage(name: string) {
   if (name === "Horse") return "/images/horse.png";
   if (name === "Cat") return "/images/cat.png";
+  if (name === "Dog") return "/images/dog.png";
+  if (name === "Cow") return "/images/cow.png";
+  if (name === "Chicken") return "/images/chicken.png";
+  if (name === "Pig") return "/images/pig.png";
+  if (name === "Sheep") return "/images/sheep.png";
+  if (name === "Bunny") return "/images/bunny.png";
   return "/images/egg.png";
 }
 
