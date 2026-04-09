@@ -7,6 +7,7 @@ import { useGame } from "@/context/GameContext";
 import { HubCard, PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
 import { QuestOfferCard } from "@/components/town/TownQuestUi";
+import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 
 type CreatureTrait =
   | "none"
@@ -85,13 +86,6 @@ function isExpiringSoon(
   const currentTotal = currentDay * 24 * 60 + currentHour * 60 + currentMinute;
   const deadlineTotal = deadlineDay * 24 * 60 + deadlineHour * 60 + deadlineMinute;
   return deadlineTotal - currentTotal <= 24 * 60;
-}
-
-function getRelationshipTierLabel(relationship: number) {
-  if (relationship >= 75) return "Close";
-  if (relationship >= 50) return "Trusted";
-  if (relationship >= 25) return "Friendly";
-  return "Stranger";
 }
 
 export default function TownPage() {
@@ -179,6 +173,27 @@ export default function TownPage() {
           quest.deadlineMinute
         )
     ).length;
+  }, [townNpcQuests, currentDay, currentHour, currentMinute]);
+
+  const npcRequestCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    townNpcQuests.forEach((quest) => {
+      const expired = isExpired(
+        currentDay,
+        currentHour,
+        currentMinute,
+        quest.deadlineDay,
+        quest.deadlineHour,
+        quest.deadlineMinute
+      );
+
+      if (!quest.completed && !expired) {
+        counts.set(quest.npcName, (counts.get(quest.npcName) ?? 0) + 1);
+      }
+    });
+
+    return counts;
   }, [townNpcQuests, currentDay, currentHour, currentMinute]);
 
   return (
@@ -403,26 +418,14 @@ export default function TownPage() {
       <PopupWindow open={relationshipsOpen} onClose={() => setRelationshipsOpen(false)} title="Town Relationships" maxWidth="max-w-4xl">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {townNpcs.map((npc) => (
-            <div key={npc.id} className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xl font-bold text-stone-900">{npc.name}</p>
-                  <p className="text-sm text-stone-600">{npc.role}</p>
-                </div>
-                <span className="rounded-full border border-rose-300 bg-white px-3 py-1 text-xs font-semibold text-rose-900">
-                  {getRelationshipTierLabel(npc.relationship)}
-                </span>
-              </div>
-
-              <p className="mt-2 text-sm text-stone-700">{npc.personality}</p>
-              <p className="mt-3 text-sm text-stone-800"><strong>Relationship:</strong> {npc.relationship}/100</p>
-
-              <div className="mt-2 h-3 overflow-hidden rounded-full bg-stone-200">
-                <div className="h-full rounded-full bg-rose-600" style={{ width: `${Math.min(100, npc.relationship)}%` }} />
-              </div>
-
-              <p className="mt-3 text-xs text-stone-600">Milestones: 25 / 50 / 75 relationship award bonus gold once.</p>
-            </div>
+            <RelationshipCard
+              key={npc.id}
+              name={npc.name}
+              role={npc.role}
+              personality={npc.personality}
+              relationship={npc.relationship}
+              extraNote={`Open requests: ${npcRequestCounts.get(npc.name) ?? 0} • Milestones at 25 / 50 / 75 relationship.`}
+            />
           ))}
         </div>
       </PopupWindow>
