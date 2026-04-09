@@ -400,6 +400,7 @@ export default function RanchPage() {
                 currentDay={currentDay}
                 cleanliness={homeState.cleanliness}
                 foodStock={homeState.foodStock}
+                onAdvanceDay={nextDay}
               />
             </div>
           </div>

@@ -124,6 +124,16 @@ export type CreatureTaskProjection = {
   notes: string[];
 };
 
+export type RanchRecapSlide = {
+  id: string;
+  image: string;
+  headline: string;
+  body: string;
+  resultLine: string;
+  shift: RanchShift;
+  taskId: RanchTaskId;
+};
+
 export const SHIFTS: RanchShift[] = ["morning", "afternoon", "evening"];
 
 export const DEFAULT_BUILDINGS: RanchBuildingLevels = {
@@ -505,39 +515,6 @@ export function calculateTaskProjection(
   };
 }
 
-export function sumCreatureCostsForShift(
-  creature: PlannerCreature,
-  shift: RanchShift,
-  assignments: TaskAssignmentMap,
-  weather: RanchWeather,
-  feedQuality: FeedQuality,
-  cleanliness: number,
-  buildingLevels: RanchBuildingLevels
-) {
-  let total = 0;
-  for (const task of RANCH_TASKS) {
-    const assigned = assignments[shift][task.id];
-    if (assigned.includes(creature.id)) {
-      total += calculateTaskProjection(creature, task, weather, feedQuality, cleanliness, buildingLevels).projectedStaminaCost;
-    }
-  }
-  return total;
-}
-
-export function getTotalProjectedCostForCreature(
-  creature: PlannerCreature,
-  assignments: TaskAssignmentMap,
-  weather: RanchWeather,
-  feedQuality: FeedQuality,
-  cleanliness: number,
-  buildingLevels: RanchBuildingLevels
-) {
-  return SHIFTS.reduce(
-    (sum, shift) => sum + sumCreatureCostsForShift(creature, shift, assignments, weather, feedQuality, cleanliness, buildingLevels),
-    0
-  );
-}
-
 export function getShiftTaskProjection(
   shift: RanchShift,
   task: RanchTaskDefinition,
@@ -612,4 +589,135 @@ export function getFeedQualityFromStocks(foodStock: number) {
   if (foodStock <= 7) return "standard" as FeedQuality;
   if (foodStock <= 15) return "quality" as FeedQuality;
   return "luxury" as FeedQuality;
+}
+
+export function getTotalProjectedCostForCreature(
+  creature: PlannerCreature,
+  assignments: TaskAssignmentMap,
+  weather: RanchWeather,
+  feedQuality: FeedQuality,
+  cleanliness: number,
+  buildingLevels: RanchBuildingLevels
+) {
+  let total = 0;
+  for (const shift of SHIFTS) {
+    for (const task of RANCH_TASKS) {
+      if (assignments[shift][task.id].includes(creature.id)) {
+        total += calculateTaskProjection(creature, task, weather, feedQuality, cleanliness, buildingLevels).projectedStaminaCost;
+      }
+    }
+  }
+  return total;
+}
+
+function getSceneEmoji(taskId: RanchTaskId) {
+  if (taskId === "house_cleaning") return "🧹";
+  if (taskId === "kitchen_prep") return "🍲";
+  if (taskId === "nursery_care") return "🥚";
+  if (taskId === "field_labor") return "🌾";
+  if (taskId === "hauling") return "🚜";
+  if (taskId === "garden_tending") return "🥕";
+  if (taskId === "pasture_watch") return "🌙";
+  if (taskId === "coop_care") return "🪺";
+  return "🛏️";
+}
+
+function getResultTier(score: number) {
+  if (score >= 42) return "great";
+  if (score >= 28) return "good";
+  if (score >= 18) return "mixed";
+  return "poor";
+}
+
+function buildFlavorLine(
+  creatureNames: string[],
+  task: RanchTaskDefinition,
+  tier: "great" | "good" | "mixed" | "poor"
+) {
+  const cast = creatureNames.join(" and ");
+  if (task.id === "kitchen_prep") {
+    if (tier === "great") return `${cast} worked the kitchen with smug, domestic confidence, leaving the place warm with tempting smells.`;
+    if (tier === "good") return `${cast} kept the kitchen moving and looked quietly pleased with themselves by the end of it.`;
+    if (tier === "mixed") return `${cast} managed the meal prep, though the rhythm felt more flustered than graceful.`;
+    return `${cast} fumbled the kitchen flow and left behind more sighs than satisfaction.`;
+  }
+  if (task.id === "nursery_care") {
+    if (tier === "great") return `${cast} handled the nursery with soft hands and patient focus, creating a surprisingly intimate calm.`;
+    if (tier === "good") return `${cast} kept the nursery steady and soothing, with only a little teasing along the way.`;
+    if (tier === "mixed") return `${cast} kept things under control, though the mood never fully settled.`;
+    return `${cast} struggled to keep the nursery calm, and the tension lingered in the room.`;
+  }
+  if (task.id === "rest") {
+    if (tier === "great") return `${cast} spent the shift unwinding in open comfort, leaving the room warmer and the mood softer.`;
+    if (tier === "good") return `${cast} took the chance to rest properly and looked much more satisfied afterward.`;
+    if (tier === "mixed") return `${cast} recovered a little, though it never became the indulgent break it could have been.`;
+    return `${cast} tried to rest, but never quite relaxed into it.`;
+  }
+  if (tier === "great") return `${cast} handled ${task.title.toLowerCase()} with confident teamwork and a little showy pride.`;
+  if (tier === "good") return `${cast} kept ${task.title.toLowerCase()} moving smoothly through the shift.`;
+  if (tier === "mixed") return `${cast} got through ${task.title.toLowerCase()}, though it took more effort than expected.`;
+  return `${cast} had a rough time with ${task.title.toLowerCase()}, and it showed by the end of the shift.`;
+}
+
+function buildResultLine(
+  task: RanchTaskDefinition,
+  totalMin: number,
+  totalMax: number,
+  staminaCost: number
+) {
+  return `Projected result: ${totalMin}–${totalMax} ${task.outputLabel}. Shift stamina cost: ${staminaCost}.`;
+}
+
+export function generateRecapSlides(
+  assignments: TaskAssignmentMap,
+  creatures: PlannerCreature[],
+  weather: RanchWeather,
+  feedQuality: FeedQuality,
+  cleanliness: number,
+  buildingLevels: RanchBuildingLevels
+): RanchRecapSlide[] {
+  const slides: RanchRecapSlide[] = [];
+
+  for (const shift of SHIFTS) {
+    for (const task of RANCH_TASKS) {
+      const assignedIds = assignments[shift][task.id];
+      if (assignedIds.length === 0) continue;
+
+      const assignedCreatures = creatures.filter((creature) => assignedIds.includes(creature.id));
+      const creatureNames = assignedCreatures.map((creature) => creature.nickname);
+      const projections = assignedCreatures.map((creature) =>
+        calculateTaskProjection(creature, task, weather, feedQuality, cleanliness, buildingLevels)
+      );
+
+      const totalScore = projections.reduce((sum, item) => sum + item.score, 0);
+      const totalMin = projections.reduce((sum, item) => sum + item.projectedOutputMin, 0);
+      const totalMax = projections.reduce((sum, item) => sum + item.projectedOutputMax, 0);
+      const staminaCost = projections.reduce((sum, item) => sum + item.projectedStaminaCost, 0);
+      const tier = getResultTier(Math.round(totalScore / Math.max(1, projections.length)));
+
+      slides.push({
+        id: `${shift}-${task.id}`,
+        image: getSceneEmoji(task.id),
+        headline: `${shift[0].toUpperCase() + shift.slice(1)} — ${task.title}`,
+        body: buildFlavorLine(creatureNames, task, tier),
+        resultLine: buildResultLine(task, totalMin, totalMax, staminaCost),
+        shift,
+        taskId: task.id,
+      });
+    }
+  }
+
+  if (slides.length === 0) {
+    slides.push({
+      id: "idle-day",
+      image: "🌙",
+      headline: "A Quiet Day",
+      body: "No one was assigned, so the ranch stayed soft, lazy, and uneventful from dawn to dusk.",
+      resultLine: "No task output was generated today.",
+      shift: "morning",
+      taskId: "rest",
+    });
+  }
+
+  return slides;
 }
