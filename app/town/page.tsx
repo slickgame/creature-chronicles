@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import { HubCard, PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
+import { QuestOfferCard } from "@/components/town/TownQuestUi";
 
 type CreatureTrait =
   | "none"
@@ -367,50 +368,33 @@ export default function TownPage() {
             });
 
             return (
-              <div key={quest.id} className="rounded-2xl border-2 border-sky-200 bg-sky-50 p-4">
-                <div className="mb-2 flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-xl font-bold text-stone-900">{quest.title}</h3>
-                    <p className="text-stone-700">{quest.description}</p>
-                  </div>
-
-                  <div className="flex flex-col gap-2 text-right text-sm">
-                    {quest.completed ? (
-                      <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">Completed</span>
-                    ) : expired ? (
-                      <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">Expired</span>
-                    ) : expiringSoon ? (
-                      <span className="rounded-full border border-orange-300 bg-orange-100 px-3 py-1 font-semibold text-orange-900">Expires Soon</span>
-                    ) : (
-                      <span className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 font-semibold text-amber-900">Open</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mb-3 rounded-2xl bg-white/80 p-3 text-sm text-stone-800">
-                  <p><strong>Species:</strong> {quest.requirement.species}</p>
-                  <p><strong>Minimum Level:</strong> {quest.requirement.minimumLevel}</p>
-                  <p><strong>Required Trait:</strong> {quest.requirement.requiredTrait ? getTraitLabel(quest.requirement.requiredTrait) : "None"}</p>
-                  <p><strong>Deadline:</strong> Day {quest.deadlineDay} {formatTime(quest.deadlineHour, quest.deadlineMinute)}</p>
-                  <p><strong>Rewards:</strong> {quest.rewardGold} Gold, {quest.rewardXp} Player XP</p>
-                </div>
-
-                {quest.completed || expired ? null : eligibleCreatures.length === 0 ? (
-                  <p className="text-sm font-semibold text-red-700">No eligible creatures available right now.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {eligibleCreatures.map((creature) => (
-                      <button
-                        key={creature.id}
-                        onClick={() => submitCreatureToQuest(quest.id, creature.id)}
-                        className="w-full rounded-2xl bg-sky-700 px-4 py-3 text-left font-semibold text-white shadow"
-                      >
-                        Submit {creature.nickname} ({creature.name}, Lv {creature.level})
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <QuestOfferCard
+                key={quest.id}
+                title={quest.title}
+                description={quest.description}
+                completed={quest.completed}
+                expired={expired}
+                expiringSoon={expiringSoon}
+                requirement={{
+                  species: quest.requirement.species,
+                  minimumLevel: quest.requirement.minimumLevel,
+                  requiredTrait: quest.requirement.requiredTrait ?? null,
+                }}
+                deadlineDay={quest.deadlineDay}
+                deadlineHour={quest.deadlineHour}
+                deadlineMinute={quest.deadlineMinute}
+                rewardGold={quest.rewardGold}
+                rewardXp={quest.rewardXp}
+                eligibleCreatures={eligibleCreatures.map((creature) => ({
+                  id: creature.id,
+                  nickname: creature.nickname,
+                  name: creature.name,
+                  level: creature.level,
+                }))}
+                onSubmit={(creatureId) => submitCreatureToQuest(quest.id, creatureId)}
+                accentClasses="border-sky-200 bg-sky-50"
+                openClasses="border-amber-300 bg-amber-100 text-amber-900"
+              />
             );
           })}
         </div>
@@ -473,49 +457,34 @@ export default function TownPage() {
             });
 
             return (
-              <div key={quest.id} className="rounded-2xl border-2 border-purple-200 bg-purple-50 p-4">
-                <div className="mb-2 flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-purple-800">{quest.npcName}</p>
-                    <h3 className="text-xl font-bold text-stone-900">{quest.title}</h3>
-                    <p className="text-stone-700">{quest.description}</p>
-                  </div>
-
-                  <div className="text-right text-sm">
-                    {quest.completed ? (
-                      <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">Completed</span>
-                    ) : expired ? (
-                      <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">Expired</span>
-                    ) : (
-                      <span className="rounded-full border border-purple-300 bg-white px-3 py-1 font-semibold text-purple-900">Open</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mb-3 rounded-2xl bg-white/80 p-3 text-sm text-stone-800">
-                  <p><strong>Species:</strong> {quest.requirement.species}</p>
-                  <p><strong>Minimum Level:</strong> {quest.requirement.minimumLevel}</p>
-                  <p><strong>Required Trait:</strong> {quest.requirement.requiredTrait ? getTraitLabel(quest.requirement.requiredTrait) : "None"}</p>
-                  <p><strong>Deadline:</strong> Day {quest.deadlineDay} {formatTime(quest.deadlineHour, quest.deadlineMinute)}</p>
-                  <p><strong>Rewards:</strong> {quest.rewardGold} Gold, {quest.rewardXp} XP, +{quest.relationshipGain} Relationship</p>
-                </div>
-
-                {quest.completed || expired ? null : eligibleCreatures.length === 0 ? (
-                  <p className="text-sm font-semibold text-red-700">No eligible creatures available right now.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {eligibleCreatures.map((creature) => (
-                      <button
-                        key={creature.id}
-                        onClick={() => submitCreatureToNpcQuest(quest.id, creature.id)}
-                        className="w-full rounded-2xl bg-purple-700 px-4 py-3 text-left font-semibold text-white shadow"
-                      >
-                        Submit {creature.nickname} ({creature.name}, Lv {creature.level})
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <QuestOfferCard
+                key={quest.id}
+                title={quest.title}
+                description={quest.description}
+                giverName={quest.npcName}
+                completed={quest.completed}
+                expired={expired}
+                requirement={{
+                  species: quest.requirement.species,
+                  minimumLevel: quest.requirement.minimumLevel,
+                  requiredTrait: quest.requirement.requiredTrait ?? null,
+                }}
+                deadlineDay={quest.deadlineDay}
+                deadlineHour={quest.deadlineHour}
+                deadlineMinute={quest.deadlineMinute}
+                rewardGold={quest.rewardGold}
+                rewardXp={quest.rewardXp}
+                relationshipGain={quest.relationshipGain}
+                eligibleCreatures={eligibleCreatures.map((creature) => ({
+                  id: creature.id,
+                  nickname: creature.nickname,
+                  name: creature.name,
+                  level: creature.level,
+                }))}
+                onSubmit={(creatureId) => submitCreatureToNpcQuest(quest.id, creatureId)}
+                accentClasses="border-purple-200 bg-purple-50"
+                openClasses="border-purple-300 bg-white text-purple-900"
+              />
             );
           })}
         </div>
