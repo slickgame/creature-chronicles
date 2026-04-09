@@ -142,6 +142,35 @@ function PopupWindow({
   );
 }
 
+function TownHubCard({
+  icon,
+  title,
+  subtitle,
+  meta,
+  accentClasses,
+  onClick,
+}: {
+  icon: string;
+  title: string;
+  subtitle: string;
+  meta: string;
+  accentClasses: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-3xl border-2 p-5 text-left shadow transition hover:-translate-y-0.5 hover:shadow-xl ${accentClasses}`}
+    >
+      <div className="mb-3 text-4xl">{icon}</div>
+      <p className="text-2xl font-bold text-stone-900">{title}</p>
+      <p className="mt-1 text-sm text-stone-700">{subtitle}</p>
+      <p className="mt-3 text-xs font-semibold text-stone-600">{meta}</p>
+    </button>
+  );
+}
+
 export default function TownPage() {
   const router = useRouter();
   const {
@@ -245,28 +274,45 @@ export default function TownPage() {
             <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
             <p><strong>Creatures Owned:</strong> {creatures.length}</p>
           </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <button
-              onClick={() => handleTravelTo("ranch")}
-              className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
-            >
-              Travel to Ranch (30m)
-            </button>
-            <button
-              onClick={() => handleTravelTo("market")}
-              className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
-            >
-              Visit Market
-            </button>
-            <button
-              onClick={() => handleTravelTo("guild_hall")}
-              className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
-            >
-              Visit Guild Hall
-            </button>
-          </div>
         </div>
+
+        <section className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
+          <div className="mb-4">
+            <h2 className="text-3xl font-bold text-stone-900">Town Destinations</h2>
+            <p className="mt-1 text-stone-600">
+              Travel from town through destination cards instead of plain buttons.
+            </p>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <TownHubCard
+              icon="🌿"
+              title="Ranch"
+              subtitle="Return home to your creatures, eggs, and daily management."
+              meta="Travel time: 30m"
+              accentClasses="border-emerald-300 bg-emerald-50"
+              onClick={() => handleTravelTo("ranch")}
+            />
+
+            <TownHubCard
+              icon="🛒"
+              title="Market"
+              subtitle="Browse creature offers and future stall inventory."
+              meta={`${sellerSummary.count} creature offers today`}
+              accentClasses="border-amber-300 bg-amber-50"
+              onClick={() => handleTravelTo("market")}
+            />
+
+            <TownHubCard
+              icon="🏛️"
+              title="Guild Hall"
+              subtitle="Check jobs, contacts, and future guild progression."
+              meta={`${openNpcRequestCount} open guild-linked requests`}
+              accentClasses="border-violet-300 bg-violet-50"
+              onClick={() => handleTravelTo("guild_hall")}
+            />
+          </div>
+        </section>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="rounded-3xl border-4 border-amber-800 bg-white/85 p-6 shadow-xl">
@@ -304,7 +350,7 @@ export default function TownPage() {
           <section className="rounded-3xl border-4 border-rose-800 bg-white/85 p-6 shadow-xl">
             <h2 className="mb-2 text-3xl font-bold text-rose-900">Town Info</h2>
             <p className="mb-5 text-stone-600">
-              Secondary information now opens in pop-up windows instead of stretching the main page.
+              Secondary information opens in pop-up windows instead of stretching the main page.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2">
