@@ -153,6 +153,7 @@ export default function RanchPage() {
 
   const [playerNameInput, setPlayerNameInput] = useState(playerData.name);
   const [registryOpen, setRegistryOpen] = useState(false);
+  const [plannerOpen, setPlannerOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [speciesFilter, setSpeciesFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
@@ -309,6 +310,13 @@ export default function RanchPage() {
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <button
+              onClick={() => setPlannerOpen(true)}
+              className="w-full rounded-2xl bg-emerald-700 px-4 py-3 text-white font-semibold shadow"
+            >
+              Open Ranch Planner
+            </button>
+
+            <button
               onClick={() => setRegistryOpen(true)}
               className="w-full rounded-2xl bg-emerald-700 px-4 py-3 text-white font-semibold shadow"
             >
@@ -338,19 +346,12 @@ export default function RanchPage() {
 
             <button
               onClick={resetGame}
-              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow sm:col-span-2 lg:col-span-2"
+              className="w-full rounded-2xl bg-red-700 px-4 py-3 text-white font-semibold shadow sm:col-span-2 lg:col-span-1"
             >
               Reset Save
             </button>
           </div>
         </div>
-
-        <RanchPlannerPanel
-          creatures={creatures}
-          currentDay={currentDay}
-          cleanliness={homeState.cleanliness}
-          foodStock={homeState.foodStock}
-        />
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
@@ -373,6 +374,37 @@ export default function RanchPage() {
           </Link>
         </div>
       </div>
+
+      {plannerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="flex h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl border-4 border-emerald-900 bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-emerald-200 px-5 py-4">
+              <div>
+                <h2 className="text-3xl font-bold text-emerald-950">Ranch Planner</h2>
+                <p className="text-sm text-stone-600">
+                  Program the full day, review projected stamina costs, and protect breeding availability.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setPlannerOpen(false)}
+                className="rounded-2xl bg-stone-800 px-4 py-3 text-white font-semibold shadow"
+              >
+                Close Planner
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5">
+              <RanchPlannerPanel
+                creatures={creatures}
+                currentDay={currentDay}
+                cleanliness={homeState.cleanliness}
+                foodStock={homeState.foodStock}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {registryOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
