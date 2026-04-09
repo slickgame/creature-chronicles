@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type CreatureTrait =
   | "none"
   | "domestic"
@@ -50,29 +52,151 @@ function getTraitClasses(trait: CreatureTrait) {
 }
 
 function getTraitDescription(trait: CreatureTrait) {
-  if (trait === "domestic") return "Helps with home tasks and comfort-focused activities.";
-  if (trait === "industrious") return "Improves work output and productive routines.";
-  if (trait === "calm") return "Supports stable moods and smoother breeding behavior.";
-  if (trait === "fertile") return "Improves egg and offspring-related outcomes.";
-  if (trait === "quick") return "Improves time-sensitive tasks and general responsiveness.";
-  if (trait === "sturdy") return "Improves stamina efficiency and physical resilience.";
-  if (trait === "affectionate") return "Tends to improve bonding and relationship-focused interactions.";
-  if (trait === "keen") return "Improves awareness, learning, and sharp reactions.";
-  if (trait === "barnwise") return "Performs especially well in ranch and barn environments.";
-  if (trait === "surefooted") return "Improves stability, reliability, and movement safety.";
-  if (trait === "night_prawler") return "Performs best in late hours or low-light routines.";
-  if (trait === "graceful") return "Improves elegant movement, poise, and refined handling.";
+  if (trait === "domestic") return "Improves cooking and cleaning tasks around the home.";
+  if (trait === "industrious") return "Improves field work, hauling, and labor-heavy tasks.";
+  if (trait === "calm") return "Reduces breeding refusal chance and helps settle tense pairings.";
+  if (trait === "fertile") return "Improves egg production chance and supports stronger breeding outcomes.";
+  if (trait === "quick") return "Reduces time costs for breeding sessions and work actions.";
+  if (trait === "sturdy") return "Reduces stamina costs and helps creatures endure repeated work.";
+  if (trait === "affectionate") return "Boosts happiness gains and relationship-oriented interactions.";
+  if (trait === "keen") return "Improves scouting, task efficiency, and future event/quest performance hooks.";
+  if (trait === "barnwise") return "Horse-focused trait that improves ranch routines, hauling, and stable reliability.";
+  if (trait === "surefooted") return "Horse-focused trait that improves travel toughness and steady field performance.";
+  if (trait === "night_prawler") return "Cat-focused trait that improves stealthy or after-hours task performance.";
+  if (trait === "graceful") return "Cat-focused trait that improves elegance, charm, and soft-support style bonuses.";
   return "No special effect.";
 }
 
+function getTraitSpeciesNote(trait: CreatureTrait) {
+  if (trait === "barnwise" || trait === "surefooted") {
+    return "Horse-specific trait";
+  }
+  if (trait === "night_prawler" || trait === "graceful") {
+    return "Cat-specific trait";
+  }
+  return "General trait";
+}
+
+function getGradeMultiplier(grade: TraitGrade) {
+  if (grade === "F") return 0.35;
+  if (grade === "D") return 0.5;
+  if (grade === "C") return 0.7;
+  if (grade === "B") return 0.9;
+  if (grade === "A") return 1.15;
+  return 1.4;
+}
+
 function getGradeDescription(grade: TraitGrade | string) {
-  if (grade === "F") return "Very weak expression";
-  if (grade === "D") return "Weak expression";
-  if (grade === "C") return "Average expression";
-  if (grade === "B") return "Strong expression";
-  if (grade === "A") return "Excellent expression";
-  if (grade === "S") return "Exceptional expression";
+  if (grade === "F") return "Very weak";
+  if (grade === "D") return "Weak";
+  if (grade === "C") return "Average";
+  if (grade === "B") return "Strong";
+  if (grade === "A") return "Excellent";
+  if (grade === "S") return "Exceptional";
   return "Unknown grade";
+}
+
+function scaledPercent(grade: TraitGrade, basePercent: number) {
+  return Math.max(1, Math.round(basePercent * getGradeMultiplier(grade)));
+}
+
+function scaledFlat(grade: TraitGrade, baseFlat: number) {
+  return Math.max(1, Math.round(baseFlat * getGradeMultiplier(grade)));
+}
+
+function getTraitGradeEffectText(trait: CreatureTrait, grade: TraitGrade | string) {
+  if (grade !== "F" && grade !== "D" && grade !== "C" && grade !== "B" && grade !== "A" && grade !== "S") {
+    return "Grade effect unknown.";
+  }
+
+  if (trait === "domestic") {
+    return `Cooking and cleaning efficiency about +${scaledPercent(grade, 12)}%.`;
+  }
+  if (trait === "industrious") {
+    return `Field work and labor efficiency about +${scaledPercent(grade, 12)}%.`;
+  }
+  if (trait === "calm") {
+    return `Breeding refusal chance reduced by about ${scaledPercent(grade, 8)}%.`;
+  }
+  if (trait === "fertile") {
+    return `Egg chance support worth about +${scaledPercent(grade, 7)}%.`;
+  }
+  if (trait === "quick") {
+    return `Action time reduced by about ${scaledFlat(grade, 10)} minutes at full effect.`;
+  }
+  if (trait === "sturdy") {
+    return `Stamina costs reduced by about ${scaledFlat(grade, 3)} points at full effect.`;
+  }
+  if (trait === "affectionate") {
+    return `Extra happiness and relationship gains worth about +${scaledPercent(grade, 10)}%.`;
+  }
+  if (trait === "keen") {
+    return `Task precision and quest/event utility worth about +${scaledPercent(grade, 10)}%.`;
+  }
+  if (trait === "barnwise") {
+    return `Stable chores, hauling, and ranch routines worth about +${scaledPercent(grade, 11)}%.`;
+  }
+  if (trait === "surefooted") {
+    return `Travel toughness and steady field output worth about +${scaledPercent(grade, 11)}%.`;
+  }
+  if (trait === "night_prawler") {
+    return `Stealthy, after-hours, and scouting style actions worth about +${scaledPercent(grade, 11)}%.`;
+  }
+  if (trait === "graceful") {
+    return `Charm, elegance, and social support utility worth about +${scaledPercent(grade, 11)}%.`;
+  }
+  return "No special effect.";
+}
+
+function TraitBadgeItem({
+  trait,
+  grade,
+}: {
+  trait: CreatureTrait;
+  grade: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="w-full rounded-2xl border border-amber-200 bg-white/80 p-2">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((prev) => !prev);
+        }}
+        className="flex w-full flex-wrap items-center gap-1 text-left"
+      >
+        <div
+          className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
+            trait
+          )}`}
+        >
+          {getTraitLabel(trait)} {grade}
+        </div>
+
+        <div className="ml-auto rounded-full border border-amber-300 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-900">
+          {open ? "Hide Info" : "Show Info"}
+        </div>
+      </button>
+
+      {open ? (
+        <div className="mt-2 rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-sm">
+          <p className="font-semibold text-stone-900">
+            {getTraitLabel(trait)} ({grade})
+          </p>
+          <p className="mt-1 text-stone-500">{getTraitSpeciesNote(trait)}</p>
+          <p className="mt-2">{getTraitDescription(trait)}</p>
+          <p className="mt-2 font-medium text-stone-800">
+            Grade Effect: {getTraitGradeEffectText(trait, grade)}
+          </p>
+          <p className="mt-1 text-stone-500">
+            Grade: {getGradeDescription(grade)}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function TraitBadgeRow({
@@ -91,27 +215,13 @@ export function TraitBadgeRow({
   }
 
   return (
-    <div className="mt-2 flex flex-wrap gap-2 overflow-visible">
+    <div className="mt-2 space-y-2">
       {traits.map((traitEntry, index) => (
-        <div key={`${traitEntry.trait}-${traitEntry.grade}-${index}`} className="group relative overflow-visible">
-          <div
-            className={`inline-block rounded-full border px-2 py-1 text-xs font-semibold ${getTraitClasses(
-              traitEntry.trait
-            )}`}
-          >
-            {getTraitLabel(traitEntry.trait)} {traitEntry.grade}
-          </div>
-
-          <div className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 hidden w-64 max-w-[calc(100vw-2rem)] -translate-x-1/2 break-words rounded-2xl border border-stone-300 bg-white p-3 text-left text-xs text-stone-700 shadow-xl group-hover:block">
-            <p className="font-semibold text-stone-900">
-              {getTraitLabel(traitEntry.trait)} ({traitEntry.grade})
-            </p>
-            <p className="mt-1">{getTraitDescription(traitEntry.trait)}</p>
-            <p className="mt-1 text-stone-500">
-              {getGradeDescription(traitEntry.grade)}
-            </p>
-          </div>
-        </div>
+        <TraitBadgeItem
+          key={`${traitEntry.trait}-${traitEntry.grade}-${index}`}
+          trait={traitEntry.trait}
+          grade={traitEntry.grade}
+        />
       ))}
     </div>
   );

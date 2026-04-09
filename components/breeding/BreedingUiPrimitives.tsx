@@ -9,6 +9,7 @@ import {
 import {
   getGradeClasses,
   getGradeDescription,
+  getGradeMultiplierLabel,
   getTraitClasses,
   getTraitDescription,
   getTraitGradeEffectText,
@@ -219,7 +220,7 @@ function TraitBadgeItem({ entry }: { entry: CreatureTraitEntry }) {
             Grade Effect: {getTraitGradeEffectText(entry.trait, entry.grade)}
           </p>
           <p className="mt-1 text-stone-500">
-            Grade: {getGradeDescription(entry.grade)}
+            Grade: {getGradeDescription(entry.grade)} • {getGradeMultiplierLabel(entry.grade)}
           </p>
         </div>
       ) : null}

@@ -82,6 +82,10 @@ export function getGradeDescription(grade: TraitGrade) {
   return "Exceptional";
 }
 
+export function getGradeMultiplierLabel(grade: TraitGrade) {
+  return `${getGradeMultiplier(grade).toFixed(2)}x base effect`;
+}
+
 function scaledPercent(grade: TraitGrade, basePercent: number) {
   return Math.max(1, Math.round(basePercent * getGradeMultiplier(grade)));
 }
