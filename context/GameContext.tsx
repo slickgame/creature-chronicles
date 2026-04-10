@@ -271,6 +271,7 @@ type GameContextType = {
   cookMeal: (creatureId: number) => void;
   cleanHome: (creatureId: number) => void;
   workFields: (creatureId: number) => void;
+  careForCreature: (creatureId: number, careType: "feed" | "groom" | "recovery") => void;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -1844,6 +1845,111 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return newCreature;
   }
 
+  function getBarnCareMinutes(careType: "feed" | "groom" | "recovery", creature: Creature) {
+  const quickEntry = getBestTraitEntry(creature, "quick");
+  const domesticEntry = getBestTraitEntry(creature, "domestic");
+  const calmEntry = getBestTraitEntry(creature, "calm");
+
+  const quickBonus = quickEntry ? getTraitFlatBonus(quickEntry.grade, 8) : 0;
+  const domesticBonus = domesticEntry ? getTraitFlatBonus(domesticEntry.grade, 6) : 0;
+  const calmBonus = calmEntry ? getTraitFlatBonus(calmEntry.grade, 5) : 0;
+
+  if (careType === "feed") {
+    return Math.max(
+      8,
+      24 - Math.floor((creature.stats.intelligence + creature.skills.cleaning.level + domesticBonus + quickBonus) / 3)
+    );
+  }
+
+  if (careType === "groom") {
+    return Math.max(
+      12,
+      36 - Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level + domesticBonus + quickBonus) / 3)
+    );
+  }
+
+  return Math.max(
+    20,
+    70 - Math.floor((creature.stats.vitality + creature.stats.endurance + calmBonus) / 2)
+  );
+}
+
+function getBarnCareStaminaCost(careType: "feed" | "groom" | "recovery", creature: Creature) {
+  const sturdyDiscount = getSturdyTraitStaminaDiscount(creature);
+  const calmEntry = getBestTraitEntry(creature, "calm");
+  const calmDiscount = calmEntry ? getTraitFlatBonus(calmEntry.grade, 2) : 0;
+
+  if (careType === "feed") {
+    return Math.max(1, 4 - sturdyDiscount);
+  }
+
+  if (careType === "groom") {
+    return Math.max(2, 8 - sturdyDiscount - calmDiscount);
+  }
+
+  return Math.max(0, 6 - calmDiscount);
+}
+
+function careForCreature(creatureId: number, careType: "feed" | "groom" | "recovery") {
+  if (currentLocation !== "ranch" && currentLocation !== "home") return;
+
+  const creature = creatures.find((c) => c.id === creatureId);
+  if (!creature) return;
+
+  const minutesSpent = getBarnCareMinutes(careType, creature);
+  const staminaCost = getBarnCareStaminaCost(careType, creature);
+
+  if (careType === "feed" && homeState.foodStock < 1) return;
+  if (careType !== "recovery" && creature.breedingStamina < staminaCost) return;
+
+  const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
+  setCurrentDay(updatedClock.day);
+  setCurrentHour(updatedClock.hour);
+  setCurrentMinute(updatedClock.minute);
+
+  if (careType === "feed") {
+    setHomeState((prev) => ({ ...prev, foodStock: Math.max(0, prev.foodStock - 1) }));
+  }
+
+  if (careType === "groom") {
+    setHomeState((prev) => ({ ...prev, cleanliness: Math.min(100, prev.cleanliness + 4) }));
+  }
+
+  setCreatures((prev) =>
+    prev.map((c) => {
+      if (c.id !== creatureId) return c;
+
+      if (careType === "feed") {
+        const updated = {
+          ...c,
+          breedingStamina: Math.max(0, c.breedingStamina - staminaCost + 8),
+          happiness: clamp(c.happiness + 6, 0, 100),
+        };
+        return applyCreatureSkillXp(updated, "cleaning", 4);
+      }
+
+      if (careType === "groom") {
+        const updated = {
+          ...c,
+          breedingStamina: Math.max(0, c.breedingStamina - staminaCost),
+          happiness: clamp(c.happiness + 8, 0, 100),
+        };
+        return applyCreatureSkillXp(updated, "cleaning", 8);
+      }
+
+      const updated = {
+        ...c,
+        breedingStamina: Math.min(c.maxBreedingStamina, c.breedingStamina + 14),
+        happiness: clamp(c.happiness + 4, 0, 100),
+      };
+      return updated;
+    })
+  );
+
+  setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+  setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+}
+
   function breedCreatures() {
     const energyCost = 8;
     if (playerData.energy < energyCost) return;
@@ -2388,6 +2494,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         cookMeal,
         cleanHome,
         workFields,
+        careForCreature,
       }}
     >
       {children}

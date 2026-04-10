@@ -1,10 +1,11 @@
-
 "use client";
 
 import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import StaminaStatusBar from "@/components/ui/StaminaStatusBar";
-import { CreatureTraitBadgeRow } from "@/components/creatures/CreatureTraitUi";
+import {
+  CreatureTraitBadgeRow,
+} from "@/components/creatures/CreatureTraitUi";
 import type { CreatureTraitEntry } from "@/components/creatures/CreatureTraitUi";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
@@ -99,6 +100,38 @@ function estimateWorkFields(creature: any) {
 
 function getBreedingStaminaCost(creature: any) {
   return Math.max(6, 22 - Math.floor(creature.stats.endurance / 2) - getTraitFlatBonus(creature, "sturdy", 3));
+}
+
+function estimateBarnCare(creature: any, careType: "feed" | "groom" | "recovery") {
+  const quickBonus = getTraitFlatBonus(creature, "quick", 8);
+  const domesticBonus = getTraitFlatBonus(creature, "domestic", 6);
+  const calmBonus = getTraitFlatBonus(creature, "calm", 5);
+  const sturdyDiscount = getTraitFlatBonus(creature, "sturdy", 3);
+
+  if (careType === "feed") {
+    return {
+      minutes: Math.max(8, 24 - Math.floor((creature.stats.intelligence + creature.skills.cleaning.level + domesticBonus + quickBonus) / 3)),
+      stamina: Math.max(1, 4 - sturdyDiscount),
+      mood: "+6 happiness",
+      effect: "+8 stamina, -1 food",
+    };
+  }
+
+  if (careType === "groom") {
+    return {
+      minutes: Math.max(12, 36 - Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level + domesticBonus + quickBonus) / 3)),
+      stamina: Math.max(2, 8 - sturdyDiscount - Math.max(0, calmBonus - 1)),
+      mood: "+8 happiness",
+      effect: "+4 home cleanliness",
+    };
+  }
+
+  return {
+    minutes: Math.max(20, 70 - Math.floor((creature.stats.vitality + creature.stats.endurance + calmBonus) / 2)),
+    stamina: 0,
+    mood: "+4 happiness",
+    effect: "+14 stamina",
+  };
 }
 
 function CreatureCard({
@@ -207,6 +240,7 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
     workFields,
     breedCreatures,
     hatchEgg,
+    careForCreature,
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<RanchTab>(initialTab);
@@ -241,9 +275,7 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
   function toggleHouseAssignment(taskId: HouseTaskId, creatureId: number) {
     setHouseAssignments((current) => {
       const alreadyInTask = current[taskId].includes(creatureId);
-      if (alreadyInTask) {
-        return { ...current, [taskId]: current[taskId].filter((id) => id !== creatureId) };
-      }
+      if (alreadyInTask) return { ...current, [taskId]: current[taskId].filter((id) => id !== creatureId) };
       const alreadyElsewhere = Object.values(current).some((ids) => ids.includes(creatureId));
       if (alreadyElsewhere) return current;
       return { ...current, [taskId]: [...current[taskId], creatureId] };
@@ -253,9 +285,7 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
   function toggleFieldAssignment(taskId: FieldTaskId, creatureId: number) {
     setFieldAssignments((current) => {
       const alreadyInTask = current[taskId].includes(creatureId);
-      if (alreadyInTask) {
-        return { ...current, [taskId]: current[taskId].filter((id) => id !== creatureId) };
-      }
+      if (alreadyInTask) return { ...current, [taskId]: current[taskId].filter((id) => id !== creatureId) };
       const alreadyElsewhere = Object.values(current).some((ids) => ids.includes(creatureId));
       if (alreadyElsewhere) return current;
       return { ...current, [taskId]: [...current[taskId], creatureId] };
@@ -287,7 +317,7 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
     setResultTitle("House Tasks Performed");
     setResultLines([
       "The selected house tasks were performed together.",
-      `Time advanced by ${longestMinutes} minutes for the batch.`,
+      `Time advanced by about ${longestMinutes} minutes for the batch.`,
       "Each assigned creature paid her own stamina cost immediately.",
     ]);
     setResultOpen(true);
@@ -312,8 +342,24 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
     setResultTitle("Field Tasks Performed");
     setResultLines([
       "The selected field tasks were performed together.",
-      `Time advanced by ${longestMinutes} minutes for the batch.`,
+      `Time advanced by about ${longestMinutes} minutes for the batch.`,
       "Wheat gains, stamina loss, and field-work progress were applied immediately.",
+    ]);
+    setResultOpen(true);
+  }
+
+  function performBarnCare(careType: "feed" | "groom" | "recovery") {
+    if (!barnCreature) return;
+    const estimate = estimateBarnCare(barnCreature, careType);
+    careForCreature(barnCreature.id, careType);
+    setResultTitle(
+      careType === "feed" ? "Feeding Complete" : careType === "groom" ? "Grooming Complete" : "Recovery Complete"
+    );
+    setResultLines([
+      `${barnCreature.nickname} received ${careType === "feed" ? "feeding" : careType === "groom" ? "grooming" : "recovery care"} in the Barn.`,
+      `Estimated time: about ${estimate.minutes} minutes.`,
+      `Estimated effect: ${estimate.effect}.`,
+      `Mood effect: ${estimate.mood}.`,
     ]);
     setResultOpen(true);
   }
@@ -519,7 +565,7 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
             <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-4 shadow">
               <h3 className="text-xl font-bold text-stone-900">Barn Care</h3>
               {!barnCreature ? (
-                <p className="mt-3 text-stone-700">Select a creature from the Barn roster to inspect her fully.</p>
+                <p className="mt-3 text-stone-700">Select a creature from the Barn roster to inspect and care for her.</p>
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
@@ -557,9 +603,27 @@ export default function RanchOperationsPanel({ initialTab = "house" }: { initial
                     />
                   </div>
 
-                  <div className="rounded-2xl bg-white p-3 text-sm text-stone-700">
-                    <p><strong>Barn use now:</strong> creature roster and care overview live here.</p>
-                    <p className="mt-2">Feed / grooming / recovery actions are the next best pass once the simplified ranch flow is stable.</p>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {(["feed", "groom", "recovery"] as const).map((careType) => {
+                      const estimate = estimateBarnCare(barnCreature, careType);
+                      return (
+                        <div key={careType} className="rounded-2xl bg-white p-3 shadow-sm">
+                          <p className="font-bold text-stone-900">
+                            {careType === "feed" ? "Feed" : careType === "groom" ? "Groom / Wash" : "Recovery Care"}
+                          </p>
+                          <p className="mt-2 text-xs text-stone-600">~{estimate.minutes}m • ~{estimate.stamina} stamina</p>
+                          <p className="mt-1 text-xs text-stone-600">{estimate.effect}</p>
+                          <p className="mt-1 text-xs text-stone-600">{estimate.mood}</p>
+                          <button
+                            type="button"
+                            onClick={() => performBarnCare(careType)}
+                            className="mt-3 w-full rounded-2xl bg-rose-700 px-3 py-2 text-sm font-semibold text-white shadow"
+                          >
+                            Perform
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
