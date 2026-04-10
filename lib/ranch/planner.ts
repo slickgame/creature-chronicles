@@ -146,148 +146,28 @@ export const DEFAULT_BUILDINGS: RanchBuildingLevels = {
 };
 
 export const RANCH_TASKS: RanchTaskDefinition[] = [
-  {
-    id: "house_cleaning",
-    title: "House Cleaning",
-    location: "House",
-    description: "Tidying rooms, bathing spaces, sheets, and guest areas.",
-    slotCount: 2,
-    baseStaminaCost: 7,
-    outputLabel: "Cleanliness",
-    baseOutputMin: 8,
-    baseOutputMax: 16,
-    favoredSpecies: ["Cat", "Dog"],
-    favoredTraits: ["domestic", "affectionate", "graceful"],
-    favoredRoles: ["cleaner", "caretaker", "comfort"],
-    buildingKey: "house",
-  },
-  {
-    id: "kitchen_prep",
-    title: "Kitchen Prep",
-    location: "Kitchen",
-    description: "Meal prep, pantry handling, and warm domestic service.",
-    slotCount: 2,
-    baseStaminaCost: 8,
-    outputLabel: "Meals",
-    baseOutputMin: 1,
-    baseOutputMax: 3,
-    favoredSpecies: ["Cat", "Chicken", "Cow"],
-    favoredTraits: ["domestic", "calm", "affectionate"],
-    favoredRoles: ["cook", "caretaker", "comfort"],
-    buildingKey: "kitchen",
-  },
-  {
-    id: "nursery_care",
-    title: "Nursery Care",
-    location: "Nursery",
-    description: "Egg tending, warming, bedding changes, and careful support.",
-    slotCount: 2,
-    baseStaminaCost: 6,
-    outputLabel: "Nursery Support",
-    baseOutputMin: 6,
-    baseOutputMax: 14,
-    favoredSpecies: ["Cat", "Cow", "Bunny", "Sheep"],
-    favoredTraits: ["calm", "fertile", "affectionate"],
-    favoredRoles: ["breeder", "caretaker", "comfort"],
-    buildingKey: "nursery",
-  },
-  {
-    id: "field_labor",
-    title: "Field Labor",
-    location: "Field",
-    description: "Heavy outdoor work, soil prep, and crop handling.",
-    slotCount: 2,
-    baseStaminaCost: 12,
-    outputLabel: "Field Yield",
-    baseOutputMin: 5,
-    baseOutputMax: 12,
-    favoredSpecies: ["Horse", "Dog", "Pig"],
-    favoredTraits: ["industrious", "sturdy", "barnwise"],
-    favoredRoles: ["laborer", "hauler"],
-    buildingKey: "barn",
-  },
-  {
-    id: "hauling",
-    title: "Hauling",
-    location: "Barn",
-    description: "Crates, sacks, feed runs, and heavier ranch transport.",
-    slotCount: 2,
-    baseStaminaCost: 10,
-    outputLabel: "Hauling Output",
-    baseOutputMin: 6,
-    baseOutputMax: 13,
-    favoredSpecies: ["Horse", "Dog"],
-    favoredTraits: ["industrious", "sturdy", "surefooted"],
-    favoredRoles: ["hauler", "laborer"],
-    buildingKey: "barn",
-  },
-  {
-    id: "garden_tending",
-    title: "Garden Tending",
-    location: "Garden",
-    description: "Soft field work, produce tending, and harvesting.",
-    slotCount: 2,
-    baseStaminaCost: 7,
-    outputLabel: "Produce",
-    baseOutputMin: 2,
-    baseOutputMax: 6,
-    favoredSpecies: ["Bunny", "Pig", "Chicken", "Cat"],
-    favoredTraits: ["quick", "keen", "fertile"],
-    favoredRoles: ["producer", "scout", "caretaker"],
-    buildingKey: "garden",
-  },
-  {
-    id: "pasture_watch",
-    title: "Pasture Watch",
-    location: "Pasture",
-    description: "Fence checks, herd watch, and outdoor patrol.",
-    slotCount: 1,
-    baseStaminaCost: 6,
-    outputLabel: "Safety",
-    baseOutputMin: 6,
-    baseOutputMax: 12,
-    favoredSpecies: ["Dog", "Horse", "Cat"],
-    favoredTraits: ["keen", "surefooted", "night_prawler"],
-    favoredRoles: ["scout", "caretaker"],
-    buildingKey: "barn",
-  },
-  {
-    id: "coop_care",
-    title: "Coop & Pen Care",
-    location: "Coop / Pen",
-    description: "Collecting ingredients, pen upkeep, and smaller livestock care.",
-    slotCount: 2,
-    baseStaminaCost: 7,
-    outputLabel: "Ingredient Yield",
-    baseOutputMin: 2,
-    baseOutputMax: 5,
-    favoredSpecies: ["Dog", "Chicken", "Pig"],
-    favoredTraits: ["industrious", "keen", "calm"],
-    favoredRoles: ["producer", "caretaker", "cleaner"],
-    buildingKey: "house",
-  },
-  {
-    id: "rest",
-    title: "Rest & Recovery",
-    location: "Quarters",
-    description: "Baths, naps, pampering, and preserving energy for breeding.",
-    slotCount: 3,
-    baseStaminaCost: -10,
-    outputLabel: "Recovery",
-    baseOutputMin: 8,
-    baseOutputMax: 14,
-    favoredSpecies: ["Cat", "Cow", "Sheep", "Bunny"],
-    favoredTraits: ["calm", "affectionate", "graceful"],
-    favoredRoles: ["comfort", "caretaker"],
-    buildingKey: "house",
-  },
+  { id: "house_cleaning", title: "House Cleaning", location: "House", description: "Tidying rooms, bathing spaces, sheets, and guest areas.", slotCount: 2, baseStaminaCost: 7, outputLabel: "Cleanliness", baseOutputMin: 8, baseOutputMax: 16, favoredSpecies: ["Cat", "Dog"], favoredTraits: ["domestic", "affectionate", "graceful"], favoredRoles: ["cleaner", "caretaker", "comfort"], buildingKey: "house" },
+  { id: "kitchen_prep", title: "Kitchen Prep", location: "Kitchen", description: "Meal prep, pantry handling, and warm domestic service.", slotCount: 2, baseStaminaCost: 8, outputLabel: "Meals", baseOutputMin: 1, baseOutputMax: 3, favoredSpecies: ["Cat", "Chicken", "Cow"], favoredTraits: ["domestic", "calm", "affectionate"], favoredRoles: ["cook", "caretaker", "comfort"], buildingKey: "kitchen" },
+  { id: "nursery_care", title: "Nursery Care", location: "Nursery", description: "Egg tending, warming, bedding changes, and careful support.", slotCount: 2, baseStaminaCost: 6, outputLabel: "Nursery Support", baseOutputMin: 6, baseOutputMax: 14, favoredSpecies: ["Cat", "Cow", "Bunny", "Sheep"], favoredTraits: ["calm", "fertile", "affectionate"], favoredRoles: ["breeder", "caretaker", "comfort"], buildingKey: "nursery" },
+  { id: "field_labor", title: "Field Labor", location: "Field", description: "Heavy outdoor work, soil prep, and crop handling.", slotCount: 2, baseStaminaCost: 12, outputLabel: "Field Yield", baseOutputMin: 5, baseOutputMax: 12, favoredSpecies: ["Horse", "Dog", "Pig"], favoredTraits: ["industrious", "sturdy", "barnwise"], favoredRoles: ["laborer", "hauler"], buildingKey: "barn" },
+  { id: "hauling", title: "Hauling", location: "Barn", description: "Crates, sacks, feed runs, and heavier ranch transport.", slotCount: 2, baseStaminaCost: 10, outputLabel: "Hauling Output", baseOutputMin: 6, baseOutputMax: 13, favoredSpecies: ["Horse", "Dog"], favoredTraits: ["industrious", "sturdy", "surefooted"], favoredRoles: ["hauler", "laborer"], buildingKey: "barn" },
+  { id: "garden_tending", title: "Garden Tending", location: "Garden", description: "Soft field work, produce tending, and harvesting.", slotCount: 2, baseStaminaCost: 7, outputLabel: "Produce", baseOutputMin: 2, baseOutputMax: 6, favoredSpecies: ["Bunny", "Pig", "Chicken", "Cat"], favoredTraits: ["quick", "keen", "fertile"], favoredRoles: ["producer", "scout", "caretaker"], buildingKey: "garden" },
+  { id: "pasture_watch", title: "Pasture Watch", location: "Pasture", description: "Fence checks, herd watch, and outdoor patrol.", slotCount: 1, baseStaminaCost: 6, outputLabel: "Safety", baseOutputMin: 6, baseOutputMax: 12, favoredSpecies: ["Dog", "Horse", "Cat"], favoredTraits: ["keen", "surefooted", "night_prawler"], favoredRoles: ["scout", "caretaker"], buildingKey: "barn" },
+  { id: "coop_care", title: "Coop & Pen Care", location: "Coop / Pen", description: "Collecting ingredients, pen upkeep, and smaller livestock care.", slotCount: 2, baseStaminaCost: 7, outputLabel: "Ingredient Yield", baseOutputMin: 2, baseOutputMax: 5, favoredSpecies: ["Dog", "Chicken", "Pig"], favoredTraits: ["industrious", "keen", "calm"], favoredRoles: ["producer", "caretaker", "cleaner"], buildingKey: "house" },
+  { id: "rest", title: "Rest & Recovery", location: "Quarters", description: "Baths, naps, pampering, and preserving energy for breeding.", slotCount: 3, baseStaminaCost: -10, outputLabel: "Recovery", baseOutputMin: 8, baseOutputMax: 14, favoredSpecies: ["Cat", "Cow", "Sheep", "Bunny"], favoredTraits: ["calm", "affectionate", "graceful"], favoredRoles: ["comfort", "caretaker"], buildingKey: "house" },
 ];
+
+function buildEmptyTaskMap(): Record<RanchTaskId, number[]> {
+  const result = {} as Record<RanchTaskId, number[]>;
+  for (const task of RANCH_TASKS) result[task.id] = [];
+  return result;
+}
 
 export function createEmptyAssignments(): TaskAssignmentMap {
   return {
-    morning: Object.fromEntries(RANCH_TASKS.map((task) => [task.id, []])) as Record<RanchTaskId, number[]>,
-    afternoon: Object.fromEntries(RANCH_TASKS.map((task) => [task.id, []])) as Record<RanchTaskId, number[]>,
-    evening: Object.fromEntries(RANCH_TASKS.map((task) => [task.id, []])) as Record<RanchTaskId, number[]>,
+    morning: buildEmptyTaskMap(),
+    afternoon: buildEmptyTaskMap(),
+    evening: buildEmptyTaskMap(),
   };
 }
 
@@ -354,7 +234,6 @@ function hasTrait(creature: PlannerCreature, trait: CreatureTrait) {
 
 export function getCreatureRoleTags(creature: PlannerCreature): WorkerRoleTag[] {
   const tags = new Set<WorkerRoleTag>();
-
   if (creature.skills.cleaning.level >= 2 || hasTrait(creature, "domestic")) tags.add("cleaner");
   if (creature.skills.cooking.level >= 2 || hasTrait(creature, "domestic")) tags.add("cook");
   if (creature.skills.breedingCare.level >= 2 || hasTrait(creature, "calm") || hasTrait(creature, "fertile")) tags.add("breeder");
@@ -364,7 +243,6 @@ export function getCreatureRoleTags(creature: PlannerCreature): WorkerRoleTag[] 
   if (hasTrait(creature, "affectionate") || hasTrait(creature, "graceful") || creature.happiness >= 75) tags.add("comfort");
   if (hasTrait(creature, "calm") || hasTrait(creature, "affectionate")) tags.add("caretaker");
   if (["Cow", "Chicken", "Pig", "Sheep", "Bunny"].includes(creature.name)) tags.add("producer");
-
   return Array.from(tags);
 }
 
@@ -399,28 +277,17 @@ export function calculateTaskProjection(
     notes.push(`Helpful traits: ${traitMatches.map((entry) => entry.trait).join(", ")}.`);
   }
 
-  if (task.id === "house_cleaning") {
-    score += creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level * 2;
-  } else if (task.id === "kitchen_prep") {
-    score += creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level * 2;
-  } else if (task.id === "nursery_care") {
-    score += creature.stats.intelligence + creature.stats.fertility + creature.skills.breedingCare.level * 2;
-  } else if (task.id === "field_labor") {
-    score += creature.stats.strength + creature.stats.endurance + creature.skills.fieldWork.level * 2;
-  } else if (task.id === "hauling") {
-    score += creature.stats.strength + creature.stats.endurance + creature.skills.hauling.level * 2;
-  } else if (task.id === "garden_tending") {
-    score += creature.stats.speed + creature.stats.intelligence + creature.skills.fieldWork.level;
-  } else if (task.id === "pasture_watch") {
-    score += creature.stats.speed + creature.stats.intelligence + creature.skills.hauling.level;
-  } else if (task.id === "coop_care") {
-    score += creature.stats.intelligence + creature.stats.endurance + creature.skills.cleaning.level;
-  } else if (task.id === "rest") {
-    score += creature.stats.vitality + creature.happiness / 8;
-  }
+  if (task.id === "house_cleaning") score += creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level * 2;
+  else if (task.id === "kitchen_prep") score += creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level * 2;
+  else if (task.id === "nursery_care") score += creature.stats.intelligence + creature.stats.fertility + creature.skills.breedingCare.level * 2;
+  else if (task.id === "field_labor") score += creature.stats.strength + creature.stats.endurance + creature.skills.fieldWork.level * 2;
+  else if (task.id === "hauling") score += creature.stats.strength + creature.stats.endurance + creature.skills.hauling.level * 2;
+  else if (task.id === "garden_tending") score += creature.stats.speed + creature.stats.intelligence + creature.skills.fieldWork.level;
+  else if (task.id === "pasture_watch") score += creature.stats.speed + creature.stats.intelligence + creature.skills.hauling.level;
+  else if (task.id === "coop_care") score += creature.stats.intelligence + creature.stats.endurance + creature.skills.cleaning.level;
+  else if (task.id === "rest") score += creature.stats.vitality + creature.happiness / 8;
 
   score += buildingLevels[task.buildingKey] * 3;
-
   if (feedQuality === "quality") score += 3;
   if (feedQuality === "luxury") score += 6;
   if (feedQuality === "poor") {
@@ -465,7 +332,6 @@ export function calculateTaskProjection(
 
   const projectedRemainingStamina = Math.max(0, Math.min(creature.maxBreedingStamina, creature.breedingStamina - projectedStaminaCost));
   const breedingLocked = projectedRemainingStamina < 12;
-
   const outputBase = Math.max(1, Math.round(score / 8));
   const projectedOutputMin = Math.max(1, task.baseOutputMin + Math.floor(outputBase / 2));
   const projectedOutputMax = Math.max(projectedOutputMin, task.baseOutputMax + outputBase);
@@ -542,11 +408,7 @@ export function getShiftTaskProjection(
   };
 }
 
-export function creatureCanBeAssigned(
-  creatureId: number,
-  shift: RanchShift,
-  assignments: TaskAssignmentMap
-) {
+export function creatureCanBeAssigned(creatureId: number, shift: RanchShift, assignments: TaskAssignmentMap) {
   return !Object.values(assignments[shift]).some((ids) => ids.includes(creatureId));
 }
 
@@ -560,28 +422,15 @@ export function toggleAssignment(
   const task = getTaskById(taskId);
 
   if (currentIds.includes(creatureId)) {
-    return {
-      ...assignments,
-      [shift]: {
-        ...assignments[shift],
-        [taskId]: currentIds.filter((id) => id !== creatureId),
-      },
-    };
+    return { ...assignments, [shift]: { ...assignments[shift], [taskId]: currentIds.filter((id) => id !== creatureId) } };
   }
 
   const alreadyAssignedElsewhere = Object.keys(assignments[shift]).some((key) =>
     assignments[shift][key as RanchTaskId].includes(creatureId)
   );
-  if (alreadyAssignedElsewhere) return assignments;
-  if (currentIds.length >= task.slotCount) return assignments;
+  if (alreadyAssignedElsewhere || currentIds.length >= task.slotCount) return assignments;
 
-  return {
-    ...assignments,
-    [shift]: {
-      ...assignments[shift],
-      [taskId]: [...currentIds, creatureId],
-    },
-  };
+  return { ...assignments, [shift]: { ...assignments[shift], [taskId]: [...currentIds, creatureId] } };
 }
 
 export function getFeedQualityFromStocks(foodStock: number) {
@@ -629,11 +478,7 @@ function getResultTier(score: number) {
   return "poor";
 }
 
-function buildFlavorLine(
-  creatureNames: string[],
-  task: RanchTaskDefinition,
-  tier: "great" | "good" | "mixed" | "poor"
-) {
+function buildFlavorLine(creatureNames: string[], task: RanchTaskDefinition, tier: "great" | "good" | "mixed" | "poor") {
   const cast = creatureNames.join(" and ");
   if (task.id === "kitchen_prep") {
     if (tier === "great") return `${cast} worked the kitchen with smug, domestic confidence, leaving the place warm with tempting smells.`;
@@ -659,12 +504,7 @@ function buildFlavorLine(
   return `${cast} had a rough time with ${task.title.toLowerCase()}, and it showed by the end of the shift.`;
 }
 
-function buildResultLine(
-  task: RanchTaskDefinition,
-  totalMin: number,
-  totalMax: number,
-  staminaCost: number
-) {
+function buildResultLine(task: RanchTaskDefinition, totalMin: number, totalMax: number, staminaCost: number) {
   return `Projected result: ${totalMin}–${totalMax} ${task.outputLabel}. Shift stamina cost: ${staminaCost}.`;
 }
 
@@ -677,18 +517,15 @@ export function generateRecapSlides(
   buildingLevels: RanchBuildingLevels
 ): RanchRecapSlide[] {
   const slides: RanchRecapSlide[] = [];
-
   for (const shift of SHIFTS) {
     for (const task of RANCH_TASKS) {
       const assignedIds = assignments[shift][task.id];
       if (assignedIds.length === 0) continue;
-
       const assignedCreatures = creatures.filter((creature) => assignedIds.includes(creature.id));
       const creatureNames = assignedCreatures.map((creature) => creature.nickname);
       const projections = assignedCreatures.map((creature) =>
         calculateTaskProjection(creature, task, weather, feedQuality, cleanliness, buildingLevels)
       );
-
       const totalScore = projections.reduce((sum, item) => sum + item.score, 0);
       const totalMin = projections.reduce((sum, item) => sum + item.projectedOutputMin, 0);
       const totalMax = projections.reduce((sum, item) => sum + item.projectedOutputMax, 0);

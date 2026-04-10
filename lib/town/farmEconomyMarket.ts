@@ -31,49 +31,53 @@ function getItemBuyValue(itemId: string, fallback: number) {
   return ITEM_DATA[itemId]?.buyValue ?? fallback;
 }
 
+const seedEntries: MarketInventoryEntry[] = STARTER_SEED_IDS.map((itemId) => ({
+  itemId,
+  stock: 25,
+  buyPrice: getItemBuyValue(itemId, 5),
+  sellerNpcId: "maris_thorn",
+}));
+
+seedEntries.push(
+  {
+    itemId: "apple_seed",
+    stock: 12,
+    buyPrice: getItemBuyValue("apple_seed", 7),
+    sellerNpcId: "maris_thorn",
+    unlockRelationshipLevel: 2,
+    note: "Maris starts setting aside sweeter stock once she likes you more.",
+  },
+  {
+    itemId: "berry_seed",
+    stock: 12,
+    buyPrice: getItemBuyValue("berry_seed", 7),
+    sellerNpcId: "maris_thorn",
+    unlockRelationshipLevel: 2,
+    note: "Berry seeds get easier to source once Maris takes a personal interest.",
+  }
+);
+
+const recipeEntries: MarketInventoryEntry[] = STARTER_RECIPE_BOOK_IDS.map((itemId) => ({
+  itemId,
+  stock: 5,
+  buyPrice: getItemBuyValue(itemId, 60),
+  sellerNpcId: "tamsin_vale",
+}));
+
 export const SEED_SHOP_SECTION: MarketShopSection = {
   id: "seed_shop",
   title: "Maris Thorn's Seed Stall",
-  description:
-    "Starter seed stock sold by Maris, with rarer bundles and more tempting options unlocking as her relationship deepens.",
+  description: "Starter seed stock sold by Maris, with rarer bundles and more tempting options unlocking as her relationship deepens.",
   sellerNpcId: "maris_thorn",
-  entries: STARTER_SEED_IDS.map((itemId) => ({
-    itemId,
-    stock: 25,
-    buyPrice: getItemBuyValue(itemId, 5),
-    sellerNpcId: "maris_thorn",
-  })).concat([
-    {
-      itemId: "apple_seed",
-      stock: 12,
-      buyPrice: getItemBuyValue("apple_seed", 7),
-      sellerNpcId: "maris_thorn",
-      unlockRelationshipLevel: 2,
-      note: "Maris starts setting aside sweeter stock once she likes you more.",
-    },
-    {
-      itemId: "berry_seed",
-      stock: 12,
-      buyPrice: getItemBuyValue("berry_seed", 7),
-      sellerNpcId: "maris_thorn",
-      unlockRelationshipLevel: 2,
-      note: "Berry seeds get easier to source once Maris takes a personal interest.",
-    },
-  ]),
+  entries: seedEntries,
 };
 
 export const RECIPE_SHOP_SECTION: MarketShopSection = {
   id: "recipe_shop",
   title: "Tamsin Vale's Recipe Counter",
-  description:
-    "Recipe books and kitchen guidance sold by Tamsin, with richer dishes unlocking as her affection and curiosity grow.",
+  description: "Recipe books and kitchen guidance sold by Tamsin, with richer dishes unlocking as her affection and curiosity grow.",
   sellerNpcId: "tamsin_vale",
-  entries: STARTER_RECIPE_BOOK_IDS.map((itemId) => ({
-    itemId,
-    stock: 5,
-    buyPrice: getItemBuyValue(itemId, 60),
-    sellerNpcId: "tamsin_vale",
-  })),
+  entries: recipeEntries,
 };
 
 export const DEFAULT_PRODUCE_DEMANDS: ProduceDemandEntry[] = [

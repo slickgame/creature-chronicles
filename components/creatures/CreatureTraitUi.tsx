@@ -13,15 +13,21 @@ import {
   type PlayerFacingTraitGrade,
 } from "@/lib/traits/playerTraitInfo";
 
-type CreatureTrait =
+export type CreatureTrait =
   | "domestic"
   | "industrious"
   | "calm"
   | "fertile"
   | "quick"
-  | "sturdy";
+  | "sturdy"
+  | "affectionate"
+  | "keen"
+  | "barnwise"
+  | "surefooted"
+  | "night_prawler"
+  | "graceful";
 
-type TraitGrade = PlayerFacingTraitGrade;
+export type TraitGrade = PlayerFacingTraitGrade;
 
 export type CreatureTraitEntry = {
   trait: CreatureTrait;
@@ -56,18 +62,10 @@ function CreatureTraitBadgeItem({
         }}
         className="flex w-full flex-wrap items-center gap-1 text-left"
       >
-        <div
-          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureTraitClasses(
-            entry.trait
-          )} ${compact ? "text-[11px]" : "text-sm"}`}
-        >
+        <div className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureTraitClasses(entry.trait)} ${compact ? "text-[11px]" : "text-sm"}`}>
           {getCreatureTraitLabel(entry.trait)}
         </div>
-        <div
-          className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureGradeClasses(
-            entry.grade
-          )} ${compact ? "text-[10px]" : "text-xs"}`}
-        >
+        <div className={`inline-block rounded-full border px-2 py-1 font-semibold ${getCreatureGradeClasses(entry.grade)} ${compact ? "text-[10px]" : "text-xs"}`}>
           {compact ? entry.grade : `Grade ${entry.grade}`}
         </div>
         <div className="ml-auto rounded-full border border-sky-300 bg-sky-50 px-2 py-1 text-[10px] font-semibold text-sky-900">
@@ -80,9 +78,7 @@ function CreatureTraitBadgeItem({
           <p className="font-semibold text-stone-900">
             {getCreatureTraitLabel(entry.trait)} ({entry.grade})
           </p>
-          <p className="mt-1 text-stone-500">
-            {getCreatureTraitSpeciesNote(entry.trait)}
-          </p>
+          <p className="mt-1 text-stone-500">{getCreatureTraitSpeciesNote(entry.trait)}</p>
           <p className="mt-2">{getCreatureTraitDescription(entry.trait)}</p>
           <p className="mt-2 font-medium text-stone-800">
             Grade Effect: {getCreatureTraitGradeEffectText(entry.trait, entry.grade)}
@@ -113,21 +109,14 @@ export function CreatureTraitBadgeRow({
     );
   }
 
-  const visibleTraits =
-    typeof maxVisible === "number" ? traits.slice(0, maxVisible) : traits;
-  const remaining =
-    typeof maxVisible === "number" ? Math.max(0, traits.length - maxVisible) : 0;
+  const visibleTraits = typeof maxVisible === "number" ? traits.slice(0, maxVisible) : traits;
+  const remaining = typeof maxVisible === "number" ? Math.max(0, traits.length - maxVisible) : 0;
 
   return (
     <div className="space-y-2">
       {visibleTraits.map((entry, index) => (
-        <CreatureTraitBadgeItem
-          key={`${entry.trait}-${entry.grade}-${index}`}
-          entry={entry}
-          compact={compact}
-        />
+        <CreatureTraitBadgeItem key={`${entry.trait}-${entry.grade}-${index}`} entry={entry} compact={compact} />
       ))}
-
       {remaining > 0 && (
         <div className="inline-block rounded-full border border-stone-300 bg-white px-2 py-1 text-[11px] font-semibold text-stone-700">
           +{remaining} more
