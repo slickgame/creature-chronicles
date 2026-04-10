@@ -1739,30 +1739,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setHasLoaded(true);
   }, []);
 
-  useEffect(() => {
-    if (!hasLoaded) return;
+useEffect(() => {
+  if (!hasLoaded) return;
 
-    const saveData: SaveData = {
-      currentDay,
-      currentHour,
-      currentMinute,
-      currentLocation,
-      playerData,
-      homeState,
-      creatures,
-      eggs,
-      breedingSelection,
-      townStock,
-      townQuests,
-      townNpcs,
-      townNpcQuests,
-      paidTaxMonths,
-      travelLog,
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-  }, [
-    hasLoaded,
+  const saveData: SaveData = {
     currentDay,
     currentHour,
     currentMinute,
@@ -1778,7 +1758,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     townNpcQuests,
     paidTaxMonths,
     travelLog,
-  ]);
+    inventory,
+    knownRecipeIds,
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+}, [
+  hasLoaded,
+  currentDay,
+  currentHour,
+  currentMinute,
+  currentLocation,
+  playerData,
+  homeState,
+  creatures,
+  eggs,
+  breedingSelection,
+  townStock,
+  townQuests,
+  townNpcs,
+  townNpcQuests,
+  paidTaxMonths,
+  travelLog,
+  inventory,
+  knownRecipeIds,
+]);
 
   function nextDay() {
     const previousMonth = getMonthFromAbsoluteDay(currentDay);
