@@ -4,10 +4,8 @@
 import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import StaminaStatusBar from "@/components/ui/StaminaStatusBar";
-import {
-  CreatureTraitBadgeRow,
-  type CreatureTraitEntry,
-} from "@/components/creatures/CreatureTraitUi";
+import { CreatureTraitBadgeRow } from "@/components/creatures/CreatureTraitUi";
+import type { CreatureTraitEntry } from "@/components/creatures/CreatureTraitUi";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
 type HouseTaskId = "clean_home" | "cook_meal";
