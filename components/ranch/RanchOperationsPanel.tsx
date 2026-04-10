@@ -70,7 +70,9 @@ export default function RanchOperationsPanel({
           </div>
           <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm">
             <p className="text-stone-500">Food / Wheat</p>
-            <p className="font-semibold text-stone-900">{homeState.foodStock} / {homeState.wheatStock}</p>
+            <p className="font-semibold text-stone-900">
+              {homeState.foodStock} / {homeState.wheatStock}
+            </p>
           </div>
         </div>
       </div>
@@ -82,7 +84,9 @@ export default function RanchOperationsPanel({
             type="button"
             onClick={() => setActiveTab(tab)}
             className={`rounded-full px-4 py-2 text-sm font-semibold ${
-              activeTab === tab ? "bg-emerald-700 text-white" : "border border-emerald-300 bg-white text-stone-800"
+              activeTab === tab
+                ? "bg-emerald-700 text-white"
+                : "border border-emerald-300 bg-white text-stone-800"
             }`}
           >
             {TAB_LABELS[tab]}
@@ -92,22 +96,41 @@ export default function RanchOperationsPanel({
 
       {activeTab === "house" && (
         <div className="grid gap-4 md:grid-cols-2">
-          <button type="button" onClick={() => creatures[0] && cleanHome(creatures[0].id)} className="rounded-2xl border-2 border-emerald-200 bg-white p-4 text-left shadow">
+          <button
+            type="button"
+            onClick={() => creatures[0] && cleanHome(creatures[0].id)}
+            className="rounded-2xl border-2 border-emerald-200 bg-white p-4 text-left shadow"
+          >
             <p className="text-xl font-bold text-stone-900">Clean House</p>
-            <p className="mt-2 text-sm text-stone-600">Quick fallback action using the first available creature.</p>
+            <p className="mt-2 text-sm text-stone-600">
+              Quick fallback action using the first available creature.
+            </p>
           </button>
-          <button type="button" onClick={() => creatures[0] && cookMeal(creatures[0].id)} className="rounded-2xl border-2 border-emerald-200 bg-white p-4 text-left shadow">
+
+          <button
+            type="button"
+            onClick={() => creatures[0] && cookMeal(creatures[0].id)}
+            className="rounded-2xl border-2 border-emerald-200 bg-white p-4 text-left shadow"
+          >
             <p className="text-xl font-bold text-stone-900">Cook Meal</p>
-            <p className="mt-2 text-sm text-stone-600">Basic cook action from the ranch screen.</p>
+            <p className="mt-2 text-sm text-stone-600">
+              Basic cook action from the ranch screen.
+            </p>
           </button>
         </div>
       )}
 
       {activeTab === "fields" && (
         <div className="grid gap-4 md:grid-cols-2">
-          <button type="button" onClick={() => creatures[0] && workFields(creatures[0].id)} className="rounded-2xl border-2 border-emerald-200 bg-white p-4 text-left shadow">
+          <button
+            type="button"
+            onClick={() => creatures[0] && workFields(creatures[0].id)}
+            className="rounded-2xl border-2 border-emerald-200 bg-white p-4 text-left shadow"
+          >
             <p className="text-xl font-bold text-stone-900">Work Fields</p>
-            <p className="mt-2 text-sm text-stone-600">Basic field work action from the ranch screen.</p>
+            <p className="mt-2 text-sm text-stone-600">
+              Basic field work action from the ranch screen.
+            </p>
           </button>
         </div>
       )}
@@ -115,13 +138,23 @@ export default function RanchOperationsPanel({
       {activeTab === "barn" && (
         <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
           <p className="text-xl font-bold text-stone-900">Barn Roster</p>
-          <p className="mt-2 text-sm text-stone-600">{creatures.length} creatures currently housed at the ranch.</p>
+          <p className="mt-2 text-sm text-stone-600">
+            {creatures.length} creatures currently housed at the ranch.
+          </p>
+
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {creatures.map((creature) => (
-              <div key={creature.id} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+              <div
+                key={creature.id}
+                className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
+              >
                 <p className="font-bold text-stone-900">{creature.nickname}</p>
-                <p className="text-sm text-stone-600">{creature.name} • Lv {creature.level}</p>
-                <p className="mt-2 text-xs text-stone-700">Stamina {creature.breedingStamina}/{creature.maxBreedingStamina}</p>
+                <p className="text-sm text-stone-600">
+                  {creature.name} • Lv {creature.level}
+                </p>
+                <p className="mt-2 text-xs text-stone-700">
+                  Stamina {creature.breedingStamina}/{creature.maxBreedingStamina}
+                </p>
               </div>
             ))}
           </div>
@@ -132,12 +165,20 @@ export default function RanchOperationsPanel({
         <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
           <p className="text-xl font-bold text-stone-900">Nursery</p>
           <p className="mt-2 text-sm text-stone-600">{eggs.length} egg(s) in nursery.</p>
+
           <div className="mt-4 space-y-3">
             {eggs.map((egg) => (
-              <div key={egg.id} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+              <div
+                key={egg.id}
+                className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
+              >
                 <p className="font-bold text-stone-900">{egg.name}</p>
                 <p className="text-sm text-stone-600">Parents: {egg.parents}</p>
-                <p className="text-xs text-stone-700">{egg.hatchDaysRemaining <= 0 ? "Ready to hatch" : `${egg.hatchDaysRemaining} day(s) remaining`}</p>
+                <p className="text-xs text-stone-700">
+                  {egg.hatchDaysRemaining <= 0
+                    ? "Ready to hatch"
+                    : `${egg.hatchDaysRemaining} day(s) remaining`}
+                </p>
                 <button
                   type="button"
                   disabled={egg.hatchDaysRemaining > 0}
@@ -157,16 +198,37 @@ export default function RanchOperationsPanel({
       {activeTab === "breeding" && (
         <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
           <p className="text-xl font-bold text-stone-900">Breeding</p>
-          <p className="mt-2 text-sm text-stone-600">Use the ranch breeding flow here or open the dedicated view while the broader migration settles.</p>
+          <p className="mt-2 text-sm text-stone-600">
+            Use the ranch breeding flow here or open the dedicated view while the broader migration settles.
+          </p>
+
           <div className="mt-4 text-sm text-stone-700">
-            <p><strong>Current giver:</strong> {breedingSelection.giverType === "player" ? playerData.name : creatures.find((c) => c.id === breedingSelection.giverCreatureId)?.nickname ?? "None"}</p>
-            <p><strong>Current receiver:</strong> {breedingSelection.receiverType === "player" ? playerData.name : creatures.find((c) => c.id === breedingSelection.receiverCreatureId)?.nickname ?? "None"}</p>
+            <p>
+              <strong>Current giver:</strong>{" "}
+              {breedingSelection.giverType === "player"
+                ? playerData.name
+                : creatures.find((c) => c.id === breedingSelection.giverCreatureId)?.nickname ?? "None"}
+            </p>
+            <p>
+              <strong>Current receiver:</strong>{" "}
+              {breedingSelection.receiverType === "player"
+                ? playerData.name
+                : creatures.find((c) => c.id === breedingSelection.receiverCreatureId)?.nickname ?? "None"}
+            </p>
           </div>
+
           <div className="mt-4 flex flex-wrap gap-3">
-            <button type="button" onClick={() => breedCreatures()} className="rounded-2xl bg-rose-700 px-4 py-3 font-semibold text-white shadow">
+            <button
+              type="button"
+              onClick={() => breedCreatures()}
+              className="rounded-2xl bg-rose-700 px-4 py-3 font-semibold text-white shadow"
+            >
               Perform Breeding
             </button>
-            <Link href="/breeding" className="rounded-2xl border border-emerald-300 bg-white px-4 py-3 font-semibold text-stone-800 shadow">
+            <Link
+              href="/breeding"
+              className="rounded-2xl border border-emerald-300 bg-white px-4 py-3 font-semibold text-stone-800 shadow"
+            >
               Open Breeding Page
             </Link>
           </div>

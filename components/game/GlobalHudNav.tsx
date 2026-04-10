@@ -11,7 +11,7 @@ const HUD_LINKS = [
   { href: "/news", label: "News" },
 ];
 
-export default function GlobalHudNav() {
+export function GlobalHudNav() {
   const pathname = usePathname();
 
   return (
@@ -23,7 +23,9 @@ export default function GlobalHudNav() {
             key={link.href}
             href={link.href}
             className={`rounded-xl px-3 py-2 text-sm font-semibold ${
-              active ? "bg-stone-800 text-white" : "bg-stone-100 text-stone-800 hover:bg-stone-200"
+              active
+                ? "bg-stone-800 text-white"
+                : "bg-stone-100 text-stone-800 hover:bg-stone-200"
             }`}
           >
             {link.label}
@@ -33,3 +35,5 @@ export default function GlobalHudNav() {
     </div>
   );
 }
+
+export default GlobalHudNav;
