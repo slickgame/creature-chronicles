@@ -8,8 +8,11 @@ import { HubCard, PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
 import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
-import { FARM_ECONOMY_MARKET_SECTIONS, DEFAULT_PRODUCE_DEMANDS } from "@/lib/town/farmEconomyMarket";
-import { FARM_ECONOMY_ACTIVE_NPCS } from "@/lib/town/farmEconomyMarket";
+import {
+  FARM_ECONOMY_MARKET_SECTIONS,
+  DEFAULT_PRODUCE_DEMANDS,
+  FARM_ECONOMY_ACTIVE_NPCS,
+} from "@/lib/town/farmEconomyMarket";
 import {
   createDefaultNpcRelationshipState,
   getRelationshipDisplayLabel,
@@ -20,21 +23,6 @@ import {
   getNpcRelationshipRewardSummary,
 } from "@/lib/town/npcDialogue";
 import { ITEM_DATA } from "@/lib/items/itemData";
-
-type CreatureTrait =
-  | "none"
-  | "domestic"
-  | "industrious"
-  | "calm"
-  | "fertile"
-  | "quick"
-  | "sturdy"
-  | "affectionate"
-  | "keen"
-  | "barnwise"
-  | "surefooted"
-  | "night_prawler"
-  | "graceful";
 
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
@@ -84,6 +72,14 @@ function isExpiringSoon(
   return deadlineTotal - currentTotal <= 24 * 60;
 }
 
+function InventoryChip({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+      {label}: {value}
+    </div>
+  );
+}
+
 export default function TownPage() {
   const router = useRouter();
   const {
@@ -93,12 +89,17 @@ export default function TownPage() {
     currentLocation,
     playerData,
     creatures,
+    inventory,
+    knownRecipeIds,
     townStock,
     townQuests,
     townNpcs,
     townNpcQuests,
     travelLog,
     purchaseTownCreature,
+    purchaseMarketItem,
+    getItemCount,
+    knowsRecipe,
     submitCreatureToQuest,
     submitCreatureToNpcQuest,
     travelTo,
@@ -236,6 +237,9 @@ export default function TownPage() {
     return map;
   }, [townNpcs]);
 
+  const seedShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop");
+  const recipeShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "recipe_shop");
+
   return (
     <main className="min-h-screen overflow-hidden bg-gradient-to-b from-stone-100 to-amber-200 p-6">
       <div className="mx-auto max-w-7xl">
@@ -251,6 +255,13 @@ export default function TownPage() {
             <p><strong>Player Level:</strong> {playerData.level}</p>
             <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
             <p><strong>Creatures Owned:</strong> {creatures.length}</p>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <InventoryChip label="Inventory Entries" value={Object.keys(inventory).length} />
+            <InventoryChip label="Known Recipes" value={knownRecipeIds.length} />
+            <InventoryChip label="Wheat" value={getItemCount("wheat")} />
+            <InventoryChip label="Seeds" value={Object.keys(inventory).filter((id) => id.endsWith("_seed") && (inventory[id] ?? 0) > 0).length} />
           </div>
         </div>
 
@@ -330,7 +341,7 @@ export default function TownPage() {
               >
                 Seed Stall
                 <div className="mt-1 text-sm font-medium text-emerald-100">
-                  Maris Thorn • starter crop seeds
+                  Maris Thorn • buyable crop seeds
                 </div>
               </button>
 
@@ -341,7 +352,7 @@ export default function TownPage() {
               >
                 Recipe Counter
                 <div className="mt-1 text-sm font-medium text-rose-100">
-                  Tamsin Vale • cookbooks and kitchen charm
+                  Tamsin Vale • buyable recipe books
                 </div>
               </button>
 
@@ -383,7 +394,7 @@ export default function TownPage() {
               >
                 Farm-Economy NPCs
                 <div className="mt-1 text-sm font-medium text-fuchsia-100">
-                  identity, romance style, rewards, and image slots
+                  identity, romance tone, and stage rewards
                 </div>
               </button>
 
@@ -441,19 +452,23 @@ export default function TownPage() {
                   {getNpcGreeting("maris_thorn", relationship)}
                 </p>
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
-                  <p><strong>Build:</strong> {npc.bodyType}</p>
-                  <p><strong>Romance Tone:</strong> {npc.romanceStyle}</p>
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
+                  <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("maris_thorn", relationship)}</p>
                   <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("maris_thorn", relationship) ?? "none"}</p>
+                  <p><strong>Current Seeds Owned:</strong> {Object.keys(inventory).filter((id) => id.endsWith("_seed") && (inventory[id] ?? 0) > 0).length}</p>
                 </div>
               </div>
             );
           })()}
 
           <div className="grid gap-3">
-            {FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop")?.entries.map((entry) => {
+            {seedShopSection?.entries.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
               if (!item) return null;
+              const locked = entry.unlockRelationshipLevel
+                ? (farmNpcRelationshipMap.get("maris_thorn")?.level ?? 1) < entry.unlockRelationshipLevel
+                : false;
+
               return (
                 <div key={`seed-${entry.itemId}`} className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
@@ -463,18 +478,34 @@ export default function TownPage() {
                       <p className="mt-1 text-xs text-stone-600">
                         Grow time: {item.seedData?.growDays ?? "?"} days • Yield {item.seedData?.minYield ?? "?"}–{item.seedData?.maxYield ?? "?"}
                       </p>
+                      <p className="mt-2 text-xs font-semibold text-emerald-800">
+                        Owned: {getItemCount(entry.itemId)}
+                      </p>
                     </div>
                     <div className="text-right text-sm text-stone-700">
                       <p><strong>{entry.buyPrice} Gold</strong></p>
                       <p>Stock: {entry.stock}</p>
                     </div>
                   </div>
+
                   {entry.unlockRelationshipLevel ? (
                     <p className="mt-2 text-xs font-semibold text-emerald-800">
                       Unlocks at relationship level {entry.unlockRelationshipLevel}.
                     </p>
                   ) : null}
+
                   {entry.note ? <p className="mt-1 text-xs text-stone-600">{entry.note}</p> : null}
+
+                  <button
+                    type="button"
+                    disabled={locked || playerData.gold < entry.buyPrice}
+                    onClick={() => purchaseMarketItem(entry.itemId, entry.buyPrice)}
+                    className={`mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow ${
+                      locked || playerData.gold < entry.buyPrice ? "bg-stone-400" : "bg-emerald-700"
+                    }`}
+                  >
+                    {locked ? "Relationship Locked" : playerData.gold < entry.buyPrice ? "Not Enough Gold" : "Buy Seed"}
+                  </button>
                 </div>
               );
             })}
@@ -496,19 +527,22 @@ export default function TownPage() {
                   {getNpcGreeting("tamsin_vale", relationship)}
                 </p>
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
-                  <p><strong>Build:</strong> {npc.bodyType}</p>
-                  <p><strong>Romance Tone:</strong> {npc.romanceStyle}</p>
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
+                  <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("tamsin_vale", relationship)}</p>
                   <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("tamsin_vale", relationship) ?? "none"}</p>
+                  <p><strong>Known Recipes:</strong> {knownRecipeIds.length}</p>
                 </div>
               </div>
             );
           })()}
 
           <div className="grid gap-3">
-            {FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "recipe_shop")?.entries.map((entry) => {
+            {recipeShopSection?.entries.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
               if (!item) return null;
+              const unlocks = item.recipeUnlockIds ?? [];
+              const fullyKnown = unlocks.length > 0 && unlocks.every((recipeId) => knowsRecipe(recipeId));
+
               return (
                 <div key={`recipe-${entry.itemId}`} className="rounded-2xl border border-rose-200 bg-white p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
@@ -516,7 +550,7 @@ export default function TownPage() {
                       <p className="text-lg font-bold text-stone-900">{item.name}</p>
                       <p className="text-sm text-stone-700">{item.description}</p>
                       <p className="mt-1 text-xs text-stone-600">
-                        Unlocks: {item.recipeUnlockIds?.join(", ") ?? "No recipes listed"}
+                        Unlocks: {unlocks.join(", ") || "No recipes listed"}
                       </p>
                     </div>
                     <div className="text-right text-sm text-stone-700">
@@ -524,6 +558,17 @@ export default function TownPage() {
                       <p>Stock: {entry.stock}</p>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    disabled={fullyKnown || playerData.gold < entry.buyPrice}
+                    onClick={() => purchaseMarketItem(entry.itemId, entry.buyPrice)}
+                    className={`mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow ${
+                      fullyKnown || playerData.gold < entry.buyPrice ? "bg-stone-400" : "bg-rose-700"
+                    }`}
+                  >
+                    {fullyKnown ? "Already Learned" : playerData.gold < entry.buyPrice ? "Not Enough Gold" : "Buy Recipe Book"}
+                  </button>
                 </div>
               );
             })}
@@ -545,10 +590,10 @@ export default function TownPage() {
                   {getNpcGreeting("selene_voss", relationship)}
                 </p>
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
-                  <p><strong>Build:</strong> {npc.bodyType}</p>
-                  <p><strong>Romance Tone:</strong> {npc.romanceStyle}</p>
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
+                  <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("selene_voss", relationship)}</p>
                   <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("selene_voss", relationship) ?? "none"}</p>
+                  <p><strong>Cooked Goods Owned:</strong> {getItemCount("apple_pie") + getItemCount("berry_tart") + getItemCount("hearty_stew")}</p>
                 </div>
               </div>
             );
@@ -565,12 +610,16 @@ export default function TownPage() {
                       <p className="text-sm text-stone-700">
                         {item?.name ?? entry.itemId} • {entry.flavor}
                       </p>
+                      <p className="mt-1 text-xs font-semibold text-purple-800">
+                        You currently own: {getItemCount(entry.itemId)}
+                      </p>
                     </div>
                     <div className="text-right text-sm text-stone-700">
                       <p><strong>x{entry.bonusSellMultiplier.toFixed(2)}</strong></p>
                       <p>sell bonus</p>
                     </div>
                   </div>
+
                   {entry.unlockRelationshipLevel ? (
                     <p className="mt-2 text-xs font-semibold text-purple-800">
                       Unlocks at relationship level {entry.unlockRelationshipLevel}.
@@ -708,7 +757,7 @@ export default function TownPage() {
 
                 <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-stone-700">
                   <p className="font-semibold text-stone-900">Farewell Flavor</p>
-                  <p className="mt-1">{npc.farewellText[0] ?? "See you next time."}</p>
+                  <p className="mt-1">{npc.farewellText?.[0] ?? "See you next time."}</p>
                 </div>
               </div>
             );

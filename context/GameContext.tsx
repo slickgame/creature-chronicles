@@ -8,6 +8,10 @@ import {
   useEffect,
 } from "react";
 
+import { ITEM_DATA } from "@/lib/items/itemData";
+import { DEFAULT_KNOWN_RECIPE_IDS } from "@/lib/cooking/recipeData";
+
+
 type CreatureStats = {
   strength: number;
   endurance: number;
@@ -222,6 +226,9 @@ type TownNpcQuest = {
   completed: boolean;
 };
 
+type InventoryState = Record<string, number>;
+
+
 type SaveData = {
   currentDay: number;
   currentHour: number;
@@ -238,6 +245,8 @@ type SaveData = {
   townNpcQuests: TownNpcQuest[];
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
+  inventory: InventoryState;
+  knownRecipeIds: string[];
 };
 
 type GameContextType = {
@@ -272,6 +281,11 @@ type GameContextType = {
   cleanHome: (creatureId: number) => void;
   workFields: (creatureId: number) => void;
   careForCreature: (creatureId: number, careType: "feed" | "groom" | "recovery") => void;
+  inventory: InventoryState;
+  knownRecipeIds: string[];
+  purchaseMarketItem: (itemId: string, price: number) => boolean;
+  getItemCount: (itemId: string) => number;
+  knowsRecipe: (recipeId: string) => boolean;
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -851,6 +865,26 @@ function normalizeHomeState(homeState?: HomeState): HomeState {
     cleanliness: homeState?.cleanliness ?? 70,
     foodStock: homeState?.foodStock ?? 10,
     wheatStock: homeState?.wheatStock ?? 5,
+  };
+}
+
+function normalizeInventory(inventory?: InventoryState): InventoryState {
+  return inventory && typeof inventory === "object" ? inventory : {};
+}
+
+function normalizeKnownRecipes(recipeIds?: string[]): string[] {
+  const combined = [...DEFAULT_KNOWN_RECIPE_IDS, ...(Array.isArray(recipeIds) ? recipeIds : [])];
+  return Array.from(new Set(combined));
+}
+
+function addItemToInventory(
+  inventory: InventoryState,
+  itemId: string,
+  quantity = 1
+): InventoryState {
+  return {
+    ...inventory,
+    [itemId]: (inventory[itemId] ?? 0) + quantity,
   };
 }
 
@@ -1574,6 +1608,14 @@ const defaultPlayerData: PlayerData = {
 
 const defaultHomeState: HomeState = { cleanliness: 70, foodStock: 10, wheatStock: 5 };
 
+const defaultInventory: InventoryState = {
+  wheat: 2,
+  carrot: 1,
+  milk: 1,
+};
+
+const defaultKnownRecipeIds = [...DEFAULT_KNOWN_RECIPE_IDS];
+
 const defaultCreatures: Creature[] = [
   normalizeCreature({ ...horseTemplate, id: 1, nickname: "Starter Horse" }),
   normalizeCreature({ ...catTemplate, id: 2, nickname: "Starter Cat" }),
@@ -1619,6 +1661,8 @@ const defaultSaveData: SaveData = {
   townNpcQuests: generateTownNpcQuests(1),
   paidTaxMonths: [],
   travelLog: [],
+  inventory: defaultInventory,
+  knownRecipeIds: defaultKnownRecipeIds,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -1641,6 +1685,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [townNpcQuests, setTownNpcQuests] = useState(defaultSaveData.townNpcQuests);
   const [paidTaxMonths, setPaidTaxMonths] = useState<number[]>(defaultSaveData.paidTaxMonths);
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
+  const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
+  const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
 
   useEffect(() => {
     const savedGame = localStorage.getItem(STORAGE_KEY);
@@ -1684,6 +1730,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         );
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
+        setInventory(normalizeInventory(parsedSave.inventory));
+        setKnownRecipeIds(normalizeKnownRecipes(parsedSave.knownRecipeIds));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -2404,6 +2452,46 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
+  function getItemCount(itemId: string) {
+  return inventory[itemId] ?? 0;
+}
+
+function knowsRecipe(recipeId: string) {
+  return knownRecipeIds.includes(recipeId);
+}
+
+function purchaseMarketItem(itemId: string, price: number) {
+  const item = ITEM_DATA[itemId];
+  if (!item) return false;
+  if (playerData.gold < price) return false;
+
+  if (item.category === "recipe_book") {
+    const unlocks = item.recipeUnlockIds ?? [];
+    const newRecipes = unlocks.filter((recipeId) => !knownRecipeIds.includes(recipeId));
+    if (newRecipes.length === 0) return false;
+
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 10);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    setPlayerData((prev) => ({ ...prev, gold: prev.gold - price }));
+    setKnownRecipeIds((prev) => Array.from(new Set([...prev, ...newRecipes])));
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    return true;
+  }
+
+  const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 10);
+  setCurrentDay(updatedClock.day);
+  setCurrentHour(updatedClock.hour);
+  setCurrentMinute(updatedClock.minute);
+  setPlayerData((prev) => ({ ...prev, gold: prev.gold - price }));
+  setInventory((prev) => addItemToInventory(prev, itemId, 1));
+  setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+  setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  return true;
+}
+
   function resetGame() {
     const freshHorse = normalizeCreature({
       ...horseTemplate,
@@ -2458,6 +2546,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownNpcQuests(generateTownNpcQuests(1));
     setPaidTaxMonths([]);
     setTravelLog([]);
+    setInventory(defaultInventory);
+    setKnownRecipeIds(defaultKnownRecipeIds);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -2495,6 +2585,11 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         cleanHome,
         workFields,
         careForCreature,
+        inventory,
+        knownRecipeIds,
+        purchaseMarketItem,
+        getItemCount,
+        knowsRecipe,
       }}
     >
       {children}
