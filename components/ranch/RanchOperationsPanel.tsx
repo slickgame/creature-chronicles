@@ -48,6 +48,7 @@ export default function RanchOperationsPanel({
     knownRecipeIds,
     getItemCount,
     cookMeal,
+    cookRecipe,
     cleanHome,
     workFields,
     breedCreatures,
@@ -79,6 +80,7 @@ export default function RanchOperationsPanel({
         return {
           ...recipe,
           craftable,
+          outputItem: ITEM_DATA[recipe.outputItemId],
         };
       });
   }, [knownRecipeIds, getItemCount]);
@@ -91,7 +93,7 @@ export default function RanchOperationsPanel({
         <div>
           <h2 className="text-3xl font-bold text-emerald-950">Ranch Operations</h2>
           <p className="text-stone-600">
-            Central ranch hub for chores, field work, creatures, eggs, breeding, and now your farm-economy ownership.
+            Central ranch hub for chores, field work, creatures, eggs, breeding, and now actual recipe crafting.
           </p>
         </div>
 
@@ -144,11 +146,11 @@ export default function RanchOperationsPanel({
       </div>
 
       {activeTab === "house" && (
-        <div className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+        <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
             <p className="text-xl font-bold text-stone-900">House Chores</p>
             <p className="mt-2 text-sm text-stone-600">
-              These still use your current basic home systems while the fuller cooking system is being layered in.
+              These use your current ranch-side home actions, now allowed from the Ranch screen too.
             </p>
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -178,18 +180,18 @@ export default function RanchOperationsPanel({
                     : "border-stone-300 bg-stone-100 text-stone-500"
                 }`}
               >
-                <p className="text-lg font-bold">Cook Meal</p>
+                <p className="text-lg font-bold">Basic Cook Meal</p>
                 <p className="mt-2 text-sm">
-                  Current basic meal action. Uses ranch home resources while the full recipe system is phased in.
+                  Older fallback meal action using ranch home resources.
                 </p>
               </button>
             </div>
           </div>
 
           <div className="rounded-2xl border-2 border-rose-200 bg-white p-4 shadow">
-            <p className="text-xl font-bold text-stone-900">Known Recipes</p>
+            <p className="text-xl font-bold text-stone-900">Recipe Workshop</p>
             <p className="mt-2 text-sm text-stone-600">
-              These are the recipes currently learned from Tamsin’s books.
+              Learned recipes can now be crafted here into actual inventory items.
             </p>
 
             <div className="mt-4 space-y-3">
@@ -213,6 +215,12 @@ export default function RanchOperationsPanel({
                             .map((ingredient) => `${ingredient.quantity} ${ITEM_DATA[ingredient.itemId]?.name ?? ingredient.itemId}`)
                             .join(", ")}
                         </p>
+                        <p className="mt-1 text-xs text-stone-700">
+                          Output: {recipe.outputQuantity} {recipe.outputItem?.name ?? recipe.outputItemId}
+                        </p>
+                        <p className="mt-1 text-xs text-stone-700">
+                          Cook Time: {recipe.cookMinutes} min
+                        </p>
                       </div>
 
                       <div
@@ -222,8 +230,24 @@ export default function RanchOperationsPanel({
                             : "border border-stone-300 bg-stone-100 text-stone-700"
                         }`}
                       >
-                        {recipe.craftable ? "Ingredients Ready" : "Missing Ingredients"}
+                        {recipe.craftable ? "Ready to Cook" : "Missing Ingredients"}
                       </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {creatures.slice(0, 3).map((creature) => (
+                        <button
+                          key={`${recipe.id}-${creature.id}`}
+                          type="button"
+                          disabled={!recipe.craftable}
+                          onClick={() => cookRecipe(recipe.id, creature.id)}
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                            recipe.craftable ? "bg-rose-700" : "bg-stone-400"
+                          }`}
+                        >
+                          Cook with {creature.nickname}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 ))
@@ -272,7 +296,7 @@ export default function RanchOperationsPanel({
           <div className="rounded-2xl border-2 border-amber-200 bg-white p-4 shadow">
             <p className="text-xl font-bold text-stone-900">Owned Seeds</p>
             <p className="mt-2 text-sm text-stone-600">
-              Seeds bought from Maris now appear here, ready for the next planting milestone.
+              Seeds bought from Maris appear here, ready for the planting milestone next.
             </p>
 
             <div className="mt-4 space-y-3">

@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import { ITEM_DATA } from "@/lib/items/itemData";
-import { DEFAULT_KNOWN_RECIPE_IDS } from "@/lib/cooking/recipeData";
+import { DEFAULT_KNOWN_RECIPE_IDS, RECIPE_DATA } from "@/lib/cooking/recipeData";
 
 
 type CreatureStats = {
@@ -286,6 +286,8 @@ type GameContextType = {
   purchaseMarketItem: (itemId: string, price: number) => boolean;
   getItemCount: (itemId: string) => number;
   knowsRecipe: (recipeId: string) => boolean;
+  cookRecipe: (recipeId: string, creatureId: number) => boolean;
+
 };
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -893,6 +895,25 @@ const defaultTownNpcs: TownNpc[] = [
   { id: "tobin", name: "Tobin", role: "Courier Captain", personality: "Busy, efficient, and speed-obsessed.", relationship: 0, rewardMilestonesClaimed: [] },
   { id: "selene", name: "Selene", role: "House Steward", personality: "Warm, observant, and fond of gentle creatures.", relationship: 0, rewardMilestonesClaimed: [] },
 ];
+
+function removeItemFromInventory(
+  inventory: InventoryState,
+  itemId: string,
+  quantity = 1
+): InventoryState {
+  const current = inventory[itemId] ?? 0;
+  const next = Math.max(0, current - quantity);
+
+  if (next <= 0) {
+    const { [itemId]: _removed, ...rest } = inventory;
+    return rest;
+  }
+
+  return {
+    ...inventory,
+    [itemId]: next,
+  };
+}
 
 function normalizeTownNpc(npc: TownNpc): TownNpc {
   return {
@@ -2302,7 +2323,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
   }
 
   function cookMeal(creatureId: number) {
-    if (currentLocation !== "home") return;
+    if (currentLocation !== "home" && currentLocation !== "ranch") return;
     if (homeState.wheatStock < 1) return;
 
     const creature = creatures.find((c) => c.id === creatureId);
@@ -2353,7 +2374,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
   }
 
   function cleanHome(creatureId: number) {
-    if (currentLocation !== "home") return;
+    if (currentLocation !== "home" && currentLocation !== "ranch") return;
 
     const creature = creatures.find((c) => c.id === creatureId);
     if (!creature) return;
@@ -2403,7 +2424,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
   }
 
   function workFields(creatureId: number) {
-    if (currentLocation !== "home") return;
+    if (currentLocation !== "home" && currentLocation !== "ranch") return;
+
 
     const creature = creatures.find((c) => c.id === creatureId);
     if (!creature) return;
@@ -2455,6 +2477,78 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
+
+function cookRecipe(recipeId: string, creatureId: number) {
+  if (currentLocation !== "home" && currentLocation !== "ranch") return false;
+
+  const recipe = RECIPE_DATA[recipeId];
+  const creature = creatures.find((c) => c.id === creatureId);
+
+  if (!recipe || !creature) return false;
+  if (!knownRecipeIds.includes(recipeId)) return false;
+
+  const speciesBonus = creature.name === "Cat" ? 2 : 0;
+  const domesticEntry = getBestTraitEntry(creature, "domestic");
+  const quickEntry = getBestTraitEntry(creature, "quick");
+  const traitBonus =
+    (domesticEntry ? getTraitFlatBonus(domesticEntry.grade, 3) : 0) +
+    (quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0);
+
+  const staminaCost = Math.max(
+    4,
+    12 - Math.floor((creature.stats.endurance + creature.stats.vitality) / 6) - getSturdyTraitStaminaDiscount(creature)
+  );
+
+  if (creature.breedingStamina < staminaCost) return false;
+
+  const hasIngredients = recipe.ingredients.every(
+    (ingredient) => (inventory[ingredient.itemId] ?? 0) >= ingredient.quantity
+  );
+
+  if (!hasIngredients) return false;
+
+  const minutesSpent = Math.max(
+    8,
+    recipe.cookMinutes -
+      Math.floor(
+        (creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level + speciesBonus + traitBonus) / 2
+      )
+  );
+
+  const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
+  setCurrentDay(updatedClock.day);
+  setCurrentHour(updatedClock.hour);
+  setCurrentMinute(updatedClock.minute);
+
+  setInventory((prev) => {
+    let nextInventory = { ...prev };
+
+    for (const ingredient of recipe.ingredients) {
+      nextInventory = removeItemFromInventory(nextInventory, ingredient.itemId, ingredient.quantity);
+    }
+
+    nextInventory = addItemToInventory(nextInventory, recipe.outputItemId, recipe.outputQuantity);
+    return nextInventory;
+  });
+
+  setCreatures((prev) =>
+    prev.map((c) => {
+      if (c.id !== creatureId) return c;
+
+      const updated = {
+        ...c,
+        breedingStamina: c.breedingStamina - staminaCost,
+        happiness: clamp(c.happiness + 2, 0, 100),
+      };
+
+      return applyCreatureSkillXp(updated, "cooking", 14);
+    })
+  );
+
+  setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+  setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  return true;
+}
 
   function getItemCount(itemId: string) {
   return inventory[itemId] ?? 0;
@@ -2594,6 +2688,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         purchaseMarketItem,
         getItemCount,
         knowsRecipe,
+        cookRecipe,
       }}
     >
       {children}
