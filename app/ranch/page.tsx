@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import RanchOperationsPanel from "@/components/ranch/RanchOperationsPanel";
@@ -14,7 +14,7 @@ function formatTime(hour: number, minute: number) {
   return `${displayHour}:${minute.toString().padStart(2, "0")} ${suffix}`;
 }
 
-export default function RanchPage() {
+function RanchPageContent() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const requestedInventory = searchParams.get("inventory");
@@ -118,5 +118,21 @@ export default function RanchPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function RanchPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-gradient-to-b from-green-100 to-lime-200 p-6">
+          <div className="mx-auto max-w-7xl rounded-3xl border-4 border-green-900 bg-white/85 p-6 text-green-950 shadow-xl">
+            Loading ranch...
+          </div>
+        </main>
+      }
+    >
+      <RanchPageContent />
+    </Suspense>
   );
 }

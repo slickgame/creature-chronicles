@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import { RECIPE_DATA } from "@/lib/cooking/recipeData";
+import { CROP_DATA } from "@/lib/farming/cropData";
 import {
   type InventoryCategory,
   getCategoryLabel,
@@ -93,18 +94,21 @@ export default function RanchOperationsPanel({
     currentDay,
     currentHour,
     currentMinute,
+    currentLocation,
     playerData,
     homeState,
     creatures,
     eggs,
     breedingSelection,
     inventory,
+    fieldPlots,
     knownRecipeIds,
     getItemCount,
     cookMeal,
     cookRecipe,
     cleanHome,
-    workFields,
+    plantCrop,
+    harvestPlot,
     breedCreatures,
     hatchEgg,
   } = useGame();
@@ -112,6 +116,8 @@ export default function RanchOperationsPanel({
   const [activeTab, setActiveTab] = useState<RanchTab>(initialTab);
   const [inventoryOpen, setInventoryOpen] = useState(initialInventoryOpen);
   const [selectedCreatureId, setSelectedCreatureId] = useState<number | null>(null);
+  const [selectedSeedItemId, setSelectedSeedItemId] = useState<string>("");
+  const [selectedFieldCreatureId, setSelectedFieldCreatureId] = useState<number | null>(null);
 
   const ownedSeedEntries = useMemo(() => {
     return Object.entries(inventory)
@@ -167,6 +173,15 @@ export default function RanchOperationsPanel({
   }, [knownRecipeIds, getItemCount]);
 
   const firstCreature = creatures[0] ?? null;
+  const selectedSeedEntry =
+    ownedSeedEntries.find((entry) => entry.itemId === selectedSeedItemId) ??
+    ownedSeedEntries[0] ??
+    null;
+  const fieldCreature =
+    creatures.find((creature) => creature.id === selectedFieldCreatureId) ??
+    firstCreature;
+  const growingPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining > 0).length;
+  const readyPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining <= 0).length;
   const selectedCreature =
     creatures.find((creature) => creature.id === selectedCreatureId) ?? null;
 
@@ -355,32 +370,71 @@ export default function RanchOperationsPanel({
             <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
               <p className="text-xl font-bold text-stone-900">Field Work</p>
               <p className="mt-2 text-sm text-stone-600">
-                The current field action still produces wheat through the older ranch loop.
+                Plant owned seeds, wait out the day countdown, then harvest produce into inventory.
               </p>
 
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => firstCreature && workFields(firstCreature.id)}
-                  disabled={!firstCreature}
-                  className={`rounded-2xl border-2 p-4 text-left shadow ${
-                    firstCreature
-                      ? "border-emerald-200 bg-emerald-50"
-                      : "border-stone-300 bg-stone-100 text-stone-500"
-                  }`}
-                >
-                  <p className="text-lg font-bold">Work Fields</p>
-                  <p className="mt-2 text-sm">
-                    Uses the first available creature while the dedicated crop-planting system is phased in.
-                  </p>
-                </button>
+              <div className="mt-4 space-y-3">
+                <label className="block text-sm font-semibold text-stone-800">
+                  Seed
+                  <select
+                    value={selectedSeedEntry?.itemId ?? ""}
+                    onChange={(event) => setSelectedSeedItemId(event.target.value)}
+                    className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm text-stone-800"
+                  >
+                    {ownedSeedEntries.length === 0 ? (
+                      <option value="">No seeds owned</option>
+                    ) : (
+                      ownedSeedEntries.map((entry) => (
+                        <option key={entry.itemId} value={entry.itemId}>
+                          {entry.item?.name ?? entry.itemId} x{entry.count}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+
+                <label className="block text-sm font-semibold text-stone-800">
+                  Creature
+                  <select
+                    value={fieldCreature?.id ?? ""}
+                    onChange={(event) => setSelectedFieldCreatureId(Number(event.target.value))}
+                    className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm text-stone-800"
+                  >
+                    {creatures.map((creature) => (
+                      <option key={creature.id} value={creature.id}>
+                        {creature.nickname} - Stamina {creature.breedingStamina}/{creature.maxBreedingStamina} - Field Lv {creature.skills.fieldWork.level}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-emerald-50 px-3 py-2">
+                    <p className="text-stone-500">Empty</p>
+                    <p className="font-bold text-stone-900">{fieldPlots.length - growingPlotCount - readyPlotCount}</p>
+                  </div>
+                  <div className="rounded-2xl bg-amber-50 px-3 py-2">
+                    <p className="text-stone-500">Growing</p>
+                    <p className="font-bold text-stone-900">{growingPlotCount}</p>
+                  </div>
+                  <div className="rounded-2xl bg-rose-50 px-3 py-2">
+                    <p className="text-stone-500">Ready</p>
+                    <p className="font-bold text-stone-900">{readyPlotCount}</p>
+                  </div>
+                </div>
+
+                {currentLocation !== "home" && currentLocation !== "ranch" ? (
+                  <div className="rounded-2xl border border-stone-300 bg-stone-50 p-3 text-sm text-stone-600">
+                    Return home or to the ranch before field work.
+                  </div>
+                ) : null}
               </div>
             </div>
 
             <div className="rounded-2xl border-2 border-amber-200 bg-white p-4 shadow">
               <p className="text-xl font-bold text-stone-900">Owned Seeds</p>
               <p className="mt-2 text-sm text-stone-600">
-                Seeds bought from Maris appear here, ready for the planting milestone next.
+                Seeds bought from Maris can be planted in any empty plot.
               </p>
 
               <div className="mt-4 space-y-3">
@@ -420,6 +474,98 @@ export default function RanchOperationsPanel({
                 >
                   Visit Maris for More Seeds
                 </Link>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border-2 border-lime-200 bg-white p-4 shadow xl:col-span-2">
+              <p className="text-xl font-bold text-stone-900">Crop Plots</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {fieldPlots.map((plot) => {
+                  const crop = plot.cropId ? CROP_DATA[plot.cropId] : null;
+                  const produceItem = crop ? ITEM_DATA[crop.produceItemId] : null;
+                  const isReady = Boolean(plot.cropId && plot.daysRemaining <= 0);
+                  const canPlant =
+                    !plot.cropId &&
+                    Boolean(selectedSeedEntry && fieldCreature) &&
+                    (currentLocation === "home" || currentLocation === "ranch");
+                  const canHarvest =
+                    isReady &&
+                    Boolean(fieldCreature) &&
+                    (currentLocation === "home" || currentLocation === "ranch");
+
+                  return (
+                    <div
+                      key={plot.id}
+                      className={`rounded-2xl border-2 p-4 shadow ${
+                        isReady
+                          ? "border-rose-300 bg-rose-50"
+                          : plot.cropId
+                          ? "border-amber-300 bg-amber-50"
+                          : "border-emerald-200 bg-emerald-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-lg font-bold text-stone-900">Plot {plot.id}</p>
+                          <p className="text-sm text-stone-600">{crop ? crop.name : "Empty soil"}</p>
+                        </div>
+                        <div className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-800">
+                          {isReady ? "Ready" : plot.cropId ? `${plot.daysRemaining} day(s)` : "Open"}
+                        </div>
+                      </div>
+
+                      {crop ? (
+                        <div className="mt-3 space-y-1 text-sm text-stone-700">
+                          <p>{crop.description}</p>
+                          <p>
+                            Harvest: {plot.minYield}-{plot.maxYield} {produceItem?.name ?? crop.produceItemId}
+                          </p>
+                          <p>Planted Day {plot.plantedDay ?? "?"}</p>
+                        </div>
+                      ) : (
+                        <div className="mt-3 text-sm text-stone-700">
+                          {selectedSeedEntry ? (
+                            <p>Ready for {selectedSeedEntry.item?.name ?? selectedSeedEntry.itemId}.</p>
+                          ) : (
+                            <p>Buy seeds in Town to start a crop here.</p>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-4">
+                        {plot.cropId ? (
+                          <button
+                            type="button"
+                            disabled={!canHarvest}
+                            onClick={() => {
+                              if (fieldCreature) harvestPlot(plot.id, fieldCreature.id);
+                            }}
+                            className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow ${
+                              canHarvest ? "bg-rose-700" : "bg-stone-400"
+                            }`}
+                          >
+                            {isReady ? "Harvest" : "Growing"}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={!canPlant}
+                            onClick={() => {
+                              if (selectedSeedEntry && fieldCreature) {
+                                plantCrop(plot.id, selectedSeedEntry.itemId, fieldCreature.id);
+                              }
+                            }}
+                            className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow ${
+                              canPlant ? "bg-emerald-700" : "bg-stone-400"
+                            }`}
+                          >
+                            Plant
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

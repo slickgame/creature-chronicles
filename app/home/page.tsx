@@ -24,7 +24,6 @@ export default function HomePage() {
     travelTo,
     cookMeal,
     cleanHome,
-    workFields,
   } = useGame();
 
   function handleTravelTo(destination: "home" | "ranch" | "town") {
@@ -114,7 +113,7 @@ export default function HomePage() {
             </div>
             <div className="rounded-2xl bg-orange-50 p-4">
               <p className="font-semibold">Field Work</p>
-              <p>Generates wheat stock.</p>
+              <p>Plant and harvest persistent crop plots at the ranch.</p>
               <p>Best with Strength + Endurance + Field Work skill.</p>
             </div>
           </div>
@@ -229,15 +228,10 @@ export default function HomePage() {
                     Stamina {creature.breedingStamina}/{creature.maxBreedingStamina}
                   </p>
                   <button
-                    onClick={() => workFields(creature.id)}
-                    disabled={currentLocation !== "home"}
-                    className={`mt-3 w-full rounded-2xl px-4 py-3 font-semibold text-white shadow ${
-                      currentLocation === "home"
-                        ? "bg-amber-700"
-                        : "bg-gray-500"
-                    }`}
+                    onClick={() => router.push("/ranch?tab=fields")}
+                    className="mt-3 w-full rounded-2xl bg-amber-700 px-4 py-3 font-semibold text-white shadow"
                   >
-                    Work Fields
+                    Open Ranch Fields
                   </button>
                 </div>
               ))}

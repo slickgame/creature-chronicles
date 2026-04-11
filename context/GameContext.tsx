@@ -10,6 +10,18 @@ import {
 
 import { ITEM_DATA } from "@/lib/items/itemData";
 import { DEFAULT_KNOWN_RECIPE_IDS, RECIPE_DATA } from "@/lib/cooking/recipeData";
+import {
+  type FieldPlot,
+  advanceFieldPlotsByDay,
+  createDefaultFieldPlots,
+  createEmptyFieldPlot,
+  createPlantedPlot,
+  getFieldHarvestCost,
+  getFieldPlantingCost,
+  getPlotProduceItemId,
+  normalizeFieldPlots,
+  rollHarvestYield,
+} from "@/lib/game/farming";
 
 
 type CreatureStats = {
@@ -247,6 +259,7 @@ type SaveData = {
   travelLog: TravelLogEntry[];
   inventory: InventoryState;
   knownRecipeIds: string[];
+  fieldPlots: FieldPlot[];
 };
 
 type GameContextType = {
@@ -265,6 +278,7 @@ type GameContextType = {
   townNpcQuests: TownNpcQuest[];
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
+  fieldPlots: FieldPlot[];
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -280,6 +294,8 @@ type GameContextType = {
   cookMeal: (creatureId: number) => void;
   cleanHome: (creatureId: number) => void;
   workFields: (creatureId: number) => void;
+  plantCrop: (plotId: number, seedItemId: string, creatureId: number) => boolean;
+  harvestPlot: (plotId: number, creatureId: number) => boolean;
   careForCreature: (creatureId: number, careType: "feed" | "groom" | "recovery") => void;
   inventory: InventoryState;
   knownRecipeIds: string[];
@@ -1415,6 +1431,21 @@ function applyCreatureSkillXp(creature: Creature, skillName: keyof CreatureSkill
   };
 }
 
+function getFieldWorkProfile(creature: Creature) {
+  const industriousEntry = getBestTraitEntry(creature, "industrious");
+  const quickEntry = getBestTraitEntry(creature, "quick");
+
+  return {
+    speciesName: creature.name,
+    strength: creature.stats.strength,
+    endurance: creature.stats.endurance,
+    fieldWorkLevel: creature.skills.fieldWork.level,
+    staminaDiscount: getSturdyTraitStaminaDiscount(creature),
+    industriousBonus: industriousEntry ? getTraitFlatBonus(industriousEntry.grade, 4) : 0,
+    quickBonus: quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0,
+  };
+}
+
 function getParticipantSnapshot(
   participantType: "player" | "creature",
   creature: Creature | null,
@@ -1641,6 +1672,7 @@ const defaultInventory: InventoryState = {
 };
 
 const defaultKnownRecipeIds = [...DEFAULT_KNOWN_RECIPE_IDS];
+const defaultFieldPlots = createDefaultFieldPlots();
 
 const defaultCreatures: Creature[] = [
   normalizeCreature({ ...horseTemplate, id: 1, nickname: "Starter Horse" }),
@@ -1689,6 +1721,7 @@ const defaultSaveData: SaveData = {
   travelLog: [],
   inventory: defaultInventory,
   knownRecipeIds: defaultKnownRecipeIds,
+  fieldPlots: defaultFieldPlots,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -1713,6 +1746,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
   const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
   const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
+  const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
   
 
   useEffect(() => {
@@ -1759,6 +1793,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setTravelLog(parsedSave.travelLog ?? []);
         setInventory(normalizeInventory(parsedSave.inventory));
         setKnownRecipeIds(normalizeKnownRecipes(parsedSave.knownRecipeIds));
+        setFieldPlots(normalizeFieldPlots(parsedSave.fieldPlots));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -1787,6 +1822,7 @@ useEffect(() => {
     travelLog,
     inventory,
     knownRecipeIds,
+    fieldPlots,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -1809,6 +1845,7 @@ useEffect(() => {
   travelLog,
   inventory,
   knownRecipeIds,
+  fieldPlots,
 ]);
 
   function nextDay() {
@@ -1858,6 +1895,8 @@ useEffect(() => {
       cleanliness: Math.max(0, prev.cleanliness - 8),
       foodStock: Math.max(0, prev.foodStock - currentCreatureCount),
     }));
+
+    setFieldPlots((prev) => advanceFieldPlotsByDay(prev));
 
     if (newMonth !== previousMonth && !paidTaxMonths.includes(previousMonth)) {
       const taxDue = getMonthlyTaxAmount(playerData, creatures, eggs);
@@ -2330,7 +2369,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
   function cookMeal(creatureId: number) {
     if (currentLocation !== "home" && currentLocation !== "ranch") return;
-    if (homeState.wheatStock < 1) return;
+    if (homeState.wheatStock < 1 && (inventory.wheat ?? 0) < 1) return;
 
     const creature = creatures.find((c) => c.id === creatureId);
     if (!creature) return;
@@ -2365,7 +2404,12 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setHomeState((prev) => ({ ...prev, wheatStock: prev.wheatStock - 1, foodStock: prev.foodStock + foodGain }));
+    if (homeState.wheatStock > 0) {
+      setHomeState((prev) => ({ ...prev, wheatStock: prev.wheatStock - 1, foodStock: prev.foodStock + foodGain }));
+    } else {
+      setHomeState((prev) => ({ ...prev, foodStock: prev.foodStock + foodGain }));
+      setInventory((prev) => removeItemFromInventory(prev, "wheat", 1));
+    }
 
     setCreatures((prev) =>
       prev.map((c) => {
@@ -2432,56 +2476,87 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
   function workFields(creatureId: number) {
     if (currentLocation !== "home" && currentLocation !== "ranch") return;
 
-
     const creature = creatures.find((c) => c.id === creatureId);
     if (!creature) return;
 
-    const speciesBonus = creature.name === "Horse" ? 3 : 0;
-    const industriousEntry = getBestTraitEntry(creature, "industrious");
-    const quickEntry = getBestTraitEntry(creature, "quick");
-    const traitBonus =
-      (industriousEntry ? getTraitFlatBonus(industriousEntry.grade, 4) : 0) +
-      (quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0);
+    const readyPlot = fieldPlots.find((plot) => plot.cropId && plot.daysRemaining <= 0);
+    if (!readyPlot) return;
 
-    const minutesSpent = Math.max(
-      25,
-      90 -
-        Math.floor(
-          (creature.stats.strength + creature.stats.endurance + creature.skills.fieldWork.level * 2 + speciesBonus + traitBonus) / 2
-        )
-    );
-    const staminaCost = Math.max(
-      6,
-      18 - Math.floor((creature.stats.endurance + creature.stats.strength) / 6) - getSturdyTraitStaminaDiscount(creature)
-    );
-    const wheatGain = Math.max(
-      1,
-      2 + Math.floor((creature.stats.strength + creature.stats.endurance + creature.skills.fieldWork.level + speciesBonus + traitBonus) / 8)
-    );
+    harvestPlot(readyPlot.id, creature.id);
+  }
 
-    if (creature.breedingStamina < staminaCost) return;
+  function plantCrop(plotId: number, seedItemId: string, creatureId: number) {
+    if (currentLocation !== "home" && currentLocation !== "ranch") return false;
 
-    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
+    const plot = fieldPlots.find((item) => item.id === plotId);
+    const creature = creatures.find((c) => c.id === creatureId);
+    const plantedPlot = createPlantedPlot(plotId, seedItemId, currentDay);
+
+    if (!plot || plot.cropId || !creature || !plantedPlot) return false;
+    if ((inventory[seedItemId] ?? 0) < 1) return false;
+
+    const fieldCost = getFieldPlantingCost(getFieldWorkProfile(creature));
+    if (creature.breedingStamina < fieldCost.staminaCost) return false;
+
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setHomeState((prev) => ({
-      ...prev,
-      wheatStock: prev.wheatStock + wheatGain,
-      cleanliness: Math.max(0, prev.cleanliness - 2),
-    }));
-
+    setInventory((prev) => removeItemFromInventory(prev, seedItemId, 1));
+    setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? plantedPlot : item)));
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== creatureId) return c;
-        const updated = { ...c, breedingStamina: c.breedingStamina - staminaCost };
-        return applyCreatureSkillXp(updated, "fieldWork", 12);
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - fieldCost.staminaCost,
+          happiness: clamp(c.happiness + 1, 0, 100),
+        };
+        return applyCreatureSkillXp(updated, "fieldWork", fieldCost.xpGain);
       })
     );
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    return true;
+  }
+
+  function harvestPlot(plotId: number, creatureId: number) {
+    if (currentLocation !== "home" && currentLocation !== "ranch") return false;
+
+    const plot = fieldPlots.find((item) => item.id === plotId);
+    const creature = creatures.find((c) => c.id === creatureId);
+    const produceItemId = plot ? getPlotProduceItemId(plot) : null;
+
+    if (!plot || !plot.cropId || plot.daysRemaining > 0 || !creature || !produceItemId) return false;
+
+    const fieldCost = getFieldHarvestCost(getFieldWorkProfile(creature));
+    if (creature.breedingStamina < fieldCost.staminaCost) return false;
+
+    const harvestYield = rollHarvestYield(plot);
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setInventory((prev) => addItemToInventory(prev, produceItemId, harvestYield));
+    setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? createEmptyFieldPlot(plotId) : item)));
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - fieldCost.staminaCost,
+          happiness: clamp(c.happiness + 1, 0, 100),
+        };
+        return applyCreatureSkillXp(updated, "fieldWork", fieldCost.xpGain);
+      })
+    );
+
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    return true;
   }
 
 function consumeInventoryItem(
@@ -2717,6 +2792,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setTravelLog([]);
     setInventory(defaultInventory);
     setKnownRecipeIds(defaultKnownRecipeIds);
+    setFieldPlots(createDefaultFieldPlots());
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -2738,6 +2814,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         townNpcQuests,
         paidTaxMonths,
         travelLog,
+        fieldPlots,
         nextDay,
         hatchEgg,
         breedCreatures,
@@ -2753,6 +2830,8 @@ function purchaseMarketItem(itemId: string, price: number) {
         cookMeal,
         cleanHome,
         workFields,
+        plantCrop,
+        harvestPlot,
         cookRecipe,
         careForCreature,
         inventory,
