@@ -43,8 +43,15 @@ export type FieldWorkProfile = {
   endurance: number;
   fieldWorkLevel: number;
   staminaDiscount: number;
+  timeDiscount?: number;
+  xpBonus?: number;
   industriousBonus: number;
   quickBonus: number;
+  plantingQualityBonus?: number;
+  wateringQualityBonus?: number;
+  fertilizerQualityBonus?: number;
+  harvestQualityBonus?: number;
+  harvestYieldBonus?: number;
 };
 
 export type FieldWorkCost = {
@@ -214,14 +221,18 @@ export function createPlantedPlot(
   seedItemId: string,
   plantedDay: number,
   season: GameSeason = "spring",
-  weather: GameWeather = "clear"
+  weather: GameWeather = "clear",
+  profile?: FieldWorkProfile
 ): FieldPlot | null {
   const seed = getPlantableSeedData(seedItemId);
   if (!seed) return null;
   const seasonModifier = getCropSeasonModifier(seed.seedData.cropId, season);
   const weatherInfo = getWeatherInfo(weather);
   const qualityScore = clampQualityScore(
-    DEFAULT_CROP_QUALITY_SCORE + seasonModifier.qualityDelta + Math.max(0, weatherInfo.qualityDelta)
+    DEFAULT_CROP_QUALITY_SCORE +
+      seasonModifier.qualityDelta +
+      Math.max(0, weatherInfo.qualityDelta) +
+      (profile?.plantingQualityBonus ?? 0)
   );
 
   return {
@@ -245,12 +256,12 @@ export function getFieldPlantingCost(profile: FieldWorkProfile): FieldWorkCost {
   const workScore = getFieldWorkScore(profile, 1);
 
   return {
-    minutesSpent: Math.max(10, 30 - Math.floor(workScore / 3)),
+    minutesSpent: Math.max(8, 30 - Math.floor(workScore / 3) - (profile.timeDiscount ?? 0)),
     staminaCost: Math.max(
       3,
       8 - Math.floor((profile.endurance + profile.strength) / 8) - profile.staminaDiscount
     ),
-    xpGain: 6,
+    xpGain: 6 + (profile.xpBonus ?? 0),
   };
 }
 
@@ -258,12 +269,12 @@ export function getFieldWateringCost(profile: FieldWorkProfile): FieldWorkCost {
   const workScore = getFieldWorkScore(profile, 1);
 
   return {
-    minutesSpent: Math.max(6, 18 - Math.floor(workScore / 5)),
+    minutesSpent: Math.max(5, 18 - Math.floor(workScore / 5) - (profile.timeDiscount ?? 0)),
     staminaCost: Math.max(
       2,
       6 - Math.floor((profile.endurance + profile.strength) / 10) - profile.staminaDiscount
     ),
-    xpGain: 5,
+    xpGain: 5 + (profile.xpBonus ?? 0),
   };
 }
 
@@ -284,12 +295,12 @@ export function getFieldFertilizingCost(profile: FieldWorkProfile): FieldWorkCos
   const workScore = getFieldWorkScore(profile, 1);
 
   return {
-    minutesSpent: Math.max(7, 20 - Math.floor(workScore / 5)),
+    minutesSpent: Math.max(5, 20 - Math.floor(workScore / 5) - (profile.timeDiscount ?? 0)),
     staminaCost: Math.max(
       2,
       6 - Math.floor((profile.endurance + profile.strength) / 10) - profile.staminaDiscount
     ),
-    xpGain: 5,
+    xpGain: 5 + (profile.xpBonus ?? 0),
   };
 }
 
@@ -297,12 +308,12 @@ export function getFieldHarvestCost(profile: FieldWorkProfile): FieldWorkCost {
   const workScore = getFieldWorkScore(profile, 2);
 
   return {
-    minutesSpent: Math.max(15, 45 - Math.floor(workScore / 2)),
+    minutesSpent: Math.max(12, 45 - Math.floor(workScore / 2) - (profile.timeDiscount ?? 0)),
     staminaCost: Math.max(
       4,
       12 - Math.floor((profile.endurance + profile.strength) / 7) - profile.staminaDiscount
     ),
-    xpGain: 12,
+    xpGain: 12 + (profile.xpBonus ?? 0),
   };
 }
 
@@ -320,7 +331,8 @@ export function waterFieldPlot(
     Math.floor(profile.fieldWorkLevel / 2) +
     Math.floor((profile.industriousBonus + profile.quickBonus) / 2) +
     (weatherInfo.waterPressure === "high" ? 5 : 0) +
-    (upgradeEffects?.wateringQualityBonus ?? 0);
+    (upgradeEffects?.wateringQualityBonus ?? 0) +
+    (profile.wateringQualityBonus ?? 0);
 
   const nextQualityScore = clampQualityScore(plot.qualityScore + qualityGain);
 
@@ -344,7 +356,11 @@ export function fertilizeFieldPlot(
   const skillBonus = Math.floor(profile.fieldWorkLevel / 2);
   const traitBonus = Math.floor(profile.industriousBonus / 2);
   const nextQualityScore = clampQualityScore(
-    plot.qualityScore + fertilizer.qualityBonus + skillBonus + traitBonus
+    plot.qualityScore +
+      fertilizer.qualityBonus +
+      skillBonus +
+      traitBonus +
+      (profile.fertilizerQualityBonus ?? 0)
   );
 
   return {
@@ -364,7 +380,8 @@ export function getHarvestOutcome(
   upgradeEffects?: FieldUpgradeEffects
 ): HarvestOutcome {
   const baseQuantity = rollHarvestYield(plot);
-  const quality = getCropQualityFromScore(plot.qualityScore);
+  const harvestQualityScore = clampQualityScore(plot.qualityScore + (profile.harvestQualityBonus ?? 0));
+  const quality = getCropQualityFromScore(harvestQualityScore);
   const qualityInfo = CROP_QUALITY_DATA[quality];
   const skillYieldBonus = Math.floor(profile.fieldWorkLevel / 3);
   const traitYieldBonus = Math.floor((profile.industriousBonus + profile.quickBonus) / 3);
@@ -373,6 +390,7 @@ export function getHarvestOutcome(
   const protectedPlot = Boolean(upgradeEffects && isPlotProtected(plot.id, upgradeEffects));
   const weatherYieldBonus = getWeatherInfo(weather).id === "gentle_rain" || protectedPlot ? 1 : 0;
   const seasonYieldBonus = seasonModifier.fit === "favored" ? 1 : 0;
+  const specializationYieldBonus = profile.harvestYieldBonus ?? 0;
   const quantity =
     baseQuantity +
     qualityInfo.yieldBonus +
@@ -380,7 +398,8 @@ export function getHarvestOutcome(
     traitYieldBonus +
     fertilizerYieldBonus +
     weatherYieldBonus +
-    seasonYieldBonus;
+    seasonYieldBonus +
+    specializationYieldBonus;
 
   const bonusSummary = [
     qualityInfo.yieldBonus > 0 ? `${qualityInfo.label} quality +${qualityInfo.yieldBonus}` : null,
@@ -389,6 +408,8 @@ export function getHarvestOutcome(
     fertilizerYieldBonus > 0 ? `fertilizer +${fertilizerYieldBonus}` : null,
     weatherYieldBonus > 0 ? `gentle rain +${weatherYieldBonus}` : null,
     seasonYieldBonus > 0 ? `${seasonModifier.label} +${seasonYieldBonus}` : null,
+    specializationYieldBonus > 0 ? `${profile.speciesName} specialization +${specializationYieldBonus}` : null,
+    (profile.harvestQualityBonus ?? 0) > 0 ? `harvest quality +${profile.harvestQualityBonus}` : null,
   ].filter((entry): entry is string => Boolean(entry));
 
   return {
@@ -419,14 +440,15 @@ function rollHarvestYield(plot: FieldPlot): number {
 }
 
 function getFieldWorkScore(profile: FieldWorkProfile, fieldWorkLevelMultiplier: number) {
-  const speciesBonus = profile.speciesName === "Horse" ? 3 : 0;
+  const speciesBonus = profile.speciesName === "Horse" ? 4 : profile.speciesName === "Bunny" ? 2 : 0;
   return (
     profile.strength +
     profile.endurance +
     profile.fieldWorkLevel * fieldWorkLevelMultiplier +
     speciesBonus +
     profile.industriousBonus +
-    profile.quickBonus
+    profile.quickBonus +
+    (profile.timeDiscount ?? 0)
   );
 }
 

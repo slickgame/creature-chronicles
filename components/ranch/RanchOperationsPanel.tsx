@@ -19,6 +19,11 @@ import {
   isPlotProtected,
 } from "@/lib/game/fieldUpgrades";
 import {
+  buildFieldWorkSpecializationProfile,
+  getFieldActionSpecializationNotes,
+  getFieldSpecializationHighlights,
+} from "@/lib/game/fieldSpecialization";
+import {
   buildQualityIngredientPlan,
   describeQualityIngredientPlan,
   getQualityAdjustedItemEffects,
@@ -108,24 +113,13 @@ function getStaminaPercent(current: number, max: number) {
 function getFieldTraitSummary(
   creature: {
     name: string;
+    stats: { strength: number; endurance: number };
     skills: { fieldWork: { level: number } };
     traits: { trait: string; grade: string }[];
   } | null
 ) {
   if (!creature) return "Pick a creature to see field bonuses.";
-
-  const bonuses: string[] = [`Field Work Lv ${creature.skills.fieldWork.level}`];
-  if (creature.name === "Horse") bonuses.push("Horse field labor bonus");
-
-  const farmingTraits = creature.traits.filter((entry) =>
-    ["industrious", "quick", "sturdy", "surefooted"].includes(entry.trait)
-  );
-
-  farmingTraits.forEach((entry) => {
-    bonuses.push(`${entry.trait} ${entry.grade}`);
-  });
-
-  return bonuses.join(" - ");
+  return getFieldSpecializationHighlights(buildFieldWorkSpecializationProfile(creature)).join(" - ");
 }
 
 function formatQualityBreakdown(
@@ -289,6 +283,9 @@ export default function RanchOperationsPanel({
   const fieldCreature =
     creatures.find((creature) => creature.id === selectedFieldCreatureId) ??
     firstCreature;
+  const fieldSpecialization = fieldCreature
+    ? buildFieldWorkSpecializationProfile(fieldCreature)
+    : null;
   const weatherInfo = getWeatherInfo(currentWeather);
   const seasonInfo = getSeasonInfo(currentSeason);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
@@ -555,8 +552,24 @@ export default function RanchOperationsPanel({
                   <p className="font-semibold text-emerald-950">Creature Influence</p>
                   <p className="mt-1">{getFieldTraitSummary(fieldCreature)}</p>
                   <p className="mt-1 text-xs text-stone-600">
-                    Field skill, horse labor, industrious, quick, and sturdy traits affect time, stamina, quality, or yield.
+                    Species, field-work skill, and traits now affect planting, watering, fertilizer handling, crop quality, and harvest yield.
                   </p>
+                  {fieldSpecialization ? (
+                    <div className="mt-3 rounded-2xl border border-emerald-200 bg-white p-3">
+                      <p className="font-semibold text-emerald-950">
+                        {fieldSpecialization.specialtyLabel}
+                      </p>
+                      <p className="mt-1 text-sm text-stone-700">
+                        {fieldSpecialization.specialtySummary}
+                      </p>
+                      <div className="mt-2 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
+                        <p><strong>Plant:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "plant").join(" ") || "General field skill applies."}</p>
+                        <p><strong>Water:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "water").join(" ") || "General field skill applies."}</p>
+                        <p><strong>Fertilize:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "fertilize").join(" ") || "General field skill applies."}</p>
+                        <p><strong>Harvest:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "harvest").join(" ") || "General field skill applies."}</p>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="grid gap-3 text-sm text-stone-700 lg:grid-cols-2">

@@ -45,6 +45,10 @@ import {
   unlockFieldUpgrade,
 } from "@/lib/game/fieldUpgrades";
 import {
+  buildFieldWorkSpecializationProfile,
+  getFieldActionSpecializationNotes,
+} from "@/lib/game/fieldSpecialization";
+import {
   type ProduceQualityInventoryState,
   type QualitySellQuote,
   CROP_QUALITY_ORDER,
@@ -1496,18 +1500,7 @@ function applyCreatureSkillXp(creature: Creature, skillName: keyof CreatureSkill
 }
 
 function getFieldWorkProfile(creature: Creature) {
-  const industriousEntry = getBestTraitEntry(creature, "industrious");
-  const quickEntry = getBestTraitEntry(creature, "quick");
-
-  return {
-    speciesName: creature.name,
-    strength: creature.stats.strength,
-    endurance: creature.stats.endurance,
-    fieldWorkLevel: creature.skills.fieldWork.level,
-    staminaDiscount: getSturdyTraitStaminaDiscount(creature),
-    industriousBonus: industriousEntry ? getTraitFlatBonus(industriousEntry.grade, 4) : 0,
-    quickBonus: quickEntry ? getTraitFlatBonus(quickEntry.grade, 2) : 0,
-  };
+  return buildFieldWorkSpecializationProfile(creature);
 }
 
 function getParticipantSnapshot(
@@ -2583,12 +2576,15 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     const plot = fieldPlots.find((item) => item.id === plotId);
     const creature = creatures.find((c) => c.id === creatureId);
-    const plantedPlot = createPlantedPlot(plotId, seedItemId, currentDay, currentSeason, currentWeather);
+    const fieldProfile = creature ? getFieldWorkProfile(creature) : null;
+    const plantedPlot = fieldProfile
+      ? createPlantedPlot(plotId, seedItemId, currentDay, currentSeason, currentWeather, fieldProfile)
+      : null;
 
-    if (!plot || plot.cropId || !creature || !plantedPlot) return false;
+    if (!plot || plot.cropId || !creature || !fieldProfile || !plantedPlot) return false;
     if ((inventory[seedItemId] ?? 0) < 1) return false;
 
-    const fieldCost = getFieldPlantingCost(getFieldWorkProfile(creature));
+    const fieldCost = getFieldPlantingCost(fieldProfile);
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
@@ -2608,6 +2604,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         `Grow time: ${plantedPlot.daysRemaining} day(s)`,
         `Season: ${currentSeason}`,
         `Weather: ${currentWeather}`,
+        `${fieldProfile.specialtyLabel}: ${fieldProfile.specialtySummary}`,
+        ...getFieldActionSpecializationNotes(fieldProfile, "plant"),
         `Stamina -${fieldCost.staminaCost}`,
         `Field Work XP +${fieldCost.xpGain}`,
       ],
@@ -2634,17 +2632,18 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     const plot = fieldPlots.find((item) => item.id === plotId);
     const creature = creatures.find((c) => c.id === creatureId);
+    const fieldProfile = creature ? getFieldWorkProfile(creature) : null;
     const weatherAlreadyWaters = currentWeather === "gentle_rain" || currentWeather === "storm";
-    if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.wateredToday || !creature) return false;
+    if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.wateredToday || !creature || !fieldProfile) return false;
     if (weatherAlreadyWaters) return false;
 
     const fieldCost = applyWateringToolToCost(
-      getFieldWateringCost(getFieldWorkProfile(creature)),
+      getFieldWateringCost(fieldProfile),
       fieldUpgradeEffects
     );
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const updatedPlot = waterFieldPlot(plot, getFieldWorkProfile(creature), currentWeather, fieldUpgradeEffects);
+    const updatedPlot = waterFieldPlot(plot, fieldProfile, currentWeather, fieldUpgradeEffects);
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2660,6 +2659,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       details: [
         `Quality: ${updatedPlot.quality}`,
         `Watered days: ${updatedPlot.wateredDays}`,
+        `${fieldProfile.specialtyLabel}: ${fieldProfile.specialtySummary}`,
+        ...getFieldActionSpecializationNotes(fieldProfile, "water"),
         `Stamina -${fieldCost.staminaCost}`,
         `Field Work XP +${fieldCost.xpGain}`,
       ],
@@ -2687,14 +2688,15 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const plot = fieldPlots.find((item) => item.id === plotId);
     const creature = creatures.find((c) => c.id === creatureId);
     const fertilizer = getFertilizerData(fertilizerItemId);
+    const fieldProfile = creature ? getFieldWorkProfile(creature) : null;
 
-    if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.fertilizerItemId || !creature || !fertilizer) return false;
+    if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.fertilizerItemId || !creature || !fertilizer || !fieldProfile) return false;
     if ((inventory[fertilizerItemId] ?? 0) < 1) return false;
 
-    const fieldCost = getFieldFertilizingCost(getFieldWorkProfile(creature));
+    const fieldCost = getFieldFertilizingCost(fieldProfile);
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const updatedPlot = fertilizeFieldPlot(plot, fertilizerItemId, getFieldWorkProfile(creature));
+    const updatedPlot = fertilizeFieldPlot(plot, fertilizerItemId, fieldProfile);
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2711,6 +2713,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       details: [
         `Quality: ${updatedPlot.quality}`,
         `Harvest yield +${updatedPlot.fertilizerYieldBonus}`,
+        `${fieldProfile.specialtyLabel}: ${fieldProfile.specialtySummary}`,
+        ...getFieldActionSpecializationNotes(fieldProfile, "fertilize"),
         `Stamina -${fieldCost.staminaCost}`,
         `Field Work XP +${fieldCost.xpGain}`,
       ],
@@ -2737,16 +2741,17 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     const plot = fieldPlots.find((item) => item.id === plotId);
     const creature = creatures.find((c) => c.id === creatureId);
+    const fieldProfile = creature ? getFieldWorkProfile(creature) : null;
     const produceItemId = plot ? getPlotProduceItemId(plot) : null;
 
-    if (!plot || !plot.cropId || plot.daysRemaining > 0 || !creature || !produceItemId) return false;
+    if (!plot || !plot.cropId || plot.daysRemaining > 0 || !creature || !fieldProfile || !produceItemId) return false;
 
-    const fieldCost = getFieldHarvestCost(getFieldWorkProfile(creature));
+    const fieldCost = getFieldHarvestCost(fieldProfile);
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
     const harvestOutcome = getHarvestOutcome(
       plot,
-      getFieldWorkProfile(creature),
+      fieldProfile,
       currentWeather,
       currentSeason,
       fieldUpgradeEffects
@@ -2770,6 +2775,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       details: [
         `Quality: ${harvestOutcome.qualityInfo.label}`,
         `Value feel: x${harvestOutcome.valueMultiplier.toFixed(2)}`,
+        `${fieldProfile.specialtyLabel}: ${fieldProfile.specialtySummary}`,
+        ...getFieldActionSpecializationNotes(fieldProfile, "harvest"),
         ...(harvestOutcome.bonusSummary.length > 0 ? harvestOutcome.bonusSummary : ["Base yield only"]),
         `Stamina -${fieldCost.staminaCost}`,
         `Field Work XP +${fieldCost.xpGain}`,
