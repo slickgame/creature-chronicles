@@ -89,6 +89,12 @@ function formatMultiplier(value: number) {
   return `x${value.toFixed(2)}`;
 }
 
+function getAcceptedQualities(minimumQuality: CropQuality) {
+  const minimumIndex = CROP_QUALITY_ORDER.indexOf(minimumQuality);
+  if (minimumIndex === -1) return CROP_QUALITY_ORDER;
+  return CROP_QUALITY_ORDER.slice(minimumIndex);
+}
+
 export default function TownPage() {
   const router = useRouter();
   const {
@@ -114,6 +120,7 @@ export default function TownPage() {
     knowsRecipe,
     submitCreatureToQuest,
     submitCreatureToNpcQuest,
+    submitNpcFarmingRequest,
     travelTo,
   } = useGame();
 
@@ -872,6 +879,93 @@ export default function TownPage() {
               quest.deadlineHour,
               quest.deadlineMinute
             );
+
+            if (quest.questType === "farming_delivery") {
+              const requestedItemId = quest.requestedItemId ?? "";
+              const requiredQuantity = quest.requiredQuantity ?? 0;
+              const minimumQuality = quest.minimumQuality ?? "standard";
+              const acceptedQualities = getAcceptedQualities(minimumQuality);
+              const qualitySummary = acceptedQualities
+                .map((quality) => {
+                  const count = hasMounted ? getQualityItemCount(requestedItemId, quality) : 0;
+                  return `${CROP_QUALITY_DATA[quality].label}: ${count}`;
+                })
+                .join(" - ");
+              const availableCount = acceptedQualities.reduce((sum, quality) => {
+                const count = hasMounted ? getQualityItemCount(requestedItemId, quality) : 0;
+                return sum + count;
+              }, 0);
+              const canDeliver = hasMounted && !quest.completed && !expired && availableCount >= requiredQuantity;
+              const rewardItemLabel = (quest.rewardItems ?? [])
+                .map((reward) => {
+                  const itemName = ITEM_DATA[reward.itemId]?.name ?? reward.itemId;
+                  return `${itemName} x${reward.quantity}`;
+                })
+                .join(", ");
+              const requestedItemName = ITEM_DATA[requestedItemId]?.name ?? requestedItemId;
+
+              return (
+                <div key={quest.id} className="rounded-2xl border-2 border-purple-200 bg-purple-50 p-4">
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-purple-800">{quest.npcName}</p>
+                      <h3 className="text-xl font-bold text-stone-900">{quest.title}</h3>
+                      <p className="text-stone-700">{quest.description}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 text-right text-sm">
+                      {quest.completed ? (
+                        <span className="rounded-full border border-green-300 bg-green-100 px-3 py-1 font-semibold text-green-900">
+                          Completed
+                        </span>
+                      ) : expired ? (
+                        <span className="rounded-full border border-red-300 bg-red-100 px-3 py-1 font-semibold text-red-900">
+                          Expired
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-purple-300 bg-white px-3 py-1 font-semibold text-purple-900">
+                          Open
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {quest.requestLine ? (
+                    <p className="mb-3 rounded-2xl bg-white px-3 py-2 text-sm text-stone-700">{quest.requestLine}</p>
+                  ) : null}
+
+                  <div className="mb-3 rounded-2xl bg-white/90 p-3 text-sm text-stone-800">
+                    <p><strong>Request:</strong> Deliver {requiredQuantity} {requestedItemName}</p>
+                    <p><strong>Minimum Quality:</strong> {CROP_QUALITY_DATA[minimumQuality].label}</p>
+                    <p><strong>Accepted Stack:</strong> {qualitySummary}</p>
+                    <p><strong>Seasonal Note:</strong> {quest.seasonalFocus ? `${quest.seasonalFocus} favored request` : "General restock request"}</p>
+                    <p><strong>Deadline:</strong> Day {quest.deadlineDay} {formatTime(quest.deadlineHour, quest.deadlineMinute)}</p>
+                    <p>
+                      <strong>Rewards:</strong> {quest.rewardGold} Gold, {quest.rewardXp} XP, +{quest.relationshipGain} Relationship
+                      {rewardItemLabel ? `, ${rewardItemLabel}` : ""}
+                    </p>
+                  </div>
+
+                  {quest.completed || expired ? null : (
+                    <button
+                      type="button"
+                      disabled={!canDeliver}
+                      onClick={() => submitNpcFarmingRequest(quest.id)}
+                      className={`w-full rounded-2xl px-4 py-3 text-left font-semibold text-white shadow ${
+                        canDeliver ? "bg-purple-700" : "bg-stone-400"
+                      }`}
+                    >
+                      {canDeliver
+                        ? `Deliver ${requiredQuantity} ${requestedItemName}`
+                        : `Need ${requiredQuantity} total at ${CROP_QUALITY_DATA[minimumQuality].label}+ quality (${availableCount}/${requiredQuantity})`}
+                    </button>
+                  )}
+
+                  {quest.completionLine && !quest.completed ? (
+                    <p className="mt-2 text-xs text-stone-600">Completion flavor: {quest.completionLine}</p>
+                  ) : null}
+                </div>
+              );
+            }
 
             const eligibleCreatures = creatures.filter((creature) => {
               if (quest.completed || expired) return false;

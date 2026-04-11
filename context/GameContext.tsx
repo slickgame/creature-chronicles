@@ -65,6 +65,10 @@ import {
   getSeasonForDay,
   normalizeWeather,
 } from "@/lib/game/weather";
+import {
+  generateNpcFarmingRequests,
+  type NpcFarmingRewardItem,
+} from "@/lib/game/townNpcFarmingRequests";
 
 
 type CreatureStats = {
@@ -269,11 +273,20 @@ type TownNpcQuest = {
   id: number;
   npcId: string;
   npcName: string;
+  questType: "creature_delivery" | "farming_delivery";
   title: string;
   description: string;
+  requestLine?: string;
+  completionLine?: string;
   rewardGold: number;
   rewardXp: number;
   relationshipGain: number;
+  rewardItems?: NpcFarmingRewardItem[];
+  requestedCropId?: string;
+  requestedItemId?: string;
+  minimumQuality?: CropQuality;
+  requiredQuantity?: number;
+  seasonalFocus?: GameSeason | null;
   deadlineDay: number;
   deadlineHour: number;
   deadlineMinute: number;
@@ -348,6 +361,7 @@ type GameContextType = {
   purchaseTownCreature: (stockEntryId: number) => void;
   submitCreatureToQuest: (questId: number, creatureId: number) => void;
   submitCreatureToNpcQuest: (questId: number, creatureId: number) => void;
+  submitNpcFarmingRequest: (questId: number) => boolean;
   payMonthlyTax: () => void;
   travelTo: (destination: LocationName) => void;
   cookMeal: (creatureId: number) => void;
@@ -979,9 +993,30 @@ function addItemToInventory(
 }
 
 const defaultTownNpcs: TownNpc[] = [
-  { id: "mira", name: "Mira", role: "Stable Keeper", personality: "Practical and ranch-focused.", relationship: 0, rewardMilestonesClaimed: [] },
-  { id: "tobin", name: "Tobin", role: "Courier Captain", personality: "Busy, efficient, and speed-obsessed.", relationship: 0, rewardMilestonesClaimed: [] },
-  { id: "selene", name: "Selene", role: "House Steward", personality: "Warm, observant, and fond of gentle creatures.", relationship: 0, rewardMilestonesClaimed: [] },
+  {
+    id: "maris_thorn",
+    name: "Maris Thorn",
+    role: "Seed Seller",
+    personality: "Playful, earthy, and shamelessly teasing when your fields impress her.",
+    relationship: 0,
+    rewardMilestonesClaimed: [],
+  },
+  {
+    id: "selene_voss",
+    name: "Selene Voss",
+    role: "Produce Buyer",
+    personality: "Polished, sly, and attracted to consistent high-quality deliveries.",
+    relationship: 0,
+    rewardMilestonesClaimed: [],
+  },
+  {
+    id: "tamsin_vale",
+    name: "Tamsin Vale",
+    role: "Recipe Keeper",
+    personality: "Warm and indulgent, with a soft spot for thoughtful kitchen prep.",
+    relationship: 0,
+    rewardMilestonesClaimed: [],
+  },
 ];
 
 function removeItemFromInventory(
@@ -1013,7 +1048,26 @@ function normalizeTownNpc(npc: TownNpc): TownNpc {
 }
 
 function normalizeTownNpcQuest(quest: TownNpcQuest): TownNpcQuest {
-  return { ...quest, completed: quest.completed ?? false };
+  return {
+    ...quest,
+    questType: quest.questType ?? "creature_delivery",
+    rewardItems: Array.isArray(quest.rewardItems) ? quest.rewardItems : [],
+    seasonalFocus: quest.seasonalFocus ?? null,
+    completed: quest.completed ?? false,
+  };
+}
+
+function ensureTownNpcRoster(savedNpcs?: TownNpc[]): TownNpc[] {
+  const normalized = Array.isArray(savedNpcs) ? savedNpcs.map(normalizeTownNpc) : [];
+  const byId = new Map(normalized.map((npc) => [npc.id, npc]));
+
+  defaultTownNpcs.forEach((defaultNpc) => {
+    if (!byId.has(defaultNpc.id)) {
+      byId.set(defaultNpc.id, normalizeTownNpc(defaultNpc));
+    }
+  });
+
+  return Array.from(byId.values());
 }
 
 function calculateTownCreaturePrice(creature: Creature): number {
@@ -1230,49 +1284,30 @@ function generateTownQuests(currentDay: number): TownQuest[] {
 }
 
 function createNpcQuestTemplates(currentDay: number, seedBase: number): TownNpcQuest[] {
-  const templates: Omit<TownNpcQuest, "id" | "deadlineDay" | "completed">[] = [
-    {
-      npcId: "mira",
-      npcName: "Mira",
-      title: "Stable Hands Needed",
-      description: "Mira wants a reliable ranch helper with endurance and a work trait.",
-      rewardGold: 120,
-      rewardXp: 24,
-      relationshipGain: 12,
-      deadlineHour: 18,
-      deadlineMinute: 0,
-      requirement: { species: "Horse", minimumLevel: 2, minimumStats: { endurance: 8 }, requiredTrait: "barnwise" },
-    },
-    {
-      npcId: "tobin",
-      npcName: "Tobin",
-      title: "Courier Trial",
-      description: "Tobin is looking for a fast escort creature for urgent deliveries.",
-      rewardGold: 115,
-      rewardXp: 24,
-      relationshipGain: 12,
-      deadlineHour: 16,
-      deadlineMinute: 0,
-      requirement: { species: "any", minimumLevel: 2, minimumStats: { speed: 8 }, requiredTrait: "keen" },
-    },
-    {
-      npcId: "selene",
-      npcName: "Selene",
-      title: "Comfort Companion",
-      description: "Selene wants a gentle household companion for guest support.",
-      rewardGold: 110,
-      rewardXp: 24,
-      relationshipGain: 12,
-      deadlineHour: 20,
-      deadlineMinute: 0,
-      requirement: { species: "any", minimumLevel: 2, minimumStats: { intelligence: 6 }, requiredTrait: "affectionate" },
-    },
-  ];
+  const requests = generateNpcFarmingRequests(currentDay, getSeasonForDay(currentDay), seedBase);
 
-  return templates.map((template, index) => ({
-    ...template,
-    id: seedBase + index + 1,
-    deadlineDay: currentDay + 2,
+  return requests.map((request) => ({
+    id: request.id,
+    npcId: request.npcId,
+    npcName: request.npcName,
+    questType: "farming_delivery",
+    title: request.title,
+    description: request.description,
+    requestLine: request.requestLine,
+    completionLine: request.completionLine,
+    rewardGold: request.rewardGold,
+    rewardXp: request.rewardXp,
+    relationshipGain: request.relationshipGain,
+    rewardItems: request.rewardItems,
+    requestedCropId: request.requestedCropId,
+    requestedItemId: request.requestedItemId,
+    minimumQuality: request.minimumQuality,
+    requiredQuantity: request.requiredQuantity,
+    seasonalFocus: request.seasonalFocus,
+    deadlineDay: request.deadlineDay,
+    deadlineHour: request.deadlineHour,
+    deadlineMinute: request.deadlineMinute,
+    requirement: { species: "any", minimumLevel: 1, minimumStats: {} },
     completed: false,
   }));
 }
@@ -1849,7 +1884,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             10
           )
         );
-        setTownNpcs((parsedSave.townNpcs ?? defaultTownNpcs).map(normalizeTownNpc));
+        setTownNpcs(ensureTownNpcRoster(parsedSave.townNpcs));
         setTownNpcQuests(
           ensureNpcQuestBoardSize(
             (parsedSave.townNpcQuests ?? generateTownNpcQuests(parsedSave.currentDay ?? 1)).map(normalizeTownNpcQuest),
@@ -2364,6 +2399,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const quest = townNpcQuests.find((item) => item.id === questId);
     const creature = creatures.find((item) => item.id === creatureId);
     if (!quest || !creature || quest.completed) return;
+    if (quest.questType === "farming_delivery") return;
     if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) return;
     if (!doesCreatureMeetQuest(creature, { title: quest.title, requirement: quest.requirement })) return;
 
@@ -2406,6 +2442,91 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+  }
+
+  function submitNpcFarmingRequest(questId: number) {
+    const quest = townNpcQuests.find((item) => item.id === questId);
+    if (!quest || quest.completed) return false;
+    if (quest.questType !== "farming_delivery") return false;
+    if (isQuestExpired(quest, currentDay, currentHour, currentMinute)) return false;
+
+    const requestedItemId = quest.requestedItemId;
+    const minimumQuality = quest.minimumQuality ?? "standard";
+    const requiredQuantity = quest.requiredQuantity ?? 0;
+
+    if (!requestedItemId || requiredQuantity <= 0) return false;
+
+    const deliveryPlan = getQualityDeliveryPlan(requestedItemId, minimumQuality, requiredQuantity);
+    if (!deliveryPlan) return false;
+    const rewardItems = quest.rewardItems ?? [];
+    const unlockedRecipeIds = rewardItems.flatMap((rewardItem) =>
+      ITEM_DATA[rewardItem.itemId]?.category === "recipe_book"
+        ? (ITEM_DATA[rewardItem.itemId]?.recipeUnlockIds ?? [])
+        : []
+    );
+
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 20);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setInventory((prev) => removeItemFromInventory(prev, requestedItemId, requiredQuantity));
+    setProduceQualityInventory((prev) => {
+      let next = prev;
+      for (const delivery of deliveryPlan) {
+        next = removeQualityProduceFromInventory(next, requestedItemId, delivery.quality, delivery.quantity);
+      }
+      return next;
+    });
+
+    setPlayerData((prev) => applyPlayerXpGain({ ...prev, gold: prev.gold + quest.rewardGold }, quest.rewardXp));
+    if (unlockedRecipeIds.length > 0) {
+      setKnownRecipeIds((prevRecipes) => Array.from(new Set([...prevRecipes, ...unlockedRecipeIds])));
+    }
+
+    if (rewardItems.length > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        rewardItems.forEach((reward) => {
+          next = addItemToInventory(next, reward.itemId, Math.max(1, reward.quantity));
+        });
+        return next;
+      });
+    }
+
+    setTownNpcs((prev) =>
+      prev.map((npc) => {
+        if (npc.id !== quest.npcId) return npc;
+
+        const newRelationship = clamp(npc.relationship + quest.relationshipGain, 0, 100);
+        const nextClaimed = [...npc.rewardMilestonesClaimed];
+        let bonusGold = 0;
+
+        for (const milestone of [25, 50, 75]) {
+          if (newRelationship >= milestone && !nextClaimed.includes(milestone)) {
+            nextClaimed.push(milestone);
+            bonusGold += milestone === 25 ? 50 : milestone === 50 ? 120 : 250;
+          }
+        }
+
+        if (bonusGold > 0) {
+          setPlayerData((prevPlayer) => ({ ...prevPlayer, gold: prevPlayer.gold + bonusGold }));
+        }
+
+        return {
+          ...npc,
+          relationship: newRelationship,
+          rewardMilestonesClaimed: nextClaimed,
+        };
+      })
+    );
+
+    setTownNpcQuests((prev) => {
+      const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
+      return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
+    });
+
+    return true;
   }
 
   function payMonthlyTax() {
@@ -2957,6 +3078,37 @@ function getQualityItemCount(itemId: string, quality: CropQuality) {
   return getQualityProduceCount(produceQualityInventory, inventory, itemId, quality);
 }
 
+function getDeliverableQualities(minimumQuality: CropQuality) {
+  const minimumIndex = CROP_QUALITY_ORDER.indexOf(minimumQuality);
+  if (minimumIndex === -1) {
+    return CROP_QUALITY_ORDER;
+  }
+
+  return CROP_QUALITY_ORDER.slice(minimumIndex);
+}
+
+function getQualityDeliveryPlan(
+  itemId: string,
+  minimumQuality: CropQuality,
+  requiredQuantity: number
+): Array<{ quality: CropQuality; quantity: number }> | null {
+  const qualities = getDeliverableQualities(minimumQuality);
+  let remaining = requiredQuantity;
+  const plan: Array<{ quality: CropQuality; quantity: number }> = [];
+
+  for (const quality of qualities) {
+    if (remaining <= 0) break;
+    const owned = getQualityItemCount(itemId, quality);
+    if (owned <= 0) continue;
+
+    const used = Math.min(owned, remaining);
+    plan.push({ quality, quantity: used });
+    remaining -= used;
+  }
+
+  return remaining > 0 ? null : plan;
+}
+
 function getBestOwnedItemQuality(itemId: string) {
   const descendingQualityOrder = [...CROP_QUALITY_ORDER].reverse();
   return (
@@ -3154,6 +3306,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         purchaseTownCreature,
         submitCreatureToQuest,
         submitCreatureToNpcQuest,
+        submitNpcFarmingRequest,
         payMonthlyTax,
         travelTo,
         cookMeal,
