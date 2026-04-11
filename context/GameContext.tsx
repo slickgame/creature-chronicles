@@ -43,6 +43,13 @@ import {
   normalizeProduceQualityInventory,
   removeQualityProduceFromInventory,
 } from "@/lib/game/produceEconomy";
+import {
+  type GameSeason,
+  type GameWeather,
+  generateWeatherForDay,
+  getSeasonForDay,
+  normalizeWeather,
+} from "@/lib/game/weather";
 
 
 type CreatureStats = {
@@ -275,6 +282,7 @@ type SaveData = {
   currentDay: number;
   currentHour: number;
   currentMinute: number;
+  currentWeather: GameWeather;
   currentLocation: LocationName;
   playerData: PlayerData;
   homeState: HomeState;
@@ -297,6 +305,8 @@ type GameContextType = {
   currentDay: number;
   currentHour: number;
   currentMinute: number;
+  currentWeather: GameWeather;
+  currentSeason: GameSeason;
   currentLocation: LocationName;
   playerData: PlayerData;
   homeState: HomeState;
@@ -1748,6 +1758,7 @@ const defaultSaveData: SaveData = {
   currentDay: 1,
   currentHour: 8,
   currentMinute: 0,
+  currentWeather: generateWeatherForDay(1),
   currentLocation: "ranch",
   playerData: defaultPlayerData,
   homeState: defaultHomeState,
@@ -1774,6 +1785,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [currentDay, setCurrentDay] = useState(defaultSaveData.currentDay);
   const [currentHour, setCurrentHour] = useState(defaultSaveData.currentHour);
   const [currentMinute, setCurrentMinute] = useState(defaultSaveData.currentMinute);
+  const [currentWeather, setCurrentWeather] = useState<GameWeather>(defaultSaveData.currentWeather);
   const [currentLocation, setCurrentLocation] = useState<LocationName>(defaultSaveData.currentLocation);
   const [playerData, setPlayerData] = useState(defaultSaveData.playerData);
   const [homeState, setHomeState] = useState(defaultSaveData.homeState);
@@ -1791,8 +1803,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     defaultSaveData.produceQualityInventory
   );
   const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
-  const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
+const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
   const [lastFieldAction, setLastFieldAction] = useState<FieldActionReport | null>(null);
+  const currentSeason = getSeasonForDay(currentDay);
   
 
   useEffect(() => {
@@ -1803,6 +1816,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setCurrentDay(parsedSave.currentDay);
         setCurrentHour(parsedSave.currentHour ?? 8);
         setCurrentMinute(parsedSave.currentMinute ?? 0);
+        setCurrentWeather(normalizeWeather(parsedSave.currentWeather, parsedSave.currentDay ?? 1));
         setCurrentLocation(parsedSave.currentLocation ?? "ranch");
         setPlayerData(normalizePlayerData(parsedSave.playerData));
         setHomeState(normalizeHomeState(parsedSave.homeState));
@@ -1855,6 +1869,7 @@ useEffect(() => {
     currentDay,
     currentHour,
     currentMinute,
+    currentWeather,
     currentLocation,
     playerData,
     homeState,
@@ -1879,6 +1894,7 @@ useEffect(() => {
   currentDay,
   currentHour,
   currentMinute,
+  currentWeather,
   currentLocation,
   playerData,
   homeState,
@@ -1901,12 +1917,14 @@ useEffect(() => {
     const previousMonth = getMonthFromAbsoluteDay(currentDay);
     const newDay = currentDay + 1;
     const newMonth = getMonthFromAbsoluteDay(newDay);
+    const nextWeather = generateWeatherForDay(newDay);
     const currentCreatureCount = creatures.length;
     const foodConsumed = Math.min(homeState.foodStock, currentCreatureCount);
 
     setCurrentDay(newDay);
     setCurrentHour(8);
     setCurrentMinute(0);
+    setCurrentWeather(nextWeather);
 
     setEggs((prevEggs) =>
       prevEggs.map((egg) => ({
@@ -1945,7 +1963,7 @@ useEffect(() => {
       foodStock: Math.max(0, prev.foodStock - currentCreatureCount),
     }));
 
-    setFieldPlots((prev) => advanceFieldPlotsByDay(prev));
+    setFieldPlots((prev) => advanceFieldPlotsByDay(prev, currentWeather, currentSeason));
 
     if (newMonth !== previousMonth && !paidTaxMonths.includes(previousMonth)) {
       const taxDue = getMonthlyTaxAmount(playerData, creatures, eggs);
@@ -2539,7 +2557,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     const plot = fieldPlots.find((item) => item.id === plotId);
     const creature = creatures.find((c) => c.id === creatureId);
-    const plantedPlot = createPlantedPlot(plotId, seedItemId, currentDay);
+    const plantedPlot = createPlantedPlot(plotId, seedItemId, currentDay, currentSeason, currentWeather);
 
     if (!plot || plot.cropId || !creature || !plantedPlot) return false;
     if ((inventory[seedItemId] ?? 0) < 1) return false;
@@ -2562,6 +2580,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       message: `${creature.nickname} tucked ${ITEM_DATA[seedItemId]?.name ?? seedItemId} into Plot ${plotId}.`,
       details: [
         `Grow time: ${plantedPlot.daysRemaining} day(s)`,
+        `Season: ${currentSeason}`,
+        `Weather: ${currentWeather}`,
         `Stamina -${fieldCost.staminaCost}`,
         `Field Work XP +${fieldCost.xpGain}`,
       ],
@@ -2588,12 +2608,14 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     const plot = fieldPlots.find((item) => item.id === plotId);
     const creature = creatures.find((c) => c.id === creatureId);
+    const weatherAlreadyWaters = currentWeather === "gentle_rain" || currentWeather === "storm";
     if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.wateredToday || !creature) return false;
+    if (weatherAlreadyWaters) return false;
 
     const fieldCost = getFieldWateringCost(getFieldWorkProfile(creature));
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const updatedPlot = waterFieldPlot(plot, getFieldWorkProfile(creature));
+    const updatedPlot = waterFieldPlot(plot, getFieldWorkProfile(creature), currentWeather);
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2693,7 +2715,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const fieldCost = getFieldHarvestCost(getFieldWorkProfile(creature));
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const harvestOutcome = getHarvestOutcome(plot, getFieldWorkProfile(creature));
+    const harvestOutcome = getHarvestOutcome(plot, getFieldWorkProfile(creature), currentWeather, currentSeason);
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2997,6 +3019,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setCurrentDay(1);
     setCurrentHour(8);
     setCurrentMinute(0);
+    setCurrentWeather(generateWeatherForDay(1));
     setCurrentLocation("ranch");
     setPlayerData(defaultPlayerData);
     setHomeState(defaultHomeState);
@@ -3042,6 +3065,8 @@ function purchaseMarketItem(itemId: string, price: number) {
         currentDay,
         currentHour,
         currentMinute,
+        currentWeather,
+        currentSeason,
         currentLocation,
         playerData,
         homeState,

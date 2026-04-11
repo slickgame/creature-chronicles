@@ -1,5 +1,12 @@
 import { CROP_DATA } from "@/lib/farming/cropData";
 import { ITEM_DATA } from "@/lib/items/itemData";
+import {
+  type GameSeason,
+  type GameWeather,
+  getCropSeasonModifier,
+  getFieldDayModifier,
+  getWeatherInfo,
+} from "@/lib/game/weather";
 
 export type CropQuality = "standard" | "fine" | "lush" | "pristine";
 
@@ -144,15 +151,32 @@ export function normalizeFieldPlots(
   return nextPlots.sort((a, b) => a.id - b.id);
 }
 
-export function advanceFieldPlotsByDay(plots: FieldPlot[]): FieldPlot[] {
+export function advanceFieldPlotsByDay(
+  plots: FieldPlot[],
+  weather: GameWeather = "clear",
+  season: GameSeason = "spring"
+): FieldPlot[] {
   return plots.map((plot) => {
     if (!plot.cropId) return plot;
 
+    const modifier = getFieldDayModifier(
+      plot.cropId,
+      weather,
+      season,
+      plot.wateredToday
+    );
+    const nextQualityScore = clampQualityScore(plot.qualityScore + modifier.qualityDelta);
+
     return {
       ...plot,
-      daysRemaining: plot.daysRemaining > 0 ? Math.max(0, plot.daysRemaining - 1) : 0,
+      daysRemaining:
+        plot.daysRemaining > 0
+          ? Math.max(0, plot.daysRemaining - modifier.growthStep)
+          : 0,
       wateredToday: false,
-      quality: getCropQualityFromScore(plot.qualityScore),
+      wateredDays: plot.wateredDays + (modifier.autoWatered ? 1 : 0),
+      qualityScore: nextQualityScore,
+      quality: getCropQualityFromScore(nextQualityScore),
     };
   });
 }
@@ -181,25 +205,32 @@ export function getFertilizerData(itemId: string): FertilizerData | null {
 export function createPlantedPlot(
   plotId: number,
   seedItemId: string,
-  plantedDay: number
+  plantedDay: number,
+  season: GameSeason = "spring",
+  weather: GameWeather = "clear"
 ): FieldPlot | null {
   const seed = getPlantableSeedData(seedItemId);
   if (!seed) return null;
+  const seasonModifier = getCropSeasonModifier(seed.seedData.cropId, season);
+  const weatherInfo = getWeatherInfo(weather);
+  const qualityScore = clampQualityScore(
+    DEFAULT_CROP_QUALITY_SCORE + seasonModifier.qualityDelta + Math.max(0, weatherInfo.qualityDelta)
+  );
 
   return {
     id: plotId,
     cropId: seed.seedData.cropId,
     seedItemId,
     plantedDay,
-    daysRemaining: seed.seedData.growDays,
+    daysRemaining: Math.max(1, seed.seedData.growDays - Math.max(0, seasonModifier.growthDelta)),
     minYield: seed.seedData.minYield,
     maxYield: seed.seedData.maxYield,
-    wateredToday: false,
-    wateredDays: 0,
+    wateredToday: weatherInfo.autoWaters,
+    wateredDays: weatherInfo.autoWaters ? 1 : 0,
     fertilizerItemId: null,
     fertilizerYieldBonus: 0,
-    quality: "standard",
-    qualityScore: DEFAULT_CROP_QUALITY_SCORE,
+    quality: getCropQualityFromScore(qualityScore),
+    qualityScore,
   };
 }
 
@@ -255,13 +286,19 @@ export function getFieldHarvestCost(profile: FieldWorkProfile): FieldWorkCost {
   };
 }
 
-export function waterFieldPlot(plot: FieldPlot, profile: FieldWorkProfile): FieldPlot {
+export function waterFieldPlot(
+  plot: FieldPlot,
+  profile: FieldWorkProfile,
+  weather: GameWeather = "clear"
+): FieldPlot {
   if (!plot.cropId || plot.wateredToday) return plot;
+  const weatherInfo = getWeatherInfo(weather);
 
   const qualityGain =
     9 +
     Math.floor(profile.fieldWorkLevel / 2) +
-    Math.floor((profile.industriousBonus + profile.quickBonus) / 2);
+    Math.floor((profile.industriousBonus + profile.quickBonus) / 2) +
+    (weatherInfo.waterPressure === "high" ? 5 : 0);
 
   const nextQualityScore = clampQualityScore(plot.qualityScore + qualityGain);
 
@@ -297,25 +334,37 @@ export function fertilizeFieldPlot(
   };
 }
 
-export function getHarvestOutcome(plot: FieldPlot, profile: FieldWorkProfile): HarvestOutcome {
+export function getHarvestOutcome(
+  plot: FieldPlot,
+  profile: FieldWorkProfile,
+  weather: GameWeather = "clear",
+  season: GameSeason = "spring"
+): HarvestOutcome {
   const baseQuantity = rollHarvestYield(plot);
   const quality = getCropQualityFromScore(plot.qualityScore);
   const qualityInfo = CROP_QUALITY_DATA[quality];
   const skillYieldBonus = Math.floor(profile.fieldWorkLevel / 3);
   const traitYieldBonus = Math.floor((profile.industriousBonus + profile.quickBonus) / 3);
   const fertilizerYieldBonus = plot.fertilizerYieldBonus;
+  const seasonModifier = getCropSeasonModifier(plot.cropId, season);
+  const weatherYieldBonus = getWeatherInfo(weather).id === "gentle_rain" ? 1 : 0;
+  const seasonYieldBonus = seasonModifier.fit === "favored" ? 1 : 0;
   const quantity =
     baseQuantity +
     qualityInfo.yieldBonus +
     skillYieldBonus +
     traitYieldBonus +
-    fertilizerYieldBonus;
+    fertilizerYieldBonus +
+    weatherYieldBonus +
+    seasonYieldBonus;
 
   const bonusSummary = [
     qualityInfo.yieldBonus > 0 ? `${qualityInfo.label} quality +${qualityInfo.yieldBonus}` : null,
     skillYieldBonus > 0 ? `Field Work Lv ${profile.fieldWorkLevel} +${skillYieldBonus}` : null,
     traitYieldBonus > 0 ? `trait handling +${traitYieldBonus}` : null,
     fertilizerYieldBonus > 0 ? `fertilizer +${fertilizerYieldBonus}` : null,
+    weatherYieldBonus > 0 ? `gentle rain +${weatherYieldBonus}` : null,
+    seasonYieldBonus > 0 ? `${seasonModifier.label} +${seasonYieldBonus}` : null,
   ].filter((entry): entry is string => Boolean(entry));
 
   return {

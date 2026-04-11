@@ -16,6 +16,11 @@ import {
   getQualityAdjustedItemEffects,
 } from "@/lib/game/cookingQuality";
 import {
+  getCropSeasonModifier,
+  getSeasonInfo,
+  getWeatherInfo,
+} from "@/lib/game/weather";
+import {
   type InventoryCategory,
   getCategoryLabel,
   getInventoryCategory,
@@ -156,6 +161,8 @@ export default function RanchOperationsPanel({
     currentDay,
     currentHour,
     currentMinute,
+    currentWeather,
+    currentSeason,
     currentLocation,
     playerData,
     homeState,
@@ -272,6 +279,8 @@ export default function RanchOperationsPanel({
   const fieldCreature =
     creatures.find((creature) => creature.id === selectedFieldCreatureId) ??
     firstCreature;
+  const weatherInfo = getWeatherInfo(currentWeather);
+  const seasonInfo = getSeasonInfo(currentSeason);
   const growingPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining > 0).length;
   const readyPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining <= 0).length;
   const fineOrBetterPlotCount = fieldPlots.filter(
@@ -539,6 +548,30 @@ export default function RanchOperationsPanel({
                   </p>
                 </div>
 
+                <div className="grid gap-3 text-sm text-stone-700 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
+                    <p className="font-semibold text-sky-950">Today&apos;s Weather: {weatherInfo.label}</p>
+                    <p className="mt-1">{weatherInfo.description}</p>
+                    <p className="mt-1 text-xs font-semibold text-sky-900">
+                      {weatherInfo.fieldNote}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-600">
+                      Water pressure: {weatherInfo.waterPressure} - Growth {weatherInfo.growthDelta >= 0 ? "+" : ""}{weatherInfo.growthDelta} - Quality {weatherInfo.qualityDelta >= 0 ? "+" : ""}{weatherInfo.qualityDelta}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                    <p className="font-semibold text-amber-950">Season: {seasonInfo.label}</p>
+                    <p className="mt-1">{seasonInfo.description}</p>
+                    <p className="mt-1 text-xs font-semibold text-amber-900">
+                      {seasonInfo.fieldNote}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-600">
+                      Favored: {seasonInfo.favoredCropIds.join(", ")} - Tough: {seasonInfo.toughCropIds.join(", ")}
+                    </p>
+                  </div>
+                </div>
+
                 <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-4">
                   <div className="rounded-2xl bg-emerald-50 px-3 py-2">
                     <p className="text-stone-500">Empty</p>
@@ -587,7 +620,11 @@ export default function RanchOperationsPanel({
                     No seeds owned yet. Visit Maris in Town to stock up.
                   </div>
                 ) : (
-                  ownedSeedEntries.map((entry) => (
+                  ownedSeedEntries.map((entry) => {
+                    const cropId = entry.item?.seedData?.cropId;
+                    const seasonModifier = getCropSeasonModifier(cropId, currentSeason);
+
+                    return (
                     <div
                       key={entry.itemId}
                       className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
@@ -600,6 +637,9 @@ export default function RanchOperationsPanel({
                             Grow Time: {entry.item?.seedData?.growDays ?? "?"} day(s) • Yield{" "}
                             {entry.item?.seedData?.minYield ?? "?"}–{entry.item?.seedData?.maxYield ?? "?"}
                           </p>
+                          <p className="mt-1 text-xs font-semibold text-amber-900">
+                            {seasonModifier.label}: {seasonModifier.note}
+                          </p>
                         </div>
 
                         <div className="rounded-full border border-amber-300 bg-white px-3 py-1 text-xs font-semibold text-amber-900">
@@ -607,7 +647,8 @@ export default function RanchOperationsPanel({
                         </div>
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
 
@@ -667,6 +708,7 @@ export default function RanchOperationsPanel({
                   const produceItem = crop ? ITEM_DATA[crop.produceItemId] : null;
                   const isReady = Boolean(plot.cropId && plot.daysRemaining <= 0);
                   const qualityInfo = CROP_QUALITY_DATA[plot.quality];
+                  const seasonModifier = getCropSeasonModifier(plot.cropId, currentSeason);
                   const canPlant =
                     !plot.cropId &&
                     Boolean(selectedSeedEntry && fieldCreature) &&
@@ -675,6 +717,7 @@ export default function RanchOperationsPanel({
                     Boolean(plot.cropId) &&
                     plot.daysRemaining > 0 &&
                     !plot.wateredToday &&
+                    !weatherInfo.autoWaters &&
                     Boolean(fieldCreature) &&
                     (currentLocation === "home" || currentLocation === "ranch");
                   const canFertilize =
@@ -719,7 +762,13 @@ export default function RanchOperationsPanel({
                             Quality: {qualityInfo.label} - {qualityInfo.description}
                           </p>
                           <p>
+                            Season Fit: {seasonModifier.label} - {seasonModifier.note}
+                          </p>
+                          <p>
                             Watered {plot.wateredDays} time(s){plot.wateredToday ? " - watered today" : ""}.
+                          </p>
+                          <p>
+                            Weather: {weatherInfo.autoWaters ? "Rain covers watering today" : weatherInfo.fieldNote}
                           </p>
                           <p>
                             Fertilizer: {plot.fertilizerItemId ? ITEM_DATA[plot.fertilizerItemId]?.name ?? plot.fertilizerItemId : "None"}
@@ -749,7 +798,7 @@ export default function RanchOperationsPanel({
                                 canWater ? "bg-sky-700" : "bg-stone-400"
                               }`}
                             >
-                              {plot.wateredToday ? "Watered Today" : "Water"}
+                              {weatherInfo.autoWaters ? "Weather Watering" : plot.wateredToday ? "Watered Today" : "Water"}
                             </button>
                             <button
                               type="button"
