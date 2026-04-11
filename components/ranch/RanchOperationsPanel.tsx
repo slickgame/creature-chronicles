@@ -11,6 +11,14 @@ import {
   type CropQuality,
 } from "@/lib/game/farming";
 import {
+  FIELD_UPGRADE_DATA,
+  FIELD_UPGRADE_ORDER,
+  getFieldUpgradeEffects,
+  isFieldUpgradeAvailable,
+  isFieldUpgradeUnlocked,
+  isPlotProtected,
+} from "@/lib/game/fieldUpgrades";
+import {
   buildQualityIngredientPlan,
   describeQualityIngredientPlan,
   getQualityAdjustedItemEffects,
@@ -172,6 +180,7 @@ export default function RanchOperationsPanel({
     inventory,
     produceQualityInventory,
     fieldPlots,
+    fieldUpgrades,
     lastFieldAction,
     knownRecipeIds,
     getQualityItemCount,
@@ -182,6 +191,7 @@ export default function RanchOperationsPanel({
     waterPlot,
     fertilizePlot,
     harvestPlot,
+    purchaseFieldUpgrade,
     breedCreatures,
     hatchEgg,
   } = useGame();
@@ -281,6 +291,7 @@ export default function RanchOperationsPanel({
     firstCreature;
   const weatherInfo = getWeatherInfo(currentWeather);
   const seasonInfo = getSeasonInfo(currentSeason);
+  const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
   const growingPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining > 0).length;
   const readyPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining <= 0).length;
   const fineOrBetterPlotCount = fieldPlots.filter(
@@ -608,6 +619,78 @@ export default function RanchOperationsPanel({
               </div>
             </div>
 
+            <div className="rounded-2xl border-2 border-sky-200 bg-white p-4 shadow">
+              <p className="text-xl font-bold text-stone-900">Field Upgrades</p>
+              <p className="mt-2 text-sm text-stone-600">
+                Buy better field bones, sweeter tools, and weather cover so the ranch can push back when the sky gets moody.
+              </p>
+
+              <div className="mt-4 grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
+                <div className="rounded-2xl bg-sky-50 px-3 py-2">
+                  <p className="text-stone-500">Unlocked Plots</p>
+                  <p className="font-bold text-stone-900">{fieldUpgradeEffects.unlockedPlotCount}</p>
+                </div>
+                <div className="rounded-2xl bg-sky-50 px-3 py-2">
+                  <p className="text-stone-500">Water Tool</p>
+                  <p className="font-bold text-stone-900">Lv {fieldUpgradeEffects.wateringToolLevel}</p>
+                </div>
+                <div className="rounded-2xl bg-sky-50 px-3 py-2">
+                  <p className="text-stone-500">Protected</p>
+                  <p className="font-bold text-stone-900">{fieldUpgradeEffects.protectedPlotCount} plot(s)</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {FIELD_UPGRADE_ORDER.map((upgradeId) => {
+                  const upgrade = FIELD_UPGRADE_DATA[upgradeId];
+                  const unlocked = isFieldUpgradeUnlocked(fieldUpgrades, upgradeId);
+                  const available = isFieldUpgradeAvailable(fieldUpgrades, upgradeId);
+                  const affordable = playerData.gold >= upgrade.cost;
+
+                  return (
+                    <div
+                      key={upgrade.id}
+                      className={`rounded-2xl border p-3 ${
+                        unlocked
+                          ? "border-emerald-200 bg-emerald-50"
+                          : available
+                          ? "border-sky-200 bg-sky-50"
+                          : "border-stone-200 bg-stone-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-bold text-stone-900">{upgrade.title}</p>
+                          <p className="text-sm text-stone-600">{upgrade.description}</p>
+                          <p className="mt-1 text-xs font-semibold text-sky-900">{upgrade.effectSummary}</p>
+                        </div>
+                        <div className="rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-900">
+                          {unlocked ? "Owned" : `${upgrade.cost}g`}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={unlocked || !available || !affordable}
+                        onClick={() => purchaseFieldUpgrade(upgrade.id)}
+                        className={`mt-3 w-full rounded-2xl px-4 py-2 text-xs font-semibold text-white shadow ${
+                          unlocked || !available || !affordable ? "bg-stone-400" : "bg-sky-700"
+                        }`}
+                      >
+                        {unlocked
+                          ? "Installed"
+                          : !available
+                          ? "Needs Earlier Upgrade"
+                          : !affordable
+                          ? "Not Enough Gold"
+                          : "Install Upgrade"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="rounded-2xl border-2 border-amber-200 bg-white p-4 shadow">
               <p className="text-xl font-bold text-stone-900">Owned Seeds</p>
               <p className="mt-2 text-sm text-stone-600">
@@ -709,6 +792,7 @@ export default function RanchOperationsPanel({
                   const isReady = Boolean(plot.cropId && plot.daysRemaining <= 0);
                   const qualityInfo = CROP_QUALITY_DATA[plot.quality];
                   const seasonModifier = getCropSeasonModifier(plot.cropId, currentSeason);
+                  const protectedPlot = isPlotProtected(plot.id, fieldUpgradeEffects);
                   const canPlant =
                     !plot.cropId &&
                     Boolean(selectedSeedEntry && fieldCreature) &&
@@ -745,7 +829,9 @@ export default function RanchOperationsPanel({
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-lg font-bold text-stone-900">Plot {plot.id}</p>
-                          <p className="text-sm text-stone-600">{crop ? crop.name : "Empty soil"}</p>
+                          <p className="text-sm text-stone-600">
+                            {crop ? crop.name : "Empty soil"}{protectedPlot ? " - Protected" : ""}
+                          </p>
                         </div>
                         <div className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-800">
                           {isReady ? "Ready" : plot.cropId ? `${plot.daysRemaining} day(s)` : "Open"}
@@ -770,6 +856,11 @@ export default function RanchOperationsPanel({
                           <p>
                             Weather: {weatherInfo.autoWaters ? "Rain covers watering today" : weatherInfo.fieldNote}
                           </p>
+                          {protectedPlot ? (
+                            <p className="font-semibold text-sky-900">
+                              Protection: greenhouse cover softens negative weather and adds a small quality cushion.
+                            </p>
+                          ) : null}
                           <p>
                             Fertilizer: {plot.fertilizerItemId ? ITEM_DATA[plot.fertilizerItemId]?.name ?? plot.fertilizerItemId : "None"}
                           </p>

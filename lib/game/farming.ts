@@ -1,6 +1,10 @@
 import { CROP_DATA } from "@/lib/farming/cropData";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import {
+  type FieldUpgradeEffects,
+  isPlotProtected,
+} from "@/lib/game/fieldUpgrades";
+import {
   type GameSeason,
   type GameWeather,
   getCropSeasonModifier,
@@ -154,16 +158,19 @@ export function normalizeFieldPlots(
 export function advanceFieldPlotsByDay(
   plots: FieldPlot[],
   weather: GameWeather = "clear",
-  season: GameSeason = "spring"
+  season: GameSeason = "spring",
+  upgradeEffects?: FieldUpgradeEffects
 ): FieldPlot[] {
   return plots.map((plot) => {
     if (!plot.cropId) return plot;
+    const protectedPlot = Boolean(upgradeEffects && isPlotProtected(plot.id, upgradeEffects));
 
     const modifier = getFieldDayModifier(
       plot.cropId,
       weather,
       season,
-      plot.wateredToday
+      plot.wateredToday,
+      protectedPlot
     );
     const nextQualityScore = clampQualityScore(plot.qualityScore + modifier.qualityDelta);
 
@@ -260,6 +267,19 @@ export function getFieldWateringCost(profile: FieldWorkProfile): FieldWorkCost {
   };
 }
 
+export function applyWateringToolToCost(
+  cost: FieldWorkCost,
+  upgradeEffects?: FieldUpgradeEffects
+): FieldWorkCost {
+  if (!upgradeEffects || upgradeEffects.wateringToolLevel <= 0) return cost;
+
+  return {
+    ...cost,
+    minutesSpent: Math.max(4, cost.minutesSpent - upgradeEffects.wateringMinuteDiscount),
+    staminaCost: Math.max(1, cost.staminaCost - upgradeEffects.wateringStaminaDiscount),
+  };
+}
+
 export function getFieldFertilizingCost(profile: FieldWorkProfile): FieldWorkCost {
   const workScore = getFieldWorkScore(profile, 1);
 
@@ -289,7 +309,8 @@ export function getFieldHarvestCost(profile: FieldWorkProfile): FieldWorkCost {
 export function waterFieldPlot(
   plot: FieldPlot,
   profile: FieldWorkProfile,
-  weather: GameWeather = "clear"
+  weather: GameWeather = "clear",
+  upgradeEffects?: FieldUpgradeEffects
 ): FieldPlot {
   if (!plot.cropId || plot.wateredToday) return plot;
   const weatherInfo = getWeatherInfo(weather);
@@ -298,7 +319,8 @@ export function waterFieldPlot(
     9 +
     Math.floor(profile.fieldWorkLevel / 2) +
     Math.floor((profile.industriousBonus + profile.quickBonus) / 2) +
-    (weatherInfo.waterPressure === "high" ? 5 : 0);
+    (weatherInfo.waterPressure === "high" ? 5 : 0) +
+    (upgradeEffects?.wateringQualityBonus ?? 0);
 
   const nextQualityScore = clampQualityScore(plot.qualityScore + qualityGain);
 
@@ -338,7 +360,8 @@ export function getHarvestOutcome(
   plot: FieldPlot,
   profile: FieldWorkProfile,
   weather: GameWeather = "clear",
-  season: GameSeason = "spring"
+  season: GameSeason = "spring",
+  upgradeEffects?: FieldUpgradeEffects
 ): HarvestOutcome {
   const baseQuantity = rollHarvestYield(plot);
   const quality = getCropQualityFromScore(plot.qualityScore);
@@ -347,7 +370,8 @@ export function getHarvestOutcome(
   const traitYieldBonus = Math.floor((profile.industriousBonus + profile.quickBonus) / 3);
   const fertilizerYieldBonus = plot.fertilizerYieldBonus;
   const seasonModifier = getCropSeasonModifier(plot.cropId, season);
-  const weatherYieldBonus = getWeatherInfo(weather).id === "gentle_rain" ? 1 : 0;
+  const protectedPlot = Boolean(upgradeEffects && isPlotProtected(plot.id, upgradeEffects));
+  const weatherYieldBonus = getWeatherInfo(weather).id === "gentle_rain" || protectedPlot ? 1 : 0;
   const seasonYieldBonus = seasonModifier.fit === "favored" ? 1 : 0;
   const quantity =
     baseQuantity +

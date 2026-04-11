@@ -248,15 +248,24 @@ export function getFieldDayModifier(
   cropId: string | null | undefined,
   weather: GameWeather,
   season: GameSeason,
-  wateredToday: boolean
+  wateredToday: boolean,
+  protectedPlot = false
 ): FieldDayModifier {
   const weatherInfo = getWeatherInfo(weather);
   const seasonModifier = getCropSeasonModifier(cropId, season);
   const isWatered = wateredToday || weatherInfo.autoWaters;
-  let growthStep = 1 + weatherInfo.growthDelta + seasonModifier.growthDelta;
-  let qualityDelta = weatherInfo.qualityDelta + seasonModifier.qualityDelta;
+  let growthStep =
+    1 +
+    (protectedPlot ? Math.max(0, weatherInfo.growthDelta) : weatherInfo.growthDelta) +
+    seasonModifier.growthDelta;
+  let qualityDelta =
+    (protectedPlot ? Math.max(0, weatherInfo.qualityDelta) : weatherInfo.qualityDelta) +
+    seasonModifier.qualityDelta +
+    (protectedPlot ? 5 : 0);
   const notes = [
-    `${weatherInfo.shortLabel}: ${weatherInfo.fieldNote}`,
+    protectedPlot
+      ? `${weatherInfo.shortLabel}: protected glass softened the weather pressure.`
+      : `${weatherInfo.shortLabel}: ${weatherInfo.fieldNote}`,
     `${seasonModifier.label}: ${seasonModifier.note}`,
   ];
 

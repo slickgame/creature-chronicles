@@ -18,6 +18,7 @@ import {
 import {
   type CropQuality,
   type FieldPlot,
+  applyWateringToolToCost,
   advanceFieldPlotsByDay,
   createDefaultFieldPlots,
   createEmptyFieldPlot,
@@ -33,6 +34,16 @@ import {
   normalizeFieldPlots,
   waterFieldPlot,
 } from "@/lib/game/farming";
+import {
+  type FieldUpgradeId,
+  type FieldUpgradeState,
+  DEFAULT_FIELD_UPGRADES,
+  FIELD_UPGRADE_DATA,
+  canPurchaseFieldUpgrade,
+  getFieldUpgradeEffects,
+  normalizeFieldUpgrades,
+  unlockFieldUpgrade,
+} from "@/lib/game/fieldUpgrades";
 import {
   type ProduceQualityInventoryState,
   type QualitySellQuote,
@@ -298,6 +309,7 @@ type SaveData = {
   inventory: InventoryState;
   produceQualityInventory: ProduceQualityInventoryState;
   knownRecipeIds: string[];
+  fieldUpgrades: FieldUpgradeState;
   fieldPlots: FieldPlot[];
 };
 
@@ -320,6 +332,7 @@ type GameContextType = {
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   fieldPlots: FieldPlot[];
+  fieldUpgrades: FieldUpgradeState;
   lastFieldAction: FieldActionReport | null;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
@@ -340,6 +353,7 @@ type GameContextType = {
   waterPlot: (plotId: number, creatureId: number) => boolean;
   fertilizePlot: (plotId: number, fertilizerItemId: string, creatureId: number) => boolean;
   harvestPlot: (plotId: number, creatureId: number) => boolean;
+  purchaseFieldUpgrade: (upgradeId: FieldUpgradeId) => boolean;
   careForCreature: (creatureId: number, careType: "feed" | "groom" | "recovery") => void;
   inventory: InventoryState;
   produceQualityInventory: ProduceQualityInventoryState;
@@ -1774,6 +1788,7 @@ const defaultSaveData: SaveData = {
   inventory: defaultInventory,
   produceQualityInventory: {},
   knownRecipeIds: defaultKnownRecipeIds,
+  fieldUpgrades: DEFAULT_FIELD_UPGRADES,
   fieldPlots: defaultFieldPlots,
 };
 
@@ -1803,9 +1818,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     defaultSaveData.produceQualityInventory
   );
   const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
-const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
+  const [fieldUpgrades, setFieldUpgrades] = useState<FieldUpgradeState>(defaultSaveData.fieldUpgrades);
+  const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
   const [lastFieldAction, setLastFieldAction] = useState<FieldActionReport | null>(null);
   const currentSeason = getSeasonForDay(currentDay);
+  const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
   
 
   useEffect(() => {
@@ -1854,7 +1871,14 @@ const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldP
         setInventory(normalizeInventory(parsedSave.inventory));
         setProduceQualityInventory(normalizeProduceQualityInventory(parsedSave.produceQualityInventory));
         setKnownRecipeIds(normalizeKnownRecipes(parsedSave.knownRecipeIds));
-        setFieldPlots(normalizeFieldPlots(parsedSave.fieldPlots));
+        const normalizedFieldUpgrades = normalizeFieldUpgrades(parsedSave.fieldUpgrades);
+        setFieldUpgrades(normalizedFieldUpgrades);
+        setFieldPlots(
+          normalizeFieldPlots(
+            parsedSave.fieldPlots,
+            getFieldUpgradeEffects(normalizedFieldUpgrades).unlockedPlotCount
+          )
+        );
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -1885,6 +1909,7 @@ useEffect(() => {
     inventory,
     produceQualityInventory,
     knownRecipeIds,
+    fieldUpgrades,
     fieldPlots,
   };
 
@@ -1910,6 +1935,7 @@ useEffect(() => {
   inventory,
   produceQualityInventory,
   knownRecipeIds,
+  fieldUpgrades,
   fieldPlots,
 ]);
 
@@ -1963,7 +1989,7 @@ useEffect(() => {
       foodStock: Math.max(0, prev.foodStock - currentCreatureCount),
     }));
 
-    setFieldPlots((prev) => advanceFieldPlotsByDay(prev, currentWeather, currentSeason));
+    setFieldPlots((prev) => advanceFieldPlotsByDay(prev, currentWeather, currentSeason, fieldUpgradeEffects));
 
     if (newMonth !== previousMonth && !paidTaxMonths.includes(previousMonth)) {
       const taxDue = getMonthlyTaxAmount(playerData, creatures, eggs);
@@ -2612,10 +2638,13 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.wateredToday || !creature) return false;
     if (weatherAlreadyWaters) return false;
 
-    const fieldCost = getFieldWateringCost(getFieldWorkProfile(creature));
+    const fieldCost = applyWateringToolToCost(
+      getFieldWateringCost(getFieldWorkProfile(creature)),
+      fieldUpgradeEffects
+    );
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const updatedPlot = waterFieldPlot(plot, getFieldWorkProfile(creature), currentWeather);
+    const updatedPlot = waterFieldPlot(plot, getFieldWorkProfile(creature), currentWeather, fieldUpgradeEffects);
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2715,7 +2744,13 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const fieldCost = getFieldHarvestCost(getFieldWorkProfile(creature));
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const harvestOutcome = getHarvestOutcome(plot, getFieldWorkProfile(creature), currentWeather, currentSeason);
+    const harvestOutcome = getHarvestOutcome(
+      plot,
+      getFieldWorkProfile(creature),
+      currentWeather,
+      currentSeason,
+      fieldUpgradeEffects
+    );
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2961,6 +2996,25 @@ function sellQualityProduce(
   return true;
 }
 
+function purchaseFieldUpgrade(upgradeId: FieldUpgradeId) {
+  const upgrade = FIELD_UPGRADE_DATA[upgradeId];
+  if (!upgrade || !canPurchaseFieldUpgrade(fieldUpgrades, upgradeId, playerData.gold)) return false;
+
+  const nextFieldUpgrades = unlockFieldUpgrade(fieldUpgrades, upgradeId);
+  const nextEffects = getFieldUpgradeEffects(nextFieldUpgrades);
+  const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, 20);
+
+  setCurrentDay(updatedClock.day);
+  setCurrentHour(updatedClock.hour);
+  setCurrentMinute(updatedClock.minute);
+  setPlayerData((prev) => ({ ...prev, gold: prev.gold - upgrade.cost }));
+  setFieldUpgrades(nextFieldUpgrades);
+  setFieldPlots((prev) => normalizeFieldPlots(prev, nextEffects.unlockedPlotCount));
+  setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+  setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  return true;
+}
+
 function knowsRecipe(recipeId: string) {
   return knownRecipeIds.includes(recipeId);
 }
@@ -3055,6 +3109,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setInventory(defaultInventory);
     setProduceQualityInventory({});
     setKnownRecipeIds(defaultKnownRecipeIds);
+    setFieldUpgrades(DEFAULT_FIELD_UPGRADES);
     setFieldPlots(createDefaultFieldPlots());
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -3080,6 +3135,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         paidTaxMonths,
         travelLog,
         fieldPlots,
+        fieldUpgrades,
         lastFieldAction,
         nextDay,
         hatchEgg,
@@ -3100,6 +3156,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         waterPlot,
         fertilizePlot,
         harvestPlot,
+        purchaseFieldUpgrade,
         cookRecipe,
         careForCreature,
         inventory,
