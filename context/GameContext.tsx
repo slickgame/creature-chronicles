@@ -287,6 +287,11 @@ type GameContextType = {
   getItemCount: (itemId: string) => number;
   knowsRecipe: (recipeId: string) => boolean;
   cookRecipe: (recipeId: string, creatureId: number) => boolean;
+  consumeInventoryItem: (
+    itemId: string,
+    target: { type: "player" } | { type: "creature"; creatureId: number }
+  ) => boolean;
+
 
 };
 
@@ -1708,6 +1713,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
   const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
   const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
+  
 
   useEffect(() => {
     const savedGame = localStorage.getItem(STORAGE_KEY);
@@ -2478,6 +2484,71 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
   }
 
+function consumeInventoryItem(
+  itemId: string,
+  target: { type: "player" } | { type: "creature"; creatureId: number }
+) {
+  const item = ITEM_DATA[itemId];
+  const effects = item?.edibleEffects;
+
+  if (!item || !effects) return false;
+  if ((inventory[itemId] ?? 0) < 1) return false;
+  if (!item.useTags.includes("edible")) return false;
+
+  const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, 5);
+  setCurrentDay(updatedClock.day);
+  setCurrentHour(updatedClock.hour);
+  setCurrentMinute(updatedClock.minute);
+
+  setInventory((prev) => removeItemFromInventory(prev, itemId, 1));
+
+  if (target.type === "player") {
+    setPlayerData((prev) => ({
+      ...prev,
+      energy: clamp(prev.energy + (effects.energyRestore ?? 0), 0, 100),
+      happiness: clamp(prev.happiness + (effects.happinessGain ?? 0), 0, 100),
+    }));
+  } else {
+    const creature = creatures.find((c) => c.id === target.creatureId);
+    if (!creature) return false;
+
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== target.creatureId) return c;
+
+        return {
+          ...c,
+          breedingStamina: clamp(
+            c.breedingStamina +
+              (effects.staminaRestore ?? 0) +
+              (effects.breedingRecoveryBoost ?? 0),
+            0,
+            c.maxBreedingStamina
+          ),
+          happiness: clamp(c.happiness + (effects.happinessGain ?? 0), 0, 100),
+          stats: {
+            ...c.stats,
+            fertility: clamp(
+              c.stats.fertility + (effects.fertilityBoost ?? 0),
+              1,
+              99
+            ),
+          },
+        };
+      })
+    );
+  }
+
+  setTownQuests((prev) =>
+    ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10)
+  );
+  setTownNpcQuests((prev) =>
+    ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3)
+  );
+
+  return true;
+}
+
 function cookRecipe(recipeId: string, creatureId: number) {
   if (currentLocation !== "home" && currentLocation !== "ranch") return false;
 
@@ -2682,13 +2753,14 @@ function purchaseMarketItem(itemId: string, price: number) {
         cookMeal,
         cleanHome,
         workFields,
+        cookRecipe,
         careForCreature,
         inventory,
         knownRecipeIds,
         purchaseMarketItem,
         getItemCount,
         knowsRecipe,
-        cookRecipe,
+        consumeInventoryItem,        
       }}
     >
       {children}

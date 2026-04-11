@@ -1,97 +1,41 @@
-Apply these exact changes to context/GameContext.tsx.
+"use client";
 
-1) In GameContextType, add this function:
-  consumeInventoryItem: (
-    itemId: string,
-    target: { type: "player" } | { type: "creature"; creatureId: number }
-  ) => boolean;
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-2) Add this function inside GameProvider(), near your other inventory functions like
-   getItemCount / knowsRecipe / purchaseMarketItem:
+const HUD_LINKS = [
+  { href: "/home", label: "Home", activePath: "/home" },
+  { href: "/town", label: "Town", activePath: "/town" },
+  { href: "/ranch", label: "Ranch", activePath: "/ranch" },
+  { href: "/inventory", label: "Inventory", activePath: "/inventory" },
+  { href: "/calendar", label: "Calendar", activePath: "/calendar" },
+  { href: "/news", label: "News", activePath: "/news" },
+] as const;
 
-function consumeInventoryItem(
-  itemId: string,
-  target: { type: "player" } | { type: "creature"; creatureId: number }
-) {
-  const item = ITEM_DATA[itemId];
-  const effects = item?.edibleEffects;
+export function GlobalHudNav() {
+  const pathname = usePathname();
 
-  if (!item || !effects) return false;
-  if ((inventory[itemId] ?? 0) < 1) return false;
-  if (!item.useTags.includes("edible")) return false;
+  return (
+    <div className="fixed right-4 top-4 z-[80] flex flex-wrap items-center gap-2 rounded-2xl border border-stone-300 bg-white/90 px-3 py-2 shadow-lg backdrop-blur">
+      {HUD_LINKS.map((link) => {
+        const active = pathname === link.activePath;
 
-  const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, 5);
-  setCurrentDay(updatedClock.day);
-  setCurrentHour(updatedClock.hour);
-  setCurrentMinute(updatedClock.minute);
-
-  setInventory((prev) => removeItemFromInventory(prev, itemId, 1));
-
-  if (target.type === "player") {
-    setPlayerData((prev) => ({
-      ...prev,
-      energy: clamp(prev.energy + (effects.energyRestore ?? 0), 0, 100),
-      happiness: clamp(prev.happiness + (effects.happinessGain ?? 0), 0, 100),
-    }));
-  } else {
-    const creature = creatures.find((c) => c.id === target.creatureId);
-    if (!creature) return false;
-
-    setCreatures((prev) =>
-      prev.map((c) => {
-        if (c.id !== target.creatureId) return c;
-
-        return {
-          ...c,
-          breedingStamina: clamp(
-            c.breedingStamina +
-              (effects.staminaRestore ?? 0) +
-              (effects.breedingRecoveryBoost ?? 0),
-            0,
-            c.maxBreedingStamina
-          ),
-          happiness: clamp(c.happiness + (effects.happinessGain ?? 0), 0, 100),
-          stats: {
-            ...c.stats,
-            fertility: clamp(
-              c.stats.fertility + (effects.fertilityBoost ?? 0),
-              1,
-              99
-            ),
-          },
-        };
-      })
-    );
-  }
-
-  setTownQuests((prev) =>
-    ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10)
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`rounded-xl px-3 py-2 text-sm font-semibold ${
+              active
+                ? "bg-stone-800 text-white"
+                : "bg-stone-100 text-stone-800 hover:bg-stone-200"
+            }`}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
+    </div>
   );
-  setTownNpcQuests((prev) =>
-    ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3)
-  );
-
-  return true;
 }
 
-3) In the GameContext.Provider value, add:
-  consumeInventoryItem,
-
-Place it near:
-  inventory,
-  knownRecipeIds,
-  purchaseMarketItem,
-  getItemCount,
-  knowsRecipe,
-  cookRecipe,
-
-So that section becomes:
-  inventory,
-  knownRecipeIds,
-  purchaseMarketItem,
-  getItemCount,
-  knowsRecipe,
-  cookRecipe,
-  consumeInventoryItem,
-
-4) In the returned context value type block near the top, make sure the new function is included exactly once.
+export default GlobalHudNav;

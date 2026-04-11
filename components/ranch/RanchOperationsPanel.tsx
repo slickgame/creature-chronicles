@@ -68,7 +68,7 @@ function OverlayModal({
 function getInventoryCategory(itemId: string): InventoryCategory {
   if (itemId.endsWith("_seed")) return "seeds";
   if (itemId.startsWith("recipe_book_")) return "books";
-  if (["apple_pie", "berry_tart", "hearty_stew", "warm_milk", "bread", "vegetable_soup"].includes(itemId)) return "food";
+  if (["apple_pie", "berry_tart", "hearty_stew", "warm_milk", "bread", "vegetable_soup", "porridge", "farm_salad"].includes(itemId)) return "food";
 
   const item = ITEM_DATA[itemId];
   if (item?.category === "ingredient") return "ingredients";
@@ -95,6 +95,22 @@ function getMoodLabel(happiness: number) {
 function getStaminaPercent(current: number, max: number) {
   if (max <= 0) return 0;
   return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
+}
+
+function getItemEffectSummary(itemId: string) {
+  const item = ITEM_DATA[itemId];
+  const effects = item?.edibleEffects;
+  if (!effects) return null;
+
+  const parts: string[] = [];
+  if (effects.energyRestore) parts.push(`Energy +${effects.energyRestore}`);
+  if (effects.staminaRestore) parts.push(`Stamina +${effects.staminaRestore}`);
+  if (effects.breedingRecoveryBoost) parts.push(`Breeding Recovery +${effects.breedingRecoveryBoost}`);
+  if (effects.happinessGain) parts.push(`Happiness +${effects.happinessGain}`);
+  if (effects.fertilityBoost) parts.push(`Fertility +${effects.fertilityBoost}`);
+  if (effects.taskBonus) parts.push(`${effects.taskBonus.taskType} bonus +${effects.taskBonus.amount} for ${effects.taskBonus.durationTasks} task(s)`);
+
+  return parts.length > 0 ? parts.join(" • ") : null;
 }
 
 export default function RanchOperationsPanel({
@@ -616,9 +632,9 @@ export default function RanchOperationsPanel({
                         </p>
                       ) : null}
 
-                      {entry.item?.effectSummary ? (
+                      {getItemEffectSummary(entry.itemId) ? (
                         <p className="mt-2 text-xs text-stone-700">
-                          Effect: {entry.item.effectSummary}
+                          Effect: {getItemEffectSummary(entry.itemId)}
                         </p>
                       ) : null}
 
@@ -682,7 +698,6 @@ export default function RanchOperationsPanel({
                   <p><strong>Giver:</strong> {selectedCreature.giver ?? "Unknown"}</p>
                   <p><strong>Receiver:</strong> {selectedCreature.receiver ?? "Unknown"}</p>
                   <p><strong>Born On Day:</strong> {selectedCreature.bornOnDay}</p>
-                  <p><strong>Breeding Count:</strong> {selectedCreature.breedingCount}</p>
                 </div>
               </div>
             </div>
