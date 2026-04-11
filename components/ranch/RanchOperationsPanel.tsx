@@ -99,8 +99,10 @@ function getStaminaPercent(current: number, max: number) {
 
 export default function RanchOperationsPanel({
   initialTab = "house",
+  initialInventoryOpen = false,
 }: {
   initialTab?: RanchTab;
+  initialInventoryOpen?: boolean;
 }) {
   const {
     currentDay,
@@ -123,7 +125,7 @@ export default function RanchOperationsPanel({
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<RanchTab>(initialTab);
-  const [inventoryOpen, setInventoryOpen] = useState(false);
+  const [inventoryOpen, setInventoryOpen] = useState(initialInventoryOpen);
   const [selectedCreatureId, setSelectedCreatureId] = useState<number | null>(null);
 
   const ownedSeedEntries = useMemo(() => {
@@ -223,16 +225,6 @@ export default function RanchOperationsPanel({
           <StatChip label="Seed Types" value={ownedSeedEntries.length} />
           <StatChip label="Known Recipes" value={knownRecipes.length} />
           <StatChip label="Eggs" value={eggs.length} />
-        </div>
-
-        <div className="mb-5 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => setInventoryOpen(true)}
-            className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white shadow"
-          >
-            Open Inventory
-          </button>
         </div>
 
         <div className="mb-5 flex flex-wrap gap-2">

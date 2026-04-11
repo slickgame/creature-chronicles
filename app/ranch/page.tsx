@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useSearchParams } from "next/navigation";
@@ -18,6 +17,8 @@ function formatTime(hour: number, minute: number) {
 export default function RanchPage() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get("tab");
+  const requestedInventory = searchParams.get("inventory");
+
   const initialTab: RanchTab =
     requestedTab === "house" ||
     requestedTab === "fields" ||
@@ -26,6 +27,8 @@ export default function RanchPage() {
     requestedTab === "breeding"
       ? requestedTab
       : "house";
+
+  const initialInventoryOpen = requestedInventory === "1";
 
   const {
     currentDay,
@@ -108,7 +111,10 @@ export default function RanchPage() {
         </div>
 
         <div className="mt-6">
-          <RanchOperationsPanel initialTab={initialTab} />
+          <RanchOperationsPanel
+            initialTab={initialTab}
+            initialInventoryOpen={initialInventoryOpen}
+          />
         </div>
       </div>
     </main>

@@ -1,23 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 const HUD_LINKS = [
-  { href: "/home", label: "Home" },
-  { href: "/town", label: "Town" },
-  { href: "/ranch", label: "Ranch" },
-  { href: "/calendar", label: "Calendar" },
-  { href: "/news", label: "News" },
-];
+  { href: "/home", label: "Home", activePath: "/home" },
+  { href: "/town", label: "Town", activePath: "/town" },
+  { href: "/ranch", label: "Ranch", activePath: "/ranch" },
+  { href: "/ranch?inventory=1", label: "Inventory", activePath: "/ranch", isInventory: true },
+  { href: "/calendar", label: "Calendar", activePath: "/calendar" },
+  { href: "/news", label: "News", activePath: "/news" },
+] as const;
 
 export function GlobalHudNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   return (
     <div className="fixed right-4 top-4 z-[80] flex flex-wrap items-center gap-2 rounded-2xl border border-stone-300 bg-white/90 px-3 py-2 shadow-lg backdrop-blur">
       {HUD_LINKS.map((link) => {
-        const active = pathname === link.href;
+        const inventoryActive =
+          link.isInventory === true &&
+          pathname === "/ranch" &&
+          searchParams.get("inventory") === "1";
+
+        const regularActive =
+          link.isInventory !== true &&
+          pathname === link.activePath;
+
+        const active = inventoryActive || regularActive;
+
         return (
           <Link
             key={link.href}
