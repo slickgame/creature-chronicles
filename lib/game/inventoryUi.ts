@@ -47,6 +47,10 @@ export function getUseHint(itemId: string) {
     return "Plant from Ranch Fields";
   }
 
+  if (item?.useTags.includes("fertilizer")) {
+    return "Use from Ranch Fields";
+  }
+
   if (item?.category === "recipe_book") {
     return "Used automatically when purchased";
   }

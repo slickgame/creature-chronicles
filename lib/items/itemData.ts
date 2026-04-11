@@ -17,7 +17,8 @@ export type ItemUseTag =
   | "healing"
   | "stamina_restore"
   | "mood_boost"
-  | "fertility_support";
+  | "fertility_support"
+  | "fertilizer";
 
 export type TaskBonusType = "house" | "fields" | "barn" | "nursery" | "breeding";
 
@@ -46,6 +47,10 @@ export type ItemData = {
   edibleEffects?: ItemEffect;
   recipeIngredientFor?: string[];
   recipeUnlockIds?: string[];
+  fertilizerData?: {
+    qualityBonus: number;
+    yieldBonus: number;
+  };
   seedData?: {
     cropId: string;
     growDays: number;
@@ -343,6 +348,33 @@ export const ITEM_DATA: Record<string, ItemData> = {
     },
   },
 
+  basic_fertilizer: {
+    id: "basic_fertilizer",
+    name: "Basic Fertilizer",
+    category: "material",
+    useTags: ["fertilizer", "sellable"],
+    description: "A tidy soil booster that helps crops fill out with a little extra confidence.",
+    sellValue: 4,
+    buyValue: 10,
+    fertilizerData: {
+      qualityBonus: 18,
+      yieldBonus: 1,
+    },
+  },
+  rich_fertilizer: {
+    id: "rich_fertilizer",
+    name: "Rich Fertilizer",
+    category: "material",
+    useTags: ["fertilizer", "sellable"],
+    description: "Dark, fragrant field mix that makes a planted row look almost eager to please.",
+    sellValue: 8,
+    buyValue: 18,
+    fertilizerData: {
+      qualityBonus: 32,
+      yieldBonus: 2,
+    },
+  },
+
   recipe_book_home_cooking_1: {
     id: "recipe_book_home_cooking_1",
     name: "Recipe Book: Home Cooking Vol. 1",
@@ -382,6 +414,11 @@ export const STARTER_SEED_IDS = [
   "lettuce_seed",
   "apple_seed",
   "berry_seed",
+] as const;
+
+export const STARTER_FERTILIZER_IDS = [
+  "basic_fertilizer",
+  "rich_fertilizer",
 ] as const;
 
 export const STARTER_RECIPE_BOOK_IDS = [

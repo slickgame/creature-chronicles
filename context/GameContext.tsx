@@ -16,11 +16,16 @@ import {
   createDefaultFieldPlots,
   createEmptyFieldPlot,
   createPlantedPlot,
+  fertilizeFieldPlot,
+  getFertilizerData,
+  getFieldFertilizingCost,
   getFieldHarvestCost,
   getFieldPlantingCost,
+  getFieldWateringCost,
+  getHarvestOutcome,
   getPlotProduceItemId,
   normalizeFieldPlots,
-  rollHarvestYield,
+  waterFieldPlot,
 } from "@/lib/game/farming";
 
 
@@ -240,6 +245,15 @@ type TownNpcQuest = {
 
 type InventoryState = Record<string, number>;
 
+type FieldActionReport = {
+  id: number;
+  action: "plant" | "water" | "fertilize" | "harvest";
+  plotId: number;
+  day: number;
+  message: string;
+  details: string[];
+};
+
 
 type SaveData = {
   currentDay: number;
@@ -279,6 +293,7 @@ type GameContextType = {
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   fieldPlots: FieldPlot[];
+  lastFieldAction: FieldActionReport | null;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -295,6 +310,8 @@ type GameContextType = {
   cleanHome: (creatureId: number) => void;
   workFields: (creatureId: number) => void;
   plantCrop: (plotId: number, seedItemId: string, creatureId: number) => boolean;
+  waterPlot: (plotId: number, creatureId: number) => boolean;
+  fertilizePlot: (plotId: number, fertilizerItemId: string, creatureId: number) => boolean;
   harvestPlot: (plotId: number, creatureId: number) => boolean;
   careForCreature: (creatureId: number, careType: "feed" | "groom" | "recovery") => void;
   inventory: InventoryState;
@@ -1669,6 +1686,7 @@ const defaultInventory: InventoryState = {
   wheat: 2,
   carrot: 1,
   milk: 1,
+  basic_fertilizer: 2,
 };
 
 const defaultKnownRecipeIds = [...DEFAULT_KNOWN_RECIPE_IDS];
@@ -1747,6 +1765,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
   const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
   const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
+  const [lastFieldAction, setLastFieldAction] = useState<FieldActionReport | null>(null);
   
 
   useEffect(() => {
@@ -2505,6 +2524,116 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setInventory((prev) => removeItemFromInventory(prev, seedItemId, 1));
     setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? plantedPlot : item)));
+    setLastFieldAction({
+      id: Date.now(),
+      action: "plant",
+      plotId,
+      day: currentDay,
+      message: `${creature.nickname} tucked ${ITEM_DATA[seedItemId]?.name ?? seedItemId} into Plot ${plotId}.`,
+      details: [
+        `Grow time: ${plantedPlot.daysRemaining} day(s)`,
+        `Stamina -${fieldCost.staminaCost}`,
+        `Field Work XP +${fieldCost.xpGain}`,
+      ],
+    });
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - fieldCost.staminaCost,
+          happiness: clamp(c.happiness + 1, 0, 100),
+        };
+        return applyCreatureSkillXp(updated, "fieldWork", fieldCost.xpGain);
+      })
+    );
+
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    return true;
+  }
+
+  function waterPlot(plotId: number, creatureId: number) {
+    if (currentLocation !== "home" && currentLocation !== "ranch") return false;
+
+    const plot = fieldPlots.find((item) => item.id === plotId);
+    const creature = creatures.find((c) => c.id === creatureId);
+    if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.wateredToday || !creature) return false;
+
+    const fieldCost = getFieldWateringCost(getFieldWorkProfile(creature));
+    if (creature.breedingStamina < fieldCost.staminaCost) return false;
+
+    const updatedPlot = waterFieldPlot(plot, getFieldWorkProfile(creature));
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? updatedPlot : item)));
+    setLastFieldAction({
+      id: Date.now(),
+      action: "water",
+      plotId,
+      day: currentDay,
+      message: `${creature.nickname} watered Plot ${plotId} until the soil looked dark and eager.`,
+      details: [
+        `Quality: ${updatedPlot.quality}`,
+        `Watered days: ${updatedPlot.wateredDays}`,
+        `Stamina -${fieldCost.staminaCost}`,
+        `Field Work XP +${fieldCost.xpGain}`,
+      ],
+    });
+    setCreatures((prev) =>
+      prev.map((c) => {
+        if (c.id !== creatureId) return c;
+        const updated = {
+          ...c,
+          breedingStamina: c.breedingStamina - fieldCost.staminaCost,
+          happiness: clamp(c.happiness + 1, 0, 100),
+        };
+        return applyCreatureSkillXp(updated, "fieldWork", fieldCost.xpGain);
+      })
+    );
+
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    return true;
+  }
+
+  function fertilizePlot(plotId: number, fertilizerItemId: string, creatureId: number) {
+    if (currentLocation !== "home" && currentLocation !== "ranch") return false;
+
+    const plot = fieldPlots.find((item) => item.id === plotId);
+    const creature = creatures.find((c) => c.id === creatureId);
+    const fertilizer = getFertilizerData(fertilizerItemId);
+
+    if (!plot || !plot.cropId || plot.daysRemaining <= 0 || plot.fertilizerItemId || !creature || !fertilizer) return false;
+    if ((inventory[fertilizerItemId] ?? 0) < 1) return false;
+
+    const fieldCost = getFieldFertilizingCost(getFieldWorkProfile(creature));
+    if (creature.breedingStamina < fieldCost.staminaCost) return false;
+
+    const updatedPlot = fertilizeFieldPlot(plot, fertilizerItemId, getFieldWorkProfile(creature));
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    setInventory((prev) => removeItemFromInventory(prev, fertilizerItemId, 1));
+    setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? updatedPlot : item)));
+    setLastFieldAction({
+      id: Date.now(),
+      action: "fertilize",
+      plotId,
+      day: currentDay,
+      message: `${creature.nickname} worked ${fertilizer.label} into Plot ${plotId}.`,
+      details: [
+        `Quality: ${updatedPlot.quality}`,
+        `Harvest yield +${updatedPlot.fertilizerYieldBonus}`,
+        `Stamina -${fieldCost.staminaCost}`,
+        `Field Work XP +${fieldCost.xpGain}`,
+      ],
+    });
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== creatureId) return c;
@@ -2534,14 +2663,28 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const fieldCost = getFieldHarvestCost(getFieldWorkProfile(creature));
     if (creature.breedingStamina < fieldCost.staminaCost) return false;
 
-    const harvestYield = rollHarvestYield(plot);
+    const harvestOutcome = getHarvestOutcome(plot, getFieldWorkProfile(creature));
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, fieldCost.minutesSpent);
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
 
-    setInventory((prev) => addItemToInventory(prev, produceItemId, harvestYield));
+    setInventory((prev) => addItemToInventory(prev, produceItemId, harvestOutcome.quantity));
     setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? createEmptyFieldPlot(plotId) : item)));
+    setLastFieldAction({
+      id: Date.now(),
+      action: "harvest",
+      plotId,
+      day: currentDay,
+      message: `${creature.nickname} harvested ${harvestOutcome.quantity} ${ITEM_DATA[produceItemId]?.name ?? produceItemId} from Plot ${plotId}.`,
+      details: [
+        `Quality: ${harvestOutcome.qualityInfo.label}`,
+        `Value feel: x${harvestOutcome.valueMultiplier.toFixed(2)}`,
+        ...(harvestOutcome.bonusSummary.length > 0 ? harvestOutcome.bonusSummary : ["Base yield only"]),
+        `Stamina -${fieldCost.staminaCost}`,
+        `Field Work XP +${fieldCost.xpGain}`,
+      ],
+    });
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== creatureId) return c;
@@ -2815,6 +2958,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         paidTaxMonths,
         travelLog,
         fieldPlots,
+        lastFieldAction,
         nextDay,
         hatchEgg,
         breedCreatures,
@@ -2831,6 +2975,8 @@ function purchaseMarketItem(itemId: string, price: number) {
         cleanHome,
         workFields,
         plantCrop,
+        waterPlot,
+        fertilizePlot,
         harvestPlot,
         cookRecipe,
         careForCreature,

@@ -1,5 +1,10 @@
 import { FARM_ECONOMY_NPC_IDS, TOWN_NPC_DATA } from "@/lib/town/npcData";
-import { ITEM_DATA, STARTER_RECIPE_BOOK_IDS, STARTER_SEED_IDS } from "@/lib/items/itemData";
+import {
+  ITEM_DATA,
+  STARTER_FERTILIZER_IDS,
+  STARTER_RECIPE_BOOK_IDS,
+  STARTER_SEED_IDS,
+} from "@/lib/items/itemData";
 
 export type MarketInventoryEntry = {
   itemId: string;
@@ -56,6 +61,20 @@ seedEntries.push(
     note: "Berry seeds get easier to source once Maris takes a personal interest.",
   }
 );
+
+for (const itemId of STARTER_FERTILIZER_IDS) {
+  seedEntries.push({
+    itemId,
+    stock: itemId === "rich_fertilizer" ? 10 : 18,
+    buyPrice: getItemBuyValue(itemId, itemId === "rich_fertilizer" ? 18 : 10),
+    sellerNpcId: "maris_thorn",
+    unlockRelationshipLevel: itemId === "rich_fertilizer" ? 2 : undefined,
+    note:
+      itemId === "rich_fertilizer"
+        ? "Maris saves the richer mix for ranchers who have earned a warmer smile."
+        : "A practical soil booster for better field days.",
+  });
+}
 
 const recipeEntries: MarketInventoryEntry[] = STARTER_RECIPE_BOOK_IDS.map((itemId) => ({
   itemId,

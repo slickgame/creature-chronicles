@@ -6,6 +6,7 @@ import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import { RECIPE_DATA } from "@/lib/cooking/recipeData";
 import { CROP_DATA } from "@/lib/farming/cropData";
+import { CROP_QUALITY_DATA } from "@/lib/game/farming";
 import {
   type InventoryCategory,
   getCategoryLabel,
@@ -83,6 +84,29 @@ function getStaminaPercent(current: number, max: number) {
   return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
 }
 
+function getFieldTraitSummary(
+  creature: {
+    name: string;
+    skills: { fieldWork: { level: number } };
+    traits: { trait: string; grade: string }[];
+  } | null
+) {
+  if (!creature) return "Pick a creature to see field bonuses.";
+
+  const bonuses: string[] = [`Field Work Lv ${creature.skills.fieldWork.level}`];
+  if (creature.name === "Horse") bonuses.push("Horse field labor bonus");
+
+  const farmingTraits = creature.traits.filter((entry) =>
+    ["industrious", "quick", "sturdy", "surefooted"].includes(entry.trait)
+  );
+
+  farmingTraits.forEach((entry) => {
+    bonuses.push(`${entry.trait} ${entry.grade}`);
+  });
+
+  return bonuses.join(" - ");
+}
+
 export default function RanchOperationsPanel({
   initialTab = "house",
   initialInventoryOpen = false,
@@ -102,12 +126,15 @@ export default function RanchOperationsPanel({
     breedingSelection,
     inventory,
     fieldPlots,
+    lastFieldAction,
     knownRecipeIds,
     getItemCount,
     cookMeal,
     cookRecipe,
     cleanHome,
     plantCrop,
+    waterPlot,
+    fertilizePlot,
     harvestPlot,
     breedCreatures,
     hatchEgg,
@@ -117,6 +144,7 @@ export default function RanchOperationsPanel({
   const [inventoryOpen, setInventoryOpen] = useState(initialInventoryOpen);
   const [selectedCreatureId, setSelectedCreatureId] = useState<number | null>(null);
   const [selectedSeedItemId, setSelectedSeedItemId] = useState<string>("");
+  const [selectedFertilizerItemId, setSelectedFertilizerItemId] = useState<string>("");
   const [selectedFieldCreatureId, setSelectedFieldCreatureId] = useState<number | null>(null);
 
   const ownedSeedEntries = useMemo(() => {
@@ -128,6 +156,16 @@ export default function RanchOperationsPanel({
         item: ITEM_DATA[itemId],
       }))
       .filter((entry) => entry.item);
+  }, [inventory]);
+
+  const ownedFertilizerEntries = useMemo(() => {
+    return Object.entries(inventory)
+      .filter(([itemId, count]) => (ITEM_DATA[itemId]?.useTags.includes("fertilizer") ?? false) && count > 0)
+      .map(([itemId, count]) => ({
+        itemId,
+        count,
+        item: ITEM_DATA[itemId],
+      }));
   }, [inventory]);
 
   const inventoryEntries = useMemo(() => {
@@ -177,11 +215,18 @@ export default function RanchOperationsPanel({
     ownedSeedEntries.find((entry) => entry.itemId === selectedSeedItemId) ??
     ownedSeedEntries[0] ??
     null;
+  const selectedFertilizerEntry =
+    ownedFertilizerEntries.find((entry) => entry.itemId === selectedFertilizerItemId) ??
+    ownedFertilizerEntries[0] ??
+    null;
   const fieldCreature =
     creatures.find((creature) => creature.id === selectedFieldCreatureId) ??
     firstCreature;
   const growingPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining > 0).length;
   const readyPlotCount = fieldPlots.filter((plot) => plot.cropId && plot.daysRemaining <= 0).length;
+  const fineOrBetterPlotCount = fieldPlots.filter(
+    (plot) => plot.cropId && plot.quality !== "standard"
+  ).length;
   const selectedCreature =
     creatures.find((creature) => creature.id === selectedCreatureId) ?? null;
 
@@ -408,7 +453,34 @@ export default function RanchOperationsPanel({
                   </select>
                 </label>
 
-                <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
+                <label className="block text-sm font-semibold text-stone-800">
+                  Fertilizer
+                  <select
+                    value={selectedFertilizerEntry?.itemId ?? ""}
+                    onChange={(event) => setSelectedFertilizerItemId(event.target.value)}
+                    className="mt-1 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm text-stone-800"
+                  >
+                    {ownedFertilizerEntries.length === 0 ? (
+                      <option value="">No fertilizer owned</option>
+                    ) : (
+                      ownedFertilizerEntries.map((entry) => (
+                        <option key={entry.itemId} value={entry.itemId}>
+                          {entry.item?.name ?? entry.itemId} x{entry.count}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
+
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-stone-700">
+                  <p className="font-semibold text-emerald-950">Creature Influence</p>
+                  <p className="mt-1">{getFieldTraitSummary(fieldCreature)}</p>
+                  <p className="mt-1 text-xs text-stone-600">
+                    Field skill, horse labor, industrious, quick, and sturdy traits affect time, stamina, quality, or yield.
+                  </p>
+                </div>
+
+                <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-4">
                   <div className="rounded-2xl bg-emerald-50 px-3 py-2">
                     <p className="text-stone-500">Empty</p>
                     <p className="font-bold text-stone-900">{fieldPlots.length - growingPlotCount - readyPlotCount}</p>
@@ -421,11 +493,24 @@ export default function RanchOperationsPanel({
                     <p className="text-stone-500">Ready</p>
                     <p className="font-bold text-stone-900">{readyPlotCount}</p>
                   </div>
+                  <div className="rounded-2xl bg-lime-50 px-3 py-2">
+                    <p className="text-stone-500">Fine+</p>
+                    <p className="font-bold text-stone-900">{fineOrBetterPlotCount}</p>
+                  </div>
                 </div>
 
                 {currentLocation !== "home" && currentLocation !== "ranch" ? (
                   <div className="rounded-2xl border border-stone-300 bg-stone-50 p-3 text-sm text-stone-600">
                     Return home or to the ranch before field work.
+                  </div>
+                ) : null}
+
+                {lastFieldAction ? (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-stone-700">
+                    <p className="font-semibold text-rose-950">{lastFieldAction.message}</p>
+                    <p className="mt-1 text-xs text-stone-600">
+                      {lastFieldAction.details.join(" - ")}
+                    </p>
                   </div>
                 ) : null}
               </div>
@@ -467,6 +552,44 @@ export default function RanchOperationsPanel({
                 )}
               </div>
 
+              <div className="mt-5 border-t border-amber-200 pt-4">
+                <p className="text-lg font-bold text-stone-900">Fertilizer</p>
+                <div className="mt-3 space-y-3">
+                  {ownedFertilizerEntries.length === 0 ? (
+                    <div className="rounded-2xl border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+                      No fertilizer in the shed. Maris sells soil boosters with her seed stock.
+                    </div>
+                  ) : (
+                    ownedFertilizerEntries.map((entry) => (
+                      <button
+                        key={entry.itemId}
+                        type="button"
+                        onClick={() => setSelectedFertilizerItemId(entry.itemId)}
+                        className={`w-full rounded-2xl border p-4 text-left shadow-sm ${
+                          selectedFertilizerEntry?.itemId === entry.itemId
+                            ? "border-lime-500 bg-lime-100"
+                            : "border-lime-200 bg-lime-50"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-bold text-stone-900">{entry.item?.name}</p>
+                            <p className="text-sm text-stone-600">{entry.item?.description}</p>
+                            <p className="mt-2 text-xs text-stone-700">
+                              Quality +{entry.item?.fertilizerData?.qualityBonus ?? "?"} - Yield +{entry.item?.fertilizerData?.yieldBonus ?? "?"}
+                            </p>
+                          </div>
+
+                          <div className="rounded-full border border-lime-300 bg-white px-3 py-1 text-xs font-semibold text-lime-900">
+                            x{entry.count}
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
               <div className="mt-4">
                 <Link
                   href="/town"
@@ -484,9 +607,22 @@ export default function RanchOperationsPanel({
                   const crop = plot.cropId ? CROP_DATA[plot.cropId] : null;
                   const produceItem = crop ? ITEM_DATA[crop.produceItemId] : null;
                   const isReady = Boolean(plot.cropId && plot.daysRemaining <= 0);
+                  const qualityInfo = CROP_QUALITY_DATA[plot.quality];
                   const canPlant =
                     !plot.cropId &&
                     Boolean(selectedSeedEntry && fieldCreature) &&
+                    (currentLocation === "home" || currentLocation === "ranch");
+                  const canWater =
+                    Boolean(plot.cropId) &&
+                    plot.daysRemaining > 0 &&
+                    !plot.wateredToday &&
+                    Boolean(fieldCreature) &&
+                    (currentLocation === "home" || currentLocation === "ranch");
+                  const canFertilize =
+                    Boolean(plot.cropId) &&
+                    plot.daysRemaining > 0 &&
+                    !plot.fertilizerItemId &&
+                    Boolean(selectedFertilizerEntry && fieldCreature) &&
                     (currentLocation === "home" || currentLocation === "ranch");
                   const canHarvest =
                     isReady &&
@@ -520,6 +656,15 @@ export default function RanchOperationsPanel({
                           <p>
                             Harvest: {plot.minYield}-{plot.maxYield} {produceItem?.name ?? crop.produceItemId}
                           </p>
+                          <p>
+                            Quality: {qualityInfo.label} - {qualityInfo.description}
+                          </p>
+                          <p>
+                            Watered {plot.wateredDays} time(s){plot.wateredToday ? " - watered today" : ""}.
+                          </p>
+                          <p>
+                            Fertilizer: {plot.fertilizerItemId ? ITEM_DATA[plot.fertilizerItemId]?.name ?? plot.fertilizerItemId : "None"}
+                          </p>
                           <p>Planted Day {plot.plantedDay ?? "?"}</p>
                         </div>
                       ) : (
@@ -534,18 +679,46 @@ export default function RanchOperationsPanel({
 
                       <div className="mt-4">
                         {plot.cropId ? (
-                          <button
-                            type="button"
-                            disabled={!canHarvest}
-                            onClick={() => {
-                              if (fieldCreature) harvestPlot(plot.id, fieldCreature.id);
-                            }}
-                            className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow ${
-                              canHarvest ? "bg-rose-700" : "bg-stone-400"
-                            }`}
-                          >
-                            {isReady ? "Harvest" : "Growing"}
-                          </button>
+                          <div className="grid gap-2">
+                            <button
+                              type="button"
+                              disabled={!canWater}
+                              onClick={() => {
+                                if (fieldCreature) waterPlot(plot.id, fieldCreature.id);
+                              }}
+                              className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow ${
+                                canWater ? "bg-sky-700" : "bg-stone-400"
+                              }`}
+                            >
+                              {plot.wateredToday ? "Watered Today" : "Water"}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={!canFertilize}
+                              onClick={() => {
+                                if (selectedFertilizerEntry && fieldCreature) {
+                                  fertilizePlot(plot.id, selectedFertilizerEntry.itemId, fieldCreature.id);
+                                }
+                              }}
+                              className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow ${
+                                canFertilize ? "bg-lime-700" : "bg-stone-400"
+                              }`}
+                            >
+                              {plot.fertilizerItemId ? "Fertilized" : "Fertilize"}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={!canHarvest}
+                              onClick={() => {
+                                if (fieldCreature) harvestPlot(plot.id, fieldCreature.id);
+                              }}
+                              className={`w-full rounded-2xl px-4 py-3 text-sm font-semibold text-white shadow ${
+                                canHarvest ? "bg-rose-700" : "bg-stone-400"
+                              }`}
+                            >
+                              {isReady ? "Harvest" : "Growing"}
+                            </button>
+                          </div>
                         ) : (
                           <button
                             type="button"

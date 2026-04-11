@@ -1,6 +1,15 @@
 import { CROP_DATA } from "@/lib/farming/cropData";
 import { ITEM_DATA } from "@/lib/items/itemData";
 
+export type CropQuality = "standard" | "fine" | "lush" | "pristine";
+
+export type CropQualityInfo = {
+  label: string;
+  yieldBonus: number;
+  valueMultiplier: number;
+  description: string;
+};
+
 export type FieldPlot = {
   id: number;
   cropId: string | null;
@@ -9,6 +18,12 @@ export type FieldPlot = {
   daysRemaining: number;
   minYield: number;
   maxYield: number;
+  wateredToday: boolean;
+  wateredDays: number;
+  fertilizerItemId: string | null;
+  fertilizerYieldBonus: number;
+  quality: CropQuality;
+  qualityScore: number;
 };
 
 export type FieldWorkProfile = {
@@ -27,7 +42,62 @@ export type FieldWorkCost = {
   xpGain: number;
 };
 
+export type HarvestOutcome = {
+  quantity: number;
+  quality: CropQuality;
+  qualityInfo: CropQualityInfo;
+  valueMultiplier: number;
+  bonusSummary: string[];
+};
+
+export type FertilizerData = {
+  qualityBonus: number;
+  yieldBonus: number;
+  label: string;
+};
+
 export const DEFAULT_FIELD_PLOT_COUNT = 6;
+export const DEFAULT_CROP_QUALITY_SCORE = 25;
+
+export const CROP_QUALITY_DATA: Record<CropQuality, CropQualityInfo> = {
+  standard: {
+    label: "Standard",
+    yieldBonus: 0,
+    valueMultiplier: 1,
+    description: "A clean, dependable harvest.",
+  },
+  fine: {
+    label: "Fine",
+    yieldBonus: 1,
+    valueMultiplier: 1.15,
+    description: "A brighter crop with a little extra promise.",
+  },
+  lush: {
+    label: "Lush",
+    yieldBonus: 2,
+    valueMultiplier: 1.35,
+    description: "Plump, glossy, and hard not to admire.",
+  },
+  pristine: {
+    label: "Pristine",
+    yieldBonus: 3,
+    valueMultiplier: 1.6,
+    description: "A showpiece harvest with real market temptation.",
+  },
+};
+
+export const FERTILIZER_DATA: Record<string, FertilizerData> = {
+  basic_fertilizer: {
+    qualityBonus: 18,
+    yieldBonus: 1,
+    label: "Basic Fertilizer",
+  },
+  rich_fertilizer: {
+    qualityBonus: 32,
+    yieldBonus: 2,
+    label: "Rich Fertilizer",
+  },
+};
 
 export function createDefaultFieldPlots(count = DEFAULT_FIELD_PLOT_COUNT): FieldPlot[] {
   return Array.from({ length: count }, (_, index) => createEmptyFieldPlot(index + 1));
@@ -42,6 +112,12 @@ export function createEmptyFieldPlot(id: number): FieldPlot {
     daysRemaining: 0,
     minYield: 0,
     maxYield: 0,
+    wateredToday: false,
+    wateredDays: 0,
+    fertilizerItemId: null,
+    fertilizerYieldBonus: 0,
+    quality: "standard",
+    qualityScore: 0,
   };
 }
 
@@ -70,10 +146,13 @@ export function normalizeFieldPlots(
 
 export function advanceFieldPlotsByDay(plots: FieldPlot[]): FieldPlot[] {
   return plots.map((plot) => {
-    if (!plot.cropId || plot.daysRemaining <= 0) return plot;
+    if (!plot.cropId) return plot;
+
     return {
       ...plot,
-      daysRemaining: Math.max(0, plot.daysRemaining - 1),
+      daysRemaining: plot.daysRemaining > 0 ? Math.max(0, plot.daysRemaining - 1) : 0,
+      wateredToday: false,
+      quality: getCropQualityFromScore(plot.qualityScore),
     };
   });
 }
@@ -93,6 +172,12 @@ export function getPlantableSeedData(seedItemId: string) {
   };
 }
 
+export function getFertilizerData(itemId: string): FertilizerData | null {
+  const item = ITEM_DATA[itemId];
+  if (!item || !item.useTags.includes("fertilizer")) return null;
+  return FERTILIZER_DATA[itemId] ?? null;
+}
+
 export function createPlantedPlot(
   plotId: number,
   seedItemId: string,
@@ -109,18 +194,17 @@ export function createPlantedPlot(
     daysRemaining: seed.seedData.growDays,
     minYield: seed.seedData.minYield,
     maxYield: seed.seedData.maxYield,
+    wateredToday: false,
+    wateredDays: 0,
+    fertilizerItemId: null,
+    fertilizerYieldBonus: 0,
+    quality: "standard",
+    qualityScore: DEFAULT_CROP_QUALITY_SCORE,
   };
 }
 
 export function getFieldPlantingCost(profile: FieldWorkProfile): FieldWorkCost {
-  const speciesBonus = profile.speciesName === "Horse" ? 2 : 0;
-  const workScore =
-    profile.strength +
-    profile.endurance +
-    profile.fieldWorkLevel +
-    speciesBonus +
-    profile.industriousBonus +
-    profile.quickBonus;
+  const workScore = getFieldWorkScore(profile, 1);
 
   return {
     minutesSpent: Math.max(10, 30 - Math.floor(workScore / 3)),
@@ -132,15 +216,34 @@ export function getFieldPlantingCost(profile: FieldWorkProfile): FieldWorkCost {
   };
 }
 
+export function getFieldWateringCost(profile: FieldWorkProfile): FieldWorkCost {
+  const workScore = getFieldWorkScore(profile, 1);
+
+  return {
+    minutesSpent: Math.max(6, 18 - Math.floor(workScore / 5)),
+    staminaCost: Math.max(
+      2,
+      6 - Math.floor((profile.endurance + profile.strength) / 10) - profile.staminaDiscount
+    ),
+    xpGain: 5,
+  };
+}
+
+export function getFieldFertilizingCost(profile: FieldWorkProfile): FieldWorkCost {
+  const workScore = getFieldWorkScore(profile, 1);
+
+  return {
+    minutesSpent: Math.max(7, 20 - Math.floor(workScore / 5)),
+    staminaCost: Math.max(
+      2,
+      6 - Math.floor((profile.endurance + profile.strength) / 10) - profile.staminaDiscount
+    ),
+    xpGain: 5,
+  };
+}
+
 export function getFieldHarvestCost(profile: FieldWorkProfile): FieldWorkCost {
-  const speciesBonus = profile.speciesName === "Horse" ? 3 : 0;
-  const workScore =
-    profile.strength +
-    profile.endurance +
-    profile.fieldWorkLevel * 2 +
-    speciesBonus +
-    profile.industriousBonus +
-    profile.quickBonus;
+  const workScore = getFieldWorkScore(profile, 2);
 
   return {
     minutesSpent: Math.max(15, 45 - Math.floor(workScore / 2)),
@@ -152,15 +255,110 @@ export function getFieldHarvestCost(profile: FieldWorkProfile): FieldWorkCost {
   };
 }
 
-export function rollHarvestYield(plot: FieldPlot): number {
-  const minYield = Math.max(1, plot.minYield);
-  const maxYield = Math.max(minYield, plot.maxYield);
-  return minYield + Math.floor(Math.random() * (maxYield - minYield + 1));
+export function waterFieldPlot(plot: FieldPlot, profile: FieldWorkProfile): FieldPlot {
+  if (!plot.cropId || plot.wateredToday) return plot;
+
+  const qualityGain =
+    9 +
+    Math.floor(profile.fieldWorkLevel / 2) +
+    Math.floor((profile.industriousBonus + profile.quickBonus) / 2);
+
+  const nextQualityScore = clampQualityScore(plot.qualityScore + qualityGain);
+
+  return {
+    ...plot,
+    wateredToday: true,
+    wateredDays: plot.wateredDays + 1,
+    qualityScore: nextQualityScore,
+    quality: getCropQualityFromScore(nextQualityScore),
+  };
+}
+
+export function fertilizeFieldPlot(
+  plot: FieldPlot,
+  fertilizerItemId: string,
+  profile: FieldWorkProfile
+): FieldPlot {
+  const fertilizer = getFertilizerData(fertilizerItemId);
+  if (!plot.cropId || plot.fertilizerItemId || !fertilizer) return plot;
+
+  const skillBonus = Math.floor(profile.fieldWorkLevel / 2);
+  const traitBonus = Math.floor(profile.industriousBonus / 2);
+  const nextQualityScore = clampQualityScore(
+    plot.qualityScore + fertilizer.qualityBonus + skillBonus + traitBonus
+  );
+
+  return {
+    ...plot,
+    fertilizerItemId,
+    fertilizerYieldBonus: fertilizer.yieldBonus,
+    qualityScore: nextQualityScore,
+    quality: getCropQualityFromScore(nextQualityScore),
+  };
+}
+
+export function getHarvestOutcome(plot: FieldPlot, profile: FieldWorkProfile): HarvestOutcome {
+  const baseQuantity = rollHarvestYield(plot);
+  const quality = getCropQualityFromScore(plot.qualityScore);
+  const qualityInfo = CROP_QUALITY_DATA[quality];
+  const skillYieldBonus = Math.floor(profile.fieldWorkLevel / 3);
+  const traitYieldBonus = Math.floor((profile.industriousBonus + profile.quickBonus) / 3);
+  const fertilizerYieldBonus = plot.fertilizerYieldBonus;
+  const quantity =
+    baseQuantity +
+    qualityInfo.yieldBonus +
+    skillYieldBonus +
+    traitYieldBonus +
+    fertilizerYieldBonus;
+
+  const bonusSummary = [
+    qualityInfo.yieldBonus > 0 ? `${qualityInfo.label} quality +${qualityInfo.yieldBonus}` : null,
+    skillYieldBonus > 0 ? `Field Work Lv ${profile.fieldWorkLevel} +${skillYieldBonus}` : null,
+    traitYieldBonus > 0 ? `trait handling +${traitYieldBonus}` : null,
+    fertilizerYieldBonus > 0 ? `fertilizer +${fertilizerYieldBonus}` : null,
+  ].filter((entry): entry is string => Boolean(entry));
+
+  return {
+    quantity,
+    quality,
+    qualityInfo,
+    valueMultiplier: qualityInfo.valueMultiplier,
+    bonusSummary,
+  };
+}
+
+export function getCropQualityFromScore(score: number): CropQuality {
+  if (score >= 92) return "pristine";
+  if (score >= 68) return "lush";
+  if (score >= 42) return "fine";
+  return "standard";
 }
 
 export function getPlotProduceItemId(plot: FieldPlot): string | null {
   if (!plot.cropId) return null;
   return CROP_DATA[plot.cropId]?.produceItemId ?? null;
+}
+
+function rollHarvestYield(plot: FieldPlot): number {
+  const minYield = Math.max(1, plot.minYield);
+  const maxYield = Math.max(minYield, plot.maxYield);
+  return minYield + Math.floor(Math.random() * (maxYield - minYield + 1));
+}
+
+function getFieldWorkScore(profile: FieldWorkProfile, fieldWorkLevelMultiplier: number) {
+  const speciesBonus = profile.speciesName === "Horse" ? 3 : 0;
+  return (
+    profile.strength +
+    profile.endurance +
+    profile.fieldWorkLevel * fieldWorkLevelMultiplier +
+    speciesBonus +
+    profile.industriousBonus +
+    profile.quickBonus
+  );
+}
+
+function clampQualityScore(score: number) {
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 function normalizeFieldPlot(plot: FieldPlot | undefined, fallbackId: number): FieldPlot | null {
@@ -174,6 +372,16 @@ function normalizeFieldPlot(plot: FieldPlot | undefined, fallbackId: number): Fi
       : null;
 
   if (!cropId || !seedItemId) return createEmptyFieldPlot(id);
+
+  const qualityScore =
+    typeof plot.qualityScore === "number" && Number.isFinite(plot.qualityScore)
+      ? clampQualityScore(plot.qualityScore)
+      : DEFAULT_CROP_QUALITY_SCORE;
+
+  const fertilizerItemId =
+    typeof plot.fertilizerItemId === "string" && getFertilizerData(plot.fertilizerItemId)
+      ? plot.fertilizerItemId
+      : null;
 
   return {
     id,
@@ -195,5 +403,19 @@ function normalizeFieldPlot(plot: FieldPlot | undefined, fallbackId: number): Fi
       typeof plot.maxYield === "number" && Number.isFinite(plot.maxYield)
         ? Math.max(1, Math.floor(plot.maxYield))
         : 1,
+    wateredToday: Boolean(plot.wateredToday),
+    wateredDays:
+      typeof plot.wateredDays === "number" && Number.isFinite(plot.wateredDays)
+        ? Math.max(0, Math.floor(plot.wateredDays))
+        : 0,
+    fertilizerItemId,
+    fertilizerYieldBonus:
+      typeof plot.fertilizerYieldBonus === "number" && Number.isFinite(plot.fertilizerYieldBonus)
+        ? Math.max(0, Math.floor(plot.fertilizerYieldBonus))
+        : fertilizerItemId
+        ? getFertilizerData(fertilizerItemId)?.yieldBonus ?? 0
+        : 0,
+    quality: getCropQualityFromScore(qualityScore),
+    qualityScore,
   };
 }
