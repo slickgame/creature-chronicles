@@ -4,36 +4,17 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
-
-type InventoryCategory = "all" | "seeds" | "ingredients" | "food" | "books" | "other";
+import {
+  type InventoryCategory,
+  getCategoryLabel,
+  getInventoryCategory,
+  getUseHint,
+} from "@/lib/game/inventoryUi";
 
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return `${displayHour}:${minute.toString().padStart(2, "0")} ${suffix}`;
-}
-
-function getInventoryCategory(itemId: string): Exclude<InventoryCategory, "all"> {
-  if (itemId.endsWith("_seed")) return "seeds";
-  if (itemId.startsWith("recipe_book_")) return "books";
-  if (["apple_pie", "berry_tart", "hearty_stew", "warm_milk", "bread", "vegetable_soup", "porridge", "farm_salad"].includes(itemId)) {
-    return "food";
-  }
-
-  const item = ITEM_DATA[itemId];
-  if (item?.category === "ingredient") return "ingredients";
-  if (item?.category === "recipe_book") return "books";
-  if (item?.category === "food") return "food";
-  return "other";
-}
-
-function getCategoryLabel(category: InventoryCategory) {
-  if (category === "all") return "All";
-  if (category === "seeds") return "Seeds";
-  if (category === "ingredients") return "Ingredients";
-  if (category === "food") return "Cooked Food";
-  if (category === "books") return "Recipe Books";
-  return "Other";
 }
 
 function SummaryChip({ label, value }: { label: string; value: string | number }) {
@@ -98,28 +79,6 @@ function OverlayModal({
       </div>
     </div>
   );
-}
-
-function getUseHint(itemId: string) {
-  const item = ITEM_DATA[itemId];
-
-  if (item?.useTags.includes("edible")) {
-    return "Usable now from Inventory";
-  }
-
-  if (itemId.endsWith("_seed")) {
-    return "Plant from Ranch Fields";
-  }
-
-  if (item?.category === "recipe_book") {
-    return "Used automatically when purchased";
-  }
-
-  if (item?.category === "ingredient") {
-    return "Used for cooking recipes";
-  }
-
-  return "No direct action yet";
 }
 
 export default function InventoryPage() {

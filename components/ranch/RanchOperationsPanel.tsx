@@ -5,9 +5,14 @@ import { useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import { RECIPE_DATA } from "@/lib/cooking/recipeData";
+import {
+  type InventoryCategory,
+  getCategoryLabel,
+  getInventoryCategory,
+  getItemEffectSummary,
+} from "@/lib/game/inventoryUi";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
-type InventoryCategory = "seeds" | "ingredients" | "food" | "books" | "other";
 
 const TAB_LABELS: Record<RanchTab, string> = {
   house: "House",
@@ -65,26 +70,6 @@ function OverlayModal({
   );
 }
 
-function getInventoryCategory(itemId: string): InventoryCategory {
-  if (itemId.endsWith("_seed")) return "seeds";
-  if (itemId.startsWith("recipe_book_")) return "books";
-  if (["apple_pie", "berry_tart", "hearty_stew", "warm_milk", "bread", "vegetable_soup", "porridge", "farm_salad"].includes(itemId)) return "food";
-
-  const item = ITEM_DATA[itemId];
-  if (item?.category === "ingredient") return "ingredients";
-  if (item?.category === "recipe_book") return "books";
-  if (item?.category === "food") return "food";
-  return "other";
-}
-
-function getCategoryLabel(category: InventoryCategory) {
-  if (category === "seeds") return "Seeds";
-  if (category === "ingredients") return "Ingredients";
-  if (category === "food") return "Cooked Food";
-  if (category === "books") return "Recipe Books";
-  return "Other";
-}
-
 function getMoodLabel(happiness: number) {
   if (happiness >= 85) return "Smug / Thriving";
   if (happiness >= 65) return "Content";
@@ -95,22 +80,6 @@ function getMoodLabel(happiness: number) {
 function getStaminaPercent(current: number, max: number) {
   if (max <= 0) return 0;
   return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
-}
-
-function getItemEffectSummary(itemId: string) {
-  const item = ITEM_DATA[itemId];
-  const effects = item?.edibleEffects;
-  if (!effects) return null;
-
-  const parts: string[] = [];
-  if (effects.energyRestore) parts.push(`Energy +${effects.energyRestore}`);
-  if (effects.staminaRestore) parts.push(`Stamina +${effects.staminaRestore}`);
-  if (effects.breedingRecoveryBoost) parts.push(`Breeding Recovery +${effects.breedingRecoveryBoost}`);
-  if (effects.happinessGain) parts.push(`Happiness +${effects.happinessGain}`);
-  if (effects.fertilityBoost) parts.push(`Fertility +${effects.fertilityBoost}`);
-  if (effects.taskBonus) parts.push(`${effects.taskBonus.taskType} bonus +${effects.taskBonus.amount} for ${effects.taskBonus.durationTasks} task(s)`);
-
-  return parts.length > 0 ? parts.join(" • ") : null;
 }
 
 export default function RanchOperationsPanel({
@@ -606,7 +575,7 @@ export default function RanchOperationsPanel({
         title="Ranch Inventory"
       >
         <div className="space-y-6">
-          {(["seeds", "ingredients", "food", "books", "other"] as InventoryCategory[]).map((category) => {
+          {(["seeds", "ingredients", "food", "books", "other"] as Exclude<InventoryCategory, "all">[]).map((category) => {
             const entries = inventoryGroups[category];
             if (entries.length === 0) return null;
 
