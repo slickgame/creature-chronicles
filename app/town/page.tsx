@@ -14,6 +14,12 @@ import {
   FARM_ECONOMY_ACTIVE_NPCS,
 } from "@/lib/town/farmEconomyMarket";
 import {
+  CROP_QUALITY_DATA,
+  type CropQuality,
+} from "@/lib/game/farming";
+import { CROP_QUALITY_ORDER } from "@/lib/game/produceEconomy";
+import { CROP_DATA } from "@/lib/farming/cropData";
+import {
   createDefaultNpcRelationshipState,
   getRelationshipDisplayLabel,
 } from "@/lib/town/relationshipDefaults";
@@ -80,6 +86,10 @@ function InventoryChip({ label, value }: { label: string; value: string | number
   );
 }
 
+function formatMultiplier(value: number) {
+  return `x${value.toFixed(2)}`;
+}
+
 export default function TownPage() {
   const router = useRouter();
   const {
@@ -99,6 +109,9 @@ export default function TownPage() {
     purchaseTownCreature,
     purchaseMarketItem,
     getItemCount,
+    getQualityItemCount,
+    getQualitySellQuote,
+    sellQualityProduce,
     knowsRecipe,
     submitCreatureToQuest,
     submitCreatureToNpcQuest,
@@ -616,6 +629,18 @@ export default function TownPage() {
           <div className="grid gap-3">
             {DEFAULT_PRODUCE_DEMANDS.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
+              const usesCropQuality = Object.values(CROP_DATA).some(
+                (crop) => crop.produceItemId === entry.itemId
+              );
+              const qualityOptions: CropQuality[] = usesCropQuality
+                ? CROP_QUALITY_ORDER
+                : ["standard"];
+              const qualityRows = qualityOptions.map((quality) => {
+                const owned = hasMounted ? getQualityItemCount(entry.itemId, quality) : 0;
+                const quote = getQualitySellQuote(entry.itemId, quality, 1, entry.bonusSellMultiplier);
+                return { quality, owned, quote };
+              }).filter((row) => row.quote);
+
               return (
                 <div key={`demand-${entry.itemId}`} className="rounded-2xl border border-purple-200 bg-white p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
@@ -639,6 +664,69 @@ export default function TownPage() {
                       Unlocks at relationship level {entry.unlockRelationshipLevel}.
                     </p>
                   ) : null}
+
+                  <div className="mt-4 grid gap-2">
+                    {qualityRows.map(({ quality, owned, quote }) => {
+                      if (!quote) return null;
+                      const qualityInfo = CROP_QUALITY_DATA[quality as CropQuality];
+                      const sellAllQuote =
+                        owned > 0
+                          ? getQualitySellQuote(entry.itemId, quality, owned, entry.bonusSellMultiplier)
+                          : null;
+
+                      return (
+                        <div
+                          key={`${entry.itemId}-${quality}`}
+                          className={`rounded-2xl border p-3 ${
+                            owned > 0
+                              ? "border-purple-200 bg-purple-50"
+                              : "border-stone-200 bg-stone-50"
+                          }`}
+                        >
+                          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                            <div>
+                              <p className="font-semibold text-stone-900">
+                                {qualityInfo.label} {item?.name ?? entry.itemId}
+                              </p>
+                              <p className="text-xs text-stone-600">
+                                Base {quote.basePrice}g - Quality {formatMultiplier(quote.qualityMultiplier)} - Demand {formatMultiplier(quote.demandMultiplier)} - Final {quote.unitPrice}g each
+                              </p>
+                              <p className="mt-1 text-xs font-semibold text-purple-800">
+                                Owned at this quality: {owned}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                disabled={owned < 1 || !hasMounted}
+                                onClick={() => sellQualityProduce(entry.itemId, quality, 1, entry.bonusSellMultiplier)}
+                                className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                                  owned > 0 && hasMounted ? "bg-purple-700" : "bg-stone-400"
+                                }`}
+                              >
+                                Sell 1 for {quote.unitPrice}g
+                              </button>
+                              <button
+                                type="button"
+                                disabled={owned < 1 || !sellAllQuote || !hasMounted}
+                                onClick={() => {
+                                  if (sellAllQuote) {
+                                    sellQualityProduce(entry.itemId, quality, owned, entry.bonusSellMultiplier);
+                                  }
+                                }}
+                                className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                                  owned > 0 && sellAllQuote && hasMounted ? "bg-fuchsia-700" : "bg-stone-400"
+                                }`}
+                              >
+                                Sell All {owned > 0 && sellAllQuote ? `for ${sellAllQuote.totalValue}g` : ""}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}

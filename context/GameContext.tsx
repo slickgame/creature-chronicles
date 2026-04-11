@@ -11,6 +11,7 @@ import {
 import { ITEM_DATA } from "@/lib/items/itemData";
 import { DEFAULT_KNOWN_RECIPE_IDS, RECIPE_DATA } from "@/lib/cooking/recipeData";
 import {
+  type CropQuality,
   type FieldPlot,
   advanceFieldPlotsByDay,
   createDefaultFieldPlots,
@@ -27,6 +28,15 @@ import {
   normalizeFieldPlots,
   waterFieldPlot,
 } from "@/lib/game/farming";
+import {
+  type ProduceQualityInventoryState,
+  type QualitySellQuote,
+  addQualityProduceToInventory,
+  getQualityProduceCount,
+  getQualitySellQuote,
+  normalizeProduceQualityInventory,
+  removeQualityProduceFromInventory,
+} from "@/lib/game/produceEconomy";
 
 
 type CreatureStats = {
@@ -272,6 +282,7 @@ type SaveData = {
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   inventory: InventoryState;
+  produceQualityInventory: ProduceQualityInventoryState;
   knownRecipeIds: string[];
   fieldPlots: FieldPlot[];
 };
@@ -315,9 +326,13 @@ type GameContextType = {
   harvestPlot: (plotId: number, creatureId: number) => boolean;
   careForCreature: (creatureId: number, careType: "feed" | "groom" | "recovery") => void;
   inventory: InventoryState;
+  produceQualityInventory: ProduceQualityInventoryState;
   knownRecipeIds: string[];
   purchaseMarketItem: (itemId: string, price: number) => boolean;
   getItemCount: (itemId: string) => number;
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number;
+  getQualitySellQuote: (itemId: string, quality: CropQuality, quantity: number, demandMultiplier: number) => QualitySellQuote | null;
+  sellQualityProduce: (itemId: string, quality: CropQuality, quantity: number, demandMultiplier: number) => boolean;
   knowsRecipe: (recipeId: string) => boolean;
   cookRecipe: (recipeId: string, creatureId: number) => boolean;
   consumeInventoryItem: (
@@ -1738,6 +1753,7 @@ const defaultSaveData: SaveData = {
   paidTaxMonths: [],
   travelLog: [],
   inventory: defaultInventory,
+  produceQualityInventory: {},
   knownRecipeIds: defaultKnownRecipeIds,
   fieldPlots: defaultFieldPlots,
 };
@@ -1763,6 +1779,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [paidTaxMonths, setPaidTaxMonths] = useState<number[]>(defaultSaveData.paidTaxMonths);
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
   const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
+  const [produceQualityInventory, setProduceQualityInventory] = useState<ProduceQualityInventoryState>(
+    defaultSaveData.produceQualityInventory
+  );
   const [knownRecipeIds, setKnownRecipeIds] = useState<string[]>(defaultSaveData.knownRecipeIds);
   const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
   const [lastFieldAction, setLastFieldAction] = useState<FieldActionReport | null>(null);
@@ -1811,6 +1830,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
         setInventory(normalizeInventory(parsedSave.inventory));
+        setProduceQualityInventory(normalizeProduceQualityInventory(parsedSave.produceQualityInventory));
         setKnownRecipeIds(normalizeKnownRecipes(parsedSave.knownRecipeIds));
         setFieldPlots(normalizeFieldPlots(parsedSave.fieldPlots));
       } catch (error) {
@@ -1840,6 +1860,7 @@ useEffect(() => {
     paidTaxMonths,
     travelLog,
     inventory,
+    produceQualityInventory,
     knownRecipeIds,
     fieldPlots,
   };
@@ -1863,6 +1884,7 @@ useEffect(() => {
   paidTaxMonths,
   travelLog,
   inventory,
+  produceQualityInventory,
   knownRecipeIds,
   fieldPlots,
 ]);
@@ -2670,6 +2692,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setCurrentMinute(updatedClock.minute);
 
     setInventory((prev) => addItemToInventory(prev, produceItemId, harvestOutcome.quantity));
+    setProduceQualityInventory((prev) =>
+      addQualityProduceToInventory(prev, produceItemId, harvestOutcome.quality, harvestOutcome.quantity)
+    );
     setFieldPlots((prev) => prev.map((item) => (item.id === plotId ? createEmptyFieldPlot(plotId) : item)));
     setLastFieldAction({
       id: Date.now(),
@@ -2843,6 +2868,44 @@ function cookRecipe(recipeId: string, creatureId: number) {
   return inventory[itemId] ?? 0;
 }
 
+function getQualityItemCount(itemId: string, quality: CropQuality) {
+  return getQualityProduceCount(produceQualityInventory, inventory, itemId, quality);
+}
+
+function getQualitySellQuoteForContext(
+  itemId: string,
+  quality: CropQuality,
+  quantity: number,
+  demandMultiplier: number
+) {
+  return getQualitySellQuote(itemId, quality, quantity, demandMultiplier);
+}
+
+function sellQualityProduce(
+  itemId: string,
+  quality: CropQuality,
+  quantity: number,
+  demandMultiplier: number
+) {
+  const available = getQualityItemCount(itemId, quality);
+  const quote = getQualitySellQuote(itemId, quality, quantity, demandMultiplier);
+
+  if (!quote || available < quantity) return false;
+
+  const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 5);
+  setCurrentDay(updatedClock.day);
+  setCurrentHour(updatedClock.hour);
+  setCurrentMinute(updatedClock.minute);
+  setPlayerData((prev) => ({ ...prev, gold: prev.gold + quote.totalValue }));
+  setInventory((prev) => removeItemFromInventory(prev, itemId, quantity));
+  setProduceQualityInventory((prev) =>
+    removeQualityProduceFromInventory(prev, itemId, quality, quantity)
+  );
+  setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+  setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  return true;
+}
+
 function knowsRecipe(recipeId: string) {
   return knownRecipeIds.includes(recipeId);
 }
@@ -2934,6 +2997,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setPaidTaxMonths([]);
     setTravelLog([]);
     setInventory(defaultInventory);
+    setProduceQualityInventory({});
     setKnownRecipeIds(defaultKnownRecipeIds);
     setFieldPlots(createDefaultFieldPlots());
     localStorage.removeItem(STORAGE_KEY);
@@ -2981,9 +3045,13 @@ function purchaseMarketItem(itemId: string, price: number) {
         cookRecipe,
         careForCreature,
         inventory,
+        produceQualityInventory,
         knownRecipeIds,
         purchaseMarketItem,
         getItemCount,
+        getQualityItemCount,
+        getQualitySellQuote: getQualitySellQuoteForContext,
+        sellQualityProduce,
         knowsRecipe,
         consumeInventoryItem,        
       }}
