@@ -1042,7 +1042,7 @@ function removeItemFromInventory(
 function normalizeTownNpc(npc: TownNpc): TownNpc {
   return {
     ...npc,
-    relationship: npc.relationship ?? 0,
+    relationship: clamp(npc.relationship ?? 0, 0, 500),
     rewardMilestonesClaimed: Array.isArray(npc.rewardMilestonesClaimed) ? npc.rewardMilestonesClaimed : [],
   };
 }
@@ -2415,14 +2415,14 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       prev.map((npc) => {
         if (npc.id !== quest.npcId) return npc;
 
-        const newRelationship = clamp(npc.relationship + quest.relationshipGain, 0, 100);
+        const newRelationship = clamp(npc.relationship + quest.relationshipGain, 0, 500);
         const nextClaimed = [...npc.rewardMilestonesClaimed];
         let bonusGold = 0;
 
-        for (const milestone of [25, 50, 75]) {
+        for (const milestone of [100, 200, 300, 400]) {
           if (newRelationship >= milestone && !nextClaimed.includes(milestone)) {
             nextClaimed.push(milestone);
-            bonusGold += milestone === 25 ? 50 : milestone === 50 ? 120 : 250;
+            bonusGold += milestone === 100 ? 50 : milestone === 200 ? 120 : milestone === 300 ? 250 : 400;
           }
         }
 
@@ -2498,14 +2498,14 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       prev.map((npc) => {
         if (npc.id !== quest.npcId) return npc;
 
-        const newRelationship = clamp(npc.relationship + quest.relationshipGain, 0, 100);
+        const newRelationship = clamp(npc.relationship + quest.relationshipGain, 0, 500);
         const nextClaimed = [...npc.rewardMilestonesClaimed];
         let bonusGold = 0;
 
-        for (const milestone of [25, 50, 75]) {
+        for (const milestone of [100, 200, 300, 400]) {
           if (newRelationship >= milestone && !nextClaimed.includes(milestone)) {
             nextClaimed.push(milestone);
-            bonusGold += milestone === 25 ? 50 : milestone === 50 ? 120 : 250;
+            bonusGold += milestone === 100 ? 50 : milestone === 200 ? 120 : milestone === 300 ? 250 : 400;
           }
         }
 

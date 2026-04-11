@@ -23,13 +23,12 @@ import {
   getRelationshipDisplayLabel,
 } from "@/lib/town/relationshipDefaults";
 import {
+  buildNpcRelationshipStateFromPoints,
   getMarisAdjustedBuyPrice,
   getMarisBonusSeedBundleQuantity,
   getNpcEconomicUnlocks,
-  getRelationshipLevelFromScore,
   getSeleneAdjustedDemandMultiplier,
   getSelenePremiumContracts,
-  getStageProgressFromScore,
   getTamsinCookingCommissions,
   getTamsinProgressionPerks,
   getTamsinRecipeBookPrice,
@@ -246,18 +245,8 @@ export default function TownPage() {
         return;
       }
 
-      const relationshipValue = Math.max(0, Number(legacyNpc.relationship ?? 0));
-      const derivedLevel = getRelationshipLevelFromScore(relationshipValue);
-      const derivedProgress = getStageProgressFromScore(relationshipValue);
-
-      map.set(npc.id, {
-        npcId: npc.id,
-        level: derivedLevel as 1 | 2 | 3 | 4 | 5,
-        progress: Math.min(100, derivedProgress),
-        unlockedFlags: [],
-        lastGiftedItemId: null,
-        notes: [],
-      });
+      const relationshipValue = Number(legacyNpc.relationship ?? 0);
+      map.set(npc.id, buildNpcRelationshipStateFromPoints(npc.id, relationshipValue));
     });
 
     return map;
@@ -274,9 +263,9 @@ export default function TownPage() {
   const seleneEconomicUnlocks = getNpcEconomicUnlocks("selene_voss");
   const tamsinEconomicUnlocks = getNpcEconomicUnlocks("tamsin_vale");
 
-  const selenePremiumContracts = getSelenePremiumContracts(seleneRelationship.level);
-  const tamsinCommissions = getTamsinCookingCommissions(tamsinRelationship.level);
-  const tamsinProgressionPerks = getTamsinProgressionPerks(tamsinRelationship.level);
+  const selenePremiumContracts = getSelenePremiumContracts(seleneRelationship);
+  const tamsinCommissions = getTamsinCookingCommissions(tamsinRelationship);
+  const tamsinProgressionPerks = getTamsinProgressionPerks(tamsinRelationship);
 
   const seedShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop");
   const recipeShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "recipe_shop");
@@ -563,11 +552,11 @@ export default function TownPage() {
               const adjustedPrice = getMarisAdjustedBuyPrice(
                 entry.itemId,
                 entry.buyPrice,
-                marisRelationship.level
+                marisRelationship
               );
               const bonusSeedQuantity = getMarisBonusSeedBundleQuantity(
                 entry.itemId,
-                marisRelationship.level,
+                marisRelationship,
                 currentDay,
                 currentHour,
                 currentMinute
@@ -670,7 +659,7 @@ export default function TownPage() {
             {recipeShopSection?.entries.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
               if (!item) return null;
-              const adjustedPrice = getTamsinRecipeBookPrice(entry.buyPrice, tamsinRelationship.level);
+              const adjustedPrice = getTamsinRecipeBookPrice(entry.buyPrice, tamsinRelationship);
               const unlocks = item.recipeUnlockIds ?? [];
               const fullyKnown = hasMounted && unlocks.length > 0 && unlocks.every((recipeId) => knowsRecipe(recipeId));
 
@@ -711,7 +700,7 @@ export default function TownPage() {
           <div className="rounded-2xl border border-rose-300 bg-rose-100/70 p-4">
             <p className="text-lg font-bold text-rose-950">Cooking Commissions</p>
             <p className="mt-1 text-sm text-stone-700">
-              Fulfill Tamsin's kitchen orders with crafted meals to push gold back into your ranch loop.
+              Fulfill Tamsin&apos;s kitchen orders with crafted meals to push gold back into your ranch loop.
             </p>
 
             {tamsinCommissions.length === 0 ? (
@@ -822,7 +811,7 @@ export default function TownPage() {
                 : false;
               const adjustedMultiplier = getSeleneAdjustedDemandMultiplier(
                 entry.bonusSellMultiplier,
-                seleneRelationship.level,
+                seleneRelationship,
                 entry.itemId
               );
               const qualityOptions: CropQuality[] = CROP_QUALITY_ORDER;
@@ -935,7 +924,7 @@ export default function TownPage() {
           <div className="rounded-2xl border border-purple-300 bg-purple-100/70 p-4">
             <p className="text-lg font-bold text-purple-950">Premium Produce Contracts</p>
             <p className="mt-1 text-sm text-stone-700">
-              Relationship level 3+ unlocks Selene's premium board with stronger deal terms.
+              Relationship level 3+ unlocks Selene&apos;s premium board with stronger deal terms.
             </p>
 
             {selenePremiumContracts.length === 0 ? (
@@ -946,7 +935,7 @@ export default function TownPage() {
                   const owned = hasMounted ? getQualityItemCount(contract.itemId, "standard") : 0;
                   const adjustedMultiplier = getSeleneAdjustedDemandMultiplier(
                     contract.bonusMultiplier,
-                    seleneRelationship.level,
+                    seleneRelationship,
                     contract.itemId
                   );
                   const quote = getQualitySellQuote(contract.itemId, "standard", 1, adjustedMultiplier);
@@ -1091,7 +1080,7 @@ export default function TownPage() {
               role={npc.role}
               personality={npc.personality}
               relationship={npc.relationship}
-              extraNote={`Open requests: ${npcRequestCounts.get(npc.name) ?? 0} • Current milestone notes still use legacy relationship values.`}
+              extraNote={`Open requests: ${npcRequestCounts.get(npc.name) ?? 0} • Stage progress uses level-based relationship tracks.`}
             />
           ))}
         </div>

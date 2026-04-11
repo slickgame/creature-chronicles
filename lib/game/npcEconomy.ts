@@ -1,8 +1,13 @@
 import { ITEM_DATA } from "@/lib/items/itemData";
+import {
+  addRelationshipProgress,
+  createDefaultNpcRelationshipState,
+  FINAL_RELATIONSHIP_LEVEL,
+  type NpcRelationshipState,
+  type RelationshipLevel,
+} from "@/lib/town/relationshipDefaults";
 
 export type FarmEconomyNpcId = "maris_thorn" | "selene_voss" | "tamsin_vale";
-
-export type RelationshipLevel = 1 | 2 | 3 | 4 | 5;
 
 export type EconomicUnlock = {
   level: RelationshipLevel;
@@ -19,13 +24,8 @@ export type PremiumContract = {
   bonusMultiplier: number;
 };
 
-const LEVEL_THRESHOLDS: Array<{ level: RelationshipLevel; minRelationship: number }> = [
-  { level: 5, minRelationship: 80 },
-  { level: 4, minRelationship: 60 },
-  { level: 3, minRelationship: 40 },
-  { level: 2, minRelationship: 20 },
-  { level: 1, minRelationship: 0 },
-];
+export const RELATIONSHIP_PROGRESS_PER_LEVEL = 100;
+export const MAX_RELATIONSHIP_POINTS = FINAL_RELATIONSHIP_LEVEL * RELATIONSHIP_PROGRESS_PER_LEVEL;
 
 const MARIS_SEED_PRICE_MULTIPLIER: Record<RelationshipLevel, number> = {
   1: 1,
@@ -221,20 +221,18 @@ function itemHash(itemId: string) {
   return itemId.split("").reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 3), 0);
 }
 
-export function getRelationshipLevelFromScore(relationship: number): RelationshipLevel {
-  const safe = Math.max(0, Number(relationship) || 0);
-
-  for (const threshold of LEVEL_THRESHOLDS) {
-    if (safe >= threshold.minRelationship) return threshold.level;
-  }
-
-  return 1;
+export function normalizeRelationshipPoints(points: number) {
+  const safe = Number.isFinite(points) ? points : 0;
+  return Math.max(0, Math.min(MAX_RELATIONSHIP_POINTS, Math.floor(safe)));
 }
 
-export function getStageProgressFromScore(relationship: number): number {
-  const safe = Math.max(0, Math.min(100, Number(relationship) || 0));
-  if (safe >= 80) return Math.min(100, safe);
-  return safe % 20 === 0 && safe > 0 ? 100 : (safe % 20) * 5;
+export function buildNpcRelationshipStateFromPoints(
+  npcId: string,
+  points: number
+): NpcRelationshipState {
+  const startingState = createDefaultNpcRelationshipState(npcId);
+  const normalizedPoints = normalizeRelationshipPoints(points);
+  return addRelationshipProgress(startingState, normalizedPoints).state;
 }
 
 export function getNpcEconomicUnlocks(npcId: FarmEconomyNpcId): EconomicUnlock[] {
@@ -246,7 +244,7 @@ export function getNpcEconomicUnlocks(npcId: FarmEconomyNpcId): EconomicUnlock[]
 export function getMarisAdjustedBuyPrice(
   itemId: string,
   basePrice: number,
-  relationshipLevel: RelationshipLevel
+  relationship: NpcRelationshipState
 ) {
   const item = ITEM_DATA[itemId];
   if (!item) return basePrice;
@@ -257,24 +255,24 @@ export function getMarisAdjustedBuyPrice(
   if (!isSeed && !isFertilizer) return basePrice;
 
   const multiplier = isFertilizer
-    ? MARIS_FERTILIZER_PRICE_MULTIPLIER[relationshipLevel]
-    : MARIS_SEED_PRICE_MULTIPLIER[relationshipLevel];
+    ? MARIS_FERTILIZER_PRICE_MULTIPLIER[relationship.level]
+    : MARIS_SEED_PRICE_MULTIPLIER[relationship.level];
 
   return roundGold(basePrice * multiplier);
 }
 
 export function getMarisBonusSeedBundleQuantity(
   itemId: string,
-  relationshipLevel: RelationshipLevel,
+  relationship: NpcRelationshipState,
   currentDay: number,
   currentHour: number,
   currentMinute: number
 ) {
   if (!itemId.endsWith("_seed")) return 0;
-  if (relationshipLevel < 3) return 0;
+  if (relationship.level < 3) return 0;
 
-  const chance = relationshipLevel === 3 ? 14 : relationshipLevel === 4 ? 22 : 30;
-  const rareDoubleChance = relationshipLevel === 5 ? 10 : 0;
+  const chance = relationship.level === 3 ? 14 : relationship.level === 4 ? 22 : 30;
+  const rareDoubleChance = relationship.level === 5 ? 10 : 0;
   const rollSeed = currentDay * 131 + currentHour * 17 + currentMinute * 7 + itemHash(itemId);
   const roll = Math.abs(rollSeed % 100);
 
@@ -283,31 +281,32 @@ export function getMarisBonusSeedBundleQuantity(
   return 1;
 }
 
-export function getTamsinRecipeBookPrice(basePrice: number, relationshipLevel: RelationshipLevel) {
-  return roundGold(basePrice * TAMSIN_RECIPE_PRICE_MULTIPLIER[relationshipLevel]);
+export function getTamsinRecipeBookPrice(basePrice: number, relationship: NpcRelationshipState) {
+  return roundGold(basePrice * TAMSIN_RECIPE_PRICE_MULTIPLIER[relationship.level]);
 }
 
 export function getSeleneAdjustedDemandMultiplier(
   baseMultiplier: number,
-  relationshipLevel: RelationshipLevel,
+  relationship: NpcRelationshipState,
   itemId: string
 ) {
   const item = ITEM_DATA[itemId];
-  const baseBonus = SELENE_BASE_BONUS_BY_LEVEL[relationshipLevel];
-  const cookedBonus = item?.category === "food" ? SELENE_COOKED_BONUS_BY_LEVEL[relationshipLevel] : 0;
+  const baseBonus = SELENE_BASE_BONUS_BY_LEVEL[relationship.level];
+  const cookedBonus = item?.category === "food" ? SELENE_COOKED_BONUS_BY_LEVEL[relationship.level] : 0;
   const effective = baseMultiplier + baseBonus + cookedBonus;
   return Math.round(effective * 100) / 100;
 }
 
-export function getSelenePremiumContracts(relationshipLevel: RelationshipLevel) {
-  return SELENE_PREMIUM_CONTRACTS.filter((entry) => relationshipLevel >= entry.unlockLevel);
+export function getSelenePremiumContracts(relationship: NpcRelationshipState) {
+  return SELENE_PREMIUM_CONTRACTS.filter((entry) => relationship.level >= entry.unlockLevel);
 }
 
-export function getTamsinCookingCommissions(relationshipLevel: RelationshipLevel) {
-  return TAMSIN_COMMISSION_CONTRACTS.filter((entry) => relationshipLevel >= entry.unlockLevel);
+export function getTamsinCookingCommissions(relationship: NpcRelationshipState) {
+  return TAMSIN_COMMISSION_CONTRACTS.filter((entry) => relationship.level >= entry.unlockLevel);
 }
 
-export function getTamsinProgressionPerks(level: RelationshipLevel): string[] {
+export function getTamsinProgressionPerks(relationship: NpcRelationshipState): string[] {
+  const level = relationship.level;
   const perks: string[] = ["Recipe counter access and warm kitchen guidance."];
 
   if (level >= 2) {
