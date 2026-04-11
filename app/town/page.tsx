@@ -23,6 +23,18 @@ import {
   getRelationshipDisplayLabel,
 } from "@/lib/town/relationshipDefaults";
 import {
+  getMarisAdjustedBuyPrice,
+  getMarisBonusSeedBundleQuantity,
+  getNpcEconomicUnlocks,
+  getRelationshipLevelFromScore,
+  getSeleneAdjustedDemandMultiplier,
+  getSelenePremiumContracts,
+  getStageProgressFromScore,
+  getTamsinCookingCommissions,
+  getTamsinProgressionPerks,
+  getTamsinRecipeBookPrice,
+} from "@/lib/game/npcEconomy";
+import {
   getNpcGreeting,
   getNpcRelationshipImageId,
   getNpcRelationshipRewardSummary,
@@ -235,18 +247,8 @@ export default function TownPage() {
       }
 
       const relationshipValue = Math.max(0, Number(legacyNpc.relationship ?? 0));
-      const derivedLevel =
-        relationshipValue >= 80 ? 5 :
-        relationshipValue >= 60 ? 4 :
-        relationshipValue >= 40 ? 3 :
-        relationshipValue >= 20 ? 2 : 1;
-
-      const derivedProgress =
-        derivedLevel === 5
-          ? Math.min(100, relationshipValue)
-          : relationshipValue % 20 === 0 && relationshipValue > 0
-          ? 100
-          : (relationshipValue % 20) * 5;
+      const derivedLevel = getRelationshipLevelFromScore(relationshipValue);
+      const derivedProgress = getStageProgressFromScore(relationshipValue);
 
       map.set(npc.id, {
         npcId: npc.id,
@@ -260,6 +262,21 @@ export default function TownPage() {
 
     return map;
   }, [townNpcs]);
+
+  const marisRelationship =
+    farmNpcRelationshipMap.get("maris_thorn") ?? createDefaultNpcRelationshipState("maris_thorn");
+  const seleneRelationship =
+    farmNpcRelationshipMap.get("selene_voss") ?? createDefaultNpcRelationshipState("selene_voss");
+  const tamsinRelationship =
+    farmNpcRelationshipMap.get("tamsin_vale") ?? createDefaultNpcRelationshipState("tamsin_vale");
+
+  const marisEconomicUnlocks = getNpcEconomicUnlocks("maris_thorn");
+  const seleneEconomicUnlocks = getNpcEconomicUnlocks("selene_voss");
+  const tamsinEconomicUnlocks = getNpcEconomicUnlocks("tamsin_vale");
+
+  const selenePremiumContracts = getSelenePremiumContracts(seleneRelationship.level);
+  const tamsinCommissions = getTamsinCookingCommissions(tamsinRelationship.level);
+  const tamsinProgressionPerks = getTamsinProgressionPerks(tamsinRelationship.level);
 
   const seedShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop");
   const recipeShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "recipe_shop");
@@ -456,6 +473,51 @@ export default function TownPage() {
           </section>
         </div>
 
+        <section className="mt-6 rounded-3xl border-4 border-fuchsia-900 bg-white/90 p-6 shadow-xl">
+          <h2 className="text-3xl font-bold text-fuchsia-950">Relationship Economy Perks</h2>
+          <p className="mt-1 text-stone-600">
+            Each farm-economy relationship stage now unlocks distinct economic pressure and payoff.
+          </p>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
+              <p className="text-lg font-bold text-emerald-950">Maris Thorn</p>
+              <p className="text-xs font-semibold text-emerald-800">Level {marisRelationship.level}</p>
+              <div className="mt-3 space-y-2 text-xs text-stone-700">
+                {marisEconomicUnlocks.map((unlock) => (
+                  <p key={`maris-unlock-${unlock.level}`}>
+                    <strong>{marisRelationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4">
+              <p className="text-lg font-bold text-purple-950">Selene Voss</p>
+              <p className="text-xs font-semibold text-purple-800">Level {seleneRelationship.level}</p>
+              <div className="mt-3 space-y-2 text-xs text-stone-700">
+                {seleneEconomicUnlocks.map((unlock) => (
+                  <p key={`selene-unlock-${unlock.level}`}>
+                    <strong>{seleneRelationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4">
+              <p className="text-lg font-bold text-rose-950">Tamsin Vale</p>
+              <p className="text-xs font-semibold text-rose-800">Level {tamsinRelationship.level}</p>
+              <div className="mt-3 space-y-2 text-xs text-stone-700">
+                {tamsinEconomicUnlocks.map((unlock) => (
+                  <p key={`tamsin-unlock-${unlock.level}`}>
+                    <strong>{tamsinRelationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link href="/ranch" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Go to Ranch</Link>
           <Link href="/ranch?tab=breeding" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Ranch Breeding</Link>
@@ -475,7 +537,7 @@ export default function TownPage() {
         <div className="space-y-4">
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "maris_thorn")!;
-            const relationship = farmNpcRelationshipMap.get("maris_thorn") ?? createDefaultNpcRelationshipState("maris_thorn");
+            const relationship = marisRelationship;
             return (
               <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
                 <p className="text-lg font-bold text-emerald-950">{npc.name}</p>
@@ -498,8 +560,20 @@ export default function TownPage() {
             {seedShopSection?.entries.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
               if (!item) return null;
+              const adjustedPrice = getMarisAdjustedBuyPrice(
+                entry.itemId,
+                entry.buyPrice,
+                marisRelationship.level
+              );
+              const bonusSeedQuantity = getMarisBonusSeedBundleQuantity(
+                entry.itemId,
+                marisRelationship.level,
+                currentDay,
+                currentHour,
+                currentMinute
+              );
               const locked = entry.unlockRelationshipLevel
-                ? (farmNpcRelationshipMap.get("maris_thorn")?.level ?? 1) < entry.unlockRelationshipLevel
+                ? marisRelationship.level < entry.unlockRelationshipLevel
                 : false;
 
               return (
@@ -516,7 +590,10 @@ export default function TownPage() {
                       </p>
                     </div>
                     <div className="text-right text-sm text-stone-700">
-                      <p><strong>{entry.buyPrice} Gold</strong></p>
+                      <p><strong>{adjustedPrice} Gold</strong></p>
+                      {adjustedPrice < entry.buyPrice ? (
+                        <p className="text-xs font-semibold text-emerald-800">Base {entry.buyPrice}g</p>
+                      ) : null}
                       <p>Stock: {entry.stock}</p>
                     </div>
                   </div>
@@ -528,16 +605,28 @@ export default function TownPage() {
                   ) : null}
 
                   {entry.note ? <p className="mt-1 text-xs text-stone-600">{entry.note}</p> : null}
+                  {bonusSeedQuantity > 0 ? (
+                    <p className="mt-1 text-xs font-semibold text-emerald-800">
+                      Bonus bundle active: +{bonusSeedQuantity} free {item.name} on this purchase.
+                    </p>
+                  ) : null}
 
                   <button
                     type="button"
-                    disabled={locked || playerData.gold < entry.buyPrice || !hasMounted}
-                    onClick={() => purchaseMarketItem(entry.itemId, entry.buyPrice)}
+                    disabled={locked || playerData.gold < adjustedPrice || !hasMounted}
+                    onClick={() => {
+                      const purchased = purchaseMarketItem(entry.itemId, adjustedPrice);
+                      if (purchased && bonusSeedQuantity > 0) {
+                        for (let index = 0; index < bonusSeedQuantity; index += 1) {
+                          purchaseMarketItem(entry.itemId, 0);
+                        }
+                      }
+                    }}
                     className={`mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow ${
-                      locked || playerData.gold < entry.buyPrice || !hasMounted ? "bg-stone-400" : "bg-emerald-700"
+                      locked || playerData.gold < adjustedPrice || !hasMounted ? "bg-stone-400" : "bg-emerald-700"
                     }`}
                   >
-                    {locked ? "Relationship Locked" : playerData.gold < entry.buyPrice ? "Not Enough Gold" : "Buy Seed"}
+                    {locked ? "Relationship Locked" : playerData.gold < adjustedPrice ? "Not Enough Gold" : "Buy Seed"}
                   </button>
                 </div>
               );
@@ -550,7 +639,7 @@ export default function TownPage() {
         <div className="space-y-4">
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "tamsin_vale")!;
-            const relationship = farmNpcRelationshipMap.get("tamsin_vale") ?? createDefaultNpcRelationshipState("tamsin_vale");
+            const relationship = tamsinRelationship;
             return (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4">
                 <p className="text-lg font-bold text-rose-950">{npc.name}</p>
@@ -565,6 +654,14 @@ export default function TownPage() {
                   <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("tamsin_vale", relationship) ?? "none"}</p>
                   <p><strong>Known Recipes:</strong> {displayedKnownRecipes}</p>
                 </div>
+                <div className="mt-3 rounded-2xl border border-rose-200 bg-white p-3 text-xs text-stone-700">
+                  <p className="font-semibold text-stone-900">Progression Perks</p>
+                  <div className="mt-2 space-y-1">
+                    {tamsinProgressionPerks.map((perk, index) => (
+                      <p key={`tamsin-perk-${index}`}>• {perk}</p>
+                    ))}
+                  </div>
+                </div>
               </div>
             );
           })()}
@@ -573,6 +670,7 @@ export default function TownPage() {
             {recipeShopSection?.entries.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
               if (!item) return null;
+              const adjustedPrice = getTamsinRecipeBookPrice(entry.buyPrice, tamsinRelationship.level);
               const unlocks = item.recipeUnlockIds ?? [];
               const fullyKnown = hasMounted && unlocks.length > 0 && unlocks.every((recipeId) => knowsRecipe(recipeId));
 
@@ -587,24 +685,108 @@ export default function TownPage() {
                       </p>
                     </div>
                     <div className="text-right text-sm text-stone-700">
-                      <p><strong>{entry.buyPrice} Gold</strong></p>
+                      <p><strong>{adjustedPrice} Gold</strong></p>
+                      {adjustedPrice < entry.buyPrice ? (
+                        <p className="text-xs font-semibold text-rose-800">Base {entry.buyPrice}g</p>
+                      ) : null}
                       <p>Stock: {entry.stock}</p>
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    disabled={fullyKnown || playerData.gold < entry.buyPrice || !hasMounted}
-                    onClick={() => purchaseMarketItem(entry.itemId, entry.buyPrice)}
+                    disabled={fullyKnown || playerData.gold < adjustedPrice || !hasMounted}
+                    onClick={() => purchaseMarketItem(entry.itemId, adjustedPrice)}
                     className={`mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow ${
-                      fullyKnown || playerData.gold < entry.buyPrice || !hasMounted ? "bg-stone-400" : "bg-rose-700"
+                      fullyKnown || playerData.gold < adjustedPrice || !hasMounted ? "bg-stone-400" : "bg-rose-700"
                     }`}
                   >
-                    {fullyKnown ? "Already Learned" : playerData.gold < entry.buyPrice ? "Not Enough Gold" : "Buy Recipe Book"}
+                    {fullyKnown ? "Already Learned" : playerData.gold < adjustedPrice ? "Not Enough Gold" : "Buy Recipe Book"}
                   </button>
                 </div>
               );
             })}
+          </div>
+
+          <div className="rounded-2xl border border-rose-300 bg-rose-100/70 p-4">
+            <p className="text-lg font-bold text-rose-950">Cooking Commissions</p>
+            <p className="mt-1 text-sm text-stone-700">
+              Fulfill Tamsin's kitchen orders with crafted meals to push gold back into your ranch loop.
+            </p>
+
+            {tamsinCommissions.length === 0 ? (
+              <p className="mt-3 text-sm text-stone-600">Reach relationship level 3 with Tamsin to unlock commissions.</p>
+            ) : (
+              <div className="mt-3 grid gap-3">
+                {tamsinCommissions.map((commission) => {
+                  const owned = hasMounted ? getQualityItemCount(commission.itemId, "standard") : 0;
+                  const quote = getQualitySellQuote(
+                    commission.itemId,
+                    "standard",
+                    1,
+                    commission.bonusMultiplier
+                  );
+                  const sellAllQuote =
+                    owned > 0
+                      ? getQualitySellQuote(
+                          commission.itemId,
+                          "standard",
+                          owned,
+                          commission.bonusMultiplier
+                        )
+                      : null;
+
+                  return (
+                    <div key={commission.id} className="rounded-2xl border border-rose-200 bg-white p-3">
+                      <p className="font-semibold text-stone-900">{commission.label}</p>
+                      <p className="text-xs text-stone-600">{commission.flavor}</p>
+                      <p className="mt-1 text-xs font-semibold text-rose-800">
+                        Unlock Level: {commission.unlockLevel} • Multiplier x{commission.bonusMultiplier.toFixed(2)}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-700">Owned: {owned}</p>
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={!quote || owned < 1 || !hasMounted}
+                          onClick={() =>
+                            sellQualityProduce(
+                              commission.itemId,
+                              "standard",
+                              1,
+                              commission.bonusMultiplier
+                            )
+                          }
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                            quote && owned > 0 && hasMounted ? "bg-rose-700" : "bg-stone-400"
+                          }`}
+                        >
+                          {quote ? `Deliver 1 for ${quote.unitPrice}g` : "Unavailable"}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={!sellAllQuote || owned < 1 || !hasMounted}
+                          onClick={() =>
+                            sellQualityProduce(
+                              commission.itemId,
+                              "standard",
+                              owned,
+                              commission.bonusMultiplier
+                            )
+                          }
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                            sellAllQuote && owned > 0 && hasMounted ? "bg-fuchsia-700" : "bg-stone-400"
+                          }`}
+                        >
+                          {sellAllQuote ? `Deliver All for ${sellAllQuote.totalValue}g` : "Deliver All"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </PopupWindow>
@@ -613,7 +795,7 @@ export default function TownPage() {
         <div className="space-y-4">
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "selene_voss")!;
-            const relationship = farmNpcRelationshipMap.get("selene_voss") ?? createDefaultNpcRelationshipState("selene_voss");
+            const relationship = seleneRelationship;
             return (
               <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4">
                 <p className="text-lg font-bold text-purple-950">{npc.name}</p>
@@ -635,10 +817,18 @@ export default function TownPage() {
           <div className="grid gap-3">
             {DEFAULT_PRODUCE_DEMANDS.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
+              const locked = entry.unlockRelationshipLevel
+                ? seleneRelationship.level < entry.unlockRelationshipLevel
+                : false;
+              const adjustedMultiplier = getSeleneAdjustedDemandMultiplier(
+                entry.bonusSellMultiplier,
+                seleneRelationship.level,
+                entry.itemId
+              );
               const qualityOptions: CropQuality[] = CROP_QUALITY_ORDER;
               const qualityRows = qualityOptions.map((quality) => {
                 const owned = hasMounted ? getQualityItemCount(entry.itemId, quality) : 0;
-                const quote = getQualitySellQuote(entry.itemId, quality, 1, entry.bonusSellMultiplier);
+                const quote = getQualitySellQuote(entry.itemId, quality, 1, adjustedMultiplier);
                 return { quality, owned, quote };
               }).filter((row) => row.quote);
 
@@ -655,7 +845,10 @@ export default function TownPage() {
                       </p>
                     </div>
                     <div className="text-right text-sm text-stone-700">
-                      <p><strong>x{entry.bonusSellMultiplier.toFixed(2)}</strong></p>
+                      <p><strong>x{adjustedMultiplier.toFixed(2)}</strong></p>
+                      {adjustedMultiplier > entry.bonusSellMultiplier ? (
+                        <p className="text-xs font-semibold text-purple-800">Base x{entry.bonusSellMultiplier.toFixed(2)}</p>
+                      ) : null}
                       <p>sell bonus</p>
                     </div>
                   </div>
@@ -666,13 +859,19 @@ export default function TownPage() {
                     </p>
                   ) : null}
 
+                  {locked ? (
+                    <p className="mt-2 text-xs font-semibold text-red-700">
+                      Relationship locked. Reach level {entry.unlockRelationshipLevel} with Selene.
+                    </p>
+                  ) : null}
+
                   <div className="mt-4 grid gap-2">
                     {qualityRows.map(({ quality, owned, quote }) => {
                       if (!quote) return null;
                       const qualityInfo = CROP_QUALITY_DATA[quality as CropQuality];
                       const sellAllQuote =
                         owned > 0
-                          ? getQualitySellQuote(entry.itemId, quality, owned, entry.bonusSellMultiplier)
+                          ? getQualitySellQuote(entry.itemId, quality, owned, adjustedMultiplier)
                           : null;
 
                       return (
@@ -700,24 +899,24 @@ export default function TownPage() {
                             <div className="flex flex-wrap gap-2">
                               <button
                                 type="button"
-                                disabled={owned < 1 || !hasMounted}
-                                onClick={() => sellQualityProduce(entry.itemId, quality, 1, entry.bonusSellMultiplier)}
+                                disabled={locked || owned < 1 || !hasMounted}
+                                onClick={() => sellQualityProduce(entry.itemId, quality, 1, adjustedMultiplier)}
                                 className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
-                                  owned > 0 && hasMounted ? "bg-purple-700" : "bg-stone-400"
+                                  !locked && owned > 0 && hasMounted ? "bg-purple-700" : "bg-stone-400"
                                 }`}
                               >
                                 Sell 1 for {quote.unitPrice}g
                               </button>
                               <button
                                 type="button"
-                                disabled={owned < 1 || !sellAllQuote || !hasMounted}
+                                disabled={locked || owned < 1 || !sellAllQuote || !hasMounted}
                                 onClick={() => {
                                   if (sellAllQuote) {
-                                    sellQualityProduce(entry.itemId, quality, owned, entry.bonusSellMultiplier);
+                                    sellQualityProduce(entry.itemId, quality, owned, adjustedMultiplier);
                                   }
                                 }}
                                 className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
-                                  owned > 0 && sellAllQuote && hasMounted ? "bg-fuchsia-700" : "bg-stone-400"
+                                  !locked && owned > 0 && sellAllQuote && hasMounted ? "bg-fuchsia-700" : "bg-stone-400"
                                 }`}
                               >
                                 Sell All {owned > 0 && sellAllQuote ? `for ${sellAllQuote.totalValue}g` : ""}
@@ -731,6 +930,82 @@ export default function TownPage() {
                 </div>
               );
             })}
+          </div>
+
+          <div className="rounded-2xl border border-purple-300 bg-purple-100/70 p-4">
+            <p className="text-lg font-bold text-purple-950">Premium Produce Contracts</p>
+            <p className="mt-1 text-sm text-stone-700">
+              Relationship level 3+ unlocks Selene's premium board with stronger deal terms.
+            </p>
+
+            {selenePremiumContracts.length === 0 ? (
+              <p className="mt-3 text-sm text-stone-600">No premium contracts yet. Raise Selene to level 3.</p>
+            ) : (
+              <div className="mt-3 grid gap-3">
+                {selenePremiumContracts.map((contract) => {
+                  const owned = hasMounted ? getQualityItemCount(contract.itemId, "standard") : 0;
+                  const adjustedMultiplier = getSeleneAdjustedDemandMultiplier(
+                    contract.bonusMultiplier,
+                    seleneRelationship.level,
+                    contract.itemId
+                  );
+                  const quote = getQualitySellQuote(contract.itemId, "standard", 1, adjustedMultiplier);
+                  const sellAllQuote =
+                    owned > 0
+                      ? getQualitySellQuote(contract.itemId, "standard", owned, adjustedMultiplier)
+                      : null;
+
+                  return (
+                    <div key={contract.id} className="rounded-2xl border border-purple-200 bg-white p-3">
+                      <p className="font-semibold text-stone-900">{contract.label}</p>
+                      <p className="text-xs text-stone-600">{contract.flavor}</p>
+                      <p className="mt-1 text-xs font-semibold text-purple-800">
+                        Unlock Level: {contract.unlockLevel} • Effective x{adjustedMultiplier.toFixed(2)}
+                      </p>
+                      <p className="mt-1 text-xs text-stone-700">Owned: {owned}</p>
+
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          disabled={!quote || owned < 1 || !hasMounted}
+                          onClick={() =>
+                            sellQualityProduce(
+                              contract.itemId,
+                              "standard",
+                              1,
+                              adjustedMultiplier
+                            )
+                          }
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                            quote && owned > 0 && hasMounted ? "bg-purple-700" : "bg-stone-400"
+                          }`}
+                        >
+                          {quote ? `Sell 1 for ${quote.unitPrice}g` : "Unavailable"}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={!sellAllQuote || owned < 1 || !hasMounted}
+                          onClick={() =>
+                            sellQualityProduce(
+                              contract.itemId,
+                              "standard",
+                              owned,
+                              adjustedMultiplier
+                            )
+                          }
+                          className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                            sellAllQuote && owned > 0 && hasMounted ? "bg-fuchsia-700" : "bg-stone-400"
+                          }`}
+                        >
+                          {sellAllQuote ? `Sell All for ${sellAllQuote.totalValue}g` : "Sell All"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </PopupWindow>
@@ -854,6 +1129,17 @@ export default function TownPage() {
                   <div className="mt-2 space-y-1">
                     {npc.relationshipNotes.map((note, index) => (
                       <p key={`${npc.id}-note-${index}`}>• {note}</p>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-stone-700">
+                  <p className="font-semibold text-stone-900">Economic Unlock Thresholds</p>
+                  <div className="mt-2 space-y-1">
+                    {getNpcEconomicUnlocks(npc.id as "maris_thorn" | "selene_voss" | "tamsin_vale").map((unlock) => (
+                      <p key={`${npc.id}-economy-${unlock.level}`}>
+                        • <strong>{relationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
+                      </p>
                     ))}
                   </div>
                 </div>

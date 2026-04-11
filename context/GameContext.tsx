@@ -3182,31 +3182,48 @@ function purchaseMarketItem(itemId: string, price: number) {
   const item = ITEM_DATA[itemId];
   if (!item) return false;
   if (playerData.gold < price) return false;
+  const shouldAdvanceTime = price > 0;
 
   if (item.category === "recipe_book") {
     const unlocks = item.recipeUnlockIds ?? [];
     const newRecipes = unlocks.filter((recipeId) => !knownRecipeIds.includes(recipeId));
     if (newRecipes.length === 0) return false;
 
-    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 10);
-    setCurrentDay(updatedClock.day);
-    setCurrentHour(updatedClock.hour);
-    setCurrentMinute(updatedClock.minute);
+    const updatedClock = shouldAdvanceTime
+      ? applyTownActionTimeCost(currentDay, currentHour, currentMinute, 10)
+      : { day: currentDay, hour: currentHour, minute: currentMinute };
+
+    if (shouldAdvanceTime) {
+      setCurrentDay(updatedClock.day);
+      setCurrentHour(updatedClock.hour);
+      setCurrentMinute(updatedClock.minute);
+    }
+
     setPlayerData((prev) => ({ ...prev, gold: prev.gold - price }));
     setKnownRecipeIds((prev) => Array.from(new Set([...prev, ...newRecipes])));
-    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
-    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    if (shouldAdvanceTime) {
+      setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+      setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    }
     return true;
   }
 
-  const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 10);
-  setCurrentDay(updatedClock.day);
-  setCurrentHour(updatedClock.hour);
-  setCurrentMinute(updatedClock.minute);
+  const updatedClock = shouldAdvanceTime
+    ? applyTownActionTimeCost(currentDay, currentHour, currentMinute, 10)
+    : { day: currentDay, hour: currentHour, minute: currentMinute };
+
+  if (shouldAdvanceTime) {
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+  }
+
   setPlayerData((prev) => ({ ...prev, gold: prev.gold - price }));
   setInventory((prev) => addItemToInventory(prev, itemId, 1));
-  setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
-  setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  if (shouldAdvanceTime) {
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  }
   return true;
 }
 
