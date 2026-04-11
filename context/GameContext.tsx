@@ -8,8 +8,13 @@ import {
   useEffect,
 } from "react";
 
-import { ITEM_DATA } from "@/lib/items/itemData";
+import { ITEM_DATA, type ItemEffect } from "@/lib/items/itemData";
 import { DEFAULT_KNOWN_RECIPE_IDS, RECIPE_DATA } from "@/lib/cooking/recipeData";
+import {
+  buildQualityIngredientPlan,
+  getQualityAdjustedItemEffects,
+  removeQualityIngredientUses,
+} from "@/lib/game/cookingQuality";
 import {
   type CropQuality,
   type FieldPlot,
@@ -31,6 +36,7 @@ import {
 import {
   type ProduceQualityInventoryState,
   type QualitySellQuote,
+  CROP_QUALITY_ORDER,
   addQualityProduceToInventory,
   getQualityProduceCount,
   getQualitySellQuote,
@@ -333,6 +339,7 @@ type GameContextType = {
   getQualityItemCount: (itemId: string, quality: CropQuality) => number;
   getQualitySellQuote: (itemId: string, quality: CropQuality, quantity: number, demandMultiplier: number) => QualitySellQuote | null;
   sellQualityProduce: (itemId: string, quality: CropQuality, quantity: number, demandMultiplier: number) => boolean;
+  getQualityItemEffects: (itemId: string, quality: CropQuality) => ItemEffect | undefined;
   knowsRecipe: (recipeId: string) => boolean;
   cookRecipe: (recipeId: string, creatureId: number) => boolean;
   consumeInventoryItem: (
@@ -958,7 +965,8 @@ function removeItemFromInventory(
   const next = Math.max(0, current - quantity);
 
   if (next <= 0) {
-    const { [itemId]: _removed, ...rest } = inventory;
+    const rest = { ...inventory };
+    delete rest[itemId];
     return rest;
   }
 
@@ -2732,11 +2740,13 @@ function consumeInventoryItem(
   target: { type: "player" } | { type: "creature"; creatureId: number }
 ) {
   const item = ITEM_DATA[itemId];
-  const effects = item?.edibleEffects;
+  const quality = getBestOwnedItemQuality(itemId);
+  const effects = getQualityAdjustedItemEffects(item?.edibleEffects, quality);
 
   if (!item || !effects) return false;
   if ((inventory[itemId] ?? 0) < 1) return false;
   if (!item.useTags.includes("edible")) return false;
+  if (target.type === "creature" && !creatures.some((c) => c.id === target.creatureId)) return false;
 
   const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, 5);
   setCurrentDay(updatedClock.day);
@@ -2744,6 +2754,9 @@ function consumeInventoryItem(
   setCurrentMinute(updatedClock.minute);
 
   setInventory((prev) => removeItemFromInventory(prev, itemId, 1));
+  setProduceQualityInventory((prev) =>
+    removeQualityProduceFromInventory(prev, itemId, quality, 1)
+  );
 
   if (target.type === "player") {
     setPlayerData((prev) => ({
@@ -2752,9 +2765,6 @@ function consumeInventoryItem(
       happiness: clamp(prev.happiness + (effects.happinessGain ?? 0), 0, 100),
     }));
   } else {
-    const creature = creatures.find((c) => c.id === target.creatureId);
-    if (!creature) return false;
-
     setCreatures((prev) =>
       prev.map((c) => {
         if (c.id !== target.creatureId) return c;
@@ -2815,11 +2825,13 @@ function cookRecipe(recipeId: string, creatureId: number) {
 
   if (creature.breedingStamina < staminaCost) return false;
 
-  const hasIngredients = recipe.ingredients.every(
-    (ingredient) => (inventory[ingredient.itemId] ?? 0) >= ingredient.quantity
+  const ingredientPlan = buildQualityIngredientPlan(
+    produceQualityInventory,
+    inventory,
+    recipe.ingredients
   );
 
-  if (!hasIngredients) return false;
+  if (!ingredientPlan) return false;
 
   const minutesSpent = Math.max(
     8,
@@ -2843,6 +2855,15 @@ function cookRecipe(recipeId: string, creatureId: number) {
 
     nextInventory = addItemToInventory(nextInventory, recipe.outputItemId, recipe.outputQuantity);
     return nextInventory;
+  });
+  setProduceQualityInventory((prev) => {
+    const withoutIngredients = removeQualityIngredientUses(prev, ingredientPlan.uses);
+    return addQualityProduceToInventory(
+      withoutIngredients,
+      recipe.outputItemId,
+      ingredientPlan.outputQuality,
+      recipe.outputQuantity
+    );
   });
 
   setCreatures((prev) =>
@@ -2870,6 +2891,18 @@ function cookRecipe(recipeId: string, creatureId: number) {
 
 function getQualityItemCount(itemId: string, quality: CropQuality) {
   return getQualityProduceCount(produceQualityInventory, inventory, itemId, quality);
+}
+
+function getBestOwnedItemQuality(itemId: string) {
+  const descendingQualityOrder = [...CROP_QUALITY_ORDER].reverse();
+  return (
+    descendingQualityOrder.find((quality) => getQualityItemCount(itemId, quality) > 0) ??
+    "standard"
+  );
+}
+
+function getQualityItemEffectsForContext(itemId: string, quality: CropQuality) {
+  return getQualityAdjustedItemEffects(ITEM_DATA[itemId]?.edibleEffects, quality);
 }
 
 function getQualitySellQuoteForContext(
@@ -3052,6 +3085,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         getQualityItemCount,
         getQualitySellQuote: getQualitySellQuoteForContext,
         sellQualityProduce,
+        getQualityItemEffects: getQualityItemEffectsForContext,
         knowsRecipe,
         consumeInventoryItem,        
       }}

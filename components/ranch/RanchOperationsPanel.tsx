@@ -6,7 +6,15 @@ import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import { RECIPE_DATA } from "@/lib/cooking/recipeData";
 import { CROP_DATA } from "@/lib/farming/cropData";
-import { CROP_QUALITY_DATA } from "@/lib/game/farming";
+import {
+  CROP_QUALITY_DATA,
+  type CropQuality,
+} from "@/lib/game/farming";
+import {
+  buildQualityIngredientPlan,
+  describeQualityIngredientPlan,
+  getQualityAdjustedItemEffects,
+} from "@/lib/game/cookingQuality";
 import {
   type InventoryCategory,
   getCategoryLabel,
@@ -107,6 +115,36 @@ function getFieldTraitSummary(
   return bonuses.join(" - ");
 }
 
+function formatQualityBreakdown(
+  itemId: string,
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number
+) {
+  return (Object.keys(CROP_QUALITY_DATA) as CropQuality[])
+    .map((quality) => {
+      const count = getQualityItemCount(itemId, quality);
+      return count > 0 ? `${CROP_QUALITY_DATA[quality].label} x${count}` : null;
+    })
+    .filter(Boolean)
+    .join(" - ");
+}
+
+function formatEffectPreview(effects: ReturnType<typeof getQualityAdjustedItemEffects>) {
+  if (!effects) return "No edible effects listed.";
+
+  const parts = [
+    effects.energyRestore ? `Energy +${effects.energyRestore}` : null,
+    effects.staminaRestore ? `Stamina +${effects.staminaRestore}` : null,
+    effects.happinessGain ? `Happiness +${effects.happinessGain}` : null,
+    effects.breedingRecoveryBoost ? `Breeding recovery +${effects.breedingRecoveryBoost}` : null,
+    effects.fertilityBoost ? `Fertility +${effects.fertilityBoost}` : null,
+    effects.taskBonus
+      ? `${effects.taskBonus.taskType} tasks +${effects.taskBonus.amount} for ${effects.taskBonus.durationTasks}`
+      : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" - ") : "No edible effects listed.";
+}
+
 export default function RanchOperationsPanel({
   initialTab = "house",
   initialInventoryOpen = false,
@@ -125,10 +163,11 @@ export default function RanchOperationsPanel({
     eggs,
     breedingSelection,
     inventory,
+    produceQualityInventory,
     fieldPlots,
     lastFieldAction,
     knownRecipeIds,
-    getItemCount,
+    getQualityItemCount,
     cookMeal,
     cookRecipe,
     cleanHome,
@@ -198,17 +237,28 @@ export default function RanchOperationsPanel({
       .map((recipeId) => RECIPE_DATA[recipeId])
       .filter(Boolean)
       .map((recipe) => {
-        const craftable = recipe.ingredients.every(
-          (ingredient) => getItemCount(ingredient.itemId) >= ingredient.quantity
+        const ingredientPlan = buildQualityIngredientPlan(
+          produceQualityInventory,
+          inventory,
+          recipe.ingredients
+        );
+        const craftable = ingredientPlan !== null;
+        const outputQuality = ingredientPlan?.outputQuality ?? "standard";
+        const outputEffects = getQualityAdjustedItemEffects(
+          ITEM_DATA[recipe.outputItemId]?.edibleEffects,
+          outputQuality
         );
 
         return {
           ...recipe,
           craftable,
+          ingredientPlan,
+          outputQuality,
+          outputEffects,
           outputItem: ITEM_DATA[recipe.outputItemId],
         };
       });
-  }, [knownRecipeIds, getItemCount]);
+  }, [knownRecipeIds, produceQualityInventory, inventory]);
 
   const firstCreature = creatures[0] ?? null;
   const selectedSeedEntry =
@@ -361,6 +411,15 @@ export default function RanchOperationsPanel({
                           </p>
                           <p className="mt-1 text-xs text-stone-700">
                             Output: {recipe.outputQuantity} {recipe.outputItem?.name ?? recipe.outputItemId}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-rose-900">
+                            Expected Quality: {CROP_QUALITY_DATA[recipe.outputQuality].label}
+                            {recipe.ingredientPlan
+                              ? ` from ${describeQualityIngredientPlan(recipe.ingredientPlan)} ingredients`
+                              : ""}
+                          </p>
+                          <p className="mt-1 text-xs text-stone-700">
+                            Quality Effects: {formatEffectPreview(recipe.outputEffects)}
                           </p>
                           <p className="mt-1 text-xs text-stone-700">
                             Cook Time: {recipe.cookMinutes} min
@@ -923,6 +982,12 @@ export default function RanchOperationsPanel({
                       {getItemEffectSummary(entry.itemId) ? (
                         <p className="mt-2 text-xs text-stone-700">
                           Effect: {getItemEffectSummary(entry.itemId)}
+                        </p>
+                      ) : null}
+
+                      {formatQualityBreakdown(entry.itemId, getQualityItemCount) ? (
+                        <p className="mt-2 text-xs font-semibold text-emerald-900">
+                          Quality Lots: {formatQualityBreakdown(entry.itemId, getQualityItemCount)}
                         </p>
                       ) : null}
 

@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
+import {
+  CROP_QUALITY_DATA,
+  type CropQuality,
+} from "@/lib/game/farming";
+import { CROP_QUALITY_ORDER } from "@/lib/game/produceEconomy";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import {
   type InventoryCategory,
@@ -23,6 +28,38 @@ function SummaryChip({ label, value }: { label: string; value: string | number }
       {label}: {value}
     </div>
   );
+}
+
+function formatQualityBreakdown(
+  itemId: string,
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number
+) {
+  return CROP_QUALITY_ORDER
+    .map((quality) => {
+      const count = getQualityItemCount(itemId, quality);
+      return count > 0 ? `${CROP_QUALITY_DATA[quality].label} x${count}` : null;
+    })
+    .filter(Boolean)
+    .join(" - ");
+}
+
+function formatEffectSummary(
+  effects: ReturnType<ReturnType<typeof useGame>["getQualityItemEffects"]>
+) {
+  if (!effects) return "No edible effects listed.";
+
+  const parts = [
+    effects.energyRestore ? `Energy +${effects.energyRestore}` : null,
+    effects.staminaRestore ? `Creature stamina +${effects.staminaRestore}` : null,
+    effects.breedingRecoveryBoost ? `Breeding recovery +${effects.breedingRecoveryBoost}` : null,
+    effects.happinessGain ? `Happiness +${effects.happinessGain}` : null,
+    effects.fertilityBoost ? `Fertility +${effects.fertilityBoost}` : null,
+    effects.taskBonus
+      ? `${effects.taskBonus.taskType} task bonus +${effects.taskBonus.amount}`
+      : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" - ") : "No edible effects listed.";
 }
 
 function FilterButton({
@@ -93,6 +130,8 @@ export default function InventoryPage() {
     creatures,
     eggs,
     consumeInventoryItem,
+    getQualityItemCount,
+    getQualityItemEffects,
   } = useGame();
 
   const [activeCategory, setActiveCategory] = useState<InventoryCategory>("all");
@@ -158,6 +197,18 @@ export default function InventoryPage() {
 
   const selectedItem = selectedItemId ? ITEM_DATA[selectedItemId] : null;
   const selectedFoodItem = selectedFoodItemId ? ITEM_DATA[selectedFoodItemId] : null;
+  const selectedItemQualityBreakdown = selectedItemId
+    ? formatQualityBreakdown(selectedItemId, getQualityItemCount)
+    : "";
+  const selectedFoodQualityBreakdown = selectedFoodItemId
+    ? formatQualityBreakdown(selectedFoodItemId, getQualityItemCount)
+    : "";
+  const selectedFoodBestQuality = selectedFoodItemId
+    ? [...CROP_QUALITY_ORDER].reverse().find((quality) => getQualityItemCount(selectedFoodItemId, quality) > 0) ?? "standard"
+    : "standard";
+  const selectedFoodEffects = selectedFoodItem
+    ? getQualityItemEffects(selectedFoodItem.id, selectedFoodBestQuality)
+    : undefined;
 
   return (
     <>
@@ -252,6 +303,12 @@ export default function InventoryPage() {
                           {getUseHint(entry.itemId)}
                         </div>
 
+                        {formatQualityBreakdown(entry.itemId, getQualityItemCount) ? (
+                          <div className="mt-2 rounded-xl border border-sky-200 bg-white px-3 py-2 text-[11px] font-semibold text-sky-900">
+                            Quality Lots: {formatQualityBreakdown(entry.itemId, getQualityItemCount)}
+                          </div>
+                        ) : null}
+
                         <div className="mt-3 flex gap-2">
                           <button
                             type="button"
@@ -317,6 +374,11 @@ export default function InventoryPage() {
               <p className="mt-3 text-sm text-stone-700">
                 <strong>Use Hint:</strong> {getUseHint(selectedItemId!)}
               </p>
+              {selectedItemQualityBreakdown ? (
+                <p className="mt-2 text-sm font-semibold text-sky-900">
+                  <strong>Quality Lots:</strong> {selectedItemQualityBreakdown}
+                </p>
+              ) : null}
             </div>
 
             {selectedItem.seedData ? (
@@ -397,22 +459,35 @@ export default function InventoryPage() {
             <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
               <p className="text-lg font-bold text-stone-900">{selectedFoodItem.name}</p>
               <p className="mt-1 text-sm text-stone-600">{selectedFoodItem.description}</p>
+              {selectedFoodQualityBreakdown ? (
+                <p className="mt-3 text-sm font-semibold text-sky-900">
+                  Best serving queued: {CROP_QUALITY_DATA[selectedFoodBestQuality].label} - {selectedFoodQualityBreakdown}
+                </p>
+              ) : null}
 
               <div className="mt-3 space-y-1 text-sm text-stone-700">
-                {selectedFoodItem.edibleEffects?.energyRestore ? (
-                  <p><strong>Player Energy:</strong> +{selectedFoodItem.edibleEffects.energyRestore}</p>
+                {selectedFoodEffects?.energyRestore ? (
+                  <p><strong>Player Energy:</strong> +{selectedFoodEffects.energyRestore}</p>
                 ) : null}
-                {selectedFoodItem.edibleEffects?.staminaRestore ? (
-                  <p><strong>Creature Stamina:</strong> +{selectedFoodItem.edibleEffects.staminaRestore}</p>
+                {selectedFoodEffects?.staminaRestore ? (
+                  <p><strong>Creature Stamina:</strong> +{selectedFoodEffects.staminaRestore}</p>
                 ) : null}
-                {selectedFoodItem.edibleEffects?.breedingRecoveryBoost ? (
-                  <p><strong>Breeding Recovery:</strong> +{selectedFoodItem.edibleEffects.breedingRecoveryBoost}</p>
+                {selectedFoodEffects?.breedingRecoveryBoost ? (
+                  <p><strong>Breeding Recovery:</strong> +{selectedFoodEffects.breedingRecoveryBoost}</p>
                 ) : null}
-                {selectedFoodItem.edibleEffects?.happinessGain ? (
-                  <p><strong>Happiness:</strong> +{selectedFoodItem.edibleEffects.happinessGain}</p>
+                {selectedFoodEffects?.happinessGain ? (
+                  <p><strong>Happiness:</strong> +{selectedFoodEffects.happinessGain}</p>
                 ) : null}
-                {selectedFoodItem.edibleEffects?.fertilityBoost ? (
-                  <p><strong>Fertility:</strong> +{selectedFoodItem.edibleEffects.fertilityBoost}</p>
+                {selectedFoodEffects?.fertilityBoost ? (
+                  <p><strong>Fertility:</strong> +{selectedFoodEffects.fertilityBoost}</p>
+                ) : null}
+                {selectedFoodEffects?.taskBonus ? (
+                  <p>
+                    <strong>Task Bonus:</strong> {selectedFoodEffects.taskBonus.taskType} +{selectedFoodEffects.taskBonus.amount}
+                  </p>
+                ) : null}
+                {!selectedFoodEffects ? (
+                  <p>{formatEffectSummary(selectedFoodEffects)}</p>
                 ) : null}
               </div>
             </div>

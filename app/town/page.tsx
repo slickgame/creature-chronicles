@@ -18,7 +18,6 @@ import {
   type CropQuality,
 } from "@/lib/game/farming";
 import { CROP_QUALITY_ORDER } from "@/lib/game/produceEconomy";
-import { CROP_DATA } from "@/lib/farming/cropData";
 import {
   createDefaultNpcRelationshipState,
   getRelationshipDisplayLabel,
@@ -629,12 +628,7 @@ export default function TownPage() {
           <div className="grid gap-3">
             {DEFAULT_PRODUCE_DEMANDS.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
-              const usesCropQuality = Object.values(CROP_DATA).some(
-                (crop) => crop.produceItemId === entry.itemId
-              );
-              const qualityOptions: CropQuality[] = usesCropQuality
-                ? CROP_QUALITY_ORDER
-                : ["standard"];
+              const qualityOptions: CropQuality[] = CROP_QUALITY_ORDER;
               const qualityRows = qualityOptions.map((quality) => {
                 const owned = hasMounted ? getQualityItemCount(entry.itemId, quality) : 0;
                 const quote = getQualitySellQuote(entry.itemId, quality, 1, entry.bonusSellMultiplier);
