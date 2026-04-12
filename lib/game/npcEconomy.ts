@@ -24,6 +24,11 @@ export type PremiumContract = {
   bonusMultiplier: number;
 };
 
+export type TownNpcRelationshipSource = {
+  id: string;
+  relationship?: number | null;
+};
+
 export const RELATIONSHIP_PROGRESS_PER_LEVEL = 100;
 export const MAX_RELATIONSHIP_POINTS = FINAL_RELATIONSHIP_LEVEL * RELATIONSHIP_PROGRESS_PER_LEVEL;
 
@@ -233,6 +238,20 @@ export function buildNpcRelationshipStateFromPoints(
   const startingState = createDefaultNpcRelationshipState(npcId);
   const normalizedPoints = normalizeRelationshipPoints(points);
   return addRelationshipProgress(startingState, normalizedPoints).state;
+}
+
+export function buildTownNpcRelationshipMap(
+  npcIds: readonly string[],
+  townNpcs: readonly TownNpcRelationshipSource[]
+): Map<string, NpcRelationshipState> {
+  const townNpcMap = new Map(townNpcs.map((npc) => [npc.id, npc]));
+
+  return new Map(
+    npcIds.map((npcId) => {
+      const relationshipPoints = townNpcMap.get(npcId)?.relationship ?? 0;
+      return [npcId, buildNpcRelationshipStateFromPoints(npcId, relationshipPoints)];
+    })
+  );
 }
 
 export function getNpcEconomicUnlocks(npcId: FarmEconomyNpcId): EconomicUnlock[] {

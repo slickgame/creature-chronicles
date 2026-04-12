@@ -22,6 +22,7 @@ import {
   createDefaultNpcRelationshipState,
   getRelationshipDisplayLabel,
 } from "@/lib/town/relationshipDefaults";
+import { buildTownNpcRelationshipMap } from "@/lib/game/npcEconomy";
 import {
   getNpcGreeting,
   getNpcRelationshipImageId,
@@ -211,42 +212,10 @@ export default function TownPage() {
   }, [townNpcQuests, currentDay, currentHour, currentMinute]);
 
   const farmNpcRelationshipMap = useMemo(() => {
-    const map = new Map<string, ReturnType<typeof createDefaultNpcRelationshipState>>();
-
-    FARM_ECONOMY_ACTIVE_NPCS.forEach((npc) => {
-      const fallback = createDefaultNpcRelationshipState(npc.id);
-      const legacyNpc = townNpcs.find((entry) => entry.id === npc.id);
-
-      if (!legacyNpc) {
-        map.set(npc.id, fallback);
-        return;
-      }
-
-      const relationshipValue = Math.max(0, Number(legacyNpc.relationship ?? 0));
-      const derivedLevel =
-        relationshipValue >= 80 ? 5 :
-        relationshipValue >= 60 ? 4 :
-        relationshipValue >= 40 ? 3 :
-        relationshipValue >= 20 ? 2 : 1;
-
-      const derivedProgress =
-        derivedLevel === 5
-          ? Math.min(100, relationshipValue)
-          : relationshipValue % 20 === 0 && relationshipValue > 0
-          ? 100
-          : (relationshipValue % 20) * 5;
-
-      map.set(npc.id, {
-        npcId: npc.id,
-        level: derivedLevel as 1 | 2 | 3 | 4 | 5,
-        progress: Math.min(100, derivedProgress),
-        unlockedFlags: [],
-        lastGiftedItemId: null,
-        notes: [],
-      });
-    });
-
-    return map;
+    return buildTownNpcRelationshipMap(
+      FARM_ECONOMY_ACTIVE_NPCS.map((npc) => npc.id),
+      townNpcs
+    );
   }, [townNpcs]);
 
   const seedShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop");
@@ -791,11 +760,12 @@ export default function TownPage() {
           {townNpcs.map((npc) => (
             <RelationshipCard
               key={npc.id}
+              npcId={npc.id}
               name={npc.name}
               role={npc.role}
               personality={npc.personality}
               relationship={npc.relationship}
-              extraNote={`Open requests: ${npcRequestCounts.get(npc.name) ?? 0} • Current milestone notes still use legacy relationship values.`}
+              extraNote={`Open requests: ${npcRequestCounts.get(npc.name) ?? 0} • Stage progress uses level-based relationship tracks.`}
             />
           ))}
         </div>

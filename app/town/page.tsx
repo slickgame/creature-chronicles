@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
@@ -23,7 +23,7 @@ import {
   getRelationshipDisplayLabel,
 } from "@/lib/town/relationshipDefaults";
 import {
-  buildNpcRelationshipStateFromPoints,
+  buildTownNpcRelationshipMap,
   getMarisAdjustedBuyPrice,
   getMarisBonusSeedBundleQuantity,
   getNpcEconomicUnlocks,
@@ -39,6 +39,13 @@ import {
   getNpcRelationshipRewardSummary,
 } from "@/lib/town/npcDialogue";
 import { ITEM_DATA } from "@/lib/items/itemData";
+import type { QualitySellQuote } from "@/lib/game/produceEconomy";
+
+type ProduceQualityRow = {
+  quality: CropQuality;
+  owned: number;
+  quote: QualitySellQuote | null;
+};
 
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
@@ -106,6 +113,18 @@ function getAcceptedQualities(minimumQuality: CropQuality) {
   return CROP_QUALITY_ORDER.slice(minimumIndex);
 }
 
+function subscribeToMountState() {
+  return () => {};
+}
+
+function getClientMountSnapshot() {
+  return true;
+}
+
+function getServerMountSnapshot() {
+  return false;
+}
+
 export default function TownPage() {
   const router = useRouter();
   const {
@@ -135,7 +154,11 @@ export default function TownPage() {
     travelTo,
   } = useGame();
 
-  const [hasMounted, setHasMounted] = useState(false);
+  const hasMounted = useSyncExternalStore(
+    subscribeToMountState,
+    getClientMountSnapshot,
+    getServerMountSnapshot
+  );
   const [sellerOpen, setSellerOpen] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
   const [relationshipsOpen, setRelationshipsOpen] = useState(false);
@@ -145,10 +168,6 @@ export default function TownPage() {
   const [recipeShopOpen, setRecipeShopOpen] = useState(false);
   const [produceExchangeOpen, setProduceExchangeOpen] = useState(false);
   const [farmNpcOpen, setFarmNpcOpen] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   function handleTravelTo(
     destination: "ranch" | "town" | "market" | "guild_hall"
@@ -234,22 +253,10 @@ export default function TownPage() {
   }, [townNpcQuests, currentDay, currentHour, currentMinute]);
 
   const farmNpcRelationshipMap = useMemo(() => {
-    const map = new Map<string, ReturnType<typeof createDefaultNpcRelationshipState>>();
-
-    FARM_ECONOMY_ACTIVE_NPCS.forEach((npc) => {
-      const fallback = createDefaultNpcRelationshipState(npc.id);
-      const legacyNpc = townNpcs.find((entry) => entry.id === npc.id);
-
-      if (!legacyNpc) {
-        map.set(npc.id, fallback);
-        return;
-      }
-
-      const relationshipValue = Number(legacyNpc.relationship ?? 0);
-      map.set(npc.id, buildNpcRelationshipStateFromPoints(npc.id, relationshipValue));
-    });
-
-    return map;
+    return buildTownNpcRelationshipMap(
+      FARM_ECONOMY_ACTIVE_NPCS.map((npc) => npc.id),
+      townNpcs
+    );
   }, [townNpcs]);
 
   const marisRelationship =
@@ -815,11 +822,11 @@ export default function TownPage() {
                 entry.itemId
               );
               const qualityOptions: CropQuality[] = CROP_QUALITY_ORDER;
-              const qualityRows = qualityOptions.map((quality) => {
+              const qualityRows: ProduceQualityRow[] = qualityOptions.map((quality: CropQuality) => {
                 const owned = hasMounted ? getQualityItemCount(entry.itemId, quality) : 0;
                 const quote = getQualitySellQuote(entry.itemId, quality, 1, adjustedMultiplier);
                 return { quality, owned, quote };
-              }).filter((row) => row.quote);
+              }).filter((row: ProduceQualityRow) => row.quote);
 
               return (
                 <div key={`demand-${entry.itemId}`} className="rounded-2xl border border-purple-200 bg-white p-4 shadow-sm">
@@ -855,7 +862,7 @@ export default function TownPage() {
                   ) : null}
 
                   <div className="mt-4 grid gap-2">
-                    {qualityRows.map(({ quality, owned, quote }) => {
+                    {qualityRows.map(({ quality, owned, quote }: ProduceQualityRow) => {
                       if (!quote) return null;
                       const qualityInfo = CROP_QUALITY_DATA[quality as CropQuality];
                       const sellAllQuote =
@@ -1076,6 +1083,7 @@ export default function TownPage() {
           {townNpcs.map((npc) => (
             <RelationshipCard
               key={npc.id}
+              npcId={npc.id}
               name={npc.name}
               role={npc.role}
               personality={npc.personality}
@@ -1161,12 +1169,12 @@ export default function TownPage() {
               const minimumQuality = quest.minimumQuality ?? "standard";
               const acceptedQualities = getAcceptedQualities(minimumQuality);
               const qualitySummary = acceptedQualities
-                .map((quality) => {
+                .map((quality: CropQuality) => {
                   const count = hasMounted ? getQualityItemCount(requestedItemId, quality) : 0;
                   return `${CROP_QUALITY_DATA[quality].label}: ${count}`;
                 })
                 .join(" - ");
-              const availableCount = acceptedQualities.reduce((sum, quality) => {
+              const availableCount = acceptedQualities.reduce((sum: number, quality: CropQuality) => {
                 const count = hasMounted ? getQualityItemCount(requestedItemId, quality) : 0;
                 return sum + count;
               }, 0);

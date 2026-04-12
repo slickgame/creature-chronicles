@@ -15,19 +15,21 @@ function getStageBadgeClasses(stage: ReturnType<typeof getRelationshipStageName>
 }
 
 export function RelationshipCard({
+  npcId,
   name,
   role,
   personality,
   relationship,
   extraNote,
 }: {
+  npcId?: string;
   name: string;
   role: string;
   personality: string;
   relationship: number;
   extraNote?: string;
 }) {
-  const relationshipState = buildNpcRelationshipStateFromPoints("npc", relationship);
+  const relationshipState = buildNpcRelationshipStateFromPoints(npcId ?? name, relationship);
   const stageName = getRelationshipStageName(relationshipState.level);
 
   return (
