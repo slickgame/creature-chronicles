@@ -40,6 +40,7 @@ import {
 } from "@/lib/town/npcDialogue";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import type { QualitySellQuote } from "@/lib/game/produceEconomy";
+import type { NpcContractOffer, NpcContractRequirement } from "@/lib/town/npcContractLedger";
 
 type ProduceQualityRow = {
   quality: CropQuality;
@@ -113,6 +114,154 @@ function getAcceptedQualities(minimumQuality: CropQuality) {
   return CROP_QUALITY_ORDER.slice(minimumIndex);
 }
 
+function formatItemQuantity(itemId: string, quantity: number) {
+  return `${ITEM_DATA[itemId]?.name ?? itemId} x${quantity}`;
+}
+
+function getRequirementLabel(requirement: NpcContractRequirement) {
+  const quality = requirement.minimumQuality && requirement.minimumQuality !== "standard"
+    ? ` (${CROP_QUALITY_DATA[requirement.minimumQuality].label}+)`
+    : "";
+  return `${formatItemQuantity(requirement.itemId, requirement.quantity)}${quality}`;
+}
+
+function isOfferExpired(
+  offer: NpcContractOffer,
+  currentDay: number,
+  currentHour: number,
+  currentMinute: number
+) {
+  if (currentDay > offer.expiryDay) return true;
+  if (currentDay < offer.expiryDay) return false;
+  if (currentHour > offer.expiryHour) return true;
+  if (currentHour < offer.expiryHour) return false;
+  return currentMinute > offer.expiryMinute;
+}
+
+function getOfferAvailability(
+  offer: NpcContractOffer,
+  playerGold: number,
+  hasMounted: boolean,
+  getItemCount: (itemId: string) => number,
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number
+) {
+  if (!hasMounted) return { canComplete: false, note: "Loading ledger..." };
+  if (offer.completed) return { canComplete: false, note: "Completed" };
+  if ((offer.purchaseCostGold ?? 0) > playerGold) {
+    return { canComplete: false, note: `Need ${offer.purchaseCostGold}g` };
+  }
+
+  for (const requirement of offer.requirements) {
+    const minimumQuality = requirement.minimumQuality ?? "standard";
+    const owned = getAcceptedQualities(minimumQuality).reduce(
+      (sum, quality) => sum + getQualityItemCount(requirement.itemId, quality),
+      0
+    );
+    const fallbackOwned = minimumQuality === "standard" ? getItemCount(requirement.itemId) : owned;
+    const available = Math.max(owned, fallbackOwned);
+    if (available < requirement.quantity) {
+      return {
+        canComplete: false,
+        note: `Need ${requirement.quantity} ${ITEM_DATA[requirement.itemId]?.name ?? requirement.itemId} (${available}/${requirement.quantity})`,
+      };
+    }
+  }
+
+  return { canComplete: true, note: offer.purchaseCostGold ? "Buy offer" : "Complete offer" };
+}
+
+function NpcContractLedgerPanel({
+  title,
+  offers,
+  currentDay,
+  currentHour,
+  currentMinute,
+  playerGold,
+  hasMounted,
+  getItemCount,
+  getQualityItemCount,
+  onComplete,
+  accentClasses,
+  buttonClasses,
+}: {
+  title: string;
+  offers: NpcContractOffer[];
+  currentDay: number;
+  currentHour: number;
+  currentMinute: number;
+  playerGold: number;
+  hasMounted: boolean;
+  getItemCount: (itemId: string) => number;
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number;
+  onComplete: (offerId: string) => boolean;
+  accentClasses: string;
+  buttonClasses: string;
+}) {
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <p className="text-lg font-bold text-stone-950">{title}</p>
+      <p className="mt-1 text-sm text-stone-700">
+        Day-seeded offers stay on the ledger until they expire or you finish them.
+      </p>
+
+      <div className="mt-3 grid gap-3">
+        {offers.length === 0 ? (
+          <p className="rounded-2xl bg-white p-3 text-sm text-stone-600">No open ledger offers right now.</p>
+        ) : (
+          offers.map((offer) => {
+            const expired = isOfferExpired(offer, currentDay, currentHour, currentMinute);
+            const availability = expired
+              ? { canComplete: false, note: "Expired" }
+              : getOfferAvailability(offer, playerGold, hasMounted, getItemCount, getQualityItemCount);
+            const requirements = offer.requirements.map(getRequirementLabel).join(", ");
+
+            return (
+              <div key={offer.id} className="rounded-2xl border border-white/80 bg-white p-3 shadow-sm">
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="font-semibold text-stone-900">{offer.title}</p>
+                    <p className="text-xs text-stone-600">
+                      Generated Day {offer.generatedDay} - Expires Day {offer.expiryDay}, {formatTime(offer.expiryHour, offer.expiryMinute)}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-700">
+                    L{offer.relationshipLevel} {offer.qualityLabel}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-sm text-stone-700">{offer.description}</p>
+                <p className="mt-2 rounded-2xl bg-stone-50 px-3 py-2 text-sm text-stone-700">{offer.flavorText}</p>
+
+                <div className="mt-3 grid gap-2 text-xs text-stone-700 md:grid-cols-2">
+                  <p><strong>Terms:</strong> {requirements || `Pay ${offer.purchaseCostGold ?? 0}g`}</p>
+                  <p><strong>Reward:</strong> {offer.rewardSummary}</p>
+                </div>
+
+                {offer.completed ? (
+                  <p className="mt-3 rounded-2xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900">
+                    {offer.completionText}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={!availability.canComplete}
+                    onClick={() => onComplete(offer.id)}
+                    className={`mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white shadow ${
+                      availability.canComplete ? buttonClasses : "bg-stone-400"
+                    }`}
+                  >
+                    {availability.note}
+                  </button>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 function subscribeToMountState() {
   return () => {};
 }
@@ -140,6 +289,7 @@ export default function TownPage() {
     townQuests,
     townNpcs,
     townNpcQuests,
+    npcContractLedger,
     travelLog,
     purchaseTownCreature,
     purchaseMarketItem,
@@ -151,6 +301,7 @@ export default function TownPage() {
     submitCreatureToQuest,
     submitCreatureToNpcQuest,
     submitNpcFarmingRequest,
+    completeNpcContractOffer,
     travelTo,
   } = useGame();
 
@@ -273,6 +424,9 @@ export default function TownPage() {
   const selenePremiumContracts = getSelenePremiumContracts(seleneRelationship);
   const tamsinCommissions = getTamsinCookingCommissions(tamsinRelationship);
   const tamsinProgressionPerks = getTamsinProgressionPerks(tamsinRelationship);
+  const marisLedgerOffers = npcContractLedger.filter((offer) => offer.npcId === "maris_thorn");
+  const seleneLedgerOffers = npcContractLedger.filter((offer) => offer.npcId === "selene_voss");
+  const tamsinLedgerOffers = npcContractLedger.filter((offer) => offer.npcId === "tamsin_vale");
 
   const seedShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop");
   const recipeShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "recipe_shop");
@@ -552,6 +706,21 @@ export default function TownPage() {
             );
           })()}
 
+          <NpcContractLedgerPanel
+            title="Maris's Grower Ledger"
+            offers={marisLedgerOffers}
+            currentDay={currentDay}
+            currentHour={currentHour}
+            currentMinute={currentMinute}
+            playerGold={playerData.gold}
+            hasMounted={hasMounted}
+            getItemCount={getItemCount}
+            getQualityItemCount={getQualityItemCount}
+            onComplete={completeNpcContractOffer}
+            accentClasses="border-emerald-300 bg-emerald-100/70"
+            buttonClasses="bg-emerald-700"
+          />
+
           <div className="grid gap-3">
             {seedShopSection?.entries.map((entry) => {
               const item = ITEM_DATA[entry.itemId];
@@ -661,6 +830,21 @@ export default function TownPage() {
               </div>
             );
           })()}
+
+          <NpcContractLedgerPanel
+            title="Tamsin's Kitchen Ledger"
+            offers={tamsinLedgerOffers}
+            currentDay={currentDay}
+            currentHour={currentHour}
+            currentMinute={currentMinute}
+            playerGold={playerData.gold}
+            hasMounted={hasMounted}
+            getItemCount={getItemCount}
+            getQualityItemCount={getQualityItemCount}
+            onComplete={completeNpcContractOffer}
+            accentClasses="border-rose-300 bg-rose-100/70"
+            buttonClasses="bg-rose-700"
+          />
 
           <div className="grid gap-3">
             {recipeShopSection?.entries.map((entry) => {
@@ -809,6 +993,21 @@ export default function TownPage() {
               </div>
             );
           })()}
+
+          <NpcContractLedgerPanel
+            title="Selene's Buyer Ledger"
+            offers={seleneLedgerOffers}
+            currentDay={currentDay}
+            currentHour={currentHour}
+            currentMinute={currentMinute}
+            playerGold={playerData.gold}
+            hasMounted={hasMounted}
+            getItemCount={getItemCount}
+            getQualityItemCount={getQualityItemCount}
+            onComplete={completeNpcContractOffer}
+            accentClasses="border-purple-300 bg-purple-100/70"
+            buttonClasses="bg-purple-700"
+          />
 
           <div className="grid gap-3">
             {DEFAULT_PRODUCE_DEMANDS.map((entry) => {

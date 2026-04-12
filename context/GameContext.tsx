@@ -69,6 +69,11 @@ import {
   generateNpcFarmingRequests,
   type NpcFarmingRewardItem,
 } from "@/lib/game/townNpcFarmingRequests";
+import {
+  ensureNpcContractLedger,
+  isNpcContractExpired,
+  type NpcContractOffer,
+} from "@/lib/town/npcContractLedger";
 
 
 type CreatureStats = {
@@ -321,6 +326,7 @@ type SaveData = {
   townQuests: TownQuest[];
   townNpcs: TownNpc[];
   townNpcQuests: TownNpcQuest[];
+  npcContractLedger: NpcContractOffer[];
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   inventory: InventoryState;
@@ -346,6 +352,7 @@ type GameContextType = {
   townQuests: TownQuest[];
   townNpcs: TownNpc[];
   townNpcQuests: TownNpcQuest[];
+  npcContractLedger: NpcContractOffer[];
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   fieldPlots: FieldPlot[];
@@ -362,6 +369,7 @@ type GameContextType = {
   submitCreatureToQuest: (questId: number, creatureId: number) => void;
   submitCreatureToNpcQuest: (questId: number, creatureId: number) => void;
   submitNpcFarmingRequest: (questId: number) => boolean;
+  completeNpcContractOffer: (offerId: string) => boolean;
   payMonthlyTax: () => void;
   travelTo: (destination: LocationName) => void;
   cookMeal: (creatureId: number) => void;
@@ -1811,6 +1819,7 @@ const defaultSaveData: SaveData = {
   townQuests: generateTownQuests(1),
   townNpcs: defaultTownNpcs,
   townNpcQuests: generateTownNpcQuests(1),
+  npcContractLedger: ensureNpcContractLedger([], 1, 8, 0, getSeasonForDay(1), defaultTownNpcs),
   paidTaxMonths: [],
   travelLog: [],
   inventory: defaultInventory,
@@ -1839,6 +1848,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [townQuests, setTownQuests] = useState(defaultSaveData.townQuests);
   const [townNpcs, setTownNpcs] = useState(defaultSaveData.townNpcs);
   const [townNpcQuests, setTownNpcQuests] = useState(defaultSaveData.townNpcQuests);
+  const [npcContractLedger, setNpcContractLedger] = useState<NpcContractOffer[]>(defaultSaveData.npcContractLedger);
   const [paidTaxMonths, setPaidTaxMonths] = useState<number[]>(defaultSaveData.paidTaxMonths);
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
   const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
@@ -1858,10 +1868,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (savedGame) {
       try {
         const parsedSave: SaveData = JSON.parse(savedGame);
-        setCurrentDay(parsedSave.currentDay);
-        setCurrentHour(parsedSave.currentHour ?? 8);
-        setCurrentMinute(parsedSave.currentMinute ?? 0);
-        setCurrentWeather(normalizeWeather(parsedSave.currentWeather, parsedSave.currentDay ?? 1));
+        const loadedDay = parsedSave.currentDay ?? 1;
+        const loadedHour = parsedSave.currentHour ?? 8;
+        const loadedMinute = parsedSave.currentMinute ?? 0;
+        const normalizedTownNpcs = ensureTownNpcRoster(parsedSave.townNpcs);
+        setCurrentDay(loadedDay);
+        setCurrentHour(loadedHour);
+        setCurrentMinute(loadedMinute);
+        setCurrentWeather(normalizeWeather(parsedSave.currentWeather, loadedDay));
         setCurrentLocation(parsedSave.currentLocation ?? "ranch");
         setPlayerData(normalizePlayerData(parsedSave.playerData));
         setHomeState(normalizeHomeState(parsedSave.homeState));
@@ -1873,25 +1887,35 @@ export function GameProvider({ children }: { children: ReactNode }) {
             ...entry,
             creature: normalizeCreature(entry.creature),
             price: calculateTownCreaturePrice(normalizeCreature(entry.creature)),
-          })) ?? generateTownStock(parsedSave.currentDay ?? 1)
+          })) ?? generateTownStock(loadedDay)
         );
         setTownQuests(
           ensureQuestBoardSize(
-            parsedSave.townQuests ?? generateTownQuests(parsedSave.currentDay ?? 1),
-            parsedSave.currentDay ?? 1,
-            parsedSave.currentHour ?? 8,
-            parsedSave.currentMinute ?? 0,
+            parsedSave.townQuests ?? generateTownQuests(loadedDay),
+            loadedDay,
+            loadedHour,
+            loadedMinute,
             10
           )
         );
-        setTownNpcs(ensureTownNpcRoster(parsedSave.townNpcs));
+        setTownNpcs(normalizedTownNpcs);
         setTownNpcQuests(
           ensureNpcQuestBoardSize(
-            (parsedSave.townNpcQuests ?? generateTownNpcQuests(parsedSave.currentDay ?? 1)).map(normalizeTownNpcQuest),
-            parsedSave.currentDay ?? 1,
-            parsedSave.currentHour ?? 8,
-            parsedSave.currentMinute ?? 0,
+            (parsedSave.townNpcQuests ?? generateTownNpcQuests(loadedDay)).map(normalizeTownNpcQuest),
+            loadedDay,
+            loadedHour,
+            loadedMinute,
             3
+          )
+        );
+        setNpcContractLedger(
+          ensureNpcContractLedger(
+            parsedSave.npcContractLedger,
+            loadedDay,
+            loadedHour,
+            loadedMinute,
+            getSeasonForDay(loadedDay),
+            normalizedTownNpcs
           )
         );
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
@@ -1932,6 +1956,7 @@ useEffect(() => {
     townQuests,
     townNpcs,
     townNpcQuests,
+    npcContractLedger,
     paidTaxMonths,
     travelLog,
     inventory,
@@ -1958,6 +1983,7 @@ useEffect(() => {
   townQuests,
   townNpcs,
   townNpcQuests,
+  npcContractLedger,
   paidTaxMonths,
   travelLog,
   inventory,
@@ -1966,6 +1992,17 @@ useEffect(() => {
   fieldUpgrades,
   fieldPlots,
 ]);
+
+  function refreshNpcContractLedgerForClock(
+    day: number,
+    hour: number,
+    minute: number,
+    npcRoster: TownNpc[] = townNpcs
+  ) {
+    setNpcContractLedger((prev) =>
+      ensureNpcContractLedger(prev, day, hour, minute, getSeasonForDay(day), npcRoster)
+    );
+  }
 
   function nextDay() {
     const previousMonth = getMonthFromAbsoluteDay(currentDay);
@@ -2040,6 +2077,7 @@ useEffect(() => {
     setTownStock(generateTownStock(newDay));
     setTownQuests((prev) => ensureQuestBoardSize(prev, newDay, 8, 0, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, newDay, 8, 0, 3));
+    refreshNpcContractLedgerForClock(newDay, 8, 0);
   }
 
   function hatchEgg(eggId: number): Creature | null {
@@ -2525,6 +2563,121 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+
+    return true;
+  }
+
+  function completeNpcContractOffer(offerId: string) {
+    const offer = npcContractLedger.find((entry) => entry.id === offerId);
+    if (!offer || offer.completed) return false;
+    if (isNpcContractExpired(offer, currentDay, currentHour, currentMinute)) return false;
+
+    const purchaseCostGold = offer.purchaseCostGold ?? 0;
+    if (purchaseCostGold > playerData.gold) return false;
+
+    const deliveryPlans = offer.requirements.map((requirement) => {
+      const plan = getQualityDeliveryPlan(
+        requirement.itemId,
+        requirement.minimumQuality ?? "standard",
+        requirement.quantity
+      );
+      return { requirement, plan };
+    });
+
+    if (deliveryPlans.some((entry) => !entry.plan)) return false;
+
+    const rewardItems = offer.reward.items;
+    const unlockedRecipeIds = rewardItems.flatMap((rewardItem) =>
+      ITEM_DATA[rewardItem.itemId]?.category === "recipe_book"
+        ? (ITEM_DATA[rewardItem.itemId]?.recipeUnlockIds ?? [])
+        : []
+    );
+    const updatedClock = applyTownActionTimeCost(
+      currentDay,
+      currentHour,
+      currentMinute,
+      offer.requirements.length > 0 ? 20 : 10
+    );
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    for (const { requirement } of deliveryPlans) {
+      setInventory((prev) => removeItemFromInventory(prev, requirement.itemId, requirement.quantity));
+    }
+
+    setProduceQualityInventory((prev) => {
+      let next = prev;
+      for (const { requirement, plan } of deliveryPlans) {
+        for (const delivery of plan ?? []) {
+          next = removeQualityProduceFromInventory(next, requirement.itemId, delivery.quality, delivery.quantity);
+        }
+      }
+      return next;
+    });
+
+    setInventory((prev) => {
+      let next = { ...prev };
+      rewardItems.forEach((reward) => {
+        next = addItemToInventory(next, reward.itemId, Math.max(1, reward.quantity));
+      });
+      return next;
+    });
+
+    setPlayerData((prev) =>
+      applyPlayerXpGain(
+        {
+          ...prev,
+          gold: prev.gold - purchaseCostGold + offer.reward.gold,
+        },
+        offer.reward.xp
+      )
+    );
+
+    if (unlockedRecipeIds.length > 0) {
+      setKnownRecipeIds((prevRecipes) => Array.from(new Set([...prevRecipes, ...unlockedRecipeIds])));
+    }
+
+    setTownNpcs((prev) =>
+      prev.map((npc) => {
+        if (npc.id !== offer.npcId) return npc;
+
+        const newRelationship = clamp(npc.relationship + offer.reward.relationshipGain, 0, 500);
+        const nextClaimed = [...npc.rewardMilestonesClaimed];
+        let bonusGold = 0;
+
+        for (const milestone of [100, 200, 300, 400]) {
+          if (newRelationship >= milestone && !nextClaimed.includes(milestone)) {
+            nextClaimed.push(milestone);
+            bonusGold += milestone === 100 ? 50 : milestone === 200 ? 120 : milestone === 300 ? 250 : 400;
+          }
+        }
+
+        if (bonusGold > 0) {
+          setPlayerData((prevPlayer) => ({ ...prevPlayer, gold: prevPlayer.gold + bonusGold }));
+        }
+
+        return {
+          ...npc,
+          relationship: newRelationship,
+          rewardMilestonesClaimed: nextClaimed,
+        };
+      })
+    );
+
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    setNpcContractLedger((prev) =>
+      ensureNpcContractLedger(
+        prev.map((entry) => (entry.id === offerId ? { ...entry, completed: true } : entry)),
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        getSeasonForDay(updatedClock.day),
+        townNpcs
+      )
+    );
 
     return true;
   }
@@ -3280,6 +3433,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setTownQuests(generateTownQuests(1));
     setTownNpcs(defaultTownNpcs);
     setTownNpcQuests(generateTownNpcQuests(1));
+    setNpcContractLedger(ensureNpcContractLedger([], 1, 8, 0, getSeasonForDay(1), defaultTownNpcs));
     setPaidTaxMonths([]);
     setTravelLog([]);
     setInventory(defaultInventory);
@@ -3308,6 +3462,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         townQuests,
         townNpcs,
         townNpcQuests,
+        npcContractLedger,
         paidTaxMonths,
         travelLog,
         fieldPlots,
@@ -3324,6 +3479,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         submitCreatureToQuest,
         submitCreatureToNpcQuest,
         submitNpcFarmingRequest,
+        completeNpcContractOffer,
         payMonthlyTax,
         travelTo,
         cookMeal,
