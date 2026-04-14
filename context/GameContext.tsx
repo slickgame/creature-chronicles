@@ -74,6 +74,16 @@ import {
   isNpcContractExpired,
   type NpcContractOffer,
 } from "@/lib/town/npcContractLedger";
+import { buildNpcRelationshipStateFromPoints } from "@/lib/game/npcEconomy";
+import {
+  findEligibleNpcRelationshipEvent,
+  normalizeNpcContractCompletionHistory,
+  normalizeNpcRelationshipEventFlags,
+  normalizeNpcRelationshipEventLog,
+  recordNpcContractCompletion,
+  type NpcContractCompletionHistory,
+  type NpcRelationshipEventUnlock,
+} from "@/lib/town/npcRelationshipEvents";
 
 
 type CreatureStats = {
@@ -327,6 +337,10 @@ type SaveData = {
   townNpcs: TownNpc[];
   townNpcQuests: TownNpcQuest[];
   npcContractLedger: NpcContractOffer[];
+  npcRelationshipEventFlags: string[];
+  npcRelationshipEventLog: NpcRelationshipEventUnlock[];
+  latestNpcRelationshipEvent: NpcRelationshipEventUnlock | null;
+  npcContractCompletionHistory: NpcContractCompletionHistory;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   inventory: InventoryState;
@@ -353,6 +367,10 @@ type GameContextType = {
   townNpcs: TownNpc[];
   townNpcQuests: TownNpcQuest[];
   npcContractLedger: NpcContractOffer[];
+  npcRelationshipEventFlags: string[];
+  npcRelationshipEventLog: NpcRelationshipEventUnlock[];
+  latestNpcRelationshipEvent: NpcRelationshipEventUnlock | null;
+  npcContractCompletionHistory: NpcContractCompletionHistory;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
   fieldPlots: FieldPlot[];
@@ -1820,6 +1838,10 @@ const defaultSaveData: SaveData = {
   townNpcs: defaultTownNpcs,
   townNpcQuests: generateTownNpcQuests(1),
   npcContractLedger: ensureNpcContractLedger([], 1, 8, 0, getSeasonForDay(1), defaultTownNpcs),
+  npcRelationshipEventFlags: [],
+  npcRelationshipEventLog: [],
+  latestNpcRelationshipEvent: null,
+  npcContractCompletionHistory: {},
   paidTaxMonths: [],
   travelLog: [],
   inventory: defaultInventory,
@@ -1849,6 +1871,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [townNpcs, setTownNpcs] = useState(defaultSaveData.townNpcs);
   const [townNpcQuests, setTownNpcQuests] = useState(defaultSaveData.townNpcQuests);
   const [npcContractLedger, setNpcContractLedger] = useState<NpcContractOffer[]>(defaultSaveData.npcContractLedger);
+  const [npcRelationshipEventFlags, setNpcRelationshipEventFlags] = useState<string[]>(defaultSaveData.npcRelationshipEventFlags);
+  const [npcRelationshipEventLog, setNpcRelationshipEventLog] = useState<NpcRelationshipEventUnlock[]>(defaultSaveData.npcRelationshipEventLog);
+  const [latestNpcRelationshipEvent, setLatestNpcRelationshipEvent] = useState<NpcRelationshipEventUnlock | null>(
+    defaultSaveData.latestNpcRelationshipEvent
+  );
+  const [npcContractCompletionHistory, setNpcContractCompletionHistory] = useState<NpcContractCompletionHistory>(
+    defaultSaveData.npcContractCompletionHistory
+  );
   const [paidTaxMonths, setPaidTaxMonths] = useState<number[]>(defaultSaveData.paidTaxMonths);
   const [travelLog, setTravelLog] = useState<TravelLogEntry[]>(defaultSaveData.travelLog);
   const [inventory, setInventory] = useState<InventoryState>(defaultSaveData.inventory);
@@ -1918,6 +1948,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
             normalizedTownNpcs
           )
         );
+        setNpcRelationshipEventFlags(normalizeNpcRelationshipEventFlags(parsedSave.npcRelationshipEventFlags));
+        const normalizedEventLog = normalizeNpcRelationshipEventLog(parsedSave.npcRelationshipEventLog);
+        setNpcRelationshipEventLog(normalizedEventLog);
+        const normalizedLatestEvent = normalizeNpcRelationshipEventLog(
+          parsedSave.latestNpcRelationshipEvent ? [parsedSave.latestNpcRelationshipEvent] : []
+        )[0] ?? null;
+        setLatestNpcRelationshipEvent(normalizedLatestEvent);
+        setNpcContractCompletionHistory(
+          normalizeNpcContractCompletionHistory(parsedSave.npcContractCompletionHistory)
+        );
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
         setInventory(normalizeInventory(parsedSave.inventory));
@@ -1957,6 +1997,10 @@ useEffect(() => {
     townNpcs,
     townNpcQuests,
     npcContractLedger,
+    npcRelationshipEventFlags,
+    npcRelationshipEventLog,
+    latestNpcRelationshipEvent,
+    npcContractCompletionHistory,
     paidTaxMonths,
     travelLog,
     inventory,
@@ -1984,6 +2028,10 @@ useEffect(() => {
   townNpcs,
   townNpcQuests,
   npcContractLedger,
+  npcRelationshipEventFlags,
+  npcRelationshipEventLog,
+  latestNpcRelationshipEvent,
+  npcContractCompletionHistory,
   paidTaxMonths,
   travelLog,
   inventory,
@@ -2602,6 +2650,25 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       currentMinute,
       offer.requirements.length > 0 ? 20 : 10
     );
+    const currentNpcRelationship = townNpcs.find((npc) => npc.id === offer.npcId)?.relationship ?? 0;
+    const nextRelationshipLevel = buildNpcRelationshipStateFromPoints(
+      offer.npcId,
+      currentNpcRelationship + offer.reward.relationshipGain
+    ).level;
+    const nextCompletionHistory = recordNpcContractCompletion(
+      npcContractCompletionHistory,
+      offer.npcId,
+      offer.kind
+    );
+    const unlockedRelationshipEvent = findEligibleNpcRelationshipEvent({
+      npcId: offer.npcId,
+      relationshipLevel: nextRelationshipLevel,
+      offerId: offer.id,
+      offerKind: offer.kind,
+      currentDay: updatedClock.day,
+      eventFlags: npcRelationshipEventFlags,
+      completionHistory: nextCompletionHistory,
+    });
 
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -2641,6 +2708,13 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     if (unlockedRecipeIds.length > 0) {
       setKnownRecipeIds((prevRecipes) => Array.from(new Set([...prevRecipes, ...unlockedRecipeIds])));
+    }
+
+    setNpcContractCompletionHistory(nextCompletionHistory);
+    if (unlockedRelationshipEvent) {
+      setNpcRelationshipEventFlags((prev) => Array.from(new Set([...prev, unlockedRelationshipEvent.id])));
+      setNpcRelationshipEventLog((prev) => [unlockedRelationshipEvent, ...prev]);
+      setLatestNpcRelationshipEvent(unlockedRelationshipEvent);
     }
 
     setTownNpcs((prev) =>
@@ -3444,6 +3518,10 @@ function purchaseMarketItem(itemId: string, price: number) {
     setTownNpcs(defaultTownNpcs);
     setTownNpcQuests(generateTownNpcQuests(1));
     setNpcContractLedger(ensureNpcContractLedger([], 1, 8, 0, getSeasonForDay(1), defaultTownNpcs));
+    setNpcRelationshipEventFlags([]);
+    setNpcRelationshipEventLog([]);
+    setLatestNpcRelationshipEvent(null);
+    setNpcContractCompletionHistory({});
     setPaidTaxMonths([]);
     setTravelLog([]);
     setInventory(defaultInventory);
@@ -3473,6 +3551,10 @@ function purchaseMarketItem(itemId: string, price: number) {
         townNpcs,
         townNpcQuests,
         npcContractLedger,
+        npcRelationshipEventFlags,
+        npcRelationshipEventLog,
+        latestNpcRelationshipEvent,
+        npcContractCompletionHistory,
         paidTaxMonths,
         travelLog,
         fieldPlots,

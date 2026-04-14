@@ -41,6 +41,7 @@ import {
 import { ITEM_DATA } from "@/lib/items/itemData";
 import type { QualitySellQuote } from "@/lib/game/produceEconomy";
 import type { NpcContractOffer, NpcContractRequirement } from "@/lib/town/npcContractLedger";
+import type { NpcRelationshipEventUnlock } from "@/lib/town/npcRelationshipEvents";
 
 type ProduceQualityRow = {
   quality: CropQuality;
@@ -262,6 +263,58 @@ function NpcContractLedgerPanel({
   );
 }
 
+function NpcRelationshipEventPanel({
+  latestEvent,
+  eventLog,
+}: {
+  latestEvent: NpcRelationshipEventUnlock | null;
+  eventLog: NpcRelationshipEventUnlock[];
+}) {
+  return (
+    <section className="mt-6 rounded-3xl border-4 border-pink-900 bg-white/90 p-6 shadow-xl">
+      <h2 className="text-3xl font-bold text-pink-950">Relationship Scenes</h2>
+      <p className="mt-1 text-stone-600">
+        Ledger completions can unlock private dialogue beats as trust turns warmer.
+      </p>
+
+      {latestEvent ? (
+        <div className="mt-4 rounded-2xl border border-pink-300 bg-pink-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-pink-800">Latest Scene</p>
+          <h3 className="mt-1 text-xl font-bold text-stone-950">{latestEvent.title}</h3>
+          <p className="text-sm font-semibold text-pink-800">{latestEvent.subtitle}</p>
+          <p className="mt-3 rounded-2xl bg-white px-3 py-2 text-sm text-stone-700">
+            {latestEvent.sceneText}
+          </p>
+          <div className="mt-3 grid gap-2 text-xs text-stone-700 md:grid-cols-2">
+            <p><strong>Unlocked Day:</strong> {latestEvent.unlockedDay}</p>
+            <p><strong>Reward:</strong> {latestEvent.rewardSummary}</p>
+            <p><strong>Image Hook:</strong> {latestEvent.imageUnlockId ?? "future scene slot"}</p>
+            <p><strong>Source:</strong> {latestEvent.sourceOfferKind}</p>
+          </div>
+        </div>
+      ) : (
+        <p className="mt-4 rounded-2xl border border-pink-200 bg-pink-50 p-4 text-sm text-stone-700">
+          No relationship scene has triggered yet. Complete ledger offers as relationships deepen.
+        </p>
+      )}
+
+      {eventLog.length > 0 ? (
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {eventLog.map((event) => (
+            <div key={event.id} className="rounded-2xl border border-pink-200 bg-white p-3">
+              <p className="font-semibold text-stone-900">{event.title}</p>
+              <p className="text-xs text-stone-600">{event.subtitle}</p>
+              <p className="mt-2 text-xs font-semibold text-pink-800">
+                L{event.requiredRelationshipLevel} - {event.rewardSummary}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function subscribeToMountState() {
   return () => {};
 }
@@ -290,6 +343,8 @@ export default function TownPage() {
     townNpcs,
     townNpcQuests,
     npcContractLedger,
+    npcRelationshipEventLog,
+    latestNpcRelationshipEvent,
     travelLog,
     purchaseTownCreature,
     purchaseMarketItem,
@@ -667,6 +722,11 @@ export default function TownPage() {
             </div>
           </div>
         </section>
+
+        <NpcRelationshipEventPanel
+          latestEvent={latestNpcRelationshipEvent}
+          eventLog={npcRelationshipEventLog}
+        />
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link href="/ranch" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Go to Ranch</Link>
