@@ -2411,6 +2411,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownStock((prev) => prev.filter((item) => item.id !== stockEntryId));
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
   function submitCreatureToQuest(questId: number, creatureId: number) {
@@ -2431,6 +2432,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 10);
     });
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
   function submitCreatureToNpcQuest(questId: number, creatureId: number) {
@@ -2480,6 +2482,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
   function submitNpcFarmingRequest(questId: number) {
@@ -2563,6 +2566,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
 
     return true;
   }
@@ -2700,6 +2704,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       happiness: clamp(prev.happiness + 2, 0, 100),
     }));
     setPaidTaxMonths((prev) => [...prev, currentMonth]);
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
   function travelTo(destination: LocationName) {
@@ -2725,6 +2730,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTravelLog((prev) => [newLogEntry, ...prev].slice(0, 20));
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
   function cookMeal(creatureId: number) {
@@ -3305,6 +3311,7 @@ function sellQualityProduce(
   );
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   return true;
 }
 
@@ -3324,6 +3331,7 @@ function purchaseFieldUpgrade(upgradeId: FieldUpgradeId) {
   setFieldPlots((prev) => normalizeFieldPlots(prev, nextEffects.unlockedPlotCount));
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   return true;
 }
 
@@ -3357,6 +3365,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     if (shouldAdvanceTime) {
       setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
       setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+      refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     }
     return true;
   }
@@ -3376,6 +3385,7 @@ function purchaseMarketItem(itemId: string, price: number) {
   if (shouldAdvanceTime) {
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
   return true;
 }
