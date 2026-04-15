@@ -8,6 +8,7 @@ import { HubCard, PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
 import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
+import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
 import {
   FARM_ECONOMY_MARKET_SECTIONS,
   DEFAULT_PRODUCE_DEMANDS,
@@ -35,18 +36,34 @@ import {
 } from "@/lib/game/npcEconomy";
 import {
   getNpcGreeting,
-  getNpcRelationshipImageId,
   getNpcRelationshipRewardSummary,
 } from "@/lib/town/npcDialogue";
+import { getNpcVisitImage } from "@/lib/town/npcImages";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import type { QualitySellQuote } from "@/lib/game/produceEconomy";
 import type { NpcContractOffer, NpcContractRequirement } from "@/lib/town/npcContractLedger";
-import type { NpcRelationshipEventUnlock } from "@/lib/town/npcRelationshipEvents";
+import {
+  NPC_RELATIONSHIP_EVENT_SCENES,
+  type NpcContractCompletionHistory,
+  type NpcRelationshipEventScene,
+  type NpcRelationshipEventUnlock,
+} from "@/lib/town/npcRelationshipEvents";
+import type { FarmEconomyNpcId } from "@/lib/game/npcEconomy";
+import type { NpcContractOfferKind } from "@/lib/town/npcContractLedger";
+import type { NpcRelationshipState } from "@/lib/town/relationshipDefaults";
 
 type ProduceQualityRow = {
   quality: CropQuality;
   owned: number;
   quote: QualitySellQuote | null;
+};
+
+type MemoryNpcGroup = {
+  npcId: FarmEconomyNpcId;
+  name: string;
+  accentClasses: string;
+  titleClasses: string;
+  relationship: NpcRelationshipState;
 };
 
 function formatTime(hour: number, minute: number) {
@@ -107,6 +124,13 @@ function InventoryChip({ label, value }: { label: string; value: string | number
 
 function formatMultiplier(value: number) {
   return `x${value.toFixed(2)}`;
+}
+
+function formatOfferKind(kind: NpcContractOfferKind) {
+  return kind
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function getAcceptedQualities(minimumQuality: CropQuality) {
@@ -315,6 +339,126 @@ function NpcRelationshipEventPanel({
   );
 }
 
+function getMemoryHint(
+  scene: NpcRelationshipEventScene,
+  relationship: NpcRelationshipState,
+  completionHistory: NpcContractCompletionHistory
+) {
+  const relationshipHint =
+    relationship.level < scene.requiredRelationshipLevel
+      ? `Reach relationship level ${scene.requiredRelationshipLevel}.`
+      : `Relationship level ${scene.requiredRelationshipLevel} met.`;
+  const completionCount = completionHistory[scene.completionHistoryKey] ?? 0;
+  const completionHint =
+    completionCount < scene.requiredCompletionCount
+      ? `Complete ${scene.requiredCompletionCount - completionCount} more matching ledger offer(s): ${scene.eligibleOfferKinds.map(formatOfferKind).join(", ")}.`
+      : `Ledger completion requirement met with ${completionCount}/${scene.requiredCompletionCount}.`;
+
+  return `${relationshipHint} ${completionHint}`;
+}
+
+function RelationshipMemoriesModalContent({
+  npcGroups,
+  eventLog,
+  completionHistory,
+}: {
+  npcGroups: MemoryNpcGroup[];
+  eventLog: NpcRelationshipEventUnlock[];
+  completionHistory: NpcContractCompletionHistory;
+}) {
+  const unlockedById = new Map(eventLog.map((event) => [event.id, event]));
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-pink-200 bg-pink-50 p-4">
+        <p className="text-lg font-bold text-pink-950">Relationship Memories</p>
+        <p className="mt-1 text-sm text-stone-700">
+          Scenes unlocked from ledger completions are kept here as collectible moments, with image slots ready for future art.
+        </p>
+      </div>
+
+      {npcGroups.map((group) => {
+        const scenes = NPC_RELATIONSHIP_EVENT_SCENES.filter((scene) => scene.npcId === group.npcId);
+        const unlockedCount = scenes.filter((scene) => unlockedById.has(scene.id)).length;
+
+        return (
+          <section key={group.npcId} className={`rounded-2xl border p-4 ${group.accentClasses}`}>
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className={`text-xl font-bold ${group.titleClasses}`}>{group.name}</p>
+                <p className="text-sm text-stone-700">
+                  {unlockedCount}/{scenes.length} memories unlocked - {getRelationshipDisplayLabel(group.relationship)}
+                </p>
+              </div>
+              <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+                Image slots: {scenes.map((scene) => scene.imageUnlockId ?? scene.id).join(", ")}
+              </span>
+            </div>
+
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              {scenes.map((scene) => {
+                const unlocked = unlockedById.get(scene.id);
+                const hint = getMemoryHint(scene, group.relationship, completionHistory);
+
+                return (
+                  <article
+                    key={scene.id}
+                    className={`rounded-2xl border p-4 shadow-sm ${
+                      unlocked ? "border-white bg-white" : "border-stone-300 bg-stone-100"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start">
+                      <div
+                        className={`flex h-24 w-full shrink-0 items-center justify-center rounded-2xl border text-center text-xs font-semibold md:w-28 ${
+                          unlocked
+                            ? "border-pink-200 bg-pink-50 text-pink-900"
+                            : "border-stone-300 bg-stone-200 text-stone-600"
+                        }`}
+                      >
+                        {unlocked ? scene.imageUnlockId ?? "scene image" : "Locked image slot"}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-bold text-stone-950">{scene.title}</p>
+                          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                            unlocked ? "bg-green-100 text-green-900" : "bg-stone-200 text-stone-700"
+                          }`}>
+                            {unlocked ? "Unlocked" : "Locked"}
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold text-stone-700">{scene.subtitle}</p>
+                        <p className="mt-2 text-xs text-stone-600">
+                          Image Unlock ID: {scene.imageUnlockId ?? "future_scene_slot"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {unlocked ? (
+                      <div className="mt-3 space-y-2 text-sm text-stone-700">
+                        <p><strong>Unlocked Day:</strong> {unlocked.unlockedDay}</p>
+                        <p><strong>Source Contract:</strong> {formatOfferKind(unlocked.sourceOfferKind)}</p>
+                        <p className="rounded-2xl bg-stone-50 px-3 py-2">{unlocked.sceneText}</p>
+                        <p><strong>Reward:</strong> {unlocked.rewardSummary}</p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 space-y-2 text-sm text-stone-700">
+                        <p><strong>Next Hint:</strong> {hint}</p>
+                        <p><strong>Likely Source:</strong> {scene.eligibleOfferKinds.map(formatOfferKind).join(", ")}</p>
+                        <p><strong>Reward Preview:</strong> {scene.rewardSummary}</p>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
 function subscribeToMountState() {
   return () => {};
 }
@@ -345,6 +489,7 @@ export default function TownPage() {
     npcContractLedger,
     npcRelationshipEventLog,
     latestNpcRelationshipEvent,
+    npcContractCompletionHistory,
     travelLog,
     purchaseTownCreature,
     purchaseMarketItem,
@@ -368,6 +513,7 @@ export default function TownPage() {
   const [sellerOpen, setSellerOpen] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
   const [relationshipsOpen, setRelationshipsOpen] = useState(false);
+  const [memoriesOpen, setMemoriesOpen] = useState(false);
   const [npcRequestsOpen, setNpcRequestsOpen] = useState(false);
   const [travelLogOpen, setTravelLogOpen] = useState(false);
   const [seedShopOpen, setSeedShopOpen] = useState(false);
@@ -482,6 +628,29 @@ export default function TownPage() {
   const marisLedgerOffers = npcContractLedger.filter((offer) => offer.npcId === "maris_thorn");
   const seleneLedgerOffers = npcContractLedger.filter((offer) => offer.npcId === "selene_voss");
   const tamsinLedgerOffers = npcContractLedger.filter((offer) => offer.npcId === "tamsin_vale");
+  const memoryNpcGroups: MemoryNpcGroup[] = [
+    {
+      npcId: "maris_thorn",
+      name: "Maris Thorn",
+      accentClasses: "border-emerald-300 bg-emerald-50",
+      titleClasses: "text-emerald-950",
+      relationship: marisRelationship,
+    },
+    {
+      npcId: "selene_voss",
+      name: "Selene Voss",
+      accentClasses: "border-purple-300 bg-purple-50",
+      titleClasses: "text-purple-950",
+      relationship: seleneRelationship,
+    },
+    {
+      npcId: "tamsin_vale",
+      name: "Tamsin Vale",
+      accentClasses: "border-rose-300 bg-rose-50",
+      titleClasses: "text-rose-950",
+      relationship: tamsinRelationship,
+    },
+  ];
 
   const seedShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "seed_shop");
   const recipeShopSection = FARM_ECONOMY_MARKET_SECTIONS.find((section) => section.id === "recipe_shop");
@@ -644,6 +813,17 @@ export default function TownPage() {
 
               <button
                 type="button"
+                onClick={() => setMemoriesOpen(true)}
+                className="rounded-2xl bg-pink-700 px-4 py-4 text-left font-semibold text-white shadow"
+              >
+                Relationship Memories
+                <div className="mt-1 text-sm font-medium text-pink-100">
+                  {npcRelationshipEventLog.length} scene memories unlocked
+                </div>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setFarmNpcOpen(true)}
                 className="rounded-2xl bg-fuchsia-700 px-4 py-4 text-left font-semibold text-white shadow"
               >
@@ -748,6 +928,7 @@ export default function TownPage() {
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "maris_thorn")!;
             const relationship = marisRelationship;
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
                 <p className="text-lg font-bold text-emerald-950">{npc.name}</p>
@@ -759,9 +940,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("maris_thorn", relationship)}</p>
-                  <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("maris_thorn", relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Current Seeds Owned:</strong> {displayedSeedOwned}</p>
                 </div>
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-emerald-200 bg-emerald-100/70 text-emerald-950"
+                />
               </div>
             );
           })()}
@@ -865,6 +1050,7 @@ export default function TownPage() {
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "tamsin_vale")!;
             const relationship = tamsinRelationship;
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4">
                 <p className="text-lg font-bold text-rose-950">{npc.name}</p>
@@ -876,9 +1062,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("tamsin_vale", relationship)}</p>
-                  <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("tamsin_vale", relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Known Recipes:</strong> {displayedKnownRecipes}</p>
                 </div>
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-rose-200 bg-rose-100/70 text-rose-950"
+                />
                 <div className="mt-3 rounded-2xl border border-rose-200 bg-white p-3 text-xs text-stone-700">
                   <p className="font-semibold text-stone-900">Progression Perks</p>
                   <div className="mt-2 space-y-1">
@@ -1036,6 +1226,7 @@ export default function TownPage() {
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "selene_voss")!;
             const relationship = seleneRelationship;
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4">
                 <p className="text-lg font-bold text-purple-950">{npc.name}</p>
@@ -1047,9 +1238,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("selene_voss", relationship)}</p>
-                  <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("selene_voss", relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Cooked Goods Owned:</strong> {hasMounted ? getItemCount("apple_pie") + getItemCount("berry_tart") + getItemCount("hearty_stew") : 0}</p>
                 </div>
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-purple-200 bg-purple-100/70 text-purple-950"
+                />
               </div>
             );
           })()}
@@ -1353,15 +1548,29 @@ export default function TownPage() {
         </div>
       </PopupWindow>
 
+      <PopupWindow open={memoriesOpen} onClose={() => setMemoriesOpen(false)} title="Relationship Memories" maxWidth="max-w-6xl">
+        <RelationshipMemoriesModalContent
+          npcGroups={memoryNpcGroups}
+          eventLog={npcRelationshipEventLog}
+          completionHistory={npcContractCompletionHistory}
+        />
+      </PopupWindow>
+
       <PopupWindow open={farmNpcOpen} onClose={() => setFarmNpcOpen(false)} title="Farm-Economy NPCs" maxWidth="max-w-6xl">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {FARM_ECONOMY_ACTIVE_NPCS.map((npc) => {
             const relationship = farmNpcRelationshipMap.get(npc.id) ?? createDefaultNpcRelationshipState(npc.id);
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div key={npc.id} className="rounded-2xl border-2 border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
                 <p className="text-xl font-bold text-fuchsia-950">{npc.name}</p>
                 <p className="text-sm font-semibold text-fuchsia-800">{npc.title} • {npc.race}</p>
                 <p className="mt-2 text-sm text-stone-700">{npc.shortDescription}</p>
+
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-fuchsia-200 bg-fuchsia-100/70 text-fuchsia-950"
+                />
 
                 <div className="mt-3 space-y-2 text-xs text-stone-700">
                   <p><strong>Build:</strong> {npc.bodyType}</p>
@@ -1376,7 +1585,7 @@ export default function TownPage() {
                 <div className="mt-3 space-y-1 text-xs text-stone-700">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary(npc.id, relationship)}</p>
-                  <p><strong>Current Image Slot:</strong> {getNpcRelationshipImageId(npc.id, relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Favorite Items:</strong> {npc.favoriteItems.map((item) => `${item.itemId} (${item.reaction})`).join(", ")}</p>
                 </div>
 

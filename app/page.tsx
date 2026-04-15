@@ -8,6 +8,7 @@ import { HubCard, PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
 import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
+import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
 import {
   FARM_ECONOMY_MARKET_SECTIONS,
   DEFAULT_PRODUCE_DEMANDS,
@@ -25,9 +26,9 @@ import {
 import { buildTownNpcRelationshipMap } from "@/lib/game/npcEconomy";
 import {
   getNpcGreeting,
-  getNpcRelationshipImageId,
   getNpcRelationshipRewardSummary,
 } from "@/lib/town/npcDialogue";
+import { getNpcVisitImage } from "@/lib/town/npcImages";
 import { ITEM_DATA } from "@/lib/items/itemData";
 
 function formatTime(hour: number, minute: number) {
@@ -424,6 +425,7 @@ export default function TownPage() {
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "maris_thorn")!;
             const relationship = farmNpcRelationshipMap.get("maris_thorn") ?? createDefaultNpcRelationshipState("maris_thorn");
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
                 <p className="text-lg font-bold text-emerald-950">{npc.name}</p>
@@ -435,9 +437,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("maris_thorn", relationship)}</p>
-                  <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("maris_thorn", relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Current Seeds Owned:</strong> {Object.keys(inventory).filter((id) => id.endsWith("_seed") && (inventory[id] ?? 0) > 0).length}</p>
                 </div>
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-emerald-200 bg-emerald-100/70 text-emerald-950"
+                />
               </div>
             );
           })()}
@@ -499,6 +505,7 @@ export default function TownPage() {
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "tamsin_vale")!;
             const relationship = farmNpcRelationshipMap.get("tamsin_vale") ?? createDefaultNpcRelationshipState("tamsin_vale");
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4">
                 <p className="text-lg font-bold text-rose-950">{npc.name}</p>
@@ -510,9 +517,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("tamsin_vale", relationship)}</p>
-                  <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("tamsin_vale", relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Known Recipes:</strong> {knownRecipeIds.length}</p>
                 </div>
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-rose-200 bg-rose-100/70 text-rose-950"
+                />
               </div>
             );
           })()}
@@ -562,6 +573,7 @@ export default function TownPage() {
           {(() => {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "selene_voss")!;
             const relationship = farmNpcRelationshipMap.get("selene_voss") ?? createDefaultNpcRelationshipState("selene_voss");
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4">
                 <p className="text-lg font-bold text-purple-950">{npc.name}</p>
@@ -573,9 +585,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary("selene_voss", relationship)}</p>
-                  <p><strong>Image Slot:</strong> {getNpcRelationshipImageId("selene_voss", relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Cooked Goods Owned:</strong> {getItemCount("apple_pie") + getItemCount("berry_tart") + getItemCount("hearty_stew")}</p>
                 </div>
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-purple-200 bg-purple-100/70 text-purple-950"
+                />
               </div>
             );
           })()}
@@ -775,11 +791,17 @@ export default function TownPage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {FARM_ECONOMY_ACTIVE_NPCS.map((npc) => {
             const relationship = farmNpcRelationshipMap.get(npc.id) ?? createDefaultNpcRelationshipState(npc.id);
+            const visitImage = getNpcVisitImage(npc, relationship);
             return (
               <div key={npc.id} className="rounded-2xl border-2 border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
                 <p className="text-xl font-bold text-fuchsia-950">{npc.name}</p>
                 <p className="text-sm font-semibold text-fuchsia-800">{npc.title} • {npc.race}</p>
                 <p className="mt-2 text-sm text-stone-700">{npc.shortDescription}</p>
+
+                <NpcVisitImageFrame
+                  image={visitImage}
+                  accentClasses="mt-3 border-fuchsia-200 bg-fuchsia-100/70 text-fuchsia-950"
+                />
 
                 <div className="mt-3 space-y-2 text-xs text-stone-700">
                   <p><strong>Build:</strong> {npc.bodyType}</p>
@@ -794,7 +816,7 @@ export default function TownPage() {
                 <div className="mt-3 space-y-1 text-xs text-stone-700">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
                   <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary(npc.id, relationship)}</p>
-                  <p><strong>Current Image Slot:</strong> {getNpcRelationshipImageId(npc.id, relationship) ?? "none"}</p>
+                  <p><strong>Visit Image:</strong> {visitImage.imageId}</p>
                   <p><strong>Favorite Items:</strong> {npc.favoriteItems.map((item) => `${item.itemId} (${item.reaction})`).join(", ")}</p>
                 </div>
 

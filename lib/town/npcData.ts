@@ -1,3 +1,5 @@
+import type { RelationshipStageName } from "@/lib/town/relationshipDefaults";
+
 export type TownNpcRole = "seed_seller" | "cook" | "produce_buyer";
 export type TownNpcRace =
   | "human"
@@ -20,6 +22,8 @@ export type TownNpcGiftPreference = {
   reaction: "love" | "like" | "neutral" | "dislike";
 };
 
+export type TownNpcStageImageIds = Partial<Record<RelationshipStageName, string>>;
+
 export type TownNpcData = {
   id: string;
   name: string;
@@ -35,6 +39,8 @@ export type TownNpcData = {
   farewellText: string[];
   flirtText: string[];
   relationshipNotes: string[];
+  baseImageId: string;
+  relationshipStageImageIds?: TownNpcStageImageIds;
   shopInventoryIds?: string[];
   unlocksByLevel: TownNpcUnlock[];
   favoriteItems: TownNpcGiftPreference[];
@@ -71,6 +77,7 @@ export const TOWN_NPC_DATA: Record<string, TownNpcData> = {
       "Maris responds to consistency, ambition, and gifts that prove the player is actually using what she sells.",
       "Her affection path leans earthy, teasing, and possessive in a low-heat way.",
     ],
+    baseImageId: "maris_base_visit",
     shopInventoryIds: [
       "wheat_seed",
       "carrot_seed",
@@ -123,6 +130,7 @@ export const TOWN_NPC_DATA: Record<string, TownNpcData> = {
       "Tamsin’s affection route leans nurturing, indulgent, and slowly more openly hungry.",
       "She favors thoughtful gifts, comfort foods, and players who invest in cooking.",
     ],
+    baseImageId: "tamsin_base_visit",
     shopInventoryIds: [
       "recipe_book_home_cooking_1",
       "recipe_book_sweets_1",
@@ -172,6 +180,7 @@ export const TOWN_NPC_DATA: Record<string, TownNpcData> = {
       "Selene rewards ambition, consistency, and high-quality finished goods.",
       "Her romance lane leans sleek, controlled, and very aware of leverage.",
     ],
+    baseImageId: "selene_base_visit",
     shopInventoryIds: [],
     unlocksByLevel: [
       { level: 2, unlockType: "discount", value: "market_fee_reduction_5_percent" },
