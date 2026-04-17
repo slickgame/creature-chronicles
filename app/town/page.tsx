@@ -35,8 +35,13 @@ import {
   getTamsinRecipeBookPrice,
 } from "@/lib/game/npcEconomy";
 import {
+  getNpcCurrentStageRewardSummary,
+  getNpcFarewell,
+  getNpcFlirtLine,
   getNpcGreeting,
+  getNpcNextStageRewardSummary,
   getNpcRelationshipRewardSummary,
+  getNpcStageProgressHint,
 } from "@/lib/town/npcDialogue";
 import { getNpcVisitImage } from "@/lib/town/npcImages";
 import { ITEM_DATA } from "@/lib/items/itemData";
@@ -118,6 +123,38 @@ function InventoryChip({ label, value }: { label: string; value: string | number
   return (
     <div className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-700">
       {label}: {value}
+    </div>
+  );
+}
+
+function NpcStageVisitPanel({
+  npcId,
+  relationship,
+  accentClasses,
+}: {
+  npcId: string;
+  relationship: NpcRelationshipState;
+  accentClasses: string;
+}) {
+  return (
+    <div className={`mt-3 rounded-lg border bg-white/80 p-3 text-sm text-stone-700 ${accentClasses}`}>
+      <p className="text-xs font-semibold uppercase text-stone-500">Stage Visit Flavor</p>
+      <div className="mt-2 grid gap-2 lg:grid-cols-3">
+        <p className="rounded-lg bg-white px-3 py-2">
+          <strong>Greeting:</strong> {getNpcGreeting(npcId, relationship)}
+        </p>
+        <p className="rounded-lg bg-white px-3 py-2">
+          <strong>Flirt:</strong> {getNpcFlirtLine(npcId, relationship)}
+        </p>
+        <p className="rounded-lg bg-white px-3 py-2">
+          <strong>Farewell:</strong> {getNpcFarewell(npcId, relationship)}
+        </p>
+      </div>
+      <div className="mt-3 grid gap-2 text-xs lg:grid-cols-3">
+        <p><strong>Stage Reward:</strong> {getNpcCurrentStageRewardSummary(npcId, relationship)}</p>
+        <p><strong>Next Stage:</strong> {getNpcNextStageRewardSummary(npcId, relationship)}</p>
+        <p><strong>Hint:</strong> {getNpcStageProgressHint(npcId, relationship)}</p>
+      </div>
     </div>
   );
 }
@@ -947,6 +984,11 @@ export default function TownPage() {
                   image={visitImage}
                   accentClasses="mt-3 border-emerald-200 bg-emerald-100/70 text-emerald-950"
                 />
+                <NpcStageVisitPanel
+                  npcId="maris_thorn"
+                  relationship={relationship}
+                  accentClasses="border-emerald-200"
+                />
               </div>
             );
           })()}
@@ -1068,6 +1110,11 @@ export default function TownPage() {
                 <NpcVisitImageFrame
                   image={visitImage}
                   accentClasses="mt-3 border-rose-200 bg-rose-100/70 text-rose-950"
+                />
+                <NpcStageVisitPanel
+                  npcId="tamsin_vale"
+                  relationship={relationship}
+                  accentClasses="border-rose-200"
                 />
                 <div className="mt-3 rounded-2xl border border-rose-200 bg-white p-3 text-xs text-stone-700">
                   <p className="font-semibold text-stone-900">Progression Perks</p>
@@ -1244,6 +1291,11 @@ export default function TownPage() {
                 <NpcVisitImageFrame
                   image={visitImage}
                   accentClasses="mt-3 border-purple-200 bg-purple-100/70 text-purple-950"
+                />
+                <NpcStageVisitPanel
+                  npcId="selene_voss"
+                  relationship={relationship}
+                  accentClasses="border-purple-200"
                 />
               </div>
             );
@@ -1570,6 +1622,11 @@ export default function TownPage() {
                 <NpcVisitImageFrame
                   image={visitImage}
                   accentClasses="mt-3 border-fuchsia-200 bg-fuchsia-100/70 text-fuchsia-950"
+                />
+                <NpcStageVisitPanel
+                  npcId={npc.id}
+                  relationship={relationship}
+                  accentClasses="border-fuchsia-200"
                 />
 
                 <div className="mt-3 space-y-2 text-xs text-stone-700">

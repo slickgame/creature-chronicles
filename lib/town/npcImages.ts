@@ -29,7 +29,10 @@ export function getNpcVisitImage(
     source,
     stageName,
     altText: `${npc.name} ${source === "base" ? "default visit" : stageName} portrait`,
-    label: source === "base" ? "Default Visit Image" : `${stageName} Visit Image`,
+    label: source === "base" ? "Default Visit Image" : `${formatStageName(stageName)} Visit Image`,
   };
 }
 
+function formatStageName(stageName: RelationshipStageName) {
+  return stageName.charAt(0).toUpperCase() + stageName.slice(1);
+}

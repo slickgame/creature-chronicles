@@ -78,6 +78,12 @@ export const TOWN_NPC_DATA: Record<string, TownNpcData> = {
       "Her affection path leans earthy, teasing, and possessive in a low-heat way.",
     ],
     baseImageId: "maris_base_visit",
+    relationshipStageImageIds: {
+      interested: "maris_lv2_counter_lean",
+      familiar: "maris_lv3_private_stock",
+      close: "maris_lv4_greenhouse_evening",
+      lover: "maris_lv5_lovers_bloom",
+    },
     shopInventoryIds: [
       "wheat_seed",
       "carrot_seed",
@@ -131,6 +137,12 @@ export const TOWN_NPC_DATA: Record<string, TownNpcData> = {
       "She favors thoughtful gifts, comfort foods, and players who invest in cooking.",
     ],
     baseImageId: "tamsin_base_visit",
+    relationshipStageImageIds: {
+      interested: "tamsin_lv2_recipe_handout",
+      familiar: "tamsin_lv3_kitchen_apron",
+      close: "tamsin_lv4_after_hours",
+      lover: "tamsin_lv5_table_for_two",
+    },
     shopInventoryIds: [
       "recipe_book_home_cooking_1",
       "recipe_book_sweets_1",
@@ -181,6 +193,12 @@ export const TOWN_NPC_DATA: Record<string, TownNpcData> = {
       "Her romance lane leans sleek, controlled, and very aware of leverage.",
     ],
     baseImageId: "selene_base_visit",
+    relationshipStageImageIds: {
+      interested: "selene_lv2_contract_offer",
+      familiar: "selene_lv3_private_buyer_list",
+      close: "selene_lv4_evening_contract",
+      lover: "selene_lv5_private_suite",
+    },
     shopInventoryIds: [],
     unlocksByLevel: [
       { level: 2, unlockType: "discount", value: "market_fee_reduction_5_percent" },
