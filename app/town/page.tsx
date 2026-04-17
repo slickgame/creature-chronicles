@@ -44,6 +44,16 @@ import {
   getNpcStageProgressHint,
 } from "@/lib/town/npcDialogue";
 import { getNpcVisitImage } from "@/lib/town/npcImages";
+import {
+  getNpcGiftDailyRecord,
+  getNpcGiftPreference,
+  getNpcGiftRelationshipGain,
+  getNpcInvitationAvailability,
+  MAX_DAILY_GIFTS_PER_NPC,
+  type NpcGiftRecordMap,
+  type NpcInvitationRecordMap,
+  type NpcSocialActionResult,
+} from "@/lib/town/npcSocial";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import type { QualitySellQuote } from "@/lib/game/produceEconomy";
 import type { NpcContractOffer, NpcContractRequirement } from "@/lib/town/npcContractLedger";
@@ -56,6 +66,7 @@ import {
 import type { FarmEconomyNpcId } from "@/lib/game/npcEconomy";
 import type { NpcContractOfferKind } from "@/lib/town/npcContractLedger";
 import type { NpcRelationshipState } from "@/lib/town/relationshipDefaults";
+import type { TownNpcData } from "@/lib/town/npcData";
 
 type ProduceQualityRow = {
   quality: CropQuality;
@@ -70,6 +81,8 @@ type MemoryNpcGroup = {
   titleClasses: string;
   relationship: NpcRelationshipState;
 };
+
+type SelectedGiftItemsByNpc = Record<string, string>;
 
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
@@ -154,6 +167,174 @@ function NpcStageVisitPanel({
         <p><strong>Stage Reward:</strong> {getNpcCurrentStageRewardSummary(npcId, relationship)}</p>
         <p><strong>Next Stage:</strong> {getNpcNextStageRewardSummary(npcId, relationship)}</p>
         <p><strong>Hint:</strong> {getNpcStageProgressHint(npcId, relationship)}</p>
+      </div>
+    </div>
+  );
+}
+
+function NpcSocialPanel({
+  npc,
+  relationship,
+  currentDay,
+  inventory,
+  giftRecords,
+  invitationRecords,
+  latestResult,
+  selectedGiftItemId,
+  onSelectGift,
+  onGiveGift,
+  onInvite,
+  accentClasses,
+  buttonClasses,
+  hasMounted,
+}: {
+  npc: TownNpcData;
+  relationship: NpcRelationshipState;
+  currentDay: number;
+  inventory: Record<string, number>;
+  giftRecords: NpcGiftRecordMap;
+  invitationRecords: NpcInvitationRecordMap;
+  latestResult: NpcSocialActionResult | null;
+  selectedGiftItemId: string;
+  onSelectGift: (itemId: string) => void;
+  onGiveGift: (itemId: string) => void;
+  onInvite: (invitationId: string) => void;
+  accentClasses: string;
+  buttonClasses: string;
+  hasMounted: boolean;
+}) {
+  const giftRecord = getNpcGiftDailyRecord(giftRecords, npc.id, currentDay);
+  const giftSlotsLeft = Math.max(0, MAX_DAILY_GIFTS_PER_NPC - giftRecord.count);
+  const ownedGiftItems = Object.entries(inventory)
+    .filter(([, count]) => count > 0)
+    .map(([itemId, count]) => ({ itemId, count, item: ITEM_DATA[itemId] }))
+    .filter((entry) => entry.item);
+  const preferredOwnedItem =
+    npc.favoriteItems.find((favorite) => (inventory[favorite.itemId] ?? 0) > 0)?.itemId ?? "";
+  const selectedOwnedItemId = selectedGiftItemId && (inventory[selectedGiftItemId] ?? 0) > 0
+    ? selectedGiftItemId
+    : "";
+  const activeGiftItemId = selectedOwnedItemId || preferredOwnedItem || ownedGiftItems[0]?.itemId || "";
+  const activeReaction = activeGiftItemId ? getNpcGiftPreference(npc.id, activeGiftItemId) : "neutral";
+  const activeGiftGain = activeGiftItemId
+    ? getNpcGiftRelationshipGain(activeReaction, giftRecord.count)
+    : 0;
+  const invitations = getNpcInvitationAvailability(
+    npc.id,
+    relationship.level,
+    invitationRecords,
+    currentDay
+  );
+  const npcLatestResult = latestResult?.npcId === npc.id ? latestResult : null;
+
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <p className="text-lg font-bold text-stone-950">Gifts & Invitations</p>
+      <p className="mt-1 text-sm text-stone-700">
+        Gifts use owned inventory and her tastes. Invitations open as the relationship warms.
+      </p>
+
+      {npcLatestResult ? (
+        <div className="mt-3 rounded-lg border border-white bg-white/80 px-3 py-2 text-sm text-stone-700">
+          <p className="font-semibold text-stone-950">{npcLatestResult.title}</p>
+          <p className="mt-1">{npcLatestResult.dialogue}</p>
+          <p className="mt-1 text-xs font-semibold text-stone-600">
+            {npcLatestResult.relationshipGain >= 0 ? "+" : ""}{npcLatestResult.relationshipGain} relationship
+            {npcLatestResult.timeCostMinutes ? ` - ${npcLatestResult.timeCostMinutes} minutes` : ""}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="rounded-lg border border-white bg-white/70 p-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="font-semibold text-stone-950">Give a Gift</p>
+              <p className="text-xs text-stone-600">
+                Today: {giftRecord.count}/{MAX_DAILY_GIFTS_PER_NPC} gifts used
+              </p>
+            </div>
+            <span className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+              {giftSlotsLeft} left
+            </span>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <select
+              value={activeGiftItemId}
+              onChange={(event) => onSelectGift(event.target.value)}
+              className="min-w-0 flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-stone-800"
+            >
+              {ownedGiftItems.length === 0 ? (
+                <option value="">No owned gift items</option>
+              ) : (
+                ownedGiftItems.map(({ itemId, count, item }) => (
+                  <option key={`${npc.id}-gift-${itemId}`} value={itemId}>
+                    {item?.name ?? itemId} x{count} - {getNpcGiftPreference(npc.id, itemId)}
+                  </option>
+                ))
+              )}
+            </select>
+            <button
+              type="button"
+              disabled={!hasMounted || !activeGiftItemId || giftSlotsLeft <= 0}
+              onClick={() => onGiveGift(activeGiftItemId)}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold text-white shadow ${
+                hasMounted && activeGiftItemId && giftSlotsLeft > 0 ? buttonClasses : "bg-stone-400"
+              }`}
+            >
+              Give Gift
+            </button>
+          </div>
+
+          <p className="mt-2 text-xs text-stone-700">
+            Selected reaction: <strong>{activeReaction}</strong> ({activeGiftGain >= 0 ? "+" : ""}{activeGiftGain} relationship)
+          </p>
+
+          <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
+            {npc.favoriteItems.map((favorite) => (
+              <p key={`${npc.id}-favorite-${favorite.itemId}`} className="rounded-lg bg-white px-3 py-2">
+                <strong>{ITEM_DATA[favorite.itemId]?.name ?? favorite.itemId}:</strong> {favorite.reaction}
+                {" "}({inventory[favorite.itemId] ?? 0} owned)
+              </p>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-white bg-white/70 p-3">
+          <p className="font-semibold text-stone-950">Invite Out</p>
+          <p className="text-xs text-stone-600">
+            Simple outing hooks for later dates, scenes, and image unlocks.
+          </p>
+
+          <div className="mt-3 grid gap-2">
+            {invitations.map((invitation) => (
+              <div key={invitation.id} className="rounded-lg bg-white p-3 text-sm text-stone-700">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-stone-950">{invitation.title}</p>
+                    <p className="text-xs text-stone-600">
+                      Level {invitation.requiredLevel} - +{invitation.relationshipGain} relationship - {invitation.timeCostMinutes} minutes
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={!hasMounted || !invitation.available}
+                    onClick={() => onInvite(invitation.id)}
+                    className={`rounded-lg px-3 py-2 text-xs font-semibold text-white shadow ${
+                      hasMounted && invitation.available ? buttonClasses : "bg-stone-400"
+                    }`}
+                  >
+                    Invite
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-stone-700">
+                  {invitation.available ? invitation.flavorText : invitation.reason}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -527,6 +708,9 @@ export default function TownPage() {
     npcRelationshipEventLog,
     latestNpcRelationshipEvent,
     npcContractCompletionHistory,
+    npcGiftRecords,
+    npcInvitationRecords,
+    latestNpcSocialResult,
     travelLog,
     purchaseTownCreature,
     purchaseMarketItem,
@@ -539,6 +723,8 @@ export default function TownPage() {
     submitCreatureToNpcQuest,
     submitNpcFarmingRequest,
     completeNpcContractOffer,
+    giveNpcGift,
+    inviteNpc,
     travelTo,
   } = useGame();
 
@@ -557,6 +743,7 @@ export default function TownPage() {
   const [recipeShopOpen, setRecipeShopOpen] = useState(false);
   const [produceExchangeOpen, setProduceExchangeOpen] = useState(false);
   const [farmNpcOpen, setFarmNpcOpen] = useState(false);
+  const [selectedGiftItems, setSelectedGiftItems] = useState<SelectedGiftItemsByNpc>({});
 
   function handleTravelTo(
     destination: "ranch" | "town" | "market" | "guild_hall"
@@ -989,6 +1176,24 @@ export default function TownPage() {
                   relationship={relationship}
                   accentClasses="border-emerald-200"
                 />
+                <div className="mt-3">
+                  <NpcSocialPanel
+                    npc={npc}
+                    relationship={relationship}
+                    currentDay={currentDay}
+                    inventory={inventory}
+                    giftRecords={npcGiftRecords}
+                    invitationRecords={npcInvitationRecords}
+                    latestResult={latestNpcSocialResult}
+                    selectedGiftItemId={selectedGiftItems.maris_thorn ?? ""}
+                    onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, maris_thorn: itemId }))}
+                    onGiveGift={(itemId) => giveNpcGift("maris_thorn", itemId)}
+                    onInvite={(invitationId) => inviteNpc("maris_thorn", invitationId)}
+                    accentClasses="border-emerald-200 bg-emerald-100/70"
+                    buttonClasses="bg-emerald-700"
+                    hasMounted={hasMounted}
+                  />
+                </div>
               </div>
             );
           })()}
@@ -1116,6 +1321,24 @@ export default function TownPage() {
                   relationship={relationship}
                   accentClasses="border-rose-200"
                 />
+                <div className="mt-3">
+                  <NpcSocialPanel
+                    npc={npc}
+                    relationship={relationship}
+                    currentDay={currentDay}
+                    inventory={inventory}
+                    giftRecords={npcGiftRecords}
+                    invitationRecords={npcInvitationRecords}
+                    latestResult={latestNpcSocialResult}
+                    selectedGiftItemId={selectedGiftItems.tamsin_vale ?? ""}
+                    onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, tamsin_vale: itemId }))}
+                    onGiveGift={(itemId) => giveNpcGift("tamsin_vale", itemId)}
+                    onInvite={(invitationId) => inviteNpc("tamsin_vale", invitationId)}
+                    accentClasses="border-rose-200 bg-rose-100/70"
+                    buttonClasses="bg-rose-700"
+                    hasMounted={hasMounted}
+                  />
+                </div>
                 <div className="mt-3 rounded-2xl border border-rose-200 bg-white p-3 text-xs text-stone-700">
                   <p className="font-semibold text-stone-900">Progression Perks</p>
                   <div className="mt-2 space-y-1">
@@ -1297,6 +1520,24 @@ export default function TownPage() {
                   relationship={relationship}
                   accentClasses="border-purple-200"
                 />
+                <div className="mt-3">
+                  <NpcSocialPanel
+                    npc={npc}
+                    relationship={relationship}
+                    currentDay={currentDay}
+                    inventory={inventory}
+                    giftRecords={npcGiftRecords}
+                    invitationRecords={npcInvitationRecords}
+                    latestResult={latestNpcSocialResult}
+                    selectedGiftItemId={selectedGiftItems.selene_voss ?? ""}
+                    onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, selene_voss: itemId }))}
+                    onGiveGift={(itemId) => giveNpcGift("selene_voss", itemId)}
+                    onInvite={(invitationId) => inviteNpc("selene_voss", invitationId)}
+                    accentClasses="border-purple-200 bg-purple-100/70"
+                    buttonClasses="bg-purple-700"
+                    hasMounted={hasMounted}
+                  />
+                </div>
               </div>
             );
           })()}
