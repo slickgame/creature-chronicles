@@ -49,9 +49,11 @@ import {
   getNpcGiftPreference,
   getNpcGiftRelationshipGain,
   getNpcInvitationAvailability,
+  getNpcOutingCompletionCounts,
   MAX_DAILY_GIFTS_PER_NPC,
   type NpcGiftRecordMap,
   type NpcInvitationRecordMap,
+  type NpcOutingCompletionLog,
   type NpcSocialActionResult,
 } from "@/lib/town/npcSocial";
 import { ITEM_DATA } from "@/lib/items/itemData";
@@ -64,7 +66,6 @@ import {
   type NpcRelationshipEventUnlock,
 } from "@/lib/town/npcRelationshipEvents";
 import type { FarmEconomyNpcId } from "@/lib/game/npcEconomy";
-import type { NpcContractOfferKind } from "@/lib/town/npcContractLedger";
 import type { NpcRelationshipState } from "@/lib/town/relationshipDefaults";
 import type { TownNpcData } from "@/lib/town/npcData";
 
@@ -179,6 +180,7 @@ function NpcSocialPanel({
   inventory,
   giftRecords,
   invitationRecords,
+  outingLog,
   latestResult,
   selectedGiftItemId,
   onSelectGift,
@@ -194,6 +196,7 @@ function NpcSocialPanel({
   inventory: Record<string, number>;
   giftRecords: NpcGiftRecordMap;
   invitationRecords: NpcInvitationRecordMap;
+  outingLog: NpcOutingCompletionLog;
   latestResult: NpcSocialActionResult | null;
   selectedGiftItemId: string;
   onSelectGift: (itemId: string) => void;
@@ -225,6 +228,7 @@ function NpcSocialPanel({
     invitationRecords,
     currentDay
   );
+  const outingCounts = getNpcOutingCompletionCounts(outingLog);
   const npcLatestResult = latestResult?.npcId === npc.id ? latestResult : null;
 
   return (
@@ -304,7 +308,7 @@ function NpcSocialPanel({
         <div className="rounded-lg border border-white bg-white/70 p-3">
           <p className="font-semibold text-stone-950">Invite Out</p>
           <p className="text-xs text-stone-600">
-            Simple outing hooks for later dates, scenes, and image unlocks.
+            Outings unlock memories, follow-up flavor, and small social rewards.
           </p>
 
           <div className="mt-3 grid gap-2">
@@ -331,11 +335,46 @@ function NpcSocialPanel({
                 <p className="mt-2 text-xs text-stone-700">
                   {invitation.available ? invitation.flavorText : invitation.reason}
                 </p>
+                <div className="mt-2 grid gap-1 text-xs text-stone-700">
+                  <p><strong>Outing Reward:</strong> {invitation.rewardSummary}</p>
+                  <p><strong>Memory Image:</strong> {invitation.imageUnlockId ?? "future outing image"}</p>
+                  <p><strong>Completed:</strong> {outingCounts[invitation.id] ?? 0} time(s)</p>
+                  {outingLog.find((outing) => outing.invitationId === invitation.id) ? (
+                    <p>
+                      <strong>Last Outing:</strong> Day {outingLog.find((outing) => outing.invitationId === invitation.id)?.dayCompleted}
+                    </p>
+                  ) : (
+                    <p><strong>Status:</strong> Not completed yet</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {outingLog.some((outing) => outing.npcId === npc.id) ? (
+        <div className="mt-3 rounded-lg border border-white bg-white/70 p-3 text-sm text-stone-700">
+          <p className="font-semibold text-stone-950">Outing History</p>
+          <div className="mt-2 grid gap-2 lg:grid-cols-2">
+            {outingLog
+              .filter((outing) => outing.npcId === npc.id)
+              .slice(0, 4)
+              .map((outing) => (
+                <div key={outing.id} className="rounded-lg bg-white px-3 py-2">
+                  <p className="font-semibold text-stone-950">{outing.title}</p>
+                  <p className="text-xs text-stone-600">
+                    Day {outing.dayCompleted} - +{outing.relationshipReward} relationship
+                  </p>
+                  <p className="mt-1 text-xs">{outing.followUpFlavor}</p>
+                  <p className="mt-1 text-xs font-semibold text-stone-700">
+                    {outing.rewardSummary}
+                  </p>
+                </div>
+              ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -344,7 +383,7 @@ function formatMultiplier(value: number) {
   return `x${value.toFixed(2)}`;
 }
 
-function formatOfferKind(kind: NpcContractOfferKind) {
+function formatOfferKind(kind: string) {
   return kind
     .split("_")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -710,6 +749,7 @@ export default function TownPage() {
     npcContractCompletionHistory,
     npcGiftRecords,
     npcInvitationRecords,
+    npcOutingCompletionLog,
     latestNpcSocialResult,
     travelLog,
     purchaseTownCreature,
@@ -1184,6 +1224,7 @@ export default function TownPage() {
                     inventory={inventory}
                     giftRecords={npcGiftRecords}
                     invitationRecords={npcInvitationRecords}
+                    outingLog={npcOutingCompletionLog}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.maris_thorn ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, maris_thorn: itemId }))}
@@ -1329,6 +1370,7 @@ export default function TownPage() {
                     inventory={inventory}
                     giftRecords={npcGiftRecords}
                     invitationRecords={npcInvitationRecords}
+                    outingLog={npcOutingCompletionLog}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.tamsin_vale ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, tamsin_vale: itemId }))}
@@ -1528,6 +1570,7 @@ export default function TownPage() {
                     inventory={inventory}
                     giftRecords={npcGiftRecords}
                     invitationRecords={npcInvitationRecords}
+                    outingLog={npcOutingCompletionLog}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.selene_voss ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, selene_voss: itemId }))}

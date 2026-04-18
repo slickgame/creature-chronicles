@@ -34,14 +34,44 @@ export type NpcInvitationOption = {
   title: string;
   flavorText: string;
   unavailableText: string;
+  sceneText: string;
+  rewardSummary: string;
+  followUpFlavor: string;
   relationshipGain: number;
   timeCostMinutes: number;
+  goldReward?: number;
+  itemRewards?: NpcOutingItemReward[];
+  imageUnlockId?: string;
 };
 
 export type NpcInvitationAvailability = NpcInvitationOption & {
   available: boolean;
   reason: string;
 };
+
+export type NpcOutingItemReward = {
+  itemId: string;
+  quantity: number;
+};
+
+export type NpcOutingCompletion = {
+  id: string;
+  npcId: string;
+  invitationId: string;
+  title: string;
+  completed: true;
+  dayCompleted: number;
+  sceneText: string;
+  relationshipReward: number;
+  goldReward: number;
+  rewardSummary: string;
+  followUpFlavor: string;
+  itemRewards: NpcOutingItemReward[];
+  imageUnlockId?: string;
+  memoryEventId?: string;
+};
+
+export type NpcOutingCompletionLog = NpcOutingCompletion[];
 
 export const MAX_DAILY_GIFTS_PER_NPC = 2;
 
@@ -54,8 +84,15 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     flavorText:
       "Maris closes the seed drawer with a sly little smile and offers to show you what she keeps warm and growing out back.",
     unavailableText: "Maris will invite you behind the stall once she trusts your hands a little more.",
+    sceneText:
+      "Maris leads you between rows of glass-warmed seedlings, brushing leaves aside with the back of her hand. \"These little things need patience,\" she says, glancing over her shoulder with a grin. \"So do my favorite growers. Lucky for you, I like watching both of you bloom.\"",
+    rewardSummary: "+14 relationship, Berry Seed x2, Greenhouse Walk memory",
+    followUpFlavor:
+      "Maris starts mentioning the greenhouse like it is already half yours, and her better seed bundles feel a little more personal.",
     relationshipGain: 14,
     timeCostMinutes: 45,
+    itemRewards: [{ itemId: "berry_seed", quantity: 2 }],
+    imageUnlockId: "maris_greenhouse_walk",
   },
   {
     id: "maris_after_hours_rows",
@@ -65,8 +102,15 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     flavorText:
       "Maris saves the last light for you, all low laughter, warm glass, and the sort of praise she does not bother softening anymore.",
     unavailableText: "Maris is not quite ready to make the greenhouse that private.",
+    sceneText:
+      "With the stall closed, Maris walks beside you under amber panes and lets the silence stretch warm. \"I spoil what matters to me,\" she murmurs, nudging your shoulder with hers. \"Seeds, fields, stubborn sweethearts who keep coming back exactly when I want them.\"",
+    rewardSummary: "+20 relationship, Rich Fertilizer x1, After-Hours Rows memory",
+    followUpFlavor:
+      "Maris's after-hours greetings turn softer and more possessive, with future greenhouse scenes now easy to hang on this flag.",
     relationshipGain: 20,
     timeCostMinutes: 60,
+    itemRewards: [{ itemId: "rich_fertilizer", quantity: 1 }],
+    imageUnlockId: "maris_after_hours_rows",
   },
   {
     id: "selene_market_stroll",
@@ -76,8 +120,15 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     flavorText:
       "Selene lets you walk beside her through the better stalls, correcting your eye for quality with a smile that feels like a challenge.",
     unavailableText: "Selene reserves private market time for suppliers who have proven their value.",
+    sceneText:
+      "Selene guides you through the better stalls with a cool hand at your elbow, naming flaws, premiums, and hidden margins. \"Quality is never accidental,\" she says. Her smile sharpens. \"Neither is the company I keep beside me.\"",
+    rewardSummary: "+14 relationship, 75g private-buyer gratuity, Market Stroll memory",
+    followUpFlavor:
+      "Selene begins framing premium boards as private opportunities instead of public listings.",
     relationshipGain: 14,
     timeCostMinutes: 45,
+    imageUnlockId: "selene_market_stroll",
+    goldReward: 75,
   },
   {
     id: "selene_after_hours_ledger",
@@ -87,8 +138,15 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     flavorText:
       "Selene draws the curtains on the exchange and reviews the day's private terms with you close enough to make every pause deliberate.",
     unavailableText: "Selene's after-hours ledger is still closed to you.",
+    sceneText:
+      "The market quiets behind drawn curtains while Selene opens a slim ledger meant for very few eyes. \"Public terms are for public people,\" she says, voice smooth and low. \"You, darling, have become a private exception.\"",
+    rewardSummary: "+20 relationship, 150g private-contract gratuity, After-Hours Ledger memory",
+    followUpFlavor:
+      "Selene's private contract language grows more direct, and future elite buyer scenes have a clean hook.",
     relationshipGain: 20,
     timeCostMinutes: 60,
+    imageUnlockId: "selene_after_hours_ledger_outing",
+    goldReward: 150,
   },
   {
     id: "tamsin_kitchen_tea",
@@ -98,8 +156,15 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     flavorText:
       "Tamsin sets aside a quiet cup for you, warm fingers brushing the rim as she asks whether you have been feeding yourself properly.",
     unavailableText: "Tamsin will make time for a private cup once your visits feel less like errands.",
+    sceneText:
+      "Tamsin pours tea at the quiet end of the counter, close enough that steam curls between you. \"There,\" she says softly. \"A little warmth, a little sweetness, and someone making sure you sit still long enough to enjoy both.\"",
+    rewardSummary: "+14 relationship, Warm Milk x1, Kitchen Tea memory",
+    followUpFlavor:
+      "Tamsin starts saving small comforts for your visits, and kitchen dialogue carries more private warmth.",
     relationshipGain: 14,
     timeCostMinutes: 45,
+    itemRewards: [{ itemId: "warm_milk", quantity: 1 }],
+    imageUnlockId: "tamsin_kitchen_tea",
   },
   {
     id: "tamsin_lamplit_table",
@@ -109,8 +174,15 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     flavorText:
       "Tamsin saves a small table after closing, the kitchen hushed and golden while she spoils you with her full attention.",
     unavailableText: "Tamsin's lamplit table is waiting for a more intimate trust.",
+    sceneText:
+      "The kitchen settles into lamplight while Tamsin sets a private plate before you. \"No rushing tonight,\" she murmurs, smile soft and pleased. \"Some appetites deserve patience, and you have been very good at earning mine.\"",
+    rewardSummary: "+20 relationship, Apple Pie x1, Lamplit Table memory",
+    followUpFlavor:
+      "Tamsin's lover-stage dialogue now has a private table to return to, ready for later date scenes and comfort images.",
     relationshipGain: 20,
     timeCostMinutes: 60,
+    itemRewards: [{ itemId: "apple_pie", quantity: 1 }],
+    imageUnlockId: "tamsin_lamplit_table",
   },
 ];
 
@@ -197,6 +269,48 @@ export function normalizeNpcInvitationRecords(records: unknown): NpcInvitationRe
   );
 }
 
+export function normalizeNpcOutingCompletionLog(log: unknown): NpcOutingCompletionLog {
+  if (!Array.isArray(log)) return [];
+
+  return log.flatMap((entry) => {
+      if (!entry || typeof entry !== "object") return [];
+      const value = entry as Partial<NpcOutingCompletion>;
+      const invitation = NPC_INVITATION_OPTIONS.find((option) => option.id === value.invitationId);
+      if (!invitation || !value.npcId || value.npcId !== invitation.npcId) return [];
+
+      const completion: NpcOutingCompletion = {
+        id: value.id ?? `${invitation.id}-${Math.max(1, Math.floor(value.dayCompleted ?? 1))}`,
+        npcId: invitation.npcId,
+        invitationId: invitation.id,
+        title: invitation.title,
+        completed: true as const,
+        dayCompleted: Math.max(1, Math.floor(value.dayCompleted ?? 1)),
+        sceneText: value.sceneText ?? invitation.sceneText,
+        relationshipReward: Math.trunc(value.relationshipReward ?? invitation.relationshipGain),
+        goldReward: Math.max(0, Math.floor(value.goldReward ?? invitation.goldReward ?? 0)),
+        rewardSummary: value.rewardSummary ?? invitation.rewardSummary,
+        followUpFlavor: value.followUpFlavor ?? invitation.followUpFlavor,
+        itemRewards: Array.isArray(value.itemRewards)
+          ? value.itemRewards
+              .filter((reward): reward is NpcOutingItemReward =>
+                Boolean(reward) &&
+                typeof reward.itemId === "string" &&
+                reward.itemId.length > 0 &&
+                typeof reward.quantity === "number" &&
+                Number.isFinite(reward.quantity)
+              )
+              .map((reward) => ({ itemId: reward.itemId, quantity: Math.max(1, Math.floor(reward.quantity)) }))
+          : invitation.itemRewards ?? [],
+        ...(value.imageUnlockId ?? invitation.imageUnlockId
+          ? { imageUnlockId: value.imageUnlockId ?? invitation.imageUnlockId }
+          : {}),
+        ...(value.memoryEventId ? { memoryEventId: value.memoryEventId } : {}),
+      };
+
+      return [completion];
+    });
+}
+
 export function normalizeNpcSocialActionResult(result: unknown): NpcSocialActionResult | null {
   if (!result || typeof result !== "object") return null;
 
@@ -216,6 +330,36 @@ export function normalizeNpcSocialActionResult(result: unknown): NpcSocialAction
     reaction: value.reaction,
     invitationId: value.invitationId,
     timeCostMinutes: value.timeCostMinutes,
+  };
+}
+
+export function getNpcOutingCompletionCounts(log: NpcOutingCompletionLog) {
+  return log.reduce<Record<string, number>>((counts, outing) => {
+    counts[outing.invitationId] = (counts[outing.invitationId] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+export function buildNpcOutingCompletion(
+  invitation: NpcInvitationOption,
+  dayCompleted: number,
+  memoryEventId?: string
+): NpcOutingCompletion {
+  return {
+    id: `${invitation.id}-${dayCompleted}-${Date.now()}`,
+    npcId: invitation.npcId,
+    invitationId: invitation.id,
+    title: invitation.title,
+    completed: true,
+    dayCompleted,
+    sceneText: invitation.sceneText,
+    relationshipReward: invitation.relationshipGain,
+    goldReward: invitation.goldReward ?? 0,
+    rewardSummary: invitation.rewardSummary,
+    followUpFlavor: invitation.followUpFlavor,
+    itemRewards: invitation.itemRewards ?? [],
+    ...(invitation.imageUnlockId ? { imageUnlockId: invitation.imageUnlockId } : {}),
+    ...(memoryEventId ? { memoryEventId } : {}),
   };
 }
 
@@ -242,4 +386,3 @@ export function getNpcInvitationAvailability(
       };
     });
 }
-

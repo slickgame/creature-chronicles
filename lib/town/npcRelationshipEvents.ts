@@ -2,6 +2,7 @@ import type { FarmEconomyNpcId } from "@/lib/game/npcEconomy";
 import type { NpcContractOfferKind } from "@/lib/town/npcContractLedger";
 import type { RelationshipLevel } from "@/lib/town/relationshipDefaults";
 
+export type NpcRelationshipEventSourceKind = NpcContractOfferKind | "npc_outing";
 export type NpcContractCompletionHistory = Record<string, number>;
 
 export type NpcRelationshipEventScene = {
@@ -21,7 +22,7 @@ export type NpcRelationshipEventScene = {
 export type NpcRelationshipEventUnlock = NpcRelationshipEventScene & {
   unlockedDay: number;
   sourceOfferId: string;
-  sourceOfferKind: NpcContractOfferKind;
+  sourceOfferKind: NpcRelationshipEventSourceKind;
 };
 
 export type NpcRelationshipEventEligibilityInput = {
@@ -119,6 +120,90 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     requiredCompletionCount: 1,
     imageUnlockId: "tamsin_after_hours_table",
   },
+  {
+    id: "maris_greenhouse_walk_memory",
+    npcId: "maris_thorn",
+    title: "Greenhouse Walk",
+    subtitle: "Maris lets the warm rows turn a little more personal.",
+    sceneText:
+      "Maris leads you between rows of glass-warmed seedlings, brushing leaves aside with the back of her hand. \"These little things need patience,\" she says, glancing over her shoulder with a grin. \"So do my favorite growers. Lucky for you, I like watching both of you bloom.\"",
+    rewardSummary: "Maris outings now add greenhouse follow-up flavor and a small seed-stall goodwill reward.",
+    requiredRelationshipLevel: 3,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "maris_thorn:outing:maris_greenhouse_walk",
+    requiredCompletionCount: 1,
+    imageUnlockId: "maris_greenhouse_walk",
+  },
+  {
+    id: "maris_after_hours_rows_memory",
+    npcId: "maris_thorn",
+    title: "After-Hours Rows",
+    subtitle: "The greenhouse feels private when Maris saves the last light for you.",
+    sceneText:
+      "With the stall closed, Maris walks beside you under amber panes and lets the silence stretch warm. \"I spoil what matters to me,\" she murmurs, nudging your shoulder with hers. \"Seeds, fields, stubborn sweethearts who keep coming back exactly when I want them.\"",
+    rewardSummary: "Maris lover outings can seed future after-hours greenhouse scenes.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "maris_thorn:outing:maris_after_hours_rows",
+    requiredCompletionCount: 1,
+    imageUnlockId: "maris_after_hours_rows",
+  },
+  {
+    id: "selene_market_stroll_memory",
+    npcId: "selene_voss",
+    title: "Market Stroll",
+    subtitle: "Selene teaches you how to read value while making sure you know yours.",
+    sceneText:
+      "Selene guides you through the better stalls with a cool hand at your elbow, naming flaws, premiums, and hidden margins. \"Quality is never accidental,\" she says. Her smile sharpens. \"Neither is the company I keep beside me.\"",
+    rewardSummary: "Selene outings now add private-buyer follow-up flavor and market goodwill.",
+    requiredRelationshipLevel: 3,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "selene_voss:outing:selene_market_stroll",
+    requiredCompletionCount: 1,
+    imageUnlockId: "selene_market_stroll",
+  },
+  {
+    id: "selene_after_hours_ledger_memory",
+    npcId: "selene_voss",
+    title: "After-Hours Ledger",
+    subtitle: "Selene closes the exchange before showing you the private terms.",
+    sceneText:
+      "The market quiets behind drawn curtains while Selene opens a slim ledger meant for very few eyes. \"Public terms are for public people,\" she says, voice smooth and low. \"You, darling, have become a private exception.\"",
+    rewardSummary: "Selene lover outings can lead into elite private-contract scenes.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "selene_voss:outing:selene_after_hours_ledger",
+    requiredCompletionCount: 1,
+    imageUnlockId: "selene_after_hours_ledger_outing",
+  },
+  {
+    id: "tamsin_kitchen_tea_memory",
+    npcId: "tamsin_vale",
+    title: "Kitchen Tea",
+    subtitle: "Tamsin makes room for you where the kitchen is warmest.",
+    sceneText:
+      "Tamsin pours tea at the quiet end of the counter, close enough that steam curls between you. \"There,\" she says softly. \"A little warmth, a little sweetness, and someone making sure you sit still long enough to enjoy both.\"",
+    rewardSummary: "Tamsin outings now add kitchen follow-up flavor and a comfort-food goodwill reward.",
+    requiredRelationshipLevel: 3,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "tamsin_vale:outing:tamsin_kitchen_tea",
+    requiredCompletionCount: 1,
+    imageUnlockId: "tamsin_kitchen_tea",
+  },
+  {
+    id: "tamsin_lamplit_table_memory",
+    npcId: "tamsin_vale",
+    title: "Lamplit Table",
+    subtitle: "Tamsin saves her gentlest attention for after closing.",
+    sceneText:
+      "The kitchen settles into lamplight while Tamsin sets a private plate before you. \"No rushing tonight,\" she murmurs, smile soft and pleased. \"Some appetites deserve patience, and you have been very good at earning mine.\"",
+    rewardSummary: "Tamsin lover outings can lead into private table scenes and future comfort images.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "tamsin_vale:outing:tamsin_lamplit_table",
+    requiredCompletionCount: 1,
+    imageUnlockId: "tamsin_lamplit_table",
+  },
 ];
 
 export function getNpcContractCompletionHistoryKey(npcId: FarmEconomyNpcId, offerKind?: NpcContractOfferKind) {
@@ -174,6 +259,24 @@ export function normalizeNpcRelationshipEventLog(log: unknown): NpcRelationshipE
       };
     })
     .filter((entry): entry is NpcRelationshipEventUnlock => Boolean(entry));
+}
+
+export function buildNpcOutingRelationshipEventUnlock(
+  invitationId: string,
+  currentDay: number
+): NpcRelationshipEventUnlock | null {
+  const event = NPC_RELATIONSHIP_EVENT_SCENES.find(
+    (scene) => scene.completionHistoryKey.endsWith(`:outing:${invitationId}`)
+  );
+
+  if (!event) return null;
+
+  return {
+    ...event,
+    unlockedDay: currentDay,
+    sourceOfferId: invitationId,
+    sourceOfferKind: "npc_outing",
+  };
 }
 
 export function findEligibleNpcRelationshipEvent({

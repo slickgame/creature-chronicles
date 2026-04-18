@@ -76,6 +76,7 @@ import {
 } from "@/lib/town/npcContractLedger";
 import { buildNpcRelationshipStateFromPoints } from "@/lib/game/npcEconomy";
 import {
+  buildNpcOutingRelationshipEventUnlock,
   findEligibleNpcRelationshipEvent,
   normalizeNpcContractCompletionHistory,
   normalizeNpcRelationshipEventFlags,
@@ -86,6 +87,7 @@ import {
 } from "@/lib/town/npcRelationshipEvents";
 import {
   buildNpcGiftDialogue,
+  buildNpcOutingCompletion,
   canGiveNpcGift,
   getNpcGiftDailyRecord,
   getNpcGiftPreference,
@@ -93,9 +95,11 @@ import {
   NPC_INVITATION_OPTIONS,
   normalizeNpcGiftRecords,
   normalizeNpcInvitationRecords,
+  normalizeNpcOutingCompletionLog,
   normalizeNpcSocialActionResult,
   type NpcGiftRecordMap,
   type NpcInvitationRecordMap,
+  type NpcOutingCompletionLog,
   type NpcSocialActionResult,
 } from "@/lib/town/npcSocial";
 
@@ -357,6 +361,7 @@ type SaveData = {
   npcContractCompletionHistory: NpcContractCompletionHistory;
   npcGiftRecords: NpcGiftRecordMap;
   npcInvitationRecords: NpcInvitationRecordMap;
+  npcOutingCompletionLog: NpcOutingCompletionLog;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -390,6 +395,7 @@ type GameContextType = {
   npcContractCompletionHistory: NpcContractCompletionHistory;
   npcGiftRecords: NpcGiftRecordMap;
   npcInvitationRecords: NpcInvitationRecordMap;
+  npcOutingCompletionLog: NpcOutingCompletionLog;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -1866,6 +1872,7 @@ const defaultSaveData: SaveData = {
   npcContractCompletionHistory: {},
   npcGiftRecords: {},
   npcInvitationRecords: {},
+  npcOutingCompletionLog: [],
   latestNpcSocialResult: null,
   paidTaxMonths: [],
   travelLog: [],
@@ -1907,6 +1914,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [npcGiftRecords, setNpcGiftRecords] = useState<NpcGiftRecordMap>(defaultSaveData.npcGiftRecords);
   const [npcInvitationRecords, setNpcInvitationRecords] = useState<NpcInvitationRecordMap>(
     defaultSaveData.npcInvitationRecords
+  );
+  const [npcOutingCompletionLog, setNpcOutingCompletionLog] = useState<NpcOutingCompletionLog>(
+    defaultSaveData.npcOutingCompletionLog
   );
   const [latestNpcSocialResult, setLatestNpcSocialResult] = useState<NpcSocialActionResult | null>(
     defaultSaveData.latestNpcSocialResult
@@ -1992,6 +2002,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         );
         setNpcGiftRecords(normalizeNpcGiftRecords(parsedSave.npcGiftRecords));
         setNpcInvitationRecords(normalizeNpcInvitationRecords(parsedSave.npcInvitationRecords));
+        setNpcOutingCompletionLog(normalizeNpcOutingCompletionLog(parsedSave.npcOutingCompletionLog));
         setLatestNpcSocialResult(normalizeNpcSocialActionResult(parsedSave.latestNpcSocialResult));
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
@@ -2038,6 +2049,7 @@ useEffect(() => {
     npcContractCompletionHistory,
     npcGiftRecords,
     npcInvitationRecords,
+    npcOutingCompletionLog,
     latestNpcSocialResult,
     paidTaxMonths,
     travelLog,
@@ -2072,6 +2084,7 @@ useEffect(() => {
   npcContractCompletionHistory,
   npcGiftRecords,
   npcInvitationRecords,
+  npcOutingCompletionLog,
   latestNpcSocialResult,
   paidTaxMonths,
   travelLog,
@@ -2892,12 +2905,19 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       currentMinute,
       invitation.timeCostMinutes
     );
+    const outingMemoryEvent = buildNpcOutingRelationshipEventUnlock(invitation.id, updatedClock.day);
+    const outingCompletion = buildNpcOutingCompletion(
+      invitation,
+      updatedClock.day,
+      outingMemoryEvent?.id
+    );
+    const itemRewards = invitation.itemRewards ?? [];
     const result: NpcSocialActionResult = {
       success: true,
       kind: "invitation",
       npcId,
       title: invitation.title,
-      dialogue: invitation.flavorText,
+      dialogue: `${invitation.sceneText} ${invitation.followUpFlavor}`,
       relationshipGain: invitation.relationshipGain,
       day: updatedClock.day,
       invitationId: invitation.id,
@@ -2908,7 +2928,28 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
     setNpcInvitationRecords((prev) => ({ ...prev, [invitation.id]: updatedClock.day }));
+    setNpcOutingCompletionLog((prev) => [outingCompletion, ...prev]);
     addTownNpcRelationship(npcId, invitation.relationshipGain);
+    if (itemRewards.length > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        itemRewards.forEach((reward) => {
+          next = addItemToInventory(next, reward.itemId, reward.quantity);
+        });
+        return next;
+      });
+    }
+    if ((invitation.goldReward ?? 0) > 0) {
+      setPlayerData((prev) => ({ ...prev, gold: prev.gold + (invitation.goldReward ?? 0) }));
+    }
+    if (outingMemoryEvent) {
+      setNpcRelationshipEventFlags((prev) => Array.from(new Set([...prev, outingMemoryEvent.id])));
+      setNpcRelationshipEventLog((prev) => {
+        if (prev.some((event) => event.id === outingMemoryEvent.id)) return prev;
+        return [outingMemoryEvent, ...prev];
+      });
+      setLatestNpcRelationshipEvent(outingMemoryEvent);
+    }
     setLatestNpcSocialResult(result);
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
@@ -3680,6 +3721,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setNpcContractCompletionHistory({});
     setNpcGiftRecords({});
     setNpcInvitationRecords({});
+    setNpcOutingCompletionLog([]);
     setLatestNpcSocialResult(null);
     setPaidTaxMonths([]);
     setTravelLog([]);
@@ -3716,6 +3758,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         npcContractCompletionHistory,
         npcGiftRecords,
         npcInvitationRecords,
+        npcOutingCompletionLog,
         latestNpcSocialResult,
         paidTaxMonths,
         travelLog,
