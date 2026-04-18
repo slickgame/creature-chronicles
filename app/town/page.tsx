@@ -45,6 +45,13 @@ import {
 } from "@/lib/town/npcDialogue";
 import { getNpcVisitImage } from "@/lib/town/npcImages";
 import {
+  getNpcMiniChain,
+  getNpcMiniChainNextMilestone,
+  getNpcMiniChainProgress,
+  getNpcMiniChainRequirementProgress,
+  type NpcMiniChainProgressMap,
+} from "@/lib/town/npcMiniChains";
+import {
   getNpcGiftDailyRecord,
   getNpcGiftPreference,
   getNpcGiftRelationshipGain,
@@ -373,6 +380,84 @@ function NpcSocialPanel({
                 </div>
               ))}
           </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function NpcMiniChainPanel({
+  npc,
+  progressMap,
+  accentClasses,
+}: {
+  npc: TownNpcData;
+  progressMap: NpcMiniChainProgressMap;
+  accentClasses: string;
+}) {
+  const chain = getNpcMiniChain(npc.id);
+  if (!chain) return null;
+
+  const progress = getNpcMiniChainProgress(progressMap, npc.id);
+  const nextMilestone = getNpcMiniChainNextMilestone(chain, progress);
+  const completedMilestones = chain.milestones.filter((milestone) =>
+    progress.completedMilestoneIds.includes(milestone.id)
+  );
+
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-lg font-bold text-stone-950">{chain.title}</p>
+          <p className="mt-1 text-sm text-stone-700">{chain.routeFlavor}</p>
+        </div>
+        <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+          {completedMilestones.length}/{chain.milestones.length} milestones
+        </span>
+      </div>
+
+      {progress.lastUnlockedMilestoneId ? (
+        <p className="mt-3 rounded-lg border border-white bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700">
+          Latest route unlock: {chain.milestones.find((milestone) => milestone.id === progress.lastUnlockedMilestoneId)?.title ?? progress.lastUnlockedMilestoneId}
+          {progress.lastUnlockedDay ? ` on Day ${progress.lastUnlockedDay}` : ""}
+        </p>
+      ) : null}
+
+      {nextMilestone ? (
+        <div className="mt-3 rounded-lg border border-white bg-white/80 p-3 text-sm text-stone-700">
+          <p className="font-semibold text-stone-950">Current Stage: {nextMilestone.title}</p>
+          <p className="text-xs text-stone-600">{nextMilestone.subtitle}</p>
+          <div className="mt-2 grid gap-2 text-xs lg:grid-cols-2">
+            {nextMilestone.requirements.map((requirement) => {
+              const requirementProgress = getNpcMiniChainRequirementProgress(requirement, progress);
+              return (
+                <p key={`${nextMilestone.id}-${requirement.actionKey}`} className="rounded-lg bg-white px-3 py-2">
+                  <strong>{requirement.label}</strong>
+                  <br />
+                  {Math.min(requirementProgress.current, requirementProgress.required)}/{requirementProgress.required}
+                </p>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs font-semibold text-stone-700">
+            Next Reward: {nextMilestone.rewardSummary}
+          </p>
+        </div>
+      ) : (
+        <p className="mt-3 rounded-lg border border-white bg-white/80 px-3 py-2 text-sm text-stone-700">
+          Route complete for now. Future updates can branch this into private scenes and image sets.
+        </p>
+      )}
+
+      {completedMilestones.length > 0 ? (
+        <div className="mt-3 grid gap-2 lg:grid-cols-2">
+          {completedMilestones.map((milestone) => (
+            <div key={milestone.id} className="rounded-lg bg-white/80 px-3 py-2 text-xs text-stone-700">
+              <p className="font-semibold text-stone-950">{milestone.title}</p>
+              <p>{milestone.followUpFlavor}</p>
+              <p className="mt-1 font-semibold">{milestone.rewardSummary}</p>
+            </div>
+          ))}
         </div>
       ) : null}
     </div>
@@ -750,6 +835,7 @@ export default function TownPage() {
     npcGiftRecords,
     npcInvitationRecords,
     npcOutingCompletionLog,
+    npcMiniChainProgress,
     latestNpcSocialResult,
     travelLog,
     purchaseTownCreature,
@@ -1235,6 +1321,13 @@ export default function TownPage() {
                     hasMounted={hasMounted}
                   />
                 </div>
+                <div className="mt-3">
+                  <NpcMiniChainPanel
+                    npc={npc}
+                    progressMap={npcMiniChainProgress}
+                    accentClasses="border-emerald-200 bg-emerald-100/70"
+                  />
+                </div>
               </div>
             );
           })()}
@@ -1379,6 +1472,13 @@ export default function TownPage() {
                     accentClasses="border-rose-200 bg-rose-100/70"
                     buttonClasses="bg-rose-700"
                     hasMounted={hasMounted}
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcMiniChainPanel
+                    npc={npc}
+                    progressMap={npcMiniChainProgress}
+                    accentClasses="border-rose-200 bg-rose-100/70"
                   />
                 </div>
                 <div className="mt-3 rounded-2xl border border-rose-200 bg-white p-3 text-xs text-stone-700">
@@ -1579,6 +1679,13 @@ export default function TownPage() {
                     accentClasses="border-purple-200 bg-purple-100/70"
                     buttonClasses="bg-purple-700"
                     hasMounted={hasMounted}
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcMiniChainPanel
+                    npc={npc}
+                    progressMap={npcMiniChainProgress}
+                    accentClasses="border-purple-200 bg-purple-100/70"
                   />
                 </div>
               </div>

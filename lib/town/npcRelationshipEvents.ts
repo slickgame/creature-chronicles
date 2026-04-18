@@ -2,7 +2,7 @@ import type { FarmEconomyNpcId } from "@/lib/game/npcEconomy";
 import type { NpcContractOfferKind } from "@/lib/town/npcContractLedger";
 import type { RelationshipLevel } from "@/lib/town/relationshipDefaults";
 
-export type NpcRelationshipEventSourceKind = NpcContractOfferKind | "npc_outing";
+export type NpcRelationshipEventSourceKind = NpcContractOfferKind | "npc_outing" | "npc_route";
 export type NpcContractCompletionHistory = Record<string, number>;
 
 export type NpcRelationshipEventScene = {
@@ -204,6 +204,48 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     requiredCompletionCount: 1,
     imageUnlockId: "tamsin_lamplit_table",
   },
+  {
+    id: "maris_after_hours_bloom_route",
+    npcId: "maris_thorn",
+    title: "After-Hours Bloom",
+    subtitle: "Maris's greenhouse route starts feeling like a private promise.",
+    sceneText:
+      "Maris presses a packet of rich fertilizer into your hands and does not let go right away. \"There,\" she says, smile warm and wicked. \"For the rows that need extra care. And for the grower who keeps proving she knows how to make things bloom for me.\"",
+    rewardSummary: "Maris's mini-chain route can now branch into future after-hours greenhouse scenes.",
+    requiredRelationshipLevel: 4,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "maris_thorn:chain:maris_after_hours_bloom",
+    requiredCompletionCount: 1,
+    imageUnlockId: "maris_after_hours_bloom",
+  },
+  {
+    id: "selene_private_terms_route",
+    npcId: "selene_voss",
+    title: "Private Terms",
+    subtitle: "Selene moves your name out of the public ledger.",
+    sceneText:
+      "Selene marks a slim line beside your name in her private book. \"There. A different category.\" Her eyes lift, bright and exacting. \"Do not mistake that for sentiment. Though if you keep performing this well, I may let you enjoy the distinction.\"",
+    rewardSummary: "Selene's mini-chain route can now branch into elite buyer and private ledger scenes.",
+    requiredRelationshipLevel: 4,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "selene_voss:chain:selene_private_terms_route",
+    requiredCompletionCount: 1,
+    imageUnlockId: "selene_private_terms",
+  },
+  {
+    id: "tamsin_private_table_route",
+    npcId: "tamsin_vale",
+    title: "Private Table",
+    subtitle: "Tamsin starts saving a place for you after the kitchen quiets.",
+    sceneText:
+      "Tamsin sets a covered dish aside before the counter opens, then gives you a look soft enough to feel like candlelight. \"This one is not for sale,\" she says. \"It is for someone who has learned how to make my kitchen feel properly wanted.\"",
+    rewardSummary: "Tamsin's mini-chain route can now branch into private dinner and comfort scenes.",
+    requiredRelationshipLevel: 4,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "tamsin_vale:chain:tamsin_private_table_route",
+    requiredCompletionCount: 1,
+    imageUnlockId: "tamsin_private_table",
+  },
 ];
 
 export function getNpcContractCompletionHistoryKey(npcId: FarmEconomyNpcId, offerKind?: NpcContractOfferKind) {
@@ -276,6 +318,24 @@ export function buildNpcOutingRelationshipEventUnlock(
     unlockedDay: currentDay,
     sourceOfferId: invitationId,
     sourceOfferKind: "npc_outing",
+  };
+}
+
+export function buildNpcRouteRelationshipEventUnlock(
+  milestoneId: string,
+  currentDay: number
+): NpcRelationshipEventUnlock | null {
+  const event = NPC_RELATIONSHIP_EVENT_SCENES.find(
+    (scene) => scene.completionHistoryKey.endsWith(`:chain:${milestoneId}`)
+  );
+
+  if (!event) return null;
+
+  return {
+    ...event,
+    unlockedDay: currentDay,
+    sourceOfferId: milestoneId,
+    sourceOfferKind: "npc_route",
   };
 }
 
