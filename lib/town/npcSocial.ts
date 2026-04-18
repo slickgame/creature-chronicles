@@ -1,5 +1,6 @@
 import { TOWN_NPC_DATA, type TownNpcGiftPreference } from "@/lib/town/npcData";
 import type { RelationshipLevel } from "@/lib/town/relationshipDefaults";
+import type { NpcMiniChainProgressMap } from "@/lib/town/npcMiniChains";
 
 export type NpcGiftReaction = TownNpcGiftPreference["reaction"];
 
@@ -42,6 +43,8 @@ export type NpcInvitationOption = {
   goldReward?: number;
   itemRewards?: NpcOutingItemReward[];
   imageUnlockId?: string;
+  requiredMiniChainMilestoneId?: string;
+  isRoutePayoff?: boolean;
 };
 
 export type NpcInvitationAvailability = NpcInvitationOption & {
@@ -113,6 +116,26 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     imageUnlockId: "maris_after_hours_rows",
   },
   {
+    id: "maris_private_grower_payoff",
+    npcId: "maris_thorn",
+    requiredLevel: 5,
+    title: "Private Grower Lesson",
+    flavorText:
+      "Maris waits until the stall is closed before tapping the greenhouse key against her palm, smiling like she has been saving this lesson for days.",
+    unavailableText: "Maris will only offer this once her Greenhouse Route reaches After-Hours Bloom.",
+    sceneText:
+      "Maris locks the greenhouse door behind you, then turns with a slow, satisfied smile. \"You learned my rows, my stock, my little habits,\" she says, voice warm as the glass around you. \"So tonight, sweetheart, I teach you what I save for a grower who has truly earned private attention.\"",
+    rewardSummary: "+30 relationship, Rich Fertilizer x3, Private Grower Lesson memory",
+    followUpFlavor:
+      "Maris now treats the greenhouse route as a private promise, ready for later CGs and deeper grower scenes.",
+    relationshipGain: 30,
+    timeCostMinutes: 90,
+    itemRewards: [{ itemId: "rich_fertilizer", quantity: 3 }],
+    imageUnlockId: "maris_private_grower_payoff",
+    requiredMiniChainMilestoneId: "maris_after_hours_bloom",
+    isRoutePayoff: true,
+  },
+  {
     id: "selene_market_stroll",
     npcId: "selene_voss",
     requiredLevel: 3,
@@ -149,6 +172,26 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     goldReward: 150,
   },
   {
+    id: "selene_private_buyer_payoff",
+    npcId: "selene_voss",
+    requiredLevel: 5,
+    title: "Private Buyer Terms",
+    flavorText:
+      "Selene sends the clerk away and leaves your name visible on the private ledger, one manicured finger resting beside it.",
+    unavailableText: "Selene will only negotiate these terms once her Private Buyer Route reaches After-Hours Terms.",
+    sceneText:
+      "Selene closes the ledger with deliberate care, but keeps you close. \"You have graduated from public terms,\" she says, eyes bright and exacting. \"From now on, certain buyers hear your name from my mouth first. Try not to look too pleased, darling. I have not even told you the private premium yet.\"",
+    rewardSummary: "+30 relationship, 300g private premium, Private Buyer Terms memory",
+    followUpFlavor:
+      "Selene now has a route-payoff flag for elite buyer scenes, private premiums, and after-hours contract variants.",
+    relationshipGain: 30,
+    timeCostMinutes: 90,
+    goldReward: 300,
+    imageUnlockId: "selene_private_buyer_payoff",
+    requiredMiniChainMilestoneId: "selene_after_hours_terms_route",
+    isRoutePayoff: true,
+  },
+  {
     id: "tamsin_kitchen_tea",
     npcId: "tamsin_vale",
     requiredLevel: 3,
@@ -183,6 +226,26 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     timeCostMinutes: 60,
     itemRewards: [{ itemId: "apple_pie", quantity: 1 }],
     imageUnlockId: "tamsin_lamplit_table",
+  },
+  {
+    id: "tamsin_private_dinner_payoff",
+    npcId: "tamsin_vale",
+    requiredLevel: 5,
+    title: "Private Dinner Service",
+    flavorText:
+      "Tamsin dims the kitchen lamps and sets one table as if she has been planning exactly where you would sit.",
+    unavailableText: "Tamsin will only set this table once her Kitchen Trust Route reaches Private Table.",
+    sceneText:
+      "Tamsin serves the first course herself, sleeves rolled up, smile quiet and sure. \"You kept showing up with care in your hands,\" she murmurs. \"So tonight I am going to feed you slowly, properly, and with no counter between us.\"",
+    rewardSummary: "+30 relationship, Hearty Stew x2, Private Dinner Service memory",
+    followUpFlavor:
+      "Tamsin now has a route-payoff flag for private dinner scenes, comfort rewards, and later lamplit CGs.",
+    relationshipGain: 30,
+    timeCostMinutes: 90,
+    itemRewards: [{ itemId: "hearty_stew", quantity: 2 }],
+    imageUnlockId: "tamsin_private_dinner_payoff",
+    requiredMiniChainMilestoneId: "tamsin_private_table_route",
+    isRoutePayoff: true,
   },
 ];
 
@@ -367,22 +430,37 @@ export function getNpcInvitationAvailability(
   npcId: string,
   relationshipLevel: RelationshipLevel,
   invitationRecords: NpcInvitationRecordMap,
-  currentDay: number
+  currentDay: number,
+  miniChainProgress: NpcMiniChainProgressMap = {}
 ): NpcInvitationAvailability[] {
   return NPC_INVITATION_OPTIONS
     .filter((option) => option.npcId === npcId)
     .map((option) => {
       const levelLocked = relationshipLevel < option.requiredLevel;
       const usedToday = invitationRecords[option.id] === currentDay;
+      const routeLocked = option.requiredMiniChainMilestoneId
+        ? !miniChainProgress[npcId]?.completedMilestoneIds.includes(option.requiredMiniChainMilestoneId)
+        : false;
 
       return {
         ...option,
-        available: !levelLocked && !usedToday,
+        available: !levelLocked && !routeLocked && !usedToday,
         reason: levelLocked
           ? `Requires relationship level ${option.requiredLevel}.`
-          : usedToday
-            ? "Already spent time together today."
-            : "Available today.",
+          : routeLocked
+            ? `Requires route milestone: ${formatMiniChainMilestoneId(option.requiredMiniChainMilestoneId ?? "")}.`
+            : usedToday
+              ? "Already spent time together today."
+              : option.isRoutePayoff
+                ? "Route payoff available today."
+                : "Available today.",
       };
     });
+}
+
+function formatMiniChainMilestoneId(milestoneId: string) {
+  return milestoneId
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

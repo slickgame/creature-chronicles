@@ -219,6 +219,20 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     imageUnlockId: "maris_after_hours_bloom",
   },
   {
+    id: "maris_private_grower_payoff_memory",
+    npcId: "maris_thorn",
+    title: "Private Grower Lesson",
+    subtitle: "Maris turns the greenhouse route into something unmistakably private.",
+    sceneText:
+      "Maris locks the greenhouse door behind you, then turns with a slow, satisfied smile. \"You learned my rows, my stock, my little habits,\" she says, voice warm as the glass around you. \"So tonight, sweetheart, I teach you what I save for a grower who has truly earned private attention.\"",
+    rewardSummary: "Maris route payoff unlocked future private grower scenes and greenhouse CG hooks.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "maris_thorn:outing:maris_private_grower_payoff",
+    requiredCompletionCount: 1,
+    imageUnlockId: "maris_private_grower_payoff",
+  },
+  {
     id: "selene_private_terms_route",
     npcId: "selene_voss",
     title: "Private Terms",
@@ -233,6 +247,20 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     imageUnlockId: "selene_private_terms",
   },
   {
+    id: "selene_private_buyer_payoff_memory",
+    npcId: "selene_voss",
+    title: "Private Buyer Terms",
+    subtitle: "Selene makes your name part of her private market vocabulary.",
+    sceneText:
+      "Selene closes the ledger with deliberate care, but keeps you close. \"You have graduated from public terms,\" she says, eyes bright and exacting. \"From now on, certain buyers hear your name from my mouth first. Try not to look too pleased, darling. I have not even told you the private premium yet.\"",
+    rewardSummary: "Selene route payoff unlocked future elite buyer scenes and private premium hooks.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "selene_voss:outing:selene_private_buyer_payoff",
+    requiredCompletionCount: 1,
+    imageUnlockId: "selene_private_buyer_payoff",
+  },
+  {
     id: "tamsin_private_table_route",
     npcId: "tamsin_vale",
     title: "Private Table",
@@ -245,6 +273,20 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     completionHistoryKey: "tamsin_vale:chain:tamsin_private_table_route",
     requiredCompletionCount: 1,
     imageUnlockId: "tamsin_private_table",
+  },
+  {
+    id: "tamsin_private_dinner_payoff_memory",
+    npcId: "tamsin_vale",
+    title: "Private Dinner Service",
+    subtitle: "Tamsin removes the counter between care and appetite.",
+    sceneText:
+      "Tamsin serves the first course herself, sleeves rolled up, smile quiet and sure. \"You kept showing up with care in your hands,\" she murmurs. \"So tonight I am going to feed you slowly, properly, and with no counter between us.\"",
+    rewardSummary: "Tamsin route payoff unlocked future private dinner scenes and lamplit CG hooks.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "tamsin_vale:outing:tamsin_private_dinner_payoff",
+    requiredCompletionCount: 1,
+    imageUnlockId: "tamsin_private_dinner_payoff",
   },
 ];
 

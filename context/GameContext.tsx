@@ -2971,6 +2971,12 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const invitation = NPC_INVITATION_OPTIONS.find((option) => option.id === invitationId && option.npcId === npcId);
     if (!invitation) return false;
     if (npcInvitationRecords[invitation.id] === currentDay) return false;
+    if (
+      invitation.requiredMiniChainMilestoneId &&
+      !npcMiniChainProgress[npcId]?.completedMilestoneIds.includes(invitation.requiredMiniChainMilestoneId)
+    ) {
+      return false;
+    }
 
     const relationshipLevel = buildNpcRelationshipStateFromPoints(npcId, npc.relationship).level;
     if (relationshipLevel < invitation.requiredLevel) return false;

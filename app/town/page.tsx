@@ -188,6 +188,7 @@ function NpcSocialPanel({
   giftRecords,
   invitationRecords,
   outingLog,
+  miniChainProgress,
   latestResult,
   selectedGiftItemId,
   onSelectGift,
@@ -204,6 +205,7 @@ function NpcSocialPanel({
   giftRecords: NpcGiftRecordMap;
   invitationRecords: NpcInvitationRecordMap;
   outingLog: NpcOutingCompletionLog;
+  miniChainProgress: NpcMiniChainProgressMap;
   latestResult: NpcSocialActionResult | null;
   selectedGiftItemId: string;
   onSelectGift: (itemId: string) => void;
@@ -233,7 +235,8 @@ function NpcSocialPanel({
     npc.id,
     relationship.level,
     invitationRecords,
-    currentDay
+    currentDay,
+    miniChainProgress
   );
   const outingCounts = getNpcOutingCompletionCounts(outingLog);
   const npcLatestResult = latestResult?.npcId === npc.id ? latestResult : null;
@@ -327,6 +330,9 @@ function NpcSocialPanel({
                     <p className="text-xs text-stone-600">
                       Level {invitation.requiredLevel} - +{invitation.relationshipGain} relationship - {invitation.timeCostMinutes} minutes
                     </p>
+                    {invitation.isRoutePayoff ? (
+                      <p className="mt-1 text-xs font-semibold text-pink-800">Route Payoff Invitation</p>
+                    ) : null}
                   </div>
                   <button
                     type="button"
@@ -345,6 +351,9 @@ function NpcSocialPanel({
                 <div className="mt-2 grid gap-1 text-xs text-stone-700">
                   <p><strong>Outing Reward:</strong> {invitation.rewardSummary}</p>
                   <p><strong>Memory Image:</strong> {invitation.imageUnlockId ?? "future outing image"}</p>
+                  {invitation.requiredMiniChainMilestoneId ? (
+                    <p><strong>Route Requirement:</strong> {invitation.reason}</p>
+                  ) : null}
                   <p><strong>Completed:</strong> {outingCounts[invitation.id] ?? 0} time(s)</p>
                   {outingLog.find((outing) => outing.invitationId === invitation.id) ? (
                     <p>
@@ -1311,6 +1320,7 @@ export default function TownPage() {
                     giftRecords={npcGiftRecords}
                     invitationRecords={npcInvitationRecords}
                     outingLog={npcOutingCompletionLog}
+                    miniChainProgress={npcMiniChainProgress}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.maris_thorn ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, maris_thorn: itemId }))}
@@ -1464,6 +1474,7 @@ export default function TownPage() {
                     giftRecords={npcGiftRecords}
                     invitationRecords={npcInvitationRecords}
                     outingLog={npcOutingCompletionLog}
+                    miniChainProgress={npcMiniChainProgress}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.tamsin_vale ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, tamsin_vale: itemId }))}
@@ -1671,6 +1682,7 @@ export default function TownPage() {
                     giftRecords={npcGiftRecords}
                     invitationRecords={npcInvitationRecords}
                     outingLog={npcOutingCompletionLog}
+                    miniChainProgress={npcMiniChainProgress}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.selene_voss ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, selene_voss: itemId }))}
