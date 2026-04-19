@@ -52,6 +52,11 @@ import {
   type NpcMiniChainProgressMap,
 } from "@/lib/town/npcMiniChains";
 import {
+  getNpcRoutePerksForNpc,
+  hasNpcRoutePerk,
+  type NpcRoutePerkState,
+} from "@/lib/town/npcRoutePerks";
+import {
   getNpcGiftDailyRecord,
   getNpcGiftPreference,
   getNpcGiftRelationshipGain,
@@ -473,6 +478,71 @@ function NpcMiniChainPanel({
   );
 }
 
+function NpcRoutePerksPanel({
+  npc,
+  perkState,
+  accentClasses,
+}: {
+  npc: TownNpcData;
+  perkState: NpcRoutePerkState;
+  accentClasses: string;
+}) {
+  const perks = getNpcRoutePerksForNpc(npc.id);
+  if (perks.length === 0) return null;
+
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-lg font-bold text-stone-950">Route Passive Perks</p>
+          <p className="mt-1 text-sm text-stone-700">
+            Lasting route rewards that keep paying off back at the ranch and market.
+          </p>
+        </div>
+        <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+          {perks.filter((perk) => hasNpcRoutePerk(perkState, perk.id)).length}/{perks.length} active
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2">
+        {perks.map((perk) => {
+          const state = perkState[perk.id];
+          const unlocked = state?.unlocked === true;
+
+          return (
+            <div key={perk.id} className="rounded-lg border border-white bg-white/80 p-3 text-sm text-stone-700">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="font-semibold text-stone-950">{perk.title}</p>
+                  <p className="text-xs text-stone-600">{perk.subtitle}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${unlocked ? "bg-emerald-100 text-emerald-900" : "bg-stone-200 text-stone-700"}`}>
+                  {unlocked ? "Unlocked" : "Locked"}
+                </span>
+              </div>
+              <p className="mt-2 text-xs">
+                <strong>Effect:</strong> {perk.effectSummary}
+              </p>
+              <p className="mt-1 text-xs">
+                <strong>Unlock:</strong> {perk.unlockSummary}
+              </p>
+              {unlocked ? (
+                <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-700">
+                  Active since Day {state?.unlockedDay ?? "?"}: {perk.flavorText}
+                </p>
+              ) : (
+                <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-600">
+                  Finish the route milestone or its payoff invitation to make this an always-on advantage.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function formatMultiplier(value: number) {
   return `x${value.toFixed(2)}`;
 }
@@ -845,6 +915,7 @@ export default function TownPage() {
     npcInvitationRecords,
     npcOutingCompletionLog,
     npcMiniChainProgress,
+    npcRoutePerks,
     latestNpcSocialResult,
     travelLog,
     purchaseTownCreature,
@@ -1338,6 +1409,13 @@ export default function TownPage() {
                     accentClasses="border-emerald-200 bg-emerald-100/70"
                   />
                 </div>
+                <div className="mt-3">
+                  <NpcRoutePerksPanel
+                    npc={npc}
+                    perkState={npcRoutePerks}
+                    accentClasses="border-emerald-200 bg-emerald-100/70"
+                  />
+                </div>
               </div>
             );
           })()}
@@ -1373,6 +1451,9 @@ export default function TownPage() {
                 currentHour,
                 currentMinute
               );
+              const routePurchaseBonusActive =
+                hasNpcRoutePerk(npcRoutePerks, "maris_greenhouse_touch") &&
+                (item.category === "seed" || item.useTags.includes("fertilizer"));
               const locked = entry.unlockRelationshipLevel
                 ? marisRelationship.level < entry.unlockRelationshipLevel
                 : false;
@@ -1409,6 +1490,11 @@ export default function TownPage() {
                   {bonusSeedQuantity > 0 ? (
                     <p className="mt-1 text-xs font-semibold text-emerald-800">
                       Bonus bundle active: +{bonusSeedQuantity} free {item.name} on this purchase.
+                    </p>
+                  ) : null}
+                  {routePurchaseBonusActive ? (
+                    <p className="mt-1 text-xs font-semibold text-emerald-800">
+                      Greenhouse Touch active: +1 extra {item.name} on paid purchases.
                     </p>
                   ) : null}
 
@@ -1489,6 +1575,13 @@ export default function TownPage() {
                   <NpcMiniChainPanel
                     npc={npc}
                     progressMap={npcMiniChainProgress}
+                    accentClasses="border-rose-200 bg-rose-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcRoutePerksPanel
+                    npc={npc}
+                    perkState={npcRoutePerks}
                     accentClasses="border-rose-200 bg-rose-100/70"
                   />
                 </div>
@@ -1697,6 +1790,13 @@ export default function TownPage() {
                   <NpcMiniChainPanel
                     npc={npc}
                     progressMap={npcMiniChainProgress}
+                    accentClasses="border-purple-200 bg-purple-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcRoutePerksPanel
+                    npc={npc}
+                    perkState={npcRoutePerks}
                     accentClasses="border-purple-200 bg-purple-100/70"
                   />
                 </div>
@@ -2067,6 +2167,14 @@ export default function TownPage() {
                       </p>
                     ))}
                   </div>
+                </div>
+
+                <div className="mt-3">
+                  <NpcRoutePerksPanel
+                    npc={npc}
+                    perkState={npcRoutePerks}
+                    accentClasses="border-fuchsia-200 bg-white"
+                  />
                 </div>
 
                 <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-stone-700">

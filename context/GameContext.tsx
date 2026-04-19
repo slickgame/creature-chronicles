@@ -112,6 +112,16 @@ import {
   type NpcOutingCompletionLog,
   type NpcSocialActionResult,
 } from "@/lib/town/npcSocial";
+import {
+  getNpcRoutePerkByInvitation,
+  getNpcRoutePerkByMilestone,
+  hasNpcRoutePerk,
+  isTamsinComfortRecipe,
+  ensureNpcRoutePerksForMiniChainProgress,
+  normalizeNpcRoutePerkState,
+  unlockNpcRoutePerk,
+  type NpcRoutePerkState,
+} from "@/lib/town/npcRoutePerks";
 
 
 type CreatureStats = {
@@ -373,6 +383,7 @@ type SaveData = {
   npcInvitationRecords: NpcInvitationRecordMap;
   npcOutingCompletionLog: NpcOutingCompletionLog;
   npcMiniChainProgress: NpcMiniChainProgressMap;
+  npcRoutePerks: NpcRoutePerkState;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -408,6 +419,7 @@ type GameContextType = {
   npcInvitationRecords: NpcInvitationRecordMap;
   npcOutingCompletionLog: NpcOutingCompletionLog;
   npcMiniChainProgress: NpcMiniChainProgressMap;
+  npcRoutePerks: NpcRoutePerkState;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -1886,6 +1898,7 @@ const defaultSaveData: SaveData = {
   npcInvitationRecords: {},
   npcOutingCompletionLog: [],
   npcMiniChainProgress: {},
+  npcRoutePerks: {},
   latestNpcSocialResult: null,
   paidTaxMonths: [],
   travelLog: [],
@@ -1934,6 +1947,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [npcMiniChainProgress, setNpcMiniChainProgress] = useState<NpcMiniChainProgressMap>(
     defaultSaveData.npcMiniChainProgress
   );
+  const [npcRoutePerks, setNpcRoutePerks] = useState<NpcRoutePerkState>(defaultSaveData.npcRoutePerks);
   const [latestNpcSocialResult, setLatestNpcSocialResult] = useState<NpcSocialActionResult | null>(
     defaultSaveData.latestNpcSocialResult
   );
@@ -2016,10 +2030,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setNpcContractCompletionHistory(
           normalizeNpcContractCompletionHistory(parsedSave.npcContractCompletionHistory)
         );
+        const normalizedMiniChainProgress = normalizeNpcMiniChainProgressMap(parsedSave.npcMiniChainProgress);
+        const normalizedRoutePerks = ensureNpcRoutePerksForMiniChainProgress(
+          normalizeNpcRoutePerkState(parsedSave.npcRoutePerks),
+          normalizedMiniChainProgress,
+          loadedDay
+        );
         setNpcGiftRecords(normalizeNpcGiftRecords(parsedSave.npcGiftRecords));
         setNpcInvitationRecords(normalizeNpcInvitationRecords(parsedSave.npcInvitationRecords));
         setNpcOutingCompletionLog(normalizeNpcOutingCompletionLog(parsedSave.npcOutingCompletionLog));
-        setNpcMiniChainProgress(normalizeNpcMiniChainProgressMap(parsedSave.npcMiniChainProgress));
+        setNpcMiniChainProgress(normalizedMiniChainProgress);
+        setNpcRoutePerks(normalizedRoutePerks);
         setLatestNpcSocialResult(normalizeNpcSocialActionResult(parsedSave.latestNpcSocialResult));
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
@@ -2068,6 +2089,7 @@ useEffect(() => {
     npcInvitationRecords,
     npcOutingCompletionLog,
     npcMiniChainProgress,
+    npcRoutePerks,
     latestNpcSocialResult,
     paidTaxMonths,
     travelLog,
@@ -2104,6 +2126,7 @@ useEffect(() => {
   npcInvitationRecords,
   npcOutingCompletionLog,
   npcMiniChainProgress,
+  npcRoutePerks,
   latestNpcSocialResult,
   paidTaxMonths,
   travelLog,
@@ -2869,6 +2892,11 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
   function applyNpcMiniChainRewards(milestones: NpcMiniChainMilestone[], day: number) {
     milestones.forEach((milestone) => {
+      const routePerk = getNpcRoutePerkByMilestone(milestone.id);
+      if (routePerk) {
+        setNpcRoutePerks((prev) => unlockNpcRoutePerk(prev, routePerk.id, day, "mini_chain"));
+      }
+
       if (milestone.relationshipGain !== 0) {
         addTownNpcRelationship(milestone.npcId, milestone.relationshipGain);
       }
@@ -3031,6 +3059,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         return [outingMemoryEvent, ...prev];
       });
       setLatestNpcRelationshipEvent(outingMemoryEvent);
+    }
+    const payoffPerk = getNpcRoutePerkByInvitation(invitation.id);
+    if (payoffPerk) {
+      setNpcRoutePerks((prev) => unlockNpcRoutePerk(prev, payoffPerk.id, updatedClock.day, "payoff_invitation"));
     }
     const routeUnlocks = recordNpcMiniChainProgress(
       npcId,
@@ -3543,6 +3575,10 @@ function cookRecipe(recipeId: string, creatureId: number) {
 
   if (!ingredientPlan) return false;
 
+  const outputQuantity =
+    recipe.outputQuantity +
+    (hasNpcRoutePerk(npcRoutePerks, "tamsin_comfort_kitchen") && isTamsinComfortRecipe(recipeId) ? 1 : 0);
+
   const minutesSpent = Math.max(
     8,
     recipe.cookMinutes -
@@ -3563,7 +3599,7 @@ function cookRecipe(recipeId: string, creatureId: number) {
       nextInventory = removeItemFromInventory(nextInventory, ingredient.itemId, ingredient.quantity);
     }
 
-    nextInventory = addItemToInventory(nextInventory, recipe.outputItemId, recipe.outputQuantity);
+    nextInventory = addItemToInventory(nextInventory, recipe.outputItemId, outputQuantity);
     return nextInventory;
   });
   setProduceQualityInventory((prev) => {
@@ -3572,7 +3608,7 @@ function cookRecipe(recipeId: string, creatureId: number) {
       withoutIngredients,
       recipe.outputItemId,
       ingredientPlan.outputQuality,
-      recipe.outputQuantity
+      outputQuantity
     );
   });
 
@@ -3652,7 +3688,10 @@ function getQualitySellQuoteForContext(
   quantity: number,
   demandMultiplier: number
 ) {
-  return getQualitySellQuote(itemId, quality, quantity, demandMultiplier);
+  const routeDemandMultiplier = hasNpcRoutePerk(npcRoutePerks, "selene_private_premium")
+    ? demandMultiplier + 0.08
+    : demandMultiplier;
+  return getQualitySellQuote(itemId, quality, quantity, routeDemandMultiplier);
 }
 
 function sellQualityProduce(
@@ -3662,7 +3701,7 @@ function sellQualityProduce(
   demandMultiplier: number
 ) {
   const available = getQualityItemCount(itemId, quality);
-  const quote = getQualitySellQuote(itemId, quality, quantity, demandMultiplier);
+  const quote = getQualitySellQuoteForContext(itemId, quality, quantity, demandMultiplier);
 
   if (!quote || available < quantity) return false;
 
@@ -3746,8 +3785,15 @@ function purchaseMarketItem(itemId: string, price: number) {
     setCurrentMinute(updatedClock.minute);
   }
 
+  const routeBonusQuantity =
+    shouldAdvanceTime &&
+    hasNpcRoutePerk(npcRoutePerks, "maris_greenhouse_touch") &&
+    (item.category === "seed" || item.useTags.includes("fertilizer"))
+      ? 1
+      : 0;
+
   setPlayerData((prev) => ({ ...prev, gold: prev.gold - price }));
-  setInventory((prev) => addItemToInventory(prev, itemId, 1));
+  setInventory((prev) => addItemToInventory(prev, itemId, 1 + routeBonusQuantity));
   if (shouldAdvanceTime) {
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
@@ -3818,6 +3864,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setNpcInvitationRecords({});
     setNpcOutingCompletionLog([]);
     setNpcMiniChainProgress({});
+    setNpcRoutePerks({});
     setLatestNpcSocialResult(null);
     setPaidTaxMonths([]);
     setTravelLog([]);
@@ -3856,6 +3903,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         npcInvitationRecords,
         npcOutingCompletionLog,
         npcMiniChainProgress,
+        npcRoutePerks,
         latestNpcSocialResult,
         paidTaxMonths,
         travelLog,
