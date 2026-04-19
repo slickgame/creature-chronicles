@@ -1,6 +1,14 @@
 import { TOWN_NPC_DATA, type TownNpcGiftPreference } from "@/lib/town/npcData";
 import type { RelationshipLevel } from "@/lib/town/relationshipDefaults";
 import type { NpcMiniChainProgressMap } from "@/lib/town/npcMiniChains";
+import {
+  hasNpcLoverEvolution,
+  hasNpcRoutePerk,
+  type NpcLoverEvolutionId,
+  type NpcLoverEvolutionState,
+  type NpcRoutePerkId,
+  type NpcRoutePerkState,
+} from "@/lib/town/npcRoutePerks";
 
 export type NpcGiftReaction = TownNpcGiftPreference["reaction"];
 
@@ -44,7 +52,10 @@ export type NpcInvitationOption = {
   itemRewards?: NpcOutingItemReward[];
   imageUnlockId?: string;
   requiredMiniChainMilestoneId?: string;
+  requiredRoutePerkId?: NpcRoutePerkId;
+  loverEvolutionId?: NpcLoverEvolutionId;
   isRoutePayoff?: boolean;
+  isLoverEvolution?: boolean;
 };
 
 export type NpcInvitationAvailability = NpcInvitationOption & {
@@ -136,6 +147,27 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     isRoutePayoff: true,
   },
   {
+    id: "maris_lover_greenhouse_vow",
+    npcId: "maris_thorn",
+    requiredLevel: 5,
+    title: "Greenhouse Vow",
+    flavorText:
+      "Maris keeps the greenhouse lantern burning late, a ribboned key waiting beside a packet with your name written in her own hand.",
+    unavailableText: "Maris saves this vow for a grower who has already earned her greenhouse trust.",
+    sceneText:
+      "The greenhouse smells of damp soil and night-blooming leaves when Maris presses the ribboned key into your palm. \"This is not a discount, sweetheart,\" she says, voice low and pleased. \"This is me deciding your rows deserve my hands even when you are not standing at my counter.\"",
+    rewardSummary: "+36 relationship, Rich Fertilizer x4, Greenhouse Bond lover evolution",
+    followUpFlavor:
+      "Maris now treats your ranch like a shared growing place, and her seed-stall support deepens into a lover-tier promise.",
+    relationshipGain: 36,
+    timeCostMinutes: 120,
+    itemRewards: [{ itemId: "rich_fertilizer", quantity: 4 }],
+    imageUnlockId: "maris_lover_greenhouse_vow",
+    requiredRoutePerkId: "maris_greenhouse_touch",
+    loverEvolutionId: "maris_greenhouse_bond",
+    isLoverEvolution: true,
+  },
+  {
     id: "selene_market_stroll",
     npcId: "selene_voss",
     requiredLevel: 3,
@@ -192,6 +224,27 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     isRoutePayoff: true,
   },
   {
+    id: "selene_lover_elite_terms",
+    npcId: "selene_voss",
+    requiredLevel: 5,
+    title: "Elite Terms",
+    flavorText:
+      "Selene leaves the public ledger closed and invites you to review the page where only her finest private names are kept.",
+    unavailableText: "Selene will not open elite terms until your private premium arrangement is already proven.",
+    sceneText:
+      "Selene turns the ledger toward you, your name written in a section with thicker paper and quieter rules. \"This tier is not advertised,\" she says, smile sleek and intimate. \"It is offered. Carefully. To someone whose value I prefer to handle personally.\"",
+    rewardSummary: "+36 relationship, 450g elite premium, Elite Buyer Status lover evolution",
+    followUpFlavor:
+      "Selene now treats your goods as private-market priority, with a lover-tier premium that makes every polished delivery feel noticed.",
+    relationshipGain: 36,
+    timeCostMinutes: 120,
+    goldReward: 450,
+    imageUnlockId: "selene_lover_elite_terms",
+    requiredRoutePerkId: "selene_private_premium",
+    loverEvolutionId: "selene_elite_buyer_status",
+    isLoverEvolution: true,
+  },
+  {
     id: "tamsin_kitchen_tea",
     npcId: "tamsin_vale",
     requiredLevel: 3,
@@ -246,6 +299,27 @@ export const NPC_INVITATION_OPTIONS: NpcInvitationOption[] = [
     imageUnlockId: "tamsin_private_dinner_payoff",
     requiredMiniChainMilestoneId: "tamsin_private_table_route",
     isRoutePayoff: true,
+  },
+  {
+    id: "tamsin_lover_hearth_supper",
+    npcId: "tamsin_vale",
+    requiredLevel: 5,
+    title: "Hearth Supper",
+    flavorText:
+      "Tamsin sets the small hearth table again, but this time there is a folded recipe card tucked under your plate.",
+    unavailableText: "Tamsin saves this supper for someone who has already earned her private table.",
+    sceneText:
+      "Tamsin waits until you taste the first bite before sliding the recipe card closer. \"This is how I make it when I want someone to feel kept,\" she says softly. \"Take it home, darling. Let my kitchen spoil yours a little.\"",
+    rewardSummary: "+36 relationship, Apple Pie x2, Hearth Devotion lover evolution",
+    followUpFlavor:
+      "Tamsin's private table now follows you back to the ranch, turning comfort recipes into a deeper lover-tier habit.",
+    relationshipGain: 36,
+    timeCostMinutes: 120,
+    itemRewards: [{ itemId: "apple_pie", quantity: 2 }],
+    imageUnlockId: "tamsin_lover_hearth_supper",
+    requiredRoutePerkId: "tamsin_comfort_kitchen",
+    loverEvolutionId: "tamsin_hearth_devotion",
+    isLoverEvolution: true,
   },
 ];
 
@@ -431,7 +505,9 @@ export function getNpcInvitationAvailability(
   relationshipLevel: RelationshipLevel,
   invitationRecords: NpcInvitationRecordMap,
   currentDay: number,
-  miniChainProgress: NpcMiniChainProgressMap = {}
+  miniChainProgress: NpcMiniChainProgressMap = {},
+  routePerks: NpcRoutePerkState = {},
+  loverEvolutions: NpcLoverEvolutionState = {}
 ): NpcInvitationAvailability[] {
   return NPC_INVITATION_OPTIONS
     .filter((option) => option.npcId === npcId)
@@ -441,19 +517,31 @@ export function getNpcInvitationAvailability(
       const routeLocked = option.requiredMiniChainMilestoneId
         ? !miniChainProgress[npcId]?.completedMilestoneIds.includes(option.requiredMiniChainMilestoneId)
         : false;
+      const routePerkLocked = option.requiredRoutePerkId
+        ? !hasNpcRoutePerk(routePerks, option.requiredRoutePerkId)
+        : false;
+      const alreadyEvolved = option.loverEvolutionId
+        ? hasNpcLoverEvolution(loverEvolutions, option.loverEvolutionId)
+        : false;
 
       return {
         ...option,
-        available: !levelLocked && !routeLocked && !usedToday,
+        available: !levelLocked && !routeLocked && !routePerkLocked && !usedToday,
         reason: levelLocked
           ? `Requires relationship level ${option.requiredLevel}.`
           : routeLocked
             ? `Requires route milestone: ${formatMiniChainMilestoneId(option.requiredMiniChainMilestoneId ?? "")}.`
-            : usedToday
-              ? "Already spent time together today."
-              : option.isRoutePayoff
-                ? "Route payoff available today."
-                : "Available today.",
+            : routePerkLocked
+              ? "Requires the matching route passive perk first."
+              : usedToday
+                ? "Already spent time together today."
+                : option.isLoverEvolution
+                  ? alreadyEvolved
+                    ? "Lover-tier invitation available again today."
+                    : "Lover-tier evolution available today."
+                  : option.isRoutePayoff
+                    ? "Route payoff available today."
+                    : "Available today.",
       };
     });
 }

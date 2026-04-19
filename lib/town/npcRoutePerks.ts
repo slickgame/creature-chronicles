@@ -6,6 +6,11 @@ export type NpcRoutePerkId =
   | "selene_private_premium"
   | "tamsin_comfort_kitchen";
 
+export type NpcLoverEvolutionId =
+  | "maris_greenhouse_bond"
+  | "selene_elite_buyer_status"
+  | "tamsin_hearth_devotion";
+
 export type NpcRoutePerkUnlockSource = "mini_chain" | "payoff_invitation";
 
 export type NpcRoutePerkStateEntry = {
@@ -15,6 +20,14 @@ export type NpcRoutePerkStateEntry = {
 };
 
 export type NpcRoutePerkState = Partial<Record<NpcRoutePerkId, NpcRoutePerkStateEntry>>;
+
+export type NpcLoverEvolutionStateEntry = {
+  unlocked: boolean;
+  unlockedDay?: number;
+  invitationId?: string;
+};
+
+export type NpcLoverEvolutionState = Partial<Record<NpcLoverEvolutionId, NpcLoverEvolutionStateEntry>>;
 
 export type NpcRoutePerk = {
   id: NpcRoutePerkId;
@@ -26,6 +39,19 @@ export type NpcRoutePerk = {
   unlockSummary: string;
   effectSummary: string;
   flavorText: string;
+};
+
+export type NpcLoverEvolution = {
+  id: NpcLoverEvolutionId;
+  npcId: FarmEconomyNpcId;
+  requiredRoutePerkId: NpcRoutePerkId;
+  invitationId: string;
+  title: string;
+  subtitle: string;
+  unlockSummary: string;
+  effectSummary: string;
+  flavorText: string;
+  lockedHint: string;
 };
 
 export const NPC_ROUTE_PERKS: Record<NpcRoutePerkId, NpcRoutePerk> = {
@@ -69,6 +95,56 @@ export const NPC_ROUTE_PERKS: Record<NpcRoutePerkId, NpcRoutePerk> = {
 
 export const NPC_ROUTE_PERK_IDS = Object.keys(NPC_ROUTE_PERKS) as NpcRoutePerkId[];
 
+export const NPC_LOVER_EVOLUTIONS: Record<NpcLoverEvolutionId, NpcLoverEvolution> = {
+  maris_greenhouse_bond: {
+    id: "maris_greenhouse_bond",
+    npcId: "maris_thorn",
+    requiredRoutePerkId: "maris_greenhouse_touch",
+    invitationId: "maris_lover_greenhouse_vow",
+    title: "Greenhouse Bond",
+    subtitle: "Maris treats your ranch like an extension of her warmest rows.",
+    unlockSummary:
+      "Reach lover-tier trust with Maris, unlock Greenhouse Touch, then complete Greenhouse Vow.",
+    effectSummary: "Greenhouse Touch improves to +2 extra seed or fertilizer items on paid purchases.",
+    flavorText:
+      "Maris starts packing your orders like she is stocking a shared future, all warm eyes and dirt-smudged confidence.",
+    lockedHint:
+      "Finish Maris's route perk layer, keep her at lover-tier, then accept the Greenhouse Vow invitation.",
+  },
+  selene_elite_buyer_status: {
+    id: "selene_elite_buyer_status",
+    npcId: "selene_voss",
+    requiredRoutePerkId: "selene_private_premium",
+    invitationId: "selene_lover_elite_terms",
+    title: "Elite Buyer Status",
+    subtitle: "Selene places your name where only her most profitable clients can see it.",
+    unlockSummary:
+      "Reach lover-tier trust with Selene, unlock Private Premium Terms, then complete Elite Terms.",
+    effectSummary: "Private Premium Terms improves from +8% to +15% demand multiplier on quality sales.",
+    flavorText:
+      "Selene's ledger begins opening doors before you arrive, and she enjoys making you notice exactly who arranged it.",
+    lockedHint:
+      "Finish Selene's route perk layer, keep her at lover-tier, then accept the Elite Terms invitation.",
+  },
+  tamsin_hearth_devotion: {
+    id: "tamsin_hearth_devotion",
+    npcId: "tamsin_vale",
+    requiredRoutePerkId: "tamsin_comfort_kitchen",
+    invitationId: "tamsin_lover_hearth_supper",
+    title: "Hearth Devotion",
+    subtitle: "Tamsin's private table turns into habits that follow you home.",
+    unlockSummary:
+      "Reach lover-tier trust with Tamsin, unlock Comfort Kitchen, then complete Hearth Supper.",
+    effectSummary: "Comfort Kitchen improves to +2 extra servings from comfort recipes.",
+    flavorText:
+      "Tamsin's recipes start carrying the hush of a table set for two, generous enough to feed the whole house.",
+    lockedHint:
+      "Finish Tamsin's route perk layer, keep her at lover-tier, then accept the Hearth Supper invitation.",
+  },
+};
+
+export const NPC_LOVER_EVOLUTION_IDS = Object.keys(NPC_LOVER_EVOLUTIONS) as NpcLoverEvolutionId[];
+
 export const TAMSIN_COMFORT_RECIPE_IDS = [
   "bread",
   "porridge",
@@ -96,8 +172,32 @@ export function normalizeNpcRoutePerkState(value: unknown): NpcRoutePerkState {
   }, {});
 }
 
+export function normalizeNpcLoverEvolutionState(value: unknown): NpcLoverEvolutionState {
+  if (!value || typeof value !== "object") return {};
+
+  const source = value as Partial<Record<NpcLoverEvolutionId, Partial<NpcLoverEvolutionStateEntry>>>;
+  return NPC_LOVER_EVOLUTION_IDS.reduce<NpcLoverEvolutionState>((normalized, evolutionId) => {
+    const entry = source[evolutionId];
+    if (!entry || entry.unlocked !== true) return normalized;
+
+    normalized[evolutionId] = {
+      unlocked: true,
+      unlockedDay: typeof entry.unlockedDay === "number" ? entry.unlockedDay : undefined,
+      invitationId: typeof entry.invitationId === "string" ? entry.invitationId : undefined,
+    };
+    return normalized;
+  }, {});
+}
+
 export function hasNpcRoutePerk(state: NpcRoutePerkState, perkId: NpcRoutePerkId) {
   return state[perkId]?.unlocked === true;
+}
+
+export function hasNpcLoverEvolution(
+  state: NpcLoverEvolutionState,
+  evolutionId: NpcLoverEvolutionId
+) {
+  return state[evolutionId]?.unlocked === true;
 }
 
 export function unlockNpcRoutePerk(
@@ -118,6 +218,24 @@ export function unlockNpcRoutePerk(
   };
 }
 
+export function unlockNpcLoverEvolution(
+  state: NpcLoverEvolutionState,
+  evolutionId: NpcLoverEvolutionId,
+  unlockedDay: number,
+  invitationId: string
+): NpcLoverEvolutionState {
+  if (state[evolutionId]?.unlocked) return state;
+
+  return {
+    ...state,
+    [evolutionId]: {
+      unlocked: true,
+      unlockedDay,
+      invitationId,
+    },
+  };
+}
+
 export function getNpcRoutePerkByMilestone(milestoneId: string) {
   return NPC_ROUTE_PERK_IDS.map((perkId) => NPC_ROUTE_PERKS[perkId]).find(
     (perk) => perk.unlockMilestoneId === milestoneId
@@ -133,6 +251,18 @@ export function getNpcRoutePerkByInvitation(invitationId: string) {
 export function getNpcRoutePerksForNpc(npcId: string) {
   return NPC_ROUTE_PERK_IDS.map((perkId) => NPC_ROUTE_PERKS[perkId]).filter(
     (perk) => perk.npcId === npcId
+  );
+}
+
+export function getNpcLoverEvolutionByInvitation(invitationId: string) {
+  return NPC_LOVER_EVOLUTION_IDS.map((evolutionId) => NPC_LOVER_EVOLUTIONS[evolutionId]).find(
+    (evolution) => evolution.invitationId === invitationId
+  );
+}
+
+export function getNpcLoverEvolutionsForNpc(npcId: string) {
+  return NPC_LOVER_EVOLUTION_IDS.map((evolutionId) => NPC_LOVER_EVOLUTIONS[evolutionId]).filter(
+    (evolution) => evolution.npcId === npcId
   );
 }
 

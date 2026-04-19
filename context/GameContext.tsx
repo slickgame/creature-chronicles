@@ -118,8 +118,13 @@ import {
   hasNpcRoutePerk,
   isTamsinComfortRecipe,
   ensureNpcRoutePerksForMiniChainProgress,
+  getNpcLoverEvolutionByInvitation,
   normalizeNpcRoutePerkState,
+  normalizeNpcLoverEvolutionState,
+  unlockNpcLoverEvolution,
   unlockNpcRoutePerk,
+  hasNpcLoverEvolution,
+  type NpcLoverEvolutionState,
   type NpcRoutePerkState,
 } from "@/lib/town/npcRoutePerks";
 
@@ -384,6 +389,7 @@ type SaveData = {
   npcOutingCompletionLog: NpcOutingCompletionLog;
   npcMiniChainProgress: NpcMiniChainProgressMap;
   npcRoutePerks: NpcRoutePerkState;
+  npcLoverEvolutions: NpcLoverEvolutionState;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -420,6 +426,7 @@ type GameContextType = {
   npcOutingCompletionLog: NpcOutingCompletionLog;
   npcMiniChainProgress: NpcMiniChainProgressMap;
   npcRoutePerks: NpcRoutePerkState;
+  npcLoverEvolutions: NpcLoverEvolutionState;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -1899,6 +1906,7 @@ const defaultSaveData: SaveData = {
   npcOutingCompletionLog: [],
   npcMiniChainProgress: {},
   npcRoutePerks: {},
+  npcLoverEvolutions: {},
   latestNpcSocialResult: null,
   paidTaxMonths: [],
   travelLog: [],
@@ -1948,6 +1956,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     defaultSaveData.npcMiniChainProgress
   );
   const [npcRoutePerks, setNpcRoutePerks] = useState<NpcRoutePerkState>(defaultSaveData.npcRoutePerks);
+  const [npcLoverEvolutions, setNpcLoverEvolutions] = useState<NpcLoverEvolutionState>(
+    defaultSaveData.npcLoverEvolutions
+  );
   const [latestNpcSocialResult, setLatestNpcSocialResult] = useState<NpcSocialActionResult | null>(
     defaultSaveData.latestNpcSocialResult
   );
@@ -2041,6 +2052,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setNpcOutingCompletionLog(normalizeNpcOutingCompletionLog(parsedSave.npcOutingCompletionLog));
         setNpcMiniChainProgress(normalizedMiniChainProgress);
         setNpcRoutePerks(normalizedRoutePerks);
+        setNpcLoverEvolutions(normalizeNpcLoverEvolutionState(parsedSave.npcLoverEvolutions));
         setLatestNpcSocialResult(normalizeNpcSocialActionResult(parsedSave.latestNpcSocialResult));
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
@@ -2090,6 +2102,7 @@ useEffect(() => {
     npcOutingCompletionLog,
     npcMiniChainProgress,
     npcRoutePerks,
+    npcLoverEvolutions,
     latestNpcSocialResult,
     paidTaxMonths,
     travelLog,
@@ -2127,6 +2140,7 @@ useEffect(() => {
   npcOutingCompletionLog,
   npcMiniChainProgress,
   npcRoutePerks,
+  npcLoverEvolutions,
   latestNpcSocialResult,
   paidTaxMonths,
   travelLog,
@@ -3005,6 +3019,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     ) {
       return false;
     }
+    if (invitation.requiredRoutePerkId && !hasNpcRoutePerk(npcRoutePerks, invitation.requiredRoutePerkId)) {
+      return false;
+    }
 
     const relationshipLevel = buildNpcRelationshipStateFromPoints(npcId, npc.relationship).level;
     if (relationshipLevel < invitation.requiredLevel) return false;
@@ -3063,6 +3080,12 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const payoffPerk = getNpcRoutePerkByInvitation(invitation.id);
     if (payoffPerk) {
       setNpcRoutePerks((prev) => unlockNpcRoutePerk(prev, payoffPerk.id, updatedClock.day, "payoff_invitation"));
+    }
+    const loverEvolution = getNpcLoverEvolutionByInvitation(invitation.id);
+    if (loverEvolution) {
+      setNpcLoverEvolutions((prev) =>
+        unlockNpcLoverEvolution(prev, loverEvolution.id, updatedClock.day, invitation.id)
+      );
     }
     const routeUnlocks = recordNpcMiniChainProgress(
       npcId,
@@ -3577,7 +3600,8 @@ function cookRecipe(recipeId: string, creatureId: number) {
 
   const outputQuantity =
     recipe.outputQuantity +
-    (hasNpcRoutePerk(npcRoutePerks, "tamsin_comfort_kitchen") && isTamsinComfortRecipe(recipeId) ? 1 : 0);
+    (hasNpcRoutePerk(npcRoutePerks, "tamsin_comfort_kitchen") && isTamsinComfortRecipe(recipeId) ? 1 : 0) +
+    (hasNpcLoverEvolution(npcLoverEvolutions, "tamsin_hearth_devotion") && isTamsinComfortRecipe(recipeId) ? 1 : 0);
 
   const minutesSpent = Math.max(
     8,
@@ -3689,7 +3713,7 @@ function getQualitySellQuoteForContext(
   demandMultiplier: number
 ) {
   const routeDemandMultiplier = hasNpcRoutePerk(npcRoutePerks, "selene_private_premium")
-    ? demandMultiplier + 0.08
+    ? demandMultiplier + (hasNpcLoverEvolution(npcLoverEvolutions, "selene_elite_buyer_status") ? 0.15 : 0.08)
     : demandMultiplier;
   return getQualitySellQuote(itemId, quality, quantity, routeDemandMultiplier);
 }
@@ -3789,7 +3813,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     shouldAdvanceTime &&
     hasNpcRoutePerk(npcRoutePerks, "maris_greenhouse_touch") &&
     (item.category === "seed" || item.useTags.includes("fertilizer"))
-      ? 1
+      ? hasNpcLoverEvolution(npcLoverEvolutions, "maris_greenhouse_bond") ? 2 : 1
       : 0;
 
   setPlayerData((prev) => ({ ...prev, gold: prev.gold - price }));
@@ -3865,6 +3889,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setNpcOutingCompletionLog([]);
     setNpcMiniChainProgress({});
     setNpcRoutePerks({});
+    setNpcLoverEvolutions({});
     setLatestNpcSocialResult(null);
     setPaidTaxMonths([]);
     setTravelLog([]);
@@ -3904,6 +3929,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         npcOutingCompletionLog,
         npcMiniChainProgress,
         npcRoutePerks,
+        npcLoverEvolutions,
         latestNpcSocialResult,
         paidTaxMonths,
         travelLog,

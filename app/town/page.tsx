@@ -52,8 +52,11 @@ import {
   type NpcMiniChainProgressMap,
 } from "@/lib/town/npcMiniChains";
 import {
+  getNpcLoverEvolutionsForNpc,
   getNpcRoutePerksForNpc,
+  hasNpcLoverEvolution,
   hasNpcRoutePerk,
+  type NpcLoverEvolutionState,
   type NpcRoutePerkState,
 } from "@/lib/town/npcRoutePerks";
 import {
@@ -194,6 +197,8 @@ function NpcSocialPanel({
   invitationRecords,
   outingLog,
   miniChainProgress,
+  routePerks,
+  loverEvolutions,
   latestResult,
   selectedGiftItemId,
   onSelectGift,
@@ -211,6 +216,8 @@ function NpcSocialPanel({
   invitationRecords: NpcInvitationRecordMap;
   outingLog: NpcOutingCompletionLog;
   miniChainProgress: NpcMiniChainProgressMap;
+  routePerks: NpcRoutePerkState;
+  loverEvolutions: NpcLoverEvolutionState;
   latestResult: NpcSocialActionResult | null;
   selectedGiftItemId: string;
   onSelectGift: (itemId: string) => void;
@@ -241,7 +248,9 @@ function NpcSocialPanel({
     relationship.level,
     invitationRecords,
     currentDay,
-    miniChainProgress
+    miniChainProgress,
+    routePerks,
+    loverEvolutions
   );
   const outingCounts = getNpcOutingCompletionCounts(outingLog);
   const npcLatestResult = latestResult?.npcId === npc.id ? latestResult : null;
@@ -338,6 +347,9 @@ function NpcSocialPanel({
                     {invitation.isRoutePayoff ? (
                       <p className="mt-1 text-xs font-semibold text-pink-800">Route Payoff Invitation</p>
                     ) : null}
+                    {invitation.isLoverEvolution ? (
+                      <p className="mt-1 text-xs font-semibold text-rose-800">Lover-Tier Evolution</p>
+                    ) : null}
                   </div>
                   <button
                     type="button"
@@ -358,6 +370,9 @@ function NpcSocialPanel({
                   <p><strong>Memory Image:</strong> {invitation.imageUnlockId ?? "future outing image"}</p>
                   {invitation.requiredMiniChainMilestoneId ? (
                     <p><strong>Route Requirement:</strong> {invitation.reason}</p>
+                  ) : null}
+                  {invitation.requiredRoutePerkId ? (
+                    <p><strong>Lover Requirement:</strong> {invitation.reason}</p>
                   ) : null}
                   <p><strong>Completed:</strong> {outingCounts[invitation.id] ?? 0} time(s)</p>
                   {outingLog.find((outing) => outing.invitationId === invitation.id) ? (
@@ -533,6 +548,74 @@ function NpcRoutePerksPanel({
               ) : (
                 <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-600">
                   Finish the route milestone or its payoff invitation to make this an always-on advantage.
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function NpcLoverEvolutionPanel({
+  npc,
+  routePerks,
+  loverEvolutions,
+  accentClasses,
+}: {
+  npc: TownNpcData;
+  routePerks: NpcRoutePerkState;
+  loverEvolutions: NpcLoverEvolutionState;
+  accentClasses: string;
+}) {
+  const evolutions = getNpcLoverEvolutionsForNpc(npc.id);
+  if (evolutions.length === 0) return null;
+
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-lg font-bold text-stone-950">Lover-Tier Evolution</p>
+          <p className="mt-1 text-sm text-stone-700">
+            Deep-route rewards that build on the passive perk instead of replacing it.
+          </p>
+        </div>
+        <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+          {evolutions.filter((evolution) => hasNpcLoverEvolution(loverEvolutions, evolution.id)).length}/{evolutions.length} evolved
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2">
+        {evolutions.map((evolution) => {
+          const state = loverEvolutions[evolution.id];
+          const unlocked = state?.unlocked === true;
+          const routeReady = hasNpcRoutePerk(routePerks, evolution.requiredRoutePerkId);
+
+          return (
+            <div key={evolution.id} className="rounded-lg border border-white bg-white/80 p-3 text-sm text-stone-700">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="font-semibold text-stone-950">{evolution.title}</p>
+                  <p className="text-xs text-stone-600">{evolution.subtitle}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${unlocked ? "bg-rose-100 text-rose-900" : routeReady ? "bg-amber-100 text-amber-900" : "bg-stone-200 text-stone-700"}`}>
+                  {unlocked ? "Evolved" : routeReady ? "Invitation Ready" : "Locked"}
+                </span>
+              </div>
+              <p className="mt-2 text-xs">
+                <strong>Unlock:</strong> {evolution.unlockSummary}
+              </p>
+              <p className="mt-1 text-xs">
+                <strong>Active Effect:</strong> {unlocked ? evolution.effectSummary : "Locked until the lover-tier scene is completed."}
+              </p>
+              {unlocked ? (
+                <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-700">
+                  Evolved on Day {state?.unlockedDay ?? "?"}: {evolution.flavorText}
+                </p>
+              ) : (
+                <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-600">
+                  {evolution.lockedHint}
                 </p>
               )}
             </div>
@@ -916,6 +999,7 @@ export default function TownPage() {
     npcOutingCompletionLog,
     npcMiniChainProgress,
     npcRoutePerks,
+    npcLoverEvolutions,
     latestNpcSocialResult,
     travelLog,
     purchaseTownCreature,
@@ -1392,6 +1476,8 @@ export default function TownPage() {
                     invitationRecords={npcInvitationRecords}
                     outingLog={npcOutingCompletionLog}
                     miniChainProgress={npcMiniChainProgress}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.maris_thorn ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, maris_thorn: itemId }))}
@@ -1413,6 +1499,14 @@ export default function TownPage() {
                   <NpcRoutePerksPanel
                     npc={npc}
                     perkState={npcRoutePerks}
+                    accentClasses="border-emerald-200 bg-emerald-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcLoverEvolutionPanel
+                    npc={npc}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-emerald-200 bg-emerald-100/70"
                   />
                 </div>
@@ -1454,6 +1548,12 @@ export default function TownPage() {
               const routePurchaseBonusActive =
                 hasNpcRoutePerk(npcRoutePerks, "maris_greenhouse_touch") &&
                 (item.category === "seed" || item.useTags.includes("fertilizer"));
+              const routePurchaseBonusQuantity = hasNpcLoverEvolution(
+                npcLoverEvolutions,
+                "maris_greenhouse_bond"
+              )
+                ? 2
+                : 1;
               const locked = entry.unlockRelationshipLevel
                 ? marisRelationship.level < entry.unlockRelationshipLevel
                 : false;
@@ -1494,7 +1594,7 @@ export default function TownPage() {
                   ) : null}
                   {routePurchaseBonusActive ? (
                     <p className="mt-1 text-xs font-semibold text-emerald-800">
-                      Greenhouse Touch active: +1 extra {item.name} on paid purchases.
+                      Greenhouse Touch active: +{routePurchaseBonusQuantity} extra {item.name} on paid purchases.
                     </p>
                   ) : null}
 
@@ -1561,6 +1661,8 @@ export default function TownPage() {
                     invitationRecords={npcInvitationRecords}
                     outingLog={npcOutingCompletionLog}
                     miniChainProgress={npcMiniChainProgress}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.tamsin_vale ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, tamsin_vale: itemId }))}
@@ -1582,6 +1684,14 @@ export default function TownPage() {
                   <NpcRoutePerksPanel
                     npc={npc}
                     perkState={npcRoutePerks}
+                    accentClasses="border-rose-200 bg-rose-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcLoverEvolutionPanel
+                    npc={npc}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-rose-200 bg-rose-100/70"
                   />
                 </div>
@@ -1776,6 +1886,8 @@ export default function TownPage() {
                     invitationRecords={npcInvitationRecords}
                     outingLog={npcOutingCompletionLog}
                     miniChainProgress={npcMiniChainProgress}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     latestResult={latestNpcSocialResult}
                     selectedGiftItemId={selectedGiftItems.selene_voss ?? ""}
                     onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, selene_voss: itemId }))}
@@ -1797,6 +1909,14 @@ export default function TownPage() {
                   <NpcRoutePerksPanel
                     npc={npc}
                     perkState={npcRoutePerks}
+                    accentClasses="border-purple-200 bg-purple-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcLoverEvolutionPanel
+                    npc={npc}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-purple-200 bg-purple-100/70"
                   />
                 </div>
@@ -2173,6 +2293,15 @@ export default function TownPage() {
                   <NpcRoutePerksPanel
                     npc={npc}
                     perkState={npcRoutePerks}
+                    accentClasses="border-fuchsia-200 bg-white"
+                  />
+                </div>
+
+                <div className="mt-3">
+                  <NpcLoverEvolutionPanel
+                    npc={npc}
+                    routePerks={npcRoutePerks}
+                    loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-fuchsia-200 bg-white"
                   />
                 </div>

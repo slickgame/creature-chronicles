@@ -233,6 +233,20 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     imageUnlockId: "maris_private_grower_payoff",
   },
   {
+    id: "maris_lover_greenhouse_vow_memory",
+    npcId: "maris_thorn",
+    title: "Greenhouse Vow",
+    subtitle: "Maris turns her private rows into a promise that reaches your ranch.",
+    sceneText:
+      "The greenhouse smells of damp soil and night-blooming leaves when Maris presses the ribboned key into your palm. \"This is not a discount, sweetheart,\" she says, voice low and pleased. \"This is me deciding your rows deserve my hands even when you are not standing at my counter.\"",
+    rewardSummary: "Maris lover evolution unlocked Greenhouse Bond and stronger ranch support.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "maris_thorn:outing:maris_lover_greenhouse_vow",
+    requiredCompletionCount: 1,
+    imageUnlockId: "maris_lover_greenhouse_vow",
+  },
+  {
     id: "selene_private_terms_route",
     npcId: "selene_voss",
     title: "Private Terms",
@@ -261,6 +275,20 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     imageUnlockId: "selene_private_buyer_payoff",
   },
   {
+    id: "selene_lover_elite_terms_memory",
+    npcId: "selene_voss",
+    title: "Elite Terms",
+    subtitle: "Selene writes your name into the private tier she does not advertise.",
+    sceneText:
+      "Selene turns the ledger toward you, your name written in a section with thicker paper and quieter rules. \"This tier is not advertised,\" she says, smile sleek and intimate. \"It is offered. Carefully. To someone whose value I prefer to handle personally.\"",
+    rewardSummary: "Selene lover evolution unlocked Elite Buyer Status and stronger premium sale support.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "selene_voss:outing:selene_lover_elite_terms",
+    requiredCompletionCount: 1,
+    imageUnlockId: "selene_lover_elite_terms",
+  },
+  {
     id: "tamsin_private_table_route",
     npcId: "tamsin_vale",
     title: "Private Table",
@@ -287,6 +315,20 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     completionHistoryKey: "tamsin_vale:outing:tamsin_private_dinner_payoff",
     requiredCompletionCount: 1,
     imageUnlockId: "tamsin_private_dinner_payoff",
+  },
+  {
+    id: "tamsin_lover_hearth_supper_memory",
+    npcId: "tamsin_vale",
+    title: "Hearth Supper",
+    subtitle: "Tamsin sends her private table home with you.",
+    sceneText:
+      "Tamsin waits until you taste the first bite before sliding the recipe card closer. \"This is how I make it when I want someone to feel kept,\" she says softly. \"Take it home, darling. Let my kitchen spoil yours a little.\"",
+    rewardSummary: "Tamsin lover evolution unlocked Hearth Devotion and stronger comfort cooking support.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "tamsin_vale:outing:tamsin_lover_hearth_supper",
+    requiredCompletionCount: 1,
+    imageUnlockId: "tamsin_lover_hearth_supper",
   },
 ];
 
