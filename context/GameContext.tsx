@@ -113,6 +113,13 @@ import {
   type NpcSocialActionResult,
 } from "@/lib/town/npcSocial";
 import {
+  ensureNpcExclusiveLoopState,
+  isNpcExclusiveLoopOfferExpired,
+  normalizeNpcExclusiveLoopState,
+  recordNpcExclusiveLoopCompletion,
+  type NpcExclusiveLoopState,
+} from "@/lib/town/npcExclusiveLoops";
+import {
   getNpcRoutePerkByInvitation,
   getNpcRoutePerkByMilestone,
   hasNpcRoutePerk,
@@ -390,6 +397,7 @@ type SaveData = {
   npcMiniChainProgress: NpcMiniChainProgressMap;
   npcRoutePerks: NpcRoutePerkState;
   npcLoverEvolutions: NpcLoverEvolutionState;
+  npcExclusiveLoops: NpcExclusiveLoopState;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -427,6 +435,7 @@ type GameContextType = {
   npcMiniChainProgress: NpcMiniChainProgressMap;
   npcRoutePerks: NpcRoutePerkState;
   npcLoverEvolutions: NpcLoverEvolutionState;
+  npcExclusiveLoops: NpcExclusiveLoopState;
   latestNpcSocialResult: NpcSocialActionResult | null;
   paidTaxMonths: number[];
   travelLog: TravelLogEntry[];
@@ -445,6 +454,7 @@ type GameContextType = {
   submitCreatureToNpcQuest: (questId: number, creatureId: number) => void;
   submitNpcFarmingRequest: (questId: number) => boolean;
   completeNpcContractOffer: (offerId: string) => boolean;
+  completeNpcExclusiveLoopOffer: (offerId: string) => boolean;
   giveNpcGift: (npcId: string, itemId: string) => boolean;
   inviteNpc: (npcId: string, invitationId: string) => boolean;
   payMonthlyTax: () => void;
@@ -1907,6 +1917,11 @@ const defaultSaveData: SaveData = {
   npcMiniChainProgress: {},
   npcRoutePerks: {},
   npcLoverEvolutions: {},
+  npcExclusiveLoops: {
+    offers: [],
+    completionCounts: {},
+    lastCompletedDay: {},
+  },
   latestNpcSocialResult: null,
   paidTaxMonths: [],
   travelLog: [],
@@ -1958,6 +1973,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [npcRoutePerks, setNpcRoutePerks] = useState<NpcRoutePerkState>(defaultSaveData.npcRoutePerks);
   const [npcLoverEvolutions, setNpcLoverEvolutions] = useState<NpcLoverEvolutionState>(
     defaultSaveData.npcLoverEvolutions
+  );
+  const [npcExclusiveLoops, setNpcExclusiveLoops] = useState<NpcExclusiveLoopState>(
+    defaultSaveData.npcExclusiveLoops
   );
   const [latestNpcSocialResult, setLatestNpcSocialResult] = useState<NpcSocialActionResult | null>(
     defaultSaveData.latestNpcSocialResult
@@ -2049,10 +2067,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
         );
         setNpcGiftRecords(normalizeNpcGiftRecords(parsedSave.npcGiftRecords));
         setNpcInvitationRecords(normalizeNpcInvitationRecords(parsedSave.npcInvitationRecords));
+        const normalizedLoverEvolutions = normalizeNpcLoverEvolutionState(parsedSave.npcLoverEvolutions);
         setNpcOutingCompletionLog(normalizeNpcOutingCompletionLog(parsedSave.npcOutingCompletionLog));
         setNpcMiniChainProgress(normalizedMiniChainProgress);
         setNpcRoutePerks(normalizedRoutePerks);
-        setNpcLoverEvolutions(normalizeNpcLoverEvolutionState(parsedSave.npcLoverEvolutions));
+        setNpcLoverEvolutions(normalizedLoverEvolutions);
+        setNpcExclusiveLoops(
+          ensureNpcExclusiveLoopState(
+            normalizeNpcExclusiveLoopState(parsedSave.npcExclusiveLoops),
+            loadedDay,
+            loadedHour,
+            loadedMinute,
+            normalizedLoverEvolutions
+          )
+        );
         setLatestNpcSocialResult(normalizeNpcSocialActionResult(parsedSave.latestNpcSocialResult));
         setPaidTaxMonths(Array.isArray(parsedSave.paidTaxMonths) ? parsedSave.paidTaxMonths : []);
         setTravelLog(parsedSave.travelLog ?? []);
@@ -2103,6 +2131,7 @@ useEffect(() => {
     npcMiniChainProgress,
     npcRoutePerks,
     npcLoverEvolutions,
+    npcExclusiveLoops,
     latestNpcSocialResult,
     paidTaxMonths,
     travelLog,
@@ -2141,6 +2170,7 @@ useEffect(() => {
   npcMiniChainProgress,
   npcRoutePerks,
   npcLoverEvolutions,
+  npcExclusiveLoops,
   latestNpcSocialResult,
   paidTaxMonths,
   travelLog,
@@ -2159,6 +2189,9 @@ useEffect(() => {
   ) {
     setNpcContractLedger((prev) =>
       ensureNpcContractLedger(prev, day, hour, minute, getSeasonForDay(day), npcRoster)
+    );
+    setNpcExclusiveLoops((prev) =>
+      ensureNpcExclusiveLoopState(prev, day, hour, minute, npcLoverEvolutions)
     );
   }
 
@@ -2904,6 +2937,77 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     );
   }
 
+  function completeNpcExclusiveLoopOffer(offerId: string) {
+    const offer = npcExclusiveLoops.offers.find((entry) => entry.id === offerId);
+    if (!offer || offer.completed) return false;
+    if (isNpcExclusiveLoopOfferExpired(offer, currentDay, currentHour, currentMinute)) return false;
+
+    const deliveryPlans = offer.requirements.map((requirement) => {
+      const plan = getQualityDeliveryPlan(
+        requirement.itemId,
+        requirement.minimumQuality ?? "standard",
+        requirement.quantity
+      );
+      return { requirement, plan };
+    });
+
+    if (deliveryPlans.some((entry) => !entry.plan)) return false;
+
+    const updatedClock = applyTownActionTimeCost(currentDay, currentHour, currentMinute, 25);
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+
+    for (const { requirement } of deliveryPlans) {
+      setInventory((prev) => removeItemFromInventory(prev, requirement.itemId, requirement.quantity));
+    }
+
+    setProduceQualityInventory((prev) => {
+      let next = prev;
+      for (const { requirement, plan } of deliveryPlans) {
+        for (const delivery of plan ?? []) {
+          next = removeQualityProduceFromInventory(next, requirement.itemId, delivery.quality, delivery.quantity);
+        }
+      }
+      return next;
+    });
+
+    if (offer.reward.items.length > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        offer.reward.items.forEach((reward) => {
+          next = addItemToInventory(next, reward.itemId, Math.max(1, reward.quantity));
+        });
+        return next;
+      });
+    }
+
+    setPlayerData((prev) =>
+      applyPlayerXpGain(
+        {
+          ...prev,
+          gold: prev.gold + offer.reward.gold,
+        },
+        offer.reward.xp
+      )
+    );
+    addTownNpcRelationship(offer.npcId, offer.reward.relationshipGain);
+    setNpcExclusiveLoops((prev) =>
+      ensureNpcExclusiveLoopState(
+        recordNpcExclusiveLoopCompletion(prev, offerId, updatedClock.day),
+        updatedClock.day,
+        updatedClock.hour,
+        updatedClock.minute,
+        npcLoverEvolutions
+      )
+    );
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
+    return true;
+  }
+
   function applyNpcMiniChainRewards(milestones: NpcMiniChainMilestone[], day: number) {
     milestones.forEach((milestone) => {
       const routePerk = getNpcRoutePerkByMilestone(milestone.id);
@@ -3083,8 +3187,15 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     }
     const loverEvolution = getNpcLoverEvolutionByInvitation(invitation.id);
     if (loverEvolution) {
-      setNpcLoverEvolutions((prev) =>
-        unlockNpcLoverEvolution(prev, loverEvolution.id, updatedClock.day, invitation.id)
+      const nextLoverEvolutions = unlockNpcLoverEvolution(
+        npcLoverEvolutions,
+        loverEvolution.id,
+        updatedClock.day,
+        invitation.id
+      );
+      setNpcLoverEvolutions(nextLoverEvolutions);
+      setNpcExclusiveLoops((prev) =>
+        ensureNpcExclusiveLoopState(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, nextLoverEvolutions)
       );
     }
     const routeUnlocks = recordNpcMiniChainProgress(
@@ -3890,6 +4001,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setNpcMiniChainProgress({});
     setNpcRoutePerks({});
     setNpcLoverEvolutions({});
+    setNpcExclusiveLoops({ offers: [], completionCounts: {}, lastCompletedDay: {} });
     setLatestNpcSocialResult(null);
     setPaidTaxMonths([]);
     setTravelLog([]);
@@ -3930,6 +4042,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         npcMiniChainProgress,
         npcRoutePerks,
         npcLoverEvolutions,
+        npcExclusiveLoops,
         latestNpcSocialResult,
         paidTaxMonths,
         travelLog,
@@ -3948,6 +4061,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         submitCreatureToNpcQuest,
         submitNpcFarmingRequest,
         completeNpcContractOffer,
+        completeNpcExclusiveLoopOffer,
         giveNpcGift,
         inviteNpc,
         payMonthlyTax,

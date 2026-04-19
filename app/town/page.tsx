@@ -75,6 +75,14 @@ import { ITEM_DATA } from "@/lib/items/itemData";
 import type { QualitySellQuote } from "@/lib/game/produceEconomy";
 import type { NpcContractOffer, NpcContractRequirement } from "@/lib/town/npcContractLedger";
 import {
+  getNpcExclusiveLoopsForNpc,
+  isNpcExclusiveLoopOfferExpired,
+  isNpcExclusiveLoopUnlocked,
+  type NpcExclusiveLoopOffer,
+  type NpcExclusiveLoopRequirement,
+  type NpcExclusiveLoopState,
+} from "@/lib/town/npcExclusiveLoops";
+import {
   NPC_RELATIONSHIP_EVENT_SCENES,
   type NpcContractCompletionHistory,
   type NpcRelationshipEventScene,
@@ -791,6 +799,182 @@ function NpcContractLedgerPanel({
   );
 }
 
+function getExclusiveRequirementLabel(requirement: NpcExclusiveLoopRequirement) {
+  const quality = requirement.minimumQuality && requirement.minimumQuality !== "standard"
+    ? ` (${CROP_QUALITY_DATA[requirement.minimumQuality].label}+)`
+    : "";
+  return `${formatItemQuantity(requirement.itemId, requirement.quantity)}${quality}`;
+}
+
+function getExclusiveOfferAvailability(
+  offer: NpcExclusiveLoopOffer,
+  hasMounted: boolean,
+  getItemCount: (itemId: string) => number,
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number
+) {
+  if (!hasMounted) return { canComplete: false, note: "Loading loop..." };
+  if (offer.completed) return { canComplete: false, note: "Completed" };
+
+  for (const requirement of offer.requirements) {
+    const minimumQuality = requirement.minimumQuality ?? "standard";
+    const owned = getAcceptedQualities(minimumQuality).reduce(
+      (sum, quality) => sum + getQualityItemCount(requirement.itemId, quality),
+      0
+    );
+    const fallbackOwned = minimumQuality === "standard" ? getItemCount(requirement.itemId) : owned;
+    const available = Math.max(owned, fallbackOwned);
+    if (available < requirement.quantity) {
+      return {
+        canComplete: false,
+        note: `Need ${requirement.quantity} ${ITEM_DATA[requirement.itemId]?.name ?? requirement.itemId} (${available}/${requirement.quantity})`,
+      };
+    }
+  }
+
+  return { canComplete: true, note: "Complete loop" };
+}
+
+function NpcExclusiveLoopsPanel({
+  npc,
+  loopState,
+  loverEvolutions,
+  currentDay,
+  currentHour,
+  currentMinute,
+  hasMounted,
+  getItemCount,
+  getQualityItemCount,
+  onComplete,
+  accentClasses,
+  buttonClasses,
+}: {
+  npc: TownNpcData;
+  loopState: NpcExclusiveLoopState;
+  loverEvolutions: NpcLoverEvolutionState;
+  currentDay: number;
+  currentHour: number;
+  currentMinute: number;
+  hasMounted: boolean;
+  getItemCount: (itemId: string) => number;
+  getQualityItemCount: (itemId: string, quality: CropQuality) => number;
+  onComplete: (offerId: string) => boolean;
+  accentClasses: string;
+  buttonClasses: string;
+}) {
+  const loops = getNpcExclusiveLoopsForNpc(npc.id);
+  if (loops.length === 0) return null;
+
+  return (
+    <div className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-lg font-bold text-stone-950">Exclusive High-Tier Loop</p>
+          <p className="mt-1 text-sm text-stone-700">
+            Lover-tier repeatable work that keeps this route active after the ladder is complete.
+          </p>
+        </div>
+        <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+          {loops.filter((loop) => isNpcExclusiveLoopUnlocked(loop.id, loverEvolutions)).length}/{loops.length} unlocked
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-3">
+        {loops.map((loop) => {
+          const unlocked = isNpcExclusiveLoopUnlocked(loop.id, loverEvolutions);
+          const loopOffers = loopState.offers.filter((offer) => offer.loopId === loop.id);
+          const completionCount = loopState.completionCounts[loop.id] ?? 0;
+          const lastCompletedDay = loopState.lastCompletedDay[loop.id];
+
+          return (
+            <div key={loop.id} className="rounded-lg border border-white bg-white/80 p-3 text-sm text-stone-700">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="font-semibold text-stone-950">{loop.title}</p>
+                  <p className="text-xs text-stone-600">{loop.subtitle}</p>
+                </div>
+                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${unlocked ? "bg-rose-100 text-rose-900" : "bg-stone-200 text-stone-700"}`}>
+                  {unlocked ? "Unlocked" : "Locked"}
+                </span>
+              </div>
+
+              <div className="mt-2 grid gap-2 text-xs lg:grid-cols-3">
+                <p><strong>Unlock:</strong> {loop.unlockSummary}</p>
+                <p><strong>Completions:</strong> {completionCount}</p>
+                <p><strong>Last Complete:</strong> {lastCompletedDay ? `Day ${lastCompletedDay}` : "Never"}</p>
+              </div>
+              <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-700">
+                {unlocked ? loop.activeSummary : loop.lockedFlavor}
+              </p>
+
+              {unlocked ? (
+                <div className="mt-3 grid gap-2">
+                  {loopOffers.length === 0 ? (
+                    <p className="rounded-lg bg-white px-3 py-2 text-xs text-stone-600">
+                      No active private offer right now. A new seeded offer appears when the loop refreshes.
+                    </p>
+                  ) : (
+                    loopOffers.map((offer) => {
+                      const expired = isNpcExclusiveLoopOfferExpired(
+                        offer,
+                        currentDay,
+                        currentHour,
+                        currentMinute
+                      );
+                      const availability = expired
+                        ? { canComplete: false, note: "Expired" }
+                        : getExclusiveOfferAvailability(offer, hasMounted, getItemCount, getQualityItemCount);
+                      const requirements = offer.requirements.map(getExclusiveRequirementLabel).join(", ");
+
+                      return (
+                        <div key={offer.id} className="rounded-lg border border-white bg-white p-3 shadow-sm">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="font-semibold text-stone-950">{offer.title}</p>
+                              <p className="text-xs text-stone-600">
+                                Generated Day {offer.generatedDay} - Expires Day {offer.expiryDay}, {formatTime(offer.expiryHour, offer.expiryMinute)}
+                              </p>
+                            </div>
+                            <span className="rounded-full border border-stone-300 bg-stone-50 px-3 py-1 text-xs font-semibold text-stone-700">
+                              Repeatable
+                            </span>
+                          </div>
+                          <p className="mt-2 text-xs text-stone-700">{offer.description}</p>
+                          <p className="mt-2 rounded-lg bg-stone-50 px-3 py-2 text-xs text-stone-700">{offer.flavorText}</p>
+                          <div className="mt-2 grid gap-2 text-xs lg:grid-cols-2">
+                            <p><strong>Needs:</strong> {requirements}</p>
+                            <p><strong>Reward:</strong> {offer.rewardSummary}</p>
+                          </div>
+
+                          {offer.completed ? (
+                            <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-xs font-semibold text-green-900">
+                              {offer.completionText}
+                            </p>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={!availability.canComplete}
+                              onClick={() => onComplete(offer.id)}
+                              className={`mt-3 rounded-lg px-4 py-2 text-xs font-semibold text-white shadow ${
+                                availability.canComplete ? buttonClasses : "bg-stone-400"
+                              }`}
+                            >
+                              {availability.note}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function NpcRelationshipEventPanel({
   latestEvent,
   eventLog,
@@ -1000,6 +1184,7 @@ export default function TownPage() {
     npcMiniChainProgress,
     npcRoutePerks,
     npcLoverEvolutions,
+    npcExclusiveLoops,
     latestNpcSocialResult,
     travelLog,
     purchaseTownCreature,
@@ -1013,6 +1198,7 @@ export default function TownPage() {
     submitCreatureToNpcQuest,
     submitNpcFarmingRequest,
     completeNpcContractOffer,
+    completeNpcExclusiveLoopOffer,
     giveNpcGift,
     inviteNpc,
     travelTo,
@@ -1510,6 +1696,22 @@ export default function TownPage() {
                     accentClasses="border-emerald-200 bg-emerald-100/70"
                   />
                 </div>
+                <div className="mt-3">
+                  <NpcExclusiveLoopsPanel
+                    npc={npc}
+                    loopState={npcExclusiveLoops}
+                    loverEvolutions={npcLoverEvolutions}
+                    currentDay={currentDay}
+                    currentHour={currentHour}
+                    currentMinute={currentMinute}
+                    hasMounted={hasMounted}
+                    getItemCount={getItemCount}
+                    getQualityItemCount={getQualityItemCount}
+                    onComplete={completeNpcExclusiveLoopOffer}
+                    accentClasses="border-emerald-200 bg-emerald-100/70"
+                    buttonClasses="bg-emerald-700"
+                  />
+                </div>
               </div>
             );
           })()}
@@ -1693,6 +1895,22 @@ export default function TownPage() {
                     routePerks={npcRoutePerks}
                     loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-rose-200 bg-rose-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcExclusiveLoopsPanel
+                    npc={npc}
+                    loopState={npcExclusiveLoops}
+                    loverEvolutions={npcLoverEvolutions}
+                    currentDay={currentDay}
+                    currentHour={currentHour}
+                    currentMinute={currentMinute}
+                    hasMounted={hasMounted}
+                    getItemCount={getItemCount}
+                    getQualityItemCount={getQualityItemCount}
+                    onComplete={completeNpcExclusiveLoopOffer}
+                    accentClasses="border-rose-200 bg-rose-100/70"
+                    buttonClasses="bg-rose-700"
                   />
                 </div>
                 <div className="mt-3 rounded-2xl border border-rose-200 bg-white p-3 text-xs text-stone-700">
@@ -1918,6 +2136,22 @@ export default function TownPage() {
                     routePerks={npcRoutePerks}
                     loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-purple-200 bg-purple-100/70"
+                  />
+                </div>
+                <div className="mt-3">
+                  <NpcExclusiveLoopsPanel
+                    npc={npc}
+                    loopState={npcExclusiveLoops}
+                    loverEvolutions={npcLoverEvolutions}
+                    currentDay={currentDay}
+                    currentHour={currentHour}
+                    currentMinute={currentMinute}
+                    hasMounted={hasMounted}
+                    getItemCount={getItemCount}
+                    getQualityItemCount={getQualityItemCount}
+                    onComplete={completeNpcExclusiveLoopOffer}
+                    accentClasses="border-purple-200 bg-purple-100/70"
+                    buttonClasses="bg-purple-700"
                   />
                 </div>
               </div>
@@ -2303,6 +2537,23 @@ export default function TownPage() {
                     routePerks={npcRoutePerks}
                     loverEvolutions={npcLoverEvolutions}
                     accentClasses="border-fuchsia-200 bg-white"
+                  />
+                </div>
+
+                <div className="mt-3">
+                  <NpcExclusiveLoopsPanel
+                    npc={npc}
+                    loopState={npcExclusiveLoops}
+                    loverEvolutions={npcLoverEvolutions}
+                    currentDay={currentDay}
+                    currentHour={currentHour}
+                    currentMinute={currentMinute}
+                    hasMounted={hasMounted}
+                    getItemCount={getItemCount}
+                    getQualityItemCount={getQualityItemCount}
+                    onComplete={completeNpcExclusiveLoopOffer}
+                    accentClasses="border-fuchsia-200 bg-white"
+                    buttonClasses="bg-fuchsia-700"
                   />
                 </div>
 
