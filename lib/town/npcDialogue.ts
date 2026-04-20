@@ -5,11 +5,58 @@ import {
   getNpcRelationshipLevelContent,
 } from "@/lib/town/npcRelationshipContent";
 
-export function getNpcGreeting(npcId: string, relationship?: NpcRelationshipState) {
+function getLoverEvolutionGreeting(npcId: string) {
+  if (npcId === "maris_thorn") {
+    return "There you are, love. I was just deciding which part of my greenhouse had missed you most.";
+  }
+  if (npcId === "selene_voss") {
+    return "Come in, darling. Your private terms are already on my desk, but I wanted the pleasure of handing them to you myself.";
+  }
+  if (npcId === "tamsin_vale") {
+    return "There you are, darling. I kept the hearth warm, and I am absolutely counting that as restraint.";
+  }
+  return null;
+}
+
+function getLoverEvolutionFlirtLine(npcId: string) {
+  if (npcId === "maris_thorn") {
+    return "You have become part of my favorite growing season: stubborn, sun-warmed, and far too tempting to leave unattended.";
+  }
+  if (npcId === "selene_voss") {
+    return "My finest exception keeps walking through the door looking like profit and trouble. Naturally, I approve.";
+  }
+  if (npcId === "tamsin_vale") {
+    return "I know exactly how you like to be fed now, and I enjoy that knowledge more than I probably should.";
+  }
+  return null;
+}
+
+function getLoverEvolutionFarewell(npcId: string) {
+  if (npcId === "maris_thorn") {
+    return "Go on, love. Make the fields jealous, then come back and let me fuss over the evidence.";
+  }
+  if (npcId === "selene_voss") {
+    return "Bring me excellence, darling. I will make the reward feel appropriately private.";
+  }
+  if (npcId === "tamsin_vale") {
+    return "Take care of yourself for me. I expect you back hungry, proud, and ready to be spoiled.";
+  }
+  return null;
+}
+
+export function getNpcGreeting(
+  npcId: string,
+  relationship?: NpcRelationshipState,
+  loverEvolutionUnlocked = false
+) {
   const npc = TOWN_NPC_DATA[npcId];
   if (!npc) return "Hello.";
 
   const level = relationship?.level ?? 1;
+  if (level >= 5 && loverEvolutionUnlocked) {
+    return getLoverEvolutionGreeting(npcId) ?? npc.greetingText[0] ?? npc.introText;
+  }
+
   const content = getNpcRelationshipLevelContent(npcId, level);
 
   if (content && content.greetingLines.length > 0) {
@@ -19,11 +66,19 @@ export function getNpcGreeting(npcId: string, relationship?: NpcRelationshipStat
   return npc.greetingText[0] ?? npc.introText;
 }
 
-export function getNpcFlirtLine(npcId: string, relationship?: NpcRelationshipState) {
+export function getNpcFlirtLine(
+  npcId: string,
+  relationship?: NpcRelationshipState,
+  loverEvolutionUnlocked = false
+) {
   const npc = TOWN_NPC_DATA[npcId];
   if (!npc) return "";
 
   const level = relationship?.level ?? 1;
+  if (level >= 5 && loverEvolutionUnlocked) {
+    return getLoverEvolutionFlirtLine(npcId) ?? npc.flirtText[0] ?? "";
+  }
+
   const content = getNpcRelationshipLevelContent(npcId, level);
 
   if (content && content.flirtLines.length > 0) {
@@ -33,11 +88,19 @@ export function getNpcFlirtLine(npcId: string, relationship?: NpcRelationshipSta
   return npc.flirtText[0] ?? "";
 }
 
-export function getNpcFarewell(npcId: string, relationship?: NpcRelationshipState) {
+export function getNpcFarewell(
+  npcId: string,
+  relationship?: NpcRelationshipState,
+  loverEvolutionUnlocked = false
+) {
   const npc = TOWN_NPC_DATA[npcId];
   if (!npc) return "See you next time.";
 
   const level = relationship?.level ?? 1;
+  if (level >= 5 && loverEvolutionUnlocked) {
+    return getLoverEvolutionFarewell(npcId) ?? npc.farewellText[0] ?? "See you next time.";
+  }
+
   const content = getNpcRelationshipLevelContent(npcId, level);
 
   if (content && content.farewellLines.length > 0) {

@@ -108,6 +108,12 @@ type MemoryNpcGroup = {
 
 type SelectedGiftItemsByNpc = Record<string, string>;
 
+function isNpcLoverVoiceUnlocked(npcId: string, loverEvolutions: NpcLoverEvolutionState) {
+  return getNpcLoverEvolutionsForNpc(npcId).some((evolution) =>
+    hasNpcLoverEvolution(loverEvolutions, evolution.id)
+  );
+}
+
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
@@ -167,10 +173,12 @@ function InventoryChip({ label, value }: { label: string; value: string | number
 function NpcStageVisitPanel({
   npcId,
   relationship,
+  loverEvolutionUnlocked = false,
   accentClasses,
 }: {
   npcId: string;
   relationship: NpcRelationshipState;
+  loverEvolutionUnlocked?: boolean;
   accentClasses: string;
 }) {
   return (
@@ -178,13 +186,13 @@ function NpcStageVisitPanel({
       <p className="text-xs font-semibold uppercase text-stone-500">Stage Visit Flavor</p>
       <div className="mt-2 grid gap-2 lg:grid-cols-3">
         <p className="rounded-lg bg-white px-3 py-2">
-          <strong>Greeting:</strong> {getNpcGreeting(npcId, relationship)}
+          <strong>Greeting:</strong> {getNpcGreeting(npcId, relationship, loverEvolutionUnlocked)}
         </p>
         <p className="rounded-lg bg-white px-3 py-2">
-          <strong>Flirt:</strong> {getNpcFlirtLine(npcId, relationship)}
+          <strong>Flirt:</strong> {getNpcFlirtLine(npcId, relationship, loverEvolutionUnlocked)}
         </p>
         <p className="rounded-lg bg-white px-3 py-2">
-          <strong>Farewell:</strong> {getNpcFarewell(npcId, relationship)}
+          <strong>Farewell:</strong> {getNpcFarewell(npcId, relationship, loverEvolutionUnlocked)}
         </p>
       </div>
       <div className="mt-3 grid gap-2 text-xs lg:grid-cols-3">
@@ -1006,6 +1014,164 @@ function NpcExclusiveLoopsPanel({
   );
 }
 
+function getRouteJournalNextObjective({
+  npc,
+  miniChainProgress,
+  routePerks,
+  loverEvolutions,
+  exclusiveLoops,
+}: {
+  npc: TownNpcData;
+  miniChainProgress: NpcMiniChainProgressMap;
+  routePerks: NpcRoutePerkState;
+  loverEvolutions: NpcLoverEvolutionState;
+  exclusiveLoops: NpcExclusiveLoopState;
+}) {
+  const chain = getNpcMiniChain(npc.id);
+  const progress = getNpcMiniChainProgress(miniChainProgress, npc.id);
+  const nextMilestone = chain ? getNpcMiniChainNextMilestone(chain, progress) : null;
+  if (nextMilestone) return `Route stage: ${nextMilestone.title}. ${nextMilestone.subtitle}`;
+
+  const lockedRoutePerk = getNpcRoutePerksForNpc(npc.id).find((perk) => !hasNpcRoutePerk(routePerks, perk.id));
+  if (lockedRoutePerk) return `Route perk: ${lockedRoutePerk.unlockSummary}`;
+
+  const lockedEvolution = getNpcLoverEvolutionsForNpc(npc.id).find(
+    (evolution) => !hasNpcLoverEvolution(loverEvolutions, evolution.id)
+  );
+  if (lockedEvolution) return `Lover evolution: ${lockedEvolution.lockedHint}`;
+
+  const activeLoop = getNpcExclusiveLoopsForNpc(npc.id).find((loop) =>
+    isNpcExclusiveLoopUnlocked(loop.id, loverEvolutions)
+  );
+  if (activeLoop) {
+    const activeOffer = exclusiveLoops.offers.find((offer) => offer.loopId === activeLoop.id && !offer.completed);
+    return activeOffer
+      ? `Endgame loop: finish ${activeOffer.title} before Day ${activeOffer.expiryDay}.`
+      : `Endgame loop: keep ${activeLoop.title} streaks alive for rare special moments.`;
+  }
+
+  return "This route is ready for future seasonal events, CGs, and broader story content.";
+}
+
+function NpcRouteJournalPanel({
+  npc,
+  relationship,
+  miniChainProgress,
+  routePerks,
+  loverEvolutions,
+  exclusiveLoops,
+  eventLog,
+  accentClasses,
+}: {
+  npc: TownNpcData;
+  relationship: NpcRelationshipState;
+  miniChainProgress: NpcMiniChainProgressMap;
+  routePerks: NpcRoutePerkState;
+  loverEvolutions: NpcLoverEvolutionState;
+  exclusiveLoops: NpcExclusiveLoopState;
+  eventLog: NpcRelationshipEventUnlock[];
+  accentClasses: string;
+}) {
+  const chain = getNpcMiniChain(npc.id);
+  const progress = getNpcMiniChainProgress(miniChainProgress, npc.id);
+  const completedMilestones = chain?.milestones.filter((milestone) =>
+    progress.completedMilestoneIds.includes(milestone.id)
+  ) ?? [];
+  const nextMilestone = chain ? getNpcMiniChainNextMilestone(chain, progress) : null;
+  const routePerkRows = getNpcRoutePerksForNpc(npc.id);
+  const loverEvolutionRows = getNpcLoverEvolutionsForNpc(npc.id);
+  const loopRows = getNpcExclusiveLoopsForNpc(npc.id);
+  const unlockedMemories = eventLog.filter((event) => event.npcId === npc.id);
+  const loverVoiceUnlocked = isNpcLoverVoiceUnlocked(npc.id, loverEvolutions);
+
+  return (
+    <article className={`rounded-2xl border p-4 ${accentClasses}`}>
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-2xl font-bold text-stone-950">{npc.name}</p>
+          <p className="text-sm font-semibold text-stone-700">{npc.title} - {npc.race}</p>
+          <p className="mt-2 text-sm text-stone-700">{npc.shortDescription}</p>
+        </div>
+        <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+          {getRelationshipDisplayLabel(relationship)}
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 text-xs text-stone-700 lg:grid-cols-3">
+        <p className="rounded-lg bg-white px-3 py-2"><strong>Mini-Chain:</strong> {completedMilestones.length}/{chain?.milestones.length ?? 0} milestones</p>
+        <p className="rounded-lg bg-white px-3 py-2"><strong>Memories:</strong> {unlockedMemories.length} unlocked</p>
+        <p className="rounded-lg bg-white px-3 py-2"><strong>Lover Voice:</strong> {loverVoiceUnlocked ? "Active" : "Locked"}</p>
+      </div>
+
+      <div className="mt-3 rounded-lg bg-white/80 p-3 text-sm text-stone-700">
+        <p className="font-semibold text-stone-950">Daily Voice</p>
+        <div className="mt-2 grid gap-2 text-xs lg:grid-cols-3">
+          <p><strong>Greeting:</strong> {getNpcGreeting(npc.id, relationship, loverVoiceUnlocked)}</p>
+          <p><strong>Flirt:</strong> {getNpcFlirtLine(npc.id, relationship, loverVoiceUnlocked)}</p>
+          <p><strong>Farewell:</strong> {getNpcFarewell(npc.id, relationship, loverVoiceUnlocked)}</p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-lg bg-white/80 p-3 text-xs text-stone-700">
+          <p className="font-semibold text-stone-950">Route Progress</p>
+          <p className="mt-1"><strong>Current:</strong> {nextMilestone ? nextMilestone.title : "Mini-chain complete"}</p>
+          <p className="mt-1"><strong>Latest:</strong> {progress.lastUnlockedMilestoneId ?? "No route milestone yet"}</p>
+          <p className="mt-1"><strong>Next:</strong> {nextMilestone ? nextMilestone.rewardSummary : "Route perk and lover layers carry the arc forward."}</p>
+        </div>
+
+        <div className="rounded-lg bg-white/80 p-3 text-xs text-stone-700">
+          <p className="font-semibold text-stone-950">Passive Layers</p>
+          {routePerkRows.map((perk) => (
+            <p key={`${npc.id}-journal-perk-${perk.id}`} className="mt-1">
+              <strong>{hasNpcRoutePerk(routePerks, perk.id) ? "Unlocked" : "Locked"}:</strong> {perk.title}
+            </p>
+          ))}
+          {loverEvolutionRows.map((evolution) => (
+            <p key={`${npc.id}-journal-evolution-${evolution.id}`} className="mt-1">
+              <strong>{hasNpcLoverEvolution(loverEvolutions, evolution.id) ? "Evolved" : "Locked"}:</strong> {evolution.title}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        {loopRows.map((loop) => {
+          const streak = exclusiveLoops.streaks[loop.id];
+          const latestSpecial = streak?.latestSpecialCompletionId
+            ? exclusiveLoops.specialCompletions.find((special) => special.id === streak.latestSpecialCompletionId)
+            : undefined;
+          return (
+            <div key={`${npc.id}-journal-loop-${loop.id}`} className="rounded-lg bg-white/80 p-3 text-xs text-stone-700">
+              <p className="font-semibold text-stone-950">{loop.title}</p>
+              <p className="mt-1"><strong>Status:</strong> {isNpcExclusiveLoopUnlocked(loop.id, loverEvolutions) ? "Unlocked" : "Locked"}</p>
+              <p className="mt-1"><strong>Best Streak:</strong> {streak?.best ?? 0}</p>
+              <p className="mt-1"><strong>Latest Special:</strong> {latestSpecial ? `${latestSpecial.title} on Day ${latestSpecial.day}` : "None yet"}</p>
+            </div>
+          );
+        })}
+
+        <div className="rounded-lg bg-white/80 p-3 text-xs text-stone-700">
+          <p className="font-semibold text-stone-950">Unlocked Memories</p>
+          {unlockedMemories.length > 0 ? (
+            <div className="mt-1 space-y-1">
+              {unlockedMemories.slice(0, 4).map((memory) => (
+                <p key={`${npc.id}-journal-memory-${memory.id}`}>- {memory.title} (Day {memory.unlockedDay})</p>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1">No memories unlocked yet.</p>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-3 rounded-lg border border-white bg-white px-3 py-2 text-sm text-stone-700">
+        <strong>Next Hint:</strong> {getRouteJournalNextObjective({ npc, miniChainProgress, routePerks, loverEvolutions, exclusiveLoops })}
+      </p>
+    </article>
+  );
+}
+
 function NpcRelationshipEventPanel({
   latestEvent,
   eventLog,
@@ -1244,6 +1410,7 @@ export default function TownPage() {
   const [boardOpen, setBoardOpen] = useState(false);
   const [relationshipsOpen, setRelationshipsOpen] = useState(false);
   const [memoriesOpen, setMemoriesOpen] = useState(false);
+  const [routeJournalsOpen, setRouteJournalsOpen] = useState(false);
   const [npcRequestsOpen, setNpcRequestsOpen] = useState(false);
   const [travelLogOpen, setTravelLogOpen] = useState(false);
   const [seedShopOpen, setSeedShopOpen] = useState(false);
@@ -1555,6 +1722,17 @@ export default function TownPage() {
 
               <button
                 type="button"
+                onClick={() => setRouteJournalsOpen(true)}
+                className="rounded-2xl bg-indigo-700 px-4 py-4 text-left font-semibold text-white shadow"
+              >
+                Route Journals
+                <div className="mt-1 text-sm font-medium text-indigo-100">
+                  complete arc summary for Maris, Selene, and Tamsin
+                </div>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setFarmNpcOpen(true)}
                 className="rounded-2xl bg-fuchsia-700 px-4 py-4 text-left font-semibold text-white shadow"
               >
@@ -1660,13 +1838,14 @@ export default function TownPage() {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "maris_thorn")!;
             const relationship = marisRelationship;
             const visitImage = getNpcVisitImage(npc, relationship);
+            const loverVoiceUnlocked = isNpcLoverVoiceUnlocked(npc.id, npcLoverEvolutions);
             return (
               <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
                 <p className="text-lg font-bold text-emerald-950">{npc.name}</p>
                 <p className="text-sm font-semibold text-emerald-800">{npc.title} • {npc.race}</p>
                 <p className="mt-2 text-sm text-stone-700">{npc.shortDescription}</p>
                 <p className="mt-2 rounded-2xl bg-white px-3 py-2 text-sm text-stone-700">
-                  {getNpcGreeting("maris_thorn", relationship)}
+                  {getNpcGreeting("maris_thorn", relationship, loverVoiceUnlocked)}
                 </p>
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
@@ -1681,6 +1860,7 @@ export default function TownPage() {
                 <NpcStageVisitPanel
                   npcId="maris_thorn"
                   relationship={relationship}
+                  loverEvolutionUnlocked={loverVoiceUnlocked}
                   accentClasses="border-emerald-200"
                 />
                 <div className="mt-3">
@@ -1861,13 +2041,14 @@ export default function TownPage() {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "tamsin_vale")!;
             const relationship = tamsinRelationship;
             const visitImage = getNpcVisitImage(npc, relationship);
+            const loverVoiceUnlocked = isNpcLoverVoiceUnlocked(npc.id, npcLoverEvolutions);
             return (
               <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4">
                 <p className="text-lg font-bold text-rose-950">{npc.name}</p>
                 <p className="text-sm font-semibold text-rose-800">{npc.title} • {npc.race}</p>
                 <p className="mt-2 text-sm text-stone-700">{npc.shortDescription}</p>
                 <p className="mt-2 rounded-2xl bg-white px-3 py-2 text-sm text-stone-700">
-                  {getNpcGreeting("tamsin_vale", relationship)}
+                  {getNpcGreeting("tamsin_vale", relationship, loverVoiceUnlocked)}
                 </p>
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
@@ -1882,6 +2063,7 @@ export default function TownPage() {
                 <NpcStageVisitPanel
                   npcId="tamsin_vale"
                   relationship={relationship}
+                  loverEvolutionUnlocked={loverVoiceUnlocked}
                   accentClasses="border-rose-200"
                 />
                 <div className="mt-3">
@@ -2102,13 +2284,14 @@ export default function TownPage() {
             const npc = FARM_ECONOMY_ACTIVE_NPCS.find((entry) => entry.id === "selene_voss")!;
             const relationship = seleneRelationship;
             const visitImage = getNpcVisitImage(npc, relationship);
+            const loverVoiceUnlocked = isNpcLoverVoiceUnlocked(npc.id, npcLoverEvolutions);
             return (
               <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4">
                 <p className="text-lg font-bold text-purple-950">{npc.name}</p>
                 <p className="text-sm font-semibold text-purple-800">{npc.title} • {npc.race}</p>
                 <p className="mt-2 text-sm text-stone-700">{npc.shortDescription}</p>
                 <p className="mt-2 rounded-2xl bg-white px-3 py-2 text-sm text-stone-700">
-                  {getNpcGreeting("selene_voss", relationship)}
+                  {getNpcGreeting("selene_voss", relationship, loverVoiceUnlocked)}
                 </p>
                 <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
                   <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(relationship)}</p>
@@ -2123,6 +2306,7 @@ export default function TownPage() {
                 <NpcStageVisitPanel
                   npcId="selene_voss"
                   relationship={relationship}
+                  loverEvolutionUnlocked={loverVoiceUnlocked}
                   accentClasses="border-purple-200"
                 />
                 <div className="mt-3">
@@ -2496,11 +2680,38 @@ export default function TownPage() {
         />
       </PopupWindow>
 
+      <PopupWindow open={routeJournalsOpen} onClose={() => setRouteJournalsOpen(false)} title="Route Journals" maxWidth="max-w-6xl">
+        <div className="space-y-4">
+          {FARM_ECONOMY_ACTIVE_NPCS.map((npc) => {
+            const relationship = farmNpcRelationshipMap.get(npc.id) ?? createDefaultNpcRelationshipState(npc.id);
+            const accentClasses = npc.id === "maris_thorn"
+              ? "border-emerald-200 bg-emerald-100/70"
+              : npc.id === "selene_voss"
+                ? "border-purple-200 bg-purple-100/70"
+                : "border-rose-200 bg-rose-100/70";
+            return (
+              <NpcRouteJournalPanel
+                key={`${npc.id}-route-journal`}
+                npc={npc}
+                relationship={relationship}
+                miniChainProgress={npcMiniChainProgress}
+                routePerks={npcRoutePerks}
+                loverEvolutions={npcLoverEvolutions}
+                exclusiveLoops={npcExclusiveLoops}
+                eventLog={npcRelationshipEventLog}
+                accentClasses={accentClasses}
+              />
+            );
+          })}
+        </div>
+      </PopupWindow>
+
       <PopupWindow open={farmNpcOpen} onClose={() => setFarmNpcOpen(false)} title="Farm-Economy NPCs" maxWidth="max-w-6xl">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {FARM_ECONOMY_ACTIVE_NPCS.map((npc) => {
             const relationship = farmNpcRelationshipMap.get(npc.id) ?? createDefaultNpcRelationshipState(npc.id);
             const visitImage = getNpcVisitImage(npc, relationship);
+            const loverVoiceUnlocked = isNpcLoverVoiceUnlocked(npc.id, npcLoverEvolutions);
             return (
               <div key={npc.id} className="rounded-2xl border-2 border-fuchsia-200 bg-fuchsia-50 p-4 shadow-sm">
                 <p className="text-xl font-bold text-fuchsia-950">{npc.name}</p>
@@ -2514,6 +2725,7 @@ export default function TownPage() {
                 <NpcStageVisitPanel
                   npcId={npc.id}
                   relationship={relationship}
+                  loverEvolutionUnlocked={loverVoiceUnlocked}
                   accentClasses="border-fuchsia-200"
                 />
 
@@ -2524,7 +2736,7 @@ export default function TownPage() {
                 </div>
 
                 <p className="mt-3 rounded-2xl bg-white px-3 py-2 text-sm text-stone-700">
-                  {getNpcGreeting(npc.id, relationship)}
+                  {getNpcGreeting(npc.id, relationship, loverVoiceUnlocked)}
                 </p>
 
                 <div className="mt-3 space-y-1 text-xs text-stone-700">

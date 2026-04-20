@@ -127,6 +127,7 @@ import {
   isTamsinComfortRecipe,
   ensureNpcRoutePerksForMiniChainProgress,
   getNpcLoverEvolutionByInvitation,
+  getNpcLoverEvolutionsForNpc,
   normalizeNpcRoutePerkState,
   normalizeNpcLoverEvolutionState,
   unlockNpcLoverEvolution,
@@ -3106,13 +3107,16 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       npcId,
       npc.relationship + relationshipGain
     ).level;
+    const loverEvolutionUnlocked = getNpcLoverEvolutionsForNpc(npcId).some((evolution) =>
+      hasNpcLoverEvolution(npcLoverEvolutions, evolution.id)
+    );
     const itemName = ITEM_DATA[itemId]?.name ?? itemId;
     const result: NpcSocialActionResult = {
       success: true,
       kind: "gift",
       npcId,
       title: `${npc.name} ${reaction === "love" ? "loved" : reaction === "like" ? "liked" : reaction === "dislike" ? "did not love" : "accepted"} ${itemName}`,
-      dialogue: buildNpcGiftDialogue(npcId, itemName, reaction, nextRelationshipLevel),
+      dialogue: buildNpcGiftDialogue(npcId, itemName, reaction, nextRelationshipLevel, loverEvolutionUnlocked),
       relationshipGain,
       day: updatedClock.day,
       itemId,

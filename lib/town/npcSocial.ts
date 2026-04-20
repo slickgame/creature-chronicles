@@ -350,8 +350,30 @@ export function buildNpcGiftDialogue(
   npcId: string,
   itemName: string,
   reaction: NpcGiftReaction,
-  relationshipLevel: RelationshipLevel
+  relationshipLevel: RelationshipLevel,
+  loverEvolutionUnlocked = false
 ) {
+  if (relationshipLevel >= 5 && loverEvolutionUnlocked) {
+    if (npcId === "maris_thorn") {
+      if (reaction === "love") return `"Oh, love. You brought exactly the sort of thing that makes me want to close the stall early and thank you properly."`;
+      if (reaction === "like") return `"Useful, thoughtful, and from you. That is a dangerous little bundle, sweetheart."`;
+      if (reaction === "dislike") return `"Mm. Not my favorite, but you are. I suppose that saves it."`;
+      return `"${itemName}. Practical. Come here and let me decide how much credit you get for trying."`;
+    }
+
+    if (npcId === "selene_voss") {
+      if (reaction === "love") return `"Exquisite. You do understand the pleasure of giving me exactly what I want, darling."`;
+      if (reaction === "like") return `"A polished choice. I do enjoy when my favorite exception keeps her standards high."`;
+      if (reaction === "dislike") return `"A curious miscalculation. Fortunately, I am fond enough of you to find it almost charming."`;
+      return `"A neutral offering, love. I will accept it, and you may accept my raised eyebrow as instruction."`;
+    }
+
+    if (reaction === "love") return `"Darling, this is lovely. Sit with me a moment. I want to enjoy being known by you properly."`;
+    if (reaction === "like") return `"Thoughtful and warm. You do make it hard not to fuss over you."`;
+    if (reaction === "dislike") return `"Oh, sweetheart. Not quite. But you brought it with that face, so I suppose I forgive you."`;
+    return `"Thank you, dear. Even a simple thing feels softer when it comes from your hands."`;
+  }
+
   const intimate = relationshipLevel >= 4;
 
   if (npcId === "maris_thorn") {
