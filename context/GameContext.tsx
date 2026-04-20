@@ -76,6 +76,7 @@ import {
 } from "@/lib/town/npcContractLedger";
 import { buildNpcRelationshipStateFromPoints } from "@/lib/game/npcEconomy";
 import {
+  buildNpcExclusiveLoopSpecialEventUnlock,
   buildNpcOutingRelationshipEventUnlock,
   buildNpcRouteRelationshipEventUnlock,
   findEligibleNpcRelationshipEvent,
@@ -1921,6 +1922,8 @@ const defaultSaveData: SaveData = {
     offers: [],
     completionCounts: {},
     lastCompletedDay: {},
+    streaks: {},
+    specialCompletions: [],
   },
   latestNpcSocialResult: null,
   paidTaxMonths: [],
@@ -2992,10 +2995,47 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         offer.reward.xp
       )
     );
-    addTownNpcRelationship(offer.npcId, offer.reward.relationshipGain);
+    const completionResult = recordNpcExclusiveLoopCompletion(npcExclusiveLoops, offerId, updatedClock.day);
+    const bonusReward = completionResult.feedback?.bonusReward;
+    if (bonusReward?.items.length) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        bonusReward.items.forEach((reward) => {
+          next = addItemToInventory(next, reward.itemId, Math.max(1, reward.quantity));
+        });
+        return next;
+      });
+    }
+    if (bonusReward && (bonusReward.gold > 0 || bonusReward.xp > 0)) {
+      setPlayerData((prev) =>
+        applyPlayerXpGain(
+          {
+            ...prev,
+            gold: prev.gold + bonusReward.gold,
+          },
+          bonusReward.xp
+        )
+      );
+    }
+
+    addTownNpcRelationship(
+      offer.npcId,
+      offer.reward.relationshipGain + (bonusReward?.relationshipGain ?? 0)
+    );
+    const specialEvent = completionResult.feedback?.specialCompletion
+      ? buildNpcExclusiveLoopSpecialEventUnlock(completionResult.feedback.specialCompletion, updatedClock.day)
+      : null;
+    if (specialEvent) {
+      setNpcRelationshipEventFlags((prev) => Array.from(new Set([...prev, specialEvent.id])));
+      setNpcRelationshipEventLog((prev) => {
+        if (prev.some((event) => event.id === specialEvent.id)) return prev;
+        return [specialEvent, ...prev];
+      });
+      setLatestNpcRelationshipEvent(specialEvent);
+    }
     setNpcExclusiveLoops((prev) =>
       ensureNpcExclusiveLoopState(
-        recordNpcExclusiveLoopCompletion(prev, offerId, updatedClock.day),
+        completionResult.state,
         updatedClock.day,
         updatedClock.hour,
         updatedClock.minute,
@@ -4001,7 +4041,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setNpcMiniChainProgress({});
     setNpcRoutePerks({});
     setNpcLoverEvolutions({});
-    setNpcExclusiveLoops({ offers: [], completionCounts: {}, lastCompletedDay: {} });
+    setNpcExclusiveLoops({ offers: [], completionCounts: {}, lastCompletedDay: {}, streaks: {}, specialCompletions: [] });
     setLatestNpcSocialResult(null);
     setPaidTaxMonths([]);
     setTravelLog([]);

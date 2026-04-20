@@ -884,6 +884,13 @@ function NpcExclusiveLoopsPanel({
           const loopOffers = loopState.offers.filter((offer) => offer.loopId === loop.id);
           const completionCount = loopState.completionCounts[loop.id] ?? 0;
           const lastCompletedDay = loopState.lastCompletedDay[loop.id];
+          const streak = loopState.streaks[loop.id];
+          const latestSpecial = streak?.latestSpecialCompletionId
+            ? loopState.specialCompletions.find((special) => special.id === streak.latestSpecialCompletionId)
+            : undefined;
+          const latestFeedback = loopState.latestFeedback?.loopId === loop.id
+            ? loopState.latestFeedback
+            : null;
 
           return (
             <div key={loop.id} className="rounded-lg border border-white bg-white/80 p-3 text-sm text-stone-700">
@@ -901,10 +908,34 @@ function NpcExclusiveLoopsPanel({
                 <p><strong>Unlock:</strong> {loop.unlockSummary}</p>
                 <p><strong>Completions:</strong> {completionCount}</p>
                 <p><strong>Last Complete:</strong> {lastCompletedDay ? `Day ${lastCompletedDay}` : "Never"}</p>
+                <p><strong>Current Streak:</strong> {streak?.current ?? 0}</p>
+                <p><strong>Best Streak:</strong> {streak?.best ?? 0}</p>
+                <p><strong>Latest Special:</strong> {latestSpecial ? `${latestSpecial.title} on Day ${latestSpecial.day}` : "None yet"}</p>
               </div>
               <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-stone-700">
                 {unlocked ? loop.activeSummary : loop.lockedFlavor}
               </p>
+              {latestFeedback ? (
+                <div className="mt-2 rounded-lg border border-white bg-white px-3 py-2 text-xs text-stone-700">
+                  <p className="font-semibold text-stone-950">Latest Rhythm: {latestFeedback.title}</p>
+                  <p className="mt-1">{latestFeedback.text}</p>
+                  <p className="mt-1 font-semibold text-stone-600">
+                    Streak {latestFeedback.streakCount} - Best {latestFeedback.bestStreak}
+                    {latestFeedback.bonusReward ? ` - Bonus ${latestFeedback.specialCompletion?.rewardSummary ?? "reward"}` : ""}
+                  </p>
+                </div>
+              ) : streak?.latestFlavorText ? (
+                <p className="mt-2 rounded-lg border border-white bg-white px-3 py-2 text-xs text-stone-700">
+                  <strong>Latest Flavor:</strong> {streak.latestFlavorText}
+                </p>
+              ) : null}
+              {latestSpecial ? (
+                <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-stone-700">
+                  <p className="font-semibold text-rose-950">Special Completion: {latestSpecial.title}</p>
+                  <p className="mt-1">{latestSpecial.text}</p>
+                  <p className="mt-1 font-semibold text-rose-800">{latestSpecial.rewardSummary}</p>
+                </div>
+              ) : null}
 
               {unlocked ? (
                 <div className="mt-3 grid gap-2">

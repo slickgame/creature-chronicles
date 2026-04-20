@@ -1,8 +1,13 @@
 import type { FarmEconomyNpcId } from "@/lib/game/npcEconomy";
 import type { NpcContractOfferKind } from "@/lib/town/npcContractLedger";
+import type { NpcExclusiveLoopSpecialCompletion } from "@/lib/town/npcExclusiveLoops";
 import type { RelationshipLevel } from "@/lib/town/relationshipDefaults";
 
-export type NpcRelationshipEventSourceKind = NpcContractOfferKind | "npc_outing" | "npc_route";
+export type NpcRelationshipEventSourceKind =
+  | NpcContractOfferKind
+  | "npc_outing"
+  | "npc_route"
+  | "npc_exclusive_loop";
 export type NpcContractCompletionHistory = Record<string, number>;
 
 export type NpcRelationshipEventScene = {
@@ -330,6 +335,48 @@ export const NPC_RELATIONSHIP_EVENT_SCENES: NpcRelationshipEventScene[] = [
     requiredCompletionCount: 1,
     imageUnlockId: "tamsin_lover_hearth_supper",
   },
+  {
+    id: "maris_hidden_seed_drawer_micro",
+    npcId: "maris_thorn",
+    title: "Hidden Seed Drawer",
+    subtitle: "Maris rewards a steady greenhouse rhythm with stock she refuses to sell.",
+    sceneText:
+      "Maris catches your wrist before you leave and opens a drawer under the greenhouse bench. \"This stock is not for sale,\" she says, slipping the packet into your palm. \"It is for the grower I like spoiling when nobody is looking.\"",
+    rewardSummary: "Rare exclusive-loop completion: Berry Seed x2, +3 relationship, micro-memory hook.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "maris_thorn:exclusive:maris_hidden_seed_drawer_micro",
+    requiredCompletionCount: 1,
+    imageUnlockId: "maris_hidden_seed_drawer_micro",
+  },
+  {
+    id: "selene_velvet_contract_seal_micro",
+    npcId: "selene_voss",
+    title: "Velvet Contract Seal",
+    subtitle: "Selene marks your elite work with a private seal and very public confidence.",
+    sceneText:
+      "Selene presses a velvet seal beside your name and gives you a look sharp enough to feel private. \"There. A mark reserved for suppliers who make me look very, very clever.\"",
+    rewardSummary: "Rare exclusive-loop completion: 120g, +3 relationship, micro-memory hook.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "selene_voss:exclusive:selene_velvet_contract_seal_micro",
+    requiredCompletionCount: 1,
+    imageUnlockId: "selene_velvet_contract_seal_micro",
+  },
+  {
+    id: "tamsin_hearthside_taste_micro",
+    npcId: "tamsin_vale",
+    title: "Hearthside Taste",
+    subtitle: "Tamsin turns a steady lover's table rhythm into a soft private tasting.",
+    sceneText:
+      "Tamsin pulls you close enough to taste from her spoon, smiling when you do. \"Good,\" she murmurs. \"Now I know exactly what part of this supper tastes like you.\"",
+    rewardSummary: "Rare exclusive-loop completion: Warm Milk x1, +3 relationship, micro-memory hook.",
+    requiredRelationshipLevel: 5,
+    eligibleOfferKinds: [],
+    completionHistoryKey: "tamsin_vale:exclusive:tamsin_hearthside_taste_micro",
+    requiredCompletionCount: 1,
+    imageUnlockId: "tamsin_hearthside_taste_micro",
+  },
 ];
 
 export function getNpcContractCompletionHistoryKey(npcId: FarmEconomyNpcId, offerKind?: NpcContractOfferKind) {
@@ -420,6 +467,22 @@ export function buildNpcRouteRelationshipEventUnlock(
     unlockedDay: currentDay,
     sourceOfferId: milestoneId,
     sourceOfferKind: "npc_route",
+  };
+}
+
+export function buildNpcExclusiveLoopSpecialEventUnlock(
+  specialCompletion: NpcExclusiveLoopSpecialCompletion,
+  currentDay: number
+): NpcRelationshipEventUnlock | null {
+  if (!specialCompletion.memoryEventId) return null;
+  const event = NPC_RELATIONSHIP_EVENT_SCENES.find((scene) => scene.id === specialCompletion.memoryEventId);
+  if (!event) return null;
+
+  return {
+    ...event,
+    unlockedDay: currentDay,
+    sourceOfferId: specialCompletion.id,
+    sourceOfferKind: "npc_exclusive_loop",
   };
 }
 
