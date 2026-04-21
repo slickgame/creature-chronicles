@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import RanchOperationsPanel from "@/components/ranch/RanchOperationsPanel";
+import MainStoryPanel from "@/components/story/MainStoryPanel";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
 
@@ -51,6 +52,10 @@ function RanchPageContent() {
     <main className="min-h-screen bg-gradient-to-b from-green-100 to-lime-200 p-6">
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 text-4xl font-bold text-green-900">🌿 Ranch</h1>
+
+        <div className="mb-6">
+          <MainStoryPanel />
+        </div>
 
         <div className="rounded-3xl border-4 border-green-900 bg-white/85 p-6 shadow-xl">
           <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2 lg:grid-cols-4">

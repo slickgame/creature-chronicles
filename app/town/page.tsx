@@ -9,6 +9,7 @@ import { SellerStockList } from "@/components/town/TownSellerUi";
 import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
+import MainStoryPanel from "@/components/story/MainStoryPanel";
 import {
   FARM_ECONOMY_MARKET_SECTIONS,
   DEFAULT_PRODUCE_DEMANDS,
@@ -1565,6 +1566,10 @@ export default function TownPage() {
     <main className="min-h-screen overflow-hidden bg-gradient-to-b from-stone-100 to-amber-200 p-6">
       <div className="mx-auto max-w-7xl">
         <h1 className="mb-6 text-4xl font-bold text-stone-900">🏘️ Town</h1>
+
+        <div className="mb-6">
+          <MainStoryPanel />
+        </div>
 
         <div className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
           <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2 lg:grid-cols-4">

@@ -372,6 +372,64 @@ type FieldActionReport = {
   details: string[];
 };
 
+type MainStoryChapterId = "chapter_1";
+
+type MainStoryObjectiveId =
+  | "ranch_creature_care"
+  | "first_town_visit"
+  | "maris_seed_guidance"
+  | "first_seed_planted";
+
+type MainStoryReward = {
+  title: string;
+  description: string;
+  gold: number;
+  items: Array<{ itemId: string; quantity: number }>;
+  unlockText: string;
+};
+
+type MainStoryObjective = {
+  id: MainStoryObjectiveId;
+  title: string;
+  description: string;
+  locationHint: LocationName;
+  completionFlag: MainStoryObjectiveId;
+  rewardPreview?: string;
+};
+
+type MainStoryChapter = {
+  id: MainStoryChapterId;
+  chapterNumber: number;
+  title: string;
+  subtitle: string;
+  summary: string;
+  objectives: MainStoryObjective[];
+  completionReward: MainStoryReward;
+  nextChapterHint: string;
+};
+
+type MainStoryCompletedChapterLogEntry = {
+  chapterId: MainStoryChapterId;
+  title: string;
+  completedDay: number;
+  rewardTitle: string;
+};
+
+type MainStoryState = {
+  currentChapterId: MainStoryChapterId;
+  currentObjectiveId: MainStoryObjectiveId;
+  chapterProgressFlags: Partial<Record<MainStoryObjectiveId, boolean>>;
+  completedChapterLog: MainStoryCompletedChapterLogEntry[];
+  latestReward: MainStoryReward | null;
+};
+
+type MainStoryChapterProgress = {
+  completedSteps: number;
+  totalSteps: number;
+  percent: number;
+  isComplete: boolean;
+};
+
 
 type SaveData = {
   currentDay: number;
@@ -408,6 +466,7 @@ type SaveData = {
   knownRecipeIds: string[];
   fieldUpgrades: FieldUpgradeState;
   fieldPlots: FieldPlot[];
+  mainStory: MainStoryState;
 };
 
 type GameContextType = {
@@ -444,6 +503,11 @@ type GameContextType = {
   fieldPlots: FieldPlot[];
   fieldUpgrades: FieldUpgradeState;
   lastFieldAction: FieldActionReport | null;
+  mainStory: MainStoryState;
+  currentMainStoryChapter: MainStoryChapter;
+  currentMainStoryObjective: MainStoryObjective;
+  mainStoryChapterProgress: MainStoryChapterProgress;
+  dismissMainStoryReward: () => void;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -494,6 +558,71 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 const MONTH_LENGTH = 28;
 const TAX_WARNING_DAY = 24;
 
+const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
+  chapter_1: {
+    id: "chapter_1",
+    chapterNumber: 1,
+    title: "First Furrow, First Favor",
+    subtitle: "Let the ranch breathe, then let town notice.",
+    summary:
+      "Chapter 1 threads the first daily rhythm together: tend a creature, step into town, take Maris Thorn's teasing guidance, and start a crop with your partner's help.",
+    objectives: [
+      {
+        id: "ranch_creature_care",
+        title: "Warm Hands, Steady Chores",
+        description:
+          "Complete a ranch chore with one of your creatures: feed, groom, cook, clean, or start field work.",
+        locationHint: "ranch",
+        completionFlag: "ranch_creature_care",
+      },
+      {
+        id: "first_town_visit",
+        title: "Let Town Get a Look",
+        description:
+          "Travel to town so the locals can start putting a face to the new ranch name.",
+        locationHint: "town",
+        completionFlag: "first_town_visit",
+      },
+      {
+        id: "maris_seed_guidance",
+        title: "Maris's Counter Lesson",
+        description:
+          "Buy any seed from Maris Thorn. She is warm, smug, and very interested in what your hands can grow.",
+        locationHint: "town",
+        completionFlag: "maris_seed_guidance",
+        rewardPreview: "A clear lead into your first authored planting beat.",
+      },
+      {
+        id: "first_seed_planted",
+        title: "Put Promise in the Soil",
+        description:
+          "Return to the ranch and plant any seed with a creature helping in the field.",
+        locationHint: "ranch",
+        completionFlag: "first_seed_planted",
+        rewardPreview: "Chapter reward: 120 Gold, 2 Basic Fertilizer, and Chapter 2 lead.",
+      },
+    ],
+    completionReward: {
+      title: "Maris's Starter Favor",
+      description:
+        "Maris sends over a practical little bundle with a note that says she expects to see what you do with it.",
+      gold: 120,
+      items: [{ itemId: "basic_fertilizer", quantity: 2 }],
+      unlockText: "Chapter 2 seed: harvest your first crop and turn it into a town favor.",
+    },
+    nextChapterHint:
+      "Chapter 2 should follow the crop through harvest, delivery, and a more deliberate town relationship choice.",
+  },
+};
+
+const defaultMainStoryState: MainStoryState = {
+  currentChapterId: "chapter_1",
+  currentObjectiveId: "ranch_creature_care",
+  chapterProgressFlags: {},
+  completedChapterLog: [],
+  latestReward: null,
+};
+
 const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
 const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
 const catFirstNames = ["Velvet","Misty","Sable","Luna","Poppy","Ivy","Mochi","Pearl"];
@@ -514,6 +643,55 @@ function randomFrom<T>(items: readonly T[]): T {
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function getMainStoryChapter(chapterId: MainStoryChapterId) {
+  return MAIN_STORY_CHAPTERS[chapterId] ?? MAIN_STORY_CHAPTERS.chapter_1;
+}
+
+function getMainStoryProgress(state: MainStoryState): MainStoryChapterProgress {
+  const chapter = getMainStoryChapter(state.currentChapterId);
+  const completedSteps = chapter.objectives.filter(
+    (objective) => state.chapterProgressFlags[objective.completionFlag]
+  ).length;
+  const totalSteps = chapter.objectives.length;
+
+  return {
+    completedSteps,
+    totalSteps,
+    percent: totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0,
+    isComplete: completedSteps >= totalSteps,
+  };
+}
+
+function getCurrentMainStoryObjective(state: MainStoryState) {
+  const chapter = getMainStoryChapter(state.currentChapterId);
+  return (
+    chapter.objectives.find((objective) => !state.chapterProgressFlags[objective.completionFlag]) ??
+    chapter.objectives.find((objective) => objective.id === state.currentObjectiveId) ??
+    chapter.objectives[chapter.objectives.length - 1]
+  );
+}
+
+function normalizeMainStoryState(state?: Partial<MainStoryState> | null): MainStoryState {
+  const chapterId: MainStoryChapterId =
+    state?.currentChapterId && MAIN_STORY_CHAPTERS[state.currentChapterId]
+      ? state.currentChapterId
+      : defaultMainStoryState.currentChapterId;
+  const chapter = getMainStoryChapter(chapterId);
+  const flags = { ...(state?.chapterProgressFlags ?? {}) };
+  const currentObjective =
+    chapter.objectives.find((objective) => objective.id === state?.currentObjectiveId) ??
+    chapter.objectives.find((objective) => !flags[objective.completionFlag]) ??
+    chapter.objectives[0];
+
+  return {
+    currentChapterId: chapterId,
+    currentObjectiveId: currentObjective.id,
+    chapterProgressFlags: flags,
+    completedChapterLog: Array.isArray(state?.completedChapterLog) ? state.completedChapterLog : [],
+    latestReward: state?.latestReward ?? null,
+  };
 }
 
 function getMonthFromAbsoluteDay(day: number) {
@@ -1934,6 +2112,7 @@ const defaultSaveData: SaveData = {
   knownRecipeIds: defaultKnownRecipeIds,
   fieldUpgrades: DEFAULT_FIELD_UPGRADES,
   fieldPlots: defaultFieldPlots,
+  mainStory: defaultMainStoryState,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -1994,8 +2173,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [fieldUpgrades, setFieldUpgrades] = useState<FieldUpgradeState>(defaultSaveData.fieldUpgrades);
   const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
   const [lastFieldAction, setLastFieldAction] = useState<FieldActionReport | null>(null);
+  const [mainStory, setMainStory] = useState<MainStoryState>(defaultSaveData.mainStory);
   const currentSeason = getSeasonForDay(currentDay);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
+  const currentMainStoryChapter = getMainStoryChapter(mainStory.currentChapterId);
+  const currentMainStoryObjective = getCurrentMainStoryObjective(mainStory);
+  const mainStoryChapterProgress = getMainStoryProgress(mainStory);
   
 
   useEffect(() => {
@@ -2099,6 +2282,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
             getFieldUpgradeEffects(normalizedFieldUpgrades).unlockedPlotCount
           )
         );
+        setMainStory(normalizeMainStoryState(parsedSave.mainStory));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -2144,6 +2328,7 @@ useEffect(() => {
     knownRecipeIds,
     fieldUpgrades,
     fieldPlots,
+    mainStory,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -2183,6 +2368,7 @@ useEffect(() => {
   knownRecipeIds,
   fieldUpgrades,
   fieldPlots,
+  mainStory,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -2197,6 +2383,76 @@ useEffect(() => {
     setNpcExclusiveLoops((prev) =>
       ensureNpcExclusiveLoopState(prev, day, hour, minute, npcLoverEvolutions)
     );
+  }
+
+  function grantMainStoryReward(reward: MainStoryReward) {
+    if (reward.gold > 0) {
+      setPlayerData((prev) => ({ ...prev, gold: prev.gold + reward.gold }));
+    }
+
+    if (reward.items.length > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        reward.items.forEach((itemReward) => {
+          next = addItemToInventory(next, itemReward.itemId, itemReward.quantity);
+        });
+        return next;
+      });
+    }
+  }
+
+  function recordMainStoryFlags(flags: MainStoryObjectiveId[]) {
+    const chapter = getMainStoryChapter(mainStory.currentChapterId);
+    const chapterFlags = new Set(chapter.objectives.map((objective) => objective.completionFlag));
+    const newFlags = flags.filter(
+      (flag) => chapterFlags.has(flag) && !mainStory.chapterProgressFlags[flag]
+    );
+    if (newFlags.length === 0) return;
+
+    const nextFlags = { ...mainStory.chapterProgressFlags };
+    newFlags.forEach((flag) => {
+      nextFlags[flag] = true;
+    });
+    const nextObjective =
+      chapter.objectives.find((objective) => !nextFlags[objective.completionFlag]) ??
+      chapter.objectives[chapter.objectives.length - 1];
+    const chapterAlreadyLogged = mainStory.completedChapterLog.some(
+      (entry) => entry.chapterId === chapter.id
+    );
+    const chapterComplete = chapter.objectives.every(
+      (objective) => nextFlags[objective.completionFlag]
+    );
+    const shouldGrantReward = chapterComplete && !chapterAlreadyLogged;
+
+    if (shouldGrantReward) {
+      grantMainStoryReward(chapter.completionReward);
+    }
+
+    setMainStory({
+      currentChapterId: chapter.id,
+      currentObjectiveId: nextObjective.id,
+      chapterProgressFlags: nextFlags,
+      completedChapterLog: shouldGrantReward
+        ? [
+            {
+              chapterId: chapter.id,
+              title: chapter.title,
+              completedDay: currentDay,
+              rewardTitle: chapter.completionReward.title,
+            },
+            ...mainStory.completedChapterLog,
+          ]
+        : mainStory.completedChapterLog,
+      latestReward: shouldGrantReward ? chapter.completionReward : mainStory.latestReward,
+    });
+  }
+
+  function recordMainStoryFlag(flag: MainStoryObjectiveId) {
+    recordMainStoryFlags([flag]);
+  }
+
+  function dismissMainStoryReward() {
+    setMainStory((prev) => ({ ...prev, latestReward: null }));
   }
 
   function nextDay() {
@@ -2420,6 +2676,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  recordMainStoryFlag("ranch_creature_care");
 }
 
   function breedCreatures() {
@@ -3306,6 +3563,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTravelLog((prev) => [newLogEntry, ...prev].slice(0, 20));
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    if (destination === "town") {
+      recordMainStoryFlag("first_town_visit");
+    }
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
@@ -3363,6 +3623,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlag("ranch_creature_care");
   }
 
   function cleanHome(creatureId: number) {
@@ -3413,6 +3674,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlag("ranch_creature_care");
   }
 
   function workFields(creatureId: number) {
@@ -3480,6 +3742,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlags(["ranch_creature_care", "first_seed_planted"]);
     return true;
   }
 
@@ -3976,6 +4239,9 @@ function purchaseMarketItem(itemId: string, price: number) {
   if (shouldAdvanceTime) {
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    if (item.category === "seed") {
+      recordMainStoryFlag("maris_seed_guidance");
+    }
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
   return true;
@@ -4054,6 +4320,7 @@ function purchaseMarketItem(itemId: string, price: number) {
     setKnownRecipeIds(defaultKnownRecipeIds);
     setFieldUpgrades(DEFAULT_FIELD_UPGRADES);
     setFieldPlots(createDefaultFieldPlots());
+    setMainStory(defaultMainStoryState);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -4093,6 +4360,11 @@ function purchaseMarketItem(itemId: string, price: number) {
         fieldPlots,
         fieldUpgrades,
         lastFieldAction,
+        mainStory,
+        currentMainStoryChapter,
+        currentMainStoryObjective,
+        mainStoryChapterProgress,
+        dismissMainStoryReward,
         nextDay,
         hatchEgg,
         breedCreatures,
