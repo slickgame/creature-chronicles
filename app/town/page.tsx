@@ -10,6 +10,7 @@ import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
 import MainStoryPanel from "@/components/story/MainStoryPanel";
+import StoryJournal from "@/components/story/StoryJournal";
 import {
   FARM_ECONOMY_MARKET_SECTIONS,
   DEFAULT_PRODUCE_DEMANDS,
@@ -1569,6 +1570,10 @@ export default function TownPage() {
 
         <div className="mb-6">
           <MainStoryPanel />
+        </div>
+
+        <div className="mb-6">
+          <StoryJournal />
         </div>
 
         <div className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import RanchOperationsPanel from "@/components/ranch/RanchOperationsPanel";
 import MainStoryPanel from "@/components/story/MainStoryPanel";
+import StoryJournal from "@/components/story/StoryJournal";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
 
@@ -55,6 +56,10 @@ function RanchPageContent() {
 
         <div className="mb-6">
           <MainStoryPanel />
+        </div>
+
+        <div className="mb-6">
+          <StoryJournal />
         </div>
 
         <div className="rounded-3xl border-4 border-green-900 bg-white/85 p-6 shadow-xl">
