@@ -372,13 +372,19 @@ type FieldActionReport = {
   details: string[];
 };
 
-type MainStoryChapterId = "chapter_1";
+type MainStoryChapterId = "chapter_1" | "chapter_2";
 
 type MainStoryObjectiveId =
   | "ranch_creature_care"
   | "first_town_visit"
   | "maris_seed_guidance"
-  | "first_seed_planted";
+  | "first_seed_planted"
+  | "chapter2_ranch_preparation"
+  | "chapter2_creature_fieldwork"
+  | "chapter2_first_harvest"
+  | "chapter2_crafted_or_crated"
+  | "chapter2_town_delivery"
+  | "chapter2_social_followup";
 
 type MainStoryReward = {
   title: string;
@@ -406,6 +412,7 @@ type MainStoryChapter = {
   objectives: MainStoryObjective[];
   completionReward: MainStoryReward;
   nextChapterHint: string;
+  nextChapterId?: MainStoryChapterId;
 };
 
 type MainStoryCompletedChapterLogEntry = {
@@ -612,6 +619,81 @@ const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
     },
     nextChapterHint:
       "Chapter 2 should follow the crop through harvest, delivery, and a more deliberate town relationship choice.",
+    nextChapterId: "chapter_2",
+  },
+  chapter_2: {
+    id: "chapter_2",
+    chapterNumber: 2,
+    title: "First Harvest, First Favor",
+    subtitle: "Turn a planted promise into something town can taste.",
+    summary:
+      "Chapter 2 follows the ranch's first real job: steady your creature, work the rows, harvest something worth carrying, and let one of town's sharp-eyed regulars see what your hands can do.",
+    objectives: [
+      {
+        id: "chapter2_ranch_preparation",
+        title: "Make the Ranch Presentable",
+        description:
+          "Do a ranch-side preparation chore with a creature: feed, groom, cook, clean, or otherwise settle the place before the day gets busy.",
+        locationHint: "ranch",
+        completionFlag: "chapter2_ranch_preparation",
+      },
+      {
+        id: "chapter2_creature_fieldwork",
+        title: "Put a Creature Beside You",
+        description:
+          "Have a creature help in the fields by planting, watering, fertilizing, or harvesting. The town notices results, but the ranch is built in these quieter moments.",
+        locationHint: "ranch",
+        completionFlag: "chapter2_creature_fieldwork",
+      },
+      {
+        id: "chapter2_first_harvest",
+        title: "Bring In a Real Crop",
+        description:
+          "Harvest any grown crop. Maris teased you into planting it; now prove the soil listened.",
+        locationHint: "ranch",
+        completionFlag: "chapter2_first_harvest",
+        rewardPreview: "Harvested goods can feed delivery requests, gifts, cooking, or Selene's exchange.",
+      },
+      {
+        id: "chapter2_crafted_or_crated",
+        title: "Make It Worth Carrying",
+        description:
+          "Craft a recipe at the ranch or prepare a harvested crate by selling, delivering, or gifting produce. The point is to turn raw work into a real offer.",
+        locationHint: "ranch",
+        completionFlag: "chapter2_crafted_or_crated",
+      },
+      {
+        id: "chapter2_town_delivery",
+        title: "First Real Favor",
+        description:
+          "Complete a town-facing exchange: fulfill an NPC request, complete a farm-economy contract, sell produce to Selene, or bring a useful gift to Maris, Tamsin, or Selene.",
+        locationHint: "town",
+        completionFlag: "chapter2_town_delivery",
+      },
+      {
+        id: "chapter2_social_followup",
+        title: "Let Them Remember You",
+        description:
+          "Make one warm social touch with a farm-economy NPC: give a gift, complete a contract, finish a delivery, or accept an outing if one is available.",
+        locationHint: "town",
+        completionFlag: "chapter2_social_followup",
+        rewardPreview: "Chapter reward: 180 Gold, Wheat Seed x3, Milk x1, and the Chapter 3 lead.",
+      },
+    ],
+    completionReward: {
+      title: "First Favor Ledger",
+      description:
+        "Your name lands in town's quiet ledger of people who follow through. Maris is amused, Tamsin is warmer than strictly professional, and Selene finally has a reason to measure you twice.",
+      gold: 180,
+      items: [
+        { itemId: "wheat_seed", quantity: 3 },
+        { itemId: "milk", quantity: 1 },
+      ],
+      unlockText:
+        "Chapter 3 lead: choose which town relationship becomes your first deliberate route pressure point.",
+    },
+    nextChapterHint:
+      "Chapter 3 should branch the campaign spine toward Maris, Tamsin, or Selene with a stronger route choice and a named contract arc.",
   },
 };
 
@@ -674,12 +756,20 @@ function getCurrentMainStoryObjective(state: MainStoryState) {
 }
 
 function normalizeMainStoryState(state?: Partial<MainStoryState> | null): MainStoryState {
-  const chapterId: MainStoryChapterId =
+  const savedChapterId: MainStoryChapterId =
     state?.currentChapterId && MAIN_STORY_CHAPTERS[state.currentChapterId]
       ? state.currentChapterId
       : defaultMainStoryState.currentChapterId;
-  const chapter = getMainStoryChapter(chapterId);
   const flags = { ...(state?.chapterProgressFlags ?? {}) };
+  const savedChapter = getMainStoryChapter(savedChapterId);
+  const savedChapterComplete = savedChapter.objectives.every(
+    (objective) => flags[objective.completionFlag]
+  );
+  const chapterId =
+    savedChapterComplete && savedChapter.nextChapterId
+      ? savedChapter.nextChapterId
+      : savedChapterId;
+  const chapter = getMainStoryChapter(chapterId);
   const currentObjective =
     chapter.objectives.find((objective) => objective.id === state?.currentObjectiveId) ??
     chapter.objectives.find((objective) => !flags[objective.completionFlag]) ??
@@ -2427,10 +2517,18 @@ useEffect(() => {
     if (shouldGrantReward) {
       grantMainStoryReward(chapter.completionReward);
     }
+    const nextChapter = shouldGrantReward && chapter.nextChapterId
+      ? getMainStoryChapter(chapter.nextChapterId)
+      : chapter;
+    const nextChapterObjective =
+      shouldGrantReward && chapter.nextChapterId
+        ? nextChapter.objectives.find((objective) => !nextFlags[objective.completionFlag]) ??
+          nextChapter.objectives[0]
+        : nextObjective;
 
     setMainStory({
-      currentChapterId: chapter.id,
-      currentObjectiveId: nextObjective.id,
+      currentChapterId: nextChapter.id,
+      currentObjectiveId: nextChapterObjective.id,
       chapterProgressFlags: nextFlags,
       completedChapterLog: shouldGrantReward
         ? [
@@ -2676,7 +2774,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-  recordMainStoryFlag("ranch_creature_care");
+  recordMainStoryFlags(["ranch_creature_care", "chapter2_ranch_preparation"]);
 }
 
   function breedCreatures() {
@@ -2934,6 +3032,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+    recordMainStoryFlags(["chapter2_town_delivery", "chapter2_social_followup"]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
@@ -3018,6 +3117,11 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureNpcQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 3);
     });
+    recordMainStoryFlags([
+      "chapter2_crafted_or_crated",
+      "chapter2_town_delivery",
+      "chapter2_social_followup",
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
 
     return true;
@@ -3165,6 +3269,11 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       getLedgerMiniChainActionKeys(offer.npcId, offer.kind),
       updatedClock.day
     );
+    recordMainStoryFlags(
+      offer.requirements.length > 0
+        ? ["chapter2_crafted_or_crated", "chapter2_town_delivery", "chapter2_social_followup"]
+        : ["chapter2_social_followup"]
+    );
 
     return true;
   }
@@ -3302,6 +3411,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     );
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlags(["chapter2_crafted_or_crated", "chapter2_town_delivery", "chapter2_social_followup"]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -3407,6 +3517,11 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
           }
         : result
     );
+    recordMainStoryFlags([
+      "chapter2_crafted_or_crated",
+      "chapter2_town_delivery",
+      "chapter2_social_followup",
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -3515,6 +3630,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     );
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlag("chapter2_social_followup");
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -3623,7 +3739,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlag("ranch_creature_care");
+    recordMainStoryFlags(["ranch_creature_care", "chapter2_ranch_preparation"]);
   }
 
   function cleanHome(creatureId: number) {
@@ -3674,7 +3790,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlag("ranch_creature_care");
+    recordMainStoryFlags(["ranch_creature_care", "chapter2_ranch_preparation"]);
   }
 
   function workFields(creatureId: number) {
@@ -3742,7 +3858,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["ranch_creature_care", "first_seed_planted"]);
+    recordMainStoryFlags(["ranch_creature_care", "first_seed_planted", "chapter2_creature_fieldwork"]);
     return true;
   }
 
@@ -3798,6 +3914,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlag("chapter2_creature_fieldwork");
     return true;
   }
 
@@ -3852,6 +3969,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlag("chapter2_creature_fieldwork");
     return true;
   }
 
@@ -3915,6 +4033,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter2_first_harvest"]);
     return true;
   }
 
@@ -4070,6 +4189,7 @@ function cookRecipe(recipeId: string, creatureId: number) {
 
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  recordMainStoryFlags(["chapter2_ranch_preparation", "chapter2_crafted_or_crated"]);
   return true;
 }
 
@@ -4158,6 +4278,7 @@ function sellQualityProduce(
   );
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+  recordMainStoryFlags(["chapter2_crafted_or_crated", "chapter2_town_delivery", "chapter2_social_followup"]);
   refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   return true;
 }

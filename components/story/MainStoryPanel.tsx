@@ -24,6 +24,19 @@ export default function MainStoryPanel() {
   const rewardItems = reward?.items
     .map((item) => `${ITEM_DATA[item.itemId]?.name ?? item.itemId} x${item.quantity}`)
     .join(", ");
+  const chapterRewardItems = currentMainStoryChapter.completionReward.items
+    .map((item) => `${ITEM_DATA[item.itemId]?.name ?? item.itemId} x${item.quantity}`)
+    .join(", ");
+  const currentStepIndex = currentMainStoryChapter.objectives.findIndex(
+    (objective) => objective.id === currentMainStoryObjective.id
+  );
+  const currentStepNumber =
+    mainStoryChapterProgress.isComplete || currentStepIndex < 0
+      ? currentMainStoryChapter.objectives.length
+      : currentStepIndex + 1;
+  const currentChapterLogEntry = mainStory.completedChapterLog.find(
+    (entry) => entry.chapterId === currentMainStoryChapter.id
+  );
 
   return (
     <section className="rounded-3xl border-4 border-indigo-950 bg-white/90 p-5 shadow-xl">
@@ -54,7 +67,9 @@ export default function MainStoryPanel() {
             />
           </div>
           <p className="mt-2 text-xs font-semibold">
-            {mainStoryChapterProgress.isComplete ? "Chapter complete" : `${mainStoryChapterProgress.percent}% complete`}
+            {mainStoryChapterProgress.isComplete
+              ? "Chapter complete"
+              : `Step ${currentStepNumber} of ${mainStoryChapterProgress.totalSteps}`}
           </p>
         </div>
       </div>
@@ -82,6 +97,66 @@ export default function MainStoryPanel() {
           </p>
         ) : null}
       </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(260px,0.6fr)]">
+        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+          <p className="text-xs font-bold uppercase text-indigo-800">Chapter Steps</p>
+          <div className="mt-3 grid gap-2">
+            {currentMainStoryChapter.objectives.map((objective, index) => {
+              const complete = Boolean(mainStory.chapterProgressFlags[objective.completionFlag]);
+              const active = objective.id === currentMainStoryObjective.id && !mainStoryChapterProgress.isComplete;
+
+              return (
+                <div
+                  key={objective.id}
+                  className={`rounded-xl border px-3 py-2 text-sm ${
+                    complete
+                      ? "border-emerald-200 bg-white text-emerald-950"
+                      : active
+                        ? "border-amber-300 bg-amber-50 text-amber-950"
+                        : "border-white bg-white/70 text-stone-700"
+                  }`}
+                >
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="font-semibold">
+                      {index + 1}. {objective.title}
+                    </p>
+                    <span className="text-xs font-bold">
+                      {complete ? "Done" : active ? "Now" : getLocationLabel(objective.locationHint)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm text-stone-800">
+          <p className="text-xs font-bold uppercase text-stone-600">Chapter Reward</p>
+          <h3 className="mt-1 font-bold text-stone-950">
+            {currentMainStoryChapter.completionReward.title}
+          </h3>
+          <p className="mt-2">
+            {currentMainStoryChapter.completionReward.gold} Gold
+            {chapterRewardItems ? ` - ${chapterRewardItems}` : ""}
+          </p>
+          <p className="mt-2 text-xs font-semibold text-stone-700">
+            {currentMainStoryChapter.completionReward.unlockText}
+          </p>
+        </div>
+      </div>
+
+      {mainStoryChapterProgress.isComplete ? (
+        <div className="mt-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-stone-800">
+          <p className="text-xs font-bold uppercase text-emerald-800">Chapter Complete</p>
+          <p className="mt-1 font-semibold text-stone-950">
+            {currentChapterLogEntry
+              ? `${currentChapterLogEntry.title} completed on Day ${currentChapterLogEntry.completedDay}.`
+              : `${currentMainStoryChapter.title} is complete.`}
+          </p>
+          <p className="mt-2">{currentMainStoryChapter.nextChapterHint}</p>
+        </div>
+      ) : null}
 
       {reward ? (
         <div className="mt-4 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-stone-800">
