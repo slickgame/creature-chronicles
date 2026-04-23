@@ -372,7 +372,7 @@ type FieldActionReport = {
   details: string[];
 };
 
-type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3";
+type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3" | "chapter_4";
 
 type MainStoryObjectiveId =
   | "ranch_creature_care"
@@ -390,7 +390,13 @@ type MainStoryObjectiveId =
   | "chapter3_produce_or_meal"
   | "chapter3_trusted_assignment"
   | "chapter3_route_signal"
-  | "chapter3_reputation_registered";
+  | "chapter3_reputation_registered"
+  | "chapter4_creature_assessment"
+  | "chapter4_breeding_preparation"
+  | "chapter4_lineage_step"
+  | "chapter4_creature_growth_work"
+  | "chapter4_town_bloodline_proof"
+  | "chapter4_lineage_registered";
 
 type MainStoryReward = {
   title: string;
@@ -776,6 +782,81 @@ const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
     },
     nextChapterHint:
       "Chapter 4 should introduce the first route-weighted story branch: Maris's grower pact, Tamsin's private kitchen commission, or Selene's premium buyer terms.",
+    nextChapterId: "chapter_4",
+  },
+  chapter_4: {
+    id: "chapter_4",
+    chapterNumber: 4,
+    title: "Bloodline on the Ledger",
+    subtitle: "The ranch's future starts breathing beside you.",
+    summary:
+      "Chapter 4 turns the campaign toward creatures as the ranch's long-term heart: assess your companions, make a breeding or nursery move, grow a creature's role, and bring that proof back to town so your ranch is known for more than crops.",
+    objectives: [
+      {
+        id: "chapter4_creature_assessment",
+        title: "Read the Ranch's Beating Heart",
+        description:
+          "Spend focused care on a creature through feeding, grooming, recovery, cooking, cleaning, or another ranch-side support task. Before town respects your line, you need to know who is carrying it.",
+        locationHint: "ranch",
+        completionFlag: "chapter4_creature_assessment",
+      },
+      {
+        id: "chapter4_breeding_preparation",
+        title: "Prepare a Pairing or Nursery Plan",
+        description:
+          "Engage the breeding-adjacent loop: run a breeding session, recover a creature for future pairing, hatch an egg, or expand the ranch roster with a new creature.",
+        locationHint: "ranch",
+        completionFlag: "chapter4_breeding_preparation",
+      },
+      {
+        id: "chapter4_lineage_step",
+        title: "Mark a New Line",
+        description:
+          "Create or advance a lineage step by producing an egg, hatching an egg, or bringing a new creature into the ranch. The campaign wants the ranch's future to be visible.",
+        locationHint: "ranch",
+        completionFlag: "chapter4_lineage_step",
+        rewardPreview: "Eggs, hatched creatures, and new roster additions all count as lineage progress.",
+      },
+      {
+        id: "chapter4_creature_growth_work",
+        title: "Give the Creature a Role",
+        description:
+          "Let a creature prove its place through field work, harvesting, cooking, care, or breeding-care growth. A bloodline matters because it can work, not because it sits pretty.",
+        locationHint: "ranch",
+        completionFlag: "chapter4_creature_growth_work",
+      },
+      {
+        id: "chapter4_town_bloodline_proof",
+        title: "Show Town What Your Creatures Can Become",
+        description:
+          "Tie creature progress back into town by completing a creature quest, NPC request, farm-economy contract, exclusive loop, produce sale, gift, or outing after the ranch has something real to show.",
+        locationHint: "town",
+        completionFlag: "chapter4_town_bloodline_proof",
+      },
+      {
+        id: "chapter4_lineage_registered",
+        title: "Register the Ranch's Living Future",
+        description:
+          "Finish a meaningful town-facing proof so your ranch is recognized for creatures, lineage, and long-term growth instead of only day-to-day favors.",
+        locationHint: "town",
+        completionFlag: "chapter4_lineage_registered",
+        rewardPreview: "Chapter reward: 340 Gold, Rich Fertilizer x2, Apple Seed x2, and the Chapter 5 lead.",
+      },
+    ],
+    completionReward: {
+      title: "Bloodline Ledger Entry",
+      description:
+        "Your ranch earns its first creature-focused notation in town. Maris calls it promising, Tamsin calls it tender, and Selene calls it an asset while looking far too pleased with herself.",
+      gold: 340,
+      items: [
+        { itemId: "rich_fertilizer", quantity: 2 },
+        { itemId: "apple_seed", quantity: 2 },
+      ],
+      unlockText:
+        "Chapter 5 lead: prepare for a regional commission where creature lineage, produce quality, and town allegiance all matter at once.",
+    },
+    nextChapterHint:
+      "Chapter 5 should open the first broader regional commission, asking the player to combine a stronger creature role, a polished ranch product, and one chosen town ally.",
   },
 };
 
@@ -2762,6 +2843,11 @@ useEffect(() => {
     newCreature = applyEggQualityBonuses(newCreature, eggToHatch.quality ?? "normal");
     setCreatures((prev) => [...prev, newCreature]);
     setEggs((prev) => prev.filter((egg) => egg.id !== eggId));
+    recordMainStoryFlags([
+      "chapter4_breeding_preparation",
+      "chapter4_lineage_step",
+      "chapter4_creature_growth_work",
+    ]);
     return newCreature;
   }
 
@@ -2872,6 +2958,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     "ranch_creature_care",
     "chapter2_ranch_preparation",
     "chapter3_ranch_reputation_prep",
+    "chapter4_creature_assessment",
+    "chapter4_creature_growth_work",
+    ...(careType === "recovery" ? (["chapter4_breeding_preparation"] as MainStoryObjectiveId[]) : []),
   ]);
 }
 
@@ -2943,6 +3032,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         })
       );
 
+      recordMainStoryFlag("chapter4_breeding_preparation");
       return;
     }
 
@@ -3005,10 +3095,21 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       })
     );
 
-    if (receiverIsPlayer) return;
+    const breedingStoryFlags: MainStoryObjectiveId[] = [
+      "chapter4_breeding_preparation",
+      "chapter4_creature_growth_work",
+    ];
+
+    if (receiverIsPlayer) {
+      recordMainStoryFlags(breedingStoryFlags);
+      return;
+    }
 
     const eggProductionChance = getEggProductionChance(giverParticipant, receiverParticipant, homeState);
-    if (Math.random() > eggProductionChance) return;
+    if (Math.random() > eggProductionChance) {
+      recordMainStoryFlags(breedingStoryFlags);
+      return;
+    }
 
     const eggQuality = getEggQualityFromPairing(giverParticipant, receiverParticipant, homeState);
     const newEgg: Egg = {
@@ -3027,6 +3128,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     };
 
     setEggs((prev) => [...prev, newEgg]);
+    recordMainStoryFlags([...breedingStoryFlags, "chapter4_lineage_step"]);
   }
 
   function renameCreature(creatureId: number, newNickname: string) {
@@ -3059,6 +3161,11 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownStock((prev) => prev.filter((item) => item.id !== stockEntryId));
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlags([
+      "chapter4_breeding_preparation",
+      "chapter4_lineage_step",
+      "chapter4_town_bloodline_proof",
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
@@ -3080,6 +3187,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 10);
     });
+    recordMainStoryFlags(["chapter4_town_bloodline_proof", "chapter4_lineage_registered"]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
@@ -3136,6 +3244,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_trusted_assignment",
       "chapter3_route_signal",
       "chapter3_reputation_registered",
+      "chapter4_town_bloodline_proof",
+      "chapter4_lineage_registered",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -3228,6 +3338,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_trusted_assignment",
       "chapter3_route_signal",
       "chapter3_reputation_registered",
+      "chapter4_town_bloodline_proof",
+      "chapter4_lineage_registered",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
 
@@ -3385,8 +3497,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
             "chapter3_trusted_assignment",
             "chapter3_route_signal",
             "chapter3_reputation_registered",
+            "chapter4_town_bloodline_proof",
+            "chapter4_lineage_registered",
           ]
-        : ["chapter2_social_followup", "chapter3_route_signal"]
+        : ["chapter2_social_followup", "chapter3_route_signal", "chapter4_town_bloodline_proof"]
     );
 
     return true;
@@ -3532,6 +3646,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_trusted_assignment",
       "chapter3_route_signal",
       "chapter3_reputation_registered",
+      "chapter4_town_bloodline_proof",
+      "chapter4_lineage_registered",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -3643,6 +3759,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter2_town_delivery",
       "chapter2_social_followup",
       "chapter3_route_signal",
+      "chapter4_town_bloodline_proof",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -3752,7 +3869,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     );
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["chapter2_social_followup", "chapter3_route_signal"]);
+    recordMainStoryFlags(["chapter2_social_followup", "chapter3_route_signal", "chapter4_town_bloodline_proof"]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -3865,6 +3982,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "ranch_creature_care",
       "chapter2_ranch_preparation",
       "chapter3_ranch_reputation_prep",
+      "chapter4_creature_assessment",
+      "chapter4_creature_growth_work",
     ]);
   }
 
@@ -3920,6 +4039,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "ranch_creature_care",
       "chapter2_ranch_preparation",
       "chapter3_ranch_reputation_prep",
+      "chapter4_creature_assessment",
+      "chapter4_creature_growth_work",
     ]);
   }
 
@@ -3993,6 +4114,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "first_seed_planted",
       "chapter2_creature_fieldwork",
       "chapter3_creature_proof",
+      "chapter4_creature_growth_work",
     ]);
     return true;
   }
@@ -4049,7 +4171,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter3_creature_proof"]);
+    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter3_creature_proof", "chapter4_creature_growth_work"]);
     return true;
   }
 
@@ -4104,7 +4226,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter3_creature_proof"]);
+    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter3_creature_proof", "chapter4_creature_growth_work"]);
     return true;
   }
 
@@ -4173,6 +4295,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter2_first_harvest",
       "chapter3_creature_proof",
       "chapter3_produce_or_meal",
+      "chapter4_creature_growth_work",
     ]);
     return true;
   }
@@ -4335,6 +4458,8 @@ function cookRecipe(recipeId: string, creatureId: number) {
     "chapter3_ranch_reputation_prep",
     "chapter3_creature_proof",
     "chapter3_produce_or_meal",
+    "chapter4_creature_assessment",
+    "chapter4_creature_growth_work",
   ]);
   return true;
 }
@@ -4431,6 +4556,8 @@ function sellQualityProduce(
     "chapter3_trusted_assignment",
     "chapter3_route_signal",
     "chapter3_reputation_registered",
+    "chapter4_town_bloodline_proof",
+    "chapter4_lineage_registered",
   ]);
   refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   return true;
