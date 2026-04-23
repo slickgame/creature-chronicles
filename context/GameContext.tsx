@@ -372,7 +372,7 @@ type FieldActionReport = {
   details: string[];
 };
 
-type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3" | "chapter_4";
+type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3" | "chapter_4" | "chapter_5";
 
 type MainStoryObjectiveId =
   | "ranch_creature_care"
@@ -396,7 +396,14 @@ type MainStoryObjectiveId =
   | "chapter4_lineage_step"
   | "chapter4_creature_growth_work"
   | "chapter4_town_bloodline_proof"
-  | "chapter4_lineage_registered";
+  | "chapter4_lineage_registered"
+  | "chapter5_regional_notice"
+  | "chapter5_ranch_commission_prep"
+  | "chapter5_creature_backed_proof"
+  | "chapter5_significant_goods"
+  | "chapter5_town_submission"
+  | "chapter5_outside_acknowledgment"
+  | "chapter5_future_route";
 
 type MainStoryReward = {
   title: string;
@@ -857,6 +864,89 @@ const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
     },
     nextChapterHint:
       "Chapter 5 should open the first broader regional commission, asking the player to combine a stronger creature role, a polished ranch product, and one chosen town ally.",
+    nextChapterId: "chapter_5",
+  },
+  chapter_5: {
+    id: "chapter_5",
+    chapterNumber: 5,
+    title: "The Regional Commission",
+    subtitle: "Town is no longer the edge of who is watching.",
+    summary:
+      "Chapter 5 brings the first outside pressure to the campaign: a regional commission notices the ranch's output, creature line, and town reputation, then asks for proof that can travel farther than gossip.",
+    objectives: [
+      {
+        id: "chapter5_regional_notice",
+        title: "Answer the Notice Beyond Town",
+        description:
+          "Let the wider network tug at your sleeve: travel to the Guild Hall or Market, complete a town-facing job, or make a serious town contact so the commission has a place to land.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter5_regional_notice",
+      },
+      {
+        id: "chapter5_ranch_commission_prep",
+        title: "Prepare the Ranch for Inspection",
+        description:
+          "Do real ranch preparation: care for creatures, cook, clean, plant, water, fertilize, or otherwise make the ranch look like it can handle more than local favors.",
+        locationHint: "ranch",
+        completionFlag: "chapter5_ranch_commission_prep",
+      },
+      {
+        id: "chapter5_creature_backed_proof",
+        title: "Put Creature Strength Behind It",
+        description:
+          "Use creature progress as proof: breed, hatch, recover, care, train through field work, cook with a creature, or add a new creature to the ranch line.",
+        locationHint: "ranch",
+        completionFlag: "chapter5_creature_backed_proof",
+        rewardPreview: "Regional commissions care about reliable creatures as much as polished goods.",
+      },
+      {
+        id: "chapter5_significant_goods",
+        title: "Make Something Worth Sending",
+        description:
+          "Prepare a meaningful good through harvest, cooking, quality produce, or a crate-ready exchange. This is the first commission meant to represent the ranch outside its usual circle.",
+        locationHint: "ranch",
+        completionFlag: "chapter5_significant_goods",
+      },
+      {
+        id: "chapter5_town_submission",
+        title: "Submit the Commission Through Town",
+        description:
+          "Use an existing town loop as the formal submission: complete an NPC request, farm-economy contract, exclusive loop, creature quest, produce sale, or substantial gift.",
+        locationHint: "town",
+        completionFlag: "chapter5_town_submission",
+      },
+      {
+        id: "chapter5_outside_acknowledgment",
+        title: "Hear the Wider World Answer",
+        description:
+          "Follow up through a route signal, outing, contract, Guild Hall visit, Market visit, or another town-facing action that makes it clear your work is now moving through a larger network.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter5_outside_acknowledgment",
+      },
+      {
+        id: "chapter5_future_route",
+        title: "Choose What the Commission Implies",
+        description:
+          "Finish one more meaningful proof or social touch so Chapter 6 can pull on a bigger thread: factions, regional travel, or a chosen ally's private terms.",
+        locationHint: "town",
+        completionFlag: "chapter5_future_route",
+        rewardPreview: "Chapter reward: 500 Gold, Rich Fertilizer x2, Berry Seed x2, and the Chapter 6 lead.",
+      },
+    ],
+    completionReward: {
+      title: "Regional Commission Seal",
+      description:
+        "A stamped notice arrives with your ranch name written cleanly enough to make the room feel larger. Maris grins like she wants first claim on your success, Tamsin fusses over what you will need for the road, and Selene simply says she expected this.",
+      gold: 500,
+      items: [
+        { itemId: "rich_fertilizer", quantity: 2 },
+        { itemId: "berry_seed", quantity: 2 },
+      ],
+      unlockText:
+        "Chapter 6 lead: decide whether the first regional thread opens through guild pressure, market politics, or a chosen farm-economy ally.",
+    },
+    nextChapterHint:
+      "Chapter 6 should introduce the first true world-facing branch: guild inspection, market faction pressure, or an ally-led regional errand.",
   },
 };
 
@@ -2847,6 +2937,7 @@ useEffect(() => {
       "chapter4_breeding_preparation",
       "chapter4_lineage_step",
       "chapter4_creature_growth_work",
+      "chapter5_creature_backed_proof",
     ]);
     return newCreature;
   }
@@ -2960,6 +3051,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     "chapter3_ranch_reputation_prep",
     "chapter4_creature_assessment",
     "chapter4_creature_growth_work",
+    "chapter5_ranch_commission_prep",
+    "chapter5_creature_backed_proof",
     ...(careType === "recovery" ? (["chapter4_breeding_preparation"] as MainStoryObjectiveId[]) : []),
   ]);
 }
@@ -3032,7 +3125,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         })
       );
 
-      recordMainStoryFlag("chapter4_breeding_preparation");
+      recordMainStoryFlags(["chapter4_breeding_preparation", "chapter5_creature_backed_proof"]);
       return;
     }
 
@@ -3098,6 +3191,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     const breedingStoryFlags: MainStoryObjectiveId[] = [
       "chapter4_breeding_preparation",
       "chapter4_creature_growth_work",
+      "chapter5_creature_backed_proof",
     ];
 
     if (receiverIsPlayer) {
@@ -3165,6 +3259,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_breeding_preparation",
       "chapter4_lineage_step",
       "chapter4_town_bloodline_proof",
+      "chapter5_creature_backed_proof",
+      "chapter5_regional_notice",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -3187,7 +3283,14 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       const completedSet = prev.map((item) => (item.id === questId ? { ...item, completed: true } : item));
       return ensureQuestBoardSize(completedSet, updatedClock.day, updatedClock.hour, updatedClock.minute, 10);
     });
-    recordMainStoryFlags(["chapter4_town_bloodline_proof", "chapter4_lineage_registered"]);
+    recordMainStoryFlags([
+      "chapter4_town_bloodline_proof",
+      "chapter4_lineage_registered",
+      "chapter5_regional_notice",
+      "chapter5_town_submission",
+      "chapter5_outside_acknowledgment",
+      "chapter5_future_route",
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
@@ -3246,6 +3349,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_reputation_registered",
       "chapter4_town_bloodline_proof",
       "chapter4_lineage_registered",
+      "chapter5_regional_notice",
+      "chapter5_town_submission",
+      "chapter5_outside_acknowledgment",
+      "chapter5_future_route",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -3340,6 +3447,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_reputation_registered",
       "chapter4_town_bloodline_proof",
       "chapter4_lineage_registered",
+      "chapter5_regional_notice",
+      "chapter5_town_submission",
+      "chapter5_outside_acknowledgment",
+      "chapter5_future_route",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
 
@@ -3499,8 +3610,18 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
             "chapter3_reputation_registered",
             "chapter4_town_bloodline_proof",
             "chapter4_lineage_registered",
+            "chapter5_regional_notice",
+            "chapter5_town_submission",
+            "chapter5_outside_acknowledgment",
+            "chapter5_future_route",
           ]
-        : ["chapter2_social_followup", "chapter3_route_signal", "chapter4_town_bloodline_proof"]
+        : [
+            "chapter2_social_followup",
+            "chapter3_route_signal",
+            "chapter4_town_bloodline_proof",
+            "chapter5_regional_notice",
+            "chapter5_outside_acknowledgment",
+          ]
     );
 
     return true;
@@ -3648,6 +3769,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_reputation_registered",
       "chapter4_town_bloodline_proof",
       "chapter4_lineage_registered",
+      "chapter5_regional_notice",
+      "chapter5_town_submission",
+      "chapter5_outside_acknowledgment",
+      "chapter5_future_route",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -3760,6 +3885,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter2_social_followup",
       "chapter3_route_signal",
       "chapter4_town_bloodline_proof",
+      "chapter5_regional_notice",
+      "chapter5_town_submission",
+      "chapter5_outside_acknowledgment",
+      "chapter5_future_route",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -3869,7 +3998,14 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     );
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["chapter2_social_followup", "chapter3_route_signal", "chapter4_town_bloodline_proof"]);
+    recordMainStoryFlags([
+      "chapter2_social_followup",
+      "chapter3_route_signal",
+      "chapter4_town_bloodline_proof",
+      "chapter5_regional_notice",
+      "chapter5_outside_acknowledgment",
+      "chapter5_future_route",
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -3920,6 +4056,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
     if (destination === "town") {
       recordMainStoryFlag("first_town_visit");
+    }
+    if (destination === "guild_hall" || destination === "market") {
+      recordMainStoryFlags(["chapter5_regional_notice", "chapter5_outside_acknowledgment"]);
     }
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -3984,6 +4123,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_ranch_reputation_prep",
       "chapter4_creature_assessment",
       "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
     ]);
   }
 
@@ -4041,6 +4182,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_ranch_reputation_prep",
       "chapter4_creature_assessment",
       "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
     ]);
   }
 
@@ -4115,6 +4258,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter2_creature_fieldwork",
       "chapter3_creature_proof",
       "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
     ]);
     return true;
   }
@@ -4171,7 +4316,13 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter3_creature_proof", "chapter4_creature_growth_work"]);
+    recordMainStoryFlags([
+      "chapter2_creature_fieldwork",
+      "chapter3_creature_proof",
+      "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
+    ]);
     return true;
   }
 
@@ -4226,7 +4377,13 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlags(["chapter2_creature_fieldwork", "chapter3_creature_proof", "chapter4_creature_growth_work"]);
+    recordMainStoryFlags([
+      "chapter2_creature_fieldwork",
+      "chapter3_creature_proof",
+      "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
+    ]);
     return true;
   }
 
@@ -4296,6 +4453,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter3_creature_proof",
       "chapter3_produce_or_meal",
       "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
+      "chapter5_significant_goods",
     ]);
     return true;
   }
@@ -4460,6 +4620,9 @@ function cookRecipe(recipeId: string, creatureId: number) {
     "chapter3_produce_or_meal",
     "chapter4_creature_assessment",
     "chapter4_creature_growth_work",
+    "chapter5_ranch_commission_prep",
+    "chapter5_creature_backed_proof",
+    "chapter5_significant_goods",
   ]);
   return true;
 }
@@ -4558,6 +4721,11 @@ function sellQualityProduce(
     "chapter3_reputation_registered",
     "chapter4_town_bloodline_proof",
     "chapter4_lineage_registered",
+    "chapter5_significant_goods",
+    "chapter5_regional_notice",
+    "chapter5_town_submission",
+    "chapter5_outside_acknowledgment",
+    "chapter5_future_route",
   ]);
   refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   return true;
