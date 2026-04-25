@@ -32,6 +32,13 @@ function formatQuestCategory(category: string) {
   return "Regional Assignment";
 }
 
+function formatSimpleItems(items: Array<{ itemId: string; quantity: number }>) {
+  if (items.length === 0) return "No item reward";
+  return items
+    .map((item) => `${ITEM_DATA[item.itemId]?.name ?? item.itemId} x${item.quantity}`)
+    .join(", ");
+}
+
 export default function StoryJournal() {
   const {
     mainStory,
@@ -145,8 +152,20 @@ export default function StoryJournal() {
                     ) : null}
                     <div className="mt-3 grid gap-2">
                       {quest.objectives.map((objective) => (
-                        <div key={`${quest.id}-${objective.id}`} className="rounded-lg bg-sky-50 px-3 py-2 text-xs">
-                          <p className="font-bold text-stone-900">{objective.title}</p>
+                        <div
+                          key={`${quest.id}-${objective.id}`}
+                          className={`rounded-lg px-3 py-2 text-xs ${
+                            objective.completed
+                              ? "border border-emerald-200 bg-emerald-50 text-emerald-950"
+                              : "bg-sky-50"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-bold text-stone-900">{objective.title}</p>
+                            <span className="font-bold">
+                              {objective.completed ? "Done" : quest.status === "locked" ? "Locked" : "Open"}
+                            </span>
+                          </div>
                           <p className="mt-1">{objective.description}</p>
                         </div>
                       ))}
@@ -157,6 +176,23 @@ export default function StoryJournal() {
                     <p className="mt-1 text-xs font-semibold text-sky-900">
                       Reward hooks: {quest.rewardSummary}
                     </p>
+                    <div className="mt-2 rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-xs text-stone-700">
+                      <p><strong>Reward:</strong> {quest.reward.gold} Gold, {formatSimpleItems(quest.reward.items)}</p>
+                      {quest.reward.factionReputation.length > 0 ? (
+                        <p>
+                          <strong>Faction consequence:</strong>{" "}
+                          {quest.reward.factionReputation
+                            .map((reward) => `+${reward.amount} ${reward.factionId}${reward.standing ? ` to ${reward.standing}` : ""}`)
+                            .join(", ")}
+                        </p>
+                      ) : null}
+                      {quest.reward.unlockRegions.length > 0 ? (
+                        <p><strong>Region unlock:</strong> {quest.reward.unlockRegions.join(", ")}</p>
+                      ) : null}
+                      {quest.status === "completed" ? (
+                        <p className="mt-1 font-semibold text-emerald-800">{quest.reward.summary}</p>
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}
@@ -183,6 +219,12 @@ export default function StoryJournal() {
                   <p className="mt-2">{faction.description}</p>
                   <p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p>
                   <p className="mt-2 text-xs"><strong>Relationship:</strong> {faction.relationshipToPlayer}</p>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-fuchsia-100">
+                    <div
+                      className="h-full rounded-full bg-fuchsia-700"
+                      style={{ width: `${Math.min(100, Math.max(0, faction.reputation))}%` }}
+                    />
+                  </div>
                   <p className="mt-2 text-xs font-semibold text-fuchsia-900">
                     Perks: {faction.perkHooks.join(", ")}
                   </p>
@@ -208,7 +250,7 @@ export default function StoryJournal() {
                       </p>
                     </div>
                     <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">
-                      {formatStatus(region.status)}
+                      {region.status === "locked" ? "Locked" : "Destination Open"}
                     </span>
                   </div>
                   <p className="mt-2">{region.description}</p>

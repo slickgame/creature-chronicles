@@ -18,7 +18,7 @@ export default function RootLayout({
       <body>
         <GameProvider>
           <GlobalHudNav />
-          {children}
+          <div className="min-h-screen pb-24 md:pb-0">{children}</div>
         </GameProvider>
       </body>
     </html>

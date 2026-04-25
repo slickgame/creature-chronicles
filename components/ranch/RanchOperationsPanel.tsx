@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
@@ -39,6 +40,7 @@ import {
   getInventoryCategory,
   getItemEffectSummary,
 } from "@/lib/game/inventoryUi";
+import { getCreatureImage } from "@/lib/breeding/uiHelpers";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
 
@@ -110,6 +112,35 @@ function getStaminaPercent(current: number, max: number) {
   return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
 }
 
+function getPlayerImage() {
+  return "/images/player.png";
+}
+
+function getParticipantImage(participantName: string) {
+  if (participantName === "Player") return getPlayerImage();
+  if (participantName === "Horse") return "/images/horse.PNG";
+  if (participantName === "Cat") return "/images/cat.png";
+  return getCreatureImage(participantName);
+}
+
+function getBreedingRoleLabel(role: "giver" | "receiver") {
+  return role === "giver" ? "Giver" : "Receiver";
+}
+
+function getSimpleBreedingRiskLabel({
+  sameCreature,
+  giverIsPlayer,
+  receiverIsPlayer,
+}: {
+  sameCreature: boolean;
+  giverIsPlayer: boolean;
+  receiverIsPlayer: boolean;
+}) {
+  if (sameCreature) return "Blocked: choose two different creatures.";
+  if (giverIsPlayer || receiverIsPlayer) return "Low lineage risk from player pairing.";
+  return "Lineage risk is checked from parent records when breeding starts.";
+}
+
 function getFieldTraitSummary(
   creature: {
     name: string;
@@ -152,6 +183,116 @@ function formatEffectPreview(effects: ReturnType<typeof getQualityAdjustedItemEf
   return parts.length > 0 ? parts.join(" - ") : "No edible effects listed.";
 }
 
+function BreedingParticipantPreview({
+  role,
+  participant,
+}: {
+  role: "giver" | "receiver";
+  participant:
+    | {
+        type: "player";
+        name: string;
+        level: number;
+        energy: number;
+        happiness: number;
+        stats: {
+          strength: number;
+          endurance: number;
+          intelligence: number;
+          speed: number;
+          fertility: number;
+          vitality: number;
+        };
+      }
+    | {
+        type: "creature";
+        name: string;
+        species: string;
+        level: number;
+        happiness: number;
+        breedingStamina: number;
+        maxBreedingStamina: number;
+        breedingsToday: number;
+        dailyBreedingLimit: number;
+        stats: {
+          strength: number;
+          endurance: number;
+          intelligence: number;
+          speed: number;
+          fertility: number;
+          vitality: number;
+        };
+      }
+    | null;
+}) {
+  if (!participant) {
+    return (
+      <div className="rounded-2xl border-2 border-stone-200 bg-stone-50 p-4 text-sm text-stone-600">
+        <p className="text-xs font-bold uppercase text-stone-500">{getBreedingRoleLabel(role)}</p>
+        <p className="mt-2 font-semibold">No participant selected.</p>
+      </div>
+    );
+  }
+
+  const imageSrc =
+    participant.type === "player"
+      ? getParticipantImage("Player")
+      : getParticipantImage(participant.species);
+  const staminaLabel =
+    participant.type === "player"
+      ? `Energy ${participant.energy}`
+      : `Stamina ${participant.breedingStamina}/${participant.maxBreedingStamina}`;
+  const usageLabel =
+    participant.type === "player"
+      ? "Player participant"
+      : `${participant.breedingsToday}/${participant.dailyBreedingLimit} breedings today`;
+
+  return (
+    <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4 shadow-sm">
+      <div className="flex gap-3">
+        <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white">
+          <Image
+            src={imageSrc}
+            alt={participant.name}
+            width={160}
+            height={160}
+            className="max-h-full w-auto object-contain"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase text-rose-800">{getBreedingRoleLabel(role)}</p>
+          <h4 className="truncate text-xl font-bold text-stone-950">{participant.name}</h4>
+          <p className="text-sm font-semibold text-stone-700">
+            {participant.type === "player" ? "Player" : participant.species} - Lv {participant.level}
+          </p>
+          <p className="mt-1 text-xs text-stone-600">{staminaLabel} - {usageLabel}</p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-stone-700 sm:grid-cols-3">
+        <p><strong>STR:</strong> {participant.stats.strength}</p>
+        <p><strong>END:</strong> {participant.stats.endurance}</p>
+        <p><strong>INT:</strong> {participant.stats.intelligence}</p>
+        <p><strong>SPD:</strong> {participant.stats.speed}</p>
+        <p><strong>FER:</strong> {participant.stats.fertility}</p>
+        <p><strong>VIT:</strong> {participant.stats.vitality}</p>
+      </div>
+
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+        <div
+          className="h-full rounded-full bg-rose-700"
+          style={{
+            width:
+              participant.type === "player"
+                ? `${Math.max(0, Math.min(100, participant.energy))}%`
+                : `${getStaminaPercent(participant.breedingStamina, participant.maxBreedingStamina)}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function RanchOperationsPanel({
   initialTab = "house",
   initialInventoryOpen = false,
@@ -187,6 +328,7 @@ export default function RanchOperationsPanel({
     harvestPlot,
     purchaseFieldUpgrade,
     breedCreatures,
+    setBreedingSelection,
     hatchEgg,
   } = useGame();
 
@@ -196,6 +338,7 @@ export default function RanchOperationsPanel({
   const [selectedSeedItemId, setSelectedSeedItemId] = useState<string>("");
   const [selectedFertilizerItemId, setSelectedFertilizerItemId] = useState<string>("");
   const [selectedFieldCreatureId, setSelectedFieldCreatureId] = useState<number | null>(null);
+  const [houseFeedback, setHouseFeedback] = useState<string>("");
 
   const ownedSeedEntries = useMemo(() => {
     return Object.entries(inventory)
@@ -296,14 +439,88 @@ export default function RanchOperationsPanel({
   ).length;
   const selectedCreature =
     creatures.find((creature) => creature.id === selectedCreatureId) ?? null;
+  const ranchActionLocationAllowed = currentLocation === "home" || currentLocation === "ranch";
+  const giverCreature =
+    breedingSelection.giverType === "creature"
+      ? creatures.find((creature) => creature.id === breedingSelection.giverCreatureId) ?? null
+      : null;
+  const receiverCreature =
+    breedingSelection.receiverType === "creature"
+      ? creatures.find((creature) => creature.id === breedingSelection.receiverCreatureId) ?? null
+      : null;
+  const giverParticipant =
+    breedingSelection.giverType === "player"
+      ? {
+          type: "player" as const,
+          name: playerData.name,
+          level: playerData.level,
+          energy: playerData.energy,
+          happiness: playerData.happiness,
+          stats: playerData.stats,
+        }
+      : giverCreature
+        ? {
+            type: "creature" as const,
+            name: giverCreature.nickname,
+            species: giverCreature.name,
+            level: giverCreature.level,
+            happiness: giverCreature.happiness,
+            breedingStamina: giverCreature.breedingStamina,
+            maxBreedingStamina: giverCreature.maxBreedingStamina,
+            breedingsToday: giverCreature.breedingsToday,
+            dailyBreedingLimit: giverCreature.dailyBreedingLimit,
+            stats: giverCreature.stats,
+          }
+        : null;
+  const receiverParticipant =
+    breedingSelection.receiverType === "player"
+      ? {
+          type: "player" as const,
+          name: playerData.name,
+          level: playerData.level,
+          energy: playerData.energy,
+          happiness: playerData.happiness,
+          stats: playerData.stats,
+        }
+      : receiverCreature
+        ? {
+            type: "creature" as const,
+            name: receiverCreature.nickname,
+            species: receiverCreature.name,
+            level: receiverCreature.level,
+            happiness: receiverCreature.happiness,
+            breedingStamina: receiverCreature.breedingStamina,
+            maxBreedingStamina: receiverCreature.maxBreedingStamina,
+            breedingsToday: receiverCreature.breedingsToday,
+            dailyBreedingLimit: receiverCreature.dailyBreedingLimit,
+            stats: receiverCreature.stats,
+          }
+        : null;
+  const breedingSameCreature =
+    breedingSelection.giverType === "creature" &&
+    breedingSelection.receiverType === "creature" &&
+    breedingSelection.giverCreatureId !== null &&
+    breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
+  const breedingEnergyCost = 8;
+  const breedingCanPerform =
+    Boolean(giverParticipant && receiverParticipant) &&
+    !breedingSameCreature &&
+    playerData.energy >= breedingEnergyCost;
+  const breedingDisabledReason = !giverParticipant || !receiverParticipant
+    ? "Select a giver and receiver."
+    : breedingSameCreature
+      ? "Choose two different creatures."
+      : playerData.energy < breedingEnergyCost
+        ? `Need ${breedingEnergyCost} player energy.`
+        : "";
 
   return (
     <>
-      <section className="rounded-3xl border-4 border-emerald-900 bg-white/90 p-5 shadow-xl">
-        <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+      <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border-4 border-emerald-900 bg-white/90 p-3 shadow-xl sm:p-4">
+        <div className="mb-3 flex shrink-0 flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-emerald-950">Ranch Operations</h2>
-            <p className="text-stone-600">
+            <h2 className="text-2xl font-bold text-emerald-950 sm:text-3xl">Ranch Operations</h2>
+            <p className="text-sm text-stone-600">
               Central ranch hub for chores, field work, creatures, eggs, breeding, inventory, and recipe crafting.
             </p>
           </div>
@@ -332,20 +549,20 @@ export default function RanchOperationsPanel({
           </div>
         </div>
 
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-3 hidden shrink-0 flex-wrap gap-2 md:flex">
           <StatChip label="Inventory Entries" value={Object.keys(inventory).length} />
           <StatChip label="Seed Types" value={ownedSeedEntries.length} />
           <StatChip label="Known Recipes" value={knownRecipes.length} />
           <StatChip label="Eggs" value={eggs.length} />
         </div>
 
-        <div className="mb-5 flex flex-wrap gap-2">
+        <div className="mb-3 flex shrink-0 flex-wrap gap-2">
           {(Object.keys(TAB_LABELS) as RanchTab[]).map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold ${
+              className={`min-h-11 rounded-full px-4 py-2 text-sm font-semibold ${
                 activeTab === tab
                   ? "bg-emerald-700 text-white"
                   : "border border-emerald-300 bg-white text-stone-800"
@@ -356,47 +573,84 @@ export default function RanchOperationsPanel({
           ))}
         </div>
 
-        {activeTab === "house" && (
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          {activeTab === "house" && (
           <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
             <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
               <p className="text-xl font-bold text-stone-900">House Chores</p>
               <p className="mt-2 text-sm text-stone-600">
-                These use your current ranch-side home actions, now allowed from the Ranch screen too.
+                Quick ranch upkeep with your first available helper.
               </p>
+              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-stone-700">
+                {!ranchActionLocationAllowed ? (
+                  <p><strong>Disabled:</strong> Use an in-world travel action to return before chores can start.</p>
+                ) : firstCreature ? (
+                  <p>
+                    <strong>Helper:</strong> {firstCreature.nickname} - {firstCreature.name}, Stamina{" "}
+                    {firstCreature.breedingStamina}/{firstCreature.maxBreedingStamina}
+                  </p>
+                ) : (
+                  <p><strong>Disabled:</strong> No creature is available to help with house chores.</p>
+                )}
+              </div>
 
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => firstCreature && cleanHome(firstCreature.id)}
-                  disabled={!firstCreature}
-                  className={`rounded-2xl border-2 p-4 text-left shadow ${
-                    firstCreature
+                  onClick={() => {
+                    if (!firstCreature) return;
+                    cleanHome(firstCreature.id);
+                    setHouseFeedback(`${firstCreature.nickname} tidied the house. Cleanliness should look a little sweeter now.`);
+                  }}
+                  disabled={!firstCreature || !ranchActionLocationAllowed}
+                  className={`min-h-32 rounded-2xl border-2 p-4 text-left shadow ${
+                    firstCreature && ranchActionLocationAllowed
                       ? "border-emerald-200 bg-emerald-50"
                       : "border-stone-300 bg-stone-100 text-stone-500"
                   }`}
                 >
                   <p className="text-lg font-bold">Clean House</p>
                   <p className="mt-2 text-sm">
-                    Uses the first available creature under the current fallback flow.
+                    {firstCreature
+                      ? ranchActionLocationAllowed
+                        ? `${firstCreature.nickname} handles dust, bedding, and all the little corners that make the place feel cared for.`
+                        : "Return through an in-world travel action before assigning chores."
+                      : "Needs an available creature helper."}
                   </p>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => firstCreature && cookMeal(firstCreature.id)}
-                  disabled={!firstCreature}
-                  className={`rounded-2xl border-2 p-4 text-left shadow ${
-                    firstCreature
+                  onClick={() => {
+                    if (!firstCreature) return;
+                    cookMeal(firstCreature.id);
+                    setHouseFeedback(`${firstCreature.nickname} cooked a basic meal for the ranch stores.`);
+                  }}
+                  disabled={!firstCreature || !ranchActionLocationAllowed || (homeState.wheatStock < 1 && (inventory.wheat ?? 0) < 1)}
+                  className={`min-h-32 rounded-2xl border-2 p-4 text-left shadow ${
+                    firstCreature && ranchActionLocationAllowed && (homeState.wheatStock > 0 || (inventory.wheat ?? 0) > 0)
                       ? "border-emerald-200 bg-emerald-50"
                       : "border-stone-300 bg-stone-100 text-stone-500"
                   }`}
                 >
                   <p className="text-lg font-bold">Basic Cook Meal</p>
                   <p className="mt-2 text-sm">
-                    Older fallback meal action using ranch home resources.
+                    {!firstCreature
+                      ? "Needs an available creature helper."
+                      : !ranchActionLocationAllowed
+                        ? "Return through an in-world travel action before cooking."
+                      : homeState.wheatStock < 1 && (inventory.wheat ?? 0) < 1
+                        ? "Needs wheat in home stores or inventory."
+                        : `${firstCreature.nickname} turns wheat into simple food stock.`}
                   </p>
                 </button>
               </div>
+
+              {houseFeedback ? (
+                <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950">
+                  {houseFeedback}
+                </div>
+              ) : null}
             </div>
 
             <div className="rounded-2xl border-2 border-rose-200 bg-white p-4 shadow">
@@ -1063,41 +1317,133 @@ export default function RanchOperationsPanel({
           <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
             <p className="text-xl font-bold text-stone-900">Breeding</p>
             <p className="mt-2 text-sm text-stone-600">
-              Use the ranch breeding flow here or open the dedicated view while the broader migration settles.
+              Pair a giver and receiver here. This ranch tab is the main breeding workspace.
             </p>
 
-            <div className="mt-4 text-sm text-stone-700">
-              <p>
-                <strong>Current giver:</strong>{" "}
-                {breedingSelection.giverType === "player"
-                  ? playerData.name
-                  : creatures.find((c) => c.id === breedingSelection.giverCreatureId)?.nickname ?? "None"}
-              </p>
-              <p>
-                <strong>Current receiver:</strong>{" "}
-                {breedingSelection.receiverType === "player"
-                  ? playerData.name
-                  : creatures.find((c) => c.id === breedingSelection.receiverCreatureId)?.nickname ?? "None"}
-              </p>
+            <div className="mt-4 grid gap-3 lg:grid-cols-2">
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3">
+                <label className="block text-sm font-bold text-stone-900">
+                  Giver Type
+                  <select
+                    value={breedingSelection.giverType}
+                    onChange={(event) =>
+                      setBreedingSelection({
+                        ...breedingSelection,
+                        giverType: event.target.value as "player" | "creature",
+                        giverCreatureId:
+                          event.target.value === "creature"
+                            ? breedingSelection.giverCreatureId ?? creatures[0]?.id ?? null
+                            : null,
+                      })
+                    }
+                    className="mt-1 min-h-11 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="player">Player</option>
+                    <option value="creature">Creature</option>
+                  </select>
+                </label>
+                {breedingSelection.giverType === "creature" ? (
+                  <label className="mt-3 block text-sm font-bold text-stone-900">
+                    Giver
+                    <select
+                      value={breedingSelection.giverCreatureId ?? ""}
+                      onChange={(event) =>
+                        setBreedingSelection({
+                          ...breedingSelection,
+                          giverType: "creature",
+                          giverCreatureId: Number(event.target.value),
+                        })
+                      }
+                      className="mt-1 min-h-11 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                    >
+                      {creatures.map((creature) => (
+                        <option key={`giver-${creature.id}`} value={creature.id}>
+                          {creature.nickname} - {creature.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3">
+                <label className="block text-sm font-bold text-stone-900">
+                  Receiver Type
+                  <select
+                    value={breedingSelection.receiverType}
+                    onChange={(event) =>
+                      setBreedingSelection({
+                        ...breedingSelection,
+                        receiverType: event.target.value as "player" | "creature",
+                        receiverCreatureId:
+                          event.target.value === "creature"
+                            ? breedingSelection.receiverCreatureId ?? creatures[0]?.id ?? null
+                            : null,
+                      })
+                    }
+                    className="mt-1 min-h-11 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                  >
+                    <option value="player">Player</option>
+                    <option value="creature">Creature</option>
+                  </select>
+                </label>
+                {breedingSelection.receiverType === "creature" ? (
+                  <label className="mt-3 block text-sm font-bold text-stone-900">
+                    Receiver
+                    <select
+                      value={breedingSelection.receiverCreatureId ?? ""}
+                      onChange={(event) =>
+                        setBreedingSelection({
+                          ...breedingSelection,
+                          receiverType: "creature",
+                          receiverCreatureId: Number(event.target.value),
+                        })
+                      }
+                      className="mt-1 min-h-11 w-full rounded-xl border border-rose-300 bg-white px-3 py-2 text-sm"
+                    >
+                      {creatures.map((creature) => (
+                        <option key={`receiver-${creature.id}`} value={creature.id}>
+                          {creature.nickname} - {creature.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null}
+              </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <BreedingParticipantPreview role="giver" participant={giverParticipant} />
+              <BreedingParticipantPreview role="receiver" participant={receiverParticipant} />
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-stone-700">
+              <p><strong>Cost:</strong> {breedingEnergyCost} player energy. Creature stamina and daily limits are checked when breeding starts.</p>
+              <p className="mt-1"><strong>Risk:</strong> {getSimpleBreedingRiskLabel({
+                sameCreature: breedingSameCreature,
+                giverIsPlayer: breedingSelection.giverType === "player",
+                receiverIsPlayer: breedingSelection.receiverType === "player",
+              })}</p>
+              {breedingDisabledReason ? (
+                <p className="mt-2 font-semibold text-red-800">{breedingDisabledReason}</p>
+              ) : null}
+            </div>
+
+            <div className="mt-4">
               <button
                 type="button"
+                disabled={!breedingCanPerform}
                 onClick={() => breedCreatures()}
-                className="rounded-2xl bg-rose-700 px-4 py-3 font-semibold text-white shadow"
+                className={`min-h-12 w-full rounded-2xl px-4 py-3 font-semibold text-white shadow sm:w-auto ${
+                  breedingCanPerform ? "bg-rose-700" : "bg-stone-400"
+                }`}
               >
                 Perform Breeding
               </button>
-              <Link
-                href="/breeding"
-                className="rounded-2xl border border-emerald-300 bg-white px-4 py-3 font-semibold text-stone-800 shadow"
-              >
-                Open Breeding Page
-              </Link>
             </div>
           </div>
         )}
+        </div>
       </section>
 
       <OverlayModal

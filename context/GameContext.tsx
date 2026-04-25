@@ -481,6 +481,18 @@ type AuthoredQuestObjective = {
   completed: boolean;
 };
 
+type AuthoredQuestReward = {
+  gold: number;
+  items: Array<{ itemId: string; quantity: number }>;
+  factionReputation: Array<{
+    factionId: string;
+    amount: number;
+    standing?: FactionStanding;
+  }>;
+  unlockRegions: string[];
+  summary: string;
+};
+
 type AuthoredQuest = {
   id: string;
   title: string;
@@ -489,6 +501,7 @@ type AuthoredQuest = {
   source: AuthoredQuestSource;
   objectives: AuthoredQuestObjective[];
   rewardSummary: string;
+  reward: AuthoredQuestReward;
   status: WorldSupportStatus;
   gate?: AuthoredQuestGate;
 };
@@ -1041,21 +1054,29 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
     source: { type: "faction", factionId: "wayfarer_dispatch", name: "Wayfarer Dispatch" },
     objectives: [
       {
-        id: "confirm-town-route",
-        title: "Confirm the town route",
+        id: "road-ready-ranch-work",
+        title: "Put a creature to road-ready work",
         description:
-          "Use the existing ranch, town, market, or guild loops to prove the road around your home is steady enough for later assignments.",
+          "Complete a creature-backed ranch action: cook, clean, plant, water, fertilize, harvest, or field work. The Dispatch wants to know your help can keep pace.",
         completed: false,
       },
       {
-        id: "hold-commission-space",
-        title: "Hold space for a first regional commission",
+        id: "town-route-proof",
+        title: "Prove the town route can carry a favor",
         description:
-          "Future chapters can attach delivery, escort, or inspection work here without replacing the town request boards.",
+          "Complete a town-facing delivery, contract, produce sale, social errand, or guild/market visit so the route has a real public mark on it.",
         completed: false,
       },
     ],
-    rewardSummary: "Future regional assignment access, dispatch reputation, and route-specific perk hooks.",
+    rewardSummary: "150 Gold, Wayfarer Dispatch reputation, and Brindlewood Road access.",
+    reward: {
+      gold: 150,
+      items: [{ itemId: "basic_fertilizer", quantity: 1 }],
+      factionReputation: [{ factionId: "wayfarer_dispatch", amount: 25, standing: "warm" }],
+      unlockRegions: ["brindlewood_road"],
+      summary:
+        "The Dispatch inks your ranch into the active road ledger, pays a modest route retainer, and opens Brindlewood Road for future work.",
+    },
     status: "available",
   },
   {
@@ -1067,14 +1088,29 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
     source: { type: "faction", factionId: "velvet_market_ring", name: "Velvet Market Ring" },
     objectives: [
       {
-        id: "mark-sellable-strength",
-        title: "Mark what the ranch can sell",
+        id: "prepare-private-stock",
+        title: "Prepare private stock",
         description:
-          "Future faction work can key off quality produce, cooked goods, premium contracts, and Selene's private economy route.",
+          "Harvest produce or cook a recipe with creature help. Selene prefers goods that arrive with warmth still clinging to them.",
+        completed: false,
+      },
+      {
+        id: "sell-under-market-eye",
+        title: "Sell under the market's eye",
+        description:
+          "Sell produce through the exchange or complete a town delivery/contract so the Velvet Market Ring sees your ranch can move goods cleanly.",
         completed: false,
       },
     ],
-    rewardSummary: "Market standing, premium buyer hooks, exclusive contract space, and future faction perks.",
+    rewardSummary: "120 Gold, Velvet Market Ring reputation, and a Silvergrain Exchange lead.",
+    reward: {
+      gold: 120,
+      items: [{ itemId: "berry_seed", quantity: 1 }],
+      factionReputation: [{ factionId: "velvet_market_ring", amount: 20, standing: "warm" }],
+      unlockRegions: [],
+      summary:
+        "Selene's circle marks you as warm stock rather than cold risk. The Silvergrain Exchange stays locked, but the door now knows your name.",
+    },
     status: "available",
   },
   {
@@ -1094,6 +1130,13 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
       },
     ],
     rewardSummary: "Reserved Chapter 6 branch support. No Chapter 6 content is active yet.",
+    reward: {
+      gold: 0,
+      items: [],
+      factionReputation: [],
+      unlockRegions: [],
+      summary: "Reserved for Chapter 6. No reward is currently claimable.",
+    },
     status: "locked",
     gate: {
       requiredCompletedChapterId: "chapter_5",
@@ -1110,7 +1153,7 @@ const defaultFactions: WorldFaction[] = [
       "A loose network of drivers, handlers, and road-wise messengers who know which ranches can be trusted when the map gets coy.",
     reputation: 0,
     standing: "neutral",
-    unlockCondition: "Visible from the start; deeper assignments should unlock after regional notice beats.",
+    unlockCondition: "Visible from the start; reputation rises when The Road Ledger is completed.",
     relationshipToPlayer:
       "Curious but practical. They like reliable hands, calm creatures, and partners who do not flinch when the road gets intimate with danger.",
     perkHooks: ["regional_travel_discount", "road_assignment_priority"],
@@ -1124,7 +1167,7 @@ const defaultFactions: WorldFaction[] = [
       "Selene's wider circle of buyers, brokers, and beautifully dangerous ledgers. They value quality, discretion, and confidence with a little bite.",
     reputation: 0,
     standing: "neutral",
-    unlockCondition: "Visible through town economy systems; premium hooks can follow Selene, contracts, and produce quality.",
+    unlockCondition: "Visible through town economy systems; reputation rises when Velvet Market Introduction is completed.",
     relationshipToPlayer:
       "Professionally interested. Personally, they are waiting to see whether your ranch can make them lean closer.",
     perkHooks: ["premium_sell_multiplier", "exclusive_market_contracts"],
@@ -1168,11 +1211,11 @@ const defaultWorldRegions: WorldRegion[] = [
     name: "Brindlewood Road",
     description:
       "A trade road beyond the immediate town loop, known for courier work, nervous inspections, and moonlit stops where people say too much.",
-    unlockCondition: "Prepared for post-Chapter 5 regional assignments.",
+    unlockCondition: "Complete The Road Ledger for the Wayfarer Dispatch.",
     access: {
       travelMinutes: 90,
       route: "Town gate to eastern trade road",
-      requirement: "Future regional permit or authored quest unlock",
+      requirement: "Locked until The Road Ledger proves the ranch and town route.",
     },
     questHooks: ["wayfarer-road-ledger", "chapter-six-support-slot"],
     factionHooks: ["wayfarer_dispatch", "guild_hall_circle"],
@@ -1287,6 +1330,17 @@ function isWorldSupportStatus(status: unknown): status is WorldSupportStatus {
   );
 }
 
+function isFactionStanding(standing: unknown): standing is FactionStanding {
+  return (
+    standing === "unknown" ||
+    standing === "neutral" ||
+    standing === "warm" ||
+    standing === "trusted" ||
+    standing === "allied" ||
+    standing === "strained"
+  );
+}
+
 function normalizeAuthoredQuests(savedQuests?: AuthoredQuest[]): AuthoredQuest[] {
   const savedById = new Map(
     Array.isArray(savedQuests) ? savedQuests.map((quest) => [quest.id, quest]) : []
@@ -1322,7 +1376,7 @@ function normalizeFactions(savedFactions?: WorldFaction[]): WorldFaction[] {
     return {
       ...faction,
       reputation: typeof saved?.reputation === "number" ? saved.reputation : faction.reputation,
-      standing: saved?.standing ?? faction.standing,
+      standing: isFactionStanding(saved?.standing) ? saved.standing : faction.standing,
       status: isWorldSupportStatus(saved?.status) ? saved.status : faction.status,
     };
   });
@@ -3050,6 +3104,97 @@ useEffect(() => {
     );
   }
 
+  function applyAuthoredQuestReward(reward: AuthoredQuestReward) {
+    if (reward.gold > 0) {
+      setPlayerData((prev) => ({ ...prev, gold: prev.gold + reward.gold }));
+    }
+
+    if (reward.items.length > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        reward.items.forEach((itemReward) => {
+          next = addItemToInventory(next, itemReward.itemId, itemReward.quantity);
+        });
+        return next;
+      });
+    }
+
+    if (reward.factionReputation.length > 0) {
+      setFactions((prev) =>
+        prev.map((faction) => {
+          const factionReward = reward.factionReputation.find(
+            (entry) => entry.factionId === faction.id
+          );
+          if (!factionReward) return faction;
+
+          return {
+            ...faction,
+            reputation: faction.reputation + factionReward.amount,
+            standing: factionReward.standing ?? faction.standing,
+            status: faction.status === "locked" ? "available" : faction.status,
+          };
+        })
+      );
+    }
+
+    if (reward.unlockRegions.length > 0) {
+      setWorldRegions((prev) =>
+        prev.map((region) => {
+          if (!reward.unlockRegions.includes(region.id)) return region;
+
+          return {
+            ...region,
+            status: "available",
+            unlockCondition: "Unlocked through authored quest progression.",
+            access: {
+              ...region.access,
+              requirement: "Available. The route is open for future authored assignments.",
+            },
+          };
+        })
+      );
+    }
+  }
+
+  function recordAuthoredQuestObjectives(
+    objectiveUpdates: Array<{ questId: string; objectiveId: string }>
+  ) {
+    if (objectiveUpdates.length === 0) return;
+
+    const completedRewards: AuthoredQuestReward[] = [];
+    const nextAuthoredQuests = authoredQuests.map((quest) => {
+      const objectiveIds = objectiveUpdates
+        .filter((update) => update.questId === quest.id)
+        .map((update) => update.objectiveId);
+
+      if (objectiveIds.length === 0 || quest.status === "locked" || quest.status === "completed") {
+        return quest;
+      }
+
+      const nextObjectives = quest.objectives.map((objective) =>
+        objectiveIds.includes(objective.id) ? { ...objective, completed: true } : objective
+      );
+      const didProgress = nextObjectives.some(
+        (objective, index) => objective.completed && !quest.objectives[index]?.completed
+      );
+      const isComplete = nextObjectives.every((objective) => objective.completed);
+      const nextStatus: WorldSupportStatus = isComplete ? "completed" : didProgress ? "active" : quest.status;
+
+      if (isComplete) {
+        completedRewards.push(quest.reward);
+      }
+
+      return {
+        ...quest,
+        objectives: nextObjectives,
+        status: nextStatus,
+      };
+    });
+
+    setAuthoredQuests(nextAuthoredQuests);
+    completedRewards.forEach(applyAuthoredQuestReward);
+  }
+
   function grantMainStoryReward(reward: MainStoryReward) {
     if (reward.gold > 0) {
       setPlayerData((prev) => ({ ...prev, gold: prev.gold + reward.gold }));
@@ -3608,6 +3753,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
     ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
 
@@ -3670,6 +3818,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+    ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+      { questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" },
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -3768,6 +3920,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+    ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+      { questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" },
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
 
@@ -3940,6 +4096,12 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
             "chapter5_outside_acknowledgment",
           ]
     );
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+      ...(offer.requirements.length > 0
+        ? [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }]
+        : []),
+    ]);
 
     return true;
   }
@@ -4090,6 +4252,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+    ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+      { questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" },
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -4323,6 +4489,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
     ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -4376,6 +4545,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     }
     if (destination === "guild_hall" || destination === "market") {
       recordMainStoryFlags(["chapter5_regional_notice", "chapter5_outside_acknowledgment"]);
+      recordAuthoredQuestObjectives([
+        { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+      ]);
     }
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -4443,6 +4615,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
     ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
+    ]);
   }
 
   function cleanHome(creatureId: number) {
@@ -4501,6 +4676,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+    ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
   }
 
@@ -4578,6 +4756,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
     ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
+    ]);
     return true;
   }
 
@@ -4640,6 +4821,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
     ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
+    ]);
     return true;
   }
 
@@ -4700,6 +4884,9 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+    ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
     return true;
   }
@@ -4773,6 +4960,10 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
       "chapter5_significant_goods",
+    ]);
+    recordAuthoredQuestObjectives([
+      { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
+      { questId: "market-ring-introduction", objectiveId: "prepare-private-stock" },
     ]);
     return true;
   }
@@ -4941,6 +5132,10 @@ function cookRecipe(recipeId: string, creatureId: number) {
     "chapter5_creature_backed_proof",
     "chapter5_significant_goods",
   ]);
+  recordAuthoredQuestObjectives([
+    { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
+    { questId: "market-ring-introduction", objectiveId: "prepare-private-stock" },
+  ]);
   return true;
 }
 
@@ -5043,6 +5238,10 @@ function sellQualityProduce(
     "chapter5_town_submission",
     "chapter5_outside_acknowledgment",
     "chapter5_future_route",
+  ]);
+  recordAuthoredQuestObjectives([
+    { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
+    { questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" },
   ]);
   refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   return true;
