@@ -549,6 +549,49 @@ type WorldRegion = {
   status: WorldSupportStatus;
 };
 
+type RegionTravelLogEntry = {
+  id: number;
+  regionId: string;
+  regionName: string;
+  actionId?: string;
+  actionTitle: string;
+  day: number;
+  hour: number;
+  minute: number;
+  minutesSpent: number;
+  summary: string;
+};
+
+type RegionTravelResult = {
+  success: boolean;
+  title: string;
+  message: string;
+  regionId?: string;
+  actionId?: string;
+  rewardSummary?: string;
+  day: number;
+  hour: number;
+  minute: number;
+};
+
+type WorldRegionAction = {
+  id: string;
+  regionId: string;
+  title: string;
+  description: string;
+  timeCostMinutes: number;
+  outcome: string;
+  rewardGold?: number;
+  rewardItems?: Array<{ itemId: string; quantity: number }>;
+  factionReputation?: Array<{
+    factionId: string;
+    amount: number;
+    standing?: FactionStanding;
+  }>;
+  authoredQuestObjectives?: Array<{ questId: string; objectiveId: string }>;
+  storyFlags?: MainStoryObjectiveId[];
+};
+
 
 type SaveData = {
   currentDay: number;
@@ -589,6 +632,10 @@ type SaveData = {
   authoredQuests: AuthoredQuest[];
   factions: WorldFaction[];
   worldRegions: WorldRegion[];
+  currentRegionId: string;
+  visitedRegionIds: string[];
+  regionTravelLog: RegionTravelLogEntry[];
+  latestRegionTravelResult: RegionTravelResult | null;
 };
 
 type GameContextType = {
@@ -633,8 +680,15 @@ type GameContextType = {
   authoredQuests: AuthoredQuest[];
   factions: WorldFaction[];
   worldRegions: WorldRegion[];
+  currentRegionId: string;
+  visitedRegionIds: string[];
+  regionTravelLog: RegionTravelLogEntry[];
+  latestRegionTravelResult: RegionTravelResult | null;
+  worldRegionActions: WorldRegionAction[];
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
+  travelToRegion: (regionId: string) => boolean;
+  performRegionAction: (regionId: string, actionId: string) => boolean;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -1182,7 +1236,7 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
       summary:
         "The Dispatch inks your ranch into the active road ledger, pays a modest route retainer, and opens Brindlewood Road for future work.",
     },
-    status: "locked",
+    status: "available",
   },
   {
     id: "market-ring-introduction",
@@ -1216,7 +1270,7 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
       summary:
         "Selene's circle marks you as warm stock rather than cold risk. The Silvergrain Exchange stays locked, but the door now knows your name.",
     },
-    status: "available",
+    status: "locked",
   },
   {
     id: "chapter-six-support-slot",
@@ -1343,6 +1397,104 @@ const defaultWorldRegions: WorldRegion[] = [
   },
 ];
 
+const defaultWorldRegionActions: WorldRegionAction[] = [
+  {
+    id: "homefold-local-errands",
+    regionId: "homefold_valley",
+    title: "Run Local Errands",
+    description:
+      "Check the familiar ranch-town loop, settle small favors, and keep the home route warm under your boots.",
+    timeCostMinutes: 30,
+    outcome: "Earn a little gold and reaffirm Homefold Valley as the ranch's local base.",
+    rewardGold: 12,
+    storyFlags: ["chapter6_town_registration", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "homefold-map-table",
+    regionId: "homefold_valley",
+    title: "Review the Map Table",
+    description:
+      "Lay out the local route notes and decide which invitation deserves your next careful smile.",
+    timeCostMinutes: 15,
+    outcome: "Confirms the World Map route state for Chapter 6.",
+    storyFlags: ["chapter6_wider_invitation", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "brindlewood-scout-road",
+    regionId: "brindlewood_road",
+    title: "Scout the Road",
+    description:
+      "Walk the Brindlewood edge, note the wagon ruts, and learn where the road gets too quiet.",
+    timeCostMinutes: 70,
+    outcome: "Gain Wayfarer Dispatch reputation and road knowledge.",
+    rewardGold: 18,
+    factionReputation: [{ factionId: "wayfarer_dispatch", amount: 4 }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "brindlewood-courier-check",
+    regionId: "brindlewood_road",
+    title: "Courier Check",
+    description:
+      "Take a small route note to the next marker and prove your ranch can answer when the road calls.",
+    timeCostMinutes: 55,
+    outcome: "Supports Wayfarer route work and counts as faction-facing travel proof.",
+    rewardGold: 22,
+    factionReputation: [{ factionId: "wayfarer_dispatch", amount: 5 }],
+    authoredQuestObjectives: [{ questId: "chapter-six-support-slot", objectiveId: "choose-first-outer-thread" }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "brindlewood-road-rumor",
+    regionId: "brindlewood_road",
+    title: "Gather Road Rumor",
+    description:
+      "Trade a patient look and a warm word for the kind of rumor that never fits on official paper.",
+    timeCostMinutes: 35,
+    outcome: "Small gold, road flavor, and a softer Wayfarer signal.",
+    rewardGold: 10,
+    factionReputation: [{ factionId: "wayfarer_dispatch", amount: 2 }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "silvergrain-market-inspection",
+    regionId: "silvergrain_exchange",
+    title: "Market Inspection",
+    description:
+      "Walk the exchange floor, watch the buyer tables, and let Selene's wider circle notice you looking back.",
+    timeCostMinutes: 75,
+    outcome: "Gain Velvet Market Ring reputation and a little market money.",
+    rewardGold: 26,
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 5 }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "silvergrain-buyer-introduction",
+    regionId: "silvergrain_exchange",
+    title: "Buyer Introduction",
+    description:
+      "Accept a careful introduction to a private buyer whose smile has teeth and whose purse is heavier than polite.",
+    timeCostMinutes: 60,
+    outcome: "Supports Velvet Market work and marks a market-facing route preference.",
+    rewardGold: 35,
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 6 }],
+    authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "silvergrain-price-rumor",
+    regionId: "silvergrain_exchange",
+    title: "Collect a Price Rumor",
+    description:
+      "Listen where the ledgers close softly and learn which goods are about to make someone blushingly rich.",
+    timeCostMinutes: 30,
+    outcome: "Earn a small market tip and Velvet Market attention.",
+    rewardGold: 16,
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+];
+
 const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
 const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
 const catFirstNames = ["Velvet","Misty","Sable","Luna","Poppy","Ivy","Mochi","Pearl"];
@@ -1376,6 +1528,15 @@ function getStrongerFactionStanding(current: FactionStanding, incoming: FactionS
   };
 
   return standingRank[incoming] > standingRank[current] ? incoming : current;
+}
+
+function getWorldFactionName(factionId: string) {
+  return defaultFactions.find((faction) => faction.id === factionId)?.name ??
+    factionId
+      .split(/[-_]/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
 }
 
 function getMainStoryChapter(chapterId: MainStoryChapterId) {
@@ -1485,10 +1646,13 @@ function normalizeAuthoredQuests(savedQuests?: AuthoredQuest[], mainStoryState?:
     const gateIsOpen = quest.gate?.requiredCompletedChapterId
       ? isChapterCompletedForGate(mainStoryState, quest.gate.requiredCompletedChapterId)
       : false;
+    const normalizedStatus = quest.gate?.requiredCompletedChapterId && !gateIsOpen && savedStatus !== "completed"
+      ? "locked"
+      : savedStatus === "locked" && gateIsOpen ? "available" : savedStatus;
 
     return {
       ...quest,
-      status: savedStatus === "locked" && gateIsOpen ? "available" : savedStatus,
+      status: normalizedStatus,
       objectives: quest.objectives.map((objective) => ({
         ...objective,
         completed: Boolean(savedObjectives.get(objective.id)?.completed ?? objective.completed),
@@ -1527,6 +1691,59 @@ function normalizeWorldRegions(savedRegions?: WorldRegion[]): WorldRegion[] {
       status: isWorldSupportStatus(saved?.status) ? saved.status : region.status,
     };
   });
+}
+
+function normalizeCurrentRegionId(regionId: unknown, regions: WorldRegion[]) {
+  if (typeof regionId === "string" && regions.some((region) => region.id === regionId && region.status !== "locked")) {
+    return regionId;
+  }
+
+  return "homefold_valley";
+}
+
+function normalizeVisitedRegionIds(regionIds: unknown, currentRegionId: string) {
+  const ids = Array.isArray(regionIds)
+    ? regionIds.filter((regionId): regionId is string => typeof regionId === "string")
+    : [];
+
+  return Array.from(new Set(["homefold_valley", currentRegionId, ...ids]));
+}
+
+function normalizeRegionTravelLog(log: unknown): RegionTravelLogEntry[] {
+  if (!Array.isArray(log)) return [];
+
+  return log
+    .filter((entry): entry is Partial<RegionTravelLogEntry> => Boolean(entry) && typeof entry === "object")
+    .map((entry, index) => ({
+      id: typeof entry.id === "number" ? entry.id : Date.now() + index,
+      regionId: typeof entry.regionId === "string" ? entry.regionId : "homefold_valley",
+      regionName: typeof entry.regionName === "string" ? entry.regionName : "Homefold Valley",
+      actionId: typeof entry.actionId === "string" ? entry.actionId : undefined,
+      actionTitle: typeof entry.actionTitle === "string" ? entry.actionTitle : "Region Travel",
+      day: typeof entry.day === "number" ? entry.day : 1,
+      hour: typeof entry.hour === "number" ? entry.hour : 8,
+      minute: typeof entry.minute === "number" ? entry.minute : 0,
+      minutesSpent: typeof entry.minutesSpent === "number" ? entry.minutesSpent : 0,
+      summary: typeof entry.summary === "string" ? entry.summary : "Region travel recorded.",
+    }))
+    .slice(0, 30);
+}
+
+function normalizeRegionTravelResult(result: unknown): RegionTravelResult | null {
+  if (!result || typeof result !== "object") return null;
+  const entry = result as Partial<RegionTravelResult>;
+
+  return {
+    success: Boolean(entry.success),
+    title: typeof entry.title === "string" ? entry.title : "Region Travel",
+    message: typeof entry.message === "string" ? entry.message : "Region travel recorded.",
+    regionId: typeof entry.regionId === "string" ? entry.regionId : undefined,
+    actionId: typeof entry.actionId === "string" ? entry.actionId : undefined,
+    rewardSummary: typeof entry.rewardSummary === "string" ? entry.rewardSummary : undefined,
+    day: typeof entry.day === "number" ? entry.day : 1,
+    hour: typeof entry.hour === "number" ? entry.hour : 8,
+    minute: typeof entry.minute === "number" ? entry.minute : 0,
+  };
 }
 
 function getMonthFromAbsoluteDay(day: number) {
@@ -2951,6 +3168,10 @@ const defaultSaveData: SaveData = {
   authoredQuests: defaultAuthoredQuests,
   factions: defaultFactions,
   worldRegions: defaultWorldRegions,
+  currentRegionId: "homefold_valley",
+  visitedRegionIds: ["homefold_valley"],
+  regionTravelLog: [],
+  latestRegionTravelResult: null,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -3015,6 +3236,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [authoredQuests, setAuthoredQuests] = useState<AuthoredQuest[]>(defaultSaveData.authoredQuests);
   const [factions, setFactions] = useState<WorldFaction[]>(defaultSaveData.factions);
   const [worldRegions, setWorldRegions] = useState<WorldRegion[]>(defaultSaveData.worldRegions);
+  const [currentRegionId, setCurrentRegionId] = useState(defaultSaveData.currentRegionId);
+  const [visitedRegionIds, setVisitedRegionIds] = useState<string[]>(defaultSaveData.visitedRegionIds);
+  const [regionTravelLog, setRegionTravelLog] = useState<RegionTravelLogEntry[]>(defaultSaveData.regionTravelLog);
+  const [latestRegionTravelResult, setLatestRegionTravelResult] = useState<RegionTravelResult | null>(
+    defaultSaveData.latestRegionTravelResult
+  );
   const currentSeason = getSeasonForDay(currentDay);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
   const mainStoryChapters = getMainStoryChapterList();
@@ -3128,7 +3355,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setMainStory(normalizedMainStory);
         setAuthoredQuests(normalizeAuthoredQuests(parsedSave.authoredQuests, normalizedMainStory));
         setFactions(normalizeFactions(parsedSave.factions));
-        setWorldRegions(normalizeWorldRegions(parsedSave.worldRegions));
+        const normalizedRegions = normalizeWorldRegions(parsedSave.worldRegions);
+        const normalizedCurrentRegionId = normalizeCurrentRegionId(parsedSave.currentRegionId, normalizedRegions);
+        setWorldRegions(normalizedRegions);
+        setCurrentRegionId(normalizedCurrentRegionId);
+        setVisitedRegionIds(normalizeVisitedRegionIds(parsedSave.visitedRegionIds, normalizedCurrentRegionId));
+        setRegionTravelLog(normalizeRegionTravelLog(parsedSave.regionTravelLog));
+        setLatestRegionTravelResult(normalizeRegionTravelResult(parsedSave.latestRegionTravelResult));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -3178,6 +3411,10 @@ useEffect(() => {
     authoredQuests,
     factions,
     worldRegions,
+    currentRegionId,
+    visitedRegionIds,
+    regionTravelLog,
+    latestRegionTravelResult,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -3221,6 +3458,10 @@ useEffect(() => {
   authoredQuests,
   factions,
   worldRegions,
+  currentRegionId,
+  visitedRegionIds,
+  regionTravelLog,
+  latestRegionTravelResult,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -3452,6 +3693,175 @@ useEffect(() => {
     if (section === "world") {
       recordMainStoryFlag("chapter6_world_route_confirmed");
     }
+  }
+
+  function buildRegionRewardSummary(action: WorldRegionAction) {
+    const parts = [
+      action.rewardGold ? `${action.rewardGold} Gold` : "",
+      ...(action.rewardItems ?? []).map((item) => `${ITEM_DATA[item.itemId]?.name ?? item.itemId} x${item.quantity}`),
+      ...(action.factionReputation ?? []).map((reward) => `+${reward.amount} ${getWorldFactionName(reward.factionId)} reputation`),
+    ].filter(Boolean);
+
+    return parts.length > 0 ? parts.join(", ") : "No item reward";
+  }
+
+  function setRegionFailureResult(title: string, message: string, regionId?: string, actionId?: string) {
+    setLatestRegionTravelResult({
+      success: false,
+      title,
+      message,
+      regionId,
+      actionId,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+    });
+  }
+
+  function recordRegionLogEntry(entry: Omit<RegionTravelLogEntry, "id">) {
+    setRegionTravelLog((prev) => [{ ...entry, id: Date.now() }, ...prev].slice(0, 30));
+  }
+
+  function travelToRegion(regionId: string) {
+    const region = worldRegions.find((entry) => entry.id === regionId);
+
+    if (!region) {
+      setRegionFailureResult("Region Not Found", "That destination is not on the current map.", regionId);
+      return false;
+    }
+
+    if (region.status === "locked") {
+      setRegionFailureResult("Route Locked", region.unlockCondition, region.id);
+      return false;
+    }
+
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, region.access.travelMinutes);
+    const message =
+      region.id === currentRegionId
+        ? `You recheck ${region.name}. The route is already under your boots.`
+        : `You travel to ${region.name} by ${region.access.route}.`;
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    setCurrentRegionId(region.id);
+    setVisitedRegionIds((prev) => Array.from(new Set([...prev, region.id])));
+    recordRegionLogEntry({
+      regionId: region.id,
+      regionName: region.name,
+      actionTitle: "Travel",
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      minutesSpent: region.access.travelMinutes,
+      summary: message,
+    });
+    setLatestRegionTravelResult({
+      success: true,
+      title: `Arrived: ${region.name}`,
+      message,
+      regionId: region.id,
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+    });
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    recordMainStoryFlag("chapter6_world_route_confirmed");
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
+    return true;
+  }
+
+  function performRegionAction(regionId: string, actionId: string) {
+    const region = worldRegions.find((entry) => entry.id === regionId);
+    const action = defaultWorldRegionActions.find((entry) => entry.regionId === regionId && entry.id === actionId);
+
+    if (!region) {
+      setRegionFailureResult("Region Not Found", "That destination is not on the current map.", regionId, actionId);
+      return false;
+    }
+
+    if (region.status === "locked") {
+      setRegionFailureResult("Route Locked", region.unlockCondition, region.id, actionId);
+      return false;
+    }
+
+    if (!action) {
+      setRegionFailureResult("Action Not Found", "That region action is not available.", region.id, actionId);
+      return false;
+    }
+
+    if (currentRegionId !== region.id) {
+      setRegionFailureResult("Travel Required", `Travel to ${region.name} before taking that action.`, region.id, action.id);
+      return false;
+    }
+
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, action.timeCostMinutes);
+    const rewardSummary = buildRegionRewardSummary(action);
+    const message = `${action.outcome}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}`;
+
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    setVisitedRegionIds((prev) => Array.from(new Set([...prev, region.id])));
+
+    const rewardGold = action.rewardGold ?? 0;
+
+    if (rewardGold > 0) {
+      setPlayerData((prev) => ({ ...prev, gold: prev.gold + rewardGold }));
+    }
+
+    if ((action.rewardItems?.length ?? 0) > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        action.rewardItems?.forEach((itemReward) => {
+          next = addItemToInventory(next, itemReward.itemId, itemReward.quantity);
+        });
+        return next;
+      });
+    }
+
+    if ((action.factionReputation?.length ?? 0) > 0) {
+      applyAuthoredQuestReward({
+        gold: 0,
+        items: [],
+        factionReputation: action.factionReputation ?? [],
+        unlockRegions: [],
+        summary: action.outcome,
+      });
+    }
+
+    if ((action.authoredQuestObjectives?.length ?? 0) > 0) {
+      recordAuthoredQuestObjectives(action.authoredQuestObjectives ?? []);
+    }
+
+    recordMainStoryFlags(action.storyFlags ?? ["chapter6_world_route_confirmed"]);
+    recordRegionLogEntry({
+      regionId: region.id,
+      regionName: region.name,
+      actionId: action.id,
+      actionTitle: action.title,
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      minutesSpent: action.timeCostMinutes,
+      summary: message,
+    });
+    setLatestRegionTravelResult({
+      success: true,
+      title: action.title,
+      message,
+      regionId: region.id,
+      actionId: action.id,
+      rewardSummary,
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+    });
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
+    return true;
   }
 
   function dismissMainStoryReward() {
@@ -5628,6 +6038,10 @@ function purchaseMarketItem(itemId: string, price: number) {
     setAuthoredQuests(defaultAuthoredQuests);
     setFactions(defaultFactions);
     setWorldRegions(defaultWorldRegions);
+    setCurrentRegionId("homefold_valley");
+    setVisitedRegionIds(["homefold_valley"]);
+    setRegionTravelLog([]);
+    setLatestRegionTravelResult(null);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -5675,8 +6089,15 @@ function purchaseMarketItem(itemId: string, price: number) {
         authoredQuests,
         factions,
         worldRegions,
+        currentRegionId,
+        visitedRegionIds,
+        regionTravelLog,
+        latestRegionTravelResult,
+        worldRegionActions: defaultWorldRegionActions,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
+        travelToRegion,
+        performRegionAction,
         nextDay,
         hatchEgg,
         breedCreatures,

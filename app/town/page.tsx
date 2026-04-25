@@ -10,6 +10,7 @@ import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
 import StoryObjectiveStrip from "@/components/story/StoryObjectiveStrip";
+import { GameActionCard, GameFeedbackBox, GameStatusBadge } from "@/components/ui/GameUi";
 import {
   formatQuestCategoryLabel,
   formatWorldLabel,
@@ -1483,6 +1484,10 @@ export default function TownPage() {
     authoredQuests,
     factions,
     worldRegions,
+    currentRegionId,
+    visitedRegionIds,
+    latestRegionTravelResult,
+    worldRegionActions,
     purchaseTownCreature,
     purchaseMarketItem,
     getItemCount,
@@ -1498,6 +1503,8 @@ export default function TownPage() {
     giveNpcGift,
     inviteNpc,
     travelTo,
+    travelToRegion,
+    performRegionAction,
   } = useGame();
 
   const hasMounted = useSyncExternalStore(
@@ -1833,7 +1840,80 @@ export default function TownPage() {
               </div>
 
               <div className="grid gap-4 xl:grid-cols-2">
-                <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4"><p className="text-xs font-bold uppercase text-teal-800">Regions</p><h3 className="text-xl font-bold text-stone-950">{openRegionCount}/{worldRegions.length} regions open</h3><div className="mt-3 grid gap-3">{worldRegions.map((region) => (<div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><p className="font-bold text-stone-950">{region.name}</p><span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">{region.status === "locked" ? "Locked" : "Open"}</span></div><p className="mt-1">{region.description}</p><p className="mt-2 text-xs"><strong>Why it matters:</strong> {getRegionImportance(region.id)}</p><p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p><p className="mt-1 text-xs"><strong>Linked factions:</strong> {formatWorldList(region.factionHooks)}</p></div>))}</div></div>
+                <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase text-teal-800">Regions</p>
+                      <h3 className="text-xl font-bold text-stone-950">{openRegionCount}/{worldRegions.length} regions open</h3>
+                    </div>
+                    <GameStatusBadge tone="teal">
+                      Current: {worldRegions.find((region) => region.id === currentRegionId)?.name ?? "Unknown"}
+                    </GameStatusBadge>
+                  </div>
+                  {latestRegionTravelResult ? (
+                    <div className="mt-3">
+                      <GameFeedbackBox
+                        tone={latestRegionTravelResult.success ? "emerald" : "rose"}
+                        message={`${latestRegionTravelResult.title}: ${latestRegionTravelResult.message}`}
+                      />
+                    </div>
+                  ) : null}
+                  <div className="mt-3 grid gap-3">
+                    {worldRegions.map((region) => {
+                      const locked = region.status === "locked";
+                      const isCurrent = currentRegionId === region.id;
+                      const visited = visitedRegionIds.includes(region.id);
+                      const primaryAction = worldRegionActions.find((action) => action.regionId === region.id);
+                      return (
+                        <div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-bold text-stone-950">{region.name}</p>
+                            <div className="flex flex-wrap justify-end gap-1">
+                              <GameStatusBadge tone={locked ? "stone" : isCurrent ? "emerald" : "teal"}>{locked ? "Locked" : isCurrent ? "Current" : "Open"}</GameStatusBadge>
+                              {!locked ? <GameStatusBadge tone={visited ? "amber" : "stone"}>{visited ? "Visited" : "Unvisited"}</GameStatusBadge> : null}
+                            </div>
+                          </div>
+                          <p className="mt-1">{region.description}</p>
+                          <p className="mt-2 text-xs"><strong>Why it matters:</strong> {getRegionImportance(region.id)}</p>
+                          <p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p>
+                          <p className="mt-1 text-xs"><strong>Linked factions:</strong> {formatWorldList(region.factionHooks)}</p>
+                          {locked ? (
+                            <p className="mt-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700">
+                              Unlock: {region.unlockCondition}
+                            </p>
+                          ) : (
+                            <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                              <GameActionCard
+                                title={isCurrent ? "Current Region" : `Travel to ${region.name}`}
+                                performer="Player"
+                                targetLabel="Traveler"
+                                cost={`${region.access.travelMinutes} minutes`}
+                                outcome={isCurrent ? "Already here; take a region action when ready." : "Spends in-game time and updates the current region."}
+                                disabledReason={isCurrent ? "Already in this region." : undefined}
+                                buttonLabel={isCurrent ? "Here Now" : "Travel"}
+                                onAction={() => travelToRegion(region.id)}
+                                tone="teal"
+                              />
+                              {primaryAction ? (
+                                <GameActionCard
+                                  title={primaryAction.title}
+                                  performer={region.name}
+                                  targetLabel="Region"
+                                  cost={`${primaryAction.timeCostMinutes} minutes`}
+                                  outcome={primaryAction.outcome}
+                                  disabledReason={isCurrent ? undefined : `Travel to ${region.name} first.`}
+                                  buttonLabel="Do Action"
+                                  onAction={() => performRegionAction(region.id, primaryAction.id)}
+                                  tone="emerald"
+                                />
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4"><p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p><h3 className="text-xl font-bold text-stone-950">{knownFactionCount}/{factions.length} known organizations</h3><div className="mt-3 grid gap-3">{factions.map((faction) => (<div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><div><p className="font-bold text-stone-950">{faction.name}</p><p className="text-xs font-semibold uppercase text-fuchsia-800">{formatWorldLabel(faction.standing)} - Rep {faction.reputation}</p></div><span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">{formatWorldLabel(faction.status)}</span></div><p className="mt-2">{faction.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p><p className="mt-1 text-xs"><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p></div>))}</div></div>
               </div>
             </div>

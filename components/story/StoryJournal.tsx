@@ -9,6 +9,9 @@ import {
   GameTabGroup,
   GameCard,
   GameEmptyState,
+  GameActionCard,
+  GameFeedbackBox,
+  GameStatChip,
 } from "@/components/ui/GameUi";
 import {
   formatQuestCategoryLabel,
@@ -27,6 +30,7 @@ type ChapterLike = ReturnType<typeof useGame>["mainStoryChapters"][number];
 type QuestLike = ReturnType<typeof useGame>["authoredQuests"][number];
 type FactionLike = ReturnType<typeof useGame>["factions"][number];
 type RegionLike = ReturnType<typeof useGame>["worldRegions"][number];
+type RegionActionLike = ReturnType<typeof useGame>["worldRegionActions"][number];
 
 const JOURNAL_TABS: Array<{ id: JournalTab; label: string; description: string }> = [
   { id: "story", label: "Story", description: "Chapters and current objective" },
@@ -395,9 +399,32 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
   );
 }
 
-function WorldMapSection({ regions }: { regions: RegionLike[] }) {
+function formatClock(day: number, hour: number, minute: number) {
+  return `Day ${day}, ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+}
+
+function WorldMapSection({
+  regions,
+  currentRegionId,
+  visitedRegionIds,
+  regionActions,
+  latestRegionTravelResult,
+  regionTravelLog,
+  travelToRegion,
+  performRegionAction,
+}: {
+  regions: RegionLike[];
+  currentRegionId: string;
+  visitedRegionIds: string[];
+  regionActions: RegionActionLike[];
+  latestRegionTravelResult: ReturnType<typeof useGame>["latestRegionTravelResult"];
+  regionTravelLog: ReturnType<typeof useGame>["regionTravelLog"];
+  travelToRegion: ReturnType<typeof useGame>["travelToRegion"];
+  performRegionAction: ReturnType<typeof useGame>["performRegionAction"];
+}) {
   const openRegions = regions.filter((region) => region.status !== "locked");
   const lockedRegions = regions.filter((region) => region.status === "locked");
+  const currentRegion = regions.find((region) => region.id === currentRegionId);
 
   return (
     <div className="space-y-4">
@@ -405,14 +432,23 @@ function WorldMapSection({ regions }: { regions: RegionLike[] }) {
         <p className="text-xs font-bold uppercase text-teal-800">Travel & Access</p>
         <h3 className="text-xl font-bold text-stone-950">World Map</h3>
         <p className="mt-1">
-          Global navigation is free UI movement. Region access here represents in-world progression, travel metadata, and quest/faction hooks.
+          Global navigation is free UI movement. Region travel here is in-world travel: it spends time, updates your current region, and can support story, quest, and faction progress.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <JournalStatCard label="Open Regions" value={openRegions.length} accentClasses="border-teal-200 bg-teal-50 text-teal-900" />
         <JournalStatCard label="Locked Regions" value={lockedRegions.length} accentClasses="border-stone-200 bg-stone-50 text-stone-700" />
+        <JournalStatCard label="Current Region" value={currentRegion?.name ?? "Unknown"} accentClasses="border-emerald-200 bg-emerald-50 text-emerald-900" />
+        <JournalStatCard label="Visited" value={`${visitedRegionIds.length}/${regions.length}`} accentClasses="border-amber-200 bg-amber-50 text-amber-900" />
       </div>
+
+      {latestRegionTravelResult ? (
+        <GameFeedbackBox
+          tone={latestRegionTravelResult.success ? "emerald" : "rose"}
+          message={`${latestRegionTravelResult.title}: ${latestRegionTravelResult.message}`}
+        />
+      ) : null}
 
       {[
         { title: "Open Regions", regions: openRegions, locked: false },
@@ -429,45 +465,117 @@ function WorldMapSection({ regions }: { regions: RegionLike[] }) {
             {group.regions.length === 0 ? (
               <GameEmptyState>No regions in this section.</GameEmptyState>
             ) : (
-              group.regions.map((region) => (
-                <article
-                  key={region.id}
-                  className={`rounded-2xl border-2 p-4 text-sm ${
-                    group.locked
-                      ? "border-stone-200 bg-stone-50 text-stone-600"
-                      : "border-teal-200 bg-teal-50 text-stone-700"
-                  }`}
-                >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold text-stone-950">{region.name}</h3>
-                      <p className="text-xs font-bold uppercase text-teal-800">
-                        {region.access.travelMinutes} minutes - {region.access.route}
-                      </p>
+              group.regions.map((region) => {
+                const isCurrent = currentRegionId === region.id;
+                const visited = visitedRegionIds.includes(region.id);
+                const actions = regionActions.filter((action) => action.regionId === region.id);
+
+                return (
+                  <article
+                    key={region.id}
+                    className={`rounded-2xl border-2 p-4 text-sm ${
+                      group.locked
+                        ? "border-stone-200 bg-stone-50 text-stone-600"
+                        : isCurrent
+                          ? "border-emerald-300 bg-emerald-50 text-stone-700"
+                          : "border-teal-200 bg-teal-50 text-stone-700"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h3 className="text-xl font-bold text-stone-950">{region.name}</h3>
+                        <p className="text-xs font-bold uppercase text-teal-800">
+                          {region.access.travelMinutes} minutes - {region.access.route}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <GameStatusBadge tone={group.locked ? "stone" : isCurrent ? "emerald" : "teal"}>
+                          {group.locked ? "Locked" : isCurrent ? "Current" : "Open"}
+                        </GameStatusBadge>
+                        {!group.locked ? (
+                          <GameStatusBadge tone={visited ? "amber" : "stone"}>
+                            {visited ? "Visited" : "Unvisited"}
+                          </GameStatusBadge>
+                        ) : null}
+                      </div>
                     </div>
-                    <GameStatusBadge>
-                      {region.status === "locked" ? "Locked" : "Open"}
-                    </GameStatusBadge>
-                  </div>
-                  <p className="mt-2">{region.description}</p>
-                  <p className="mt-2 rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700">
-                    {group.locked ? "How to unlock: " : "Available destination: "}
-                    {group.locked ? region.unlockCondition : getRegionImportance(region.id)}
-                  </p>
-                  <div className="mt-3 grid gap-2 text-xs">
-                    <p><strong>Unlock:</strong> {region.unlockCondition}</p>
-                    <p><strong>Access:</strong> {region.access.requirement}</p>
-                    <p><strong>Route:</strong> {region.access.route}</p>
-                    <p><strong>Travel time:</strong> {region.access.travelMinutes} minutes</p>
-                    <p><strong>Associated quests:</strong> {formatWorldList(region.questHooks)}</p>
-                    <p><strong>Associated factions:</strong> {formatWorldList(region.factionHooks)}</p>
-                  </div>
-                </article>
-              ))
+                    <p className="mt-2">{region.description}</p>
+                    <p className="mt-2 rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700">
+                      {group.locked ? "How to unlock: " : "Available destination: "}
+                      {group.locked ? region.unlockCondition : getRegionImportance(region.id)}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <GameStatChip label="Travel Time" value={`${region.access.travelMinutes}m`} />
+                      <GameStatChip label="Route" value={region.access.route} />
+                    </div>
+                    <div className="mt-3 grid gap-2 text-xs">
+                      <p><strong>Unlock:</strong> {region.unlockCondition}</p>
+                      <p><strong>Access:</strong> {region.access.requirement}</p>
+                      <p><strong>Associated quests:</strong> {formatWorldList(region.questHooks)}</p>
+                      <p><strong>Associated factions:</strong> {formatWorldList(region.factionHooks)}</p>
+                    </div>
+
+                    {group.locked ? null : (
+                      <div className="mt-4 space-y-3">
+                        <GameActionCard
+                          title={isCurrent ? "Current Region" : `Travel to ${region.name}`}
+                          performer="Player"
+                          targetLabel="Traveler"
+                          cost={`${region.access.travelMinutes} minutes`}
+                          outcome={isCurrent ? "You are already here and can take region actions." : `Updates current region to ${region.name}.`}
+                          disabledReason={isCurrent ? "Already in this region." : undefined}
+                          buttonLabel={isCurrent ? "Here Now" : "Travel"}
+                          onAction={() => travelToRegion(region.id)}
+                          tone="teal"
+                        />
+                        <div className="grid gap-3 md:grid-cols-2">
+                          {actions.map((action) => {
+                            const disabledReason = isCurrent ? undefined : `Travel to ${region.name} first.`;
+                            return (
+                              <GameActionCard
+                                key={action.id}
+                                title={action.title}
+                                performer={region.name}
+                                targetLabel="Region"
+                                cost={`${action.timeCostMinutes} minutes`}
+                                outcome={action.outcome}
+                                disabledReason={disabledReason}
+                                buttonLabel="Do Action"
+                                onAction={() => performRegionAction(region.id, action.id)}
+                                tone="emerald"
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })
             )}
           </div>
         </section>
       ))}
+
+      <section className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xl font-bold text-stone-950">Region Travel Log</h3>
+          <GameStatusBadge>{regionTravelLog.length}</GameStatusBadge>
+        </div>
+        <div className="mt-3 grid gap-2">
+          {regionTravelLog.length === 0 ? (
+            <GameEmptyState>No region travel recorded yet.</GameEmptyState>
+          ) : (
+            regionTravelLog.slice(0, 6).map((entry) => (
+              <div key={entry.id} className="rounded-xl border border-white bg-white px-3 py-2 text-xs text-stone-700">
+                <p className="font-bold text-stone-950">{entry.actionTitle} - {entry.regionName}</p>
+                <p className="mt-1">{entry.summary}</p>
+                <p className="mt-1 font-semibold text-stone-500">{formatClock(entry.day, entry.hour, entry.minute)} - {entry.minutesSpent}m</p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
     </div>
   );
 }
@@ -482,7 +590,14 @@ export default function StoryJournal() {
     authoredQuests,
     factions,
     worldRegions,
+    currentRegionId,
+    visitedRegionIds,
+    regionTravelLog,
+    latestRegionTravelResult,
+    worldRegionActions,
     acknowledgeStoryJournalSection,
+    travelToRegion,
+    performRegionAction,
   } = useGame();
   const [activeTab, setActiveTab] = useState<JournalTab>("story");
 
@@ -545,7 +660,18 @@ export default function StoryJournal() {
 
         {activeTab === "quests" ? <QuestLogSection quests={authoredQuests} /> : null}
         {activeTab === "factions" ? <FactionsSection factions={factions} /> : null}
-        {activeTab === "world" ? <WorldMapSection regions={worldRegions} /> : null}
+        {activeTab === "world" ? (
+          <WorldMapSection
+            regions={worldRegions}
+            currentRegionId={currentRegionId}
+            visitedRegionIds={visitedRegionIds}
+            regionActions={worldRegionActions}
+            latestRegionTravelResult={latestRegionTravelResult}
+            regionTravelLog={regionTravelLog}
+            travelToRegion={travelToRegion}
+            performRegionAction={performRegionAction}
+          />
+        ) : null}
       </div>
     </section>
   );
