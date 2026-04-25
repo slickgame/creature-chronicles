@@ -456,6 +456,73 @@ type MainStoryChapterProgress = {
   isComplete: boolean;
 };
 
+type WorldSupportStatus = "locked" | "available" | "active" | "completed";
+
+type AuthoredQuestCategory =
+  | "main_story"
+  | "side_quest"
+  | "faction_quest"
+  | "regional_assignment";
+
+type AuthoredQuestSource =
+  | { type: "npc"; npcId: string; name: string }
+  | { type: "faction"; factionId: string; name: string };
+
+type AuthoredQuestGate = {
+  chapterId?: MainStoryChapterId;
+  requiredCompletedChapterId?: MainStoryChapterId;
+  note: string;
+};
+
+type AuthoredQuestObjective = {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+};
+
+type AuthoredQuest = {
+  id: string;
+  title: string;
+  description: string;
+  category: AuthoredQuestCategory;
+  source: AuthoredQuestSource;
+  objectives: AuthoredQuestObjective[];
+  rewardSummary: string;
+  status: WorldSupportStatus;
+  gate?: AuthoredQuestGate;
+};
+
+type FactionStanding = "unknown" | "neutral" | "warm" | "trusted" | "allied" | "strained";
+
+type WorldFaction = {
+  id: string;
+  name: string;
+  description: string;
+  reputation: number;
+  standing: FactionStanding;
+  unlockCondition: string;
+  relationshipToPlayer: string;
+  perkHooks: string[];
+  rewardHooks: string[];
+  status: WorldSupportStatus;
+};
+
+type WorldRegion = {
+  id: string;
+  name: string;
+  description: string;
+  unlockCondition: string;
+  access: {
+    travelMinutes: number;
+    route: string;
+    requirement: string;
+  };
+  questHooks: string[];
+  factionHooks: string[];
+  status: WorldSupportStatus;
+};
+
 
 type SaveData = {
   currentDay: number;
@@ -493,6 +560,9 @@ type SaveData = {
   fieldUpgrades: FieldUpgradeState;
   fieldPlots: FieldPlot[];
   mainStory: MainStoryState;
+  authoredQuests: AuthoredQuest[];
+  factions: WorldFaction[];
+  worldRegions: WorldRegion[];
 };
 
 type GameContextType = {
@@ -534,6 +604,9 @@ type GameContextType = {
   currentMainStoryChapter: MainStoryChapter;
   currentMainStoryObjective: MainStoryObjective;
   mainStoryChapterProgress: MainStoryChapterProgress;
+  authoredQuests: AuthoredQuest[];
+  factions: WorldFaction[];
+  worldRegions: WorldRegion[];
   dismissMainStoryReward: () => void;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
@@ -958,6 +1031,170 @@ const defaultMainStoryState: MainStoryState = {
   latestReward: null,
 };
 
+const defaultAuthoredQuests: AuthoredQuest[] = [
+  {
+    id: "wayfarer-road-ledger",
+    title: "The Road Ledger",
+    description:
+      "The Wayfarers keep a soft-spoken ledger of ranches that can be trusted beyond town limits. Your name has a blank line waiting, which feels like an invitation and a dare.",
+    category: "regional_assignment",
+    source: { type: "faction", factionId: "wayfarer_dispatch", name: "Wayfarer Dispatch" },
+    objectives: [
+      {
+        id: "confirm-town-route",
+        title: "Confirm the town route",
+        description:
+          "Use the existing ranch, town, market, or guild loops to prove the road around your home is steady enough for later assignments.",
+        completed: false,
+      },
+      {
+        id: "hold-commission-space",
+        title: "Hold space for a first regional commission",
+        description:
+          "Future chapters can attach delivery, escort, or inspection work here without replacing the town request boards.",
+        completed: false,
+      },
+    ],
+    rewardSummary: "Future regional assignment access, dispatch reputation, and route-specific perk hooks.",
+    status: "available",
+  },
+  {
+    id: "market-ring-introduction",
+    title: "Velvet Market Introduction",
+    description:
+      "Selene has not promised you anything, which is her favorite kind of promise. The Market Ring is watching for goods worth carrying under a private seal.",
+    category: "faction_quest",
+    source: { type: "faction", factionId: "velvet_market_ring", name: "Velvet Market Ring" },
+    objectives: [
+      {
+        id: "mark-sellable-strength",
+        title: "Mark what the ranch can sell",
+        description:
+          "Future faction work can key off quality produce, cooked goods, premium contracts, and Selene's private economy route.",
+        completed: false,
+      },
+    ],
+    rewardSummary: "Market standing, premium buyer hooks, exclusive contract space, and future faction perks.",
+    status: "available",
+  },
+  {
+    id: "chapter-six-support-slot",
+    title: "A Wider Invitation",
+    description:
+      "The first true world-facing branch is being prepared here, but it waits until the current chapter framework has earned the moment.",
+    category: "main_story",
+    source: { type: "faction", factionId: "guild_hall_circle", name: "Guild Hall Circle" },
+    objectives: [
+      {
+        id: "choose-first-outer-thread",
+        title: "Choose the first outer thread",
+        description:
+          "Chapter 6 can later decide whether the opening pressure comes from guild inspection, market politics, or an ally-led regional errand.",
+        completed: false,
+      },
+    ],
+    rewardSummary: "Reserved Chapter 6 branch support. No Chapter 6 content is active yet.",
+    status: "locked",
+    gate: {
+      requiredCompletedChapterId: "chapter_5",
+      note: "Requires Chapter 5 completion. This is scaffolding only, not a new chapter.",
+    },
+  },
+];
+
+const defaultFactions: WorldFaction[] = [
+  {
+    id: "wayfarer_dispatch",
+    name: "Wayfarer Dispatch",
+    description:
+      "A loose network of drivers, handlers, and road-wise messengers who know which ranches can be trusted when the map gets coy.",
+    reputation: 0,
+    standing: "neutral",
+    unlockCondition: "Visible from the start; deeper assignments should unlock after regional notice beats.",
+    relationshipToPlayer:
+      "Curious but practical. They like reliable hands, calm creatures, and partners who do not flinch when the road gets intimate with danger.",
+    perkHooks: ["regional_travel_discount", "road_assignment_priority"],
+    rewardHooks: ["travel permits", "dispatch reputation", "route-specific errands"],
+    status: "available",
+  },
+  {
+    id: "velvet_market_ring",
+    name: "Velvet Market Ring",
+    description:
+      "Selene's wider circle of buyers, brokers, and beautifully dangerous ledgers. They value quality, discretion, and confidence with a little bite.",
+    reputation: 0,
+    standing: "neutral",
+    unlockCondition: "Visible through town economy systems; premium hooks can follow Selene, contracts, and produce quality.",
+    relationshipToPlayer:
+      "Professionally interested. Personally, they are waiting to see whether your ranch can make them lean closer.",
+    perkHooks: ["premium_sell_multiplier", "exclusive_market_contracts"],
+    rewardHooks: ["buyer seals", "rare stock access", "market faction introductions"],
+    status: "available",
+  },
+  {
+    id: "guild_hall_circle",
+    name: "Guild Hall Circle",
+    description:
+      "The formal face of inspections, commissions, and civic pressure. Friendly enough over a counter; much sharper once signatures are involved.",
+    reputation: 0,
+    standing: "neutral",
+    unlockCondition: "Visible from town and guild travel; formal chapter use should wait for the next main story branch.",
+    relationshipToPlayer:
+      "Assessing. They see potential in the ranch and are deciding how much responsibility to place in your hands.",
+    perkHooks: ["inspection_bonus", "commission_slot_unlock"],
+    rewardHooks: ["guild seals", "official assignments", "civic reputation"],
+    status: "available",
+  },
+];
+
+const defaultWorldRegions: WorldRegion[] = [
+  {
+    id: "homefold_valley",
+    name: "Homefold Valley",
+    description:
+      "The familiar ranch-town basin: warm fields, busy counters, and enough flirtatious local trouble to keep the days from behaving.",
+    unlockCondition: "Unlocked from the start.",
+    access: {
+      travelMinutes: 0,
+      route: "Ranch, town, market, and guild hall local loop",
+      requirement: "None",
+    },
+    questHooks: ["wayfarer-road-ledger", "market-ring-introduction"],
+    factionHooks: ["wayfarer_dispatch", "velvet_market_ring", "guild_hall_circle"],
+    status: "available",
+  },
+  {
+    id: "brindlewood_road",
+    name: "Brindlewood Road",
+    description:
+      "A trade road beyond the immediate town loop, known for courier work, nervous inspections, and moonlit stops where people say too much.",
+    unlockCondition: "Prepared for post-Chapter 5 regional assignments.",
+    access: {
+      travelMinutes: 90,
+      route: "Town gate to eastern trade road",
+      requirement: "Future regional permit or authored quest unlock",
+    },
+    questHooks: ["wayfarer-road-ledger", "chapter-six-support-slot"],
+    factionHooks: ["wayfarer_dispatch", "guild_hall_circle"],
+    status: "locked",
+  },
+  {
+    id: "silvergrain_exchange",
+    name: "Silvergrain Exchange",
+    description:
+      "A larger market district where premium crops, cooked goods, and private reputations can open doors the public boards never mention.",
+    unlockCondition: "Prepared for market faction expansion.",
+    access: {
+      travelMinutes: 120,
+      route: "Market caravan route",
+      requirement: "Future Velvet Market Ring introduction",
+    },
+    questHooks: ["market-ring-introduction", "chapter-six-support-slot"],
+    factionHooks: ["velvet_market_ring"],
+    status: "locked",
+  },
+];
+
 const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
 const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
 const catFirstNames = ["Velvet","Misty","Sable","Luna","Poppy","Ivy","Mochi","Pearl"];
@@ -1039,6 +1276,71 @@ function normalizeMainStoryState(state?: Partial<MainStoryState> | null): MainSt
     completedChapterLog: Array.isArray(state?.completedChapterLog) ? state.completedChapterLog : [],
     latestReward: state?.latestReward ?? null,
   };
+}
+
+function isWorldSupportStatus(status: unknown): status is WorldSupportStatus {
+  return (
+    status === "locked" ||
+    status === "available" ||
+    status === "active" ||
+    status === "completed"
+  );
+}
+
+function normalizeAuthoredQuests(savedQuests?: AuthoredQuest[]): AuthoredQuest[] {
+  const savedById = new Map(
+    Array.isArray(savedQuests) ? savedQuests.map((quest) => [quest.id, quest]) : []
+  );
+
+  return defaultAuthoredQuests.map((quest) => {
+    const saved = savedById.get(quest.id);
+    const savedObjectives = new Map(
+      Array.isArray(saved?.objectives)
+        ? saved.objectives.map((objective) => [objective.id, objective])
+        : []
+    );
+
+    return {
+      ...quest,
+      status: isWorldSupportStatus(saved?.status) ? saved.status : quest.status,
+      objectives: quest.objectives.map((objective) => ({
+        ...objective,
+        completed: Boolean(savedObjectives.get(objective.id)?.completed ?? objective.completed),
+      })),
+    };
+  });
+}
+
+function normalizeFactions(savedFactions?: WorldFaction[]): WorldFaction[] {
+  const savedById = new Map(
+    Array.isArray(savedFactions) ? savedFactions.map((faction) => [faction.id, faction]) : []
+  );
+
+  return defaultFactions.map((faction) => {
+    const saved = savedById.get(faction.id);
+
+    return {
+      ...faction,
+      reputation: typeof saved?.reputation === "number" ? saved.reputation : faction.reputation,
+      standing: saved?.standing ?? faction.standing,
+      status: isWorldSupportStatus(saved?.status) ? saved.status : faction.status,
+    };
+  });
+}
+
+function normalizeWorldRegions(savedRegions?: WorldRegion[]): WorldRegion[] {
+  const savedById = new Map(
+    Array.isArray(savedRegions) ? savedRegions.map((region) => [region.id, region]) : []
+  );
+
+  return defaultWorldRegions.map((region) => {
+    const saved = savedById.get(region.id);
+
+    return {
+      ...region,
+      status: isWorldSupportStatus(saved?.status) ? saved.status : region.status,
+    };
+  });
 }
 
 function getMonthFromAbsoluteDay(day: number) {
@@ -2460,6 +2762,9 @@ const defaultSaveData: SaveData = {
   fieldUpgrades: DEFAULT_FIELD_UPGRADES,
   fieldPlots: defaultFieldPlots,
   mainStory: defaultMainStoryState,
+  authoredQuests: defaultAuthoredQuests,
+  factions: defaultFactions,
+  worldRegions: defaultWorldRegions,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -2521,6 +2826,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [fieldPlots, setFieldPlots] = useState<FieldPlot[]>(defaultSaveData.fieldPlots);
   const [lastFieldAction, setLastFieldAction] = useState<FieldActionReport | null>(null);
   const [mainStory, setMainStory] = useState<MainStoryState>(defaultSaveData.mainStory);
+  const [authoredQuests, setAuthoredQuests] = useState<AuthoredQuest[]>(defaultSaveData.authoredQuests);
+  const [factions, setFactions] = useState<WorldFaction[]>(defaultSaveData.factions);
+  const [worldRegions, setWorldRegions] = useState<WorldRegion[]>(defaultSaveData.worldRegions);
   const currentSeason = getSeasonForDay(currentDay);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
   const mainStoryChapters = getMainStoryChapterList();
@@ -2631,6 +2939,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
           )
         );
         setMainStory(normalizeMainStoryState(parsedSave.mainStory));
+        setAuthoredQuests(normalizeAuthoredQuests(parsedSave.authoredQuests));
+        setFactions(normalizeFactions(parsedSave.factions));
+        setWorldRegions(normalizeWorldRegions(parsedSave.worldRegions));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -2677,6 +2988,9 @@ useEffect(() => {
     fieldUpgrades,
     fieldPlots,
     mainStory,
+    authoredQuests,
+    factions,
+    worldRegions,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -2717,6 +3031,9 @@ useEffect(() => {
   fieldUpgrades,
   fieldPlots,
   mainStory,
+  authoredQuests,
+  factions,
+  worldRegions,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -4890,6 +5207,9 @@ function purchaseMarketItem(itemId: string, price: number) {
     setFieldUpgrades(DEFAULT_FIELD_UPGRADES);
     setFieldPlots(createDefaultFieldPlots());
     setMainStory(defaultMainStoryState);
+    setAuthoredQuests(defaultAuthoredQuests);
+    setFactions(defaultFactions);
+    setWorldRegions(defaultWorldRegions);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -4934,6 +5254,9 @@ function purchaseMarketItem(itemId: string, price: number) {
         currentMainStoryChapter,
         currentMainStoryObjective,
         mainStoryChapterProgress,
+        authoredQuests,
+        factions,
+        worldRegions,
         dismissMainStoryReward,
         nextDay,
         hatchEgg,

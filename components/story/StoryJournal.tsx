@@ -18,6 +18,20 @@ function formatRewardItems(items: Array<{ itemId: string; quantity: number }>) {
     .join(", ");
 }
 
+function formatStatus(status: string) {
+  if (status === "available") return "Available";
+  if (status === "active") return "Active";
+  if (status === "completed") return "Completed";
+  return "Locked";
+}
+
+function formatQuestCategory(category: string) {
+  if (category === "main_story") return "Main Story";
+  if (category === "side_quest") return "Side Quest";
+  if (category === "faction_quest") return "Faction Quest";
+  return "Regional Assignment";
+}
+
 export default function StoryJournal() {
   const {
     mainStory,
@@ -25,6 +39,9 @@ export default function StoryJournal() {
     currentMainStoryChapter,
     currentMainStoryObjective,
     mainStoryChapterProgress,
+    authoredQuests,
+    factions,
+    worldRegions,
   } = useGame();
   const [open, setOpen] = useState(false);
 
@@ -32,16 +49,20 @@ export default function StoryJournal() {
     mainStory.completedChapterLog.map((entry) => [entry.chapterId, entry])
   );
   const completedCount = mainStory.completedChapterLog.length;
+  const visibleQuestCount = authoredQuests.filter((quest) => quest.status !== "locked").length;
+  const visibleFactionCount = factions.filter((faction) => faction.status !== "locked").length;
+  const availableRegionCount = worldRegions.filter((region) => region.status !== "locked").length;
 
   return (
     <section className="rounded-3xl border-4 border-stone-900 bg-white/90 p-5 shadow-xl">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-xs font-bold uppercase text-stone-600">Story Journal</p>
-          <h2 className="mt-1 text-2xl font-bold text-stone-950">Chapter Archive</h2>
+          <h2 className="mt-1 text-2xl font-bold text-stone-950">Chapter Archive & World</h2>
           <p className="mt-2 max-w-3xl text-sm text-stone-700">
             Current: Chapter {currentMainStoryChapter.chapterNumber}, {currentMainStoryChapter.title}.{" "}
             {mainStoryChapterProgress.completedSteps}/{mainStoryChapterProgress.totalSteps} active steps complete.
+            {" "}The wider quest, faction, and region framework is now tracked here for future chapters.
           </p>
         </div>
         <button
@@ -53,7 +74,7 @@ export default function StoryJournal() {
         </button>
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-3">
           <p className="text-xs font-bold uppercase text-indigo-800">Current Chapter</p>
           <p className="mt-1 font-bold text-stone-950">{currentMainStoryChapter.title}</p>
@@ -66,10 +87,144 @@ export default function StoryJournal() {
           <p className="text-xs font-bold uppercase text-emerald-800">Completed Chapters</p>
           <p className="mt-1 font-bold text-stone-950">{completedCount}</p>
         </div>
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
+          <p className="text-xs font-bold uppercase text-sky-800">Authored Quests</p>
+          <p className="mt-1 font-bold text-stone-950">{visibleQuestCount}/{authoredQuests.length} visible</p>
+        </div>
+        <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-3">
+          <p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p>
+          <p className="mt-1 font-bold text-stone-950">{visibleFactionCount}/{factions.length} known</p>
+        </div>
+        <div className="rounded-2xl border border-teal-200 bg-teal-50 p-3">
+          <p className="text-xs font-bold uppercase text-teal-800">Regions</p>
+          <p className="mt-1 font-bold text-stone-950">{availableRegionCount}/{worldRegions.length} open</p>
+        </div>
       </div>
 
       {open ? (
         <div className="mt-4 grid gap-4">
+          <article className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase text-sky-800">Quest Framework</p>
+                <h3 className="text-xl font-bold text-stone-950">Authored Quest Ledger</h3>
+                <p className="mt-1 text-sm text-stone-700">
+                  These are authored quest foundations, separate from repeatable town boards and NPC request loops.
+                </p>
+              </div>
+              <span className="rounded-full border border-white bg-white px-3 py-1 text-xs font-bold text-sky-900">
+                {authoredQuests.length} quest hooks
+              </span>
+            </div>
+
+            <div className="mt-3 grid gap-3 lg:grid-cols-3">
+              {authoredQuests.map((quest) => {
+                const completedObjectives = quest.objectives.filter((objective) => objective.completed).length;
+
+                return (
+                  <div key={quest.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase text-sky-800">
+                          {formatQuestCategory(quest.category)}
+                        </p>
+                        <p className="font-bold text-stone-950">{quest.title}</p>
+                      </div>
+                      <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-900">
+                        {formatStatus(quest.status)}
+                      </span>
+                    </div>
+                    <p className="mt-2">{quest.description}</p>
+                    <p className="mt-2 text-xs font-semibold text-stone-600">
+                      Source: {quest.source.name}
+                    </p>
+                    {quest.gate ? (
+                      <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                        Gate: {quest.gate.note}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 grid gap-2">
+                      {quest.objectives.map((objective) => (
+                        <div key={`${quest.id}-${objective.id}`} className="rounded-lg bg-sky-50 px-3 py-2 text-xs">
+                          <p className="font-bold text-stone-900">{objective.title}</p>
+                          <p className="mt-1">{objective.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-xs font-semibold text-stone-600">
+                      Progress: {completedObjectives}/{quest.objectives.length} objectives
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-sky-900">
+                      Reward hooks: {quest.rewardSummary}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4">
+            <p className="text-xs font-bold uppercase text-fuchsia-800">Faction Scaffolding</p>
+            <h3 className="text-xl font-bold text-stone-950">Organizations Watching the Ranch</h3>
+            <div className="mt-3 grid gap-3 lg:grid-cols-3">
+              {factions.map((faction) => (
+                <div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-bold text-stone-950">{faction.name}</p>
+                      <p className="text-xs font-semibold uppercase text-fuchsia-800">
+                        {faction.standing} - Reputation {faction.reputation}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">
+                      {formatStatus(faction.status)}
+                    </span>
+                  </div>
+                  <p className="mt-2">{faction.description}</p>
+                  <p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p>
+                  <p className="mt-2 text-xs"><strong>Relationship:</strong> {faction.relationshipToPlayer}</p>
+                  <p className="mt-2 text-xs font-semibold text-fuchsia-900">
+                    Perks: {faction.perkHooks.join(", ")}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-stone-600">
+                    Rewards: {faction.rewardHooks.join(", ")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-teal-200 bg-teal-50 p-4">
+            <p className="text-xs font-bold uppercase text-teal-800">World Structure</p>
+            <h3 className="text-xl font-bold text-stone-950">Regions & Destination Hooks</h3>
+            <div className="mt-3 grid gap-3 lg:grid-cols-3">
+              {worldRegions.map((region) => (
+                <div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="font-bold text-stone-950">{region.name}</p>
+                      <p className="text-xs font-semibold uppercase text-teal-800">
+                        {region.access.travelMinutes} minutes - {region.access.route}
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">
+                      {formatStatus(region.status)}
+                    </span>
+                  </div>
+                  <p className="mt-2">{region.description}</p>
+                  <p className="mt-2 text-xs"><strong>Unlock:</strong> {region.unlockCondition}</p>
+                  <p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement}</p>
+                  <p className="mt-2 text-xs font-semibold text-teal-900">
+                    Quest hooks: {region.questHooks.join(", ")}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-stone-600">
+                    Faction hooks: {region.factionHooks.join(", ")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+
           {mainStoryChapters.map((chapter) => {
             const completedEntry = completedByChapter.get(chapter.id);
             const isCurrent = chapter.id === mainStory.currentChapterId;
