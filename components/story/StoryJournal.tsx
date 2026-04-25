@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
 import {
@@ -482,8 +482,13 @@ export default function StoryJournal() {
     authoredQuests,
     factions,
     worldRegions,
+    acknowledgeStoryJournalSection,
   } = useGame();
   const [activeTab, setActiveTab] = useState<JournalTab>("story");
+
+  useEffect(() => {
+    acknowledgeStoryJournalSection(activeTab);
+  }, [activeTab]);
 
   const completedCount = mainStory.completedChapterLog.length;
   const actionableQuestCount = authoredQuests.filter(

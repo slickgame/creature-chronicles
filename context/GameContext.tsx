@@ -372,7 +372,7 @@ type FieldActionReport = {
   details: string[];
 };
 
-type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3" | "chapter_4" | "chapter_5";
+type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3" | "chapter_4" | "chapter_5" | "chapter_6";
 
 type MainStoryObjectiveId =
   | "ranch_creature_care"
@@ -403,13 +403,26 @@ type MainStoryObjectiveId =
   | "chapter5_significant_goods"
   | "chapter5_town_submission"
   | "chapter5_outside_acknowledgment"
-  | "chapter5_future_route";
+  | "chapter5_future_route"
+  | "chapter6_wider_invitation"
+  | "chapter6_quest_log_review"
+  | "chapter6_faction_signal"
+  | "chapter6_route_goods"
+  | "chapter6_creature_lineage_proof"
+  | "chapter6_town_registration"
+  | "chapter6_world_route_confirmed";
 
 type MainStoryReward = {
   title: string;
   description: string;
   gold: number;
   items: Array<{ itemId: string; quantity: number }>;
+  factionReputation?: Array<{
+    factionId: string;
+    amount: number;
+    standing?: FactionStanding;
+  }>;
+  unlockRegions?: string[];
   unlockText: string;
 };
 
@@ -621,6 +634,7 @@ type GameContextType = {
   factions: WorldFaction[];
   worldRegions: WorldRegion[];
   dismissMainStoryReward: () => void;
+  acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -1033,6 +1047,97 @@ const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
     },
     nextChapterHint:
       "Chapter 6 should introduce the first true world-facing branch: guild inspection, market faction pressure, or an ally-led regional errand.",
+    nextChapterId: "chapter_6",
+  },
+  chapter_6: {
+    id: "chapter_6",
+    chapterNumber: 6,
+    title: "The First Route Out",
+    subtitle: "The ranch chooses how it will be known beyond the home loop.",
+    summary:
+      "Chapter 6 opens the map without closing the player in. The Wayfarer Dispatch, Velvet Market Ring, and Guild Hall Circle all begin reading your ranch differently, and your first route signal tells them what kind of attention you are willing to invite.",
+    objectives: [
+      {
+        id: "chapter6_wider_invitation",
+        title: "Read the Wider Invitation",
+        description:
+          "Open the Story Journal and acknowledge that the regional notice has become a real invitation. The first route out starts with understanding who is watching.",
+        locationHint: "home",
+        completionFlag: "chapter6_wider_invitation",
+      },
+      {
+        id: "chapter6_quest_log_review",
+        title: "Check the Quest Log for Faction Work",
+        description:
+          "Open the Quest Log and review the authored regional or faction assignments. The Road Ledger and Velvet Market Introduction both count as valid route work once they move.",
+        locationHint: "home",
+        completionFlag: "chapter6_quest_log_review",
+        rewardPreview: "Quest Log review helps Chapter 6 recognize authored quest progress instead of using a separate story-only path.",
+      },
+      {
+        id: "chapter6_faction_signal",
+        title: "Send a First Alignment Signal",
+        description:
+          "Show a preference without swearing yourself to anyone: progress or complete a Wayfarer, Velvet Market, or Guild-facing action, or review Factions once reputation has begun to move.",
+        locationHint: "town",
+        completionFlag: "chapter6_faction_signal",
+        rewardPreview: "This is a signal, not a permanent lock. Chapter 7 can still branch without trapping the player.",
+      },
+      {
+        id: "chapter6_route_goods",
+        title: "Prepare Goods Worth Carrying",
+        description:
+          "Use ranch production for the route: cook, clean, plant, water, fertilize, harvest, or prepare a recipe with creature help so the wider network sees practical proof.",
+        locationHint: "ranch",
+        completionFlag: "chapter6_route_goods",
+      },
+      {
+        id: "chapter6_creature_lineage_proof",
+        title: "Put Creature Support Behind the Route",
+        description:
+          "Prove the ranch's living strength through creature care, recovery, breeding, hatching, a new creature, or another creature-backed task that shows the route has muscle and tenderness both.",
+        locationHint: "ranch",
+        completionFlag: "chapter6_creature_lineage_proof",
+      },
+      {
+        id: "chapter6_town_registration",
+        title: "Register the Result Through Town",
+        description:
+          "Make the route public through a town-facing submission: complete a request, contract, produce sale, creature quest, market visit, guild visit, gift, outing, or exclusive loop.",
+        locationHint: "town",
+        completionFlag: "chapter6_town_registration",
+      },
+      {
+        id: "chapter6_world_route_confirmed",
+        title: "Confirm the First Route on the World Map",
+        description:
+          "Open the World Map and acknowledge the route state. Brindlewood Road, Silvergrain Exchange, and the local loop now matter as destinations rather than background labels.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter6_world_route_confirmed",
+        rewardPreview: "Chapter reward: 650 Gold, Rich Fertilizer x3, Apple Seed x2, Berry Seed x2, reputation across the first organizations, and Silvergrain Exchange access.",
+      },
+    ],
+    completionReward: {
+      title: "First Route Charter",
+      description:
+        "Your ranch receives its first route charter, not as a cage but as a calling card. The Dispatch marks you reliable, the Guild starts using warmer ink, and Selene smiles like the market just learned your scent.",
+      gold: 650,
+      items: [
+        { itemId: "rich_fertilizer", quantity: 3 },
+        { itemId: "apple_seed", quantity: 2 },
+        { itemId: "berry_seed", quantity: 2 },
+      ],
+      factionReputation: [
+        { factionId: "wayfarer_dispatch", amount: 10, standing: "warm" },
+        { factionId: "velvet_market_ring", amount: 10, standing: "warm" },
+        { factionId: "guild_hall_circle", amount: 15, standing: "warm" },
+      ],
+      unlockRegions: ["silvergrain_exchange"],
+      unlockText:
+        "Chapter 7 lead: choose whether the next route deepens toward road dispatch, market pressure, guild inspection, or a personal ally's private terms.",
+    },
+    nextChapterHint:
+      "Chapter 7 should pause for a stronger branch layer: route preference, faction pressure, and regional assignment selection should become explicit before the next chapter begins.",
   },
 };
 
@@ -1077,7 +1182,7 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
       summary:
         "The Dispatch inks your ranch into the active road ledger, pays a modest route retainer, and opens Brindlewood Road for future work.",
     },
-    status: "available",
+    status: "locked",
   },
   {
     id: "market-ring-introduction",
@@ -1117,7 +1222,7 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
     id: "chapter-six-support-slot",
     title: "A Wider Invitation",
     description:
-      "The first true world-facing branch is being prepared here, but it waits until the current chapter framework has earned the moment.",
+      "The first true world-facing invitation has arrived. The Guild Hall Circle keeps the formal seal, but the road and market both know your ranch is beginning to choose how it wants to be seen.",
     category: "main_story",
     source: { type: "faction", factionId: "guild_hall_circle", name: "Guild Hall Circle" },
     objectives: [
@@ -1125,22 +1230,22 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
         id: "choose-first-outer-thread",
         title: "Choose the first outer thread",
         description:
-          "Chapter 6 can later decide whether the opening pressure comes from guild inspection, market politics, or an ally-led regional errand.",
+          "Use Chapter 6's Quest Log, Factions, and World Map steps to send a first route signal without permanently locking into one faction.",
         completed: false,
       },
     ],
-    rewardSummary: "Reserved Chapter 6 branch support. No Chapter 6 content is active yet.",
+    rewardSummary: "Chapter 6 route support, Guild Hall recognition, and wider regional attention.",
     reward: {
-      gold: 0,
-      items: [],
-      factionReputation: [],
+      gold: 100,
+      items: [{ itemId: "basic_fertilizer", quantity: 1 }],
+      factionReputation: [{ factionId: "guild_hall_circle", amount: 10, standing: "warm" }],
       unlockRegions: [],
-      summary: "Reserved for Chapter 6. No reward is currently claimable.",
+      summary: "The Guild Hall Circle marks your wider invitation as active and leaves room for the road, market, or a personal ally to pull next.",
     },
-    status: "locked",
+    status: "available",
     gate: {
       requiredCompletedChapterId: "chapter_5",
-      note: "Requires Chapter 5 completion. This is scaffolding only, not a new chapter.",
+      note: "Requires Chapter 5 completion and supports Chapter 6 route preference.",
     },
   },
 ];
@@ -1260,6 +1365,19 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
+function getStrongerFactionStanding(current: FactionStanding, incoming: FactionStanding) {
+  const standingRank: Record<FactionStanding, number> = {
+    strained: 0,
+    unknown: 1,
+    neutral: 2,
+    warm: 3,
+    trusted: 4,
+    allied: 5,
+  };
+
+  return standingRank[incoming] > standingRank[current] ? incoming : current;
+}
+
 function getMainStoryChapter(chapterId: MainStoryChapterId) {
   return MAIN_STORY_CHAPTERS[chapterId] ?? MAIN_STORY_CHAPTERS.chapter_1;
 }
@@ -1341,7 +1459,16 @@ function isFactionStanding(standing: unknown): standing is FactionStanding {
   );
 }
 
-function normalizeAuthoredQuests(savedQuests?: AuthoredQuest[]): AuthoredQuest[] {
+function isChapterCompletedForGate(mainStoryState: MainStoryState | undefined, chapterId: MainStoryChapterId) {
+  if (!mainStoryState) return false;
+  const chapter = getMainStoryChapter(chapterId);
+  return (
+    mainStoryState.completedChapterLog.some((entry) => entry.chapterId === chapterId) ||
+    chapter.objectives.every((objective) => mainStoryState.chapterProgressFlags[objective.completionFlag])
+  );
+}
+
+function normalizeAuthoredQuests(savedQuests?: AuthoredQuest[], mainStoryState?: MainStoryState): AuthoredQuest[] {
   const savedById = new Map(
     Array.isArray(savedQuests) ? savedQuests.map((quest) => [quest.id, quest]) : []
   );
@@ -1354,9 +1481,14 @@ function normalizeAuthoredQuests(savedQuests?: AuthoredQuest[]): AuthoredQuest[]
         : []
     );
 
+    const savedStatus = isWorldSupportStatus(saved?.status) ? saved.status : quest.status;
+    const gateIsOpen = quest.gate?.requiredCompletedChapterId
+      ? isChapterCompletedForGate(mainStoryState, quest.gate.requiredCompletedChapterId)
+      : false;
+
     return {
       ...quest,
-      status: isWorldSupportStatus(saved?.status) ? saved.status : quest.status,
+      status: savedStatus === "locked" && gateIsOpen ? "available" : savedStatus,
       objectives: quest.objectives.map((objective) => ({
         ...objective,
         completed: Boolean(savedObjectives.get(objective.id)?.completed ?? objective.completed),
@@ -2992,8 +3124,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
             getFieldUpgradeEffects(normalizedFieldUpgrades).unlockedPlotCount
           )
         );
-        setMainStory(normalizeMainStoryState(parsedSave.mainStory));
-        setAuthoredQuests(normalizeAuthoredQuests(parsedSave.authoredQuests));
+        const normalizedMainStory = normalizeMainStoryState(parsedSave.mainStory);
+        setMainStory(normalizedMainStory);
+        setAuthoredQuests(normalizeAuthoredQuests(parsedSave.authoredQuests, normalizedMainStory));
         setFactions(normalizeFactions(parsedSave.factions));
         setWorldRegions(normalizeWorldRegions(parsedSave.worldRegions));
       } catch (error) {
@@ -3130,7 +3263,9 @@ useEffect(() => {
           return {
             ...faction,
             reputation: faction.reputation + factionReward.amount,
-            standing: factionReward.standing ?? faction.standing,
+            standing: factionReward.standing
+              ? getStrongerFactionStanding(faction.standing, factionReward.standing)
+              : faction.standing,
             status: faction.status === "locked" ? "available" : faction.status,
           };
         })
@@ -3209,6 +3344,16 @@ useEffect(() => {
         return next;
       });
     }
+
+    if ((reward.factionReputation?.length ?? 0) > 0 || (reward.unlockRegions?.length ?? 0) > 0) {
+      applyAuthoredQuestReward({
+        gold: 0,
+        items: [],
+        factionReputation: reward.factionReputation ?? [],
+        unlockRegions: reward.unlockRegions ?? [],
+        summary: reward.unlockText,
+      });
+    }
   }
 
   function recordMainStoryFlags(flags: MainStoryObjectiveId[]) {
@@ -3244,6 +3389,15 @@ useEffect(() => {
     if (shouldGrantReward) {
       grantMainStoryReward(chapter.completionReward);
     }
+    if (shouldGrantReward && chapter.id === "chapter_5") {
+      setAuthoredQuests((prev) =>
+        prev.map((quest) =>
+          quest.id === "chapter-six-support-slot" && quest.status === "locked"
+            ? { ...quest, status: "available" }
+            : quest
+        )
+      );
+    }
     const nextChapter = shouldGrantReward && chapter.nextChapterId
       ? getMainStoryChapter(chapter.nextChapterId)
       : chapter;
@@ -3274,6 +3428,30 @@ useEffect(() => {
 
   function recordMainStoryFlag(flag: MainStoryObjectiveId) {
     recordMainStoryFlags([flag]);
+  }
+
+  function acknowledgeStoryJournalSection(section: "story" | "quests" | "factions" | "world") {
+    if (section === "story") {
+      recordMainStoryFlag("chapter6_wider_invitation");
+      return;
+    }
+
+    if (section === "quests") {
+      recordMainStoryFlags(["chapter6_quest_log_review"]);
+      recordAuthoredQuestObjectives([
+        { questId: "chapter-six-support-slot", objectiveId: "choose-first-outer-thread" },
+      ]);
+      return;
+    }
+
+    if (section === "factions") {
+      recordMainStoryFlag("chapter6_faction_signal");
+      return;
+    }
+
+    if (section === "world") {
+      recordMainStoryFlag("chapter6_world_route_confirmed");
+    }
   }
 
   function dismissMainStoryReward() {
@@ -3400,6 +3578,7 @@ useEffect(() => {
       "chapter4_lineage_step",
       "chapter4_creature_growth_work",
       "chapter5_creature_backed_proof",
+      "chapter6_creature_lineage_proof",
     ]);
     return newCreature;
   }
@@ -3507,16 +3686,17 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
   setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
   setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-  recordMainStoryFlags([
-    "ranch_creature_care",
-    "chapter2_ranch_preparation",
-    "chapter3_ranch_reputation_prep",
-    "chapter4_creature_assessment",
-    "chapter4_creature_growth_work",
-    "chapter5_ranch_commission_prep",
-    "chapter5_creature_backed_proof",
-    ...(careType === "recovery" ? (["chapter4_breeding_preparation"] as MainStoryObjectiveId[]) : []),
-  ]);
+    recordMainStoryFlags([
+      "ranch_creature_care",
+      "chapter2_ranch_preparation",
+      "chapter3_ranch_reputation_prep",
+      "chapter4_creature_assessment",
+      "chapter4_creature_growth_work",
+      "chapter5_ranch_commission_prep",
+      "chapter5_creature_backed_proof",
+      "chapter6_creature_lineage_proof",
+      ...(careType === "recovery" ? (["chapter4_breeding_preparation"] as MainStoryObjectiveId[]) : []),
+    ]);
 }
 
   function breedCreatures() {
@@ -3654,6 +3834,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_breeding_preparation",
       "chapter4_creature_growth_work",
       "chapter5_creature_backed_proof",
+      "chapter6_creature_lineage_proof",
     ];
 
     if (receiverIsPlayer) {
@@ -3723,6 +3904,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_town_bloodline_proof",
       "chapter5_creature_backed_proof",
       "chapter5_regional_notice",
+      "chapter6_creature_lineage_proof",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -3752,6 +3934,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+      "chapter6_town_registration",
+      "chapter6_faction_signal",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
@@ -3818,6 +4002,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+      "chapter6_town_registration",
+      "chapter6_faction_signal",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
@@ -3920,6 +4106,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+      "chapter6_town_registration",
+      "chapter6_faction_signal",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
@@ -4087,6 +4275,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
             "chapter5_town_submission",
             "chapter5_outside_acknowledgment",
             "chapter5_future_route",
+            "chapter6_town_registration",
+            "chapter6_faction_signal",
           ]
         : [
             "chapter2_social_followup",
@@ -4094,6 +4284,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
             "chapter4_town_bloodline_proof",
             "chapter5_regional_notice",
             "chapter5_outside_acknowledgment",
+            "chapter6_town_registration",
+            "chapter6_faction_signal",
           ]
     );
     recordAuthoredQuestObjectives([
@@ -4252,6 +4444,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+      "chapter6_town_registration",
+      "chapter6_faction_signal",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
@@ -4372,6 +4566,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_town_submission",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+      "chapter6_town_registration",
+      "chapter6_faction_signal",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -4488,6 +4684,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_regional_notice",
       "chapter5_outside_acknowledgment",
       "chapter5_future_route",
+      "chapter6_town_registration",
+      "chapter6_faction_signal",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
@@ -4544,7 +4742,12 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       recordMainStoryFlag("first_town_visit");
     }
     if (destination === "guild_hall" || destination === "market") {
-      recordMainStoryFlags(["chapter5_regional_notice", "chapter5_outside_acknowledgment"]);
+      recordMainStoryFlags([
+        "chapter5_regional_notice",
+        "chapter5_outside_acknowledgment",
+        "chapter6_town_registration",
+        "chapter6_faction_signal",
+      ]);
       recordAuthoredQuestObjectives([
         { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
       ]);
@@ -4614,6 +4817,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+      "chapter6_route_goods",
+      "chapter6_creature_lineage_proof",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -4676,6 +4881,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+      "chapter6_route_goods",
+      "chapter6_creature_lineage_proof",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -4755,6 +4962,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+      "chapter6_route_goods",
+      "chapter6_creature_lineage_proof",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -4820,6 +5029,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+      "chapter6_route_goods",
+      "chapter6_creature_lineage_proof",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -4884,6 +5095,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter4_creature_growth_work",
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
+      "chapter6_route_goods",
+      "chapter6_creature_lineage_proof",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -4960,6 +5173,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
       "chapter5_significant_goods",
+      "chapter6_route_goods",
+      "chapter6_creature_lineage_proof",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -5131,6 +5346,8 @@ function cookRecipe(recipeId: string, creatureId: number) {
     "chapter5_ranch_commission_prep",
     "chapter5_creature_backed_proof",
     "chapter5_significant_goods",
+    "chapter6_route_goods",
+    "chapter6_creature_lineage_proof",
   ]);
   recordAuthoredQuestObjectives([
     { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -5238,6 +5455,8 @@ function sellQualityProduce(
     "chapter5_town_submission",
     "chapter5_outside_acknowledgment",
     "chapter5_future_route",
+    "chapter6_town_registration",
+    "chapter6_faction_signal",
   ]);
   recordAuthoredQuestObjectives([
     { questId: "wayfarer-road-ledger", objectiveId: "town-route-proof" },
@@ -5457,6 +5676,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         factions,
         worldRegions,
         dismissMainStoryReward,
+        acknowledgeStoryJournalSection,
         nextDay,
         hatchEgg,
         breedCreatures,

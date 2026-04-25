@@ -5,6 +5,13 @@ const WORLD_LABELS: Record<string, string> = {
   "market-ring-introduction": "Velvet Market Introduction",
   "chapter-six-support-slot": "A Wider Invitation",
   "choose-first-outer-thread": "Choose the First Outer Thread",
+  "chapter6_wider_invitation": "Wider Invitation",
+  "chapter6_quest_log_review": "Quest Log Review",
+  "chapter6_faction_signal": "First Alignment Signal",
+  "chapter6_route_goods": "Route Goods",
+  "chapter6_creature_lineage_proof": "Creature Lineage Proof",
+  "chapter6_town_registration": "Town Registration",
+  "chapter6_world_route_confirmed": "World Route Confirmation",
   "road-ready-ranch-work": "Road-Ready Ranch Work",
   "town-route-proof": "Town Route Proof",
   "prepare-private-stock": "Private Stock Preparation",
@@ -52,22 +59,22 @@ const QUEST_HINTS: Record<string, { where: string; action: string; next: string 
     next: "Open Town > Market > Produce Exchange or Town > Work > NPC Requests.",
   },
   "choose-first-outer-thread": {
-    where: "Future Story",
-    action: "This is reserved for the next main-story branch.",
-    next: "Complete Chapter 5 and wait for the next main-story branch.",
+    where: "Story Journal",
+    action: "Review Chapter 6's Quest Log, Factions, and World Map route signal.",
+    next: "Open the Quest Log, then check Factions and World Map to settle the first route signal.",
   },
 };
 
 const FACTION_INFLUENCE: Record<string, string> = {
-  wayfarer_dispatch: "Complete The Road Ledger, prove ranch reliability, and use town travel routes.",
-  velvet_market_ring: "Prepare quality goods, sell through Selene, and complete market-facing deliveries.",
-  guild_hall_circle: "Use guild travel, complete civic work, and prepare for formal assignments.",
+  wayfarer_dispatch: "Complete The Road Ledger, prove ranch reliability, use town travel routes, and complete Chapter 6 route work.",
+  velvet_market_ring: "Prepare quality goods, sell through Selene, complete market-facing deliveries, and send Chapter 6 market signals.",
+  guild_hall_circle: "Use guild travel, complete civic work, acknowledge A Wider Invitation, and prepare for formal assignments.",
 };
 
 const REGION_IMPORTANCE: Record<string, string> = {
   homefold_valley: "Your current home loop: ranch work, town relationships, market services, and guild access.",
-  brindlewood_road: "The first road beyond town, positioned for courier jobs, inspections, and future regional pressure.",
-  silvergrain_exchange: "A future premium market destination tied to Selene, private buyers, and higher-stakes goods.",
+  brindlewood_road: "The first road beyond town, positioned for courier jobs, inspections, and Chapter 6's route-facing proof.",
+  silvergrain_exchange: "A premium market destination tied to Selene, private buyers, higher-stakes goods, and Chapter 6's first route charter.",
 };
 
 const STANDING_GOALS = [
