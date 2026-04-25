@@ -66,6 +66,97 @@ function StatChip({ label, value }: { label: string; value: string | number }) {
   );
 }
 
+function RoomHeader({
+  eyebrow,
+  title,
+  description,
+  children,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <p className="text-xs font-bold uppercase text-emerald-700">{eyebrow}</p>
+        <h3 className="text-2xl font-bold text-stone-950">{title}</h3>
+        <p className="mt-1 max-w-3xl text-sm text-stone-600">{description}</p>
+      </div>
+      {children ? <div className="shrink-0">{children}</div> : null}
+    </div>
+  );
+}
+
+function ResultFeedbackBox({ message }: { message: string }) {
+  if (!message) return null;
+
+  return (
+    <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950">
+      {message}
+    </div>
+  );
+}
+
+function ActionCard({
+  title,
+  performer,
+  cost,
+  outcome,
+  disabledReason,
+  buttonLabel,
+  onAction,
+  tone = "emerald",
+}: {
+  title: string;
+  performer: string;
+  cost: string;
+  outcome: string;
+  disabledReason?: string;
+  buttonLabel: string;
+  onAction: () => void;
+  tone?: "emerald" | "rose" | "sky" | "amber";
+}) {
+  const enabled = !disabledReason;
+  const toneClasses = {
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-950",
+    rose: "border-rose-200 bg-rose-50 text-rose-950",
+    sky: "border-sky-200 bg-sky-50 text-sky-950",
+    amber: "border-amber-200 bg-amber-50 text-amber-950",
+  }[tone];
+  const buttonClasses = {
+    emerald: "bg-emerald-700",
+    rose: "bg-rose-700",
+    sky: "bg-sky-700",
+    amber: "bg-amber-700",
+  }[tone];
+
+  return (
+    <div className={`flex min-h-44 flex-col rounded-2xl border-2 p-4 shadow-sm ${enabled ? toneClasses : "border-stone-300 bg-stone-100 text-stone-600"}`}>
+      <div className="flex-1">
+        <p className="text-lg font-bold">{title}</p>
+        <div className="mt-3 space-y-1 text-sm">
+          <p><strong>Helper:</strong> {performer}</p>
+          <p><strong>Cost:</strong> {cost}</p>
+          <p><strong>Outcome:</strong> {outcome}</p>
+          {disabledReason ? (
+            <p className="font-semibold text-red-800"><strong>Disabled:</strong> {disabledReason}</p>
+          ) : null}
+        </div>
+      </div>
+      <button
+        type="button"
+        disabled={!enabled}
+        onClick={onAction}
+        className={`mt-4 min-h-11 w-full rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ${enabled ? buttonClasses : "bg-stone-400"}`}
+      >
+        {buttonLabel}
+      </button>
+    </div>
+  );
+}
+
 function OverlayModal({
   open,
   title,
@@ -181,6 +272,100 @@ function formatEffectPreview(effects: ReturnType<typeof getQualityAdjustedItemEf
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(" - ") : "No edible effects listed.";
+}
+
+function getHouseCleanPreview(creature: {
+  name: string;
+  stats: { intelligence: number; speed: number; endurance: number };
+  skills: { cleaning: { level: number } };
+  breedingStamina: number;
+} | null) {
+  if (!creature) return null;
+  const speciesBonus = creature.name === "Cat" ? 2 : 0;
+  const minutesSpent = Math.max(
+    8,
+    35 - Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level + speciesBonus) / 2)
+  );
+  const staminaCost = Math.max(
+    4,
+    12 - Math.floor((creature.stats.endurance + creature.stats.speed) / 6)
+  );
+  const cleanGain = Math.max(
+    6,
+    10 + Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level + speciesBonus) / 3)
+  );
+  return { minutesSpent, staminaCost, cleanGain };
+}
+
+function getHouseMealPreview(creature: {
+  name: string;
+  stats: { intelligence: number; speed: number; endurance: number; vitality: number };
+  skills: { cooking: { level: number } };
+  breedingStamina: number;
+} | null) {
+  if (!creature) return null;
+  const speciesBonus = creature.name === "Cat" ? 2 : 0;
+  const minutesSpent = Math.max(
+    12,
+    45 - Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level + speciesBonus) / 2)
+  );
+  const staminaCost = Math.max(
+    4,
+    14 - Math.floor((creature.stats.endurance + creature.stats.vitality) / 6)
+  );
+  const foodGain = Math.max(
+    1,
+    1 + Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cooking.level + speciesBonus) / 8)
+  );
+  return { minutesSpent, staminaCost, foodGain };
+}
+
+function getBarnCarePreview(
+  careType: "feed" | "groom" | "recovery",
+  creature: {
+    stats: { intelligence: number; speed: number; endurance: number; vitality: number };
+    skills: { cleaning: { level: number } };
+    breedingStamina: number;
+  }
+) {
+  if (careType === "feed") {
+    return {
+      minutesSpent: Math.max(8, 24 - Math.floor((creature.stats.intelligence + creature.skills.cleaning.level) / 3)),
+      staminaCost: Math.max(1, 4),
+      outcome: "Consumes 1 food, restores stamina, adds happiness, grants cleaning XP.",
+    };
+  }
+
+  if (careType === "groom") {
+    return {
+      minutesSpent: Math.max(12, 36 - Math.floor((creature.stats.intelligence + creature.stats.speed + creature.skills.cleaning.level) / 3)),
+      staminaCost: Math.max(2, 8),
+      outcome: "Raises happiness, improves home cleanliness, grants cleaning XP.",
+    };
+  }
+
+  return {
+    minutesSpent: Math.max(20, 70 - Math.floor((creature.stats.vitality + creature.stats.endurance) / 2)),
+    staminaCost: 0,
+    outcome: "Restores breeding stamina and adds a small happiness lift.",
+  };
+}
+
+function getStrongestSkillLabel(creature: {
+  skills: {
+    cooking: { level: number; xp: number };
+    cleaning: { level: number; xp: number };
+    breedingCare: { level: number; xp: number };
+    fieldWork: { level: number; xp: number };
+    hauling: { level: number; xp: number };
+  };
+}) {
+  const entries = Object.entries(creature.skills).sort((a, b) => b[1].level - a[1].level);
+  const [skill, value] = entries[0] ?? ["fieldWork", { level: 1 }];
+  const label = skill
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (letter) => letter.toUpperCase());
+  return `${label} Lv ${value.level}`;
 }
 
 function BreedingParticipantPreview({
@@ -330,6 +515,8 @@ export default function RanchOperationsPanel({
     breedCreatures,
     setBreedingSelection,
     hatchEgg,
+    careForCreature,
+    renameCreature,
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<RanchTab>(initialTab);
@@ -338,7 +525,16 @@ export default function RanchOperationsPanel({
   const [selectedSeedItemId, setSelectedSeedItemId] = useState<string>("");
   const [selectedFertilizerItemId, setSelectedFertilizerItemId] = useState<string>("");
   const [selectedFieldCreatureId, setSelectedFieldCreatureId] = useState<number | null>(null);
+  const [selectedHouseHelperId, setSelectedHouseHelperId] = useState<number | null>(null);
   const [houseFeedback, setHouseFeedback] = useState<string>("");
+  const [recipeWorkshopOpen, setRecipeWorkshopOpen] = useState(false);
+  const [fieldUpgradesOpen, setFieldUpgradesOpen] = useState(false);
+  const [fieldHelperOpen, setFieldHelperOpen] = useState(false);
+  const [weatherSeasonOpen, setWeatherSeasonOpen] = useState(false);
+  const [barnFeedback, setBarnFeedback] = useState<string>("");
+  const [nurseryFeedback, setNurseryFeedback] = useState<string>("");
+  const [breedingFeedback, setBreedingFeedback] = useState<string>("");
+  const [renameInput, setRenameInput] = useState<string>("");
 
   const ownedSeedEntries = useMemo(() => {
     return Object.entries(inventory)
@@ -415,6 +611,12 @@ export default function RanchOperationsPanel({
   }, [knownRecipeIds, produceQualityInventory, inventory]);
 
   const firstCreature = creatures[0] ?? null;
+  const houseHelper =
+    creatures.find((creature) => creature.id === selectedHouseHelperId) ??
+    firstCreature;
+  const houseCleanPreview = getHouseCleanPreview(houseHelper);
+  const houseMealPreview = getHouseMealPreview(houseHelper);
+  const hasMealWheat = homeState.wheatStock > 0 || (inventory.wheat ?? 0) > 0;
   const selectedSeedEntry =
     ownedSeedEntries.find((entry) => entry.itemId === selectedSeedItemId) ??
     ownedSeedEntries[0] ??
@@ -502,17 +704,33 @@ export default function RanchOperationsPanel({
     breedingSelection.giverCreatureId !== null &&
     breedingSelection.giverCreatureId === breedingSelection.receiverCreatureId;
   const breedingEnergyCost = 8;
+  const giverUnavailableReason = giverParticipant?.type === "creature"
+    ? giverParticipant.breedingsToday >= giverParticipant.dailyBreedingLimit
+      ? `${giverParticipant.name} has reached today's breeding limit.`
+      : giverParticipant.breedingStamina <= 0
+        ? `${giverParticipant.name} needs recovery before breeding.`
+        : ""
+    : "";
+  const receiverUnavailableReason = receiverParticipant?.type === "creature"
+    ? receiverParticipant.breedingsToday >= receiverParticipant.dailyBreedingLimit
+      ? `${receiverParticipant.name} has reached today's breeding limit.`
+      : receiverParticipant.breedingStamina <= 0
+        ? `${receiverParticipant.name} needs recovery before breeding.`
+        : ""
+    : "";
   const breedingCanPerform =
     Boolean(giverParticipant && receiverParticipant) &&
     !breedingSameCreature &&
-    playerData.energy >= breedingEnergyCost;
+    playerData.energy >= breedingEnergyCost &&
+    !giverUnavailableReason &&
+    !receiverUnavailableReason;
   const breedingDisabledReason = !giverParticipant || !receiverParticipant
     ? "Select a giver and receiver."
     : breedingSameCreature
       ? "Choose two different creatures."
       : playerData.energy < breedingEnergyCost
         ? `Need ${breedingEnergyCost} player energy.`
-        : "";
+        : giverUnavailableReason || receiverUnavailableReason;
 
   return (
     <>
@@ -575,168 +793,160 @@ export default function RanchOperationsPanel({
 
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           {activeTab === "house" && (
-          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-            <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
-              <p className="text-xl font-bold text-stone-900">House Chores</p>
-              <p className="mt-2 text-sm text-stone-600">
-                Quick ranch upkeep with your first available helper.
-              </p>
-              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-stone-700">
-                {!ranchActionLocationAllowed ? (
-                  <p><strong>Disabled:</strong> Use an in-world travel action to return before chores can start.</p>
-                ) : firstCreature ? (
-                  <p>
-                    <strong>Helper:</strong> {firstCreature.nickname} - {firstCreature.name}, Stamina{" "}
-                    {firstCreature.breedingStamina}/{firstCreature.maxBreedingStamina}
-                  </p>
-                ) : (
-                  <p><strong>Disabled:</strong> No creature is available to help with house chores.</p>
-                )}
-              </div>
+          <div className="space-y-4">
+            <RoomHeader
+              eyebrow="House"
+              title="Home Care"
+              description="Pick a helper, handle warm little upkeep chores, and keep recipe crafting tucked into the workshop."
+            >
+              <button
+                type="button"
+                onClick={() => setRecipeWorkshopOpen(true)}
+                className="min-h-11 w-full rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white shadow sm:w-auto"
+              >
+                Recipe Workshop
+              </button>
+            </RoomHeader>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!firstCreature) return;
-                    cleanHome(firstCreature.id);
-                    setHouseFeedback(`${firstCreature.nickname} tidied the house. Cleanliness should look a little sweeter now.`);
-                  }}
-                  disabled={!firstCreature || !ranchActionLocationAllowed}
-                  className={`min-h-32 rounded-2xl border-2 p-4 text-left shadow ${
-                    firstCreature && ranchActionLocationAllowed
-                      ? "border-emerald-200 bg-emerald-50"
-                      : "border-stone-300 bg-stone-100 text-stone-500"
-                  }`}
-                >
-                  <p className="text-lg font-bold">Clean House</p>
-                  <p className="mt-2 text-sm">
-                    {firstCreature
-                      ? ranchActionLocationAllowed
-                        ? `${firstCreature.nickname} handles dust, bedding, and all the little corners that make the place feel cared for.`
-                        : "Return through an in-world travel action before assigning chores."
-                      : "Needs an available creature helper."}
-                  </p>
-                </button>
+            <div className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
+              <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
+                <label className="block text-sm font-bold text-stone-900">
+                  Selected Helper
+                  <select
+                    value={houseHelper?.id ?? ""}
+                    onChange={(event) => setSelectedHouseHelperId(Number(event.target.value))}
+                    className="mt-2 min-h-11 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm"
+                  >
+                    {creatures.length === 0 ? (
+                      <option value="">No helper available</option>
+                    ) : (
+                      creatures.map((creature) => (
+                        <option key={creature.id} value={creature.id}>
+                          {creature.nickname} - {creature.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </label>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!firstCreature) return;
-                    cookMeal(firstCreature.id);
-                    setHouseFeedback(`${firstCreature.nickname} cooked a basic meal for the ranch stores.`);
-                  }}
-                  disabled={!firstCreature || !ranchActionLocationAllowed || (homeState.wheatStock < 1 && (inventory.wheat ?? 0) < 1)}
-                  className={`min-h-32 rounded-2xl border-2 p-4 text-left shadow ${
-                    firstCreature && ranchActionLocationAllowed && (homeState.wheatStock > 0 || (inventory.wheat ?? 0) > 0)
-                      ? "border-emerald-200 bg-emerald-50"
-                      : "border-stone-300 bg-stone-100 text-stone-500"
-                  }`}
-                >
-                  <p className="text-lg font-bold">Basic Cook Meal</p>
-                  <p className="mt-2 text-sm">
-                    {!firstCreature
-                      ? "Needs an available creature helper."
-                      : !ranchActionLocationAllowed
-                        ? "Return through an in-world travel action before cooking."
-                      : homeState.wheatStock < 1 && (inventory.wheat ?? 0) < 1
-                        ? "Needs wheat in home stores or inventory."
-                        : `${firstCreature.nickname} turns wheat into simple food stock.`}
-                  </p>
-                </button>
-              </div>
-
-              {houseFeedback ? (
-                <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950">
-                  {houseFeedback}
-                </div>
-              ) : null}
-            </div>
-
-            <div className="rounded-2xl border-2 border-rose-200 bg-white p-4 shadow">
-              <p className="text-xl font-bold text-stone-900">Recipe Workshop</p>
-              <p className="mt-2 text-sm text-stone-600">
-                Learned recipes can now be crafted here into actual inventory items.
-              </p>
-
-              <div className="mt-4 space-y-3">
-                {knownRecipes.length === 0 ? (
-                  <div className="rounded-2xl border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
-                    No known recipes yet. Visit Tamsin in Town to buy recipe books.
-                  </div>
-                ) : (
-                  knownRecipes.map((recipe) => (
-                    <div
-                      key={recipe.id}
-                      className="rounded-2xl border border-rose-200 bg-rose-50 p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-bold text-stone-900">{recipe.name}</p>
-                          <p className="text-sm text-stone-600">{recipe.description}</p>
-                          <p className="mt-2 text-xs text-stone-700">
-                            Ingredients:{" "}
-                            {recipe.ingredients
-                              .map((ingredient) => `${ingredient.quantity} ${ITEM_DATA[ingredient.itemId]?.name ?? ingredient.itemId}`)
-                              .join(", ")}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-700">
-                            Output: {recipe.outputQuantity} {recipe.outputItem?.name ?? recipe.outputItemId}
-                          </p>
-                          <p className="mt-1 text-xs font-semibold text-rose-900">
-                            Expected Quality: {CROP_QUALITY_DATA[recipe.outputQuality].label}
-                            {recipe.ingredientPlan
-                              ? ` from ${describeQualityIngredientPlan(recipe.ingredientPlan)} ingredients`
-                              : ""}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-700">
-                            Quality Effects: {formatEffectPreview(recipe.outputEffects)}
-                          </p>
-                          <p className="mt-1 text-xs text-stone-700">
-                            Cook Time: {recipe.cookMinutes} min
-                          </p>
-                        </div>
-
-                        <div
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            recipe.craftable
-                              ? "border border-emerald-300 bg-emerald-100 text-emerald-900"
-                              : "border border-stone-300 bg-stone-100 text-stone-700"
-                          }`}
-                        >
-                          {recipe.craftable ? "Ready to Cook" : "Missing Ingredients"}
-                        </div>
+                {houseHelper ? (
+                  <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+                    <div className="flex gap-3">
+                      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white">
+                        <Image
+                          src={getCreatureImage(houseHelper.name)}
+                          alt={houseHelper.nickname}
+                          width={160}
+                          height={160}
+                          className="max-h-full w-auto object-contain"
+                        />
                       </div>
-
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {creatures.slice(0, 3).map((creature) => (
-                          <button
-                            key={`${recipe.id}-${creature.id}`}
-                            type="button"
-                            disabled={!recipe.craftable}
-                            onClick={() => cookRecipe(recipe.id, creature.id)}
-                            className={`rounded-2xl px-3 py-2 text-xs font-semibold text-white shadow ${
-                              recipe.craftable ? "bg-rose-700" : "bg-stone-400"
-                            }`}
-                          >
-                            Cook with {creature.nickname}
-                          </button>
-                        ))}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xl font-bold text-stone-950">{houseHelper.nickname}</p>
+                        <p className="text-sm font-semibold text-stone-700">
+                          {houseHelper.name} - {getMoodLabel(houseHelper.happiness)}
+                        </p>
+                        <p className="mt-1 text-xs text-stone-600">
+                          Stamina {houseHelper.breedingStamina}/{houseHelper.maxBreedingStamina}
+                        </p>
+                        <p className="mt-1 text-xs text-stone-600">
+                          Cooking Lv {houseHelper.skills.cooking.level} - Cleaning Lv {houseHelper.skills.cleaning.level}
+                        </p>
                       </div>
                     </div>
-                  ))
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-2xl border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+                    No creature is available for house care yet.
+                  </div>
                 )}
+
+                <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
+                  <div className="rounded-2xl bg-emerald-50 px-3 py-2">
+                    <p className="text-stone-500">Clean</p>
+                    <p className="font-bold text-stone-900">{homeState.cleanliness}/100</p>
+                  </div>
+                  <div className="rounded-2xl bg-amber-50 px-3 py-2">
+                    <p className="text-stone-500">Food</p>
+                    <p className="font-bold text-stone-900">{homeState.foodStock}</p>
+                  </div>
+                  <div className="rounded-2xl bg-lime-50 px-3 py-2">
+                    <p className="text-stone-500">Wheat</p>
+                    <p className="font-bold text-stone-900">{homeState.wheatStock + (inventory.wheat ?? 0)}</p>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-4">
-                <Link
-                  href="/town"
-                  className="inline-block rounded-2xl border border-rose-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 shadow"
-                >
-                  Visit Tamsin for More Recipes
-                </Link>
+              <div className="grid gap-3 md:grid-cols-2">
+                <ActionCard
+                  title="Clean House"
+                  performer={houseHelper ? houseHelper.nickname : "No helper selected"}
+                  cost={houseCleanPreview ? `${houseCleanPreview.minutesSpent} min, about ${houseCleanPreview.staminaCost} stamina` : "Needs a helper"}
+                  outcome={houseCleanPreview ? `Cleanliness +${houseCleanPreview.cleanGain}, Cleaning XP` : "Raises cleanliness"}
+                  disabledReason={
+                    !houseHelper
+                      ? "Choose a helper creature."
+                      : !ranchActionLocationAllowed
+                        ? "Return home or to the ranch through in-world travel."
+                        : houseCleanPreview && houseHelper.breedingStamina < houseCleanPreview.staminaCost
+                          ? `${houseHelper.nickname} needs more stamina.`
+                          : ""
+                  }
+                  buttonLabel="Clean House"
+                  onAction={() => {
+                    if (!houseHelper) return;
+                    cleanHome(houseHelper.id);
+                    setHouseFeedback(`${houseHelper.nickname} cleaned the house until the place felt soft, bright, and thoroughly cared for.`);
+                  }}
+                  tone="emerald"
+                />
+
+                <ActionCard
+                  title="Prepare Simple Meal"
+                  performer={houseHelper ? houseHelper.nickname : "No helper selected"}
+                  cost={houseMealPreview ? `1 wheat, ${houseMealPreview.minutesSpent} min, about ${houseMealPreview.staminaCost} stamina` : "Needs a helper and wheat"}
+                  outcome={houseMealPreview ? `Food stock +${houseMealPreview.foodGain}, Cooking XP` : "Adds food stock"}
+                  disabledReason={
+                    !houseHelper
+                      ? "Choose a helper creature."
+                      : !ranchActionLocationAllowed
+                        ? "Return home or to the ranch through in-world travel."
+                        : !hasMealWheat
+                          ? "Needs wheat in home stores or inventory."
+                          : houseMealPreview && houseHelper.breedingStamina < houseMealPreview.staminaCost
+                            ? `${houseHelper.nickname} needs more stamina.`
+                            : ""
+                  }
+                  buttonLabel="Prepare Meal"
+                  onAction={() => {
+                    if (!houseHelper) return;
+                    cookMeal(houseHelper.id);
+                    setHouseFeedback(`${houseHelper.nickname} prepared a simple meal for the ranch stores, warm enough to make everyone linger near the kitchen.`);
+                  }}
+                  tone="amber"
+                />
+
+                <div className="rounded-2xl border-2 border-rose-200 bg-rose-50 p-4 shadow-sm md:col-span-2">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-lg font-bold text-rose-950">Recipe Workshop</p>
+                      <p className="mt-1 text-sm text-stone-700">
+                        {knownRecipes.length} known recipe(s). Crafting uses the selected recipe and the helper you choose inside the workshop.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setRecipeWorkshopOpen(true)}
+                      className="min-h-11 rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white shadow"
+                    >
+                      Open Workshop
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <ResultFeedbackBox message={houseFeedback} />
           </div>
         )}
 
@@ -803,52 +1013,49 @@ export default function RanchOperationsPanel({
                 </label>
 
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-stone-700">
-                  <p className="font-semibold text-emerald-950">Creature Influence</p>
-                  <p className="mt-1">{getFieldTraitSummary(fieldCreature)}</p>
-                  <p className="mt-1 text-xs text-stone-600">
-                    Species, field-work skill, and traits now affect planting, watering, fertilizer handling, crop quality, and harvest yield.
-                  </p>
-                  {fieldSpecialization ? (
-                    <div className="mt-3 rounded-2xl border border-emerald-200 bg-white p-3">
-                      <p className="font-semibold text-emerald-950">
-                        {fieldSpecialization.specialtyLabel}
-                      </p>
-                      <p className="mt-1 text-sm text-stone-700">
-                        {fieldSpecialization.specialtySummary}
-                      </p>
-                      <div className="mt-2 grid gap-2 text-xs text-stone-700 sm:grid-cols-2">
-                        <p><strong>Plant:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "plant").join(" ") || "General field skill applies."}</p>
-                        <p><strong>Water:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "water").join(" ") || "General field skill applies."}</p>
-                        <p><strong>Fertilize:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "fertilize").join(" ") || "General field skill applies."}</p>
-                        <p><strong>Harvest:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "harvest").join(" ") || "General field skill applies."}</p>
-                      </div>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-emerald-950">Helper Influence</p>
+                      <p className="mt-1">{getFieldTraitSummary(fieldCreature)}</p>
+                      {fieldCreature ? (
+                        <p className="mt-1 text-xs text-stone-600">
+                          Helper: {fieldCreature.nickname} - Stamina {fieldCreature.breedingStamina}/{fieldCreature.maxBreedingStamina} - Field Lv {fieldCreature.skills.fieldWork.level}
+                        </p>
+                      ) : null}
                     </div>
-                  ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setFieldHelperOpen(true)}
+                      className="min-h-11 rounded-xl border border-emerald-300 bg-white px-4 py-2 text-xs font-semibold text-emerald-950 shadow"
+                    >
+                      Helper Details
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid gap-3 text-sm text-stone-700 lg:grid-cols-2">
                   <div className="rounded-2xl border border-sky-200 bg-sky-50 p-3">
                     <p className="font-semibold text-sky-950">Today&apos;s Weather: {weatherInfo.label}</p>
-                    <p className="mt-1">{weatherInfo.description}</p>
                     <p className="mt-1 text-xs font-semibold text-sky-900">
                       {weatherInfo.fieldNote}
-                    </p>
-                    <p className="mt-1 text-xs text-stone-600">
-                      Water pressure: {weatherInfo.waterPressure} - Growth {weatherInfo.growthDelta >= 0 ? "+" : ""}{weatherInfo.growthDelta} - Quality {weatherInfo.qualityDelta >= 0 ? "+" : ""}{weatherInfo.qualityDelta}
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
                     <p className="font-semibold text-amber-950">Season: {seasonInfo.label}</p>
-                    <p className="mt-1">{seasonInfo.description}</p>
                     <p className="mt-1 text-xs font-semibold text-amber-900">
                       {seasonInfo.fieldNote}
                     </p>
-                    <p className="mt-1 text-xs text-stone-600">
-                      Favored: {seasonInfo.favoredCropIds.join(", ")} - Tough: {seasonInfo.toughCropIds.join(", ")}
-                    </p>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setWeatherSeasonOpen(true)}
+                  className="min-h-11 rounded-xl border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-950 shadow"
+                >
+                  Weather & Season Details
+                </button>
 
                 <div className="grid gap-2 text-sm text-stone-700 sm:grid-cols-4">
                   <div className="rounded-2xl bg-emerald-50 px-3 py-2">
@@ -889,7 +1096,7 @@ export default function RanchOperationsPanel({
             <div className="rounded-2xl border-2 border-sky-200 bg-white p-4 shadow">
               <p className="text-xl font-bold text-stone-900">Field Upgrades</p>
               <p className="mt-2 text-sm text-stone-600">
-                Buy better field bones, sweeter tools, and weather cover so the ranch can push back when the sky gets moody.
+                Upgrade purchasing and long descriptions live in the field shop panel.
               </p>
 
               <div className="mt-4 grid gap-2 text-sm text-stone-700 sm:grid-cols-3">
@@ -907,55 +1114,13 @@ export default function RanchOperationsPanel({
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3">
-                {FIELD_UPGRADE_ORDER.map((upgradeId) => {
-                  const upgrade = FIELD_UPGRADE_DATA[upgradeId];
-                  const unlocked = isFieldUpgradeUnlocked(fieldUpgrades, upgradeId);
-                  const available = isFieldUpgradeAvailable(fieldUpgrades, upgradeId);
-                  const affordable = playerData.gold >= upgrade.cost;
-
-                  return (
-                    <div
-                      key={upgrade.id}
-                      className={`rounded-2xl border p-3 ${
-                        unlocked
-                          ? "border-emerald-200 bg-emerald-50"
-                          : available
-                          ? "border-sky-200 bg-sky-50"
-                          : "border-stone-200 bg-stone-50"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="font-bold text-stone-900">{upgrade.title}</p>
-                          <p className="text-sm text-stone-600">{upgrade.description}</p>
-                          <p className="mt-1 text-xs font-semibold text-sky-900">{upgrade.effectSummary}</p>
-                        </div>
-                        <div className="rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-900">
-                          {unlocked ? "Owned" : `${upgrade.cost}g`}
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        disabled={unlocked || !available || !affordable}
-                        onClick={() => purchaseFieldUpgrade(upgrade.id)}
-                        className={`mt-3 w-full rounded-2xl px-4 py-2 text-xs font-semibold text-white shadow ${
-                          unlocked || !available || !affordable ? "bg-stone-400" : "bg-sky-700"
-                        }`}
-                      >
-                        {unlocked
-                          ? "Installed"
-                          : !available
-                          ? "Needs Earlier Upgrade"
-                          : !affordable
-                          ? "Not Enough Gold"
-                          : "Install Upgrade"}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+              <button
+                type="button"
+                onClick={() => setFieldUpgradesOpen(true)}
+                className="mt-4 min-h-11 w-full rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white shadow"
+              >
+                Open Field Upgrades
+              </button>
             </div>
 
             <div className="rounded-2xl border-2 border-amber-200 bg-white p-4 shadow">
@@ -1212,12 +1377,13 @@ export default function RanchOperationsPanel({
 
         {activeTab === "barn" && (
           <div className="space-y-4">
-            <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
-              <p className="text-xl font-bold text-stone-900">Barn Roster</p>
-              <p className="mt-2 text-sm text-stone-600">
-                {creatures.length} creatures currently housed at the ranch. Click a creature to open her full card.
-              </p>
-            </div>
+            <RoomHeader
+              eyebrow="Barn"
+              title="Creature Care"
+              description={`${creatures.length} creature(s) live here. Feed, groom, recover, or open a focused card without stretching the whole ranch room.`}
+            />
+
+            <ResultFeedbackBox message={barnFeedback} />
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {creatures.map((creature) => {
@@ -1225,23 +1391,38 @@ export default function RanchOperationsPanel({
                   creature.breedingStamina,
                   creature.maxBreedingStamina
                 );
+                const feedPreview = getBarnCarePreview("feed", creature);
+                const groomPreview = getBarnCarePreview("groom", creature);
+                const locationDisabledReason = ranchActionLocationAllowed
+                  ? ""
+                  : "Return home or to the ranch through in-world travel.";
 
                 return (
-                  <button
+                  <div
                     key={creature.id}
-                    type="button"
-                    onClick={() => setSelectedCreatureId(creature.id)}
-                    className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-left shadow transition hover:border-emerald-400 hover:bg-emerald-100"
+                    className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
+                    <div className="flex gap-3">
+                      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white">
+                        <Image
+                          src={getCreatureImage(creature.name)}
+                          alt={creature.nickname}
+                          width={140}
+                          height={140}
+                          className="max-h-full w-auto object-contain"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-lg font-bold text-stone-900">{creature.nickname}</p>
                         <p className="text-sm text-stone-600">
                           {creature.name} • Lv {creature.level}
                         </p>
-                      </div>
-                      <div className="rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
-                        {getMoodLabel(creature.happiness)}
+                        <p className="mt-1 text-xs font-semibold text-emerald-900">
+                          {getStrongestSkillLabel(creature)}
+                        </p>
+                        <div className="mt-2 w-fit rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
+                          {getMoodLabel(creature.happiness)}
+                        </div>
                       </div>
                     </div>
 
@@ -1264,15 +1445,53 @@ export default function RanchOperationsPanel({
                       <div className="grid grid-cols-2 gap-2 text-xs text-stone-700">
                         <p><strong>Happiness:</strong> {creature.happiness}</p>
                         <p><strong>Generation:</strong> {creature.generation}</p>
-                        <p><strong>Giver:</strong> {creature.giver ?? "Unknown"}</p>
-                        <p><strong>Receiver:</strong> {creature.receiver ?? "Unknown"}</p>
+                        <p><strong>Feed:</strong> 1 food, ~{feedPreview.minutesSpent} min</p>
+                        <p><strong>Groom:</strong> ~{groomPreview.staminaCost} stamina</p>
                       </div>
                     </div>
 
-                    <div className="mt-4 rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-stone-700">
-                      Open full creature card
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      {(["feed", "groom", "recovery"] as const).map((careType) => {
+                        const preview = getBarnCarePreview(careType, creature);
+                        const disabledReason =
+                          locationDisabledReason ||
+                          (careType === "feed" && homeState.foodStock < 1
+                            ? "Need food stock."
+                            : careType !== "recovery" && creature.breedingStamina < preview.staminaCost
+                              ? "Needs stamina."
+                              : "");
+                        const label = careType === "feed" ? "Feed" : careType === "groom" ? "Groom" : "Recovery";
+
+                        return (
+                          <button
+                            key={`${creature.id}-${careType}`}
+                            type="button"
+                            title={disabledReason || `${preview.minutesSpent} min. ${preview.outcome}`}
+                            disabled={Boolean(disabledReason)}
+                            onClick={() => {
+                              careForCreature(creature.id, careType);
+                              setBarnFeedback(`${creature.nickname} received ${label.toLowerCase()} care. ${preview.outcome}`);
+                            }}
+                            className={`min-h-11 rounded-xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                              disabledReason ? "bg-stone-400" : "bg-emerald-700"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRenameInput(creature.nickname);
+                          setSelectedCreatureId(creature.id);
+                        }}
+                        className="min-h-11 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-950 shadow"
+                      >
+                        View Details
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -1280,35 +1499,64 @@ export default function RanchOperationsPanel({
         )}
 
         {activeTab === "nursery" && (
-          <div className="rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow">
-            <p className="text-xl font-bold text-stone-900">Nursery</p>
-            <p className="mt-2 text-sm text-stone-600">{eggs.length} egg(s) in nursery.</p>
+          <div className="space-y-4">
+            <RoomHeader
+              eyebrow="Nursery"
+              title="Egg Care"
+              description={`${eggs.length} egg(s) resting in the nursery. Ready eggs can hatch here; future nursery risks stay quiet until a later systems pass.`}
+            />
 
-            <div className="mt-4 space-y-3">
-              {eggs.map((egg) => (
-                <div
-                  key={egg.id}
-                  className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
-                >
-                  <p className="font-bold text-stone-900">{egg.name}</p>
-                  <p className="text-sm text-stone-600">Parents: {egg.parents}</p>
-                  <p className="text-xs text-stone-700">
-                    {egg.hatchDaysRemaining <= 0
-                      ? "Ready to hatch"
-                      : `${egg.hatchDaysRemaining} day(s) remaining`}
-                  </p>
-                  <button
-                    type="button"
-                    disabled={egg.hatchDaysRemaining > 0}
-                    onClick={() => hatchEgg(egg.id)}
-                    className={`mt-3 rounded-2xl px-4 py-2 text-sm font-semibold text-white ${
-                      egg.hatchDaysRemaining <= 0 ? "bg-rose-700" : "bg-stone-400"
-                    }`}
-                  >
-                    {egg.hatchDaysRemaining <= 0 ? "Hatch Egg" : "Not Ready"}
-                  </button>
+            <ResultFeedbackBox message={nurseryFeedback} />
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {eggs.length === 0 ? (
+                <div className="rounded-2xl border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+                  No eggs are resting here yet.
                 </div>
-              ))}
+              ) : (
+                eggs.map((egg) => {
+                  const ready = egg.hatchDaysRemaining <= 0;
+                  return (
+                    <div
+                      key={egg.id}
+                      className={`rounded-2xl border-2 p-4 shadow ${ready ? "border-rose-300 bg-rose-50" : "border-emerald-200 bg-emerald-50"}`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-lg font-bold text-stone-900">{egg.name}</p>
+                          <p className="text-sm text-stone-600">Parents: {egg.parents}</p>
+                        </div>
+                        <div className="rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-semibold text-stone-800">
+                          {ready ? "Ready" : `${egg.hatchDaysRemaining} day(s)`}
+                        </div>
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-stone-700">
+                        <p><strong>Quality:</strong> {egg.quality ?? "normal"}</p>
+                        <p><strong>Family Risk:</strong> {egg.inbreedingRisk ?? "checked"}</p>
+                        <p><strong>Giver:</strong> {egg.giver}</p>
+                        <p><strong>Receiver:</strong> {egg.receiver}</p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={!ready}
+                        onClick={() => {
+                          const hatched = hatchEgg(egg.id);
+                          setNurseryFeedback(
+                            hatched
+                              ? `${hatched.nickname} hatched from ${egg.name}. The nursery just got a very bright new heartbeat.`
+                              : `${egg.name} is not ready to hatch yet.`
+                          );
+                        }}
+                        className={`mt-4 min-h-11 w-full rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ${
+                          ready ? "bg-rose-700" : "bg-stone-400"
+                        }`}
+                      >
+                        {ready ? "Hatch Egg" : "Still Growing"}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
@@ -1319,6 +1567,10 @@ export default function RanchOperationsPanel({
             <p className="mt-2 text-sm text-stone-600">
               Pair a giver and receiver here. This ranch tab is the main breeding workspace.
             </p>
+
+            <div className="mt-4">
+              <ResultFeedbackBox message={breedingFeedback} />
+            </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-2">
               <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3">
@@ -1417,6 +1669,35 @@ export default function RanchOperationsPanel({
               <BreedingParticipantPreview role="receiver" participant={receiverParticipant} />
             </div>
 
+            <div className="mt-4 rounded-2xl border border-rose-200 bg-white p-4 text-sm text-stone-700 shadow-sm">
+              <p className="font-bold text-rose-950">Pair Preview</p>
+              <p className="mt-1">
+                {giverParticipant?.name ?? "Choose a giver"} with {receiverParticipant?.name ?? "choose a receiver"}.
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                <div className="rounded-xl bg-rose-50 px-3 py-2">
+                  <p className="text-stone-500">Egg Chance</p>
+                  <p className="font-bold text-stone-900">
+                    {breedingSelection.receiverType === "player" ? "No egg" : "Rolled"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-rose-50 px-3 py-2">
+                  <p className="text-stone-500">Refusal</p>
+                  <p className="font-bold text-stone-900">Mood-based</p>
+                </div>
+                <div className="rounded-xl bg-rose-50 px-3 py-2">
+                  <p className="text-stone-500">Quality</p>
+                  <p className="font-bold text-stone-900">Stats + home</p>
+                </div>
+                <div className="rounded-xl bg-rose-50 px-3 py-2">
+                  <p className="text-stone-500">Family Risk</p>
+                  <p className="font-bold text-stone-900">
+                    {breedingSameCreature ? "Blocked" : "Checked"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-stone-700">
               <p><strong>Cost:</strong> {breedingEnergyCost} player energy. Creature stamina and daily limits are checked when breeding starts.</p>
               <p className="mt-1"><strong>Risk:</strong> {getSimpleBreedingRiskLabel({
@@ -1433,7 +1714,14 @@ export default function RanchOperationsPanel({
               <button
                 type="button"
                 disabled={!breedingCanPerform}
-                onClick={() => breedCreatures()}
+                onClick={() => {
+                  breedCreatures();
+                  setBreedingFeedback(
+                    breedingSelection.receiverType === "player"
+                      ? "Breeding completed. Player receiver pairings can deepen bonds and training, but do not produce an egg."
+                      : "Breeding attempt completed. If the pairing produced an egg, the Nursery will show it right away."
+                  );
+                }}
                 className={`min-h-12 w-full rounded-2xl px-4 py-3 font-semibold text-white shadow sm:w-auto ${
                   breedingCanPerform ? "bg-rose-700" : "bg-stone-400"
                 }`}
@@ -1445,6 +1733,208 @@ export default function RanchOperationsPanel({
         )}
         </div>
       </section>
+
+      <OverlayModal
+        open={recipeWorkshopOpen}
+        onClose={() => setRecipeWorkshopOpen(false)}
+        title="Recipe Workshop"
+        maxWidth="max-w-5xl"
+      >
+        <div className="space-y-4">
+          {knownRecipes.length === 0 ? (
+            <div className="rounded-2xl border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+              No known recipes yet. Visit Tamsin in Town to buy recipe books.
+            </div>
+          ) : (
+            knownRecipes.map((recipe) => (
+              <div key={recipe.id} className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-lg font-bold text-stone-900">{recipe.name}</p>
+                    <p className="text-sm text-stone-600">{recipe.description}</p>
+                    <p className="mt-2 text-xs text-stone-700">
+                      Ingredients:{" "}
+                      {recipe.ingredients
+                        .map((ingredient) => `${ingredient.quantity} ${ITEM_DATA[ingredient.itemId]?.name ?? ingredient.itemId}`)
+                        .join(", ")}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-700">
+                      Output: {recipe.outputQuantity} {recipe.outputItem?.name ?? recipe.outputItemId}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-rose-900">
+                      Expected Quality: {CROP_QUALITY_DATA[recipe.outputQuality].label}
+                      {recipe.ingredientPlan
+                        ? ` from ${describeQualityIngredientPlan(recipe.ingredientPlan)} ingredients`
+                        : ""}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-700">
+                      Effects: {formatEffectPreview(recipe.outputEffects)}
+                    </p>
+                    <p className="mt-1 text-xs text-stone-700">Cook Time: {recipe.cookMinutes} min</p>
+                  </div>
+                  <div
+                    className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                      recipe.craftable
+                        ? "border border-emerald-300 bg-emerald-100 text-emerald-900"
+                        : "border border-stone-300 bg-stone-100 text-stone-700"
+                    }`}
+                  >
+                    {recipe.craftable ? "Ready to Cook" : "Missing Ingredients"}
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {creatures.length === 0 ? (
+                    <div className="rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-600">
+                      Needs a helper creature
+                    </div>
+                  ) : (
+                    creatures.map((creature) => (
+                      <button
+                        key={`${recipe.id}-${creature.id}`}
+                        type="button"
+                        disabled={!recipe.craftable || !ranchActionLocationAllowed}
+                        onClick={() => {
+                          const cooked = cookRecipe(recipe.id, creature.id);
+                          setHouseFeedback(
+                            cooked
+                              ? `${creature.nickname} cooked ${recipe.name}. The kitchen smells shamelessly inviting.`
+                              : `${recipe.name} needs ingredients, stamina, or a return to the ranch first.`
+                          );
+                          if (cooked) setRecipeWorkshopOpen(false);
+                        }}
+                        className={`min-h-11 rounded-xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                          recipe.craftable && ranchActionLocationAllowed ? "bg-rose-700" : "bg-stone-400"
+                        }`}
+                      >
+                        Cook with {creature.nickname}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+
+          <Link
+            href="/town"
+            className="inline-block min-h-11 rounded-xl border border-rose-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 shadow"
+          >
+            Visit Tamsin for More Recipes
+          </Link>
+        </div>
+      </OverlayModal>
+
+      <OverlayModal
+        open={fieldUpgradesOpen}
+        onClose={() => setFieldUpgradesOpen(false)}
+        title="Field Upgrades"
+      >
+        <div className="space-y-3">
+          {FIELD_UPGRADE_ORDER.map((upgradeId) => {
+            const upgrade = FIELD_UPGRADE_DATA[upgradeId];
+            const unlocked = isFieldUpgradeUnlocked(fieldUpgrades, upgradeId);
+            const available = isFieldUpgradeAvailable(fieldUpgrades, upgradeId);
+            const affordable = playerData.gold >= upgrade.cost;
+
+            return (
+              <div
+                key={upgrade.id}
+                className={`rounded-2xl border p-4 ${
+                  unlocked
+                    ? "border-emerald-200 bg-emerald-50"
+                    : available
+                      ? "border-sky-200 bg-sky-50"
+                      : "border-stone-200 bg-stone-50"
+                }`}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="font-bold text-stone-900">{upgrade.title}</p>
+                    <p className="text-sm text-stone-600">{upgrade.description}</p>
+                    <p className="mt-1 text-xs font-semibold text-sky-900">{upgrade.effectSummary}</p>
+                  </div>
+                  <div className="w-fit rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-900">
+                    {unlocked ? "Owned" : `${upgrade.cost}g`}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={unlocked || !available || !affordable}
+                  onClick={() => purchaseFieldUpgrade(upgrade.id)}
+                  className={`mt-3 min-h-11 w-full rounded-xl px-4 py-2 text-xs font-semibold text-white shadow ${
+                    unlocked || !available || !affordable ? "bg-stone-400" : "bg-sky-700"
+                  }`}
+                >
+                  {unlocked
+                    ? "Installed"
+                    : !available
+                      ? "Needs Earlier Upgrade"
+                      : !affordable
+                        ? "Not Enough Gold"
+                        : "Install Upgrade"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </OverlayModal>
+
+      <OverlayModal
+        open={fieldHelperOpen}
+        onClose={() => setFieldHelperOpen(false)}
+        title="Helper Field Details"
+        maxWidth="max-w-4xl"
+      >
+        {fieldCreature && fieldSpecialization ? (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+              <p className="text-xl font-bold text-emerald-950">{fieldCreature.nickname}</p>
+              <p className="mt-1 text-sm text-stone-700">
+                {fieldCreature.name} - Field Work Lv {fieldCreature.skills.fieldWork.level} - Stamina {fieldCreature.breedingStamina}/{fieldCreature.maxBreedingStamina}
+              </p>
+              <p className="mt-2 text-sm text-stone-700">{fieldSpecialization.specialtySummary}</p>
+            </div>
+            <div className="grid gap-3 text-sm text-stone-700 sm:grid-cols-2">
+              <p><strong>Plant:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "plant").join(" ") || "General field skill applies."}</p>
+              <p><strong>Water:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "water").join(" ") || "General field skill applies."}</p>
+              <p><strong>Fertilize:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "fertilize").join(" ") || "General field skill applies."}</p>
+              <p><strong>Harvest:</strong> {getFieldActionSpecializationNotes(fieldSpecialization, "harvest").join(" ") || "General field skill applies."}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+            Choose a field helper to see details.
+          </div>
+        )}
+      </OverlayModal>
+
+      <OverlayModal
+        open={weatherSeasonOpen}
+        onClose={() => setWeatherSeasonOpen(false)}
+        title="Weather & Season"
+        maxWidth="max-w-4xl"
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-stone-700">
+            <p className="text-lg font-bold text-sky-950">{weatherInfo.label}</p>
+            <p className="mt-2">{weatherInfo.description}</p>
+            <p className="mt-2 font-semibold text-sky-900">{weatherInfo.fieldNote}</p>
+            <p className="mt-2 text-xs">
+              Water pressure: {weatherInfo.waterPressure} - Growth {weatherInfo.growthDelta >= 0 ? "+" : ""}{weatherInfo.growthDelta} - Quality {weatherInfo.qualityDelta >= 0 ? "+" : ""}{weatherInfo.qualityDelta}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-stone-700">
+            <p className="text-lg font-bold text-amber-950">{seasonInfo.label}</p>
+            <p className="mt-2">{seasonInfo.description}</p>
+            <p className="mt-2 font-semibold text-amber-900">{seasonInfo.fieldNote}</p>
+            <p className="mt-2 text-xs">
+              Favored: {seasonInfo.favoredCropIds.join(", ")} - Tough: {seasonInfo.toughCropIds.join(", ")}
+            </p>
+          </div>
+        </div>
+      </OverlayModal>
 
       <OverlayModal
         open={inventoryOpen}
@@ -1520,15 +2010,49 @@ export default function RanchOperationsPanel({
           <div className="space-y-5">
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+                <div className="flex gap-3">
+                  <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white">
+                    <Image
+                      src={getCreatureImage(selectedCreature.name)}
+                      alt={selectedCreature.nickname}
+                      width={160}
+                      height={160}
+                      className="max-h-full w-auto object-contain"
+                    />
+                  </div>
+                  <div>
                   <p className="text-2xl font-bold text-emerald-950">{selectedCreature.nickname}</p>
                   <p className="text-sm text-stone-700">
                     {selectedCreature.name} • Level {selectedCreature.level} • Generation {selectedCreature.generation}
                   </p>
+                  </div>
                 </div>
                 <div className="rounded-full border border-emerald-300 bg-white px-3 py-1 text-sm font-semibold text-emerald-900">
                   {getMoodLabel(selectedCreature.happiness)}
                 </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200 bg-white p-4">
+              <p className="mb-3 text-lg font-bold text-stone-900">Rename</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="text"
+                  value={renameInput || selectedCreature.nickname}
+                  onChange={(event) => setRenameInput(event.target.value)}
+                  className="min-h-11 w-full rounded-xl border border-emerald-300 bg-white px-3 py-2 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextName = renameInput || selectedCreature.nickname;
+                    renameCreature(selectedCreature.id, nextName);
+                    setBarnFeedback(`${nextName} has a fresh name on the barn board.`);
+                  }}
+                  className="min-h-11 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow"
+                >
+                  Save Name
+                </button>
               </div>
             </div>
 
