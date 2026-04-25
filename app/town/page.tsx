@@ -4,13 +4,12 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
-import { HubCard, PopupWindow } from "@/components/town/TownUi";
+import { PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
 import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
-import MainStoryPanel from "@/components/story/MainStoryPanel";
-import StoryJournal from "@/components/story/StoryJournal";
+import StoryObjectiveStrip from "@/components/story/StoryObjectiveStrip";
 import {
   FARM_ECONOMY_MARKET_SECTIONS,
   DEFAULT_PRODUCE_DEMANDS,
@@ -109,6 +108,94 @@ type MemoryNpcGroup = {
 };
 
 type SelectedGiftItemsByNpc = Record<string, string>;
+type TownSection = "market" | "people" | "work" | "travel";
+
+const TOWN_SECTIONS: Array<{ id: TownSection; label: string; description: string }> = [
+  { id: "market", label: "Market", description: "Buy, sell, and browse services." },
+  { id: "people", label: "People", description: "Relationships, gifts, memories, and routes." },
+  { id: "work", label: "Work", description: "Quests, requests, and contract ledgers." },
+  { id: "travel", label: "Travel / World", description: "In-world travel, regions, and factions." },
+];
+
+function TownSectionTabs({
+  activeSection,
+  onSelect,
+}: {
+  activeSection: TownSection;
+  onSelect: (section: TownSection) => void;
+}) {
+  return (
+    <div className="grid shrink-0 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      {TOWN_SECTIONS.map((section) => (
+        <button
+          key={section.id}
+          type="button"
+          onClick={() => onSelect(section.id)}
+          className={`min-h-14 rounded-2xl border-2 px-4 py-3 text-left shadow-sm ${
+            activeSection === section.id
+              ? "border-stone-900 bg-stone-900 text-white"
+              : "border-stone-300 bg-white text-stone-900"
+          }`}
+        >
+          <p className="font-bold">{section.label}</p>
+          <p className={`mt-1 text-xs ${activeSection === section.id ? "text-stone-200" : "text-stone-600"}`}>
+            {section.description}
+          </p>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function TownServiceCard({
+  title,
+  owner,
+  description,
+  meta,
+  actionLabel,
+  onClick,
+  accentClasses,
+}: {
+  title: string;
+  owner: string;
+  description: string;
+  meta: string;
+  actionLabel: string;
+  onClick: () => void;
+  accentClasses: string;
+}) {
+  return (
+    <div className={`flex min-h-52 flex-col rounded-2xl border-2 p-4 shadow ${accentClasses}`}>
+      <div className="flex-1">
+        <p className="text-xs font-bold uppercase text-stone-600">{owner}</p>
+        <h3 className="mt-1 text-xl font-bold text-stone-950">{title}</h3>
+        <p className="mt-2 text-sm text-stone-700">{description}</p>
+        <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700">
+          {meta}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onClick}
+        className="mt-4 min-h-11 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white shadow"
+      >
+        {actionLabel}
+      </button>
+    </div>
+  );
+}
+
+function getNpcAccentClasses(npcId: string) {
+  if (npcId === "maris_thorn") return "border-emerald-200 bg-emerald-50";
+  if (npcId === "selene_voss") return "border-purple-200 bg-purple-50";
+  return "border-rose-200 bg-rose-50";
+}
+
+function getNpcButtonClasses(npcId: string) {
+  if (npcId === "maris_thorn") return "bg-emerald-700";
+  if (npcId === "selene_voss") return "bg-purple-700";
+  return "bg-rose-700";
+}
 
 function isNpcLoverVoiceUnlocked(npcId: string, loverEvolutions: NpcLoverEvolutionState) {
   return getNpcLoverEvolutionsForNpc(npcId).some((evolution) =>
@@ -704,8 +791,8 @@ function getOfferAvailability(
       (sum, quality) => sum + getQualityItemCount(requirement.itemId, quality),
       0
     );
-    const fallbackOwned = minimumQuality === "standard" ? getItemCount(requirement.itemId) : owned;
-    const available = Math.max(owned, fallbackOwned);
+    const standardOwned = minimumQuality === "standard" ? getItemCount(requirement.itemId) : owned;
+    const available = Math.max(owned, standardOwned);
     if (available < requirement.quantity) {
       return {
         canComplete: false,
@@ -831,8 +918,8 @@ function getExclusiveOfferAvailability(
       (sum, quality) => sum + getQualityItemCount(requirement.itemId, quality),
       0
     );
-    const fallbackOwned = minimumQuality === "standard" ? getItemCount(requirement.itemId) : owned;
-    const available = Math.max(owned, fallbackOwned);
+    const standardOwned = minimumQuality === "standard" ? getItemCount(requirement.itemId) : owned;
+    const available = Math.max(owned, standardOwned);
     if (available < requirement.quantity) {
       return {
         canComplete: false,
@@ -1386,6 +1473,9 @@ export default function TownPage() {
     npcExclusiveLoops,
     latestNpcSocialResult,
     travelLog,
+    authoredQuests,
+    factions,
+    worldRegions,
     purchaseTownCreature,
     purchaseMarketItem,
     getItemCount,
@@ -1415,10 +1505,13 @@ export default function TownPage() {
   const [routeJournalsOpen, setRouteJournalsOpen] = useState(false);
   const [npcRequestsOpen, setNpcRequestsOpen] = useState(false);
   const [travelLogOpen, setTravelLogOpen] = useState(false);
+  const [contractLedgerOpen, setContractLedgerOpen] = useState(false);
   const [seedShopOpen, setSeedShopOpen] = useState(false);
   const [recipeShopOpen, setRecipeShopOpen] = useState(false);
   const [produceExchangeOpen, setProduceExchangeOpen] = useState(false);
   const [farmNpcOpen, setFarmNpcOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<TownSection>("market");
+  const [selectedTownNpcId, setSelectedTownNpcId] = useState<string | null>(null);
   const [selectedGiftItems, setSelectedGiftItems] = useState<SelectedGiftItemsByNpc>({});
 
   function handleTravelTo(
@@ -1562,277 +1655,322 @@ export default function TownPage() {
   const displayedSeedOwned = hasMounted
     ? Object.keys(inventory).filter((id) => id.endsWith("_seed") && (inventory[id] ?? 0) > 0).length
     : 0;
+  const visibleAuthoredQuests = authoredQuests.filter((quest) => quest.status !== "locked");
+  const activeAuthoredQuestCount = visibleAuthoredQuests.filter((quest) => quest.status === "active" || quest.status === "available").length;
+  const knownFactionCount = factions.filter((faction) => faction.status !== "locked").length;
+  const openRegionCount = worldRegions.filter((region) => region.status !== "locked").length;
+  const selectedTownNpc = selectedTownNpcId
+    ? FARM_ECONOMY_ACTIVE_NPCS.find((npc) => npc.id === selectedTownNpcId) ?? null
+    : null;
+  const selectedTownNpcRelationship = selectedTownNpc
+    ? farmNpcRelationshipMap.get(selectedTownNpc.id) ?? createDefaultNpcRelationshipState(selectedTownNpc.id)
+    : null;
+  const selectedTownNpcVisitImage =
+    selectedTownNpc && selectedTownNpcRelationship
+      ? getNpcVisitImage(selectedTownNpc, selectedTownNpcRelationship)
+      : null;
+  const selectedTownNpcLoverVoice =
+    selectedTownNpc ? isNpcLoverVoiceUnlocked(selectedTownNpc.id, npcLoverEvolutions) : false;
 
   return (
-    <main className="min-h-screen overflow-hidden bg-gradient-to-b from-stone-100 to-amber-200 p-6">
-      <div className="mx-auto max-w-7xl">
-        <h1 className="mb-6 text-4xl font-bold text-stone-900">🏘️ Town</h1>
-
-        <div className="mb-6">
-          <MainStoryPanel />
-        </div>
-
-        <div className="mb-6">
-          <StoryJournal />
-        </div>
-
-        <div className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
-          <div className="grid gap-3 text-lg text-stone-800 sm:grid-cols-2 lg:grid-cols-4">
-            <p><strong>Day:</strong> {currentDay}</p>
-            <p><strong>Time:</strong> {formatTime(currentHour, currentMinute)}</p>
-            <p><strong>Location:</strong> {currentLocation}</p>
-            <p><strong>Gold:</strong> {playerData.gold}</p>
-            <p><strong>Energy:</strong> {playerData.energy}</p>
-            <p><strong>Player Level:</strong> {playerData.level}</p>
-            <p><strong>Player XP:</strong> {playerData.xp}/{playerData.xpToNextLevel}</p>
-            <p><strong>Creatures Owned:</strong> {creatures.length}</p>
+    <main className="h-[calc(100vh-6rem)] min-h-[760px] overflow-hidden bg-gradient-to-b from-stone-100 to-amber-200 p-3 sm:p-4 md:h-screen md:min-h-0 md:p-5">
+      <div className="mx-auto flex h-full max-w-7xl flex-col gap-3">
+        <header className="flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase text-amber-800">Town Hub</p>
+            <h1 className="text-3xl font-bold text-stone-950 sm:text-4xl">Town</h1>
+            <p className="mt-1 max-w-3xl text-sm text-stone-700">
+              Free navigation stays in the global nav. The travel cards here are in-world actions that spend time and update location.
+            </p>
           </div>
+          <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4 lg:min-w-[520px]">
+            <div className="rounded-2xl border border-stone-200 bg-white/90 px-3 py-2">
+              <p className="text-stone-500">Day / Time</p>
+              <p className="font-bold text-stone-950">Day {currentDay}, {formatTime(currentHour, currentMinute)}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white/90 px-3 py-2">
+              <p className="text-stone-500">Location</p>
+              <p className="font-bold capitalize text-stone-950">{currentLocation}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white/90 px-3 py-2">
+              <p className="text-stone-500">Gold</p>
+              <p className="font-bold text-stone-950">{playerData.gold}</p>
+            </div>
+            <div className="rounded-2xl border border-stone-200 bg-white/90 px-3 py-2">
+              <p className="text-stone-500">Energy</p>
+              <p className="font-bold text-stone-950">{playerData.energy}</p>
+            </div>
+          </div>
+        </header>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <InventoryChip label="Inventory Entries" value={displayedInventoryCount} />
-            <InventoryChip label="Known Recipes" value={displayedKnownRecipes} />
+        <div className="shrink-0">
+          <StoryObjectiveStrip />
+        </div>
+
+        <section className="shrink-0 rounded-2xl border-2 border-stone-900 bg-white/88 p-3 shadow-lg">
+          <div className="flex flex-wrap gap-2">
+            <InventoryChip label="Inventory" value={displayedInventoryCount} />
+            <InventoryChip label="Recipes" value={displayedKnownRecipes} />
             <InventoryChip label="Wheat" value={hasMounted ? getItemCount("wheat") : 0} />
             <InventoryChip label="Seeds" value={displayedSeedOwned} />
-          </div>
-        </div>
-
-        <section className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
-          <div className="mb-4">
-            <h2 className="text-3xl font-bold text-stone-900">Town Destinations</h2>
-            <p className="mt-1 text-stone-600">
-              Travel from town through destination cards instead of plain buttons.
-            </p>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            <HubCard
-              icon="🌿"
-              title="Ranch"
-              subtitle="Return home to your creatures, eggs, and daily management."
-              meta="Travel time: 30m"
-              accentClasses="border-emerald-300 bg-emerald-50"
-              onClick={() => handleTravelTo("ranch")}
-            />
-
-            <HubCard
-              icon="🛒"
-              title="Market"
-              subtitle="Browse creature offers and future stall inventory."
-              meta={hasMounted ? `${displayedSellerCount} creature offers today` : "Loading market..."}
-              accentClasses="border-amber-300 bg-amber-50"
-              onClick={() => handleTravelTo("market")}
-            />
-
-            <HubCard
-              icon="🏛️"
-              title="Guild Hall"
-              subtitle="Check jobs, contacts, and future guild progression."
-              meta={`${openNpcRequestCount} open guild-linked requests`}
-              accentClasses="border-violet-300 bg-violet-50"
-              onClick={() => handleTravelTo("guild_hall")}
-            />
+            <InventoryChip label="Creatures" value={creatures.length} />
+            <InventoryChip label="Open Work" value={openBoardCount + openNpcRequestCount + activeAuthoredQuestCount} />
           </div>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-3xl border-4 border-amber-800 bg-white/85 p-6 shadow-xl">
-            <h2 className="mb-2 text-3xl font-bold text-amber-900">Town Services</h2>
-            <p className="mb-5 text-stone-600">
-              Open the seller or contract board in pop-up windows so the main town screen stays clean.
-            </p>
+        <TownSectionTabs activeSection={activeSection} onSelect={setActiveSection} />
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setSellerOpen(true)}
-                className="rounded-2xl bg-amber-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Creature Seller
-                <div className="mt-1 text-sm font-medium text-amber-100" suppressHydrationWarning>
-                  {hasMounted
-                    ? `${displayedSellerCount} in stock${displayedCheapest !== null ? ` • Cheapest ${displayedCheapest} Gold` : ""}`
-                    : "Loading market..."}
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setBoardOpen(true)}
-                className="rounded-2xl bg-sky-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Breeding Quest Board
-                <div className="mt-1 text-sm font-medium text-sky-100">
-                  {openBoardCount} open contracts
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSeedShopOpen(true)}
-                className="rounded-2xl bg-emerald-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Seed Stall
-                <div className="mt-1 text-sm font-medium text-emerald-100">
-                  Maris Thorn • buyable crop seeds
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRecipeShopOpen(true)}
-                className="rounded-2xl bg-rose-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Recipe Counter
-                <div className="mt-1 text-sm font-medium text-rose-100">
-                  Tamsin Vale • buyable recipe books
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setProduceExchangeOpen(true)}
-                className="rounded-2xl bg-purple-700 px-4 py-4 text-left font-semibold text-white shadow sm:col-span-2"
-              >
-                Produce Exchange
-                <div className="mt-1 text-sm font-medium text-purple-100">
-                  Selene Voss • current demand bonuses
-                </div>
-              </button>
-            </div>
-          </section>
-
-          <section className="rounded-3xl border-4 border-rose-800 bg-white/85 p-6 shadow-xl">
-            <h2 className="mb-2 text-3xl font-bold text-rose-900">Town Info</h2>
-            <p className="mb-5 text-stone-600">
-              Secondary information opens in pop-up windows instead of stretching the main page.
-            </p>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setRelationshipsOpen(true)}
-                className="rounded-2xl bg-rose-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Relationships
-                <div className="mt-1 text-sm font-medium text-rose-100">
-                  {townNpcs.length} tracked NPCs
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMemoriesOpen(true)}
-                className="rounded-2xl bg-pink-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Relationship Memories
-                <div className="mt-1 text-sm font-medium text-pink-100">
-                  {npcRelationshipEventLog.length} scene memories unlocked
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRouteJournalsOpen(true)}
-                className="rounded-2xl bg-indigo-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Route Journals
-                <div className="mt-1 text-sm font-medium text-indigo-100">
-                  complete arc summary for Maris, Selene, and Tamsin
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setFarmNpcOpen(true)}
-                className="rounded-2xl bg-fuchsia-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Farm-Economy NPCs
-                <div className="mt-1 text-sm font-medium text-fuchsia-100">
-                  identity, romance tone, and stage rewards
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setNpcRequestsOpen(true)}
-                className="rounded-2xl bg-purple-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                NPC Requests
-                <div className="mt-1 text-sm font-medium text-purple-100">
-                  {openNpcRequestCount} open requests
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setTravelLogOpen(true)}
-                className="rounded-2xl bg-emerald-700 px-4 py-4 text-left font-semibold text-white shadow"
-              >
-                Travel Log
-                <div className="mt-1 text-sm font-medium text-emerald-100">
-                  {travelLog.length} recent entries
-                </div>
-              </button>
-            </div>
-          </section>
-        </div>
-
-        <section className="mt-6 rounded-3xl border-4 border-fuchsia-900 bg-white/90 p-6 shadow-xl">
-          <h2 className="text-3xl font-bold text-fuchsia-950">Relationship Economy Perks</h2>
-          <p className="mt-1 text-stone-600">
-            Each farm-economy relationship stage now unlocks distinct economic pressure and payoff.
-          </p>
-
-          <div className="mt-4 grid gap-4 lg:grid-cols-3">
-            <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
-              <p className="text-lg font-bold text-emerald-950">Maris Thorn</p>
-              <p className="text-xs font-semibold text-emerald-800">Level {marisRelationship.level}</p>
-              <div className="mt-3 space-y-2 text-xs text-stone-700">
-                {marisEconomicUnlocks.map((unlock) => (
-                  <p key={`maris-unlock-${unlock.level}`}>
-                    <strong>{marisRelationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
-                  </p>
-                ))}
+        <section className="min-h-0 flex-1 overflow-y-auto rounded-2xl border-4 border-stone-900 bg-white/90 p-3 shadow-xl sm:p-4">
+          {activeSection === "market" ? (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-2xl font-bold text-stone-950">Market</h2>
+                <p className="mt-1 text-sm text-stone-700">
+                  Buying, selling, seeds, recipes, and creature offers live here. Detailed stock lists open in scrollable windows.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <TownServiceCard title="Creature Seller" owner="Town Stock" description="Browse today's creature offers and purchase directly with gold." meta={hasMounted ? `${displayedSellerCount} in stock${displayedCheapest !== null ? ` - Cheapest ${displayedCheapest} Gold` : ""}` : "Loading market..."} actionLabel="Open Seller" onClick={() => setSellerOpen(true)} accentClasses="border-amber-300 bg-amber-50" />
+                <TownServiceCard title="Seed Stall" owner="Maris Thorn" description={seedShopSection?.description ?? "Buy crop seeds and relationship-shaped field advantages."} meta={`${displayedSeedOwned} seed type(s) owned - Level ${marisRelationship.level}`} actionLabel="Open Seed Stall" onClick={() => setSeedShopOpen(true)} accentClasses="border-emerald-300 bg-emerald-50" />
+                <TownServiceCard title="Produce Exchange" owner="Selene Voss" description="Sell produce by quality, check demand pressure, and use premium market offers." meta={`${DEFAULT_PRODUCE_DEMANDS.length} demand lane(s) - Level ${seleneRelationship.level}`} actionLabel="Open Exchange" onClick={() => setProduceExchangeOpen(true)} accentClasses="border-purple-300 bg-purple-50" />
+                <TownServiceCard title="Recipe Counter" owner="Tamsin Vale" description={recipeShopSection?.description ?? "Buy recipe books and track cooking commissions."} meta={`${displayedKnownRecipes} known recipe(s) - Level ${tamsinRelationship.level}`} actionLabel="Open Recipes" onClick={() => setRecipeShopOpen(true)} accentClasses="border-rose-300 bg-rose-50" />
               </div>
             </div>
+          ) : null}
 
-            <div className="rounded-2xl border border-purple-300 bg-purple-50 p-4">
-              <p className="text-lg font-bold text-purple-950">Selene Voss</p>
-              <p className="text-xs font-semibold text-purple-800">Level {seleneRelationship.level}</p>
-              <div className="mt-3 space-y-2 text-xs text-stone-700">
-                {seleneEconomicUnlocks.map((unlock) => (
-                  <p key={`selene-unlock-${unlock.level}`}>
-                    <strong>{seleneRelationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
+          {activeSection === "people" ? (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-stone-950">People</h2>
+                  <p className="mt-1 text-sm text-stone-700">
+                    Relationship cards stay compact here. Open an NPC to see image flavor, gifts, outings, route progress, memories, perks, evolutions, and exclusive loops together.
                   </p>
-                ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:flex">
+                  <button type="button" onClick={() => setRelationshipsOpen(true)} className="min-h-11 rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white shadow">Overview</button>
+                  <button type="button" onClick={() => setMemoriesOpen(true)} className="min-h-11 rounded-xl bg-pink-700 px-4 py-2 text-sm font-semibold text-white shadow">Memories</button>
+                  <button type="button" onClick={() => setRouteJournalsOpen(true)} className="min-h-11 rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow">Route Journals</button>
+                </div>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                {FARM_ECONOMY_ACTIVE_NPCS.map((npc) => {
+                  const relationship = farmNpcRelationshipMap.get(npc.id) ?? createDefaultNpcRelationshipState(npc.id);
+                  const openRequests = npcRequestCounts.get(npc.name) ?? 0;
+                  return (
+                    <button key={npc.id} type="button" onClick={() => setSelectedTownNpcId(npc.id)} className={`min-h-56 rounded-2xl border-2 p-4 text-left shadow ${getNpcAccentClasses(npc.id)}`}>
+                      <p className="text-xs font-bold uppercase text-stone-600">{npc.title}</p>
+                      <h3 className="mt-1 text-xl font-bold text-stone-950">{npc.name}</h3>
+                      <p className="mt-1 text-sm font-semibold text-stone-700">{getRelationshipDisplayLabel(relationship)}</p>
+                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white"><div className="h-full rounded-full bg-stone-800" style={{ width: `${Math.min(100, relationship.progress)}%` }} /></div>
+                      <p className="mt-3 line-clamp-3 text-sm text-stone-700">{npc.shortDescription}</p>
+                      <p className="mt-3 rounded-xl bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700">{openRequests} open request(s) - {getNpcRoutePerksForNpc(npc.id).filter((perk) => hasNpcRoutePerk(npcRoutePerks, perk.id)).length} perk(s)</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <NpcRelationshipEventPanel latestEvent={latestNpcRelationshipEvent} eventLog={npcRelationshipEventLog} />
+            </div>
+          ) : null}
+
+          {activeSection === "work" ? (
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-2xl font-bold text-stone-950">Work</h2>
+                <p className="mt-1 text-sm text-stone-700">Authored quests, repeatable boards, NPC farming requests, and farm-economy ledgers are grouped here.</p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3">
+                <TownServiceCard title="Breeding Quest Board" owner="Town Board" description="Creature submission contracts with deadlines, requirements, rewards, and eligible helpers." meta={`${openBoardCount} open contract(s)`} actionLabel="Open Board" onClick={() => setBoardOpen(true)} accentClasses="border-sky-300 bg-sky-50" />
+                <TownServiceCard title="NPC Requests" owner="Farm-Economy Clients" description="Deliver crops, handle NPC jobs, and build relationship pressure through work." meta={`${openNpcRequestCount} open request(s)`} actionLabel="Open Requests" onClick={() => setNpcRequestsOpen(true)} accentClasses="border-purple-300 bg-purple-50" />
+                <TownServiceCard title="Contract Ledgers" owner="Maris, Selene, Tamsin" description="Relationship-led market offers, restock pressure, premiums, and commissions." meta={`${npcContractLedger.filter((offer) => !offer.completed).length} active ledger offer(s)`} actionLabel="Open Ledgers" onClick={() => setContractLedgerOpen(true)} accentClasses="border-fuchsia-300 bg-fuchsia-50" />
+              </div>
+
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div><p className="text-xs font-bold uppercase text-sky-800">Authored Quests</p><h3 className="text-xl font-bold text-stone-950">Story & Faction Work</h3></div>
+                  <span className="w-fit rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-bold text-sky-900">{activeAuthoredQuestCount} actionable</span>
+                </div>
+                <div className="mt-3 grid gap-3 lg:grid-cols-3">
+                  {visibleAuthoredQuests.map((quest) => {
+                    const completedObjectives = quest.objectives.filter((objective) => objective.completed).length;
+                    return (
+                      <div key={quest.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
+                        <div className="flex items-start justify-between gap-2"><div><p className="text-xs font-bold uppercase text-sky-800">{quest.category.replace("_", " ")}</p><p className="font-bold text-stone-950">{quest.title}</p></div><span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-900">{quest.status}</span></div>
+                        <p className="mt-2 line-clamp-3">{quest.description}</p>
+                        <p className="mt-2 text-xs"><strong>Source:</strong> {quest.source.name}</p>
+                        <p className="mt-1 text-xs"><strong>Progress:</strong> {completedObjectives}/{quest.objectives.length} objectives</p>
+                        <p className="mt-1 text-xs"><strong>Reward:</strong> {quest.rewardSummary}</p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
+          ) : null}
 
-            <div className="rounded-2xl border border-rose-300 bg-rose-50 p-4">
-              <p className="text-lg font-bold text-rose-950">Tamsin Vale</p>
-              <p className="text-xs font-semibold text-rose-800">Level {tamsinRelationship.level}</p>
-              <div className="mt-3 space-y-2 text-xs text-stone-700">
-                {tamsinEconomicUnlocks.map((unlock) => (
-                  <p key={`tamsin-unlock-${unlock.level}`}>
-                    <strong>{tamsinRelationship.level >= unlock.level ? "Unlocked" : "Locked"} L{unlock.level}:</strong> {unlock.title}
-                  </p>
-                ))}
+          {activeSection === "travel" ? (
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div><h2 className="text-2xl font-bold text-stone-950">Travel / World</h2><p className="mt-1 text-sm text-stone-700">These buttons are explicit in-world travel actions. They can spend time, change location, and count for story travel.</p></div>
+                <button type="button" onClick={() => setTravelLogOpen(true)} className="min-h-11 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow">Travel Log ({travelLog.length})</button>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <TownServiceCard title="Ranch" owner="In-World Travel" description="Return to the ranch workspace for chores, fields, barn care, nursery, and breeding." meta="Travel time: 30m" actionLabel="Travel to Ranch" onClick={() => handleTravelTo("ranch")} accentClasses="border-emerald-300 bg-emerald-50" />
+                <TownServiceCard title="Market District" owner="In-World Travel" description="Move to the broader market route when you want the dedicated destination." meta={hasMounted ? `${displayedSellerCount} creature offer(s) noted` : "Loading market..."} actionLabel="Travel to Market" onClick={() => handleTravelTo("market")} accentClasses="border-amber-300 bg-amber-50" />
+                <TownServiceCard title="Guild Hall" owner="In-World Travel" description="Visit guild contacts and job infrastructure for future regional work." meta={`${openNpcRequestCount} guild-linked request(s)`} actionLabel="Travel to Guild Hall" onClick={() => handleTravelTo("guild_hall")} accentClasses="border-violet-300 bg-violet-50" />
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4"><p className="text-xs font-bold uppercase text-teal-800">Regions</p><h3 className="text-xl font-bold text-stone-950">{openRegionCount}/{worldRegions.length} regions open</h3><div className="mt-3 grid gap-3">{worldRegions.map((region) => (<div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><p className="font-bold text-stone-950">{region.name}</p><span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">{region.status === "locked" ? "Locked" : "Open"}</span></div><p className="mt-1">{region.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {region.unlockCondition}</p><p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p></div>))}</div></div>
+                <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4"><p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p><h3 className="text-xl font-bold text-stone-950">{knownFactionCount}/{factions.length} known organizations</h3><div className="mt-3 grid gap-3">{factions.map((faction) => (<div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><div><p className="font-bold text-stone-950">{faction.name}</p><p className="text-xs font-semibold uppercase text-fuchsia-800">{faction.standing} - Rep {faction.reputation}</p></div><span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">{faction.status}</span></div><p className="mt-2">{faction.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p><p className="mt-1 text-xs"><strong>Player relationship:</strong> {faction.relationshipToPlayer}</p></div>))}</div></div>
               </div>
             </div>
-          </div>
+          ) : null}
         </section>
-
-        <NpcRelationshipEventPanel
-          latestEvent={latestNpcRelationshipEvent}
-          eventLog={npcRelationshipEventLog}
-        />
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/ranch" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Go to Ranch</Link>
-          <Link href="/ranch?tab=breeding" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Ranch Breeding</Link>
-          <Link href="/ranch?tab=nursery" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Ranch Nursery</Link>
-        </div>
       </div>
+
+      <PopupWindow open={contractLedgerOpen} onClose={() => setContractLedgerOpen(false)} title="Contract Ledgers" maxWidth="max-w-6xl">
+        <div className="grid gap-4 xl:grid-cols-3">
+          <NpcContractLedgerPanel
+            title="Maris Thorn Ledger"
+            offers={marisLedgerOffers}
+            currentDay={currentDay}
+            currentHour={currentHour}
+            currentMinute={currentMinute}
+            playerGold={playerData.gold}
+            hasMounted={hasMounted}
+            getItemCount={getItemCount}
+            getQualityItemCount={getQualityItemCount}
+            onComplete={completeNpcContractOffer}
+            accentClasses="border-emerald-200 bg-emerald-50"
+            buttonClasses="bg-emerald-700"
+          />
+          <NpcContractLedgerPanel
+            title="Selene Voss Ledger"
+            offers={seleneLedgerOffers}
+            currentDay={currentDay}
+            currentHour={currentHour}
+            currentMinute={currentMinute}
+            playerGold={playerData.gold}
+            hasMounted={hasMounted}
+            getItemCount={getItemCount}
+            getQualityItemCount={getQualityItemCount}
+            onComplete={completeNpcContractOffer}
+            accentClasses="border-purple-200 bg-purple-50"
+            buttonClasses="bg-purple-700"
+          />
+          <NpcContractLedgerPanel
+            title="Tamsin Vale Ledger"
+            offers={tamsinLedgerOffers}
+            currentDay={currentDay}
+            currentHour={currentHour}
+            currentMinute={currentMinute}
+            playerGold={playerData.gold}
+            hasMounted={hasMounted}
+            getItemCount={getItemCount}
+            getQualityItemCount={getQualityItemCount}
+            onComplete={completeNpcContractOffer}
+            accentClasses="border-rose-200 bg-rose-50"
+            buttonClasses="bg-rose-700"
+          />
+        </div>
+      </PopupWindow>
+
+      <PopupWindow
+        open={Boolean(selectedTownNpc && selectedTownNpcRelationship && selectedTownNpcVisitImage)}
+        onClose={() => setSelectedTownNpcId(null)}
+        title={selectedTownNpc ? selectedTownNpc.name : "NPC Details"}
+        maxWidth="max-w-6xl"
+      >
+        {selectedTownNpc && selectedTownNpcRelationship && selectedTownNpcVisitImage ? (
+          <div className={`rounded-2xl border-2 p-4 shadow-sm ${getNpcAccentClasses(selectedTownNpc.id)}`}>
+            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[0.8fr_1.2fr]">
+              <div>
+                <p className="text-2xl font-bold text-stone-950">{selectedTownNpc.name}</p>
+                <p className="text-sm font-semibold text-stone-700">
+                  {selectedTownNpc.title} - {selectedTownNpc.race}
+                </p>
+                <p className="mt-2 text-sm text-stone-700">{selectedTownNpc.shortDescription}</p>
+                <NpcVisitImageFrame
+                  image={selectedTownNpcVisitImage}
+                  accentClasses="mt-3 border-white bg-white/70 text-stone-950"
+                />
+              </div>
+              <div className="space-y-3">
+                <div className="rounded-2xl bg-white/80 p-3 text-sm text-stone-700">
+                  <p><strong>Relationship:</strong> {getRelationshipDisplayLabel(selectedTownNpcRelationship)}</p>
+                  <p><strong>Current Reward:</strong> {getNpcRelationshipRewardSummary(selectedTownNpc.id, selectedTownNpcRelationship)}</p>
+                  <p><strong>Next Hint:</strong> {getNpcStageProgressHint(selectedTownNpc.id, selectedTownNpcRelationship)}</p>
+                </div>
+                <NpcStageVisitPanel
+                  npcId={selectedTownNpc.id}
+                  relationship={selectedTownNpcRelationship}
+                  loverEvolutionUnlocked={selectedTownNpcLoverVoice}
+                  accentClasses="border-white"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              <NpcSocialPanel
+                npc={selectedTownNpc}
+                relationship={selectedTownNpcRelationship}
+                currentDay={currentDay}
+                inventory={inventory}
+                giftRecords={npcGiftRecords}
+                invitationRecords={npcInvitationRecords}
+                outingLog={npcOutingCompletionLog}
+                miniChainProgress={npcMiniChainProgress}
+                routePerks={npcRoutePerks}
+                loverEvolutions={npcLoverEvolutions}
+                latestResult={latestNpcSocialResult}
+                selectedGiftItemId={selectedGiftItems[selectedTownNpc.id] ?? ""}
+                onSelectGift={(itemId) => setSelectedGiftItems((prev) => ({ ...prev, [selectedTownNpc.id]: itemId }))}
+                onGiveGift={(itemId) => giveNpcGift(selectedTownNpc.id, itemId)}
+                onInvite={(invitationId) => inviteNpc(selectedTownNpc.id, invitationId)}
+                accentClasses="border-white bg-white/70"
+                buttonClasses={getNpcButtonClasses(selectedTownNpc.id)}
+                hasMounted={hasMounted}
+              />
+              <div className="space-y-4">
+                <NpcMiniChainPanel
+                  npc={selectedTownNpc}
+                  progressMap={npcMiniChainProgress}
+                  accentClasses="border-white bg-white/70"
+                />
+                <NpcRoutePerksPanel
+                  npc={selectedTownNpc}
+                  perkState={npcRoutePerks}
+                  accentClasses="border-white bg-white/70"
+                />
+                <NpcLoverEvolutionPanel
+                  npc={selectedTownNpc}
+                  routePerks={npcRoutePerks}
+                  loverEvolutions={npcLoverEvolutions}
+                  accentClasses="border-white bg-white/70"
+                />
+                <NpcExclusiveLoopsPanel
+                  npc={selectedTownNpc}
+                  loopState={npcExclusiveLoops}
+                  loverEvolutions={npcLoverEvolutions}
+                  currentDay={currentDay}
+                  currentHour={currentHour}
+                  currentMinute={currentMinute}
+                  hasMounted={hasMounted}
+                  getItemCount={getItemCount}
+                  getQualityItemCount={getQualityItemCount}
+                  onComplete={completeNpcExclusiveLoopOffer}
+                  accentClasses="border-white bg-white/70"
+                  buttonClasses={getNpcButtonClasses(selectedTownNpc.id)}
+                />
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </PopupWindow>
 
       <PopupWindow open={sellerOpen} onClose={() => setSellerOpen(false)} title="Creature Seller">
         <SellerStockList
