@@ -3,6 +3,11 @@
 import { useMemo, useState } from "react";
 import { useGame } from "@/context/GameContext";
 import { ITEM_DATA } from "@/lib/items/itemData";
+import {
+  GameStatCard as JournalStatCard,
+  GameStatusBadge,
+  GameTabGroup,
+} from "@/components/ui/GameUi";
 
 type JournalTab = "story" | "quests" | "factions" | "world";
 
@@ -45,52 +50,6 @@ function formatItemList(items: Array<{ itemId: string; quantity: number }>) {
   return items
     .map((item) => `${ITEM_DATA[item.itemId]?.name ?? item.itemId} x${item.quantity}`)
     .join(", ");
-}
-
-function JournalStatCard({
-  label,
-  value,
-  accentClasses,
-}: {
-  label: string;
-  value: string | number;
-  accentClasses: string;
-}) {
-  return (
-    <div className={`rounded-2xl border p-3 text-sm ${accentClasses}`}>
-      <p className="text-xs font-bold uppercase">{label}</p>
-      <p className="mt-1 font-bold text-stone-950">{value}</p>
-    </div>
-  );
-}
-
-function JournalTabButton({
-  label,
-  description,
-  active,
-  onClick,
-}: {
-  label: string;
-  description: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`min-h-16 rounded-2xl border-2 px-4 py-3 text-left shadow-sm ${
-        active
-          ? "border-stone-900 bg-stone-900 text-white"
-          : "border-stone-300 bg-white text-stone-900"
-      }`}
-    >
-      <p className="font-bold">{label}</p>
-      <p className={`mt-1 text-xs ${active ? "text-stone-200" : "text-stone-600"}`}>
-        {description}
-      </p>
-    </button>
-  );
 }
 
 function ObjectiveChecklist({
@@ -211,9 +170,9 @@ function StoryArchiveSection({
                   <h3 className="text-xl font-bold text-stone-950">{chapter.title}</h3>
                   <p className="text-sm font-semibold text-stone-700">{chapter.subtitle}</p>
                 </div>
-                <span className="w-fit rounded-full border border-white bg-white px-3 py-1 text-xs font-bold text-stone-700">
+                <GameStatusBadge>
                   {completedEntry ? `${status} Day ${completedEntry.completedDay}` : status}
-                </span>
+                </GameStatusBadge>
               </div>
 
               <p className="mt-3 text-sm text-stone-700">{chapter.summary}</p>
@@ -263,9 +222,9 @@ function QuestCard({ quest }: { quest: QuestLike }) {
           <p className="text-xs font-bold uppercase text-sky-800">{formatQuestCategory(quest.category)}</p>
           <h3 className="text-xl font-bold text-stone-950">{quest.title}</h3>
         </div>
-        <span className="w-fit rounded-full border border-white bg-white px-3 py-1 text-xs font-bold text-stone-700">
+        <GameStatusBadge>
           {formatStatus(quest.status)}
-        </span>
+        </GameStatusBadge>
       </div>
       <p className="mt-2">{quest.description}</p>
       <p className="mt-2 text-xs font-semibold">Source: {quest.source.name}</p>
@@ -327,9 +286,9 @@ function QuestLogSection({ quests }: { quests: QuestLike[] }) {
         <section key={group.title} className="rounded-2xl border border-sky-100 bg-white/80 p-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-xl font-bold text-stone-950">{group.title}</h3>
-            <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-900">
+            <GameStatusBadge tone="sky">
               {group.quests.length}
-            </span>
+            </GameStatusBadge>
           </div>
           <div className="mt-3 grid gap-3 xl:grid-cols-2">
             {group.quests.length === 0 ? (
@@ -374,9 +333,9 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
                     {faction.standing} - Reputation {faction.reputation}
                   </p>
                 </div>
-                <span className="w-fit rounded-full border border-white bg-white px-3 py-1 text-xs font-bold text-stone-700">
+                <GameStatusBadge>
                   {formatStatus(faction.status)}
-                </span>
+                </GameStatusBadge>
               </div>
               <p className="mt-2">{faction.description}</p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
@@ -425,9 +384,9 @@ function WorldMapSection({ regions }: { regions: RegionLike[] }) {
         <section key={group.title} className="rounded-2xl border border-teal-100 bg-white/80 p-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-xl font-bold text-stone-950">{group.title}</h3>
-            <span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">
+            <GameStatusBadge tone="teal">
               {group.regions.length}
-            </span>
+            </GameStatusBadge>
           </div>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {group.regions.length === 0 ? (
@@ -451,9 +410,9 @@ function WorldMapSection({ regions }: { regions: RegionLike[] }) {
                         {region.access.travelMinutes} minutes - {region.access.route}
                       </p>
                     </div>
-                    <span className="w-fit rounded-full border border-white bg-white px-3 py-1 text-xs font-bold text-stone-700">
+                    <GameStatusBadge>
                       {region.status === "locked" ? "Locked" : "Open"}
-                    </span>
+                    </GameStatusBadge>
                   </div>
                   <p className="mt-2">{region.description}</p>
                   <div className="mt-3 grid gap-2 text-xs">
@@ -515,17 +474,12 @@ export default function StoryJournal() {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        {JOURNAL_TABS.map((tab) => (
-          <JournalTabButton
-            key={tab.id}
-            label={tab.label}
-            description={tab.description}
-            active={activeTab === tab.id}
-            onClick={() => setActiveTab(tab.id)}
-          />
-        ))}
-      </div>
+      <GameTabGroup
+        items={JOURNAL_TABS}
+        activeId={activeTab}
+        onSelect={setActiveTab}
+        className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"
+      />
 
       <div className="mt-4 rounded-2xl border border-stone-200 bg-white/80 p-3 sm:p-4">
         <div className="mb-4">

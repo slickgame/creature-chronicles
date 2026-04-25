@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import MainStoryPanel from "@/components/story/MainStoryPanel";
 import StoryJournal from "@/components/story/StoryJournal";
+import { GameModal } from "@/components/ui/GameUi";
 
 function getLocationLabel(location: string) {
   if (location === "ranch") return "Ranch";
@@ -11,40 +12,6 @@ function getLocationLabel(location: string) {
   if (location === "market") return "Market";
   if (location === "guild_hall") return "Guild Hall";
   return "Home";
-}
-
-function StoryModal({
-  open,
-  title,
-  onClose,
-  children,
-}: {
-  open: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/55 p-3 sm:p-5">
-      <div className="flex h-[88vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border-4 border-stone-900 bg-white shadow-2xl">
-        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-3">
-          <h2 className="min-w-0 truncate text-lg font-bold text-stone-950 sm:text-2xl">
-            {title}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-11 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white shadow"
-          >
-            Close
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-3 sm:p-5">{children}</div>
-      </div>
-    </div>
-  );
 }
 
 export default function StoryObjectiveStrip() {
@@ -110,13 +77,25 @@ export default function StoryObjectiveStrip() {
         </div>
       </section>
 
-      <StoryModal open={storyOpen} onClose={() => setStoryOpen(false)} title="Main Story">
+      <GameModal
+        open={storyOpen}
+        onClose={() => setStoryOpen(false)}
+        title="Main Story"
+        maxWidth="max-w-6xl"
+        zClassName="z-[95]"
+      >
         <MainStoryPanel />
-      </StoryModal>
+      </GameModal>
 
-      <StoryModal open={journalOpen} onClose={() => setJournalOpen(false)} title="Story Journal">
+      <GameModal
+        open={journalOpen}
+        onClose={() => setJournalOpen(false)}
+        title="Story Journal"
+        maxWidth="max-w-6xl"
+        zClassName="z-[95]"
+      >
         <StoryJournal />
-      </StoryModal>
+      </GameModal>
     </>
   );
 }

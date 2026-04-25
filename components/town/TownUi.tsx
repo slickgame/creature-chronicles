@@ -1,5 +1,7 @@
 "use client";
 
+import { GameModal } from "@/components/ui/GameUi";
+
 export function PopupWindow({
   open,
   title,
@@ -13,27 +15,10 @@ export function PopupWindow({
   children: React.ReactNode;
   maxWidth?: string;
 }) {
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
-      <div
-        className={`flex h-[88vh] w-full ${maxWidth} flex-col overflow-hidden rounded-3xl border-4 border-stone-900 bg-white shadow-2xl`}
-      >
-        <div className="flex items-center justify-between border-b border-stone-200 px-5 py-4">
-          <h2 className="text-2xl font-bold text-stone-900">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
-          >
-            Close
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
-      </div>
-    </div>
+    <GameModal open={open} title={title} onClose={onClose} maxWidth={maxWidth}>
+      {children}
+    </GameModal>
   );
 }
 

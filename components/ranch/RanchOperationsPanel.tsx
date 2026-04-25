@@ -41,6 +41,13 @@ import {
   getItemEffectSummary,
 } from "@/lib/game/inventoryUi";
 import { getCreatureImage } from "@/lib/breeding/uiHelpers";
+import {
+  GameActionCard as ActionCard,
+  GameFeedbackBox as ResultFeedbackBox,
+  GameModal as OverlayModal,
+  GameSectionHeader as RoomHeader,
+  GameStatChip as StatChip,
+} from "@/components/ui/GameUi";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
 
@@ -56,139 +63,6 @@ function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return `${displayHour}:${minute.toString().padStart(2, "0")} ${suffix}`;
-}
-
-function StatChip({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-semibold text-stone-700">
-      {label}: {value}
-    </div>
-  );
-}
-
-function RoomHeader({
-  eyebrow,
-  title,
-  description,
-  children,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl border-2 border-emerald-200 bg-white p-4 shadow lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <p className="text-xs font-bold uppercase text-emerald-700">{eyebrow}</p>
-        <h3 className="text-2xl font-bold text-stone-950">{title}</h3>
-        <p className="mt-1 max-w-3xl text-sm text-stone-600">{description}</p>
-      </div>
-      {children ? <div className="shrink-0">{children}</div> : null}
-    </div>
-  );
-}
-
-function ResultFeedbackBox({ message }: { message: string }) {
-  if (!message) return null;
-
-  return (
-    <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950">
-      {message}
-    </div>
-  );
-}
-
-function ActionCard({
-  title,
-  performer,
-  cost,
-  outcome,
-  disabledReason,
-  buttonLabel,
-  onAction,
-  tone = "emerald",
-}: {
-  title: string;
-  performer: string;
-  cost: string;
-  outcome: string;
-  disabledReason?: string;
-  buttonLabel: string;
-  onAction: () => void;
-  tone?: "emerald" | "rose" | "sky" | "amber";
-}) {
-  const enabled = !disabledReason;
-  const toneClasses = {
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-950",
-    rose: "border-rose-200 bg-rose-50 text-rose-950",
-    sky: "border-sky-200 bg-sky-50 text-sky-950",
-    amber: "border-amber-200 bg-amber-50 text-amber-950",
-  }[tone];
-  const buttonClasses = {
-    emerald: "bg-emerald-700",
-    rose: "bg-rose-700",
-    sky: "bg-sky-700",
-    amber: "bg-amber-700",
-  }[tone];
-
-  return (
-    <div className={`flex min-h-44 flex-col rounded-2xl border-2 p-4 shadow-sm ${enabled ? toneClasses : "border-stone-300 bg-stone-100 text-stone-600"}`}>
-      <div className="flex-1">
-        <p className="text-lg font-bold">{title}</p>
-        <div className="mt-3 space-y-1 text-sm">
-          <p><strong>Helper:</strong> {performer}</p>
-          <p><strong>Cost:</strong> {cost}</p>
-          <p><strong>Outcome:</strong> {outcome}</p>
-          {disabledReason ? (
-            <p className="font-semibold text-red-800"><strong>Disabled:</strong> {disabledReason}</p>
-          ) : null}
-        </div>
-      </div>
-      <button
-        type="button"
-        disabled={!enabled}
-        onClick={onAction}
-        className={`mt-4 min-h-11 w-full rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ${enabled ? buttonClasses : "bg-stone-400"}`}
-      >
-        {buttonLabel}
-      </button>
-    </div>
-  );
-}
-
-function OverlayModal({
-  open,
-  title,
-  onClose,
-  children,
-  maxWidth = "max-w-5xl",
-}: {
-  open: boolean;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  maxWidth?: string;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
-      <div className={`flex h-[86vh] w-full ${maxWidth} flex-col overflow-hidden rounded-3xl border-4 border-emerald-900 bg-white shadow-2xl`}>
-        <div className="flex items-center justify-between border-b border-emerald-200 px-5 py-4">
-          <h3 className="text-2xl font-bold text-emerald-950">{title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
-          >
-            Close
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-5">{children}</div>
-      </div>
-    </div>
-  );
 }
 
 function getMoodLabel(happiness: number) {
