@@ -11,6 +11,13 @@ import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
 import StoryObjectiveStrip from "@/components/story/StoryObjectiveStrip";
 import {
+  formatQuestCategoryLabel,
+  formatWorldLabel,
+  formatWorldList,
+  getQuestNextStep,
+  getRegionImportance,
+} from "@/lib/world/worldDisplay";
+import {
   FARM_ECONOMY_MARKET_SECTIONS,
   DEFAULT_PRODUCE_DEMANDS,
   FARM_ECONOMY_ACTIVE_NPCS,
@@ -1795,11 +1802,13 @@ export default function TownPage() {
                 <div className="mt-3 grid gap-3 lg:grid-cols-3">
                   {visibleAuthoredQuests.map((quest) => {
                     const completedObjectives = quest.objectives.filter((objective) => objective.completed).length;
+                    const nextStep = getQuestNextStep(quest.objectives);
                     return (
                       <div key={quest.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
-                        <div className="flex items-start justify-between gap-2"><div><p className="text-xs font-bold uppercase text-sky-800">{quest.category.replace("_", " ")}</p><p className="font-bold text-stone-950">{quest.title}</p></div><span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-900">{quest.status}</span></div>
+                        <div className="flex items-start justify-between gap-2"><div><p className="text-xs font-bold uppercase text-sky-800">{formatQuestCategoryLabel(quest.category)}</p><p className="font-bold text-stone-950">{quest.title}</p></div><span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-900">{formatWorldLabel(quest.status)}</span></div>
                         <p className="mt-2 line-clamp-3">{quest.description}</p>
                         <p className="mt-2 text-xs"><strong>Source:</strong> {quest.source.name}</p>
+                        {nextStep ? <p className="mt-1 text-xs"><strong>Next:</strong> {nextStep.where} - {nextStep.next}</p> : null}
                         <p className="mt-1 text-xs"><strong>Progress:</strong> {completedObjectives}/{quest.objectives.length} objectives</p>
                         <p className="mt-1 text-xs"><strong>Reward:</strong> {quest.rewardSummary}</p>
                       </div>
@@ -1824,8 +1833,8 @@ export default function TownPage() {
               </div>
 
               <div className="grid gap-4 xl:grid-cols-2">
-                <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4"><p className="text-xs font-bold uppercase text-teal-800">Regions</p><h3 className="text-xl font-bold text-stone-950">{openRegionCount}/{worldRegions.length} regions open</h3><div className="mt-3 grid gap-3">{worldRegions.map((region) => (<div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><p className="font-bold text-stone-950">{region.name}</p><span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">{region.status === "locked" ? "Locked" : "Open"}</span></div><p className="mt-1">{region.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {region.unlockCondition}</p><p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p></div>))}</div></div>
-                <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4"><p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p><h3 className="text-xl font-bold text-stone-950">{knownFactionCount}/{factions.length} known organizations</h3><div className="mt-3 grid gap-3">{factions.map((faction) => (<div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><div><p className="font-bold text-stone-950">{faction.name}</p><p className="text-xs font-semibold uppercase text-fuchsia-800">{faction.standing} - Rep {faction.reputation}</p></div><span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">{faction.status}</span></div><p className="mt-2">{faction.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p><p className="mt-1 text-xs"><strong>Player relationship:</strong> {faction.relationshipToPlayer}</p></div>))}</div></div>
+                <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4"><p className="text-xs font-bold uppercase text-teal-800">Regions</p><h3 className="text-xl font-bold text-stone-950">{openRegionCount}/{worldRegions.length} regions open</h3><div className="mt-3 grid gap-3">{worldRegions.map((region) => (<div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><p className="font-bold text-stone-950">{region.name}</p><span className="rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">{region.status === "locked" ? "Locked" : "Open"}</span></div><p className="mt-1">{region.description}</p><p className="mt-2 text-xs"><strong>Why it matters:</strong> {getRegionImportance(region.id)}</p><p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p><p className="mt-1 text-xs"><strong>Linked factions:</strong> {formatWorldList(region.factionHooks)}</p></div>))}</div></div>
+                <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4"><p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p><h3 className="text-xl font-bold text-stone-950">{knownFactionCount}/{factions.length} known organizations</h3><div className="mt-3 grid gap-3">{factions.map((faction) => (<div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><div><p className="font-bold text-stone-950">{faction.name}</p><p className="text-xs font-semibold uppercase text-fuchsia-800">{formatWorldLabel(faction.standing)} - Rep {faction.reputation}</p></div><span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">{formatWorldLabel(faction.status)}</span></div><p className="mt-2">{faction.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p><p className="mt-1 text-xs"><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p></div>))}</div></div>
               </div>
             </div>
           ) : null}

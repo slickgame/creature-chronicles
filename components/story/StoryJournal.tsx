@@ -7,7 +7,19 @@ import {
   GameStatCard as JournalStatCard,
   GameStatusBadge,
   GameTabGroup,
+  GameCard,
+  GameEmptyState,
 } from "@/components/ui/GameUi";
+import {
+  formatQuestCategoryLabel,
+  formatWorldLabel,
+  formatWorldList,
+  getFactionInfluenceHint,
+  getFactionNextGoal,
+  getQuestObjectiveDisplayHint,
+  getQuestNextStep,
+  getRegionImportance,
+} from "@/lib/world/worldDisplay";
 
 type JournalTab = "story" | "quests" | "factions" | "world";
 
@@ -38,13 +50,6 @@ function formatStatus(status: string) {
   return "Locked";
 }
 
-function formatQuestCategory(category: string) {
-  if (category === "main_story") return "Main Story";
-  if (category === "side_quest") return "Side Quest";
-  if (category === "faction_quest") return "Faction Quest";
-  return "Regional Assignment";
-}
-
 function formatItemList(items: Array<{ itemId: string; quantity: number }>) {
   if (items.length === 0) return "No item reward";
   return items
@@ -56,16 +61,19 @@ function ObjectiveChecklist({
   objectives,
   getDone,
   activeObjectiveId,
+  showProgressHints = false,
 }: {
   objectives: Array<{ id: string; title: string; description: string; locationHint?: string }>;
   getDone: (objective: { id: string; title: string }) => boolean;
   activeObjectiveId?: string;
+  showProgressHints?: boolean;
 }) {
   return (
     <div className="mt-3 grid gap-2">
       {objectives.map((objective, index) => {
         const done = getDone(objective);
         const active = objective.id === activeObjectiveId && !done;
+        const progressHint = showProgressHints ? getQuestObjectiveDisplayHint(objective.id) : null;
 
         return (
           <div
@@ -87,6 +95,12 @@ function ObjectiveChecklist({
               </span>
             </div>
             <p className="mt-1 text-xs">{objective.description}</p>
+            {progressHint ? (
+              <div className="mt-2 rounded-lg border border-white bg-white/80 px-2 py-1.5 text-xs">
+                <p><strong>Where:</strong> {progressHint.where}</p>
+                <p className="mt-0.5"><strong>Progresses through:</strong> {progressHint.action}</p>
+              </div>
+            ) : null}
           </div>
         );
       })}
@@ -206,6 +220,11 @@ function StoryArchiveSection({
 
 function QuestCard({ quest }: { quest: QuestLike }) {
   const completedObjectives = quest.objectives.filter((objective) => objective.completed).length;
+  const nextStep = getQuestNextStep(quest.objectives);
+  const factionConsequences = quest.reward.factionReputation
+    .map((reward) => `+${reward.amount} ${formatWorldLabel(reward.factionId)}${reward.standing ? ` toward ${formatWorldLabel(reward.standing)}` : ""}`)
+    .join(", ");
+  const regionConsequences = formatWorldList(quest.reward.unlockRegions);
 
   return (
     <article
@@ -219,7 +238,7 @@ function QuestCard({ quest }: { quest: QuestLike }) {
     >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase text-sky-800">{formatQuestCategory(quest.category)}</p>
+          <p className="text-xs font-bold uppercase text-sky-800">{formatQuestCategoryLabel(quest.category)}</p>
           <h3 className="text-xl font-bold text-stone-950">{quest.title}</h3>
         </div>
         <GameStatusBadge>
@@ -227,14 +246,35 @@ function QuestCard({ quest }: { quest: QuestLike }) {
         </GameStatusBadge>
       </div>
       <p className="mt-2">{quest.description}</p>
-      <p className="mt-2 text-xs font-semibold">Source: {quest.source.name}</p>
+      <p className="mt-2 text-xs font-semibold">
+        Source: {quest.source.type === "faction" ? formatWorldLabel(quest.source.factionId) : formatWorldLabel(quest.source.name)}
+      </p>
       {quest.gate ? (
         <p className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-          Gate: {quest.gate.note}
+          Unlocks When: {quest.gate.note}
         </p>
+      ) : null}
+      {quest.status === "locked" ? (
+        <GameCard tone="stone" className="mt-3 text-xs shadow-none">
+          <p className="font-bold text-stone-950">Locked</p>
+          <p className="mt-1">{quest.gate?.note ?? "Progress the current story and related world systems to reveal this quest."}</p>
+        </GameCard>
+      ) : quest.status === "completed" ? (
+        <GameCard tone="emerald" className="mt-3 text-xs shadow-none">
+          <p className="font-bold text-stone-950">Completion Result</p>
+          <p className="mt-1">{quest.reward.summary}</p>
+        </GameCard>
+      ) : nextStep ? (
+        <GameCard tone="amber" className="mt-3 text-xs shadow-none">
+          <p className="font-bold text-stone-950">Next Step</p>
+          <p className="mt-1"><strong>Where:</strong> {nextStep.where}</p>
+          <p className="mt-1"><strong>Likely Action:</strong> {nextStep.action}</p>
+          <p className="mt-1"><strong>Try:</strong> {nextStep.next}</p>
+        </GameCard>
       ) : null}
       <ObjectiveChecklist
         objectives={quest.objectives}
+        showProgressHints
         getDone={(objective) => {
           const questObjective = quest.objectives.find((item) => item.id === objective.id);
           return Boolean(questObjective?.completed);
@@ -245,15 +285,10 @@ function QuestCard({ quest }: { quest: QuestLike }) {
         <p className="mt-1"><strong>Reward Summary:</strong> {quest.rewardSummary}</p>
         <p className="mt-1"><strong>Reward:</strong> {quest.reward.gold} Gold, {formatItemList(quest.reward.items)}</p>
         {quest.reward.factionReputation.length > 0 ? (
-          <p className="mt-1">
-            <strong>Faction consequence:</strong>{" "}
-            {quest.reward.factionReputation
-              .map((reward) => `+${reward.amount} ${reward.factionId}${reward.standing ? ` to ${reward.standing}` : ""}`)
-              .join(", ")}
-          </p>
+          <p className="mt-1"><strong>Faction consequence:</strong> {factionConsequences}</p>
         ) : null}
         {quest.reward.unlockRegions.length > 0 ? (
-          <p className="mt-1"><strong>Region consequence:</strong> {quest.reward.unlockRegions.join(", ")}</p>
+          <p className="mt-1"><strong>Region consequence:</strong> {regionConsequences}</p>
         ) : null}
         {quest.status === "completed" ? (
           <p className="mt-1 font-semibold text-emerald-800">{quest.reward.summary}</p>
@@ -292,9 +327,7 @@ function QuestLogSection({ quests }: { quests: QuestLike[] }) {
           </div>
           <div className="mt-3 grid gap-3 xl:grid-cols-2">
             {group.quests.length === 0 ? (
-              <p className="rounded-2xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-                No quests in this section.
-              </p>
+              <GameEmptyState>No quests in this section.</GameEmptyState>
             ) : (
               group.quests.map((quest) => <QuestCard key={quest.id} quest={quest} />)
             )}
@@ -317,6 +350,8 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
       <div className="grid gap-3 lg:grid-cols-3">
         {factions.map((faction) => {
           const locked = faction.status === "locked";
+          const nextGoal = getFactionNextGoal(faction.reputation);
+          const influenceHint = getFactionInfluenceHint(faction.id);
           return (
             <article
               key={faction.id}
@@ -330,7 +365,7 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
                 <div>
                   <h3 className="text-xl font-bold text-stone-950">{faction.name}</h3>
                   <p className="text-xs font-bold uppercase text-fuchsia-800">
-                    {faction.standing} - Reputation {faction.reputation}
+                    {formatWorldLabel(faction.standing)} - Reputation {faction.reputation}
                   </p>
                 </div>
                 <GameStatusBadge>
@@ -347,8 +382,10 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
               <div className="mt-3 grid gap-2 text-xs">
                 <p><strong>Unlock:</strong> {faction.unlockCondition}</p>
                 <p><strong>Relationship:</strong> {faction.relationshipToPlayer}</p>
-                <p><strong>Perk hooks:</strong> {faction.perkHooks.join(", ")}</p>
-                <p><strong>Reward hooks:</strong> {faction.rewardHooks.join(", ")}</p>
+                <p><strong>Next goal:</strong> {nextGoal}</p>
+                <p><strong>What affects them:</strong> {influenceHint}</p>
+                <p><strong>Known perks:</strong> {formatWorldList(faction.perkHooks)}</p>
+                <p><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p>
               </div>
             </article>
           );
@@ -390,9 +427,7 @@ function WorldMapSection({ regions }: { regions: RegionLike[] }) {
           </div>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {group.regions.length === 0 ? (
-              <p className="rounded-2xl border border-stone-200 bg-stone-50 p-3 text-sm text-stone-600">
-                No regions in this section.
-              </p>
+              <GameEmptyState>No regions in this section.</GameEmptyState>
             ) : (
               group.regions.map((region) => (
                 <article
@@ -415,11 +450,17 @@ function WorldMapSection({ regions }: { regions: RegionLike[] }) {
                     </GameStatusBadge>
                   </div>
                   <p className="mt-2">{region.description}</p>
+                  <p className="mt-2 rounded-xl border border-white bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700">
+                    {group.locked ? "How to unlock: " : "Available destination: "}
+                    {group.locked ? region.unlockCondition : getRegionImportance(region.id)}
+                  </p>
                   <div className="mt-3 grid gap-2 text-xs">
                     <p><strong>Unlock:</strong> {region.unlockCondition}</p>
                     <p><strong>Access:</strong> {region.access.requirement}</p>
-                    <p><strong>Quest hooks:</strong> {region.questHooks.join(", ")}</p>
-                    <p><strong>Faction hooks:</strong> {region.factionHooks.join(", ")}</p>
+                    <p><strong>Route:</strong> {region.access.route}</p>
+                    <p><strong>Travel time:</strong> {region.access.travelMinutes} minutes</p>
+                    <p><strong>Associated quests:</strong> {formatWorldList(region.questHooks)}</p>
+                    <p><strong>Associated factions:</strong> {formatWorldList(region.factionHooks)}</p>
                   </div>
                 </article>
               ))
