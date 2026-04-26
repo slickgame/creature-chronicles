@@ -45,15 +45,6 @@ export function GlobalHudNav() {
     <nav
       ref={navRef}
       aria-label="Free navigation"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      onFocusCapture={() => setOpen(true)}
-      onBlurCapture={(event) => {
-        const nextFocusedNode = event.relatedTarget as Node | null;
-        if (!nextFocusedNode || !navRef.current?.contains(nextFocusedNode)) {
-          setOpen(false);
-        }
-      }}
       className="fixed bottom-3 right-3 z-[80] md:bottom-auto md:right-4 md:top-4"
     >
       <div className="relative flex flex-col items-end">

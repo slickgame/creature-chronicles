@@ -43,10 +43,12 @@ import {
 import { getCreatureImage } from "@/lib/breeding/uiHelpers";
 import {
   GameActionCard as ActionCard,
+  GameCard as RoomCard,
   GameFeedbackBox as ResultFeedbackBox,
   GameModal as OverlayModal,
   GameSectionHeader as RoomHeader,
   GameStatChip as StatChip,
+  GameStatusBadge as StatusBadge,
 } from "@/components/ui/GameUi";
 
 type RanchTab = "house" | "fields" | "barn" | "nursery" | "breeding";
@@ -391,6 +393,9 @@ export default function RanchOperationsPanel({
     hatchEgg,
     careForCreature,
     renameCreature,
+    roadDispatchUnlocked,
+    activeDispatches,
+    completedDispatchLog,
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<RanchTab>(initialTab);
@@ -1258,6 +1263,34 @@ export default function RanchOperationsPanel({
             />
 
             <ResultFeedbackBox message={barnFeedback} />
+
+            <RoomCard tone={roadDispatchUnlocked ? "teal" : "stone"} className="shadow-sm">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-xl font-bold text-stone-950">Road Dispatch</h3>
+                    <StatusBadge tone={roadDispatchUnlocked ? "emerald" : "stone"}>
+                      {roadDispatchUnlocked ? "Unlocked" : "Locked"}
+                    </StatusBadge>
+                  </div>
+                  <p className="mt-1 text-sm text-stone-700">
+                    {roadDispatchUnlocked
+                      ? "Assign creatures to Brindlewood Road jobs from the Regions screen. The barn keeps the crew count visible here."
+                      : "Complete Road Work on Brindlewood Road to unlock creature dispatch assignments."}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <StatChip label="Active" value={activeDispatches.length} />
+                    <StatChip label="Completed" value={completedDispatchLog.length} />
+                  </div>
+                </div>
+                <Link
+                  href="/regions"
+                  className="min-h-11 rounded-xl bg-teal-700 px-4 py-3 text-center text-sm font-semibold text-white shadow"
+                >
+                  Open Regions
+                </Link>
+              </div>
+            </RoomCard>
 
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {creatures.map((creature) => {

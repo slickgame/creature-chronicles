@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import {
   GameActionCard,
@@ -49,6 +50,18 @@ function getRegionActionDisabledReason({
   return undefined;
 }
 
+function getTotalMinutes(day: number, hour: number, minute: number) {
+  return day * 24 * 60 + hour * 60 + minute;
+}
+
+function formatReadyTime(totalMinutes: number) {
+  const day = Math.floor(totalMinutes / (24 * 60));
+  const minutesInDay = totalMinutes % (24 * 60);
+  const hour = Math.floor(minutesInDay / 60);
+  const minute = minutesInDay % 60;
+  return `Day ${day}, ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+}
+
 export default function RegionsPage() {
   const {
     currentDay,
@@ -63,10 +76,19 @@ export default function RegionsPage() {
     worldRegionActions,
     factionQuestChains,
     regionTaskChains,
+    creatures,
+    roadDispatchJobs,
+    activeDispatches,
+    completedDispatchLog,
+    latestDispatchResult,
+    roadDispatchUnlocked,
     travelToRegion,
     performRegionAction,
+    startRoadDispatch,
+    resolveRoadDispatch,
   } = useGame();
 
+  const [selectedDispatchCreatures, setSelectedDispatchCreatures] = useState<Record<string, number[]>>({});
   const currentRegion = worldRegions.find((region) => region.id === currentRegionId);
   const openRegions = worldRegions.filter((region) => region.status !== "locked");
   const lockedRegions = worldRegions.filter((region) => region.status === "locked");
@@ -76,6 +98,41 @@ export default function RegionsPage() {
   const firstOutsideFactionChain = firstOutsideTaskChain?.factionId
     ? factionQuestChains.find((chain) => chain.factionId === firstOutsideTaskChain.factionId)
     : null;
+  const currentTotalMinutes = getTotalMinutes(currentDay, currentHour, currentMinute);
+  const assignedDispatchCreatureIds = new Set(activeDispatches.flatMap((dispatch) => dispatch.creatureIds));
+  const brindlewoodDispatchJobs = roadDispatchJobs.filter((job) => job.regionId === "brindlewood_road");
+
+  function toggleDispatchCreature(jobId: string, creatureId: number, maxAssignedCreatures: number) {
+    setSelectedDispatchCreatures((prev) => {
+      const currentSelection = prev[jobId] ?? [];
+      const isSelected = currentSelection.includes(creatureId);
+      const nextSelection = isSelected
+        ? currentSelection.filter((id) => id !== creatureId)
+        : currentSelection.length >= maxAssignedCreatures
+          ? currentSelection
+          : [...currentSelection, creatureId];
+
+      return { ...prev, [jobId]: nextSelection };
+    });
+  }
+
+  function getDispatchDisabledReason(job: ReturnType<typeof useGame>["roadDispatchJobs"][number]) {
+    if (!roadDispatchUnlocked) return "Complete Road Work on Brindlewood Road to unlock creature dispatch assignments.";
+    const region = worldRegions.find((entry) => entry.id === job.regionId);
+    if (!region || region.status === "locked") return "Brindlewood Road must be open first.";
+    const selectedIds = selectedDispatchCreatures[job.jobId] ?? [];
+    if (selectedIds.length === 0) return "Choose at least one creature.";
+    if (selectedIds.length > job.maxAssignedCreatures) return `Choose up to ${job.maxAssignedCreatures} creatures.`;
+    const busyCreature = selectedIds
+      .map((creatureId) => creatures.find((creature) => creature.id === creatureId))
+      .find((creature) => creature && assignedDispatchCreatureIds.has(creature.id));
+    if (busyCreature) return `${busyCreature.nickname} is already assigned.`;
+    const tiredCreature = selectedIds
+      .map((creatureId) => creatures.find((creature) => creature.id === creatureId))
+      .find((creature) => creature && creature.breedingStamina < job.minStamina);
+    if (tiredCreature) return `${tiredCreature.nickname} needs ${job.minStamina} stamina.`;
+    return undefined;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-teal-100 to-stone-200 p-3 sm:p-5">
@@ -219,6 +276,183 @@ export default function RegionsPage() {
             </div>
           </GameCard>
         ) : null}
+
+        <GameCard tone={roadDispatchUnlocked ? "emerald" : "stone"} className="shadow-lg">
+          <GameSectionHeader
+            eyebrow="Creature Road Dispatch"
+            title="Brindlewood Assignments"
+            description="After the player proves the road personally, barn creatures can take repeatable road jobs for Wayfarer Dispatch."
+            tone={roadDispatchUnlocked ? "emerald" : "stone"}
+          >
+            <GameStatusBadge tone={roadDispatchUnlocked ? "emerald" : "stone"}>
+              {roadDispatchUnlocked ? "Unlocked" : "Locked"}
+            </GameStatusBadge>
+          </GameSectionHeader>
+
+          <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+            <div className="space-y-4">
+              {!roadDispatchUnlocked ? (
+                <GameFeedbackBox
+                  tone="amber"
+                  message="Complete Road Work on Brindlewood Road to unlock creature dispatch assignments."
+                />
+              ) : null}
+
+              {latestDispatchResult ? (
+                <GameFeedbackBox
+                  tone={latestDispatchResult.success ? "emerald" : "rose"}
+                  message={`${latestDispatchResult.title}: ${latestDispatchResult.message}`}
+                />
+              ) : null}
+
+              <div className="grid gap-3 lg:grid-cols-2">
+                {brindlewoodDispatchJobs.map((job) => {
+                  const selectedIds = selectedDispatchCreatures[job.jobId] ?? [];
+                  const disabledReason = getDispatchDisabledReason(job);
+
+                  return (
+                    <div key={job.jobId} className="rounded-2xl border border-emerald-200 bg-white/85 p-4 shadow-sm">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <h3 className="text-xl font-bold text-stone-950">{job.title}</h3>
+                          <p className="mt-1 text-sm text-stone-700">{job.description}</p>
+                        </div>
+                        <GameStatusBadge tone="teal">{job.durationMinutes}m</GameStatusBadge>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <GameStatChip label="Crew" value={`1-${job.maxAssignedCreatures}`} />
+                        <GameStatChip label="Stamina" value={`${job.minStamina}+ / -${job.staminaCost}`} />
+                        <GameStatChip label="Gold" value={job.baseRewardGold} />
+                        <GameStatChip label="Rep" value={`+${job.factionReputationReward}`} />
+                      </div>
+
+                      <div className="mt-3 space-y-1 text-xs text-stone-700">
+                        <p><strong>Best helpers:</strong> {job.idealSpecies.join(", ")}</p>
+                        <p><strong>Looks for:</strong> {formatWorldList(job.idealStats)}; {formatWorldList(job.idealSkills)}</p>
+                        <p><strong>Success:</strong> {job.successSummary}</p>
+                      </div>
+
+                      <div className="mt-4">
+                        <p className="text-xs font-bold uppercase text-emerald-900">Choose Crew</p>
+                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                          {creatures.map((creature) => {
+                            const selected = selectedIds.includes(creature.id);
+                            const busy = assignedDispatchCreatureIds.has(creature.id);
+                            const tired = creature.breedingStamina < job.minStamina;
+                            return (
+                              <button
+                                key={`${job.jobId}-${creature.id}`}
+                                type="button"
+                                disabled={busy || (!selected && selectedIds.length >= job.maxAssignedCreatures)}
+                                onClick={() => toggleDispatchCreature(job.jobId, creature.id, job.maxAssignedCreatures)}
+                                className={`min-h-14 rounded-xl border px-3 py-2 text-left text-xs shadow-sm ${
+                                  selected
+                                    ? "border-emerald-700 bg-emerald-700 text-white"
+                                    : busy || tired
+                                      ? "border-stone-200 bg-stone-100 text-stone-500"
+                                      : "border-emerald-200 bg-emerald-50 text-stone-800"
+                                }`}
+                              >
+                                <span className="block font-bold">{creature.nickname}</span>
+                                <span className="block">
+                                  {creature.name} - Sta {creature.breedingStamina}/{creature.maxBreedingStamina}
+                                  {busy ? " - Assigned" : tired ? " - Low stamina" : ""}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {disabledReason ? (
+                        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-950">
+                          {disabledReason}
+                        </p>
+                      ) : null}
+
+                      <button
+                        type="button"
+                        disabled={Boolean(disabledReason)}
+                        onClick={() => startRoadDispatch(job.jobId, selectedIds)}
+                        className={`mt-4 min-h-11 w-full rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ${
+                          disabledReason ? "bg-stone-400" : "bg-emerald-700"
+                        }`}
+                      >
+                        Start Dispatch
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <aside className="space-y-4">
+              <div className="rounded-2xl border border-teal-200 bg-teal-50 p-4">
+                <h3 className="text-lg font-bold text-stone-950">Active Crews</h3>
+                <div className="mt-3 grid gap-2">
+                  {activeDispatches.length === 0 ? (
+                    <GameEmptyState>No creatures are out on road dispatch right now.</GameEmptyState>
+                  ) : (
+                    activeDispatches.map((dispatch) => {
+                      const job = roadDispatchJobs.find((entry) => entry.jobId === dispatch.jobId);
+                      const crew = dispatch.creatureIds
+                        .map((creatureId) => creatures.find((creature) => creature.id === creatureId)?.nickname)
+                        .filter(Boolean)
+                        .join(", ");
+                      const ready = currentTotalMinutes >= dispatch.readyAtTotalMinutes;
+                      return (
+                        <div key={dispatch.dispatchId} className="rounded-xl border border-teal-200 bg-white p-3 text-sm text-stone-700">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-bold text-stone-950">{job?.title ?? dispatch.jobId}</p>
+                            <GameStatusBadge tone={ready ? "emerald" : "amber"}>
+                              {ready ? "Ready" : "On Road"}
+                            </GameStatusBadge>
+                          </div>
+                          <p className="mt-1 text-xs"><strong>Crew:</strong> {crew || "Unknown crew"}</p>
+                          <p className="mt-1 text-xs"><strong>Due:</strong> {formatReadyTime(dispatch.readyAtTotalMinutes)}</p>
+                          <button
+                            type="button"
+                            disabled={!ready}
+                            onClick={() => resolveRoadDispatch(dispatch.dispatchId)}
+                            className={`mt-3 min-h-11 w-full rounded-xl px-3 py-2 text-xs font-semibold text-white shadow ${
+                              ready ? "bg-teal-700" : "bg-stone-400"
+                            }`}
+                          >
+                            {ready ? "Resolve Dispatch" : "Not Ready Yet"}
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-stone-200 bg-white/85 p-4">
+                <h3 className="text-lg font-bold text-stone-950">Recent Dispatch Log</h3>
+                <div className="mt-3 grid gap-2">
+                  {completedDispatchLog.length === 0 ? (
+                    <GameEmptyState>No completed road dispatches yet.</GameEmptyState>
+                  ) : (
+                    completedDispatchLog.slice(0, 5).map((entry) => (
+                      <div key={entry.id} className="rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-stone-700">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-bold text-stone-950">{entry.title}</p>
+                          <GameStatusBadge tone={entry.success ? "emerald" : "amber"}>
+                            {entry.success ? "Success" : "Partial"}
+                          </GameStatusBadge>
+                        </div>
+                        <p className="mt-1">{entry.summary}</p>
+                        <p className="mt-1 font-semibold">{entry.rewardSummary}</p>
+                        <p className="mt-1 text-stone-500">{formatClock(entry.day, entry.hour, entry.minute)}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </aside>
+          </div>
+        </GameCard>
 
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="space-y-4">

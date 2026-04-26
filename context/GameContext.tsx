@@ -631,6 +631,77 @@ type WorldRegionAction = {
   storyFlags?: MainStoryObjectiveId[];
 };
 
+type RoadDispatchEvent = {
+  eventId: string;
+  title: string;
+  description: string;
+  rewardGoldModifier: number;
+  rewardItems?: Array<{ itemId: string; quantity: number }>;
+  factionReputationModifier?: number;
+  successModifier?: number;
+};
+
+type RoadDispatchJob = {
+  jobId: string;
+  regionId: string;
+  title: string;
+  description: string;
+  durationMinutes: number;
+  idealSpecies: string[];
+  idealTraits: CreatureTrait[];
+  idealStats: Array<keyof CreatureStats>;
+  idealSkills: Array<keyof CreatureSkills>;
+  maxAssignedCreatures: number;
+  minStamina: number;
+  staminaCost: number;
+  baseRewardGold: number;
+  rewardItems: Array<{ itemId: string; quantity: number }>;
+  factionId: string;
+  factionReputationReward: number;
+  eventPool: RoadDispatchEvent[];
+  successSummary: string;
+};
+
+type ActiveRoadDispatch = {
+  dispatchId: number;
+  jobId: string;
+  regionId: string;
+  creatureIds: number[];
+  startedDay: number;
+  startedHour: number;
+  startedMinute: number;
+  readyAtTotalMinutes: number;
+};
+
+type CompletedRoadDispatchLogEntry = {
+  id: number;
+  dispatchId: number;
+  jobId: string;
+  title: string;
+  regionId: string;
+  creatureNames: string[];
+  day: number;
+  hour: number;
+  minute: number;
+  success: boolean;
+  rewardGold: number;
+  rewardSummary: string;
+  eventTitle?: string;
+  summary: string;
+};
+
+type RoadDispatchResult = {
+  success: boolean;
+  title: string;
+  message: string;
+  jobId?: string;
+  dispatchId?: number;
+  rewardSummary?: string;
+  day: number;
+  hour: number;
+  minute: number;
+};
+
 type AuthoredQuestProgressAction = {
   id: string;
   questId: string;
@@ -739,6 +810,9 @@ type SaveData = {
   latestRegionTravelResult: RegionTravelResult | null;
   factionQuestChains: FactionQuestChain[];
   regionTaskChains: RegionTaskChain[];
+  activeDispatches: ActiveRoadDispatch[];
+  completedDispatchLog: CompletedRoadDispatchLogEntry[];
+  latestDispatchResult: RoadDispatchResult | null;
 };
 
 type GameContextType = {
@@ -792,11 +866,18 @@ type GameContextType = {
   authoredQuestProgressActions: AuthoredQuestProgressAction[];
   factionQuestChains: FactionQuestChain[];
   regionTaskChains: RegionTaskChain[];
+  roadDispatchJobs: RoadDispatchJob[];
+  activeDispatches: ActiveRoadDispatch[];
+  completedDispatchLog: CompletedRoadDispatchLogEntry[];
+  latestDispatchResult: RoadDispatchResult | null;
+  roadDispatchUnlocked: boolean;
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   travelToRegion: (regionId: string) => boolean;
   performRegionAction: (regionId: string, actionId: string) => boolean;
   performAuthoredQuestAction: (actionId: string) => boolean;
+  startRoadDispatch: (jobId: string, creatureIds: number[]) => boolean;
+  resolveRoadDispatch: (dispatchId: number) => boolean;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -2306,6 +2387,133 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
   },
 ];
 
+const roadDispatchEvents: RoadDispatchEvent[] = [
+  {
+    eventId: "broken-cart-assist",
+    title: "Broken Cart Assist",
+    description: "Your crew helps lift a stuck cart back onto the road before the axle gives out.",
+    rewardGoldModifier: 18,
+    factionReputationModifier: 2,
+    successModifier: 6,
+  },
+  {
+    eventId: "lost-courier-found",
+    title: "Lost Courier Found",
+    description: "A delayed courier gets guided back to the post with their satchel and pride intact.",
+    rewardGoldModifier: 22,
+    factionReputationModifier: 3,
+    successModifier: 8,
+  },
+  {
+    eventId: "muddy-delay",
+    title: "Muddy Delay",
+    description: "Heavy mud slows the run and makes every good hoof, paw, and claw earn its supper.",
+    rewardGoldModifier: -12,
+    factionReputationModifier: 0,
+    successModifier: -10,
+  },
+  {
+    eventId: "helpful-road-rumor",
+    title: "Helpful Road Rumor",
+    description: "A passing team shares a lead about safer timing and better roadside handoffs.",
+    rewardGoldModifier: 10,
+    factionReputationModifier: 1,
+    successModifier: 4,
+  },
+  {
+    eventId: "hidden-supply-cache",
+    title: "Hidden Supply Cache",
+    description: "The crew spots a dry cache tucked behind old marker stones and logs it properly.",
+    rewardGoldModifier: 8,
+    rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
+    factionReputationModifier: 1,
+    successModifier: 5,
+  },
+];
+
+const defaultRoadDispatchJobs: RoadDispatchJob[] = [
+  {
+    jobId: "road-supply-run",
+    regionId: "brindlewood_road",
+    title: "Road Supply Run",
+    description: "Send a small crew to haul packed food, water, and repair bundles between Hearthmere and the Wayfarer Post.",
+    durationMinutes: 180,
+    idealSpecies: ["Horse", "Cow", "Pig"],
+    idealTraits: ["sturdy", "industrious", "surefooted"],
+    idealStats: ["strength", "endurance"],
+    idealSkills: ["hauling"],
+    maxAssignedCreatures: 3,
+    minStamina: 18,
+    staminaCost: 12,
+    baseRewardGold: 58,
+    rewardItems: [{ itemId: "wheat", quantity: 1 }],
+    factionId: "wayfarer_dispatch",
+    factionReputationReward: 4,
+    eventPool: roadDispatchEvents,
+    successSummary: "Hauling strength, endurance, and steady temperaments improve the supply handoff.",
+  },
+  {
+    jobId: "courier-check",
+    regionId: "brindlewood_road",
+    title: "Courier Check",
+    description: "Have creatures confirm courier markers, posted notes, and the little signals that keep road teams honest.",
+    durationMinutes: 150,
+    idealSpecies: ["Dog", "Horse", "Bunny"],
+    idealTraits: ["quick", "keen", "barnwise"],
+    idealStats: ["speed", "endurance"],
+    idealSkills: ["hauling"],
+    maxAssignedCreatures: 2,
+    minStamina: 16,
+    staminaCost: 10,
+    baseRewardGold: 48,
+    rewardItems: [],
+    factionId: "wayfarer_dispatch",
+    factionReputationReward: 4,
+    eventPool: roadDispatchEvents,
+    successSummary: "Speed, endurance, and alert creatures make courier checks reliable.",
+  },
+  {
+    jobId: "road-patrol",
+    regionId: "brindlewood_road",
+    title: "Road Patrol",
+    description: "Assign a sturdy crew to walk the road edge, watch camps, and make sure travelers know the ranch has eyes on the route.",
+    durationMinutes: 210,
+    idealSpecies: ["Dog", "Horse", "Sheep"],
+    idealTraits: ["sturdy", "calm", "surefooted"],
+    idealStats: ["endurance", "vitality", "speed"],
+    idealSkills: ["fieldWork", "hauling"],
+    maxAssignedCreatures: 3,
+    minStamina: 20,
+    staminaCost: 14,
+    baseRewardGold: 64,
+    rewardItems: [],
+    factionId: "wayfarer_dispatch",
+    factionReputationReward: 5,
+    eventPool: roadDispatchEvents,
+    successSummary: "Endurance, vitality, and calm road sense keep patrols steady.",
+  },
+  {
+    jobId: "rumor-gathering",
+    regionId: "brindlewood_road",
+    title: "Rumor Gathering",
+    description: "Send sharp-eyed helpers to sniff out road gossip, missed signals, and soft leads from the waystation.",
+    durationMinutes: 120,
+    idealSpecies: ["Cat", "Chicken", "Pig", "Bunny"],
+    idealTraits: ["keen", "quick", "night_prawler"],
+    idealStats: ["intelligence", "speed"],
+    idealSkills: ["fieldWork"],
+    maxAssignedCreatures: 2,
+    minStamina: 14,
+    staminaCost: 8,
+    baseRewardGold: 36,
+    rewardItems: [],
+    factionId: "wayfarer_dispatch",
+    factionReputationReward: 3,
+    eventPool: roadDispatchEvents,
+    successSummary: "Intelligence, speed, and keen instincts turn whispers into useful reports.",
+  },
+];
+
 const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
 const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
 const catFirstNames = ["Velvet","Misty","Sable","Luna","Poppy","Ivy","Mochi","Pearl"];
@@ -2570,6 +2778,75 @@ function normalizeRegionTravelResult(result: unknown): RegionTravelResult | null
     message: typeof entry.message === "string" ? entry.message : "Region travel recorded.",
     regionId: typeof entry.regionId === "string" ? entry.regionId : undefined,
     actionId: typeof entry.actionId === "string" ? entry.actionId : undefined,
+    rewardSummary: typeof entry.rewardSummary === "string" ? entry.rewardSummary : undefined,
+    day: typeof entry.day === "number" ? entry.day : 1,
+    hour: typeof entry.hour === "number" ? entry.hour : 8,
+    minute: typeof entry.minute === "number" ? entry.minute : 0,
+  };
+}
+
+function normalizeActiveDispatches(dispatches: unknown): ActiveRoadDispatch[] {
+  if (!Array.isArray(dispatches)) return [];
+  const validJobIds = new Set(defaultRoadDispatchJobs.map((job) => job.jobId));
+
+  return dispatches
+    .filter((dispatch): dispatch is Partial<ActiveRoadDispatch> => Boolean(dispatch) && typeof dispatch === "object")
+    .filter((dispatch) => typeof dispatch.jobId === "string" && validJobIds.has(dispatch.jobId))
+    .map((dispatch, index) => ({
+      dispatchId: typeof dispatch.dispatchId === "number" ? dispatch.dispatchId : Date.now() + index,
+      jobId: dispatch.jobId ?? "road-supply-run",
+      regionId: typeof dispatch.regionId === "string" ? dispatch.regionId : "brindlewood_road",
+      creatureIds: Array.isArray(dispatch.creatureIds)
+        ? dispatch.creatureIds.filter((creatureId): creatureId is number => typeof creatureId === "number")
+        : [],
+      startedDay: typeof dispatch.startedDay === "number" ? dispatch.startedDay : 1,
+      startedHour: typeof dispatch.startedHour === "number" ? dispatch.startedHour : 8,
+      startedMinute: typeof dispatch.startedMinute === "number" ? dispatch.startedMinute : 0,
+      readyAtTotalMinutes:
+        typeof dispatch.readyAtTotalMinutes === "number"
+          ? dispatch.readyAtTotalMinutes
+          : getTotalMinutes(1, 8, 0) + 120,
+    }))
+    .filter((dispatch) => dispatch.creatureIds.length > 0)
+    .slice(0, 12);
+}
+
+function normalizeCompletedDispatchLog(log: unknown): CompletedRoadDispatchLogEntry[] {
+  if (!Array.isArray(log)) return [];
+
+  return log
+    .filter((entry): entry is Partial<CompletedRoadDispatchLogEntry> => Boolean(entry) && typeof entry === "object")
+    .map((entry, index) => ({
+      id: typeof entry.id === "number" ? entry.id : Date.now() + index,
+      dispatchId: typeof entry.dispatchId === "number" ? entry.dispatchId : Date.now() + index,
+      jobId: typeof entry.jobId === "string" ? entry.jobId : "road-supply-run",
+      title: typeof entry.title === "string" ? entry.title : "Road Dispatch",
+      regionId: typeof entry.regionId === "string" ? entry.regionId : "brindlewood_road",
+      creatureNames: Array.isArray(entry.creatureNames)
+        ? entry.creatureNames.filter((name): name is string => typeof name === "string")
+        : [],
+      day: typeof entry.day === "number" ? entry.day : 1,
+      hour: typeof entry.hour === "number" ? entry.hour : 8,
+      minute: typeof entry.minute === "number" ? entry.minute : 0,
+      success: Boolean(entry.success),
+      rewardGold: typeof entry.rewardGold === "number" ? entry.rewardGold : 0,
+      rewardSummary: typeof entry.rewardSummary === "string" ? entry.rewardSummary : "No reward recorded.",
+      eventTitle: typeof entry.eventTitle === "string" ? entry.eventTitle : undefined,
+      summary: typeof entry.summary === "string" ? entry.summary : "Dispatch completed.",
+    }))
+    .slice(0, 30);
+}
+
+function normalizeRoadDispatchResult(result: unknown): RoadDispatchResult | null {
+  if (!result || typeof result !== "object") return null;
+  const entry = result as Partial<RoadDispatchResult>;
+
+  return {
+    success: Boolean(entry.success),
+    title: typeof entry.title === "string" ? entry.title : "Road Dispatch",
+    message: typeof entry.message === "string" ? entry.message : "Dispatch result recorded.",
+    jobId: typeof entry.jobId === "string" ? entry.jobId : undefined,
+    dispatchId: typeof entry.dispatchId === "number" ? entry.dispatchId : undefined,
     rewardSummary: typeof entry.rewardSummary === "string" ? entry.rewardSummary : undefined,
     day: typeof entry.day === "number" ? entry.day : 1,
     hour: typeof entry.hour === "number" ? entry.hour : 8,
@@ -3673,6 +3950,62 @@ function addMinutesToClock(day: number, hour: number, minute: number, minutesToA
   return { day: newDay, hour: Math.floor(totalMinutes / 60), minute: totalMinutes % 60 };
 }
 
+function getTotalMinutes(day: number, hour: number, minute: number) {
+  return day * 24 * 60 + hour * 60 + minute;
+}
+
+function formatClockFromTotalMinutes(totalMinutes: number) {
+  const day = Math.floor(totalMinutes / (24 * 60));
+  const minutesInDay = totalMinutes % (24 * 60);
+  const hour = Math.floor(minutesInDay / 60);
+  const minute = minutesInDay % 60;
+  return `Day ${day}, ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+}
+
+function getRoadDispatchSpeciesBonus(creature: Creature, jobId: string) {
+  const species = creature.name;
+  if (species === "Horse" && (jobId === "road-supply-run" || jobId === "courier-check" || jobId === "road-patrol")) return 10;
+  if (species === "Dog" && (jobId === "courier-check" || jobId === "road-patrol")) return 10;
+  if (species === "Cat" && jobId === "rumor-gathering") return 10;
+  if (species === "Bunny" && (jobId === "courier-check" || jobId === "rumor-gathering")) return 8;
+  if (species === "Cow" && jobId === "road-supply-run") return 10;
+  if (species === "Chicken" && (jobId === "road-patrol" || jobId === "rumor-gathering")) return 7;
+  if (species === "Pig" && (jobId === "road-supply-run" || jobId === "rumor-gathering")) return 8;
+  if (species === "Sheep" && jobId === "road-patrol") return 8;
+  return 0;
+}
+
+function getRoadDispatchSkill(job: RoadDispatchJob): keyof CreatureSkills {
+  return job.idealSkills.includes("hauling") ? "hauling" : "fieldWork";
+}
+
+function calculateRoadDispatchSuccessScore(job: RoadDispatchJob, assignedCreatures: Creature[], event: RoadDispatchEvent) {
+  if (assignedCreatures.length === 0) return 0;
+
+  const creatureScores = assignedCreatures.map((creature) => {
+    const statScore =
+      job.idealStats.reduce((total, stat) => total + creature.stats[stat], 0) / Math.max(1, job.idealStats.length);
+    const skillScore =
+      job.idealSkills.reduce((total, skill) => total + creature.skills[skill].level * 5, 0) / Math.max(1, job.idealSkills.length);
+    const traitScore = creature.traits.filter((entry) => job.idealTraits.includes(entry.trait)).length * 6;
+    const speciesScore = getRoadDispatchSpeciesBonus(creature, job.jobId);
+    const staminaScore = creature.breedingStamina >= job.minStamina + 10 ? 6 : creature.breedingStamina >= job.minStamina ? 2 : -12;
+    const happinessScore = Math.floor((creature.happiness - 50) / 10);
+
+    return 42 + statScore * 1.6 + skillScore + traitScore + speciesScore + staminaScore + happinessScore;
+  });
+
+  const teamAverage = creatureScores.reduce((total, score) => total + score, 0) / creatureScores.length;
+  const teamBonus = assignedCreatures.length > 1 ? Math.min(10, assignedCreatures.length * 4) : 0;
+  return Math.round(teamAverage + teamBonus + (event.successModifier ?? 0));
+}
+
+function pickRoadDispatchEvent(job: RoadDispatchJob, dispatch: ActiveRoadDispatch) {
+  if (job.eventPool.length === 0) return roadDispatchEvents[0];
+  const seed = dispatch.dispatchId + dispatch.startedDay + dispatch.creatureIds.reduce((total, id) => total + id, 0);
+  return job.eventPool[Math.abs(seed) % job.eventPool.length];
+}
+
 function applyXpGain(creature: Creature, xpGain: number): Creature {
   let updatedCreature = { ...creature, xp: creature.xp + xpGain };
 
@@ -4060,6 +4393,9 @@ const defaultSaveData: SaveData = {
   latestRegionTravelResult: null,
   factionQuestChains: defaultFactionQuestChains,
   regionTaskChains: defaultRegionTaskChains,
+  activeDispatches: [],
+  completedDispatchLog: [],
+  latestDispatchResult: null,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -4132,6 +4468,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
   const [factionQuestChains, setFactionQuestChains] = useState<FactionQuestChain[]>(defaultSaveData.factionQuestChains);
   const [regionTaskChains, setRegionTaskChains] = useState<RegionTaskChain[]>(defaultSaveData.regionTaskChains);
+  const [activeDispatches, setActiveDispatches] = useState<ActiveRoadDispatch[]>(defaultSaveData.activeDispatches);
+  const [completedDispatchLog, setCompletedDispatchLog] = useState<CompletedRoadDispatchLogEntry[]>(
+    defaultSaveData.completedDispatchLog
+  );
+  const [latestDispatchResult, setLatestDispatchResult] = useState<RoadDispatchResult | null>(
+    defaultSaveData.latestDispatchResult
+  );
   const worldLocations = normalizeWorldLocations(defaultWorldLocations, worldRegions);
   const currentSeason = getSeasonForDay(currentDay);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
@@ -4139,6 +4482,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const currentMainStoryChapter = getMainStoryChapter(mainStory.currentChapterId);
   const currentMainStoryObjective = getCurrentMainStoryObjective(mainStory);
   const mainStoryChapterProgress = getMainStoryProgress(mainStory);
+  const brindlewoodTaskChain = regionTaskChains.find((chain) => chain.chainId === "brindlewood-road-chain");
+  const roadDispatchUnlocked =
+    isChapterCompletedForGate(mainStory, "chapter_7") ||
+    Boolean(brindlewoodTaskChain && brindlewoodTaskChain.status === "completed");
   
 
   useEffect(() => {
@@ -4255,6 +4602,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setLatestRegionTravelResult(normalizeRegionTravelResult(parsedSave.latestRegionTravelResult));
         setFactionQuestChains(normalizeFactionQuestChains(parsedSave.factionQuestChains));
         setRegionTaskChains(normalizeRegionTaskChains(parsedSave.regionTaskChains));
+        setActiveDispatches(normalizeActiveDispatches(parsedSave.activeDispatches));
+        setCompletedDispatchLog(normalizeCompletedDispatchLog(parsedSave.completedDispatchLog));
+        setLatestDispatchResult(normalizeRoadDispatchResult(parsedSave.latestDispatchResult));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -4310,6 +4660,9 @@ useEffect(() => {
     latestRegionTravelResult,
     factionQuestChains,
     regionTaskChains,
+    activeDispatches,
+    completedDispatchLog,
+    latestDispatchResult,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -4359,6 +4712,9 @@ useEffect(() => {
   latestRegionTravelResult,
   factionQuestChains,
   regionTaskChains,
+  activeDispatches,
+  completedDispatchLog,
+  latestDispatchResult,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -4875,6 +5231,249 @@ useEffect(() => {
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
+    return true;
+  }
+
+  function setRoadDispatchFailureResult(title: string, message: string, jobId?: string, dispatchId?: number) {
+    setLatestDispatchResult({
+      success: false,
+      title,
+      message,
+      jobId,
+      dispatchId,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+    });
+  }
+
+  function startRoadDispatch(jobId: string, creatureIds: number[]) {
+    const job = defaultRoadDispatchJobs.find((entry) => entry.jobId === jobId);
+    const uniqueCreatureIds = Array.from(new Set(creatureIds));
+    const assignedCreatureIds = new Set(activeDispatches.flatMap((dispatch) => dispatch.creatureIds));
+
+    if (!roadDispatchUnlocked) {
+      setRoadDispatchFailureResult(
+        "Road Dispatch Locked",
+        "Complete Road Work on Brindlewood Road to unlock creature dispatch assignments.",
+        jobId
+      );
+      return false;
+    }
+
+    if (!job) {
+      setRoadDispatchFailureResult("Dispatch Not Found", "That road job is not available.", jobId);
+      return false;
+    }
+
+    const region = worldRegions.find((entry) => entry.id === job.regionId);
+    if (!region || region.status === "locked") {
+      setRoadDispatchFailureResult("Route Locked", "Brindlewood Road must be open before dispatch work can begin.", job.jobId);
+      return false;
+    }
+
+    if (uniqueCreatureIds.length === 0) {
+      setRoadDispatchFailureResult("Crew Needed", "Choose at least one creature for the road crew.", job.jobId);
+      return false;
+    }
+
+    if (uniqueCreatureIds.length > job.maxAssignedCreatures) {
+      setRoadDispatchFailureResult("Crew Too Large", `${job.title} can take up to ${job.maxAssignedCreatures} creature(s).`, job.jobId);
+      return false;
+    }
+
+    const selectedCreatures = uniqueCreatureIds
+      .map((creatureId) => creatures.find((creature) => creature.id === creatureId))
+      .filter((creature): creature is Creature => Boolean(creature));
+
+    if (selectedCreatures.length !== uniqueCreatureIds.length) {
+      setRoadDispatchFailureResult("Creature Not Found", "One of those helpers is no longer in the barn roster.", job.jobId);
+      return false;
+    }
+
+    const busyCreature = selectedCreatures.find((creature) => assignedCreatureIds.has(creature.id));
+    if (busyCreature) {
+      setRoadDispatchFailureResult("Creature Already Assigned", `${busyCreature.nickname} is already out on road work.`, job.jobId);
+      return false;
+    }
+
+    const tiredCreature = selectedCreatures.find((creature) => creature.breedingStamina < job.minStamina);
+    if (tiredCreature) {
+      setRoadDispatchFailureResult("Needs Stamina", `${tiredCreature.nickname} needs at least ${job.minStamina} stamina for this road job.`, job.jobId);
+      return false;
+    }
+
+    const dispatchId = Date.now();
+    const readyAtTotalMinutes = getTotalMinutes(currentDay, currentHour, currentMinute) + job.durationMinutes;
+
+    setCreatures((prev) =>
+      prev.map((creature) =>
+        uniqueCreatureIds.includes(creature.id)
+          ? {
+              ...creature,
+              breedingStamina: Math.max(0, creature.breedingStamina - job.staminaCost),
+            }
+          : creature
+      )
+    );
+    setActiveDispatches((prev) => [
+      {
+        dispatchId,
+        jobId: job.jobId,
+        regionId: job.regionId,
+        creatureIds: uniqueCreatureIds,
+        startedDay: currentDay,
+        startedHour: currentHour,
+        startedMinute: currentMinute,
+        readyAtTotalMinutes,
+      },
+      ...prev,
+    ]);
+    setLatestDispatchResult({
+      success: true,
+      title: "Dispatch Started",
+      message: `${job.title} is underway with ${selectedCreatures.map((creature) => creature.nickname).join(", ")}. Ready around ${formatClockFromTotalMinutes(readyAtTotalMinutes)}.`,
+      jobId: job.jobId,
+      dispatchId,
+      rewardSummary: `${job.baseRewardGold} gold base, ${job.factionReputationReward} Wayfarer reputation on success.`,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+    });
+    return true;
+  }
+
+  function resolveRoadDispatch(dispatchId: number) {
+    const dispatch = activeDispatches.find((entry) => entry.dispatchId === dispatchId);
+
+    if (!dispatch) {
+      setRoadDispatchFailureResult("Dispatch Not Found", "That road assignment is not active anymore.", undefined, dispatchId);
+      return false;
+    }
+
+    const currentTotalMinutes = getTotalMinutes(currentDay, currentHour, currentMinute);
+    if (currentTotalMinutes < dispatch.readyAtTotalMinutes) {
+      setRoadDispatchFailureResult(
+        "Still On the Road",
+        `This crew is due back around ${formatClockFromTotalMinutes(dispatch.readyAtTotalMinutes)}.`,
+        dispatch.jobId,
+        dispatch.dispatchId
+      );
+      return false;
+    }
+
+    const job = defaultRoadDispatchJobs.find((entry) => entry.jobId === dispatch.jobId);
+    if (!job) {
+      setRoadDispatchFailureResult("Dispatch Not Found", "That road job definition is no longer available.", dispatch.jobId, dispatch.dispatchId);
+      return false;
+    }
+
+    const assignedCreatures = dispatch.creatureIds
+      .map((creatureId) => creatures.find((creature) => creature.id === creatureId))
+      .filter((creature): creature is Creature => Boolean(creature));
+    const event = pickRoadDispatchEvent(job, dispatch);
+    const successScore = calculateRoadDispatchSuccessScore(job, assignedCreatures, event);
+    const success = successScore >= 72;
+    const rewardGold = success
+      ? Math.max(0, job.baseRewardGold + event.rewardGoldModifier)
+      : Math.max(8, Math.floor(job.baseRewardGold * 0.35));
+    const reputationReward = success
+      ? Math.max(1, job.factionReputationReward + (event.factionReputationModifier ?? 0))
+      : 1;
+    const rewardItems = success ? [...job.rewardItems, ...(event.rewardItems ?? [])] : [];
+    const rewardSummaryParts = [
+      `${rewardGold} gold`,
+      `${reputationReward} Wayfarer reputation`,
+      ...rewardItems.map((item) => `${item.quantity} ${ITEM_DATA[item.itemId]?.name ?? item.itemId}`),
+    ];
+    const rewardSummary = rewardSummaryParts.join(", ");
+    const creatureNames = assignedCreatures.map((creature) => creature.nickname);
+    const summary = success
+      ? `${creatureNames.join(", ")} completed ${job.title}. ${event.title}: ${event.description}`
+      : `${creatureNames.join(", ")} returned from ${job.title} with a partial report. ${event.title}: ${event.description}`;
+
+    if (rewardGold > 0) {
+      setPlayerData((prev) => ({ ...prev, gold: prev.gold + rewardGold }));
+    }
+
+    if (rewardItems.length > 0) {
+      setInventory((prev) => {
+        let next = { ...prev };
+        rewardItems.forEach((itemReward) => {
+          next = addItemToInventory(next, itemReward.itemId, itemReward.quantity);
+        });
+        return next;
+      });
+    }
+
+    applyAuthoredQuestReward({
+      gold: 0,
+      items: [],
+      factionReputation: [{ factionId: job.factionId, amount: reputationReward, standing: success ? "warm" : undefined }],
+      unlockRegions: [],
+      summary,
+    });
+    setCreatures((prev) =>
+      prev.map((creature) =>
+        dispatch.creatureIds.includes(creature.id)
+          ? applyCreatureSkillXp(creature, getRoadDispatchSkill(job), success ? 10 : 4)
+          : creature
+      )
+    );
+    setActiveDispatches((prev) => prev.filter((entry) => entry.dispatchId !== dispatch.dispatchId));
+    setCompletedDispatchLog((prev) => [
+      {
+        id: Date.now(),
+        dispatchId: dispatch.dispatchId,
+        jobId: job.jobId,
+        title: job.title,
+        regionId: job.regionId,
+        creatureNames,
+        day: currentDay,
+        hour: currentHour,
+        minute: currentMinute,
+        success,
+        rewardGold,
+        rewardSummary,
+        eventTitle: event.title,
+        summary,
+      },
+      ...prev,
+    ].slice(0, 30));
+    recordRegionLogEntry({
+      regionId: job.regionId,
+      regionName: "Brindlewood Road",
+      actionId: job.jobId,
+      actionTitle: job.title,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+      minutesSpent: 0,
+      summary,
+    });
+    setLatestDispatchResult({
+      success,
+      title: success ? "Dispatch Complete" : "Partial Dispatch",
+      message: `${summary} Reward: ${rewardSummary}.`,
+      jobId: job.jobId,
+      dispatchId: dispatch.dispatchId,
+      rewardSummary,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+    });
+    setLatestRegionTravelResult({
+      success,
+      title: job.title,
+      message: `${summary} Reward: ${rewardSummary}.`,
+      regionId: job.regionId,
+      actionId: job.jobId,
+      rewardSummary,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+    });
+    recordMainStoryFlags(["chapter7_wayfarer_recognition"]);
     return true;
   }
 
@@ -7157,6 +7756,9 @@ function purchaseMarketItem(itemId: string, price: number) {
     setLatestRegionTravelResult(null);
     setFactionQuestChains(defaultFactionQuestChains);
     setRegionTaskChains(defaultRegionTaskChains);
+    setActiveDispatches([]);
+    setCompletedDispatchLog([]);
+    setLatestDispatchResult(null);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -7213,11 +7815,18 @@ function purchaseMarketItem(itemId: string, price: number) {
         authoredQuestProgressActions: defaultAuthoredQuestProgressActions,
         factionQuestChains,
         regionTaskChains,
+        roadDispatchJobs: defaultRoadDispatchJobs,
+        activeDispatches,
+        completedDispatchLog,
+        latestDispatchResult,
+        roadDispatchUnlocked,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
         travelToRegion,
         performRegionAction,
         performAuthoredQuestAction,
+        startRoadDispatch,
+        resolveRoadDispatch,
         nextDay,
         hatchEgg,
         breedCreatures,
