@@ -592,6 +592,18 @@ type WorldRegionAction = {
   storyFlags?: MainStoryObjectiveId[];
 };
 
+type AuthoredQuestProgressAction = {
+  id: string;
+  questId: string;
+  objectiveId: string;
+  title: string;
+  description: string;
+  where: string;
+  timeCostMinutes: number;
+  outcome: string;
+  storyFlags?: MainStoryObjectiveId[];
+};
+
 
 type SaveData = {
   currentDay: number;
@@ -685,10 +697,12 @@ type GameContextType = {
   regionTravelLog: RegionTravelLogEntry[];
   latestRegionTravelResult: RegionTravelResult | null;
   worldRegionActions: WorldRegionAction[];
+  authoredQuestProgressActions: AuthoredQuestProgressAction[];
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   travelToRegion: (regionId: string) => boolean;
   performRegionAction: (regionId: string, actionId: string) => boolean;
+  performAuthoredQuestAction: (actionId: string) => boolean;
   nextDay: () => void;
   hatchEgg: (eggId: number) => Creature | null;
   breedCreatures: () => void;
@@ -1270,7 +1284,7 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
       summary:
         "Selene's circle marks you as warm stock rather than cold risk. The Silvergrain Exchange stays locked, but the door now knows your name.",
     },
-    status: "locked",
+    status: "available",
   },
   {
     id: "chapter-six-support-slot",
@@ -1296,7 +1310,7 @@ const defaultAuthoredQuests: AuthoredQuest[] = [
       unlockRegions: [],
       summary: "The Guild Hall Circle marks your wider invitation as active and leaves room for the road, market, or a personal ally to pull next.",
     },
-    status: "available",
+    status: "locked",
     gate: {
       requiredCompletedChapterId: "chapter_5",
       note: "Requires Chapter 5 completion and supports Chapter 6 route preference.",
@@ -1492,6 +1506,69 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     rewardGold: 16,
     factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+];
+
+const defaultAuthoredQuestProgressActions: AuthoredQuestProgressAction[] = [
+  {
+    id: "register-road-ready-work",
+    questId: "wayfarer-road-ledger",
+    objectiveId: "road-ready-ranch-work",
+    title: "Register Road Work",
+    description:
+      "File your creature-backed ranch work with the Wayfarer Dispatch once the ranch has something credible to show.",
+    where: "Quest Log or Brindlewood Road",
+    timeCostMinutes: 20,
+    outcome: "The Dispatch accepts your ranch work as road-ready proof.",
+    storyFlags: ["chapter6_quest_log_review", "chapter6_faction_signal"],
+  },
+  {
+    id: "confirm-town-route-proof",
+    questId: "wayfarer-road-ledger",
+    objectiveId: "town-route-proof",
+    title: "Confirm Route Proof",
+    description:
+      "Confirm that the town route can carry a favor, a delivery, or a public mark under your ranch name.",
+    where: "Quest Log or Town Work",
+    timeCostMinutes: 25,
+    outcome: "The Wayfarer route ledger records your town-facing proof.",
+    storyFlags: ["chapter6_town_registration", "chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "submit-private-stock",
+    questId: "market-ring-introduction",
+    objectiveId: "prepare-private-stock",
+    title: "Submit Private Stock",
+    description:
+      "Present prepared goods or a credible production note to the Velvet Market Ring.",
+    where: "Quest Log or Silvergrain Exchange",
+    timeCostMinutes: 20,
+    outcome: "The Market Ring accepts your ranch goods as private stock proof.",
+    storyFlags: ["chapter6_quest_log_review", "chapter6_faction_signal"],
+  },
+  {
+    id: "report-market-sale",
+    questId: "market-ring-introduction",
+    objectiveId: "sell-under-market-eye",
+    title: "Report Market Sale",
+    description:
+      "Report a sale, delivery, or buyer-facing exchange so Selene's circle can mark the route as active.",
+    where: "Quest Log or Silvergrain Exchange",
+    timeCostMinutes: 25,
+    outcome: "The Velvet Market Ring records your ranch as sale-ready stock.",
+    storyFlags: ["chapter6_town_registration", "chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "acknowledge-wider-invitation",
+    questId: "chapter-six-support-slot",
+    objectiveId: "choose-first-outer-thread",
+    title: "Acknowledge Wider Invitation",
+    description:
+      "Report to the Guild Hall Circle that the ranch is ready to be read by road, market, and region together.",
+    where: "Quest Log, Factions, or World Map",
+    timeCostMinutes: 15,
+    outcome: "The Guild Hall Circle marks the wider invitation as active.",
+    storyFlags: ["chapter6_quest_log_review", "chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
 ];
 
@@ -3864,6 +3941,88 @@ useEffect(() => {
     return true;
   }
 
+  function performAuthoredQuestAction(actionId: string) {
+    const action = defaultAuthoredQuestProgressActions.find((entry) => entry.id === actionId);
+
+    if (!action) {
+      setLatestRegionTravelResult({
+        success: false,
+        title: "Quest Action Not Found",
+        message: "That quest action is not available.",
+        actionId,
+        day: currentDay,
+        hour: currentHour,
+        minute: currentMinute,
+      });
+      return false;
+    }
+
+    const quest = authoredQuests.find((entry) => entry.id === action.questId);
+    const objective = quest?.objectives.find((entry) => entry.id === action.objectiveId);
+
+    if (!quest || !objective) {
+      setLatestRegionTravelResult({
+        success: false,
+        title: "Quest Not Found",
+        message: "That authored quest objective is not available.",
+        actionId: action.id,
+        day: currentDay,
+        hour: currentHour,
+        minute: currentMinute,
+      });
+      return false;
+    }
+
+    if (quest.status === "locked") {
+      setLatestRegionTravelResult({
+        success: false,
+        title: "Quest Locked",
+        message: quest.gate?.note ?? "Progress the story or region systems before reporting this work.",
+        regionId: action.questId,
+        actionId: action.id,
+        day: currentDay,
+        hour: currentHour,
+        minute: currentMinute,
+      });
+      return false;
+    }
+
+    if (objective.completed || quest.status === "completed") {
+      setLatestRegionTravelResult({
+        success: false,
+        title: "Already Registered",
+        message: `${objective.title} is already complete.`,
+        regionId: action.questId,
+        actionId: action.id,
+        day: currentDay,
+        hour: currentHour,
+        minute: currentMinute,
+      });
+      return false;
+    }
+
+    const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, action.timeCostMinutes);
+    setCurrentDay(updatedClock.day);
+    setCurrentHour(updatedClock.hour);
+    setCurrentMinute(updatedClock.minute);
+    recordAuthoredQuestObjectives([{ questId: action.questId, objectiveId: action.objectiveId }]);
+    recordMainStoryFlags(action.storyFlags ?? []);
+    setLatestRegionTravelResult({
+      success: true,
+      title: action.title,
+      message: action.outcome,
+      regionId: action.questId,
+      actionId: action.id,
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+    });
+    setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
+    setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
+    refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
+    return true;
+  }
+
   function dismissMainStoryReward() {
     setMainStory((prev) => ({ ...prev, latestReward: null }));
   }
@@ -6094,10 +6253,12 @@ function purchaseMarketItem(itemId: string, price: number) {
         regionTravelLog,
         latestRegionTravelResult,
         worldRegionActions: defaultWorldRegionActions,
+        authoredQuestProgressActions: defaultAuthoredQuestProgressActions,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
         travelToRegion,
         performRegionAction,
+        performAuthoredQuestAction,
         nextDay,
         hatchEgg,
         breedCreatures,

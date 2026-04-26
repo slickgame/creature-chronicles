@@ -77,6 +77,27 @@ const REGION_IMPORTANCE: Record<string, string> = {
   silvergrain_exchange: "A premium market destination tied to Selene, private buyers, higher-stakes goods, and Chapter 6's first route charter.",
 };
 
+const FACTION_CHAIN_DATA: Record<string, { title: string; currentStep: string; nextRequirement: string; reward: string }> = {
+  wayfarer_dispatch: {
+    title: "Brindlewood Road Ledger",
+    currentStep: "Prove the ranch can support road work and courier checks.",
+    nextRequirement: "Complete The Road Ledger, visit Brindlewood Road, or finish a road action.",
+    reward: "Wayfarer reputation, route priority, and future road assignments.",
+  },
+  velvet_market_ring: {
+    title: "Silvergrain Buyer Thread",
+    currentStep: "Show that the ranch can prepare and move goods under private market attention.",
+    nextRequirement: "Progress Velvet Market Introduction, unlock Silvergrain Exchange, or finish a market action.",
+    reward: "Velvet Market reputation, private buyer access, and premium trade hooks.",
+  },
+  guild_hall_circle: {
+    title: "Outer Charter Oversight",
+    currentStep: "Keep the wider invitation legible to formal inspectors without surrendering player choice.",
+    nextRequirement: "Acknowledge A Wider Invitation and confirm a World Map route.",
+    reward: "Guild reputation, assignment legitimacy, and Chapter 7 branch support.",
+  },
+};
+
 const STANDING_GOALS = [
   { standing: "warm", reputation: 20 },
   { standing: "trusted", reputation: 50 },
@@ -131,4 +152,19 @@ export function getFactionNextGoal(reputation: number) {
 
 export function getRegionImportance(regionId: string) {
   return REGION_IMPORTANCE[regionId] ?? "A future destination hook for quests, factions, and travel.";
+}
+
+export function getFactionQuestChain(factionId: string, reputation: number, status: string) {
+  const data = FACTION_CHAIN_DATA[factionId] ?? {
+    title: "Uncharted Faction Thread",
+    currentStep: "Build enough trust for this organization to define a route.",
+    nextRequirement: "Progress related quests, region actions, or story objectives.",
+    reward: "Future faction rewards.",
+  };
+
+  return {
+    ...data,
+    state: status === "locked" ? "Locked" : reputation >= 50 ? "Completed" : reputation > 0 ? "Active" : "Available",
+    reputationReward: reputation >= 50 ? "Current chain cap reached" : `Next reputation target: ${reputation < 20 ? 20 : 50}`,
+  };
 }

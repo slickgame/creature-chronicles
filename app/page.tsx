@@ -1,8 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import { HubCard, PopupWindow } from "@/components/town/TownUi";
 import { SellerStockList } from "@/components/town/TownSellerUi";
@@ -132,7 +130,6 @@ function formatMultiplier(value: number) {
 }
 
 export default function TownPage() {
-  const router = useRouter();
   const {
     currentDay,
     currentHour,
@@ -156,7 +153,6 @@ export default function TownPage() {
     knowsRecipe,
     submitCreatureToQuest,
     submitCreatureToNpcQuest,
-    travelTo,
   } = useGame();
 
   const [sellerOpen, setSellerOpen] = useState(false);
@@ -168,29 +164,6 @@ export default function TownPage() {
   const [recipeShopOpen, setRecipeShopOpen] = useState(false);
   const [produceExchangeOpen, setProduceExchangeOpen] = useState(false);
   const [farmNpcOpen, setFarmNpcOpen] = useState(false);
-
-  function handleTravelTo(
-    destination: "ranch" | "town" | "market" | "guild_hall"
-  ) {
-    travelTo(destination);
-
-    if (destination === "ranch") {
-      router.push("/ranch");
-      return;
-    }
-
-    if (destination === "market") {
-      router.push("/market");
-      return;
-    }
-
-    if (destination === "guild_hall") {
-      router.push("/guild_hall");
-      return;
-    }
-
-    router.push("/town");
-  }
 
   const sellerSummary = useMemo(() => {
     const cheapest =
@@ -297,38 +270,40 @@ export default function TownPage() {
 
         <section className="mb-6 rounded-3xl border-4 border-stone-900 bg-white/85 p-6 shadow-xl">
           <div className="mb-4">
-            <h2 className="text-3xl font-bold text-stone-900">Town Destinations</h2>
+            <h2 className="text-3xl font-bold text-stone-900">World Routes</h2>
             <p className="mt-1 text-stone-600">
-              Travel from town through destination cards instead of plain buttons.
+              Ranch, Market, and Guild Hall are available through free global navigation. In-world travel now lives on region routes and costs time.
             </p>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-3">
             <HubCard
               icon="🌿"
-              title="Ranch"
-              subtitle="Return home to your creatures, eggs, and daily management."
-              meta="Travel time: 30m"
-              accentClasses="border-emerald-300 bg-emerald-50"
-              onClick={() => handleTravelTo("ranch")}
+              title="Region Screen"
+              subtitle="Open the outside-route layer for Brindlewood Road and future destinations."
+              meta="In-world region travel only"
+              accentClasses="border-teal-300 bg-teal-50"
+              onClick={() => {
+                window.location.href = "/regions";
+              }}
             />
 
             <HubCard
               icon="🛒"
-              title="Market"
-              subtitle="Browse creature offers and future stall inventory."
+              title="Market Services"
+              subtitle="Town market service popups remain here for buying, selling, and requests."
               meta={`${sellerSummary.count} creature offers today`}
               accentClasses="border-amber-300 bg-amber-50"
-              onClick={() => handleTravelTo("market")}
+              onClick={() => setSellerOpen(true)}
             />
 
             <HubCard
               icon="🏛️"
-              title="Guild Hall"
-              subtitle="Check jobs, contacts, and future guild progression."
+              title="Guild Work"
+              subtitle="Town request and faction work can support route reputation without duplicating global navigation."
               meta={`${openNpcRequestCount} open guild-linked requests`}
               accentClasses="border-violet-300 bg-violet-50"
-              onClick={() => handleTravelTo("guild_hall")}
+              onClick={() => setNpcRequestsOpen(true)}
             />
           </div>
         </section>
@@ -453,11 +428,6 @@ export default function TownPage() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/ranch" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Go to Ranch</Link>
-          <Link href="/ranch?tab=breeding" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Ranch Breeding</Link>
-          <Link href="/ranch?tab=nursery" className="rounded-2xl bg-stone-800 px-4 py-4 text-center font-semibold text-white shadow">Ranch Nursery</Link>
-        </div>
       </div>
 
       <PopupWindow open={sellerOpen} onClose={() => setSellerOpen(false)} title="Creature Seller">

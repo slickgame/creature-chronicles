@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGame } from "@/context/GameContext";
 import { PopupWindow } from "@/components/town/TownUi";
@@ -10,7 +9,7 @@ import { QuestOfferCard } from "@/components/town/TownQuestUi";
 import { RelationshipCard } from "@/components/town/TownRelationshipUi";
 import { NpcVisitImageFrame } from "@/components/town/TownNpcImageUi";
 import StoryObjectiveStrip from "@/components/story/StoryObjectiveStrip";
-import { GameActionCard, GameFeedbackBox, GameStatusBadge } from "@/components/ui/GameUi";
+import { GameActionCard, GameCard, GameFeedbackBox, GameStatusBadge } from "@/components/ui/GameUi";
 import {
   formatQuestCategoryLabel,
   formatWorldLabel,
@@ -1454,7 +1453,6 @@ function getServerMountSnapshot() {
 }
 
 export default function TownPage() {
-  const router = useRouter();
   const {
     currentDay,
     currentHour,
@@ -1502,7 +1500,6 @@ export default function TownPage() {
     completeNpcExclusiveLoopOffer,
     giveNpcGift,
     inviteNpc,
-    travelTo,
     travelToRegion,
     performRegionAction,
   } = useGame();
@@ -1527,29 +1524,6 @@ export default function TownPage() {
   const [activeSection, setActiveSection] = useState<TownSection>("market");
   const [selectedTownNpcId, setSelectedTownNpcId] = useState<string | null>(null);
   const [selectedGiftItems, setSelectedGiftItems] = useState<SelectedGiftItemsByNpc>({});
-
-  function handleTravelTo(
-    destination: "ranch" | "town" | "market" | "guild_hall"
-  ) {
-    travelTo(destination);
-
-    if (destination === "ranch") {
-      router.push("/ranch");
-      return;
-    }
-
-    if (destination === "market") {
-      router.push("/market");
-      return;
-    }
-
-    if (destination === "guild_hall") {
-      router.push("/guild_hall");
-      return;
-    }
-
-    router.push("/town");
-  }
 
   const sellerSummary = useMemo(() => {
     const cheapest =
@@ -1834,9 +1808,23 @@ export default function TownPage() {
               </div>
 
               <div className="grid gap-3 md:grid-cols-3">
-                <TownServiceCard title="Ranch" owner="In-World Travel" description="Return to the ranch workspace for chores, fields, barn care, nursery, and breeding." meta="Travel time: 30m" actionLabel="Travel to Ranch" onClick={() => handleTravelTo("ranch")} accentClasses="border-emerald-300 bg-emerald-50" />
-                <TownServiceCard title="Market District" owner="In-World Travel" description="Move to the broader market route when you want the dedicated destination." meta={hasMounted ? `${displayedSellerCount} creature offer(s) noted` : "Loading market..."} actionLabel="Travel to Market" onClick={() => handleTravelTo("market")} accentClasses="border-amber-300 bg-amber-50" />
-                <TownServiceCard title="Guild Hall" owner="In-World Travel" description="Visit guild contacts and job infrastructure for future regional work." meta={`${openNpcRequestCount} guild-linked request(s)`} actionLabel="Travel to Guild Hall" onClick={() => handleTravelTo("guild_hall")} accentClasses="border-violet-300 bg-violet-50" />
+                <GameCard tone="teal" className="shadow-sm">
+                  <p className="text-lg font-bold text-stone-950">Region Routes</p>
+                  <p className="mt-2 text-sm text-stone-700">Open the dedicated world route screen for Brindlewood Road, Silvergrain Exchange, and future destinations.</p>
+                  <Link href="/regions" className="mt-4 block min-h-11 rounded-xl bg-teal-700 px-4 py-2 text-center text-sm font-semibold text-white shadow">
+                    Open Regions
+                  </Link>
+                </GameCard>
+                <GameCard tone="emerald" className="shadow-sm">
+                  <p className="text-lg font-bold text-stone-950">Current Region</p>
+                  <p className="mt-2 text-sm text-stone-700">{worldRegions.find((region) => region.id === currentRegionId)?.name ?? "Unknown"}</p>
+                  <p className="mt-2 text-xs font-semibold text-emerald-900">Region travel costs time. Global navigation remains free UI movement.</p>
+                </GameCard>
+                <GameCard tone="amber" className="shadow-sm">
+                  <p className="text-lg font-bold text-stone-950">Outside Activity</p>
+                  <p className="mt-2 text-sm text-stone-700">{worldRegionActions.length} available region action hooks across open and future destinations.</p>
+                  <p className="mt-2 text-xs font-semibold text-amber-900">{openNpcRequestCount} town request(s) can still support route reputation.</p>
+                </GameCard>
               </div>
 
               <div className="grid gap-4 xl:grid-cols-2">

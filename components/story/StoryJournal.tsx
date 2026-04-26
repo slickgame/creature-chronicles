@@ -18,6 +18,7 @@ import {
   formatWorldLabel,
   formatWorldList,
   getFactionInfluenceHint,
+  getFactionQuestChain,
   getFactionNextGoal,
   getQuestObjectiveDisplayHint,
   getQuestNextStep,
@@ -31,6 +32,7 @@ type QuestLike = ReturnType<typeof useGame>["authoredQuests"][number];
 type FactionLike = ReturnType<typeof useGame>["factions"][number];
 type RegionLike = ReturnType<typeof useGame>["worldRegions"][number];
 type RegionActionLike = ReturnType<typeof useGame>["worldRegionActions"][number];
+type QuestActionLike = ReturnType<typeof useGame>["authoredQuestProgressActions"][number];
 
 const JOURNAL_TABS: Array<{ id: JournalTab; label: string; description: string }> = [
   { id: "story", label: "Story", description: "Chapters and current objective" },
@@ -222,9 +224,18 @@ function StoryArchiveSection({
   );
 }
 
-function QuestCard({ quest }: { quest: QuestLike }) {
+function QuestCard({
+  quest,
+  questActions,
+  performAuthoredQuestAction,
+}: {
+  quest: QuestLike;
+  questActions: QuestActionLike[];
+  performAuthoredQuestAction: ReturnType<typeof useGame>["performAuthoredQuestAction"];
+}) {
   const completedObjectives = quest.objectives.filter((objective) => objective.completed).length;
   const nextStep = getQuestNextStep(quest.objectives);
+  const availableQuestActions = questActions.filter((action) => action.questId === quest.id);
   const factionConsequences = quest.reward.factionReputation
     .map((reward) => `+${reward.amount} ${formatWorldLabel(reward.factionId)}${reward.standing ? ` toward ${formatWorldLabel(reward.standing)}` : ""}`)
     .join(", ");
@@ -298,11 +309,47 @@ function QuestCard({ quest }: { quest: QuestLike }) {
           <p className="mt-1 font-semibold text-emerald-800">{quest.reward.summary}</p>
         ) : null}
       </div>
+      {availableQuestActions.length > 0 ? (
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          {availableQuestActions.map((action) => {
+            const objective = quest.objectives.find((item) => item.id === action.objectiveId);
+            const disabledReason =
+              quest.status === "locked"
+                ? quest.gate?.note ?? "Quest is locked."
+                : quest.status === "completed" || objective?.completed
+                  ? "Already registered."
+                  : undefined;
+
+            return (
+              <GameActionCard
+                key={action.id}
+                title={action.title}
+                performer={formatWorldLabel(quest.source.type === "faction" ? quest.source.factionId : quest.source.name)}
+                targetLabel="Report To"
+                cost={`${action.timeCostMinutes} minutes`}
+                outcome={`${action.outcome} Where: ${action.where}.`}
+                disabledReason={disabledReason}
+                buttonLabel="Register Progress"
+                onAction={() => performAuthoredQuestAction(action.id)}
+                tone="sky"
+              />
+            );
+          })}
+        </div>
+      ) : null}
     </article>
   );
 }
 
-function QuestLogSection({ quests }: { quests: QuestLike[] }) {
+function QuestLogSection({
+  quests,
+  questActions,
+  performAuthoredQuestAction,
+}: {
+  quests: QuestLike[];
+  questActions: QuestActionLike[];
+  performAuthoredQuestAction: ReturnType<typeof useGame>["performAuthoredQuestAction"];
+}) {
   const actionable = quests.filter((quest) => quest.status === "active" || quest.status === "available");
   const completed = quests.filter((quest) => quest.status === "completed");
   const locked = quests.filter((quest) => quest.status === "locked");
@@ -333,7 +380,14 @@ function QuestLogSection({ quests }: { quests: QuestLike[] }) {
             {group.quests.length === 0 ? (
               <GameEmptyState>No quests in this section.</GameEmptyState>
             ) : (
-              group.quests.map((quest) => <QuestCard key={quest.id} quest={quest} />)
+              group.quests.map((quest) => (
+                <QuestCard
+                  key={quest.id}
+                  quest={quest}
+                  questActions={questActions}
+                  performAuthoredQuestAction={performAuthoredQuestAction}
+                />
+              ))
             )}
           </div>
         </section>
@@ -356,6 +410,7 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
           const locked = faction.status === "locked";
           const nextGoal = getFactionNextGoal(faction.reputation);
           const influenceHint = getFactionInfluenceHint(faction.id);
+          const chain = getFactionQuestChain(faction.id, faction.reputation, faction.status);
           return (
             <article
               key={faction.id}
@@ -388,6 +443,14 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
                 <p><strong>Relationship:</strong> {faction.relationshipToPlayer}</p>
                 <p><strong>Next goal:</strong> {nextGoal}</p>
                 <p><strong>What affects them:</strong> {influenceHint}</p>
+                <div className="rounded-xl border border-white bg-white/80 p-3">
+                  <p className="font-bold text-stone-950">{chain.title}</p>
+                  <p className="mt-1"><strong>State:</strong> {chain.state}</p>
+                  <p className="mt-1"><strong>Current step:</strong> {chain.currentStep}</p>
+                  <p className="mt-1"><strong>Next requirement:</strong> {chain.nextRequirement}</p>
+                  <p className="mt-1"><strong>Reward:</strong> {chain.reward}</p>
+                  <p className="mt-1"><strong>Reputation:</strong> {chain.reputationReward}</p>
+                </div>
                 <p><strong>Known perks:</strong> {formatWorldList(faction.perkHooks)}</p>
                 <p><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p>
               </div>
@@ -595,9 +658,11 @@ export default function StoryJournal() {
     regionTravelLog,
     latestRegionTravelResult,
     worldRegionActions,
+    authoredQuestProgressActions,
     acknowledgeStoryJournalSection,
     travelToRegion,
     performRegionAction,
+    performAuthoredQuestAction,
   } = useGame();
   const [activeTab, setActiveTab] = useState<JournalTab>("story");
 
@@ -658,7 +723,13 @@ export default function StoryJournal() {
           />
         ) : null}
 
-        {activeTab === "quests" ? <QuestLogSection quests={authoredQuests} /> : null}
+        {activeTab === "quests" ? (
+          <QuestLogSection
+            quests={authoredQuests}
+            questActions={authoredQuestProgressActions}
+            performAuthoredQuestAction={performAuthoredQuestAction}
+          />
+        ) : null}
         {activeTab === "factions" ? <FactionsSection factions={factions} /> : null}
         {activeTab === "world" ? (
           <WorldMapSection
