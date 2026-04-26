@@ -55,6 +55,7 @@ export default function RegionsPage() {
     currentHour,
     currentMinute,
     worldRegions,
+    worldLocations,
     currentRegionId,
     visitedRegionIds,
     regionTravelLog,
@@ -70,6 +71,7 @@ export default function RegionsPage() {
   const openRegions = worldRegions.filter((region) => region.status !== "locked");
   const lockedRegions = worldRegions.filter((region) => region.status === "locked");
   const firstOutsideRegion = worldRegions.find((region) => region.id === "brindlewood_road");
+  const firstOutsideLocations = worldLocations.filter((location) => location.regionId === "brindlewood_road");
   const firstOutsideTaskChain = regionTaskChains.find((chain) => chain.regionId === "brindlewood_road");
   const firstOutsideFactionChain = firstOutsideTaskChain?.factionId
     ? factionQuestChains.find((chain) => chain.factionId === firstOutsideTaskChain.factionId)
@@ -132,6 +134,23 @@ export default function RegionsPage() {
                 <p className="mt-2"><strong>Risk / cost:</strong> {firstOutsideRegion.riskOrCostSummary}</p>
                 <p className="mt-2"><strong>Factions:</strong> {formatWorldList(firstOutsideRegion.factionHooks)}</p>
                 <p className="mt-2"><strong>Authored quests:</strong> {formatWorldList(firstOutsideRegion.questHooks)}</p>
+                <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-3">
+                  <p className="font-bold text-stone-950">Road Locations</p>
+                  <div className="mt-2 grid gap-2">
+                    {firstOutsideLocations.map((location) => (
+                      <div key={location.locationId} className="rounded-xl border border-teal-100 bg-teal-50 px-3 py-2 text-xs">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-bold text-stone-950">{location.name}</p>
+                          <GameStatusBadge tone={location.status === "locked" ? "stone" : "teal"}>
+                            {formatWorldLabel(location.status)}
+                          </GameStatusBadge>
+                        </div>
+                        <p className="mt-1">{location.description}</p>
+                        <p className="mt-1"><strong>Actions:</strong> {formatWorldList(location.actionHooks)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 {firstOutsideTaskChain ? (
                   <div className="mt-4 rounded-2xl border border-teal-200 bg-teal-50 p-3">
                     <p className="font-bold text-stone-950">{firstOutsideTaskChain.title}</p>
@@ -215,6 +234,7 @@ export default function RegionsPage() {
                 const isCurrent = currentRegionId === region.id;
                 const visited = visitedRegionIds.includes(region.id);
                 const actions = worldRegionActions.filter((action) => action.regionId === region.id);
+                const locations = worldLocations.filter((location) => location.regionId === region.id);
                 const taskChain = regionTaskChains.find((chain) => chain.regionId === region.id);
                 const currentTaskStep = taskChain?.steps.find((step) => step.id === taskChain.currentStepId);
 
@@ -240,6 +260,7 @@ export default function RegionsPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <GameStatChip label="Travel" value={`${region.access.travelMinutes}m`} />
                       <GameStatChip label="Actions" value={actions.length} />
+                      <GameStatChip label="Locations" value={locations.length} />
                       <GameStatChip label="Role" value={region.gameplayRole} />
                       <GameStatChip label="Specialty" value={region.regionSpecialty} />
                       {taskChain ? <GameStatChip label="Task Chain" value={`${taskChain.completedStepIds.length}/${taskChain.steps.length}`} /> : null}
@@ -258,6 +279,32 @@ export default function RegionsPage() {
                       {taskChain ? (
                         <p><strong>Recommended:</strong> {currentTaskStep?.title ?? taskChain.nextHint}</p>
                       ) : null}
+                    </div>
+                    <div className="mt-3 rounded-2xl border border-white bg-white/80 p-3">
+                      <p className="text-xs font-bold uppercase text-teal-800">Notable Locations</p>
+                      <div className="mt-2 grid gap-2">
+                        {locations.length === 0 ? (
+                          <GameEmptyState>No named locations mapped yet.</GameEmptyState>
+                        ) : (
+                          locations.map((location) => (
+                            <div key={location.locationId} className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs text-stone-700">
+                              <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                  <p className="font-bold text-stone-950">{location.name}</p>
+                                  <p className="font-semibold uppercase text-teal-800">{formatWorldLabel(location.locationType)}</p>
+                                </div>
+                                <GameStatusBadge tone={location.status === "locked" ? "stone" : "teal"}>
+                                  {formatWorldLabel(location.status)}
+                                </GameStatusBadge>
+                              </div>
+                              <p className="mt-1">{location.description}</p>
+                              <p className="mt-1"><strong>Faction:</strong> {location.associatedFactionId ? formatWorldLabel(location.associatedFactionId) : "Local"}</p>
+                              <p className="mt-1"><strong>Hooks:</strong> {formatWorldList(location.actionHooks)}</p>
+                              <p className="mt-1"><strong>Access:</strong> {location.travelAccessNote}</p>
+                            </div>
+                          ))
+                        )}
+                      </div>
                     </div>
                     {locked ? (
                       <p className="mt-3 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700">

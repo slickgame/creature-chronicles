@@ -64,9 +64,11 @@ export default function HomePage() {
     eggs,
     currentRegionId,
     worldRegions,
+    worldLocations,
   } = useGame();
 
   const currentRegion = worldRegions.find((region) => region.id === currentRegionId);
+  const hometown = worldLocations.find((location) => location.locationId === "hearthmere_town");
   const cleanlinessStatus = getCleanlinessStatus(homeState.cleanliness);
   const averageCreatureHappiness =
     creatures.length > 0
@@ -81,7 +83,7 @@ export default function HomePage() {
             <p className="text-xs font-bold uppercase text-rose-700">Home</p>
             <h1 className="text-4xl font-bold text-rose-950">Home Dashboard</h1>
             <p className="mt-2 max-w-3xl text-sm text-stone-700">
-              A calm landing page for the day. Ranch work lives in the Ranch rooms, and global navigation stays free.
+              A calm landing page for the day near Hearthmere. Ranch work lives in the Ranch rooms, and global navigation stays free.
             </p>
           </div>
           <GameStatusBadge tone="rose">
@@ -124,6 +126,9 @@ export default function HomePage() {
                 <p className="mt-1"><strong>Loop:</strong> {currentRegion.repeatableLoopSummary}</p>
                 <p className="mt-1"><strong>Preparation:</strong> {currentRegion.preparationHint}</p>
                 <p className="mt-1"><strong>Reward hooks:</strong> {formatWorldList(currentRegion.uniqueRewardHooks)}</p>
+                {hometown ? (
+                  <p className="mt-1"><strong>Hometown:</strong> {hometown.name} - {hometown.description}</p>
+                ) : null}
               </div>
             ) : null}
           </GameCard>

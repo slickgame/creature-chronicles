@@ -573,6 +573,19 @@ type WorldRegion = {
   status: WorldSupportStatus;
 };
 
+type WorldLocation = {
+  locationId: string;
+  regionId: string;
+  name: string;
+  description: string;
+  locationType: string;
+  status: WorldSupportStatus;
+  associatedFactionId?: string;
+  actionHooks: string[];
+  storyHook: string;
+  travelAccessNote: string;
+};
+
 type RegionTravelLogEntry = {
   id: number;
   regionId: string;
@@ -770,6 +783,7 @@ type GameContextType = {
   authoredQuests: AuthoredQuest[];
   factions: WorldFaction[];
   worldRegions: WorldRegion[];
+  worldLocations: WorldLocation[];
   currentRegionId: string;
   visitedRegionIds: string[];
   regionTravelLog: RegionTravelLogEntry[];
@@ -1541,7 +1555,7 @@ const defaultWorldRegions: WorldRegion[] = [
     id: "homefold_valley",
     name: "Homefold Valley",
     description:
-      "The familiar ranch-town basin: warm fields, busy counters, and enough flirtatious local trouble to keep the days from behaving.",
+      "The familiar ranch-town basin surrounding Hearthmere: warm fields, busy counters, and enough flirtatious local trouble to keep the days from behaving.",
     gameplayRole: "Home base",
     primaryFactionId: "guild_hall_circle",
     regionSpecialty: "Ranch and town management",
@@ -1554,7 +1568,7 @@ const defaultWorldRegions: WorldRegion[] = [
     unlockCondition: "Unlocked from the start.",
     access: {
       travelMinutes: 0,
-      route: "Ranch, town, market, and guild hall local loop",
+      route: "Player Ranch, Hearthmere Town, Market Row, and Guild Hall Branch local loop",
       requirement: "None",
     },
     questHooks: ["wayfarer-road-ledger", "market-ring-introduction"],
@@ -1608,6 +1622,215 @@ const defaultWorldRegions: WorldRegion[] = [
     questHooks: ["market-ring-introduction", "chapter-six-support-slot"],
     factionHooks: ["velvet_market_ring"],
     status: "locked",
+  },
+  {
+    id: "crownmere_capital",
+    name: "Crownmere Capital",
+    description:
+      "The distant royal seat where official registries, palace politics, and high-stakes creature bloodlines wait behind polished doors.",
+    gameplayRole: "Future royal destination",
+    primaryFactionId: "guild_hall_circle",
+    regionSpecialty: "Royal oversight, palace access, and formal breeding registries",
+    uniqueMechanicSummary: "Prepared as a future layer for royal permissions, formal inspections, and registry-driven creature lineage pressure.",
+    repeatableLoopSummary: "Future chapters may require guild papers, road standing, and market leverage before the capital opens.",
+    preparationHint: "Build reputation with the Guild Hall Circle and prove the ranch can handle outside assignments first.",
+    uniqueRewardHooks: ["royal permits", "registry seals", "capital commissions"],
+    riskOrCostSummary: "Locked for now; future access should carry high time, reputation, and story requirements.",
+    futureUnlockHint: "Reserved for future royal family and breeding registry arcs.",
+    unlockCondition: "Future locked destination. Requires later main story permission.",
+    access: {
+      travelMinutes: 240,
+      route: "Royal road beyond the eastern trade routes",
+      requirement: "Locked until a future royal or guild charter opens Crownmere.",
+    },
+    questHooks: [],
+    factionHooks: ["guild_hall_circle"],
+    status: "locked",
+  },
+];
+
+const defaultWorldLocations: WorldLocation[] = [
+  {
+    locationId: "player_ranch",
+    regionId: "homefold_valley",
+    name: "Player Ranch",
+    description:
+      "The warm, messy heart of the game: fields, barn, nursery, house, and all the work that makes the world take your name seriously.",
+    locationType: "home_base",
+    status: "available",
+    associatedFactionId: "guild_hall_circle",
+    actionHooks: ["homefold-home-check", "homefold-ranch-room-pass"],
+    storyHook: "Core ranch preparation, creature support, lineage proof, and home rhythm.",
+    travelAccessNote: "Available through free UI navigation to Home or Ranch; not an in-world region travel action.",
+  },
+  {
+    locationId: "hearthmere_town",
+    regionId: "homefold_valley",
+    name: "Hearthmere Town",
+    description:
+      "A cozy, sharp-eyed hometown built around favors, reputation, gossip, and counters where a warm smile can still have teeth.",
+    locationType: "hometown",
+    status: "available",
+    associatedFactionId: "guild_hall_circle",
+    actionHooks: ["homefold-local-errands"],
+    storyHook: "Named hometown for relationships, requests, town work, and public reputation.",
+    travelAccessNote: "Available through free UI navigation to Town; local errands remain in-world actions when chosen from Regions.",
+  },
+  {
+    locationId: "market_row",
+    regionId: "homefold_valley",
+    name: "Market Row",
+    description:
+      "Hearthmere's bustling service lane, where Maris sells seeds, Selene measures produce, and Tamsin turns recipes into warmer trouble.",
+    locationType: "market_district",
+    status: "available",
+    associatedFactionId: "velvet_market_ring",
+    actionHooks: ["market-ring-introduction", "homefold-local-errands"],
+    storyHook: "Seed buying, produce sales, recipe access, premium market pressure, and Selene's wider circle.",
+    travelAccessNote: "Available through Town's Market section and free UI navigation to Market where present.",
+  },
+  {
+    locationId: "guild_hall_branch",
+    regionId: "homefold_valley",
+    name: "Guild Hall Branch",
+    description:
+      "The local desk for forms, seals, inspections, and the kind of polite authority that can make a ranch's future official.",
+    locationType: "guild_branch",
+    status: "available",
+    associatedFactionId: "guild_hall_circle",
+    actionHooks: ["acknowledge-wider-invitation", "homefold-map-table"],
+    storyHook: "Chapter acknowledgements, wider invitations, and formal regional pressure.",
+    travelAccessNote: "Available through free UI navigation to the Guild Hall route where present; map-table review is an in-world action.",
+  },
+  {
+    locationId: "roadside_camp",
+    regionId: "brindlewood_road",
+    name: "Roadside Camp",
+    description:
+      "A low fire, a few canvas packs, and enough quiet for the Wayfarers to decide whether your ranch belongs on the route.",
+    locationType: "road_camp",
+    status: "available",
+    associatedFactionId: "wayfarer_dispatch",
+    actionHooks: ["brindlewood-deliver-supplies"],
+    storyHook: "Road supplies, practical support, and Chapter 7 service proof.",
+    travelAccessNote: "Reach Brindlewood Road through in-world region travel before using camp actions.",
+  },
+  {
+    locationId: "old_toll_marker",
+    regionId: "brindlewood_road",
+    name: "Old Toll Marker",
+    description:
+      "A weathered marker with old gouges in the post and fresh signs that someone still watches who passes.",
+    locationType: "road_marker",
+    status: "available",
+    associatedFactionId: "wayfarer_dispatch",
+    actionHooks: ["brindlewood-scout-road"],
+    storyHook: "Scouting, route reads, and the first visible Road Work test.",
+    travelAccessNote: "Available after traveling to Brindlewood Road.",
+  },
+  {
+    locationId: "wayfarer_post",
+    regionId: "brindlewood_road",
+    name: "Wayfarer Post",
+    description:
+      "The practical little post where courier marks, road ledgers, and almost-smiles from Dispatch handlers become official.",
+    locationType: "faction_post",
+    status: "available",
+    associatedFactionId: "wayfarer_dispatch",
+    actionHooks: ["brindlewood-courier-check", "brindlewood-road-rumor"],
+    storyHook: "Courier checks, road reports, Wayfarer recognition, and Chapter 7 closure.",
+    travelAccessNote: "Available after traveling to Brindlewood Road.",
+  },
+  {
+    locationId: "brindlewood_waystation",
+    regionId: "brindlewood_road",
+    name: "Brindlewood Waystation",
+    description:
+      "A small waystation where rumors dry beside wet cloaks and every route story arrives with its collar loosened.",
+    locationType: "waystation",
+    status: "available",
+    associatedFactionId: "wayfarer_dispatch",
+    actionHooks: ["brindlewood-road-rumor"],
+    storyHook: "Road rumor, return reports, and future incident hooks.",
+    travelAccessNote: "Available after traveling to Brindlewood Road.",
+  },
+  {
+    locationId: "exchange_square",
+    regionId: "silvergrain_exchange",
+    name: "Exchange Square",
+    description:
+      "A broad market square where premium wagons unload under sharper eyes than Hearthmere's public counters.",
+    locationType: "trade_square",
+    status: "locked",
+    associatedFactionId: "velvet_market_ring",
+    actionHooks: ["silvergrain-market-inspection"],
+    storyHook: "Market demand, price flavor, and future premium trade route starts.",
+    travelAccessNote: "Locked until Silvergrain Exchange opens through story or market progress.",
+  },
+  {
+    locationId: "velvet_buyer_hall",
+    regionId: "silvergrain_exchange",
+    name: "Velvet Buyer Hall",
+    description:
+      "A private hall of soft voices, expensive glances, and buyers who treat quality like a secret worth paying for.",
+    locationType: "buyer_hall",
+    status: "locked",
+    associatedFactionId: "velvet_market_ring",
+    actionHooks: ["silvergrain-buyer-introduction"],
+    storyHook: "Private buyer introductions and future premium buyer board hooks.",
+    travelAccessNote: "Locked until Silvergrain Exchange opens through story or market progress.",
+  },
+  {
+    locationId: "premium_produce_stalls",
+    regionId: "silvergrain_exchange",
+    name: "Premium Produce Stalls",
+    description:
+      "Bright stalls where every berry, loaf, and root is judged like it might either embarrass you or make you rich.",
+    locationType: "premium_market",
+    status: "locked",
+    associatedFactionId: "velvet_market_ring",
+    actionHooks: ["silvergrain-submit-premium-sample", "silvergrain-price-rumor"],
+    storyHook: "Premium samples, price rumors, rare seed hooks, and recipe hooks.",
+    travelAccessNote: "Locked until Silvergrain Exchange opens through story or market progress.",
+  },
+  {
+    locationId: "crownmere_capital",
+    regionId: "crownmere_capital",
+    name: "Crownmere Capital",
+    description:
+      "The royal city beyond the current route map, glittering with permits, patrons, and trouble that knows how to wear perfume.",
+    locationType: "capital_city",
+    status: "locked",
+    associatedFactionId: "guild_hall_circle",
+    actionHooks: [],
+    storyHook: "Future capital access, royal commissions, and high-level civic pressure.",
+    travelAccessNote: "Future locked. No travel or actions yet.",
+  },
+  {
+    locationId: "royal_palace_district",
+    regionId: "crownmere_capital",
+    name: "Royal Palace District",
+    description:
+      "A sealed palace district where titles, favors, and family lines can alter a ranch's future with one signed invitation.",
+    locationType: "palace_district",
+    status: "locked",
+    associatedFactionId: "guild_hall_circle",
+    actionHooks: [],
+    storyHook: "Future royal family and palace politics hooks.",
+    travelAccessNote: "Future locked. Requires later story permission.",
+  },
+  {
+    locationId: "royal_breeding_registry",
+    regionId: "crownmere_capital",
+    name: "Royal Breeding Registry",
+    description:
+      "A formal registry for bloodlines, breeding permissions, and the kind of scrutiny that makes even confident handlers stand straighter.",
+    locationType: "royal_registry",
+    status: "locked",
+    associatedFactionId: "guild_hall_circle",
+    actionHooks: [],
+    storyHook: "Future royal breeding, lineage certification, and advanced creature registry systems.",
+    travelAccessNote: "Future locked. No royal breeding gameplay yet.",
   },
 ];
 
@@ -2287,6 +2510,17 @@ function normalizeWorldRegions(savedRegions?: WorldRegion[], mainStoryState?: Ma
           }
         : region.access,
     };
+  });
+}
+
+function normalizeWorldLocations(locations: WorldLocation[], regions: WorldRegion[]): WorldLocation[] {
+  const openRegionIds = new Set(regions.filter((region) => region.status !== "locked").map((region) => region.id));
+
+  return locations.map((location) => {
+    if (location.status === "locked" && !openRegionIds.has(location.regionId)) return location;
+    if (location.regionId === "crownmere_capital") return { ...location, status: "locked" };
+    if (openRegionIds.has(location.regionId)) return { ...location, status: "available" };
+    return { ...location, status: "locked" };
   });
 }
 
@@ -3898,6 +4132,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
   const [factionQuestChains, setFactionQuestChains] = useState<FactionQuestChain[]>(defaultSaveData.factionQuestChains);
   const [regionTaskChains, setRegionTaskChains] = useState<RegionTaskChain[]>(defaultSaveData.regionTaskChains);
+  const worldLocations = normalizeWorldLocations(defaultWorldLocations, worldRegions);
   const currentSeason = getSeasonForDay(currentDay);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
   const mainStoryChapters = getMainStoryChapterList();
@@ -6969,6 +7204,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         authoredQuests,
         factions,
         worldRegions,
+        worldLocations,
         currentRegionId,
         visitedRegionIds,
         regionTravelLog,

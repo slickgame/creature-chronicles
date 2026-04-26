@@ -1482,6 +1482,7 @@ export default function TownPage() {
     authoredQuests,
     factions,
     worldRegions,
+    worldLocations,
     currentRegionId,
     visitedRegionIds,
     latestRegionTravelResult,
@@ -1649,6 +1650,7 @@ export default function TownPage() {
   const activeAuthoredQuestCount = visibleAuthoredQuests.filter((quest) => quest.status === "active" || quest.status === "available").length;
   const knownFactionCount = factions.filter((faction) => faction.status !== "locked").length;
   const openRegionCount = worldRegions.filter((region) => region.status !== "locked").length;
+  const hearthmereTown = worldLocations.find((location) => location.locationId === "hearthmere_town");
   const selectedTownNpc = selectedTownNpcId
     ? FARM_ECONOMY_ACTIVE_NPCS.find((npc) => npc.id === selectedTownNpcId) ?? null
     : null;
@@ -1668,9 +1670,9 @@ export default function TownPage() {
         <header className="flex shrink-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-bold uppercase text-amber-800">Town Hub</p>
-            <h1 className="text-3xl font-bold text-stone-950 sm:text-4xl">Town</h1>
+            <h1 className="text-3xl font-bold text-stone-950 sm:text-4xl">Hearthmere Town</h1>
             <p className="mt-1 max-w-3xl text-sm text-stone-700">
-              Free navigation stays in the global nav. The travel cards here are in-world actions that spend time and update location.
+              {hearthmereTown?.description ?? "Hearthmere is the ranch's hometown: warm counters, sharp gossip, and the first public ledger of your work."} Free navigation stays in the global nav. The travel cards here are in-world actions that spend time and update location.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4 lg:min-w-[520px]">
@@ -1856,6 +1858,7 @@ export default function TownPage() {
                       const primaryAction = worldRegionActions.find((action) => action.regionId === region.id);
                       const taskChain = regionTaskChains.find((chain) => chain.regionId === region.id);
                       const currentTaskStep = taskChain?.steps.find((step) => step.id === taskChain.currentStepId);
+                      const notableLocations = worldLocations.filter((location) => location.regionId === region.id);
                       return (
                         <div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
                           <div className="flex items-start justify-between gap-2">
@@ -1869,6 +1872,12 @@ export default function TownPage() {
                           <p className="mt-2 text-xs"><strong>Why it matters:</strong> {getRegionImportance(region.id)}</p>
                           <p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p>
                           <p className="mt-1 text-xs"><strong>Linked factions:</strong> {formatWorldList(region.factionHooks)}</p>
+                          <p className="mt-1 text-xs">
+                            <strong>Locations:</strong>{" "}
+                            {notableLocations.length > 0
+                              ? notableLocations.slice(0, 4).map((location) => location.name).join(", ")
+                              : "None mapped yet"}
+                          </p>
                           {taskChain ? (
                             <p className="mt-1 text-xs">
                               <strong>Task chain:</strong> {taskChain.title} ({taskChain.completedStepIds.length}/{taskChain.steps.length}) - {currentTaskStep?.title ?? taskChain.nextHint}

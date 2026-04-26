@@ -31,6 +31,7 @@ type ChapterLike = ReturnType<typeof useGame>["mainStoryChapters"][number];
 type QuestLike = ReturnType<typeof useGame>["authoredQuests"][number];
 type FactionLike = ReturnType<typeof useGame>["factions"][number];
 type RegionLike = ReturnType<typeof useGame>["worldRegions"][number];
+type LocationLike = ReturnType<typeof useGame>["worldLocations"][number];
 type RegionActionLike = ReturnType<typeof useGame>["worldRegionActions"][number];
 type QuestActionLike = ReturnType<typeof useGame>["authoredQuestProgressActions"][number];
 type FactionChainLike = ReturnType<typeof useGame>["factionQuestChains"][number];
@@ -505,6 +506,7 @@ function formatClock(day: number, hour: number, minute: number) {
 
 function WorldMapSection({
   regions,
+  locations,
   currentRegionId,
   visitedRegionIds,
   regionActions,
@@ -515,6 +517,7 @@ function WorldMapSection({
   performRegionAction,
 }: {
   regions: RegionLike[];
+  locations: LocationLike[];
   currentRegionId: string;
   visitedRegionIds: string[];
   regionActions: RegionActionLike[];
@@ -571,6 +574,7 @@ function WorldMapSection({
                 const isCurrent = currentRegionId === region.id;
                 const visited = visitedRegionIds.includes(region.id);
                 const actions = regionActions.filter((action) => action.regionId === region.id);
+                const notableLocations = locations.filter((location) => location.regionId === region.id);
                 const taskChain = regionTaskChains.find((chain) => chain.regionId === region.id);
                 const currentTaskStep = taskChain?.steps.find((step) => step.id === taskChain.currentStepId);
 
@@ -611,6 +615,7 @@ function WorldMapSection({
                     <div className="mt-3 flex flex-wrap gap-2">
                       <GameStatChip label="Role" value={region.gameplayRole} />
                       <GameStatChip label="Specialty" value={region.regionSpecialty} />
+                      <GameStatChip label="Locations" value={notableLocations.length} />
                       <GameStatChip label="Travel Time" value={`${region.access.travelMinutes}m`} />
                       <GameStatChip label="Route" value={region.access.route} />
                       {taskChain ? (
@@ -623,6 +628,12 @@ function WorldMapSection({
                       <p><strong>Primary faction:</strong> {region.primaryFactionId ? formatWorldLabel(region.primaryFactionId) : "Local"}</p>
                       <p><strong>Mechanic:</strong> {region.uniqueMechanicSummary}</p>
                       <p><strong>Reward hook:</strong> {formatWorldList(region.uniqueRewardHooks.slice(0, 3))}</p>
+                      <p>
+                        <strong>Notable locations:</strong>{" "}
+                        {notableLocations.length > 0
+                          ? notableLocations.slice(0, 4).map((location) => location.name).join(", ")
+                          : "None mapped yet"}
+                      </p>
                       <p><strong>Associated quests:</strong> {formatWorldList(region.questHooks)}</p>
                       <p><strong>Associated factions:</strong> {formatWorldList(region.factionHooks)}</p>
                     </div>
@@ -733,6 +744,7 @@ export default function StoryJournal() {
     authoredQuests,
     factions,
     worldRegions,
+    worldLocations,
     currentRegionId,
     visitedRegionIds,
     regionTravelLog,
@@ -822,6 +834,7 @@ export default function StoryJournal() {
         {activeTab === "world" ? (
           <WorldMapSection
             regions={worldRegions}
+            locations={worldLocations}
             currentRegionId={currentRegionId}
             visitedRegionIds={visitedRegionIds}
             regionActions={worldRegionActions}
