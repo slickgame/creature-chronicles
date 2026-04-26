@@ -33,6 +33,8 @@ type FactionLike = ReturnType<typeof useGame>["factions"][number];
 type RegionLike = ReturnType<typeof useGame>["worldRegions"][number];
 type RegionActionLike = ReturnType<typeof useGame>["worldRegionActions"][number];
 type QuestActionLike = ReturnType<typeof useGame>["authoredQuestProgressActions"][number];
+type FactionChainLike = ReturnType<typeof useGame>["factionQuestChains"][number];
+type RegionTaskChainLike = ReturnType<typeof useGame>["regionTaskChains"][number];
 
 const JOURNAL_TABS: Array<{ id: JournalTab; label: string; description: string }> = [
   { id: "story", label: "Story", description: "Chapters and current objective" },
@@ -396,7 +398,13 @@ function QuestLogSection({
   );
 }
 
-function FactionsSection({ factions }: { factions: FactionLike[] }) {
+function FactionsSection({
+  factions,
+  factionQuestChains,
+}: {
+  factions: FactionLike[];
+  factionQuestChains: FactionChainLike[];
+}) {
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
@@ -410,7 +418,11 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
           const locked = faction.status === "locked";
           const nextGoal = getFactionNextGoal(faction.reputation);
           const influenceHint = getFactionInfluenceHint(faction.id);
-          const chain = getFactionQuestChain(faction.id, faction.reputation, faction.status);
+          const persistentChain = factionQuestChains.find((chain) => chain.factionId === faction.id);
+          const derivedChain = getFactionQuestChain(faction.id, faction.reputation, faction.status);
+          const currentStep = persistentChain?.steps.find((step) => step.id === persistentChain.currentStepId);
+          const completedSteps = persistentChain?.completedStepIds.length ?? 0;
+          const totalSteps = persistentChain?.steps.length ?? 1;
           return (
             <article
               key={faction.id}
@@ -444,12 +456,32 @@ function FactionsSection({ factions }: { factions: FactionLike[] }) {
                 <p><strong>Next goal:</strong> {nextGoal}</p>
                 <p><strong>What affects them:</strong> {influenceHint}</p>
                 <div className="rounded-xl border border-white bg-white/80 p-3">
-                  <p className="font-bold text-stone-950">{chain.title}</p>
-                  <p className="mt-1"><strong>State:</strong> {chain.state}</p>
-                  <p className="mt-1"><strong>Current step:</strong> {chain.currentStep}</p>
-                  <p className="mt-1"><strong>Next requirement:</strong> {chain.nextRequirement}</p>
-                  <p className="mt-1"><strong>Reward:</strong> {chain.reward}</p>
-                  <p className="mt-1"><strong>Reputation:</strong> {chain.reputationReward}</p>
+                  <p className="font-bold text-stone-950">{persistentChain?.title ?? derivedChain.title}</p>
+                  {persistentChain ? (
+                    <>
+                      <p className="mt-1"><strong>Status:</strong> {formatWorldLabel(persistentChain.status)}</p>
+                      <p className="mt-1"><strong>Progress:</strong> {completedSteps}/{totalSteps} steps</p>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
+                        <div
+                          className="h-full rounded-full bg-fuchsia-700"
+                          style={{ width: `${Math.round((completedSteps / Math.max(1, totalSteps)) * 100)}%` }}
+                        />
+                      </div>
+                      <p className="mt-2"><strong>Current step:</strong> {currentStep?.title ?? persistentChain.nextHint}</p>
+                      <p className="mt-1"><strong>Next requirement:</strong> {currentStep?.requirement ?? persistentChain.nextHint}</p>
+                      <p className="mt-1"><strong>Reward:</strong> {persistentChain.rewardSummary}</p>
+                      <p className="mt-1"><strong>Reputation reward:</strong> +{persistentChain.factionReputationReward} possible reputation</p>
+                      <p className="mt-1"><strong>Next hint:</strong> {currentStep?.nextHint ?? persistentChain.nextHint}</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mt-1"><strong>State:</strong> {derivedChain.state}</p>
+                      <p className="mt-1"><strong>Current step:</strong> {derivedChain.currentStep}</p>
+                      <p className="mt-1"><strong>Next requirement:</strong> {derivedChain.nextRequirement}</p>
+                      <p className="mt-1"><strong>Reward:</strong> {derivedChain.reward}</p>
+                      <p className="mt-1"><strong>Reputation:</strong> {derivedChain.reputationReward}</p>
+                    </>
+                  )}
                 </div>
                 <p><strong>Known perks:</strong> {formatWorldList(faction.perkHooks)}</p>
                 <p><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p>
@@ -471,6 +503,7 @@ function WorldMapSection({
   currentRegionId,
   visitedRegionIds,
   regionActions,
+  regionTaskChains,
   latestRegionTravelResult,
   regionTravelLog,
   travelToRegion,
@@ -480,6 +513,7 @@ function WorldMapSection({
   currentRegionId: string;
   visitedRegionIds: string[];
   regionActions: RegionActionLike[];
+  regionTaskChains: RegionTaskChainLike[];
   latestRegionTravelResult: ReturnType<typeof useGame>["latestRegionTravelResult"];
   regionTravelLog: ReturnType<typeof useGame>["regionTravelLog"];
   travelToRegion: ReturnType<typeof useGame>["travelToRegion"];
@@ -532,6 +566,8 @@ function WorldMapSection({
                 const isCurrent = currentRegionId === region.id;
                 const visited = visitedRegionIds.includes(region.id);
                 const actions = regionActions.filter((action) => action.regionId === region.id);
+                const taskChain = regionTaskChains.find((chain) => chain.regionId === region.id);
+                const currentTaskStep = taskChain?.steps.find((step) => step.id === taskChain.currentStepId);
 
                 return (
                   <article
@@ -570,6 +606,9 @@ function WorldMapSection({
                     <div className="mt-3 flex flex-wrap gap-2">
                       <GameStatChip label="Travel Time" value={`${region.access.travelMinutes}m`} />
                       <GameStatChip label="Route" value={region.access.route} />
+                      {taskChain ? (
+                        <GameStatChip label="Task Chain" value={`${taskChain.completedStepIds.length}/${taskChain.steps.length}`} />
+                      ) : null}
                     </div>
                     <div className="mt-3 grid gap-2 text-xs">
                       <p><strong>Unlock:</strong> {region.unlockCondition}</p>
@@ -577,6 +616,33 @@ function WorldMapSection({
                       <p><strong>Associated quests:</strong> {formatWorldList(region.questHooks)}</p>
                       <p><strong>Associated factions:</strong> {formatWorldList(region.factionHooks)}</p>
                     </div>
+
+                    {taskChain ? (
+                      <div className="mt-3 rounded-xl border border-white bg-white/80 p-3 text-xs text-stone-700">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="font-bold text-stone-950">{taskChain.title}</p>
+                            <p className="mt-1">{taskChain.description}</p>
+                          </div>
+                          <GameStatusBadge tone={taskChain.status === "completed" ? "emerald" : taskChain.status === "locked" ? "stone" : "teal"}>
+                            {formatWorldLabel(taskChain.status)}
+                          </GameStatusBadge>
+                        </div>
+                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
+                          <div
+                            className="h-full rounded-full bg-teal-700"
+                            style={{ width: `${Math.round((taskChain.completedStepIds.length / Math.max(1, taskChain.steps.length)) * 100)}%` }}
+                          />
+                        </div>
+                        <p className="mt-2 font-semibold">
+                          {taskChain.completedStepIds.length}/{taskChain.steps.length} regional steps complete
+                        </p>
+                        <p className="mt-1"><strong>Current step:</strong> {currentTaskStep?.title ?? taskChain.nextHint}</p>
+                        <p className="mt-1"><strong>Requirement:</strong> {currentTaskStep?.requirement ?? taskChain.requirements.join(", ")}</p>
+                        <p className="mt-1"><strong>Reward:</strong> {taskChain.rewardSummary}</p>
+                        <p className="mt-1"><strong>Next:</strong> {currentTaskStep?.nextHint ?? taskChain.nextHint}</p>
+                      </div>
+                    ) : null}
 
                     {group.locked ? null : (
                       <div className="mt-4 space-y-3">
@@ -659,6 +725,8 @@ export default function StoryJournal() {
     latestRegionTravelResult,
     worldRegionActions,
     authoredQuestProgressActions,
+    factionQuestChains,
+    regionTaskChains,
     acknowledgeStoryJournalSection,
     travelToRegion,
     performRegionAction,
@@ -730,13 +798,16 @@ export default function StoryJournal() {
             performAuthoredQuestAction={performAuthoredQuestAction}
           />
         ) : null}
-        {activeTab === "factions" ? <FactionsSection factions={factions} /> : null}
+        {activeTab === "factions" ? (
+          <FactionsSection factions={factions} factionQuestChains={factionQuestChains} />
+        ) : null}
         {activeTab === "world" ? (
           <WorldMapSection
             regions={worldRegions}
             currentRegionId={currentRegionId}
             visitedRegionIds={visitedRegionIds}
             regionActions={worldRegionActions}
+            regionTaskChains={regionTaskChains}
             latestRegionTravelResult={latestRegionTravelResult}
             regionTravelLog={regionTravelLog}
             travelToRegion={travelToRegion}

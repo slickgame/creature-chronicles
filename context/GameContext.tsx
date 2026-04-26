@@ -588,6 +588,8 @@ type WorldRegionAction = {
     amount: number;
     standing?: FactionStanding;
   }>;
+  factionChainStepIds?: string[];
+  regionTaskStepIds?: string[];
   authoredQuestObjectives?: Array<{ questId: string; objectiveId: string }>;
   storyFlags?: MainStoryObjectiveId[];
 };
@@ -602,6 +604,54 @@ type AuthoredQuestProgressAction = {
   timeCostMinutes: number;
   outcome: string;
   storyFlags?: MainStoryObjectiveId[];
+};
+
+type ChainStatus = "locked" | "available" | "active" | "completed";
+
+type FactionQuestChainStep = {
+  id: string;
+  title: string;
+  requirement: string;
+  reputationReward: number;
+  nextHint: string;
+};
+
+type FactionQuestChain = {
+  factionId: string;
+  chainId: string;
+  title: string;
+  description: string;
+  currentStepId: string;
+  completedStepIds: string[];
+  status: ChainStatus;
+  requirements: string[];
+  rewardSummary: string;
+  factionReputationReward: number;
+  nextHint: string;
+  steps: FactionQuestChainStep[];
+};
+
+type RegionTaskChainStep = {
+  id: string;
+  title: string;
+  requirement: string;
+  actionId?: string;
+  nextHint: string;
+};
+
+type RegionTaskChain = {
+  regionId: string;
+  chainId: string;
+  title: string;
+  description: string;
+  currentStepId: string;
+  completedStepIds: string[];
+  status: ChainStatus;
+  requirements: string[];
+  rewardSummary: string;
+  factionId?: string;
+  nextHint: string;
+  steps: RegionTaskChainStep[];
 };
 
 
@@ -648,6 +698,8 @@ type SaveData = {
   visitedRegionIds: string[];
   regionTravelLog: RegionTravelLogEntry[];
   latestRegionTravelResult: RegionTravelResult | null;
+  factionQuestChains: FactionQuestChain[];
+  regionTaskChains: RegionTaskChain[];
 };
 
 type GameContextType = {
@@ -698,6 +750,8 @@ type GameContextType = {
   latestRegionTravelResult: RegionTravelResult | null;
   worldRegionActions: WorldRegionAction[];
   authoredQuestProgressActions: AuthoredQuestProgressAction[];
+  factionQuestChains: FactionQuestChain[];
+  regionTaskChains: RegionTaskChain[];
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   travelToRegion: (regionId: string) => boolean;
@@ -1443,7 +1497,24 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Gain Wayfarer Dispatch reputation and road knowledge.",
     rewardGold: 18,
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 4 }],
+    factionChainStepIds: ["wayfarer-road-ledger-route:road-scout"],
+    regionTaskStepIds: ["brindlewood-road-chain:scout-road"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "brindlewood-deliver-supplies",
+    regionId: "brindlewood_road",
+    title: "Deliver Road Supplies",
+    description:
+      "Carry a compact bundle of feed, twine, and ledger seals to the next road marker before the route gets lonely.",
+    timeCostMinutes: 50,
+    outcome: "Supplies reach the route marker and the Dispatch notes your ranch as practical support.",
+    rewardGold: 20,
+    rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
+    factionReputation: [{ factionId: "wayfarer_dispatch", amount: 4 }],
+    factionChainStepIds: ["wayfarer-road-ledger-route:supply-run"],
+    regionTaskStepIds: ["brindlewood-road-chain:deliver-supplies"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
   },
   {
     id: "brindlewood-courier-check",
@@ -1455,6 +1526,8 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Supports Wayfarer route work and counts as faction-facing travel proof.",
     rewardGold: 22,
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 5 }],
+    factionChainStepIds: ["wayfarer-road-ledger-route:courier-check"],
+    regionTaskStepIds: ["brindlewood-road-chain:courier-check"],
     authoredQuestObjectives: [{ questId: "chapter-six-support-slot", objectiveId: "choose-first-outer-thread" }],
     storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
   },
@@ -1468,6 +1541,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Small gold, road flavor, and a softer Wayfarer signal.",
     rewardGold: 10,
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 2 }],
+    regionTaskStepIds: ["brindlewood-road-chain:return-report"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
   {
@@ -1480,6 +1554,8 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Gain Velvet Market Ring reputation and a little market money.",
     rewardGold: 26,
     factionReputation: [{ factionId: "velvet_market_ring", amount: 5 }],
+    factionChainStepIds: ["velvet-private-goods-channel:inspect-demand"],
+    regionTaskStepIds: ["silvergrain-exchange-chain:inspect-demand"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
   {
@@ -1492,6 +1568,8 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Supports Velvet Market work and marks a market-facing route preference.",
     rewardGold: 35,
     factionReputation: [{ factionId: "velvet_market_ring", amount: 6 }],
+    factionChainStepIds: ["velvet-private-goods-channel:buyer-introduction"],
+    regionTaskStepIds: ["silvergrain-exchange-chain:buyer-introduction"],
     authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }],
     storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
   },
@@ -1505,6 +1583,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Earn a small market tip and Velvet Market attention.",
     rewardGold: 16,
     factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
+    regionTaskStepIds: ["silvergrain-exchange-chain:prepare-premium-sample"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
 ];
@@ -1569,6 +1648,183 @@ const defaultAuthoredQuestProgressActions: AuthoredQuestProgressAction[] = [
     timeCostMinutes: 15,
     outcome: "The Guild Hall Circle marks the wider invitation as active.",
     storyFlags: ["chapter6_quest_log_review", "chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+];
+
+const defaultFactionQuestChains: FactionQuestChain[] = [
+  {
+    factionId: "wayfarer_dispatch",
+    chainId: "wayfarer-road-ledger-route",
+    title: "Road Ledger Route",
+    description:
+      "The Dispatch tests whether your ranch can keep a road alive with calm creatures, practical supplies, and prompt reports.",
+    currentStepId: "road-scout",
+    completedStepIds: [],
+    status: "available",
+    requirements: ["Unlock Brindlewood Road", "Complete or progress The Road Ledger", "Work with Wayfarer Dispatch"],
+    rewardSummary: "Wayfarer reputation, road assignment priority, and Chapter 7 road assignment readiness.",
+    factionReputationReward: 20,
+    nextHint: "Scout Brindlewood Road, then deliver supplies and complete a courier check.",
+    steps: [
+      {
+        id: "road-scout",
+        title: "Scout the road edge",
+        requirement: "Perform Scout the Road on Brindlewood Road.",
+        reputationReward: 4,
+        nextHint: "Travel to Brindlewood Road and scout the route.",
+      },
+      {
+        id: "supply-run",
+        title: "Deliver road supplies",
+        requirement: "Perform Deliver Road Supplies on Brindlewood Road.",
+        reputationReward: 4,
+        nextHint: "Carry the route bundle to the road marker.",
+      },
+      {
+        id: "courier-check",
+        title: "Complete courier check",
+        requirement: "Perform Courier Check on Brindlewood Road.",
+        reputationReward: 5,
+        nextHint: "Run the courier check and bring back the marked proof.",
+      },
+    ],
+  },
+  {
+    factionId: "velvet_market_ring",
+    chainId: "velvet-private-goods-channel",
+    title: "Private Goods Channel",
+    description:
+      "The Market Ring measures whether your ranch can prepare premium stock and keep its nerve around private buyers.",
+    currentStepId: "inspect-demand",
+    completedStepIds: [],
+    status: "available",
+    requirements: ["Progress Velvet Market Introduction", "Unlock or prepare Silvergrain Exchange"],
+    rewardSummary: "Velvet Market reputation, buyer introductions, and future premium route hooks.",
+    factionReputationReward: 16,
+    nextHint: "Inspect market demand, prepare a premium sample, then make a buyer introduction.",
+    steps: [
+      {
+        id: "inspect-demand",
+        title: "Inspect market demand",
+        requirement: "Perform Market Inspection at Silvergrain Exchange.",
+        reputationReward: 5,
+        nextHint: "Use Silvergrain Exchange once it opens.",
+      },
+      {
+        id: "buyer-introduction",
+        title: "Make buyer introduction",
+        requirement: "Perform Buyer Introduction at Silvergrain Exchange.",
+        reputationReward: 6,
+        nextHint: "Let Selene's circle introduce a private buyer.",
+      },
+    ],
+  },
+  {
+    factionId: "guild_hall_circle",
+    chainId: "guild-official-registry-path",
+    title: "Official Registry Path",
+    description:
+      "The Guild Hall Circle watches the first route charter and keeps the paperwork warm enough to become real pressure later.",
+    currentStepId: "registry-acknowledgment",
+    completedStepIds: [],
+    status: "available",
+    requirements: ["Complete Chapter 6 journal acknowledgement", "Confirm a World Map route"],
+    rewardSummary: "Guild reputation, official route legitimacy, and future assignment hooks.",
+    factionReputationReward: 12,
+    nextHint: "Acknowledge A Wider Invitation and keep region reports moving.",
+    steps: [
+      {
+        id: "registry-acknowledgment",
+        title: "Acknowledge wider invitation",
+        requirement: "Register A Wider Invitation through the Quest Log.",
+        reputationReward: 10,
+        nextHint: "Use the Quest Log action for A Wider Invitation.",
+      },
+    ],
+  },
+];
+
+const defaultRegionTaskChains: RegionTaskChain[] = [
+  {
+    regionId: "brindlewood_road",
+    chainId: "brindlewood-road-chain",
+    title: "Brindlewood Road Assignment",
+    description:
+      "A practical road sequence for the first route beyond town: scout, supply, courier, report.",
+    currentStepId: "scout-road",
+    completedStepIds: [],
+    status: "available",
+    requirements: ["Open Brindlewood Road", "Travel to Brindlewood Road"],
+    rewardSummary: "Wayfarer reputation, modest route pay, and Chapter 7 road readiness.",
+    factionId: "wayfarer_dispatch",
+    nextHint: "Start with Scout the Road on Brindlewood Road.",
+    steps: [
+      {
+        id: "scout-road",
+        title: "Scout the Road",
+        requirement: "Perform Scout the Road.",
+        actionId: "brindlewood-scout-road",
+        nextHint: "Look over the road edge and mark the quiet trouble spots.",
+      },
+      {
+        id: "deliver-supplies",
+        title: "Deliver Road Supplies",
+        requirement: "Perform Deliver Road Supplies.",
+        actionId: "brindlewood-deliver-supplies",
+        nextHint: "Take the route bundle to the next marker.",
+      },
+      {
+        id: "courier-check",
+        title: "Complete Courier Check",
+        requirement: "Perform Courier Check.",
+        actionId: "brindlewood-courier-check",
+        nextHint: "Run the courier mark and prove the route can answer.",
+      },
+      {
+        id: "return-report",
+        title: "Return Road Report",
+        requirement: "Perform Gather Road Rumor.",
+        actionId: "brindlewood-road-rumor",
+        nextHint: "Bring back what the road whispered.",
+      },
+    ],
+  },
+  {
+    regionId: "silvergrain_exchange",
+    chainId: "silvergrain-exchange-chain",
+    title: "Silvergrain Market Thread",
+    description:
+      "A lighter market chain for future Velvet Market routes: demand, sample, buyer.",
+    currentStepId: "inspect-demand",
+    completedStepIds: [],
+    status: "available",
+    requirements: ["Open Silvergrain Exchange", "Progress Velvet Market Introduction"],
+    rewardSummary: "Velvet Market reputation and future premium buyer pressure.",
+    factionId: "velvet_market_ring",
+    nextHint: "Inspect market demand once Silvergrain Exchange is available.",
+    steps: [
+      {
+        id: "inspect-demand",
+        title: "Inspect Market Demand",
+        requirement: "Perform Market Inspection.",
+        actionId: "silvergrain-market-inspection",
+        nextHint: "Walk the exchange floor and learn what buyers want.",
+      },
+      {
+        id: "prepare-premium-sample",
+        title: "Prepare Premium Sample",
+        requirement: "Perform Collect a Price Rumor.",
+        actionId: "silvergrain-price-rumor",
+        nextHint: "Use price gossip to decide what sample is worth presenting.",
+      },
+      {
+        id: "buyer-introduction",
+        title: "Make Buyer Introduction",
+        requirement: "Perform Buyer Introduction.",
+        actionId: "silvergrain-buyer-introduction",
+        nextHint: "Meet the buyer once the sample thread is credible.",
+      },
+    ],
   },
 ];
 
@@ -1821,6 +2077,61 @@ function normalizeRegionTravelResult(result: unknown): RegionTravelResult | null
     hour: typeof entry.hour === "number" ? entry.hour : 8,
     minute: typeof entry.minute === "number" ? entry.minute : 0,
   };
+}
+
+function deriveChainStatus(completedCount: number, totalCount: number, baseStatus: ChainStatus) {
+  if (baseStatus === "locked") return "locked";
+  if (totalCount > 0 && completedCount >= totalCount) return "completed";
+  if (completedCount > 0) return "active";
+  return baseStatus === "completed" ? "completed" : "available";
+}
+
+function normalizeFactionQuestChains(savedChains?: FactionQuestChain[]): FactionQuestChain[] {
+  const savedById = new Map(
+    Array.isArray(savedChains) ? savedChains.map((chain) => [chain.chainId, chain]) : []
+  );
+
+  return defaultFactionQuestChains.map((chain) => {
+    const saved = savedById.get(chain.chainId);
+    const completedStepIds = Array.isArray(saved?.completedStepIds)
+      ? saved.completedStepIds.filter((stepId) => chain.steps.some((step) => step.id === stepId))
+      : chain.completedStepIds;
+    const currentStep = chain.steps.find((step) => !completedStepIds.includes(step.id)) ?? chain.steps[chain.steps.length - 1];
+    const savedStatus = saved?.status === "locked" || saved?.status === "active" || saved?.status === "completed" || saved?.status === "available"
+      ? saved.status
+      : chain.status;
+
+    return {
+      ...chain,
+      completedStepIds,
+      currentStepId: currentStep.id,
+      status: deriveChainStatus(completedStepIds.length, chain.steps.length, savedStatus),
+    };
+  });
+}
+
+function normalizeRegionTaskChains(savedChains?: RegionTaskChain[]): RegionTaskChain[] {
+  const savedById = new Map(
+    Array.isArray(savedChains) ? savedChains.map((chain) => [chain.chainId, chain]) : []
+  );
+
+  return defaultRegionTaskChains.map((chain) => {
+    const saved = savedById.get(chain.chainId);
+    const completedStepIds = Array.isArray(saved?.completedStepIds)
+      ? saved.completedStepIds.filter((stepId) => chain.steps.some((step) => step.id === stepId))
+      : chain.completedStepIds;
+    const currentStep = chain.steps.find((step) => !completedStepIds.includes(step.id)) ?? chain.steps[chain.steps.length - 1];
+    const savedStatus = saved?.status === "locked" || saved?.status === "active" || saved?.status === "completed" || saved?.status === "available"
+      ? saved.status
+      : chain.status;
+
+    return {
+      ...chain,
+      completedStepIds,
+      currentStepId: currentStep.id,
+      status: deriveChainStatus(completedStepIds.length, chain.steps.length, savedStatus),
+    };
+  });
 }
 
 function getMonthFromAbsoluteDay(day: number) {
@@ -3249,6 +3560,8 @@ const defaultSaveData: SaveData = {
   visitedRegionIds: ["homefold_valley"],
   regionTravelLog: [],
   latestRegionTravelResult: null,
+  factionQuestChains: defaultFactionQuestChains,
+  regionTaskChains: defaultRegionTaskChains,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -3319,6 +3632,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [latestRegionTravelResult, setLatestRegionTravelResult] = useState<RegionTravelResult | null>(
     defaultSaveData.latestRegionTravelResult
   );
+  const [factionQuestChains, setFactionQuestChains] = useState<FactionQuestChain[]>(defaultSaveData.factionQuestChains);
+  const [regionTaskChains, setRegionTaskChains] = useState<RegionTaskChain[]>(defaultSaveData.regionTaskChains);
   const currentSeason = getSeasonForDay(currentDay);
   const fieldUpgradeEffects = getFieldUpgradeEffects(fieldUpgrades);
   const mainStoryChapters = getMainStoryChapterList();
@@ -3439,6 +3754,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setVisitedRegionIds(normalizeVisitedRegionIds(parsedSave.visitedRegionIds, normalizedCurrentRegionId));
         setRegionTravelLog(normalizeRegionTravelLog(parsedSave.regionTravelLog));
         setLatestRegionTravelResult(normalizeRegionTravelResult(parsedSave.latestRegionTravelResult));
+        setFactionQuestChains(normalizeFactionQuestChains(parsedSave.factionQuestChains));
+        setRegionTaskChains(normalizeRegionTaskChains(parsedSave.regionTaskChains));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -3492,6 +3809,8 @@ useEffect(() => {
     visitedRegionIds,
     regionTravelLog,
     latestRegionTravelResult,
+    factionQuestChains,
+    regionTaskChains,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -3539,6 +3858,8 @@ useEffect(() => {
   visitedRegionIds,
   regionTravelLog,
   latestRegionTravelResult,
+  factionQuestChains,
+  regionTaskChains,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -3799,6 +4120,56 @@ useEffect(() => {
     setRegionTravelLog((prev) => [{ ...entry, id: Date.now() }, ...prev].slice(0, 30));
   }
 
+  function progressFactionQuestChains(stepRefs: string[] = []) {
+    if (stepRefs.length === 0) return;
+
+    setFactionQuestChains((prev) =>
+      prev.map((chain) => {
+        const stepIds = stepRefs
+          .filter((ref) => ref.startsWith(`${chain.chainId}:`))
+          .map((ref) => ref.split(":")[1])
+          .filter((stepId) => chain.steps.some((step) => step.id === stepId));
+
+        if (stepIds.length === 0 || chain.status === "locked" || chain.status === "completed") return chain;
+
+        const completedStepIds = Array.from(new Set([...chain.completedStepIds, ...stepIds]));
+        const currentStep = chain.steps.find((step) => !completedStepIds.includes(step.id)) ?? chain.steps[chain.steps.length - 1];
+
+        return {
+          ...chain,
+          completedStepIds,
+          currentStepId: currentStep.id,
+          status: deriveChainStatus(completedStepIds.length, chain.steps.length, chain.status),
+        };
+      })
+    );
+  }
+
+  function progressRegionTaskChains(stepRefs: string[] = []) {
+    if (stepRefs.length === 0) return;
+
+    setRegionTaskChains((prev) =>
+      prev.map((chain) => {
+        const stepIds = stepRefs
+          .filter((ref) => ref.startsWith(`${chain.chainId}:`))
+          .map((ref) => ref.split(":")[1])
+          .filter((stepId) => chain.steps.some((step) => step.id === stepId));
+
+        if (stepIds.length === 0 || chain.status === "locked" || chain.status === "completed") return chain;
+
+        const completedStepIds = Array.from(new Set([...chain.completedStepIds, ...stepIds]));
+        const currentStep = chain.steps.find((step) => !completedStepIds.includes(step.id)) ?? chain.steps[chain.steps.length - 1];
+
+        return {
+          ...chain,
+          completedStepIds,
+          currentStepId: currentStep.id,
+          status: deriveChainStatus(completedStepIds.length, chain.steps.length, chain.status),
+        };
+      })
+    );
+  }
+
   function travelToRegion(regionId: string) {
     const region = worldRegions.find((entry) => entry.id === regionId);
 
@@ -3875,7 +4246,11 @@ useEffect(() => {
 
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, action.timeCostMinutes);
     const rewardSummary = buildRegionRewardSummary(action);
-    const message = `${action.outcome}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}`;
+    const chainProgressSummary =
+      (action.factionChainStepIds?.length ?? 0) > 0 || (action.regionTaskStepIds?.length ?? 0) > 0
+        ? " Chain progress recorded."
+        : "";
+    const message = `${action.outcome}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
 
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -3912,6 +4287,8 @@ useEffect(() => {
       recordAuthoredQuestObjectives(action.authoredQuestObjectives ?? []);
     }
 
+    progressFactionQuestChains(action.factionChainStepIds);
+    progressRegionTaskChains(action.regionTaskStepIds);
     recordMainStoryFlags(action.storyFlags ?? ["chapter6_world_route_confirmed"]);
     recordRegionLogEntry({
       regionId: region.id,
@@ -6201,6 +6578,8 @@ function purchaseMarketItem(itemId: string, price: number) {
     setVisitedRegionIds(["homefold_valley"]);
     setRegionTravelLog([]);
     setLatestRegionTravelResult(null);
+    setFactionQuestChains(defaultFactionQuestChains);
+    setRegionTaskChains(defaultRegionTaskChains);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -6254,6 +6633,8 @@ function purchaseMarketItem(itemId: string, price: number) {
         latestRegionTravelResult,
         worldRegionActions: defaultWorldRegionActions,
         authoredQuestProgressActions: defaultAuthoredQuestProgressActions,
+        factionQuestChains,
+        regionTaskChains,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
         travelToRegion,

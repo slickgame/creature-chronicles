@@ -13,6 +13,7 @@ import {
   GameStatusBadge,
 } from "@/components/ui/GameUi";
 import {
+  formatWorldLabel,
   formatWorldList,
   getRegionImportance,
 } from "@/lib/world/worldDisplay";
@@ -32,6 +33,8 @@ export default function RegionsPage() {
     regionTravelLog,
     latestRegionTravelResult,
     worldRegionActions,
+    factionQuestChains,
+    regionTaskChains,
     travelToRegion,
     performRegionAction,
   } = useGame();
@@ -40,6 +43,10 @@ export default function RegionsPage() {
   const openRegions = worldRegions.filter((region) => region.status !== "locked");
   const lockedRegions = worldRegions.filter((region) => region.status === "locked");
   const firstOutsideRegion = worldRegions.find((region) => region.id === "brindlewood_road");
+  const firstOutsideTaskChain = regionTaskChains.find((chain) => chain.regionId === "brindlewood_road");
+  const firstOutsideFactionChain = firstOutsideTaskChain?.factionId
+    ? factionQuestChains.find((chain) => chain.factionId === firstOutsideTaskChain.factionId)
+    : null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-teal-100 to-stone-200 p-3 sm:p-5">
@@ -91,6 +98,29 @@ export default function RegionsPage() {
                 <p className="mt-2"><strong>Travel time:</strong> {firstOutsideRegion.access.travelMinutes} minutes</p>
                 <p className="mt-2"><strong>Factions:</strong> {formatWorldList(firstOutsideRegion.factionHooks)}</p>
                 <p className="mt-2"><strong>Authored quests:</strong> {formatWorldList(firstOutsideRegion.questHooks)}</p>
+                {firstOutsideTaskChain ? (
+                  <div className="mt-4 rounded-2xl border border-teal-200 bg-teal-50 p-3">
+                    <p className="font-bold text-stone-950">{firstOutsideTaskChain.title}</p>
+                    <p className="mt-1 text-xs">{firstOutsideTaskChain.description}</p>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                      <div
+                        className="h-full rounded-full bg-teal-700"
+                        style={{ width: `${Math.round((firstOutsideTaskChain.completedStepIds.length / firstOutsideTaskChain.steps.length) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs font-semibold">
+                      {firstOutsideTaskChain.completedStepIds.length}/{firstOutsideTaskChain.steps.length} steps - {formatWorldLabel(firstOutsideTaskChain.status)}
+                    </p>
+                    <p className="mt-1 text-xs"><strong>Next:</strong> {firstOutsideTaskChain.steps.find((step) => step.id === firstOutsideTaskChain.currentStepId)?.nextHint ?? firstOutsideTaskChain.nextHint}</p>
+                  </div>
+                ) : null}
+                {firstOutsideFactionChain ? (
+                  <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                    <p className="font-bold text-stone-950">Faction backing: {firstOutsideFactionChain.title}</p>
+                    <p className="mt-1 text-xs">{firstOutsideFactionChain.completedStepIds.length}/{firstOutsideFactionChain.steps.length} faction steps - {formatWorldLabel(firstOutsideFactionChain.status)}</p>
+                    <p className="mt-1 text-xs"><strong>Reward:</strong> {firstOutsideFactionChain.rewardSummary}</p>
+                  </div>
+                ) : null}
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 {firstOutsideRegion.status === "locked" ? (
@@ -145,6 +175,8 @@ export default function RegionsPage() {
                 const isCurrent = currentRegionId === region.id;
                 const visited = visitedRegionIds.includes(region.id);
                 const actions = worldRegionActions.filter((action) => action.regionId === region.id);
+                const taskChain = regionTaskChains.find((chain) => chain.regionId === region.id);
+                const currentTaskStep = taskChain?.steps.find((step) => step.id === taskChain.currentStepId);
 
                 return (
                   <GameCard key={region.id} tone={locked ? "stone" : isCurrent ? "emerald" : "teal"} className="shadow-sm">
@@ -168,11 +200,15 @@ export default function RegionsPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <GameStatChip label="Travel" value={`${region.access.travelMinutes}m`} />
                       <GameStatChip label="Actions" value={actions.length} />
+                      {taskChain ? <GameStatChip label="Task Chain" value={`${taskChain.completedStepIds.length}/${taskChain.steps.length}`} /> : null}
                     </div>
                     <div className="mt-3 space-y-1 text-xs text-stone-700">
                       <p><strong>Access:</strong> {region.access.requirement}</p>
                       <p><strong>Factions:</strong> {formatWorldList(region.factionHooks)}</p>
                       <p><strong>Quests:</strong> {formatWorldList(region.questHooks)}</p>
+                      {taskChain ? (
+                        <p><strong>Recommended:</strong> {currentTaskStep?.title ?? taskChain.nextHint}</p>
+                      ) : null}
                     </div>
                     {locked ? (
                       <p className="mt-3 rounded-xl border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700">

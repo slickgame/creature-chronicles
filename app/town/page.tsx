@@ -1486,6 +1486,8 @@ export default function TownPage() {
     visitedRegionIds,
     latestRegionTravelResult,
     worldRegionActions,
+    factionQuestChains,
+    regionTaskChains,
     purchaseTownCreature,
     purchaseMarketItem,
     getItemCount,
@@ -1852,6 +1854,8 @@ export default function TownPage() {
                       const isCurrent = currentRegionId === region.id;
                       const visited = visitedRegionIds.includes(region.id);
                       const primaryAction = worldRegionActions.find((action) => action.regionId === region.id);
+                      const taskChain = regionTaskChains.find((chain) => chain.regionId === region.id);
+                      const currentTaskStep = taskChain?.steps.find((step) => step.id === taskChain.currentStepId);
                       return (
                         <div key={region.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
                           <div className="flex items-start justify-between gap-2">
@@ -1865,6 +1869,11 @@ export default function TownPage() {
                           <p className="mt-2 text-xs"><strong>Why it matters:</strong> {getRegionImportance(region.id)}</p>
                           <p className="mt-1 text-xs"><strong>Access:</strong> {region.access.requirement} - {region.access.travelMinutes} min via {region.access.route}</p>
                           <p className="mt-1 text-xs"><strong>Linked factions:</strong> {formatWorldList(region.factionHooks)}</p>
+                          {taskChain ? (
+                            <p className="mt-1 text-xs">
+                              <strong>Task chain:</strong> {taskChain.title} ({taskChain.completedStepIds.length}/{taskChain.steps.length}) - {currentTaskStep?.title ?? taskChain.nextHint}
+                            </p>
+                          ) : null}
                           {locked ? (
                             <p className="mt-2 rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-xs font-semibold text-stone-700">
                               Unlock: {region.unlockCondition}
@@ -1902,7 +1911,42 @@ export default function TownPage() {
                     })}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4"><p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p><h3 className="text-xl font-bold text-stone-950">{knownFactionCount}/{factions.length} known organizations</h3><div className="mt-3 grid gap-3">{factions.map((faction) => (<div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700"><div className="flex items-start justify-between gap-2"><div><p className="font-bold text-stone-950">{faction.name}</p><p className="text-xs font-semibold uppercase text-fuchsia-800">{formatWorldLabel(faction.standing)} - Rep {faction.reputation}</p></div><span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">{formatWorldLabel(faction.status)}</span></div><p className="mt-2">{faction.description}</p><p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p><p className="mt-1 text-xs"><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p></div>))}</div></div>
+                <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4">
+                  <p className="text-xs font-bold uppercase text-fuchsia-800">Factions</p>
+                  <h3 className="text-xl font-bold text-stone-950">
+                    {knownFactionCount}/{factions.length} known organizations
+                  </h3>
+                  <div className="mt-3 grid gap-3">
+                    {factions.map((faction) => {
+                      const chain = factionQuestChains.find((item) => item.factionId === faction.id);
+                      const currentStep = chain?.steps.find((step) => step.id === chain.currentStepId);
+
+                      return (
+                        <div key={faction.id} className="rounded-2xl border border-white bg-white/85 p-3 text-sm text-stone-700">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-bold text-stone-950">{faction.name}</p>
+                              <p className="text-xs font-semibold uppercase text-fuchsia-800">
+                                {formatWorldLabel(faction.standing)} - Rep {faction.reputation}
+                              </p>
+                            </div>
+                            <span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-3 py-1 text-xs font-bold text-fuchsia-900">
+                              {formatWorldLabel(faction.status)}
+                            </span>
+                          </div>
+                          <p className="mt-2">{faction.description}</p>
+                          <p className="mt-2 text-xs"><strong>Unlock:</strong> {faction.unlockCondition}</p>
+                          {chain ? (
+                            <p className="mt-1 text-xs">
+                              <strong>Chain:</strong> {chain.title} ({chain.completedStepIds.length}/{chain.steps.length}) - {currentStep?.title ?? chain.nextHint}
+                            </p>
+                          ) : null}
+                          <p className="mt-1 text-xs"><strong>Known rewards:</strong> {formatWorldList(faction.rewardHooks)}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}
