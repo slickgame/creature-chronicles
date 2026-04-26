@@ -702,6 +702,66 @@ type RoadDispatchResult = {
   minute: number;
 };
 
+type RoadIncidentTriggerType = "region_action" | "dispatch_result" | "both";
+type RoadIncidentRarity = "common" | "uncommon" | "rare";
+
+type RoadIncidentOutcome = {
+  outcomeId: string;
+  title: string;
+  description: string;
+  rewardGold?: number;
+  rewardItems?: Array<{ itemId: string; quantity: number }>;
+  factionReputation?: Array<{
+    factionId: string;
+    amount: number;
+    standing?: FactionStanding;
+  }>;
+  dispatchGoldModifier?: number;
+  successModifier?: number;
+};
+
+type RoadIncidentDefinition = {
+  incidentId: string;
+  title: string;
+  description: string;
+  regionId: string;
+  triggerType: RoadIncidentTriggerType;
+  rarity: RoadIncidentRarity;
+  commonness: number;
+  possibleOutcomes: RoadIncidentOutcome[];
+  rewardOrPenaltySummary: string;
+  factionConsequence?: string;
+  futureHook?: string;
+  helpfulSpecies: string[];
+};
+
+type RoadIncidentLogEntry = {
+  id: number;
+  incidentId: string;
+  title: string;
+  regionId: string;
+  triggerType: RoadIncidentTriggerType;
+  sourceId?: string;
+  outcomeTitle: string;
+  day: number;
+  hour: number;
+  minute: number;
+  summary: string;
+  rewardSummary: string;
+  factionConsequence?: string;
+  creatureNames?: string[];
+};
+
+type RoadIncidentOccurrence = {
+  incident: RoadIncidentDefinition;
+  outcome: RoadIncidentOutcome;
+  creatureBonusGold: number;
+  creatureBonusReputation: number;
+  creatureInfluenceSummary?: string;
+  rewardSummary: string;
+  summary: string;
+};
+
 type AuthoredQuestProgressAction = {
   id: string;
   questId: string;
@@ -813,6 +873,10 @@ type SaveData = {
   activeDispatches: ActiveRoadDispatch[];
   completedDispatchLog: CompletedRoadDispatchLogEntry[];
   latestDispatchResult: RoadDispatchResult | null;
+  roadIncidentLog: RoadIncidentLogEntry[];
+  latestRoadIncident: RoadIncidentLogEntry | null;
+  seenIncidentIds: string[];
+  roadIncidentCountsByRegion: Record<string, number>;
 };
 
 type GameContextType = {
@@ -871,6 +935,11 @@ type GameContextType = {
   completedDispatchLog: CompletedRoadDispatchLogEntry[];
   latestDispatchResult: RoadDispatchResult | null;
   roadDispatchUnlocked: boolean;
+  roadIncidentDefinitions: RoadIncidentDefinition[];
+  roadIncidentLog: RoadIncidentLogEntry[];
+  latestRoadIncident: RoadIncidentLogEntry | null;
+  seenIncidentIds: string[];
+  roadIncidentCountsByRegion: Record<string, number>;
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   travelToRegion: (regionId: string) => boolean;
@@ -2514,6 +2583,195 @@ const defaultRoadDispatchJobs: RoadDispatchJob[] = [
   },
 ];
 
+const defaultRoadIncidentDefinitions: RoadIncidentDefinition[] = [
+  {
+    incidentId: "broken-cart-assist",
+    title: "Broken Cart Assist",
+    description: "A wagon lists hard at the road edge, one wheel buried and the driver trying not to look impressed by your timing.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "common",
+    commonness: 24,
+    possibleOutcomes: [
+      {
+        outcomeId: "cart-lifted",
+        title: "Cart Lifted Clean",
+        description: "The cart comes free with a satisfying groan and a grateful nod from the driver.",
+        rewardGold: 16,
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 1, standing: "warm" }],
+        dispatchGoldModifier: 10,
+      },
+    ],
+    rewardOrPenaltySummary: "Small gold and Wayfarer reputation; horses, cows, and strong haulers improve the result.",
+    factionConsequence: "Wayfarer Dispatch hears the ranch can help stranded travelers without making a performance of it.",
+    futureHook: "Can later open heavier rescue jobs or route maintenance tasks.",
+    helpfulSpecies: ["Horse", "Cow"],
+  },
+  {
+    incidentId: "lost-courier",
+    title: "Lost Courier",
+    description: "A courier signal has gone quiet near the old marker line, and the road feels a little too still.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "uncommon",
+    commonness: 16,
+    possibleOutcomes: [
+      {
+        outcomeId: "courier-guided-back",
+        title: "Courier Guided Back",
+        description: "The missing courier is found shaken but intact, with their delivery satchel still buttoned tight.",
+        rewardGold: 20,
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 2, standing: "warm" }],
+        dispatchGoldModifier: 12,
+        successModifier: 4,
+      },
+    ],
+    rewardOrPenaltySummary: "Gold and Wayfarer reputation; dogs and quick couriers make the recovery cleaner.",
+    factionConsequence: "Wayfarer Dispatch marks the ranch as reliable under pressure.",
+    futureHook: "Can later introduce missing-person road assignments.",
+    helpfulSpecies: ["Dog", "Horse", "Bunny"],
+  },
+  {
+    incidentId: "muddy-delay",
+    title: "Muddy Delay",
+    description: "The road turns soft under the crew, turning every step into a wet argument.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "common",
+    commonness: 22,
+    possibleOutcomes: [
+      {
+        outcomeId: "slow-but-steady",
+        title: "Slow but Steady",
+        description: "The delay costs time and shine, but steady helpers keep the job from souring.",
+        rewardGold: 0,
+        dispatchGoldModifier: -12,
+        successModifier: -5,
+      },
+    ],
+    rewardOrPenaltySummary: "Can reduce dispatch pay; sheep, horses, and steady creatures soften the hit.",
+    factionConsequence: "The route log notes weather risk instead of blaming the ranch.",
+    futureHook: "Can later connect to weather gear, road paving, or travel-time discounts.",
+    helpfulSpecies: ["Sheep", "Horse", "Cow"],
+  },
+  {
+    incidentId: "hidden-supply-cache",
+    title: "Hidden Supply Cache",
+    description: "A tucked-away cache sits behind old stones, dry, labeled, and somehow missed by the last three patrols.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "uncommon",
+    commonness: 14,
+    possibleOutcomes: [
+      {
+        outcomeId: "cache-logged",
+        title: "Cache Logged Properly",
+        description: "The cache is recorded before anything goes missing, which makes the Wayfarers very pleased and very curious.",
+        rewardGold: 8,
+        rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 1, standing: "warm" }],
+        dispatchGoldModifier: 8,
+      },
+    ],
+    rewardOrPenaltySummary: "Small item reward, gold, and Wayfarer reputation; pigs and alert creatures spot more.",
+    factionConsequence: "Wayfarer Dispatch gets cleaner supply notes.",
+    futureHook: "Can later open cache maps, smuggling clues, or supply permit hooks.",
+    helpfulSpecies: ["Pig", "Chicken", "Cat"],
+  },
+  {
+    incidentId: "suspicious-tracks",
+    title: "Suspicious Tracks",
+    description: "Fresh tracks cut across the road where no scheduled team should be crossing.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "rare",
+    commonness: 8,
+    possibleOutcomes: [
+      {
+        outcomeId: "tracks-marked",
+        title: "Tracks Marked",
+        description: "The trail is marked without chasing it too far. Sensible, useful, and just dangerous enough to remember.",
+        rewardGold: 12,
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 1, standing: "warm" }],
+        successModifier: 3,
+      },
+    ],
+    rewardOrPenaltySummary: "Small Wayfarer reputation and future investigation hooks; cats and dogs read the signs better.",
+    factionConsequence: "Wayfarer Dispatch gets an early warning instead of a dramatic mess.",
+    futureHook: "Can later become road trouble, patrol branches, or non-combat investigation.",
+    helpfulSpecies: ["Cat", "Dog"],
+  },
+  {
+    incidentId: "helpful-road-rumor",
+    title: "Helpful Road Rumor",
+    description: "A traveler shares a soft lead about which handoffs are clean, which buyers are late, and which smiles mean trouble.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "common",
+    commonness: 20,
+    possibleOutcomes: [
+      {
+        outcomeId: "rumor-recorded",
+        title: "Rumor Recorded",
+        description: "The rumor goes into the ledger with enough detail to be useful later.",
+        rewardGold: 10,
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 1, standing: "warm" }],
+        dispatchGoldModifier: 6,
+      },
+    ],
+    rewardOrPenaltySummary: "Small gold and reputation; cats, chickens, and bunnies help catch quick details.",
+    factionConsequence: "The road ledger gets a useful whisper before it becomes a problem.",
+    futureHook: "Can later feed route rumors, buyer hints, or incident foreshadowing.",
+    helpfulSpecies: ["Cat", "Chicken", "Bunny"],
+  },
+  {
+    incidentId: "wayfarer-inspector-notice",
+    title: "Wayfarer Inspector Notice",
+    description: "A Wayfarer inspector leaves a tidy notice asking who, exactly, has been keeping the road this orderly.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "rare",
+    commonness: 6,
+    possibleOutcomes: [
+      {
+        outcomeId: "notice-filed",
+        title: "Notice Filed",
+        description: "The notice is filed with the ranch's name attached, a little formal and a little flattering.",
+        rewardGold: 18,
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 3, standing: "warm" }],
+        dispatchGoldModifier: 10,
+        successModifier: 5,
+      },
+    ],
+    rewardOrPenaltySummary: "Better Wayfarer reputation and gold; strong dispatch results make this more valuable.",
+    factionConsequence: "Wayfarer Dispatch begins treating the ranch as a named road partner.",
+    futureHook: "Can later open formal inspection, route priority, or deeper road trouble hooks.",
+    helpfulSpecies: ["Dog", "Horse", "Cow"],
+  },
+  {
+    incidentId: "stray-creature-sighting",
+    title: "Stray Creature Sighting",
+    description: "A stray shape slips along the brushline, watching the road with more intelligence than comfort allows.",
+    regionId: "brindlewood_road",
+    triggerType: "both",
+    rarity: "rare",
+    commonness: 7,
+    possibleOutcomes: [
+      {
+        outcomeId: "sighting-noted",
+        title: "Sighting Noted",
+        description: "The creature vanishes before anyone crowds it, but the sighting is marked for future follow-up.",
+        rewardGold: 6,
+        factionReputation: [{ factionId: "wayfarer_dispatch", amount: 1, standing: "warm" }],
+      },
+    ],
+    rewardOrPenaltySummary: "Small reputation and future creature hooks; calm creatures keep the sighting gentle.",
+    factionConsequence: "Wayfarer Dispatch knows the ranch can report unusual creature activity without spooking it.",
+    futureHook: "Can later open rescue, taming, or road ecology systems.",
+    helpfulSpecies: ["Sheep", "Bunny", "Cat"],
+  },
+];
+
 const horseFirstNames = ["Dusty","Clover","Rowan","Bramble","Flint","Maple","Sable","Thorn"];
 const horseLastNames = ["Carter","Vale","Hoof","Hollow","Briar","Reed","Stone","Meadow"];
 const catFirstNames = ["Velvet","Misty","Sable","Luna","Poppy","Ivy","Mochi","Pearl"];
@@ -2852,6 +3110,56 @@ function normalizeRoadDispatchResult(result: unknown): RoadDispatchResult | null
     hour: typeof entry.hour === "number" ? entry.hour : 8,
     minute: typeof entry.minute === "number" ? entry.minute : 0,
   };
+}
+
+function normalizeRoadIncidentLog(log: unknown): RoadIncidentLogEntry[] {
+  if (!Array.isArray(log)) return [];
+
+  return log
+    .filter((entry): entry is Partial<RoadIncidentLogEntry> => Boolean(entry) && typeof entry === "object")
+    .map((entry, index) => ({
+      id: typeof entry.id === "number" ? entry.id : Date.now() + index,
+      incidentId: typeof entry.incidentId === "string" ? entry.incidentId : "helpful-road-rumor",
+      title: typeof entry.title === "string" ? entry.title : "Road Incident",
+      regionId: typeof entry.regionId === "string" ? entry.regionId : "brindlewood_road",
+      triggerType:
+        entry.triggerType === "region_action" || entry.triggerType === "dispatch_result" || entry.triggerType === "both"
+          ? entry.triggerType
+          : "region_action",
+      sourceId: typeof entry.sourceId === "string" ? entry.sourceId : undefined,
+      outcomeTitle: typeof entry.outcomeTitle === "string" ? entry.outcomeTitle : "Noted",
+      day: typeof entry.day === "number" ? entry.day : 1,
+      hour: typeof entry.hour === "number" ? entry.hour : 8,
+      minute: typeof entry.minute === "number" ? entry.minute : 0,
+      summary: typeof entry.summary === "string" ? entry.summary : "Road incident recorded.",
+      rewardSummary: typeof entry.rewardSummary === "string" ? entry.rewardSummary : "No reward change.",
+      factionConsequence: typeof entry.factionConsequence === "string" ? entry.factionConsequence : undefined,
+      creatureNames: Array.isArray(entry.creatureNames)
+        ? entry.creatureNames.filter((name): name is string => typeof name === "string")
+        : undefined,
+    }))
+    .slice(0, 40);
+}
+
+function normalizeLatestRoadIncident(incident: unknown): RoadIncidentLogEntry | null {
+  return normalizeRoadIncidentLog(incident ? [incident] : [])[0] ?? null;
+}
+
+function normalizeSeenIncidentIds(ids: unknown) {
+  if (!Array.isArray(ids)) return [];
+  const knownIncidentIds = new Set(defaultRoadIncidentDefinitions.map((incident) => incident.incidentId));
+  return Array.from(
+    new Set(ids.filter((id): id is string => typeof id === "string" && knownIncidentIds.has(id)))
+  );
+}
+
+function normalizeRoadIncidentCountsByRegion(counts: unknown): Record<string, number> {
+  if (!counts || typeof counts !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(counts as Record<string, unknown>).filter(
+      (entry): entry is [string, number] => typeof entry[1] === "number"
+    )
+  );
 }
 
 function deriveChainStatus(completedCount: number, totalCount: number, baseStatus: ChainStatus) {
@@ -4006,6 +4314,94 @@ function pickRoadDispatchEvent(job: RoadDispatchJob, dispatch: ActiveRoadDispatc
   return job.eventPool[Math.abs(seed) % job.eventPool.length];
 }
 
+function getStableStringSeed(value: string) {
+  return value.split("").reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
+}
+
+function getIncidentTriggerChance(rarity: RoadIncidentRarity) {
+  if (rarity === "common") return 42;
+  if (rarity === "uncommon") return 28;
+  return 16;
+}
+
+function getRoadIncidentCreatureBonus(incident: RoadIncidentDefinition, assignedCreatures: Creature[]) {
+  const helpfulCreatures = assignedCreatures.filter((creature) => incident.helpfulSpecies.includes(creature.name));
+
+  if (helpfulCreatures.length === 0) {
+    return { gold: 0, reputation: 0, summary: undefined };
+  }
+
+  const firstHelper = helpfulCreatures[0];
+  const cappedCount = Math.min(helpfulCreatures.length, 2);
+  return {
+    gold: 4 * cappedCount,
+    reputation: cappedCount >= 2 ? 1 : 0,
+    summary: `${firstHelper.nickname} reads the moment well, giving the crew a cleaner result.`,
+  };
+}
+
+function buildRoadIncidentOccurrence({
+  regionId,
+  triggerType,
+  sourceId,
+  day,
+  hour,
+  minute,
+  assignedCreatures = [],
+}: {
+  regionId: string;
+  triggerType: Exclude<RoadIncidentTriggerType, "both">;
+  sourceId: string;
+  day: number;
+  hour: number;
+  minute: number;
+  assignedCreatures?: Creature[];
+}): RoadIncidentOccurrence | null {
+  const eligibleIncidents = defaultRoadIncidentDefinitions.filter(
+    (incident) =>
+      incident.regionId === regionId &&
+      (incident.triggerType === triggerType || incident.triggerType === "both")
+  );
+  if (eligibleIncidents.length === 0) return null;
+
+  const seed = getStableStringSeed(`${regionId}:${triggerType}:${sourceId}`) + day * 97 + hour * 17 + minute * 7;
+  const triggerRoll = Math.abs(seed) % 100;
+  const broadChance = triggerType === "dispatch_result" ? 58 : 34;
+  if (triggerRoll >= broadChance) return null;
+
+  const weightedIncidents = eligibleIncidents.filter(
+    (incident) => triggerRoll < broadChance + getIncidentTriggerChance(incident.rarity)
+  );
+  const pool = weightedIncidents.length > 0 ? weightedIncidents : eligibleIncidents;
+  const totalWeight = pool.reduce((total, incident) => total + incident.commonness, 0);
+  let weightedRoll = Math.abs(seed + assignedCreatures.length * 31) % Math.max(1, totalWeight);
+  const incident = pool.find((entry) => {
+    weightedRoll -= entry.commonness;
+    return weightedRoll < 0;
+  }) ?? pool[0];
+  const outcome =
+    incident.possibleOutcomes[Math.abs(seed + incident.incidentId.length) % incident.possibleOutcomes.length];
+  const creatureBonus = getRoadIncidentCreatureBonus(incident, assignedCreatures);
+  const rewardParts = [
+    outcome.rewardGold || creatureBonus.gold ? `${Math.max(0, (outcome.rewardGold ?? 0) + creatureBonus.gold)} gold` : "",
+    outcome.dispatchGoldModifier ? `${outcome.dispatchGoldModifier > 0 ? "+" : ""}${outcome.dispatchGoldModifier} dispatch gold` : "",
+    ...(outcome.rewardItems ?? []).map((item) => `${item.quantity} ${ITEM_DATA[item.itemId]?.name ?? item.itemId}`),
+    ...((outcome.factionReputation ?? []).map((entry) => `${entry.amount + creatureBonus.reputation} ${getWorldFactionName(entry.factionId)} reputation`)),
+  ].filter(Boolean);
+  const rewardSummary = rewardParts.length > 0 ? rewardParts.join(", ") : "No immediate reward change";
+  const summary = `${incident.title}: ${outcome.description}${creatureBonus.summary ? ` ${creatureBonus.summary}` : ""}`;
+
+  return {
+    incident,
+    outcome,
+    creatureBonusGold: creatureBonus.gold,
+    creatureBonusReputation: creatureBonus.reputation,
+    creatureInfluenceSummary: creatureBonus.summary,
+    rewardSummary,
+    summary,
+  };
+}
+
 function applyXpGain(creature: Creature, xpGain: number): Creature {
   let updatedCreature = { ...creature, xp: creature.xp + xpGain };
 
@@ -4396,6 +4792,10 @@ const defaultSaveData: SaveData = {
   activeDispatches: [],
   completedDispatchLog: [],
   latestDispatchResult: null,
+  roadIncidentLog: [],
+  latestRoadIncident: null,
+  seenIncidentIds: [],
+  roadIncidentCountsByRegion: {},
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -4474,6 +4874,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
   const [latestDispatchResult, setLatestDispatchResult] = useState<RoadDispatchResult | null>(
     defaultSaveData.latestDispatchResult
+  );
+  const [roadIncidentLog, setRoadIncidentLog] = useState<RoadIncidentLogEntry[]>(defaultSaveData.roadIncidentLog);
+  const [latestRoadIncident, setLatestRoadIncident] = useState<RoadIncidentLogEntry | null>(
+    defaultSaveData.latestRoadIncident
+  );
+  const [seenIncidentIds, setSeenIncidentIds] = useState<string[]>(defaultSaveData.seenIncidentIds);
+  const [roadIncidentCountsByRegion, setRoadIncidentCountsByRegion] = useState<Record<string, number>>(
+    defaultSaveData.roadIncidentCountsByRegion
   );
   const worldLocations = normalizeWorldLocations(defaultWorldLocations, worldRegions);
   const currentSeason = getSeasonForDay(currentDay);
@@ -4605,6 +5013,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setActiveDispatches(normalizeActiveDispatches(parsedSave.activeDispatches));
         setCompletedDispatchLog(normalizeCompletedDispatchLog(parsedSave.completedDispatchLog));
         setLatestDispatchResult(normalizeRoadDispatchResult(parsedSave.latestDispatchResult));
+        setRoadIncidentLog(normalizeRoadIncidentLog(parsedSave.roadIncidentLog));
+        setLatestRoadIncident(normalizeLatestRoadIncident(parsedSave.latestRoadIncident));
+        setSeenIncidentIds(normalizeSeenIncidentIds(parsedSave.seenIncidentIds));
+        setRoadIncidentCountsByRegion(normalizeRoadIncidentCountsByRegion(parsedSave.roadIncidentCountsByRegion));
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -4663,6 +5075,10 @@ useEffect(() => {
     activeDispatches,
     completedDispatchLog,
     latestDispatchResult,
+    roadIncidentLog,
+    latestRoadIncident,
+    seenIncidentIds,
+    roadIncidentCountsByRegion,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -4715,6 +5131,10 @@ useEffect(() => {
   activeDispatches,
   completedDispatchLog,
   latestDispatchResult,
+  roadIncidentLog,
+  latestRoadIncident,
+  seenIncidentIds,
+  roadIncidentCountsByRegion,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -5162,7 +5582,18 @@ useEffect(() => {
         ? " Road supplies packed from wheat stock."
         : " You arrived light on supplies, so the Dispatch pays a reduced courier reward."
       : "";
-    const message = `${action.outcome}${supplySummary}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
+    let message = `${action.outcome}${supplySummary}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
+    const roadIncident =
+      region.id === "brindlewood_road"
+        ? buildRoadIncidentOccurrence({
+            regionId: region.id,
+            triggerType: "region_action",
+            sourceId: action.id,
+            day: updatedClock.day,
+            hour: updatedClock.hour,
+            minute: updatedClock.minute,
+          })
+        : null;
 
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
@@ -5197,6 +5628,49 @@ useEffect(() => {
         unlockRegions: [],
         summary: action.outcome,
       });
+    }
+
+    if (roadIncident) {
+      const incidentGold = (roadIncident.outcome.rewardGold ?? 0) + roadIncident.creatureBonusGold;
+      const incidentItems = roadIncident.outcome.rewardItems ?? [];
+      const incidentReputation = (roadIncident.outcome.factionReputation ?? []).map((entry) => ({
+        ...entry,
+        amount: entry.amount + roadIncident.creatureBonusReputation,
+      }));
+
+      if (incidentGold > 0) {
+        setPlayerData((prev) => ({ ...prev, gold: prev.gold + incidentGold }));
+      }
+
+      if (incidentItems.length > 0) {
+        setInventory((prev) => {
+          let next = { ...prev };
+          incidentItems.forEach((itemReward) => {
+            next = addItemToInventory(next, itemReward.itemId, itemReward.quantity);
+          });
+          return next;
+        });
+      }
+
+      if (incidentReputation.length > 0) {
+        applyAuthoredQuestReward({
+          gold: 0,
+          items: [],
+          factionReputation: incidentReputation,
+          unlockRegions: [],
+          summary: roadIncident.summary,
+        });
+      }
+
+      recordRoadIncidentOccurrence({
+        occurrence: roadIncident,
+        triggerType: "region_action",
+        sourceId: action.id,
+        day: updatedClock.day,
+        hour: updatedClock.hour,
+        minute: updatedClock.minute,
+      });
+      message = `${message} Road incident: ${roadIncident.summary} Effect: ${roadIncident.rewardSummary}.`;
     }
 
     if ((action.authoredQuestObjectives?.length ?? 0) > 0) {
@@ -5244,6 +5718,60 @@ useEffect(() => {
       day: currentDay,
       hour: currentHour,
       minute: currentMinute,
+    });
+  }
+
+  function recordRoadIncidentOccurrence({
+    occurrence,
+    triggerType,
+    sourceId,
+    day,
+    hour,
+    minute,
+    creatureNames,
+  }: {
+    occurrence: RoadIncidentOccurrence;
+    triggerType: Exclude<RoadIncidentTriggerType, "both">;
+    sourceId: string;
+    day: number;
+    hour: number;
+    minute: number;
+    creatureNames?: string[];
+  }) {
+    const entry: RoadIncidentLogEntry = {
+      id: Date.now(),
+      incidentId: occurrence.incident.incidentId,
+      title: occurrence.incident.title,
+      regionId: occurrence.incident.regionId,
+      triggerType,
+      sourceId,
+      outcomeTitle: occurrence.outcome.title,
+      day,
+      hour,
+      minute,
+      summary: occurrence.summary,
+      rewardSummary: occurrence.rewardSummary,
+      factionConsequence: occurrence.incident.factionConsequence,
+      creatureNames,
+    };
+
+    setRoadIncidentLog((prev) => [entry, ...prev].slice(0, 40));
+    setLatestRoadIncident(entry);
+    setSeenIncidentIds((prev) => Array.from(new Set([...prev, occurrence.incident.incidentId])));
+    setRoadIncidentCountsByRegion((prev) => ({
+      ...prev,
+      [occurrence.incident.regionId]: (prev[occurrence.incident.regionId] ?? 0) + 1,
+    }));
+    recordRegionLogEntry({
+      regionId: occurrence.incident.regionId,
+      regionName: "Brindlewood Road",
+      actionId: occurrence.incident.incidentId,
+      actionTitle: occurrence.incident.title,
+      day,
+      hour,
+      minute,
+      minutesSpent: 0,
+      summary: occurrence.summary,
     });
   }
 
@@ -5373,14 +5901,33 @@ useEffect(() => {
       .filter((creature): creature is Creature => Boolean(creature));
     const event = pickRoadDispatchEvent(job, dispatch);
     const successScore = calculateRoadDispatchSuccessScore(job, assignedCreatures, event);
-    const success = successScore >= 72;
+    const roadIncident = buildRoadIncidentOccurrence({
+      regionId: job.regionId,
+      triggerType: "dispatch_result",
+      sourceId: job.jobId,
+      day: currentDay,
+      hour: currentHour,
+      minute: currentMinute,
+      assignedCreatures,
+    });
+    const incidentSuccessModifier = roadIncident?.outcome.successModifier ?? 0;
+    const success = successScore + incidentSuccessModifier >= 72;
+    const incidentGoldModifier = roadIncident
+      ? (roadIncident.outcome.rewardGold ?? 0) + (roadIncident.outcome.dispatchGoldModifier ?? 0) + roadIncident.creatureBonusGold
+      : 0;
     const rewardGold = success
-      ? Math.max(0, job.baseRewardGold + event.rewardGoldModifier)
-      : Math.max(8, Math.floor(job.baseRewardGold * 0.35));
+      ? Math.max(0, job.baseRewardGold + event.rewardGoldModifier + incidentGoldModifier)
+      : Math.max(8, Math.floor(job.baseRewardGold * 0.35) + Math.min(8, incidentGoldModifier));
     const reputationReward = success
-      ? Math.max(1, job.factionReputationReward + (event.factionReputationModifier ?? 0))
+      ? Math.max(
+          1,
+          job.factionReputationReward +
+            (event.factionReputationModifier ?? 0) +
+            (roadIncident?.creatureBonusReputation ?? 0)
+        )
       : 1;
-    const rewardItems = success ? [...job.rewardItems, ...(event.rewardItems ?? [])] : [];
+    const incidentItems = roadIncident?.outcome.rewardItems ?? [];
+    const rewardItems = success ? [...job.rewardItems, ...(event.rewardItems ?? []), ...incidentItems] : [];
     const rewardSummaryParts = [
       `${rewardGold} gold`,
       `${reputationReward} Wayfarer reputation`,
@@ -5389,8 +5936,8 @@ useEffect(() => {
     const rewardSummary = rewardSummaryParts.join(", ");
     const creatureNames = assignedCreatures.map((creature) => creature.nickname);
     const summary = success
-      ? `${creatureNames.join(", ")} completed ${job.title}. ${event.title}: ${event.description}`
-      : `${creatureNames.join(", ")} returned from ${job.title} with a partial report. ${event.title}: ${event.description}`;
+      ? `${creatureNames.join(", ")} completed ${job.title}. ${event.title}: ${event.description}${roadIncident ? ` Road incident: ${roadIncident.summary}` : ""}`
+      : `${creatureNames.join(", ")} returned from ${job.title} with a partial report. ${event.title}: ${event.description}${roadIncident ? ` Road incident: ${roadIncident.summary}` : ""}`;
 
     if (rewardGold > 0) {
       setPlayerData((prev) => ({ ...prev, gold: prev.gold + rewardGold }));
@@ -5413,6 +5960,15 @@ useEffect(() => {
       unlockRegions: [],
       summary,
     });
+    if (roadIncident && (roadIncident.outcome.factionReputation?.length ?? 0) > 0) {
+      applyAuthoredQuestReward({
+        gold: 0,
+        items: [],
+        factionReputation: roadIncident.outcome.factionReputation ?? [],
+        unlockRegions: [],
+        summary: roadIncident.summary,
+      });
+    }
     setCreatures((prev) =>
       prev.map((creature) =>
         dispatch.creatureIds.includes(creature.id)
@@ -5451,6 +6007,17 @@ useEffect(() => {
       minutesSpent: 0,
       summary,
     });
+    if (roadIncident) {
+      recordRoadIncidentOccurrence({
+        occurrence: roadIncident,
+        triggerType: "dispatch_result",
+        sourceId: job.jobId,
+        day: currentDay,
+        hour: currentHour,
+        minute: currentMinute,
+        creatureNames,
+      });
+    }
     setLatestDispatchResult({
       success,
       title: success ? "Dispatch Complete" : "Partial Dispatch",
@@ -7759,6 +8326,10 @@ function purchaseMarketItem(itemId: string, price: number) {
     setActiveDispatches([]);
     setCompletedDispatchLog([]);
     setLatestDispatchResult(null);
+    setRoadIncidentLog([]);
+    setLatestRoadIncident(null);
+    setSeenIncidentIds([]);
+    setRoadIncidentCountsByRegion({});
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -7820,6 +8391,11 @@ function purchaseMarketItem(itemId: string, price: number) {
         completedDispatchLog,
         latestDispatchResult,
         roadDispatchUnlocked,
+        roadIncidentDefinitions: defaultRoadIncidentDefinitions,
+        roadIncidentLog,
+        latestRoadIncident,
+        seenIncidentIds,
+        roadIncidentCountsByRegion,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
         travelToRegion,
