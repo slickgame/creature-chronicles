@@ -12,6 +12,14 @@ const WORLD_LABELS: Record<string, string> = {
   "chapter6_creature_lineage_proof": "Creature Lineage Proof",
   "chapter6_town_registration": "Town Registration",
   "chapter6_world_route_confirmed": "World Route Confirmation",
+  "chapter7_road_brief": "Road Brief",
+  "chapter7_prepare_road_supplies": "Prepare Road Supplies",
+  "chapter7_ready_creature_helper": "Ready a Creature Helper",
+  "chapter7_travel_brindlewood": "Travel to Brindlewood Road",
+  "chapter7_scout_road": "Scout the Road",
+  "chapter7_complete_road_service": "Complete Road Service",
+  "chapter7_return_road_report": "Return Road Report",
+  "chapter7_wayfarer_recognition": "Wayfarer Recognition",
   "road-ready-ranch-work": "Road-Ready Ranch Work",
   "town-route-proof": "Town Route Proof",
   "prepare-private-stock": "Private Stock Preparation",
@@ -107,17 +115,57 @@ const QUEST_HINTS: Record<string, { where: string; action: string; next: string 
     action: "Review Chapter 6's Quest Log, Factions, and World Map route signal.",
     next: "Open the Quest Log, then check Factions and World Map to settle the first route signal.",
   },
+  "chapter7_road_brief": {
+    where: "Story Journal, Factions, Town, or Regions",
+    action: "Review the Wayfarer Dispatch and Brindlewood Road assignment.",
+    next: "Open the Journal or Regions page and acknowledge the road assignment.",
+  },
+  "chapter7_prepare_road_supplies": {
+    where: "Ranch",
+    action: "Cook, harvest, plant, water, fertilize, or keep wheat/bread/food ready for the road.",
+    next: "Use a Ranch room or pack supplies before leaving Homefold.",
+  },
+  "chapter7_ready_creature_helper": {
+    where: "Ranch",
+    action: "Care for a creature, recover stamina, use creature field work, breed, hatch, or prove lineage.",
+    next: "Use the Barn, Fields, Nursery, or Breeding room to ready a helper.",
+  },
+  "chapter7_travel_brindlewood": {
+    where: "Regions",
+    action: "Use in-world region travel to Brindlewood Road.",
+    next: "Open Regions and travel to Brindlewood Road.",
+  },
+  "chapter7_scout_road": {
+    where: "Brindlewood Road",
+    action: "Perform Scout the Road from the Brindlewood Road actions.",
+    next: "Travel to Brindlewood Road, then scout the route.",
+  },
+  "chapter7_complete_road_service": {
+    where: "Brindlewood Road",
+    action: "Perform Deliver Road Supplies or Courier Check.",
+    next: "Complete a practical road service action for Wayfarer Dispatch.",
+  },
+  "chapter7_return_road_report": {
+    where: "Brindlewood Road",
+    action: "Perform the road report step through Gather Road Rumor.",
+    next: "Return the report so the first outside assignment has a written close.",
+  },
+  "chapter7_wayfarer_recognition": {
+    where: "Brindlewood Road or Factions",
+    action: "Complete the Road Ledger Route report or earn enough Wayfarer recognition.",
+    next: "Finish the Brindlewood report and check Wayfarer standing.",
+  },
 };
 
 const FACTION_INFLUENCE: Record<string, string> = {
-  wayfarer_dispatch: "Complete The Road Ledger, prove ranch reliability, use town travel routes, and complete Chapter 6 route work.",
+  wayfarer_dispatch: "Complete The Road Ledger, prove ranch reliability, travel to Brindlewood Road, and complete Road Work assignments.",
   velvet_market_ring: "Prepare quality goods, sell through Selene, complete market-facing deliveries, and send Chapter 6 market signals.",
   guild_hall_circle: "Use guild travel, complete civic work, acknowledge A Wider Invitation, and prepare for formal assignments.",
 };
 
 const REGION_IMPORTANCE: Record<string, string> = {
   homefold_valley: "Your current home loop: ranch work, town relationships, market services, and guild access.",
-  brindlewood_road: "The first road beyond town, positioned for courier jobs, inspections, and Chapter 6's route-facing proof.",
+  brindlewood_road: "The first road beyond town, positioned for courier jobs, inspections, Chapter 6's route-facing proof, and Chapter 7's Road Work assignment.",
   silvergrain_exchange: "A premium market destination tied to Selene, private buyers, higher-stakes goods, and Chapter 6's first route charter.",
 };
 

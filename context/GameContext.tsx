@@ -372,7 +372,14 @@ type FieldActionReport = {
   details: string[];
 };
 
-type MainStoryChapterId = "chapter_1" | "chapter_2" | "chapter_3" | "chapter_4" | "chapter_5" | "chapter_6";
+type MainStoryChapterId =
+  | "chapter_1"
+  | "chapter_2"
+  | "chapter_3"
+  | "chapter_4"
+  | "chapter_5"
+  | "chapter_6"
+  | "chapter_7";
 
 type MainStoryObjectiveId =
   | "ranch_creature_care"
@@ -410,7 +417,15 @@ type MainStoryObjectiveId =
   | "chapter6_route_goods"
   | "chapter6_creature_lineage_proof"
   | "chapter6_town_registration"
-  | "chapter6_world_route_confirmed";
+  | "chapter6_world_route_confirmed"
+  | "chapter7_road_brief"
+  | "chapter7_prepare_road_supplies"
+  | "chapter7_ready_creature_helper"
+  | "chapter7_travel_brindlewood"
+  | "chapter7_scout_road"
+  | "chapter7_complete_road_service"
+  | "chapter7_return_road_report"
+  | "chapter7_wayfarer_recognition";
 
 type MainStoryReward = {
   title: string;
@@ -1265,12 +1280,105 @@ const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
         { factionId: "velvet_market_ring", amount: 10, standing: "warm" },
         { factionId: "guild_hall_circle", amount: 15, standing: "warm" },
       ],
-      unlockRegions: ["silvergrain_exchange"],
+      unlockRegions: ["brindlewood_road", "silvergrain_exchange"],
       unlockText:
         "Chapter 7 lead: choose whether the next route deepens toward road dispatch, market pressure, guild inspection, or a personal ally's private terms.",
     },
     nextChapterHint:
-      "Chapter 7 should pause for a stronger branch layer: route preference, faction pressure, and regional assignment selection should become explicit before the next chapter begins.",
+      "Chapter 7 follows the Wayfarer Dispatch onto Brindlewood Road for the ranch's first real outside assignment.",
+    nextChapterId: "chapter_7",
+  },
+  chapter_7: {
+    id: "chapter_7",
+    chapterNumber: 7,
+    title: "Road Work",
+    subtitle: "The ranch proves itself on Brindlewood Road.",
+    summary:
+      "Chapter 7 turns the first route signal into a real assignment. The player personally answers the Wayfarer Dispatch, prepares supplies and a creature-backed proof, travels to Brindlewood Road, handles the first service work, and returns with a report that makes the ranch's outside reputation harder to ignore.",
+    objectives: [
+      {
+        id: "chapter7_road_brief",
+        title: "Road Brief",
+        description:
+          "Review or acknowledge the Wayfarer Dispatch assignment through the Story Journal, Quest Log, Factions, Town, or Regions. The road wants your attention before it wants your creatures.",
+        locationHint: "home",
+        completionFlag: "chapter7_road_brief",
+        rewardPreview: "This starts Chapter 7's direct player-led road assignment without locking you permanently to the Wayfarers.",
+      },
+      {
+        id: "chapter7_prepare_road_supplies",
+        title: "Prepare Road Supplies",
+        description:
+          "Prepare something practical for the road: cook, harvest, plant, water, fertilize, or hold simple food or crop supplies such as wheat or bread.",
+        locationHint: "ranch",
+        completionFlag: "chapter7_prepare_road_supplies",
+      },
+      {
+        id: "chapter7_ready_creature_helper",
+        title: "Ready a Creature Helper",
+        description:
+          "Prove a creature is fit to support outside work through care, recovery, creature-assisted field work, breeding or lineage proof, or another creature-backed ranch task.",
+        locationHint: "ranch",
+        completionFlag: "chapter7_ready_creature_helper",
+      },
+      {
+        id: "chapter7_travel_brindlewood",
+        title: "Travel to Brindlewood Road",
+        description:
+          "Use in-world region travel to reach Brindlewood Road. Global navigation is free, but this route costs time and marks the assignment as real.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter7_travel_brindlewood",
+      },
+      {
+        id: "chapter7_scout_road",
+        title: "Scout the Road",
+        description:
+          "Use Brindlewood Road's Scout the Road action to read the route, mark quiet trouble spots, and move the Road Ledger Route task chain.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter7_scout_road",
+      },
+      {
+        id: "chapter7_complete_road_service",
+        title: "Complete Road Service",
+        description:
+          "Complete a practical Brindlewood service action such as Deliver Road Supplies or Courier Check. The Dispatch needs proof that your ranch can do more than arrive pretty.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter7_complete_road_service",
+      },
+      {
+        id: "chapter7_return_road_report",
+        title: "Return Road Report",
+        description:
+          "Use the road report step on Brindlewood Road to bring back what the route whispered and close the first assignment loop.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter7_return_road_report",
+      },
+      {
+        id: "chapter7_wayfarer_recognition",
+        title: "Wayfarer Recognition",
+        description:
+          "Confirm that Wayfarer Dispatch accepts the ranch's first outside assignment through road report completion, faction progress, or the Road Ledger Route chain.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter7_wayfarer_recognition",
+        rewardPreview: "Chapter reward: 420 Gold, Basic Fertilizer x2, Bread x2, Wayfarer reputation, and a lead toward creature road dispatch discussions.",
+      },
+    ],
+    completionReward: {
+      title: "Road Work Recognition",
+      description:
+        "The Wayfarer Dispatch accepts the report with a look that lingers just long enough to feel like trust. Your ranch is no longer a charming local rumor; it is a name the road can hand work to.",
+      gold: 420,
+      items: [
+        { itemId: "basic_fertilizer", quantity: 2 },
+        { itemId: "bread", quantity: 2 },
+      ],
+      factionReputation: [{ factionId: "wayfarer_dispatch", amount: 18, standing: "trusted" }],
+      unlockRegions: [],
+      unlockText:
+        "Creature road dispatch assignments are now being discussed. Chapter 8 can choose between automated creature dispatch, a Silvergrain Exchange market route, or the first road incident system.",
+    },
+    nextChapterHint:
+      "Chapter 8 should pause for the next road system: creature road dispatch, a sharper Brindlewood incident layer, or the Silvergrain Exchange trade route.",
   },
 };
 
@@ -1515,7 +1623,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     rewardGold: 12,
     rewardItems: [{ itemId: "wheat", quantity: 1 }],
     regionTaskStepIds: ["homefold-home-rhythm:town-facing-action"],
-    storyFlags: ["chapter6_town_registration", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_town_registration", "chapter6_world_route_confirmed", "chapter7_road_brief"],
   },
   {
     id: "homefold-map-table",
@@ -1526,7 +1634,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     timeCostMinutes: 15,
     outcome: "Confirms the World Map route state for Chapter 6.",
     regionTaskStepIds: ["homefold-home-rhythm:review-story-journal"],
-    storyFlags: ["chapter6_wider_invitation", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_wider_invitation", "chapter6_world_route_confirmed", "chapter7_road_brief"],
   },
   {
     id: "homefold-home-check",
@@ -1538,7 +1646,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "Homefold's rhythm steadies: the ranch knows what needs care before the next outside push.",
     rewardGold: 4,
     regionTaskStepIds: ["homefold-home-rhythm:check-home-status"],
-    storyFlags: ["chapter6_wider_invitation"],
+    storyFlags: ["chapter6_wider_invitation", "chapter7_road_brief"],
   },
   {
     id: "homefold-ranch-room-pass",
@@ -1550,7 +1658,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     outcome: "The home loop tightens into practical readiness for outside assignments.",
     rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
     regionTaskStepIds: ["homefold-home-rhythm:use-ranch-room"],
-    storyFlags: ["chapter6_route_goods"],
+    storyFlags: ["chapter6_route_goods", "chapter7_prepare_road_supplies", "chapter7_ready_creature_helper"],
   },
   {
     id: "brindlewood-scout-road",
@@ -1564,7 +1672,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 4 }],
     factionChainStepIds: ["wayfarer-road-ledger-route:road-scout"],
     regionTaskStepIds: ["brindlewood-road-chain:scout-road"],
-    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed", "chapter7_scout_road"],
   },
   {
     id: "brindlewood-deliver-supplies",
@@ -1579,7 +1687,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 4 }],
     factionChainStepIds: ["wayfarer-road-ledger-route:supply-run"],
     regionTaskStepIds: ["brindlewood-road-chain:deliver-supplies"],
-    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed", "chapter7_prepare_road_supplies", "chapter7_complete_road_service"],
   },
   {
     id: "brindlewood-courier-check",
@@ -1594,7 +1702,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionChainStepIds: ["wayfarer-road-ledger-route:courier-check"],
     regionTaskStepIds: ["brindlewood-road-chain:courier-check"],
     authoredQuestObjectives: [{ questId: "chapter-six-support-slot", objectiveId: "choose-first-outer-thread" }],
-    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed", "chapter7_complete_road_service"],
   },
   {
     id: "brindlewood-road-rumor",
@@ -1608,7 +1716,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 2 }],
     regionTaskStepIds: ["brindlewood-road-chain:return-report"],
-    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed", "chapter7_return_road_report", "chapter7_wayfarer_recognition"],
   },
   {
     id: "silvergrain-market-inspection",
@@ -1682,7 +1790,7 @@ const defaultAuthoredQuestProgressActions: AuthoredQuestProgressAction[] = [
     where: "Quest Log or Brindlewood Road",
     timeCostMinutes: 20,
     outcome: "The Dispatch accepts your ranch work as road-ready proof.",
-    storyFlags: ["chapter6_quest_log_review", "chapter6_faction_signal"],
+    storyFlags: ["chapter6_quest_log_review", "chapter6_faction_signal", "chapter7_road_brief", "chapter7_prepare_road_supplies"],
   },
   {
     id: "confirm-town-route-proof",
@@ -1694,7 +1802,7 @@ const defaultAuthoredQuestProgressActions: AuthoredQuestProgressAction[] = [
     where: "Quest Log or Town Work",
     timeCostMinutes: 25,
     outcome: "The Wayfarer route ledger records your town-facing proof.",
-    storyFlags: ["chapter6_town_registration", "chapter6_faction_signal", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_town_registration", "chapter6_faction_signal", "chapter6_world_route_confirmed", "chapter7_road_brief"],
   },
   {
     id: "submit-private-stock",
@@ -2158,17 +2266,26 @@ function normalizeFactions(savedFactions?: WorldFaction[]): WorldFaction[] {
   });
 }
 
-function normalizeWorldRegions(savedRegions?: WorldRegion[]): WorldRegion[] {
+function normalizeWorldRegions(savedRegions?: WorldRegion[], mainStoryState?: MainStoryState): WorldRegion[] {
   const savedById = new Map(
     Array.isArray(savedRegions) ? savedRegions.map((region) => [region.id, region]) : []
   );
+  const chapterSixComplete = isChapterCompletedForGate(mainStoryState, "chapter_6");
 
   return defaultWorldRegions.map((region) => {
     const saved = savedById.get(region.id);
+    const shouldOpenForStory = chapterSixComplete && region.id === "brindlewood_road";
 
     return {
       ...region,
-      status: isWorldSupportStatus(saved?.status) ? saved.status : region.status,
+      status: shouldOpenForStory ? "available" : isWorldSupportStatus(saved?.status) ? saved.status : region.status,
+      unlockCondition: shouldOpenForStory ? "Unlocked through the first route charter." : region.unlockCondition,
+      access: shouldOpenForStory
+        ? {
+            ...region.access,
+            requirement: "Available. The route is open for Chapter 7 road work.",
+          }
+        : region.access,
     };
   });
 }
@@ -3894,7 +4011,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setMainStory(normalizedMainStory);
         setAuthoredQuests(normalizeAuthoredQuests(parsedSave.authoredQuests, normalizedMainStory));
         setFactions(normalizeFactions(parsedSave.factions));
-        const normalizedRegions = normalizeWorldRegions(parsedSave.worldRegions);
+        const normalizedRegions = normalizeWorldRegions(parsedSave.worldRegions, normalizedMainStory);
         const normalizedCurrentRegionId = normalizeCurrentRegionId(parsedSave.currentRegionId, normalizedRegions);
         setWorldRegions(normalizedRegions);
         setCurrentRegionId(normalizedCurrentRegionId);
@@ -4116,6 +4233,41 @@ useEffect(() => {
     completedRewards.forEach(applyAuthoredQuestReward);
   }
 
+  function getDerivedMainStoryFlagsForChapter(chapterId: MainStoryChapterId): MainStoryObjectiveId[] {
+    if (chapterId !== "chapter_7") return [];
+
+    const brindlewoodChain = regionTaskChains.find((chain) => chain.chainId === "brindlewood-road-chain");
+    const completedRoadSteps = new Set(brindlewoodChain?.completedStepIds ?? []);
+    const hasRoadSupplies =
+      homeState.foodStock > 0 ||
+      homeState.wheatStock > 0 ||
+      (inventory.wheat ?? 0) > 0 ||
+      (inventory.bread ?? 0) > 0 ||
+      (inventory.porridge ?? 0) > 0;
+    const hasReadyCreature = creatures.some(
+      (creature) => creature.happiness >= 45 && creature.breedingStamina > 0
+    );
+    const wayfarer = factions.find((faction) => faction.id === "wayfarer_dispatch");
+
+    return [
+      hasRoadSupplies ? "chapter7_prepare_road_supplies" : null,
+      hasReadyCreature ? "chapter7_ready_creature_helper" : null,
+      visitedRegionIds.includes("brindlewood_road") || currentRegionId === "brindlewood_road"
+        ? "chapter7_travel_brindlewood"
+        : null,
+      completedRoadSteps.has("scout-road") ? "chapter7_scout_road" : null,
+      completedRoadSteps.has("deliver-supplies") || completedRoadSteps.has("courier-check")
+        ? "chapter7_complete_road_service"
+        : null,
+      completedRoadSteps.has("return-report") ? "chapter7_return_road_report" : null,
+      completedRoadSteps.has("return-report") ||
+      brindlewoodChain?.status === "completed" ||
+      (wayfarer?.reputation ?? 0) >= 40
+        ? "chapter7_wayfarer_recognition"
+        : null,
+    ].filter((flag): flag is MainStoryObjectiveId => Boolean(flag));
+  }
+
   function grantMainStoryReward(reward: MainStoryReward) {
     if (reward.gold > 0) {
       setPlayerData((prev) => ({ ...prev, gold: prev.gold + reward.gold }));
@@ -4150,12 +4302,18 @@ useEffect(() => {
     const chapter = activeChapterComplete && activeChapter.nextChapterId
       ? getMainStoryChapter(activeChapter.nextChapterId)
       : activeChapter;
-    const baseFlags = mainStory.chapterProgressFlags;
+    const derivedFlags = getDerivedMainStoryFlagsForChapter(chapter.id);
+    const baseFlags = { ...mainStory.chapterProgressFlags };
+    derivedFlags.forEach((flag) => {
+      baseFlags[flag] = true;
+    });
     const chapterFlags = new Set(chapter.objectives.map((objective) => objective.completionFlag));
-    const newFlags = flags.filter(
+    const requestedFlags = Array.from(new Set([...flags, ...derivedFlags]));
+    const newFlags = requestedFlags.filter(
       (flag) => chapterFlags.has(flag) && !baseFlags[flag]
     );
-    if (newFlags.length === 0) return;
+    const derivedFlagsChanged = derivedFlags.some((flag) => !mainStory.chapterProgressFlags[flag]);
+    if (newFlags.length === 0 && !derivedFlagsChanged) return;
 
     const nextFlags = { ...baseFlags };
     newFlags.forEach((flag) => {
@@ -4218,12 +4376,12 @@ useEffect(() => {
 
   function acknowledgeStoryJournalSection(section: "story" | "quests" | "factions" | "world") {
     if (section === "story") {
-      recordMainStoryFlag("chapter6_wider_invitation");
+      recordMainStoryFlags(["chapter6_wider_invitation", "chapter7_road_brief"]);
       return;
     }
 
     if (section === "quests") {
-      recordMainStoryFlags(["chapter6_quest_log_review"]);
+      recordMainStoryFlags(["chapter6_quest_log_review", "chapter7_road_brief"]);
       recordAuthoredQuestObjectives([
         { questId: "chapter-six-support-slot", objectiveId: "choose-first-outer-thread" },
       ]);
@@ -4231,12 +4389,12 @@ useEffect(() => {
     }
 
     if (section === "factions") {
-      recordMainStoryFlag("chapter6_faction_signal");
+      recordMainStoryFlags(["chapter6_faction_signal", "chapter7_road_brief"]);
       return;
     }
 
     if (section === "world") {
-      recordMainStoryFlag("chapter6_world_route_confirmed");
+      recordMainStoryFlags(["chapter6_world_route_confirmed", "chapter7_road_brief"]);
     }
   }
 
@@ -4363,7 +4521,10 @@ useEffect(() => {
     });
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
-    recordMainStoryFlag("chapter6_world_route_confirmed");
+    recordMainStoryFlags([
+      "chapter6_world_route_confirmed",
+      ...(region.id === "brindlewood_road" ? (["chapter7_travel_brindlewood"] as MainStoryObjectiveId[]) : []),
+    ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
   }
@@ -4689,6 +4850,7 @@ useEffect(() => {
       "chapter4_creature_growth_work",
       "chapter5_creature_backed_proof",
       "chapter6_creature_lineage_proof",
+      "chapter7_ready_creature_helper",
     ]);
     return newCreature;
   }
@@ -4805,6 +4967,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_ranch_commission_prep",
       "chapter5_creature_backed_proof",
       "chapter6_creature_lineage_proof",
+      "chapter7_ready_creature_helper",
       ...(careType === "recovery" ? (["chapter4_breeding_preparation"] as MainStoryObjectiveId[]) : []),
     ]);
 }
@@ -4877,7 +5040,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
         })
       );
 
-      recordMainStoryFlags(["chapter4_breeding_preparation", "chapter5_creature_backed_proof"]);
+      recordMainStoryFlags(["chapter4_breeding_preparation", "chapter5_creature_backed_proof", "chapter7_ready_creature_helper"]);
       return;
     }
 
@@ -4975,7 +5138,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     };
 
     setEggs((prev) => [...prev, newEgg]);
-    recordMainStoryFlags([...breedingStoryFlags, "chapter4_lineage_step"]);
+    recordMainStoryFlags([...breedingStoryFlags, "chapter4_lineage_step", "chapter7_ready_creature_helper"]);
   }
 
   function renameCreature(creatureId: number, newNickname: string) {
@@ -5015,6 +5178,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_creature_backed_proof",
       "chapter5_regional_notice",
       "chapter6_creature_lineage_proof",
+      "chapter7_ready_creature_helper",
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
   }
@@ -5929,6 +6093,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_creature_backed_proof",
       "chapter6_route_goods",
       "chapter6_creature_lineage_proof",
+      "chapter7_prepare_road_supplies",
+      "chapter7_ready_creature_helper",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -5993,6 +6159,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_creature_backed_proof",
       "chapter6_route_goods",
       "chapter6_creature_lineage_proof",
+      "chapter7_prepare_road_supplies",
+      "chapter7_ready_creature_helper",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -6074,6 +6242,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_creature_backed_proof",
       "chapter6_route_goods",
       "chapter6_creature_lineage_proof",
+      "chapter7_prepare_road_supplies",
+      "chapter7_ready_creature_helper",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -6141,6 +6311,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_creature_backed_proof",
       "chapter6_route_goods",
       "chapter6_creature_lineage_proof",
+      "chapter7_prepare_road_supplies",
+      "chapter7_ready_creature_helper",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -6207,6 +6379,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_creature_backed_proof",
       "chapter6_route_goods",
       "chapter6_creature_lineage_proof",
+      "chapter7_prepare_road_supplies",
+      "chapter7_ready_creature_helper",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -6285,6 +6459,8 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter5_significant_goods",
       "chapter6_route_goods",
       "chapter6_creature_lineage_proof",
+      "chapter7_prepare_road_supplies",
+      "chapter7_ready_creature_helper",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -6458,6 +6634,8 @@ function cookRecipe(recipeId: string, creatureId: number) {
     "chapter5_significant_goods",
     "chapter6_route_goods",
     "chapter6_creature_lineage_proof",
+    "chapter7_prepare_road_supplies",
+    "chapter7_ready_creature_helper",
   ]);
   recordAuthoredQuestObjectives([
     { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
