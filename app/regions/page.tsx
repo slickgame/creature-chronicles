@@ -22,6 +22,33 @@ function formatClock(day: number, hour: number, minute: number) {
   return `Day ${day}, ${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
 }
 
+function getRegionActionDisabledReason({
+  currentRegionId,
+  regionId,
+  regionName,
+  actionId,
+  taskChain,
+}: {
+  currentRegionId: string;
+  regionId: string;
+  regionName: string;
+  actionId: string;
+  taskChain?: ReturnType<typeof useGame>["regionTaskChains"][number];
+}) {
+  if (currentRegionId !== regionId) return `Travel to ${regionName} first.`;
+  if (!taskChain) return undefined;
+
+  const actionStep = taskChain.steps.find((step) => step.actionId === actionId);
+  if (!actionStep) return undefined;
+  if (taskChain.completedStepIds.includes(actionStep.id)) return `${actionStep.title} is already recorded.`;
+  if (taskChain.currentStepId !== actionStep.id) {
+    const currentStep = taskChain.steps.find((step) => step.id === taskChain.currentStepId);
+    return currentStep ? `Current chain step: ${currentStep.title}.` : taskChain.nextHint;
+  }
+
+  return undefined;
+}
+
 export default function RegionsPage() {
   const {
     currentDay,
@@ -96,6 +123,13 @@ export default function RegionsPage() {
                 <p className="mt-2"><strong>Access:</strong> {firstOutsideRegion.access.requirement}</p>
                 <p className="mt-2"><strong>Route:</strong> {firstOutsideRegion.access.route}</p>
                 <p className="mt-2"><strong>Travel time:</strong> {firstOutsideRegion.access.travelMinutes} minutes</p>
+                <p className="mt-2"><strong>Role:</strong> {firstOutsideRegion.gameplayRole}</p>
+                <p className="mt-2"><strong>Specialty:</strong> {firstOutsideRegion.regionSpecialty}</p>
+                <p className="mt-2"><strong>Mechanic:</strong> {firstOutsideRegion.uniqueMechanicSummary}</p>
+                <p className="mt-2"><strong>Loop:</strong> {firstOutsideRegion.repeatableLoopSummary}</p>
+                <p className="mt-2"><strong>Preparation:</strong> {firstOutsideRegion.preparationHint}</p>
+                <p className="mt-2"><strong>Rewards:</strong> {formatWorldList(firstOutsideRegion.uniqueRewardHooks)}</p>
+                <p className="mt-2"><strong>Risk / cost:</strong> {firstOutsideRegion.riskOrCostSummary}</p>
                 <p className="mt-2"><strong>Factions:</strong> {formatWorldList(firstOutsideRegion.factionHooks)}</p>
                 <p className="mt-2"><strong>Authored quests:</strong> {formatWorldList(firstOutsideRegion.questHooks)}</p>
                 {firstOutsideTaskChain ? (
@@ -148,7 +182,13 @@ export default function RegionsPage() {
                           targetLabel="Region"
                           cost={`${action.timeCostMinutes} minutes`}
                           outcome={action.outcome}
-                          disabledReason={currentRegionId === firstOutsideRegion.id ? undefined : `Travel to ${firstOutsideRegion.name} first.`}
+                          disabledReason={getRegionActionDisabledReason({
+                            currentRegionId,
+                            regionId: firstOutsideRegion.id,
+                            regionName: firstOutsideRegion.name,
+                            actionId: action.id,
+                            taskChain: firstOutsideTaskChain,
+                          })}
                           buttonLabel="Do Action"
                           onAction={() => performRegionAction(firstOutsideRegion.id, action.id)}
                           tone="emerald"
@@ -200,9 +240,18 @@ export default function RegionsPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       <GameStatChip label="Travel" value={`${region.access.travelMinutes}m`} />
                       <GameStatChip label="Actions" value={actions.length} />
+                      <GameStatChip label="Role" value={region.gameplayRole} />
+                      <GameStatChip label="Specialty" value={region.regionSpecialty} />
                       {taskChain ? <GameStatChip label="Task Chain" value={`${taskChain.completedStepIds.length}/${taskChain.steps.length}`} /> : null}
                     </div>
                     <div className="mt-3 space-y-1 text-xs text-stone-700">
+                      <p><strong>Primary faction:</strong> {region.primaryFactionId ? formatWorldLabel(region.primaryFactionId) : "Local"}</p>
+                      <p><strong>Unique mechanic:</strong> {region.uniqueMechanicSummary}</p>
+                      <p><strong>Repeatable loop:</strong> {region.repeatableLoopSummary}</p>
+                      <p><strong>Preparation:</strong> {region.preparationHint}</p>
+                      <p><strong>Unique rewards:</strong> {formatWorldList(region.uniqueRewardHooks)}</p>
+                      <p><strong>Risk / cost:</strong> {region.riskOrCostSummary}</p>
+                      <p><strong>Future hook:</strong> {region.futureUnlockHint}</p>
                       <p><strong>Access:</strong> {region.access.requirement}</p>
                       <p><strong>Factions:</strong> {formatWorldList(region.factionHooks)}</p>
                       <p><strong>Quests:</strong> {formatWorldList(region.questHooks)}</p>
@@ -215,14 +264,42 @@ export default function RegionsPage() {
                         Unlock: {region.unlockCondition}
                       </p>
                     ) : (
-                      <button
-                        type="button"
-                        disabled={isCurrent}
-                        onClick={() => travelToRegion(region.id)}
-                        className={`mt-4 min-h-11 w-full rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ${isCurrent ? "bg-stone-400" : "bg-teal-700"}`}
-                      >
-                        {isCurrent ? "Current Region" : `Travel ${region.access.travelMinutes}m`}
-                      </button>
+                      <div className="mt-4 space-y-3">
+                        <button
+                          type="button"
+                          disabled={isCurrent}
+                          onClick={() => travelToRegion(region.id)}
+                          className={`min-h-11 w-full rounded-xl px-4 py-2 text-sm font-semibold text-white shadow ${isCurrent ? "bg-stone-400" : "bg-teal-700"}`}
+                        >
+                          {isCurrent ? "Current Region" : `Travel ${region.access.travelMinutes}m`}
+                        </button>
+                        <div className="grid gap-2">
+                          {actions.length === 0 ? (
+                            <GameEmptyState>No local actions available yet.</GameEmptyState>
+                          ) : (
+                            actions.map((action) => (
+                              <GameActionCard
+                                key={action.id}
+                                title={action.title}
+                                performer={region.name}
+                                targetLabel="Region"
+                                cost={`${action.timeCostMinutes} minutes`}
+                                outcome={action.outcome}
+                                disabledReason={getRegionActionDisabledReason({
+                                  currentRegionId,
+                                  regionId: region.id,
+                                  regionName: region.name,
+                                  actionId: action.id,
+                                  taskChain,
+                                })}
+                                buttonLabel="Do Action"
+                                onAction={() => performRegionAction(region.id, action.id)}
+                                tone="emerald"
+                              />
+                            ))
+                          )}
+                        </div>
+                      </div>
                     )}
                   </GameCard>
                 );

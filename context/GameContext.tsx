@@ -538,6 +538,15 @@ type WorldRegion = {
   id: string;
   name: string;
   description: string;
+  gameplayRole: string;
+  primaryFactionId?: string;
+  regionSpecialty: string;
+  uniqueMechanicSummary: string;
+  repeatableLoopSummary: string;
+  preparationHint: string;
+  uniqueRewardHooks: string[];
+  riskOrCostSummary: string;
+  futureUnlockHint: string;
   unlockCondition: string;
   access: {
     travelMinutes: number;
@@ -649,6 +658,8 @@ type RegionTaskChain = {
   status: ChainStatus;
   requirements: string[];
   rewardSummary: string;
+  factionConsequence: string;
+  regionUnlockConsequence?: string;
   factionId?: string;
   nextHint: string;
   steps: RegionTaskChainStep[];
@@ -1423,6 +1434,15 @@ const defaultWorldRegions: WorldRegion[] = [
     name: "Homefold Valley",
     description:
       "The familiar ranch-town basin: warm fields, busy counters, and enough flirtatious local trouble to keep the days from behaving.",
+    gameplayRole: "Home base",
+    primaryFactionId: "guild_hall_circle",
+    regionSpecialty: "Ranch and town management",
+    uniqueMechanicSummary: "Keeps the core ranch, town, relationship, and journal loop legible before the world pulls wider.",
+    repeatableLoopSummary: "Check home pressure, use a Ranch room, handle town work, then review the current story or journal.",
+    preparationHint: "Keep food, cleanliness, creature mood, and town work steady before spending long hours outside.",
+    uniqueRewardHooks: ["home rhythm support", "basic supplies", "story comfort"],
+    riskOrCostSummary: "No travel cost, but local chores still spend action time through their canonical screens.",
+    futureUnlockHint: "Future chapters can turn home stability into bonuses before outside assignments.",
     unlockCondition: "Unlocked from the start.",
     access: {
       travelMinutes: 0,
@@ -1438,6 +1458,15 @@ const defaultWorldRegions: WorldRegion[] = [
     name: "Brindlewood Road",
     description:
       "A trade road beyond the immediate town loop, known for courier work, nervous inspections, and moonlit stops where people say too much.",
+    gameplayRole: "First outside route",
+    primaryFactionId: "wayfarer_dispatch",
+    regionSpecialty: "Scouting, courier checks, and supply runs",
+    uniqueMechanicSummary: "Turns ranch preparedness into road credibility through visible Wayfarer task-chain progress.",
+    repeatableLoopSummary: "Prepare goods at the ranch, travel to the road, complete a Wayfarer action, and bring back a report.",
+    preparationHint: "Bring wheat or basic supplies when possible, and keep enough time open for the long road.",
+    uniqueRewardHooks: ["road supplies", "Wayfarer reputation", "travel discount hook", "courier pay"],
+    riskOrCostSummary: "Long travel time and supply pressure; some actions pay less if you arrive empty-handed.",
+    futureUnlockHint: "Strong enough to become Chapter 7's first real outside assignment route.",
     unlockCondition: "Complete The Road Ledger for the Wayfarer Dispatch.",
     access: {
       travelMinutes: 90,
@@ -1453,6 +1482,15 @@ const defaultWorldRegions: WorldRegion[] = [
     name: "Silvergrain Exchange",
     description:
       "A larger market district where premium crops, cooked goods, and private reputations can open doors the public boards never mention.",
+    gameplayRole: "Premium trade destination",
+    primaryFactionId: "velvet_market_ring",
+    regionSpecialty: "Quality goods, price rumors, and buyer samples",
+    uniqueMechanicSummary: "Converts quality production and market confidence into Velvet reputation and premium buyer hooks.",
+    repeatableLoopSummary: "Prepare high-quality goods, travel with a sample, inspect demand, meet buyer contacts, and record price rumors.",
+    preparationHint: "Bring produce, cooked goods, or a strong market sale history before chasing private buyers.",
+    uniqueRewardHooks: ["premium sale info", "Velvet reputation", "rare seed hook", "recipe hook", "premium buyer hook"],
+    riskOrCostSummary: "High travel time and quality expectations; weak samples still teach you the market but pay modestly.",
+    futureUnlockHint: "Prepared for a later trade route, premium board, or Chapter 8 market branch.",
     unlockCondition: "Prepared for market faction expansion.",
     access: {
       travelMinutes: 120,
@@ -1475,6 +1513,8 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     timeCostMinutes: 30,
     outcome: "Earn a little gold and reaffirm Homefold Valley as the ranch's local base.",
     rewardGold: 12,
+    rewardItems: [{ itemId: "wheat", quantity: 1 }],
+    regionTaskStepIds: ["homefold-home-rhythm:town-facing-action"],
     storyFlags: ["chapter6_town_registration", "chapter6_world_route_confirmed"],
   },
   {
@@ -1485,7 +1525,32 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
       "Lay out the local route notes and decide which invitation deserves your next careful smile.",
     timeCostMinutes: 15,
     outcome: "Confirms the World Map route state for Chapter 6.",
+    regionTaskStepIds: ["homefold-home-rhythm:review-story-journal"],
     storyFlags: ["chapter6_wider_invitation", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "homefold-home-check",
+    regionId: "homefold_valley",
+    title: "Check Home Status",
+    description:
+      "Walk the house, barn edge, and pantry with a soft little inventory of what needs attention before the world gets demanding.",
+    timeCostMinutes: 10,
+    outcome: "Homefold's rhythm steadies: the ranch knows what needs care before the next outside push.",
+    rewardGold: 4,
+    regionTaskStepIds: ["homefold-home-rhythm:check-home-status"],
+    storyFlags: ["chapter6_wider_invitation"],
+  },
+  {
+    id: "homefold-ranch-room-pass",
+    regionId: "homefold_valley",
+    title: "Use a Ranch Room",
+    description:
+      "Count a focused pass through the House, Fields, Barn, Nursery, or Breeding room as Homefold preparation.",
+    timeCostMinutes: 20,
+    outcome: "The home loop tightens into practical readiness for outside assignments.",
+    rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
+    regionTaskStepIds: ["homefold-home-rhythm:use-ranch-room"],
+    storyFlags: ["chapter6_route_goods"],
   },
   {
     id: "brindlewood-scout-road",
@@ -1540,6 +1605,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     timeCostMinutes: 35,
     outcome: "Small gold, road flavor, and a softer Wayfarer signal.",
     rewardGold: 10,
+    rewardItems: [{ itemId: "basic_fertilizer", quantity: 1 }],
     factionReputation: [{ factionId: "wayfarer_dispatch", amount: 2 }],
     regionTaskStepIds: ["brindlewood-road-chain:return-report"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
@@ -1559,9 +1625,25 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
   {
+    id: "silvergrain-submit-premium-sample",
+    regionId: "silvergrain_exchange",
+    title: "Submit Premium Sample",
+    description:
+      "Place a careful sample where the right eyes can find it, and let the Market Ring decide whether it wants another taste.",
+    timeCostMinutes: 45,
+    outcome: "A premium sample earns Velvet attention, market money, and a sharper buyer lead.",
+    rewardGold: 38,
+    rewardItems: [{ itemId: "berry_seed", quantity: 1 }],
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 5 }],
+    factionChainStepIds: ["velvet-private-goods-channel:premium-sample"],
+    regionTaskStepIds: ["silvergrain-exchange-chain:prepare-premium-sample"],
+    authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "prepare-private-stock" }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_route_goods", "chapter6_world_route_confirmed"],
+  },
+  {
     id: "silvergrain-buyer-introduction",
     regionId: "silvergrain_exchange",
-    title: "Buyer Introduction",
+    title: "Meet Buyer Contact",
     description:
       "Accept a careful introduction to a private buyer whose smile has teeth and whose purse is heavier than polite.",
     timeCostMinutes: 60,
@@ -1576,14 +1658,15 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
   {
     id: "silvergrain-price-rumor",
     regionId: "silvergrain_exchange",
-    title: "Collect a Price Rumor",
+    title: "Record Price Rumor",
     description:
       "Listen where the ledgers close softly and learn which goods are about to make someone blushingly rich.",
     timeCostMinutes: 30,
     outcome: "Earn a small market tip and Velvet Market attention.",
     rewardGold: 16,
+    rewardItems: [{ itemId: "carrot_seed", quantity: 1 }],
     factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
-    regionTaskStepIds: ["silvergrain-exchange-chain:prepare-premium-sample"],
+    regionTaskStepIds: ["silvergrain-exchange-chain:record-price-rumor"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
 ];
@@ -1700,8 +1783,8 @@ const defaultFactionQuestChains: FactionQuestChain[] = [
     status: "available",
     requirements: ["Progress Velvet Market Introduction", "Unlock or prepare Silvergrain Exchange"],
     rewardSummary: "Velvet Market reputation, buyer introductions, and future premium route hooks.",
-    factionReputationReward: 16,
-    nextHint: "Inspect market demand, prepare a premium sample, then make a buyer introduction.",
+    factionReputationReward: 18,
+    nextHint: "Inspect market demand, submit a premium sample, then meet a buyer contact.",
     steps: [
       {
         id: "inspect-demand",
@@ -1711,9 +1794,16 @@ const defaultFactionQuestChains: FactionQuestChain[] = [
         nextHint: "Use Silvergrain Exchange once it opens.",
       },
       {
+        id: "premium-sample",
+        title: "Submit premium sample",
+        requirement: "Perform Submit Premium Sample at Silvergrain Exchange.",
+        reputationReward: 5,
+        nextHint: "Place a sample good enough to make the private tables notice.",
+      },
+      {
         id: "buyer-introduction",
-        title: "Make buyer introduction",
-        requirement: "Perform Buyer Introduction at Silvergrain Exchange.",
+        title: "Meet buyer contact",
+        requirement: "Perform Meet Buyer Contact at Silvergrain Exchange.",
         reputationReward: 6,
         nextHint: "Let Selene's circle introduce a private buyer.",
       },
@@ -1746,9 +1836,55 @@ const defaultFactionQuestChains: FactionQuestChain[] = [
 
 const defaultRegionTaskChains: RegionTaskChain[] = [
   {
+    regionId: "homefold_valley",
+    chainId: "homefold-home-rhythm",
+    title: "Home Rhythm",
+    description:
+      "The familiar loop that keeps the ranch steady before outside regions start asking for more.",
+    currentStepId: "check-home-status",
+    completedStepIds: [],
+    status: "available",
+    requirements: ["Stay in Homefold Valley", "Use the canonical Ranch, Town, and Journal screens"],
+    rewardSummary: "Small food, basic supply, and story-comfort rewards that support the daily loop.",
+    factionConsequence: "Light Guild Hall oversight; no faction lock.",
+    regionUnlockConsequence: "Keeps the home base ready for later travel preparation bonuses.",
+    factionId: "guild_hall_circle",
+    nextHint: "Start by checking home status, then use a Ranch room.",
+    steps: [
+      {
+        id: "check-home-status",
+        title: "Check Home Status",
+        requirement: "Perform Check Home Status from Homefold Valley.",
+        actionId: "homefold-home-check",
+        nextHint: "Review cleanliness, stock, and creature count before outside work.",
+      },
+      {
+        id: "use-ranch-room",
+        title: "Use a Ranch Room",
+        requirement: "Perform Use a Ranch Room from Homefold Valley or handle the canonical Ranch room directly.",
+        actionId: "homefold-ranch-room-pass",
+        nextHint: "House, Fields, Barn, Nursery, or Breeding all count as home preparation.",
+      },
+      {
+        id: "town-facing-action",
+        title: "Complete a Town-Facing Action",
+        requirement: "Perform Run Local Errands from Homefold Valley or complete town-facing work.",
+        actionId: "homefold-local-errands",
+        nextHint: "Keep the town side of the home loop warm.",
+      },
+      {
+        id: "review-story-journal",
+        title: "Review Current Story or Journal",
+        requirement: "Perform Review the Map Table from Homefold Valley or open the story journal.",
+        actionId: "homefold-map-table",
+        nextHint: "Check the current route pressure before leaving home.",
+      },
+    ],
+  },
+  {
     regionId: "brindlewood_road",
     chainId: "brindlewood-road-chain",
-    title: "Brindlewood Road Assignment",
+    title: "Road Ledger Route",
     description:
       "A practical road sequence for the first route beyond town: scout, supply, courier, report.",
     currentStepId: "scout-road",
@@ -1756,6 +1892,8 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
     status: "available",
     requirements: ["Open Brindlewood Road", "Travel to Brindlewood Road"],
     rewardSummary: "Wayfarer reputation, modest route pay, and Chapter 7 road readiness.",
+    factionConsequence: "Raises Wayfarer Dispatch reputation and marks the ranch as a credible road partner.",
+    regionUnlockConsequence: "Sets up travel-time discount and road assignment hooks for later chapters.",
     factionId: "wayfarer_dispatch",
     nextHint: "Start with Scout the Road on Brindlewood Road.",
     steps: [
@@ -1799,7 +1937,9 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
     completedStepIds: [],
     status: "available",
     requirements: ["Open Silvergrain Exchange", "Progress Velvet Market Introduction"],
-    rewardSummary: "Velvet Market reputation and future premium buyer pressure.",
+    rewardSummary: "Velvet Market reputation, gold, rare seed hooks, and future premium buyer pressure.",
+    factionConsequence: "Raises Velvet Market Ring reputation and marks the ranch as private-buyer material.",
+    regionUnlockConsequence: "Sets up premium buyer board, rare stock, and recipe hooks for future trade routes.",
     factionId: "velvet_market_ring",
     nextHint: "Inspect market demand once Silvergrain Exchange is available.",
     steps: [
@@ -1813,16 +1953,23 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
       {
         id: "prepare-premium-sample",
         title: "Prepare Premium Sample",
-        requirement: "Perform Collect a Price Rumor.",
-        actionId: "silvergrain-price-rumor",
-        nextHint: "Use price gossip to decide what sample is worth presenting.",
+        requirement: "Perform Submit Premium Sample.",
+        actionId: "silvergrain-submit-premium-sample",
+        nextHint: "Present something polished enough to earn a private buyer's attention.",
       },
       {
         id: "buyer-introduction",
         title: "Make Buyer Introduction",
-        requirement: "Perform Buyer Introduction.",
+        requirement: "Perform Meet Buyer Contact.",
         actionId: "silvergrain-buyer-introduction",
         nextHint: "Meet the buyer once the sample thread is credible.",
+      },
+      {
+        id: "record-price-rumor",
+        title: "Record Price Rumor",
+        requirement: "Perform Record Price Rumor.",
+        actionId: "silvergrain-price-rumor",
+        nextHint: "Write down the whisper that makes tomorrow's sale smarter.",
       },
     ],
   },
@@ -4093,9 +4240,10 @@ useEffect(() => {
     }
   }
 
-  function buildRegionRewardSummary(action: WorldRegionAction) {
+  function buildRegionRewardSummary(action: WorldRegionAction, rewardGoldOverride?: number) {
+    const rewardGold = rewardGoldOverride ?? action.rewardGold;
     const parts = [
-      action.rewardGold ? `${action.rewardGold} Gold` : "",
+      rewardGold ? `${rewardGold} Gold` : "",
       ...(action.rewardItems ?? []).map((item) => `${ITEM_DATA[item.itemId]?.name ?? item.itemId} x${item.quantity}`),
       ...(action.factionReputation ?? []).map((reward) => `+${reward.amount} ${getWorldFactionName(reward.factionId)} reputation`),
     ].filter(Boolean);
@@ -4245,22 +4393,38 @@ useEffect(() => {
     }
 
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, action.timeCostMinutes);
-    const rewardSummary = buildRegionRewardSummary(action);
+    const usesRoadSupply = action.id === "brindlewood-deliver-supplies";
+    const hasInventoryWheat = (inventory.wheat ?? 0) > 0;
+    const hasHomeWheat = homeState.wheatStock > 0;
+    const suppliedFromInventory = usesRoadSupply && hasInventoryWheat;
+    const suppliedFromHome = usesRoadSupply && !hasInventoryWheat && hasHomeWheat;
+    const supplyWasPacked = !usesRoadSupply || suppliedFromInventory || suppliedFromHome;
+    const rewardGold = supplyWasPacked ? action.rewardGold ?? 0 : Math.floor((action.rewardGold ?? 0) / 2);
+    const rewardSummary = buildRegionRewardSummary(action, rewardGold);
     const chainProgressSummary =
       (action.factionChainStepIds?.length ?? 0) > 0 || (action.regionTaskStepIds?.length ?? 0) > 0
         ? " Chain progress recorded."
         : "";
-    const message = `${action.outcome}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
+    const supplySummary = usesRoadSupply
+      ? supplyWasPacked
+        ? " Road supplies packed from wheat stock."
+        : " You arrived light on supplies, so the Dispatch pays a reduced courier reward."
+      : "";
+    const message = `${action.outcome}${supplySummary}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
 
     setCurrentDay(updatedClock.day);
     setCurrentHour(updatedClock.hour);
     setCurrentMinute(updatedClock.minute);
     setVisitedRegionIds((prev) => Array.from(new Set([...prev, region.id])));
 
-    const rewardGold = action.rewardGold ?? 0;
-
     if (rewardGold > 0) {
       setPlayerData((prev) => ({ ...prev, gold: prev.gold + rewardGold }));
+    }
+
+    if (suppliedFromInventory) {
+      setInventory((prev) => removeItemFromInventory(prev, "wheat", 1));
+    } else if (suppliedFromHome) {
+      setHomeState((prev) => ({ ...prev, wheatStock: Math.max(0, prev.wheatStock - 1) }));
     }
 
     if ((action.rewardItems?.length ?? 0) > 0) {

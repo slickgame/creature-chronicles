@@ -7,8 +7,10 @@ import {
   GameCard,
   GameSectionHeader,
   GameStatCard,
+  GameStatChip,
   GameStatusBadge,
 } from "@/components/ui/GameUi";
+import { formatWorldLabel, formatWorldList } from "@/lib/world/worldDisplay";
 
 function formatTime(hour: number, minute: number) {
   const suffix = hour >= 12 ? "PM" : "AM";
@@ -112,6 +114,18 @@ export default function HomePage() {
               <GameStatCard label="Eggs" value={eggs.length} accentClasses="border-lime-200 bg-white text-lime-900" />
               <GameStatCard label="Avg. Mood" value={`${averageCreatureHappiness}/100`} accentClasses="border-sky-200 bg-white text-sky-900" />
             </div>
+            {currentRegion ? (
+              <div className="mt-4 rounded-2xl border border-white bg-white/80 p-3 text-sm text-stone-700">
+                <div className="flex flex-wrap gap-2">
+                  <GameStatChip label="Region Role" value={currentRegion.gameplayRole} />
+                  <GameStatChip label="Specialty" value={currentRegion.regionSpecialty} />
+                </div>
+                <p className="mt-2"><strong>Primary faction:</strong> {currentRegion.primaryFactionId ? formatWorldLabel(currentRegion.primaryFactionId) : "Local"}</p>
+                <p className="mt-1"><strong>Loop:</strong> {currentRegion.repeatableLoopSummary}</p>
+                <p className="mt-1"><strong>Preparation:</strong> {currentRegion.preparationHint}</p>
+                <p className="mt-1"><strong>Reward hooks:</strong> {formatWorldList(currentRegion.uniqueRewardHooks)}</p>
+              </div>
+            ) : null}
           </GameCard>
 
           <GameCard tone="stone" className="shadow-lg">

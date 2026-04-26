@@ -401,9 +401,11 @@ function QuestLogSection({
 function FactionsSection({
   factions,
   factionQuestChains,
+  regions,
 }: {
   factions: FactionLike[];
   factionQuestChains: FactionChainLike[];
+  regions: RegionLike[];
 }) {
   return (
     <div className="space-y-4">
@@ -423,6 +425,7 @@ function FactionsSection({
           const currentStep = persistentChain?.steps.find((step) => step.id === persistentChain.currentStepId);
           const completedSteps = persistentChain?.completedStepIds.length ?? 0;
           const totalSteps = persistentChain?.steps.length ?? 1;
+          const associatedRegions = regions.filter((region) => region.primaryFactionId === faction.id || region.factionHooks.includes(faction.id));
           return (
             <article
               key={faction.id}
@@ -453,6 +456,7 @@ function FactionsSection({
               <div className="mt-3 grid gap-2 text-xs">
                 <p><strong>Unlock:</strong> {faction.unlockCondition}</p>
                 <p><strong>Relationship:</strong> {faction.relationshipToPlayer}</p>
+                <p><strong>Associated regions:</strong> {associatedRegions.length > 0 ? associatedRegions.map((region) => region.name).join(", ") : "None mapped yet"}</p>
                 <p><strong>Next goal:</strong> {nextGoal}</p>
                 <p><strong>What affects them:</strong> {influenceHint}</p>
                 <div className="rounded-xl border border-white bg-white/80 p-3">
@@ -472,6 +476,7 @@ function FactionsSection({
                       <p className="mt-1"><strong>Reward:</strong> {persistentChain.rewardSummary}</p>
                       <p className="mt-1"><strong>Reputation reward:</strong> +{persistentChain.factionReputationReward} possible reputation</p>
                       <p className="mt-1"><strong>Next hint:</strong> {currentStep?.nextHint ?? persistentChain.nextHint}</p>
+                      <p className="mt-1"><strong>Region tie:</strong> {associatedRegions[0]?.name ?? "Broad oversight"}</p>
                     </>
                   ) : (
                     <>
@@ -604,6 +609,8 @@ function WorldMapSection({
                       {group.locked ? region.unlockCondition : getRegionImportance(region.id)}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
+                      <GameStatChip label="Role" value={region.gameplayRole} />
+                      <GameStatChip label="Specialty" value={region.regionSpecialty} />
                       <GameStatChip label="Travel Time" value={`${region.access.travelMinutes}m`} />
                       <GameStatChip label="Route" value={region.access.route} />
                       {taskChain ? (
@@ -613,6 +620,9 @@ function WorldMapSection({
                     <div className="mt-3 grid gap-2 text-xs">
                       <p><strong>Unlock:</strong> {region.unlockCondition}</p>
                       <p><strong>Access:</strong> {region.access.requirement}</p>
+                      <p><strong>Primary faction:</strong> {region.primaryFactionId ? formatWorldLabel(region.primaryFactionId) : "Local"}</p>
+                      <p><strong>Mechanic:</strong> {region.uniqueMechanicSummary}</p>
+                      <p><strong>Reward hook:</strong> {formatWorldList(region.uniqueRewardHooks.slice(0, 3))}</p>
                       <p><strong>Associated quests:</strong> {formatWorldList(region.questHooks)}</p>
                       <p><strong>Associated factions:</strong> {formatWorldList(region.factionHooks)}</p>
                     </div>
@@ -640,6 +650,10 @@ function WorldMapSection({
                         <p className="mt-1"><strong>Current step:</strong> {currentTaskStep?.title ?? taskChain.nextHint}</p>
                         <p className="mt-1"><strong>Requirement:</strong> {currentTaskStep?.requirement ?? taskChain.requirements.join(", ")}</p>
                         <p className="mt-1"><strong>Reward:</strong> {taskChain.rewardSummary}</p>
+                        <p className="mt-1"><strong>Faction consequence:</strong> {taskChain.factionConsequence}</p>
+                        {taskChain.regionUnlockConsequence ? (
+                          <p className="mt-1"><strong>Region consequence:</strong> {taskChain.regionUnlockConsequence}</p>
+                        ) : null}
                         <p className="mt-1"><strong>Next:</strong> {currentTaskStep?.nextHint ?? taskChain.nextHint}</p>
                       </div>
                     ) : null}
@@ -799,7 +813,11 @@ export default function StoryJournal() {
           />
         ) : null}
         {activeTab === "factions" ? (
-          <FactionsSection factions={factions} factionQuestChains={factionQuestChains} />
+          <FactionsSection
+            factions={factions}
+            factionQuestChains={factionQuestChains}
+            regions={worldRegions}
+          />
         ) : null}
         {activeTab === "world" ? (
           <WorldMapSection
