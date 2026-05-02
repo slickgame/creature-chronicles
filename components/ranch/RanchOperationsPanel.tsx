@@ -42,6 +42,15 @@ import {
 } from "@/lib/game/inventoryUi";
 import { getCreatureImage } from "@/lib/breeding/uiHelpers";
 import {
+  getBreedingPairSummary,
+  getCreatureBestUseSections,
+  getCreatureRoleSummary,
+  getCreatureSkillEntries,
+  getCreatureStatEntries,
+  getCreatureStrengthBadges,
+  getCreatureTraitEntries,
+} from "@/lib/creatures/creatureDisplay";
+import {
   GameActionCard as ActionCard,
   GameCard as RoomCard,
   GameFeedbackBox as ResultFeedbackBox,
@@ -610,6 +619,10 @@ export default function RanchOperationsPanel({
       : playerData.energy < breedingEnergyCost
         ? `Need ${breedingEnergyCost} player energy.`
         : giverUnavailableReason || receiverUnavailableReason;
+  const breedingPairSummary = getBreedingPairSummary(
+    breedingSelection.giverType === "player" ? { name: playerData.name, stats: playerData.stats } : giverCreature,
+    breedingSelection.receiverType === "player" ? { name: playerData.name, stats: playerData.stats } : receiverCreature
+  );
 
   return (
     <>
@@ -1603,6 +1616,13 @@ export default function RanchOperationsPanel({
                   </p>
                 </div>
               </div>
+              <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
+                <p className="font-bold text-rose-950">{breedingPairSummary.title}</p>
+                <p className="mt-1">{breedingPairSummary.details}</p>
+                <p className="mt-1"><strong>Parent stat contribution:</strong> {breedingPairSummary.statContribution}</p>
+                <p className="mt-1"><strong>Trait / ability chances:</strong> {breedingPairSummary.traitContribution}</p>
+                <p className="mt-1"><strong>Where the egg goes:</strong> If an egg is produced, it appears in the Nursery and can also be reviewed on the Eggs screen.</p>
+              </div>
             </div>
 
             <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-stone-700">
@@ -1612,6 +1632,8 @@ export default function RanchOperationsPanel({
                 giverIsPlayer: breedingSelection.giverType === "player",
                 receiverIsPlayer: breedingSelection.receiverType === "player",
               })}</p>
+              <p className="mt-1"><strong>Immediate result:</strong> The action spends the cost, runs the existing breeding roll, and either creates a Nursery egg or records a no-egg pairing result.</p>
+              <p className="mt-1"><strong>Shiny / cosmetic chance:</strong> Future Hook. Current UI shows quality, lineage, trait, and stamina signals only.</p>
               {breedingDisabledReason ? (
                 <p className="mt-2 font-semibold text-red-800">{breedingDisabledReason}</p>
               ) : null}
@@ -1929,6 +1951,9 @@ export default function RanchOperationsPanel({
                   </div>
                   <div>
                   <p className="text-2xl font-bold text-emerald-950">{selectedCreature.nickname}</p>
+                  <p className="mt-1 text-sm font-semibold text-stone-800">
+                    Best use: {getCreatureRoleSummary(selectedCreature)}
+                  </p>
                   <p className="text-sm text-stone-700">
                     {selectedCreature.name} • Level {selectedCreature.level} • Generation {selectedCreature.generation}
                   </p>
@@ -1937,6 +1962,13 @@ export default function RanchOperationsPanel({
                 <div className="rounded-full border border-emerald-300 bg-white px-3 py-1 text-sm font-semibold text-emerald-900">
                   {getMoodLabel(selectedCreature.happiness)}
                 </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {getCreatureStrengthBadges(selectedCreature).map((badge) => (
+                  <div key={badge} className="rounded-full border border-emerald-300 bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
+                    {badge}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1988,23 +2020,24 @@ export default function RanchOperationsPanel({
             <div className="rounded-2xl border border-emerald-200 bg-white p-4">
               <p className="mb-3 text-lg font-bold text-stone-900">Stats</p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm text-stone-700">
-                <p><strong>Strength:</strong> {selectedCreature.stats.strength}</p>
-                <p><strong>Endurance:</strong> {selectedCreature.stats.endurance}</p>
-                <p><strong>Intelligence:</strong> {selectedCreature.stats.intelligence}</p>
-                <p><strong>Speed:</strong> {selectedCreature.stats.speed}</p>
-                <p><strong>Fertility:</strong> {selectedCreature.stats.fertility}</p>
-                <p><strong>Vitality:</strong> {selectedCreature.stats.vitality}</p>
+                {getCreatureStatEntries(selectedCreature).map((stat) => (
+                  <div key={stat.key} className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                    <p className="font-bold text-stone-950">{stat.label}: {stat.value}</p>
+                    <p className="mt-1 text-xs">{stat.shortEffect}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
             <div className="rounded-2xl border border-emerald-200 bg-white p-4">
               <p className="mb-3 text-lg font-bold text-stone-900">Skills</p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm text-stone-700">
-                <p><strong>Cooking:</strong> Lv {selectedCreature.skills.cooking.level}</p>
-                <p><strong>Cleaning:</strong> Lv {selectedCreature.skills.cleaning.level}</p>
-                <p><strong>Breeding Care:</strong> Lv {selectedCreature.skills.breedingCare.level}</p>
-                <p><strong>Field Work:</strong> Lv {selectedCreature.skills.fieldWork.level}</p>
-                <p><strong>Hauling:</strong> Lv {selectedCreature.skills.hauling.level}</p>
+                {getCreatureSkillEntries(selectedCreature).map((skill) => (
+                  <div key={skill.key} className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                    <p className="font-bold text-stone-950">{skill.label}: Lv {skill.level}</p>
+                    <p className="mt-1 text-xs">{skill.shortEffect}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -2025,6 +2058,35 @@ export default function RanchOperationsPanel({
                     No traits listed
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-200 bg-white p-4">
+              <p className="mb-3 text-lg font-bold text-stone-900">Ability Meanings & Best Uses</p>
+              <div className="grid gap-3 lg:grid-cols-2">
+                <div className="grid gap-2 text-sm text-stone-700">
+                  {getCreatureTraitEntries(selectedCreature).length > 0 ? (
+                    getCreatureTraitEntries(selectedCreature).map((trait, index) => (
+                      <div key={`${trait.trait}-${index}`} className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                        <p className="font-bold text-stone-950">{trait.label} - Grade {trait.grade}</p>
+                        <p className="mt-1">{trait.shortEffect}</p>
+                        <p className="mt-1 text-xs font-semibold text-stone-500">Applies: {trait.appliesTo.join(", ")}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2 text-sm text-stone-600">
+                      No mapped ability effects yet.
+                    </div>
+                  )}
+                </div>
+                <div className="grid gap-2 text-sm text-stone-700">
+                  {getCreatureBestUseSections(selectedCreature).map((use) => (
+                    <div key={use.label} className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                      <p className="font-bold text-stone-950">{use.label}</p>
+                      <p className="mt-1">{use.summary}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

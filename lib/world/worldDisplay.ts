@@ -263,6 +263,32 @@ const QUEST_HINTS: Record<string, { where: string; action: string; next: string 
   },
 };
 
+const OBJECTIVE_WHY: Record<string, string> = {
+  "chapter6_wider_invitation": "This is the moment the ranch stops being only local and starts attracting outside attention.",
+  "chapter6_quest_log_review": "The Quest Log is where authored route work becomes readable before the story asks for it.",
+  "chapter6_faction_signal": "This introduces preference without permanently locking the ranch to one organization.",
+  "chapter6_route_goods": "Outside trust starts with practical proof: goods, care, and the ranch's daily competence.",
+  "chapter6_creature_lineage_proof": "Creatures are the ranch's signature, so the wider world needs to see they can support more than chores.",
+  "chapter6_town_registration": "Town-facing proof makes the ranch's first route signal official enough to matter later.",
+  "chapter6_world_route_confirmed": "World Map acknowledgement turns the wider route from flavor into progression.",
+  "chapter7_road_brief": "Wayfarer Dispatch is testing whether the ranch can take a real outside assignment.",
+  "chapter7_prepare_road_supplies": "Road work needs supplies, not just confidence; this ties ranch output to regional progress.",
+  "chapter7_ready_creature_helper": "A prepared helper proves creatures can support the first outside route.",
+  "chapter7_travel_brindlewood": "This is in-world travel, so it spends time and confirms Brindlewood Road as a real destination.",
+  "chapter7_scout_road": "Scouting makes the route legible before heavier road service begins.",
+  "chapter7_complete_road_service": "A practical service task is what turns Wayfarer interest into trust.",
+  "chapter7_return_road_report": "A report closes the assignment cleanly and supports repeatable road work later.",
+  "chapter7_wayfarer_recognition": "Recognition is the bridge from player-proven work into creature dispatch assignments.",
+  "chapter8_market_notice": "Silvergrain attention shifts the story from road reliability to premium trade trust.",
+  "chapter8_prepare_premium_goods": "Velvet buyers care about quality, presentation, and whether the ranch can prepare stock on purpose.",
+  "chapter8_travel_silvergrain": "This confirms Silvergrain Exchange as the ranch's second meaningful outside destination.",
+  "chapter8_inspect_market_demand": "Reading demand keeps premium trade from feeling like ordinary selling.",
+  "chapter8_submit_premium_sample": "The sample is the proof that quality goods can open a private market route.",
+  "chapter8_meet_buyer_contact": "Buyer trust makes Velvet Market Ring more than a reputation card.",
+  "chapter8_negotiate_or_record_terms": "Terms turn a one-time sample into a future premium route hook.",
+  "chapter8_velvet_recognition": "This establishes the ranch's first premium market relationship without locking the player permanently.",
+};
+
 const FACTION_INFLUENCE: Record<string, string> = {
   wayfarer_dispatch: "Complete The Road Ledger, prove ranch reliability, travel to Brindlewood Road, and complete Road Work assignments.",
   velvet_market_ring: "Prepare quality goods, submit premium samples, inspect Silvergrain demand, meet buyer contacts, and negotiate private terms.",
@@ -329,6 +355,10 @@ export function getQuestObjectiveDisplayHint(objectiveId: string) {
     action: "Follow the objective description.",
     next: "Look for the matching action in Ranch, Town, Market, or Guild Hall.",
   };
+}
+
+export function getObjectiveWhyItMatters(objectiveId: string) {
+  return OBJECTIVE_WHY[objectiveId] ?? "This step connects the current objective to the ranch, town, faction, or region loop.";
 }
 
 export function getQuestNextStep(

@@ -8,11 +8,25 @@ import {
   CreatureTraitBadgeRow,
   CreatureTraitEntry,
   getCreatureGradeClasses,
-  getCreatureGradeDescription,
   getCreatureTraitClasses,
-  getCreatureTraitDescription,
-  getCreatureTraitLabel,
 } from "@/components/creatures/CreatureTraitUi";
+import {
+  GameCard,
+  GameEmptyState,
+  GameModal,
+  GameStatCard,
+  GameStatChip,
+  GameStatusBadge,
+} from "@/components/ui/GameUi";
+import { getCreatureImage } from "@/lib/breeding/uiHelpers";
+import {
+  getCreatureBestUseSections,
+  getCreatureRoleSummary,
+  getCreatureSkillEntries,
+  getCreatureStatEntries,
+  getCreatureStrengthBadges,
+  getCreatureTraitEntries,
+} from "@/lib/creatures/creatureDisplay";
 
 type InbreedingRisk =
   | "none"
@@ -32,12 +46,6 @@ type SortOption =
   | "generation_desc"
   | "happiness_desc";
 
-function getCreatureImage(name: string) {
-  if (name === "Horse") return "/images/horse.png";
-  if (name === "Cat") return "/images/cat.png";
-  return "/images/egg.png";
-}
-
 function getRiskLabel(risk: InbreedingRisk) {
   if (risk === "parent_child") return "Parent/Child Risk";
   if (risk === "full_sibling") return "Full Sibling Risk";
@@ -45,53 +53,44 @@ function getRiskLabel(risk: InbreedingRisk) {
   return "No Risk";
 }
 
-function getRiskClasses(risk: InbreedingRisk) {
-  if (risk === "none") {
-    return "bg-green-100 text-green-900 border-green-300";
-  }
-
-  if (risk === "half_sibling") {
-    return "bg-amber-100 text-amber-900 border-amber-300";
-  }
-
-  return "bg-red-100 text-red-900 border-red-300";
+function getRiskTone(risk: InbreedingRisk): "emerald" | "amber" | "rose" {
+  if (risk === "none") return "emerald";
+  if (risk === "half_sibling") return "amber";
+  return "rose";
 }
 
 function getInbredTraitLabel(
   trait: InbredTrait,
   severity: InbredTraitSeverity
 ) {
-  if (trait === "none" || severity === "none") {
-    return "No Inbred Trait";
-  }
+  if (trait === "none" || severity === "none") return "No Inbred Trait";
 
   const traitName =
     trait === "weak"
       ? "Weakness"
       : trait === "frail"
-      ? "Frailty"
-      : trait === "dull"
-      ? "Dullness"
-      : "Slowness";
+        ? "Frailty"
+        : trait === "dull"
+          ? "Dullness"
+          : "Slowness";
 
-  const severityName = severity === "mild" ? "Mild" : "Severe";
-
-  return `${severityName} ${traitName}`;
+  return `${severity === "mild" ? "Mild" : "Severe"} ${traitName}`;
 }
 
-function getInbredTraitClasses(severity: InbredTraitSeverity) {
-  if (severity === "none") {
-    return "bg-stone-100 text-stone-700 border-stone-300";
-  }
-
-  if (severity === "mild") {
-    return "bg-amber-100 text-amber-900 border-amber-300";
-  }
-
-  return "bg-red-100 text-red-900 border-red-300";
+function getInbredTraitTone(severity: InbredTraitSeverity): "stone" | "amber" | "rose" {
+  if (severity === "none") return "stone";
+  if (severity === "mild") return "amber";
+  return "rose";
 }
 
-function CreatureModal({
+function getMoodLabel(happiness: number) {
+  if (happiness >= 85) return "Thriving";
+  if (happiness >= 65) return "Content";
+  if (happiness >= 40) return "Restless";
+  return "Needs Care";
+}
+
+function CreatureDetailModal({
   open,
   creature,
   onClose,
@@ -118,24 +117,26 @@ function CreatureModal({
   const traits: CreatureTraitEntry[] = Array.isArray(creature.traits)
     ? creature.traits
     : [];
+  const roleSummary = getCreatureRoleSummary(creature);
+  const strengthBadges = getCreatureStrengthBadges(creature);
+  const statEntries = getCreatureStatEntries(creature);
+  const skillEntries = getCreatureSkillEntries(creature);
+  const traitEntries = getCreatureTraitEntries(creature);
+  const bestUses = getCreatureBestUseSections(creature);
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 p-4">
-      <div className="flex h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border-4 border-sky-900 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-sky-200 px-5 py-4">
-          <h2 className="text-2xl font-bold text-sky-950">Creature Details</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white shadow"
-          >
-            Close
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-5">
-          <div className="mb-5 flex flex-col gap-5 md:flex-row">
-            <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-3xl bg-stone-100 md:w-72">
+    <GameModal
+      open={open}
+      onClose={onClose}
+      title={`${creature.nickname} - Creature Details`}
+      maxWidth="max-w-6xl"
+      borderClassName="border-sky-900"
+      titleClassName="text-sky-950"
+    >
+      <div className="space-y-5">
+        <GameCard tone="sky" className="shadow-sm">
+          <div className="flex flex-col gap-5 md:flex-row">
+            <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl bg-white md:w-72">
               <Image
                 src={getCreatureImage(creature.name)}
                 alt={creature.name}
@@ -145,190 +146,185 @@ function CreatureModal({
               />
             </div>
 
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               {isEditing ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <input
                     type="text"
                     value={nicknameInput}
-                    onChange={(e) => setNicknameInput(e.target.value)}
-                    className="w-full rounded-xl border border-sky-300 bg-white px-3 py-2"
+                    onChange={(event) => setNicknameInput(event.target.value)}
+                    className="min-h-11 w-full rounded-xl border border-sky-300 bg-white px-3 py-2"
                     placeholder="Enter nickname"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <button
+                      type="button"
                       onClick={() => saveNickname(creature.id)}
-                      className="rounded-xl bg-sky-700 px-3 py-2 text-sm font-semibold text-white"
+                      className="min-h-11 rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white"
                     >
                       Save
                     </button>
                     <button
+                      type="button"
                       onClick={cancelEditing}
-                      className="rounded-xl bg-gray-500 px-3 py-2 text-sm font-semibold text-white"
+                      className="min-h-11 rounded-xl bg-stone-600 px-4 py-2 text-sm font-semibold text-white"
                     >
                       Cancel
                     </button>
                   </div>
                 </div>
               ) : (
-                <>
-                  <h3 className="text-3xl font-bold text-sky-950">
+                <div>
+                  <p className="text-xs font-bold uppercase text-sky-800">Summary</p>
+                  <h3 className="mt-1 text-3xl font-bold text-sky-950">
                     {creature.nickname}
                   </h3>
-                  <p className="text-stone-700">{creature.name}</p>
-                  <p className="text-sm text-stone-500">{creature.theme}</p>
-                  <p className="text-sm text-stone-500">ID: {creature.id}</p>
+                  <p className="mt-1 text-sm font-semibold text-stone-700">
+                    {creature.name} - {creature.theme}
+                  </p>
+                  <p className="mt-2 text-sm text-stone-700">
+                    Best use: <strong>{roleSummary}</strong>
+                  </p>
                   <button
+                    type="button"
                     onClick={() => startEditing(creature.id, creature.nickname)}
-                    className="mt-3 rounded-xl bg-sky-700 px-3 py-2 text-sm font-semibold text-white"
+                    className="mt-3 min-h-11 rounded-xl bg-sky-700 px-4 py-2 text-sm font-semibold text-white"
                   >
                     Edit Name
                   </button>
-                </>
+                </div>
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <div
-                  className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getRiskClasses(
-                    creature.inbreedingRisk
-                  )}`}
-                >
+                <GameStatusBadge tone={getRiskTone(creature.inbreedingRisk)}>
                   {getRiskLabel(creature.inbreedingRisk)}
-                </div>
+                </GameStatusBadge>
+                <GameStatusBadge tone={getInbredTraitTone(creature.inbredTraitSeverity)}>
+                  {getInbredTraitLabel(creature.inbredTrait, creature.inbredTraitSeverity)}
+                </GameStatusBadge>
+                <GameStatusBadge tone="emerald">
+                  {getMoodLabel(creature.happiness)}
+                </GameStatusBadge>
+              </div>
 
-                <div
-                  className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getInbredTraitClasses(
-                    creature.inbredTraitSeverity
-                  )}`}
-                >
-                  {getInbredTraitLabel(
-                    creature.inbredTrait,
-                    creature.inbredTraitSeverity
-                  )}
-                </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {strengthBadges.length > 0 ? (
+                  strengthBadges.map((badge) => (
+                    <GameStatChip key={badge} label="Strength" value={badge} />
+                  ))
+                ) : (
+                  <GameStatChip label="Strength" value="General Helper" />
+                )}
               </div>
             </div>
           </div>
+        </GameCard>
 
-          <div className="mb-5 rounded-2xl bg-sky-50 p-4">
-            <p className="mb-2 text-sm text-stone-500">Traits</p>
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <GameStatCard label="Level" value={creature.level} accentClasses="border-sky-200 bg-sky-50 text-sky-900" />
+          <GameStatCard label="XP" value={`${creature.xp}/${creature.xpToNextLevel}`} accentClasses="border-stone-200 bg-stone-50 text-stone-700" />
+          <GameStatCard label="Stamina" value={`${creature.breedingStamina}/${creature.maxBreedingStamina}`} accentClasses="border-emerald-200 bg-emerald-50 text-emerald-900" />
+          <GameStatCard label="Generation" value={`Gen ${creature.generation}`} accentClasses="border-amber-200 bg-amber-50 text-amber-900" />
+        </section>
 
-            {traits.length > 0 ? (
-              <div className="space-y-3">
-                {traits.map((entry, index) => (
-                  <div
-                    key={`${creature.id}-${entry.trait}-${entry.grade}-${index}`}
-                    className="rounded-2xl border border-sky-200 bg-white p-3"
-                  >
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <div
-                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureTraitClasses(
-                          entry.trait
-                        )}`}
-                      >
-                        {getCreatureTraitLabel(entry.trait)}
-                      </div>
-
-                      <div
-                        className={`inline-block rounded-full border px-3 py-1 text-sm font-semibold ${getCreatureGradeClasses(
-                          entry.grade
-                        )}`}
-                      >
-                        Grade {entry.grade}
-                      </div>
-                    </div>
-
-                    <p className="font-semibold text-stone-900">
-                      {getCreatureTraitDescription(entry.trait)}
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+          <GameCard tone="stone" className="shadow-sm">
+            <p className="text-lg font-bold text-stone-950">Stats</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              {statEntries.map((stat) => (
+                <div key={stat.key} className="rounded-xl border border-stone-200 bg-white p-3 text-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-stone-950">
+                      {stat.label}: {stat.value}
                     </p>
-                    <p className="mt-1 text-sm text-stone-600">
-                      {getCreatureGradeDescription(entry.grade)}
+                    <GameStatusBadge tone={stat.futureHook ? "amber" : "stone"}>
+                      {stat.futureHook ? "Future Hook" : stat.category}
+                    </GameStatusBadge>
+                  </div>
+                  <p className="mt-2 text-stone-700">{stat.shortEffect}</p>
+                  <p className="mt-2 text-xs font-semibold text-stone-500">
+                    Applies: {stat.appliesTo.join(", ")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </GameCard>
+
+          <GameCard tone="emerald" className="shadow-sm">
+            <p className="text-lg font-bold text-stone-950">Best Uses</p>
+            <div className="mt-3 grid gap-2">
+              {bestUses.map((use) => (
+                <div key={use.label} className="rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm">
+                  <p className="font-bold text-stone-950">{use.label}</p>
+                  <p className="mt-1 text-stone-700">{use.summary}</p>
+                </div>
+              ))}
+            </div>
+          </GameCard>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-2">
+          <GameCard tone="sky" className="shadow-sm">
+            <p className="text-lg font-bold text-stone-950">Abilities & Traits</p>
+            <div className="mt-3 grid gap-3">
+              {traitEntries.length > 0 ? (
+                traitEntries.map((entry, index) => (
+                  <div key={`${entry.trait}-${entry.grade}-${index}`} className="rounded-xl border border-sky-100 bg-white p-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full border px-3 py-1 text-xs font-bold ${getCreatureTraitClasses(entry.trait as any)}`}>
+                        {entry.label}
+                      </span>
+                      <span className={`rounded-full border px-3 py-1 text-xs font-bold ${getCreatureGradeClasses(entry.grade as any)}`}>
+                        Grade {entry.grade}
+                      </span>
+                      <GameStatusBadge tone={entry.futureHook ? "amber" : "sky"}>
+                        {entry.futureHook ? "Future Hook" : entry.category}
+                      </GameStatusBadge>
+                    </div>
+                    <p className="mt-2 text-stone-700">{entry.shortEffect}</p>
+                    <p className="mt-2 text-xs font-semibold text-stone-500">
+                      Applies: {entry.appliesTo.join(", ")}
                     </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="font-semibold text-stone-700">No Traits</p>
-            )}
+                ))
+              ) : (
+                <GameEmptyState>No mapped traits yet.</GameEmptyState>
+              )}
+            </div>
+          </GameCard>
+
+          <GameCard tone="amber" className="shadow-sm">
+            <p className="text-lg font-bold text-stone-950">Skills</p>
+            <div className="mt-3 grid gap-3">
+              {skillEntries.map((skill) => (
+                <div key={skill.key} className="rounded-xl border border-amber-100 bg-white p-3 text-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-stone-950">
+                      {skill.label} Lv {skill.level}
+                    </p>
+                    <GameStatusBadge tone="amber">{skill.category}</GameStatusBadge>
+                  </div>
+                  <p className="mt-2 text-stone-700">{skill.shortEffect}</p>
+                  <p className="mt-2 text-xs font-semibold text-stone-500">
+                    Applies: {skill.appliesTo.join(", ")}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </GameCard>
+        </section>
+
+        <GameCard tone="stone" className="shadow-sm">
+          <p className="text-lg font-bold text-stone-950">Lineage & Current Status</p>
+          <div className="mt-3 grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
+            <p><strong>Parents:</strong> {creature.giver && creature.receiver ? `${creature.giver} x ${creature.receiver}` : "Starter creature"}</p>
+            <p><strong>Parent IDs:</strong> {creature.giverId ?? "Player/Unknown"} / {creature.receiverId ?? "Player/Unknown"}</p>
+            <p><strong>Born:</strong> Day {creature.bornOnDay}</p>
+            <p><strong>Breedings Today:</strong> {creature.breedingsToday}/{creature.dailyBreedingLimit}</p>
           </div>
-
-          <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">Level</p>
-              <p className="font-semibold text-stone-900">{creature.level}</p>
-            </div>
-
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">XP</p>
-              <p className="font-semibold text-stone-900">
-                {creature.xp} / {creature.xpToNextLevel}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">Happiness</p>
-              <p className="font-semibold text-stone-900">{creature.happiness}</p>
-            </div>
-
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">Generation</p>
-              <p className="font-semibold text-stone-900">Gen {creature.generation}</p>
-            </div>
-
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">Born On Day</p>
-              <p className="font-semibold text-stone-900">Day {creature.bornOnDay}</p>
-            </div>
-
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">Breeding Stamina</p>
-              <p className="font-semibold text-stone-900">
-                {creature.breedingStamina} / {creature.maxBreedingStamina}
-              </p>
-            </div>
-
-            <div className="rounded-2xl bg-sky-50 p-3">
-              <p className="text-sm text-stone-500">Breedings Today</p>
-              <p className="font-semibold text-stone-900">
-                {creature.breedingsToday} / {creature.dailyBreedingLimit}
-              </p>
-            </div>
-          </div>
-
-          <div className="mb-5 rounded-2xl bg-stone-100 p-4 space-y-1">
-            <p className="text-sm text-stone-500">Lineage</p>
-            {creature.giver && creature.receiver ? (
-              <>
-                <p className="font-semibold text-stone-900">
-                  {creature.giver} → {creature.receiver}
-                </p>
-                <p className="text-sm text-stone-600">
-                  Parent IDs: {creature.giverId ?? "Player"} / {creature.receiverId ?? "Player"}
-                </p>
-              </>
-            ) : (
-              <p className="font-semibold text-stone-900">Starter Creature</p>
-            )}
-          </div>
-
-          <div className="mb-5 grid gap-2 text-stone-800 sm:grid-cols-2">
-            <p><strong>Strength:</strong> {creature.stats.strength}</p>
-            <p><strong>Endurance:</strong> {creature.stats.endurance}</p>
-            <p><strong>Intelligence:</strong> {creature.stats.intelligence}</p>
-            <p><strong>Speed:</strong> {creature.stats.speed}</p>
-            <p><strong>Fertility:</strong> {creature.stats.fertility}</p>
-            <p><strong>Vitality:</strong> {creature.stats.vitality}</p>
-          </div>
-
-          <div className="grid gap-2 text-stone-800 sm:grid-cols-2">
-            <p><strong>Cooking Skill:</strong> Lv {creature.skills.cooking.level}</p>
-            <p><strong>Cleaning Skill:</strong> Lv {creature.skills.cleaning.level}</p>
-            <p><strong>Breeding Care:</strong> Lv {creature.skills.breedingCare.level}</p>
-            <p><strong>Field Work:</strong> Lv {creature.skills.fieldWork.level}</p>
-          </div>
-        </div>
+        </GameCard>
       </div>
-    </div>
+    </GameModal>
   );
 }
 
@@ -361,13 +357,14 @@ export default function CreaturesPage() {
 
   const filteredCreatures = useMemo(() => {
     const lowered = searchText.trim().toLowerCase();
-
     const filtered = creatures.filter((creature) => {
+      const roleSummary = getCreatureRoleSummary(creature).toLowerCase();
       return (
         lowered.length === 0 ||
         creature.nickname.toLowerCase().includes(lowered) ||
         creature.name.toLowerCase().includes(lowered) ||
-        creature.theme.toLowerCase().includes(lowered)
+        creature.theme.toLowerCase().includes(lowered) ||
+        roleSummary.includes(lowered)
       );
     });
 
@@ -376,18 +373,15 @@ export default function CreaturesPage() {
         if (b.bornOnDay !== a.bornOnDay) return b.bornOnDay - a.bornOnDay;
         return b.id - a.id;
       }
-
       if (sortOption === "oldest") {
         if (a.bornOnDay !== b.bornOnDay) return a.bornOnDay - b.bornOnDay;
         return a.id - b.id;
       }
-
       if (sortOption === "name_asc") return a.nickname.localeCompare(b.nickname);
       if (sortOption === "name_desc") return b.nickname.localeCompare(a.nickname);
       if (sortOption === "level_desc") return b.level - a.level;
       if (sortOption === "generation_desc") return b.generation - a.generation;
       if (sortOption === "happiness_desc") return b.happiness - a.happiness;
-
       return 0;
     });
 
@@ -396,13 +390,14 @@ export default function CreaturesPage() {
 
   return (
     <>
-      <main className="min-h-screen bg-gradient-to-b from-sky-100 to-cyan-200 p-6">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <main className="min-h-screen bg-gradient-to-b from-sky-100 to-cyan-200 p-4 sm:p-6">
+        <div className="mx-auto max-w-7xl">
+          <header className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-sky-900">Creatures</h1>
-              <p className="mt-1 text-stone-700">
-                Compact roster view. Click any creature to open full details.
+              <p className="text-xs font-bold uppercase text-sky-700">Creature Roster</p>
+              <h1 className="text-4xl font-bold text-sky-950">Creatures</h1>
+              <p className="mt-1 max-w-3xl text-sm text-stone-700">
+                Review each creature's role, stat meanings, abilities, and where they can help in the ranch-to-road loop.
               </p>
             </div>
 
@@ -410,132 +405,138 @@ export default function CreaturesPage() {
               <input
                 type="text"
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="Search creatures..."
-                className="rounded-xl border border-sky-300 bg-white px-3 py-2"
+                onChange={(event) => setSearchText(event.target.value)}
+                placeholder="Search name, species, role..."
+                className="min-h-11 rounded-xl border border-sky-300 bg-white px-3 py-2"
               />
-
               <select
                 value={sortOption}
-                onChange={(e) => setSortOption(e.target.value as SortOption)}
-                className="rounded-xl border border-sky-300 bg-white px-3 py-2"
+                onChange={(event) => setSortOption(event.target.value as SortOption)}
+                className="min-h-11 rounded-xl border border-sky-300 bg-white px-3 py-2"
               >
                 <option value="newest">Sort: Newest</option>
                 <option value="oldest">Sort: Oldest</option>
-                <option value="name_asc">Sort: Name A–Z</option>
-                <option value="name_desc">Sort: Name Z–A</option>
+                <option value="name_asc">Sort: Name A-Z</option>
+                <option value="name_desc">Sort: Name Z-A</option>
                 <option value="level_desc">Sort: Highest Level</option>
                 <option value="generation_desc">Sort: Highest Generation</option>
                 <option value="happiness_desc">Sort: Highest Happiness</option>
               </select>
             </div>
-          </div>
+          </header>
 
-          <div className="mb-6 rounded-3xl border-4 border-sky-900 bg-white/85 p-4 shadow-xl">
-            <div className="grid gap-3 text-sm text-stone-800 sm:grid-cols-3">
-              <p><strong>Total Creatures:</strong> {creatures.length}</p>
-              <p><strong>Visible:</strong> {filteredCreatures.length}</p>
-              <p><strong>Instruction:</strong> Tap a card for full details</p>
-            </div>
-          </div>
+          <section className="mb-5 grid gap-3 sm:grid-cols-3">
+            <GameStatCard label="Total Creatures" value={creatures.length} accentClasses="border-sky-200 bg-sky-50 text-sky-900" />
+            <GameStatCard label="Visible" value={filteredCreatures.length} accentClasses="border-emerald-200 bg-emerald-50 text-emerald-900" />
+            <GameStatCard label="Roster Use" value="Tap a card for full details" accentClasses="border-amber-200 bg-amber-50 text-amber-900" />
+          </section>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {filteredCreatures.map((creature) => {
-              const traits: CreatureTraitEntry[] = Array.isArray(creature.traits)
-                ? creature.traits
-                : [];
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {filteredCreatures.length === 0 ? (
+              <div className="sm:col-span-2 xl:col-span-3">
+                <GameEmptyState>No creatures match that search.</GameEmptyState>
+              </div>
+            ) : (
+              filteredCreatures.map((creature) => {
+                const traits: CreatureTraitEntry[] = Array.isArray(creature.traits)
+                  ? creature.traits
+                  : [];
+                const badges = getCreatureStrengthBadges(creature).slice(0, 3);
+                const roleSummary = getCreatureRoleSummary(creature);
 
-              return (
-                <button
-                  key={creature.id}
-                  type="button"
-                  onClick={() => setSelectedCreatureId(creature.id)}
-                  className="rounded-2xl border-2 border-sky-300 bg-white/90 p-3 text-left shadow transition hover:border-sky-500 hover:bg-white"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
-                      <Image
-                        src={getCreatureImage(creature.name)}
-                        alt={creature.name}
-                        width={160}
-                        height={160}
-                        className="max-h-full w-auto object-contain"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-lg font-bold text-sky-950">
-                            {creature.nickname}
-                          </p>
-                          <p className="truncate text-sm text-stone-600">
-                            {creature.name} • {creature.theme}
-                          </p>
-                        </div>
-
-                        <div className="rounded-full border border-sky-300 bg-sky-50 px-2 py-1 text-xs font-semibold text-sky-900">
-                          Lv {creature.level}
-                        </div>
+                return (
+                  <button
+                    key={creature.id}
+                    type="button"
+                    onClick={() => setSelectedCreatureId(creature.id)}
+                    className="rounded-2xl border-2 border-sky-300 bg-white/90 p-3 text-left shadow transition hover:border-sky-600 hover:bg-white focus:outline-none focus:ring-2 focus:ring-sky-800"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-stone-100">
+                        <Image
+                          src={getCreatureImage(creature.name)}
+                          alt={creature.name}
+                          width={180}
+                          height={180}
+                          className="max-h-full w-auto object-contain"
+                        />
                       </div>
 
-                      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-stone-700">
-                        <p><strong>Gen:</strong> {creature.generation}</p>
-                        <p><strong>Happy:</strong> {creature.happiness}</p>
-                        <p><strong>XP:</strong> {creature.xp}/{creature.xpToNextLevel}</p>
-                        <p><strong>Stam:</strong> {creature.breedingStamina}/{creature.maxBreedingStamina}</p>
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        <div
-                          className={`inline-block rounded-full border px-2 py-1 text-[11px] font-semibold ${getRiskClasses(
-                            creature.inbreedingRisk
-                          )}`}
-                        >
-                          {getRiskLabel(creature.inbreedingRisk)}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-lg font-bold text-sky-950">
+                              {creature.nickname}
+                            </p>
+                            <p className="truncate text-sm text-stone-600">
+                              {creature.name} - {creature.theme}
+                            </p>
+                          </div>
+                          <GameStatusBadge tone="sky">Lv {creature.level}</GameStatusBadge>
                         </div>
 
-                        <div
-                          className={`inline-block rounded-full border px-2 py-1 text-[11px] font-semibold ${getInbredTraitClasses(
-                            creature.inbredTraitSeverity
-                          )}`}
-                        >
-                          {getInbredTraitLabel(
-                            creature.inbredTrait,
-                            creature.inbredTraitSeverity
+                        <p className="mt-2 text-sm font-semibold text-stone-800">
+                          {roleSummary}
+                        </p>
+
+                        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-stone-700">
+                          <p><strong>Stamina:</strong> {creature.breedingStamina}/{creature.maxBreedingStamina}</p>
+                          <p><strong>Mood:</strong> {getMoodLabel(creature.happiness)}</p>
+                          <p><strong>Gen:</strong> {creature.generation}</p>
+                          <p><strong>XP:</strong> {creature.xp}/{creature.xpToNextLevel}</p>
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {badges.length > 0 ? (
+                            badges.map((badge) => (
+                              <span
+                                key={`${creature.id}-${badge}`}
+                                className="rounded-full border border-sky-200 bg-sky-50 px-2 py-1 text-[11px] font-semibold text-sky-900"
+                              >
+                                {badge}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-1 text-[11px] font-semibold text-stone-700">
+                              General Helper
+                            </span>
                           )}
                         </div>
-                      </div>
 
-                      <div className="mt-2">
-                        <CreatureTraitBadgeRow traits={traits} compact maxVisible={2} />
+                        <div className="mt-2">
+                          <CreatureTraitBadgeRow traits={traits} compact maxVisible={1} />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })
+            )}
+          </section>
 
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-2">
             <Link
-              href="/ranch"
-              className="inline-block rounded-2xl bg-stone-800 px-5 py-3 text-white font-semibold shadow"
+              href="/ranch?tab=barn"
+              className="min-h-11 rounded-2xl bg-stone-900 px-5 py-3 font-semibold text-white shadow"
             >
-              Back to Ranch
+              Ranch Barn
+            </Link>
+            <Link
+              href="/regions"
+              className="min-h-11 rounded-2xl border border-sky-300 bg-white px-5 py-3 font-semibold text-stone-900 shadow"
+            >
+              Road Dispatch
             </Link>
           </div>
         </div>
       </main>
 
-      <CreatureModal
+      <CreatureDetailModal
         open={selectedCreature !== null}
         creature={selectedCreature}
         onClose={() => {
           setSelectedCreatureId(null);
-          if (editingCreatureId !== null) {
-            cancelEditing();
-          }
+          if (editingCreatureId !== null) cancelEditing();
         }}
         editingCreatureId={editingCreatureId}
         nicknameInput={nicknameInput}

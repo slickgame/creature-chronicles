@@ -20,6 +20,7 @@ import {
   getFactionInfluenceHint,
   getFactionQuestChain,
   getFactionNextGoal,
+  getObjectiveWhyItMatters,
   getQuestObjectiveDisplayHint,
   getQuestNextStep,
   getRegionImportance,
@@ -108,6 +109,8 @@ function ObjectiveChecklist({
               <div className="mt-2 rounded-lg border border-white bg-white/80 px-2 py-1.5 text-xs">
                 <p><strong>Where:</strong> {progressHint.where}</p>
                 <p className="mt-0.5"><strong>Progresses through:</strong> {progressHint.action}</p>
+                <p className="mt-0.5"><strong>Exact next action:</strong> {progressHint.next}</p>
+                <p className="mt-0.5"><strong>Why this matters:</strong> {getObjectiveWhyItMatters(objective.id)}</p>
               </div>
             ) : null}
           </div>
@@ -211,6 +214,7 @@ function StoryArchiveSection({
               <ObjectiveChecklist
                 objectives={chapter.objectives}
                 activeObjectiveId={isCurrent ? currentObjective.id : undefined}
+                showProgressHints
                 getDone={(objective) => {
                   const chapterObjective = chapter.objectives.find((item) => item.id === objective.id);
                   return Boolean(chapterObjective && mainStory.chapterProgressFlags[chapterObjective.completionFlag]);

@@ -5,6 +5,10 @@ import { useGame } from "@/context/GameContext";
 import MainStoryPanel from "@/components/story/MainStoryPanel";
 import StoryJournal from "@/components/story/StoryJournal";
 import { GameModal } from "@/components/ui/GameUi";
+import {
+  getObjectiveWhyItMatters,
+  getQuestObjectiveDisplayHint,
+} from "@/lib/world/worldDisplay";
 
 function getLocationLabel(location: string) {
   if (location === "ranch") return "Ranch";
@@ -22,6 +26,8 @@ export default function StoryObjectiveStrip() {
   } = useGame();
   const [storyOpen, setStoryOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
+  const objectiveHint = getQuestObjectiveDisplayHint(currentMainStoryObjective.id);
+  const whyItMatters = getObjectiveWhyItMatters(currentMainStoryObjective.id);
 
   return (
     <>
@@ -42,6 +48,17 @@ export default function StoryObjectiveStrip() {
             <p className="mt-1 line-clamp-2 max-w-4xl text-sm text-stone-700">
               {currentMainStoryObjective.description}
             </p>
+            <div className="mt-2 grid gap-2 text-xs text-stone-700 sm:grid-cols-3">
+              <p className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
+                <strong>Where:</strong> {objectiveHint.where}
+              </p>
+              <p className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
+                <strong>Action:</strong> {objectiveHint.next}
+              </p>
+              <p className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+                <strong>Why:</strong> {whyItMatters}
+              </p>
+            </div>
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
