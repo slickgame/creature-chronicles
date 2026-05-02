@@ -20,6 +20,14 @@ const WORLD_LABELS: Record<string, string> = {
   "chapter7_complete_road_service": "Complete Road Service",
   "chapter7_return_road_report": "Return Road Report",
   "chapter7_wayfarer_recognition": "Wayfarer Recognition",
+  "chapter8_market_notice": "Market Notice",
+  "chapter8_prepare_premium_goods": "Prepare Premium Goods",
+  "chapter8_travel_silvergrain": "Travel to Silvergrain Exchange",
+  "chapter8_inspect_market_demand": "Inspect Market Demand",
+  "chapter8_submit_premium_sample": "Submit Premium Sample",
+  "chapter8_meet_buyer_contact": "Meet Buyer Contact",
+  "chapter8_negotiate_or_record_terms": "Negotiate or Record Terms",
+  "chapter8_velvet_recognition": "Velvet Recognition",
   "road-ready-ranch-work": "Road-Ready Ranch Work",
   "town-route-proof": "Town Route Proof",
   "prepare-private-stock": "Private Stock Preparation",
@@ -212,6 +220,46 @@ const QUEST_HINTS: Record<string, { where: string; action: string; next: string 
     where: "Brindlewood Road or Factions",
     action: "Complete the Road Ledger Route report or earn enough Wayfarer recognition.",
     next: "Finish the Brindlewood report and check Wayfarer standing.",
+  },
+  "chapter8_market_notice": {
+    where: "Story Journal, Factions, Town, or Regions",
+    action: "Review the Silvergrain Exchange and Velvet Market invitation.",
+    next: "Open the Journal or Regions page and review the Silvergrain route.",
+  },
+  "chapter8_prepare_premium_goods": {
+    where: "Ranch",
+    action: "Harvest quality produce or cook a recipe so a premium sample is ready.",
+    next: "Use Fields for quality produce or the House Recipe Workshop for cooked goods.",
+  },
+  "chapter8_travel_silvergrain": {
+    where: "Regions",
+    action: "Use in-world region travel to Silvergrain Exchange.",
+    next: "Open Regions and travel to Silvergrain Exchange.",
+  },
+  "chapter8_inspect_market_demand": {
+    where: "Silvergrain Exchange",
+    action: "Perform Inspect Market Demand.",
+    next: "Travel to Silvergrain Exchange and inspect what buyers want.",
+  },
+  "chapter8_submit_premium_sample": {
+    where: "Silvergrain Exchange",
+    action: "Perform Submit Premium Sample with quality produce or cooked goods ready.",
+    next: "Prepare a sample, then submit it at Silvergrain Exchange.",
+  },
+  "chapter8_meet_buyer_contact": {
+    where: "Silvergrain Exchange",
+    action: "Perform Meet Buyer Contact.",
+    next: "Use the Velvet Buyer Hall action after the sample route has started.",
+  },
+  "chapter8_negotiate_or_record_terms": {
+    where: "Silvergrain Exchange",
+    action: "Perform Negotiate Buyer Terms or Record Price Rumor.",
+    next: "Turn buyer attention into private terms or a recorded market rumor.",
+  },
+  "chapter8_velvet_recognition": {
+    where: "Silvergrain Exchange or Factions",
+    action: "Complete enough Private Goods Channel progress or earn Velvet Market recognition.",
+    next: "Secure private terms and check Velvet Market standing.",
   },
 };
 

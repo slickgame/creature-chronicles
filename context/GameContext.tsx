@@ -379,7 +379,8 @@ type MainStoryChapterId =
   | "chapter_4"
   | "chapter_5"
   | "chapter_6"
-  | "chapter_7";
+  | "chapter_7"
+  | "chapter_8";
 
 type MainStoryObjectiveId =
   | "ranch_creature_care"
@@ -425,7 +426,15 @@ type MainStoryObjectiveId =
   | "chapter7_scout_road"
   | "chapter7_complete_road_service"
   | "chapter7_return_road_report"
-  | "chapter7_wayfarer_recognition";
+  | "chapter7_wayfarer_recognition"
+  | "chapter8_market_notice"
+  | "chapter8_prepare_premium_goods"
+  | "chapter8_travel_silvergrain"
+  | "chapter8_inspect_market_demand"
+  | "chapter8_submit_premium_sample"
+  | "chapter8_meet_buyer_contact"
+  | "chapter8_negotiate_or_record_terms"
+  | "chapter8_velvet_recognition";
 
 type MainStoryReward = {
   title: string;
@@ -1554,7 +1563,100 @@ const MAIN_STORY_CHAPTERS: Record<MainStoryChapterId, MainStoryChapter> = {
         "Creature road dispatch assignments are now being discussed. Chapter 8 can choose between automated creature dispatch, a Silvergrain Exchange market route, or the first road incident system.",
     },
     nextChapterHint:
-      "Chapter 8 should pause for the next road system: creature road dispatch, a sharper Brindlewood incident layer, or the Silvergrain Exchange trade route.",
+      "Chapter 8 turns toward Silvergrain Exchange and the Velvet Market Ring to establish the ranch's first premium trade route.",
+    nextChapterId: "chapter_8",
+  },
+  chapter_8: {
+    id: "chapter_8",
+    chapterNumber: 8,
+    title: "Silvergrain Terms",
+    subtitle: "The ranch learns how premium buyers measure trust.",
+    summary:
+      "Chapter 8 shifts from road reliability to market presentation. Silvergrain Exchange and the Velvet Market Ring test whether the ranch can prepare premium goods, read demand, submit a sample, meet a private buyer, and leave with terms that feel like the first real trade route.",
+    objectives: [
+      {
+        id: "chapter8_market_notice",
+        title: "Market Notice",
+        description:
+          "Review or acknowledge the Silvergrain Exchange and Velvet Market invitation through the Story Journal, Quest Log, Factions, Town, or Regions. The market is watching now, and it wants polish.",
+        locationHint: "home",
+        completionFlag: "chapter8_market_notice",
+        rewardPreview: "This starts Chapter 8's premium trade route without permanently locking you to the Velvet Market Ring.",
+      },
+      {
+        id: "chapter8_prepare_premium_goods",
+        title: "Prepare Premium Goods",
+        description:
+          "Prepare a quality produce item or cooked good for the private tables. Harvesting quality produce, cooking a recipe, or having a premium sample ready all count.",
+        locationHint: "ranch",
+        completionFlag: "chapter8_prepare_premium_goods",
+      },
+      {
+        id: "chapter8_travel_silvergrain",
+        title: "Travel to Silvergrain Exchange",
+        description:
+          "Use in-world region travel to reach Silvergrain Exchange. Global navigation is free, but this trip costs time and marks the premium route as real.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter8_travel_silvergrain",
+      },
+      {
+        id: "chapter8_inspect_market_demand",
+        title: "Inspect Market Demand",
+        description:
+          "Use Silvergrain Exchange's Inspect Market Demand action to learn what the private tables are hungry for before you show them your hands.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter8_inspect_market_demand",
+      },
+      {
+        id: "chapter8_submit_premium_sample",
+        title: "Submit Premium Sample",
+        description:
+          "Submit a premium sample at Silvergrain Exchange. Quality produce and cooked goods both count, with better quality earning better Velvet attention.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter8_submit_premium_sample",
+      },
+      {
+        id: "chapter8_meet_buyer_contact",
+        title: "Meet Buyer Contact",
+        description:
+          "Meet the buyer contact at Silvergrain Exchange and let the ranch's work become a face, a voice, and a private note in the Velvet ledger.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter8_meet_buyer_contact",
+      },
+      {
+        id: "chapter8_negotiate_or_record_terms",
+        title: "Negotiate or Record Terms",
+        description:
+          "Negotiate Buyer Terms or Record Price Rumor at Silvergrain Exchange. The goal is to turn attention into a useful market relationship.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter8_negotiate_or_record_terms",
+      },
+      {
+        id: "chapter8_velvet_recognition",
+        title: "Velvet Recognition",
+        description:
+          "Confirm that the Velvet Market Ring recognizes the ranch's first premium market relationship through Silvergrain chain progress, buyer terms, or Velvet reputation.",
+        locationHint: "guild_hall",
+        completionFlag: "chapter8_velvet_recognition",
+        rewardPreview: "Chapter reward: 520 Gold, Rich Fertilizer x2, Apple Seed x2, Velvet reputation, and a lead toward a formal premium board.",
+      },
+    ],
+    completionReward: {
+      title: "Silvergrain Private Terms",
+      description:
+        "The Silvergrain buyers leave your ranch name on the private side of the ledger. Selene's smile turns slow and satisfied: not ownership, not yet, but an invitation with heat under the ink.",
+      gold: 520,
+      items: [
+        { itemId: "rich_fertilizer", quantity: 2 },
+        { itemId: "apple_seed", quantity: 2 },
+      ],
+      factionReputation: [{ factionId: "velvet_market_ring", amount: 20, standing: "trusted" }],
+      unlockRegions: [],
+      unlockText:
+        "The Silvergrain buyers want steadier supply. A formal premium board may be next.",
+    },
+    nextChapterHint:
+      "Chapter 9 should pause for a premium buyer board, formal market route, or the first tension between Velvet terms and road obligations.",
   },
 };
 
@@ -2115,7 +2217,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionReputation: [{ factionId: "velvet_market_ring", amount: 6 }],
     factionChainStepIds: ["velvet-private-goods-channel:inspect-demand"],
     regionTaskStepIds: ["silvergrain-exchange-chain:inspect-demand"],
-    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed", "chapter8_inspect_market_demand"],
   },
   {
     id: "silvergrain-submit-premium-sample",
@@ -2131,7 +2233,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionChainStepIds: ["velvet-private-goods-channel:premium-sample"],
     regionTaskStepIds: ["silvergrain-exchange-chain:prepare-premium-sample"],
     authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "prepare-private-stock" }],
-    storyFlags: ["chapter6_faction_signal", "chapter6_route_goods", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_route_goods", "chapter6_world_route_confirmed", "chapter8_prepare_premium_goods", "chapter8_submit_premium_sample"],
   },
   {
     id: "silvergrain-buyer-introduction",
@@ -2146,7 +2248,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionChainStepIds: ["velvet-private-goods-channel:buyer-introduction"],
     regionTaskStepIds: ["silvergrain-exchange-chain:buyer-introduction"],
     authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }],
-    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed", "chapter8_meet_buyer_contact"],
   },
   {
     id: "silvergrain-price-rumor",
@@ -2160,7 +2262,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     rewardItems: [{ itemId: "carrot_seed", quantity: 1 }],
     factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
     regionTaskStepIds: ["silvergrain-exchange-chain:record-price-rumor"],
-    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed", "chapter8_negotiate_or_record_terms", "chapter8_velvet_recognition"],
   },
   {
     id: "silvergrain-negotiate-buyer-terms",
@@ -2176,7 +2278,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     factionChainStepIds: ["velvet-private-goods-channel:secure-private-terms"],
     regionTaskStepIds: ["silvergrain-exchange-chain:secure-private-terms"],
     authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }],
-    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed", "chapter8_negotiate_or_record_terms", "chapter8_velvet_recognition"],
   },
   {
     id: "silvergrain-browse-rare-stock",
@@ -2189,7 +2291,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     rewardGold: 12,
     rewardItems: [{ itemId: "berry_seed", quantity: 1 }],
     factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
-    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed", "chapter8_market_notice"],
   },
 ];
 
@@ -5362,38 +5464,78 @@ useEffect(() => {
   }
 
   function getDerivedMainStoryFlagsForChapter(chapterId: MainStoryChapterId): MainStoryObjectiveId[] {
-    if (chapterId !== "chapter_7") return [];
+    if (chapterId === "chapter_7") {
+      const brindlewoodChain = regionTaskChains.find((chain) => chain.chainId === "brindlewood-road-chain");
+      const completedRoadSteps = new Set(brindlewoodChain?.completedStepIds ?? []);
+      const hasRoadSupplies =
+        homeState.foodStock > 0 ||
+        homeState.wheatStock > 0 ||
+        (inventory.wheat ?? 0) > 0 ||
+        (inventory.bread ?? 0) > 0 ||
+        (inventory.porridge ?? 0) > 0;
+      const hasReadyCreature = creatures.some(
+        (creature) => creature.happiness >= 45 && creature.breedingStamina > 0
+      );
+      const wayfarer = factions.find((faction) => faction.id === "wayfarer_dispatch");
 
-    const brindlewoodChain = regionTaskChains.find((chain) => chain.chainId === "brindlewood-road-chain");
-    const completedRoadSteps = new Set(brindlewoodChain?.completedStepIds ?? []);
-    const hasRoadSupplies =
-      homeState.foodStock > 0 ||
-      homeState.wheatStock > 0 ||
-      (inventory.wheat ?? 0) > 0 ||
-      (inventory.bread ?? 0) > 0 ||
-      (inventory.porridge ?? 0) > 0;
-    const hasReadyCreature = creatures.some(
-      (creature) => creature.happiness >= 45 && creature.breedingStamina > 0
-    );
-    const wayfarer = factions.find((faction) => faction.id === "wayfarer_dispatch");
+      return [
+        hasRoadSupplies ? "chapter7_prepare_road_supplies" : null,
+        hasReadyCreature ? "chapter7_ready_creature_helper" : null,
+        visitedRegionIds.includes("brindlewood_road") || currentRegionId === "brindlewood_road"
+          ? "chapter7_travel_brindlewood"
+          : null,
+        completedRoadSteps.has("scout-road") ? "chapter7_scout_road" : null,
+        completedRoadSteps.has("deliver-supplies") || completedRoadSteps.has("courier-check")
+          ? "chapter7_complete_road_service"
+          : null,
+        completedRoadSteps.has("return-report") ? "chapter7_return_road_report" : null,
+        completedRoadSteps.has("return-report") ||
+        brindlewoodChain?.status === "completed" ||
+        (wayfarer?.reputation ?? 0) >= 40
+          ? "chapter7_wayfarer_recognition"
+          : null,
+      ].filter((flag): flag is MainStoryObjectiveId => Boolean(flag));
+    }
 
-    return [
-      hasRoadSupplies ? "chapter7_prepare_road_supplies" : null,
-      hasReadyCreature ? "chapter7_ready_creature_helper" : null,
-      visitedRegionIds.includes("brindlewood_road") || currentRegionId === "brindlewood_road"
-        ? "chapter7_travel_brindlewood"
-        : null,
-      completedRoadSteps.has("scout-road") ? "chapter7_scout_road" : null,
-      completedRoadSteps.has("deliver-supplies") || completedRoadSteps.has("courier-check")
-        ? "chapter7_complete_road_service"
-        : null,
-      completedRoadSteps.has("return-report") ? "chapter7_return_road_report" : null,
-      completedRoadSteps.has("return-report") ||
-      brindlewoodChain?.status === "completed" ||
-      (wayfarer?.reputation ?? 0) >= 40
-        ? "chapter7_wayfarer_recognition"
-        : null,
-    ].filter((flag): flag is MainStoryObjectiveId => Boolean(flag));
+    if (chapterId === "chapter_8") {
+      const silvergrainChain = regionTaskChains.find((chain) => chain.chainId === "silvergrain-exchange-chain");
+      const velvetChain = factionQuestChains.find((chain) => chain.chainId === "velvet-private-goods-channel");
+      const completedSilvergrainSteps = new Set(silvergrainChain?.completedStepIds ?? []);
+      const completedVelvetSteps = new Set(velvetChain?.completedStepIds ?? []);
+      const velvet = factions.find((faction) => faction.id === "velvet_market_ring");
+      const hasCookedGood = Object.entries(inventory).some(([itemId, quantity]) => {
+        const item = ITEM_DATA[itemId];
+        return quantity > 0 && item?.category === "food" && item.useTags.includes("edible") && item.useTags.includes("sellable");
+      });
+      const hasQualityProduce = Object.values(produceQualityInventory).some((qualityCounts) =>
+        Object.values(qualityCounts).some((count) => (count ?? 0) > 0)
+      );
+      const hasPremiumGoods = Boolean(silvergrainPremiumSample) || hasCookedGood || hasQualityProduce;
+      const termsRecorded =
+        completedSilvergrainSteps.has("secure-private-terms") ||
+        completedSilvergrainSteps.has("record-price-rumor") ||
+        completedVelvetSteps.has("secure-private-terms");
+
+      return [
+        hasPremiumGoods ? "chapter8_prepare_premium_goods" : null,
+        visitedRegionIds.includes("silvergrain_exchange") || currentRegionId === "silvergrain_exchange"
+          ? "chapter8_travel_silvergrain"
+          : null,
+        completedSilvergrainSteps.has("inspect-demand") ? "chapter8_inspect_market_demand" : null,
+        completedSilvergrainSteps.has("prepare-premium-sample") || completedVelvetSteps.has("premium-sample")
+          ? "chapter8_submit_premium_sample"
+          : null,
+        completedSilvergrainSteps.has("buyer-introduction") || completedVelvetSteps.has("buyer-introduction")
+          ? "chapter8_meet_buyer_contact"
+          : null,
+        termsRecorded ? "chapter8_negotiate_or_record_terms" : null,
+        termsRecorded || silvergrainChain?.status === "completed" || velvetChain?.status === "completed" || (velvet?.reputation ?? 0) >= 45
+          ? "chapter8_velvet_recognition"
+          : null,
+      ].filter((flag): flag is MainStoryObjectiveId => Boolean(flag));
+    }
+
+    return [];
   }
 
   function grantMainStoryReward(reward: MainStoryReward) {
@@ -5504,12 +5646,12 @@ useEffect(() => {
 
   function acknowledgeStoryJournalSection(section: "story" | "quests" | "factions" | "world") {
     if (section === "story") {
-      recordMainStoryFlags(["chapter6_wider_invitation", "chapter7_road_brief"]);
+      recordMainStoryFlags(["chapter6_wider_invitation", "chapter7_road_brief", "chapter8_market_notice"]);
       return;
     }
 
     if (section === "quests") {
-      recordMainStoryFlags(["chapter6_quest_log_review", "chapter7_road_brief"]);
+      recordMainStoryFlags(["chapter6_quest_log_review", "chapter7_road_brief", "chapter8_market_notice"]);
       recordAuthoredQuestObjectives([
         { questId: "chapter-six-support-slot", objectiveId: "choose-first-outer-thread" },
       ]);
@@ -5517,12 +5659,12 @@ useEffect(() => {
     }
 
     if (section === "factions") {
-      recordMainStoryFlags(["chapter6_faction_signal", "chapter7_road_brief"]);
+      recordMainStoryFlags(["chapter6_faction_signal", "chapter7_road_brief", "chapter8_market_notice"]);
       return;
     }
 
     if (section === "world") {
-      recordMainStoryFlags(["chapter6_world_route_confirmed", "chapter7_road_brief"]);
+      recordMainStoryFlags(["chapter6_world_route_confirmed", "chapter7_road_brief", "chapter8_market_notice"]);
     }
   }
 
@@ -5652,6 +5794,7 @@ useEffect(() => {
     recordMainStoryFlags([
       "chapter6_world_route_confirmed",
       ...(region.id === "brindlewood_road" ? (["chapter7_travel_brindlewood"] as MainStoryObjectiveId[]) : []),
+      ...(region.id === "silvergrain_exchange" ? (["chapter8_travel_silvergrain"] as MainStoryObjectiveId[]) : []),
     ]);
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
     return true;
@@ -7654,6 +7797,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter6_creature_lineage_proof",
       "chapter7_prepare_road_supplies",
       "chapter7_ready_creature_helper",
+      "chapter8_prepare_premium_goods",
     ]);
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
@@ -8025,6 +8169,7 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
       { questId: "market-ring-introduction", objectiveId: "prepare-private-stock" },
     ]);
+    recordMainStoryFlags(["chapter8_prepare_premium_goods"]);
     return true;
   }
 
@@ -8195,6 +8340,7 @@ function cookRecipe(recipeId: string, creatureId: number) {
     "chapter6_creature_lineage_proof",
     "chapter7_prepare_road_supplies",
     "chapter7_ready_creature_helper",
+    "chapter8_prepare_premium_goods",
   ]);
   recordAuthoredQuestObjectives([
     { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
