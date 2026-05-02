@@ -29,18 +29,24 @@ function getRegionActionDisabledReason({
   regionName,
   actionId,
   taskChain,
+  hasSilvergrainSample,
 }: {
   currentRegionId: string;
   regionId: string;
   regionName: string;
   actionId: string;
   taskChain?: ReturnType<typeof useGame>["regionTaskChains"][number];
+  hasSilvergrainSample?: boolean;
 }) {
   if (currentRegionId !== regionId) return `Travel to ${regionName} first.`;
+  if (actionId === "silvergrain-submit-premium-sample" && !hasSilvergrainSample) {
+    return "Bring any quality produce or cooked good.";
+  }
   if (!taskChain) return undefined;
 
   const actionStep = taskChain.steps.find((step) => step.actionId === actionId);
   if (!actionStep) return undefined;
+  if (actionId.startsWith("silvergrain-") && taskChain.completedStepIds.includes(actionStep.id)) return undefined;
   if (taskChain.completedStepIds.includes(actionStep.id)) return `${actionStep.title} is already recorded.`;
   if (taskChain.currentStepId !== actionStep.id) {
     const currentStep = taskChain.steps.find((step) => step.id === taskChain.currentStepId);
@@ -85,6 +91,7 @@ export default function RegionsPage() {
     latestRoadIncident,
     roadIncidentLog,
     roadIncidentCountsByRegion,
+    silvergrainPremiumSample,
     travelToRegion,
     performRegionAction,
     startRoadDispatch,
@@ -104,6 +111,11 @@ export default function RegionsPage() {
   const currentTotalMinutes = getTotalMinutes(currentDay, currentHour, currentMinute);
   const assignedDispatchCreatureIds = new Set(activeDispatches.flatMap((dispatch) => dispatch.creatureIds));
   const brindlewoodDispatchJobs = roadDispatchJobs.filter((job) => job.regionId === "brindlewood_road");
+  const silvergrainRegion = worldRegions.find((region) => region.id === "silvergrain_exchange");
+  const silvergrainLocations = worldLocations.filter((location) => location.regionId === "silvergrain_exchange");
+  const silvergrainTaskChain = regionTaskChains.find((chain) => chain.regionId === "silvergrain_exchange");
+  const silvergrainFactionChain = factionQuestChains.find((chain) => chain.factionId === "velvet_market_ring");
+  const silvergrainActions = worldRegionActions.filter((action) => action.regionId === "silvergrain_exchange");
 
   function toggleDispatchCreature(jobId: string, creatureId: number, maxAssignedCreatures: number) {
     setSelectedDispatchCreatures((prev) => {
@@ -267,6 +279,7 @@ export default function RegionsPage() {
                             regionName: firstOutsideRegion.name,
                             actionId: action.id,
                             taskChain: firstOutsideTaskChain,
+                            hasSilvergrainSample: Boolean(silvergrainPremiumSample),
                           })}
                           buttonLabel="Do Action"
                           onAction={() => performRegionAction(firstOutsideRegion.id, action.id)}
@@ -506,6 +519,136 @@ export default function RegionsPage() {
           </div>
         </GameCard>
 
+        {silvergrainRegion ? (
+          <GameCard tone={silvergrainRegion.status === "locked" ? "stone" : "fuchsia"} className="shadow-lg">
+            <GameSectionHeader
+              eyebrow="Second Outside Route"
+              title={silvergrainRegion.name}
+              description="Silvergrain is the premium market route: samples, buyer terms, rare stock, price rumors, and Velvet Market Ring attention."
+              tone={silvergrainRegion.status === "locked" ? "stone" : "fuchsia"}
+            >
+              <GameStatusBadge tone={silvergrainRegion.status === "locked" ? "stone" : currentRegionId === silvergrainRegion.id ? "emerald" : "fuchsia"}>
+                {silvergrainRegion.status === "locked" ? "Locked" : currentRegionId === silvergrainRegion.id ? "Current" : "Open"}
+              </GameStatusBadge>
+            </GameSectionHeader>
+
+            <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-fuchsia-200 bg-white/85 p-4 text-sm text-stone-700">
+                  <p><strong>Role:</strong> {silvergrainRegion.gameplayRole}</p>
+                  <p className="mt-2"><strong>Specialty:</strong> {silvergrainRegion.regionSpecialty}</p>
+                  <p className="mt-2"><strong>Preparation:</strong> {silvergrainRegion.preparationHint}</p>
+                  <p className="mt-2"><strong>Rewards:</strong> {formatWorldList(silvergrainRegion.uniqueRewardHooks)}</p>
+                  <p className="mt-2"><strong>Access:</strong> {silvergrainRegion.access.requirement}</p>
+                  <p className="mt-2"><strong>Velvet backing:</strong> {silvergrainFactionChain?.title ?? "Private Goods Channel"}</p>
+                </div>
+
+                <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4 text-sm text-stone-700">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-bold uppercase text-fuchsia-800">Premium Sample</p>
+                      <h3 className="text-lg font-bold text-stone-950">
+                        {silvergrainPremiumSample ? silvergrainPremiumSample.itemName : "No sample ready"}
+                      </h3>
+                    </div>
+                    <GameStatusBadge tone={silvergrainPremiumSample ? "fuchsia" : "stone"}>
+                      {silvergrainPremiumSample ? "Ready" : "Needed"}
+                    </GameStatusBadge>
+                  </div>
+                  <p className="mt-2">
+                    {silvergrainPremiumSample
+                      ? `${silvergrainPremiumSample.description}. Submitting it adds ${silvergrainPremiumSample.rewardGoldBonus} gold and ${silvergrainPremiumSample.reputationBonus} Velvet reputation.`
+                      : "Bring any quality produce from the Fields or a cooked good from the Ranch House before submitting a premium sample."}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-stone-200 bg-white/85 p-4">
+                  <p className="text-xs font-bold uppercase text-fuchsia-800">Notable Locations</p>
+                  <div className="mt-3 grid gap-2">
+                    {silvergrainLocations.map((location) => (
+                      <div key={location.locationId} className="rounded-xl border border-fuchsia-100 bg-fuchsia-50 px-3 py-2 text-xs text-stone-700">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="font-bold text-stone-950">{location.name}</p>
+                          <GameStatusBadge tone={location.status === "locked" ? "stone" : "fuchsia"}>
+                            {formatWorldLabel(location.status)}
+                          </GameStatusBadge>
+                        </div>
+                        <p className="mt-1">{location.description}</p>
+                        <p className="mt-1"><strong>Actions:</strong> {formatWorldList(location.actionHooks)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {silvergrainTaskChain ? (
+                  <div className="rounded-2xl border border-fuchsia-200 bg-fuchsia-50 p-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase text-fuchsia-800">Task Chain</p>
+                        <h3 className="text-lg font-bold text-stone-950">{silvergrainTaskChain.title}</h3>
+                      </div>
+                      <GameStatusBadge tone={silvergrainTaskChain.status === "completed" ? "emerald" : "fuchsia"}>
+                        {formatWorldLabel(silvergrainTaskChain.status)}
+                      </GameStatusBadge>
+                    </div>
+                    <p className="mt-2 text-sm text-stone-700">{silvergrainTaskChain.description}</p>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                      <div
+                        className="h-full rounded-full bg-fuchsia-700"
+                        style={{ width: `${Math.round((silvergrainTaskChain.completedStepIds.length / silvergrainTaskChain.steps.length) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs font-semibold">
+                      {silvergrainTaskChain.completedStepIds.length}/{silvergrainTaskChain.steps.length} steps - Next: {silvergrainTaskChain.steps.find((step) => step.id === silvergrainTaskChain.currentStepId)?.title ?? silvergrainTaskChain.nextHint}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                {silvergrainRegion.status === "locked" ? (
+                  <GameEmptyState>Unlock: {silvergrainRegion.unlockCondition}</GameEmptyState>
+                ) : (
+                  <>
+                    <GameActionCard
+                      title={currentRegionId === silvergrainRegion.id ? "Current Region" : `Travel to ${silvergrainRegion.name}`}
+                      performer="Player"
+                      targetLabel="Traveler"
+                      cost={`${silvergrainRegion.access.travelMinutes} minutes`}
+                      outcome={currentRegionId === silvergrainRegion.id ? "You are already in the exchange district." : "Updates current region and marks Silvergrain visited."}
+                      disabledReason={currentRegionId === silvergrainRegion.id ? "Already in this region." : undefined}
+                      buttonLabel={currentRegionId === silvergrainRegion.id ? "Here Now" : "Travel"}
+                      onAction={() => travelToRegion(silvergrainRegion.id)}
+                      tone="fuchsia"
+                    />
+                    {silvergrainActions.map((action) => (
+                      <GameActionCard
+                        key={action.id}
+                        title={action.title}
+                        performer={silvergrainRegion.name}
+                        targetLabel="Region"
+                        cost={`${action.timeCostMinutes} minutes`}
+                        outcome={action.outcome}
+                        disabledReason={getRegionActionDisabledReason({
+                          currentRegionId,
+                          regionId: silvergrainRegion.id,
+                          regionName: silvergrainRegion.name,
+                          actionId: action.id,
+                          taskChain: silvergrainTaskChain,
+                          hasSilvergrainSample: Boolean(silvergrainPremiumSample),
+                        })}
+                        buttonLabel="Do Action"
+                        onAction={() => performRegionAction(silvergrainRegion.id, action.id)}
+                        tone="fuchsia"
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          </GameCard>
+        ) : null}
+
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
           <div className="space-y-4">
             <GameSectionHeader
@@ -624,6 +767,7 @@ export default function RegionsPage() {
                                   regionName: region.name,
                                   actionId: action.id,
                                   taskChain,
+                                  hasSilvergrainSample: Boolean(silvergrainPremiumSample),
                                 })}
                                 buttonLabel="Do Action"
                                 onAction={() => performRegionAction(region.id, action.id)}

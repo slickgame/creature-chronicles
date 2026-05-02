@@ -762,6 +762,17 @@ type RoadIncidentOccurrence = {
   summary: string;
 };
 
+type SilvergrainPremiumSample = {
+  itemId: string;
+  itemName: string;
+  quantity: number;
+  quality?: CropQuality;
+  source: "quality_produce" | "cooked_good";
+  rewardGoldBonus: number;
+  reputationBonus: number;
+  description: string;
+};
+
 type AuthoredQuestProgressAction = {
   id: string;
   questId: string;
@@ -940,6 +951,7 @@ type GameContextType = {
   latestRoadIncident: RoadIncidentLogEntry | null;
   seenIncidentIds: string[];
   roadIncidentCountsByRegion: Record<string, number>;
+  silvergrainPremiumSample: SilvergrainPremiumSample | null;
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   travelToRegion: (regionId: string) => boolean;
@@ -1758,16 +1770,16 @@ const defaultWorldRegions: WorldRegion[] = [
     primaryFactionId: "velvet_market_ring",
     regionSpecialty: "Quality goods, price rumors, and buyer samples",
     uniqueMechanicSummary: "Converts quality production and market confidence into Velvet reputation and premium buyer hooks.",
-    repeatableLoopSummary: "Prepare high-quality goods, travel with a sample, inspect demand, meet buyer contacts, and record price rumors.",
-    preparationHint: "Bring produce, cooked goods, or a strong market sale history before chasing private buyers.",
-    uniqueRewardHooks: ["premium sale info", "Velvet reputation", "rare seed hook", "recipe hook", "premium buyer hook"],
-    riskOrCostSummary: "High travel time and quality expectations; weak samples still teach you the market but pay modestly.",
-    futureUnlockHint: "Prepared for a later trade route, premium board, or Chapter 8 market branch.",
-    unlockCondition: "Prepared for market faction expansion.",
+    repeatableLoopSummary: "Prepare high-quality goods, inspect demand, submit samples, meet buyer contacts, negotiate terms, and browse rare stock.",
+    preparationHint: "Bring quality produce or cooked goods; pristine produce earns the most Velvet attention.",
+    uniqueRewardHooks: ["premium sale info", "Velvet reputation", "rare seed hook", "recipe hook", "premium buyer hook", "private terms hook"],
+    riskOrCostSummary: "High travel time and quality expectations; no sample means the private tables stay politely unimpressed.",
+    futureUnlockHint: "Prepared for a later trade route, premium buyer board, and Velvet Market branch.",
+    unlockCondition: "Complete Chapter 6's First Route Charter or progress the Velvet Market Ring.",
     access: {
       travelMinutes: 120,
       route: "Market caravan route",
-      requirement: "Future Velvet Market Ring introduction",
+      requirement: "Locked until the first route charter or Velvet Market Ring access opens Silvergrain.",
     },
     questHooks: ["market-ring-introduction", "chapter-six-support-slot"],
     factionHooks: ["velvet_market_ring"],
@@ -1913,7 +1925,7 @@ const defaultWorldLocations: WorldLocation[] = [
     locationType: "trade_square",
     status: "locked",
     associatedFactionId: "velvet_market_ring",
-    actionHooks: ["silvergrain-market-inspection"],
+    actionHooks: ["silvergrain-market-inspection", "silvergrain-browse-rare-stock"],
     storyHook: "Market demand, price flavor, and future premium trade route starts.",
     travelAccessNote: "Locked until Silvergrain Exchange opens through story or market progress.",
   },
@@ -1926,7 +1938,7 @@ const defaultWorldLocations: WorldLocation[] = [
     locationType: "buyer_hall",
     status: "locked",
     associatedFactionId: "velvet_market_ring",
-    actionHooks: ["silvergrain-buyer-introduction"],
+    actionHooks: ["silvergrain-buyer-introduction", "silvergrain-negotiate-buyer-terms"],
     storyHook: "Private buyer introductions and future premium buyer board hooks.",
     travelAccessNote: "Locked until Silvergrain Exchange opens through story or market progress.",
   },
@@ -1939,7 +1951,7 @@ const defaultWorldLocations: WorldLocation[] = [
     locationType: "premium_market",
     status: "locked",
     associatedFactionId: "velvet_market_ring",
-    actionHooks: ["silvergrain-submit-premium-sample", "silvergrain-price-rumor"],
+    actionHooks: ["silvergrain-submit-premium-sample", "silvergrain-price-rumor", "silvergrain-browse-rare-stock"],
     storyHook: "Premium samples, price rumors, rare seed hooks, and recipe hooks.",
     travelAccessNote: "Locked until Silvergrain Exchange opens through story or market progress.",
   },
@@ -2094,13 +2106,13 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
   {
     id: "silvergrain-market-inspection",
     regionId: "silvergrain_exchange",
-    title: "Market Inspection",
+    title: "Inspect Market Demand",
     description:
-      "Walk the exchange floor, watch the buyer tables, and let Selene's wider circle notice you looking back.",
+      "Walk the exchange floor, watch buyer tables, and note which goods are drawing expensive little smiles.",
     timeCostMinutes: 75,
-    outcome: "Gain Velvet Market Ring reputation and a little market money.",
-    rewardGold: 26,
-    factionReputation: [{ factionId: "velvet_market_ring", amount: 5 }],
+    outcome: "The exchange demand board sharpens into a useful buyer read: lush greens, warm bread, and fruit with shine are moving well.",
+    rewardGold: 30,
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 6 }],
     factionChainStepIds: ["velvet-private-goods-channel:inspect-demand"],
     regionTaskStepIds: ["silvergrain-exchange-chain:inspect-demand"],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
@@ -2110,7 +2122,7 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     regionId: "silvergrain_exchange",
     title: "Submit Premium Sample",
     description:
-      "Place a careful sample where the right eyes can find it, and let the Market Ring decide whether it wants another taste.",
+      "Place your best available quality produce or cooked good where the right eyes can find it.",
     timeCostMinutes: 45,
     outcome: "A premium sample earns Velvet attention, market money, and a sharper buyer lead.",
     rewardGold: 38,
@@ -2128,9 +2140,9 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     description:
       "Accept a careful introduction to a private buyer whose smile has teeth and whose purse is heavier than polite.",
     timeCostMinutes: 60,
-    outcome: "Supports Velvet Market work and marks a market-facing route preference.",
-    rewardGold: 35,
-    factionReputation: [{ factionId: "velvet_market_ring", amount: 6 }],
+    outcome: "A buyer contact agrees to watch the ranch's next sample instead of pretending not to stare.",
+    rewardGold: 42,
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 7 }],
     factionChainStepIds: ["velvet-private-goods-channel:buyer-introduction"],
     regionTaskStepIds: ["silvergrain-exchange-chain:buyer-introduction"],
     authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }],
@@ -2148,6 +2160,35 @@ const defaultWorldRegionActions: WorldRegionAction[] = [
     rewardItems: [{ itemId: "carrot_seed", quantity: 1 }],
     factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
     regionTaskStepIds: ["silvergrain-exchange-chain:record-price-rumor"],
+    storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "silvergrain-negotiate-buyer-terms",
+    regionId: "silvergrain_exchange",
+    title: "Negotiate Buyer Terms",
+    description:
+      "Sit across from a private buyer long enough to learn what they want, what they fear, and what they will pay to keep both quiet.",
+    timeCostMinutes: 65,
+    outcome: "Private terms are penciled into the Velvet ledger: not a full contract yet, but enough to make the next route feel real.",
+    rewardGold: 58,
+    rewardItems: [{ itemId: "rich_fertilizer", quantity: 1 }],
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 8, standing: "warm" }],
+    factionChainStepIds: ["velvet-private-goods-channel:secure-private-terms"],
+    regionTaskStepIds: ["silvergrain-exchange-chain:secure-private-terms"],
+    authoredQuestObjectives: [{ questId: "market-ring-introduction", objectiveId: "sell-under-market-eye" }],
+    storyFlags: ["chapter6_faction_signal", "chapter6_town_registration", "chapter6_world_route_confirmed"],
+  },
+  {
+    id: "silvergrain-browse-rare-stock",
+    regionId: "silvergrain_exchange",
+    title: "Browse Rare Stock",
+    description:
+      "Browse rare seed drawers, half-hidden recipe notes, and buyer demand whispers without committing to a full auction.",
+    timeCostMinutes: 35,
+    outcome: "You leave with a rare-stock lead: berry lots are warm, apple samples are being watched, and a premium recipe hint is circulating.",
+    rewardGold: 12,
+    rewardItems: [{ itemId: "berry_seed", quantity: 1 }],
+    factionReputation: [{ factionId: "velvet_market_ring", amount: 2 }],
     storyFlags: ["chapter6_faction_signal", "chapter6_world_route_confirmed"],
   },
 ];
@@ -2258,14 +2299,14 @@ const defaultFactionQuestChains: FactionQuestChain[] = [
     chainId: "velvet-private-goods-channel",
     title: "Private Goods Channel",
     description:
-      "The Market Ring measures whether your ranch can prepare premium stock and keep its nerve around private buyers.",
+      "The Market Ring measures whether your ranch can read demand, prepare premium stock, meet private buyers, and hold its nerve when terms get intimate.",
     currentStepId: "inspect-demand",
     completedStepIds: [],
     status: "available",
     requirements: ["Progress Velvet Market Introduction", "Unlock or prepare Silvergrain Exchange"],
-    rewardSummary: "Velvet Market reputation, buyer introductions, and future premium route hooks.",
-    factionReputationReward: 18,
-    nextHint: "Inspect market demand, submit a premium sample, then meet a buyer contact.",
+    rewardSummary: "Velvet Market reputation, private terms, rare stock hooks, and future premium route pressure.",
+    factionReputationReward: 24,
+    nextHint: "Inspect market demand, submit a premium sample, meet a buyer contact, then secure private terms.",
     steps: [
       {
         id: "inspect-demand",
@@ -2287,6 +2328,13 @@ const defaultFactionQuestChains: FactionQuestChain[] = [
         requirement: "Perform Meet Buyer Contact at Silvergrain Exchange.",
         reputationReward: 6,
         nextHint: "Let Selene's circle introduce a private buyer.",
+      },
+      {
+        id: "secure-private-terms",
+        title: "Secure private terms",
+        requirement: "Perform Negotiate Buyer Terms at Silvergrain Exchange.",
+        reputationReward: 8,
+        nextHint: "Negotiate terms once the buyer contact has a reason to lean in.",
       },
     ],
   },
@@ -2411,14 +2459,14 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
   {
     regionId: "silvergrain_exchange",
     chainId: "silvergrain-exchange-chain",
-    title: "Silvergrain Market Thread",
+    title: "Private Goods Channel",
     description:
-      "A lighter market chain for future Velvet Market routes: demand, sample, buyer.",
+      "A premium-market route chain: read demand, submit a sample, meet a private buyer, record price pressure, and secure terms.",
     currentStepId: "inspect-demand",
     completedStepIds: [],
     status: "available",
     requirements: ["Open Silvergrain Exchange", "Progress Velvet Market Introduction"],
-    rewardSummary: "Velvet Market reputation, gold, rare seed hooks, and future premium buyer pressure.",
+    rewardSummary: "Velvet Market reputation, gold, rare stock hooks, premium recipe hints, and private buyer pressure.",
     factionConsequence: "Raises Velvet Market Ring reputation and marks the ranch as private-buyer material.",
     regionUnlockConsequence: "Sets up premium buyer board, rare stock, and recipe hooks for future trade routes.",
     factionId: "velvet_market_ring",
@@ -2427,7 +2475,7 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
       {
         id: "inspect-demand",
         title: "Inspect Market Demand",
-        requirement: "Perform Market Inspection.",
+        requirement: "Perform Inspect Market Demand.",
         actionId: "silvergrain-market-inspection",
         nextHint: "Walk the exchange floor and learn what buyers want.",
       },
@@ -2450,7 +2498,14 @@ const defaultRegionTaskChains: RegionTaskChain[] = [
         title: "Record Price Rumor",
         requirement: "Perform Record Price Rumor.",
         actionId: "silvergrain-price-rumor",
-        nextHint: "Write down the whisper that makes tomorrow's sale smarter.",
+        nextHint: "Write down the whisper that makes tomorrow's sale smarter, then secure terms.",
+      },
+      {
+        id: "secure-private-terms",
+        title: "Secure Private Terms",
+        requirement: "Perform Negotiate Buyer Terms.",
+        actionId: "silvergrain-negotiate-buyer-terms",
+        nextHint: "Turn the buyer's attention into private terms for future market routes.",
       },
     ],
   },
@@ -2963,7 +3018,11 @@ function normalizeWorldRegions(savedRegions?: WorldRegion[], mainStoryState?: Ma
 
   return defaultWorldRegions.map((region) => {
     const saved = savedById.get(region.id);
-    const shouldOpenForStory = chapterSixComplete && region.id === "brindlewood_road";
+    const shouldOpenForStory = chapterSixComplete && (region.id === "brindlewood_road" || region.id === "silvergrain_exchange");
+    const storyRequirement =
+      region.id === "silvergrain_exchange"
+        ? "Available. The premium market route is open for Silvergrain work."
+        : "Available. The route is open for Chapter 7 road work.";
 
     return {
       ...region,
@@ -2972,7 +3031,7 @@ function normalizeWorldRegions(savedRegions?: WorldRegion[], mainStoryState?: Ma
       access: shouldOpenForStory
         ? {
             ...region.access,
-            requirement: "Available. The route is open for Chapter 7 road work.",
+            requirement: storyRequirement,
           }
         : region.access,
     };
@@ -4314,6 +4373,63 @@ function pickRoadDispatchEvent(job: RoadDispatchJob, dispatch: ActiveRoadDispatc
   return job.eventPool[Math.abs(seed) % job.eventPool.length];
 }
 
+function getSilvergrainPremiumSampleCandidate(
+  produceQualityInventory: ProduceQualityInventoryState,
+  inventory: InventoryState
+): SilvergrainPremiumSample | null {
+  const qualityReward: Record<CropQuality, { gold: number; reputation: number; label: string }> = {
+    standard: { gold: 8, reputation: 2, label: "standard" },
+    fine: { gold: 18, reputation: 4, label: "fine" },
+    lush: { gold: 34, reputation: 6, label: "lush" },
+    pristine: { gold: 52, reputation: 9, label: "pristine" },
+  };
+  const descendingQuality = [...CROP_QUALITY_ORDER].reverse();
+
+  for (const quality of descendingQuality) {
+    const produceEntry = Object.entries(produceQualityInventory).find(([, qualityCounts]) => (qualityCounts[quality] ?? 0) > 0);
+    if (!produceEntry) continue;
+    const [itemId] = produceEntry;
+    const item = ITEM_DATA[itemId];
+    const reward = qualityReward[quality];
+
+    return {
+      itemId,
+      itemName: item?.name ?? itemId,
+      quantity: 1,
+      quality,
+      source: "quality_produce",
+      rewardGoldBonus: reward.gold,
+      reputationBonus: reward.reputation,
+      description: `${reward.label} ${item?.name ?? itemId} from the quality stores`,
+    };
+  }
+
+  const cookedEntry = Object.entries(inventory).find(([itemId, quantity]) => {
+    const item = ITEM_DATA[itemId];
+    return (
+      quantity > 0 &&
+      item?.category === "food" &&
+      item.useTags.includes("edible") &&
+      item.useTags.includes("sellable") &&
+      !item.useTags.includes("cookable")
+    );
+  });
+
+  if (!cookedEntry) return null;
+  const [itemId] = cookedEntry;
+  const item = ITEM_DATA[itemId];
+
+  return {
+    itemId,
+    itemName: item?.name ?? itemId,
+    quantity: 1,
+    source: "cooked_good",
+    rewardGoldBonus: 24,
+    reputationBonus: 5,
+    description: `${item?.name ?? itemId} as a prepared market sample`,
+  };
+}
+
 function getStableStringSeed(value: string) {
   return value.split("").reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0);
 }
@@ -4894,6 +5010,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const roadDispatchUnlocked =
     isChapterCompletedForGate(mainStory, "chapter_7") ||
     Boolean(brindlewoodTaskChain && brindlewoodTaskChain.status === "completed");
+  const silvergrainPremiumSample = getSilvergrainPremiumSampleCandidate(produceQualityInventory, inventory);
   
 
   useEffect(() => {
@@ -5564,6 +5681,21 @@ useEffect(() => {
       return false;
     }
 
+    const requiresPremiumSample = action.id === "silvergrain-submit-premium-sample";
+    const premiumSample = requiresPremiumSample
+      ? getSilvergrainPremiumSampleCandidate(produceQualityInventory, inventory)
+      : null;
+
+    if (requiresPremiumSample && !premiumSample) {
+      setRegionFailureResult(
+        "Premium Sample Needed",
+        "Bring any quality produce or a cooked good before submitting a Silvergrain premium sample.",
+        region.id,
+        action.id
+      );
+      return false;
+    }
+
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, action.timeCostMinutes);
     const usesRoadSupply = action.id === "brindlewood-deliver-supplies";
     const hasInventoryWheat = (inventory.wheat ?? 0) > 0;
@@ -5571,7 +5703,10 @@ useEffect(() => {
     const suppliedFromInventory = usesRoadSupply && hasInventoryWheat;
     const suppliedFromHome = usesRoadSupply && !hasInventoryWheat && hasHomeWheat;
     const supplyWasPacked = !usesRoadSupply || suppliedFromInventory || suppliedFromHome;
-    const rewardGold = supplyWasPacked ? action.rewardGold ?? 0 : Math.floor((action.rewardGold ?? 0) / 2);
+    const premiumSampleGoldBonus = premiumSample?.rewardGoldBonus ?? 0;
+    const rewardGold = supplyWasPacked
+      ? (action.rewardGold ?? 0) + premiumSampleGoldBonus
+      : Math.floor((action.rewardGold ?? 0) / 2);
     const rewardSummary = buildRegionRewardSummary(action, rewardGold);
     const chainProgressSummary =
       (action.factionChainStepIds?.length ?? 0) > 0 || (action.regionTaskStepIds?.length ?? 0) > 0
@@ -5582,7 +5717,10 @@ useEffect(() => {
         ? " Road supplies packed from wheat stock."
         : " You arrived light on supplies, so the Dispatch pays a reduced courier reward."
       : "";
-    let message = `${action.outcome}${supplySummary}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
+    const sampleSummary = premiumSample
+      ? ` Sample submitted: ${premiumSample.description}. Bonus: ${premiumSample.rewardGoldBonus} gold and ${premiumSample.reputationBonus} Velvet reputation.`
+      : "";
+    let message = `${action.outcome}${supplySummary}${sampleSummary}${rewardSummary !== "No item reward" ? ` Reward: ${rewardSummary}.` : ""}${chainProgressSummary}`;
     const roadIncident =
       region.id === "brindlewood_road"
         ? buildRoadIncidentOccurrence({
@@ -5610,6 +5748,16 @@ useEffect(() => {
       setHomeState((prev) => ({ ...prev, wheatStock: Math.max(0, prev.wheatStock - 1) }));
     }
 
+    if (premiumSample) {
+      if (premiumSample.quality) {
+        setProduceQualityInventory((prev) =>
+          removeQualityProduceFromInventory(prev, premiumSample.itemId, premiumSample.quality as CropQuality, premiumSample.quantity)
+        );
+      } else {
+        setInventory((prev) => removeItemFromInventory(prev, premiumSample.itemId, premiumSample.quantity));
+      }
+    }
+
     if ((action.rewardItems?.length ?? 0) > 0) {
       setInventory((prev) => {
         let next = { ...prev };
@@ -5627,6 +5775,16 @@ useEffect(() => {
         factionReputation: action.factionReputation ?? [],
         unlockRegions: [],
         summary: action.outcome,
+      });
+    }
+
+    if (premiumSample) {
+      applyAuthoredQuestReward({
+        gold: 0,
+        items: [],
+        factionReputation: [{ factionId: "velvet_market_ring", amount: premiumSample.reputationBonus, standing: "warm" }],
+        unlockRegions: [],
+        summary: `Silvergrain sample accepted: ${premiumSample.description}.`,
       });
     }
 
@@ -8396,6 +8554,7 @@ function purchaseMarketItem(itemId: string, price: number) {
         latestRoadIncident,
         seenIncidentIds,
         roadIncidentCountsByRegion,
+        silvergrainPremiumSample,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
         travelToRegion,

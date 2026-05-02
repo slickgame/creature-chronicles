@@ -32,10 +32,12 @@ const WORLD_LABELS: Record<string, string> = {
   "homefold-ranch-room-pass": "Use a Ranch Room",
   "homefold-local-errands": "Run Local Errands",
   "homefold-map-table": "Review the Map Table",
-  "silvergrain-market-inspection": "Market Inspection",
+  "silvergrain-market-inspection": "Inspect Market Demand",
   "silvergrain-submit-premium-sample": "Submit Premium Sample",
   "silvergrain-buyer-introduction": "Meet Buyer Contact",
   "silvergrain-price-rumor": "Record Price Rumor",
+  "silvergrain-negotiate-buyer-terms": "Negotiate Buyer Terms",
+  "silvergrain-browse-rare-stock": "Browse Rare Stock",
   "wayfarer-road-ledger-route": "Road Ledger Route",
   "velvet-private-goods-channel": "Private Goods Channel",
   "guild-official-registry-path": "Official Registry Path",
@@ -75,6 +77,7 @@ const WORLD_LABELS: Record<string, string> = {
   "rare seed hook": "Rare Seed Hook",
   "recipe hook": "Recipe Hook",
   "premium buyer hook": "Premium Buyer Hook",
+  "private terms hook": "Private Terms Hook",
   "road-scout": "Road Scout",
   "supply-run": "Supply Run",
   "courier-check": "Courier Check",
@@ -91,6 +94,7 @@ const WORLD_LABELS: Record<string, string> = {
   "prepare-premium-sample": "Prepare Premium Sample",
   "buyer-introduction": "Buyer Introduction",
   "record-price-rumor": "Record Price Rumor",
+  "secure-private-terms": "Secure Private Terms",
   "wayfarer_dispatch": "Wayfarer Dispatch",
   "velvet_market_ring": "Velvet Market Ring",
   "guild_hall_circle": "Guild Hall Circle",
@@ -213,14 +217,14 @@ const QUEST_HINTS: Record<string, { where: string; action: string; next: string 
 
 const FACTION_INFLUENCE: Record<string, string> = {
   wayfarer_dispatch: "Complete The Road Ledger, prove ranch reliability, travel to Brindlewood Road, and complete Road Work assignments.",
-  velvet_market_ring: "Prepare quality goods, sell through Selene, complete market-facing deliveries, and send Chapter 6 market signals.",
+  velvet_market_ring: "Prepare quality goods, submit premium samples, inspect Silvergrain demand, meet buyer contacts, and negotiate private terms.",
   guild_hall_circle: "Use guild travel, complete civic work, acknowledge A Wider Invitation, and prepare for formal assignments.",
 };
 
 const REGION_IMPORTANCE: Record<string, string> = {
   homefold_valley: "Your current home loop around Hearthmere: ranch work, town relationships, Market Row services, and the Guild Hall Branch.",
   brindlewood_road: "The first road beyond town, positioned for courier jobs, inspections, Chapter 6's route-facing proof, and Chapter 7's Road Work assignment.",
-  silvergrain_exchange: "A premium market destination tied to Selene, private buyers, higher-stakes goods, and Chapter 6's first route charter.",
+  silvergrain_exchange: "The premium market route: quality samples, buyer introductions, rare stock hooks, price rumors, and Velvet Market Ring leverage.",
 };
 
 const FACTION_CHAIN_DATA: Record<string, { title: string; currentStep: string; nextRequirement: string; reward: string }> = {
@@ -232,9 +236,9 @@ const FACTION_CHAIN_DATA: Record<string, { title: string; currentStep: string; n
   },
   velvet_market_ring: {
     title: "Silvergrain Buyer Thread",
-    currentStep: "Show that the ranch can prepare and move goods under private market attention.",
-    nextRequirement: "Progress Velvet Market Introduction, unlock Silvergrain Exchange, or finish a market action.",
-    reward: "Velvet Market reputation, private buyer access, and premium trade hooks.",
+    currentStep: "Show that the ranch can read demand, submit samples, and hold private buyer attention.",
+    nextRequirement: "Progress Velvet Market Introduction, unlock Silvergrain Exchange, submit a premium sample, or negotiate buyer terms.",
+    reward: "Velvet Market reputation, private buyer terms, rare stock hooks, and premium trade leverage.",
   },
   guild_hall_circle: {
     title: "Outer Charter Oversight",
