@@ -48,11 +48,15 @@ export function GameModal({
   if (!open) return null;
 
   return (
-    <div className={`fixed inset-0 ${zClassName} flex items-center justify-center bg-black/50 p-3 sm:p-4`}>
+    <div
+      className={`fixed inset-0 ${zClassName} flex items-center justify-center bg-black/50 p-3 sm:p-4`}
+      onMouseDown={onClose}
+    >
       <div
-        className={`flex ${height} w-full ${maxWidth} flex-col overflow-hidden rounded-3xl border-4 ${borderClassName} bg-white shadow-2xl`}
+        onMouseDown={(event) => event.stopPropagation()}
+        className={`flex max-h-[92vh] ${height} w-full ${maxWidth} flex-col overflow-hidden rounded-3xl border-4 ${borderClassName} bg-white shadow-2xl`}
       >
-        <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-3 sm:px-5 sm:py-4">
+        <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-stone-200 bg-white px-4 py-3 sm:px-5 sm:py-4">
           <h2 className={`min-w-0 truncate text-lg font-bold sm:text-2xl ${titleClassName}`}>
             {title}
           </h2>

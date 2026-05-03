@@ -63,40 +63,38 @@ export function GlobalHudNav() {
           Quick Menu
         </button>
 
-        <div
-          id={menuId}
-          className={`absolute bottom-full right-0 mb-2 w-[min(20rem,calc(100vw-1.5rem))] rounded-2xl border border-stone-300 bg-white/95 p-2 shadow-2xl backdrop-blur transition md:bottom-auto md:top-full md:mb-0 md:mt-2 ${
-            open
-              ? "translate-y-0 scale-100 opacity-100"
-              : "pointer-events-none translate-y-1 scale-95 opacity-0 md:-translate-y-1"
-          }`}
-        >
-          <div className="mb-2 flex items-center justify-between gap-2 px-2">
-            <p className="text-[11px] font-bold uppercase text-stone-500">Free Navigation</p>
-            <p className="text-[11px] font-semibold text-stone-500">No time cost</p>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {HUD_LINKS.map((link) => {
-              const active = pathname === link.activePath;
+        {open ? (
+          <div
+            id={menuId}
+            className="absolute bottom-full right-0 mb-2 w-[min(20rem,calc(100vw-1.5rem))] rounded-2xl border border-stone-300 bg-white/95 p-2 shadow-2xl backdrop-blur md:bottom-auto md:top-full md:mb-0 md:mt-2"
+          >
+            <div className="mb-2 flex items-center justify-between gap-2 px-2">
+              <p className="text-[11px] font-bold uppercase text-stone-500">Free Navigation</p>
+              <p className="text-[11px] font-semibold text-stone-500">No time cost</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {HUD_LINKS.map((link) => {
+                const active = pathname === link.activePath;
 
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  aria-current={active ? "page" : undefined}
-                  className={`flex min-h-12 items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                    active
-                      ? "bg-stone-900 text-white"
-                      : "bg-stone-100 text-stone-800 hover:bg-stone-200 focus:bg-stone-200"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex min-h-12 items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                      active
+                        ? "bg-stone-900 text-white"
+                        : "bg-stone-100 text-stone-800 hover:bg-stone-200 focus:bg-stone-200"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </nav>
   );

@@ -89,12 +89,15 @@ export default function RegionsPage() {
     completedDispatchLog,
     latestDispatchResult,
     roadDispatchUnlocked,
+<<<<<<< HEAD
     latestRoadIncident,
     roadIncidentLog,
     roadIncidentCountsByRegion,
     silvergrainPremiumSample,
     getLatestResultBySource,
     latestActionResult,
+=======
+>>>>>>> parent of 76962ac (a)
     travelToRegion,
     performRegionAction,
     startRoadDispatch,
@@ -334,23 +337,6 @@ export default function RegionsPage() {
                 />
               ) : null}
 
-              {latestRoadIncident ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <p className="text-xs font-bold uppercase">Latest Road Incident</p>
-                      <h3 className="text-lg font-bold text-stone-950">{latestRoadIncident.title}</h3>
-                    </div>
-                    <GameStatusBadge tone="amber">{formatWorldLabel(latestRoadIncident.triggerType)}</GameStatusBadge>
-                  </div>
-                  <p className="mt-2">{latestRoadIncident.summary}</p>
-                  <p className="mt-2 text-xs font-semibold">Effect: {latestRoadIncident.rewardSummary}</p>
-                  {latestRoadIncident.factionConsequence ? (
-                    <p className="mt-1 text-xs"><strong>Faction:</strong> {latestRoadIncident.factionConsequence}</p>
-                  ) : null}
-                </div>
-              ) : null}
-
               <div className="grid gap-3 lg:grid-cols-2">
                 {brindlewoodDispatchJobs.map((job) => {
                   const selectedIds = selectedDispatchCreatures[job.jobId] ?? [];
@@ -490,38 +476,6 @@ export default function RegionsPage() {
                         </div>
                         <p className="mt-1">{entry.summary}</p>
                         <p className="mt-1 font-semibold">{entry.rewardSummary}</p>
-                        <p className="mt-1 text-stone-500">{formatClock(entry.day, entry.hour, entry.minute)}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-stone-950">Road Incident Log</h3>
-                    <p className="text-xs text-stone-700">
-                      Brindlewood incidents seen: {roadIncidentCountsByRegion.brindlewood_road ?? 0}
-                    </p>
-                  </div>
-                  <GameStatusBadge tone="amber">Risk / Reward</GameStatusBadge>
-                </div>
-                <div className="mt-3 grid gap-2">
-                  {roadIncidentLog.length === 0 ? (
-                    <GameEmptyState>No road incidents have been recorded yet.</GameEmptyState>
-                  ) : (
-                    roadIncidentLog.slice(0, 5).map((entry) => (
-                      <div key={entry.id} className="rounded-xl border border-amber-200 bg-white p-3 text-xs text-stone-700">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-bold text-stone-950">{entry.title}</p>
-                          <GameStatusBadge tone="amber">{formatWorldLabel(entry.triggerType)}</GameStatusBadge>
-                        </div>
-                        <p className="mt-1">{entry.summary}</p>
-                        <p className="mt-1 font-semibold">Effect: {entry.rewardSummary}</p>
-                        {entry.creatureNames && entry.creatureNames.length > 0 ? (
-                          <p className="mt-1">Crew: {entry.creatureNames.join(", ")}</p>
-                        ) : null}
                         <p className="mt-1 text-stone-500">{formatClock(entry.day, entry.hour, entry.minute)}</p>
                       </div>
                     ))

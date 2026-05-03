@@ -1,10 +1,6 @@
 "use client";
 
-import { useState } from "react";
 import { useGame } from "@/context/GameContext";
-import MainStoryPanel from "@/components/story/MainStoryPanel";
-import StoryJournal from "@/components/story/StoryJournal";
-import { GameModal } from "@/components/ui/GameUi";
 import {
   getObjectiveWhyItMatters,
   getQuestObjectiveDisplayHint,
@@ -25,100 +21,52 @@ export default function StoryObjectiveStrip() {
     mainStoryChapterProgress,
     latestActionResult,
   } = useGame();
-  const [storyOpen, setStoryOpen] = useState(false);
-  const [journalOpen, setJournalOpen] = useState(false);
   const objectiveHint = getQuestObjectiveDisplayHint(currentMainStoryObjective.id);
   const whyItMatters = getObjectiveWhyItMatters(currentMainStoryObjective.id);
 
   return (
-    <>
-      <section className="rounded-2xl border-2 border-indigo-900 bg-white/92 p-3 shadow-lg sm:p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <p className="text-xs font-bold uppercase text-indigo-700">
-              Chapter {currentMainStoryChapter.chapterNumber} - {currentMainStoryChapter.title}
-            </p>
-            <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-              <h2 className="min-w-0 text-lg font-bold text-stone-950 sm:text-xl">
-                {currentMainStoryObjective.title}
-              </h2>
-              <span className="w-fit rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900">
-                {getLocationLabel(currentMainStoryObjective.locationHint)}
-              </span>
-            </div>
-            <p className="mt-1 line-clamp-2 max-w-4xl text-sm text-stone-700">
-              {currentMainStoryObjective.description}
-            </p>
-            <div className="mt-2 grid gap-2 text-xs text-stone-700 sm:grid-cols-3">
-              <p className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
-                <strong>Where:</strong> {objectiveHint.where}
-              </p>
-              <p className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2">
-                <strong>Action:</strong> {objectiveHint.next}
-              </p>
-              <p className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
-                <strong>Why:</strong> {whyItMatters}
-              </p>
-            </div>
-            {latestActionResult?.storyProgress.length ? (
-              <p className="mt-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
-                Progress Triggered: {latestActionResult.storyProgress.join(", ")}
-              </p>
-            ) : null}
+    <section className="rounded-2xl border-2 border-indigo-900 bg-white/92 p-3 shadow-lg">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase text-indigo-700">
+            Chapter {currentMainStoryChapter.chapterNumber} - {currentMainStoryChapter.title}
+          </p>
+          <div className="mt-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+            <h2 className="min-w-0 truncate text-base font-bold text-stone-950 sm:text-lg">
+              {currentMainStoryObjective.title}
+            </h2>
+            <span className="w-fit rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900">
+              {getLocationLabel(currentMainStoryObjective.locationHint)}
+            </span>
           </div>
+          <p className="mt-1 line-clamp-1 max-w-5xl text-sm text-stone-700">
+            {currentMainStoryObjective.description}
+          </p>
+          <p className="mt-1 line-clamp-1 text-xs font-semibold text-indigo-900">
+            Go to: {objectiveHint.where}
+          </p>
+          <p className="mt-1 line-clamp-1 text-xs text-stone-600">
+            Why: {whyItMatters}
+          </p>
+          {latestActionResult?.storyProgress.length ? (
+            <p className="mt-1 line-clamp-1 text-xs font-semibold text-emerald-800">
+              Progress Triggered: {latestActionResult.storyProgress.join(", ")}
+            </p>
+          ) : null}
+        </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="min-w-[150px] rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm text-indigo-950">
-              <p className="font-bold">
-                {mainStoryChapterProgress.completedSteps}/{mainStoryChapterProgress.totalSteps} steps
-              </p>
-              <div className="mt-1 h-2 overflow-hidden rounded-full bg-white">
-                <div
-                  className="h-full rounded-full bg-indigo-700"
-                  style={{ width: `${mainStoryChapterProgress.percent}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setStoryOpen(true)}
-                className="min-h-11 rounded-xl bg-indigo-800 px-3 py-2 text-sm font-semibold text-white shadow"
-              >
-                Story
-              </button>
-              <button
-                type="button"
-                onClick={() => setJournalOpen(true)}
-                className="min-h-11 rounded-xl bg-stone-800 px-3 py-2 text-sm font-semibold text-white shadow"
-              >
-                Journal
-              </button>
-            </div>
+        <div className="w-full rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm text-indigo-950 sm:w-44">
+          <p className="font-bold">
+            {mainStoryChapterProgress.completedSteps}/{mainStoryChapterProgress.totalSteps} steps
+          </p>
+          <div className="mt-1 h-2 overflow-hidden rounded-full bg-white">
+            <div
+              className="h-full rounded-full bg-indigo-700"
+              style={{ width: `${mainStoryChapterProgress.percent}%` }}
+            />
           </div>
         </div>
-      </section>
-
-      <GameModal
-        open={storyOpen}
-        onClose={() => setStoryOpen(false)}
-        title="Main Story"
-        maxWidth="max-w-6xl"
-        zClassName="z-[95]"
-      >
-        <MainStoryPanel />
-      </GameModal>
-
-      <GameModal
-        open={journalOpen}
-        onClose={() => setJournalOpen(false)}
-        title="Story Journal"
-        maxWidth="max-w-6xl"
-        zClassName="z-[95]"
-      >
-        <StoryJournal />
-      </GameModal>
-    </>
+      </div>
+    </section>
   );
 }

@@ -72,19 +72,22 @@ function ObjectiveChecklist({
   objectives,
   getDone,
   activeObjectiveId,
-  showProgressHints = false,
+  expandedObjectiveId,
+  onToggleObjective,
 }: {
   objectives: Array<{ id: string; title: string; description: string; locationHint?: string }>;
   getDone: (objective: { id: string; title: string }) => boolean;
   activeObjectiveId?: string;
-  showProgressHints?: boolean;
+  expandedObjectiveId?: string | null;
+  onToggleObjective?: (objectiveId: string) => void;
 }) {
   return (
     <div className="mt-3 grid gap-2">
       {objectives.map((objective, index) => {
         const done = getDone(objective);
         const active = objective.id === activeObjectiveId && !done;
-        const progressHint = showProgressHints ? getQuestObjectiveDisplayHint(objective.id) : null;
+        const expanded = active || expandedObjectiveId === objective.id;
+        const progressHint = expanded ? getQuestObjectiveDisplayHint(objective.id) : null;
 
         return (
           <div
@@ -105,7 +108,16 @@ function ObjectiveChecklist({
                 {done ? "Done" : active ? "Now" : objective.locationHint ? getLocationLabel(objective.locationHint) : "Open"}
               </span>
             </div>
-            <p className="mt-1 text-xs">{objective.description}</p>
+            <p className="mt-1 line-clamp-2 text-xs">{objective.description}</p>
+            {onToggleObjective ? (
+              <button
+                type="button"
+                onClick={() => onToggleObjective(objective.id)}
+                className="mt-2 min-h-9 rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-800"
+              >
+                {expanded && !active ? "Hide Details" : active ? "Current Details" : "View Details"}
+              </button>
+            ) : null}
             {progressHint ? (
               <div className="mt-2 rounded-lg border border-white bg-white/80 px-2 py-1.5 text-xs">
                 <p><strong>Where:</strong> {progressHint.where}</p>
@@ -137,6 +149,8 @@ function StoryArchiveSection({
   const completedByChapter = new Map(
     mainStory.completedChapterLog.map((entry) => [entry.chapterId, entry])
   );
+  const [expandedChapterId, setExpandedChapterId] = useState<string | null>(currentChapter.id);
+  const [expandedObjectiveId, setExpandedObjectiveId] = useState<string | null>(currentObjective.id);
 
   return (
     <div className="space-y-4">
@@ -170,10 +184,11 @@ function StoryArchiveSection({
         <JournalStatCard label="Archive Entries" value={chapters.length} accentClasses="border-stone-200 bg-stone-50 text-stone-700" />
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {chapters.map((chapter) => {
           const completedEntry = completedByChapter.get(chapter.id);
           const isCurrent = chapter.id === currentChapter.id;
+          const expanded = expandedChapterId === chapter.id;
           const completedSteps = chapter.objectives.filter(
             (objective) => mainStory.chapterProgressFlags[objective.completionFlag]
           ).length;
@@ -183,7 +198,7 @@ function StoryArchiveSection({
           return (
             <article
               key={chapter.id}
-              className={`rounded-2xl border-2 p-4 ${
+              className={`rounded-2xl border-2 p-3 sm:p-4 ${
                 isCurrent
                   ? "border-indigo-300 bg-indigo-50"
                   : completedEntry
@@ -202,28 +217,38 @@ function StoryArchiveSection({
                 </GameStatusBadge>
               </div>
 
-              <p className="mt-3 text-sm text-stone-700">{chapter.summary}</p>
-              <div className="mt-3 rounded-xl border border-white bg-white/80 p-3 text-sm text-stone-800">
-                <p><strong>Reward:</strong> {chapter.completionReward.title}</p>
-                <p className="mt-1">
-                  {chapter.completionReward.gold} Gold - {rewardItems}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-stone-600">
-                  {completedEntry ? `Unlocked: ${completedEntry.rewardTitle}` : chapter.completionReward.unlockText}
-                </p>
+              <div className="mt-3 grid gap-2 text-xs text-stone-700 sm:grid-cols-3">
+                <p><strong>Progress:</strong> {completedSteps}/{chapter.objectives.length} objectives</p>
+                <p><strong>Reward:</strong> {chapter.completionReward.gold} Gold{rewardItems ? ` - ${rewardItems}` : ""}</p>
+                <p><strong>{completedEntry ? "Completed:" : "Unlock:"}</strong> {completedEntry ? `Day ${completedEntry.completedDay}` : chapter.completionReward.unlockText}</p>
               </div>
-              <ObjectiveChecklist
-                objectives={chapter.objectives}
-                activeObjectiveId={isCurrent ? currentObjective.id : undefined}
-                showProgressHints
-                getDone={(objective) => {
-                  const chapterObjective = chapter.objectives.find((item) => item.id === objective.id);
-                  return Boolean(chapterObjective && mainStory.chapterProgressFlags[chapterObjective.completionFlag]);
+              {expanded ? (
+                <>
+                  <p className="mt-3 text-sm text-stone-700">{chapter.summary}</p>
+                  <ObjectiveChecklist
+                    objectives={chapter.objectives}
+                    activeObjectiveId={isCurrent ? currentObjective.id : undefined}
+                    expandedObjectiveId={expandedObjectiveId}
+                    onToggleObjective={(objectiveId) =>
+                      setExpandedObjectiveId((current) => (current === objectiveId ? null : objectiveId))
+                    }
+                    getDone={(objective) => {
+                      const chapterObjective = chapter.objectives.find((item) => item.id === objective.id);
+                      return Boolean(chapterObjective && mainStory.chapterProgressFlags[chapterObjective.completionFlag]);
+                    }}
+                  />
+                </>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  setExpandedChapterId((current) => (current === chapter.id ? null : chapter.id));
+                  if (isCurrent) setExpandedObjectiveId(currentObjective.id);
                 }}
-              />
-              <p className="mt-3 text-xs font-semibold text-stone-600">
-                Progress: {completedSteps}/{chapter.objectives.length} objectives
-              </p>
+                className="mt-3 min-h-10 rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 shadow-sm"
+              >
+                {expanded ? "Hide Details" : "View Details"}
+              </button>
             </article>
           );
         })}
@@ -297,7 +322,7 @@ function QuestCard({
       ) : null}
       <ObjectiveChecklist
         objectives={quest.objectives}
-        showProgressHints
+        activeObjectiveId={quest.objectives.find((objective) => !objective.completed)?.id}
         getDone={(objective) => {
           const questObjective = quest.objectives.find((item) => item.id === objective.id);
           return Boolean(questObjective?.completed);
