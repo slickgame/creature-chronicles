@@ -12,6 +12,7 @@ import {
 } from "@/components/creatures/CreatureTraitUi";
 import {
   GameCard,
+  GameActionResultCard,
   GameEmptyState,
   GameModal,
   GameStatCard,
@@ -100,6 +101,7 @@ function CreatureDetailModal({
   startEditing,
   saveNickname,
   cancelEditing,
+  recentResults,
 }: {
   open: boolean;
   creature: any | null;
@@ -110,6 +112,7 @@ function CreatureDetailModal({
   startEditing: (creatureId: number, currentNickname: string) => void;
   saveNickname: (creatureId: number) => void;
   cancelEditing: () => void;
+  recentResults: any[];
 }) {
   if (!open || !creature) return null;
 
@@ -323,13 +326,26 @@ function CreatureDetailModal({
             <p><strong>Breedings Today:</strong> {creature.breedingsToday}/{creature.dailyBreedingLimit}</p>
           </div>
         </GameCard>
+
+        <GameCard tone="amber" className="shadow-sm">
+          <p className="text-lg font-bold text-stone-950">Recent Results</p>
+          <div className="mt-3 grid gap-3">
+            {recentResults.length > 0 ? (
+              recentResults.map((result) => (
+                <GameActionResultCard key={result.id} result={result} compact />
+              ))
+            ) : (
+              <GameEmptyState>No recent logged actions for this creature yet.</GameEmptyState>
+            )}
+          </div>
+        </GameCard>
       </div>
     </GameModal>
   );
 }
 
 export default function CreaturesPage() {
-  const { creatures, renameCreature } = useGame();
+  const { creatures, renameCreature, getRecentCreatureResults, latestActionResult } = useGame();
   const [editingCreatureId, setEditingCreatureId] = useState<number | null>(null);
   const [nicknameInput, setNicknameInput] = useState("");
   const [selectedCreatureId, setSelectedCreatureId] = useState<number | null>(null);
@@ -429,6 +445,10 @@ export default function CreaturesPage() {
             <GameStatCard label="Total Creatures" value={creatures.length} accentClasses="border-sky-200 bg-sky-50 text-sky-900" />
             <GameStatCard label="Visible" value={filteredCreatures.length} accentClasses="border-emerald-200 bg-emerald-50 text-emerald-900" />
             <GameStatCard label="Roster Use" value="Tap a card for full details" accentClasses="border-amber-200 bg-amber-50 text-amber-900" />
+          </section>
+
+          <section className="mb-5">
+            <GameActionResultCard result={latestActionResult} compact />
           </section>
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -544,6 +564,7 @@ export default function CreaturesPage() {
         startEditing={startEditing}
         saveNickname={saveNickname}
         cancelEditing={cancelEditing}
+        recentResults={selectedCreature ? getRecentCreatureResults(selectedCreature.id) : []}
       />
     </>
   );

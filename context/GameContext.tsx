@@ -782,6 +782,41 @@ type SilvergrainPremiumSample = {
   description: string;
 };
 
+type ActionResultSourceType =
+  | "ranch"
+  | "breeding"
+  | "egg"
+  | "dispatch"
+  | "region"
+  | "market"
+  | "quest"
+  | "story";
+
+type ActionResultTone = "emerald" | "amber" | "rose" | "sky" | "stone";
+
+type ActionResultEntry = {
+  id: number;
+  day: number;
+  hour: number;
+  minute: number;
+  sourceType: ActionResultSourceType;
+  title: string;
+  summary: string;
+  creatureIds: number[];
+  creatureNames: string[];
+  statUsed?: string;
+  skillUsed?: string;
+  traitUsed?: string;
+  timeCostMinutes?: number;
+  staminaCost?: number;
+  rewards: string[];
+  questProgress: string[];
+  storyProgress: string[];
+  locationLabel?: string;
+  systemNote?: string;
+  tone: ActionResultTone;
+};
+
 type AuthoredQuestProgressAction = {
   id: string;
   questId: string;
@@ -897,6 +932,8 @@ type SaveData = {
   latestRoadIncident: RoadIncidentLogEntry | null;
   seenIncidentIds: string[];
   roadIncidentCountsByRegion: Record<string, number>;
+  recentActionResults: ActionResultEntry[];
+  latestActionResult: ActionResultEntry | null;
 };
 
 type GameContextType = {
@@ -960,7 +997,13 @@ type GameContextType = {
   latestRoadIncident: RoadIncidentLogEntry | null;
   seenIncidentIds: string[];
   roadIncidentCountsByRegion: Record<string, number>;
+  recentActionResults: ActionResultEntry[];
+  latestActionResult: ActionResultEntry | null;
   silvergrainPremiumSample: SilvergrainPremiumSample | null;
+  addActionResult: (entry: Omit<Partial<ActionResultEntry>, "id"> & Pick<ActionResultEntry, "sourceType" | "title" | "summary">) => ActionResultEntry;
+  getRecentCreatureResults: (creatureId: number) => ActionResultEntry[];
+  getLatestResultBySource: (sourceType: ActionResultSourceType) => ActionResultEntry | null;
+  formatActionResultRewardSummary: (entry: ActionResultEntry) => string;
   dismissMainStoryReward: () => void;
   acknowledgeStoryJournalSection: (section: "story" | "quests" | "factions" | "world") => void;
   travelToRegion: (regionId: string) => boolean;
@@ -3323,6 +3366,63 @@ function normalizeRoadIncidentCountsByRegion(counts: unknown): Record<string, nu
   );
 }
 
+function isActionResultSourceType(value: unknown): value is ActionResultSourceType {
+  return (
+    value === "ranch" ||
+    value === "breeding" ||
+    value === "egg" ||
+    value === "dispatch" ||
+    value === "region" ||
+    value === "market" ||
+    value === "quest" ||
+    value === "story"
+  );
+}
+
+function isActionResultTone(value: unknown): value is ActionResultTone {
+  return value === "emerald" || value === "amber" || value === "rose" || value === "sky" || value === "stone";
+}
+
+function normalizeActionResults(results: unknown): ActionResultEntry[] {
+  if (!Array.isArray(results)) return [];
+
+  return results
+    .filter((entry): entry is Partial<ActionResultEntry> => Boolean(entry) && typeof entry === "object")
+    .map((entry, index) => ({
+      id: typeof entry.id === "number" ? entry.id : Date.now() + index,
+      day: typeof entry.day === "number" ? entry.day : 1,
+      hour: typeof entry.hour === "number" ? entry.hour : 8,
+      minute: typeof entry.minute === "number" ? entry.minute : 0,
+      sourceType: isActionResultSourceType(entry.sourceType) ? entry.sourceType : "ranch",
+      title: typeof entry.title === "string" ? entry.title : "Action Result",
+      summary: typeof entry.summary === "string" ? entry.summary : "An action was recorded.",
+      creatureIds: Array.isArray(entry.creatureIds)
+        ? entry.creatureIds.filter((creatureId): creatureId is number => typeof creatureId === "number")
+        : [],
+      creatureNames: Array.isArray(entry.creatureNames)
+        ? entry.creatureNames.filter((name): name is string => typeof name === "string")
+        : [],
+      statUsed: typeof entry.statUsed === "string" ? entry.statUsed : undefined,
+      skillUsed: typeof entry.skillUsed === "string" ? entry.skillUsed : undefined,
+      traitUsed: typeof entry.traitUsed === "string" ? entry.traitUsed : undefined,
+      timeCostMinutes: typeof entry.timeCostMinutes === "number" ? entry.timeCostMinutes : undefined,
+      staminaCost: typeof entry.staminaCost === "number" ? entry.staminaCost : undefined,
+      rewards: Array.isArray(entry.rewards)
+        ? entry.rewards.filter((reward): reward is string => typeof reward === "string")
+        : [],
+      questProgress: Array.isArray(entry.questProgress)
+        ? entry.questProgress.filter((progress): progress is string => typeof progress === "string")
+        : [],
+      storyProgress: Array.isArray(entry.storyProgress)
+        ? entry.storyProgress.filter((progress): progress is string => typeof progress === "string")
+        : [],
+      locationLabel: typeof entry.locationLabel === "string" ? entry.locationLabel : undefined,
+      systemNote: typeof entry.systemNote === "string" ? entry.systemNote : undefined,
+      tone: isActionResultTone(entry.tone) ? entry.tone : "stone",
+    }))
+    .slice(0, 50);
+}
+
 function deriveChainStatus(completedCount: number, totalCount: number, baseStatus: ChainStatus) {
   if (baseStatus === "locked") return "locked";
   if (totalCount > 0 && completedCount >= totalCount) return "completed";
@@ -5014,6 +5114,8 @@ const defaultSaveData: SaveData = {
   latestRoadIncident: null,
   seenIncidentIds: [],
   roadIncidentCountsByRegion: {},
+  recentActionResults: [],
+  latestActionResult: null,
 };
 
 const STORAGE_KEY = "creature-chronicles-save";
@@ -5100,6 +5202,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [seenIncidentIds, setSeenIncidentIds] = useState<string[]>(defaultSaveData.seenIncidentIds);
   const [roadIncidentCountsByRegion, setRoadIncidentCountsByRegion] = useState<Record<string, number>>(
     defaultSaveData.roadIncidentCountsByRegion
+  );
+  const [recentActionResults, setRecentActionResults] = useState<ActionResultEntry[]>(
+    defaultSaveData.recentActionResults
+  );
+  const [latestActionResult, setLatestActionResult] = useState<ActionResultEntry | null>(
+    defaultSaveData.latestActionResult
   );
   const worldLocations = normalizeWorldLocations(defaultWorldLocations, worldRegions);
   const currentSeason = getSeasonForDay(currentDay);
@@ -5236,6 +5344,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         setLatestRoadIncident(normalizeLatestRoadIncident(parsedSave.latestRoadIncident));
         setSeenIncidentIds(normalizeSeenIncidentIds(parsedSave.seenIncidentIds));
         setRoadIncidentCountsByRegion(normalizeRoadIncidentCountsByRegion(parsedSave.roadIncidentCountsByRegion));
+        const normalizedActionResults = normalizeActionResults(parsedSave.recentActionResults);
+        setRecentActionResults(normalizedActionResults);
+        setLatestActionResult(normalizeActionResults(parsedSave.latestActionResult ? [parsedSave.latestActionResult] : [])[0] ?? null);
       } catch (error) {
         console.error("Failed to load save data:", error);
       }
@@ -5298,6 +5409,8 @@ useEffect(() => {
     latestRoadIncident,
     seenIncidentIds,
     roadIncidentCountsByRegion,
+    recentActionResults,
+    latestActionResult,
   };
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
@@ -5354,6 +5467,8 @@ useEffect(() => {
   latestRoadIncident,
   seenIncidentIds,
   roadIncidentCountsByRegion,
+  recentActionResults,
+  latestActionResult,
 ]);
 
   function refreshNpcContractLedgerForClock(
@@ -5368,6 +5483,63 @@ useEffect(() => {
     setNpcExclusiveLoops((prev) =>
       ensureNpcExclusiveLoopState(prev, day, hour, minute, npcLoverEvolutions)
     );
+  }
+
+  function formatActionResultRewardSummary(entry: ActionResultEntry) {
+    return entry.rewards.length > 0 ? entry.rewards.join(", ") : "No direct reward recorded.";
+  }
+
+  function addActionResult(
+    entry: Omit<Partial<ActionResultEntry>, "id"> & Pick<ActionResultEntry, "sourceType" | "title" | "summary">
+  ) {
+    const result: ActionResultEntry = {
+      id: Date.now(),
+      day: entry.day ?? currentDay,
+      hour: entry.hour ?? currentHour,
+      minute: entry.minute ?? currentMinute,
+      sourceType: entry.sourceType,
+      title: entry.title,
+      summary: entry.summary,
+      creatureIds: entry.creatureIds ?? [],
+      creatureNames: entry.creatureNames ?? [],
+      statUsed: entry.statUsed,
+      skillUsed: entry.skillUsed,
+      traitUsed: entry.traitUsed,
+      timeCostMinutes: entry.timeCostMinutes,
+      staminaCost: entry.staminaCost,
+      rewards: entry.rewards ?? [],
+      questProgress: entry.questProgress ?? [],
+      storyProgress: entry.storyProgress ?? [],
+      locationLabel: entry.locationLabel,
+      systemNote: entry.systemNote,
+      tone: entry.tone ?? "stone",
+    };
+
+    setLatestActionResult(result);
+    setRecentActionResults((prev) => [result, ...prev].slice(0, 50));
+    return result;
+  }
+
+  function getRecentCreatureResults(creatureId: number) {
+    return recentActionResults.filter((entry) => entry.creatureIds.includes(creatureId)).slice(0, 8);
+  }
+
+  function getLatestResultBySource(sourceType: ActionResultSourceType) {
+    return recentActionResults.find((entry) => entry.sourceType === sourceType) ?? null;
+  }
+
+  function getCreatureResultSignals(creature: Creature, preferredSkill?: keyof CreatureSkills) {
+    const trait = creature.traits[0];
+    const strongestStat = Object.entries(creature.stats).sort((a, b) => b[1] - a[1])[0];
+    const skill = preferredSkill
+      ? [preferredSkill, creature.skills[preferredSkill]] as [string, SkillProgress]
+      : Object.entries(creature.skills).sort((a, b) => b[1].level - a[1].level)[0];
+
+    return {
+      statUsed: strongestStat ? `${strongestStat[0]} ${strongestStat[1]}` : undefined,
+      skillUsed: skill ? `${skill[0].replace(/([A-Z])/g, " $1")} Lv ${skill[1].level}` : undefined,
+      traitUsed: trait ? `${trait.trait} ${trait.grade}` : undefined,
+    };
   }
 
   function applyAuthoredQuestReward(reward: AuthoredQuestReward) {
@@ -6003,6 +6175,30 @@ useEffect(() => {
       hour: updatedClock.hour,
       minute: updatedClock.minute,
     });
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: region.id === "silvergrain_exchange" ? "market" : "region",
+      title: action.title,
+      summary: message,
+      timeCostMinutes: action.timeCostMinutes,
+      rewards: [
+        rewardGold > 0 ? `${rewardGold} gold` : null,
+        rewardSummary !== "No item reward" ? rewardSummary : null,
+        premiumSample ? `${premiumSample.reputationBonus} Velvet reputation` : null,
+        roadIncident ? roadIncident.rewardSummary : null,
+      ].filter((item): item is string => Boolean(item)),
+      questProgress: (action.authoredQuestObjectives ?? []).map((objective) => objective.objectiveId),
+      storyProgress: action.storyFlags ?? ["chapter6_world_route_confirmed"],
+      locationLabel: region.name,
+      systemNote: premiumSample
+        ? "Premium sample quality modified this market result."
+        : roadIncident
+          ? "A road incident modified this region result."
+          : "Region action result recorded.",
+      tone: region.id === "silvergrain_exchange" ? "sky" : "emerald",
+    });
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
     refreshNpcContractLedgerForClock(updatedClock.day, updatedClock.hour, updatedClock.minute);
@@ -6073,6 +6269,19 @@ useEffect(() => {
       minute,
       minutesSpent: 0,
       summary: occurrence.summary,
+    });
+    addActionResult({
+      day,
+      hour,
+      minute,
+      sourceType: "region",
+      title: occurrence.incident.title,
+      summary: occurrence.summary,
+      creatureNames: creatureNames ?? [],
+      rewards: [occurrence.rewardSummary],
+      locationLabel: "Brindlewood Road",
+      systemNote: occurrence.creatureInfluenceSummary ?? occurrence.incident.futureHook,
+      tone: "amber",
     });
   }
 
@@ -6168,6 +6377,20 @@ useEffect(() => {
       day: currentDay,
       hour: currentHour,
       minute: currentMinute,
+    });
+    addActionResult({
+      sourceType: "dispatch",
+      title: "Dispatch Started",
+      summary: `${job.title} is underway with ${selectedCreatures.map((creature) => creature.nickname).join(", ")}.`,
+      creatureIds: selectedCreatures.map((creature) => creature.id),
+      creatureNames: selectedCreatures.map((creature) => creature.nickname),
+      skillUsed: `${job.idealSkills.join(", ")}`,
+      timeCostMinutes: job.durationMinutes,
+      staminaCost: job.staminaCost,
+      rewards: [`${job.baseRewardGold} gold base`, `${job.factionReputationReward} Wayfarer reputation on success`],
+      locationLabel: "Brindlewood Road",
+      systemNote: `Ready around ${formatClockFromTotalMinutes(readyAtTotalMinutes)}. Species strengths and road incidents can matter on resolution.`,
+      tone: "sky",
     });
     return true;
   }
@@ -6342,6 +6565,23 @@ useEffect(() => {
       minute: currentMinute,
     });
     recordMainStoryFlags(["chapter7_wayfarer_recognition"]);
+    addActionResult({
+      sourceType: "dispatch",
+      title: success ? "Dispatch Complete" : "Partial Dispatch",
+      summary,
+      creatureIds: assignedCreatures.map((creature) => creature.id),
+      creatureNames,
+      skillUsed: getRoadDispatchSkill(job),
+      timeCostMinutes: job.durationMinutes,
+      staminaCost: job.staminaCost,
+      rewards: rewardSummaryParts,
+      storyProgress: ["chapter7_wayfarer_recognition"],
+      locationLabel: "Brindlewood Road",
+      systemNote: roadIncident
+        ? `Incident included: ${roadIncident.incident.title}. ${roadIncident.creatureInfluenceSummary ?? ""}`
+        : `Success score ${successScore}; ideal species: ${job.idealSpecies.join(", ")}.`,
+      tone: success ? "emerald" : "amber",
+    });
     return true;
   }
 
@@ -6420,6 +6660,20 @@ useEffect(() => {
       day: updatedClock.day,
       hour: updatedClock.hour,
       minute: updatedClock.minute,
+    });
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "quest",
+      title: action.title,
+      summary: action.outcome,
+      timeCostMinutes: action.timeCostMinutes,
+      questProgress: [action.objectiveId],
+      storyProgress: action.storyFlags ?? [],
+      locationLabel: action.where,
+      systemNote: "Authored quest progress was registered from a player-facing action.",
+      tone: "sky",
     });
     setTownQuests((prev) => ensureQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 10));
     setTownNpcQuests((prev) => ensureNpcQuestBoardSize(prev, updatedClock.day, updatedClock.hour, updatedClock.minute, 3));
@@ -6554,6 +6808,26 @@ useEffect(() => {
       "chapter6_creature_lineage_proof",
       "chapter7_ready_creature_helper",
     ]);
+    addActionResult({
+      sourceType: "egg",
+      title: "Egg Hatched",
+      summary: `${eggToHatch.name} hatched into ${newCreature.nickname}, a ${newCreature.name}.`,
+      creatureIds: [newCreature.id],
+      creatureNames: [newCreature.nickname],
+      statUsed: `quality ${eggToHatch.quality}`,
+      traitUsed: newCreature.traits[0] ? `${newCreature.traits[0].trait} ${newCreature.traits[0].grade}` : undefined,
+      rewards: [`New ${newCreature.name} joined the roster`],
+      storyProgress: [
+        "chapter4_breeding_preparation",
+        "chapter4_lineage_step",
+        "chapter5_creature_backed_proof",
+        "chapter6_creature_lineage_proof",
+        "chapter7_ready_creature_helper",
+      ],
+      locationLabel: "Nursery",
+      systemNote: "Parent traits and egg quality were resolved by the existing hatch logic.",
+      tone: "emerald",
+    });
     return newCreature;
   }
 
@@ -6672,6 +6946,33 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       "chapter7_ready_creature_helper",
       ...(careType === "recovery" ? (["chapter4_breeding_preparation"] as MainStoryObjectiveId[]) : []),
     ]);
+  const signals = getCreatureResultSignals(creature, careType === "recovery" ? "breedingCare" : "cleaning");
+  addActionResult({
+    day: updatedClock.day,
+    hour: updatedClock.hour,
+    minute: updatedClock.minute,
+    sourceType: "ranch",
+    title: careType === "feed" ? "Creature Fed" : careType === "groom" ? "Creature Groomed" : "Recovery Rest",
+    summary:
+      careType === "feed"
+        ? `${creature.nickname} ate, recovered stamina, and looked a little brighter.`
+        : careType === "groom"
+          ? `${creature.nickname} was groomed and the barn felt cleaner.`
+          : `${creature.nickname} took recovery time and restored breeding stamina.`,
+    creatureIds: [creature.id],
+    creatureNames: [creature.nickname],
+    ...signals,
+    timeCostMinutes: minutesSpent,
+    staminaCost,
+    rewards: [
+      careType === "feed" ? "Happiness +6" : careType === "groom" ? "Happiness +8, cleanliness +4" : "Stamina recovery +14",
+      careType === "recovery" ? "Recovery support" : "Cleaning XP",
+    ],
+    storyProgress: ["ranch_creature_care", "chapter7_ready_creature_helper"],
+    locationLabel: "Barn",
+    systemNote: "Creature care supports story readiness and keeps helpers useful for later work.",
+    tone: "emerald",
+  });
 }
 
   function breedCreatures() {
@@ -6743,12 +7044,32 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       );
 
       recordMainStoryFlags(["chapter4_breeding_preparation", "chapter5_creature_backed_proof", "chapter7_ready_creature_helper"]);
+      addActionResult({
+        day: updatedClock.day,
+        hour: updatedClock.hour,
+        minute: updatedClock.minute,
+        sourceType: "breeding",
+        title: "Breeding Refused",
+        summary: `${giverLabel} and ${receiverLabel} were not in the mood for that pairing.`,
+        creatureIds: [giverCreature?.id, receiverCreature?.id].filter((id): id is number => typeof id === "number"),
+        creatureNames: [giverCreature?.nickname, receiverCreature?.nickname].filter((name): name is string => typeof name === "string"),
+        skillUsed: "breedingCare",
+        timeCostMinutes: 10,
+        staminaCost: 0,
+        rewards: ["Breeding Care XP +4"],
+        storyProgress: ["chapter4_breeding_preparation", "chapter7_ready_creature_helper"],
+        locationLabel: "Breeding Room",
+        systemNote: `Refusal chance was ${Math.round(refusalChance * 100)}%. Mood and care matter here.`,
+        tone: "amber",
+      });
       return;
     }
 
     const baseInbreedingRisk = calculateInbreedingRisk(giverCreature, receiverCreature, giverIsPlayer, receiverIsPlayer);
     const inbreedingRisk = applyIntelligenceRiskMitigation(baseInbreedingRisk, giverCreature, receiverCreature);
     const minutesSpent = getBreedingSessionMinutes(giverCreature, receiverCreature, breedingSelection.giverType, breedingSelection.receiverType);
+    const giverStaminaSpent = giverCreature ? getBreedingStaminaCost(giverCreature) : 0;
+    const receiverStaminaSpent = receiverCreature ? getBreedingStaminaCost(receiverCreature) : 0;
     const updatedClock = addMinutesToClock(currentDay, currentHour, currentMinute, minutesSpent);
 
     setCurrentDay(updatedClock.day);
@@ -6814,12 +7135,49 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     if (receiverIsPlayer) {
       recordMainStoryFlags(breedingStoryFlags);
+      addActionResult({
+        day: updatedClock.day,
+        hour: updatedClock.hour,
+        minute: updatedClock.minute,
+        sourceType: "breeding",
+        title: "Bonding Pairing Complete",
+        summary: `${giverLabel} and ${receiverLabel} completed a no-egg pairing.`,
+        creatureIds: [giverCreature?.id, receiverCreature?.id].filter((id): id is number => typeof id === "number"),
+        creatureNames: [giverCreature?.nickname, receiverCreature?.nickname].filter((name): name is string => typeof name === "string"),
+        skillUsed: "breedingCare",
+        timeCostMinutes: minutesSpent,
+        staminaCost: Math.max(giverStaminaSpent, receiverStaminaSpent),
+        rewards: ["Breeding Care XP", "Bonding progress"],
+        storyProgress: breedingStoryFlags,
+        locationLabel: "Breeding Room",
+        systemNote: "Player receiver pairings do not produce an egg in the current rules.",
+        tone: "emerald",
+      });
       return;
     }
 
     const eggProductionChance = getEggProductionChance(giverParticipant, receiverParticipant, homeState);
     if (Math.random() > eggProductionChance) {
       recordMainStoryFlags(breedingStoryFlags);
+      addActionResult({
+        day: updatedClock.day,
+        hour: updatedClock.hour,
+        minute: updatedClock.minute,
+        sourceType: "breeding",
+        title: "Breeding Attempt Complete",
+        summary: `${giverLabel} and ${receiverLabel} completed the pairing, but no egg was produced this time.`,
+        creatureIds: [giverCreature?.id, receiverCreature?.id].filter((id): id is number => typeof id === "number"),
+        creatureNames: [giverCreature?.nickname, receiverCreature?.nickname].filter((name): name is string => typeof name === "string"),
+        statUsed: `egg chance ${Math.round(eggProductionChance * 100)}%`,
+        skillUsed: "breedingCare",
+        timeCostMinutes: minutesSpent,
+        staminaCost: Math.max(giverStaminaSpent, receiverStaminaSpent),
+        rewards: ["Breeding Care XP", "Creature XP"],
+        storyProgress: breedingStoryFlags,
+        locationLabel: "Breeding Room",
+        systemNote: "Egg chance is rolled after stamina, mood, and lineage checks pass.",
+        tone: "amber",
+      });
       return;
     }
 
@@ -6841,6 +7199,26 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
 
     setEggs((prev) => [...prev, newEgg]);
     recordMainStoryFlags([...breedingStoryFlags, "chapter4_lineage_step", "chapter7_ready_creature_helper"]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "breeding",
+      title: "Egg Produced",
+      summary: `${giverLabel} and ${receiverLabel} produced ${newEgg.name}.`,
+      creatureIds: [giverCreature?.id, receiverCreature?.id].filter((id): id is number => typeof id === "number"),
+      creatureNames: [giverCreature?.nickname, receiverCreature?.nickname].filter((name): name is string => typeof name === "string"),
+      statUsed: `egg chance ${Math.round(eggProductionChance * 100)}%, quality ${eggQuality}`,
+      skillUsed: "breedingCare",
+      traitUsed: [giverCreature?.traits[0]?.trait, receiverCreature?.traits[0]?.trait].filter(Boolean).join(", ") || undefined,
+      timeCostMinutes: minutesSpent,
+      staminaCost: Math.max(giverStaminaSpent, receiverStaminaSpent),
+      rewards: [`${eggQuality} egg added to Nursery`, "Breeding Care XP", "Creature XP"],
+      storyProgress: [...breedingStoryFlags, "chapter4_lineage_step", "chapter7_ready_creature_helper"],
+      locationLabel: "Breeding Room",
+      systemNote: "Egg quality and inheritance are resolved by the current breeding system; deeper odds display is still future work.",
+      tone: "emerald",
+    });
   }
 
   function renameCreature(creatureId: number, newNickname: string) {
@@ -7802,6 +8180,25 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "ranch",
+      title: "Simple Meal Prepared",
+      summary: `${creature.nickname} prepared a simple meal and added ${foodGain} food stock.`,
+      creatureIds: [creature.id],
+      creatureNames: [creature.nickname],
+      ...getCreatureResultSignals(creature, "cooking"),
+      timeCostMinutes: minutesSpent,
+      staminaCost,
+      rewards: [`Food stock +${foodGain}`, "Cooking XP +12"],
+      questProgress: ["road-ready-ranch-work"],
+      storyProgress: ["chapter6_route_goods", "chapter7_prepare_road_supplies", "chapter8_prepare_premium_goods"],
+      locationLabel: "Ranch House",
+      systemNote: "Intelligence, speed, cooking skill, and helpful traits reduce time and improve output.",
+      tone: "emerald",
+    });
   }
 
   function cleanHome(creatureId: number) {
@@ -7868,6 +8265,25 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "ranch",
+      title: "House Cleaned",
+      summary: `${creature.nickname} cleaned the house for +${cleanGain} cleanliness.`,
+      creatureIds: [creature.id],
+      creatureNames: [creature.nickname],
+      ...getCreatureResultSignals(creature, "cleaning"),
+      timeCostMinutes: minutesSpent,
+      staminaCost,
+      rewards: [`Cleanliness +${cleanGain}`, "Cleaning XP +12"],
+      questProgress: ["road-ready-ranch-work"],
+      storyProgress: ["chapter6_route_goods", "chapter7_ready_creature_helper"],
+      locationLabel: "Ranch House",
+      systemNote: "Intelligence, speed, cleaning skill, and helpful traits shape this result.",
+      tone: "emerald",
+    });
   }
 
   function workFields(creatureId: number) {
@@ -7951,6 +8367,25 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "ranch",
+      title: "Crop Planted",
+      summary: `${creature.nickname} planted ${ITEM_DATA[seedItemId]?.name ?? seedItemId} in Plot ${plotId}.`,
+      creatureIds: [creature.id],
+      creatureNames: [creature.nickname],
+      ...getCreatureResultSignals(creature, "fieldWork"),
+      timeCostMinutes: fieldCost.minutesSpent,
+      staminaCost: fieldCost.staminaCost,
+      rewards: [`Field Work XP +${fieldCost.xpGain}`, `${plantedPlot.daysRemaining} day grow time`],
+      questProgress: ["road-ready-ranch-work"],
+      storyProgress: ["first_seed_planted", "chapter7_prepare_road_supplies"],
+      locationLabel: "Fields",
+      systemNote: fieldProfile.specialtySummary,
+      tone: "emerald",
+    });
     return true;
   }
 
@@ -8020,6 +8455,25 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "ranch",
+      title: "Plot Watered",
+      summary: `${creature.nickname} watered Plot ${plotId}.`,
+      creatureIds: [creature.id],
+      creatureNames: [creature.nickname],
+      ...getCreatureResultSignals(creature, "fieldWork"),
+      timeCostMinutes: fieldCost.minutesSpent,
+      staminaCost: fieldCost.staminaCost,
+      rewards: [`Field Work XP +${fieldCost.xpGain}`, `Watered days ${updatedPlot.wateredDays}`],
+      questProgress: ["road-ready-ranch-work"],
+      storyProgress: ["chapter7_ready_creature_helper"],
+      locationLabel: "Fields",
+      systemNote: fieldProfile.specialtySummary,
+      tone: "emerald",
+    });
     return true;
   }
 
@@ -8088,6 +8542,25 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
     recordAuthoredQuestObjectives([
       { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     ]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "ranch",
+      title: "Plot Fertilized",
+      summary: `${creature.nickname} fertilized Plot ${plotId} with ${fertilizer.label}.`,
+      creatureIds: [creature.id],
+      creatureNames: [creature.nickname],
+      ...getCreatureResultSignals(creature, "fieldWork"),
+      timeCostMinutes: fieldCost.minutesSpent,
+      staminaCost: fieldCost.staminaCost,
+      rewards: [`Field Work XP +${fieldCost.xpGain}`, `Harvest yield +${updatedPlot.fertilizerYieldBonus}`],
+      questProgress: ["road-ready-ranch-work"],
+      storyProgress: ["chapter7_prepare_road_supplies"],
+      locationLabel: "Fields",
+      systemNote: fieldProfile.specialtySummary,
+      tone: "emerald",
+    });
     return true;
   }
 
@@ -8170,6 +8643,29 @@ function careForCreature(creatureId: number, careType: "feed" | "groom" | "recov
       { questId: "market-ring-introduction", objectiveId: "prepare-private-stock" },
     ]);
     recordMainStoryFlags(["chapter8_prepare_premium_goods"]);
+    addActionResult({
+      day: updatedClock.day,
+      hour: updatedClock.hour,
+      minute: updatedClock.minute,
+      sourceType: "ranch",
+      title: "Crop Harvested",
+      summary: `${creature.nickname} harvested ${harvestOutcome.quantity} ${ITEM_DATA[produceItemId]?.name ?? produceItemId} from Plot ${plotId}.`,
+      creatureIds: [creature.id],
+      creatureNames: [creature.nickname],
+      ...getCreatureResultSignals(creature, "fieldWork"),
+      timeCostMinutes: fieldCost.minutesSpent,
+      staminaCost: fieldCost.staminaCost,
+      rewards: [
+        `${ITEM_DATA[produceItemId]?.name ?? produceItemId} x${harvestOutcome.quantity}`,
+        `${harvestOutcome.qualityInfo.label} quality`,
+        `Field Work XP +${fieldCost.xpGain}`,
+      ],
+      questProgress: ["road-ready-ranch-work", "prepare-private-stock"],
+      storyProgress: ["chapter7_prepare_road_supplies", "chapter8_prepare_premium_goods"],
+      locationLabel: "Fields",
+      systemNote: `${fieldProfile.specialtySummary} ${harvestOutcome.bonusSummary.join(" ")}`,
+      tone: "emerald",
+    });
     return true;
   }
 
@@ -8346,6 +8842,25 @@ function cookRecipe(recipeId: string, creatureId: number) {
     { questId: "wayfarer-road-ledger", objectiveId: "road-ready-ranch-work" },
     { questId: "market-ring-introduction", objectiveId: "prepare-private-stock" },
   ]);
+  addActionResult({
+    day: updatedClock.day,
+    hour: updatedClock.hour,
+    minute: updatedClock.minute,
+    sourceType: "ranch",
+    title: "Recipe Cooked",
+    summary: `${creature.nickname} cooked ${recipe.name} at ${ingredientPlan.outputQuality} quality.`,
+    creatureIds: [creature.id],
+    creatureNames: [creature.nickname],
+    ...getCreatureResultSignals(creature, "cooking"),
+    timeCostMinutes: minutesSpent,
+    staminaCost,
+    rewards: [`${ITEM_DATA[recipe.outputItemId]?.name ?? recipe.outputItemId} x${outputQuantity}`, "Cooking XP +14"],
+    questProgress: ["road-ready-ranch-work", "prepare-private-stock"],
+    storyProgress: ["chapter7_prepare_road_supplies", "chapter8_prepare_premium_goods"],
+    locationLabel: "Recipe Workshop",
+    systemNote: "Ingredient quality affected the cooked output quality.",
+    tone: "emerald",
+  });
   return true;
 }
 
@@ -8634,6 +9149,8 @@ function purchaseMarketItem(itemId: string, price: number) {
     setLatestRoadIncident(null);
     setSeenIncidentIds([]);
     setRoadIncidentCountsByRegion({});
+    setRecentActionResults([]);
+    setLatestActionResult(null);
     localStorage.removeItem(STORAGE_KEY);
   }
 
@@ -8700,7 +9217,13 @@ function purchaseMarketItem(itemId: string, price: number) {
         latestRoadIncident,
         seenIncidentIds,
         roadIncidentCountsByRegion,
+        recentActionResults,
+        latestActionResult,
         silvergrainPremiumSample,
+        addActionResult,
+        getRecentCreatureResults,
+        getLatestResultBySource,
+        formatActionResultRewardSummary,
         dismissMainStoryReward,
         acknowledgeStoryJournalSection,
         travelToRegion,

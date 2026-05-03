@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useGame } from "@/context/GameContext";
 import {
   GameActionCard,
+  GameActionResultCard,
   GameCard,
   GameEmptyState,
   GameFeedbackBox,
@@ -92,6 +93,8 @@ export default function RegionsPage() {
     roadIncidentLog,
     roadIncidentCountsByRegion,
     silvergrainPremiumSample,
+    getLatestResultBySource,
+    latestActionResult,
     travelToRegion,
     performRegionAction,
     startRoadDispatch,
@@ -178,6 +181,16 @@ export default function RegionsPage() {
             message={`${latestRegionTravelResult.title}: ${latestRegionTravelResult.message}`}
           />
         ) : null}
+
+        <GameActionResultCard
+          result={
+            getLatestResultBySource("dispatch") ??
+            getLatestResultBySource("region") ??
+            getLatestResultBySource("market") ??
+            latestActionResult
+          }
+          compact
+        />
 
         {firstOutsideRegion ? (
           <GameCard tone={firstOutsideRegion.status === "locked" ? "stone" : "teal"} className="shadow-lg">

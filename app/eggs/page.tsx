@@ -20,6 +20,7 @@ import {
 } from "@/components/eggs/EggUi";
 import {
   GameCard,
+  GameActionResultCard,
   GameEmptyState,
   GameFeedbackBox,
   GameModal,
@@ -354,7 +355,7 @@ function HatchedCreatureModal({
 }
 
 export default function EggsPage() {
-  const { eggs, hatchEgg, renameCreature } = useGame();
+  const { eggs, hatchEgg, renameCreature, getLatestResultBySource, latestActionResult } = useGame();
   const [selectedEggId, setSelectedEggId] = useState<number | null>(null);
   const [hatchedCreature, setHatchedCreature] = useState<HatchedCreature | null>(null);
   const [nicknameInput, setNicknameInput] = useState("");
@@ -435,6 +436,13 @@ export default function EggsPage() {
             <GameStatCard label="Total Eggs" value={eggs.length} accentClasses="border-amber-200 bg-amber-50 text-amber-900" />
             <GameStatCard label="Ready To Hatch" value={eggs.filter((egg) => egg.hatchDaysRemaining === 0).length} accentClasses="border-emerald-200 bg-emerald-50 text-emerald-900" />
             <GameStatCard label="Nursery Use" value="Tap an egg for hatch details" accentClasses="border-stone-200 bg-stone-50 text-stone-700" />
+          </section>
+
+          <section className="mb-5">
+            <GameActionResultCard
+              result={getLatestResultBySource("egg") ?? getLatestResultBySource("breeding") ?? latestActionResult}
+              compact
+            />
           </section>
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

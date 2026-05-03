@@ -23,6 +23,7 @@ export default function StoryObjectiveStrip() {
     currentMainStoryChapter,
     currentMainStoryObjective,
     mainStoryChapterProgress,
+    latestActionResult,
   } = useGame();
   const [storyOpen, setStoryOpen] = useState(false);
   const [journalOpen, setJournalOpen] = useState(false);
@@ -59,6 +60,11 @@ export default function StoryObjectiveStrip() {
                 <strong>Why:</strong> {whyItMatters}
               </p>
             </div>
+            {latestActionResult?.storyProgress.length ? (
+              <p className="mt-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
+                Progress Triggered: {latestActionResult.storyProgress.join(", ")}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

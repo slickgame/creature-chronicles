@@ -51,6 +51,7 @@ import {
   getCreatureTraitEntries,
 } from "@/lib/creatures/creatureDisplay";
 import {
+  GameActionResultCard,
   GameActionCard as ActionCard,
   GameCard as RoomCard,
   GameFeedbackBox as ResultFeedbackBox,
@@ -405,6 +406,8 @@ export default function RanchOperationsPanel({
     roadDispatchUnlocked,
     activeDispatches,
     completedDispatchLog,
+    latestActionResult,
+    getLatestResultBySource,
   } = useGame();
 
   const [activeTab, setActiveTab] = useState<RanchTab>(initialTab);
@@ -681,6 +684,13 @@ export default function RanchOperationsPanel({
               {TAB_LABELS[tab]}
             </button>
           ))}
+        </div>
+
+        <div className="mb-3 shrink-0">
+          <GameActionResultCard
+            result={getLatestResultBySource("ranch") ?? getLatestResultBySource("breeding") ?? latestActionResult}
+            compact
+          />
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">

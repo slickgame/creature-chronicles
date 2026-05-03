@@ -10,6 +10,7 @@ import {
   GameCard,
   GameEmptyState,
   GameActionCard,
+  GameActionResultCard,
   GameFeedbackBox,
   GameStatChip,
 } from "@/components/ui/GameUi";
@@ -761,6 +762,7 @@ export default function StoryJournal() {
     travelToRegion,
     performRegionAction,
     performAuthoredQuestAction,
+    latestActionResult,
   } = useGame();
   const [activeTab, setActiveTab] = useState<JournalTab>("story");
 
@@ -806,6 +808,11 @@ export default function StoryJournal() {
       />
 
       <div className="mt-4 rounded-2xl border border-stone-200 bg-white/80 p-3 sm:p-4">
+        {latestActionResult?.storyProgress.length ? (
+          <div className="mb-4">
+            <GameActionResultCard result={latestActionResult} compact />
+          </div>
+        ) : null}
         <div className="mb-4">
           <p className="text-xs font-bold uppercase text-stone-600">{activeTabMeta.label}</p>
           <p className="mt-1 text-sm text-stone-700">{activeTabMeta.description}</p>

@@ -278,3 +278,77 @@ export function GameStatusBadge({
     </span>
   );
 }
+
+export function GameActionResultCard({
+  result,
+  compact = false,
+}: {
+  result: {
+    title?: string;
+    summary?: string;
+    sourceType?: string;
+    creatureNames?: string[];
+    statUsed?: string;
+    skillUsed?: string;
+    traitUsed?: string;
+    timeCostMinutes?: number;
+    staminaCost?: number;
+    rewards?: string[];
+    questProgress?: string[];
+    storyProgress?: string[];
+    locationLabel?: string;
+    systemNote?: string;
+    tone?: Tone;
+    day?: number;
+    hour?: number;
+    minute?: number;
+  } | null;
+  compact?: boolean;
+}) {
+  if (!result) {
+    return <GameEmptyState>No recent result recorded yet.</GameEmptyState>;
+  }
+
+  const tone = result.tone ?? "stone";
+  const rewards = result.rewards ?? [];
+  const questProgress = result.questProgress ?? [];
+  const storyProgress = result.storyProgress ?? [];
+  const creatureNames = result.creatureNames ?? [];
+
+  return (
+    <div className={`rounded-2xl border-2 p-4 shadow-sm ${toneCardClasses[tone]}`}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase">{result.sourceType ?? "Result"}</p>
+          <h3 className="text-lg font-bold text-stone-950">{result.title ?? "Action Result"}</h3>
+        </div>
+        {typeof result.day === "number" ? (
+          <GameStatusBadge tone={tone}>
+            Day {result.day}
+            {typeof result.hour === "number" && typeof result.minute === "number"
+              ? ` ${result.hour.toString().padStart(2, "0")}:${result.minute.toString().padStart(2, "0")}`
+              : ""}
+          </GameStatusBadge>
+        ) : null}
+      </div>
+      <p className="mt-2 text-sm text-stone-700">{result.summary ?? "Result recorded."}</p>
+      <div className={`mt-3 grid gap-2 text-xs text-stone-700 ${compact ? "" : "sm:grid-cols-2"}`}>
+        {result.locationLabel ? <p><strong>Where:</strong> {result.locationLabel}</p> : null}
+        {creatureNames.length > 0 ? <p><strong>Creature:</strong> {creatureNames.join(", ")}</p> : null}
+        {result.statUsed ? <p><strong>Stat:</strong> {result.statUsed}</p> : null}
+        {result.skillUsed ? <p><strong>Skill:</strong> {result.skillUsed}</p> : null}
+        {result.traitUsed ? <p><strong>Trait:</strong> {result.traitUsed}</p> : null}
+        {typeof result.timeCostMinutes === "number" ? <p><strong>Time:</strong> {result.timeCostMinutes}m</p> : null}
+        {typeof result.staminaCost === "number" ? <p><strong>Stamina:</strong> -{result.staminaCost}</p> : null}
+      </div>
+      {!compact || rewards.length > 0 ? (
+        <div className="mt-3 rounded-xl border border-white bg-white/75 px-3 py-2 text-xs text-stone-700">
+          <p><strong>Rewards:</strong> {rewards.length > 0 ? rewards.join(", ") : "No direct reward recorded."}</p>
+          {questProgress.length > 0 ? <p className="mt-1"><strong>Quest:</strong> {questProgress.join(", ")}</p> : null}
+          {storyProgress.length > 0 ? <p className="mt-1"><strong>Story:</strong> {storyProgress.join(", ")}</p> : null}
+          {result.systemNote ? <p className="mt-1"><strong>Note:</strong> {result.systemNote}</p> : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
