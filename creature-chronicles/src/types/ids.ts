@@ -1,0 +1,10 @@
+export type SaveId = string;
+export type PlayerId = string;
+export type CreatureId = string;
+export type EggId = string;
+export type HabitatId = string;
+export type SpeciesId = string;
+export type VariantId = string;
+export type AbilityId = string;
+export type ContractId = string;
+export type AssetId = string;
