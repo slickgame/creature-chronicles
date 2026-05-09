@@ -1,0 +1,26 @@
+﻿:root {
+  --color-bg-dark: #171716;
+  --color-bg-panel: #2d211c;
+  --color-bg-panel-light: #6b3b27;
+
+  --color-text-primary: #fff7dd;
+  --color-text-muted: #d8c7a5;
+  --color-text-dark: #241713;
+
+  --color-gold: #f2b84b;
+  --color-gold-dark: #9b5f17;
+  --color-blue: #56c7ff;
+  --color-red: #d94b4b;
+  --color-green: #72c16b;
+
+  --border-dark: #160d0a;
+  --border-light: #f5c980;
+
+  --shadow-panel: 0 18px 40px rgba(0, 0, 0, 0.38);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+
+  --max-game-width: 1280px;
+}
