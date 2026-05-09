@@ -18,6 +18,8 @@
         "name": "next"
       }
     ],
+    "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
