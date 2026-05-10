@@ -78,7 +78,7 @@ export function HabitatScreen() {
   const habitatTitle = activeHabitatFamily === "feline" ? "Feline Habitat" : "Canine Habitat";
   const habitatDescription =
     activeHabitatFamily === "feline"
-      ? "Home for Sphinx, Saberfang, and future feline variants."
+      ? "Home for Sphinx, Tiger, and future feline variants."
       : "Home for Hellhound, Direwolf, and future canine variants.";
 
   function handleSelectCreature(creature: CreatureRecord) {
