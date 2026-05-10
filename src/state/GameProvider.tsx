@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { MVP_VERSION } from "@/data/gameConstants";
+import { performBreedingAttempt } from "@/data/breeding";
 import { formatGameDate } from "@/lib/formatters";
 import {
   createNewGameSave,
@@ -20,11 +21,12 @@ import {
   saveGameToSlot,
   setActiveSaveId,
 } from "@/lib/save/localSave";
+import type { BreedingAttemptRecord } from "@/types/breeding";
 import type { CreatureFamily } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { DayState, GameSave } from "@/types/save";
 
-export type AppScreen = "main-menu" | "ranch-hub" | "habitat";
+export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -47,10 +49,12 @@ type GameContextValue = {
   goToMainMenu: () => void;
   goToRanch: () => void;
   goToHabitat: (family: CreatureFamily) => void;
+  goToBreeding: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
   renameCreature: (creatureId: CreatureId, nickname: string) => void;
   feedCreature: (creatureId: CreatureId) => void;
+  attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -161,6 +165,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setAppScreen("habitat");
   }, []);
 
+  const goToBreeding = useCallback(() => {
+    setActiveHabitatFamily(null);
+    setAppScreen("breeding");
+  }, []);
+
   const renameCreature = useCallback(
     (creatureId: CreatureId, nickname: string) => {
       if (!currentSave) {
@@ -222,6 +231,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [currentSave, saveCurrentGame],
   );
 
+  const attemptBreeding = useCallback(
+    (giverId: string, receiverId: string) => {
+      if (!currentSave) {
+        return null;
+      }
+
+      const result = performBreedingAttempt(currentSave, giverId, receiverId);
+
+      if (!result) {
+        return null;
+      }
+
+      saveCurrentGame(result.save);
+      return result.attempt;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
   const advanceDay = useCallback((): DayAdvanceResult | null => {
     if (!currentSave) {
       return null;
@@ -264,6 +291,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...creature,
         energy: creature.maxEnergy,
       })),
+      breeding: currentSave.breeding
+        ? {
+            ...currentSave.breeding,
+            hearts: currentSave.breeding.maxHearts,
+          }
+        : currentSave.breeding,
       flags: {
         ...currentSave.flags,
         lastSleptDayNumber: nextDayState.dayNumber,
@@ -283,7 +316,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M3 — Creature Data + Habitats + Profiles",
+      buildPhase: "M4 — Breeding Core",
       appScreen,
       activeHabitatFamily,
       currentSave,
@@ -296,10 +329,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToMainMenu,
       goToRanch,
       goToHabitat,
+      goToBreeding,
       saveCurrentGame,
       advanceDay,
       renameCreature,
       feedCreature,
+      attemptBreeding,
     }),
     [
       appScreen,
@@ -314,10 +349,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToMainMenu,
       goToRanch,
       goToHabitat,
+      goToBreeding,
       saveCurrentGame,
       advanceDay,
       renameCreature,
       feedCreature,
+      attemptBreeding,
     ],
   );
 
