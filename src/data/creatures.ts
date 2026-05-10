@@ -93,11 +93,32 @@ export const SPECIES_DEFINITIONS: SpeciesDefinition[] = [
 
 export const VARIANT_DEFINITIONS: VariantDefinition[] = [
   {
+    variantId: "variant_base_feline" as VariantId,
+    speciesId: FELINE_SPECIES_ID,
+    family: "feline",
+    name: "Base Feline",
+    rarity: "Common",
+    description:
+      "A balanced starter feline with reliable bonding, strong agility, and flexible ranch utility.",
+    statAdjustments: {},
+    exclusiveAbilityPool: [
+      ability(
+        "steady_purr",
+        "Steady Purr",
+        "C",
+        "variant",
+        "Improves early ranch comfort and gives this creature a reliable starter identity.",
+      ),
+    ],
+    portraitPath: "/images/creatures/feline/base_feline_portrait.png",
+    profilePath: "/images/creatures/feline/base_feline_profile.png",
+  },
+  {
     variantId: "variant_sphinx" as VariantId,
     speciesId: FELINE_SPECIES_ID,
     family: "feline",
     name: "Sphinx",
-    rarity: "Uncommon",
+    rarity: "Rare",
     description:
       "A refined feline variant with mystic presence, high charm, and strong social utility potential.",
     statAdjustments: {
@@ -125,13 +146,13 @@ export const VARIANT_DEFINITIONS: VariantDefinition[] = [
     profilePath: "/images/creatures/feline/sphinx_profile.png",
   },
   {
-    variantId: "variant_saberfang" as VariantId,
+    variantId: "variant_tiger" as VariantId,
     speciesId: FELINE_SPECIES_ID,
     family: "feline",
-    name: "Saberfang",
+    name: "Tiger",
     rarity: "Rare",
     description:
-      "A powerful feline variant with an imposing silhouette, strong physical presence, and high-risk contract potential.",
+      "A powerful tiger variant with an imposing silhouette, strong physical presence, and high-risk contract potential.",
     statAdjustments: {
       STR: 3,
       STA: 1,
@@ -140,8 +161,8 @@ export const VARIANT_DEFINITIONS: VariantDefinition[] = [
     },
     exclusiveAbilityPool: [
       ability(
-        "saber_instinct",
-        "Saber Instinct",
+        "tiger_instinct",
+        "Tiger Instinct",
         "B",
         "variant",
         "Future combat and intimidation talent for difficult contracts.",
@@ -156,6 +177,27 @@ export const VARIANT_DEFINITIONS: VariantDefinition[] = [
     ],
     portraitPath: "/images/creatures/feline/saberfang_portrait.png",
     profilePath: "/images/creatures/feline/saberfang_profile.png",
+  },
+  {
+    variantId: "variant_base_canine" as VariantId,
+    speciesId: CANINE_SPECIES_ID,
+    family: "canine",
+    name: "Base Canine",
+    rarity: "Common",
+    description:
+      "A balanced starter canine with dependable stamina, loyalty, and everyday ranch utility.",
+    statAdjustments: {},
+    exclusiveAbilityPool: [
+      ability(
+        "steady_companion",
+        "Steady Companion",
+        "C",
+        "variant",
+        "Improves early ranch reliability and gives this creature a dependable starter identity.",
+      ),
+    ],
+    portraitPath: "/images/creatures/canine/base_canine_portrait.png",
+    profilePath: "/images/creatures/canine/base_canine_profile.png",
   },
   {
     variantId: "variant_hellhound" as VariantId,
@@ -195,7 +237,7 @@ export const VARIANT_DEFINITIONS: VariantDefinition[] = [
     speciesId: CANINE_SPECIES_ID,
     family: "canine",
     name: "Direwolf",
-    rarity: "Uncommon",
+    rarity: "Rare",
     description:
       "A large, disciplined canine variant with excellent stamina, loyalty, and group-task potential.",
     statAdjustments: {
@@ -234,8 +276,17 @@ export function getSpeciesDefinition(speciesId: SpeciesId): SpeciesDefinition {
   return species;
 }
 
+export function normalizeVariantId(variantId: VariantId): VariantId {
+  if (variantId === ("variant_saberfang" as VariantId)) {
+    return "variant_tiger" as VariantId;
+  }
+
+  return variantId;
+}
+
 export function getVariantDefinition(variantId: VariantId): VariantDefinition {
-  const variant = VARIANT_DEFINITIONS.find((item) => item.variantId === variantId);
+  const normalizedVariantId = normalizeVariantId(variantId);
+  const variant = VARIANT_DEFINITIONS.find((item) => item.variantId === normalizedVariantId);
 
   if (!variant) {
     throw new Error(`Unknown variant: ${variantId}`);
@@ -296,17 +347,17 @@ export function createStarterCreatures(ownerSaveId: SaveId): CreatureRecord[] {
   return [
     createStarterCreature(
       ownerSaveId,
-      "creature_starter_sphinx" as CreatureId,
-      "variant_sphinx" as VariantId,
+      "creature_starter_feline" as CreatureId,
+      "variant_base_feline" as VariantId,
       FELINE_HABITAT_ID,
-      "Sable",
+      "Mira",
     ),
     createStarterCreature(
       ownerSaveId,
-      "creature_starter_hellhound" as CreatureId,
-      "variant_hellhound" as VariantId,
+      "creature_starter_canine" as CreatureId,
+      "variant_base_canine" as VariantId,
       CANINE_HABITAT_ID,
-      "Ember",
+      "Rook",
     ),
   ];
 }
@@ -319,7 +370,7 @@ export function createStarterHabitats(): HabitatRecord[] {
       name: "Feline Habitat",
       level: 1,
       capacity: 6,
-      creatureIds: ["creature_starter_sphinx" as CreatureId],
+      creatureIds: ["creature_starter_feline" as CreatureId],
       unlocked: true,
     },
     {
@@ -328,7 +379,7 @@ export function createStarterHabitats(): HabitatRecord[] {
       name: "Canine Habitat",
       level: 1,
       capacity: 6,
-      creatureIds: ["creature_starter_hellhound" as CreatureId],
+      creatureIds: ["creature_starter_canine" as CreatureId],
       unlocked: true,
     },
   ];
