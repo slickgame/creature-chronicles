@@ -1,4 +1,5 @@
 import type { CreatureId, EggId, HabitatId, PlayerId, SaveId } from "./ids";
+import type { CreatureRecord, HabitatRecord } from "./creature";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -47,6 +48,9 @@ export type GameSave = {
   creatureIds: CreatureId[];
   eggIds: EggId[];
   habitatIds: HabitatId[];
+
+  creatures?: CreatureRecord[];
+  habitats?: HabitatRecord[];
 
   flags: Record<string, boolean | number | string>;
 };
