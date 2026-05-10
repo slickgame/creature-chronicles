@@ -8,7 +8,7 @@ import {
 } from "@/data/creatures";
 import { formatEnergy } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
-import type { CreatureRecord } from "@/types/creature";
+import type { CreatureAbility, CreatureRecord } from "@/types/creature";
 import styles from "./HabitatScreen.module.css";
 
 const STAT_LABELS = {
@@ -200,10 +200,22 @@ function CreatureProfile({
 }) {
   const variant = getVariantDefinition(creature.variantId);
   const species = getSpeciesDefinition(creature.speciesId);
+  const [activeAbility, setActiveAbility] = useState<CreatureAbility | null>(null);
 
   return (
     <div className={styles.profileGrid}>
       <div className={styles.profileArtWrap}>
+        <div className={styles.artResourceRow}>
+          <div>
+            <span>Energy</span>
+            <strong>{formatEnergy(creature.energy, creature.maxEnergy)}</strong>
+          </div>
+          <div>
+            <span>Affection</span>
+            <strong>{creature.affection} / 100</strong>
+          </div>
+        </div>
+
         <img
           src={getImagePath(variant.profilePath)}
           alt={`${creature.nickname} profile`}
@@ -212,14 +224,38 @@ function CreatureProfile({
             event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
           }}
         />
+
+        <div className={styles.artResourceRow}>
+          <div>
+            <span>Level</span>
+            <strong>{creature.level}</strong>
+          </div>
+          <div>
+            <span>XP</span>
+            <strong>{creature.xp}</strong>
+          </div>
+        </div>
       </div>
 
       <div className={styles.profileInfo}>
-        <p className={styles.kicker}>{variant.rarity} Variant</p>
-        <h2>{creature.nickname}</h2>
-        <p className={styles.variantLine}>
-          {variant.name} {species.name} • Generation {creature.generation}
-        </p>
+        <div className={styles.profileHeaderRow}>
+          <div>
+            <p className={styles.kicker}>{variant.rarity} Variant</p>
+            <p className={styles.variantLine}>
+              {variant.name} {species.name} • Generation {creature.generation}
+            </p>
+          </div>
+          <label className={styles.inlineRename}>
+            Name
+            <input
+              type="text"
+              value={renameValue}
+              onChange={(event) => setRenameValue(event.target.value)}
+              maxLength={24}
+            />
+          </label>
+        </div>
+
         <p>{variant.description}</p>
 
         <div className={styles.statGrid}>
@@ -229,25 +265,6 @@ function CreatureProfile({
               <strong>{value}</strong>
             </div>
           ))}
-        </div>
-
-        <div className={styles.resourceGrid}>
-          <div>
-            <span>Creature Energy</span>
-            <strong>{formatEnergy(creature.energy, creature.maxEnergy)}</strong>
-          </div>
-          <div>
-            <span>Affection</span>
-            <strong>{creature.affection} / 100</strong>
-          </div>
-          <div>
-            <span>Level</span>
-            <strong>{creature.level}</strong>
-          </div>
-          <div>
-            <span>XP</span>
-            <strong>{creature.xp}</strong>
-          </div>
         </div>
 
         <section className={styles.abilityPanel}>
@@ -260,37 +277,64 @@ function CreatureProfile({
                   Grade {ability.grade} • {ability.source}
                 </span>
               </div>
-              <p>{ability.description}</p>
+              <button
+                type="button"
+                className={styles.infoButton}
+                onClick={() => setActiveAbility(ability)}
+                aria-label={`View details for ${ability.name}`}
+              >
+                i
+              </button>
             </article>
           ))}
         </section>
 
         <section className={styles.actionPanel}>
-          <label>
-            Rename
-            <input
-              type="text"
-              value={renameValue}
-              onChange={(event) => setRenameValue(event.target.value)}
-              maxLength={24}
-            />
-          </label>
-          <div className={styles.actionButtons}>
-            <button type="button" onClick={onRename}>
-              Save Name
-            </button>
-            <button type="button" onClick={onFeed}>
-              Feed
-            </button>
-            <button type="button" disabled>
-              Release Later
-            </button>
-            <button type="button" disabled>
-              Donate Later
-            </button>
-          </div>
+          <button type="button" onClick={onRename}>
+            Save Name
+          </button>
+          <button type="button" onClick={onFeed}>
+            Feed
+          </button>
+          <button type="button" disabled>
+            Release Later
+          </button>
+          <button type="button" disabled>
+            Donate Later
+          </button>
         </section>
       </div>
+
+      {activeAbility ? (
+        <div
+          className={styles.abilityModalBackdrop}
+          role="presentation"
+          onClick={() => setActiveAbility(null)}
+        >
+          <section
+            className={styles.abilityModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ability-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.closeModalButton}
+              onClick={() => setActiveAbility(null)}
+              aria-label="Close ability details"
+            >
+              ×
+            </button>
+            <p className={styles.kicker}>Ability Details</p>
+            <h2 id="ability-modal-title">{activeAbility.name}</h2>
+            <p className={styles.variantLine}>
+              Grade {activeAbility.grade} • {activeAbility.source}
+            </p>
+            <p>{activeAbility.description}</p>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }
