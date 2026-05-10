@@ -1,6 +1,14 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
-import { createStarterCreatures, createStarterHabitats } from "@/data/creatures";
+import {
+  createStarterCreatures,
+  createStarterHabitats,
+  getSpeciesDefinition,
+  getVariantDefinition,
+  normalizeVariantId,
+} from "@/data/creatures";
 import { formatGameDate } from "@/lib/formatters";
+import type { CreatureRecord } from "@/types/creature";
+import type { CreatureId, SaveId, VariantId } from "@/types/ids";
 import type { GameSave, SaveSlotSummary, SettingsState } from "@/types/save";
 
 const SAVE_PREFIX = "creature_chronicles_save_slot_";
@@ -21,6 +29,105 @@ export function createDefaultSettings(): SettingsState {
     sfxVolume: 80,
     textSpeed: "normal",
     devMode: true,
+  };
+}
+
+function createCreatureFromStarterTemplate(ownerSaveId: SaveId, starter: CreatureRecord): CreatureRecord {
+  const variant = getVariantDefinition(starter.variantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+
+  return {
+    ...starter,
+    ownerSaveId,
+    speciesId: species.speciesId,
+    variantId: variant.variantId,
+    stats: {
+      STR: Math.max(1, species.baseStats.STR + (variant.statAdjustments.STR ?? 0)),
+      DEX: Math.max(1, species.baseStats.DEX + (variant.statAdjustments.DEX ?? 0)),
+      STA: Math.max(1, species.baseStats.STA + (variant.statAdjustments.STA ?? 0)),
+      CHA: Math.max(1, species.baseStats.CHA + (variant.statAdjustments.CHA ?? 0)),
+      WIL: Math.max(1, species.baseStats.WIL + (variant.statAdjustments.WIL ?? 0)),
+      FER: Math.max(1, species.baseStats.FER + (variant.statAdjustments.FER ?? 0)),
+    },
+    abilities: [species.exclusiveAbilityPool[0], variant.exclusiveAbilityPool[0]].filter(Boolean),
+  };
+}
+
+function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): CreatureRecord {
+  if (creature.creatureId === ("creature_starter_sphinx" as CreatureId)) {
+    const starter = createStarterCreatures(ownerSaveId).find(
+      (item) => item.creatureId === ("creature_starter_feline" as CreatureId),
+    );
+
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : creature;
+  }
+
+  if (creature.creatureId === ("creature_starter_hellhound" as CreatureId)) {
+    const starter = createStarterCreatures(ownerSaveId).find(
+      (item) => item.creatureId === ("creature_starter_canine" as CreatureId),
+    );
+
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : creature;
+  }
+
+  const normalizedVariantId = normalizeVariantId(creature.variantId as VariantId);
+  const variant = getVariantDefinition(normalizedVariantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+
+  return {
+    ...creature,
+    ownerSaveId,
+    speciesId: species.speciesId,
+    variantId: normalizedVariantId,
+  };
+}
+
+function migrateSaveForM3(save: GameSave): GameSave {
+  const starterCreatures = createStarterCreatures(save.saveId);
+  const starterHabitats = createStarterHabitats();
+  const sourceCreatures = save.creatures ?? starterCreatures;
+  const migratedCreatures = sourceCreatures.map((creature) =>
+    migrateCreatureRecord(creature, save.saveId),
+  );
+  const creatureIds = migratedCreatures.map((creature) => creature.creatureId);
+  const habitats = (save.habitats ?? starterHabitats).map((habitat) => {
+    if (habitat.family === "feline") {
+      return {
+        ...habitat,
+        creatureIds: creatureIds.filter((creatureId) => {
+          const creature = migratedCreatures.find((item) => item.creatureId === creatureId);
+          return creature ? getVariantDefinition(creature.variantId).family === "feline" : false;
+        }),
+      };
+    }
+
+    if (habitat.family === "canine") {
+      return {
+        ...habitat,
+        creatureIds: creatureIds.filter((creatureId) => {
+          const creature = migratedCreatures.find((item) => item.creatureId === creatureId);
+          return creature ? getVariantDefinition(creature.variantId).family === "canine" : false;
+        }),
+      };
+    }
+
+    return habitat;
+  });
+
+  return {
+    ...save,
+    version: MVP_VERSION,
+    creatureIds,
+    habitatIds: habitats.map((habitat) => habitat.habitatId),
+    creatures: migratedCreatures,
+    habitats,
+    flags: {
+      ...save.flags,
+      m3StarterCreaturesCreated: true,
+      m3BaseStartersMigrated: true,
+      felineHabitatUnlocked: true,
+      canineHabitatUnlocked: true,
+    },
   };
 }
 
@@ -66,6 +173,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     flags: {
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
+      m3BaseStartersMigrated: true,
       ranchUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
@@ -105,27 +213,13 @@ export function loadSaveFromSlot(slotIndex: number): GameSave | null {
 
   try {
     const parsedSave = JSON.parse(raw) as GameSave;
+    const migratedSave = migrateSaveForM3(parsedSave);
 
-    if (!parsedSave.creatures || !parsedSave.habitats) {
-      const creatures = createStarterCreatures(parsedSave.saveId);
-      const habitats = createStarterHabitats();
-
-      return {
-        ...parsedSave,
-        creatureIds: parsedSave.creatureIds.length > 0 ? parsedSave.creatureIds : creatures.map((creature) => creature.creatureId),
-        habitatIds: parsedSave.habitatIds.length > 0 ? parsedSave.habitatIds : habitats.map((habitat) => habitat.habitatId),
-        creatures: parsedSave.creatures ?? creatures,
-        habitats: parsedSave.habitats ?? habitats,
-        flags: {
-          ...parsedSave.flags,
-          m3StarterCreaturesCreated: true,
-          felineHabitatUnlocked: true,
-          canineHabitatUnlocked: true,
-        },
-      };
+    if (JSON.stringify(migratedSave) !== JSON.stringify(parsedSave)) {
+      window.localStorage.setItem(getSlotKey(slotIndex), JSON.stringify(migratedSave));
     }
 
-    return parsedSave;
+    return migratedSave;
   } catch {
     return null;
   }
