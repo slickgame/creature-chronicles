@@ -1,4 +1,5 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
+import { createStarterCreatures, createStarterHabitats } from "@/data/creatures";
 import { formatGameDate } from "@/lib/formatters";
 import type { GameSave, SaveSlotSummary, SettingsState } from "@/types/save";
 
@@ -26,10 +27,13 @@ export function createDefaultSettings(): SettingsState {
 export function createNewGameSave(playerName: string, slotIndex: number): GameSave {
   const now = new Date().toISOString();
   const cleanName = playerName.trim() || "New Breeder";
+  const saveId = `save_${slotIndex}_${Date.now()}`;
+  const creatures = createStarterCreatures(saveId);
+  const habitats = createStarterHabitats();
 
   return {
     version: MVP_VERSION,
-    saveId: `save_${slotIndex}_${Date.now()}`,
+    saveId,
     slotIndex,
     createdAt: now,
     updatedAt: now,
@@ -54,12 +58,17 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       weekNumber: STARTING_PLAYER_STATE.weekNumber,
     },
     settings: createDefaultSettings(),
-    creatureIds: [],
+    creatureIds: creatures.map((creature) => creature.creatureId),
     eggIds: [],
-    habitatIds: [],
+    habitatIds: habitats.map((habitat) => habitat.habitatId),
+    creatures,
+    habitats,
     flags: {
       m1SaveCreated: true,
-      ranchUnlocked: false,
+      m3StarterCreaturesCreated: true,
+      ranchUnlocked: true,
+      felineHabitatUnlocked: true,
+      canineHabitatUnlocked: true,
       breedingUnlocked: false,
       marketUnlocked: false,
       guildUnlocked: false,
@@ -95,7 +104,28 @@ export function loadSaveFromSlot(slotIndex: number): GameSave | null {
   }
 
   try {
-    return JSON.parse(raw) as GameSave;
+    const parsedSave = JSON.parse(raw) as GameSave;
+
+    if (!parsedSave.creatures || !parsedSave.habitats) {
+      const creatures = createStarterCreatures(parsedSave.saveId);
+      const habitats = createStarterHabitats();
+
+      return {
+        ...parsedSave,
+        creatureIds: parsedSave.creatureIds.length > 0 ? parsedSave.creatureIds : creatures.map((creature) => creature.creatureId),
+        habitatIds: parsedSave.habitatIds.length > 0 ? parsedSave.habitatIds : habitats.map((habitat) => habitat.habitatId),
+        creatures: parsedSave.creatures ?? creatures,
+        habitats: parsedSave.habitats ?? habitats,
+        flags: {
+          ...parsedSave.flags,
+          m3StarterCreaturesCreated: true,
+          felineHabitatUnlocked: true,
+          canineHabitatUnlocked: true,
+        },
+      };
+    }
+
+    return parsedSave;
   } catch {
     return null;
   }
