@@ -20,9 +20,11 @@ import {
   saveGameToSlot,
   setActiveSaveId,
 } from "@/lib/save/localSave";
+import type { CreatureFamily } from "@/types/creature";
+import type { CreatureId } from "@/types/ids";
 import type { DayState, GameSave } from "@/types/save";
 
-export type AppScreen = "main-menu" | "ranch-hub";
+export type AppScreen = "main-menu" | "ranch-hub" | "habitat";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -34,6 +36,7 @@ type GameContextValue = {
   version: string;
   buildPhase: string;
   appScreen: AppScreen;
+  activeHabitatFamily: CreatureFamily | null;
   currentSave: GameSave | null;
   saveSlots: Array<GameSave | null>;
   isHydrated: boolean;
@@ -43,8 +46,11 @@ type GameContextValue = {
   refreshSaveSlots: () => void;
   goToMainMenu: () => void;
   goToRanch: () => void;
+  goToHabitat: (family: CreatureFamily) => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
+  renameCreature: (creatureId: CreatureId, nickname: string) => void;
+  feedCreature: (creatureId: CreatureId) => void;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -72,6 +78,7 @@ function getNextDayState(dayState: DayState): DayState {
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [appScreen, setAppScreen] = useState<AppScreen>("main-menu");
+  const [activeHabitatFamily, setActiveHabitatFamily] = useState<CreatureFamily | null>(null);
   const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]);
   const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
 
@@ -107,6 +114,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const newSave = createNewGameSave(playerName, slotIndex);
       const savedGame = saveCurrentGame(newSave);
 
+      setActiveHabitatFamily(null);
       setAppScreen("ranch-hub");
 
       return savedGame;
@@ -124,6 +132,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setActiveSaveId(save.saveId);
     setCurrentSave(save);
     setSaveSlots(loadAllSaves());
+    setActiveHabitatFamily(null);
     setAppScreen("ranch-hub");
 
     return save;
@@ -138,12 +147,80 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 
   const goToMainMenu = useCallback(() => {
+    setActiveHabitatFamily(null);
     setAppScreen("main-menu");
   }, []);
 
   const goToRanch = useCallback(() => {
+    setActiveHabitatFamily(null);
     setAppScreen("ranch-hub");
   }, []);
+
+  const goToHabitat = useCallback((family: CreatureFamily) => {
+    setActiveHabitatFamily(family);
+    setAppScreen("habitat");
+  }, []);
+
+  const renameCreature = useCallback(
+    (creatureId: CreatureId, nickname: string) => {
+      if (!currentSave) {
+        return;
+      }
+
+      const cleanNickname = nickname.trim();
+
+      if (!cleanNickname) {
+        return;
+      }
+
+      const nextSave: GameSave = {
+        ...currentSave,
+        creatures: (currentSave.creatures ?? []).map((creature) =>
+          creature.creatureId === creatureId
+            ? {
+                ...creature,
+                nickname: cleanNickname,
+              }
+            : creature,
+        ),
+        flags: {
+          ...currentSave.flags,
+          m3CreatureRenamed: true,
+        },
+      };
+
+      saveCurrentGame(nextSave);
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const feedCreature = useCallback(
+    (creatureId: CreatureId) => {
+      if (!currentSave) {
+        return;
+      }
+
+      const nextSave: GameSave = {
+        ...currentSave,
+        creatures: (currentSave.creatures ?? []).map((creature) =>
+          creature.creatureId === creatureId
+            ? {
+                ...creature,
+                affection: Math.min(100, creature.affection + 5),
+                energy: Math.min(creature.maxEnergy, creature.energy + 10),
+              }
+            : creature,
+        ),
+        flags: {
+          ...currentSave.flags,
+          m3CreatureFed: true,
+        },
+      };
+
+      saveCurrentGame(nextSave);
+    },
+    [currentSave, saveCurrentGame],
+  );
 
   const advanceDay = useCallback((): DayAdvanceResult | null => {
     if (!currentSave) {
@@ -167,7 +244,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const summaryItems = [
       `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
       `Energy restored to ${currentSave.currencies.maxEnergy}.`,
-      "Daily care and breeding reset hooks are ready for M3/M4.",
+      "Creature energy restored and daily care hooks are ready.",
+      "Breeding reset hooks are ready for M4.",
     ];
 
     if (nextDayState.weekday === "Mon") {
@@ -182,6 +260,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...currentSave.currencies,
         energy: currentSave.currencies.maxEnergy,
       },
+      creatures: (currentSave.creatures ?? []).map((creature) => ({
+        ...creature,
+        energy: creature.maxEnergy,
+      })),
       flags: {
         ...currentSave.flags,
         lastSleptDayNumber: nextDayState.dayNumber,
@@ -201,8 +283,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M2 — Ranch Hub + HUD + Sleep",
+      buildPhase: "M3 — Creature Data + Habitats + Profiles",
       appScreen,
+      activeHabitatFamily,
       currentSave,
       saveSlots,
       isHydrated,
@@ -212,11 +295,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       refreshSaveSlots,
       goToMainMenu,
       goToRanch,
+      goToHabitat,
       saveCurrentGame,
       advanceDay,
+      renameCreature,
+      feedCreature,
     }),
     [
       appScreen,
+      activeHabitatFamily,
       currentSave,
       saveSlots,
       isHydrated,
@@ -226,8 +313,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       refreshSaveSlots,
       goToMainMenu,
       goToRanch,
+      goToHabitat,
       saveCurrentGame,
       advanceDay,
+      renameCreature,
+      feedCreature,
     ],
   );
 
