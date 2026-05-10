@@ -46,8 +46,8 @@ const BUILDINGS: Building[] = [
     id: "feline",
     title: "Feline Habitat",
     milestone: "M3",
-    description: "Future home for Feline, Sphinx, and Saberfang creatures.",
-    actionLabel: "Coming in M3",
+    description: "Home for Feline, Sphinx, and Saberfang creatures.",
+    actionLabel: "Open Habitat",
     imageSrc: "/images/buildings/ranch/feline_habitat.png",
     x: 19,
     y: 62,
@@ -57,8 +57,8 @@ const BUILDINGS: Building[] = [
     id: "canine",
     title: "Canine Habitat",
     milestone: "M3",
-    description: "Future home for Canine, Hellhound, and Direwolf creatures.",
-    actionLabel: "Coming in M3",
+    description: "Home for Canine, Hellhound, and Direwolf creatures.",
+    actionLabel: "Open Habitat",
     imageSrc: "/images/buildings/ranch/canine_habitat.png",
     x: 74,
     y: 58,
@@ -119,7 +119,7 @@ function getBuildingStyle(building: Building): CSSProperties {
 }
 
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToMainMenu, version } = useGameContext();
+  const { advanceDay, currentSave, goToHabitat, goToMainMenu, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
@@ -162,6 +162,16 @@ export function RanchHubScreen() {
     if (building.id === "house") {
       setMessage("Ranch House selected. Rest here to advance the day.");
       setModalMode("sleep-confirm");
+      return;
+    }
+
+    if (building.id === "feline") {
+      goToHabitat("feline");
+      return;
+    }
+
+    if (building.id === "canine") {
+      goToHabitat("canine");
       return;
     }
 
@@ -236,8 +246,7 @@ export function RanchHubScreen() {
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
           <p>
-            Select buildings directly on the ranch map. Ranch House is active now;
-            habitats and economy locations unlock in later milestones.
+            Select buildings directly on the ranch map. Feline and Canine habitats are active for M3.
           </p>
           <p className={styles.message}>{message}</p>
         </section>
@@ -250,7 +259,7 @@ export function RanchHubScreen() {
               style={getBuildingStyle(building)}
               className={`${styles.mapBuilding} ${
                 selectedBuildingId === building.id ? styles.selectedBuilding : ""
-              } ${building.id === "house" ? styles.availableBuilding : styles.lockedBuilding}`}
+              } ${building.id === "house" || building.id === "feline" || building.id === "canine" ? styles.availableBuilding : styles.lockedBuilding}`}
               onClick={() => handleBuildingClick(building)}
               aria-label={`${building.title}. ${building.actionLabel}. ${building.description}`}
             >
@@ -285,7 +294,7 @@ export function RanchHubScreen() {
                 </p>
                 <ul>
                   <li>Energy will be restored to full.</li>
-                  <li>Daily reset hooks will run.</li>
+                  <li>Creature energy will be restored to full.</li>
                   <li>Future eggs, pregnancies, market, and contracts will update here.</li>
                 </ul>
                 <div className={styles.modalActions}>
