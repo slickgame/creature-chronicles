@@ -31,7 +31,9 @@
 
 .emptyPanel button,
 .headerActions button,
-.actionButtons button {
+.actionPanel button,
+.infoButton,
+.closeModalButton {
   min-height: 34px;
   padding: 7px 12px;
   border: 2px solid var(--border-dark);
@@ -44,7 +46,9 @@
 
 .emptyPanel button:hover,
 .headerActions button:hover,
-.actionButtons button:hover:not(:disabled),
+.actionPanel button:hover:not(:disabled),
+.infoButton:hover,
+.closeModalButton:hover,
 .creatureCard:hover {
   transform: translateY(-2px);
   filter: brightness(1.04);
@@ -83,7 +87,7 @@
 }
 
 .header h1,
-.profileInfo h2 {
+.abilityModal h2 {
   margin: 0;
   color: #fff7dd;
   line-height: 0.95;
@@ -96,13 +100,14 @@
   font-size: clamp(2rem, 3.6vw, 3.5rem);
 }
 
-.profileInfo h2 {
-  font-size: clamp(2rem, 4.2vw, 4rem);
+.abilityModal h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
 }
 
 .header p,
 .profileInfo p,
-.helpText {
+.helpText,
+.abilityModal p {
   color: #f2dfbd;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
 }
@@ -127,7 +132,7 @@
 
 .capacityCard span,
 .statGrid span,
-.resourceGrid span {
+.artResourceRow span {
   display: block;
   color: #e7c991;
   font-size: 0.61rem;
@@ -138,7 +143,7 @@
 
 .capacityCard strong,
 .statGrid strong,
-.resourceGrid strong {
+.artResourceRow strong {
   color: #fff7dd;
   font-size: 0.94rem;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
@@ -228,6 +233,7 @@
 }
 
 .profileGrid {
+  position: relative;
   height: 100%;
   min-height: 0;
   display: grid;
@@ -238,18 +244,36 @@
 .profileArtWrap {
   min-height: 0;
   display: grid;
-  place-items: center;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
   border: 2px solid rgba(245, 201, 128, 0.34);
   border-radius: var(--radius-lg);
   background:
     radial-gradient(circle at center, rgba(242, 184, 75, 0.16), transparent 55%),
     rgba(255, 247, 221, 0.06);
   overflow: hidden;
+  padding: 10px;
+}
+
+.artResourceRow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.artResourceRow div {
+  padding: 7px 9px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .profileArt {
-  max-width: 96%;
-  max-height: 92%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   object-fit: contain;
   object-position: center center;
   filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.42));
@@ -261,32 +285,56 @@
   overflow: hidden;
   padding-right: 0;
   display: grid;
-  grid-template-rows: auto auto auto auto auto auto;
+  grid-template-rows: auto auto auto auto;
   align-content: start;
 }
 
+.profileHeaderRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  gap: 12px;
+  align-items: end;
+}
+
+.inlineRename {
+  display: grid;
+  gap: 5px;
+  color: var(--color-gold);
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
+}
+
+.inlineRename input {
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 2px solid rgba(245, 201, 128, 0.42);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 247, 221, 0.94);
+  color: var(--color-text-dark);
+  font-weight: 800;
+}
+
 .variantLine {
-  margin: 5px 0 6px;
+  margin: 5px 0 0;
   color: #7fdbff !important;
   font-weight: 900;
 }
 
 .profileInfo > p:not(.kicker):not(.variantLine) {
-  margin: 6px 0 8px;
-  font-size: 0.92rem;
+  margin: 8px 0 8px;
+  font-size: 0.9rem;
   line-height: 1.28;
 }
 
-.statGrid,
-.resourceGrid {
+.statGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(86px, 1fr));
+  grid-template-columns: repeat(3, minmax(74px, 1fr));
   gap: 7px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-.statGrid div,
-.resourceGrid div {
+.statGrid div {
   padding: 7px 9px;
   border: 1px solid rgba(245, 201, 128, 0.32);
   border-radius: var(--radius-sm);
@@ -311,15 +359,17 @@
 
 .abilityPanel article {
   display: grid;
-  grid-template-columns: minmax(130px, 0.85fr) minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 1fr) 34px;
   gap: 8px;
-  align-items: start;
-  padding: 7px 0;
-  border-top: 1px solid rgba(245, 201, 128, 0.22);
+  align-items: center;
+  padding: 8px 9px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.26);
 }
 
-.abilityPanel article:first-of-type {
-  border-top: 0;
+.abilityPanel article + article {
+  margin-top: 7px;
 }
 
 .abilityPanel strong,
@@ -340,49 +390,59 @@
   text-transform: capitalize;
 }
 
-.abilityPanel p {
-  margin: 0;
-  color: #f2dfbd;
-  font-size: 0.84rem;
-  line-height: 1.24;
+.infoButton {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 999px;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 .actionPanel {
-  display: grid;
-  grid-template-columns: minmax(180px, 1fr) auto;
-  gap: 10px;
-  align-items: end;
-}
-
-.actionPanel label {
-  display: grid;
-  gap: 5px;
-  color: var(--color-gold);
-  font-size: 0.86rem;
-  font-weight: 900;
-  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
-}
-
-.actionPanel input {
-  min-height: 34px;
-  padding: 7px 9px;
-  border: 2px solid rgba(245, 201, 128, 0.42);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 247, 221, 0.94);
-  color: var(--color-text-dark);
-  font-weight: 800;
-}
-
-.actionButtons {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  justify-content: flex-end;
 }
 
-.actionButtons button:disabled {
+.actionPanel button:disabled {
   cursor: not-allowed;
   filter: grayscale(0.7) brightness(0.78);
+}
+
+.abilityModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.abilityModal {
+  position: relative;
+  width: min(100%, 520px);
+  padding: 28px;
+  border: 3px solid rgba(245, 201, 128, 0.9);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(rgba(70, 34, 24, 0.98), rgba(18, 10, 8, 0.98)),
+    radial-gradient(circle at top left, rgba(255, 216, 121, 0.18), transparent 44%);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.64);
+}
+
+.closeModalButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 .noSelection {
@@ -401,7 +461,7 @@
   .header,
   .contentGrid,
   .profileGrid,
-  .actionPanel {
+  .profileHeaderRow {
     grid-template-columns: 1fr;
   }
 
@@ -410,24 +470,15 @@
   }
 
   .profileArtWrap {
-    min-height: 360px;
+    min-height: 420px;
   }
 
   .profileInfo {
     overflow: visible;
   }
 
-  .statGrid,
-  .resourceGrid {
+  .statGrid {
     grid-template-columns: repeat(2, minmax(100px, 1fr));
-  }
-
-  .abilityPanel article {
-    grid-template-columns: 1fr;
-  }
-
-  .actionButtons {
-    justify-content: flex-start;
   }
 }
 
@@ -441,8 +492,7 @@
     padding: 16px;
   }
 
-  .statGrid,
-  .resourceGrid {
+  .statGrid {
     grid-template-columns: 1fr;
   }
 }
