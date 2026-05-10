@@ -14,7 +14,7 @@ import { useGameContext } from "@/state/GameProvider";
 import type { GameSave } from "@/types/save";
 import styles from "./MainMenuScreen.module.css";
 
-type MenuMode = "main" | "new-game" | "load-game" | "options" | "dev-notes";
+type MenuMode = "main" | "new-game" | "load-game" | "options";
 
 const IMAGE_PATHS = {
   logo: "/images/ui/logo/creature_chronicles_logo.png",
@@ -63,9 +63,7 @@ function SaveSlotCard({
           <p>
             {formatGold(summary.gold)} • {formatGuildPoints(summary.guildPoints)}
           </p>
-          <p>
-            Energy {formatEnergy(summary.energy, summary.maxEnergy)}
-          </p>
+          <p>Energy {formatEnergy(summary.energy, summary.maxEnergy)}</p>
           <p>
             Creatures {summary.creatureCount} • Eggs {summary.eggCount}
           </p>
@@ -152,6 +150,14 @@ export function MainMenuScreen() {
     deleteGame(slotIndex);
     setConfirmDeleteSlot(null);
     setMessage(`Deleted File ${slotIndex + 1}.`);
+  }
+
+  function handleExitGame() {
+    setMessage("Exit requested. If the browser blocks closing this tab, close it manually.");
+
+    if (typeof window !== "undefined") {
+      window.close();
+    }
   }
 
   return (
@@ -244,9 +250,9 @@ export function MainMenuScreen() {
                 type="button"
                 className={styles.imageButton}
                 style={{ backgroundImage: `url(${IMAGE_PATHS.exitButton})` }}
-                onClick={() => setMode("dev-notes")}
+                onClick={handleExitGame}
               >
-                Dev Notes
+                Exit Game
               </button>
             </nav>
           ) : null}
@@ -347,24 +353,6 @@ export function MainMenuScreen() {
               <p className={styles.panelHint}>
                 These are display-only for M1. Full settings editing comes later.
               </p>
-            </section>
-          ) : null}
-
-          {mode === "dev-notes" ? (
-            <section className={styles.menuPanel}>
-              <div className={styles.panelHeader}>
-                <h2>Dev Notes</h2>
-                <button type="button" onClick={() => setMode("main")}>
-                  Back
-                </button>
-              </div>
-
-              <ul className={styles.devList}>
-                <li>M1 adds localStorage save files.</li>
-                <li>No breeding, ranch hub, market, or guild systems yet.</li>
-                <li>Save data is shaped for future Supabase migration.</li>
-                <li>Every file remains below the 2,000-line rule.</li>
-              </ul>
             </section>
           ) : null}
         </section>

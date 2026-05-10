@@ -1,6 +1,6 @@
 export const GAME_TITLE = "Creature Chronicles";
 
-export const MVP_VERSION = "0.0.1-m0";
+export const MVP_VERSION = "0.1.0-m1";
 
 export const FILE_SIZE_RULE = {
   preferredMaxLines: 1200,
