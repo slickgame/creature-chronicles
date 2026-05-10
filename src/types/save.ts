@@ -1,3 +1,4 @@
+import type { BreedingState } from "./breeding";
 import type { CreatureId, EggId, HabitatId, PlayerId, SaveId } from "./ids";
 import type { CreatureRecord, HabitatRecord } from "./creature";
 
@@ -51,6 +52,7 @@ export type GameSave = {
 
   creatures?: CreatureRecord[];
   habitats?: HabitatRecord[];
+  breeding?: BreedingState;
 
   flags: Record<string, boolean | number | string>;
 };
