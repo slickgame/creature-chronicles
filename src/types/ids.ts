@@ -8,3 +8,4 @@ export type VariantId = string;
 export type AbilityId = string;
 export type ContractId = string;
 export type AssetId = string;
+export type BreedingAttemptId = string;
