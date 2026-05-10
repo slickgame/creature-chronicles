@@ -1,5 +1,5 @@
-import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
+import { GameRoot } from "@/features/root/GameRoot";
 
 export default function HomePage() {
-  return <MainMenuScreen />;
+  return <GameRoot />;
 }

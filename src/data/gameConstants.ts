@@ -1,6 +1,6 @@
 export const GAME_TITLE = "Creature Chronicles";
 
-export const MVP_VERSION = "0.1.0-m1";
+export const MVP_VERSION = "0.2.0-m2";
 
 export const FILE_SIZE_RULE = {
   preferredMaxLines: 1200,
@@ -9,13 +9,13 @@ export const FILE_SIZE_RULE = {
 } as const;
 
 export const STARTING_PLAYER_STATE = {
-  gold: 1000,
+  gold: 2000,
   guildPoints: 0,
-  energy: 1050,
-  maxEnergy: 1050,
+  energy: 500,
+  maxEnergy: 500,
   dayNumber: 1,
   weekday: "Mon",
-  month: 8,
+  month: 1,
   dayOfMonth: 1,
   weekNumber: 1,
 } as const;

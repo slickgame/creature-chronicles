@@ -22,11 +22,7 @@ const IMAGE_PATHS = {
   loadGameButton: "/images/ui/buttons/button_load_game.png",
   settingsButton: "/images/ui/buttons/button_settings.png",
   exitButton: "/images/ui/buttons/button_exit_game.png",
-  goldIcon: "/images/ui/icons/icon_gold_paw_medallion.png",
-  gemIcon: "/images/ui/icons/icon_blue_gem.png",
   crestIcon: "/images/ui/icons/icon_paw_crest.png",
-  panelFrame: "/images/ui/frames/panel_leather_wood_large.png",
-  ranchBackground: "/images/backgrounds/ranch/ranch_valley_placeholder.png",
 } as const;
 
 function SaveSlotCard({
@@ -105,6 +101,7 @@ export function MainMenuScreen() {
     createNewGame,
     currentSave,
     deleteGame,
+    goToRanch,
     isHydrated,
     loadGame,
     saveSlots,
@@ -114,7 +111,7 @@ export function MainMenuScreen() {
   const [mode, setMode] = useState<MenuMode>("main");
   const [playerName, setPlayerName] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(0);
-  const [message, setMessage] = useState("M1 save shell ready.");
+  const [message, setMessage] = useState("M2 ranch hub ready.");
   const [confirmDeleteSlot, setConfirmDeleteSlot] = useState<number | null>(null);
 
   const activeSummary = useMemo(() => {
@@ -122,10 +119,8 @@ export function MainMenuScreen() {
   }, [currentSave]);
 
   function handleCreateGame() {
-    const save = createNewGame(playerName, selectedSlot);
+    createNewGame(playerName, selectedSlot);
     setPlayerName("");
-    setMessage(`Created ${save.player.name}'s save in File ${save.slotIndex + 1}.`);
-    setMode("main");
   }
 
   function handleLoad(slotIndex: number) {
@@ -137,7 +132,6 @@ export function MainMenuScreen() {
     }
 
     setMessage(`Loaded ${save.player.name}'s save.`);
-    setMode("main");
   }
 
   function handleDelete(slotIndex: number) {
@@ -200,7 +194,13 @@ export function MainMenuScreen() {
                 </div>
                 <div>
                   <dt>Date</dt>
-                  <dd>{activeSummary.dateLabel}</dd>
+                  <dd>
+                    {formatGameDate(
+                      currentSave?.dayState.weekday ?? "Mon",
+                      currentSave?.dayState.month ?? 1,
+                      currentSave?.dayState.dayOfMonth ?? 1,
+                    )}
+                  </dd>
                 </div>
                 <div>
                   <dt>Energy</dt>
@@ -214,6 +214,12 @@ export function MainMenuScreen() {
             ) : (
               <p>No active save yet. Start a new game or load an existing file.</p>
             )}
+
+            {currentSave ? (
+              <button type="button" className={styles.continueButton} onClick={goToRanch}>
+                Continue to Ranch
+              </button>
+            ) : null}
 
             <p className={styles.messageText}>{message}</p>
           </div>
@@ -351,7 +357,7 @@ export function MainMenuScreen() {
               </div>
 
               <p className={styles.panelHint}>
-                These are display-only for M1. Full settings editing comes later.
+                These are display-only for M2. Full settings editing comes later.
               </p>
             </section>
           ) : null}

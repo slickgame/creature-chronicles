@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { MVP_VERSION } from "@/data/gameConstants";
+import { formatGameDate } from "@/lib/formatters";
 import {
   createNewGameSave,
   deleteSaveSlot,
@@ -19,11 +20,20 @@ import {
   saveGameToSlot,
   setActiveSaveId,
 } from "@/lib/save/localSave";
-import type { GameSave } from "@/types/save";
+import type { DayState, GameSave } from "@/types/save";
+
+export type AppScreen = "main-menu" | "ranch-hub";
+
+export type DayAdvanceResult = {
+  previousDateLabel: string;
+  nextDateLabel: string;
+  summaryItems: string[];
+};
 
 type GameContextValue = {
   version: string;
   buildPhase: string;
+  appScreen: AppScreen;
   currentSave: GameSave | null;
   saveSlots: Array<GameSave | null>;
   isHydrated: boolean;
@@ -31,12 +41,37 @@ type GameContextValue = {
   loadGame: (slotIndex: number) => GameSave | null;
   deleteGame: (slotIndex: number) => void;
   refreshSaveSlots: () => void;
+  goToMainMenu: () => void;
+  goToRanch: () => void;
+  saveCurrentGame: (nextSave: GameSave) => GameSave;
+  advanceDay: () => DayAdvanceResult | null;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
 
+const WEEKDAYS: DayState["weekday"][] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function getNextDayState(dayState: DayState): DayState {
+  const currentWeekdayIndex = WEEKDAYS.indexOf(dayState.weekday);
+  const nextWeekdayIndex = (currentWeekdayIndex + 1) % WEEKDAYS.length;
+  const nextDayNumber = dayState.dayNumber + 1;
+  const nextDayOfMonth = dayState.dayOfMonth >= 30 ? 1 : dayState.dayOfMonth + 1;
+  const nextMonth = dayState.dayOfMonth >= 30 ? dayState.month + 1 : dayState.month;
+  const nextWeekNumber =
+    nextWeekdayIndex === 0 ? dayState.weekNumber + 1 : dayState.weekNumber;
+
+  return {
+    dayNumber: nextDayNumber,
+    weekday: WEEKDAYS[nextWeekdayIndex],
+    month: nextMonth,
+    dayOfMonth: nextDayOfMonth,
+    weekNumber: nextWeekNumber,
+  };
+}
+
 export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
+  const [appScreen, setAppScreen] = useState<AppScreen>("main-menu");
   const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]);
   const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
 
@@ -55,11 +90,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setIsHydrated(true);
   }, [refreshSaveSlots]);
 
-  const createNewGame = useCallback((playerName: string, preferredSlot?: number) => {
-    const emptySlot = findFirstEmptySlot();
-    const slotIndex = preferredSlot ?? emptySlot ?? 0;
-    const newSave = createNewGameSave(playerName, slotIndex);
-    const savedGame = saveGameToSlot(newSave);
+  const saveCurrentGame = useCallback((nextSave: GameSave) => {
+    const savedGame = saveGameToSlot(nextSave);
 
     setActiveSaveId(savedGame.saveId);
     setCurrentSave(savedGame);
@@ -67,6 +99,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     return savedGame;
   }, []);
+
+  const createNewGame = useCallback(
+    (playerName: string, preferredSlot?: number) => {
+      const emptySlot = findFirstEmptySlot();
+      const slotIndex = preferredSlot ?? emptySlot ?? 0;
+      const newSave = createNewGameSave(playerName, slotIndex);
+      const savedGame = saveCurrentGame(newSave);
+
+      setAppScreen("ranch-hub");
+
+      return savedGame;
+    },
+    [saveCurrentGame],
+  );
 
   const loadGame = useCallback((slotIndex: number) => {
     const save = loadSaveFromSlot(slotIndex);
@@ -78,6 +124,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setActiveSaveId(save.saveId);
     setCurrentSave(save);
     setSaveSlots(loadAllSaves());
+    setAppScreen("ranch-hub");
 
     return save;
   }, []);
@@ -90,10 +137,72 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [refreshSaveSlots],
   );
 
+  const goToMainMenu = useCallback(() => {
+    setAppScreen("main-menu");
+  }, []);
+
+  const goToRanch = useCallback(() => {
+    setAppScreen("ranch-hub");
+  }, []);
+
+  const advanceDay = useCallback((): DayAdvanceResult | null => {
+    if (!currentSave) {
+      return null;
+    }
+
+    const previousDateLabel = formatGameDate(
+      currentSave.dayState.weekday,
+      currentSave.dayState.month,
+      currentSave.dayState.dayOfMonth,
+    );
+
+    const nextDayState = getNextDayState(currentSave.dayState);
+
+    const nextDateLabel = formatGameDate(
+      nextDayState.weekday,
+      nextDayState.month,
+      nextDayState.dayOfMonth,
+    );
+
+    const summaryItems = [
+      `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
+      `Energy restored to ${currentSave.currencies.maxEnergy}.`,
+      "Daily care and breeding reset hooks are ready for M3/M4.",
+    ];
+
+    if (nextDayState.weekday === "Mon") {
+      summaryItems.push("New week started. Market and guild weekly reset hooks are ready.");
+    }
+
+    const nextSave: GameSave = {
+      ...currentSave,
+      updatedAt: new Date().toISOString(),
+      dayState: nextDayState,
+      currencies: {
+        ...currentSave.currencies,
+        energy: currentSave.currencies.maxEnergy,
+      },
+      flags: {
+        ...currentSave.flags,
+        lastSleptDayNumber: nextDayState.dayNumber,
+        m2SleepUsed: true,
+      },
+    };
+
+    saveCurrentGame(nextSave);
+
+    return {
+      previousDateLabel,
+      nextDateLabel,
+      summaryItems,
+    };
+  }, [currentSave, saveCurrentGame]);
+
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M1 — Main Menu + Save Shell",
+      buildPhase: "M2 — Ranch Hub + HUD + Sleep",
+      appScreen,
       currentSave,
       saveSlots,
       isHydrated,
@@ -101,8 +210,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       loadGame,
       deleteGame,
       refreshSaveSlots,
+      goToMainMenu,
+      goToRanch,
+      saveCurrentGame,
+      advanceDay,
     }),
     [
+      appScreen,
       currentSave,
       saveSlots,
       isHydrated,
@@ -110,6 +224,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       loadGame,
       deleteGame,
       refreshSaveSlots,
+      goToMainMenu,
+      goToRanch,
+      saveCurrentGame,
+      advanceDay,
     ],
   );
 
