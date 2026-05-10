@@ -25,14 +25,24 @@ export type DayState = {
   weekNumber: number;
 };
 
+export type SettingsState = {
+  musicVolume: number;
+  sfxVolume: number;
+  textSpeed: "slow" | "normal" | "fast" | "instant";
+  devMode: boolean;
+};
+
 export type GameSave = {
   version: string;
   saveId: SaveId;
+  slotIndex: number;
   createdAt: string;
   updatedAt: string;
+
   player: PlayerProfile;
   currencies: Currencies;
   dayState: DayState;
+  settings: SettingsState;
 
   creatureIds: CreatureId[];
   eggIds: EggId[];
@@ -43,9 +53,15 @@ export type GameSave = {
 
 export type SaveSlotSummary = {
   saveId: SaveId;
+  slotIndex: number;
   playerName: string;
+  ranchName: string;
   dayNumber: number;
+  dateLabel: string;
   gold: number;
+  guildPoints: number;
+  energy: number;
+  maxEnergy: number;
   creatureCount: number;
   eggCount: number;
   updatedAt: string;

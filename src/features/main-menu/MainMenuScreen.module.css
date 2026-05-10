@@ -4,23 +4,23 @@
   place-items: center;
   padding: 32px;
   background:
-    radial-gradient(circle at top, rgba(242, 184, 75, 0.18), transparent 36%),
+    radial-gradient(circle at top left, rgba(242, 184, 75, 0.16), transparent 34%),
     linear-gradient(145deg, #281714 0%, #171716 46%, #101315 100%);
 }
 
 .heroPanel {
   width: min(100%, var(--max-game-width));
-  min-height: 720px;
+  min-height: 760px;
   position: relative;
   display: grid;
-  grid-template-columns: minmax(320px, 520px) minmax(280px, 420px);
-  gap: 40px;
-  align-items: center;
+  grid-template-columns: minmax(340px, 1fr) minmax(380px, 520px);
+  gap: 36px;
+  align-items: stretch;
   padding: 56px;
   border: 4px solid var(--border-dark);
   border-radius: var(--radius-lg);
   background:
-    linear-gradient(rgba(70, 38, 26, 0.72), rgba(35, 21, 18, 0.92)),
+    linear-gradient(rgba(70, 38, 26, 0.76), rgba(35, 21, 18, 0.94)),
     repeating-linear-gradient(
       12deg,
       rgba(255, 255, 255, 0.04) 0,
@@ -39,109 +39,162 @@
   border: 2px solid rgba(245, 201, 128, 0.35);
   border-radius: 18px;
   pointer-events: none;
+  z-index: 2;
+}
+
+.backgroundArt {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(33, 18, 14, 0.64), rgba(20, 12, 10, 0.88)),
+    url("/images/backgrounds/ranch/ranch_valley_placeholder.png");
+  background-position: center;
+  background-size: cover;
+  opacity: 0.42;
 }
 
 .versionBadge {
   position: absolute;
-  top: 24px;
-  right: 32px;
+  top: 28px;
+  right: 34px;
+  z-index: 3;
   color: var(--color-text-muted);
   font-size: 0.9rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.logoBox {
+.leftColumn,
+.rightColumn {
   position: relative;
-  z-index: 1;
+  z-index: 3;
+}
+
+.leftColumn {
+  display: grid;
+  align-content: space-between;
+  gap: 28px;
+}
+
+.rightColumn {
+  display: grid;
+  align-content: center;
+}
+
+.logoBox {
+  min-height: 360px;
 }
 
 .smallLabel {
   margin: 0 0 12px;
   color: var(--color-gold);
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-weight: 900;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.logoImage {
+  width: min(100%, 520px);
+  max-height: 220px;
+  object-fit: contain;
+  object-position: left center;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, 0.35));
 }
 
 .title {
   max-width: 10ch;
   margin: 0;
   color: var(--color-text-primary);
-  font-size: clamp(3.75rem, 9vw, 7rem);
+  font-size: clamp(3.6rem, 7vw, 6.6rem);
   line-height: 0.9;
   letter-spacing: -0.08em;
-  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.28);
+  text-shadow: 0 6px 0 rgba(0, 0, 0, 0.34);
 }
 
 .subtitle {
   max-width: 520px;
   margin: 24px 0 0;
   color: var(--color-text-muted);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .menu {
-  position: relative;
-  z-index: 1;
   display: grid;
   gap: 16px;
 }
 
-.primaryButton,
-.menuButton {
-  min-height: 58px;
+.imageButton,
+.confirmButton,
+.slotActions button,
+.panelHeader button {
   border: 3px solid var(--border-dark);
   border-radius: var(--radius-md);
   color: var(--color-text-dark);
-  font-size: 1.2rem;
   font-weight: 900;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.34);
+}
+
+.imageButton {
+  min-height: 72px;
+  background-color: #f2c66d;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  font-size: 1.2rem;
   letter-spacing: 0.04em;
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.3);
 }
 
-.primaryButton {
-  background: linear-gradient(#ffd879, var(--color-gold));
-}
-
-.menuButton {
-  background: linear-gradient(#fff3c4, #d9a85e);
-}
-
-.primaryButton:hover,
-.menuButton:hover {
+.imageButton:hover,
+.confirmButton:hover,
+.slotActions button:hover,
+.panelHeader button:hover {
   transform: translateY(-2px);
 }
 
-.previewCard {
-  position: relative;
-  z-index: 1;
-  grid-column: 1 / -1;
+.statusCard,
+.menuPanel {
   padding: 24px;
   border: 3px solid var(--border-dark);
   border-radius: var(--radius-md);
-  background: rgba(19, 15, 14, 0.74);
+  background: rgba(19, 15, 14, 0.82);
+  box-shadow: var(--shadow-panel);
 }
 
-.previewCard h2 {
-  margin: 0 0 8px;
+.statusTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusTitleRow img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.statusCard h2,
+.menuPanel h2 {
+  margin: 0;
   color: var(--color-gold);
 }
 
-.previewCard p {
-  margin: 0;
+.statusCard p,
+.menuPanel p,
+.devList {
   color: var(--color-text-muted);
 }
 
 .previewStats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: 10px;
   margin: 20px 0;
 }
 
 .previewStats div {
-  padding: 14px;
+  padding: 12px;
   border: 1px solid rgba(245, 201, 128, 0.24);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.06);
@@ -149,29 +202,190 @@
 
 .previewStats dt {
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
 }
 
 .previewStats dd {
   margin: 4px 0 0;
   color: var(--color-text-primary);
-  font-weight: 800;
+  font-weight: 900;
 }
 
-.phaseText {
+.messageText {
   color: var(--color-blue) !important;
-  font-weight: 800;
+  font-weight: 900;
 }
 
-@media (max-width: 860px) {
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panelHeader button,
+.slotActions button,
+.confirmButton {
+  min-height: 42px;
+  padding: 8px 14px;
+  background: linear-gradient(#fff0bd, #dca755);
+}
+
+.inputLabel {
+  display: grid;
+  gap: 8px;
+  color: var(--color-gold);
+  font-weight: 900;
+}
+
+.inputLabel input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 247, 221, 0.96);
+  color: var(--color-text-dark);
+  font-weight: 900;
+}
+
+.panelHint {
+  font-size: 0.95rem;
+}
+
+.slotGrid {
+  display: grid;
+  gap: 12px;
+  max-height: 430px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.slotCard {
+  padding: 14px;
+  border: 2px solid rgba(245, 201, 128, 0.28);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.slotCardSelected {
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 2px rgba(86, 199, 255, 0.28);
+}
+
+.slotHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-gold);
+}
+
+.slotHeader h3 {
+  margin: 0;
+}
+
+.slotHeader span {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.slotBody,
+.emptySlot {
+  margin-top: 10px;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+}
+
+.slotBody p,
+.emptySlot p {
+  margin: 4px 0;
+}
+
+.slotName {
+  color: var(--color-text-primary) !important;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.slotDate {
+  color: var(--color-blue) !important;
+  font-size: 0.82rem;
+}
+
+.slotActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.slotActions .dangerButton {
+  background: linear-gradient(#f2a3a3, #d94b4b);
+  color: #2a0909;
+}
+
+.confirmButton {
+  width: 100%;
+  margin-top: 16px;
+  font-size: 1.05rem;
+}
+
+.optionRows {
+  display: grid;
+  gap: 10px;
+}
+
+.optionRows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid rgba(245, 201, 128, 0.24);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-muted);
+}
+
+.optionRows strong {
+  color: var(--color-text-primary);
+}
+
+.devList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+@media (max-width: 980px) {
   .heroPanel {
     grid-template-columns: 1fr;
+    padding: 42px 24px;
+  }
+
+  .logoBox {
     min-height: auto;
-    padding: 40px 24px;
+  }
+
+  .rightColumn {
+    align-content: start;
+  }
+}
+
+@media (max-width: 620px) {
+  .screen {
+    padding: 16px;
+  }
+
+  .heroPanel {
+    padding: 34px 18px;
   }
 
   .previewStats {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }

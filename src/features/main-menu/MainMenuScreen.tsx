@@ -1,70 +1,127 @@
 "use client";
 
-import { GAME_TITLE } from "@/data/gameConstants";
-import { formatEnergy, formatGameDate, formatGold } from "@/lib/formatters";
-import { useGameContext } from "@/state/GameProvider";
-import styles from "./MainMenuScreen.module.css";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { MVP_VERSION } from "@/data/gameConstants";
+import {
+  createNewGameSave,
+  deleteSaveSlot,
+  findFirstEmptySlot,
+  getActiveSaveId,
+  loadAllSaves,
+  loadSaveFromSlot,
+  saveGameToSlot,
+  setActiveSaveId,
+} from "@/lib/save/localSave";
+import type { GameSave } from "@/types/save";
 
-export function MainMenuScreen() {
-  const { buildPhase, previewSave, version } = useGameContext();
+type GameContextValue = {
+  version: string;
+  buildPhase: string;
+  currentSave: GameSave | null;
+  saveSlots: Array<GameSave | null>;
+  isHydrated: boolean;
+  createNewGame: (playerName: string, preferredSlot?: number) => GameSave;
+  loadGame: (slotIndex: number) => GameSave | null;
+  deleteGame: (slotIndex: number) => void;
+  refreshSaveSlots: () => void;
+};
 
-  const { currencies, dayState, player } = previewSave;
+const GameContext = createContext<GameContextValue | null>(null);
 
-  return (
-    <main className={styles.screen}>
-      <section className={styles.heroPanel} aria-labelledby="game-title">
-        <div className={styles.versionBadge}>{version}</div>
+export function GameProvider({ children }: { children: React.ReactNode }) {
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]);
+  const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
 
-        <div className={styles.logoBox}>
-          <p className={styles.smallLabel}>Planning Rebuild</p>
-          <h1 id="game-title" className={styles.title}>
-            {GAME_TITLE}
-          </h1>
-          <p className={styles.subtitle}>Ranch • Breeding • Contracts • Collection</p>
-        </div>
+  const refreshSaveSlots = useCallback(() => {
+    const saves = loadAllSaves();
+    setSaveSlots(saves);
 
-        <nav className={styles.menu} aria-label="Main menu">
-          <button className={styles.primaryButton}>New Game</button>
-          <button className={styles.menuButton}>Load Game</button>
-          <button className={styles.menuButton}>Options</button>
-          <button className={styles.menuButton}>Dev Notes</button>
-        </nav>
+    const activeSaveId = getActiveSaveId();
+    const activeSave = saves.find((save) => save?.saveId === activeSaveId) ?? null;
 
-        <div className={styles.previewCard}>
-          <h2>M0 Scaffold Loaded</h2>
-          <p>
-            This build is only the architecture foundation. No save/load or gameplay
-            systems are active yet.
-          </p>
+    setCurrentSave(activeSave);
+  }, []);
 
-          <dl className={styles.previewStats}>
-            <div>
-              <dt>Preview Player</dt>
-              <dd>{player.name}</dd>
-            </div>
-            <div>
-              <dt>Date</dt>
-              <dd>
-                {formatGameDate(
-                  dayState.weekday,
-                  dayState.month,
-                  dayState.dayOfMonth,
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt>Energy</dt>
-              <dd>{formatEnergy(currencies.energy, currencies.maxEnergy)}</dd>
-            </div>
-            <div>
-              <dt>Gold</dt>
-              <dd>{formatGold(currencies.gold)}</dd>
-            </div>
-          </dl>
+  useEffect(() => {
+    refreshSaveSlots();
+    setIsHydrated(true);
+  }, [refreshSaveSlots]);
 
-          <p className={styles.phaseText}>{buildPhase}</p>
-        </div>
-      </section>
-    </main>
+  const createNewGame = useCallback((playerName: string, preferredSlot?: number) => {
+    const emptySlot = findFirstEmptySlot();
+    const slotIndex = preferredSlot ?? emptySlot ?? 0;
+    const newSave = createNewGameSave(playerName, slotIndex);
+    const savedGame = saveGameToSlot(newSave);
+
+    setActiveSaveId(savedGame.saveId);
+    setCurrentSave(savedGame);
+    setSaveSlots(loadAllSaves());
+
+    return savedGame;
+  }, []);
+
+  const loadGame = useCallback((slotIndex: number) => {
+    const save = loadSaveFromSlot(slotIndex);
+
+    if (!save) {
+      return null;
+    }
+
+    setActiveSaveId(save.saveId);
+    setCurrentSave(save);
+    setSaveSlots(loadAllSaves());
+
+    return save;
+  }, []);
+
+  const deleteGame = useCallback(
+    (slotIndex: number) => {
+      deleteSaveSlot(slotIndex);
+      refreshSaveSlots();
+    },
+    [refreshSaveSlots],
   );
+
+  const value = useMemo<GameContextValue>(
+    () => ({
+      version: MVP_VERSION,
+      buildPhase: "M1 — Main Menu + Save Shell",
+      currentSave,
+      saveSlots,
+      isHydrated,
+      createNewGame,
+      loadGame,
+      deleteGame,
+      refreshSaveSlots,
+    }),
+    [
+      currentSave,
+      saveSlots,
+      isHydrated,
+      createNewGame,
+      loadGame,
+      deleteGame,
+      refreshSaveSlots,
+    ],
+  );
+
+  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+}
+
+export function useGameContext(): GameContextValue {
+  const context = useContext(GameContext);
+
+  if (!context) {
+    throw new Error("useGameContext must be used inside GameProvider.");
+  }
+
+  return context;
 }
