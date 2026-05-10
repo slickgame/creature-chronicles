@@ -1,4 +1,5 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
+import { createDefaultBreedingState } from "@/data/breeding";
 import {
   createStarterCreatures,
   createStarterHabitats,
@@ -121,12 +122,15 @@ function migrateSaveForM3(save: GameSave): GameSave {
     habitatIds: habitats.map((habitat) => habitat.habitatId),
     creatures: migratedCreatures,
     habitats,
+    breeding: save.breeding ?? createDefaultBreedingState(),
     flags: {
       ...save.flags,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
+      m4BreedingStateCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
+      breedingUnlocked: true,
     },
   };
 }
@@ -170,14 +174,16 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     habitatIds: habitats.map((habitat) => habitat.habitatId),
     creatures,
     habitats,
+    breeding: createDefaultBreedingState(),
     flags: {
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
+      m4BreedingStateCreated: true,
       ranchUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
-      breedingUnlocked: false,
+      breedingUnlocked: true,
       marketUnlocked: false,
       guildUnlocked: false,
     },
