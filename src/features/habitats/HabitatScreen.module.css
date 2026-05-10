@@ -1,7 +1,7 @@
 .screen,
 .emptyScreen {
   min-height: 100vh;
-  padding: 20px;
+  padding: 18px;
   background:
     radial-gradient(circle at top left, rgba(242, 184, 75, 0.18), transparent 34%),
     linear-gradient(145deg, #241510 0%, #111413 70%);
@@ -32,8 +32,8 @@
 .emptyPanel button,
 .headerActions button,
 .actionButtons button {
-  min-height: 38px;
-  padding: 8px 14px;
+  min-height: 34px;
+  padding: 7px 12px;
   border: 2px solid var(--border-dark);
   border-radius: var(--radius-sm);
   background: linear-gradient(#fff4c9, #dca755);
@@ -52,30 +52,30 @@
 
 .frame {
   width: min(100%, 1360px);
-  height: min(92vh, 860px);
-  min-height: 720px;
+  height: min(94vh, 850px);
+  min-height: 700px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 16px;
-  padding: 22px;
+  gap: 12px;
+  padding: 18px;
   overflow: hidden;
 }
 
 .header {
   display: grid;
   grid-template-columns: minmax(320px, 1fr) auto;
-  gap: 18px;
+  gap: 16px;
   align-items: start;
-  padding: 16px 20px;
+  padding: 12px 18px;
   border: 2px solid rgba(245, 201, 128, 0.5);
   border-radius: var(--radius-lg);
   background: rgba(10, 6, 5, 0.72);
 }
 
 .kicker {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   color: var(--color-gold);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -86,11 +86,18 @@
 .profileInfo h2 {
   margin: 0;
   color: #fff7dd;
-  font-size: clamp(2rem, 4vw, 3.8rem);
   line-height: 0.95;
   text-shadow:
     0 2px 0 rgba(0, 0, 0, 0.9),
     0 4px 10px rgba(0, 0, 0, 0.72);
+}
+
+.header h1 {
+  font-size: clamp(2rem, 3.6vw, 3.5rem);
+}
+
+.profileInfo h2 {
+  font-size: clamp(2rem, 4.2vw, 4rem);
 }
 
 .header p,
@@ -101,18 +108,18 @@
 }
 
 .header p {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
 }
 
 .headerActions {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   justify-items: end;
 }
 
 .capacityCard {
-  min-width: 132px;
-  padding: 10px 12px;
+  min-width: 126px;
+  padding: 8px 10px;
   border: 2px solid rgba(245, 201, 128, 0.48);
   border-radius: var(--radius-md);
   background: rgba(10, 6, 5, 0.66);
@@ -123,7 +130,7 @@
 .resourceGrid span {
   display: block;
   color: #e7c991;
-  font-size: 0.66rem;
+  font-size: 0.61rem;
   font-weight: 900;
   text-transform: uppercase;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
@@ -133,21 +140,21 @@
 .statGrid strong,
 .resourceGrid strong {
   color: #fff7dd;
-  font-size: 1rem;
+  font-size: 0.94rem;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
 }
 
 .contentGrid {
   min-height: 0;
   display: grid;
-  grid-template-columns: 330px minmax(0, 1fr);
-  gap: 16px;
+  grid-template-columns: 310px minmax(0, 1fr);
+  gap: 12px;
 }
 
 .creatureList,
 .profilePanel {
   min-height: 0;
-  padding: 16px;
+  padding: 14px;
   border: 2px solid rgba(245, 201, 128, 0.46);
   border-radius: var(--radius-lg);
   background: rgba(10, 6, 5, 0.7);
@@ -155,7 +162,7 @@
 }
 
 .creatureList h2 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--color-gold);
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
 }
@@ -163,19 +170,19 @@
 .cards {
   display: grid;
   gap: 10px;
-  margin-top: 12px;
-  max-height: calc(100% - 76px);
+  margin-top: 10px;
+  max-height: calc(100% - 70px);
   overflow: auto;
   padding-right: 4px;
 }
 
 .creatureCard {
   display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 12px;
+  grid-template-columns: 66px 1fr;
+  gap: 10px;
   align-items: center;
-  min-height: 92px;
-  padding: 10px;
+  min-height: 84px;
+  padding: 8px;
   border: 2px solid rgba(245, 201, 128, 0.42);
   border-radius: var(--radius-md);
   background: rgba(255, 247, 221, 0.08);
@@ -184,8 +191,8 @@
 }
 
 .creatureCard img {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   background: rgba(255, 247, 221, 0.08);
@@ -203,10 +210,14 @@
   font-size: 1rem;
 }
 
+.creatureCard span {
+  font-size: 0.84rem;
+}
+
 .creatureCard em {
-  margin-top: 4px;
+  margin-top: 3px;
   color: #7fdbff;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-style: normal;
   font-weight: 900;
 }
@@ -220,14 +231,14 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(210px, 285px) minmax(0, 1fr);
+  gap: 14px;
 }
 
 .profileArtWrap {
   min-height: 0;
   display: grid;
-  place-items: end center;
+  place-items: center;
   border: 2px solid rgba(245, 201, 128, 0.34);
   border-radius: var(--radius-lg);
   background:
@@ -238,39 +249,45 @@
 
 .profileArt {
   max-width: 96%;
-  max-height: 96%;
+  max-height: 92%;
   object-fit: contain;
+  object-position: center center;
   filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.42));
 }
 
 .profileInfo {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
-  padding-right: 6px;
+  overflow: hidden;
+  padding-right: 0;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto auto;
+  align-content: start;
 }
 
 .variantLine {
-  margin: 6px 0 8px;
+  margin: 5px 0 6px;
   color: #7fdbff !important;
   font-weight: 900;
 }
 
 .profileInfo > p:not(.kicker):not(.variantLine) {
-  margin: 8px 0 10px;
+  margin: 6px 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.28;
 }
 
 .statGrid,
 .resourceGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(92px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
+  grid-template-columns: repeat(3, minmax(86px, 1fr));
+  gap: 7px;
+  margin-top: 8px;
 }
 
 .statGrid div,
 .resourceGrid div {
-  padding: 9px 10px;
+  padding: 7px 9px;
   border: 1px solid rgba(245, 201, 128, 0.32);
   border-radius: var(--radius-sm);
   background: rgba(0, 0, 0, 0.26);
@@ -278,23 +295,26 @@
 
 .abilityPanel,
 .actionPanel {
-  margin-top: 12px;
-  padding: 12px;
+  margin-top: 10px;
+  padding: 10px;
   border: 2px solid rgba(245, 201, 128, 0.34);
   border-radius: var(--radius-md);
   background: rgba(0, 0, 0, 0.24);
 }
 
 .abilityPanel h3 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--color-gold);
+  font-size: 1rem;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
 }
 
 .abilityPanel article {
   display: grid;
-  gap: 4px;
-  padding: 8px 0;
+  grid-template-columns: minmax(130px, 0.85fr) minmax(0, 1.15fr);
+  gap: 8px;
+  align-items: start;
+  padding: 7px 0;
   border-top: 1px solid rgba(245, 201, 128, 0.22);
 }
 
@@ -310,30 +330,42 @@
 
 .abilityPanel strong {
   color: #fff7dd;
+  font-size: 0.92rem;
 }
 
 .abilityPanel span {
   color: #7fdbff;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 900;
   text-transform: capitalize;
 }
 
 .abilityPanel p {
   margin: 0;
+  color: #f2dfbd;
+  font-size: 0.84rem;
+  line-height: 1.24;
+}
+
+.actionPanel {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: end;
 }
 
 .actionPanel label {
   display: grid;
-  gap: 6px;
+  gap: 5px;
   color: var(--color-gold);
+  font-size: 0.86rem;
   font-weight: 900;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
 }
 
 .actionPanel input {
-  min-height: 38px;
-  padding: 8px 10px;
+  min-height: 34px;
+  padding: 7px 9px;
   border: 2px solid rgba(245, 201, 128, 0.42);
   border-radius: var(--radius-sm);
   background: rgba(255, 247, 221, 0.94);
@@ -344,8 +376,8 @@
 .actionButtons {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 7px;
+  justify-content: flex-end;
 }
 
 .actionButtons button:disabled {
@@ -368,7 +400,8 @@
 
   .header,
   .contentGrid,
-  .profileGrid {
+  .profileGrid,
+  .actionPanel {
     grid-template-columns: 1fr;
   }
 
@@ -380,9 +413,21 @@
     min-height: 360px;
   }
 
+  .profileInfo {
+    overflow: visible;
+  }
+
   .statGrid,
   .resourceGrid {
     grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+
+  .abilityPanel article {
+    grid-template-columns: 1fr;
+  }
+
+  .actionButtons {
+    justify-content: flex-start;
   }
 }
 
