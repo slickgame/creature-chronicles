@@ -1,5 +1,6 @@
 "use client";
 
+import { BreedingScreen } from "@/features/breeding/BreedingScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
@@ -14,6 +15,10 @@ export function GameRoot() {
 
   if (appScreen === "habitat") {
     return <HabitatScreen />;
+  }
+
+  if (appScreen === "breeding") {
+    return <BreedingScreen />;
   }
 
   return <MainMenuScreen />;
