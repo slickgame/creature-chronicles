@@ -46,7 +46,7 @@ const BUILDINGS: Building[] = [
     id: "feline",
     title: "Feline Habitat",
     milestone: "M3",
-    description: "Home for Feline, Sphinx, and Saberfang creatures.",
+    description: "Home for Feline, Sphinx, and Tiger creatures.",
     actionLabel: "Open Habitat",
     imageSrc: "/images/buildings/ranch/feline_habitat.png",
     x: 19,
@@ -68,8 +68,8 @@ const BUILDINGS: Building[] = [
     id: "breeding",
     title: "Breeding Pen",
     milestone: "M4",
-    description: "Future location for pair selection, previews, and breeding scenes.",
-    actionLabel: "Coming in M4",
+    description: "Pair selection, breeding previews, streaks, costs, and result placeholders.",
+    actionLabel: "Open Breeding",
     imageSrc: "/images/buildings/ranch/breeding_pen.png",
     x: 49,
     y: 76,
@@ -119,7 +119,7 @@ function getBuildingStyle(building: Building): CSSProperties {
 }
 
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToHabitat, goToMainMenu, version } = useGameContext();
+  const { advanceDay, currentSave, goToBreeding, goToHabitat, goToMainMenu, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
@@ -172,6 +172,11 @@ export function RanchHubScreen() {
 
     if (building.id === "canine") {
       goToHabitat("canine");
+      return;
+    }
+
+    if (building.id === "breeding") {
+      goToBreeding();
       return;
     }
 
@@ -246,7 +251,7 @@ export function RanchHubScreen() {
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
           <p>
-            Select buildings directly on the ranch map. Feline and Canine habitats are active for M3.
+            Select buildings directly on the ranch map. Habitats and the Breeding Pen are active.
           </p>
           <p className={styles.message}>{message}</p>
         </section>
@@ -259,7 +264,7 @@ export function RanchHubScreen() {
               style={getBuildingStyle(building)}
               className={`${styles.mapBuilding} ${
                 selectedBuildingId === building.id ? styles.selectedBuilding : ""
-              } ${building.id === "house" || building.id === "feline" || building.id === "canine" ? styles.availableBuilding : styles.lockedBuilding}`}
+              } ${building.id === "house" || building.id === "feline" || building.id === "canine" || building.id === "breeding" ? styles.availableBuilding : styles.lockedBuilding}`}
               onClick={() => handleBuildingClick(building)}
               aria-label={`${building.title}. ${building.actionLabel}. ${building.description}`}
             >
@@ -295,6 +300,7 @@ export function RanchHubScreen() {
                 <ul>
                   <li>Energy will be restored to full.</li>
                   <li>Creature energy will be restored to full.</li>
+                  <li>Hearts restore to full for the next day.</li>
                   <li>Future eggs, pregnancies, market, and contracts will update here.</li>
                 </ul>
                 <div className={styles.modalActions}>
