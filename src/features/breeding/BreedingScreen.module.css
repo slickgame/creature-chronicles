@@ -1,0 +1,380 @@
+.screen,
+.emptyScreen {
+  min-height: 100vh;
+  padding: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(242, 184, 75, 0.18), transparent 34%),
+    linear-gradient(145deg, #241510 0%, #111413 70%);
+}
+
+.screen,
+.emptyScreen {
+  display: grid;
+  place-items: center;
+}
+
+.emptyPanel,
+.frame {
+  border: 4px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(rgba(70, 34, 24, 0.94), rgba(18, 10, 8, 0.98)),
+    radial-gradient(circle at top left, rgba(255, 216, 121, 0.16), transparent 42%);
+  color: #fff7dd;
+  box-shadow: var(--shadow-panel);
+}
+
+.emptyPanel {
+  width: min(100%, 520px);
+  padding: 32px;
+}
+
+.emptyPanel button,
+.headerActions button,
+.primaryAction {
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(#fff4c9, #dca755);
+  color: var(--color-text-dark);
+  font-weight: 900;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.34);
+}
+
+.emptyPanel button:hover,
+.headerActions button:hover,
+.primaryAction:hover:not(:disabled),
+.participantCard:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.frame {
+  width: min(100%, 1400px);
+  height: min(94vh, 860px);
+  min-height: 720px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  padding: 18px;
+  overflow: hidden;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 12px 18px;
+  border: 2px solid rgba(245, 201, 128, 0.5);
+  border-radius: var(--radius-lg);
+  background: rgba(10, 6, 5, 0.72);
+}
+
+.kicker {
+  margin: 0 0 4px;
+  color: var(--color-gold);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
+}
+
+.header h1,
+.previewPanel h2,
+.resultPanel h3,
+.participantColumn h2 {
+  margin: 0;
+  color: #fff7dd;
+  line-height: 0.95;
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.9),
+    0 4px 10px rgba(0, 0, 0, 0.72);
+}
+
+.header h1 {
+  font-size: clamp(2rem, 3.6vw, 3.5rem);
+}
+
+.previewPanel h2,
+.participantColumn h2 {
+  font-size: 1.4rem;
+}
+
+.header p,
+.helpText,
+.resultPanel p,
+.miniCard p {
+  color: #f2dfbd;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
+}
+
+.header p {
+  margin: 8px 0 0;
+}
+
+.headerActions {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+.resourceCard {
+  min-width: 126px;
+  padding: 8px 10px;
+  border: 2px solid rgba(245, 201, 128, 0.48);
+  border-radius: var(--radius-md);
+  background: rgba(10, 6, 5, 0.66);
+}
+
+.resourceCard span,
+.formulaGrid span,
+.miniCard span,
+.resultPanel dt {
+  display: block;
+  color: #e7c991;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
+}
+
+.resourceCard strong,
+.formulaGrid strong,
+.miniCard strong,
+.resultPanel dd {
+  color: #fff7dd;
+  font-size: 1rem;
+  font-weight: 900;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
+}
+
+.contentGrid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 300px;
+  gap: 12px;
+}
+
+.participantColumn,
+.previewPanel {
+  min-height: 0;
+  padding: 14px;
+  border: 2px solid rgba(245, 201, 128, 0.46);
+  border-radius: var(--radius-lg);
+  background: rgba(10, 6, 5, 0.7);
+  overflow: hidden;
+}
+
+.participantList {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  max-height: calc(100% - 46px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.participantCard {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  align-items: center;
+  min-height: 82px;
+  padding: 8px;
+  border: 2px solid rgba(245, 201, 128, 0.42);
+  border-radius: var(--radius-md);
+  background: rgba(255, 247, 221, 0.08);
+  color: #f2dfbd;
+  text-align: left;
+}
+
+.participantCard:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.8) brightness(0.72);
+}
+
+.participantCard img,
+.miniCard img {
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 247, 221, 0.08);
+}
+
+.participantCard img {
+  width: 62px;
+  height: 62px;
+}
+
+.participantCard strong,
+.participantCard span,
+.participantCard em {
+  display: block;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
+}
+
+.participantCard strong {
+  color: #fff7dd;
+  font-size: 0.98rem;
+}
+
+.participantCard span {
+  color: #7fdbff;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.participantCard em {
+  margin-top: 3px;
+  color: #f2dfbd;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.selectedCard {
+  border-color: rgba(86, 199, 255, 0.95);
+  box-shadow: 0 0 18px rgba(86, 199, 255, 0.18);
+}
+
+.previewPanel {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.helpText {
+  margin: 0;
+}
+
+.pairCards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.miniCard {
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.24);
+  text-align: center;
+}
+
+.miniCard img {
+  width: 58px;
+  height: 58px;
+}
+
+.miniCard em,
+.formulaGrid em {
+  color: #7fdbff;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.formulaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.formulaGrid div {
+  min-height: 76px;
+  padding: 8px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.formulaGrid em {
+  display: block;
+  margin-top: 4px;
+  line-height: 1.18;
+}
+
+.primaryAction {
+  width: 100%;
+  background: linear-gradient(#bfe8ff, #56c7ff);
+  color: #071923;
+}
+
+.primaryAction:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.75) brightness(0.78);
+}
+
+.resultPanel {
+  min-height: 0;
+  padding: 12px;
+  border: 2px solid rgba(86, 199, 255, 0.6);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.28);
+  overflow: auto;
+}
+
+.resultPanel h3 {
+  margin-top: 4px;
+  font-size: 1.4rem;
+}
+
+.resultPanel dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.resultPanel div {
+  padding: 8px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.resultPanel dd {
+  margin: 0;
+}
+
+@media (max-width: 1100px) {
+  .frame {
+    height: auto;
+    overflow: visible;
+  }
+
+  .header,
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerActions {
+    justify-items: start;
+  }
+
+  .participantList {
+    max-height: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .screen,
+  .emptyScreen {
+    padding: 12px;
+  }
+
+  .frame {
+    padding: 14px;
+  }
+
+  .pairCards,
+  .formulaGrid,
+  .resultPanel dl {
+    grid-template-columns: 1fr;
+  }
+}
