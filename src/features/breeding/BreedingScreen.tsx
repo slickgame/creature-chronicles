@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
-  CREATURE_PLACEHOLDER_IMAGE,
   getBreedingParticipants,
   getBreedingPreview,
   PLAYER_PARTICIPANT_ID,
 } from "@/data/breeding";
+import { CREATURE_PLACEHOLDER_IMAGE } from "@/data/creatures";
 import { formatEnergy } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type { BreedingAttemptRecord, BreedingParticipant } from "@/types/breeding";
