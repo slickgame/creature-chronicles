@@ -79,8 +79,8 @@ const BUILDINGS: Building[] = [
     id: "nursery",
     title: "Egg Nursery",
     milestone: "M5",
-    description: "Future location for pregnancy, egg timers, and hatch results.",
-    actionLabel: "Coming in M5",
+    description: "Track pregnancies, incubating eggs, ready eggs, and hatch results.",
+    actionLabel: "Open Nursery",
     imageSrc: "/images/buildings/ranch/egg_nursery.png",
     x: 32,
     y: 78,
@@ -118,8 +118,12 @@ function getBuildingStyle(building: Building): CSSProperties {
   };
 }
 
+function isAvailableBuilding(id: BuildingId): boolean {
+  return id === "house" || id === "feline" || id === "canine" || id === "breeding" || id === "nursery";
+}
+
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToBreeding, goToHabitat, goToMainMenu, version } = useGameContext();
+  const { advanceDay, currentSave, goToBreeding, goToHabitat, goToMainMenu, goToNursery, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
@@ -177,6 +181,11 @@ export function RanchHubScreen() {
 
     if (building.id === "breeding") {
       goToBreeding();
+      return;
+    }
+
+    if (building.id === "nursery") {
+      goToNursery();
       return;
     }
 
@@ -251,7 +260,7 @@ export function RanchHubScreen() {
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
           <p>
-            Select buildings directly on the ranch map. Habitats and the Breeding Pen are active.
+            Select buildings directly on the ranch map. Habitats, Breeding Pen, and Egg Nursery are active.
           </p>
           <p className={styles.message}>{message}</p>
         </section>
@@ -264,7 +273,7 @@ export function RanchHubScreen() {
               style={getBuildingStyle(building)}
               className={`${styles.mapBuilding} ${
                 selectedBuildingId === building.id ? styles.selectedBuilding : ""
-              } ${building.id === "house" || building.id === "feline" || building.id === "canine" || building.id === "breeding" ? styles.availableBuilding : styles.lockedBuilding}`}
+              } ${isAvailableBuilding(building.id) ? styles.availableBuilding : styles.lockedBuilding}`}
               onClick={() => handleBuildingClick(building)}
               aria-label={`${building.title}. ${building.actionLabel}. ${building.description}`}
             >
@@ -285,50 +294,29 @@ export function RanchHubScreen() {
         {modalMode !== "none" ? (
           <div className={styles.modalBackdrop} role="presentation">
             {modalMode === "sleep-confirm" ? (
-              <section
-                className={styles.modalPanel}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="sleep-title"
-              >
+              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="sleep-title">
                 <img className={styles.modalIcon} src={HUD_ICONS.sleep} alt="" />
                 <h2 id="sleep-title">Sleep Until Tomorrow?</h2>
-                <p>
-                  Sleeping advances the day. Time does not pass from normal ranch actions;
-                  only sleeping changes the date.
-                </p>
+                <p>Sleeping advances the day. Time does not pass from normal ranch actions; only sleeping changes the date.</p>
                 <ul>
                   <li>Energy will be restored to full.</li>
                   <li>Creature energy will be restored to full.</li>
                   <li>Hearts restore to full for the next day.</li>
-                  <li>Future eggs, pregnancies, market, and contracts will update here.</li>
+                  <li>Pregnancy and egg timers will advance.</li>
                 </ul>
                 <div className={styles.modalActions}>
-                  <button type="button" onClick={() => setModalMode("none")}>
-                    Cancel
-                  </button>
-                  <button type="button" className={styles.primaryAction} onClick={handleSleep}>
-                    Sleep
-                  </button>
+                  <button type="button" onClick={() => setModalMode("none")}>Cancel</button>
+                  <button type="button" className={styles.primaryAction} onClick={handleSleep}>Sleep</button>
                 </div>
               </section>
             ) : null}
 
             {modalMode === "day-summary" ? (
-              <section
-                className={styles.modalPanel}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="summary-title"
-              >
+              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="summary-title">
                 <h2 id="summary-title">New Day Summary</h2>
-                <p>
-                  {daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}
-                </p>
+                <p>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p>
                 <ul>
-                  {daySummary?.summaryItems.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
+                  {daySummary?.summaryItems.map((item) => <li key={item}>{item}</li>)}
                 </ul>
                 <div className={styles.modalActions}>
                   <button
@@ -346,45 +334,28 @@ export function RanchHubScreen() {
             ) : null}
 
             {modalMode === "coming-soon" ? (
-              <section
-                className={styles.modalPanel}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="coming-soon-title"
-              >
+              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="coming-soon-title">
                 <h2 id="coming-soon-title">{selectedBuilding.title}</h2>
                 <p>{selectedBuilding.description}</p>
                 <p className={styles.comingSoonText}>{selectedBuilding.actionLabel}</p>
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>
-                    Close
-                  </button>
+                  <button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button>
                 </div>
               </section>
             ) : null}
 
             {modalMode === "requests" ? (
-              <section
-                className={styles.modalPanel}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="requests-title"
-              >
+              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="requests-title">
                 <img className={styles.modalIcon} src={HUD_ICONS.requests} alt="" />
                 <h2 id="requests-title">Requests</h2>
-                <p>
-                  The request board is a placeholder for M7 guild contracts. It will eventually
-                  show client requests, deadlines, rewards, and donation options.
-                </p>
+                <p>The request board is a placeholder for M7 guild contracts. It will eventually show client requests, deadlines, rewards, and donation options.</p>
                 <ul>
                   <li>Bronze, silver, and gold request slots are planned.</li>
                   <li>Contract rewards will use Gold and Guild Points.</li>
                   <li>Creature donation value will connect here later.</li>
                 </ul>
                 <div className={styles.modalActions}>
-                  <button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>
-                    Close
-                  </button>
+                  <button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button>
                 </div>
               </section>
             ) : null}
