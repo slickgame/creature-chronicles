@@ -91,7 +91,7 @@ function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): C
   });
 }
 
-function migrateSaveForM3(save: GameSave): GameSave {
+function migrateSaveForCurrentBuild(save: GameSave): GameSave {
   const starterCreatures = createStarterCreatures(save.saveId);
   const starterHabitats = createStarterHabitats();
   const sourceCreatures = save.creatures ?? starterCreatures;
@@ -122,6 +122,7 @@ function migrateSaveForM3(save: GameSave): GameSave {
 
     return habitat;
   });
+  const eggs = save.eggs ?? [];
 
   return {
     ...save,
@@ -132,19 +133,24 @@ function migrateSaveForM3(save: GameSave): GameSave {
       maxHearts: save.player.maxHearts ?? 4,
     },
     creatureIds,
+    eggIds: eggs.map((egg) => egg.eggId),
     habitatIds: habitats.map((habitat) => habitat.habitatId),
     creatures: migratedCreatures,
     habitats,
     breeding: save.breeding ?? createDefaultBreedingState(),
+    pregnancies: save.pregnancies ?? [],
+    eggs,
     flags: {
       ...save.flags,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
       m4BreedingStateCreated: true,
       m4ParticipantHeartsMigrated: true,
+      m5NurseryStateCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
+      nurseryUnlocked: true,
     },
   };
 }
@@ -191,16 +197,20 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     creatures,
     habitats,
     breeding: createDefaultBreedingState(),
+    pregnancies: [],
+    eggs: [],
     flags: {
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
       m4BreedingStateCreated: true,
       m4ParticipantHeartsMigrated: true,
+      m5NurseryStateCreated: true,
       ranchUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
+      nurseryUnlocked: true,
       marketUnlocked: false,
       guildUnlocked: false,
     },
@@ -236,7 +246,7 @@ export function loadSaveFromSlot(slotIndex: number): GameSave | null {
 
   try {
     const parsedSave = JSON.parse(raw) as GameSave;
-    const migratedSave = migrateSaveForM3(parsedSave);
+    const migratedSave = migrateSaveForCurrentBuild(parsedSave);
 
     if (JSON.stringify(migratedSave) !== JSON.stringify(parsedSave)) {
       window.localStorage.setItem(getSlotKey(slotIndex), JSON.stringify(migratedSave));
