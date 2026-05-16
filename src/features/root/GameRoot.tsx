@@ -3,6 +3,7 @@
 import { BreedingScreen } from "@/features/breeding/BreedingScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
+import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
 import { useGameContext } from "@/state/GameProvider";
 
@@ -19,6 +20,10 @@ export function GameRoot() {
 
   if (appScreen === "breeding") {
     return <BreedingScreen />;
+  }
+
+  if (appScreen === "nursery") {
+    return <NurseryScreen />;
   }
 
   return <MainMenuScreen />;
