@@ -33,11 +33,19 @@ export function createDefaultSettings(): SettingsState {
   };
 }
 
+function ensureCreatureHearts(creature: CreatureRecord): CreatureRecord {
+  return {
+    ...creature,
+    hearts: creature.hearts ?? 4,
+    maxHearts: creature.maxHearts ?? 4,
+  };
+}
+
 function createCreatureFromStarterTemplate(ownerSaveId: SaveId, starter: CreatureRecord): CreatureRecord {
   const variant = getVariantDefinition(starter.variantId);
   const species = getSpeciesDefinition(variant.speciesId);
 
-  return {
+  return ensureCreatureHearts({
     ...starter,
     ownerSaveId,
     speciesId: species.speciesId,
@@ -51,7 +59,7 @@ function createCreatureFromStarterTemplate(ownerSaveId: SaveId, starter: Creatur
       FER: Math.max(1, species.baseStats.FER + (variant.statAdjustments.FER ?? 0)),
     },
     abilities: [species.exclusiveAbilityPool[0], variant.exclusiveAbilityPool[0]].filter(Boolean),
-  };
+  });
 }
 
 function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): CreatureRecord {
@@ -60,7 +68,7 @@ function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): C
       (item) => item.creatureId === ("creature_starter_feline" as CreatureId),
     );
 
-    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : creature;
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureHearts(creature);
   }
 
   if (creature.creatureId === ("creature_starter_hellhound" as CreatureId)) {
@@ -68,19 +76,19 @@ function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): C
       (item) => item.creatureId === ("creature_starter_canine" as CreatureId),
     );
 
-    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : creature;
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureHearts(creature);
   }
 
   const normalizedVariantId = normalizeVariantId(creature.variantId as VariantId);
   const variant = getVariantDefinition(normalizedVariantId);
   const species = getSpeciesDefinition(variant.speciesId);
 
-  return {
+  return ensureCreatureHearts({
     ...creature,
     ownerSaveId,
     speciesId: species.speciesId,
     variantId: normalizedVariantId,
-  };
+  });
 }
 
 function migrateSaveForM3(save: GameSave): GameSave {
@@ -118,6 +126,11 @@ function migrateSaveForM3(save: GameSave): GameSave {
   return {
     ...save,
     version: MVP_VERSION,
+    player: {
+      ...save.player,
+      hearts: save.player.hearts ?? 4,
+      maxHearts: save.player.maxHearts ?? 4,
+    },
     creatureIds,
     habitatIds: habitats.map((habitat) => habitat.habitatId),
     creatures: migratedCreatures,
@@ -128,6 +141,7 @@ function migrateSaveForM3(save: GameSave): GameSave {
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
       m4BreedingStateCreated: true,
+      m4ParticipantHeartsMigrated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -154,6 +168,8 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       ranchName: `${cleanName}'s Ranch`,
       breederRank: 1,
       ranchRank: 1,
+      hearts: 4,
+      maxHearts: 4,
     },
     currencies: {
       gold: STARTING_PLAYER_STATE.gold,
@@ -180,6 +196,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
       m4BreedingStateCreated: true,
+      m4ParticipantHeartsMigrated: true,
       ranchUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
