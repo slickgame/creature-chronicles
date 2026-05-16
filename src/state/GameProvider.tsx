@@ -271,8 +271,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const summaryItems = [
       `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
       `Energy restored to ${currentSave.currencies.maxEnergy}.`,
-      "Creature energy restored and daily care hooks are ready.",
-      "Breeding reset hooks are ready for M4.",
+      "Player Hearts restored to full.",
+      "Creature energy and Hearts restored to full.",
+      "Egg and pregnancy timers are ready for M5.",
     ];
 
     if (nextDayState.weekday === "Mon") {
@@ -283,6 +284,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       ...currentSave,
       updatedAt: new Date().toISOString(),
       dayState: nextDayState,
+      player: {
+        ...currentSave.player,
+        hearts: currentSave.player.maxHearts ?? 4,
+      },
       currencies: {
         ...currentSave.currencies,
         energy: currentSave.currencies.maxEnergy,
@@ -290,13 +295,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       creatures: (currentSave.creatures ?? []).map((creature) => ({
         ...creature,
         energy: creature.maxEnergy,
+        hearts: creature.maxHearts ?? 4,
       })),
-      breeding: currentSave.breeding
-        ? {
-            ...currentSave.breeding,
-            hearts: currentSave.breeding.maxHearts,
-          }
-        : currentSave.breeding,
+      breeding: currentSave.breeding,
       flags: {
         ...currentSave.flags,
         lastSleptDayNumber: nextDayState.dayNumber,
