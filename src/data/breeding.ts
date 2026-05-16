@@ -1,6 +1,5 @@
 import { CREATURE_PLACEHOLDER_IMAGE, getVariantDefinition } from "@/data/creatures";
 import type { BreedingAttemptRecord, BreedingParticipant, BreedingPreview, BreedingState } from "@/types/breeding";
-import type { CreatureRecord } from "@/types/creature";
 import type { BreedingAttemptId, CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
@@ -8,8 +7,8 @@ export const PLAYER_PARTICIPANT_ID = "player";
 
 export function createDefaultBreedingState(): BreedingState {
   return {
-    hearts: 10,
-    maxHearts: 10,
+    hearts: 0,
+    maxHearts: 0,
     attempts: [],
     streaks: [],
   };
@@ -28,6 +27,8 @@ export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
     roleTags: ["giver", "receiver"],
     energy: save.currencies.energy,
     maxEnergy: save.currencies.maxEnergy,
+    hearts: save.player.hearts ?? 4,
+    maxHearts: save.player.maxHearts ?? 4,
     affection: 65,
     portraitPath: "/images/ui/icons/icon_paw_crest.png",
   };
@@ -44,8 +45,11 @@ export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
       roleTags: ["giver", "receiver"] as const,
       energy: creature.energy,
       maxEnergy: creature.maxEnergy,
+      hearts: creature.hearts ?? 4,
+      maxHearts: creature.maxHearts ?? 4,
       affection: creature.affection,
       portraitPath: variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE,
+      profilePath: variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE,
     };
   });
 
@@ -79,8 +83,8 @@ export function getBreedingPreview(save: GameSave, giverId: string | null, recei
 
   let blockedReason: string | null = null;
 
-  if (breeding.hearts < heartCost) {
-    blockedReason = "Not enough Hearts.";
+  if (giver.hearts < heartCost || receiver.hearts < heartCost) {
+    blockedReason = "Both participants need enough Hearts.";
   } else if (giver.energy < energyCost || receiver.energy < energyCost) {
     blockedReason = "Both participants need enough energy.";
   }
@@ -169,26 +173,35 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
     createdAt: new Date().toISOString(),
   };
 
+  const shouldUpdatePlayer = giverId === PLAYER_PARTICIPANT_ID || receiverId === PLAYER_PARTICIPANT_ID;
+
   return {
     save: {
       ...save,
+      player: shouldUpdatePlayer
+        ? {
+            ...save.player,
+            hearts: Math.max(0, (save.player.hearts ?? 4) - preview.heartCost),
+          }
+        : save.player,
       currencies: {
         ...save.currencies,
-        energy: giverId === PLAYER_PARTICIPANT_ID || receiverId === PLAYER_PARTICIPANT_ID ? Math.max(0, save.currencies.energy - preview.energyCost) : save.currencies.energy,
+        energy: shouldUpdatePlayer ? Math.max(0, save.currencies.energy - preview.energyCost) : save.currencies.energy,
       },
       creatures: (save.creatures ?? []).map((creature) =>
         creature.creatureId === giverId || creature.creatureId === receiverId
           ? {
               ...creature,
               energy: Math.max(0, creature.energy - preview.energyCost),
+              hearts: Math.max(0, (creature.hearts ?? 4) - preview.heartCost),
               xp: creature.xp + preview.xpGain,
               affection: Math.min(100, creature.affection + 2),
             }
           : creature,
       ),
       breeding: {
-        hearts: Math.max(0, breeding.hearts - preview.heartCost),
-        maxHearts: breeding.maxHearts,
+        hearts: 0,
+        maxHearts: 0,
         attempts: [attempt, ...breeding.attempts].slice(0, 20),
         streaks: streakUpdate.streaks,
       },
