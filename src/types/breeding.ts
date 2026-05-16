@@ -1,4 +1,5 @@
 import type { BreedingAttemptId, CreatureId } from "./ids";
+import type { CreatureAbility, CreatureStats } from "./creature";
 
 export type BreedingRole = "giver" | "receiver";
 export type BreedingParticipantKind = "player" | "creature";
@@ -16,6 +17,11 @@ export type BreedingParticipant = {
   hearts: number;
   maxHearts: number;
   affection: number;
+  level?: number;
+  xp?: number;
+  stats?: CreatureStats;
+  abilities?: CreatureAbility[];
+  description?: string;
   portraitPath: string;
   profilePath?: string;
 };
