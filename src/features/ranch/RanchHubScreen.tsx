@@ -316,7 +316,9 @@ export function RanchHubScreen() {
                 <h2 id="summary-title">New Day Summary</h2>
                 <p>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p>
                 <ul>
-                  {daySummary?.summaryItems.map((item) => <li key={item}>{item}</li>)}
+                  {daySummary?.summaryItems.map((item, index) => (
+                    <li key={`${index}-${item}`}>{item}</li>
+                  ))}
                 </ul>
                 <div className={styles.modalActions}>
                   <button
