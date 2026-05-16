@@ -10,6 +10,8 @@ export type PlayerProfile = {
   ranchName: string;
   breederRank: number;
   ranchRank: number;
+  hearts: number;
+  maxHearts: number;
 };
 
 export type Currencies = {
