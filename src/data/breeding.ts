@@ -1,4 +1,4 @@
-import { CREATURE_PLACEHOLDER_IMAGE, getVariantDefinition } from "@/data/creatures";
+import { CREATURE_PLACEHOLDER_IMAGE, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import type { BreedingAttemptRecord, BreedingParticipant, BreedingPreview, BreedingState } from "@/types/breeding";
 import type { BreedingAttemptId, CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -30,24 +30,34 @@ export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
     hearts: save.player.hearts ?? 4,
     maxHearts: save.player.maxHearts ?? 4,
     affection: 65,
+    level: save.player.breederRank,
+    xp: 0,
+    description: "The player character can participate in breeding pair selection and uses personal Hearts.",
     portraitPath: "/images/ui/icons/icon_paw_crest.png",
+    profilePath: "/images/ui/icons/icon_paw_crest.png",
   };
 
   const creatures = (save.creatures ?? []).map((creature) => {
     const variant = getVariantDefinition(creature.variantId);
+    const species = getSpeciesDefinition(variant.speciesId);
 
     return {
       participantId: creature.creatureId,
       kind: "creature" as const,
       creatureId: creature.creatureId as CreatureId,
       displayName: creature.nickname,
-      familyLabel: variant.name,
+      familyLabel: `${variant.name} ${species.name}`,
       roleTags: ["giver", "receiver"] as const,
       energy: creature.energy,
       maxEnergy: creature.maxEnergy,
       hearts: creature.hearts ?? 4,
       maxHearts: creature.maxHearts ?? 4,
       affection: creature.affection,
+      level: creature.level,
+      xp: creature.xp,
+      stats: creature.stats,
+      abilities: creature.abilities,
+      description: variant.description,
       portraitPath: variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE,
       profilePath: variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE,
     };
