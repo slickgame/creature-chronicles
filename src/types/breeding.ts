@@ -13,8 +13,11 @@ export type BreedingParticipant = {
   roleTags: BreedingRole[];
   energy: number;
   maxEnergy: number;
+  hearts: number;
+  maxHearts: number;
   affection: number;
   portraitPath: string;
+  profilePath?: string;
 };
 
 export type BreedingPairKey = string;
