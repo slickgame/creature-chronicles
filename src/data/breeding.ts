@@ -1,4 +1,5 @@
 import { CREATURE_PLACEHOLDER_IMAGE, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
+import { createPregnancyRecord } from "@/data/nursery";
 import type { BreedingAttemptRecord, BreedingParticipant, BreedingPreview, BreedingState } from "@/types/breeding";
 import type { BreedingAttemptId, CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -164,7 +165,7 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
   const giver = participants.find((item) => item.participantId === giverId);
   const receiver = participants.find((item) => item.participantId === receiverId);
   const resultText = outcome === "pregnancy"
-    ? `${receiver?.displayName ?? "Receiver"} shows promising signs. Pregnancy/egg creation will be handled in M5.`
+    ? `${receiver?.displayName ?? "Receiver"} shows promising signs. Pregnancy will create an egg after sleep.`
     : `${giver?.displayName ?? "Giver"} and ${receiver?.displayName ?? "Receiver"} bonded, but no pregnancy occurred.`;
 
   const attempt: BreedingAttemptRecord = {
@@ -184,6 +185,9 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
   };
 
   const shouldUpdatePlayer = giverId === PLAYER_PARTICIPANT_ID || receiverId === PLAYER_PARTICIPANT_ID;
+  const pregnancy = outcome === "pregnancy" && giver && receiver
+    ? createPregnancyRecord(save, giver, receiver, `${save.saveId}_${attemptId}`)
+    : null;
 
   return {
     save: {
@@ -209,6 +213,8 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
             }
           : creature,
       ),
+      pregnancies: pregnancy ? [pregnancy, ...(save.pregnancies ?? [])] : (save.pregnancies ?? []),
+      eggs: save.eggs ?? [],
       breeding: {
         hearts: 0,
         maxHearts: 0,
@@ -219,6 +225,7 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
         ...save.flags,
         breedingUnlocked: true,
         m4BreedingAttempted: true,
+        m5PregnancyCreated: pregnancy ? true : (save.flags.m5PregnancyCreated ?? false),
         lastBreedingOutcome: outcome,
       },
     },
