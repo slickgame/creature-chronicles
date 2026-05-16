@@ -31,7 +31,10 @@
 
 .emptyPanel button,
 .headerActions button,
-.primaryAction {
+.primaryAction,
+.infoButton,
+.previewInfoButton,
+.closeModalButton {
   min-height: 38px;
   padding: 8px 14px;
   border: 2px solid var(--border-dark);
@@ -45,7 +48,10 @@
 .emptyPanel button:hover,
 .headerActions button:hover,
 .primaryAction:hover:not(:disabled),
-.participantCard:hover:not(:disabled) {
+.participantCard:hover:not(.disabledCard),
+.infoButton:hover,
+.previewInfoButton:hover,
+.closeModalButton:hover {
   transform: translateY(-2px);
   filter: brightness(1.04);
 }
@@ -85,7 +91,8 @@
 .header h1,
 .previewPanel h2,
 .resultPanel h3,
-.participantColumn h2 {
+.participantColumn h2,
+.infoModal h2 {
   margin: 0;
   color: #fff7dd;
   line-height: 0.95;
@@ -103,10 +110,15 @@
   font-size: 1.4rem;
 }
 
+.infoModal h2 {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+}
+
 .header p,
 .helpText,
 .resultPanel p,
-.miniCard p {
+.miniCard p,
+.infoModal p {
   color: #f2dfbd;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
 }
@@ -119,36 +131,6 @@
   display: grid;
   gap: 8px;
   justify-items: end;
-}
-
-.resourceCard {
-  min-width: 126px;
-  padding: 8px 10px;
-  border: 2px solid rgba(245, 201, 128, 0.48);
-  border-radius: var(--radius-md);
-  background: rgba(10, 6, 5, 0.66);
-}
-
-.resourceCard span,
-.formulaGrid span,
-.miniCard span,
-.resultPanel dt {
-  display: block;
-  color: #e7c991;
-  font-size: 0.62rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
-}
-
-.resourceCard strong,
-.formulaGrid strong,
-.miniCard strong,
-.resultPanel dd {
-  color: #fff7dd;
-  font-size: 1rem;
-  font-weight: 900;
-  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
 }
 
 .contentGrid {
@@ -178,9 +160,10 @@
 }
 
 .participantCard {
+  position: relative;
   display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 7px;
   align-items: center;
   min-height: 82px;
   padding: 8px;
@@ -191,21 +174,33 @@
   text-align: left;
 }
 
-.participantCard:disabled {
+.disabledCard {
   cursor: not-allowed;
   filter: grayscale(0.8) brightness(0.72);
 }
 
-.participantCard img,
-.miniCard img {
+.participantSelectButton {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.participantSelectButton:disabled {
+  cursor: not-allowed;
+}
+
+.participantSelectButton img {
+  width: 62px;
+  height: 62px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   background: rgba(255, 247, 221, 0.08);
-}
-
-.participantCard img {
-  width: 62px;
-  height: 62px;
 }
 
 .participantCard strong,
@@ -233,6 +228,17 @@
   font-style: normal;
 }
 
+.infoButton,
+.previewInfoButton {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 999px;
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .selectedCard {
   border-color: rgba(86, 199, 255, 0.95);
   box-shadow: 0 0 18px rgba(86, 199, 255, 0.18);
@@ -240,7 +246,7 @@
 
 .previewPanel {
   display: grid;
-  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(180px, 1fr) auto auto minmax(0, 0.8fr);
   gap: 10px;
 }
 
@@ -252,23 +258,74 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  min-height: 250px;
 }
 
 .miniCard {
-  min-height: 132px;
+  position: relative;
+  min-height: 250px;
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   place-items: center;
   gap: 5px;
   padding: 10px;
   border: 1px solid rgba(245, 201, 128, 0.32);
   border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.24);
+  background:
+    radial-gradient(circle at center, rgba(242, 184, 75, 0.14), transparent 58%),
+    rgba(0, 0, 0, 0.24);
   text-align: center;
+  overflow: hidden;
 }
 
-.miniCard img {
+.previewInfoButton {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
+
+.previewProfileArt {
+  width: 100%;
+  height: 100%;
+  max-height: 182px;
+  object-fit: contain !important;
+  object-position: center bottom;
+  border-radius: 0 !important;
+  background: transparent !important;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.48));
+}
+
+.miniCard img:not(.previewProfileArt) {
   width: 58px;
   height: 58px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 247, 221, 0.08);
+}
+
+.miniCard span,
+.formulaGrid span,
+.resultPanel dt,
+.modalResourceGrid span,
+.modalStatGrid span {
+  display: block;
+  color: #e7c991;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
+}
+
+.miniCard strong,
+.formulaGrid strong,
+.resultPanel dd,
+.modalResourceGrid strong,
+.modalStatGrid strong {
+  color: #fff7dd;
+  font-size: 1rem;
+  font-weight: 900;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
 }
 
 .miniCard em,
@@ -286,7 +343,7 @@
 }
 
 .formulaGrid div {
-  min-height: 76px;
+  min-height: 72px;
   padding: 8px;
   border: 1px solid rgba(245, 201, 128, 0.32);
   border-radius: var(--radius-sm);
@@ -342,6 +399,139 @@
   margin: 0;
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.infoModal {
+  position: relative;
+  width: min(100%, 900px);
+  max-height: min(92vh, 780px);
+  overflow: hidden;
+  padding: 24px;
+  border: 3px solid rgba(245, 201, 128, 0.86);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(rgba(70, 34, 24, 0.98), rgba(18, 10, 8, 0.98)),
+    radial-gradient(circle at top left, rgba(255, 216, 121, 0.18), transparent 44%);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.64);
+}
+
+.closeModalButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 1.2rem;
+  line-height: 1;
+  z-index: 2;
+}
+
+.infoModalGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: 18px;
+  min-height: 0;
+}
+
+.infoModalArtWrap {
+  min-height: 520px;
+  display: grid;
+  place-items: end center;
+  border: 2px solid rgba(245, 201, 128, 0.34);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at center, rgba(242, 184, 75, 0.16), transparent 55%),
+    rgba(255, 247, 221, 0.06);
+  overflow: hidden;
+}
+
+.infoModalArtWrap img {
+  max-width: 96%;
+  max-height: 96%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 18px rgba(0, 0, 0, 0.42));
+}
+
+.infoModalDetails {
+  min-width: 0;
+  overflow: auto;
+  padding-right: 8px;
+}
+
+.modalSubtitle {
+  margin: 6px 0 8px;
+  color: #7fdbff !important;
+  font-weight: 900;
+}
+
+.modalResourceGrid,
+.modalStatGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.modalResourceGrid div,
+.modalStatGrid div {
+  padding: 8px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.modalAbilityPanel {
+  margin-top: 12px;
+  padding: 12px;
+  border: 2px solid rgba(245, 201, 128, 0.34);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.modalAbilityPanel h3 {
+  margin: 0 0 8px;
+  color: var(--color-gold);
+}
+
+.modalAbilityPanel article {
+  padding: 8px 0;
+  border-top: 1px solid rgba(245, 201, 128, 0.22);
+}
+
+.modalAbilityPanel article:first-of-type {
+  border-top: 0;
+}
+
+.modalAbilityPanel strong,
+.modalAbilityPanel span {
+  display: block;
+}
+
+.modalAbilityPanel strong {
+  color: #fff7dd;
+}
+
+.modalAbilityPanel span {
+  color: #7fdbff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.modalAbilityPanel p {
+  margin: 4px 0 0;
+}
+
 @media (max-width: 1100px) {
   .frame {
     height: auto;
@@ -362,6 +552,16 @@
   }
 }
 
+@media (max-width: 760px) {
+  .infoModalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoModalArtWrap {
+    min-height: 360px;
+  }
+}
+
 @media (max-width: 680px) {
   .screen,
   .emptyScreen {
@@ -374,7 +574,9 @@
 
   .pairCards,
   .formulaGrid,
-  .resultPanel dl {
+  .resultPanel dl,
+  .modalResourceGrid,
+  .modalStatGrid {
     grid-template-columns: 1fr;
   }
 }
