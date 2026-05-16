@@ -16,6 +16,14 @@ function getParticipantImage(participant: BreedingParticipant): string {
   return participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
 }
 
+function formatHearts(participant: BreedingParticipant | null): string {
+  if (!participant) {
+    return "—";
+  }
+
+  return `${participant.hearts} / ${participant.maxHearts}`;
+}
+
 export function BreedingScreen() {
   const { attemptBreeding, currentSave, goToRanch } = useGameContext();
   const [giverId, setGiverId] = useState<string | null>(PLAYER_PARTICIPANT_ID);
@@ -101,15 +109,15 @@ export function BreedingScreen() {
             <h1>Breeding Pen</h1>
             <p>
               Pick a giver and receiver, preview costs and odds, then run a placeholder attempt.
-              Pregnancy and eggs are created in M5.
+              Each participant has separate Hearts. Pregnancy and eggs are created in M5.
             </p>
           </div>
 
           <div className={styles.headerActions}>
             <div className={styles.resourceCard}>
-              <span>Hearts</span>
+              <span>Selected Hearts</span>
               <strong>
-                {currentSave.breeding?.hearts ?? 0} / {currentSave.breeding?.maxHearts ?? 0}
+                {formatHearts(giver)} / {formatHearts(receiver)}
               </strong>
             </div>
             <button type="button" onClick={goToRanch}>
@@ -158,7 +166,7 @@ export function BreedingScreen() {
               <div>
                 <span>Heart Cost</span>
                 <strong>{preview?.heartCost ?? "—"}</strong>
-                <em>Restored by sleeping.</em>
+                <em>Paid by each participant.</em>
               </div>
               <div>
                 <span>XP Gain</span>
@@ -262,7 +270,7 @@ function ParticipantColumn({
                 <strong>{participant.displayName}</strong>
                 <span>{participant.familyLabel}</span>
                 <em>
-                  Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Affection {participant.affection}
+                  Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}
                 </em>
               </div>
             </button>
@@ -287,7 +295,9 @@ function MiniParticipantCard({ title, participant }: { title: string; participan
             }}
           />
           <strong>{participant.displayName}</strong>
-          <em>{participant.familyLabel}</em>
+          <em>
+            {participant.familyLabel} • Hearts {participant.hearts}/{participant.maxHearts}
+          </em>
         </>
       ) : (
         <p>Not selected</p>
