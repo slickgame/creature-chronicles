@@ -51,6 +51,8 @@ export type CreatureRecord = {
   abilities: CreatureAbility[];
   energy: number;
   maxEnergy: number;
+  hearts: number;
+  maxHearts: number;
   affection: number;
   generation: number;
   shiny: boolean;
