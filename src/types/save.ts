@@ -1,6 +1,6 @@
 import type { BreedingState } from "./breeding";
-import type { CreatureId, EggId, HabitatId, PlayerId, SaveId } from "./ids";
-import type { CreatureRecord, HabitatRecord } from "./creature";
+import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
+import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord } from "./creature";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -36,6 +36,60 @@ export type SettingsState = {
   devMode: boolean;
 };
 
+export type NurseryRecordStatus = "incubating" | "ready" | "hatched";
+export type PregnancyStatus = "pregnant" | "delivered";
+
+export type ParentSnapshot = {
+  participantId: string;
+  creatureId?: CreatureId;
+  displayName: string;
+  familyLabel: string;
+  kind: "player" | "creature";
+};
+
+export type InheritancePreview = {
+  projectedSpeciesId: SpeciesId;
+  projectedVariantId: VariantId;
+  projectedStats: CreatureStats;
+  projectedAbilities: CreatureAbility[];
+  statRollNotes: string[];
+  abilityRollNotes: string[];
+};
+
+export type PregnancyRecord = {
+  pregnancyId: PregnancyId;
+  createdAtDayNumber: number;
+  createdAt: string;
+  daysRemaining: number;
+  totalDays: number;
+  status: PregnancyStatus;
+  giver: ParentSnapshot;
+  receiver: ParentSnapshot;
+  inheritance: InheritancePreview;
+};
+
+export type EggRecord = {
+  eggId: EggId;
+  ownerSaveId: SaveId;
+  createdAtDayNumber: number;
+  createdAt: string;
+  daysRemaining: number;
+  totalDays: number;
+  status: NurseryRecordStatus;
+  rarity: "Common" | "Uncommon" | "Rare" | "Epic";
+  speciesId: SpeciesId;
+  variantId: VariantId;
+  habitatId: HabitatId;
+  parents: {
+    giver: ParentSnapshot;
+    receiver: ParentSnapshot;
+  };
+  projectedStats: CreatureStats;
+  projectedAbilities: CreatureAbility[];
+  statRollNotes: string[];
+  abilityRollNotes: string[];
+};
+
 export type GameSave = {
   version: string;
   saveId: SaveId;
@@ -55,6 +109,8 @@ export type GameSave = {
   creatures?: CreatureRecord[];
   habitats?: HabitatRecord[];
   breeding?: BreedingState;
+  pregnancies?: PregnancyRecord[];
+  eggs?: EggRecord[];
 
   flags: Record<string, boolean | number | string>;
 };
