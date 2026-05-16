@@ -10,6 +10,7 @@ import {
 } from "react";
 import { MVP_VERSION } from "@/data/gameConstants";
 import { performBreedingAttempt } from "@/data/breeding";
+import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
 import { formatGameDate } from "@/lib/formatters";
 import {
   createNewGameSave,
@@ -22,11 +23,11 @@ import {
   setActiveSaveId,
 } from "@/lib/save/localSave";
 import type { BreedingAttemptRecord } from "@/types/breeding";
-import type { CreatureFamily } from "@/types/creature";
-import type { CreatureId } from "@/types/ids";
+import type { CreatureFamily, CreatureRecord } from "@/types/creature";
+import type { CreatureId, EggId } from "@/types/ids";
 import type { DayState, GameSave } from "@/types/save";
 
-export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding";
+export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding" | "nursery";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -50,11 +51,14 @@ type GameContextValue = {
   goToRanch: () => void;
   goToHabitat: (family: CreatureFamily) => void;
   goToBreeding: () => void;
+  goToNursery: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
   renameCreature: (creatureId: CreatureId, nickname: string) => void;
   feedCreature: (creatureId: CreatureId) => void;
   attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
+  hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null;
+  removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -170,6 +174,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setAppScreen("breeding");
   }, []);
 
+  const goToNursery = useCallback(() => {
+    setActiveHabitatFamily(null);
+    setAppScreen("nursery");
+  }, []);
+
   const renameCreature = useCallback(
     (creatureId: CreatureId, nickname: string) => {
       if (!currentSave) {
@@ -249,6 +258,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [currentSave, saveCurrentGame],
   );
 
+  const hatchReadyEgg = useCallback(
+    (eggId: EggId, nickname?: string) => {
+      if (!currentSave) {
+        return null;
+      }
+
+      const result = hatchEgg(currentSave, eggId, nickname);
+
+      if (!result) {
+        return null;
+      }
+
+      saveCurrentGame(result.save);
+      return result.creature;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const removeNurseryEgg = useCallback(
+    (eggId: EggId, mode: "release" | "donate") => {
+      if (!currentSave) {
+        return;
+      }
+
+      saveCurrentGame(removeEgg(currentSave, eggId, mode));
+    },
+    [currentSave, saveCurrentGame],
+  );
+
   const advanceDay = useCallback((): DayAdvanceResult | null => {
     if (!currentSave) {
       return null;
@@ -268,19 +306,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       nextDayState.dayOfMonth,
     );
 
-    const summaryItems = [
-      `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
-      `Energy restored to ${currentSave.currencies.maxEnergy}.`,
-      "Player Hearts restored to full.",
-      "Creature energy and Hearts restored to full.",
-      "Egg and pregnancy timers are ready for M5.",
-    ];
-
-    if (nextDayState.weekday === "Mon") {
-      summaryItems.push("New week started. Market and guild weekly reset hooks are ready.");
-    }
-
-    const nextSave: GameSave = {
+    const restoredSave: GameSave = {
       ...currentSave,
       updatedAt: new Date().toISOString(),
       dayState: nextDayState,
@@ -298,6 +324,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         hearts: creature.maxHearts ?? 4,
       })),
       breeding: currentSave.breeding,
+      pregnancies: currentSave.pregnancies ?? [],
+      eggs: currentSave.eggs ?? [],
       flags: {
         ...currentSave.flags,
         lastSleptDayNumber: nextDayState.dayNumber,
@@ -305,7 +333,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       },
     };
 
-    saveCurrentGame(nextSave);
+    const nurseryResult = advanceNurseryDay(restoredSave);
+    const summaryItems = [
+      `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
+      `Energy restored to ${currentSave.currencies.maxEnergy}.`,
+      "Player Hearts restored to full.",
+      "Creature energy and Hearts restored to full.",
+      ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]),
+    ];
+
+    if (nextDayState.weekday === "Mon") {
+      summaryItems.push("New week started. Market and guild weekly reset hooks are ready.");
+    }
+
+    saveCurrentGame(nurseryResult.save);
 
     return {
       previousDateLabel,
@@ -317,7 +358,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M4 — Breeding Core",
+      buildPhase: "M5 — Eggs / Pregnancy / Nursery",
       appScreen,
       activeHabitatFamily,
       currentSave,
@@ -331,11 +372,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToRanch,
       goToHabitat,
       goToBreeding,
+      goToNursery,
       saveCurrentGame,
       advanceDay,
       renameCreature,
       feedCreature,
       attemptBreeding,
+      hatchReadyEgg,
+      removeNurseryEgg,
     }),
     [
       appScreen,
@@ -351,11 +395,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToRanch,
       goToHabitat,
       goToBreeding,
+      goToNursery,
       saveCurrentGame,
       advanceDay,
       renameCreature,
       feedCreature,
       attemptBreeding,
+      hatchReadyEgg,
+      removeNurseryEgg,
     ],
   );
 
