@@ -12,16 +12,21 @@ import { useGameContext } from "@/state/GameProvider";
 import type { BreedingAttemptRecord, BreedingParticipant } from "@/types/breeding";
 import styles from "./BreedingScreen.module.css";
 
-function getParticipantImage(participant: BreedingParticipant): string {
+const STAT_LABELS = {
+  STR: "Strength",
+  DEX: "Dexterity",
+  STA: "Stamina",
+  CHA: "Charm",
+  WIL: "Willpower",
+  FER: "Fertility",
+} as const;
+
+function getParticipantPortrait(participant: BreedingParticipant): string {
   return participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
 }
 
-function formatHearts(participant: BreedingParticipant | null): string {
-  if (!participant) {
-    return "—";
-  }
-
-  return `${participant.hearts} / ${participant.maxHearts}`;
+function getParticipantProfile(participant: BreedingParticipant): string {
+  return participant.profilePath || participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
 }
 
 export function BreedingScreen() {
@@ -30,6 +35,7 @@ export function BreedingScreen() {
   const [receiverId, setReceiverId] = useState<string | null>(null);
   const [result, setResult] = useState<BreedingAttemptRecord | null>(null);
   const [message, setMessage] = useState("Choose a giver and receiver to preview the breeding attempt.");
+  const [activeInfoParticipant, setActiveInfoParticipant] = useState<BreedingParticipant | null>(null);
 
   const participants = useMemo(() => {
     if (!currentSave) {
@@ -114,12 +120,6 @@ export function BreedingScreen() {
           </div>
 
           <div className={styles.headerActions}>
-            <div className={styles.resourceCard}>
-              <span>Selected Hearts</span>
-              <strong>
-                {formatHearts(giver)} / {formatHearts(receiver)}
-              </strong>
-            </div>
             <button type="button" onClick={goToRanch}>
               Back to Ranch
             </button>
@@ -134,6 +134,7 @@ export function BreedingScreen() {
             participants={participants}
             disabledId={receiverId}
             onSelect={selectParticipant}
+            onInfo={setActiveInfoParticipant}
           />
 
           <section className={styles.previewPanel} aria-label="Breeding pair preview">
@@ -141,8 +142,8 @@ export function BreedingScreen() {
             <p className={styles.helpText}>{message}</p>
 
             <div className={styles.pairCards}>
-              <MiniParticipantCard title="Giver" participant={giver} />
-              <MiniParticipantCard title="Receiver" participant={receiver} />
+              <MiniParticipantCard title="Giver" participant={giver} onInfo={setActiveInfoParticipant} />
+              <MiniParticipantCard title="Receiver" participant={receiver} onInfo={setActiveInfoParticipant} />
             </div>
 
             <div className={styles.formulaGrid}>
@@ -221,9 +222,17 @@ export function BreedingScreen() {
             participants={participants}
             disabledId={giverId}
             onSelect={selectParticipant}
+            onInfo={setActiveInfoParticipant}
           />
         </section>
       </section>
+
+      {activeInfoParticipant ? (
+        <ParticipantInfoModal
+          participant={activeInfoParticipant}
+          onClose={() => setActiveInfoParticipant(null)}
+        />
+      ) : null}
     </main>
   );
 }
@@ -235,6 +244,7 @@ function ParticipantColumn({
   participants,
   disabledId,
   onSelect,
+  onInfo,
 }: {
   title: string;
   role: "giver" | "receiver";
@@ -242,6 +252,7 @@ function ParticipantColumn({
   disabledId: string | null;
   participants: BreedingParticipant[];
   onSelect: (role: "giver" | "receiver", participantId: string) => void;
+  onInfo: (participant: BreedingParticipant) => void;
 }) {
   return (
     <aside className={styles.participantColumn}>
@@ -252,28 +263,40 @@ function ParticipantColumn({
           const isDisabled = disabledId === participant.participantId;
 
           return (
-            <button
+            <article
               key={`${role}-${participant.participantId}`}
-              type="button"
-              className={`${styles.participantCard} ${isSelected ? styles.selectedCard : ""}`}
-              disabled={isDisabled}
-              onClick={() => onSelect(role, participant.participantId)}
+              className={`${styles.participantCard} ${isSelected ? styles.selectedCard : ""} ${isDisabled ? styles.disabledCard : ""}`}
             >
-              <img
-                src={getParticipantImage(participant)}
-                alt=""
-                onError={(event) => {
-                  event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-                }}
-              />
-              <div>
-                <strong>{participant.displayName}</strong>
-                <span>{participant.familyLabel}</span>
-                <em>
-                  Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}
-                </em>
-              </div>
-            </button>
+              <button
+                type="button"
+                className={styles.participantSelectButton}
+                disabled={isDisabled}
+                onClick={() => onSelect(role, participant.participantId)}
+              >
+                <img
+                  src={getParticipantPortrait(participant)}
+                  alt=""
+                  onError={(event) => {
+                    event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
+                  }}
+                />
+                <div>
+                  <strong>{participant.displayName}</strong>
+                  <span>{participant.familyLabel}</span>
+                  <em>
+                    Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}
+                  </em>
+                </div>
+              </button>
+              <button
+                type="button"
+                className={styles.infoButton}
+                onClick={() => onInfo(participant)}
+                aria-label={`View ${participant.displayName} details`}
+              >
+                i
+              </button>
+            </article>
           );
         })}
       </div>
@@ -281,15 +304,32 @@ function ParticipantColumn({
   );
 }
 
-function MiniParticipantCard({ title, participant }: { title: string; participant: BreedingParticipant | null }) {
+function MiniParticipantCard({
+  title,
+  participant,
+  onInfo,
+}: {
+  title: string;
+  participant: BreedingParticipant | null;
+  onInfo: (participant: BreedingParticipant) => void;
+}) {
   return (
     <article className={styles.miniCard}>
       <span>{title}</span>
       {participant ? (
         <>
+          <button
+            type="button"
+            className={styles.previewInfoButton}
+            onClick={() => onInfo(participant)}
+            aria-label={`View ${participant.displayName} details`}
+          >
+            i
+          </button>
           <img
-            src={getParticipantImage(participant)}
+            src={getParticipantProfile(participant)}
             alt=""
+            className={styles.previewProfileArt}
             onError={(event) => {
               event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
             }}
@@ -303,5 +343,100 @@ function MiniParticipantCard({ title, participant }: { title: string; participan
         <p>Not selected</p>
       )}
     </article>
+  );
+}
+
+function ParticipantInfoModal({
+  participant,
+  onClose,
+}: {
+  participant: BreedingParticipant;
+  onClose: () => void;
+}) {
+  return (
+    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+      <section
+        className={styles.infoModal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="participant-info-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          className={styles.closeModalButton}
+          onClick={onClose}
+          aria-label="Close participant details"
+        >
+          ×
+        </button>
+
+        <div className={styles.infoModalGrid}>
+          <div className={styles.infoModalArtWrap}>
+            <img
+              src={getParticipantProfile(participant)}
+              alt=""
+              onError={(event) => {
+                event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
+              }}
+            />
+          </div>
+
+          <div className={styles.infoModalDetails}>
+            <p className={styles.kicker}>{participant.kind === "player" ? "Player" : "Creature"}</p>
+            <h2 id="participant-info-title">{participant.displayName}</h2>
+            <p className={styles.modalSubtitle}>{participant.familyLabel}</p>
+            <p>{participant.description ?? "No profile description available yet."}</p>
+
+            <div className={styles.modalResourceGrid}>
+              <div>
+                <span>Energy</span>
+                <strong>{formatEnergy(participant.energy, participant.maxEnergy)}</strong>
+              </div>
+              <div>
+                <span>Hearts</span>
+                <strong>{participant.hearts} / {participant.maxHearts}</strong>
+              </div>
+              <div>
+                <span>Affection</span>
+                <strong>{participant.affection}</strong>
+              </div>
+              <div>
+                <span>Level</span>
+                <strong>{participant.level ?? "—"}</strong>
+              </div>
+              <div>
+                <span>XP</span>
+                <strong>{participant.xp ?? "—"}</strong>
+              </div>
+            </div>
+
+            {participant.stats ? (
+              <div className={styles.modalStatGrid}>
+                {Object.entries(participant.stats).map(([statKey, value]) => (
+                  <div key={statKey}>
+                    <span>{STAT_LABELS[statKey as keyof typeof STAT_LABELS]}</span>
+                    <strong>{value}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
+            {participant.abilities?.length ? (
+              <section className={styles.modalAbilityPanel}>
+                <h3>Abilities</h3>
+                {participant.abilities.map((ability) => (
+                  <article key={ability.id}>
+                    <strong>{ability.name}</strong>
+                    <span>Grade {ability.grade} • {ability.source}</span>
+                    <p>{ability.description}</p>
+                  </article>
+                ))}
+              </section>
+            ) : null}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
