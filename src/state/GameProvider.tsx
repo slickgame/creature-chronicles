@@ -10,6 +10,11 @@ import {
 } from "react";
 import { MVP_VERSION } from "@/data/gameConstants";
 import { performBreedingAttempt } from "@/data/breeding";
+import {
+  acceptGuildContract,
+  donateCreatureToGuildContract,
+  ensureCurrentGuildState,
+} from "@/data/guild";
 import { buyMarketListing, ensureCurrentMarketState, rerollMarketListings } from "@/data/market";
 import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
 import { formatGameDate } from "@/lib/formatters";
@@ -28,7 +33,15 @@ import type { CreatureFamily, CreatureRecord } from "@/types/creature";
 import type { CreatureId, EggId } from "@/types/ids";
 import type { DayState, GameSave } from "@/types/save";
 
-export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding" | "nursery" | "town" | "market";
+export type AppScreen =
+  | "main-menu"
+  | "ranch-hub"
+  | "habitat"
+  | "breeding"
+  | "nursery"
+  | "town"
+  | "market"
+  | "guild-hall";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -55,6 +68,7 @@ type GameContextValue = {
   goToNursery: () => void;
   goToTown: () => void;
   goToMarket: () => void;
+  goToGuildHall: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
   renameCreature: (creatureId: CreatureId, nickname: string) => void;
@@ -64,6 +78,8 @@ type GameContextValue = {
   removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
   buyMarketCreature: (listingId: string) => string;
   rerollMarket: () => string;
+  acceptGuildRequest: (contractId: string) => string;
+  donateCreatureToGuild: (contractId: string, creatureId: CreatureId) => string;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -182,6 +198,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setAppScreen("market");
   }, [currentSave, saveCurrentGame]);
 
+  const goToGuildHall = useCallback(() => {
+    setActiveHabitatFamily(null);
+
+    if (currentSave) {
+      const syncedSave = ensureCurrentGuildState(currentSave);
+      if (syncedSave !== currentSave) saveCurrentGame(syncedSave);
+    }
+
+    setAppScreen("guild-hall");
+  }, [currentSave, saveCurrentGame]);
+
   const goToHabitat = useCallback((family: CreatureFamily) => {
     setActiveHabitatFamily(family);
     setAppScreen("habitat");
@@ -287,6 +314,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return result.message;
   }, [currentSave, saveCurrentGame]);
 
+  const acceptGuildRequest = useCallback(
+    (contractId: string) => {
+      if (!currentSave) return "No active save.";
+      const result = acceptGuildContract(currentSave, contractId);
+      saveCurrentGame(result.save);
+      return result.message;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const donateCreatureToGuild = useCallback(
+    (contractId: string, creatureId: CreatureId) => {
+      if (!currentSave) return "No active save.";
+      const result = donateCreatureToGuildContract(currentSave, contractId, creatureId);
+      saveCurrentGame(result.save);
+      return result.message;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
   const advanceDay = useCallback((): DayAdvanceResult | null => {
     if (!currentSave) return null;
 
@@ -305,11 +352,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       pregnancies: currentSave.pregnancies ?? [],
       eggs: currentSave.eggs ?? [],
       market: currentSave.market,
+      guild: currentSave.guild,
       flags: { ...currentSave.flags, lastSleptDayNumber: nextDayState.dayNumber, m2SleepUsed: true },
     };
 
     const nurseryResult = advanceNurseryDay(restoredSave);
     const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save);
+    const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave);
     const summaryItems = [
       `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
       `Energy restored to ${currentSave.currencies.maxEnergy}.`,
@@ -319,10 +368,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     ];
 
     if (nextDayState.weekday === "Mon") {
-      summaryItems.push("New week started. The town market has fresh listings.");
+      summaryItems.push("New week started. The town market and guild board have fresh listings.");
     }
 
-    saveCurrentGame(marketSyncedSave);
+    saveCurrentGame(guildSyncedSave);
 
     return { previousDateLabel, nextDateLabel, summaryItems };
   }, [currentSave, saveCurrentGame]);
@@ -330,7 +379,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M6 — Town + Market",
+      buildPhase: "M7 — Guild Contracts",
       appScreen,
       activeHabitatFamily,
       currentSave,
@@ -347,6 +396,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToNursery,
       goToTown,
       goToMarket,
+      goToGuildHall,
       saveCurrentGame,
       advanceDay,
       renameCreature,
@@ -356,6 +406,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       removeNurseryEgg,
       buyMarketCreature,
       rerollMarket,
+      acceptGuildRequest,
+      donateCreatureToGuild,
     }),
     [
       appScreen,
@@ -374,6 +426,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToNursery,
       goToTown,
       goToMarket,
+      goToGuildHall,
       saveCurrentGame,
       advanceDay,
       renameCreature,
@@ -383,6 +436,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       removeNurseryEgg,
       buyMarketCreature,
       rerollMarket,
+      acceptGuildRequest,
+      donateCreatureToGuild,
     ],
   );
 
