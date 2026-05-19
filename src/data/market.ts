@@ -8,7 +8,7 @@ import {
   rollCreatureAbilities,
   rollStatGrades,
 } from "@/data/creatures";
-import type { CreatureRecord, HabitatRecord } from "@/types/creature";
+import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "@/types/creature";
 import type { CreatureId, HabitatId, VariantId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 import type { MarketActionResult, MarketListing, MarketState } from "@/types/market";
@@ -18,9 +18,18 @@ const BASE_REROLL_COST = 150;
 
 const RARITY_PRICE = { Common: 700, Uncommon: 1100, Rare: 1800, Epic: 3200 } as const;
 
+export type MarketListingPreview = {
+  stats: CreatureStats;
+  statGrades: StatGrades;
+  abilities: CreatureAbility[];
+  maxEnergy: number;
+  maxHearts: number;
+};
+
 function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
 function makeListingId(weekNumber: number, rerollCount: number, slotIndex: number): string { return `market_${weekNumber}_${rerollCount}_${slotIndex}`; }
 function seededNumber(seed: number): number { const value = Math.sin(seed) * 10000; return value - Math.floor(value); }
+function getListingSeed(save: GameSave, listing: MarketListing): string { return `${save.saveId}_${listing.listingId}_market`; }
 
 function chooseWeightedVariant(seed: number): VariantId {
   const roll = seededNumber(seed);
@@ -61,6 +70,19 @@ export function getMarketRerollCost(save: GameSave): number {
 
 function getHabitatForFamily(save: GameSave, family: "feline" | "canine"): HabitatRecord | null { return (save.habitats ?? []).find((habitat) => habitat.family === family) ?? null; }
 
+export function getMarketListingPreview(save: GameSave, listing: MarketListing): MarketListingPreview {
+  const variant = getVariantDefinition(listing.variantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+  const seed = getListingSeed(save, listing);
+  const statGrades = rollStatGrades(seed, variant.rarity);
+  const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades);
+  const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
+  const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
+  const abilities = rollCreatureAbilities(seed, species.speciesId, variant.variantId);
+
+  return { stats, statGrades, abilities, maxEnergy, maxHearts };
+}
+
 function createCreatureFromListing(save: GameSave, listing: MarketListing): CreatureRecord {
   const variant = getVariantDefinition(listing.variantId);
   const species = getSpeciesDefinition(variant.speciesId);
@@ -68,10 +90,7 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
   const now = new Date().toISOString();
   const creatureId = `creature_market_${Date.now()}_${listing.slotIndex}` as CreatureId;
   const level = 1;
-  const statGrades = rollStatGrades(`${save.saveId}_${listing.listingId}_market`, variant.rarity);
-  const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades);
-  const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
-  const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
+  const preview = getMarketListingPreview(save, listing);
 
   return {
     creatureId,
@@ -83,13 +102,13 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
     level,
     xp: 0,
     xpToNext: getCreatureXpToNext(level),
-    stats,
-    statGrades,
-    abilities: rollCreatureAbilities(`${save.saveId}_${listing.listingId}_market`, species.speciesId, variant.variantId),
-    energy: maxEnergy,
-    maxEnergy,
-    hearts: maxHearts,
-    maxHearts,
+    stats: preview.stats,
+    statGrades: preview.statGrades,
+    abilities: preview.abilities,
+    energy: preview.maxEnergy,
+    maxEnergy: preview.maxEnergy,
+    hearts: preview.maxHearts,
+    maxHearts: preview.maxHearts,
     affection: 35,
     generation: 1,
     shiny: false,
@@ -126,5 +145,6 @@ export function rerollMarketListings(save: GameSave): MarketActionResult {
 }
 
 export function getMarketListingImage(listing: MarketListing): string { return getVariantDefinition(listing.variantId).portraitPath; }
+export function getMarketListingProfileImage(listing: MarketListing): string { return getVariantDefinition(listing.variantId).profilePath; }
 export function getMarketListingDescription(listing: MarketListing): string { return getVariantDefinition(listing.variantId).description; }
 export function getMarketVariantsForPreview() { return [...getVariantsForFamily("feline"), ...getVariantsForFamily("canine")]; }
