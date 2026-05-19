@@ -6,7 +6,7 @@ import { useGameContext, type DayAdvanceResult } from "@/state/GameProvider";
 import styles from "./RanchHubScreen.module.css";
 
 type ModalMode = "none" | "sleep-confirm" | "day-summary" | "requests" | "coming-soon";
-type BuildingId = "house" | "feline" | "canine" | "breeding" | "nursery" | "market" | "guild";
+type BuildingId = "house" | "feline" | "canine" | "breeding" | "nursery" | "town" | "guild";
 
 type Building = {
   id: BuildingId;
@@ -87,12 +87,12 @@ const BUILDINGS: Building[] = [
     width: 9,
   },
   {
-    id: "market",
-    title: "Market Road",
+    id: "town",
+    title: "Town Road",
     milestone: "M6",
-    description: "Future market access for weekly creature listings and paid rerolls.",
-    actionLabel: "Coming in M6",
-    imageSrc: "/images/buildings/ranch/market_road.png",
+    description: "Leave the ranch and travel to town for the market, guild board, and future town services.",
+    actionLabel: "Travel to Town",
+    imageSrc: "/images/buildings/ranch/town_road.png",
     x: 64,
     y: 76,
     width: 9,
@@ -119,11 +119,11 @@ function getBuildingStyle(building: Building): CSSProperties {
 }
 
 function isAvailableBuilding(id: BuildingId): boolean {
-  return id === "house" || id === "feline" || id === "canine" || id === "breeding" || id === "nursery";
+  return id === "house" || id === "feline" || id === "canine" || id === "breeding" || id === "nursery" || id === "town";
 }
 
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToBreeding, goToHabitat, goToMainMenu, goToNursery, version } = useGameContext();
+  const { advanceDay, currentSave, goToBreeding, goToHabitat, goToMainMenu, goToNursery, goToTown, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
@@ -186,6 +186,11 @@ export function RanchHubScreen() {
 
     if (building.id === "nursery") {
       goToNursery();
+      return;
+    }
+
+    if (building.id === "town") {
+      goToTown();
       return;
     }
 
@@ -260,7 +265,7 @@ export function RanchHubScreen() {
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
           <p>
-            Select buildings directly on the ranch map. Habitats, Breeding Pen, and Egg Nursery are active.
+            Select buildings directly on the ranch map. Habitats, Breeding Pen, Egg Nursery, and Town Road are active.
           </p>
           <p className={styles.message}>{message}</p>
         </section>
