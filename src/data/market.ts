@@ -14,6 +14,10 @@ const RARITY_PRICE = {
   Epic: 3200,
 } as const;
 
+function getCreatureXpToNext(level: number): number {
+  return 45 + level * 30;
+}
+
 function makeListingId(weekNumber: number, rerollCount: number, slotIndex: number): string {
   return `market_${weekNumber}_${rerollCount}_${slotIndex}`;
 }
@@ -97,6 +101,7 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
   const habitat = getHabitatForFamily(save, variant.family);
   const now = new Date().toISOString();
   const creatureId = `creature_market_${Date.now()}_${listing.slotIndex}` as CreatureId;
+  const level = 1;
 
   return {
     creatureId,
@@ -105,8 +110,9 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
     variantId: variant.variantId,
     habitatId: (habitat?.habitatId ?? `habitat_${variant.family}`) as HabitatId,
     nickname: variant.name,
-    level: 1,
+    level,
     xp: 0,
+    xpToNext: getCreatureXpToNext(level),
     stats: {
       STR: Math.max(1, species.baseStats.STR + (variant.statAdjustments.STR ?? 0)),
       DEX: Math.max(1, species.baseStats.DEX + (variant.statAdjustments.DEX ?? 0)),
