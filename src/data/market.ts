@@ -72,13 +72,8 @@ export function createDefaultMarketState(save: GameSave): MarketState {
 }
 
 export function ensureCurrentMarketState(save: GameSave): GameSave {
-  const market = save.market ?? createDefaultMarketState(save);
-
-  if (market.weekNumber === save.dayState.weekNumber && market.listings.length > 0) {
-    return {
-      ...save,
-      market,
-    };
+  if (save.market && save.market.weekNumber === save.dayState.weekNumber && save.market.listings.length > 0) {
+    return save;
   }
 
   return {
