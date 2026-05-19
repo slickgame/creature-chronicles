@@ -1,20 +1,22 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
-import {
-  createDefaultBreedingState,
-  getCreatureMaxEnergyFromStats,
-  getPlayerMaxEnergyFromStats,
-} from "@/data/breeding";
+import { createDefaultBreedingState, getPlayerMaxEnergyFromStats } from "@/data/breeding";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
 import {
+  DEFAULT_STAT_GRADES,
+  buildStats,
   createStarterCreatures,
   createStarterHabitats,
+  getBaseMaxHearts,
+  getCreatureMaxEnergyFromStats,
   getSpeciesDefinition,
   getVariantDefinition,
   normalizeVariantId,
+  rollCreatureAbilities,
+  rollStatGrades,
 } from "@/data/creatures";
 import { formatGameDate } from "@/lib/formatters";
-import type { CreatureRecord, CreatureStats } from "@/types/creature";
+import type { CreatureRecord, CreatureStats, StatGrades } from "@/types/creature";
 import type { CreatureId, SaveId, VariantId } from "@/types/ids";
 import type { GameSave, SaveSlotSummary, SettingsState } from "@/types/save";
 
@@ -22,104 +24,70 @@ const SAVE_PREFIX = "creature_chronicles_save_slot_";
 const ACTIVE_SAVE_KEY = "creature_chronicles_active_save_id";
 export const SAVE_SLOT_COUNT = 3;
 
-const DEFAULT_PLAYER_STATS: CreatureStats = {
-  STR: 5,
-  DEX: 5,
-  STA: 5,
-  CHA: 5,
-  WIL: 5,
-  FER: 5,
-};
+const DEFAULT_PLAYER_STATS: CreatureStats = { STR: 5, DEX: 5, STA: 5, CHA: 5, WIL: 5, FER: 5 };
+const DEFAULT_PLAYER_STAT_GRADES: StatGrades = DEFAULT_STAT_GRADES;
 
-function getSlotKey(slotIndex: number): string {
-  return `${SAVE_PREFIX}${slotIndex}`;
-}
-
-function canUseStorage(): boolean {
-  return typeof window !== "undefined" && Boolean(window.localStorage);
-}
-
-function getCreatureXpToNext(level: number): number {
-  return 45 + level * 30;
-}
-
-function getBreederXpToNext(level: number): number {
-  return 70 + level * 45;
-}
+function getSlotKey(slotIndex: number): string { return `${SAVE_PREFIX}${slotIndex}`; }
+function canUseStorage(): boolean { return typeof window !== "undefined" && Boolean(window.localStorage); }
+function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
+function getBreederXpToNext(level: number): number { return 70 + level * 45; }
 
 export function createDefaultSettings(): SettingsState {
-  return {
-    musicVolume: 70,
-    sfxVolume: 80,
-    textSpeed: "normal",
-    devMode: true,
-  };
+  return { musicVolume: 70, sfxVolume: 80, textSpeed: "normal", devMode: true };
 }
 
 function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
   const level = creature.level ?? 1;
-  const maxEnergy = getCreatureMaxEnergyFromStats(creature.stats);
+  const variant = getVariantDefinition(creature.variantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+  const statGrades = creature.statGrades ?? rollStatGrades(`${creature.ownerSaveId}_${creature.creatureId}_migration`, variant.rarity);
+  const stats = creature.stats ?? buildStats(species.baseStats, variant.statAdjustments, statGrades);
+  const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
+  const maxHearts = Math.max(creature.maxHearts ?? 0, getBaseMaxHearts(species.speciesId, variant.variantId));
 
   return {
     ...creature,
+    speciesId: species.speciesId,
+    variantId: variant.variantId,
     level,
     xp: creature.xp ?? 0,
     xpToNext: creature.xpToNext ?? getCreatureXpToNext(level),
+    stats,
+    statGrades,
+    abilities: creature.abilities?.length ? creature.abilities : rollCreatureAbilities(`${creature.ownerSaveId}_${creature.creatureId}_migration`, species.speciesId, variant.variantId),
     maxEnergy,
     energy: Math.min(creature.energy ?? maxEnergy, maxEnergy),
-    hearts: creature.hearts ?? 4,
-    maxHearts: creature.maxHearts ?? 4,
+    hearts: Math.min(creature.hearts ?? maxHearts, maxHearts),
+    maxHearts,
   };
 }
 
 function createCreatureFromStarterTemplate(ownerSaveId: SaveId, starter: CreatureRecord): CreatureRecord {
-  const variant = getVariantDefinition(starter.variantId);
-  const species = getSpeciesDefinition(variant.speciesId);
-
-  return ensureCreatureProgression({
-    ...starter,
-    ownerSaveId,
-    speciesId: species.speciesId,
-    variantId: variant.variantId,
-    stats: {
-      STR: Math.max(1, species.baseStats.STR + (variant.statAdjustments.STR ?? 0)),
-      DEX: Math.max(1, species.baseStats.DEX + (variant.statAdjustments.DEX ?? 0)),
-      STA: Math.max(1, species.baseStats.STA + (variant.statAdjustments.STA ?? 0)),
-      CHA: Math.max(1, species.baseStats.CHA + (variant.statAdjustments.CHA ?? 0)),
-      WIL: Math.max(1, species.baseStats.WIL + (variant.statAdjustments.WIL ?? 0)),
-      FER: Math.max(1, species.baseStats.FER + (variant.statAdjustments.FER ?? 0)),
-    },
-    abilities: [species.exclusiveAbilityPool[0], variant.exclusiveAbilityPool[0]].filter(Boolean),
-  });
+  return ensureCreatureProgression({ ...starter, ownerSaveId });
 }
 
 function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): CreatureRecord {
   if (creature.creatureId === ("creature_starter_sphinx" as CreatureId)) {
-    const starter = createStarterCreatures(ownerSaveId).find(
-      (item) => item.creatureId === ("creature_starter_feline" as CreatureId),
-    );
-
+    const starter = createStarterCreatures(ownerSaveId).find((item) => item.creatureId === ("creature_starter_feline" as CreatureId));
     return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureProgression(creature);
   }
 
   if (creature.creatureId === ("creature_starter_hellhound" as CreatureId)) {
-    const starter = createStarterCreatures(ownerSaveId).find(
-      (item) => item.creatureId === ("creature_starter_canine" as CreatureId),
-    );
-
+    const starter = createStarterCreatures(ownerSaveId).find((item) => item.creatureId === ("creature_starter_canine" as CreatureId));
     return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureProgression(creature);
   }
 
   const normalizedVariantId = normalizeVariantId(creature.variantId as VariantId);
   const variant = getVariantDefinition(normalizedVariantId);
   const species = getSpeciesDefinition(variant.speciesId);
+  return ensureCreatureProgression({ ...creature, ownerSaveId, speciesId: species.speciesId, variantId: normalizedVariantId });
+}
 
-  return ensureCreatureProgression({
-    ...creature,
-    ownerSaveId,
-    speciesId: species.speciesId,
-    variantId: normalizedVariantId,
-  });
+function migrateEggsForCurrentBuild(save: GameSave): GameSave["eggs"] {
+  return (save.eggs ?? []).map((egg) => ({
+    ...egg,
+    projectedStatGrades: egg.projectedStatGrades ?? DEFAULT_STAT_GRADES,
+  }));
 }
 
 function migrateSaveForCurrentBuild(save: GameSave): GameSave {
@@ -129,31 +97,21 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
   const migratedCreatures = sourceCreatures.map((creature) => migrateCreatureRecord(creature, save.saveId));
   const creatureIds = migratedCreatures.map((creature) => creature.creatureId);
   const habitats = (save.habitats ?? starterHabitats).map((habitat) => {
-    if (habitat.family === "feline") {
+    if (habitat.family === "feline" || habitat.family === "canine") {
       return {
         ...habitat,
         creatureIds: creatureIds.filter((creatureId) => {
           const creature = migratedCreatures.find((item) => item.creatureId === creatureId);
-          return creature ? getVariantDefinition(creature.variantId).family === "feline" : false;
+          return creature ? getVariantDefinition(creature.variantId).family === habitat.family : false;
         }),
       };
     }
-
-    if (habitat.family === "canine") {
-      return {
-        ...habitat,
-        creatureIds: creatureIds.filter((creatureId) => {
-          const creature = migratedCreatures.find((item) => item.creatureId === creatureId);
-          return creature ? getVariantDefinition(creature.variantId).family === "canine" : false;
-        }),
-      };
-    }
-
     return habitat;
   });
-  const eggs = save.eggs ?? [];
+  const eggs = migrateEggsForCurrentBuild(save) ?? [];
   const breederRank = save.player.breederRank ?? 1;
   const playerStats = save.player.stats ?? DEFAULT_PLAYER_STATS;
+  const playerStatGrades = save.player.statGrades ?? DEFAULT_PLAYER_STAT_GRADES;
   const playerMaxEnergy = getPlayerMaxEnergyFromStats(playerStats);
 
   const migratedSave: GameSave = {
@@ -165,14 +123,11 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       breederXp: save.player.breederXp ?? 0,
       breederXpToNext: save.player.breederXpToNext ?? getBreederXpToNext(breederRank),
       stats: playerStats,
+      statGrades: playerStatGrades,
       hearts: save.player.hearts ?? 4,
       maxHearts: save.player.maxHearts ?? 4,
     },
-    currencies: {
-      ...save.currencies,
-      maxEnergy: playerMaxEnergy,
-      energy: Math.min(save.currencies.energy, playerMaxEnergy),
-    },
+    currencies: { ...save.currencies, maxEnergy: playerMaxEnergy, energy: Math.min(save.currencies.energy, playerMaxEnergy) },
     creatureIds,
     eggIds: eggs.map((egg) => egg.eggId),
     habitatIds: habitats.map((habitat) => habitat.habitatId),
@@ -195,6 +150,8 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m8BreedingProgression: true,
       m8PlayerStatsCreated: true,
       m8EnergyFromStamina: true,
+      m85StatGrades: true,
+      m85PlayerGradesCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -230,22 +187,12 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       breederXpToNext: getBreederXpToNext(1),
       ranchRank: 1,
       stats: DEFAULT_PLAYER_STATS,
+      statGrades: DEFAULT_PLAYER_STAT_GRADES,
       hearts: 4,
       maxHearts: 4,
     },
-    currencies: {
-      gold: STARTING_PLAYER_STATE.gold,
-      guildPoints: STARTING_PLAYER_STATE.guildPoints,
-      energy: Math.min(STARTING_PLAYER_STATE.energy, playerMaxEnergy),
-      maxEnergy: playerMaxEnergy,
-    },
-    dayState: {
-      dayNumber: STARTING_PLAYER_STATE.dayNumber,
-      weekday: STARTING_PLAYER_STATE.weekday,
-      month: STARTING_PLAYER_STATE.month,
-      dayOfMonth: STARTING_PLAYER_STATE.dayOfMonth,
-      weekNumber: STARTING_PLAYER_STATE.weekNumber,
-    },
+    currencies: { gold: STARTING_PLAYER_STATE.gold, guildPoints: STARTING_PLAYER_STATE.guildPoints, energy: Math.min(STARTING_PLAYER_STATE.energy, playerMaxEnergy), maxEnergy: playerMaxEnergy },
+    dayState: { dayNumber: STARTING_PLAYER_STATE.dayNumber, weekday: STARTING_PLAYER_STATE.weekday, month: STARTING_PLAYER_STATE.month, dayOfMonth: STARTING_PLAYER_STATE.dayOfMonth, weekNumber: STARTING_PLAYER_STATE.weekNumber },
     settings: createDefaultSettings(),
     creatureIds: creatures.map((creature) => creature.creatureId),
     eggIds: [],
@@ -267,6 +214,8 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m8BreedingProgression: true,
       m8PlayerStatsCreated: true,
       m8EnergyFromStamina: true,
+      m85StatGrades: true,
+      m85PlayerGradesCreated: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
@@ -278,72 +227,45 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     },
   };
 
-  return {
-    ...baseSave,
-    market: createDefaultMarketState(baseSave),
-    guild: createDefaultGuildState(baseSave),
-  };
+  return { ...baseSave, market: createDefaultMarketState(baseSave), guild: createDefaultGuildState(baseSave) };
 }
 
 export function saveGameToSlot(save: GameSave): GameSave {
   if (!canUseStorage()) return save;
-
-  const updatedSave: GameSave = {
-    ...save,
-    updatedAt: new Date().toISOString(),
-  };
-
+  const updatedSave: GameSave = { ...save, updatedAt: new Date().toISOString() };
   window.localStorage.setItem(getSlotKey(save.slotIndex), JSON.stringify(updatedSave));
   window.localStorage.setItem(ACTIVE_SAVE_KEY, updatedSave.saveId);
-
   return updatedSave;
 }
 
 export function loadSaveFromSlot(slotIndex: number): GameSave | null {
   if (!canUseStorage()) return null;
-
   const raw = window.localStorage.getItem(getSlotKey(slotIndex));
   if (!raw) return null;
-
   try {
     const parsedSave = JSON.parse(raw) as GameSave;
     const migratedSave = migrateSaveForCurrentBuild(parsedSave);
-
-    if (JSON.stringify(migratedSave) !== JSON.stringify(parsedSave)) {
-      window.localStorage.setItem(getSlotKey(slotIndex), JSON.stringify(migratedSave));
-    }
-
+    if (JSON.stringify(migratedSave) !== JSON.stringify(parsedSave)) window.localStorage.setItem(getSlotKey(slotIndex), JSON.stringify(migratedSave));
     return migratedSave;
   } catch {
     return null;
   }
 }
 
-export function loadAllSaves(): Array<GameSave | null> {
-  return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => loadSaveFromSlot(index));
-}
+export function loadAllSaves(): Array<GameSave | null> { return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => loadSaveFromSlot(index)); }
 
 export function deleteSaveSlot(slotIndex: number): void {
   if (!canUseStorage()) return;
-
   const existing = loadSaveFromSlot(slotIndex);
   window.localStorage.removeItem(getSlotKey(slotIndex));
-
   if (existing) {
     const activeSaveId = window.localStorage.getItem(ACTIVE_SAVE_KEY);
     if (activeSaveId === existing.saveId) window.localStorage.removeItem(ACTIVE_SAVE_KEY);
   }
 }
 
-export function getActiveSaveId(): string | null {
-  if (!canUseStorage()) return null;
-  return window.localStorage.getItem(ACTIVE_SAVE_KEY);
-}
-
-export function setActiveSaveId(saveId: string): void {
-  if (!canUseStorage()) return;
-  window.localStorage.setItem(ACTIVE_SAVE_KEY, saveId);
-}
+export function getActiveSaveId(): string | null { if (!canUseStorage()) return null; return window.localStorage.getItem(ACTIVE_SAVE_KEY); }
+export function setActiveSaveId(saveId: string): void { if (!canUseStorage()) return; window.localStorage.setItem(ACTIVE_SAVE_KEY, saveId); }
 
 export function summarizeSave(save: GameSave): SaveSlotSummary {
   return {
