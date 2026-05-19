@@ -9,7 +9,12 @@ import {
 import { CREATURE_PLACEHOLDER_IMAGE } from "@/data/creatures";
 import { formatEnergy } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
-import type { BreedingAttemptRecord, BreedingParticipant } from "@/types/breeding";
+import type {
+  BreedingAttemptRecord,
+  BreedingParticipant,
+  BreedingProgressionEvent,
+} from "@/types/breeding";
+import type { CreatureStats } from "@/types/creature";
 import styles from "./BreedingScreen.module.css";
 
 const STAT_LABELS = {
@@ -21,12 +26,40 @@ const STAT_LABELS = {
   FER: "Fertility",
 } as const;
 
+const PROGRESSION_ASSETS = {
+  xp: "/images/ui/icons/icon_xp_star.png",
+  level: "/images/ui/icons/icon_level_up.png",
+  stat: "/images/ui/icons/icon_stat_growth.png",
+  ability: "/images/ui/icons/icon_ability_trigger.png",
+  breeder: "/images/ui/icons/icon_breeder_level.png",
+} as const;
+
 function getParticipantPortrait(participant: BreedingParticipant): string {
   return participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
 }
 
 function getParticipantProfile(participant: BreedingParticipant): string {
   return participant.profilePath || participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
+}
+
+function formatXp(xp?: number, xpToNext?: number): string {
+  if (typeof xp !== "number") return "—";
+  if (typeof xpToNext !== "number" || xpToNext <= 0) return `${xp}`;
+  return `${xp} / ${xpToNext}`;
+}
+
+function getXpPercent(xp?: number, xpToNext?: number): number {
+  if (typeof xp !== "number" || typeof xpToNext !== "number" || xpToNext <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round((xp / xpToNext) * 100)));
+}
+
+function formatStatGrowth(statGrowth: Partial<CreatureStats>): string[] {
+  return Object.entries(statGrowth)
+    .filter(([, value]) => typeof value === "number" && value > 0)
+    .map(([statKey, value]) => `+${value} ${STAT_LABELS[statKey as keyof typeof STAT_LABELS]}`);
 }
 
 export function BreedingScreen() {
@@ -111,11 +144,12 @@ export function BreedingScreen() {
       <section className={styles.frame}>
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>M4 Breeding Core</p>
+            <p className={styles.kicker}>M8 Breeding Progression</p>
             <h1>Breeding Pen</h1>
             <p>
-              Pick a giver and receiver, preview costs and odds, then run a placeholder attempt.
-              Each participant has separate Hearts. Pregnancy and eggs are created in M5.
+              Attempt breeding to gain creature XP, Breeder XP, affection, level-ups,
+              stat growth, and active ability bonuses. Stats and abilities now influence
+              odds, costs, and rewards.
             </p>
           </div>
 
@@ -151,18 +185,18 @@ export function BreedingScreen() {
                 <span>Pregnancy Chance</span>
                 <strong>{preview ? `${preview.pregnancyChance}%` : "—"}</strong>
                 <em>
-                  Base {preview?.baseChance ?? "—"}% + Streak {preview?.streakBonus ?? "—"}%
+                  Base {preview?.baseChance ?? "—"}% + Streak {preview?.streakBonus ?? "—"}% + Affection {preview?.affectionBonus ?? "—"}%
                 </em>
               </div>
               <div>
-                <span>Pair Streak</span>
-                <strong>{preview?.streakCount ?? "—"}</strong>
-                <em>Same pair increases odds.</em>
+                <span>Ability Bonus</span>
+                <strong>{preview ? `+${preview.abilityBonus}%` : "—"}</strong>
+                <em>{preview?.abilityTriggers.length ?? 0} active effect(s).</em>
               </div>
               <div>
                 <span>Energy Cost</span>
                 <strong>{preview?.energyCost ?? "—"}</strong>
-                <em>Paid by both participants.</em>
+                <em>Discount {preview?.energyDiscount ?? "—"} from STA/abilities.</em>
               </div>
               <div>
                 <span>Heart Cost</span>
@@ -170,9 +204,19 @@ export function BreedingScreen() {
                 <em>Paid by each participant.</em>
               </div>
               <div>
-                <span>XP Gain</span>
-                <strong>{preview?.xpGain ?? "—"}</strong>
-                <em>Creatures gain XP on attempt.</em>
+                <span>Creature XP</span>
+                <strong>{preview ? `+${preview.xpGain}` : "—"}</strong>
+                <em>WIL, DEX, streak, and abilities improve XP.</em>
+              </div>
+              <div>
+                <span>Breeder XP</span>
+                <strong>{preview ? `+${preview.breederXpGain}` : "—"}</strong>
+                <em>Player gains this when participating.</em>
+              </div>
+              <div>
+                <span>Pair Streak</span>
+                <strong>{preview?.streakCount ?? "—"}</strong>
+                <em>Same pair increases odds and XP.</em>
               </div>
               <div>
                 <span>Status</span>
@@ -180,6 +224,20 @@ export function BreedingScreen() {
                 <em>{preview?.blockedReason ?? "Valid pair selected."}</em>
               </div>
             </div>
+
+            {preview?.abilityTriggers.length ? (
+              <section className={styles.previewAbilityPanel}>
+                <img src={PROGRESSION_ASSETS.ability} alt="" />
+                <div>
+                  <strong>Active Ability Effects</strong>
+                  <ul>
+                    {preview.abilityTriggers.map((trigger, index) => (
+                      <li key={`${trigger}-${index}`}>{trigger}</li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            ) : null}
 
             <button
               type="button"
@@ -192,7 +250,7 @@ export function BreedingScreen() {
 
             {result ? (
               <section className={styles.resultPanel}>
-                <p className={styles.kicker}>Result Scene Placeholder</p>
+                <p className={styles.kicker}>Breeding Result</p>
                 <h3>{result.outcome === "pregnancy" ? "Pregnancy Signs" : "No Pregnancy"}</h3>
                 <p>{result.resultText}</p>
                 <dl>
@@ -207,10 +265,25 @@ export function BreedingScreen() {
                     </dd>
                   </div>
                   <div>
-                    <dt>XP</dt>
+                    <dt>Creature XP</dt>
                     <dd>+{result.xpGain}</dd>
                   </div>
+                  <div>
+                    <dt>Breeder XP</dt>
+                    <dd>+{result.breederXpGain}</dd>
+                  </div>
                 </dl>
+
+                {result.progressionEvents.length ? (
+                  <section className={styles.progressionPanel}>
+                    <h4>Progression Summary</h4>
+                    <div className={styles.progressionList}>
+                      {result.progressionEvents.map((event) => (
+                        <ProgressionEventCard key={`${event.participantId}-${event.kind}`} event={event} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
               </section>
             ) : null}
           </section>
@@ -286,6 +359,9 @@ function ParticipantColumn({
                   <em>
                     Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}
                   </em>
+                  <em>
+                    Lv {participant.level ?? "—"} • XP {formatXp(participant.xp, participant.xpToNext)}
+                  </em>
                 </div>
               </button>
               <button
@@ -336,12 +412,62 @@ function MiniParticipantCard({
           />
           <strong>{participant.displayName}</strong>
           <em>
-            {participant.familyLabel} • Hearts {participant.hearts}/{participant.maxHearts}
+            {participant.familyLabel} • Lv {participant.level ?? "—"} • XP {formatXp(participant.xp, participant.xpToNext)}
           </em>
         </>
       ) : (
         <p>Not selected</p>
       )}
+    </article>
+  );
+}
+
+function ProgressionEventCard({ event }: { event: BreedingProgressionEvent }) {
+  const statGrowth = formatStatGrowth(event.statGrowth);
+  const primaryIcon = event.kind === "player" ? PROGRESSION_ASSETS.breeder : PROGRESSION_ASSETS.xp;
+
+  return (
+    <article className={styles.progressionCard}>
+      <div className={styles.progressionHeader}>
+        <img src={primaryIcon} alt="" className={styles.progressionIcon} />
+        <div>
+          <strong>
+            {event.levelUps > 0
+              ? `${event.displayName} leveled up!`
+              : `${event.displayName} gained XP`}
+          </strong>
+          <span>
+            Level {event.levelBefore} → {event.levelAfter} • XP {event.xpBefore} → {event.xpAfter}/{event.xpToNextAfter}
+          </span>
+        </div>
+      </div>
+
+      <div className={styles.progressionDetails}>
+        {event.levelUps > 0 ? (
+          <div className={styles.progressionDetail}>
+            <img src={PROGRESSION_ASSETS.level} alt="" />
+            <span>+{event.levelUps} level{event.levelUps === 1 ? "" : "s"}</span>
+          </div>
+        ) : null}
+
+        {statGrowth.length ? (
+          <div className={styles.progressionDetail}>
+            <img src={PROGRESSION_ASSETS.stat} alt="" />
+            <span>{statGrowth.join(", ")}</span>
+          </div>
+        ) : null}
+
+        {event.abilityTriggers.length ? (
+          <div className={styles.progressionDetailWide}>
+            <img src={PROGRESSION_ASSETS.ability} alt="" />
+            <ul>
+              {event.abilityTriggers.map((trigger, index) => (
+                <li key={`${event.participantId}-trigger-${index}`}>{trigger}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -353,6 +479,8 @@ function ParticipantInfoModal({
   participant: BreedingParticipant;
   onClose: () => void;
 }) {
+  const xpPercent = getXpPercent(participant.xp, participant.xpToNext);
+
   return (
     <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
       <section
@@ -407,7 +535,10 @@ function ParticipantInfoModal({
               </div>
               <div>
                 <span>XP</span>
-                <strong>{participant.xp ?? "—"}</strong>
+                <strong>{formatXp(participant.xp, participant.xpToNext)}</strong>
+                <div className={styles.modalXpBar} aria-hidden="true">
+                  <i style={{ width: `${xpPercent}%` }} />
+                </div>
               </div>
             </div>
 
