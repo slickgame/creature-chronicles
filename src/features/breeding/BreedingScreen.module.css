@@ -534,6 +534,21 @@
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.64);
 }
 
+.resultModal {
+  display: grid;
+  width: min(100%, 930px);
+  max-height: min(88vh, 780px);
+  padding: 20px 22px;
+  overflow: hidden;
+}
+
+.resultModal .resultPanel {
+  max-height: calc(min(88vh, 780px) - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 16px;
+}
+
 .closeModalButton {
   position: absolute;
   top: 12px;
