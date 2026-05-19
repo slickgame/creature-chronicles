@@ -1,4 +1,5 @@
 import type { BreedingState } from "./breeding";
+import type { MarketState } from "./market";
 import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
 import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord } from "./creature";
 
@@ -111,6 +112,7 @@ export type GameSave = {
   breeding?: BreedingState;
   pregnancies?: PregnancyRecord[];
   eggs?: EggRecord[];
+  market?: MarketState;
 
   flags: Record<string, boolean | number | string>;
 };
