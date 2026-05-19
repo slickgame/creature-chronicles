@@ -1,5 +1,5 @@
 import type { BreedingAttemptId, CreatureId } from "./ids";
-import type { CreatureAbility, CreatureStats } from "./creature";
+import type { CreatureAbility, CreatureStats, StatGrades } from "./creature";
 
 export type BreedingRole = "giver" | "receiver";
 export type BreedingParticipantKind = "player" | "creature";
@@ -17,6 +17,7 @@ export type BreedingProgressionEvent = {
   levelAfter: number;
   levelUps: number;
   statGrowth: Partial<CreatureStats>;
+  gradeChanges?: Partial<Record<keyof CreatureStats, string>>;
   abilityTriggers: string[];
 };
 
@@ -36,6 +37,7 @@ export type BreedingParticipant = {
   xp?: number;
   xpToNext?: number;
   stats?: CreatureStats;
+  statGrades?: StatGrades;
   abilities?: CreatureAbility[];
   description?: string;
   portraitPath: string;
