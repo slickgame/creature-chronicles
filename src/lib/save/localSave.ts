@@ -1,5 +1,9 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
-import { createDefaultBreedingState } from "@/data/breeding";
+import {
+  createDefaultBreedingState,
+  getCreatureMaxEnergyFromStats,
+  getPlayerMaxEnergyFromStats,
+} from "@/data/breeding";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
 import {
@@ -54,12 +58,15 @@ export function createDefaultSettings(): SettingsState {
 
 function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
   const level = creature.level ?? 1;
+  const maxEnergy = getCreatureMaxEnergyFromStats(creature.stats);
 
   return {
     ...creature,
     level,
     xp: creature.xp ?? 0,
     xpToNext: creature.xpToNext ?? getCreatureXpToNext(level),
+    maxEnergy,
+    energy: Math.min(creature.energy ?? maxEnergy, maxEnergy),
     hearts: creature.hearts ?? 4,
     maxHearts: creature.maxHearts ?? 4,
   };
@@ -119,9 +126,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
   const starterCreatures = createStarterCreatures(save.saveId);
   const starterHabitats = createStarterHabitats();
   const sourceCreatures = save.creatures ?? starterCreatures;
-  const migratedCreatures = sourceCreatures.map((creature) =>
-    migrateCreatureRecord(creature, save.saveId),
-  );
+  const migratedCreatures = sourceCreatures.map((creature) => migrateCreatureRecord(creature, save.saveId));
   const creatureIds = migratedCreatures.map((creature) => creature.creatureId);
   const habitats = (save.habitats ?? starterHabitats).map((habitat) => {
     if (habitat.family === "feline") {
@@ -148,6 +153,8 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
   });
   const eggs = save.eggs ?? [];
   const breederRank = save.player.breederRank ?? 1;
+  const playerStats = save.player.stats ?? DEFAULT_PLAYER_STATS;
+  const playerMaxEnergy = getPlayerMaxEnergyFromStats(playerStats);
 
   const migratedSave: GameSave = {
     ...save,
@@ -157,9 +164,14 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       breederRank,
       breederXp: save.player.breederXp ?? 0,
       breederXpToNext: save.player.breederXpToNext ?? getBreederXpToNext(breederRank),
-      stats: save.player.stats ?? DEFAULT_PLAYER_STATS,
+      stats: playerStats,
       hearts: save.player.hearts ?? 4,
       maxHearts: save.player.maxHearts ?? 4,
+    },
+    currencies: {
+      ...save.currencies,
+      maxEnergy: playerMaxEnergy,
+      energy: Math.min(save.currencies.energy, playerMaxEnergy),
     },
     creatureIds,
     eggIds: eggs.map((egg) => egg.eggId),
@@ -182,6 +194,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m7GuildStateCreated: true,
       m8BreedingProgression: true,
       m8PlayerStatsCreated: true,
+      m8EnergyFromStamina: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -201,6 +214,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
   const saveId = `save_${slotIndex}_${Date.now()}`;
   const creatures = createStarterCreatures(saveId).map(ensureCreatureProgression);
   const habitats = createStarterHabitats();
+  const playerMaxEnergy = getPlayerMaxEnergyFromStats(DEFAULT_PLAYER_STATS);
   const baseSave: GameSave = {
     version: MVP_VERSION,
     saveId,
@@ -222,8 +236,8 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     currencies: {
       gold: STARTING_PLAYER_STATE.gold,
       guildPoints: STARTING_PLAYER_STATE.guildPoints,
-      energy: STARTING_PLAYER_STATE.energy,
-      maxEnergy: STARTING_PLAYER_STATE.maxEnergy,
+      energy: Math.min(STARTING_PLAYER_STATE.energy, playerMaxEnergy),
+      maxEnergy: playerMaxEnergy,
     },
     dayState: {
       dayNumber: STARTING_PLAYER_STATE.dayNumber,
@@ -252,6 +266,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m7GuildStateCreated: true,
       m8BreedingProgression: true,
       m8PlayerStatsCreated: true,
+      m8EnergyFromStamina: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
