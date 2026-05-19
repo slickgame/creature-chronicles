@@ -38,13 +38,13 @@ const LOCATIONS: TownLocation[] = [
   },
   {
     id: "guild",
-    title: "Guild Board",
-    badge: "M7 Soon",
-    description: "Future contract board for requests, donations, deadlines, and Guild Point rewards.",
-    imageSrc: "/images/buildings/town/guild_board.png",
-    x: 62,
-    y: 61,
-    width: 13,
+    title: "Guild Hall",
+    badge: "M7 Open",
+    description: "Enter the guild hall to review contracts, donate creatures, and earn Guild Points.",
+    imageSrc: "/images/buildings/town/guild_hall.png",
+    x: 60,
+    y: 60,
+    width: 15,
   },
   {
     id: "ranch",
@@ -67,9 +67,8 @@ function getLocationStyle(location: TownLocation): CSSProperties {
 }
 
 export function TownScreen() {
-  const { currentSave, goToMainMenu, goToMarket, goToRanch, version } = useGameContext();
-  const [message, setMessage] = useState("Welcome to town. The market is open for M6.");
-  const [showGuildModal, setShowGuildModal] = useState(false);
+  const { currentSave, goToGuildHall, goToMainMenu, goToMarket, goToRanch, version } = useGameContext();
+  const [message, setMessage] = useState("Welcome to town. The market and guild hall are open.");
 
   if (!currentSave) {
     return (
@@ -89,13 +88,17 @@ export function TownScreen() {
       return;
     }
 
+    if (location.id === "guild") {
+      goToGuildHall();
+      return;
+    }
+
     if (location.id === "ranch") {
       goToRanch();
       return;
     }
 
-    setMessage("Guild contracts are planned for M7.");
-    setShowGuildModal(true);
+    setMessage("That town location is not available yet.");
   }
 
   return (
@@ -124,9 +127,9 @@ export function TownScreen() {
         </header>
 
         <section className={styles.titlePanel}>
-          <p className={styles.kicker}>M6 Town Access</p>
+          <p className={styles.kicker}>M7 Town Access</p>
           <h1>Town Square</h1>
-          <p>Visit the market now. Guild contracts and other town services will expand in later milestones.</p>
+          <p>Visit the market or enter the Guild Hall for weekly contracts.</p>
           <p className={styles.message}>{message}</p>
           <p className={styles.statLine}>
             <span>Gold / GP</span>
@@ -150,18 +153,6 @@ export function TownScreen() {
             </button>
           ))}
         </section>
-
-        {showGuildModal ? (
-          <div className={styles.modalBackdrop} role="presentation" onClick={() => setShowGuildModal(false)}>
-            <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="guild-title" onClick={(event) => event.stopPropagation()}>
-              <h2 id="guild-title">Guild Board</h2>
-              <p>Guild contracts arrive in M7. This board will eventually show requests, deadlines, rarity requirements, Gold rewards, and Guild Point payouts.</p>
-              <div className={styles.modalActions}>
-                <button type="button" onClick={() => setShowGuildModal(false)}>Close</button>
-              </div>
-            </section>
-          </div>
-        ) : null}
 
         <footer className={styles.versionFooter}>{version}</footer>
       </section>
