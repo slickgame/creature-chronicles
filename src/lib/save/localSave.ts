@@ -1,5 +1,6 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
 import { createDefaultBreedingState } from "@/data/breeding";
+import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
 import {
   createStarterCreatures,
   createStarterHabitats,
@@ -124,7 +125,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
   });
   const eggs = save.eggs ?? [];
 
-  return {
+  const migratedSave: GameSave = {
     ...save,
     version: MVP_VERSION,
     player: {
@@ -140,6 +141,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
     breeding: save.breeding ?? createDefaultBreedingState(),
     pregnancies: save.pregnancies ?? [],
     eggs,
+    market: save.market,
     flags: {
       ...save.flags,
       m3StarterCreaturesCreated: true,
@@ -147,12 +149,17 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m4BreedingStateCreated: true,
       m4ParticipantHeartsMigrated: true,
       m5NurseryStateCreated: true,
+      m6MarketStateCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
       nurseryUnlocked: true,
+      townUnlocked: true,
+      marketUnlocked: true,
     },
   };
+
+  return ensureCurrentMarketState(migratedSave);
 }
 
 export function createNewGameSave(playerName: string, slotIndex: number): GameSave {
@@ -161,8 +168,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
   const saveId = `save_${slotIndex}_${Date.now()}`;
   const creatures = createStarterCreatures(saveId);
   const habitats = createStarterHabitats();
-
-  return {
+  const baseSave: GameSave = {
     version: MVP_VERSION,
     saveId,
     slotIndex,
@@ -206,14 +212,21 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m4BreedingStateCreated: true,
       m4ParticipantHeartsMigrated: true,
       m5NurseryStateCreated: true,
+      m6MarketStateCreated: true,
       ranchUnlocked: true,
+      townUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
       nurseryUnlocked: true,
-      marketUnlocked: false,
+      marketUnlocked: true,
       guildUnlocked: false,
     },
+  };
+
+  return {
+    ...baseSave,
+    market: createDefaultMarketState(baseSave),
   };
 }
 
