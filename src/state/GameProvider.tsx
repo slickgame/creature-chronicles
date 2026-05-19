@@ -10,6 +10,7 @@ import {
 } from "react";
 import { MVP_VERSION } from "@/data/gameConstants";
 import { performBreedingAttempt } from "@/data/breeding";
+import { buyMarketListing, ensureCurrentMarketState, rerollMarketListings } from "@/data/market";
 import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
 import { formatGameDate } from "@/lib/formatters";
 import {
@@ -27,7 +28,7 @@ import type { CreatureFamily, CreatureRecord } from "@/types/creature";
 import type { CreatureId, EggId } from "@/types/ids";
 import type { DayState, GameSave } from "@/types/save";
 
-export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding" | "nursery";
+export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding" | "nursery" | "town" | "market";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -52,6 +53,8 @@ type GameContextValue = {
   goToHabitat: (family: CreatureFamily) => void;
   goToBreeding: () => void;
   goToNursery: () => void;
+  goToTown: () => void;
+  goToMarket: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
   renameCreature: (creatureId: CreatureId, nickname: string) => void;
@@ -59,6 +62,8 @@ type GameContextValue = {
   attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
   hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null;
   removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
+  buyMarketCreature: (listingId: string) => string;
+  rerollMarket: () => string;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -71,8 +76,7 @@ function getNextDayState(dayState: DayState): DayState {
   const nextDayNumber = dayState.dayNumber + 1;
   const nextDayOfMonth = dayState.dayOfMonth >= 30 ? 1 : dayState.dayOfMonth + 1;
   const nextMonth = dayState.dayOfMonth >= 30 ? dayState.month + 1 : dayState.month;
-  const nextWeekNumber =
-    nextWeekdayIndex === 0 ? dayState.weekNumber + 1 : dayState.weekNumber;
+  const nextWeekNumber = nextWeekdayIndex === 0 ? dayState.weekNumber + 1 : dayState.weekNumber;
 
   return {
     dayNumber: nextDayNumber,
@@ -133,9 +137,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const loadGame = useCallback((slotIndex: number) => {
     const save = loadSaveFromSlot(slotIndex);
 
-    if (!save) {
-      return null;
-    }
+    if (!save) return null;
 
     setActiveSaveId(save.saveId);
     setCurrentSave(save);
@@ -164,6 +166,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setAppScreen("ranch-hub");
   }, []);
 
+  const goToTown = useCallback(() => {
+    setActiveHabitatFamily(null);
+    setAppScreen("town");
+  }, []);
+
+  const goToMarket = useCallback(() => {
+    setActiveHabitatFamily(null);
+
+    if (currentSave) {
+      const syncedSave = ensureCurrentMarketState(currentSave);
+      if (syncedSave !== currentSave) saveCurrentGame(syncedSave);
+    }
+
+    setAppScreen("market");
+  }, [currentSave, saveCurrentGame]);
+
   const goToHabitat = useCallback((family: CreatureFamily) => {
     setActiveHabitatFamily(family);
     setAppScreen("habitat");
@@ -181,30 +199,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const renameCreature = useCallback(
     (creatureId: CreatureId, nickname: string) => {
-      if (!currentSave) {
-        return;
-      }
+      if (!currentSave) return;
 
       const cleanNickname = nickname.trim();
-
-      if (!cleanNickname) {
-        return;
-      }
+      if (!cleanNickname) return;
 
       const nextSave: GameSave = {
         ...currentSave,
         creatures: (currentSave.creatures ?? []).map((creature) =>
-          creature.creatureId === creatureId
-            ? {
-                ...creature,
-                nickname: cleanNickname,
-              }
-            : creature,
+          creature.creatureId === creatureId ? { ...creature, nickname: cleanNickname } : creature,
         ),
-        flags: {
-          ...currentSave.flags,
-          m3CreatureRenamed: true,
-        },
+        flags: { ...currentSave.flags, m3CreatureRenamed: true },
       };
 
       saveCurrentGame(nextSave);
@@ -214,25 +219,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const feedCreature = useCallback(
     (creatureId: CreatureId) => {
-      if (!currentSave) {
-        return;
-      }
+      if (!currentSave) return;
 
       const nextSave: GameSave = {
         ...currentSave,
         creatures: (currentSave.creatures ?? []).map((creature) =>
           creature.creatureId === creatureId
-            ? {
-                ...creature,
-                affection: Math.min(100, creature.affection + 5),
-                energy: Math.min(creature.maxEnergy, creature.energy + 10),
-              }
+            ? { ...creature, affection: Math.min(100, creature.affection + 5), energy: Math.min(creature.maxEnergy, creature.energy + 10) }
             : creature,
         ),
-        flags: {
-          ...currentSave.flags,
-          m3CreatureFed: true,
-        },
+        flags: { ...currentSave.flags, m3CreatureFed: true },
       };
 
       saveCurrentGame(nextSave);
@@ -242,15 +238,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const attemptBreeding = useCallback(
     (giverId: string, receiverId: string) => {
-      if (!currentSave) {
-        return null;
-      }
+      if (!currentSave) return null;
 
       const result = performBreedingAttempt(currentSave, giverId, receiverId);
-
-      if (!result) {
-        return null;
-      }
+      if (!result) return null;
 
       saveCurrentGame(result.save);
       return result.attempt;
@@ -260,15 +251,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const hatchReadyEgg = useCallback(
     (eggId: EggId, nickname?: string) => {
-      if (!currentSave) {
-        return null;
-      }
+      if (!currentSave) return null;
 
       const result = hatchEgg(currentSave, eggId, nickname);
-
-      if (!result) {
-        return null;
-      }
+      if (!result) return null;
 
       saveCurrentGame(result.save);
       return result.creature;
@@ -278,62 +264,52 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const removeNurseryEgg = useCallback(
     (eggId: EggId, mode: "release" | "donate") => {
-      if (!currentSave) {
-        return;
-      }
-
+      if (!currentSave) return;
       saveCurrentGame(removeEgg(currentSave, eggId, mode));
     },
     [currentSave, saveCurrentGame],
   );
 
+  const buyMarketCreature = useCallback(
+    (listingId: string) => {
+      if (!currentSave) return "No active save.";
+      const result = buyMarketListing(currentSave, listingId);
+      saveCurrentGame(result.save);
+      return result.message;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const rerollMarket = useCallback(() => {
+    if (!currentSave) return "No active save.";
+    const result = rerollMarketListings(currentSave);
+    saveCurrentGame(result.save);
+    return result.message;
+  }, [currentSave, saveCurrentGame]);
+
   const advanceDay = useCallback((): DayAdvanceResult | null => {
-    if (!currentSave) {
-      return null;
-    }
+    if (!currentSave) return null;
 
-    const previousDateLabel = formatGameDate(
-      currentSave.dayState.weekday,
-      currentSave.dayState.month,
-      currentSave.dayState.dayOfMonth,
-    );
-
+    const previousDateLabel = formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth);
     const nextDayState = getNextDayState(currentSave.dayState);
-
-    const nextDateLabel = formatGameDate(
-      nextDayState.weekday,
-      nextDayState.month,
-      nextDayState.dayOfMonth,
-    );
+    const nextDateLabel = formatGameDate(nextDayState.weekday, nextDayState.month, nextDayState.dayOfMonth);
 
     const restoredSave: GameSave = {
       ...currentSave,
       updatedAt: new Date().toISOString(),
       dayState: nextDayState,
-      player: {
-        ...currentSave.player,
-        hearts: currentSave.player.maxHearts ?? 4,
-      },
-      currencies: {
-        ...currentSave.currencies,
-        energy: currentSave.currencies.maxEnergy,
-      },
-      creatures: (currentSave.creatures ?? []).map((creature) => ({
-        ...creature,
-        energy: creature.maxEnergy,
-        hearts: creature.maxHearts ?? 4,
-      })),
+      player: { ...currentSave.player, hearts: currentSave.player.maxHearts ?? 4 },
+      currencies: { ...currentSave.currencies, energy: currentSave.currencies.maxEnergy },
+      creatures: (currentSave.creatures ?? []).map((creature) => ({ ...creature, energy: creature.maxEnergy, hearts: creature.maxHearts ?? 4 })),
       breeding: currentSave.breeding,
       pregnancies: currentSave.pregnancies ?? [],
       eggs: currentSave.eggs ?? [],
-      flags: {
-        ...currentSave.flags,
-        lastSleptDayNumber: nextDayState.dayNumber,
-        m2SleepUsed: true,
-      },
+      market: currentSave.market,
+      flags: { ...currentSave.flags, lastSleptDayNumber: nextDayState.dayNumber, m2SleepUsed: true },
     };
 
     const nurseryResult = advanceNurseryDay(restoredSave);
+    const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save);
     const summaryItems = [
       `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
       `Energy restored to ${currentSave.currencies.maxEnergy}.`,
@@ -343,22 +319,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     ];
 
     if (nextDayState.weekday === "Mon") {
-      summaryItems.push("New week started. Market and guild weekly reset hooks are ready.");
+      summaryItems.push("New week started. The town market has fresh listings.");
     }
 
-    saveCurrentGame(nurseryResult.save);
+    saveCurrentGame(marketSyncedSave);
 
-    return {
-      previousDateLabel,
-      nextDateLabel,
-      summaryItems,
-    };
+    return { previousDateLabel, nextDateLabel, summaryItems };
   }, [currentSave, saveCurrentGame]);
 
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M5 — Eggs / Pregnancy / Nursery",
+      buildPhase: "M6 — Town + Market",
       appScreen,
       activeHabitatFamily,
       currentSave,
@@ -373,6 +345,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToHabitat,
       goToBreeding,
       goToNursery,
+      goToTown,
+      goToMarket,
       saveCurrentGame,
       advanceDay,
       renameCreature,
@@ -380,6 +354,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       attemptBreeding,
       hatchReadyEgg,
       removeNurseryEgg,
+      buyMarketCreature,
+      rerollMarket,
     }),
     [
       appScreen,
@@ -396,6 +372,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToHabitat,
       goToBreeding,
       goToNursery,
+      goToTown,
+      goToMarket,
       saveCurrentGame,
       advanceDay,
       renameCreature,
@@ -403,6 +381,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       attemptBreeding,
       hatchReadyEgg,
       removeNurseryEgg,
+      buyMarketCreature,
+      rerollMarket,
     ],
   );
 
@@ -411,10 +391,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
 export function useGameContext(): GameContextValue {
   const context = useContext(GameContext);
-
-  if (!context) {
-    throw new Error("useGameContext must be used inside GameProvider.");
-  }
-
+  if (!context) throw new Error("useGameContext must be used inside GameProvider.");
   return context;
 }
