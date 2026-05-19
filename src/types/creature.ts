@@ -47,6 +47,7 @@ export type CreatureRecord = {
   nickname: string;
   level: number;
   xp: number;
+  xpToNext: number;
   stats: CreatureStats;
   abilities: CreatureAbility[];
   energy: number;
