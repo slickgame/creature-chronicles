@@ -49,10 +49,7 @@ function formatXp(xp?: number, xpToNext?: number): string {
 }
 
 function getXpPercent(xp?: number, xpToNext?: number): number {
-  if (typeof xp !== "number" || typeof xpToNext !== "number" || xpToNext <= 0) {
-    return 0;
-  }
-
+  if (typeof xp !== "number" || typeof xpToNext !== "number" || xpToNext <= 0) return 0;
   return Math.max(0, Math.min(100, Math.round((xp / xpToNext) * 100)));
 }
 
@@ -70,21 +67,8 @@ export function BreedingScreen() {
   const [message, setMessage] = useState("Choose a giver and receiver to preview the breeding attempt.");
   const [activeInfoParticipant, setActiveInfoParticipant] = useState<BreedingParticipant | null>(null);
 
-  const participants = useMemo(() => {
-    if (!currentSave) {
-      return [];
-    }
-
-    return getBreedingParticipants(currentSave);
-  }, [currentSave]);
-
-  const preview = useMemo(() => {
-    if (!currentSave) {
-      return null;
-    }
-
-    return getBreedingPreview(currentSave, giverId, receiverId);
-  }, [currentSave, giverId, receiverId]);
+  const participants = useMemo(() => (currentSave ? getBreedingParticipants(currentSave) : []), [currentSave]);
+  const preview = useMemo(() => (currentSave ? getBreedingPreview(currentSave, giverId, receiverId) : null), [currentSave, giverId, receiverId]);
 
   const giver = participants.find((item) => item.participantId === giverId) ?? null;
   const receiver = participants.find((item) => item.participantId === receiverId) ?? null;
@@ -95,9 +79,7 @@ export function BreedingScreen() {
         <section className={styles.emptyPanel}>
           <h1>No active save</h1>
           <p>Load or create a save before using the Breeding Pen.</p>
-          <button type="button" onClick={goToRanch}>
-            Back to Ranch
-          </button>
+          <button type="button" onClick={goToRanch}>Back to Ranch</button>
         </section>
       </main>
     );
@@ -108,17 +90,13 @@ export function BreedingScreen() {
 
     if (role === "giver") {
       setGiverId(participantId);
-      if (participantId === receiverId) {
-        setReceiverId(null);
-      }
+      if (participantId === receiverId) setReceiverId(null);
       setMessage("Giver selected. Choose a receiver to preview the pairing.");
       return;
     }
 
     setReceiverId(participantId);
-    if (participantId === giverId) {
-      setGiverId(null);
-    }
+    if (participantId === giverId) setGiverId(null);
     setMessage("Receiver selected. Review the pair preview before attempting breeding.");
   }
 
@@ -154,9 +132,7 @@ export function BreedingScreen() {
           </div>
 
           <div className={styles.headerActions}>
-            <button type="button" onClick={goToRanch}>
-              Back to Ranch
-            </button>
+            <button type="button" onClick={goToRanch}>Back to Ranch</button>
           </div>
         </header>
 
@@ -184,9 +160,7 @@ export function BreedingScreen() {
               <div>
                 <span>Pregnancy Chance</span>
                 <strong>{preview ? `${preview.pregnancyChance}%` : "—"}</strong>
-                <em>
-                  Base {preview?.baseChance ?? "—"}% + Streak {preview?.streakBonus ?? "—"}% + Affection {preview?.affectionBonus ?? "—"}%
-                </em>
+                <em>Base {preview?.baseChance ?? "—"}% + Streak {preview?.streakBonus ?? "—"}% + Affection {preview?.affectionBonus ?? "—"}%</em>
               </div>
               <div>
                 <span>Ability Bonus</span>
@@ -211,7 +185,7 @@ export function BreedingScreen() {
               <div>
                 <span>Breeder XP</span>
                 <strong>{preview ? `+${preview.breederXpGain}` : "—"}</strong>
-                <em>Player gains this when participating.</em>
+                <em>Only gained when the player participates.</em>
               </div>
               <div>
                 <span>Pair Streak</span>
@@ -231,61 +205,15 @@ export function BreedingScreen() {
                 <div>
                   <strong>Active Ability Effects</strong>
                   <ul>
-                    {preview.abilityTriggers.map((trigger, index) => (
-                      <li key={`${trigger}-${index}`}>{trigger}</li>
-                    ))}
+                    {preview.abilityTriggers.map((trigger, index) => <li key={`${trigger}-${index}`}>{trigger}</li>)}
                   </ul>
                 </div>
               </section>
             ) : null}
 
-            <button
-              type="button"
-              className={styles.primaryAction}
-              disabled={!preview?.canAttempt}
-              onClick={handleAttempt}
-            >
+            <button type="button" className={styles.primaryAction} disabled={!preview?.canAttempt} onClick={handleAttempt}>
               Attempt Breeding
             </button>
-
-            {result ? (
-              <section className={styles.resultPanel}>
-                <p className={styles.kicker}>Breeding Result</p>
-                <h3>{result.outcome === "pregnancy" ? "Pregnancy Signs" : "No Pregnancy"}</h3>
-                <p>{result.resultText}</p>
-                <dl>
-                  <div>
-                    <dt>Chance</dt>
-                    <dd>{result.pregnancyChance}%</dd>
-                  </div>
-                  <div>
-                    <dt>Streak</dt>
-                    <dd>
-                      {result.streakBefore} → {result.streakAfter}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Creature XP</dt>
-                    <dd>+{result.xpGain}</dd>
-                  </div>
-                  <div>
-                    <dt>Breeder XP</dt>
-                    <dd>+{result.breederXpGain}</dd>
-                  </div>
-                </dl>
-
-                {result.progressionEvents.length ? (
-                  <section className={styles.progressionPanel}>
-                    <h4>Progression Summary</h4>
-                    <div className={styles.progressionList}>
-                      {result.progressionEvents.map((event) => (
-                        <ProgressionEventCard key={`${event.participantId}-${event.kind}`} event={event} />
-                      ))}
-                    </div>
-                  </section>
-                ) : null}
-              </section>
-            ) : null}
           </section>
 
           <ParticipantColumn
@@ -300,11 +228,10 @@ export function BreedingScreen() {
         </section>
       </section>
 
+      {result ? <BreedingResultModal result={result} onClose={() => setResult(null)} /> : null}
+
       {activeInfoParticipant ? (
-        <ParticipantInfoModal
-          participant={activeInfoParticipant}
-          onClose={() => setActiveInfoParticipant(null)}
-        />
+        <ParticipantInfoModal participant={activeInfoParticipant} onClose={() => setActiveInfoParticipant(null)} />
       ) : null}
     </main>
   );
@@ -336,42 +263,17 @@ function ParticipantColumn({
           const isDisabled = disabledId === participant.participantId;
 
           return (
-            <article
-              key={`${role}-${participant.participantId}`}
-              className={`${styles.participantCard} ${isSelected ? styles.selectedCard : ""} ${isDisabled ? styles.disabledCard : ""}`}
-            >
-              <button
-                type="button"
-                className={styles.participantSelectButton}
-                disabled={isDisabled}
-                onClick={() => onSelect(role, participant.participantId)}
-              >
-                <img
-                  src={getParticipantPortrait(participant)}
-                  alt=""
-                  onError={(event) => {
-                    event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-                  }}
-                />
+            <article key={`${role}-${participant.participantId}`} className={`${styles.participantCard} ${isSelected ? styles.selectedCard : ""} ${isDisabled ? styles.disabledCard : ""}`}>
+              <button type="button" className={styles.participantSelectButton} disabled={isDisabled} onClick={() => onSelect(role, participant.participantId)}>
+                <img src={getParticipantPortrait(participant)} alt="" onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
                 <div>
                   <strong>{participant.displayName}</strong>
                   <span>{participant.familyLabel}</span>
-                  <em>
-                    Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}
-                  </em>
-                  <em>
-                    Lv {participant.level ?? "—"} • XP {formatXp(participant.xp, participant.xpToNext)}
-                  </em>
+                  <em>Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}</em>
+                  <em>Lv {participant.level ?? "—"} • XP {formatXp(participant.xp, participant.xpToNext)}</em>
                 </div>
               </button>
-              <button
-                type="button"
-                className={styles.infoButton}
-                onClick={() => onInfo(participant)}
-                aria-label={`View ${participant.displayName} details`}
-              >
-                i
-              </button>
+              <button type="button" className={styles.infoButton} onClick={() => onInfo(participant)} aria-label={`View ${participant.displayName} details`}>i</button>
             </article>
           );
         })}
@@ -380,45 +282,50 @@ function ParticipantColumn({
   );
 }
 
-function MiniParticipantCard({
-  title,
-  participant,
-  onInfo,
-}: {
-  title: string;
-  participant: BreedingParticipant | null;
-  onInfo: (participant: BreedingParticipant) => void;
-}) {
+function MiniParticipantCard({ title, participant, onInfo }: { title: string; participant: BreedingParticipant | null; onInfo: (participant: BreedingParticipant) => void }) {
   return (
     <article className={styles.miniCard}>
       <span>{title}</span>
       {participant ? (
         <>
-          <button
-            type="button"
-            className={styles.previewInfoButton}
-            onClick={() => onInfo(participant)}
-            aria-label={`View ${participant.displayName} details`}
-          >
-            i
-          </button>
-          <img
-            src={getParticipantProfile(participant)}
-            alt=""
-            className={styles.previewProfileArt}
-            onError={(event) => {
-              event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-            }}
-          />
+          <button type="button" className={styles.previewInfoButton} onClick={() => onInfo(participant)} aria-label={`View ${participant.displayName} details`}>i</button>
+          <img src={getParticipantProfile(participant)} alt="" className={styles.previewProfileArt} onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
           <strong>{participant.displayName}</strong>
-          <em>
-            {participant.familyLabel} • Lv {participant.level ?? "—"} • XP {formatXp(participant.xp, participant.xpToNext)}
-          </em>
+          <em>{participant.familyLabel} • Lv {participant.level ?? "—"} • XP {formatXp(participant.xp, participant.xpToNext)}</em>
         </>
-      ) : (
-        <p>Not selected</p>
-      )}
+      ) : <p>Not selected</p>}
     </article>
+  );
+}
+
+function BreedingResultModal({ result, onClose }: { result: BreedingAttemptRecord; onClose: () => void }) {
+  return (
+    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+      <section className={`${styles.infoModal} ${styles.resultModal}`} role="dialog" aria-modal="true" aria-labelledby="breeding-result-title" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className={styles.closeModalButton} onClick={onClose} aria-label="Close breeding result">×</button>
+
+        <section className={styles.resultPanel}>
+          <p className={styles.kicker}>Breeding Result</p>
+          <h3 id="breeding-result-title">{result.outcome === "pregnancy" ? "Pregnancy Signs" : "No Pregnancy"}</h3>
+          <p>{result.resultText}</p>
+          <dl>
+            <div><dt>Chance</dt><dd>{result.pregnancyChance}%</dd></div>
+            <div><dt>Streak</dt><dd>{result.streakBefore} → {result.streakAfter}</dd></div>
+            <div><dt>Creature XP</dt><dd>+{result.xpGain}</dd></div>
+            <div><dt>Breeder XP</dt><dd>+{result.breederXpGain}</dd></div>
+          </dl>
+
+          {result.progressionEvents.length ? (
+            <section className={styles.progressionPanel}>
+              <h4>Progression Summary</h4>
+              <div className={styles.progressionList}>
+                {result.progressionEvents.map((event) => <ProgressionEventCard key={`${event.participantId}-${event.kind}`} event={event} />)}
+              </div>
+            </section>
+          ) : null}
+        </section>
+      </section>
+    </div>
   );
 }
 
@@ -431,40 +338,18 @@ function ProgressionEventCard({ event }: { event: BreedingProgressionEvent }) {
       <div className={styles.progressionHeader}>
         <img src={primaryIcon} alt="" className={styles.progressionIcon} />
         <div>
-          <strong>
-            {event.levelUps > 0
-              ? `${event.displayName} leveled up!`
-              : `${event.displayName} gained XP`}
-          </strong>
-          <span>
-            Level {event.levelBefore} → {event.levelAfter} • XP {event.xpBefore} → {event.xpAfter}/{event.xpToNextAfter}
-          </span>
+          <strong>{event.levelUps > 0 ? `${event.displayName} leveled up!` : `${event.displayName} gained XP`}</strong>
+          <span>Level {event.levelBefore} → {event.levelAfter} • XP {event.xpBefore} → {event.xpAfter}/{event.xpToNextAfter}</span>
         </div>
       </div>
 
       <div className={styles.progressionDetails}>
-        {event.levelUps > 0 ? (
-          <div className={styles.progressionDetail}>
-            <img src={PROGRESSION_ASSETS.level} alt="" />
-            <span>+{event.levelUps} level{event.levelUps === 1 ? "" : "s"}</span>
-          </div>
-        ) : null}
-
-        {statGrowth.length ? (
-          <div className={styles.progressionDetail}>
-            <img src={PROGRESSION_ASSETS.stat} alt="" />
-            <span>{statGrowth.join(", ")}</span>
-          </div>
-        ) : null}
-
+        {event.levelUps > 0 ? <div className={styles.progressionDetail}><img src={PROGRESSION_ASSETS.level} alt="" /><span>+{event.levelUps} level{event.levelUps === 1 ? "" : "s"}</span></div> : null}
+        {statGrowth.length ? <div className={styles.progressionDetail}><img src={PROGRESSION_ASSETS.stat} alt="" /><span>{statGrowth.join(", ")}</span></div> : null}
         {event.abilityTriggers.length ? (
           <div className={styles.progressionDetailWide}>
             <img src={PROGRESSION_ASSETS.ability} alt="" />
-            <ul>
-              {event.abilityTriggers.map((trigger, index) => (
-                <li key={`${event.participantId}-trigger-${index}`}>{trigger}</li>
-              ))}
-            </ul>
+            <ul>{event.abilityTriggers.map((trigger, index) => <li key={`${event.participantId}-trigger-${index}`}>{trigger}</li>)}</ul>
           </div>
         ) : null}
       </div>
@@ -472,42 +357,17 @@ function ProgressionEventCard({ event }: { event: BreedingProgressionEvent }) {
   );
 }
 
-function ParticipantInfoModal({
-  participant,
-  onClose,
-}: {
-  participant: BreedingParticipant;
-  onClose: () => void;
-}) {
+function ParticipantInfoModal({ participant, onClose }: { participant: BreedingParticipant; onClose: () => void }) {
   const xpPercent = getXpPercent(participant.xp, participant.xpToNext);
 
   return (
     <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
-      <section
-        className={styles.infoModal}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="participant-info-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          className={styles.closeModalButton}
-          onClick={onClose}
-          aria-label="Close participant details"
-        >
-          ×
-        </button>
+      <section className={styles.infoModal} role="dialog" aria-modal="true" aria-labelledby="participant-info-title" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className={styles.closeModalButton} onClick={onClose} aria-label="Close participant details">×</button>
 
         <div className={styles.infoModalGrid}>
           <div className={styles.infoModalArtWrap}>
-            <img
-              src={getParticipantProfile(participant)}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-              }}
-            />
+            <img src={getParticipantProfile(participant)} alt="" onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
           </div>
 
           <div className={styles.infoModalDetails}>
@@ -517,52 +377,27 @@ function ParticipantInfoModal({
             <p>{participant.description ?? "No profile description available yet."}</p>
 
             <div className={styles.modalResourceGrid}>
-              <div>
-                <span>Energy</span>
-                <strong>{formatEnergy(participant.energy, participant.maxEnergy)}</strong>
-              </div>
-              <div>
-                <span>Hearts</span>
-                <strong>{participant.hearts} / {participant.maxHearts}</strong>
-              </div>
-              <div>
-                <span>Affection</span>
-                <strong>{participant.affection}</strong>
-              </div>
-              <div>
-                <span>Level</span>
-                <strong>{participant.level ?? "—"}</strong>
-              </div>
+              <div><span>Energy</span><strong>{formatEnergy(participant.energy, participant.maxEnergy)}</strong></div>
+              <div><span>Hearts</span><strong>{participant.hearts} / {participant.maxHearts}</strong></div>
+              <div><span>Affection</span><strong>{participant.affection}</strong></div>
+              <div><span>Level</span><strong>{participant.level ?? "—"}</strong></div>
               <div>
                 <span>XP</span>
                 <strong>{formatXp(participant.xp, participant.xpToNext)}</strong>
-                <div className={styles.modalXpBar} aria-hidden="true">
-                  <i style={{ width: `${xpPercent}%` }} />
-                </div>
+                <div className={styles.modalXpBar} aria-hidden="true"><i style={{ width: `${xpPercent}%` }} /></div>
               </div>
             </div>
 
             {participant.stats ? (
               <div className={styles.modalStatGrid}>
-                {Object.entries(participant.stats).map(([statKey, value]) => (
-                  <div key={statKey}>
-                    <span>{STAT_LABELS[statKey as keyof typeof STAT_LABELS]}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
+                {Object.entries(participant.stats).map(([statKey, value]) => <div key={statKey}><span>{STAT_LABELS[statKey as keyof typeof STAT_LABELS]}</span><strong>{value}</strong></div>)}
               </div>
             ) : null}
 
             {participant.abilities?.length ? (
               <section className={styles.modalAbilityPanel}>
                 <h3>Abilities</h3>
-                {participant.abilities.map((ability) => (
-                  <article key={ability.id}>
-                    <strong>{ability.name}</strong>
-                    <span>Grade {ability.grade} • {ability.source}</span>
-                    <p>{ability.description}</p>
-                  </article>
-                ))}
+                {participant.abilities.map((ability) => <article key={ability.id}><strong>{ability.name}</strong><span>Grade {ability.grade} • {ability.source}</span><p>{ability.description}</p></article>)}
               </section>
             ) : null}
           </div>
