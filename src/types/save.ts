@@ -2,7 +2,7 @@ import type { BreedingState } from "./breeding";
 import type { GuildState } from "./guild";
 import type { MarketState } from "./market";
 import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
-import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord } from "./creature";
+import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "./creature";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -15,6 +15,7 @@ export type PlayerProfile = {
   breederXpToNext: number;
   ranchRank: number;
   stats: CreatureStats;
+  statGrades: StatGrades;
   hearts: number;
   maxHearts: number;
 };
@@ -56,6 +57,7 @@ export type InheritancePreview = {
   projectedSpeciesId: SpeciesId;
   projectedVariantId: VariantId;
   projectedStats: CreatureStats;
+  projectedStatGrades: StatGrades;
   projectedAbilities: CreatureAbility[];
   statRollNotes: string[];
   abilityRollNotes: string[];
@@ -90,6 +92,7 @@ export type EggRecord = {
     receiver: ParentSnapshot;
   };
   projectedStats: CreatureStats;
+  projectedStatGrades: StatGrades;
   projectedAbilities: CreatureAbility[];
   statRollNotes: string[];
   abilityRollNotes: string[];
