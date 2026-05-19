@@ -379,7 +379,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M7 — Guild Contracts",
+      buildPhase: "M8 — Breeding Progression",
       appScreen,
       activeHabitatFamily,
       currentSave,
