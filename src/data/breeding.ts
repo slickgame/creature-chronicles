@@ -24,13 +24,16 @@ const STAT_LABELS: Record<keyof CreatureStats, string> = {
   FER: "Fertility",
 };
 
+export function getCreatureMaxEnergyFromStats(stats: CreatureStats): number {
+  return 80 + stats.STA * 4;
+}
+
+export function getPlayerMaxEnergyFromStats(stats: CreatureStats): number {
+  return 450 + stats.STA * 10;
+}
+
 export function createDefaultBreedingState(): BreedingState {
-  return {
-    hearts: 0,
-    maxHearts: 0,
-    attempts: [],
-    streaks: [],
-  };
+  return { hearts: 0, maxHearts: 0, attempts: [], streaks: [] };
 }
 
 export function getPairKey(giverId: string, receiverId: string): string {
@@ -60,11 +63,16 @@ function normalizePlayer(player: PlayerProfile): PlayerProfile {
 
 function normalizeCreature(creature: CreatureRecord): CreatureRecord {
   const level = creature.level ?? 1;
+  const stats = creature.stats;
+  const maxEnergy = getCreatureMaxEnergyFromStats(stats);
+
   return {
     ...creature,
     level,
     xp: creature.xp ?? 0,
     xpToNext: creature.xpToNext ?? getCreatureXpToNext(level),
+    maxEnergy,
+    energy: Math.min(creature.energy ?? maxEnergy, maxEnergy),
     hearts: creature.hearts ?? 4,
     maxHearts: creature.maxHearts ?? 4,
   };
@@ -134,12 +142,8 @@ function summarizeAbilityEffects(abilities: CreatureAbility[] | undefined) {
     summary.breederXpGain += effect.breederXpGain ?? 0;
     summary.energyDiscount += effect.energyDiscount ?? 0;
     summary.affectionGain += effect.affectionGain ?? 0;
-
     if (effect.statGrowthBias) summary.statGrowthBiases.push(effect.statGrowthBias);
-
-    if (effect.pregnancyChance || effect.xpGain || effect.breederXpGain || effect.energyDiscount || effect.affectionGain || effect.statGrowthBias) {
-      summary.triggers.push(effect.label);
-    }
+    if (effect.pregnancyChance || effect.xpGain || effect.breederXpGain || effect.energyDiscount || effect.affectionGain || effect.statGrowthBias) summary.triggers.push(effect.label);
   }
 
   return summary;
@@ -155,14 +159,15 @@ function getStatValue(participant: BreedingParticipant | undefined, statKey: key
 
 export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
   const normalizedPlayer = normalizePlayer(save.player);
+  const playerMaxEnergy = getPlayerMaxEnergyFromStats(normalizedPlayer.stats);
   const player: BreedingParticipant = {
     participantId: PLAYER_PARTICIPANT_ID,
     kind: "player",
     displayName: normalizedPlayer.name,
     familyLabel: "Player",
     roleTags: ["giver", "receiver"],
-    energy: save.currencies.energy,
-    maxEnergy: save.currencies.maxEnergy,
+    energy: Math.min(save.currencies.energy, playerMaxEnergy),
+    maxEnergy: playerMaxEnergy,
     hearts: normalizedPlayer.hearts,
     maxHearts: normalizedPlayer.maxHearts,
     affection: 65,
@@ -213,7 +218,6 @@ export function getBreedingPreview(save: GameSave, giverId: string | null, recei
   const participants = getBreedingParticipants(save);
   const giver = participants.find((item) => item.participantId === giverId);
   const receiver = participants.find((item) => item.participantId === receiverId);
-
   if (!giver || !receiver) return null;
 
   const pairKey = getPairKey(giverId, receiverId);
@@ -265,9 +269,7 @@ export function getBreedingPreview(save: GameSave, giverId: string | null, recei
 function updateStreaks(state: BreedingState, pairKey: string, giverId: string, receiverId: string, dayNumber: number, outcome: "pregnancy" | "failed") {
   const previous = state.streaks.find((item) => item.pairKey === pairKey);
   const streakAfter = (previous?.streakCount ?? 0) + 1;
-  const unrelated = state.streaks.filter(
-    (item) => item.pairKey === pairKey || (!item.pairKey.includes(giverId) && !item.pairKey.includes(receiverId)),
-  );
+  const unrelated = state.streaks.filter((item) => item.pairKey === pairKey || (!item.pairKey.includes(giverId) && !item.pairKey.includes(receiverId)));
 
   return {
     streakBefore: previous?.streakCount ?? 0,
@@ -288,14 +290,12 @@ function deterministicRoll(seed: string): number {
 function rollStatGrowth(seed: string, levelUps: number, biases: Array<keyof CreatureStats>): Partial<CreatureStats> {
   const statGrowth: Partial<CreatureStats> = {};
   const rollsPerLevel = 2;
-
   for (let index = 0; index < levelUps * rollsPerLevel; index += 1) {
     const bias = biases.length ? biases[index % biases.length] : null;
     const roll = deterministicRoll(`${seed}_stat_${index}`);
     const statKey = bias && roll < 55 ? bias : STAT_KEYS[roll % STAT_KEYS.length];
     statGrowth[statKey] = (statGrowth[statKey] ?? 0) + 1;
   }
-
   return statGrowth;
 }
 
@@ -337,7 +337,9 @@ function progressCreature(creature: CreatureRecord, xpGain: number, seed: string
   }
 
   const statGrowth = levelUps > 0 ? rollStatGrowth(seed, levelUps, effects.statGrowthBiases) : {};
-  const energyGrowth = levelUps > 0 ? levelUps * 4 + (statGrowth.STA ?? 0) * 2 : 0;
+  const nextStats = applyStatGrowth(normalized.stats, statGrowth);
+  const nextMaxEnergy = getCreatureMaxEnergyFromStats(nextStats);
+  const energyDelta = nextMaxEnergy - normalized.maxEnergy;
   const heartGrowth = getHeartMilestoneGain(beforeLevel, level, 5);
   const abilityTriggers = [...effects.triggers];
 
@@ -345,7 +347,7 @@ function progressCreature(creature: CreatureRecord, xpGain: number, seed: string
     abilityTriggers.push(`${normalized.nickname} leveled up ${levelUps} time${levelUps === 1 ? "" : "s"}.`);
     const growthText = formatStatGrowth(statGrowth);
     if (growthText.length) abilityTriggers.push(`Stat growth: ${growthText.join(", ")}.`);
-    if (energyGrowth > 0) abilityTriggers.push(`Max Energy increased by ${energyGrowth}.`);
+    if (energyDelta !== 0) abilityTriggers.push(`Max Energy recalculated from Stamina: ${normalized.maxEnergy} → ${nextMaxEnergy}.`);
     if (heartGrowth > 0) abilityTriggers.push(`Max Hearts increased by ${heartGrowth}.`);
   }
 
@@ -355,8 +357,9 @@ function progressCreature(creature: CreatureRecord, xpGain: number, seed: string
       level,
       xp,
       xpToNext,
-      stats: applyStatGrowth(normalized.stats, statGrowth),
-      maxEnergy: normalized.maxEnergy + energyGrowth,
+      stats: nextStats,
+      maxEnergy: nextMaxEnergy,
+      energy: Math.min(normalized.energy, nextMaxEnergy),
       maxHearts: normalized.maxHearts + heartGrowth,
       affection: Math.min(100, normalized.affection + 2 + effects.affectionGain),
     },
@@ -377,7 +380,7 @@ function progressCreature(creature: CreatureRecord, xpGain: number, seed: string
   };
 }
 
-function progressPlayer(player: PlayerProfile, xpGain: number, seed: string): { player: PlayerProfile; event: BreedingProgressionEvent; energyGrowth: number } {
+function progressPlayer(player: PlayerProfile, xpGain: number, seed: string): { player: PlayerProfile; event: BreedingProgressionEvent; maxEnergyAfter: number } {
   const normalized = normalizePlayer(player);
   const beforeLevel = normalized.breederRank;
   const beforeXp = normalized.breederXp;
@@ -395,7 +398,9 @@ function progressPlayer(player: PlayerProfile, xpGain: number, seed: string): { 
   }
 
   const statGrowth = levelUps > 0 ? rollStatGrowth(`${seed}_player`, levelUps, ["CHA", "FER", "WIL"]) : {};
-  const energyGrowth = levelUps > 0 ? levelUps * 10 + (statGrowth.STA ?? 0) * 3 : 0;
+  const nextStats = applyStatGrowth(normalized.stats, statGrowth);
+  const maxEnergyBefore = getPlayerMaxEnergyFromStats(normalized.stats);
+  const maxEnergyAfter = getPlayerMaxEnergyFromStats(nextStats);
   const heartGrowth = getHeartMilestoneGain(beforeLevel, level, 3);
   const abilityTriggers: string[] = [];
 
@@ -403,7 +408,7 @@ function progressPlayer(player: PlayerProfile, xpGain: number, seed: string): { 
     abilityTriggers.push(`Breeder Rank increased to ${level}.`);
     const growthText = formatStatGrowth(statGrowth);
     if (growthText.length) abilityTriggers.push(`Player stat growth: ${growthText.join(", ")}.`);
-    if (energyGrowth > 0) abilityTriggers.push(`Player Max Energy increased by ${energyGrowth}.`);
+    if (maxEnergyAfter !== maxEnergyBefore) abilityTriggers.push(`Player Max Energy recalculated from Stamina: ${maxEnergyBefore} → ${maxEnergyAfter}.`);
     if (heartGrowth > 0) abilityTriggers.push(`Player Max Hearts increased by ${heartGrowth}.`);
   }
 
@@ -413,7 +418,7 @@ function progressPlayer(player: PlayerProfile, xpGain: number, seed: string): { 
       breederRank: level,
       breederXp: xp,
       breederXpToNext: xpToNext,
-      stats: applyStatGrowth(normalized.stats, statGrowth),
+      stats: nextStats,
       maxHearts: normalized.maxHearts + heartGrowth,
     },
     event: {
@@ -430,13 +435,25 @@ function progressPlayer(player: PlayerProfile, xpGain: number, seed: string): { 
       statGrowth,
       abilityTriggers,
     },
-    energyGrowth,
+    maxEnergyAfter,
   };
 }
 
 export function performBreedingAttempt(save: GameSave, giverId: string, receiverId: string): { save: GameSave; attempt: BreedingAttemptRecord } | null {
   const breeding = save.breeding ?? createDefaultBreedingState();
-  const normalizedSave = { ...save, player: normalizePlayer(save.player), creatures: (save.creatures ?? []).map(normalizeCreature), breeding };
+  const normalizedPlayer = normalizePlayer(save.player);
+  const playerMaxEnergy = getPlayerMaxEnergyFromStats(normalizedPlayer.stats);
+  const normalizedSave = {
+    ...save,
+    player: normalizedPlayer,
+    currencies: {
+      ...save.currencies,
+      maxEnergy: playerMaxEnergy,
+      energy: Math.min(save.currencies.energy, playerMaxEnergy),
+    },
+    creatures: (save.creatures ?? []).map(normalizeCreature),
+    breeding,
+  };
   const preview = getBreedingPreview(normalizedSave, giverId, receiverId);
   if (!preview || !preview.canAttempt) return null;
 
@@ -448,27 +465,18 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
   const participants = getBreedingParticipants(normalizedSave);
   const giver = participants.find((item) => item.participantId === giverId);
   const receiver = participants.find((item) => item.participantId === receiverId);
-  const resultText = outcome === "pregnancy"
-    ? `${receiver?.displayName ?? "Receiver"} shows promising signs. Pregnancy will create an egg after sleep.`
-    : `${giver?.displayName ?? "Giver"} and ${receiver?.displayName ?? "Receiver"} bonded, but no pregnancy occurred.`;
+  const resultText = outcome === "pregnancy" ? `${receiver?.displayName ?? "Receiver"} shows promising signs. Pregnancy will create an egg after sleep.` : `${giver?.displayName ?? "Giver"} and ${receiver?.displayName ?? "Receiver"} bonded, but no pregnancy occurred.`;
 
   const shouldUpdatePlayer = giverId === PLAYER_PARTICIPANT_ID || receiverId === PLAYER_PARTICIPANT_ID;
   const playerProgress = shouldUpdatePlayer ? progressPlayer(normalizedSave.player, preview.breederXpGain, `${save.saveId}_${attemptId}`) : null;
   const progressionEvents: BreedingProgressionEvent[] = [];
-
   if (playerProgress) progressionEvents.push(playerProgress.event);
 
   const updatedCreatures = (normalizedSave.creatures ?? []).map((creature) => {
     if (creature.creatureId !== giverId && creature.creatureId !== receiverId) return creature;
-
     const progressed = progressCreature(creature, preview.xpGain, `${save.saveId}_${attemptId}_${creature.creatureId}`);
     progressionEvents.push(progressed.event);
-
-    return {
-      ...progressed.creature,
-      energy: Math.max(0, progressed.creature.energy - preview.energyCost),
-      hearts: Math.max(0, (progressed.creature.hearts ?? 4) - preview.heartCost),
-    };
+    return { ...progressed.creature, energy: Math.max(0, progressed.creature.energy - preview.energyCost), hearts: Math.max(0, (progressed.creature.hearts ?? 4) - preview.heartCost) };
   });
 
   const pregnancy = outcome === "pregnancy" && giver && receiver ? createPregnancyRecord(normalizedSave, giver, receiver, `${save.saveId}_${attemptId}`) : null;
@@ -491,18 +499,16 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
     createdAt: new Date().toISOString(),
   };
 
-  const nextMaxEnergy = normalizedSave.currencies.maxEnergy + (playerProgress?.energyGrowth ?? 0);
+  const maxEnergyAfter = playerProgress?.maxEnergyAfter ?? normalizedSave.currencies.maxEnergy;
 
   return {
     save: {
       ...normalizedSave,
-      player: playerProgress
-        ? { ...playerProgress.player, hearts: Math.max(0, (playerProgress.player.hearts ?? 4) - preview.heartCost) }
-        : normalizedSave.player,
+      player: playerProgress ? { ...playerProgress.player, hearts: Math.max(0, (playerProgress.player.hearts ?? 4) - preview.heartCost) } : normalizedSave.player,
       currencies: {
         ...normalizedSave.currencies,
-        maxEnergy: nextMaxEnergy,
-        energy: shouldUpdatePlayer ? Math.max(0, normalizedSave.currencies.energy - preview.energyCost) : normalizedSave.currencies.energy,
+        maxEnergy: maxEnergyAfter,
+        energy: shouldUpdatePlayer ? Math.max(0, normalizedSave.currencies.energy - preview.energyCost) : Math.min(normalizedSave.currencies.energy, maxEnergyAfter),
       },
       creatures: updatedCreatures,
       pregnancies: pregnancy ? [pregnancy, ...(normalizedSave.pregnancies ?? [])] : (normalizedSave.pregnancies ?? []),
@@ -514,6 +520,7 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
         m4BreedingAttempted: true,
         m5PregnancyCreated: pregnancy ? true : (normalizedSave.flags.m5PregnancyCreated ?? false),
         m8BreedingProgression: true,
+        m8EnergyFromStamina: true,
         lastBreedingOutcome: outcome,
       },
     },
