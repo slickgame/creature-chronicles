@@ -1,10 +1,27 @@
 import { CREATURE_PLACEHOLDER_IMAGE, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { createPregnancyRecord } from "@/data/nursery";
-import type { BreedingAttemptRecord, BreedingParticipant, BreedingPreview, BreedingState } from "@/types/breeding";
+import type {
+  BreedingAttemptRecord,
+  BreedingParticipant,
+  BreedingPreview,
+  BreedingProgressionEvent,
+  BreedingState,
+} from "@/types/breeding";
+import type { CreatureAbility, CreatureRecord, CreatureStats } from "@/types/creature";
 import type { BreedingAttemptId, CreatureId } from "@/types/ids";
-import type { GameSave } from "@/types/save";
+import type { GameSave, PlayerProfile } from "@/types/save";
 
 export const PLAYER_PARTICIPANT_ID = "player";
+
+const STAT_KEYS: Array<keyof CreatureStats> = ["STR", "DEX", "STA", "CHA", "WIL", "FER"];
+const STAT_LABELS: Record<keyof CreatureStats, string> = {
+  STR: "Strength",
+  DEX: "Dexterity",
+  STA: "Stamina",
+  CHA: "Charm",
+  WIL: "Willpower",
+  FER: "Fertility",
+};
 
 export function createDefaultBreedingState(): BreedingState {
   return {
@@ -19,26 +36,211 @@ export function getPairKey(giverId: string, receiverId: string): string {
   return [giverId, receiverId].sort().join("__");
 }
 
+function getCreatureXpToNext(level: number): number {
+  return 45 + level * 30;
+}
+
+function getBreederXpToNext(level: number): number {
+  return 70 + level * 45;
+}
+
+function normalizePlayer(player: PlayerProfile): PlayerProfile {
+  const breederRank = player.breederRank ?? 1;
+  return {
+    ...player,
+    breederRank,
+    breederXp: player.breederXp ?? 0,
+    breederXpToNext: player.breederXpToNext ?? getBreederXpToNext(breederRank),
+    hearts: player.hearts ?? 4,
+    maxHearts: player.maxHearts ?? 4,
+  };
+}
+
+function normalizeCreature(creature: CreatureRecord): CreatureRecord {
+  const level = creature.level ?? 1;
+  return {
+    ...creature,
+    level,
+    xp: creature.xp ?? 0,
+    xpToNext: creature.xpToNext ?? getCreatureXpToNext(level),
+    hearts: creature.hearts ?? 4,
+    maxHearts: creature.maxHearts ?? 4,
+  };
+}
+
+function gradeMultiplier(grade: CreatureAbility["grade"]): number {
+  if (grade === "S") return 1.6;
+  if (grade === "A") return 1.35;
+  if (grade === "B") return 1.15;
+  if (grade === "C") return 1;
+  if (grade === "D") return 0.8;
+  return 0.65;
+}
+
+function getAbilityEffect(ability: CreatureAbility) {
+  const multiplier = gradeMultiplier(ability.grade);
+
+  switch (ability.id) {
+    case "feline_grace":
+      return {
+        pregnancyChance: Math.round(3 * multiplier),
+        xpGain: Math.round(4 * multiplier),
+        affectionGain: 1,
+        label: `${ability.name} improved bonding XP and pregnancy odds.`,
+      };
+    case "steady_purr":
+      return {
+        pregnancyChance: Math.round(2 * multiplier),
+        affectionGain: 2,
+        label: `${ability.name} improved comfort and affection gain.`,
+      };
+    case "ancient_poise":
+      return {
+        pregnancyChance: Math.round(5 * multiplier),
+        breederXpGain: Math.round(5 * multiplier),
+        label: `${ability.name} stabilized the pairing and improved breeder insight.`,
+      };
+    case "sun_warmed":
+      return {
+        energyDiscount: Math.round(3 * multiplier),
+        affectionGain: 1,
+        label: `${ability.name} reduced the energy cost slightly.`,
+      };
+    case "pack_loyalty":
+      return {
+        pregnancyChance: Math.round(2 * multiplier),
+        breederXpGain: Math.round(7 * multiplier),
+        label: `${ability.name} improved pair cooperation and breeder XP.`,
+      };
+    case "steady_companion":
+      return {
+        energyDiscount: Math.round(4 * multiplier),
+        xpGain: Math.round(2 * multiplier),
+        label: `${ability.name} reduced energy cost and improved reliable practice XP.`,
+      };
+    case "alpha_bond":
+      return {
+        pregnancyChance: Math.round(6 * multiplier),
+        breederXpGain: Math.round(6 * multiplier),
+        label: `${ability.name} boosted leadership synergy for the pairing.`,
+      };
+    case "winter_coat":
+      return {
+        energyDiscount: Math.round(2 * multiplier),
+        label: `${ability.name} lowered stamina strain during the attempt.`,
+      };
+    case "ember_blood":
+      return {
+        xpGain: Math.round(6 * multiplier),
+        statGrowthBias: "STR" as keyof CreatureStats,
+        label: `${ability.name} intensified growth training from the attempt.`,
+      };
+    case "infernal_focus":
+      return {
+        pregnancyChance: Math.round(3 * multiplier),
+        xpGain: Math.round(3 * multiplier),
+        label: `${ability.name} improved consistency under pressure.`,
+      };
+    case "tiger_instinct":
+      return {
+        xpGain: Math.round(5 * multiplier),
+        statGrowthBias: "STR" as keyof CreatureStats,
+        label: `${ability.name} increased physical growth potential.`,
+      };
+    case "apex_pounce":
+      return {
+        energyDiscount: Math.round(2 * multiplier),
+        statGrowthBias: "DEX" as keyof CreatureStats,
+        label: `${ability.name} made the session more efficient.`,
+      };
+    case "guard_instinct":
+      return {
+        breederXpGain: Math.round(3 * multiplier),
+        statGrowthBias: "WIL" as keyof CreatureStats,
+        label: `${ability.name} improved discipline and breeder insight.`,
+      };
+    case "soft_step":
+      return {
+        energyDiscount: Math.round(2 * multiplier),
+        statGrowthBias: "DEX" as keyof CreatureStats,
+        label: `${ability.name} reduced effort through careful movement.`,
+      };
+    default:
+      return {
+        label: `${ability.name} was noted, but has no M8 breeding effect yet.`,
+      };
+  }
+}
+
+function summarizeAbilityEffects(abilities: CreatureAbility[] | undefined) {
+  const summary = {
+    pregnancyChance: 0,
+    xpGain: 0,
+    breederXpGain: 0,
+    energyDiscount: 0,
+    affectionGain: 0,
+    statGrowthBiases: [] as Array<keyof CreatureStats>,
+    triggers: [] as string[],
+  };
+
+  for (const ability of abilities ?? []) {
+    const effect = getAbilityEffect(ability);
+    summary.pregnancyChance += effect.pregnancyChance ?? 0;
+    summary.xpGain += effect.xpGain ?? 0;
+    summary.breederXpGain += effect.breederXpGain ?? 0;
+    summary.energyDiscount += effect.energyDiscount ?? 0;
+    summary.affectionGain += effect.affectionGain ?? 0;
+
+    if (effect.statGrowthBias) {
+      summary.statGrowthBiases.push(effect.statGrowthBias);
+    }
+
+    if (
+      effect.pregnancyChance ||
+      effect.xpGain ||
+      effect.breederXpGain ||
+      effect.energyDiscount ||
+      effect.affectionGain ||
+      effect.statGrowthBias
+    ) {
+      summary.triggers.push(effect.label);
+    }
+  }
+
+  return summary;
+}
+
+function getParticipantAbilities(participant: BreedingParticipant | undefined) {
+  return participant?.abilities ?? [];
+}
+
+function getStatValue(participant: BreedingParticipant | undefined, statKey: keyof CreatureStats, fallback = 5): number {
+  return participant?.stats?.[statKey] ?? fallback;
+}
+
 export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
+  const normalizedPlayer = normalizePlayer(save.player);
   const player: BreedingParticipant = {
     participantId: PLAYER_PARTICIPANT_ID,
     kind: "player",
-    displayName: save.player.name,
+    displayName: normalizedPlayer.name,
     familyLabel: "Player",
     roleTags: ["giver", "receiver"],
     energy: save.currencies.energy,
     maxEnergy: save.currencies.maxEnergy,
-    hearts: save.player.hearts ?? 4,
-    maxHearts: save.player.maxHearts ?? 4,
+    hearts: normalizedPlayer.hearts,
+    maxHearts: normalizedPlayer.maxHearts,
     affection: 65,
-    level: save.player.breederRank,
-    xp: 0,
-    description: "The player character can participate in breeding pair selection and uses personal Hearts.",
-    portraitPath: "/images/ui/icons/icon_paw_crest.png",
-    profilePath: "/images/ui/icons/icon_paw_crest.png",
+    level: normalizedPlayer.breederRank,
+    xp: normalizedPlayer.breederXp,
+    xpToNext: normalizedPlayer.breederXpToNext,
+    description: "The player character can participate in breeding pair selection and gains Breeder XP from each attempt.",
+    portraitPath: "/images/ui/icons/icon_breeder_level.png",
+    profilePath: "/images/ui/icons/icon_breeder_level.png",
   };
 
-  const creatures = (save.creatures ?? []).map((creature) => {
+  const creatures = (save.creatures ?? []).map((sourceCreature) => {
+    const creature = normalizeCreature(sourceCreature);
     const variant = getVariantDefinition(creature.variantId);
     const species = getSpeciesDefinition(variant.speciesId);
 
@@ -51,11 +253,12 @@ export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
       roleTags: ["giver", "receiver"] as const,
       energy: creature.energy,
       maxEnergy: creature.maxEnergy,
-      hearts: creature.hearts ?? 4,
-      maxHearts: creature.maxHearts ?? 4,
+      hearts: creature.hearts,
+      maxHearts: creature.maxHearts,
       affection: creature.affection,
       level: creature.level,
       xp: creature.xp,
+      xpToNext: creature.xpToNext,
       stats: creature.stats,
       abilities: creature.abilities,
       description: variant.description,
@@ -84,13 +287,24 @@ export function getBreedingPreview(save: GameSave, giverId: string | null, recei
   const pairKey = getPairKey(giverId, receiverId);
   const streakRecord = breeding.streaks.find((item) => item.pairKey === pairKey);
   const streakCount = streakRecord?.streakCount ?? 0;
+  const giverEffects = summarizeAbilityEffects(getParticipantAbilities(giver));
+  const receiverEffects = summarizeAbilityEffects(getParticipantAbilities(receiver));
   const baseChance = 12;
   const streakBonus = Math.min(30, streakCount * 6);
   const affectionBonus = Math.floor((giver.affection + receiver.affection) / 40);
-  const pregnancyChance = Math.min(75, baseChance + streakBonus + affectionBonus);
-  const energyCost = 35;
+  const fertilityBonus = Math.floor((getStatValue(giver, "FER") + getStatValue(receiver, "FER")) / 3);
+  const charmBonus = Math.floor((getStatValue(giver, "CHA") + getStatValue(receiver, "CHA")) / 6);
+  const abilityBonus = giverEffects.pregnancyChance + receiverEffects.pregnancyChance;
+  const pregnancyChance = Math.min(85, baseChance + streakBonus + affectionBonus + fertilityBonus + charmBonus + abilityBonus);
+  const staminaDiscount = Math.floor((getStatValue(giver, "STA") + getStatValue(receiver, "STA")) / 6);
+  const energyDiscount = Math.min(18, staminaDiscount + giverEffects.energyDiscount + receiverEffects.energyDiscount);
+  const energyCost = Math.max(15, 35 - energyDiscount);
   const heartCost = receiver.kind === "player" || giver.kind === "player" ? 2 : 1;
-  const xpGain = 8 + streakCount * 2;
+  const willpowerBonus = Math.floor((getStatValue(giver, "WIL") + getStatValue(receiver, "WIL")) / 5);
+  const dexterityBonus = Math.floor((getStatValue(giver, "DEX") + getStatValue(receiver, "DEX")) / 7);
+  const xpGain = 8 + streakCount * 2 + willpowerBonus + dexterityBonus + giverEffects.xpGain + receiverEffects.xpGain;
+  const breederXpGain = 10 + Math.floor(xpGain / 2) + giverEffects.breederXpGain + receiverEffects.breederXpGain;
+  const abilityTriggers = [...giverEffects.triggers, ...receiverEffects.triggers];
 
   let blockedReason: string | null = null;
 
@@ -105,10 +319,15 @@ export function getBreedingPreview(save: GameSave, giverId: string | null, recei
     pregnancyChance,
     baseChance,
     streakBonus,
+    affectionBonus,
+    abilityBonus,
+    energyDiscount,
     streakCount,
     energyCost,
     heartCost,
     xpGain,
+    breederXpGain,
+    abilityTriggers,
     canAttempt: blockedReason === null,
     blockedReason,
   };
@@ -148,9 +367,141 @@ function deterministicRoll(seed: string): number {
   return hash % 100;
 }
 
+function rollStatGrowth(seed: string, levelUps: number, biases: Array<keyof CreatureStats>): Partial<CreatureStats> {
+  const statGrowth: Partial<CreatureStats> = {};
+
+  for (let index = 0; index < levelUps; index += 1) {
+    const bias = biases[index % Math.max(1, biases.length)];
+    const roll = deterministicRoll(`${seed}_stat_${index}`);
+    const statKey = bias && roll < 55 ? bias : STAT_KEYS[roll % STAT_KEYS.length];
+    statGrowth[statKey] = (statGrowth[statKey] ?? 0) + 1;
+  }
+
+  return statGrowth;
+}
+
+function applyStatGrowth(stats: CreatureStats, growth: Partial<CreatureStats>): CreatureStats {
+  return {
+    STR: stats.STR + (growth.STR ?? 0),
+    DEX: stats.DEX + (growth.DEX ?? 0),
+    STA: stats.STA + (growth.STA ?? 0),
+    CHA: stats.CHA + (growth.CHA ?? 0),
+    WIL: stats.WIL + (growth.WIL ?? 0),
+    FER: stats.FER + (growth.FER ?? 0),
+  };
+}
+
+function formatStatGrowth(growth: Partial<CreatureStats>) {
+  return Object.entries(growth).map(([key, value]) => `+${value} ${STAT_LABELS[key as keyof CreatureStats]}`);
+}
+
+function progressCreature(creature: CreatureRecord, xpGain: number, seed: string): { creature: CreatureRecord; event: BreedingProgressionEvent } {
+  const normalized = normalizeCreature(creature);
+  const beforeLevel = normalized.level;
+  const beforeXp = normalized.xp;
+  const beforeXpToNext = normalized.xpToNext;
+  const effects = summarizeAbilityEffects(normalized.abilities);
+  let level = normalized.level;
+  let xp = normalized.xp + xpGain;
+  let xpToNext = normalized.xpToNext;
+  let levelUps = 0;
+
+  while (xp >= xpToNext) {
+    xp -= xpToNext;
+    level += 1;
+    levelUps += 1;
+    xpToNext = getCreatureXpToNext(level);
+  }
+
+  const statGrowth = levelUps > 0 ? rollStatGrowth(seed, levelUps, effects.statGrowthBiases) : {};
+  const abilityTriggers = [...effects.triggers];
+
+  if (levelUps > 0) {
+    abilityTriggers.push(`${normalized.nickname} leveled up ${levelUps} time${levelUps === 1 ? "" : "s"}.`);
+    const growthText = formatStatGrowth(statGrowth);
+    if (growthText.length) {
+      abilityTriggers.push(`Stat growth: ${growthText.join(", ")}.`);
+    }
+  }
+
+  return {
+    creature: {
+      ...normalized,
+      level,
+      xp,
+      xpToNext,
+      stats: applyStatGrowth(normalized.stats, statGrowth),
+      affection: Math.min(100, normalized.affection + 2 + effects.affectionGain),
+    },
+    event: {
+      participantId: normalized.creatureId,
+      displayName: normalized.nickname,
+      kind: "creature",
+      xpBefore: beforeXp,
+      xpAfter: xp,
+      xpToNextBefore: beforeXpToNext,
+      xpToNextAfter: xpToNext,
+      levelBefore: beforeLevel,
+      levelAfter: level,
+      levelUps,
+      statGrowth,
+      abilityTriggers,
+    },
+  };
+}
+
+function progressPlayer(player: PlayerProfile, xpGain: number): { player: PlayerProfile; event: BreedingProgressionEvent } {
+  const normalized = normalizePlayer(player);
+  const beforeLevel = normalized.breederRank;
+  const beforeXp = normalized.breederXp;
+  const beforeXpToNext = normalized.breederXpToNext;
+  let level = normalized.breederRank;
+  let xp = normalized.breederXp + xpGain;
+  let xpToNext = normalized.breederXpToNext;
+  let levelUps = 0;
+
+  while (xp >= xpToNext) {
+    xp -= xpToNext;
+    level += 1;
+    levelUps += 1;
+    xpToNext = getBreederXpToNext(level);
+  }
+
+  const event: BreedingProgressionEvent = {
+    participantId: PLAYER_PARTICIPANT_ID,
+    displayName: normalized.name,
+    kind: "player",
+    xpBefore: beforeXp,
+    xpAfter: xp,
+    xpToNextBefore: beforeXpToNext,
+    xpToNextAfter: xpToNext,
+    levelBefore: beforeLevel,
+    levelAfter: level,
+    levelUps,
+    statGrowth: {},
+    abilityTriggers: levelUps > 0 ? [`Breeder Rank increased to ${level}.`] : [],
+  };
+
+  return {
+    player: {
+      ...normalized,
+      breederRank: level,
+      breederXp: xp,
+      breederXpToNext: xpToNext,
+    },
+    event,
+  };
+}
+
 export function performBreedingAttempt(save: GameSave, giverId: string, receiverId: string): { save: GameSave; attempt: BreedingAttemptRecord } | null {
   const breeding = save.breeding ?? createDefaultBreedingState();
-  const preview = getBreedingPreview({ ...save, breeding }, giverId, receiverId);
+  const normalizedSave = {
+    ...save,
+    player: normalizePlayer(save.player),
+    creatures: (save.creatures ?? []).map(normalizeCreature),
+    breeding,
+  };
+  const preview = getBreedingPreview(normalizedSave, giverId, receiverId);
 
   if (!preview || !preview.canAttempt) {
     return null;
@@ -161,12 +512,39 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
   const roll = deterministicRoll(`${save.saveId}_${attemptId}_${giverId}_${receiverId}`);
   const outcome = roll < preview.pregnancyChance ? "pregnancy" : "failed";
   const streakUpdate = updateStreaks(breeding, preview.pairKey, giverId, receiverId, save.dayState.dayNumber, outcome);
-  const participants = getBreedingParticipants(save);
+  const participants = getBreedingParticipants(normalizedSave);
   const giver = participants.find((item) => item.participantId === giverId);
   const receiver = participants.find((item) => item.participantId === receiverId);
   const resultText = outcome === "pregnancy"
     ? `${receiver?.displayName ?? "Receiver"} shows promising signs. Pregnancy will create an egg after sleep.`
     : `${giver?.displayName ?? "Giver"} and ${receiver?.displayName ?? "Receiver"} bonded, but no pregnancy occurred.`;
+
+  const shouldUpdatePlayer = giverId === PLAYER_PARTICIPANT_ID || receiverId === PLAYER_PARTICIPANT_ID;
+  const playerProgress = progressPlayer(normalizedSave.player, preview.breederXpGain);
+  const progressionEvents: BreedingProgressionEvent[] = [];
+
+  if (shouldUpdatePlayer) {
+    progressionEvents.push(playerProgress.event);
+  }
+
+  const updatedCreatures = (normalizedSave.creatures ?? []).map((creature) => {
+    if (creature.creatureId !== giverId && creature.creatureId !== receiverId) {
+      return creature;
+    }
+
+    const progressed = progressCreature(creature, preview.xpGain, `${save.saveId}_${attemptId}_${creature.creatureId}`);
+    progressionEvents.push(progressed.event);
+
+    return {
+      ...progressed.creature,
+      energy: Math.max(0, progressed.creature.energy - preview.energyCost),
+      hearts: Math.max(0, (progressed.creature.hearts ?? 4) - preview.heartCost),
+    };
+  });
+
+  const pregnancy = outcome === "pregnancy" && giver && receiver
+    ? createPregnancyRecord(normalizedSave, giver, receiver, `${save.saveId}_${attemptId}`)
+    : null;
 
   const attempt: BreedingAttemptRecord = {
     attemptId,
@@ -177,44 +555,31 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
     energyCost: preview.energyCost,
     heartCost: preview.heartCost,
     xpGain: preview.xpGain,
+    breederXpGain: preview.breederXpGain,
     streakBefore: streakUpdate.streakBefore,
     streakAfter: streakUpdate.streakAfter,
     outcome,
     resultText,
+    progressionEvents,
     createdAt: new Date().toISOString(),
   };
 
-  const shouldUpdatePlayer = giverId === PLAYER_PARTICIPANT_ID || receiverId === PLAYER_PARTICIPANT_ID;
-  const pregnancy = outcome === "pregnancy" && giver && receiver
-    ? createPregnancyRecord(save, giver, receiver, `${save.saveId}_${attemptId}`)
-    : null;
-
   return {
     save: {
-      ...save,
+      ...normalizedSave,
       player: shouldUpdatePlayer
         ? {
-            ...save.player,
-            hearts: Math.max(0, (save.player.hearts ?? 4) - preview.heartCost),
+            ...playerProgress.player,
+            hearts: Math.max(0, (playerProgress.player.hearts ?? 4) - preview.heartCost),
           }
-        : save.player,
+        : normalizedSave.player,
       currencies: {
-        ...save.currencies,
-        energy: shouldUpdatePlayer ? Math.max(0, save.currencies.energy - preview.energyCost) : save.currencies.energy,
+        ...normalizedSave.currencies,
+        energy: shouldUpdatePlayer ? Math.max(0, normalizedSave.currencies.energy - preview.energyCost) : normalizedSave.currencies.energy,
       },
-      creatures: (save.creatures ?? []).map((creature) =>
-        creature.creatureId === giverId || creature.creatureId === receiverId
-          ? {
-              ...creature,
-              energy: Math.max(0, creature.energy - preview.energyCost),
-              hearts: Math.max(0, (creature.hearts ?? 4) - preview.heartCost),
-              xp: creature.xp + preview.xpGain,
-              affection: Math.min(100, creature.affection + 2),
-            }
-          : creature,
-      ),
-      pregnancies: pregnancy ? [pregnancy, ...(save.pregnancies ?? [])] : (save.pregnancies ?? []),
-      eggs: save.eggs ?? [],
+      creatures: updatedCreatures,
+      pregnancies: pregnancy ? [pregnancy, ...(normalizedSave.pregnancies ?? [])] : (normalizedSave.pregnancies ?? []),
+      eggs: normalizedSave.eggs ?? [],
       breeding: {
         hearts: 0,
         maxHearts: 0,
@@ -222,13 +587,19 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
         streaks: streakUpdate.streaks,
       },
       flags: {
-        ...save.flags,
+        ...normalizedSave.flags,
         breedingUnlocked: true,
         m4BreedingAttempted: true,
-        m5PregnancyCreated: pregnancy ? true : (save.flags.m5PregnancyCreated ?? false),
+        m5PregnancyCreated: pregnancy ? true : (normalizedSave.flags.m5PregnancyCreated ?? false),
+        m8BreedingProgression: true,
         lastBreedingOutcome: outcome,
       },
     },
     attempt,
   };
+}
+
+export function getXpBarPercent(xp: number | undefined, xpToNext: number | undefined): number {
+  if (!xpToNext || xpToNext <= 0) return 0;
+  return Math.max(0, Math.min(100, Math.round(((xp ?? 0) / xpToNext) * 100)));
 }
