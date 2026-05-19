@@ -26,6 +26,14 @@ function canUseStorage(): boolean {
   return typeof window !== "undefined" && Boolean(window.localStorage);
 }
 
+function getCreatureXpToNext(level: number): number {
+  return 45 + level * 30;
+}
+
+function getBreederXpToNext(level: number): number {
+  return 70 + level * 45;
+}
+
 export function createDefaultSettings(): SettingsState {
   return {
     musicVolume: 70,
@@ -35,9 +43,14 @@ export function createDefaultSettings(): SettingsState {
   };
 }
 
-function ensureCreatureHearts(creature: CreatureRecord): CreatureRecord {
+function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
+  const level = creature.level ?? 1;
+
   return {
     ...creature,
+    level,
+    xp: creature.xp ?? 0,
+    xpToNext: creature.xpToNext ?? getCreatureXpToNext(level),
     hearts: creature.hearts ?? 4,
     maxHearts: creature.maxHearts ?? 4,
   };
@@ -47,7 +60,7 @@ function createCreatureFromStarterTemplate(ownerSaveId: SaveId, starter: Creatur
   const variant = getVariantDefinition(starter.variantId);
   const species = getSpeciesDefinition(variant.speciesId);
 
-  return ensureCreatureHearts({
+  return ensureCreatureProgression({
     ...starter,
     ownerSaveId,
     speciesId: species.speciesId,
@@ -70,7 +83,7 @@ function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): C
       (item) => item.creatureId === ("creature_starter_feline" as CreatureId),
     );
 
-    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureHearts(creature);
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureProgression(creature);
   }
 
   if (creature.creatureId === ("creature_starter_hellhound" as CreatureId)) {
@@ -78,14 +91,14 @@ function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): C
       (item) => item.creatureId === ("creature_starter_canine" as CreatureId),
     );
 
-    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureHearts(creature);
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureProgression(creature);
   }
 
   const normalizedVariantId = normalizeVariantId(creature.variantId as VariantId);
   const variant = getVariantDefinition(normalizedVariantId);
   const species = getSpeciesDefinition(variant.speciesId);
 
-  return ensureCreatureHearts({
+  return ensureCreatureProgression({
     ...creature,
     ownerSaveId,
     speciesId: species.speciesId,
@@ -125,12 +138,16 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
     return habitat;
   });
   const eggs = save.eggs ?? [];
+  const breederRank = save.player.breederRank ?? 1;
 
   const migratedSave: GameSave = {
     ...save,
     version: MVP_VERSION,
     player: {
       ...save.player,
+      breederRank,
+      breederXp: save.player.breederXp ?? 0,
+      breederXpToNext: save.player.breederXpToNext ?? getBreederXpToNext(breederRank),
       hearts: save.player.hearts ?? 4,
       maxHearts: save.player.maxHearts ?? 4,
     },
@@ -153,6 +170,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m5NurseryStateCreated: true,
       m6MarketStateCreated: true,
       m7GuildStateCreated: true,
+      m8BreedingProgression: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -170,7 +188,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
   const now = new Date().toISOString();
   const cleanName = playerName.trim() || "New Breeder";
   const saveId = `save_${slotIndex}_${Date.now()}`;
-  const creatures = createStarterCreatures(saveId);
+  const creatures = createStarterCreatures(saveId).map(ensureCreatureProgression);
   const habitats = createStarterHabitats();
   const baseSave: GameSave = {
     version: MVP_VERSION,
@@ -183,6 +201,8 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       name: cleanName,
       ranchName: `${cleanName}'s Ranch`,
       breederRank: 1,
+      breederXp: 0,
+      breederXpToNext: getBreederXpToNext(1),
       ranchRank: 1,
       hearts: 4,
       maxHearts: 4,
@@ -218,6 +238,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m5NurseryStateCreated: true,
       m6MarketStateCreated: true,
       m7GuildStateCreated: true,
+      m8BreedingProgression: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
@@ -338,7 +359,6 @@ export function summarizeSave(save: GameSave): SaveSlotSummary {
 
 export function findFirstEmptySlot(): number | null {
   const saves = loadAllSaves();
-  const index = saves.findIndex((save) => save === null);
-
-  return index >= 0 ? index : null;
+  const emptyIndex = saves.findIndex((save) => save === null);
+  return emptyIndex >= 0 ? emptyIndex : null;
 }
