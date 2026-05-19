@@ -19,6 +19,10 @@ export const NURSERY_ASSETS = {
   background: "/images/backgrounds/nursery/egg_nursery_interior.png",
 } as const;
 
+function getCreatureXpToNext(level: number): number {
+  return 45 + level * 30;
+}
+
 function deterministicRoll(seed: string, modulo = 100): number {
   let hash = 0;
 
@@ -321,6 +325,7 @@ export function hatchEgg(save: GameSave, eggId: EggId, nickname?: string): { sav
   }
 
   const creatureId = getNextCreatureId(save);
+  const level = 1;
   const creature: CreatureRecord = {
     creatureId,
     ownerSaveId: save.saveId,
@@ -328,8 +333,9 @@ export function hatchEgg(save: GameSave, eggId: EggId, nickname?: string): { sav
     variantId: variant.variantId,
     habitatId: egg.habitatId,
     nickname: nickname?.trim() || `${variant.name} Hatchling`,
-    level: 1,
+    level,
     xp: 0,
+    xpToNext: getCreatureXpToNext(level),
     stats: egg.projectedStats,
     abilities: egg.projectedAbilities,
     energy: 100,
