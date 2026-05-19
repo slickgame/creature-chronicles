@@ -1,4 +1,13 @@
-import { getSpeciesDefinition, getVariantDefinition, getVariantsForFamily } from "@/data/creatures";
+import {
+  buildStats,
+  getBaseMaxHearts,
+  getCreatureMaxEnergyFromStats,
+  getSpeciesDefinition,
+  getVariantDefinition,
+  getVariantsForFamily,
+  rollCreatureAbilities,
+  rollStatGrades,
+} from "@/data/creatures";
 import type { CreatureRecord, HabitatRecord } from "@/types/creature";
 import type { CreatureId, HabitatId, VariantId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -7,29 +16,14 @@ import type { MarketActionResult, MarketListing, MarketState } from "@/types/mar
 const LISTING_COUNT = 4;
 const BASE_REROLL_COST = 150;
 
-const RARITY_PRICE = {
-  Common: 700,
-  Uncommon: 1100,
-  Rare: 1800,
-  Epic: 3200,
-} as const;
+const RARITY_PRICE = { Common: 700, Uncommon: 1100, Rare: 1800, Epic: 3200 } as const;
 
-function getCreatureXpToNext(level: number): number {
-  return 45 + level * 30;
-}
-
-function makeListingId(weekNumber: number, rerollCount: number, slotIndex: number): string {
-  return `market_${weekNumber}_${rerollCount}_${slotIndex}`;
-}
-
-function seededNumber(seed: number): number {
-  const value = Math.sin(seed) * 10000;
-  return value - Math.floor(value);
-}
+function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
+function makeListingId(weekNumber: number, rerollCount: number, slotIndex: number): string { return `market_${weekNumber}_${rerollCount}_${slotIndex}`; }
+function seededNumber(seed: number): number { const value = Math.sin(seed) * 10000; return value - Math.floor(value); }
 
 function chooseWeightedVariant(seed: number): VariantId {
   const roll = seededNumber(seed);
-
   if (roll < 0.44) return "variant_base_feline" as VariantId;
   if (roll < 0.88) return "variant_base_canine" as VariantId;
   if (roll < 0.91) return "variant_sphinx" as VariantId;
@@ -46,44 +40,18 @@ function createListing(save: GameSave, slotIndex: number, rerollCount: number): 
   const weekMod = Math.floor(seededNumber(save.dayState.weekNumber * 19 + slotIndex) * 140);
   const price = Math.round((rarityPrice + weekMod + rerollCount * 25) / 10) * 10;
 
-  return {
-    listingId: makeListingId(save.dayState.weekNumber, rerollCount, slotIndex),
-    weekNumber: save.dayState.weekNumber,
-    slotIndex,
-    speciesId: species.speciesId,
-    variantId: variant.variantId,
-    family: variant.family,
-    displayName: variant.name,
-    rarity: variant.rarity,
-    price,
-    status: "available",
-    createdAt: new Date().toISOString(),
-  };
+  return { listingId: makeListingId(save.dayState.weekNumber, rerollCount, slotIndex), weekNumber: save.dayState.weekNumber, slotIndex, speciesId: species.speciesId, variantId: variant.variantId, family: variant.family, displayName: variant.name, rarity: variant.rarity, price, status: "available", createdAt: new Date().toISOString() };
 }
 
-function createListings(save: GameSave, rerollCount = 0): MarketListing[] {
-  return Array.from({ length: LISTING_COUNT }, (_, index) => createListing(save, index, rerollCount));
-}
+function createListings(save: GameSave, rerollCount = 0): MarketListing[] { return Array.from({ length: LISTING_COUNT }, (_, index) => createListing(save, index, rerollCount)); }
 
 export function createDefaultMarketState(save: GameSave): MarketState {
-  return {
-    weekNumber: save.dayState.weekNumber,
-    rerollCount: 0,
-    lastRestockedDayNumber: save.dayState.dayNumber,
-    lastRestockedAt: new Date().toISOString(),
-    listings: createListings(save, 0),
-  };
+  return { weekNumber: save.dayState.weekNumber, rerollCount: 0, lastRestockedDayNumber: save.dayState.dayNumber, lastRestockedAt: new Date().toISOString(), listings: createListings(save, 0) };
 }
 
 export function ensureCurrentMarketState(save: GameSave): GameSave {
-  if (save.market && save.market.weekNumber === save.dayState.weekNumber && save.market.listings.length > 0) {
-    return save;
-  }
-
-  return {
-    ...save,
-    market: createDefaultMarketState(save),
-  };
+  if (save.market && save.market.weekNumber === save.dayState.weekNumber && save.market.listings.length > 0) return save;
+  return { ...save, market: createDefaultMarketState(save) };
 }
 
 export function getMarketRerollCost(save: GameSave): number {
@@ -91,9 +59,7 @@ export function getMarketRerollCost(save: GameSave): number {
   return BASE_REROLL_COST + market.rerollCount * 75;
 }
 
-function getHabitatForFamily(save: GameSave, family: "feline" | "canine"): HabitatRecord | null {
-  return (save.habitats ?? []).find((habitat) => habitat.family === family) ?? null;
-}
+function getHabitatForFamily(save: GameSave, family: "feline" | "canine"): HabitatRecord | null { return (save.habitats ?? []).find((habitat) => habitat.family === family) ?? null; }
 
 function createCreatureFromListing(save: GameSave, listing: MarketListing): CreatureRecord {
   const variant = getVariantDefinition(listing.variantId);
@@ -102,6 +68,10 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
   const now = new Date().toISOString();
   const creatureId = `creature_market_${Date.now()}_${listing.slotIndex}` as CreatureId;
   const level = 1;
+  const statGrades = rollStatGrades(`${save.saveId}_${listing.listingId}_market`, variant.rarity);
+  const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades);
+  const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
+  const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
 
   return {
     creatureId,
@@ -113,19 +83,13 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
     level,
     xp: 0,
     xpToNext: getCreatureXpToNext(level),
-    stats: {
-      STR: Math.max(1, species.baseStats.STR + (variant.statAdjustments.STR ?? 0)),
-      DEX: Math.max(1, species.baseStats.DEX + (variant.statAdjustments.DEX ?? 0)),
-      STA: Math.max(1, species.baseStats.STA + (variant.statAdjustments.STA ?? 0)),
-      CHA: Math.max(1, species.baseStats.CHA + (variant.statAdjustments.CHA ?? 0)),
-      WIL: Math.max(1, species.baseStats.WIL + (variant.statAdjustments.WIL ?? 0)),
-      FER: Math.max(1, species.baseStats.FER + (variant.statAdjustments.FER ?? 0)),
-    },
-    abilities: [species.exclusiveAbilityPool[0], variant.exclusiveAbilityPool[0]].filter(Boolean),
-    energy: 100,
-    maxEnergy: 100,
-    hearts: 4,
-    maxHearts: 4,
+    stats,
+    statGrades,
+    abilities: rollCreatureAbilities(`${save.saveId}_${listing.listingId}_market`, species.speciesId, variant.variantId),
+    energy: maxEnergy,
+    maxEnergy,
+    hearts: maxHearts,
+    maxHearts,
     affection: 35,
     generation: 1,
     shiny: false,
@@ -139,58 +103,16 @@ export function buyMarketListing(save: GameSave, listingId: string): MarketActio
   const syncedSave = ensureCurrentMarketState(save);
   const market = syncedSave.market ?? createDefaultMarketState(syncedSave);
   const listing = market.listings.find((item) => item.listingId === listingId);
-
-  if (!listing) {
-    return { save: syncedSave, ok: false, message: "That market listing no longer exists." };
-  }
-
-  if (listing.status === "sold") {
-    return { save: syncedSave, ok: false, message: "That listing has already been sold." };
-  }
-
-  if (syncedSave.currencies.gold < listing.price) {
-    return { save: syncedSave, ok: false, message: "Not enough Gold for this creature." };
-  }
-
+  if (!listing) return { save: syncedSave, ok: false, message: "That market listing no longer exists." };
+  if (listing.status === "sold") return { save: syncedSave, ok: false, message: "That listing has already been sold." };
+  if (syncedSave.currencies.gold < listing.price) return { save: syncedSave, ok: false, message: "Not enough Gold for this creature." };
   const habitat = getHabitatForFamily(syncedSave, listing.family);
-
-  if (!habitat) {
-    return { save: syncedSave, ok: false, message: "No matching habitat is available for this creature." };
-  }
-
-  if (habitat.creatureIds.length >= habitat.capacity) {
-    return { save: syncedSave, ok: false, message: `${habitat.name} is full.` };
-  }
+  if (!habitat) return { save: syncedSave, ok: false, message: "No matching habitat is available for this creature." };
+  if (habitat.creatureIds.length >= habitat.capacity) return { save: syncedSave, ok: false, message: `${habitat.name} is full.` };
 
   const creature = createCreatureFromListing(syncedSave, listing);
-  const nextListings = market.listings.map((item) =>
-    item.listingId === listingId ? { ...item, status: "sold" as const } : item,
-  );
-
-  const nextSave: GameSave = {
-    ...syncedSave,
-    updatedAt: new Date().toISOString(),
-    currencies: {
-      ...syncedSave.currencies,
-      gold: syncedSave.currencies.gold - listing.price,
-    },
-    creatureIds: [...syncedSave.creatureIds, creature.creatureId],
-    creatures: [...(syncedSave.creatures ?? []), creature],
-    habitats: (syncedSave.habitats ?? []).map((item) =>
-      item.habitatId === habitat.habitatId
-        ? { ...item, creatureIds: [...item.creatureIds, creature.creatureId] }
-        : item,
-    ),
-    market: {
-      ...market,
-      listings: nextListings,
-    },
-    flags: {
-      ...syncedSave.flags,
-      m6MarketPurchaseMade: true,
-    },
-  };
-
+  const nextListings = market.listings.map((item) => item.listingId === listingId ? { ...item, status: "sold" as const } : item);
+  const nextSave: GameSave = { ...syncedSave, updatedAt: new Date().toISOString(), currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold - listing.price }, creatureIds: [...syncedSave.creatureIds, creature.creatureId], creatures: [...(syncedSave.creatures ?? []), creature], habitats: (syncedSave.habitats ?? []).map((item) => item.habitatId === habitat.habitatId ? { ...item, creatureIds: [...item.creatureIds, creature.creatureId] } : item), market: { ...market, listings: nextListings }, flags: { ...syncedSave.flags, m6MarketPurchaseMade: true, m85MarketStatGrades: true } };
   return { save: nextSave, ok: true, message: `${creature.nickname} joined ${habitat.name}.` };
 }
 
@@ -198,44 +120,11 @@ export function rerollMarketListings(save: GameSave): MarketActionResult {
   const syncedSave = ensureCurrentMarketState(save);
   const market = syncedSave.market ?? createDefaultMarketState(syncedSave);
   const cost = getMarketRerollCost(syncedSave);
-
-  if (syncedSave.currencies.gold < cost) {
-    return { save: syncedSave, ok: false, message: "Not enough Gold to reroll the market." };
-  }
-
+  if (syncedSave.currencies.gold < cost) return { save: syncedSave, ok: false, message: "Not enough Gold to reroll the market." };
   const nextRerollCount = market.rerollCount + 1;
-
-  return {
-    save: {
-      ...syncedSave,
-      updatedAt: new Date().toISOString(),
-      currencies: {
-        ...syncedSave.currencies,
-        gold: syncedSave.currencies.gold - cost,
-      },
-      market: {
-        ...market,
-        rerollCount: nextRerollCount,
-        listings: createListings(syncedSave, nextRerollCount),
-      },
-      flags: {
-        ...syncedSave.flags,
-        m6MarketRerolled: true,
-      },
-    },
-    ok: true,
-    message: `Market listings rerolled for ${cost} Gold.`,
-  };
+  return { save: { ...syncedSave, updatedAt: new Date().toISOString(), currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold - cost }, market: { ...market, rerollCount: nextRerollCount, listings: createListings(syncedSave, nextRerollCount) }, flags: { ...syncedSave.flags, m6MarketRerolled: true } }, ok: true, message: `Market listings rerolled for ${cost} Gold.` };
 }
 
-export function getMarketListingImage(listing: MarketListing): string {
-  return getVariantDefinition(listing.variantId).portraitPath;
-}
-
-export function getMarketListingDescription(listing: MarketListing): string {
-  return getVariantDefinition(listing.variantId).description;
-}
-
-export function getMarketVariantsForPreview() {
-  return [...getVariantsForFamily("feline"), ...getVariantsForFamily("canine")];
-}
+export function getMarketListingImage(listing: MarketListing): string { return getVariantDefinition(listing.variantId).portraitPath; }
+export function getMarketListingDescription(listing: MarketListing): string { return getVariantDefinition(listing.variantId).description; }
+export function getMarketVariantsForPreview() { return [...getVariantsForFamily("feline"), ...getVariantsForFamily("canine")]; }
