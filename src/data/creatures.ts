@@ -16,6 +16,10 @@ const CANINE_SPECIES_ID = "species_canine" as SpeciesId;
 const FELINE_HABITAT_ID = "habitat_feline" as HabitatId;
 const CANINE_HABITAT_ID = "habitat_canine" as HabitatId;
 
+function getCreatureXpToNext(level: number): number {
+  return 45 + level * 30;
+}
+
 function ability(
   id: string,
   name: string,
@@ -183,6 +187,7 @@ function createStarterCreature(
   const variant = getVariantDefinition(variantId);
   const species = getSpeciesDefinition(variant.speciesId);
   const now = new Date().toISOString();
+  const level = 1;
 
   return {
     creatureId,
@@ -191,8 +196,9 @@ function createStarterCreature(
     variantId: variant.variantId,
     habitatId,
     nickname,
-    level: 1,
+    level,
     xp: 0,
+    xpToNext: getCreatureXpToNext(level),
     stats: buildStats(species.baseStats, variant.statAdjustments),
     abilities: [species.exclusiveAbilityPool[0], variant.exclusiveAbilityPool[0]],
     energy: 100,
