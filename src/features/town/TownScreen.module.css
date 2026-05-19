@@ -40,6 +40,20 @@
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.34);
 }
 
+.headerActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.headerActions button img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
 .frame {
   width: min(100%, 1360px);
   aspect-ratio: 16 / 9;
@@ -206,7 +220,7 @@
     drop-shadow(0 16px 14px rgba(0, 0, 0, 0.5));
 }
 
-.mapButton img {
+.mapButton > img {
   width: 100%;
   height: auto;
   display: block;
