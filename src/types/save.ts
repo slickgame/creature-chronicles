@@ -14,6 +14,7 @@ export type PlayerProfile = {
   breederXp: number;
   breederXpToNext: number;
   ranchRank: number;
+  stats: CreatureStats;
   hearts: number;
   maxHearts: number;
 };
