@@ -5,6 +5,21 @@ export type BreedingRole = "giver" | "receiver";
 export type BreedingParticipantKind = "player" | "creature";
 export type BreedingOutcomeType = "pregnancy" | "failed";
 
+export type BreedingProgressionEvent = {
+  participantId: string;
+  displayName: string;
+  kind: BreedingParticipantKind;
+  xpBefore: number;
+  xpAfter: number;
+  xpToNextBefore: number;
+  xpToNextAfter: number;
+  levelBefore: number;
+  levelAfter: number;
+  levelUps: number;
+  statGrowth: Partial<CreatureStats>;
+  abilityTriggers: string[];
+};
+
 export type BreedingParticipant = {
   participantId: string;
   kind: BreedingParticipantKind;
@@ -19,6 +34,7 @@ export type BreedingParticipant = {
   affection: number;
   level?: number;
   xp?: number;
+  xpToNext?: number;
   stats?: CreatureStats;
   abilities?: CreatureAbility[];
   description?: string;
@@ -46,10 +62,12 @@ export type BreedingAttemptRecord = {
   energyCost: number;
   heartCost: number;
   xpGain: number;
+  breederXpGain: number;
   streakBefore: number;
   streakAfter: number;
   outcome: BreedingOutcomeType;
   resultText: string;
+  progressionEvents: BreedingProgressionEvent[];
   createdAt: string;
 };
 
@@ -65,10 +83,15 @@ export type BreedingPreview = {
   pregnancyChance: number;
   baseChance: number;
   streakBonus: number;
+  affectionBonus: number;
+  abilityBonus: number;
+  energyDiscount: number;
   streakCount: number;
   energyCost: number;
   heartCost: number;
   xpGain: number;
+  breederXpGain: number;
+  abilityTriggers: string[];
   canAttempt: boolean;
   blockedReason: string | null;
 };
