@@ -10,13 +10,22 @@ import {
   normalizeVariantId,
 } from "@/data/creatures";
 import { formatGameDate } from "@/lib/formatters";
-import type { CreatureRecord } from "@/types/creature";
+import type { CreatureRecord, CreatureStats } from "@/types/creature";
 import type { CreatureId, SaveId, VariantId } from "@/types/ids";
 import type { GameSave, SaveSlotSummary, SettingsState } from "@/types/save";
 
 const SAVE_PREFIX = "creature_chronicles_save_slot_";
 const ACTIVE_SAVE_KEY = "creature_chronicles_active_save_id";
 export const SAVE_SLOT_COUNT = 3;
+
+const DEFAULT_PLAYER_STATS: CreatureStats = {
+  STR: 5,
+  DEX: 5,
+  STA: 5,
+  CHA: 5,
+  WIL: 5,
+  FER: 5,
+};
 
 function getSlotKey(slotIndex: number): string {
   return `${SAVE_PREFIX}${slotIndex}`;
@@ -148,6 +157,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       breederRank,
       breederXp: save.player.breederXp ?? 0,
       breederXpToNext: save.player.breederXpToNext ?? getBreederXpToNext(breederRank),
+      stats: save.player.stats ?? DEFAULT_PLAYER_STATS,
       hearts: save.player.hearts ?? 4,
       maxHearts: save.player.maxHearts ?? 4,
     },
@@ -171,6 +181,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m6MarketStateCreated: true,
       m7GuildStateCreated: true,
       m8BreedingProgression: true,
+      m8PlayerStatsCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -204,6 +215,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       breederXp: 0,
       breederXpToNext: getBreederXpToNext(1),
       ranchRank: 1,
+      stats: DEFAULT_PLAYER_STATS,
       hearts: 4,
       maxHearts: 4,
     },
@@ -239,6 +251,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m6MarketStateCreated: true,
       m7GuildStateCreated: true,
       m8BreedingProgression: true,
+      m8PlayerStatsCreated: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
@@ -258,9 +271,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
 }
 
 export function saveGameToSlot(save: GameSave): GameSave {
-  if (!canUseStorage()) {
-    return save;
-  }
+  if (!canUseStorage()) return save;
 
   const updatedSave: GameSave = {
     ...save,
@@ -274,15 +285,10 @@ export function saveGameToSlot(save: GameSave): GameSave {
 }
 
 export function loadSaveFromSlot(slotIndex: number): GameSave | null {
-  if (!canUseStorage()) {
-    return null;
-  }
+  if (!canUseStorage()) return null;
 
   const raw = window.localStorage.getItem(getSlotKey(slotIndex));
-
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
 
   try {
     const parsedSave = JSON.parse(raw) as GameSave;
@@ -303,35 +309,24 @@ export function loadAllSaves(): Array<GameSave | null> {
 }
 
 export function deleteSaveSlot(slotIndex: number): void {
-  if (!canUseStorage()) {
-    return;
-  }
+  if (!canUseStorage()) return;
 
   const existing = loadSaveFromSlot(slotIndex);
   window.localStorage.removeItem(getSlotKey(slotIndex));
 
   if (existing) {
     const activeSaveId = window.localStorage.getItem(ACTIVE_SAVE_KEY);
-
-    if (activeSaveId === existing.saveId) {
-      window.localStorage.removeItem(ACTIVE_SAVE_KEY);
-    }
+    if (activeSaveId === existing.saveId) window.localStorage.removeItem(ACTIVE_SAVE_KEY);
   }
 }
 
 export function getActiveSaveId(): string | null {
-  if (!canUseStorage()) {
-    return null;
-  }
-
+  if (!canUseStorage()) return null;
   return window.localStorage.getItem(ACTIVE_SAVE_KEY);
 }
 
 export function setActiveSaveId(saveId: string): void {
-  if (!canUseStorage()) {
-    return;
-  }
-
+  if (!canUseStorage()) return;
   window.localStorage.setItem(ACTIVE_SAVE_KEY, saveId);
 }
 
@@ -342,11 +337,7 @@ export function summarizeSave(save: GameSave): SaveSlotSummary {
     playerName: save.player.name,
     ranchName: save.player.ranchName,
     dayNumber: save.dayState.dayNumber,
-    dateLabel: formatGameDate(
-      save.dayState.weekday,
-      save.dayState.month,
-      save.dayState.dayOfMonth,
-    ),
+    dateLabel: formatGameDate(save.dayState.weekday, save.dayState.month, save.dayState.dayOfMonth),
     gold: save.currencies.gold,
     guildPoints: save.currencies.guildPoints,
     energy: save.currencies.energy,
