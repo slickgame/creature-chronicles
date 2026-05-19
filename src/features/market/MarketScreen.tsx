@@ -5,11 +5,14 @@ import {
   ensureCurrentMarketState,
   getMarketListingDescription,
   getMarketListingImage,
+  getMarketListingPreview,
+  getMarketListingProfileImage,
   getMarketRerollCost,
 } from "@/data/market";
-import { getVariantDefinition } from "@/data/creatures";
+import { getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
+import type { CreatureStats } from "@/types/creature";
 import type { MarketListing } from "@/types/market";
 import styles from "./MarketScreen.module.css";
 
@@ -21,9 +24,19 @@ const ICONS = {
   gold: "/images/ui/currency/icon_currency_gold.png",
 } as const;
 
+const STAT_LABELS: Record<keyof CreatureStats, string> = {
+  STR: "Strength",
+  DEX: "Dexterity",
+  STA: "Stamina",
+  CHA: "Charm",
+  WIL: "Willpower",
+  FER: "Fertility",
+};
+
 export function MarketScreen() {
   const { buyMarketCreature, currentSave, goToMainMenu, goToTown, rerollMarket, saveCurrentGame } = useGameContext();
   const [message, setMessage] = useState("Weekly creature listings are available.");
+  const [activeListing, setActiveListing] = useState<MarketListing | null>(null);
 
   useEffect(() => {
     if (!currentSave) return;
@@ -50,11 +63,13 @@ export function MarketScreen() {
   function handleBuy(listing: MarketListing) {
     const resultMessage = buyMarketCreature(listing.listingId);
     setMessage(resultMessage);
+    setActiveListing(null);
   }
 
   function handleReroll() {
     const resultMessage = rerollMarket();
     setMessage(resultMessage);
+    setActiveListing(null);
   }
 
   return (
@@ -115,6 +130,8 @@ export function MarketScreen() {
                 const variant = getVariantDefinition(listing.variantId);
                 const isSold = listing.status === "sold";
                 const canAfford = currentSave.currencies.gold >= listing.price;
+                const preview = getMarketListingPreview(syncedSave, listing);
+                const bestGrades = Object.values(preview.statGrades).filter((grade) => grade === "A" || grade === "S").length;
 
                 return (
                   <article key={listing.listingId} className={`${styles.listing} ${isSold ? styles.sold : ""}`}>
@@ -122,11 +139,15 @@ export function MarketScreen() {
                       <img src={getMarketListingImage(listing)} alt="" />
                     </div>
                     <div className={styles.listingBody}>
-                      <div>
-                        <span className={styles.listingMeta}>{variant.rarity} • {variant.family}</span>
-                        <h3 className={styles.listingName}>{variant.name}</h3>
+                      <div className={styles.listingHeaderRow}>
+                        <div>
+                          <span className={styles.listingMeta}>{variant.rarity} • {variant.family}</span>
+                          <h3 className={styles.listingName}>{variant.name}</h3>
+                        </div>
+                        <button type="button" className={styles.infoButton} onClick={() => setActiveListing(listing)} aria-label={`View ${variant.name} details`}>i</button>
                       </div>
                       <p className={styles.listingDesc}>{getMarketListingDescription(listing)}</p>
+                      <p className={styles.gradePreview}>{bestGrades > 0 ? `${bestGrades} premium stat grade${bestGrades === 1 ? "" : "s"}` : "Standard stat grade spread"}</p>
                       <div className={styles.price}>
                         <img src={ICONS.price} alt="" />
                         <div>
@@ -151,6 +172,87 @@ export function MarketScreen() {
           </section>
         </section>
       </section>
+
+      {activeListing ? (
+        <MarketListingModal
+          save={syncedSave}
+          listing={activeListing}
+          canAfford={currentSave.currencies.gold >= activeListing.price}
+          onBuy={handleBuy}
+          onClose={() => setActiveListing(null)}
+        />
+      ) : null}
     </main>
+  );
+}
+
+function MarketListingModal({
+  save,
+  listing,
+  canAfford,
+  onBuy,
+  onClose,
+}: {
+  save: NonNullable<ReturnType<typeof ensureCurrentMarketState>>;
+  listing: MarketListing;
+  canAfford: boolean;
+  onBuy: (listing: MarketListing) => void;
+  onClose: () => void;
+}) {
+  const variant = getVariantDefinition(listing.variantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+  const preview = getMarketListingPreview(save, listing);
+  const isSold = listing.status === "sold";
+
+  return (
+    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+      <section className={styles.infoModal} role="dialog" aria-modal="true" aria-labelledby="market-listing-title" onClick={(event) => event.stopPropagation()}>
+        <button type="button" className={styles.closeModalButton} onClick={onClose} aria-label="Close listing details">×</button>
+        <div className={styles.infoModalGrid}>
+          <div className={styles.infoModalArtWrap}>
+            <img src={getMarketListingProfileImage(listing)} alt="" />
+          </div>
+          <div className={styles.infoModalDetails}>
+            <p className={styles.kicker}>{variant.rarity} Market Listing</p>
+            <h2 id="market-listing-title">{variant.name}</h2>
+            <p className={styles.modalSubtitle}>{variant.name} {species.name}</p>
+            <p>{variant.description}</p>
+
+            <div className={styles.modalResourceGrid}>
+              <div><span>Price</span><strong>{formatGold(listing.price)}</strong></div>
+              <div><span>Energy</span><strong>{preview.maxEnergy}</strong></div>
+              <div><span>Hearts</span><strong>{preview.maxHearts} / {preview.maxHearts}</strong></div>
+            </div>
+
+            <div className={styles.modalStatGrid}>
+              {Object.entries(preview.stats).map(([statKey, value]) => {
+                const grade = preview.statGrades[statKey as keyof CreatureStats];
+                return (
+                  <div key={statKey}>
+                    <span>{STAT_LABELS[statKey as keyof CreatureStats]}</span>
+                    <strong className={styles.statValueRow}>{value}<b>Grade {grade}</b></strong>
+                  </div>
+                );
+              })}
+            </div>
+
+            <section className={styles.modalAbilityPanel}>
+              <h3>Projected Abilities</h3>
+              {preview.abilities.map((ability) => (
+                <article key={ability.id}>
+                  <strong>{ability.name}</strong>
+                  <span>Grade {ability.grade} • {ability.source}</span>
+                  <p>{ability.description}</p>
+                </article>
+              ))}
+            </section>
+
+            <div className={styles.modalActions}>
+              {isSold ? <span className={styles.soldBadge}><img src={ICONS.sold} alt="" /> Sold</span> : <button type="button" className={styles.buyButton} disabled={!canAfford} onClick={() => onBuy(listing)}>Buy Creature</button>}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
