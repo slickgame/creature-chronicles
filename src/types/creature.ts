@@ -6,13 +6,17 @@ export type CreatureStatKey = "STR" | "DEX" | "STA" | "CHA" | "WIL" | "FER";
 
 export type CreatureStats = Record<CreatureStatKey, number>;
 
+export type StatGrade = "D" | "C" | "B" | "A" | "S";
+export type StatGrades = Record<CreatureStatKey, StatGrade>;
+export type StatGrowthProfile = Record<CreatureStatKey, number>;
+
 export type AbilityGrade = "F" | "D" | "C" | "B" | "A" | "S";
 
 export type CreatureAbility = {
   id: string;
   name: string;
   grade: AbilityGrade;
-  source: "species" | "variant" | "starter" | "future";
+  source: "general" | "species" | "variant" | "starter" | "future";
   description: string;
 };
 
@@ -22,6 +26,8 @@ export type SpeciesDefinition = {
   name: string;
   description: string;
   baseStats: CreatureStats;
+  baseMaxHearts: number;
+  growthProfile: StatGrowthProfile;
   exclusiveAbilityPool: CreatureAbility[];
 };
 
@@ -33,6 +39,9 @@ export type VariantDefinition = {
   rarity: "Common" | "Uncommon" | "Rare" | "Epic";
   description: string;
   statAdjustments: Partial<CreatureStats>;
+  maxEnergyBonus: number;
+  maxHeartsBonus: number;
+  growthProfile: Partial<StatGrowthProfile>;
   exclusiveAbilityPool: CreatureAbility[];
   portraitPath: string;
   profilePath: string;
@@ -49,6 +58,7 @@ export type CreatureRecord = {
   xp: number;
   xpToNext: number;
   stats: CreatureStats;
+  statGrades: StatGrades;
   abilities: CreatureAbility[];
   energy: number;
   maxEnergy: number;
