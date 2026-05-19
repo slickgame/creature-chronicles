@@ -296,6 +296,10 @@ export function getVariantMaxEnergyBonus(variantId: VariantId): number {
   return getVariantDefinition(variantId).maxEnergyBonus;
 }
 
+export function getCreatureMaxEnergyFromStats(stats: CreatureStats, variantId?: VariantId): number {
+  return 80 + stats.STA * 4 + (variantId ? getVariantMaxEnergyBonus(variantId) : 0);
+}
+
 export function rollCreatureAbilities(seed: string, speciesId: SpeciesId, variantId: VariantId, forceStarter = false): CreatureAbility[] {
   const species = getSpeciesDefinition(speciesId);
   const variant = getVariantDefinition(variantId);
@@ -320,6 +324,7 @@ function createStarterCreature(ownerSaveId: SaveId, creatureId: CreatureId, vari
   const statGrades = rollStatGrades(`${ownerSaveId}_${creatureId}_starter`, variant.rarity);
   const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades);
   const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
+  const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
 
   return {
     creatureId,
@@ -334,8 +339,8 @@ function createStarterCreature(ownerSaveId: SaveId, creatureId: CreatureId, vari
     stats,
     statGrades,
     abilities: rollCreatureAbilities(`${ownerSaveId}_${creatureId}_starter`, species.speciesId, variant.variantId, true),
-    energy: 100,
-    maxEnergy: 100,
+    energy: maxEnergy,
+    maxEnergy,
     hearts: maxHearts,
     maxHearts,
     affection: 50,
