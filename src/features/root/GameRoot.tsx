@@ -3,8 +3,10 @@
 import { BreedingScreen } from "@/features/breeding/BreedingScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
+import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
+import { TownScreen } from "@/features/town/TownScreen";
 import { useGameContext } from "@/state/GameProvider";
 
 export function GameRoot() {
@@ -24,6 +26,14 @@ export function GameRoot() {
 
   if (appScreen === "nursery") {
     return <NurseryScreen />;
+  }
+
+  if (appScreen === "town") {
+    return <TownScreen />;
+  }
+
+  if (appScreen === "market") {
+    return <MarketScreen />;
   }
 
   return <MainMenuScreen />;
