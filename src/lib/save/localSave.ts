@@ -1,5 +1,6 @@
 import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
 import { createDefaultBreedingState } from "@/data/breeding";
+import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
 import {
   createStarterCreatures,
@@ -142,6 +143,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
     pregnancies: save.pregnancies ?? [],
     eggs,
     market: save.market,
+    guild: save.guild,
     flags: {
       ...save.flags,
       m3StarterCreaturesCreated: true,
@@ -150,16 +152,18 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m4ParticipantHeartsMigrated: true,
       m5NurseryStateCreated: true,
       m6MarketStateCreated: true,
+      m7GuildStateCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
       nurseryUnlocked: true,
       townUnlocked: true,
       marketUnlocked: true,
+      guildUnlocked: true,
     },
   };
 
-  return ensureCurrentMarketState(migratedSave);
+  return ensureCurrentGuildState(ensureCurrentMarketState(migratedSave));
 }
 
 export function createNewGameSave(playerName: string, slotIndex: number): GameSave {
@@ -213,6 +217,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m4ParticipantHeartsMigrated: true,
       m5NurseryStateCreated: true,
       m6MarketStateCreated: true,
+      m7GuildStateCreated: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
@@ -220,13 +225,14 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       breedingUnlocked: true,
       nurseryUnlocked: true,
       marketUnlocked: true,
-      guildUnlocked: false,
+      guildUnlocked: true,
     },
   };
 
   return {
     ...baseSave,
     market: createDefaultMarketState(baseSave),
+    guild: createDefaultGuildState(baseSave),
   };
 }
 
