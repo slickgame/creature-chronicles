@@ -11,6 +11,7 @@ export type StatGrades = Record<CreatureStatKey, StatGrade>;
 export type StatGrowthProfile = Record<CreatureStatKey, number>;
 
 export type AbilityGrade = "F" | "D" | "C" | "B" | "A" | "S";
+export type CreatureOrigin = "starter" | "market" | "hatched" | "guild" | "unknown";
 
 export type CreatureAbility = {
   id: string;
@@ -68,6 +69,9 @@ export type CreatureRecord = {
   generation: number;
   shiny: boolean;
   cosmeticVariant: string | null;
+  origin: CreatureOrigin;
+  originLabel: string;
+  isLocked: boolean;
   createdAt: string;
   notes: string;
 };
