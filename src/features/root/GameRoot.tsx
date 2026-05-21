@@ -1,6 +1,7 @@
 "use client";
 
 import { BreedingScreen } from "@/features/breeding/BreedingScreen";
+import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
@@ -39,6 +40,10 @@ export function GameRoot() {
 
   if (appScreen === "guild-hall") {
     return <GuildHallScreen />;
+  }
+
+  if (appScreen === "collection") {
+    return <CollectionScreen />;
   }
 
   return <MainMenuScreen />;
