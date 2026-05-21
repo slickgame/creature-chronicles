@@ -113,6 +113,9 @@ function createCreatureFromListing(save: GameSave, listing: MarketListing): Crea
     generation: 1,
     shiny: false,
     cosmeticVariant: null,
+    origin: "market",
+    originLabel: `Market Purchase · Week ${save.dayState.weekNumber}`,
+    isLocked: false,
     createdAt: now,
     notes: `Purchased from the town market during week ${save.dayState.weekNumber}.`,
   };
@@ -131,7 +134,7 @@ export function buyMarketListing(save: GameSave, listingId: string): MarketActio
 
   const creature = createCreatureFromListing(syncedSave, listing);
   const nextListings = market.listings.map((item) => item.listingId === listingId ? { ...item, status: "sold" as const } : item);
-  const nextSave: GameSave = { ...syncedSave, updatedAt: new Date().toISOString(), currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold - listing.price }, creatureIds: [...syncedSave.creatureIds, creature.creatureId], creatures: [...(syncedSave.creatures ?? []), creature], habitats: (syncedSave.habitats ?? []).map((item) => item.habitatId === habitat.habitatId ? { ...item, creatureIds: [...item.creatureIds, creature.creatureId] } : item), market: { ...market, listings: nextListings }, flags: { ...syncedSave.flags, m6MarketPurchaseMade: true, m85MarketStatGrades: true } };
+  const nextSave: GameSave = { ...syncedSave, updatedAt: new Date().toISOString(), currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold - listing.price }, creatureIds: [...syncedSave.creatureIds, creature.creatureId], creatures: [...(syncedSave.creatures ?? []), creature], habitats: (syncedSave.habitats ?? []).map((item) => item.habitatId === habitat.habitatId ? { ...item, creatureIds: [...item.creatureIds, creature.creatureId] } : item), market: { ...market, listings: nextListings }, flags: { ...syncedSave.flags, m6MarketPurchaseMade: true, m85MarketStatGrades: true, m9MarketOriginCreated: true } };
   return { save: nextSave, ok: true, message: `${creature.nickname} joined ${habitat.name}.` };
 }
 
