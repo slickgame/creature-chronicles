@@ -28,6 +28,7 @@ const HUD_ICONS = {
   sleep: "/images/ui/icons/icon_sleep_moon.png",
   requests: "/images/ui/home/icon_home_requests.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
+  collection: "/images/ui/icons/icon_collection_book.png",
 } as const;
 
 const BUILDINGS: Building[] = [
@@ -123,7 +124,7 @@ function isAvailableBuilding(id: BuildingId): boolean {
 }
 
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToBreeding, goToHabitat, goToMainMenu, goToNursery, goToTown, version } = useGameContext();
+  const { advanceDay, currentSave, goToBreeding, goToCollection, goToHabitat, goToMainMenu, goToNursery, goToTown, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
@@ -250,6 +251,10 @@ export function RanchHubScreen() {
           </div>
 
           <nav className={styles.hudActions} aria-label="Ranch actions">
+            <button type="button" className={styles.iconButton} onClick={goToCollection}>
+              <img src={HUD_ICONS.collection} alt="" />
+              <span>Collection</span>
+            </button>
             <button type="button" className={styles.iconButton} onClick={() => setModalMode("requests")}>
               <img src={HUD_ICONS.requests} alt="" />
               <span>Requests</span>
@@ -265,7 +270,7 @@ export function RanchHubScreen() {
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
           <p>
-            Select buildings directly on the ranch map. Habitats, Breeding Pen, Egg Nursery, and Town Road are active.
+            Select buildings directly on the ranch map. Habitats, Breeding Pen, Egg Nursery, Town Road, and Collection are active.
           </p>
           <p className={styles.message}>{message}</p>
         </section>
