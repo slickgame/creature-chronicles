@@ -26,6 +26,9 @@ export const NURSERY_ASSETS = {
   timer: "/images/ui/icons/icon_timer_hourglass.png",
   hatch: "/images/ui/icons/icon_hatch.png",
   background: "/images/backgrounds/nursery/egg_nursery_interior.png",
+  originHatched: "/images/ui/icons/icon_origin_hatched.png",
+  parentCompare: "/images/ui/icons/icon_parent_compare.png",
+  statGrade: "/images/ui/icons/icon_stat_grade.png",
 } as const;
 
 function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
@@ -212,10 +215,15 @@ export function hatchEgg(save: GameSave, eggId: EggId, nickname?: string): { sav
     creatureId, ownerSaveId: save.saveId, speciesId: species.speciesId, variantId: variant.variantId, habitatId: egg.habitatId,
     nickname: nickname?.trim() || `${variant.name} Hatchling`, level, xp: 0, xpToNext: getCreatureXpToNext(level), stats: egg.projectedStats,
     statGrades: egg.projectedStatGrades ?? DEFAULT_STAT_GRADES,
-    abilities: egg.projectedAbilities, energy: maxEnergy, maxEnergy, hearts: maxHearts, maxHearts, affection: 35, generation: 2, shiny: false, cosmeticVariant: null, createdAt: new Date().toISOString(), notes: `Hatched from ${egg.parents.giver.displayName} and ${egg.parents.receiver.displayName}.`,
+    abilities: egg.projectedAbilities, energy: maxEnergy, maxEnergy, hearts: maxHearts, maxHearts, affection: 35, generation: 2, shiny: false, cosmeticVariant: null,
+    origin: "hatched",
+    originLabel: `Hatched · ${egg.parents.giver.displayName} × ${egg.parents.receiver.displayName}`,
+    isLocked: false,
+    createdAt: new Date().toISOString(), notes: `Hatched from ${egg.parents.giver.displayName} and ${egg.parents.receiver.displayName}.`,
   };
   const nextEggs = (save.eggs ?? []).map((item) => item.eggId === eggId ? { ...item, status: "hatched" as const } : item);
-  return { creature, save: { ...save, creatures: [creature, ...(save.creatures ?? [])], creatureIds: [creature.creatureId, ...save.creatureIds], habitats: (save.habitats ?? []).map((habitat) => habitat.habitatId === egg.habitatId ? { ...habitat, creatureIds: [creature.creatureId, ...habitat.creatureIds] } : habitat), eggs: nextEggs, eggIds: nextEggs.map((item) => item.eggId), flags: { ...save.flags, m5EggHatched: true, m85HatchedStatGrades: true } } };
+  const totalHatched = Number(save.flags.m9TotalHatched ?? 0) + 1;
+  return { creature, save: { ...save, creatures: [creature, ...(save.creatures ?? [])], creatureIds: [creature.creatureId, ...save.creatureIds], habitats: (save.habitats ?? []).map((habitat) => habitat.habitatId === egg.habitatId ? { ...habitat, creatureIds: [creature.creatureId, ...habitat.creatureIds] } : habitat), eggs: nextEggs, eggIds: nextEggs.map((item) => item.eggId), flags: { ...save.flags, m5EggHatched: true, m85HatchedStatGrades: true, m9HatchResultImproved: true, m9TotalHatched: totalHatched } } };
 }
 
 export function removeEgg(save: GameSave, eggId: EggId, mode: "release" | "donate"): GameSave {
