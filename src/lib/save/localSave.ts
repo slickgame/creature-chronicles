@@ -16,7 +16,7 @@ import {
   rollStatGrades,
 } from "@/data/creatures";
 import { formatGameDate } from "@/lib/formatters";
-import type { CreatureRecord, CreatureStats, StatGrades } from "@/types/creature";
+import type { CreatureOrigin, CreatureRecord, CreatureStats, StatGrades } from "@/types/creature";
 import type { CreatureId, SaveId, VariantId } from "@/types/ids";
 import type { GameSave, SaveSlotSummary, SettingsState } from "@/types/save";
 
@@ -36,6 +36,14 @@ export function createDefaultSettings(): SettingsState {
   return { musicVolume: 70, sfxVolume: 80, textSpeed: "normal", devMode: true };
 }
 
+function inferCreatureOrigin(creature: CreatureRecord): { origin: CreatureOrigin; originLabel: string } {
+  if (creature.origin && creature.origin !== "unknown") return { origin: creature.origin, originLabel: creature.originLabel || creature.origin };
+  if (creature.creatureId.includes("starter")) return { origin: "starter", originLabel: "Starter" };
+  if (creature.creatureId.includes("market")) return { origin: "market", originLabel: "Market Purchase" };
+  if (creature.creatureId.includes("hatched")) return { origin: "hatched", originLabel: "Hatched Egg" };
+  return { origin: "unknown", originLabel: "Unknown Origin" };
+}
+
 function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
   const level = creature.level ?? 1;
   const variant = getVariantDefinition(creature.variantId);
@@ -44,6 +52,7 @@ function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
   const stats = creature.stats ?? buildStats(species.baseStats, variant.statAdjustments, statGrades);
   const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
   const maxHearts = Math.max(creature.maxHearts ?? 0, getBaseMaxHearts(species.speciesId, variant.variantId));
+  const origin = inferCreatureOrigin(creature);
 
   return {
     ...creature,
@@ -59,6 +68,9 @@ function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
     energy: Math.min(creature.energy ?? maxEnergy, maxEnergy),
     hearts: Math.min(creature.hearts ?? maxHearts, maxHearts),
     maxHearts,
+    origin: origin.origin,
+    originLabel: origin.originLabel,
+    isLocked: creature.isLocked ?? false,
   };
 }
 
@@ -152,6 +164,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m8EnergyFromStamina: true,
       m85StatGrades: true,
       m85PlayerGradesCreated: true,
+      m9CreatureMetadataMigrated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -216,6 +229,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m8EnergyFromStamina: true,
       m85StatGrades: true,
       m85PlayerGradesCreated: true,
+      m9CreatureManagement: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
