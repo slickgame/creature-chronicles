@@ -347,8 +347,11 @@ function createStarterCreature(ownerSaveId: SaveId, creatureId: CreatureId, vari
     generation: 1,
     shiny: false,
     cosmeticVariant: null,
+    origin: "starter",
+    originLabel: "Starter",
+    isLocked: false,
     createdAt: now,
-    notes: "Starter creature generated for the M8.5 stat grade and individuality milestone.",
+    notes: "Starter creature generated for the M9 creature management milestone.",
   };
 }
 
