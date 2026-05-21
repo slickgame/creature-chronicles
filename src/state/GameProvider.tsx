@@ -8,8 +8,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { MVP_VERSION } from "@/data/gameConstants";
 import { performBreedingAttempt } from "@/data/breeding";
+import { releaseOrDonateCreature } from "@/data/collection";
+import { MVP_VERSION } from "@/data/gameConstants";
 import {
   acceptGuildContract,
   donateCreatureToGuildContract,
@@ -41,7 +42,8 @@ export type AppScreen =
   | "nursery"
   | "town"
   | "market"
-  | "guild-hall";
+  | "guild-hall"
+  | "collection";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -69,10 +71,14 @@ type GameContextValue = {
   goToTown: () => void;
   goToMarket: () => void;
   goToGuildHall: () => void;
+  goToCollection: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
   renameCreature: (creatureId: CreatureId, nickname: string) => void;
   feedCreature: (creatureId: CreatureId) => void;
+  toggleCreatureLock: (creatureId: CreatureId) => void;
+  releaseCreature: (creatureId: CreatureId) => string;
+  donateCreature: (creatureId: CreatureId) => string;
   attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
   hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null;
   removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
@@ -224,6 +230,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setAppScreen("nursery");
   }, []);
 
+  const goToCollection = useCallback(() => {
+    setActiveHabitatFamily(null);
+    setAppScreen("collection");
+  }, []);
+
   const renameCreature = useCallback(
     (creatureId: CreatureId, nickname: string) => {
       if (!currentSave) return;
@@ -236,7 +247,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         creatures: (currentSave.creatures ?? []).map((creature) =>
           creature.creatureId === creatureId ? { ...creature, nickname: cleanNickname } : creature,
         ),
-        flags: { ...currentSave.flags, m3CreatureRenamed: true },
+        flags: { ...currentSave.flags, m3CreatureRenamed: true, m9RenamePolishUsed: true },
       };
 
       saveCurrentGame(nextSave);
@@ -259,6 +270,41 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       };
 
       saveCurrentGame(nextSave);
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const toggleCreatureLock = useCallback(
+    (creatureId: CreatureId) => {
+      if (!currentSave) return;
+      const nextSave: GameSave = {
+        ...currentSave,
+        creatures: (currentSave.creatures ?? []).map((creature) =>
+          creature.creatureId === creatureId ? { ...creature, isLocked: !creature.isLocked } : creature,
+        ),
+        flags: { ...currentSave.flags, m9CreatureLockUsed: true },
+      };
+      saveCurrentGame(nextSave);
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const releaseCreature = useCallback(
+    (creatureId: CreatureId) => {
+      if (!currentSave) return "No active save.";
+      const result = releaseOrDonateCreature(currentSave, creatureId, "release");
+      saveCurrentGame(result.save);
+      return result.message;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
+  const donateCreature = useCallback(
+    (creatureId: CreatureId) => {
+      if (!currentSave) return "No active save.";
+      const result = releaseOrDonateCreature(currentSave, creatureId, "donate");
+      saveCurrentGame(result.save);
+      return result.message;
     },
     [currentSave, saveCurrentGame],
   );
@@ -327,6 +373,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const donateCreatureToGuild = useCallback(
     (contractId: string, creatureId: CreatureId) => {
       if (!currentSave) return "No active save.";
+      const creature = (currentSave.creatures ?? []).find((item) => item.creatureId === creatureId);
+      if (creature?.isLocked) return `${creature.nickname} is locked. Unlock them before donating.`;
       const result = donateCreatureToGuildContract(currentSave, contractId, creatureId);
       saveCurrentGame(result.save);
       return result.message;
@@ -379,7 +427,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M8 — Breeding Progression",
+      buildPhase: "M9 — Creature Management / Collection Quality",
       appScreen,
       activeHabitatFamily,
       currentSave,
@@ -397,10 +445,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToTown,
       goToMarket,
       goToGuildHall,
+      goToCollection,
       saveCurrentGame,
       advanceDay,
       renameCreature,
       feedCreature,
+      toggleCreatureLock,
+      releaseCreature,
+      donateCreature,
       attemptBreeding,
       hatchReadyEgg,
       removeNurseryEgg,
@@ -427,10 +479,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       goToTown,
       goToMarket,
       goToGuildHall,
+      goToCollection,
       saveCurrentGame,
       advanceDay,
       renameCreature,
       feedCreature,
+      toggleCreatureLock,
+      releaseCreature,
+      donateCreature,
       attemptBreeding,
       hatchReadyEgg,
       removeNurseryEgg,
