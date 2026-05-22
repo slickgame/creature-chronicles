@@ -1,4 +1,5 @@
 import { getVariantDefinition } from "@/data/creatures";
+import { getTownUpgradeEffects } from "@/data/upgrades";
 import type { CreatureRecord } from "@/types/creature";
 import type { ContractId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -19,18 +20,27 @@ function makeContractId(weekNumber: number, slot: number): ContractId {
   return `guild_contract_${weekNumber}_${slot}` as ContractId;
 }
 
-function getTierReward(tier: GuildContractTier, weekNumber: number, slot: number) {
-  const roll = seededNumber(weekNumber * 71 + slot * 13);
+function getTierReward(save: GameSave, tier: GuildContractTier, slot: number) {
+  const roll = seededNumber(save.dayState.weekNumber * 71 + slot * 13);
+  const effects = getTownUpgradeEffects(save);
+  let goldReward = 0;
+  let guildPointReward = 0;
 
   if (tier === "bronze") {
-    return { goldReward: 80 + Math.round(roll * 45), guildPointReward: 5 + Math.floor(roll * 4) };
+    goldReward = 80 + Math.round(roll * 45);
+    guildPointReward = 5 + Math.floor(roll * 4);
+  } else if (tier === "silver") {
+    goldReward = 155 + Math.round(roll * 70);
+    guildPointReward = 12 + Math.floor(roll * 7);
+  } else {
+    goldReward = 285 + Math.round(roll * 115);
+    guildPointReward = 25 + Math.floor(roll * 16);
   }
 
-  if (tier === "silver") {
-    return { goldReward: 155 + Math.round(roll * 70), guildPointReward: 12 + Math.floor(roll * 7) };
-  }
-
-  return { goldReward: 285 + Math.round(roll * 115), guildPointReward: 25 + Math.floor(roll * 16) };
+  return {
+    goldReward: Math.round((goldReward * effects.guildGoldRewardMultiplier) / 5) * 5,
+    guildPointReward: guildPointReward + effects.guildBonusGp + (tier === "gold" && effects.guildBonusGp > 0 ? 1 : 0),
+  };
 }
 
 function createContract(
@@ -41,7 +51,7 @@ function createContract(
   description: string,
   requirement: GuildContractRequirement,
 ): GuildContract {
-  const rewards = getTierReward(tier, save.dayState.weekNumber, slot);
+  const rewards = getTierReward(save, tier, slot);
 
   return {
     contractId: makeContractId(save.dayState.weekNumber, slot),
@@ -59,8 +69,8 @@ function createContract(
   };
 }
 
-function getWeeklyTemplates(save: GameSave): Array<Omit<GuildContract, "contractId" | "weekNumber" | "type" | "status" | "goldReward" | "guildPointReward" | "createdAtDayNumber" | "expiresAtWeekNumber">> {
-  const templates = [
+function getBaseTemplates(): Array<Omit<GuildContract, "contractId" | "weekNumber" | "type" | "status" | "goldReward" | "guildPointReward" | "createdAtDayNumber" | "expiresAtWeekNumber">> {
+  return [
     {
       tier: "bronze" as const,
       title: "Stable Starter Request",
@@ -91,27 +101,70 @@ function getWeeklyTemplates(save: GameSave): Array<Omit<GuildContract, "contract
       description: "A noble client wants a socially gifted creature with strong charm.",
       requirement: { kind: "stat_minimum" as const, stat: "CHA" as const, minimum: 7, label: "Donate any creature with CHA 7+." },
     },
-  ];
-
-  const rareGold = seededNumber(save.dayState.weekNumber * 101) > 0.45;
-
-  if (rareGold) {
-    templates.push({
+    {
       tier: "gold" as const,
       title: "Rare Bloodline Request",
       description: "A prestigious guild patron seeks a rare or better bloodline specimen.",
       requirement: { kind: "rarity" as const, rarity: "Rare" as const, label: "Donate any Rare or Epic creature." },
-    });
-  } else {
-    templates.push({
+    },
+    {
       tier: "gold" as const,
       title: "Exceptional Dexterity Request",
       description: "A specialist needs a highly agile creature for delicate service work.",
       requirement: { kind: "stat_minimum" as const, stat: "DEX" as const, minimum: 8, label: "Donate any creature with DEX 8+." },
-    });
-  }
+    },
+    {
+      tier: "silver" as const,
+      title: "Focused Willpower Request",
+      description: "A guild partner wants a disciplined companion with strong willpower.",
+      requirement: { kind: "stat_minimum" as const, stat: "WIL" as const, minimum: 7, label: "Donate any creature with WIL 7+." },
+    },
+    {
+      tier: "bronze" as const,
+      title: "Reliable Fertility Registry",
+      description: "The registrar is collecting fertile ranch stock for approved clients.",
+      requirement: { kind: "stat_minimum" as const, stat: "FER" as const, minimum: 6, label: "Donate any creature with FER 6+." },
+    },
+    {
+      tier: "gold" as const,
+      title: "Premium Feline Patron",
+      description: "A high-ranking client wants a rare feline or exceptional feline companion.",
+      requirement: { kind: "family" as const, family: "feline" as const, label: "Donate any feline creature." },
+    },
+    {
+      tier: "gold" as const,
+      title: "Premium Canine Patron",
+      description: "A high-ranking client wants a rare canine or exceptional canine companion.",
+      requirement: { kind: "family" as const, family: "canine" as const, label: "Donate any canine creature." },
+    },
+  ];
+}
 
-  return templates;
+function applyContractQuality(save: GameSave, templates: ReturnType<typeof getBaseTemplates>) {
+  const qualityTier = getTownUpgradeEffects(save).guildContractQualityTier;
+  if (qualityTier <= 0) return templates;
+
+  return templates.map((template, index) => {
+    const roll = seededNumber(save.dayState.weekNumber * 157 + index * 29);
+    const silverChance = [0, 0.18, 0.26, 0.34, 0.42][qualityTier] ?? 0;
+    const goldChance = [0, 0.03, 0.07, 0.12, 0.18][qualityTier] ?? 0;
+
+    if (template.tier === "bronze" && roll < silverChance) return { ...template, tier: "silver" as const };
+    if (template.tier === "silver" && roll < goldChance) return { ...template, tier: "gold" as const };
+    return template;
+  });
+}
+
+function getWeeklyTemplates(save: GameSave): ReturnType<typeof getBaseTemplates> {
+  const effects = getTownUpgradeEffects(save);
+  const templates = applyContractQuality(save, getBaseTemplates());
+  const rotatedTemplates = [...templates].sort((a, b) => {
+    const aRoll = seededNumber(save.dayState.weekNumber * 97 + a.title.length * 11);
+    const bRoll = seededNumber(save.dayState.weekNumber * 97 + b.title.length * 11);
+    return aRoll - bRoll;
+  });
+
+  return rotatedTemplates.slice(0, effects.guildContractCount);
 }
 
 function createWeeklyContracts(save: GameSave): GuildContract[] {
@@ -132,11 +185,12 @@ export function createDefaultGuildState(save: GameSave): GuildState {
 }
 
 export function ensureCurrentGuildState(save: GameSave): GameSave {
+  const expectedContractCount = getTownUpgradeEffects(save).guildContractCount;
   if (!save.guild) {
     return { ...save, guild: createDefaultGuildState(save) };
   }
 
-  if (save.guild.weekNumber === save.dayState.weekNumber && save.guild.contracts.length > 0) {
+  if (save.guild.weekNumber === save.dayState.weekNumber && save.guild.contracts.length >= expectedContractCount) {
     return save;
   }
 
