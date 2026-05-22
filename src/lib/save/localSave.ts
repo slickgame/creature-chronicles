@@ -2,6 +2,7 @@ import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
 import { createDefaultBreedingState, getPlayerMaxEnergyFromStats } from "@/data/breeding";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
+import { getDefaultTownUpgrades, getTownUpgrades } from "@/data/upgrades";
 import {
   DEFAULT_STAT_GRADES,
   buildStats,
@@ -150,6 +151,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
     eggs,
     market: save.market,
     guild: save.guild,
+    townUpgrades: getTownUpgrades(save),
     flags: {
       ...save.flags,
       m3StarterCreaturesCreated: true,
@@ -165,6 +167,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m85StatGrades: true,
       m85PlayerGradesCreated: true,
       m9CreatureMetadataMigrated: true,
+      m10TownUpgradesCreated: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -215,6 +218,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     breeding: createDefaultBreedingState(),
     pregnancies: [],
     eggs: [],
+    townUpgrades: getDefaultTownUpgrades(),
     flags: {
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
@@ -230,6 +234,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m85StatGrades: true,
       m85PlayerGradesCreated: true,
       m9CreatureManagement: true,
+      m10TownUpgradesCreated: true,
       ranchUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
