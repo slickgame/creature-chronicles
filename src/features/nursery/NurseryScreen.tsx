@@ -55,7 +55,7 @@ export function NurseryScreen() {
 
     setHatchName("");
     setSelectedEggId(null);
-    setMessage(`${creature.nickname} hatched and moved into their habitat.`);
+    setMessage(`${creature.nickname} hatched and moved into their habitat. Origin, inherited grades, abilities, and collection totals were updated.`);
   }
 
   function handleRemoveEgg(egg: EggRecord, mode: "release" | "donate") {
@@ -72,9 +72,9 @@ export function NurseryScreen() {
 
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>M5 Eggs / Pregnancy / Nursery</p>
+            <p className={styles.kicker}>M9 Hatch Results / Collection</p>
             <h1>Egg Nursery</h1>
-            <p>Track pregnancies, egg timers, ready eggs, hatch results, inheritance previews, release, and donation.</p>
+            <p>Track pregnancies, egg timers, ready eggs, parent comparison, inherited grades, inherited abilities, variant rolls, and hatch results.</p>
           </div>
           <div className={styles.headerStats}>
             <div><span>Pregnancies</span><strong>{activePregnancies.length}</strong></div>
@@ -179,6 +179,8 @@ function EggDetail({
   const variant = getVariantDefinition(egg.variantId);
   const species = getSpeciesDefinition(egg.speciesId);
   const isReady = egg.status === "ready";
+  const highestStat = Math.max(...Object.values(egg.projectedStats));
+  const statHighlights = Object.entries(egg.projectedStats).filter(([, value]) => value === highestStat).map(([statKey]) => STAT_LABELS[statKey as keyof typeof STAT_LABELS]);
 
   return (
     <article className={styles.eggDetail}>
@@ -192,28 +194,50 @@ function EggDetail({
         <h2>{variant.name} {species.name}</h2>
         <p>Parents: {egg.parents.giver.displayName} × {egg.parents.receiver.displayName}</p>
 
+        <section className={styles.parentComparePanel}>
+          <img src={NURSERY_ASSETS.parentCompare} alt="" />
+          <div>
+            <strong>Parent Comparison</strong>
+            <span>Giver: {egg.parents.giver.displayName} ({egg.parents.giver.familyLabel})</span>
+            <span>Receiver: {egg.parents.receiver.displayName} ({egg.parents.receiver.familyLabel})</span>
+          </div>
+        </section>
+
+        <section className={styles.variantRollPanel}>
+          <img src={NURSERY_ASSETS.originHatched} alt="" />
+          <div>
+            <strong>Variant Roll</strong>
+            <span>{variant.rarity} {variant.name} {species.name}</span>
+            <em>Strongest projected stat: {statHighlights.join(", ")}</em>
+          </div>
+        </section>
+
         <div className={styles.statGrid}>
-          {Object.entries(egg.projectedStats).map(([statKey, value]) => (
-            <div key={statKey}>
-              <span>{STAT_LABELS[statKey as keyof typeof STAT_LABELS]}</span>
-              <strong>{value}</strong>
-            </div>
-          ))}
+          {Object.entries(egg.projectedStats).map(([statKey, value]) => {
+            const grade = egg.projectedStatGrades[statKey as keyof typeof STAT_LABELS];
+            return (
+              <div key={statKey}>
+                <span>{STAT_LABELS[statKey as keyof typeof STAT_LABELS]}</span>
+                <strong className={styles.statValueRow}>{value}<b>Grade {grade}</b></strong>
+              </div>
+            );
+          })}
         </div>
 
         <section className={styles.notesPanel}>
           <h3>Inheritance Notes</h3>
           <ul>
-            {[...egg.statRollNotes, ...egg.abilityRollNotes].map((note) => <li key={note}>{note}</li>)}
+            {[...egg.statRollNotes, ...egg.abilityRollNotes].map((note, index) => <li key={`${index}-${note}`}>{note}</li>)}
           </ul>
         </section>
 
         <section className={styles.abilitiesPanel}>
-          <h3>Projected Abilities</h3>
+          <h3>Projected / Inherited Abilities</h3>
           {egg.projectedAbilities.map((ability) => (
             <div key={ability.id}>
               <strong>{ability.name}</strong>
               <span>Grade {ability.grade} • {ability.source}</span>
+              <p>{ability.description}</p>
             </div>
           ))}
         </section>
