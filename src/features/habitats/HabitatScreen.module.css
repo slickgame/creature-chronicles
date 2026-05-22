@@ -321,6 +321,33 @@
   font-weight: 900;
 }
 
+.originRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 8px 0;
+}
+
+.originRow span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #7fdbff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.75);
+}
+
+.originRow img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
 .profileInfo > p:not(.kicker):not(.variantLine) {
   margin: 8px 0 8px;
   font-size: 0.9rem;
