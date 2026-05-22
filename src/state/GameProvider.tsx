@@ -18,6 +18,7 @@ import {
 } from "@/data/guild";
 import { buyMarketListing, ensureCurrentMarketState, rerollMarketListings } from "@/data/market";
 import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
+import { purchaseTownUpgrade } from "@/data/upgrades";
 import { formatGameDate } from "@/lib/formatters";
 import {
   createNewGameSave,
@@ -33,6 +34,7 @@ import type { BreedingAttemptRecord } from "@/types/breeding";
 import type { CreatureFamily, CreatureRecord } from "@/types/creature";
 import type { CreatureId, EggId } from "@/types/ids";
 import type { DayState, GameSave } from "@/types/save";
+import type { TownUpgradeId } from "@/types/upgrades";
 
 export type AppScreen =
   | "main-menu"
@@ -86,6 +88,7 @@ type GameContextValue = {
   rerollMarket: () => string;
   acceptGuildRequest: (contractId: string) => string;
   donateCreatureToGuild: (contractId: string, creatureId: CreatureId) => string;
+  buyTownUpgrade: (upgradeId: TownUpgradeId) => string;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -382,6 +385,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     [currentSave, saveCurrentGame],
   );
 
+  const buyTownUpgrade = useCallback(
+    (upgradeId: TownUpgradeId) => {
+      if (!currentSave) return "No active save.";
+      const result = purchaseTownUpgrade(currentSave, upgradeId);
+      saveCurrentGame(ensureCurrentGuildState(ensureCurrentMarketState(result.save)));
+      return result.message;
+    },
+    [currentSave, saveCurrentGame],
+  );
+
   const advanceDay = useCallback((): DayAdvanceResult | null => {
     if (!currentSave) return null;
 
@@ -401,6 +414,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       eggs: currentSave.eggs ?? [],
       market: currentSave.market,
       guild: currentSave.guild,
+      townUpgrades: currentSave.townUpgrades,
       flags: { ...currentSave.flags, lastSleptDayNumber: nextDayState.dayNumber, m2SleepUsed: true },
     };
 
@@ -427,7 +441,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<GameContextValue>(
     () => ({
       version: MVP_VERSION,
-      buildPhase: "M9 — Creature Management / Collection Quality",
+      buildPhase: "M10 — Guild Quartermaster / Town Service Upgrades",
       appScreen,
       activeHabitatFamily,
       currentSave,
@@ -460,6 +474,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       rerollMarket,
       acceptGuildRequest,
       donateCreatureToGuild,
+      buyTownUpgrade,
     }),
     [
       appScreen,
@@ -494,6 +509,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       rerollMarket,
       acceptGuildRequest,
       donateCreatureToGuild,
+      buyTownUpgrade,
     ],
   );
 
