@@ -7,16 +7,19 @@ import {
   getVariantsForFamily,
   rollCreatureAbilities,
   rollStatGrades,
+  shiftStatGrade,
+  STAT_KEYS,
 } from "@/data/creatures";
-import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "@/types/creature";
+import { getTownUpgradeEffects } from "@/data/upgrades";
+import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord, StatGrade, StatGrades } from "@/types/creature";
 import type { CreatureId, HabitatId, VariantId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 import type { MarketActionResult, MarketListing, MarketState } from "@/types/market";
 
-const LISTING_COUNT = 4;
 const BASE_REROLL_COST = 150;
-
 const RARITY_PRICE = { Common: 700, Uncommon: 1100, Rare: 1800, Epic: 3200 } as const;
+const MARKET_BASE_VARIANTS: VariantId[] = ["variant_base_feline", "variant_base_canine"] as VariantId[];
+const MARKET_SPECIAL_VARIANTS: VariantId[] = ["variant_sphinx", "variant_tiger", "variant_hellhound", "variant_direwolf"] as VariantId[];
 
 export type MarketListingPreview = {
   stats: CreatureStats;
@@ -31,18 +34,54 @@ function makeListingId(weekNumber: number, rerollCount: number, slotIndex: numbe
 function seededNumber(seed: number): number { const value = Math.sin(seed) * 10000; return value - Math.floor(value); }
 function getListingSeed(save: GameSave, listing: MarketListing): string { return `${save.saveId}_${listing.listingId}_market`; }
 
-function chooseWeightedVariant(seed: number): VariantId {
+function chooseMarketVariant(save: GameSave, slotIndex: number, rerollCount: number): VariantId {
+  const effects = getTownUpgradeEffects(save);
+  const seed = save.dayState.weekNumber * 37 + rerollCount * 17 + slotIndex * 11;
   const roll = seededNumber(seed);
-  if (roll < 0.44) return "variant_base_feline" as VariantId;
-  if (roll < 0.88) return "variant_base_canine" as VariantId;
-  if (roll < 0.91) return "variant_sphinx" as VariantId;
-  if (roll < 0.94) return "variant_tiger" as VariantId;
-  if (roll < 0.97) return "variant_hellhound" as VariantId;
-  return "variant_direwolf" as VariantId;
+
+  if (effects.marketVariantChance > 0 && roll < effects.marketVariantChance) {
+    const specialIndex = Math.floor(seededNumber(seed * 5 + 97) * MARKET_SPECIAL_VARIANTS.length);
+    return MARKET_SPECIAL_VARIANTS[specialIndex] ?? "variant_hellhound" as VariantId;
+  }
+
+  const baseIndex = seededNumber(seed * 3 + 19) < 0.5 ? 0 : 1;
+  return MARKET_BASE_VARIANTS[baseIndex] ?? "variant_base_feline" as VariantId;
+}
+
+function improveStatGradesForMarket(statGrades: StatGrades, save: GameSave, listingId: string): StatGrades {
+  const qualityTier = getTownUpgradeEffects(save).marketQualityTier;
+  if (qualityTier <= 0) return statGrades;
+
+  return STAT_KEYS.reduce((grades, key, index) => {
+    const roll = seededNumber(save.dayState.weekNumber * 211 + listingId.length * 17 + index * 43);
+    const upgradeChance = [0, 0.08, 0.13, 0.19, 0.26][qualityTier] ?? 0;
+    const downgradeProtection = [0, 0.15, 0.25, 0.35, 0.5][qualityTier] ?? 0;
+    const currentGrade = grades[key];
+    let nextGrade: StatGrade = currentGrade;
+
+    if (roll < upgradeChance) nextGrade = shiftStatGrade(currentGrade, 1);
+    if (currentGrade === "D" && roll < downgradeProtection) nextGrade = "C";
+
+    return { ...grades, [key]: nextGrade };
+  }, statGrades);
+}
+
+function improveAbilitiesForMarket(abilities: CreatureAbility[], save: GameSave, listing: MarketListing): CreatureAbility[] {
+  const qualityTier = getTownUpgradeEffects(save).marketQualityTier;
+  if (qualityTier <= 0) return abilities;
+
+  const gradeBoostChance = [0, 0.1, 0.16, 0.24, 0.32][qualityTier] ?? 0;
+  return abilities.map((ability, index) => {
+    const roll = seededNumber(save.dayState.weekNumber * 307 + listing.slotIndex * 41 + index * 13);
+    if (roll >= gradeBoostChance) return ability;
+    if (ability.grade === "C") return { ...ability, grade: "B" as const, description: `${ability.description} Guild screening improved this ability's reliability.` };
+    if (ability.grade === "B") return { ...ability, grade: "A" as const, description: `${ability.description} Guild screening improved this ability's reliability.` };
+    return ability;
+  });
 }
 
 function createListing(save: GameSave, slotIndex: number, rerollCount: number): MarketListing {
-  const variantId = chooseWeightedVariant(save.dayState.weekNumber * 37 + rerollCount * 17 + slotIndex * 11);
+  const variantId = chooseMarketVariant(save, slotIndex, rerollCount);
   const variant = getVariantDefinition(variantId);
   const species = getSpeciesDefinition(variant.speciesId);
   const rarityPrice = RARITY_PRICE[variant.rarity];
@@ -52,20 +91,26 @@ function createListing(save: GameSave, slotIndex: number, rerollCount: number): 
   return { listingId: makeListingId(save.dayState.weekNumber, rerollCount, slotIndex), weekNumber: save.dayState.weekNumber, slotIndex, speciesId: species.speciesId, variantId: variant.variantId, family: variant.family, displayName: variant.name, rarity: variant.rarity, price, status: "available", createdAt: new Date().toISOString() };
 }
 
-function createListings(save: GameSave, rerollCount = 0): MarketListing[] { return Array.from({ length: LISTING_COUNT }, (_, index) => createListing(save, index, rerollCount)); }
+function createListings(save: GameSave, rerollCount = 0): MarketListing[] {
+  const count = getTownUpgradeEffects(save).marketListingCount;
+  return Array.from({ length: count }, (_, index) => createListing(save, index, rerollCount));
+}
 
 export function createDefaultMarketState(save: GameSave): MarketState {
   return { weekNumber: save.dayState.weekNumber, rerollCount: 0, lastRestockedDayNumber: save.dayState.dayNumber, lastRestockedAt: new Date().toISOString(), listings: createListings(save, 0) };
 }
 
 export function ensureCurrentMarketState(save: GameSave): GameSave {
-  if (save.market && save.market.weekNumber === save.dayState.weekNumber && save.market.listings.length > 0) return save;
+  const expectedCount = getTownUpgradeEffects(save).marketListingCount;
+  if (save.market && save.market.weekNumber === save.dayState.weekNumber && save.market.listings.length === expectedCount) return save;
   return { ...save, market: createDefaultMarketState(save) };
 }
 
 export function getMarketRerollCost(save: GameSave): number {
   const market = ensureCurrentMarketState(save).market ?? createDefaultMarketState(save);
-  return BASE_REROLL_COST + market.rerollCount * 75;
+  const baseCost = BASE_REROLL_COST + market.rerollCount * 75;
+  const discount = getTownUpgradeEffects(save).marketRerollDiscount;
+  return Math.max(25, Math.round((baseCost * (1 - discount)) / 10) * 10);
 }
 
 function getHabitatForFamily(save: GameSave, family: "feline" | "canine"): HabitatRecord | null { return (save.habitats ?? []).find((habitat) => habitat.family === family) ?? null; }
@@ -74,11 +119,11 @@ export function getMarketListingPreview(save: GameSave, listing: MarketListing):
   const variant = getVariantDefinition(listing.variantId);
   const species = getSpeciesDefinition(variant.speciesId);
   const seed = getListingSeed(save, listing);
-  const statGrades = rollStatGrades(seed, variant.rarity);
+  const statGrades = improveStatGradesForMarket(rollStatGrades(seed, variant.rarity), save, listing.listingId);
   const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades);
   const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId);
   const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
-  const abilities = rollCreatureAbilities(seed, species.speciesId, variant.variantId);
+  const abilities = improveAbilitiesForMarket(rollCreatureAbilities(seed, species.speciesId, variant.variantId), save, listing);
 
   return { stats, statGrades, abilities, maxEnergy, maxHearts };
 }
