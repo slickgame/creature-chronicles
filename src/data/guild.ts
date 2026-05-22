@@ -235,6 +235,7 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
 
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
   if (!creature) return { save: syncedSave, ok: false, message: "That creature is no longer available." };
+  if (creature.isLocked) return { save: syncedSave, ok: false, message: `${creature.nickname} is locked. Unlock them before donating.` };
   if (contract.status !== "accepted" && contract.status !== "available") {
     return { save: syncedSave, ok: false, message: "That contract cannot receive donations." };
   }
@@ -244,6 +245,7 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
 
   const nextCompletedCount = guild.completedCount + 1;
   const nextGuildRank = Math.max(guild.guildRank, 1 + Math.floor(nextCompletedCount / 5));
+  const nextM9TotalDonated = Number(syncedSave.flags.m9TotalDonated ?? 0) + 1;
 
   return {
     save: {
@@ -277,7 +279,7 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
             : item,
         ),
       },
-      flags: { ...syncedSave.flags, m7GuildContractCompleted: true },
+      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m9CreatureManagement: true, m9TotalDonated: nextM9TotalDonated },
     },
     ok: true,
     message: `${creature.nickname} donated. Earned ${contract.goldReward} Gold and ${contract.guildPointReward} GP.`,
