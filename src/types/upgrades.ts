@@ -38,8 +38,21 @@ export type TownUpgradeEffects = {
   guildBonusGp: number;
 };
 
+export type TownUpgradePurchaseSummary = {
+  upgradeId: TownUpgradeId;
+  upgradeName: string;
+  category: TownUpgradeCategory;
+  oldTier: number;
+  newTier: number;
+  effectLabel: string;
+  costGp: number;
+  remainingGp: number;
+  immediateRefreshLabel: string;
+};
+
 export type TownUpgradePurchaseResult = {
   save: import("./save").GameSave;
   ok: boolean;
   message: string;
+  summary?: TownUpgradePurchaseSummary;
 };
