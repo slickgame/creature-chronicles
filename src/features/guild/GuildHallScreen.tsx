@@ -24,7 +24,10 @@ import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { GuildContract, GuildContractFilter } from "@/types/guild";
 import type { TownUpgradeCategory, TownUpgradeId, TownUpgradePurchaseSummary } from "@/types/upgrades";
-import styles from "./GuildHallScreen.module.css";
+import baseStyles from "./GuildHallScreen.module.css";
+import polishStyles from "./GuildHallScreen.polish.module.css";
+
+const styles = { ...baseStyles, ...polishStyles } as typeof baseStyles & typeof polishStyles;
 
 const ICONS = {
   contract: "/images/ui/icons/icon_contract_scroll.png",
