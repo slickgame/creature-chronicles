@@ -175,8 +175,8 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   if (contract.status !== "accepted" && contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract cannot receive donations." };
   if (!doesCreatureMatchContract(creature, contract)) return { save: syncedSave, ok: false, message: `${creature.nickname} does not meet this contract's requirements.` };
 
-  const isFirstCompletedContract = guild.completedCount === 0 && !syncedSave.flags.m105GuildWelcomeBonusClaimed;
-  const welcomeBonusGp = isFirstCompletedContract ? FIRST_COMPLETED_CONTRACT_GP_BONUS : 0;
+  const isWelcomeBonusAvailable = !syncedSave.flags.m105GuildWelcomeBonusClaimed;
+  const welcomeBonusGp = isWelcomeBonusAvailable ? FIRST_COMPLETED_CONTRACT_GP_BONUS : 0;
   const nextCompletedCount = guild.completedCount + 1;
   const nextGuildRank = Math.max(guild.guildRank, 1 + Math.floor(nextCompletedCount / 5));
   const nextM9TotalDonated = Number(syncedSave.flags.m9TotalDonated ?? 0) + 1;
@@ -198,7 +198,7 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
         guildRank: nextGuildRank,
         contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "completed", completedAtDayNumber: syncedSave.dayState.dayNumber, donatedCreatureId: creature.creatureId, donatedCreatureName: creature.nickname } : item),
       },
-      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m9CreatureManagement: true, m9TotalDonated: nextM9TotalDonated, m105GuildWelcomeBonusClaimed: isFirstCompletedContract ? true : syncedSave.flags.m105GuildWelcomeBonusClaimed ?? false },
+      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m9CreatureManagement: true, m9TotalDonated: nextM9TotalDonated, m105GuildWelcomeBonusClaimed: true },
     },
     ok: true,
     message: `${creature.nickname} donated. Earned ${contract.goldReward} Gold and ${totalGpReward} GP.${bonusText}`,
