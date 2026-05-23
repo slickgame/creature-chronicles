@@ -20,7 +20,7 @@ import {
 } from "@/data/upgrades";
 import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
-import type { CreatureRecord } from "@/types/creature";
+import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { GuildContract, GuildContractFilter } from "@/types/guild";
 import type { TownUpgradeCategory, TownUpgradeId, TownUpgradePurchaseSummary } from "@/types/upgrades";
@@ -34,7 +34,7 @@ const ICONS = {
 } as const;
 
 const FILTERS: Array<{ id: GuildContractFilter; label: string }> = [
-  { id: "all", label: "All Contracts" },
+  { id: "all", label: "All" },
   { id: "bronze", label: "Bronze" },
   { id: "silver", label: "Silver" },
   { id: "gold", label: "Gold" },
@@ -46,6 +46,15 @@ const SERVICE_CATEGORIES: Array<{ id: TownUpgradeCategory; label: string }> = [
   { id: "market", label: "Market Stall" },
   { id: "guild", label: "Request Board" },
 ];
+
+const STAT_LABELS: Record<CreatureStatKey, string> = {
+  STR: "Strength",
+  DEX: "Dexterity",
+  STA: "Stamina",
+  CHA: "Charm",
+  WIL: "Willpower",
+  FER: "Fertility",
+};
 
 function getContractStatusLabel(contract: GuildContract): string {
   if (contract.status === "available") return "Available";
@@ -63,6 +72,38 @@ function contractMatchesFilter(contract: GuildContract, filter: GuildContractFil
 
 function getCreatureImage(creature: CreatureRecord): string {
   return getVariantDefinition(creature.variantId).portraitPath;
+}
+
+function getRequirementPreview(contract: GuildContract): string {
+  return contract.requirement.label.replace(/^Donate\s+/i, "");
+}
+
+function getCreatureMatchReason(creature: CreatureRecord, contract: GuildContract): string {
+  const variant = getVariantDefinition(creature.variantId);
+  const requirement = contract.requirement;
+
+  if (requirement.kind === "any_creature") return "Meets: any creature";
+  if (requirement.kind === "family") return `Meets: ${variant.family} family`;
+  if (requirement.kind === "variant") return `Meets: ${variant.name} variant`;
+  if (requirement.kind === "rarity") return `Meets: ${variant.rarity} rarity`;
+  if (requirement.kind === "stat_minimum" && requirement.stat && requirement.minimum) {
+    return `Meets: ${requirement.stat} ${creature.stats[requirement.stat]} / ${requirement.minimum}`;
+  }
+
+  return "Meets contract requirement";
+}
+
+function getTierClassName(tier: GuildContract["tier"]): string {
+  if (tier === "gold") return styles.goldTier;
+  if (tier === "silver") return styles.silverTier;
+  return styles.bronzeTier;
+}
+
+function getStatusClassName(status: GuildContract["status"]): string {
+  if (status === "completed") return styles.completedStatus;
+  if (status === "accepted") return styles.acceptedStatus;
+  if (status === "expired") return styles.expiredStatus;
+  return styles.availableStatus;
 }
 
 export function GuildHallScreen() {
@@ -86,6 +127,7 @@ export function GuildHallScreen() {
   const [selectedUpgradeId, setSelectedUpgradeId] = useState<TownUpgradeId>("market_listing_capacity");
   const [pendingUpgradeId, setPendingUpgradeId] = useState<TownUpgradeId | null>(null);
   const [upgradeSummary, setUpgradeSummary] = useState<TownUpgradePurchaseSummary | null>(null);
+  const [showDevTools, setShowDevTools] = useState(false);
   const [message, setMessage] = useState("Welcome to the guild hall. Open the request board or speak with Mara Vell about town service upgrades.");
 
   useEffect(() => {
@@ -173,10 +215,6 @@ export function GuildHallScreen() {
     setSelectedCreatureId(null);
   }
 
-  function handleUpgradePurchase(upgradeId: TownUpgradeId) {
-    setPendingUpgradeId(upgradeId);
-  }
-
   function confirmUpgradePurchase() {
     if (!pendingUpgradeId) return;
     const result = buyTownUpgrade(pendingUpgradeId);
@@ -200,6 +238,7 @@ export function GuildHallScreen() {
   const canDonate = Boolean(selectedContract && selectedCreatureId && (selectedContract.status === "available" || selectedContract.status === "accepted"));
   const selectedUpgradeTier = upgrades[selectedUpgrade.upgradeId] ?? 0;
   const nextUpgradeTier = getNextUpgradeTier(selectedUpgrade, selectedUpgradeTier);
+  const currentUpgradeEffect = selectedUpgradeTier === 0 ? "Base service" : selectedUpgrade.tiers.find((tier) => tier.tier === selectedUpgradeTier)?.effectLabel ?? "Base service";
   const pendingUpgradeTier = pendingUpgrade ? upgrades[pendingUpgrade.upgradeId] ?? 0 : 0;
   const pendingNextTier = pendingUpgrade ? getNextUpgradeTier(pendingUpgrade, pendingUpgradeTier) : null;
 
@@ -211,9 +250,9 @@ export function GuildHallScreen() {
 
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>M10.5 Guild Economy Polish</p>
+            <p className={styles.kicker}>M10.6 Guild UI Polish</p>
             <h1>Guild Hall</h1>
-            <p>Complete contracts for GP, then spend GP with Mara Vell to upgrade town services.</p>
+            <p>Complete contracts, earn GP, and improve town services through Mara Vell.</p>
             <p className={styles.message}>{message}</p>
           </div>
           <div className={styles.headerActions}>
@@ -226,9 +265,16 @@ export function GuildHallScreen() {
 
         {hallMode === "hall" ? (
           <>
+            <section className={styles.hubStats} aria-label="Guild summary">
+              <div><span>Guild Rank</span><strong>{guild.guildRank}</strong></div>
+              <div><span>Completed</span><strong>{guild.completedCount}</strong></div>
+              <div><span>Market</span><strong>Lv. {marketUpgradeLevel}</strong></div>
+              <div><span>Board</span><strong>Lv. {boardUpgradeLevel}</strong></div>
+            </section>
+
             <button type="button" className={styles.boardHotspot} onClick={() => setHallMode("board")}>
               <img src={ICONS.contract} alt="" />
-              <strong>Open Request Board</strong>
+              <strong>Request Board</strong>
               <span>Board Lv. {boardUpgradeLevel} • {contracts.filter((contract) => contract.status === "available").length} available</span>
             </button>
             <button type="button" className={styles.quartermasterHotspot} onClick={() => setHallMode("services")}>
@@ -237,9 +283,9 @@ export function GuildHallScreen() {
               <span>{totalUpgradeTiers} upgrade tiers purchased</span>
             </button>
             <section className={styles.hallIntro}>
-              <p className={styles.kicker}>Guild Services</p>
-              <h2>Mara Vell, Quartermaster</h2>
-              <p>“Guild Points are trust. Spend them wisely, and the town will open better doors for your ranch.”</p>
+              <p className={styles.kicker}>Recent Guild Notice</p>
+              <h2>Guild Services</h2>
+              <p>{message}</p>
             </section>
           </>
         ) : null}
@@ -275,17 +321,19 @@ export function GuildHallScreen() {
                   <h2>Current Bonuses</h2>
                   <div className={styles.bonusList}>
                     {serviceCategory === "market" ? (
-                      <><span>Market listings: <strong>{effects.marketListingCount}</strong></span><span>Variant chance: <strong>{(effects.marketVariantChance * 100).toFixed(2)}%</strong></span><span>Quality tier: <strong>{effects.marketQualityTier}</strong></span><span>Reroll discount: <strong>{Math.round(effects.marketRerollDiscount * 100)}%</strong></span></>
+                      <><span>Listings <strong>{effects.marketListingCount}</strong></span><span>Variant Chance <strong>{(effects.marketVariantChance * 100).toFixed(2)}%</strong></span><span>Quality Tier <strong>{effects.marketQualityTier}</strong></span><span>Reroll Discount <strong>{Math.round(effects.marketRerollDiscount * 100)}%</strong></span></>
                     ) : (
-                      <><span>Weekly contracts: <strong>{effects.guildContractCount}</strong></span><span>Quality tier: <strong>{effects.guildContractQualityTier}</strong></span><span>Gold rewards: <strong>{Math.round(effects.guildGoldRewardMultiplier * 100)}%</strong></span><span>Bonus GP: <strong>+{effects.guildBonusGp}</strong></span></>
+                      <><span>Weekly Contracts <strong>{effects.guildContractCount}</strong></span><span>Quality Tier <strong>{effects.guildContractQualityTier}</strong></span><span>Gold Rewards <strong>{Math.round(effects.guildGoldRewardMultiplier * 100)}%</strong></span><span>Bonus GP <strong>+{effects.guildBonusGp}</strong></span></>
                     )}
                   </div>
                 </div>
                 <div className={styles.grantPanel}>
-                  <h2>Testing Grants</h2>
-                  <button type="button" className={styles.primaryButton} disabled={Boolean(currentSave.flags.m105GuildIntroBonusClaimed)} onClick={handleIntroBonus}>Claim Mara's +15 GP Intro Grant</button>
-                  {currentSave.settings.devMode ? <button type="button" className={styles.secondaryButton} onClick={handleDevGp}>Dev: Add +25 GP</button> : null}
-                  <p>First completed guild contract also grants a one-time +10 GP welcome bonus.</p>
+                  <h2>Guild Grants</h2>
+                  <button type="button" className={styles.primaryButton} disabled={Boolean(currentSave.flags.m105GuildIntroBonusClaimed)} onClick={handleIntroBonus}>Claim Mara's +15 GP Grant</button>
+                  <p>First completed guild contract grants a one-time +10 GP welcome bonus.</p>
+                  {currentSave.settings.devMode ? (
+                    <><button type="button" className={styles.filterButton} onClick={() => setShowDevTools(!showDevTools)}>Dev Tools {showDevTools ? "▲" : "▼"}</button>{showDevTools ? <button type="button" className={styles.secondaryButton} onClick={handleDevGp}>Add +25 GP</button> : null}</>
+                  ) : null}
                 </div>
               </aside>
 
@@ -308,10 +356,17 @@ export function GuildHallScreen() {
               <aside className={styles.panel}>
                 <div className={styles.detailBody}>
                   <div><span className={styles.tier}>{selectedUpgrade.category} upgrade</span><h2 className={styles.contractTitle}>{selectedUpgrade.name}</h2><p>{selectedUpgrade.description}</p></div>
-                  <div className={styles.upgradeDetailIconWrap}><img src={selectedUpgrade.iconPath} alt="" /><img src={UPGRADE_ASSETS.upgradeArrow} alt="" /></div>
-                  <div className={styles.requirement}><span className={styles.smallLabel}>Current Tier</span><strong>Tier {selectedUpgradeTier} / {selectedUpgrade.maxTier}</strong><p>{nextUpgradeTier ? `Next: ${nextUpgradeTier.effectLabel}` : "This upgrade is fully improved."}</p></div>
-                  <div className={styles.rewardBox}><span className={styles.smallLabel}>Tier Path</span><div className={styles.tierPath}>{selectedUpgrade.tiers.map((tier) => <div key={tier.tier} className={tier.tier <= selectedUpgradeTier ? styles.unlockedTier : ""}><strong>Tier {tier.tier}</strong><span>{tier.effectLabel}</span><em>{tier.costGp} GP</em></div>)}</div></div>
-                  <button type="button" className={styles.primaryButton} disabled={!nextUpgradeTier || currentSave.currencies.guildPoints < (nextUpgradeTier?.costGp ?? 0)} onClick={() => handleUpgradePurchase(selectedUpgrade.upgradeId)}>{nextUpgradeTier ? `Purchase Tier ${nextUpgradeTier.tier} · ${nextUpgradeTier.costGp} GP` : "Max Tier Reached"}</button>
+                  <div className={styles.compareGrid}>
+                    <div><span className={styles.smallLabel}>Current</span><strong>Tier {selectedUpgradeTier}</strong><p>{currentUpgradeEffect}</p></div>
+                    <div><span className={styles.smallLabel}>Next</span><strong>{nextUpgradeTier ? `Tier ${nextUpgradeTier.tier}` : "Max"}</strong><p>{nextUpgradeTier?.effectLabel ?? "Fully upgraded"}</p></div>
+                  </div>
+                  <div className={styles.tierSteps} aria-label="Upgrade tier path">
+                    {[0, ...selectedUpgrade.tiers.map((tier) => tier.tier)].map((tier) => <span key={tier} className={tier <= selectedUpgradeTier ? styles.stepActive : ""}>{tier}</span>)}
+                  </div>
+                  <div className={styles.purchaseCard}>
+                    <div><span className={styles.smallLabel}>Purchase</span><strong>{nextUpgradeTier ? `Tier ${nextUpgradeTier.tier}` : "Max Tier"}</strong><p>{nextUpgradeTier ? `${nextUpgradeTier.costGp} GP • applies immediately` : "This upgrade is fully improved."}</p></div>
+                    <button type="button" className={styles.primaryButton} disabled={!nextUpgradeTier || currentSave.currencies.guildPoints < (nextUpgradeTier?.costGp ?? 0)} onClick={() => setPendingUpgradeId(selectedUpgrade.upgradeId)}>{nextUpgradeTier ? `Upgrade · ${nextUpgradeTier.costGp} GP` : "Max Tier"}</button>
+                  </div>
                 </div>
               </aside>
             </div>
@@ -326,8 +381,11 @@ export function GuildHallScreen() {
             </div>
             <div className={styles.contractGrid}>
               <aside className={styles.panel}><h2>Filters</h2><div className={styles.filters}>{FILTERS.map((item) => <button key={item.id} type="button" className={`${styles.filterButton} ${filter === item.id ? styles.active : ""}`} onClick={() => { setFilter(item.id); setSelectedContractId(null); }}>{item.label}</button>)}</div></aside>
-              <section className={styles.panel}><h2>Contract List</h2><div className={styles.contractList}>{filteredContracts.map((contract) => <button key={contract.contractId} type="button" className={`${styles.contractButton} ${selectedContract?.contractId === contract.contractId ? styles.active : ""}`} onClick={() => { setSelectedContractId(contract.contractId); setSelectedCreatureId(null); }}><img src={getContractTierIcon(contract.tier)} alt="" /><span><span className={styles.tier}>{contract.tier} contract</span><strong>{contract.title}</strong><span className={styles.status}>{getContractStatusLabel(contract)}</span></span></button>)}{filteredContracts.length === 0 ? <p>No contracts match this filter.</p> : null}</div></section>
-              <aside className={styles.panel}>{selectedContract ? <div className={styles.detailBody}><div><span className={styles.tier}>{selectedContract.tier} contract</span><h2 className={styles.contractTitle}>{selectedContract.title}</h2><p>{selectedContract.description}</p></div><div className={styles.requirement}><span className={styles.smallLabel}>Requirement</span><strong>{selectedContract.requirement.label}</strong><p>Eligible creatures: {eligibleCreatures.length}</p></div><div className={styles.rewardBox}><span className={styles.smallLabel}>Rewards</span><div className={styles.rewardGrid}><div className={styles.reward}><img src={ICONS.gold} alt="" /><div><span>Gold</span><strong>{selectedContract.goldReward}</strong></div></div><div className={styles.reward}><img src={ICONS.gp} alt="" /><div><span>GP</span><strong>{selectedContract.guildPointReward}</strong></div></div></div></div><div className={styles.actionRow}><button type="button" className={styles.primaryButton} disabled={!canAccept} onClick={handleAccept}>Accept</button><button type="button" className={styles.secondaryButton} disabled={!canDonate} onClick={handleDonate}><img src={ICONS.donate} alt="" style={{ width: 22, height: 22, verticalAlign: "middle", marginRight: 6 }} />Donate Creature</button></div>{selectedContract.status === "completed" ? <div className={styles.warning}>Completed with {selectedContract.donatedCreatureName ?? "a donated creature"}. This contract cannot be completed again.</div> : null}<div><h2>Eligible Creatures</h2><div className={styles.creatureList}>{eligibleCreatures.map((creature) => { const variant = getVariantDefinition(creature.variantId); const isActive = selectedCreature?.creatureId === creature.creatureId; return <button key={creature.creatureId} type="button" className={`${styles.creatureButton} ${isActive ? styles.active : ""}`} onClick={() => setSelectedCreatureId(creature.creatureId)} disabled={!doesCreatureMatchContract(creature, selectedContract)}><img src={getCreatureImage(creature)} alt="" /><span><strong>{creature.nickname}</strong><span className={styles.metaLabel}>{variant.name} • {variant.rarity}</span></span></button>; })}{eligibleCreatures.length === 0 ? <p>No owned creatures match this contract.</p> : null}</div></div></div> : <p>Select a contract to view details.</p>}</aside>
+              <section className={styles.panel}>
+                <div className={styles.listHeader}><h2>Contract List</h2><span>{filteredContracts.length} shown</span></div>
+                <div className={styles.contractList}>{filteredContracts.map((contract) => <button key={contract.contractId} type="button" className={`${styles.contractButton} ${selectedContract?.contractId === contract.contractId ? styles.active : ""}`} onClick={() => { setSelectedContractId(contract.contractId); setSelectedCreatureId(null); }}><img src={getContractTierIcon(contract.tier)} alt="" /><span className={styles.contractRowMain}><span className={styles.contractTitleRow}><strong>{contract.title}</strong><b className={`${styles.statusPill} ${getStatusClassName(contract.status)}`}>{getContractStatusLabel(contract)}</b></span><span className={styles.contractMetaLine}><b className={`${styles.tierPill} ${getTierClassName(contract.tier)}`}>{contract.tier}</b>{getRequirementPreview(contract)}</span><span className={styles.contractRewardLine}><span>{contract.goldReward} Gold</span><span>{contract.guildPointReward} GP</span></span></span></button>)}{filteredContracts.length === 0 ? <p>No contracts match this filter.</p> : null}</div>
+              </section>
+              <aside className={styles.panel}>{selectedContract ? <div className={styles.detailBody}><div><span className={`${styles.tierPill} ${getTierClassName(selectedContract.tier)}`}>{selectedContract.tier}</span><h2 className={styles.contractTitle}>{selectedContract.title}</h2><p>{selectedContract.description}</p></div><div className={styles.requirement}><span className={styles.smallLabel}>Requirement</span><strong>{selectedContract.requirement.label}</strong><p>Eligible creatures: {eligibleCreatures.length}</p></div><div className={styles.rewardBox}><span className={styles.smallLabel}>Rewards</span><div className={styles.rewardGrid}><div className={styles.reward}><img src={ICONS.gold} alt="" /><div><span>Gold</span><strong>{selectedContract.goldReward}</strong></div></div><div className={styles.reward}><img src={ICONS.gp} alt="" /><div><span>GP</span><strong>{selectedContract.guildPointReward}</strong></div></div></div></div><div className={styles.actionRow}><button type="button" className={styles.primaryButton} disabled={!canAccept} onClick={handleAccept}>{selectedContract.status === "accepted" ? "Accepted" : selectedContract.status === "completed" ? "Completed" : "Accept"}</button><button type="button" className={styles.secondaryButton} disabled={!canDonate} onClick={handleDonate}><img src={ICONS.donate} alt="" style={{ width: 22, height: 22, verticalAlign: "middle", marginRight: 6 }} />Donate Creature</button></div>{selectedContract.status === "completed" ? <div className={styles.warning}>Completed with {selectedContract.donatedCreatureName ?? "a donated creature"}. This contract cannot be completed again.</div> : null}<div className={styles.eligibleSection}><div className={styles.eligibleHeader}><h2>Eligible Creatures</h2><span>{eligibleCreatures.length}</span></div><div className={styles.creatureList}>{eligibleCreatures.map((creature) => { const variant = getVariantDefinition(creature.variantId); const isActive = selectedCreature?.creatureId === creature.creatureId; return <button key={creature.creatureId} type="button" className={`${styles.creatureButton} ${isActive ? styles.active : ""}`} onClick={() => setSelectedCreatureId(creature.creatureId)} disabled={!doesCreatureMatchContract(creature, selectedContract)}><img src={getCreatureImage(creature)} alt="" /><span><strong>{creature.nickname}</strong><span className={styles.metaLabel}>{variant.name} • {variant.rarity}</span><em>{getCreatureMatchReason(creature, selectedContract)}</em></span></button>; })}{eligibleCreatures.length === 0 ? <p>No owned creatures match this contract.</p> : null}</div></div></div> : <p>Select a contract to view details.</p>}</aside>
             </div>
           </section>
         ) : null}
