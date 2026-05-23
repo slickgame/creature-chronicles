@@ -11,6 +11,8 @@ import type {
   GuildState,
 } from "@/types/guild";
 
+const FIRST_COMPLETED_CONTRACT_GP_BONUS = 10;
+
 function seededNumber(seed: number): number {
   const value = Math.sin(seed) * 10000;
   return value - Math.floor(value);
@@ -27,8 +29,8 @@ function getTierReward(save: GameSave, tier: GuildContractTier, slot: number) {
   let guildPointReward = 0;
 
   if (tier === "bronze") {
-    goldReward = 80 + Math.round(roll * 45);
-    guildPointReward = 5 + Math.floor(roll * 4);
+    goldReward = 85 + Math.round(roll * 50);
+    guildPointReward = 8 + Math.floor(roll * 5);
   } else if (tier === "silver") {
     goldReward = 155 + Math.round(roll * 70);
     guildPointReward = 12 + Math.floor(roll * 7);
@@ -71,84 +73,27 @@ function createContract(
 
 function getBaseTemplates(): Array<Omit<GuildContract, "contractId" | "weekNumber" | "type" | "status" | "goldReward" | "guildPointReward" | "createdAtDayNumber" | "expiresAtWeekNumber">> {
   return [
-    {
-      tier: "bronze" as const,
-      title: "Stable Starter Request",
-      description: "The guild needs a dependable common ranch creature for a new rural client.",
-      requirement: { kind: "any_creature" as const, label: "Donate any creature." },
-    },
-    {
-      tier: "bronze" as const,
-      title: "Feline Helper Needed",
-      description: "A quiet household wants a reliable feline companion for daily ranch support.",
-      requirement: { kind: "family" as const, family: "feline" as const, label: "Donate any feline creature." },
-    },
-    {
-      tier: "bronze" as const,
-      title: "Canine Patrol Request",
-      description: "A nearby farm wants a loyal canine for basic patrol work.",
-      requirement: { kind: "family" as const, family: "canine" as const, label: "Donate any canine creature." },
-    },
-    {
-      tier: "silver" as const,
-      title: "Healthy Worker Request",
-      description: "The guild is looking for a sturdy creature with strong stamina.",
-      requirement: { kind: "stat_minimum" as const, stat: "STA" as const, minimum: 7, label: "Donate any creature with STA 7+." },
-    },
-    {
-      tier: "silver" as const,
-      title: "Charming Companion Request",
-      description: "A noble client wants a socially gifted creature with strong charm.",
-      requirement: { kind: "stat_minimum" as const, stat: "CHA" as const, minimum: 7, label: "Donate any creature with CHA 7+." },
-    },
-    {
-      tier: "gold" as const,
-      title: "Rare Bloodline Request",
-      description: "A prestigious guild patron seeks a rare or better bloodline specimen.",
-      requirement: { kind: "rarity" as const, rarity: "Rare" as const, label: "Donate any Rare or Epic creature." },
-    },
-    {
-      tier: "gold" as const,
-      title: "Exceptional Dexterity Request",
-      description: "A specialist needs a highly agile creature for delicate service work.",
-      requirement: { kind: "stat_minimum" as const, stat: "DEX" as const, minimum: 8, label: "Donate any creature with DEX 8+." },
-    },
-    {
-      tier: "silver" as const,
-      title: "Focused Willpower Request",
-      description: "A guild partner wants a disciplined companion with strong willpower.",
-      requirement: { kind: "stat_minimum" as const, stat: "WIL" as const, minimum: 7, label: "Donate any creature with WIL 7+." },
-    },
-    {
-      tier: "bronze" as const,
-      title: "Reliable Fertility Registry",
-      description: "The registrar is collecting fertile ranch stock for approved clients.",
-      requirement: { kind: "stat_minimum" as const, stat: "FER" as const, minimum: 6, label: "Donate any creature with FER 6+." },
-    },
-    {
-      tier: "gold" as const,
-      title: "Premium Feline Patron",
-      description: "A high-ranking client wants a rare feline or exceptional feline companion.",
-      requirement: { kind: "family" as const, family: "feline" as const, label: "Donate any feline creature." },
-    },
-    {
-      tier: "gold" as const,
-      title: "Premium Canine Patron",
-      description: "A high-ranking client wants a rare canine or exceptional canine companion.",
-      requirement: { kind: "family" as const, family: "canine" as const, label: "Donate any canine creature." },
-    },
+    { tier: "bronze" as const, title: "Stable Starter Request", description: "The guild needs a dependable common ranch creature for a new rural client.", requirement: { kind: "any_creature" as const, label: "Donate any creature." } },
+    { tier: "bronze" as const, title: "Feline Helper Needed", description: "A quiet household wants a reliable feline companion for daily ranch support.", requirement: { kind: "family" as const, family: "feline" as const, label: "Donate any feline creature." } },
+    { tier: "bronze" as const, title: "Canine Patrol Request", description: "A nearby farm wants a loyal canine for basic patrol work.", requirement: { kind: "family" as const, family: "canine" as const, label: "Donate any canine creature." } },
+    { tier: "silver" as const, title: "Healthy Worker Request", description: "The guild is looking for a sturdy creature with strong stamina.", requirement: { kind: "stat_minimum" as const, stat: "STA" as const, minimum: 7, label: "Donate any creature with STA 7+." } },
+    { tier: "silver" as const, title: "Charming Companion Request", description: "A noble client wants a socially gifted creature with strong charm.", requirement: { kind: "stat_minimum" as const, stat: "CHA" as const, minimum: 7, label: "Donate any creature with CHA 7+." } },
+    { tier: "gold" as const, title: "Rare Bloodline Request", description: "A prestigious guild patron seeks a rare or better bloodline specimen.", requirement: { kind: "rarity" as const, rarity: "Rare" as const, label: "Donate any Rare or Epic creature." } },
+    { tier: "gold" as const, title: "Exceptional Dexterity Request", description: "A specialist needs a highly agile creature for delicate service work.", requirement: { kind: "stat_minimum" as const, stat: "DEX" as const, minimum: 8, label: "Donate any creature with DEX 8+." } },
+    { tier: "silver" as const, title: "Focused Willpower Request", description: "A guild partner wants a disciplined companion with strong willpower.", requirement: { kind: "stat_minimum" as const, stat: "WIL" as const, minimum: 7, label: "Donate any creature with WIL 7+." } },
+    { tier: "bronze" as const, title: "Reliable Fertility Registry", description: "The registrar is collecting fertile ranch stock for approved clients.", requirement: { kind: "stat_minimum" as const, stat: "FER" as const, minimum: 6, label: "Donate any creature with FER 6+." } },
+    { tier: "gold" as const, title: "Premium Feline Patron", description: "A high-ranking client wants a rare feline or exceptional feline companion.", requirement: { kind: "family" as const, family: "feline" as const, label: "Donate any feline creature." } },
+    { tier: "gold" as const, title: "Premium Canine Patron", description: "A high-ranking client wants a rare canine or exceptional canine companion.", requirement: { kind: "family" as const, family: "canine" as const, label: "Donate any canine creature." } },
   ];
 }
 
 function applyContractQuality(save: GameSave, templates: ReturnType<typeof getBaseTemplates>) {
   const qualityTier = getTownUpgradeEffects(save).guildContractQualityTier;
   if (qualityTier <= 0) return templates;
-
   return templates.map((template, index) => {
     const roll = seededNumber(save.dayState.weekNumber * 157 + index * 29);
     const silverChance = [0, 0.18, 0.26, 0.34, 0.42][qualityTier] ?? 0;
     const goldChance = [0, 0.03, 0.07, 0.12, 0.18][qualityTier] ?? 0;
-
     if (template.tier === "bronze" && roll < silverChance) return { ...template, tier: "silver" as const };
     if (template.tier === "silver" && roll < goldChance) return { ...template, tier: "gold" as const };
     return template;
@@ -158,59 +103,24 @@ function applyContractQuality(save: GameSave, templates: ReturnType<typeof getBa
 function getWeeklyTemplates(save: GameSave): ReturnType<typeof getBaseTemplates> {
   const effects = getTownUpgradeEffects(save);
   const templates = applyContractQuality(save, getBaseTemplates());
-  const rotatedTemplates = [...templates].sort((a, b) => {
-    const aRoll = seededNumber(save.dayState.weekNumber * 97 + a.title.length * 11);
-    const bRoll = seededNumber(save.dayState.weekNumber * 97 + b.title.length * 11);
-    return aRoll - bRoll;
-  });
-
+  const rotatedTemplates = [...templates].sort((a, b) => seededNumber(save.dayState.weekNumber * 97 + a.title.length * 11) - seededNumber(save.dayState.weekNumber * 97 + b.title.length * 11));
   return rotatedTemplates.slice(0, effects.guildContractCount);
 }
 
 function createWeeklyContracts(save: GameSave): GuildContract[] {
-  return getWeeklyTemplates(save).map((template, index) =>
-    createContract(save, index, template.tier, template.title, template.description, template.requirement),
-  );
+  return getWeeklyTemplates(save).map((template, index) => createContract(save, index, template.tier, template.title, template.description, template.requirement));
 }
 
 export function createDefaultGuildState(save: GameSave): GuildState {
-  return {
-    weekNumber: save.dayState.weekNumber,
-    lastGeneratedDayNumber: save.dayState.dayNumber,
-    contracts: createWeeklyContracts(save),
-    completedCount: 0,
-    donatedCreatureCount: 0,
-    guildRank: 1,
-  };
+  return { weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: createWeeklyContracts(save), completedCount: 0, donatedCreatureCount: 0, guildRank: 1 };
 }
 
 export function ensureCurrentGuildState(save: GameSave): GameSave {
   const expectedContractCount = getTownUpgradeEffects(save).guildContractCount;
-  if (!save.guild) {
-    return { ...save, guild: createDefaultGuildState(save) };
-  }
-
-  if (save.guild.weekNumber === save.dayState.weekNumber && save.guild.contracts.length >= expectedContractCount) {
-    return save;
-  }
-
-  const retainedContracts = save.guild.contracts
-    .filter((contract) => contract.status === "accepted" || contract.status === "completed")
-    .map((contract) =>
-      contract.status === "accepted" && contract.expiresAtWeekNumber <= save.dayState.weekNumber
-        ? { ...contract, status: "expired" as const }
-        : contract,
-    );
-
-  return {
-    ...save,
-    guild: {
-      ...save.guild,
-      weekNumber: save.dayState.weekNumber,
-      lastGeneratedDayNumber: save.dayState.dayNumber,
-      contracts: [...retainedContracts, ...createWeeklyContracts(save)],
-    },
-  };
+  if (!save.guild) return { ...save, guild: createDefaultGuildState(save) };
+  if (save.guild.weekNumber === save.dayState.weekNumber && save.guild.contracts.length >= expectedContractCount) return save;
+  const retainedContracts = save.guild.contracts.filter((contract) => contract.status === "accepted" || contract.status === "completed").map((contract) => contract.status === "accepted" && contract.expiresAtWeekNumber <= save.dayState.weekNumber ? { ...contract, status: "expired" as const } : contract);
+  return { ...save, guild: { ...save.guild, weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: [...retainedContracts, ...createWeeklyContracts(save)] } };
 }
 
 export function getContractTierIcon(tier: GuildContractTier): string {
@@ -229,21 +139,12 @@ export function getCreatureRarityRank(rarity: string): number {
 export function doesCreatureMatchContract(creature: CreatureRecord, contract: GuildContract): boolean {
   const variant = getVariantDefinition(creature.variantId);
   const requirement = contract.requirement;
-
-  if (contract.type !== "donate_creature" || contract.status === "completed" || contract.status === "expired") {
-    return false;
-  }
-
+  if (contract.type !== "donate_creature" || contract.status === "completed" || contract.status === "expired") return false;
   if (requirement.kind === "any_creature") return true;
   if (requirement.kind === "family") return variant.family === requirement.family;
   if (requirement.kind === "variant") return creature.variantId === requirement.variantId;
-  if (requirement.kind === "rarity") {
-    return getCreatureRarityRank(variant.rarity) >= getCreatureRarityRank(requirement.rarity ?? "Rare");
-  }
-  if (requirement.kind === "stat_minimum" && requirement.stat && requirement.minimum) {
-    return creature.stats[requirement.stat] >= requirement.minimum;
-  }
-
+  if (requirement.kind === "rarity") return getCreatureRarityRank(variant.rarity) >= getCreatureRarityRank(requirement.rarity ?? "Rare");
+  if (requirement.kind === "stat_minimum" && requirement.stat && requirement.minimum) return creature.stats[requirement.stat] >= requirement.minimum;
   return false;
 }
 
@@ -251,7 +152,6 @@ export function getEligibleCreaturesForContract(save: GameSave, contractId: stri
   const syncedSave = ensureCurrentGuildState(save);
   const contract = syncedSave.guild?.contracts.find((item) => item.contractId === contractId);
   if (!contract) return [];
-
   return (syncedSave.creatures ?? []).filter((creature) => doesCreatureMatchContract(creature, contract));
 }
 
@@ -259,26 +159,9 @@ export function acceptGuildContract(save: GameSave, contractId: string): GuildAc
   const syncedSave = ensureCurrentGuildState(save);
   const guild = syncedSave.guild ?? createDefaultGuildState(syncedSave);
   const contract = guild.contracts.find((item) => item.contractId === contractId);
-
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
   if (contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract is not available to accept." };
-
-  return {
-    save: {
-      ...syncedSave,
-      guild: {
-        ...guild,
-        contracts: guild.contracts.map((item) =>
-          item.contractId === contractId
-            ? { ...item, status: "accepted", acceptedAtDayNumber: syncedSave.dayState.dayNumber }
-            : item,
-        ),
-      },
-      flags: { ...syncedSave.flags, m7GuildContractAccepted: true },
-    },
-    ok: true,
-    message: `${contract.title} accepted.`,
-  };
+  return { save: { ...syncedSave, guild: { ...guild, contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "accepted", acceptedAtDayNumber: syncedSave.dayState.dayNumber } : item) }, flags: { ...syncedSave.flags, m7GuildContractAccepted: true } }, ok: true, message: `${contract.title} accepted.` };
 }
 
 export function donateCreatureToGuildContract(save: GameSave, contractId: string, creatureId: string): GuildActionResult {
@@ -286,56 +169,38 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   const guild = syncedSave.guild ?? createDefaultGuildState(syncedSave);
   const contract = guild.contracts.find((item) => item.contractId === contractId);
   const creature = (syncedSave.creatures ?? []).find((item) => item.creatureId === creatureId);
-
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
   if (!creature) return { save: syncedSave, ok: false, message: "That creature is no longer available." };
   if (creature.isLocked) return { save: syncedSave, ok: false, message: `${creature.nickname} is locked. Unlock them before donating.` };
-  if (contract.status !== "accepted" && contract.status !== "available") {
-    return { save: syncedSave, ok: false, message: "That contract cannot receive donations." };
-  }
-  if (!doesCreatureMatchContract(creature, contract)) {
-    return { save: syncedSave, ok: false, message: `${creature.nickname} does not meet this contract's requirements.` };
-  }
+  if (contract.status !== "accepted" && contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract cannot receive donations." };
+  if (!doesCreatureMatchContract(creature, contract)) return { save: syncedSave, ok: false, message: `${creature.nickname} does not meet this contract's requirements.` };
 
+  const isFirstCompletedContract = guild.completedCount === 0 && !syncedSave.flags.m105GuildWelcomeBonusClaimed;
+  const welcomeBonusGp = isFirstCompletedContract ? FIRST_COMPLETED_CONTRACT_GP_BONUS : 0;
   const nextCompletedCount = guild.completedCount + 1;
   const nextGuildRank = Math.max(guild.guildRank, 1 + Math.floor(nextCompletedCount / 5));
   const nextM9TotalDonated = Number(syncedSave.flags.m9TotalDonated ?? 0) + 1;
+  const totalGpReward = contract.guildPointReward + welcomeBonusGp;
+  const bonusText = welcomeBonusGp > 0 ? ` Guild Welcome Bonus +${welcomeBonusGp} GP.` : "";
 
   return {
     save: {
       ...syncedSave,
       updatedAt: new Date().toISOString(),
-      currencies: {
-        ...syncedSave.currencies,
-        gold: syncedSave.currencies.gold + contract.goldReward,
-        guildPoints: syncedSave.currencies.guildPoints + contract.guildPointReward,
-      },
+      currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold + contract.goldReward, guildPoints: syncedSave.currencies.guildPoints + totalGpReward },
       creatureIds: syncedSave.creatureIds.filter((id) => id !== creature.creatureId),
       creatures: (syncedSave.creatures ?? []).filter((item) => item.creatureId !== creature.creatureId),
-      habitats: (syncedSave.habitats ?? []).map((habitat) => ({
-        ...habitat,
-        creatureIds: habitat.creatureIds.filter((id) => id !== creature.creatureId),
-      })),
+      habitats: (syncedSave.habitats ?? []).map((habitat) => ({ ...habitat, creatureIds: habitat.creatureIds.filter((id) => id !== creature.creatureId) })),
       guild: {
         ...guild,
         completedCount: nextCompletedCount,
         donatedCreatureCount: guild.donatedCreatureCount + 1,
         guildRank: nextGuildRank,
-        contracts: guild.contracts.map((item) =>
-          item.contractId === contractId
-            ? {
-                ...item,
-                status: "completed",
-                completedAtDayNumber: syncedSave.dayState.dayNumber,
-                donatedCreatureId: creature.creatureId,
-                donatedCreatureName: creature.nickname,
-              }
-            : item,
-        ),
+        contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "completed", completedAtDayNumber: syncedSave.dayState.dayNumber, donatedCreatureId: creature.creatureId, donatedCreatureName: creature.nickname } : item),
       },
-      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m9CreatureManagement: true, m9TotalDonated: nextM9TotalDonated },
+      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m9CreatureManagement: true, m9TotalDonated: nextM9TotalDonated, m105GuildWelcomeBonusClaimed: isFirstCompletedContract ? true : syncedSave.flags.m105GuildWelcomeBonusClaimed ?? false },
     },
     ok: true,
-    message: `${creature.nickname} donated. Earned ${contract.goldReward} Gold and ${contract.guildPointReward} GP.`,
+    message: `${creature.nickname} donated. Earned ${contract.goldReward} Gold and ${totalGpReward} GP.${bonusText}`,
   };
 }
