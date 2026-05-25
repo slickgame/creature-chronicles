@@ -1,6 +1,7 @@
 import type { BreedingState } from "./breeding";
 import type { GuildState } from "./guild";
 import type { MarketState } from "./market";
+import type { RanchUpgradeState } from "./ranchUpgrades";
 import type { TownUpgradeState } from "./upgrades";
 import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
 import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "./creature";
@@ -123,6 +124,7 @@ export type GameSave = {
   market?: MarketState;
   guild?: GuildState;
   townUpgrades?: TownUpgradeState;
+  ranchUpgrades?: RanchUpgradeState;
 
   flags: Record<string, boolean | number | string>;
 };
