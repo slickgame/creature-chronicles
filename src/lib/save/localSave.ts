@@ -2,6 +2,7 @@ import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
 import { createDefaultBreedingState, getPlayerMaxEnergyFromStats } from "@/data/breeding";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
+import { applyRanchUpgradeEffectsToHabitats, getDefaultRanchUpgrades, getRanchUpgrades } from "@/data/ranchUpgrades";
 import { getDefaultTownUpgrades, getTownUpgrades } from "@/data/upgrades";
 import {
   DEFAULT_STAT_GRADES,
@@ -152,6 +153,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
     market: save.market,
     guild: save.guild,
     townUpgrades: getTownUpgrades(save),
+    ranchUpgrades: getRanchUpgrades(save),
     flags: {
       ...save.flags,
       m3StarterCreaturesCreated: true,
@@ -168,6 +170,8 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m85PlayerGradesCreated: true,
       m9CreatureMetadataMigrated: true,
       m10TownUpgradesCreated: true,
+      m11RanchUpgradesCreated: true,
+      ranchOfficeUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
       breedingUnlocked: true,
@@ -178,7 +182,7 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
     },
   };
 
-  return ensureCurrentGuildState(ensureCurrentMarketState(migratedSave));
+  return ensureCurrentGuildState(ensureCurrentMarketState(applyRanchUpgradeEffectsToHabitats(migratedSave)));
 }
 
 export function createNewGameSave(playerName: string, slotIndex: number): GameSave {
@@ -219,6 +223,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     pregnancies: [],
     eggs: [],
     townUpgrades: getDefaultTownUpgrades(),
+    ranchUpgrades: getDefaultRanchUpgrades(),
     flags: {
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
@@ -235,7 +240,9 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       m85PlayerGradesCreated: true,
       m9CreatureManagement: true,
       m10TownUpgradesCreated: true,
+      m11RanchUpgradesCreated: true,
       ranchUnlocked: true,
+      ranchOfficeUnlocked: true,
       townUnlocked: true,
       felineHabitatUnlocked: true,
       canineHabitatUnlocked: true,
@@ -246,12 +253,13 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
     },
   };
 
-  return { ...baseSave, market: createDefaultMarketState(baseSave), guild: createDefaultGuildState(baseSave) };
+  const upgradedBaseSave = applyRanchUpgradeEffectsToHabitats(baseSave);
+  return { ...upgradedBaseSave, market: createDefaultMarketState(upgradedBaseSave), guild: createDefaultGuildState(upgradedBaseSave) };
 }
 
 export function saveGameToSlot(save: GameSave): GameSave {
   if (!canUseStorage()) return save;
-  const updatedSave: GameSave = { ...save, updatedAt: new Date().toISOString() };
+  const updatedSave: GameSave = { ...applyRanchUpgradeEffectsToHabitats(save), updatedAt: new Date().toISOString() };
   window.localStorage.setItem(getSlotKey(save.slotIndex), JSON.stringify(updatedSave));
   window.localStorage.setItem(ACTIVE_SAVE_KEY, updatedSave.saveId);
   return updatedSave;
