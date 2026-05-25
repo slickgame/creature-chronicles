@@ -1,24 +1,15 @@
 "use client";
 
 import { type CSSProperties, useMemo, useState } from "react";
+import { RANCH_UPGRADE_ASSETS, getRanchUpgradeEffects, getTotalRanchUpgradeTiers } from "@/data/ranchUpgrades";
 import { formatEnergy, formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext, type DayAdvanceResult } from "@/state/GameProvider";
 import styles from "./RanchHubScreen.module.css";
 
 type ModalMode = "none" | "sleep-confirm" | "day-summary" | "requests" | "coming-soon";
-type BuildingId = "house" | "feline" | "canine" | "breeding" | "nursery" | "town" | "guild";
+type BuildingId = "house" | "office" | "feline" | "canine" | "breeding" | "nursery" | "town" | "guild";
 
-type Building = {
-  id: BuildingId;
-  title: string;
-  milestone: "Available" | "M3" | "M4" | "M5" | "M6" | "M7";
-  description: string;
-  actionLabel: string;
-  imageSrc: string;
-  x: number;
-  y: number;
-  width: number;
-};
+type Building = { id: BuildingId; title: string; milestone: "Available" | "M3" | "M4" | "M5" | "M6" | "M7" | "M11"; description: string; actionLabel: string; imageSrc: string; x: number; y: number; width: number };
 
 const HUD_ICONS = {
   crest: "/images/ui/icons/icon_paw_crest.png",
@@ -29,183 +20,54 @@ const HUD_ICONS = {
   requests: "/images/ui/home/icon_home_requests.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
   collection: "/images/ui/icons/icon_collection_book.png",
+  ledger: "/images/ui/icons/icon_ranch_ledger.png",
 } as const;
 
 const BUILDINGS: Building[] = [
-  {
-    id: "house",
-    title: "Ranch House",
-    milestone: "Available",
-    description: "Rest for the night and advance to the next day.",
-    actionLabel: "Sleep",
-    imageSrc: "/images/buildings/ranch/ranch_house.png",
-    x: 48,
-    y: 59,
-    width: 11,
-  },
-  {
-    id: "feline",
-    title: "Feline Habitat",
-    milestone: "M3",
-    description: "Home for Feline, Sphinx, and Tiger creatures.",
-    actionLabel: "Open Habitat",
-    imageSrc: "/images/buildings/ranch/feline_habitat.png",
-    x: 19,
-    y: 62,
-    width: 11,
-  },
-  {
-    id: "canine",
-    title: "Canine Habitat",
-    milestone: "M3",
-    description: "Home for Canine, Hellhound, and Direwolf creatures.",
-    actionLabel: "Open Habitat",
-    imageSrc: "/images/buildings/ranch/canine_habitat.png",
-    x: 74,
-    y: 58,
-    width: 11,
-  },
-  {
-    id: "breeding",
-    title: "Breeding Pen",
-    milestone: "M4",
-    description: "Pair selection, breeding previews, streaks, costs, and result placeholders.",
-    actionLabel: "Open Breeding",
-    imageSrc: "/images/buildings/ranch/breeding_pen.png",
-    x: 49,
-    y: 76,
-    width: 10,
-  },
-  {
-    id: "nursery",
-    title: "Egg Nursery",
-    milestone: "M5",
-    description: "Track pregnancies, incubating eggs, ready eggs, and hatch results.",
-    actionLabel: "Open Nursery",
-    imageSrc: "/images/buildings/ranch/egg_nursery.png",
-    x: 32,
-    y: 78,
-    width: 9,
-  },
-  {
-    id: "town",
-    title: "Town Road",
-    milestone: "M6",
-    description: "Leave the ranch and travel to town for the market, guild board, and future town services.",
-    actionLabel: "Travel to Town",
-    imageSrc: "/images/buildings/ranch/town_road.png",
-    x: 64,
-    y: 76,
-    width: 9,
-  },
-  {
-    id: "guild",
-    title: "Guild Board",
-    milestone: "M7",
-    description: "Future contract board for bronze, silver, and gold requests.",
-    actionLabel: "Coming in M7",
-    imageSrc: "/images/buildings/ranch/guild_board.png",
-    x: 80,
-    y: 76,
-    width: 9,
-  },
+  { id: "house", title: "Ranch House", milestone: "Available", description: "Rest for the night and advance to the next day.", actionLabel: "Sleep", imageSrc: "/images/buildings/ranch/ranch_house.png", x: 48, y: 59, width: 11 },
+  { id: "office", title: "Ranch Office", milestone: "M11", description: "Open the Ranch Office ledger to expand habitats, nursery capacity, breeding comfort, and sleep recovery.", actionLabel: "Open Ledger", imageSrc: RANCH_UPGRADE_ASSETS.officeBuilding, x: 36, y: 59, width: 10 },
+  { id: "feline", title: "Feline Habitat", milestone: "M3", description: "Home for Feline, Sphinx, and Tiger creatures.", actionLabel: "Open Habitat", imageSrc: "/images/buildings/ranch/feline_habitat.png", x: 19, y: 62, width: 11 },
+  { id: "canine", title: "Canine Habitat", milestone: "M3", description: "Home for Canine, Hellhound, and Direwolf creatures.", actionLabel: "Open Habitat", imageSrc: "/images/buildings/ranch/canine_habitat.png", x: 74, y: 58, width: 11 },
+  { id: "breeding", title: "Breeding Pen", milestone: "M4", description: "Pair selection, breeding previews, streaks, costs, and result placeholders.", actionLabel: "Open Breeding", imageSrc: "/images/buildings/ranch/breeding_pen.png", x: 49, y: 76, width: 10 },
+  { id: "nursery", title: "Egg Nursery", milestone: "M5", description: "Track pregnancies, incubating eggs, ready eggs, and hatch results.", actionLabel: "Open Nursery", imageSrc: "/images/buildings/ranch/egg_nursery.png", x: 32, y: 78, width: 9 },
+  { id: "town", title: "Town Road", milestone: "M6", description: "Leave the ranch and travel to town for the market, guild board, and future town services.", actionLabel: "Travel to Town", imageSrc: "/images/buildings/ranch/town_road.png", x: 64, y: 76, width: 9 },
+  { id: "guild", title: "Guild Board", milestone: "M7", description: "Legacy ranch board. The full Guild Hall now lives in town.", actionLabel: "Town Guild", imageSrc: "/images/buildings/ranch/guild_board.png", x: 80, y: 76, width: 9 },
 ];
 
-function getBuildingStyle(building: Building): CSSProperties {
-  return {
-    left: `${building.x}%`,
-    top: `${building.y}%`,
-    width: `${building.width}%`,
-  };
-}
-
-function isAvailableBuilding(id: BuildingId): boolean {
-  return id === "house" || id === "feline" || id === "canine" || id === "breeding" || id === "nursery" || id === "town";
-}
+function getBuildingStyle(building: Building): CSSProperties { return { left: `${building.x}%`, top: `${building.y}%`, width: `${building.width}%` }; }
+function isAvailableBuilding(id: BuildingId): boolean { return id === "house" || id === "office" || id === "feline" || id === "canine" || id === "breeding" || id === "nursery" || id === "town"; }
 
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToBreeding, goToCollection, goToHabitat, goToMainMenu, goToNursery, goToTown, version } = useGameContext();
+  const { advanceDay, currentSave, goToBreeding, goToCollection, goToHabitat, goToMainMenu, goToNursery, goToRanchOffice, goToTown, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
   const [selectedBuildingId, setSelectedBuildingId] = useState<BuildingId>("house");
 
-  const selectedBuilding = useMemo(
-    () => BUILDINGS.find((building) => building.id === selectedBuildingId) ?? BUILDINGS[0],
-    [selectedBuildingId],
-  );
-
-  const dateLabel = useMemo(() => {
-    if (!currentSave) {
-      return "Mon 1/1";
-    }
-
-    return formatGameDate(
-      currentSave.dayState.weekday,
-      currentSave.dayState.month,
-      currentSave.dayState.dayOfMonth,
-    );
-  }, [currentSave]);
+  const selectedBuilding = useMemo(() => BUILDINGS.find((building) => building.id === selectedBuildingId) ?? BUILDINGS[0], [selectedBuildingId]);
+  const dateLabel = useMemo(() => currentSave ? formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth) : "Mon 1/1", [currentSave]);
+  const ranchEffects = useMemo(() => currentSave ? getRanchUpgradeEffects(currentSave) : null, [currentSave]);
+  const totalRanchUpgrades = useMemo(() => currentSave ? getTotalRanchUpgradeTiers(currentSave) : 0, [currentSave]);
 
   if (!currentSave) {
-    return (
-      <main className={styles.emptyScreen}>
-        <section className={styles.emptyPanel}>
-          <h1>No active save</h1>
-          <p>Load or create a save before entering the ranch.</p>
-          <button type="button" onClick={goToMainMenu}>
-            Return to Main Menu
-          </button>
-        </section>
-      </main>
-    );
+    return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before entering the ranch.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
   }
 
   function handleBuildingClick(building: Building) {
     setSelectedBuildingId(building.id);
-
-    if (building.id === "house") {
-      setMessage("Ranch House selected. Rest here to advance the day.");
-      setModalMode("sleep-confirm");
-      return;
-    }
-
-    if (building.id === "feline") {
-      goToHabitat("feline");
-      return;
-    }
-
-    if (building.id === "canine") {
-      goToHabitat("canine");
-      return;
-    }
-
-    if (building.id === "breeding") {
-      goToBreeding();
-      return;
-    }
-
-    if (building.id === "nursery") {
-      goToNursery();
-      return;
-    }
-
-    if (building.id === "town") {
-      goToTown();
-      return;
-    }
-
-    setMessage(`${building.title} is planned for ${building.milestone}.`);
-    setModalMode("coming-soon");
+    if (building.id === "house") { setMessage("Ranch House selected. Rest here to advance the day."); setModalMode("sleep-confirm"); return; }
+    if (building.id === "office") { goToRanchOffice(); return; }
+    if (building.id === "feline") { goToHabitat("feline"); return; }
+    if (building.id === "canine") { goToHabitat("canine"); return; }
+    if (building.id === "breeding") { goToBreeding(); return; }
+    if (building.id === "nursery") { goToNursery(); return; }
+    if (building.id === "town") { goToTown(); return; }
+    setMessage(`${building.title} is now handled through the Town Guild Hall.`); setModalMode("coming-soon");
   }
 
   function handleSleep() {
     const result = advanceDay();
-
-    if (!result) {
-      return;
-    }
-
+    if (!result) return;
     setDaySummary(result);
     setModalMode("day-summary");
   }
@@ -215,165 +77,42 @@ export function RanchHubScreen() {
       <section className={styles.ranchFrame}>
         <div className={styles.backgroundArt} aria-hidden="true" />
         <div className={styles.mapShade} aria-hidden="true" />
-
         <header className={styles.hud}>
-          <div className={styles.hudIdentity}>
-            <img src={HUD_ICONS.crest} alt="" />
-            <div>
-              <span>{currentSave.player.ranchName}</span>
-              <strong>{currentSave.player.name}</strong>
-            </div>
-          </div>
-
+          <div className={styles.hudIdentity}><img src={HUD_ICONS.crest} alt="" /><div><span>{currentSave.player.ranchName}</span><strong>{currentSave.player.name}</strong></div></div>
           <div className={styles.hudStats} aria-label="Player resources">
-            <div>
-              <img src={HUD_ICONS.calendar} alt="" />
-              <span>Date</span>
-              <strong>{dateLabel}</strong>
-            </div>
-            <div>
-              <img src={HUD_ICONS.energy} alt="" />
-              <span>Energy</span>
-              <strong>
-                {formatEnergy(currentSave.currencies.energy, currentSave.currencies.maxEnergy)}
-              </strong>
-            </div>
-            <div className={styles.goldStat}>
-              <img src={HUD_ICONS.gold} alt="" />
-              <span>Gold</span>
-              <strong>{formatGold(currentSave.currencies.gold)}</strong>
-            </div>
-            <div>
-              <img src={HUD_ICONS.crest} alt="" />
-              <span>GP</span>
-              <strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong>
-            </div>
+            <div><img src={HUD_ICONS.calendar} alt="" /><span>Date</span><strong>{dateLabel}</strong></div>
+            <div><img src={HUD_ICONS.energy} alt="" /><span>Energy</span><strong>{formatEnergy(currentSave.currencies.energy, currentSave.currencies.maxEnergy)}</strong></div>
+            <div className={styles.goldStat}><img src={HUD_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
+            <div><img src={HUD_ICONS.crest} alt="" /><span>GP</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div>
           </div>
-
           <nav className={styles.hudActions} aria-label="Ranch actions">
-            <button type="button" className={styles.iconButton} onClick={goToCollection}>
-              <img src={HUD_ICONS.collection} alt="" />
-              <span>Collection</span>
-            </button>
-            <button type="button" className={styles.iconButton} onClick={() => setModalMode("requests")}>
-              <img src={HUD_ICONS.requests} alt="" />
-              <span>Requests</span>
-            </button>
-            <button type="button" className={styles.menuButton} onClick={goToMainMenu}>
-              <img src={HUD_ICONS.home} alt="" />
-              <span>Main Menu</span>
-            </button>
+            <button type="button" className={styles.iconButton} onClick={goToRanchOffice}><img src={HUD_ICONS.ledger} alt="" /><span>Office</span></button>
+            <button type="button" className={styles.iconButton} onClick={goToCollection}><img src={HUD_ICONS.collection} alt="" /><span>Collection</span></button>
+            <button type="button" className={styles.iconButton} onClick={() => setModalMode("requests")}><img src={HUD_ICONS.requests} alt="" /><span>Requests</span></button>
+            <button type="button" className={styles.menuButton} onClick={goToMainMenu}><img src={HUD_ICONS.home} alt="" /><span>Main Menu</span></button>
           </nav>
         </header>
 
         <section className={styles.ranchTitlePanel}>
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
-          <p>
-            Select buildings directly on the ranch map. Habitats, Breeding Pen, Egg Nursery, Town Road, and Collection are active.
-          </p>
+          <p>Select buildings directly on the ranch map. The Ranch Office now manages infrastructure upgrades.</p>
           <p className={styles.message}>{message}</p>
+          {ranchEffects ? <p className={styles.message}>Ranch upgrades: {totalRanchUpgrades} tiers • Feline {ranchEffects.felineCapacity} • Canine {ranchEffects.canineCapacity} • Eggs {ranchEffects.nurseryEggCapacity}</p> : null}
         </section>
 
         <section className={styles.mapLayer} aria-label="Ranch map buildings">
-          {BUILDINGS.map((building) => (
-            <button
-              key={building.id}
-              type="button"
-              style={getBuildingStyle(building)}
-              className={`${styles.mapBuilding} ${
-                selectedBuildingId === building.id ? styles.selectedBuilding : ""
-              } ${isAvailableBuilding(building.id) ? styles.availableBuilding : styles.lockedBuilding}`}
-              onClick={() => handleBuildingClick(building)}
-              aria-label={`${building.title}. ${building.actionLabel}. ${building.description}`}
-            >
-              <img src={building.imageSrc} alt="" />
-              <span className={styles.mapBuildingLabel}>{building.title}</span>
-              <span className={styles.mapBuildingBadge}>{building.actionLabel}</span>
-            </button>
-          ))}
+          {BUILDINGS.map((building) => <button key={building.id} type="button" style={getBuildingStyle(building)} className={`${styles.mapBuilding} ${selectedBuildingId === building.id ? styles.selectedBuilding : ""} ${isAvailableBuilding(building.id) ? styles.availableBuilding : styles.lockedBuilding}`} onClick={() => handleBuildingClick(building)} aria-label={`${building.title}. ${building.actionLabel}. ${building.description}`}><img src={building.imageSrc} alt="" /><span className={styles.mapBuildingLabel}>{building.title}</span><span className={styles.mapBuildingBadge}>{building.actionLabel}</span></button>)}
         </section>
 
-        <aside className={styles.selectedPanel} aria-label="Selected ranch location">
-          <span className={styles.selectedMilestone}>{selectedBuilding.milestone}</span>
-          <h2>{selectedBuilding.title}</h2>
-          <p>{selectedBuilding.description}</p>
-          <strong>{selectedBuilding.actionLabel}</strong>
-        </aside>
+        <aside className={styles.selectedPanel} aria-label="Selected ranch location"><span className={styles.selectedMilestone}>{selectedBuilding.milestone}</span><h2>{selectedBuilding.title}</h2><p>{selectedBuilding.description}</p><strong>{selectedBuilding.actionLabel}</strong></aside>
 
-        {modalMode !== "none" ? (
-          <div className={styles.modalBackdrop} role="presentation">
-            {modalMode === "sleep-confirm" ? (
-              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="sleep-title">
-                <img className={styles.modalIcon} src={HUD_ICONS.sleep} alt="" />
-                <h2 id="sleep-title">Sleep Until Tomorrow?</h2>
-                <p>Sleeping advances the day. Time does not pass from normal ranch actions; only sleeping changes the date.</p>
-                <ul>
-                  <li>Energy will be restored to full.</li>
-                  <li>Creature energy will be restored to full.</li>
-                  <li>Hearts restore to full for the next day.</li>
-                  <li>Pregnancy and egg timers will advance.</li>
-                </ul>
-                <div className={styles.modalActions}>
-                  <button type="button" onClick={() => setModalMode("none")}>Cancel</button>
-                  <button type="button" className={styles.primaryAction} onClick={handleSleep}>Sleep</button>
-                </div>
-              </section>
-            ) : null}
-
-            {modalMode === "day-summary" ? (
-              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="summary-title">
-                <h2 id="summary-title">New Day Summary</h2>
-                <p>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p>
-                <ul>
-                  {daySummary?.summaryItems.map((item, index) => (
-                    <li key={`${index}-${item}`}>{item}</li>
-                  ))}
-                </ul>
-                <div className={styles.modalActions}>
-                  <button
-                    type="button"
-                    className={styles.primaryAction}
-                    onClick={() => {
-                      setModalMode("none");
-                      setMessage("A new day begins on the ranch.");
-                    }}
-                  >
-                    Start Day
-                  </button>
-                </div>
-              </section>
-            ) : null}
-
-            {modalMode === "coming-soon" ? (
-              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="coming-soon-title">
-                <h2 id="coming-soon-title">{selectedBuilding.title}</h2>
-                <p>{selectedBuilding.description}</p>
-                <p className={styles.comingSoonText}>{selectedBuilding.actionLabel}</p>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button>
-                </div>
-              </section>
-            ) : null}
-
-            {modalMode === "requests" ? (
-              <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="requests-title">
-                <img className={styles.modalIcon} src={HUD_ICONS.requests} alt="" />
-                <h2 id="requests-title">Requests</h2>
-                <p>The request board is a placeholder for M7 guild contracts. It will eventually show client requests, deadlines, rewards, and donation options.</p>
-                <ul>
-                  <li>Bronze, silver, and gold request slots are planned.</li>
-                  <li>Contract rewards will use Gold and Guild Points.</li>
-                  <li>Creature donation value will connect here later.</li>
-                </ul>
-                <div className={styles.modalActions}>
-                  <button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button>
-                </div>
-              </section>
-            ) : null}
-          </div>
-        ) : null}
-
+        {modalMode !== "none" ? <div className={styles.modalBackdrop} role="presentation">
+          {modalMode === "sleep-confirm" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="sleep-title"><img className={styles.modalIcon} src={HUD_ICONS.sleep} alt="" /><h2 id="sleep-title">Sleep Until Tomorrow?</h2><p>Sleeping advances the day. Ranch Office recovery upgrades may improve overnight recovery.</p><ul><li>Energy will be restored to full.</li><li>Creature energy and Hearts will be restored.</li><li>Pregnancy and egg timers will advance.</li><li>Recovery upgrades can add bonus creature energy or affection.</li></ul><div className={styles.modalActions}><button type="button" onClick={() => setModalMode("none")}>Cancel</button><button type="button" className={styles.primaryAction} onClick={handleSleep}>Sleep</button></div></section> : null}
+          {modalMode === "day-summary" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="summary-title"><h2 id="summary-title">New Day Summary</h2><p>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p><ul>{daySummary?.summaryItems.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => { setModalMode("none"); setMessage("A new day begins on the ranch."); }}>Start Day</button></div></section> : null}
+          {modalMode === "coming-soon" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="coming-soon-title"><h2 id="coming-soon-title">{selectedBuilding.title}</h2><p>{selectedBuilding.description}</p><p className={styles.comingSoonText}>{selectedBuilding.actionLabel}</p><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
+          {modalMode === "requests" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="requests-title"><img className={styles.modalIcon} src={HUD_ICONS.requests} alt="" /><h2 id="requests-title">Requests</h2><p>The full guild contract system now lives in the Town Guild Hall.</p><ul><li>Use Town Road → Guild Hall for contracts.</li><li>Use Ranch Office for ranch infrastructure upgrades.</li></ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
+        </div> : null}
         <footer className={styles.versionFooter}>{version}</footer>
       </section>
     </main>
