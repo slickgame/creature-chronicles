@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { NURSERY_ASSETS } from "@/data/nursery";
+import { getNurseryCapacity } from "@/data/ranchUpgrades";
 import { getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { useGameContext } from "@/state/GameProvider";
 import type { EggId } from "@/types/ids";
@@ -21,6 +22,7 @@ export function NurseryScreen() {
   const { currentSave, goToRanch, hatchReadyEgg, removeNurseryEgg } = useGameContext();
   const pregnancies = currentSave?.pregnancies ?? [];
   const eggs = currentSave?.eggs ?? [];
+  const nurseryCapacity = currentSave ? getNurseryCapacity(currentSave) : 6;
   const activePregnancies = pregnancies.filter((pregnancy) => pregnancy.status === "pregnant");
   const activeEggs = eggs.filter((egg) => egg.status !== "hatched");
   const readyEggs = activeEggs.filter((egg) => egg.status === "ready");
@@ -72,13 +74,13 @@ export function NurseryScreen() {
 
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>M9 Hatch Results / Collection</p>
+            <p className={styles.kicker}>M11 Nursery Capacity</p>
             <h1>Egg Nursery</h1>
             <p>Track pregnancies, egg timers, ready eggs, parent comparison, inherited grades, inherited abilities, variant rolls, and hatch results.</p>
           </div>
           <div className={styles.headerStats}>
             <div><span>Pregnancies</span><strong>{activePregnancies.length}</strong></div>
-            <div><span>Eggs</span><strong>{activeEggs.length} / 6</strong></div>
+            <div><span>Eggs</span><strong>{activeEggs.length} / {nurseryCapacity}</strong></div>
             <button type="button" onClick={goToRanch}>Back to Ranch</button>
           </div>
         </header>
