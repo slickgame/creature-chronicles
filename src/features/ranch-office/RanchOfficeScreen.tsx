@@ -135,16 +135,18 @@ export function RanchOfficeScreen() {
           <section className={styles.panel}>
             <h2>{category === "overview" ? "All Ranch Upgrades" : getRanchUpgradeCategoryLabel(category)}</h2>
             <div className={styles.upgradeList}>
-              {categoryUpgrades.map((definition) => {
-                const currentTier = upgrades[definition.upgradeId] ?? 0;
-                const nextTier = getNextRanchUpgradeTier(definition, currentTier);
-                return (
-                  <button key={definition.upgradeId} type="button" className={`${styles.upgradeButton} ${selectedUpgrade.upgradeId === definition.upgradeId ? styles.active : ""}`} onClick={() => setSelectedUpgradeId(definition.upgradeId)}>
-                    <img src={definition.iconPath} alt="" />
-                    <span><strong>{definition.name}</strong><span>Tier {currentTier} / {definition.maxTier}</span><em>{nextTier ? nextTier.effectLabel : "Max tier reached"}</em></span>
-                  </button>
-                );
-              })}
+              {categoryUpgrades.map((definition) => (
+                <button
+                  key={definition.upgradeId}
+                  type="button"
+                  aria-label={`${definition.name}. ${definition.description}`}
+                  title={definition.name}
+                  className={`${styles.upgradeButton} ${selectedUpgrade.upgradeId === definition.upgradeId ? styles.active : ""}`}
+                  onClick={() => setSelectedUpgradeId(definition.upgradeId)}
+                >
+                  <img src={definition.iconPath} alt="" />
+                </button>
+              ))}
             </div>
           </section>
 
