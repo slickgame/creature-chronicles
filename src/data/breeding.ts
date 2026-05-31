@@ -9,6 +9,7 @@ import {
   getVariantMaxEnergyBonus,
 } from "@/data/creatures";
 import { createPregnancyRecord } from "@/data/nursery";
+import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
 import type {
   BreedingAttemptRecord,
   BreedingParticipant,
@@ -188,6 +189,7 @@ export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
 export function getBreedingPreview(save: GameSave, giverId: string | null, receiverId: string | null): BreedingPreview | null {
   if (!giverId || !receiverId || giverId === receiverId) return null;
   const breeding = save.breeding ?? createDefaultBreedingState();
+  const ranchEffects = getRanchUpgradeEffects(save);
   const participants = getBreedingParticipants(save);
   const giver = participants.find((item) => item.participantId === giverId);
   const receiver = participants.find((item) => item.participantId === receiverId);
@@ -203,18 +205,21 @@ export function getBreedingPreview(save: GameSave, giverId: string | null, recei
   const affectionBonus = Math.floor((giver.affection + receiver.affection) / 40);
   const fertilityBonus = Math.floor((getStatValue(giver, "FER") + getStatValue(receiver, "FER")) / 3);
   const charmBonus = Math.floor((getStatValue(giver, "CHA") + getStatValue(receiver, "CHA")) / 6);
-  const abilityBonus = giverEffects.pregnancyChance + receiverEffects.pregnancyChance;
-  const pregnancyChance = Math.min(85, baseChance + streakBonus + affectionBonus + fertilityBonus + charmBonus + abilityBonus);
+  const abilityBonus = giverEffects.pregnancyChance + receiverEffects.pregnancyChance + ranchEffects.breedingPregnancyBonus;
+  const pregnancyChance = Math.min(90, baseChance + streakBonus + affectionBonus + fertilityBonus + charmBonus + abilityBonus);
   const staminaDiscount = Math.floor((getStatValue(giver, "STA") + getStatValue(receiver, "STA")) / 6);
-  const energyDiscount = Math.min(18, staminaDiscount + giverEffects.energyDiscount + receiverEffects.energyDiscount);
-  const energyCost = Math.max(15, 35 - energyDiscount);
+  const energyDiscount = Math.min(22, staminaDiscount + giverEffects.energyDiscount + receiverEffects.energyDiscount + ranchEffects.breedingEnergyDiscount);
+  const energyCost = Math.max(12, 35 - energyDiscount);
   const heartCost = involvesPlayer ? 2 : 1;
   const willpowerBonus = Math.floor((getStatValue(giver, "WIL") + getStatValue(receiver, "WIL")) / 5);
   const dexterityBonus = Math.floor((getStatValue(giver, "DEX") + getStatValue(receiver, "DEX")) / 7);
-  const baseXp = 8 + streakCount * 2 + willpowerBonus + dexterityBonus + giverEffects.xpGain + receiverEffects.xpGain;
+  const baseXp = 8 + streakCount * 2 + willpowerBonus + dexterityBonus + giverEffects.xpGain + receiverEffects.xpGain + ranchEffects.breedingXpBonus;
   const xpGain = Math.round(baseXp * giverEffects.xpMultiplier * receiverEffects.xpMultiplier);
   const breederXpGain = involvesPlayer ? 10 + Math.floor(xpGain / 2) + giverEffects.breederXpGain + receiverEffects.breederXpGain : 0;
   const abilityTriggers = [...giverEffects.triggers, ...receiverEffects.triggers];
+  if (ranchEffects.breedingPregnancyBonus > 0) abilityTriggers.push(`Breeding Pen Comfort: +${ranchEffects.breedingPregnancyBonus}% pregnancy chance.`);
+  if (ranchEffects.breedingXpBonus > 0) abilityTriggers.push(`Breeding Pen Comfort: +${ranchEffects.breedingXpBonus} creature XP.`);
+  if (ranchEffects.breedingEnergyDiscount > 0) abilityTriggers.push(`Breeding Pen Comfort: -${ranchEffects.breedingEnergyDiscount} energy cost.`);
   let blockedReason: string | null = null;
   if (giver.hearts < heartCost || receiver.hearts < heartCost) blockedReason = "Both participants need enough Hearts.";
   else if (giver.energy < energyCost || receiver.energy < energyCost) blockedReason = "Both participants need enough energy.";
@@ -337,7 +342,7 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
   const pregnancy = outcome === "pregnancy" && giver && receiver ? createPregnancyRecord(normalizedSave, giver, receiver, `${save.saveId}_${attemptId}`) : null;
   const attempt: BreedingAttemptRecord = { attemptId, dayNumber: save.dayState.dayNumber, giverId, receiverId, pregnancyChance: preview.pregnancyChance, energyCost: preview.energyCost, heartCost: preview.heartCost, xpGain: preview.xpGain, breederXpGain: preview.breederXpGain, streakBefore: streakUpdate.streakBefore, streakAfter: streakUpdate.streakAfter, outcome, resultText, progressionEvents, createdAt: new Date().toISOString() };
   const maxEnergyAfter = playerProgress?.maxEnergyAfter ?? normalizedSave.currencies.maxEnergy;
-  return { save: { ...normalizedSave, player: playerProgress ? { ...playerProgress.player, hearts: Math.max(0, (playerProgress.player.hearts ?? 4) - preview.heartCost) } : normalizedSave.player, currencies: { ...normalizedSave.currencies, maxEnergy: maxEnergyAfter, energy: shouldUpdatePlayer ? Math.max(0, normalizedSave.currencies.energy - preview.energyCost) : Math.min(normalizedSave.currencies.energy, maxEnergyAfter) }, creatures: updatedCreatures, pregnancies: pregnancy ? [pregnancy, ...(normalizedSave.pregnancies ?? [])] : (normalizedSave.pregnancies ?? []), eggs: normalizedSave.eggs ?? [], breeding: { hearts: 0, maxHearts: 0, attempts: [attempt, ...breeding.attempts].slice(0, 20), streaks: streakUpdate.streaks }, flags: { ...normalizedSave.flags, breedingUnlocked: true, m4BreedingAttempted: true, m5PregnancyCreated: pregnancy ? true : (normalizedSave.flags.m5PregnancyCreated ?? false), m8BreedingProgression: true, m8EnergyFromStamina: true, m85StatGrades: true, lastBreedingOutcome: outcome } }, attempt };
+  return { save: { ...normalizedSave, player: playerProgress ? { ...playerProgress.player, hearts: Math.max(0, (playerProgress.player.hearts ?? 4) - preview.heartCost) } : normalizedSave.player, currencies: { ...normalizedSave.currencies, maxEnergy: maxEnergyAfter, energy: shouldUpdatePlayer ? Math.max(0, normalizedSave.currencies.energy - preview.energyCost) : Math.min(normalizedSave.currencies.energy, maxEnergyAfter) }, creatures: updatedCreatures, pregnancies: pregnancy ? [pregnancy, ...(normalizedSave.pregnancies ?? [])] : (normalizedSave.pregnancies ?? []), eggs: normalizedSave.eggs ?? [], breeding: { hearts: 0, maxHearts: 0, attempts: [attempt, ...breeding.attempts].slice(0, 20), streaks: streakUpdate.streaks }, flags: { ...normalizedSave.flags, breedingUnlocked: true, m4BreedingAttempted: true, m5PregnancyCreated: pregnancy ? true : (normalizedSave.flags.m5PregnancyCreated ?? false), m8BreedingProgression: true, m8EnergyFromStamina: true, m85StatGrades: true, m11BreedingPenEffects: true, lastBreedingOutcome: outcome } }, attempt };
 }
 
 export function getXpBarPercent(xp: number | undefined, xpToNext: number | undefined): number {
