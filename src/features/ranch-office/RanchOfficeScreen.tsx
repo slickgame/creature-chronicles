@@ -37,6 +37,7 @@ export function RanchOfficeScreen() {
   const [selectedUpgradeId, setSelectedUpgradeId] = useState<RanchUpgradeId>("feline_habitat_capacity");
   const [pendingUpgradeId, setPendingUpgradeId] = useState<RanchUpgradeId | null>(null);
   const [upgradeSummary, setUpgradeSummary] = useState<RanchUpgradePurchaseSummary | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const [message, setMessage] = useState("Welcome to the Ranch Office. Review your capacity, then purchase infrastructure upgrades.");
 
   const upgrades = currentSave ? getRanchUpgrades(currentSave) : null;
@@ -101,9 +102,10 @@ export function RanchOfficeScreen() {
         <header className={styles.header}>
           <div>
             <p className={styles.kicker}>M11 Ranch Office</p>
-            <h1>Ranch Office</h1>
-            <p>Spend Gold and GP to expand habitats, add egg slots, improve breeding comfort, and improve overnight recovery.</p>
-            <p className={styles.message}>{message}</p>
+            <div className={styles.titleRow}>
+              <h1>Ranch Office</h1>
+              <button type="button" className={styles.helpButton} onClick={() => setShowHelp(true)} aria-label="Open Ranch Office help">i</button>
+            </div>
           </div>
           <div className={styles.headerActions}>
             <div className={styles.statBox}><img src={RANCH_UPGRADE_ASSETS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
@@ -132,8 +134,8 @@ export function RanchOfficeScreen() {
             </div>
           </aside>
 
-          <section className={styles.panel}>
-            <h2>{category === "overview" ? "All Ranch Upgrades" : getRanchUpgradeCategoryLabel(category)}</h2>
+          <section className={`${styles.panel} ${styles.upgradePanel}`}>
+            <h2>{category === "overview" ? "All Upgrades" : getRanchUpgradeCategoryLabel(category)}</h2>
             <div className={styles.upgradeList}>
               {categoryUpgrades.map((definition) => (
                 <button
@@ -180,6 +182,25 @@ export function RanchOfficeScreen() {
             </div>
           </aside>
         </section>
+
+        {showHelp ? (
+          <div className={styles.modalBackdrop} role="presentation" onClick={() => setShowHelp(false)}>
+            <section className={styles.resultModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+              <img src={RANCH_UPGRADE_ASSETS.ranchLedger} alt="" />
+              <p className={styles.kicker}>Ranch Office Help</p>
+              <h2>How Upgrades Work</h2>
+              <ul className={styles.helpList}>
+                <li>Use the left ledger tabs to switch between overview, habitats, nursery, breeding pen, and recovery upgrades.</li>
+                <li>The middle column is icon-only. Click an icon to preview its details in the right panel.</li>
+                <li>The right panel shows the current tier, next tier, ranch-wide effects, and the purchase button.</li>
+                <li>Habitat and nursery capacity upgrades apply immediately.</li>
+                <li>Breeding Pen upgrades affect breeding chance, XP, and energy costs. Sleep Recovery upgrades affect overnight recovery.</li>
+              </ul>
+              <p className={styles.message}>{message}</p>
+              <button type="button" className={styles.primaryButton} onClick={() => setShowHelp(false)}>Got It</button>
+            </section>
+          </div>
+        ) : null}
 
         {pendingUpgrade && pendingNextTier ? (
           <div className={styles.modalBackdrop} role="presentation" onClick={() => setPendingUpgradeId(null)}>
