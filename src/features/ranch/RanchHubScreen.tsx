@@ -21,6 +21,7 @@ const HUD_ICONS = {
   gold: "/images/ui/currency/icon_currency_gold.png",
   collection: "/images/ui/icons/icon_collection_book.png",
   ledger: "/images/ui/icons/icon_ranch_ledger.png",
+  dev: "/images/ui/icons/icon_ranch_upgrade.png",
 } as const;
 
 const BUILDINGS: Building[] = [
@@ -38,7 +39,7 @@ function getBuildingStyle(building: Building): CSSProperties { return { left: `$
 function isAvailableBuilding(id: BuildingId): boolean { return id === "house" || id === "office" || id === "feline" || id === "canine" || id === "breeding" || id === "nursery" || id === "town"; }
 
 export function RanchHubScreen() {
-  const { advanceDay, currentSave, goToBreeding, goToCollection, goToHabitat, goToMainMenu, goToNursery, goToRanchOffice, goToTown, version } = useGameContext();
+  const { advanceDay, currentSave, goToBreeding, goToCollection, goToDevTools, goToHabitat, goToMainMenu, goToNursery, goToRanchOffice, goToTown, version } = useGameContext();
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [daySummary, setDaySummary] = useState<DayAdvanceResult | null>(null);
   const [message, setMessage] = useState("Welcome back to the ranch.");
@@ -87,6 +88,7 @@ export function RanchHubScreen() {
           </div>
           <nav className={styles.hudActions} aria-label="Ranch actions">
             <button type="button" className={styles.iconButton} onClick={goToRanchOffice}><img src={HUD_ICONS.ledger} alt="" /><span>Office</span></button>
+            {currentSave.settings.devMode ? <button type="button" className={styles.iconButton} onClick={goToDevTools}><img src={HUD_ICONS.dev} alt="" /><span>Dev</span></button> : null}
             <button type="button" className={styles.iconButton} onClick={goToCollection}><img src={HUD_ICONS.collection} alt="" /><span>Collection</span></button>
             <button type="button" className={styles.iconButton} onClick={() => setModalMode("requests")}><img src={HUD_ICONS.requests} alt="" /><span>Requests</span></button>
             <button type="button" className={styles.menuButton} onClick={goToMainMenu}><img src={HUD_ICONS.home} alt="" /><span>Main Menu</span></button>
