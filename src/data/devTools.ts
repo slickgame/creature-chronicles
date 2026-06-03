@@ -8,7 +8,7 @@ import {
   rollStatGrades,
 } from "@/data/creatures";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
-import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
+import { createDevMarketState } from "@/data/market";
 import { getNurseryCapacity } from "@/data/ranchUpgrades";
 import { DEFAULT_RANCH_UPGRADES, applyRanchUpgradeEffectsToHabitats } from "@/data/ranchUpgrades";
 import type { CreatureRecord } from "@/types/creature";
@@ -160,13 +160,23 @@ export function createDevEgg(save: GameSave, variantId: VariantId, ready = true)
 }
 
 export function resetDevMarket(save: GameSave): DevActionResult {
-  const nextSave = ensureCurrentMarketState({ ...save, market: createDefaultMarketState(save), flags: { ...save.flags, m12MarketReset: true } });
-  return { save: { ...nextSave, updatedAt: new Date().toISOString() }, ok: true, message: "Weekly market reset with current upgrade effects." };
+  const nextMarket = createDevMarketState(save);
+  return {
+    save: { ...save, updatedAt: new Date().toISOString(), market: nextMarket, flags: { ...save.flags, m12MarketReset: true, m12MarketDevRerollCount: nextMarket.rerollCount } },
+    ok: true,
+    message: `Market dev-rerolled to set #${nextMarket.rerollCount}. Open the Market to see refreshed listings.`,
+  };
 }
 
 export function resetDevGuild(save: GameSave): DevActionResult {
-  const nextSave = ensureCurrentGuildState({ ...save, guild: createDefaultGuildState(save), flags: { ...save.flags, m12GuildReset: true } });
-  return { save: { ...nextSave, updatedAt: new Date().toISOString() }, ok: true, message: "Guild contracts reset with current upgrade effects." };
+  const devWeekSave: GameSave = {
+    ...save,
+    dayState: { ...save.dayState, weekNumber: save.dayState.weekNumber + 1 },
+    guild: createDefaultGuildState({ ...save, dayState: { ...save.dayState, weekNumber: save.dayState.weekNumber + 1 } }),
+    flags: { ...save.flags, m12GuildReset: true, m12GuildDevRerollWeek: save.dayState.weekNumber + 1 },
+  };
+  const nextSave = ensureCurrentGuildState(devWeekSave);
+  return { save: { ...nextSave, updatedAt: new Date().toISOString() }, ok: true, message: `Guild contracts dev-rerolled using test week ${devWeekSave.dayState.weekNumber}. Open the Request Board to see refreshed contracts.` };
 }
 
 export function resetDevRanchUpgrades(save: GameSave): DevActionResult {
