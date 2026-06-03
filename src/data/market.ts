@@ -85,7 +85,7 @@ function createListing(save: GameSave, slotIndex: number, rerollCount: number): 
   const variant = getVariantDefinition(variantId);
   const species = getSpeciesDefinition(variant.speciesId);
   const rarityPrice = RARITY_PRICE[variant.rarity];
-  const weekMod = Math.floor(seededNumber(save.dayState.weekNumber * 19 + slotIndex) * 140);
+  const weekMod = Math.floor(seededNumber(save.dayState.weekNumber * 19 + slotIndex + rerollCount * 23) * 140);
   const price = Math.round((rarityPrice + weekMod + rerollCount * 25) / 10) * 10;
 
   return { listingId: makeListingId(save.dayState.weekNumber, rerollCount, slotIndex), weekNumber: save.dayState.weekNumber, slotIndex, speciesId: species.speciesId, variantId: variant.variantId, family: variant.family, displayName: variant.name, rarity: variant.rarity, price, status: "available", createdAt: new Date().toISOString() };
@@ -98,6 +98,11 @@ function createListings(save: GameSave, rerollCount = 0): MarketListing[] {
 
 export function createDefaultMarketState(save: GameSave): MarketState {
   return { weekNumber: save.dayState.weekNumber, rerollCount: 0, lastRestockedDayNumber: save.dayState.dayNumber, lastRestockedAt: new Date().toISOString(), listings: createListings(save, 0) };
+}
+
+export function createDevMarketState(save: GameSave): MarketState {
+  const rerollCount = (save.market?.rerollCount ?? 0) + 1;
+  return { weekNumber: save.dayState.weekNumber, rerollCount, lastRestockedDayNumber: save.dayState.dayNumber, lastRestockedAt: new Date().toISOString(), listings: createListings(save, rerollCount) };
 }
 
 export function ensureCurrentMarketState(save: GameSave): GameSave {
