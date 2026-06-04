@@ -2,11 +2,12 @@
 
 import { type CSSProperties, useMemo, useState } from "react";
 import { RANCH_UPGRADE_ASSETS, getRanchUpgradeEffects, getTotalRanchUpgradeTiers } from "@/data/ranchUpgrades";
+import { getStarterGoalProgress, getStarterGoals } from "@/data/starterGoals";
 import { formatEnergy, formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext, type DayAdvanceResult } from "@/state/GameProvider";
 import styles from "./RanchHubScreen.module.css";
 
-type ModalMode = "none" | "sleep-confirm" | "day-summary" | "requests" | "coming-soon";
+type ModalMode = "none" | "sleep-confirm" | "day-summary" | "requests" | "starter-goals" | "coming-soon";
 type BuildingId = "house" | "office" | "feline" | "canine" | "breeding" | "nursery" | "town" | "guild";
 
 type Building = { id: BuildingId; title: string; milestone: "Available" | "M3" | "M4" | "M5" | "M6" | "M7" | "M11"; description: string; actionLabel: string; imageSrc: string; x: number; y: number; width: number };
@@ -22,6 +23,7 @@ const HUD_ICONS = {
   collection: "/images/ui/icons/icon_collection_book.png",
   ledger: "/images/ui/icons/icon_ranch_ledger.png",
   dev: "/images/ui/icons/icon_ranch_upgrade.png",
+  goals: "/images/ui/icons/icon_collection_book.png",
 } as const;
 
 const BUILDINGS: Building[] = [
@@ -49,6 +51,8 @@ export function RanchHubScreen() {
   const dateLabel = useMemo(() => currentSave ? formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth) : "Mon 1/1", [currentSave]);
   const ranchEffects = useMemo(() => currentSave ? getRanchUpgradeEffects(currentSave) : null, [currentSave]);
   const totalRanchUpgrades = useMemo(() => currentSave ? getTotalRanchUpgradeTiers(currentSave) : 0, [currentSave]);
+  const starterGoals = useMemo(() => currentSave ? getStarterGoals(currentSave) : [], [currentSave]);
+  const starterProgress = useMemo(() => currentSave ? getStarterGoalProgress(currentSave) : null, [currentSave]);
 
   if (!currentSave) {
     return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before entering the ranch.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
@@ -89,6 +93,7 @@ export function RanchHubScreen() {
           <nav className={styles.hudActions} aria-label="Ranch actions">
             <button type="button" className={styles.iconButton} onClick={goToRanchOffice}><img src={HUD_ICONS.ledger} alt="" /><span>Office</span></button>
             {currentSave.settings.devMode ? <button type="button" className={styles.iconButton} onClick={goToDevTools}><img src={HUD_ICONS.dev} alt="" /><span>Dev</span></button> : null}
+            <button type="button" className={styles.iconButton} onClick={() => setModalMode("starter-goals")}><img src={HUD_ICONS.goals} alt="" /><span>Goals</span></button>
             <button type="button" className={styles.iconButton} onClick={goToCollection}><img src={HUD_ICONS.collection} alt="" /><span>Collection</span></button>
             <button type="button" className={styles.iconButton} onClick={() => setModalMode("requests")}><img src={HUD_ICONS.requests} alt="" /><span>Requests</span></button>
             <button type="button" className={styles.menuButton} onClick={goToMainMenu}><img src={HUD_ICONS.home} alt="" /><span>Main Menu</span></button>
@@ -98,8 +103,9 @@ export function RanchHubScreen() {
         <section className={styles.ranchTitlePanel}>
           <p className={styles.kicker}>Home Ranch</p>
           <h1>Ranch Hub</h1>
-          <p>Select buildings directly on the ranch map. The Ranch Office now manages infrastructure upgrades.</p>
+          <p>Select buildings directly on the ranch map. The Ranch Office manages infrastructure upgrades.</p>
           <p className={styles.message}>{message}</p>
+          {starterProgress?.nextGoal ? <p className={styles.message}>Next goal: {starterProgress.nextGoal.label} — {starterProgress.nextGoal.hint}</p> : <p className={styles.message}>Starter goals complete. Expand your collection or upgrade the ranch.</p>}
           {ranchEffects ? <p className={styles.message}>Ranch upgrades: {totalRanchUpgrades} tiers • Feline {ranchEffects.felineCapacity} • Canine {ranchEffects.canineCapacity} • Eggs {ranchEffects.nurseryEggCapacity}</p> : null}
         </section>
 
@@ -114,6 +120,7 @@ export function RanchHubScreen() {
           {modalMode === "day-summary" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="summary-title"><h2 id="summary-title">New Day Summary</h2><p>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p><ul>{daySummary?.summaryItems.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => { setModalMode("none"); setMessage("A new day begins on the ranch."); }}>Start Day</button></div></section> : null}
           {modalMode === "coming-soon" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="coming-soon-title"><h2 id="coming-soon-title">{selectedBuilding.title}</h2><p>{selectedBuilding.description}</p><p className={styles.comingSoonText}>{selectedBuilding.actionLabel}</p><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
           {modalMode === "requests" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="requests-title"><img className={styles.modalIcon} src={HUD_ICONS.requests} alt="" /><h2 id="requests-title">Requests</h2><p>The full guild contract system now lives in the Town Guild Hall.</p><ul><li>Use Town Road → Guild Hall for contracts.</li><li>Use Ranch Office for ranch infrastructure upgrades.</li></ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
+          {modalMode === "starter-goals" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="goals-title"><img className={styles.modalIcon} src={HUD_ICONS.goals} alt="" /><h2 id="goals-title">Starter Goals</h2><p>{starterProgress?.completed ?? 0} / {starterProgress?.total ?? starterGoals.length} complete. These are optional guideposts, not chores.</p><ul className={styles.goalList}>{starterGoals.map((goal) => <li key={goal.id} className={goal.complete ? styles.goalComplete : ""}><strong>{goal.complete ? "✓" : "○"} {goal.label}</strong><span>{goal.description}</span><em>{goal.hint}</em></li>)}</ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
         </div> : null}
         <footer className={styles.versionFooter}>{version}</footer>
       </section>
