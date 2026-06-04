@@ -40,70 +40,70 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     upgradeId: "feline_habitat_capacity",
     category: "habitats",
     name: "Feline Habitat Expansion",
-    description: "Adds more comfortable space for feline-family creatures.",
+    description: "Adds more comfortable space for feline-family creatures. This is a safe early upgrade if market purchases or hatching are filling your ranch.",
     iconPath: RANCH_UPGRADE_ASSETS.felineHabitat,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 500, effectLabel: "+1 Feline capacity" },
-      { tier: 2, costGold: 900, costGp: 10, effectLabel: "+2 total Feline capacity" },
-      { tier: 3, costGold: 1500, costGp: 25, effectLabel: "+4 total Feline capacity" },
-      { tier: 4, costGold: 2500, costGp: 50, effectLabel: "+6 total Feline capacity" },
+      { tier: 1, costGold: 350, effectLabel: "+1 Feline capacity" },
+      { tier: 2, costGold: 750, costGp: 8, effectLabel: "+2 total Feline capacity" },
+      { tier: 3, costGold: 1300, costGp: 20, effectLabel: "+4 total Feline capacity" },
+      { tier: 4, costGold: 2200, costGp: 45, effectLabel: "+6 total Feline capacity" },
     ],
   },
   {
     upgradeId: "canine_habitat_capacity",
     category: "habitats",
     name: "Canine Habitat Expansion",
-    description: "Adds more sturdy lodge space for canine-family creatures.",
+    description: "Adds more sturdy lodge space for canine-family creatures. This is a safe early upgrade if market purchases or hatching are filling your ranch.",
     iconPath: RANCH_UPGRADE_ASSETS.canineHabitat,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 500, effectLabel: "+1 Canine capacity" },
-      { tier: 2, costGold: 900, costGp: 10, effectLabel: "+2 total Canine capacity" },
-      { tier: 3, costGold: 1500, costGp: 25, effectLabel: "+4 total Canine capacity" },
-      { tier: 4, costGold: 2500, costGp: 50, effectLabel: "+6 total Canine capacity" },
+      { tier: 1, costGold: 350, effectLabel: "+1 Canine capacity" },
+      { tier: 2, costGold: 750, costGp: 8, effectLabel: "+2 total Canine capacity" },
+      { tier: 3, costGold: 1300, costGp: 20, effectLabel: "+4 total Canine capacity" },
+      { tier: 4, costGold: 2200, costGp: 45, effectLabel: "+6 total Canine capacity" },
     ],
   },
   {
     upgradeId: "nursery_egg_capacity",
     category: "nursery",
     name: "Nursery Egg Capacity",
-    description: "Adds more incubator space for eggs waiting to hatch.",
+    description: "Adds more incubator space for eggs waiting to hatch. Useful once breeding becomes a regular part of your loop.",
     iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 600, effectLabel: "+1 egg slot" },
-      { tier: 2, costGold: 1100, costGp: 15, effectLabel: "+2 total egg slots" },
-      { tier: 3, costGold: 1900, costGp: 35, effectLabel: "+4 total egg slots" },
-      { tier: 4, costGold: 3200, costGp: 70, effectLabel: "+6 total egg slots" },
+      { tier: 1, costGold: 450, effectLabel: "+1 egg slot" },
+      { tier: 2, costGold: 900, costGp: 12, effectLabel: "+2 total egg slots" },
+      { tier: 3, costGold: 1600, costGp: 28, effectLabel: "+4 total egg slots" },
+      { tier: 4, costGold: 2800, costGp: 60, effectLabel: "+6 total egg slots" },
     ],
   },
   {
     upgradeId: "breeding_pen_comfort",
     category: "breeding",
     name: "Breeding Pen Comfort",
-    description: "Improves breeding efficiency with better bedding, privacy, and comfort fixtures.",
+    description: "Improves breeding efficiency with better bedding, privacy, and comfort fixtures. This is a mid-game upgrade, not required for basic breeding.",
     iconPath: RANCH_UPGRADE_ASSETS.breedingPenUpgrade,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 700, effectLabel: "+2 creature XP from breeding" },
-      { tier: 2, costGold: 1200, costGp: 20, effectLabel: "+3% pregnancy chance and +2 XP" },
-      { tier: 3, costGold: 2000, costGp: 45, effectLabel: "+3% chance, +2 XP, -3 energy cost" },
-      { tier: 4, costGold: 3500, costGp: 90, effectLabel: "+8% chance, +7 XP, -3 energy cost" },
+      { tier: 1, costGold: 650, effectLabel: "+2 creature XP from breeding" },
+      { tier: 2, costGold: 1100, costGp: 18, effectLabel: "+3% pregnancy chance and +2 XP" },
+      { tier: 3, costGold: 1800, costGp: 38, effectLabel: "+3% chance, +2 XP, -3 energy cost" },
+      { tier: 4, costGold: 3100, costGp: 80, effectLabel: "+8% chance, +7 XP, -3 energy cost" },
     ],
   },
   {
     upgradeId: "sleep_recovery",
     category: "recovery",
     name: "Ranch Sleep Recovery",
-    description: "Improves overnight recovery and makes the ranch feel more restful.",
+    description: "Improves overnight recovery and makes the ranch feel more restful. This is a convenience upgrade, not mandatory upkeep.",
     iconPath: RANCH_UPGRADE_ASSETS.sleepRecovery,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 400, effectLabel: "+5 bonus creature energy after sleep" },
-      { tier: 2, costGold: 900, effectLabel: "+10 bonus creature energy after sleep" },
-      { tier: 3, costGold: 1600, costGp: 30, effectLabel: "+10 energy and +1 affection after sleep" },
-      { tier: 4, costGold: 2800, costGp: 60, effectLabel: "+15 energy and +2 affection after sleep" },
+      { tier: 1, costGold: 300, effectLabel: "+5 bonus creature energy after sleep" },
+      { tier: 2, costGold: 750, effectLabel: "+10 bonus creature energy after sleep" },
+      { tier: 3, costGold: 1400, costGp: 24, effectLabel: "+10 energy and +1 affection after sleep" },
+      { tier: 4, costGold: 2400, costGp: 50, effectLabel: "+15 energy and +2 affection after sleep" },
     ],
   },
 ];
@@ -124,9 +124,7 @@ export function getRanchUpgradeDefinition(upgradeId: RanchUpgradeId): RanchUpgra
   return definition;
 }
 
-export function getNextRanchUpgradeTier(definition: RanchUpgradeDefinition, currentTier: number) {
-  return definition.tiers.find((tier) => tier.tier === currentTier + 1) ?? null;
-}
+export function getNextRanchUpgradeTier(definition: RanchUpgradeDefinition, currentTier: number) { return definition.tiers.find((tier) => tier.tier === currentTier + 1) ?? null; }
 
 export function getTotalRanchUpgradeTiers(save: GameSave): number {
   const upgrades = getRanchUpgrades(save);
@@ -156,8 +154,8 @@ export function getRanchUpgradeEffects(save: GameSave): RanchUpgradeEffects {
 export function applyRanchUpgradeEffectsToHabitats(save: GameSave): GameSave {
   const effects = getRanchUpgradeEffects(save);
   const nextHabitats = (save.habitats ?? []).map((habitat): HabitatRecord => {
-    if (habitat.family === "feline") return { ...habitat, capacity: effects.felineCapacity, level: 1 + (getRanchUpgrades(save).feline_habitat_capacity ?? 0) };
-    if (habitat.family === "canine") return { ...habitat, capacity: effects.canineCapacity, level: 1 + (getRanchUpgrades(save).canine_habitat_capacity ?? 0) };
+    if (habitat.family === "feline") return { ...habitat, capacity: Math.max(effects.felineCapacity, habitat.creatureIds.length), level: 1 + (getRanchUpgrades(save).feline_habitat_capacity ?? 0) };
+    if (habitat.family === "canine") return { ...habitat, capacity: Math.max(effects.canineCapacity, habitat.creatureIds.length), level: 1 + (getRanchUpgrades(save).canine_habitat_capacity ?? 0) };
     return habitat;
   });
   return { ...save, habitats: nextHabitats };
@@ -173,8 +171,8 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
   if (!nextTier) return { save, ok: false, message: `${definition.name} is already maxed.` };
 
   const costGp = nextTier.costGp ?? 0;
-  if (save.currencies.gold < nextTier.costGold) return { save, ok: false, message: `Not enough Gold for ${definition.name} Tier ${nextTier.tier}.` };
-  if (save.currencies.guildPoints < costGp) return { save, ok: false, message: `Not enough GP for ${definition.name} Tier ${nextTier.tier}.` };
+  if (save.currencies.gold < nextTier.costGold) return { save, ok: false, message: `Not enough Gold for ${definition.name} Tier ${nextTier.tier}. Need ${nextTier.costGold} Gold; you have ${save.currencies.gold}.` };
+  if (save.currencies.guildPoints < costGp) return { save, ok: false, message: `Not enough GP for ${definition.name} Tier ${nextTier.tier}. Need ${costGp} GP; you have ${save.currencies.guildPoints}.` };
 
   const remainingGold = save.currencies.gold - nextTier.costGold;
   const remainingGp = save.currencies.guildPoints - costGp;
@@ -183,26 +181,14 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
     updatedAt: new Date().toISOString(),
     currencies: { ...save.currencies, gold: remainingGold, guildPoints: remainingGp },
     ranchUpgrades: { ...upgrades, [upgradeId]: nextTier.tier },
-    flags: { ...save.flags, m11RanchOfficeUsed: true, m11RanchUpgradePurchased: true },
+    flags: { ...save.flags, m11RanchOfficeUsed: true, m11RanchUpgradePurchased: true, m125BalancePass: true },
   });
 
   return {
     save: nextSave,
     ok: true,
     message: `${definition.name} upgraded from Tier ${currentTier} to Tier ${nextTier.tier}. ${nextTier.effectLabel}. Ranch effects applied immediately.`,
-    summary: {
-      upgradeId,
-      upgradeName: definition.name,
-      category: definition.category,
-      oldTier: currentTier,
-      newTier: nextTier.tier,
-      effectLabel: nextTier.effectLabel,
-      costGold: nextTier.costGold,
-      costGp,
-      remainingGold,
-      remainingGp,
-      immediateEffectLabel: "Ranch effects applied immediately.",
-    },
+    summary: { upgradeId, upgradeName: definition.name, category: definition.category, oldTier: currentTier, newTier: nextTier.tier, effectLabel: nextTier.effectLabel, costGold: nextTier.costGold, costGp, remainingGold, remainingGp, immediateEffectLabel: "Ranch effects applied immediately." },
   };
 }
 
