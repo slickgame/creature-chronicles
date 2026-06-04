@@ -208,7 +208,7 @@
 }
 
 .ranchTitlePanel {
-  width: min(420px, calc(100% - 68px));
+  width: min(460px, calc(100% - 68px));
   margin: 18px 34px;
   padding: 16px 20px;
   border: 3px solid rgba(245, 201, 128, 0.72);
@@ -352,7 +352,9 @@
 }
 
 .modalPanel {
-  width: min(100%, 560px);
+  width: min(100%, 620px);
+  max-height: 86%;
+  overflow: auto;
   padding: 30px;
   border: 3px solid rgba(245, 201, 128, 0.9);
   border-radius: var(--radius-lg);
@@ -388,6 +390,39 @@
   color: var(--color-gold);
 }
 
+.goalList {
+  list-style: none;
+  padding-left: 0 !important;
+}
+
+.goalList li {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 201, 128, 0.32);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.goalList strong {
+  color: var(--color-text-primary);
+}
+
+.goalList span {
+  color: var(--color-text-muted);
+}
+
+.goalList em {
+  color: var(--color-blue);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.goalComplete {
+  border-color: rgba(127, 219, 255, 0.7) !important;
+  background: rgba(86, 199, 255, 0.12) !important;
+}
+
 .comingSoonText {
   color: var(--color-blue);
   font-weight: 900;
@@ -408,67 +443,30 @@
 .versionFooter {
   position: absolute;
   right: 34px;
-  bottom: 24px;
+  bottom: 26px;
   z-index: 9;
-  color: var(--color-text-muted);
+  color: rgba(255, 244, 214, 0.68);
   font-size: 0.82rem;
+  font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 @media (max-width: 1100px) {
   .ranchFrame {
-    min-height: 820px;
-  }
-
-  .hud {
-    grid-template-columns: 1fr;
-  }
-
-  .hudStats {
-    grid-template-columns: repeat(2, minmax(130px, 1fr));
-  }
-
-  .hudActions {
-    justify-content: flex-start;
-  }
-
-  .ranchTitlePanel {
-    width: min(420px, calc(100% - 44px));
-    margin-left: 22px;
-    margin-right: 22px;
-  }
-}
-
-@media (max-width: 720px) {
-  .screen,
-  .emptyScreen {
-    padding: 12px;
-  }
-
-  .ranchFrame {
-    min-height: 880px;
     aspect-ratio: auto;
+    min-height: 980px;
   }
 
   .hud {
-    padding: 26px 22px 12px;
+    grid-template-columns: 1fr;
   }
 
   .hudStats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .hudActions {
     flex-wrap: wrap;
-  }
-
-  .ranchTitlePanel {
-    padding: 18px;
-  }
-
-  .mapBuildingLabel,
-  .mapBuildingBadge {
-    display: none;
   }
 }
