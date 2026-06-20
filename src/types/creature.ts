@@ -1,6 +1,6 @@
 import type { CreatureId, HabitatId, SpeciesId, VariantId } from "./ids";
 
-export type CreatureFamily = "feline" | "canine";
+export type CreatureFamily = "feline" | "canine" | "bovine" | "lapine" | "equine";
 
 export type CreatureStatKey = "STR" | "DEX" | "STA" | "CHA" | "WIL" | "FER";
 
