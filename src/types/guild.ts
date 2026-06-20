@@ -1,5 +1,5 @@
 import type { ContractId, CreatureId, SpeciesId, VariantId } from "./ids";
-import type { CreatureStatKey } from "./creature";
+import type { CreatureFamily, CreatureStatKey } from "./creature";
 
 export type GuildContractTier = "bronze" | "silver" | "gold";
 export type GuildContractStatus = "available" | "accepted" | "completed" | "expired";
@@ -9,7 +9,7 @@ export type GuildContractRequirementKind = "any_creature" | "family" | "variant"
 
 export type GuildContractRequirement = {
   kind: GuildContractRequirementKind;
-  family?: "feline" | "canine";
+  family?: CreatureFamily;
   variantId?: VariantId;
   speciesId?: SpeciesId;
   rarity?: "Common" | "Uncommon" | "Rare" | "Epic";
