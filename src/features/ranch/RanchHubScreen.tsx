@@ -50,15 +50,13 @@ export function RanchHubScreen() {
   const [selectedBuildingId, setSelectedBuildingId] = useState<BuildingId>("house");
 
   const selectedBuilding = useMemo(() => BUILDINGS.find((building) => building.id === selectedBuildingId) ?? BUILDINGS[0], [selectedBuildingId]);
-  const dateLabel = useMemo(() => currentSave ? formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayOfMonth) : "Mon 1/1", [currentSave]);
+  const dateLabel = useMemo(() => currentSave ? formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth) : "Mon 1/1", [currentSave]);
   const ranchEffects = useMemo(() => currentSave ? getRanchUpgradeEffects(currentSave) : null, [currentSave]);
   const totalRanchUpgrades = useMemo(() => currentSave ? getTotalRanchUpgradeTiers(currentSave) : 0, [currentSave]);
   const starterGoals = useMemo(() => currentSave ? getStarterGoals(currentSave) : [], [currentSave]);
   const starterProgress = useMemo(() => currentSave ? getStarterGoalProgress(currentSave) : null, [currentSave]);
 
-  if (!currentSave) {
-    return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before entering the ranch.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
-  }
+  if (!currentSave) return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before entering the ranch.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
 
   function handleBuildingClick(building: Building) {
     setSelectedBuildingId(building.id);
