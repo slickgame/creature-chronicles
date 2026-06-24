@@ -5,6 +5,9 @@ export type RanchUpgradeCategory = "habitats" | "nursery" | "breeding" | "recove
 export type RanchUpgradeId =
   | "feline_habitat_capacity"
   | "canine_habitat_capacity"
+  | "bovine_habitat_capacity"
+  | "lapine_habitat_capacity"
+  | "equine_habitat_capacity"
   | "nursery_egg_capacity"
   | "breeding_pen_comfort"
   | "sleep_recovery";
@@ -31,6 +34,9 @@ export type RanchUpgradeDefinition = {
 export type RanchUpgradeEffects = {
   felineCapacity: number;
   canineCapacity: number;
+  bovineCapacity: number;
+  lapineCapacity: number;
+  equineCapacity: number;
   nurseryEggCapacity: number;
   breedingPregnancyBonus: number;
   breedingXpBonus: number;
