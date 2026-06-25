@@ -220,7 +220,7 @@
 .jobCard {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 10px;
   padding: 14px;
   overflow: hidden;
@@ -294,7 +294,7 @@
 .assignmentBox {
   min-height: 0;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   padding: 10px;
   border: 1px solid rgba(245, 201, 128, 0.18);
   border-radius: 15px;
@@ -310,19 +310,43 @@
   align-items: center;
 }
 
+.assignedLineWithPortrait {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
 .assignedLine div {
   min-width: 0;
 }
 
+.assignedLineWithPortrait .assignedDot {
+  position: absolute;
+  left: 6px;
+  bottom: 48px;
+  z-index: 2;
+}
+
 .assignedPortrait {
-  width: clamp(72px, 8vw, 112px);
-  height: clamp(72px, 8vw, 112px);
-  flex: 0 0 auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  justify-self: center;
+  align-self: stretch;
   object-fit: contain;
   border: 1px solid rgba(245, 201, 128, 0.28);
   border-radius: 18px;
   background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.18));
-  padding: 4px;
+  padding: 5px;
+}
+
+.assignedText {
+  border-radius: 12px;
+  padding: 6px 8px;
+  background: rgba(10, 10, 12, 0.3);
 }
 
 .assignedLine strong,
@@ -615,9 +639,8 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .assignedPortrait {
-    width: 64px;
-    height: 64px;
+  .assignedLineWithPortrait .assignedDot {
+    bottom: 44px;
   }
 
   .modalSelectRow {
