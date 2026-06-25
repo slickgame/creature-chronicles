@@ -1,5 +1,5 @@
 import { getVariantDefinition } from "@/data/creatures";
-import type { CreatureRecord } from "@/types/creature";
+import type { CreatureAbility, CreatureRecord, CreatureStatKey } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobAssignmentResult, RanchJobDefinition, RanchJobId, RanchJobResult, RanchJobsState } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
@@ -16,101 +16,38 @@ export const RANCH_JOB_ASSETS = {
   gp: "/images/ui/icons/icon_guild_points.png",
 } as const;
 
+const MAX_CREATURES_PER_CHORE = 3;
+
 export const RANCH_JOB_IDS: RanchJobId[] = ["security_patrol", "comfort_care", "stable_production", "garden_tending", "field_hauling"];
 
 export const RANCH_JOB_DEFINITIONS: RanchJobDefinition[] = [
-  {
-    jobId: "security_patrol",
-    name: "Security Patrol",
-    shortName: "Security",
-    description: "Assign a watchful creature to patrol the ranch path and keep visitors, deliveries, and guild messengers safe.",
-    iconPath: RANCH_JOB_ASSETS.security,
-    preferredFamilies: ["canine"],
-    preferredVariants: ["variant_minotaur", "variant_nightmare"],
-    energyCost: 12,
-    baseGoldReward: 0,
-    baseGuildPointReward: 0,
-    affectionReward: 0,
-    rewardLabel: "Safety patrol • lowers danger risk",
-  },
-  {
-    jobId: "comfort_care",
-    name: "Comfort Care",
-    shortName: "Comfort",
-    description: "Assign a calming creature to improve the ranch mood, soothe nervous eggs, and keep the home area welcoming.",
-    iconPath: RANCH_JOB_ASSETS.comfort,
-    preferredFamilies: ["feline"],
-    preferredVariants: ["variant_dream_lop", "variant_unicorn"],
-    energyCost: 8,
-    baseGoldReward: 0,
-    baseGuildPointReward: 0,
-    affectionReward: 0,
-    rewardLabel: "Breeding comfort • next-day bonus",
-  },
-  {
-    jobId: "stable_production",
-    name: "Stable Production",
-    shortName: "Production",
-    description: "Assign a strong production creature to stock the feed shed and prepare daily ranch provisions.",
-    iconPath: RANCH_JOB_ASSETS.production,
-    preferredFamilies: ["bovine"],
-    preferredVariants: ["variant_moon_yak"],
-    energyCost: 12,
-    baseGoldReward: 0,
-    baseGuildPointReward: 0,
-    affectionReward: 0,
-    rewardLabel: "+6 Feed before auto-feeding",
-  },
-  {
-    jobId: "garden_tending",
-    name: "Garden Tending",
-    shortName: "Garden",
-    description: "Assign a nimble garden helper to tend herbs, carrots, flowers, and future nursery-support materials.",
-    iconPath: RANCH_JOB_ASSETS.garden,
-    preferredFamilies: ["lapine"],
-    preferredVariants: ["variant_antlerhare"],
-    energyCost: 10,
-    baseGoldReward: 0,
-    baseGuildPointReward: 0,
-    affectionReward: 0,
-    rewardLabel: "+3 Feed and garden produce",
-  },
-  {
-    jobId: "field_hauling",
-    name: "Field Hauling",
-    shortName: "Hauling",
-    description: "Assign a reliable field creature to move supplies, clear paths, and prepare future travel or expedition systems.",
-    iconPath: RANCH_JOB_ASSETS.hauling,
-    preferredFamilies: ["equine"],
-    preferredVariants: ["variant_minotaur"],
-    energyCost: 14,
-    baseGoldReward: 0,
-    baseGuildPointReward: 0,
-    affectionReward: 0,
-    rewardLabel: "Ranch materials • upkeep support",
-  },
+  { jobId: "security_patrol", name: "Security Patrol", shortName: "Security", description: "Assign watchful creatures to patrol the ranch path and reduce danger events. Stronger, tougher, more willful creatures perform better.", iconPath: RANCH_JOB_ASSETS.security, preferredFamilies: ["canine"], preferredVariants: ["variant_minotaur", "variant_nightmare"], energyCost: 12, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Safety score • lowers danger risk" },
+  { jobId: "comfort_care", name: "Comfort Care", shortName: "Comfort", description: "Assign calming creatures to improve ranch mood and activate Breeding Comfort for the next day. Charisma, will, affection, and strong abilities help.", iconPath: RANCH_JOB_ASSETS.comfort, preferredFamilies: ["feline"], preferredVariants: ["variant_dream_lop", "variant_unicorn"], energyCost: 8, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Breeding comfort score • next-day bonus" },
+  { jobId: "stable_production", name: "Stable Production", shortName: "Production", description: "Assign production creatures to stock the feed shed. Strength, stamina, affection, and helpful abilities increase feed output.", iconPath: RANCH_JOB_ASSETS.production, preferredFamilies: ["bovine"], preferredVariants: ["variant_moon_yak"], energyCost: 12, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Feed output scales with assigned helpers" },
+  { jobId: "garden_tending", name: "Garden Tending", shortName: "Garden", description: "Assign nimble garden helpers to grow food and future nursery materials. Dexterity, charisma, and ability quality improve output.", iconPath: RANCH_JOB_ASSETS.garden, preferredFamilies: ["lapine"], preferredVariants: ["variant_antlerhare"], energyCost: 10, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Garden feed output scales with helpers" },
+  { jobId: "field_hauling", name: "Field Hauling", shortName: "Hauling", description: "Assign reliable field creatures to move supplies and improve ranch upkeep. Strength, stamina, and dexterity improve outcomes.", iconPath: RANCH_JOB_ASSETS.hauling, preferredFamilies: ["equine"], preferredVariants: ["variant_minotaur"], energyCost: 14, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Upkeep score • future material support" },
 ];
 
 export function createDefaultRanchJobsState(): RanchJobsState {
   return {
-    assignments: {
-      security_patrol: null,
-      comfort_care: null,
-      stable_production: null,
-      garden_tending: null,
-      field_hauling: null,
-    },
+    assignments: { security_patrol: [], comfort_care: [], stable_production: [], garden_tending: [], field_hauling: [] },
     lastProcessedDayNumber: 0,
     lifetimeCompletions: 0,
   };
 }
 
+function normalizeAssignment(value: unknown): CreatureId[] {
+  if (Array.isArray(value)) return value.filter(Boolean) as CreatureId[];
+  return value ? [value as CreatureId] : [];
+}
+
 export function getRanchJobs(save: GameSave): RanchJobsState {
   const defaults = createDefaultRanchJobsState();
+  const existingAssignments = save.ranchJobs?.assignments ?? {};
   return {
     ...defaults,
     ...(save.ranchJobs ?? {}),
-    assignments: { ...defaults.assignments, ...(save.ranchJobs?.assignments ?? {}) },
+    assignments: RANCH_JOB_IDS.reduce((assignments, jobId) => ({ ...assignments, [jobId]: normalizeAssignment((existingAssignments as Record<string, unknown>)[jobId]) }), defaults.assignments),
   };
 }
 
@@ -132,8 +69,9 @@ export function isCreatureEligibleForJob(creature: CreatureRecord, job: RanchJob
 
 export function getEligibleCreaturesForJob(save: GameSave, jobId: RanchJobId): CreatureRecord[] {
   const job = getRanchJobDefinition(jobId);
-  const assignedIds = new Set(Object.values(getRanchJobs(save).assignments).filter(Boolean));
-  return (save.creatures ?? []).filter((creature) => isCreatureEligibleForJob(creature, job) && (!assignedIds.has(creature.creatureId) || getRanchJobs(save).assignments[jobId] === creature.creatureId));
+  const jobs = getRanchJobs(save);
+  const assignedIds = new Set(RANCH_JOB_IDS.flatMap((id) => jobs.assignments[id] ?? []));
+  return (save.creatures ?? []).filter((creature) => isCreatureEligibleForJob(creature, job) && (!assignedIds.has(creature.creatureId) || jobs.assignments[jobId]?.includes(creature.creatureId)));
 }
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
@@ -148,18 +86,42 @@ function getDailyFeedCost(creature: CreatureRecord): number {
   return familyBaseCost + rareCost;
 }
 
-function getJobProvisionOutput(jobId: RanchJobId): number {
-  if (jobId === "stable_production") return 6;
-  if (jobId === "garden_tending") return 3;
+function getRelevantStats(jobId: RanchJobId): CreatureStatKey[] {
+  if (jobId === "security_patrol") return ["STR", "STA", "WIL", "FER"];
+  if (jobId === "comfort_care") return ["CHA", "WIL"];
+  if (jobId === "stable_production") return ["STR", "STA"];
+  if (jobId === "garden_tending") return ["DEX", "CHA"];
+  return ["STR", "STA", "DEX"];
+}
+
+function getAbilityGradeValue(ability: CreatureAbility): number {
+  const values: Record<CreatureAbility["grade"], number> = { F: 0, D: 1, C: 2, B: 3, A: 4, S: 5 };
+  return values[ability.grade] ?? 0;
+}
+
+function calculateCreatureChoreScore(creature: CreatureRecord, job: RanchJobDefinition): number {
+  const relevantStats = getRelevantStats(job.jobId);
+  const statAverage = relevantStats.reduce((total, stat) => total + (creature.stats[stat] ?? 0), 0) / relevantStats.length;
+  const abilityAverage = creature.abilities.length ? creature.abilities.reduce((total, ability) => total + getAbilityGradeValue(ability), 0) / creature.abilities.length : 0;
+  const levelBonus = creature.level / 8;
+  const affectionBonus = creature.affection / 25;
+  const abilityBonus = abilityAverage * 0.75;
+  const statBonus = statAverage / 6;
+  return Math.max(1, Math.round((statBonus + levelBonus + affectionBonus + abilityBonus) * 10) / 10);
+}
+
+function getJobProvisionOutput(jobId: RanchJobId, score: number): number {
+  if (jobId === "stable_production") return Math.max(1, Math.floor(3 + score));
+  if (jobId === "garden_tending") return Math.max(1, Math.floor(1 + score * 0.75));
   return 0;
 }
 
-function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number): string {
-  if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security risk is reduced today.`;
-  if (jobId === "comfort_care") return `${creatureName} kept the ranch calm. Breeding Comfort is active today.`;
+function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number, score: number): string {
+  if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security score +${Math.round(score)}.`;
+  if (jobId === "comfort_care") return `${creatureName} kept the ranch calm. Breeding Comfort score +${Math.round(score)}.`;
   if (jobId === "stable_production") return `${creatureName} stocked the feed shed: +${provisionOutput} Feed.`;
   if (jobId === "garden_tending") return `${creatureName} harvested garden produce: +${provisionOutput} Feed.`;
-  if (jobId === "field_hauling") return `${creatureName} moved supplies and improved ranch upkeep.`;
+  if (jobId === "field_hauling") return `${creatureName} moved supplies. Upkeep score +${Math.round(score)}.`;
   return `${creatureName} completed ${getRanchJobDefinition(jobId).name}.`;
 }
 
@@ -167,11 +129,7 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   const jobs = getRanchJobs(save);
   const job = getRanchJobDefinition(jobId);
   if (creatureId === null) {
-    return {
-      save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: null } }, flags: { ...save.flags, m14RanchJobsUsed: true } },
-      ok: true,
-      message: `${job.name} chore cleared.`,
-    };
+    return { save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: [] } }, flags: { ...save.flags, m14RanchJobsUsed: true } }, ok: true, message: `${job.name} chore cleared.` };
   }
 
   const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
@@ -179,13 +137,18 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   if (creature.isLocked) return { save, ok: false, message: `${creature.nickname} is locked. Unlock them before assigning chores.` };
   if (!isCreatureEligibleForJob(creature, job)) return { save, ok: false, message: `${creature.nickname} is not a natural fit for ${job.name}.` };
 
-  const alreadyAssigned = Object.entries(jobs.assignments).find(([assignedJobId, assignedCreatureId]) => assignedJobId !== jobId && assignedCreatureId === creatureId);
+  const alreadyAssigned = Object.entries(jobs.assignments).find(([assignedJobId, assignedCreatureIds]) => assignedJobId !== jobId && assignedCreatureIds.includes(creatureId));
   if (alreadyAssigned) return { save, ok: false, message: `${creature.nickname} is already assigned to ${getRanchJobDefinition(alreadyAssigned[0] as RanchJobId).name}.` };
 
+  const currentAssignment = jobs.assignments[jobId] ?? [];
+  if (currentAssignment.includes(creatureId)) return { save, ok: true, message: `${creature.nickname} is already helping with ${job.name}.` };
+  if (currentAssignment.length >= MAX_CREATURES_PER_CHORE) return { save, ok: false, message: `${job.name} already has ${MAX_CREATURES_PER_CHORE} helpers assigned.` };
+
+  const nextAssignment = [...currentAssignment, creatureId];
   return {
-    save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: creatureId } }, flags: { ...save.flags, m14RanchJobsUsed: true, m14RanchJobAssigned: true } },
+    save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: nextAssignment } }, flags: { ...save.flags, m14RanchJobsUsed: true, m14RanchJobAssigned: true } },
     ok: true,
-    message: `${creature.nickname} assigned to ${job.name}. Chores resolve when you sleep to the next day.`,
+    message: `${creature.nickname} added to ${job.name}. More helpers improve the outcome when you sleep.`,
   };
 }
 
@@ -195,31 +158,37 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
 
   let completions = 0;
   let producedFeed = 0;
-  let securityActive = false;
-  let comfortActive = false;
+  let securityScore = 0;
+  let comfortScore = 0;
+  let upkeepScore = 0;
   const results: RanchJobResult[] = [];
   const assignments = jobs.assignments;
   const nextCreatures = (save.creatures ?? []).map((creature) => ({ ...creature }));
 
   for (const jobId of RANCH_JOB_IDS) {
-    const creatureId = assignments[jobId];
-    if (!creatureId) continue;
-    const creature = nextCreatures.find((item) => item.creatureId === creatureId);
-    if (!creature) continue;
+    const creatureIds = assignments[jobId] ?? [];
+    if (!creatureIds.length) continue;
     const job = getRanchJobDefinition(jobId);
-    if (!isCreatureEligibleForJob(creature, job)) continue;
-    if (creature.energy < job.energyCost) {
-      results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} was too tired for ${job.name}.` });
-      continue;
-    }
 
-    const provisionOutput = getJobProvisionOutput(jobId);
-    producedFeed += provisionOutput;
-    securityActive = securityActive || jobId === "security_patrol";
-    comfortActive = comfortActive || jobId === "comfort_care";
-    creature.energy = Math.max(0, creature.energy - job.energyCost);
-    completions += 1;
-    results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: job.energyCost, message: getJobEffectMessage(jobId, creature.nickname, provisionOutput) });
+    for (const creatureId of creatureIds) {
+      const creature = nextCreatures.find((item) => item.creatureId === creatureId);
+      if (!creature) continue;
+      if (!isCreatureEligibleForJob(creature, job)) continue;
+      if (creature.energy < job.energyCost) {
+        results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} was too tired for ${job.name}.` });
+        continue;
+      }
+
+      const choreScore = calculateCreatureChoreScore(creature, job);
+      const provisionOutput = getJobProvisionOutput(jobId, choreScore);
+      producedFeed += provisionOutput;
+      if (jobId === "security_patrol") securityScore += choreScore;
+      if (jobId === "comfort_care") comfortScore += choreScore;
+      if (jobId === "field_hauling") upkeepScore += choreScore;
+      creature.energy = Math.max(0, creature.energy - job.energyCost);
+      completions += 1;
+      results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: job.energyCost, message: getJobEffectMessage(jobId, creature.nickname, provisionOutput, choreScore) });
+    }
   }
 
   const feedRequired = nextCreatures.reduce((total, creature) => total + getDailyFeedCost(creature), 0);
@@ -243,11 +212,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const fedCreatures = nextCreatures.map((creature) => {
     const maxEnergy = creature.maxEnergy ?? creature.energy;
     const targetEnergy = Math.floor(maxEnergy * creatureEnergyRatio);
-    return {
-      ...creature,
-      energy: Math.min(creature.energy, targetEnergy),
-      affection: Math.max(0, Math.min(100, creature.affection + affectionDelta)),
-    };
+    return { ...creature, energy: Math.min(creature.energy, targetEnergy), affection: Math.max(0, Math.min(100, creature.affection + affectionDelta)) };
   });
 
   return {
@@ -267,9 +232,11 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         ranchFeedConsumedToday: feedConsumed,
         ranchFoodStatus: foodStatus,
         ranchFeedingSummary: feedingSummary,
-        ranchSecurityActiveToday: securityActive,
-        ranchBreedingComfortActiveToday: comfortActive,
-        ranchBreedingComfortBonusToday: comfortActive ? 10 : 0,
+        ranchSecurityActiveToday: securityScore > 0,
+        ranchSecurityScoreToday: Math.round(securityScore),
+        ranchBreedingComfortActiveToday: comfortScore > 0,
+        ranchBreedingComfortBonusToday: Math.min(25, Math.round(comfortScore * 2)),
+        ranchUpkeepScoreToday: Math.round(upkeepScore),
       },
     },
     results,
