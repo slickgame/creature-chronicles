@@ -6,7 +6,6 @@ import {
   getCreatureDisplayName,
   getEligibleCreaturesForJob,
   getRanchJobs,
-  RANCH_JOB_ASSETS,
   RANCH_JOB_DEFINITIONS,
   RANCH_JOB_IDS,
 } from "@/data/ranchJobs";
@@ -16,6 +15,8 @@ import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobId } from "@/types/ranchJobs";
 import styles from "./RanchJobsScreen.module.css";
+
+type InfoTarget = "overview" | RanchJobId | null;
 
 function getCreatureSummary(creature: CreatureRecord): string {
   const variant = getVariantDefinition(creature.variantId);
@@ -30,8 +31,9 @@ function getCreatureEnergyLabel(creature: CreatureRecord, energyCost: number): s
 
 export function RanchJobsScreen() {
   const { assignRanchJob, currentSave, goToMainMenu, goToRanch, version } = useGameContext();
-  const [message, setMessage] = useState("Assign creatures to ranch jobs, then sleep to resolve their work for the next day.");
+  const [message, setMessage] = useState("Assign creatures to ranch chores, then sleep to resolve their work for the next day.");
   const [activeJobId, setActiveJobId] = useState<RanchJobId | null>(null);
+  const [infoTarget, setInfoTarget] = useState<InfoTarget>(null);
   const [draftAssignments, setDraftAssignments] = useState<Record<RanchJobId, string>>({
     security_patrol: "",
     comfort_care: "",
@@ -47,7 +49,7 @@ export function RanchJobsScreen() {
       <main className={styles.emptyScreen}>
         <section className={styles.emptyPanel}>
           <h1>No active save</h1>
-          <p>Load or create a save before opening Ranch Jobs.</p>
+          <p>Load or create a save before opening Ranch Chores.</p>
           <button type="button" className={styles.primaryButton} onClick={goToMainMenu}>
             Return to Main Menu
           </button>
@@ -63,6 +65,7 @@ export function RanchJobsScreen() {
   const projectedGold = RANCH_JOB_DEFINITIONS.reduce((total, job) => total + (jobs.assignments[job.jobId] ? job.baseGoldReward : 0), 0);
   const projectedGp = RANCH_JOB_DEFINITIONS.reduce((total, job) => total + (jobs.assignments[job.jobId] ? job.baseGuildPointReward : 0), 0);
   const activeJob = activeJobId ? RANCH_JOB_DEFINITIONS.find((job) => job.jobId === activeJobId) ?? null : null;
+  const infoJob = infoTarget && infoTarget !== "overview" ? RANCH_JOB_DEFINITIONS.find((job) => job.jobId === infoTarget) ?? null : null;
 
   function getAssignedCreature(jobId: RanchJobId): CreatureRecord | null {
     const assignedCreatureId = jobs?.assignments[jobId];
@@ -85,10 +88,11 @@ export function RanchJobsScreen() {
     <main className={styles.screen}>
       <section className={styles.frame}>
         <header className={styles.header}>
-          <div className={styles.titleBlock}>
-            <p className={styles.kicker}>M14 Ranch Assignment System</p>
-            <h1>Ranch Jobs</h1>
-            <p className={styles.subtitle}>Night-mode assignment board. Pick a creature, assign the job, then sleep to resolve daily work.</p>
+          <div className={styles.titleRow}>
+            <h1>Ranch Chores</h1>
+            <button type="button" className={styles.infoButton} onClick={() => setInfoTarget("overview")} aria-label="About ranch chores">
+              i
+            </button>
           </div>
 
           <div className={styles.headerActions}>
@@ -97,19 +101,19 @@ export function RanchJobsScreen() {
           </div>
         </header>
 
-        <section className={styles.topStats} aria-label="Ranch job overview">
+        <section className={styles.topStats} aria-label="Ranch chore overview">
           <div className={styles.topStat}><span>Assigned</span><strong>{assignedCreatures.length}/{RANCH_JOB_IDS.length}</strong></div>
           <div className={styles.topStat}><span>Projected Gold</span><strong>{formatGold(projectedGold)}</strong></div>
           <div className={styles.topStat}><span>Projected GP</span><strong>{formatGuildPoints(projectedGp)}</strong></div>
           <div className={styles.topStat}><span>Completed</span><strong>{jobs.lifetimeCompletions}</strong></div>
         </section>
 
+        <p className={styles.statusMessage}>{message}</p>
+
         <section className={styles.content}>
           <div className={styles.jobGrid}>
             {RANCH_JOB_DEFINITIONS.map((job) => {
               const assignedCreature = getAssignedCreature(job.jobId);
-              const eligibleCreatures = getEligibleCreaturesForJob(currentSave, job.jobId);
-              const draftValue = draftAssignments[job.jobId] || jobs.assignments[job.jobId] || "";
 
               return (
                 <article key={job.jobId} className={styles.jobCard}>
@@ -118,8 +122,10 @@ export function RanchJobsScreen() {
                     <div className={styles.jobTitleArea}>
                       <p className={styles.kicker}>{job.shortName}</p>
                       <h2>{job.name}</h2>
-                      <p className={styles.jobDescription}>{job.description}</p>
                     </div>
+                    <button type="button" className={styles.infoButtonSmall} onClick={() => setInfoTarget(job.jobId)} aria-label={`About ${job.name}`}>
+                      i
+                    </button>
                   </div>
 
                   <div className={styles.compactMetaRow}>
@@ -132,57 +138,61 @@ export function RanchJobsScreen() {
                       <span className={assignedCreature ? styles.assignedDot : styles.unassignedDot} />
                       <div>
                         <strong>{assignedCreature ? getCreatureDisplayName(assignedCreature) : "Unassigned"}</strong>
-                        <span>{assignedCreature ? getCreatureSummary(assignedCreature) : `${eligibleCreatures.length} eligible creature${eligibleCreatures.length === 1 ? "" : "s"}`}</span>
+                        <span>{assignedCreature ? getCreatureSummary(assignedCreature) : "Open this chore to choose an eligible creature."}</span>
                       </div>
-                    </div>
-
-                    <div className={styles.selectRow}>
-                      <select
-                        value={draftValue}
-                        aria-label={`${job.name} assignment`}
-                        onChange={(event) => setDraftAssignments((current) => ({ ...current, [job.jobId]: event.target.value }))}
-                      >
-                        <option value="">Unassigned</option>
-                        {eligibleCreatures.map((creature) => (
-                          <option key={creature.creatureId} value={creature.creatureId}>{getCreatureDisplayName(creature)}</option>
-                        ))}
-                      </select>
-                      <button type="button" className={styles.primaryButton} onClick={() => handleAssign(job.jobId)}>Assign</button>
                     </div>
                   </div>
 
                   <div className={styles.cardActions}>
-                    <button type="button" className={styles.secondaryButton} onClick={() => setActiveJobId(job.jobId)}>Details / Eligible List</button>
+                    <button type="button" className={styles.secondaryButton} onClick={() => setActiveJobId(job.jobId)}>Open Chore</button>
                     {assignedCreature ? <button type="button" className={styles.clearButton} onClick={() => handleClear(job.jobId)}>Clear</button> : null}
                   </div>
                 </article>
               );
             })}
           </div>
-
-          <aside className={styles.sidePanel}>
-            <img className={styles.boardImage} src={RANCH_JOB_ASSETS.ranchJobsBoard} alt="" />
-            <div>
-              <p className={styles.kicker}>Assignment Board</p>
-              <h2>Daily Work Plan</h2>
-              <p className={styles.message}>{message}</p>
-            </div>
-            <div className={styles.summaryList}>
-              {RANCH_JOB_DEFINITIONS.map((job) => {
-                const creature = getAssignedCreature(job.jobId);
-                return (
-                  <button key={job.jobId} type="button" className={styles.summaryItem} onClick={() => setActiveJobId(job.jobId)}>
-                    <strong>{job.name}</strong>
-                    <span>{creature ? creature.nickname : "Unassigned"}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
         </section>
 
         <footer className={styles.footer}>{version}</footer>
       </section>
+
+      {infoTarget ? (
+        <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setInfoTarget(null)}>
+          <section className={styles.infoModalPanel} role="dialog" aria-modal="true" aria-labelledby="ranch-info-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <header className={styles.modalHeader}>
+              <div>
+                <p className={styles.kicker}>{infoTarget === "overview" ? "Ranch Assignment System" : infoJob?.shortName}</p>
+                <h2 id="ranch-info-modal-title">{infoTarget === "overview" ? "About Ranch Chores" : infoJob?.name}</h2>
+              </div>
+              <button type="button" className={styles.modalCloseButton} onClick={() => setInfoTarget(null)}>Close</button>
+            </header>
+
+            <div className={styles.modalBody}>
+              {infoTarget === "overview" ? (
+                <div className={styles.infoTextBlock}>
+                  <p>Ranch chores are daily assignments for creatures staying at the ranch. They are separate from quests and story objectives.</p>
+                  <p>Assign an eligible creature to each chore, then sleep to the next day to resolve the work. Completed chores can award Gold, Guild Points, affection, and other ranch progress later.</p>
+                  <p>The main board stays compact on purpose. Use each chore’s info button for flavor text, or open the chore to choose from the full eligible creature list.</p>
+                </div>
+              ) : infoJob ? (
+                <div className={styles.infoTextBlock}>
+                  <p>{infoJob.description}</p>
+                  <div className={styles.infoPanel}>
+                    <p className={styles.panelLabel}>Reward</p>
+                    <strong>{infoJob.rewardLabel}</strong>
+                    <span>{infoJob.energyCost} energy cost</span>
+                  </div>
+                  <div className={styles.infoPanel}>
+                    <p className={styles.panelLabel}>Eligible Families</p>
+                    <strong>{infoJob.preferredFamilies.join(", ")}</strong>
+                    <span>Some special variants may also qualify.</span>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {activeJob ? (() => {
         const assignedCreature = getAssignedCreature(activeJob.jobId);
@@ -191,13 +201,13 @@ export function RanchJobsScreen() {
 
         return (
           <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setActiveJobId(null)}>
-            <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="ranch-job-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="ranch-chore-modal-title" onMouseDown={(event) => event.stopPropagation()}>
               <header className={styles.modalHeader}>
                 <div className={styles.modalTitleRow}>
                   <img className={styles.modalIcon} src={activeJob.iconPath} alt="" />
                   <div>
                     <p className={styles.kicker}>{activeJob.shortName}</p>
-                    <h2 id="ranch-job-modal-title">{activeJob.name}</h2>
+                    <h2 id="ranch-chore-modal-title">{activeJob.name}</h2>
                   </div>
                 </div>
                 <button type="button" className={styles.modalCloseButton} onClick={() => setActiveJobId(null)}>Close</button>
@@ -206,7 +216,7 @@ export function RanchJobsScreen() {
               <div className={styles.modalBody}>
                 <section className={styles.modalInfoGrid}>
                   <div className={styles.infoPanel}>
-                    <p className={styles.panelLabel}>Job Details</p>
+                    <p className={styles.panelLabel}>Chore Details</p>
                     <p>{activeJob.description}</p>
                   </div>
                   <div className={styles.infoPanel}>
@@ -224,7 +234,7 @@ export function RanchJobsScreen() {
                 <section className={styles.modalAssignmentBox}>
                   <div>
                     <p className={styles.panelLabel}>Assign Creature</p>
-                    <p>Eligible candidates are shown here instead of crowding the main board.</p>
+                    <p>Eligible candidates are shown here instead of crowding the main chore board.</p>
                   </div>
                   <div className={styles.modalSelectRow}>
                     <select
@@ -265,7 +275,7 @@ export function RanchJobsScreen() {
                     )) : (
                       <div className={styles.emptyEligibleCard}>
                         <strong>No eligible creatures yet</strong>
-                        <span>Buy, hatch, or dev-spawn a fitting family for this job.</span>
+                        <span>Buy, hatch, or dev-spawn a fitting family for this chore.</span>
                       </div>
                     )}
                   </div>
