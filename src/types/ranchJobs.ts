@@ -9,7 +9,7 @@ export type RanchJobAssignment = {
 };
 
 export type RanchJobsState = {
-  assignments: Record<RanchJobId, CreatureId | CreatureId[] | null>;
+  assignments: Record<RanchJobId, CreatureId[]>;
   lastProcessedDayNumber: number;
   lifetimeCompletions: number;
 };
