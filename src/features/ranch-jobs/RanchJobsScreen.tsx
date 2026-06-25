@@ -23,6 +23,10 @@ function getCreatureSummary(creature: CreatureRecord): string {
   return `${variant.family} • Lv ${creature.level} • Energy ${creature.energy}/${creature.maxEnergy} • Affection ${creature.affection}`;
 }
 
+function getCreatureProfilePath(creature: CreatureRecord): string {
+  return getVariantDefinition(creature.variantId).profilePath;
+}
+
 function getCreatureEnergyLabel(creature: CreatureRecord, energyCost: number): string {
   if (creature.energy < energyCost) return "Low Energy";
   if (creature.energy <= energyCost + 5) return "Tired";
@@ -136,6 +140,7 @@ export function RanchJobsScreen() {
                   <div className={styles.assignmentBox}>
                     <div className={styles.assignedLine}>
                       <span className={assignedCreature ? styles.assignedDot : styles.unassignedDot} />
+                      {assignedCreature ? <img className={styles.assignedPortrait} src={getCreatureProfilePath(assignedCreature)} alt="" /> : null}
                       <div>
                         <strong>{assignedCreature ? getCreatureDisplayName(assignedCreature) : "Unassigned"}</strong>
                         <span>{assignedCreature ? getCreatureSummary(assignedCreature) : "Open this chore to choose an eligible creature."}</span>
