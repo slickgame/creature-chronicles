@@ -304,13 +304,25 @@
 
 .assignedLine {
   min-width: 0;
+  width: 100%;
   display: flex;
-  gap: 9px;
-  align-items: flex-start;
+  gap: 10px;
+  align-items: center;
 }
 
 .assignedLine div {
   min-width: 0;
+}
+
+.assignedPortrait {
+  width: clamp(72px, 8vw, 112px);
+  height: clamp(72px, 8vw, 112px);
+  flex: 0 0 auto;
+  object-fit: contain;
+  border: 1px solid rgba(245, 201, 128, 0.28);
+  border-radius: 18px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.18));
+  padding: 4px;
 }
 
 .assignedLine strong,
@@ -343,7 +355,6 @@
   width: 10px;
   height: 10px;
   flex: 0 0 auto;
-  margin-top: 5px;
   border-radius: 999px;
 }
 
@@ -602,6 +613,11 @@
 
   .topStats {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .assignedPortrait {
+    width: 64px;
+    height: 64px;
   }
 
   .modalSelectRow {
