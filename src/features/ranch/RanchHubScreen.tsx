@@ -1,10 +1,13 @@
 "use client";
 
 import { type CSSProperties, useMemo, useState } from "react";
+import { getVariantDefinition } from "@/data/creatures";
+import { RANCH_JOB_DEFINITIONS } from "@/data/ranchJobs";
 import { RANCH_UPGRADE_ASSETS, getRanchUpgradeEffects, getTotalRanchUpgradeTiers } from "@/data/ranchUpgrades";
 import { getStarterGoalProgress, getStarterGoals } from "@/data/starterGoals";
 import { formatEnergy, formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext, type DayAdvanceResult } from "@/state/GameProvider";
+import type { CreatureRecord } from "@/types/creature";
 import styles from "./RanchHubScreen.module.css";
 
 type ModalMode = "none" | "sleep-confirm" | "day-summary" | "requests" | "starter-goals" | "coming-soon";
@@ -43,6 +46,10 @@ const BUILDINGS: Building[] = [
 
 function getBuildingStyle(building: Building): CSSProperties {
   return { left: `${building.x}%`, top: `${building.y}%`, width: `${building.width}%` };
+}
+
+function getCreatureProfilePath(creature: CreatureRecord): string {
+  return getVariantDefinition(creature.variantId).profilePath;
 }
 
 function isAvailableBuilding(id: BuildingId): boolean {
@@ -89,6 +96,11 @@ export function RanchHubScreen() {
     setModalMode("day-summary");
   }
 
+  function getCreatureById(creatureId: string | null | undefined): CreatureRecord | null {
+    if (!creatureId) return null;
+    return (currentSave?.creatures ?? []).find((creature) => creature.creatureId === creatureId) ?? null;
+  }
+
   const habitatCounts = (currentSave.habitats ?? []).map((habitat) => `${habitat.name.replace(" Habitat", "")} ${habitat.creatureIds.length}/${habitat.capacity}`).join(" • ");
 
   return (
@@ -106,7 +118,7 @@ export function RanchHubScreen() {
         <aside className={styles.selectedPanel} aria-label="Selected ranch location"><span className={styles.selectedMilestone}>{selectedBuilding.milestone}</span><h2>{selectedBuilding.title}</h2><p>{selectedBuilding.description}</p><strong>{selectedBuilding.actionLabel}</strong></aside>
         {modalMode !== "none" ? <div className={styles.modalBackdrop} role="presentation">
           {modalMode === "sleep-confirm" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="sleep-title"><img className={styles.modalIcon} src={HUD_ICONS.sleep} alt="" /><h2 id="sleep-title">Sleep Until Tomorrow?</h2><p>Sleeping advances the day. Ranch Office recovery upgrades may improve overnight recovery.</p><ul><li>Energy will be restored to full.</li><li>Creature energy and Hearts will be restored.</li><li>Pregnancy and egg timers will advance.</li><li>Ranch chores will resolve and pay rewards.</li></ul><div className={styles.modalActions}><button type="button" onClick={() => setModalMode("none")}>Cancel</button><button type="button" className={styles.primaryAction} onClick={handleSleep}>Sleep</button></div></section> : null}
-          {modalMode === "day-summary" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="summary-title"><h2 id="summary-title">New Day Summary</h2><p>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p><ul>{daySummary?.summaryItems.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => { setModalMode("none"); setMessage("A new day begins on the ranch."); }}>Start Day</button></div></section> : null}
+          {modalMode === "day-summary" ? <section className={`${styles.modalPanel} ${styles.reportModalPanel}`} role="dialog" aria-modal="true" aria-labelledby="summary-title"><p className={styles.reportKicker}>Morning Report</p><h2 id="summary-title">New Day Summary</h2><p className={styles.reportDate}>{daySummary?.previousDateLabel} → {daySummary?.nextDateLabel}</p><div className={styles.reportColumns}><section><h3>Ranch Updates</h3><ul>{daySummary?.summaryItems.filter((item) => !daySummary.ranchJobResults.some((result) => result.message === item)).map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul></section><section><h3>Morning Chore Report</h3><div className={styles.choreReportGrid}>{RANCH_JOB_DEFINITIONS.map((job) => { const result = daySummary?.ranchJobResults.find((item) => item.jobId === job.jobId); const assignedCreatureId = currentSave.ranchJobs?.assignments?.[job.jobId] ?? null; const creature = getCreatureById(result?.creatureId ?? assignedCreatureId); return <article key={job.jobId} className={styles.choreReportCard}><img className={styles.choreReportIcon} src={creature ? getCreatureProfilePath(creature) : job.iconPath} alt="" /><div><strong>{job.name}</strong><span>{result ? result.creatureName : creature ? creature.nickname : "Unassigned"}</span><em>{result ? result.message : "No chore completed."}</em></div><div className={styles.choreRewardRow}>{result ? <><span>+{result.goldReward} Gold</span>{result.guildPointReward ? <span>+{result.guildPointReward} GP</span> : null}{result.affectionReward ? <span>+{result.affectionReward} Affection</span> : null}{result.energyCost ? <span>-{result.energyCost} Energy</span> : null}</> : <span>No reward</span>}</div></article>; })}</div></section></div><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => { setModalMode("none"); setMessage("A new day begins on the ranch."); }}>Start Day</button></div></section> : null}
           {modalMode === "coming-soon" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="coming-soon-title"><h2 id="coming-soon-title">{selectedBuilding.title}</h2><p>{selectedBuilding.description}</p><p className={styles.comingSoonText}>{selectedBuilding.actionLabel}</p><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
           {modalMode === "requests" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="requests-title"><img className={styles.modalIcon} src={HUD_ICONS.requests} alt="" /><h2 id="requests-title">Requests</h2><p>The full guild contract system now lives in the Town Guild Hall.</p><ul><li>Use Town Road → Guild Hall for contracts.</li><li>Use Ranch Office for ranch infrastructure upgrades.</li><li>Use Ranch Chores for daily assignment rewards.</li></ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
           {modalMode === "starter-goals" ? <section className={styles.modalPanel} role="dialog" aria-modal="true" aria-labelledby="goals-title"><img className={styles.modalIcon} src={HUD_ICONS.goals} alt="" /><h2 id="goals-title">Starter Goals</h2><p>{starterProgress?.completed ?? 0} / {starterProgress?.total ?? starterGoals.length} complete. These are optional guideposts, not chores.</p><ul className={styles.goalList}>{starterGoals.map((goal) => <li key={goal.id} className={goal.complete ? styles.goalComplete : ""}><strong>{goal.complete ? "✓" : "○"} {goal.label}</strong><span>{goal.description}</span><em>{goal.hint}</em></li>)}</ul><div className={styles.modalActions}><button type="button" className={styles.primaryAction} onClick={() => setModalMode("none")}>Close</button></div></section> : null}
