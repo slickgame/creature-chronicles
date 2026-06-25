@@ -7,11 +7,7 @@
     linear-gradient(145deg, #241510 0%, #111413 70%);
 }
 
-.screen {
-  display: grid;
-  place-items: center;
-}
-
+.screen,
 .emptyScreen {
   display: grid;
   place-items: center;
@@ -88,82 +84,97 @@
 .hud {
   min-height: 86px;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) auto auto;
-  gap: 18px;
+  grid-template-columns: minmax(210px, 0.95fr) minmax(420px, 1.5fr) auto;
+  gap: 12px;
   align-items: center;
   padding: 26px 34px 12px;
   z-index: 9;
 }
 
 .hudIdentity {
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 2px solid rgba(245, 201, 128, 0.46);
+  gap: 10px;
+  padding: 10px 12px;
+  border: 2px solid rgba(245, 201, 128, 0.36);
   border-radius: var(--radius-md);
-  background: rgba(20, 12, 10, 0.72);
+  background: rgba(20, 17, 19, 0.82);
+  color: #fff7dd;
   backdrop-filter: blur(6px);
 }
 
 .hudIdentity img {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
   object-fit: contain;
+}
+
+.hudIdentity div {
+  min-width: 0;
 }
 
 .hudIdentity span,
 .hudStats span {
   display: block;
-  color: var(--color-text-muted);
-  font-size: 0.72rem;
-  font-weight: 800;
+  color: #d8c7a5;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .hudIdentity strong,
 .hudStats strong {
   display: block;
-  color: var(--color-text-primary);
+  min-width: 0;
+  overflow: hidden;
+  color: #ffffff;
   font-weight: 950;
+  line-height: 1.08;
+  text-overflow: ellipsis;
 }
 
 .hudStats {
+  min-width: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(94px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .hudStats div {
-  min-height: 64px;
+  min-width: 0;
+  min-height: 60px;
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 30px minmax(0, 1fr);
   grid-template-rows: auto auto;
-  column-gap: 8px;
+  column-gap: 7px;
   align-items: center;
-  padding: 10px 12px;
-  border: 2px solid rgba(245, 201, 128, 0.36);
+  padding: 9px 10px;
+  border: 2px solid rgba(245, 201, 128, 0.32);
   border-radius: var(--radius-sm);
-  background: rgba(20, 12, 10, 0.72);
+  background: rgba(20, 17, 19, 0.82);
+  color: #fff7dd;
   backdrop-filter: blur(6px);
 }
 
 .hudStats img {
   grid-row: 1 / 3;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
 .goldStat img {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   transform: translateX(-3px);
 }
 
 .hudActions {
   display: flex;
-  gap: 10px;
+  justify-content: flex-end;
   align-items: center;
 }
 
@@ -195,11 +206,6 @@
   object-fit: contain;
 }
 
-.iconButton img {
-  width: 42px;
-  height: 42px;
-}
-
 .menuButton:hover,
 .iconButton:hover,
 .modalActions button:hover {
@@ -216,13 +222,23 @@
   background:
     linear-gradient(rgba(92, 49, 30, 0.64), rgba(20, 12, 10, 0.76)),
     radial-gradient(circle at top left, rgba(255, 216, 121, 0.14), transparent 46%);
+  color: #fff7dd;
   backdrop-filter: blur(4px);
 }
 
+.compactRanchTitlePanel {
+  width: min(290px, calc(100% - 68px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px 10px 14px;
+}
+
 .kicker {
-  margin: 0 0 8px;
+  margin: 0 0 5px;
   color: var(--color-gold);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -230,14 +246,28 @@
 
 .ranchTitlePanel h1 {
   margin: 0;
-  color: var(--color-text-primary);
-  font-size: clamp(2rem, 4vw, 3.7rem);
-  line-height: 0.92;
+  color: #ffffff;
+  font-size: 1.72rem;
+  line-height: 0.95;
   text-shadow: 0 5px 0 rgba(0, 0, 0, 0.34);
 }
 
 .ranchTitlePanel p {
-  color: var(--color-text-muted);
+  color: #e7dac0;
+}
+
+.ranchInfoButton {
+  width: 34px;
+  height: 34px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 2px solid rgba(86, 199, 255, 0.48);
+  border-radius: 999px;
+  background: rgba(86, 199, 255, 0.14);
+  color: #dff5ff;
+  font-weight: 950;
+  box-shadow: 0 0 18px rgba(86, 199, 255, 0.12);
 }
 
 .message {
@@ -355,13 +385,13 @@
   width: min(100%, 620px);
   max-height: 86%;
   overflow: auto;
-  padding: 30px;
+  padding: 24px;
   border: 3px solid rgba(245, 201, 128, 0.9);
   border-radius: var(--radius-lg);
   background:
     linear-gradient(rgba(92, 49, 30, 0.98), rgba(20, 12, 10, 0.98)),
     radial-gradient(circle at top left, rgba(255, 216, 121, 0.22), transparent 46%);
-  color: var(--color-text-muted);
+  color: #e7dac0;
   box-shadow: 0 24px 56px rgba(0, 0, 0, 0.62);
 }
 
@@ -376,7 +406,7 @@
 
 .modalPanel h2 {
   margin: 0 0 12px;
-  color: var(--color-gold);
+  color: #ffffff;
   font-size: 2rem;
 }
 
@@ -388,6 +418,127 @@
 
 .modalPanel li::marker {
   color: var(--color-gold);
+}
+
+.navMenuPanel,
+.ranchInfoPanel {
+  width: min(100%, 760px);
+}
+
+.navMenuHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(245, 201, 128, 0.22);
+}
+
+.navMenuHeader h2 {
+  margin: 0;
+}
+
+.navMenuHeader button {
+  border: 2px solid var(--border-dark);
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  background: linear-gradient(#fff4cf, #d6a25b);
+  color: var(--color-text-dark);
+  font-weight: 950;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.36);
+}
+
+.navMenuGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.navMenuGrid button {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 2px 10px;
+  align-items: center;
+  border: 1px solid rgba(245, 201, 128, 0.28);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff7dd;
+  text-align: left;
+}
+
+.navMenuGrid button:hover {
+  border-color: rgba(245, 201, 128, 0.56);
+  background: rgba(255, 255, 255, 0.095);
+}
+
+.navMenuGrid img {
+  grid-row: 1 / 3;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.navMenuGrid span {
+  color: #ffffff;
+  font-weight: 950;
+}
+
+.navMenuGrid em {
+  color: #d8c7a5;
+  font-style: normal;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.ranchInfoLead,
+.ranchInfoNote {
+  margin: 0 0 12px;
+  color: #e7dac0;
+  line-height: 1.45;
+}
+
+.ranchInfoStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.ranchInfoStats div {
+  min-width: 0;
+  border: 1px solid rgba(245, 201, 128, 0.28);
+  border-radius: 15px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.ranchInfoStats span {
+  display: block;
+  color: #d8c7a5;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ranchInfoStats strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: 0.94rem;
+}
+
+.ranchInfoNote {
+  border: 1px solid rgba(86, 199, 255, 0.34);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(86, 199, 255, 0.12);
+  color: #dff5ff;
+  font-weight: 850;
 }
 
 .goalList {
@@ -467,6 +618,26 @@
   }
 
   .hudActions {
-    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .ranchInfoStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .hud {
+    padding: 20px 24px 10px;
+  }
+
+  .hudStats,
+  .navMenuGrid,
+  .ranchInfoStats {
+    grid-template-columns: 1fr;
+  }
+
+  .compactRanchTitlePanel {
+    margin: 12px 24px;
   }
 }
