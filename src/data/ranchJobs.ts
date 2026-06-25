@@ -28,10 +28,10 @@ export const RANCH_JOB_DEFINITIONS: RanchJobDefinition[] = [
     preferredFamilies: ["canine"],
     preferredVariants: ["variant_minotaur", "variant_nightmare"],
     energyCost: 12,
-    baseGoldReward: 20,
-    baseGuildPointReward: 2,
-    affectionReward: 1,
-    rewardLabel: "+20 Gold, +2 GP, +1 affection",
+    baseGoldReward: 0,
+    baseGuildPointReward: 0,
+    affectionReward: 0,
+    rewardLabel: "Safety patrol • lowers danger risk",
   },
   {
     jobId: "comfort_care",
@@ -42,24 +42,24 @@ export const RANCH_JOB_DEFINITIONS: RanchJobDefinition[] = [
     preferredFamilies: ["feline"],
     preferredVariants: ["variant_dream_lop", "variant_unicorn"],
     energyCost: 8,
-    baseGoldReward: 10,
+    baseGoldReward: 0,
     baseGuildPointReward: 0,
-    affectionReward: 3,
-    rewardLabel: "+10 Gold, +3 affection",
+    affectionReward: 0,
+    rewardLabel: "Breeding comfort • next-day bonus",
   },
   {
     jobId: "stable_production",
     name: "Stable Production",
     shortName: "Production",
-    description: "Assign a strong production creature to help with pasture chores, supply hauling, and basic ranch output.",
+    description: "Assign a strong production creature to stock the feed shed and prepare daily ranch provisions.",
     iconPath: RANCH_JOB_ASSETS.production,
     preferredFamilies: ["bovine"],
     preferredVariants: ["variant_moon_yak"],
     energyCost: 12,
-    baseGoldReward: 75,
+    baseGoldReward: 0,
     baseGuildPointReward: 0,
-    affectionReward: 1,
-    rewardLabel: "+75 Gold, +1 affection",
+    affectionReward: 0,
+    rewardLabel: "+6 Feed before auto-feeding",
   },
   {
     jobId: "garden_tending",
@@ -70,10 +70,10 @@ export const RANCH_JOB_DEFINITIONS: RanchJobDefinition[] = [
     preferredFamilies: ["lapine"],
     preferredVariants: ["variant_antlerhare"],
     energyCost: 10,
-    baseGoldReward: 55,
-    baseGuildPointReward: 1,
-    affectionReward: 1,
-    rewardLabel: "+55 Gold, +1 GP, +1 affection",
+    baseGoldReward: 0,
+    baseGuildPointReward: 0,
+    affectionReward: 0,
+    rewardLabel: "+3 Feed and garden produce",
   },
   {
     jobId: "field_hauling",
@@ -84,10 +84,10 @@ export const RANCH_JOB_DEFINITIONS: RanchJobDefinition[] = [
     preferredFamilies: ["equine"],
     preferredVariants: ["variant_minotaur"],
     energyCost: 14,
-    baseGoldReward: 65,
-    baseGuildPointReward: 1,
-    affectionReward: 1,
-    rewardLabel: "+65 Gold, +1 GP, +1 affection",
+    baseGoldReward: 0,
+    baseGuildPointReward: 0,
+    affectionReward: 0,
+    rewardLabel: "Ranch materials • upkeep support",
   },
 ];
 
@@ -136,16 +136,31 @@ export function getEligibleCreaturesForJob(save: GameSave, jobId: RanchJobId): C
   return (save.creatures ?? []).filter((creature) => isCreatureEligibleForJob(creature, job) && (!assignedIds.has(creature.creatureId) || getRanchJobs(save).assignments[jobId] === creature.creatureId));
 }
 
-function calculateJobGoldReward(creature: CreatureRecord, job: RanchJobDefinition): number {
-  const statBonus = Math.floor(((creature.stats.STR ?? 0) + (creature.stats.STA ?? 0) + (creature.stats.CHA ?? 0)) / 6);
-  const levelBonus = Math.floor(creature.level / 3);
-  return job.baseGoldReward + statBonus + levelBonus;
+function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
+  const parsed = typeof value === "number" ? value : Number(value ?? fallback);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback;
 }
 
-function calculateJobGuildPointReward(creature: CreatureRecord, job: RanchJobDefinition): number {
+function getDailyFeedCost(creature: CreatureRecord): number {
   const variant = getVariantDefinition(creature.variantId);
-  const rareBonus = variant.rarity === "Rare" || variant.rarity === "Epic" ? 1 : 0;
-  return job.baseGuildPointReward + rareBonus;
+  const familyBaseCost = variant.family === "bovine" || variant.family === "equine" ? 2 : 1;
+  const rareCost = variant.rarity === "Rare" || variant.rarity === "Epic" ? 1 : 0;
+  return familyBaseCost + rareCost;
+}
+
+function getJobProvisionOutput(jobId: RanchJobId): number {
+  if (jobId === "stable_production") return 6;
+  if (jobId === "garden_tending") return 3;
+  return 0;
+}
+
+function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number): string {
+  if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security risk is reduced today.`;
+  if (jobId === "comfort_care") return `${creatureName} kept the ranch calm. Breeding Comfort is active today.`;
+  if (jobId === "stable_production") return `${creatureName} stocked the feed shed: +${provisionOutput} Feed.`;
+  if (jobId === "garden_tending") return `${creatureName} harvested garden produce: +${provisionOutput} Feed.`;
+  if (jobId === "field_hauling") return `${creatureName} moved supplies and improved ranch upkeep.`;
+  return `${creatureName} completed ${getRanchJobDefinition(jobId).name}.`;
 }
 
 export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, creatureId: CreatureId | null): RanchJobAssignmentResult {
@@ -178,9 +193,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const jobs = getRanchJobs(save);
   if (jobs.lastProcessedDayNumber >= save.dayState.dayNumber) return { save, results: [] };
 
-  let totalGold = 0;
-  let totalGp = 0;
   let completions = 0;
+  let producedFeed = 0;
+  let securityActive = false;
+  let comfortActive = false;
   const results: RanchJobResult[] = [];
   const assignments = jobs.assignments;
   const nextCreatures = (save.creatures ?? []).map((creature) => ({ ...creature }));
@@ -197,24 +213,64 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       continue;
     }
 
-    const goldReward = calculateJobGoldReward(creature, job);
-    const guildPointReward = calculateJobGuildPointReward(creature, job);
+    const provisionOutput = getJobProvisionOutput(jobId);
+    producedFeed += provisionOutput;
+    securityActive = securityActive || jobId === "security_patrol";
+    comfortActive = comfortActive || jobId === "comfort_care";
     creature.energy = Math.max(0, creature.energy - job.energyCost);
-    creature.affection = Math.min(100, creature.affection + job.affectionReward);
-    totalGold += goldReward;
-    totalGp += guildPointReward;
     completions += 1;
-    results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward, guildPointReward, affectionReward: job.affectionReward, energyCost: job.energyCost, message: `${creature.nickname} finished ${job.name}: +${goldReward} Gold${guildPointReward ? `, +${guildPointReward} GP` : ""}.` });
+    results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: job.energyCost, message: getJobEffectMessage(jobId, creature.nickname, provisionOutput) });
   }
+
+  const feedRequired = nextCreatures.reduce((total, creature) => total + getDailyFeedCost(creature), 0);
+  const startingFeed = getFlagNumber(save.flags.ranchFeedStock);
+  const feedAvailable = startingFeed + producedFeed;
+  const feedConsumed = Math.min(feedAvailable, feedRequired);
+  const remainingFeed = Math.max(0, feedAvailable - feedConsumed);
+  const fedRatio = feedRequired > 0 ? feedConsumed / feedRequired : 1;
+  const foodStatus = fedRatio >= 1 ? "Fed" : fedRatio > 0 ? "Short" : "Empty";
+  const playerEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
+  const creatureEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
+  const affectionDelta = fedRatio >= 1 ? 0 : fedRatio > 0 ? -1 : -3;
+  const feedingSummary = feedRequired <= 0
+    ? "No creatures needed feed today."
+    : foodStatus === "Fed"
+      ? `Ranch provisions covered daily feed: ${feedConsumed}/${feedRequired} Feed consumed.`
+      : foodStatus === "Short"
+        ? `Food shortage: ${feedConsumed}/${feedRequired} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
+        : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`;
+
+  const fedCreatures = nextCreatures.map((creature) => {
+    const maxEnergy = creature.maxEnergy ?? creature.energy;
+    const targetEnergy = Math.floor(maxEnergy * creatureEnergyRatio);
+    return {
+      ...creature,
+      energy: Math.min(creature.energy, targetEnergy),
+      affection: Math.max(0, Math.min(100, creature.affection + affectionDelta)),
+    };
+  });
 
   return {
     save: {
       ...save,
       updatedAt: new Date().toISOString(),
-      creatures: nextCreatures,
-      currencies: { ...save.currencies, gold: save.currencies.gold + totalGold, guildPoints: save.currencies.guildPoints + totalGp },
+      creatures: fedCreatures,
+      currencies: { ...save.currencies, energy: Math.floor(save.currencies.maxEnergy * playerEnergyRatio) },
       ranchJobs: { ...jobs, assignments, lastProcessedDayNumber: save.dayState.dayNumber, lifetimeCompletions: jobs.lifetimeCompletions + completions },
-      flags: { ...save.flags, m14RanchJobsCreated: true, m14RanchJobsProcessed: completions > 0 || save.flags.m14RanchJobsProcessed === true },
+      flags: {
+        ...save.flags,
+        m14RanchJobsCreated: true,
+        m14RanchJobsProcessed: completions > 0 || save.flags.m14RanchJobsProcessed === true,
+        ranchFeedStock: remainingFeed,
+        ranchFeedProducedToday: producedFeed,
+        ranchFeedRequiredToday: feedRequired,
+        ranchFeedConsumedToday: feedConsumed,
+        ranchFoodStatus: foodStatus,
+        ranchFeedingSummary: feedingSummary,
+        ranchSecurityActiveToday: securityActive,
+        ranchBreedingComfortActiveToday: comfortActive,
+        ranchBreedingComfortBonusToday: comfortActive ? 10 : 0,
+      },
     },
     results,
   };
