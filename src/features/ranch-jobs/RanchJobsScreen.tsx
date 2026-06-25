@@ -138,10 +138,10 @@ export function RanchJobsScreen() {
                   </div>
 
                   <div className={styles.assignmentBox}>
-                    <div className={styles.assignedLine}>
+                    <div className={`${styles.assignedLine} ${assignedCreature ? styles.assignedLineWithPortrait : ""}`}>
                       <span className={assignedCreature ? styles.assignedDot : styles.unassignedDot} />
                       {assignedCreature ? <img className={styles.assignedPortrait} src={getCreatureProfilePath(assignedCreature)} alt="" /> : null}
-                      <div>
+                      <div className={styles.assignedText}>
                         <strong>{assignedCreature ? getCreatureDisplayName(assignedCreature) : "Unassigned"}</strong>
                         <span>{assignedCreature ? getCreatureSummary(assignedCreature) : "Open this chore to choose an eligible creature."}</span>
                       </div>
