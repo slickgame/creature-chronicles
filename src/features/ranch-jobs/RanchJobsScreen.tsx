@@ -51,9 +51,21 @@ function getAbilityScore(creature: CreatureRecord): number {
   return creature.abilities.reduce((total, ability) => total + values[ability.grade], 0) / creature.abilities.length;
 }
 
+function getRelevantStatKeys(jobId: RanchJobId): Array<keyof CreatureRecord["stats"]> {
+  if (jobId === "security_patrol") return ["STR", "STA", "WIL", "FER"];
+  if (jobId === "comfort_care") return ["CHA", "WIL"];
+  if (jobId === "stable_production") return ["STR", "STA"];
+  if (jobId === "garden_tending") return ["DEX", "CHA"];
+  return ["STR", "STA", "DEX"];
+}
+
+function getRelevantStatLine(creature: CreatureRecord, jobId: RanchJobId): string {
+  return getRelevantStatKeys(jobId).map((stat) => `${stat} ${creature.stats[stat]}`).join(" • ");
+}
+
 function getProjectedCreatureScore(creature: CreatureRecord, jobId: RanchJobId): number {
-  const statKeys = jobId === "security_patrol" ? ["STR", "STA", "WIL", "FER"] : jobId === "comfort_care" ? ["CHA", "WIL"] : jobId === "stable_production" ? ["STR", "STA"] : jobId === "garden_tending" ? ["DEX", "CHA"] : ["STR", "STA", "DEX"];
-  const statAverage = statKeys.reduce((total, stat) => total + creature.stats[stat as keyof typeof creature.stats], 0) / statKeys.length;
+  const statKeys = getRelevantStatKeys(jobId);
+  const statAverage = statKeys.reduce((total, stat) => total + creature.stats[stat], 0) / statKeys.length;
   return Math.max(1, Math.round(((statAverage / 6) + (creature.level / 8) + (creature.affection / 25) + (getAbilityScore(creature) * 0.75)) * 10) / 10);
 }
 
@@ -63,6 +75,15 @@ function getProjectedFeedForAssignment(creatures: CreatureRecord[], jobId: Ranch
     const score = getProjectedCreatureScore(creature, jobId);
     return total + (jobId === "stable_production" ? Math.max(1, Math.floor(3 + score)) : Math.max(1, Math.floor(1 + score * 0.75)));
   }, 0);
+}
+
+function getProjectedContributionLabel(creature: CreatureRecord, jobId: RanchJobId): string {
+  const score = getProjectedCreatureScore(creature, jobId);
+  if (jobId === "stable_production") return `Projected +${Math.max(1, Math.floor(3 + score))} Feed`;
+  if (jobId === "garden_tending") return `Projected +${Math.max(1, Math.floor(1 + score * 0.75))} Feed`;
+  if (jobId === "security_patrol") return `Security +${Math.round(score)}`;
+  if (jobId === "comfort_care") return `Comfort +${Math.round(score)}`;
+  return `Upkeep +${Math.round(score)}`;
 }
 
 export function RanchJobsScreen() {
@@ -99,6 +120,11 @@ export function RanchJobsScreen() {
     const result = assignRanchJob(jobId, selectedCreatureId ? selectedCreatureId : null);
     setMessage(result.message);
     if (result.ok) setDraftAssignments((current) => ({ ...current, [jobId]: "" }));
+  }
+
+  function handleRemove(jobId: RanchJobId, creatureId: CreatureId) {
+    const result = assignRanchJob(jobId, creatureId);
+    setMessage(result.message);
   }
 
   function handleClear(jobId: RanchJobId) {
@@ -171,8 +197,8 @@ export function RanchJobsScreen() {
               <div className={styles.modalBody}>
                 <section className={styles.modalInfoGrid}><div className={styles.infoPanel}><p className={styles.panelLabel}>Chore Details</p><p>{activeJob.description}</p></div><div className={styles.infoPanel}><p className={styles.panelLabel}>Projected Output</p><strong>{projectedJobFeed ? `+${projectedJobFeed} Feed` : `${assigned.length} helpers`}</strong><span>Based on helpers, stats, affection, level, and abilities.</span></div><div className={styles.infoPanel}><p className={styles.panelLabel}>Current Assignment</p><strong>{assigned.length}/{MAX_CREATURES_PER_CHORE} helpers</strong><span>{assigned.length ? assigned.map((creature) => getCreatureDisplayName(creature)).join(" • ") : "Select eligible creatures below."}</span></div></section>
                 <section className={styles.modalAssignmentBox}><div><p className={styles.panelLabel}>Add Helper</p><p>Each chore can have up to three helpers. Stronger helpers improve the result.</p></div><div className={styles.modalSelectRow}><select value={draftValue} aria-label={`${activeJob.name} assignment`} onChange={(event) => setDraftAssignments((current) => ({ ...current, [activeJob.jobId]: event.target.value }))}><option value="">Choose helper</option>{eligibleCreatures.map((creature) => <option key={creature.creatureId} value={creature.creatureId}>{getCreatureDisplayName(creature)}</option>)}</select><button type="button" className={styles.primaryButton} onClick={() => handleAssign(activeJob.jobId)}>Add</button>{assigned.length ? <button type="button" className={styles.clearButton} onClick={() => handleClear(activeJob.jobId)}>Clear All</button> : null}</div></section>
-                {assigned.length ? <section><div className={styles.modalSectionHeader}><h3>Assigned Helpers</h3><span>{assigned.length}/{MAX_CREATURES_PER_CHORE}</span></div><div className={styles.eligibleList}>{assigned.map((creature) => <div key={creature.creatureId} className={styles.emptyEligibleCard}><strong>{getCreatureDisplayName(creature)}</strong><span>{getCreatureSummary(creature)} • Score {getProjectedCreatureScore(creature, activeJob.jobId).toFixed(1)}</span></div>)}</div></section> : null}
-                <section><div className={styles.modalSectionHeader}><h3>Eligible Creatures</h3><span>{eligibleCreatures.length} available</span></div><div className={styles.eligibleList}>{eligibleCreatures.length ? eligibleCreatures.map((creature) => <button key={creature.creatureId} type="button" className={styles.eligibleCard} onClick={() => setDraftAssignments((current) => ({ ...current, [activeJob.jobId]: creature.creatureId }))}><div><strong>{getCreatureDisplayName(creature)}</strong><span>{getCreatureSummary(creature)} • Score {getProjectedCreatureScore(creature, activeJob.jobId).toFixed(1)}</span></div><em>{getCreatureEnergyLabel(creature, activeJob.energyCost)}</em></button>) : <div className={styles.emptyEligibleCard}><strong>No eligible creatures yet</strong><span>Buy, hatch, or dev-spawn a fitting family for this chore.</span></div>}</div></section>
+                {assigned.length ? <section><div className={styles.modalSectionHeader}><h3>Assigned Helpers</h3><span>{assigned.length}/{MAX_CREATURES_PER_CHORE}</span></div><div className={styles.eligibleList}>{assigned.map((creature) => <div key={creature.creatureId} className={styles.emptyEligibleCard}><div><strong>{getCreatureDisplayName(creature)}</strong><span>{getCreatureSummary(creature)} • Score {getProjectedCreatureScore(creature, activeJob.jobId).toFixed(1)}</span><span>{getRelevantStatLine(creature, activeJob.jobId)} • Ability Avg {getAbilityScore(creature).toFixed(1)} • {getProjectedContributionLabel(creature, activeJob.jobId)}</span></div><button type="button" className={styles.clearButton} onClick={() => handleRemove(activeJob.jobId, creature.creatureId)}>Remove</button></div>)}</div></section> : null}
+                <section><div className={styles.modalSectionHeader}><h3>Eligible Creatures</h3><span>{eligibleCreatures.length} available</span></div><div className={styles.eligibleList}>{eligibleCreatures.length ? eligibleCreatures.map((creature) => <button key={creature.creatureId} type="button" className={styles.eligibleCard} onClick={() => setDraftAssignments((current) => ({ ...current, [activeJob.jobId]: creature.creatureId }))}><div><strong>{getCreatureDisplayName(creature)}</strong><span>{getCreatureSummary(creature)} • Score {getProjectedCreatureScore(creature, activeJob.jobId).toFixed(1)}</span><span>{getRelevantStatLine(creature, activeJob.jobId)} • Ability Avg {getAbilityScore(creature).toFixed(1)} • {getProjectedContributionLabel(creature, activeJob.jobId)}</span></div><em>{getCreatureEnergyLabel(creature, activeJob.energyCost)}</em></button>) : <div className={styles.emptyEligibleCard}><strong>No eligible creatures yet</strong><span>Buy, hatch, or dev-spawn a fitting family for this chore.</span></div>}</div></section>
               </div>
             </section>
           </div>
