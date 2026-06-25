@@ -2,11 +2,12 @@
 
 import { type CSSProperties, useMemo, useState } from "react";
 import { getTotalTownUpgradeTiers } from "@/data/upgrades";
-import { formatGold, formatGuildPoints } from "@/lib/formatters";
+import { formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import styles from "./TownScreen.module.css";
 
 type TownLocationId = "market" | "guild" | "ranch";
+type ModalMode = "none" | "town-info" | "nav-menu";
 
 type TownLocation = {
   id: TownLocationId;
@@ -24,6 +25,11 @@ const TOWN_ICONS = {
   map: "/images/ui/icons/icon_town_map.png",
   travel: "/images/ui/icons/icon_travel_arrow.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
+  gp: "/images/ui/icons/icon_guild_points.png",
+  market: "/images/buildings/town/market_stall.png",
+  guild: "/images/buildings/town/guild_hall.png",
+  ranch: "/images/buildings/town/ranch_gate.png",
+  menu: "/images/ui/icons/icon_collection_book.png",
 } as const;
 
 const LOCATIONS: TownLocation[] = [
@@ -39,9 +45,11 @@ function getLocationStyle(location: TownLocation): CSSProperties {
 export function TownScreen() {
   const { currentSave, goToGuildHall, goToMainMenu, goToMarket, goToRanch, version } = useGameContext();
   const [message, setMessage] = useState("Welcome to town. The market and guild hall are open.");
+  const [modalMode, setModalMode] = useState<ModalMode>("none");
   const marketLevel = useMemo(() => (currentSave ? getTotalTownUpgradeTiers(currentSave, "market") + 1 : 1), [currentSave]);
   const boardLevel = useMemo(() => (currentSave ? getTotalTownUpgradeTiers(currentSave, "guild") + 1 : 1), [currentSave]);
   const totalTownUpgrades = useMemo(() => (currentSave ? getTotalTownUpgradeTiers(currentSave) : 0), [currentSave]);
+  const dateLabel = useMemo(() => currentSave ? formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth) : "Mon 1/1", [currentSave]);
 
   if (!currentSave) {
     return (
@@ -53,6 +61,10 @@ export function TownScreen() {
         </section>
       </main>
     );
+  }
+
+  function closeModal() {
+    setModalMode("none");
   }
 
   function handleLocationClick(location: TownLocation) {
@@ -79,19 +91,25 @@ export function TownScreen() {
             <img src={TOWN_ICONS.map} alt="" />
             <div><span>Town Square</span><strong>{currentSave.player.name}</strong></div>
           </div>
-          <div className={styles.headerActions}>
-            <button type="button" onClick={goToRanch}><img src={TOWN_ICONS.travel} alt="" /> Back to Ranch</button>
-            <button type="button" onClick={goToMainMenu}>Main Menu</button>
-          </div>
+
+          <section className={styles.townStats} aria-label="Town resources">
+            <div><img src={TOWN_ICONS.crest} alt="" /><span>Date</span><strong>{dateLabel}</strong></div>
+            <div><img src={TOWN_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
+            <div><img src={TOWN_ICONS.gp} alt="" /><span>GP</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div>
+            <div><img src={TOWN_ICONS.map} alt="" /><span>Services</span><strong>M{marketLevel} / B{boardLevel}</strong></div>
+          </section>
+
+          <nav className={styles.headerActions} aria-label="Town navigation">
+            <button type="button" onClick={() => setModalMode("nav-menu")}><img src={TOWN_ICONS.menu} alt="" /> Menu</button>
+          </nav>
         </header>
 
-        <section className={styles.titlePanel}>
-          <p className={styles.kicker}>M10.5 Town Access</p>
-          <h1>Town Square</h1>
-          <p>Visit the market or enter the Guild Hall for weekly contracts and town service upgrades.</p>
-          <p className={styles.message}>{message}</p>
-          <p className={styles.statLine}><span>Gold / GP</span><strong>{formatGold(currentSave.currencies.gold)} • {formatGuildPoints(currentSave.currencies.guildPoints)}</strong></p>
-          <p className={styles.statLine}><span>Service Levels</span><strong>Market Lv. {marketLevel} • Board Lv. {boardLevel} • {totalTownUpgrades} upgrade tiers</strong></p>
+        <section className={`${styles.titlePanel} ${styles.compactTitlePanel}`}>
+          <div>
+            <p className={styles.kicker}>M10.5 Town Access</p>
+            <h1>Town Square</h1>
+          </div>
+          <button type="button" className={styles.infoButton} onClick={() => setModalMode("town-info")} aria-label="Town square details">i</button>
         </section>
 
         <section className={styles.mapLayer} aria-label="Town locations">
@@ -103,6 +121,12 @@ export function TownScreen() {
             </button>
           ))}
         </section>
+
+        {modalMode !== "none" ? <div className={styles.modalBackdrop} role="presentation">
+          {modalMode === "nav-menu" ? <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.navMenuPanel}`} role="dialog" aria-modal="true" aria-labelledby="town-menu-title"><header className={styles.modalHeader}><div><p className={styles.kicker}>Town Navigation</p><h2 id="town-menu-title">Menu</h2></div><button type="button" onClick={closeModal}>Close</button></header><div className={styles.navMenuGrid}><button type="button" onClick={goToMarket}><img src={TOWN_ICONS.market} alt="" /><span>Market Stall</span><em>Buy creatures and reroll stock</em></button><button type="button" onClick={goToGuildHall}><img src={TOWN_ICONS.guild} alt="" /><span>Guild Hall</span><em>Contracts and service upgrades</em></button><button type="button" onClick={goToRanch}><img src={TOWN_ICONS.ranch} alt="" /><span>Back to Ranch</span><em>Return home</em></button><button type="button" onClick={goToMainMenu}><img src={TOWN_ICONS.crest} alt="" /><span>Main Menu</span><em>Save slots</em></button></div></section> : null}
+
+          {modalMode === "town-info" ? <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true" aria-labelledby="town-info-title"><header className={styles.modalHeader}><div><p className={styles.kicker}>Town Square</p><h2 id="town-info-title">Town Hub</h2></div><button type="button" onClick={closeModal}>Close</button></header><p className={styles.townInfoLead}>Visit the market for weekly creature listings or enter the Guild Hall for contracts, donations, Guild Points, and town service upgrades.</p><div className={styles.townInfoStats}><div><span>Status</span><strong>{message}</strong></div><div><span>Gold / GP</span><strong>{formatGold(currentSave.currencies.gold)} • {formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div><div><span>Market</span><strong>Lv. {marketLevel}</strong></div><div><span>Guild Board</span><strong>Lv. {boardLevel}</strong></div></div><p className={styles.townInfoNote}>Service levels: Market Lv. {marketLevel} • Board Lv. {boardLevel} • {totalTownUpgrades} upgrade tiers.</p></section> : null}
+        </div> : null}
 
         <footer className={styles.versionFooter}>{version}</footer>
       </section>
