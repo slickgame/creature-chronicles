@@ -116,7 +116,7 @@ export function getRanchJobs(save: GameSave): RanchJobsState {
 
 export function getRanchJobDefinition(jobId: RanchJobId): RanchJobDefinition {
   const definition = RANCH_JOB_DEFINITIONS.find((job) => job.jobId === jobId);
-  if (!definition) throw new Error(`Unknown ranch job: ${jobId}`);
+  if (!definition) throw new Error(`Unknown ranch chore: ${jobId}`);
   return definition;
 }
 
@@ -155,13 +155,13 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
     return {
       save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: null } }, flags: { ...save.flags, m14RanchJobsUsed: true } },
       ok: true,
-      message: `${job.name} assignment cleared.`,
+      message: `${job.name} chore cleared.`,
     };
   }
 
   const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found." };
-  if (creature.isLocked) return { save, ok: false, message: `${creature.nickname} is locked. Unlock them before assigning jobs.` };
+  if (creature.isLocked) return { save, ok: false, message: `${creature.nickname} is locked. Unlock them before assigning chores.` };
   if (!isCreatureEligibleForJob(creature, job)) return { save, ok: false, message: `${creature.nickname} is not a natural fit for ${job.name}.` };
 
   const alreadyAssigned = Object.entries(jobs.assignments).find(([assignedJobId, assignedCreatureId]) => assignedJobId !== jobId && assignedCreatureId === creatureId);
@@ -170,7 +170,7 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   return {
     save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: creatureId } }, flags: { ...save.flags, m14RanchJobsUsed: true, m14RanchJobAssigned: true } },
     ok: true,
-    message: `${creature.nickname} assigned to ${job.name}. Jobs resolve when you sleep to the next day.`,
+    message: `${creature.nickname} assigned to ${job.name}. Chores resolve when you sleep to the next day.`,
   };
 }
 
@@ -204,7 +204,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     totalGold += goldReward;
     totalGp += guildPointReward;
     completions += 1;
-    results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward, guildPointReward, affectionReward: job.affectionReward, energyCost: job.energyCost, message: `${creature.nickname} completed ${job.name}: +${goldReward} Gold${guildPointReward ? `, +${guildPointReward} GP` : ""}.` });
+    results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward, guildPointReward, affectionReward: job.affectionReward, energyCost: job.energyCost, message: `${creature.nickname} finished ${job.name}: +${goldReward} Gold${guildPointReward ? `, +${guildPointReward} GP` : ""}.` });
   }
 
   return {
