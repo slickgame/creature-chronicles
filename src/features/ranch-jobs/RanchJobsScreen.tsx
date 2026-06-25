@@ -9,7 +9,6 @@ import {
   RANCH_JOB_DEFINITIONS,
   RANCH_JOB_IDS,
 } from "@/data/ranchJobs";
-import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
@@ -33,9 +32,27 @@ function getCreatureEnergyLabel(creature: CreatureRecord, energyCost: number): s
   return "Ready";
 }
 
+function getFlagNumber(value: boolean | number | string | undefined): number {
+  const parsed = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
+function getDailyFeedCost(creature: CreatureRecord): number {
+  const variant = getVariantDefinition(creature.variantId);
+  const familyBaseCost = variant.family === "bovine" || variant.family === "equine" ? 2 : 1;
+  const rareCost = variant.rarity === "Rare" || variant.rarity === "Epic" ? 1 : 0;
+  return familyBaseCost + rareCost;
+}
+
+function getProjectedFeedForJob(jobId: RanchJobId): number {
+  if (jobId === "stable_production") return 6;
+  if (jobId === "garden_tending") return 3;
+  return 0;
+}
+
 export function RanchJobsScreen() {
   const { assignRanchJob, currentSave, goToMainMenu, goToRanch, version } = useGameContext();
-  const [message, setMessage] = useState("Assign creatures to ranch chores, then sleep to resolve their work for the next day.");
+  const [message, setMessage] = useState("Assign creatures to ranch chores, then sleep to resolve provisions, comfort, safety, and upkeep.");
   const [activeJobId, setActiveJobId] = useState<RanchJobId | null>(null);
   const [infoTarget, setInfoTarget] = useState<InfoTarget>(null);
   const [draftAssignments, setDraftAssignments] = useState<Record<RanchJobId, string>>({
@@ -66,8 +83,12 @@ export function RanchJobsScreen() {
   const assignedCreatures = assignedIds
     .map((creatureId) => (currentSave.creatures ?? []).find((creature) => creature.creatureId === creatureId))
     .filter(Boolean) as CreatureRecord[];
-  const projectedGold = RANCH_JOB_DEFINITIONS.reduce((total, job) => total + (jobs.assignments[job.jobId] ? job.baseGoldReward : 0), 0);
-  const projectedGp = RANCH_JOB_DEFINITIONS.reduce((total, job) => total + (jobs.assignments[job.jobId] ? job.baseGuildPointReward : 0), 0);
+  const feedStock = getFlagNumber(currentSave.flags.ranchFeedStock);
+  const dailyFeedNeed = (currentSave.creatures ?? []).reduce((total, creature) => total + getDailyFeedCost(creature), 0);
+  const projectedFeed = RANCH_JOB_DEFINITIONS.reduce((total, job) => total + (jobs.assignments[job.jobId] ? getProjectedFeedForJob(job.jobId) : 0), 0);
+  const projectedAvailableFeed = feedStock + projectedFeed;
+  const projectedFoodStatus = projectedAvailableFeed >= dailyFeedNeed ? "Fed" : projectedAvailableFeed > 0 ? "Short" : "Empty";
+  const projectedRecoveryLabel = projectedFoodStatus === "Fed" ? "Full recovery expected." : projectedFoodStatus === "Short" ? "Food shortage expected: weak recovery and -1 affection." : "No food expected: almost no recovery and -3 affection.";
   const activeJob = activeJobId ? RANCH_JOB_DEFINITIONS.find((job) => job.jobId === activeJobId) ?? null : null;
   const infoJob = infoTarget && infoTarget !== "overview" ? RANCH_JOB_DEFINITIONS.find((job) => job.jobId === infoTarget) ?? null : null;
 
@@ -107,12 +128,12 @@ export function RanchJobsScreen() {
 
         <section className={styles.topStats} aria-label="Ranch chore overview">
           <div className={styles.topStat}><span>Assigned</span><strong>{assignedCreatures.length}/{RANCH_JOB_IDS.length}</strong></div>
-          <div className={styles.topStat}><span>Projected Gold</span><strong>{formatGold(projectedGold)}</strong></div>
-          <div className={styles.topStat}><span>Projected GP</span><strong>{formatGuildPoints(projectedGp)}</strong></div>
-          <div className={styles.topStat}><span>Completed</span><strong>{jobs.lifetimeCompletions}</strong></div>
+          <div className={styles.topStat}><span>Feed Stock</span><strong>{feedStock}</strong></div>
+          <div className={styles.topStat}><span>Projected Feed</span><strong>+{projectedFeed}</strong></div>
+          <div className={styles.topStat}><span>Daily Need</span><strong>{dailyFeedNeed}</strong></div>
         </section>
 
-        <p className={styles.statusMessage}>{message}</p>
+        <p className={projectedFoodStatus === "Fed" ? styles.statusMessage : styles.warningMessage}>{projectedRecoveryLabel}</p>
 
         <section className={styles.content}>
           <div className={styles.jobGrid}>
@@ -166,7 +187,7 @@ export function RanchJobsScreen() {
           <section className={styles.infoModalPanel} role="dialog" aria-modal="true" aria-labelledby="ranch-info-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <header className={styles.modalHeader}>
               <div>
-                <p className={styles.kicker}>{infoTarget === "overview" ? "Ranch Assignment System" : infoJob?.shortName}</p>
+                <p className={styles.kicker}>{infoTarget === "overview" ? "Ranch Provision System" : infoJob?.shortName}</p>
                 <h2 id="ranch-info-modal-title">{infoTarget === "overview" ? "About Ranch Chores" : infoJob?.name}</h2>
               </div>
               <button type="button" className={styles.modalCloseButton} onClick={() => setInfoTarget(null)}>Close</button>
@@ -176,14 +197,19 @@ export function RanchJobsScreen() {
               {infoTarget === "overview" ? (
                 <div className={styles.infoTextBlock}>
                   <p>Ranch chores are daily assignments for creatures staying at the ranch. They are separate from quests and story objectives.</p>
-                  <p>Assign an eligible creature to each chore, then sleep to the next day to resolve the work. Completed chores can award Gold, Guild Points, affection, and other ranch progress later.</p>
-                  <p>The main board stays compact on purpose. Use each chore’s info button for flavor text, or open the chore to choose from the full eligible creature list.</p>
+                  <p>Chores no longer pay Gold or GP. They manage ranch provisions, safety, comfort, breeding readiness, and future upkeep systems.</p>
+                  <p>Surplus Feed carries over in the feed shed. If the ranch has too little food at sleep, player and creature energy recover poorly and creature affection drops.</p>
+                  <div className={styles.infoPanel}>
+                    <p className={styles.panelLabel}>Tonight Projection</p>
+                    <strong>{projectedAvailableFeed}/{dailyFeedNeed} Feed available</strong>
+                    <span>{projectedRecoveryLabel}</span>
+                  </div>
                 </div>
               ) : infoJob ? (
                 <div className={styles.infoTextBlock}>
                   <p>{infoJob.description}</p>
                   <div className={styles.infoPanel}>
-                    <p className={styles.panelLabel}>Reward</p>
+                    <p className={styles.panelLabel}>Chore Effect</p>
                     <strong>{infoJob.rewardLabel}</strong>
                     <span>{infoJob.energyCost} energy cost</span>
                   </div>
@@ -225,7 +251,7 @@ export function RanchJobsScreen() {
                     <p>{activeJob.description}</p>
                   </div>
                   <div className={styles.infoPanel}>
-                    <p className={styles.panelLabel}>Reward</p>
+                    <p className={styles.panelLabel}>Chore Effect</p>
                     <strong>{activeJob.rewardLabel}</strong>
                     <span>{activeJob.energyCost} energy cost</span>
                   </div>
