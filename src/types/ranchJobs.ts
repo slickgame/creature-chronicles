@@ -5,11 +5,11 @@ export type RanchJobId = "security_patrol" | "comfort_care" | "stable_production
 
 export type RanchJobAssignment = {
   jobId: RanchJobId;
-  creatureId: CreatureId | null;
+  creatureIds: CreatureId[];
 };
 
 export type RanchJobsState = {
-  assignments: Record<RanchJobId, CreatureId | null>;
+  assignments: Record<RanchJobId, CreatureId[]>;
   lastProcessedDayNumber: number;
   lifetimeCompletions: number;
 };
