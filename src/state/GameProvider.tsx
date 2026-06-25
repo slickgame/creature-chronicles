@@ -15,7 +15,7 @@ import { createNewGameSave, deleteSaveSlot, findFirstEmptySlot, getActiveSaveId,
 import type { BreedingAttemptRecord } from "@/types/breeding";
 import type { CreatureFamily, CreatureRecord } from "@/types/creature";
 import type { CreatureId, EggId } from "@/types/ids";
-import type { RanchJobAssignmentResult, RanchJobId } from "@/types/ranchJobs";
+import type { RanchJobAssignmentResult, RanchJobId, RanchJobResult } from "@/types/ranchJobs";
 import type { RanchUpgradeId, RanchUpgradePurchaseResult } from "@/types/ranchUpgrades";
 import type { DayState, GameSave } from "@/types/save";
 import type { TownUpgradeId, TownUpgradePurchaseResult } from "@/types/upgrades";
@@ -34,7 +34,12 @@ export type AppScreen =
   | "ranch-jobs"
   | "dev-tools";
 
-export type DayAdvanceResult = { previousDateLabel: string; nextDateLabel: string; summaryItems: string[] };
+export type DayAdvanceResult = {
+  previousDateLabel: string;
+  nextDateLabel: string;
+  summaryItems: string[];
+  ranchJobResults: RanchJobResult[];
+};
 
 type GameContextValue = {
   version: string;
@@ -300,11 +305,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       "Player Hearts restored to full.",
       recovery.sleepCreatureEnergyBonus || recovery.sleepAffectionBonus ? `Ranch recovery bonus applied: +${recovery.sleepCreatureEnergyBonus} creature energy buffer, +${recovery.sleepAffectionBonus} affection.` : "Creature energy and Hearts restored to full.",
       ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]),
-      ...(jobResult.results.length ? jobResult.results.map((result) => result.message) : ["No ranch job assignments resolved today."]),
+      ...(jobResult.results.length ? jobResult.results.map((result) => result.message) : ["No ranch chore assignments resolved today."]),
     ];
     if (nextDayState.weekday === "Mon") summaryItems.push("New week started. The town market and guild board have fresh listings.");
     saveCurrentGame(jobResult.save);
-    return { previousDateLabel, nextDateLabel, summaryItems };
+    return { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results };
   }, [currentSave, saveCurrentGame]);
 
   const value = useMemo<GameContextValue>(() => ({
