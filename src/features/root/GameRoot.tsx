@@ -9,6 +9,7 @@ import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
+import { RanchJobsScreen } from "@/features/ranch-jobs/RanchJobsScreen";
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
 import { TownScreen } from "@/features/town/TownScreen";
 import { useGameContext } from "@/state/GameProvider";
@@ -25,6 +26,7 @@ export function GameRoot() {
   if (appScreen === "guild-hall") return <GuildHallScreen />;
   if (appScreen === "collection") return <CollectionScreen />;
   if (appScreen === "ranch-office") return <RanchOfficeScreen />;
+  if (appScreen === "ranch-jobs") return <RanchJobsScreen />;
   if (appScreen === "dev-tools") return <DevToolsScreen />;
 
   return <MainMenuScreen />;
