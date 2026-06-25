@@ -141,7 +141,14 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   if (alreadyAssigned) return { save, ok: false, message: `${creature.nickname} is already assigned to ${getRanchJobDefinition(alreadyAssigned[0] as RanchJobId).name}.` };
 
   const currentAssignment = jobs.assignments[jobId] ?? [];
-  if (currentAssignment.includes(creatureId)) return { save, ok: true, message: `${creature.nickname} is already helping with ${job.name}.` };
+  if (currentAssignment.includes(creatureId)) {
+    const nextAssignment = currentAssignment.filter((assignedCreatureId) => assignedCreatureId !== creatureId);
+    return {
+      save: { ...save, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments: { ...jobs.assignments, [jobId]: nextAssignment } }, flags: { ...save.flags, m14RanchJobsUsed: true } },
+      ok: true,
+      message: `${creature.nickname} removed from ${job.name}.`,
+    };
+  }
   if (currentAssignment.length >= MAX_CREATURES_PER_CHORE) return { save, ok: false, message: `${job.name} already has ${MAX_CREATURES_PER_CHORE} helpers assigned.` };
 
   const nextAssignment = [...currentAssignment, creatureId];
