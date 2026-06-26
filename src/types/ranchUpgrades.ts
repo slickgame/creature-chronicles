@@ -18,6 +18,7 @@ export type RanchUpgradeTier = {
   tier: number;
   costGold: number;
   costGp?: number;
+  costMaterials?: number;
   effectLabel: string;
 };
 
@@ -54,8 +55,10 @@ export type RanchUpgradePurchaseSummary = {
   effectLabel: string;
   costGold: number;
   costGp: number;
+  costMaterials: number;
   remainingGold: number;
   remainingGp: number;
+  remainingMaterials: number;
   immediateEffectLabel: string;
 };
 
