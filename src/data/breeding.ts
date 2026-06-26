@@ -162,6 +162,9 @@ function getDailyBreedingComfortBonus(save: GameSave): number {
   const parsed = typeof rawValue === "number" ? rawValue : Number(rawValue ?? 0);
   return Number.isFinite(parsed) ? Math.max(0, Math.min(25, Math.floor(parsed))) : 0;
 }
+function isCreatureInjuredForBreeding(creature: CreatureRecord, dayNumber: number): boolean {
+  return typeof creature.injuredUntilDayNumber === "number" && creature.injuredUntilDayNumber >= dayNumber;
+}
 
 export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
   const normalizedPlayer = normalizePlayer(save.player);
@@ -175,7 +178,7 @@ export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
     portraitPath: "/images/ui/icons/icon_breeder_level.png", profilePath: "/images/ui/icons/icon_breeder_level.png",
   };
 
-  const creatures = (save.creatures ?? []).map((sourceCreature) => {
+  const creatures = (save.creatures ?? []).filter((sourceCreature) => !isCreatureInjuredForBreeding(sourceCreature, save.dayState.dayNumber)).map((sourceCreature) => {
     const creature = normalizeCreature(sourceCreature);
     const variant = getVariantDefinition(creature.variantId);
     const species = getSpeciesDefinition(variant.speciesId);
