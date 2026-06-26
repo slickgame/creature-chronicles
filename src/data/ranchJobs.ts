@@ -144,6 +144,13 @@ function getSecurityEventChance(securityScore: number): number {
   return Math.max(2, 15 - Math.floor(securityScore * 2));
 }
 
+function getRanchConditionLabel(damage: number): string {
+  if (damage >= 80) return "Critical";
+  if (damage >= 50) return "Damaged";
+  if (damage >= 20) return "Worn";
+  return "Good";
+}
+
 function getInjurySeverity(seed: string): { label: CreatureInjurySeverity; days: number } {
   const roll = deterministicRoll(seed, 100);
   if (roll >= 85) return { label: "Badly Hurt", days: 3 };
@@ -151,7 +158,9 @@ function getInjurySeverity(seed: string): { label: CreatureInjurySeverity; days:
   return { label: "Bruised", days: 1 };
 }
 
-function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs: EggRecord[], securityScore: number): { creatures: CreatureRecord[]; eggs: EggRecord[]; summary: string; eventType: string; dangerChance: number; success: boolean } {
+type SecurityEventResult = { creatures: CreatureRecord[]; eggs: EggRecord[]; summary: string; eventType: string; dangerChance: number; success: boolean; damageAdded: number };
+
+function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs: EggRecord[], securityScore: number): SecurityEventResult {
   const dangerChance = getSecurityEventChance(securityScore);
   const dangerRoll = deterministicRoll(`${save.saveId}_danger_${save.dayState.dayNumber}`, 100);
   const activeSecurity = securityScore > 0;
@@ -165,17 +174,21 @@ function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs:
         `Security patrol reinforced the evening watch. The ranch stayed safe.`,
       ];
       const messageIndex = deterministicRoll(`${save.saveId}_security_success_message_${save.dayState.dayNumber}`, successMessages.length);
-      return { creatures, eggs, summary: successMessages[messageIndex], eventType: "success", dangerChance, success: true };
+      return { creatures, eggs, summary: successMessages[messageIndex], eventType: "success", dangerChance, success: true, damageAdded: 0 };
     }
-    return { creatures, eggs, summary: `No danger event occurred.`, eventType: "none", dangerChance, success: false };
+    return { creatures, eggs, summary: `No danger event occurred.`, eventType: "none", dangerChance, success: false, damageAdded: 0 };
   }
 
   const incubatingEggs = eggs.filter((egg) => egg.status === "incubating");
   const eventRoll = deterministicRoll(`${save.saveId}_danger_type_${save.dayState.dayNumber}`, 100);
-  if (incubatingEggs.length && eventRoll < 55) {
+  if (incubatingEggs.length && eventRoll < 45) {
     const targetEgg = incubatingEggs[deterministicRoll(`${save.saveId}_egg_target_${save.dayState.dayNumber}`, incubatingEggs.length)];
     const nextEggs = eggs.map((egg) => egg.eggId === targetEgg.eggId ? { ...egg, daysRemaining: egg.daysRemaining + 1 } : egg);
-    return { creatures, eggs: nextEggs, summary: `A predator slipped near the nursery. One egg was disturbed and its hatch timer increased by 1 day.`, eventType: "egg_disturbed", dangerChance, success: false };
+    return { creatures, eggs: nextEggs, summary: `A predator slipped near the nursery. One egg was disturbed, its hatch timer increased by 1 day, and ranch damage rose by 10.`, eventType: "egg_disturbed", dangerChance, success: false, damageAdded: 10 };
+  }
+
+  if (eventRoll >= 45 && eventRoll < 70) {
+    return { creatures, eggs, summary: `A fence line was damaged overnight. Ranch damage rose by 20.`, eventType: "fence_damage", dangerChance, success: false, damageAdded: 20 };
   }
 
   const availableCreatures = creatures.filter((creature) => !isCreatureInjured(creature, save.dayState.dayNumber));
@@ -183,10 +196,10 @@ function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs:
     const targetCreature = availableCreatures[deterministicRoll(`${save.saveId}_injury_target_${save.dayState.dayNumber}`, availableCreatures.length)];
     const severity = getInjurySeverity(`${save.saveId}_injury_severity_${save.dayState.dayNumber}`);
     const nextCreatures = creatures.map((creature) => creature.creatureId === targetCreature.creatureId ? { ...creature, injuryLabel: severity.label, injuredUntilDayNumber: save.dayState.dayNumber + severity.days - 1 } : creature);
-    return { creatures: nextCreatures, eggs, summary: `${targetCreature.nickname} was ${severity.label.toLowerCase()} during a ranch danger event and cannot do chores or breed for ${severity.days} day${severity.days === 1 ? "" : "s"}.`, eventType: "creature_injured", dangerChance, success: false };
+    return { creatures: nextCreatures, eggs, summary: `${targetCreature.nickname} was ${severity.label.toLowerCase()} during a ranch danger event and cannot do chores or breed for ${severity.days} day${severity.days === 1 ? "" : "s"}. Ranch damage rose by 15.`, eventType: "creature_injured", dangerChance, success: false, damageAdded: 15 };
   }
 
-  return { creatures, eggs, summary: `Something prowled near the ranch, but there were no vulnerable creatures or eggs.`, eventType: "minor_disturbance", dangerChance, success: false };
+  return { creatures, eggs, summary: `Something prowled near the ranch and damaged the outer path. Ranch damage rose by 5.`, eventType: "minor_disturbance", dangerChance, success: false, damageAdded: 5 };
 }
 
 export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, creatureId: CreatureId | null): RanchJobAssignmentResult {
@@ -275,6 +288,12 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const feedRequired = creaturesAfterSecurity.reduce((total, creature) => total + getDailyFeedCost(creature), 0);
   const startingFeed = getFlagNumber(save.flags.ranchFeedStock);
   const startingMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
+  const startingDamage = getFlagNumber(save.flags.ranchDamage);
+  const repairAmount = Math.min(100, Math.round(upkeepScore));
+  const damageBeforeRepair = Math.min(100, startingDamage + securityEvent.damageAdded);
+  const repairedDamage = Math.min(damageBeforeRepair, repairAmount);
+  const finalDamage = Math.max(0, damageBeforeRepair - repairedDamage);
+  const conditionLabel = getRanchConditionLabel(finalDamage);
   const feedAvailable = startingFeed + producedFeed;
   const feedConsumed = Math.min(feedAvailable, feedRequired);
   const remainingFeed = Math.max(0, feedAvailable - feedConsumed);
@@ -294,6 +313,11 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const haulingSummary = producedMaterials > 0
     ? `Field Hauling added ${producedMaterials} Materials. Ranch material stock is now ${remainingMaterials}.`
     : "No new ranch materials were hauled today.";
+  const upkeepSummary = repairedDamage > 0
+    ? `Field Hauling repaired ${repairedDamage} ranch damage. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).`
+    : securityEvent.damageAdded > 0
+      ? `No upkeep repairs were completed. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).`
+      : `No new damage required repairs. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).`;
 
   const fedCreatures = creaturesAfterSecurity.map((creature) => {
     const maxEnergy = creature.maxEnergy ?? creature.energy;
@@ -316,6 +340,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         m14RanchJobsProcessed: completions > 0 || save.flags.m14RanchJobsProcessed === true,
         m14SecurityEventsEnabled: true,
         m14FieldHaulingMaterials: producedMaterials > 0 || save.flags.m14FieldHaulingMaterials === true,
+        m14RanchDamageEnabled: true,
         ranchFeedStock: remainingFeed,
         ranchFeedProducedToday: producedFeed,
         ranchFeedRequiredToday: feedRequired,
@@ -325,6 +350,12 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         ranchMaterialsStock: remainingMaterials,
         ranchMaterialsProducedToday: producedMaterials,
         ranchMaterialsSummaryToday: haulingSummary,
+        ranchDamage: finalDamage,
+        ranchDamageAddedToday: securityEvent.damageAdded,
+        ranchDamageBeforeRepairToday: damageBeforeRepair,
+        ranchDamageRepairedToday: repairedDamage,
+        ranchConditionToday: conditionLabel,
+        ranchUpkeepSummaryToday: upkeepSummary,
         ranchSecurityActiveToday: securityScore > 0,
         ranchSecurityScoreToday: Math.round(securityScore),
         ranchSecurityDangerChanceToday: securityEvent.dangerChance,
