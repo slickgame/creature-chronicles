@@ -45,10 +45,10 @@ export const RANCH_UPGRADE_ASSETS = {
 } as const;
 
 const habitatTiers = [
-  { tier: 1, costGold: 350, effectLabel: "+1 capacity" },
-  { tier: 2, costGold: 750, costGp: 8, effectLabel: "+2 total capacity" },
-  { tier: 3, costGold: 1300, costGp: 20, effectLabel: "+4 total capacity" },
-  { tier: 4, costGold: 2200, costGp: 45, effectLabel: "+6 total capacity" },
+  { tier: 1, costGold: 350, costMaterials: 1, effectLabel: "+1 capacity" },
+  { tier: 2, costGold: 750, costGp: 8, costMaterials: 3, effectLabel: "+2 total capacity" },
+  { tier: 3, costGold: 1300, costGp: 20, costMaterials: 6, effectLabel: "+4 total capacity" },
+  { tier: 4, costGold: 2200, costGp: 45, costMaterials: 10, effectLabel: "+6 total capacity" },
 ] as const;
 
 export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
@@ -92,7 +92,7 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     upgradeId: "equine_habitat_capacity",
     category: "habitats",
     name: "Equine Habitat Expansion",
-    description: "Adds stall, paddock, and field space for equine-family creatures. This prepares Horse, Unicorn, and Nightmare lines for future hauling, travel, field-management, and security systems.",
+    description: "Adds stall, paddock, and field space for equine-family creatures. This prepares Horse, Unicorn, Nightmare, and future travel or field creatures for hauling, field-management, and security systems.",
     iconPath: RANCH_UPGRADE_ASSETS.equineHabitat,
     maxTier: 4,
     tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Equine capacity") })),
@@ -105,10 +105,10 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 450, effectLabel: "+1 egg slot" },
-      { tier: 2, costGold: 900, costGp: 12, effectLabel: "+2 total egg slots" },
-      { tier: 3, costGold: 1600, costGp: 28, effectLabel: "+4 total egg slots" },
-      { tier: 4, costGold: 2800, costGp: 60, effectLabel: "+6 total egg slots" },
+      { tier: 1, costGold: 450, costMaterials: 2, effectLabel: "+1 egg slot" },
+      { tier: 2, costGold: 900, costGp: 12, costMaterials: 4, effectLabel: "+2 total egg slots" },
+      { tier: 3, costGold: 1600, costGp: 28, costMaterials: 7, effectLabel: "+4 total egg slots" },
+      { tier: 4, costGold: 2800, costGp: 60, costMaterials: 12, effectLabel: "+6 total egg slots" },
     ],
   },
   {
@@ -119,10 +119,10 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     iconPath: RANCH_UPGRADE_ASSETS.breedingPenUpgrade,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 650, effectLabel: "+2 creature XP from breeding" },
-      { tier: 2, costGold: 1100, costGp: 18, effectLabel: "+3% pregnancy chance and +2 XP" },
-      { tier: 3, costGold: 1800, costGp: 38, effectLabel: "+3% chance, +2 XP, -3 energy cost" },
-      { tier: 4, costGold: 3100, costGp: 80, effectLabel: "+8% chance, +7 XP, -3 energy cost" },
+      { tier: 1, costGold: 650, costMaterials: 3, effectLabel: "+2 creature XP from breeding" },
+      { tier: 2, costGold: 1100, costGp: 18, costMaterials: 5, effectLabel: "+3% pregnancy chance and +2 XP" },
+      { tier: 3, costGold: 1800, costGp: 38, costMaterials: 8, effectLabel: "+3% chance, +2 XP, -3 energy cost" },
+      { tier: 4, costGold: 3100, costGp: 80, costMaterials: 14, effectLabel: "+8% chance, +7 XP, -3 energy cost" },
     ],
   },
   {
@@ -133,10 +133,10 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     iconPath: RANCH_UPGRADE_ASSETS.sleepRecovery,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 300, effectLabel: "+5 bonus creature energy after sleep" },
-      { tier: 2, costGold: 750, effectLabel: "+10 bonus creature energy after sleep" },
-      { tier: 3, costGold: 1400, costGp: 24, effectLabel: "+10 energy and +1 affection after sleep" },
-      { tier: 4, costGold: 2400, costGp: 50, effectLabel: "+15 energy and +2 affection after sleep" },
+      { tier: 1, costGold: 300, costMaterials: 1, effectLabel: "+5 bonus creature energy after sleep" },
+      { tier: 2, costGold: 750, costMaterials: 3, effectLabel: "+10 bonus creature energy after sleep" },
+      { tier: 3, costGold: 1400, costGp: 24, costMaterials: 6, effectLabel: "+10 energy and +1 affection after sleep" },
+      { tier: 4, costGold: 2400, costGp: 50, costMaterials: 10, effectLabel: "+15 energy and +2 affection after sleep" },
     ],
   },
 ];
@@ -162,6 +162,11 @@ export function getNextRanchUpgradeTier(definition: RanchUpgradeDefinition, curr
 export function getTotalRanchUpgradeTiers(save: GameSave): number {
   const upgrades = getRanchUpgrades(save);
   return RANCH_UPGRADE_DEFINITIONS.reduce((total, definition) => total + (upgrades[definition.upgradeId] ?? 0), 0);
+}
+
+function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
+  const parsed = typeof value === "number" ? value : Number(value ?? fallback);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback;
 }
 
 function getHabitatCapacity(baseCapacity: number, tier: number): number {
@@ -218,24 +223,28 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
   if (!nextTier) return { save, ok: false, message: `${definition.name} is already maxed.` };
 
   const costGp = nextTier.costGp ?? 0;
+  const costMaterials = nextTier.costMaterials ?? 0;
+  const materialsStock = getFlagNumber(save.flags.ranchMaterialsStock);
   if (save.currencies.gold < nextTier.costGold) return { save, ok: false, message: `Not enough Gold for ${definition.name} Tier ${nextTier.tier}. Need ${nextTier.costGold} Gold; you have ${save.currencies.gold}.` };
   if (save.currencies.guildPoints < costGp) return { save, ok: false, message: `Not enough GP for ${definition.name} Tier ${nextTier.tier}. Need ${costGp} GP; you have ${save.currencies.guildPoints}.` };
+  if (materialsStock < costMaterials) return { save, ok: false, message: `Not enough Materials for ${definition.name} Tier ${nextTier.tier}. Need ${costMaterials} Materials; you have ${materialsStock}. Assign Field Hauling to gather more.` };
 
   const remainingGold = save.currencies.gold - nextTier.costGold;
   const remainingGp = save.currencies.guildPoints - costGp;
+  const remainingMaterials = materialsStock - costMaterials;
   const nextSave = applyRanchUpgradeEffectsToHabitats({
     ...save,
     updatedAt: new Date().toISOString(),
     currencies: { ...save.currencies, gold: remainingGold, guildPoints: remainingGp },
     ranchUpgrades: { ...upgrades, [upgradeId]: nextTier.tier },
-    flags: { ...save.flags, m11RanchOfficeUsed: true, m11RanchUpgradePurchased: true, m125BalancePass: true, m135M13HabitatUpgradePurchased: true },
+    flags: { ...save.flags, ranchMaterialsStock: remainingMaterials, m11RanchOfficeUsed: true, m11RanchUpgradePurchased: true, m125BalancePass: true, m135M13HabitatUpgradePurchased: true, m14MaterialsSpentOnUpgrade: costMaterials > 0 || save.flags.m14MaterialsSpentOnUpgrade === true },
   });
 
   return {
     save: nextSave,
     ok: true,
     message: `${definition.name} upgraded from Tier ${currentTier} to Tier ${nextTier.tier}. ${nextTier.effectLabel}. Ranch effects applied immediately.`,
-    summary: { upgradeId, upgradeName: definition.name, category: definition.category, oldTier: currentTier, newTier: nextTier.tier, effectLabel: nextTier.effectLabel, costGold: nextTier.costGold, costGp, remainingGold, remainingGp, immediateEffectLabel: "Ranch effects applied immediately." },
+    summary: { upgradeId, upgradeName: definition.name, category: definition.category, oldTier: currentTier, newTier: nextTier.tier, effectLabel: nextTier.effectLabel, costGold: nextTier.costGold, costGp, costMaterials, remainingGold, remainingGp, remainingMaterials, immediateEffectLabel: "Ranch effects applied immediately." },
   };
 }
 
