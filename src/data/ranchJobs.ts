@@ -25,7 +25,7 @@ export const RANCH_JOB_DEFINITIONS: RanchJobDefinition[] = [
   { jobId: "comfort_care", name: "Comfort Care", shortName: "Comfort", description: "Assign calming creatures to improve ranch mood and activate Breeding Comfort for the next day. Charisma, will, affection, and strong abilities help.", iconPath: RANCH_JOB_ASSETS.comfort, preferredFamilies: ["feline"], preferredVariants: ["variant_dream_lop", "variant_unicorn"], energyCost: 8, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Breeding comfort score • next-day bonus" },
   { jobId: "stable_production", name: "Stable Production", shortName: "Production", description: "Assign production creatures to stock the feed shed. Strength, stamina, affection, and helpful abilities increase feed output.", iconPath: RANCH_JOB_ASSETS.production, preferredFamilies: ["bovine"], preferredVariants: ["variant_moon_yak"], energyCost: 12, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Feed output scales with assigned helpers" },
   { jobId: "garden_tending", name: "Garden Tending", shortName: "Garden", description: "Assign nimble garden helpers to grow food and future nursery materials. Dexterity, charisma, and ability quality improve output.", iconPath: RANCH_JOB_ASSETS.garden, preferredFamilies: ["lapine"], preferredVariants: ["variant_antlerhare"], energyCost: 10, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Garden feed output scales with helpers" },
-  { jobId: "field_hauling", name: "Field Hauling", shortName: "Hauling", description: "Assign reliable field creatures to move supplies and improve ranch upkeep. Strength, stamina, and dexterity improve outcomes.", iconPath: RANCH_JOB_ASSETS.hauling, preferredFamilies: ["equine"], preferredVariants: ["variant_minotaur"], energyCost: 14, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Upkeep score • future material support" },
+  { jobId: "field_hauling", name: "Field Hauling", shortName: "Hauling", description: "Assign reliable field creatures to move supplies and improve ranch upkeep. Strength, stamina, and dexterity improve material output and upkeep protection.", iconPath: RANCH_JOB_ASSETS.hauling, preferredFamilies: ["equine"], preferredVariants: ["variant_minotaur"], energyCost: 14, baseGoldReward: 0, baseGuildPointReward: 0, affectionReward: 0, rewardLabel: "Materials + upkeep score" },
 ];
 
 export function createDefaultRanchJobsState(): RanchJobsState {
@@ -126,12 +126,17 @@ function getJobProvisionOutput(jobId: RanchJobId, score: number): number {
   return 0;
 }
 
-function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number, score: number): string {
+function getJobMaterialOutput(jobId: RanchJobId, score: number): number {
+  if (jobId === "field_hauling") return Math.max(1, Math.floor(1 + score * 0.65));
+  return 0;
+}
+
+function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number, materialOutput: number, score: number): string {
   if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security score +${Math.round(score)}.`;
   if (jobId === "comfort_care") return `${creatureName} kept the ranch calm. Breeding Comfort score +${Math.round(score)}.`;
   if (jobId === "stable_production") return `${creatureName} stocked the feed shed: +${provisionOutput} Feed.`;
   if (jobId === "garden_tending") return `${creatureName} harvested garden produce: +${provisionOutput} Feed.`;
-  if (jobId === "field_hauling") return `${creatureName} moved supplies. Upkeep score +${Math.round(score)}.`;
+  if (jobId === "field_hauling") return `${creatureName} moved supplies: +${materialOutput} Materials. Upkeep score +${Math.round(score)}.`;
   return `${creatureName} completed ${getRanchJobDefinition(jobId).name}.`;
 }
 
@@ -225,6 +230,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
 
   let completions = 0;
   let producedFeed = 0;
+  let producedMaterials = 0;
   let securityScore = 0;
   let comfortScore = 0;
   let upkeepScore = 0;
@@ -252,13 +258,15 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
 
       const choreScore = calculateCreatureChoreScore(creature, job);
       const provisionOutput = getJobProvisionOutput(jobId, choreScore);
+      const materialOutput = getJobMaterialOutput(jobId, choreScore);
       producedFeed += provisionOutput;
+      producedMaterials += materialOutput;
       if (jobId === "security_patrol") securityScore += choreScore;
       if (jobId === "comfort_care") comfortScore += choreScore;
       if (jobId === "field_hauling") upkeepScore += choreScore;
       creature.energy = Math.max(0, creature.energy - job.energyCost);
       completions += 1;
-      results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: job.energyCost, message: getJobEffectMessage(jobId, creature.nickname, provisionOutput, choreScore) });
+      results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: job.energyCost, message: getJobEffectMessage(jobId, creature.nickname, provisionOutput, materialOutput, choreScore) });
     }
   }
 
@@ -266,9 +274,11 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const creaturesAfterSecurity = securityEvent.creatures;
   const feedRequired = creaturesAfterSecurity.reduce((total, creature) => total + getDailyFeedCost(creature), 0);
   const startingFeed = getFlagNumber(save.flags.ranchFeedStock);
+  const startingMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
   const feedAvailable = startingFeed + producedFeed;
   const feedConsumed = Math.min(feedAvailable, feedRequired);
   const remainingFeed = Math.max(0, feedAvailable - feedConsumed);
+  const remainingMaterials = startingMaterials + producedMaterials;
   const fedRatio = feedRequired > 0 ? feedConsumed / feedRequired : 1;
   const foodStatus = fedRatio >= 1 ? "Fed" : fedRatio > 0 ? "Short" : "Empty";
   const playerEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
@@ -281,6 +291,9 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       : foodStatus === "Short"
         ? `Food shortage: ${feedConsumed}/${feedRequired} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
         : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`;
+  const haulingSummary = producedMaterials > 0
+    ? `Field Hauling added ${producedMaterials} Materials. Ranch material stock is now ${remainingMaterials}.`
+    : "No new ranch materials were hauled today.";
 
   const fedCreatures = creaturesAfterSecurity.map((creature) => {
     const maxEnergy = creature.maxEnergy ?? creature.energy;
@@ -302,12 +315,16 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         m14RanchJobsCreated: true,
         m14RanchJobsProcessed: completions > 0 || save.flags.m14RanchJobsProcessed === true,
         m14SecurityEventsEnabled: true,
+        m14FieldHaulingMaterials: producedMaterials > 0 || save.flags.m14FieldHaulingMaterials === true,
         ranchFeedStock: remainingFeed,
         ranchFeedProducedToday: producedFeed,
         ranchFeedRequiredToday: feedRequired,
         ranchFeedConsumedToday: feedConsumed,
         ranchFoodStatus: foodStatus,
         ranchFeedingSummary: feedingSummary,
+        ranchMaterialsStock: remainingMaterials,
+        ranchMaterialsProducedToday: producedMaterials,
+        ranchMaterialsSummaryToday: haulingSummary,
         ranchSecurityActiveToday: securityScore > 0,
         ranchSecurityScoreToday: Math.round(securityScore),
         ranchSecurityDangerChanceToday: securityEvent.dangerChance,
