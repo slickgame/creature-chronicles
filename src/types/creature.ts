@@ -12,6 +12,7 @@ export type StatGrowthProfile = Record<CreatureStatKey, number>;
 
 export type AbilityGrade = "F" | "D" | "C" | "B" | "A" | "S";
 export type CreatureOrigin = "starter" | "market" | "hatched" | "guild" | "unknown";
+export type CreatureInjurySeverity = "Bruised" | "Wounded" | "Badly Hurt";
 
 export type CreatureAbility = {
   id: string;
@@ -72,6 +73,8 @@ export type CreatureRecord = {
   origin: CreatureOrigin;
   originLabel: string;
   isLocked: boolean;
+  injuredUntilDayNumber?: number;
+  injuryLabel?: CreatureInjurySeverity;
   createdAt: string;
   notes: string;
 };
