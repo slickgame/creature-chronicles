@@ -1,8 +1,8 @@
 import { getVariantDefinition } from "@/data/creatures";
-import type { CreatureAbility, CreatureRecord, CreatureStatKey } from "@/types/creature";
+import type { CreatureAbility, CreatureInjurySeverity, CreatureRecord, CreatureStatKey } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobAssignmentResult, RanchJobDefinition, RanchJobId, RanchJobResult, RanchJobsState } from "@/types/ranchJobs";
-import type { GameSave } from "@/types/save";
+import type { EggRecord, GameSave } from "@/types/save";
 
 export const RANCH_JOB_ASSETS = {
   ranchJobs: "/images/ui/icons/icon_ranch_upgrade.png",
@@ -62,6 +62,10 @@ export function getCreatureDisplayName(creature: CreatureRecord): string {
   return `${creature.nickname} (${variant.name})`;
 }
 
+function isCreatureInjured(creature: CreatureRecord, dayNumber: number): boolean {
+  return typeof creature.injuredUntilDayNumber === "number" && creature.injuredUntilDayNumber >= dayNumber;
+}
+
 export function isCreatureEligibleForJob(creature: CreatureRecord, job: RanchJobDefinition): boolean {
   const variant = getVariantDefinition(creature.variantId);
   return job.preferredFamilies.includes(variant.family) || Boolean(job.preferredVariants?.includes(variant.variantId));
@@ -71,12 +75,18 @@ export function getEligibleCreaturesForJob(save: GameSave, jobId: RanchJobId): C
   const job = getRanchJobDefinition(jobId);
   const jobs = getRanchJobs(save);
   const assignedIds = new Set(RANCH_JOB_IDS.flatMap((id) => jobs.assignments[id] ?? []));
-  return (save.creatures ?? []).filter((creature) => isCreatureEligibleForJob(creature, job) && (!assignedIds.has(creature.creatureId) || jobs.assignments[jobId]?.includes(creature.creatureId)));
+  return (save.creatures ?? []).filter((creature) => !isCreatureInjured(creature, save.dayState.dayNumber) && isCreatureEligibleForJob(creature, job) && (!assignedIds.has(creature.creatureId) || jobs.assignments[jobId]?.includes(creature.creatureId)));
 }
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
   const parsed = typeof value === "number" ? value : Number(value ?? fallback);
   return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback;
+}
+
+function deterministicRoll(seed: string, modulo = 100): number {
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) % 100000;
+  return hash % modulo;
 }
 
 function getDailyFeedCost(creature: CreatureRecord): number {
@@ -125,6 +135,55 @@ function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionO
   return `${creatureName} completed ${getRanchJobDefinition(jobId).name}.`;
 }
 
+function getSecurityEventChance(securityScore: number): number {
+  return Math.max(2, 15 - Math.floor(securityScore * 2));
+}
+
+function getInjurySeverity(seed: string): { label: CreatureInjurySeverity; days: number } {
+  const roll = deterministicRoll(seed, 100);
+  if (roll >= 85) return { label: "Badly Hurt", days: 3 };
+  if (roll >= 45) return { label: "Wounded", days: 2 };
+  return { label: "Bruised", days: 1 };
+}
+
+function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs: EggRecord[], securityScore: number): { creatures: CreatureRecord[]; eggs: EggRecord[]; summary: string; eventType: string; dangerChance: number; success: boolean } {
+  const dangerChance = getSecurityEventChance(securityScore);
+  const dangerRoll = deterministicRoll(`${save.saveId}_danger_${save.dayState.dayNumber}`, 100);
+  const activeSecurity = securityScore > 0;
+
+  if (dangerRoll >= dangerChance) {
+    if (activeSecurity && deterministicRoll(`${save.saveId}_security_success_${save.dayState.dayNumber}`, 100) < Math.min(75, 20 + securityScore * 6)) {
+      const successMessages = [
+        `Security patrol found fresh tracks near the outer fence and scared the threat away.`,
+        `Security patrol kept the nursery quiet overnight. No danger event occurred.`,
+        `Security patrol spotted movement near the trail before it reached the ranch.`,
+        `Security patrol reinforced the evening watch. The ranch stayed safe.`,
+      ];
+      const messageIndex = deterministicRoll(`${save.saveId}_security_success_message_${save.dayState.dayNumber}`, successMessages.length);
+      return { creatures, eggs, summary: successMessages[messageIndex], eventType: "success", dangerChance, success: true };
+    }
+    return { creatures, eggs, summary: `No danger event occurred.`, eventType: "none", dangerChance, success: false };
+  }
+
+  const incubatingEggs = eggs.filter((egg) => egg.status === "incubating");
+  const eventRoll = deterministicRoll(`${save.saveId}_danger_type_${save.dayState.dayNumber}`, 100);
+  if (incubatingEggs.length && eventRoll < 55) {
+    const targetEgg = incubatingEggs[deterministicRoll(`${save.saveId}_egg_target_${save.dayState.dayNumber}`, incubatingEggs.length)];
+    const nextEggs = eggs.map((egg) => egg.eggId === targetEgg.eggId ? { ...egg, daysRemaining: egg.daysRemaining + 1 } : egg);
+    return { creatures, eggs: nextEggs, summary: `A predator slipped near the nursery. One egg was disturbed and its hatch timer increased by 1 day.`, eventType: "egg_disturbed", dangerChance, success: false };
+  }
+
+  const availableCreatures = creatures.filter((creature) => !isCreatureInjured(creature, save.dayState.dayNumber));
+  if (availableCreatures.length) {
+    const targetCreature = availableCreatures[deterministicRoll(`${save.saveId}_injury_target_${save.dayState.dayNumber}`, availableCreatures.length)];
+    const severity = getInjurySeverity(`${save.saveId}_injury_severity_${save.dayState.dayNumber}`);
+    const nextCreatures = creatures.map((creature) => creature.creatureId === targetCreature.creatureId ? { ...creature, injuryLabel: severity.label, injuredUntilDayNumber: save.dayState.dayNumber + severity.days - 1 } : creature);
+    return { creatures: nextCreatures, eggs, summary: `${targetCreature.nickname} was ${severity.label.toLowerCase()} during a ranch danger event and cannot do chores or breed for ${severity.days} day${severity.days === 1 ? "" : "s"}.`, eventType: "creature_injured", dangerChance, success: false };
+  }
+
+  return { creatures, eggs, summary: `Something prowled near the ranch, but there were no vulnerable creatures or eggs.`, eventType: "minor_disturbance", dangerChance, success: false };
+}
+
 export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, creatureId: CreatureId | null): RanchJobAssignmentResult {
   const jobs = getRanchJobs(save);
   const job = getRanchJobDefinition(jobId);
@@ -135,6 +194,7 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found." };
   if (creature.isLocked) return { save, ok: false, message: `${creature.nickname} is locked. Unlock them before assigning chores.` };
+  if (isCreatureInjured(creature, save.dayState.dayNumber)) return { save, ok: false, message: `${creature.nickname} is ${creature.injuryLabel ?? "injured"} and cannot be assigned until they recover.` };
   if (!isCreatureEligibleForJob(creature, job)) return { save, ok: false, message: `${creature.nickname} is not a natural fit for ${job.name}.` };
 
   const alreadyAssigned = Object.entries(jobs.assignments).find(([assignedJobId, assignedCreatureIds]) => assignedJobId !== jobId && assignedCreatureIds.includes(creatureId));
@@ -180,6 +240,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     for (const creatureId of creatureIds) {
       const creature = nextCreatures.find((item) => item.creatureId === creatureId);
       if (!creature) continue;
+      if (isCreatureInjured(creature, save.dayState.dayNumber)) {
+        results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} is ${creature.injuryLabel ?? "injured"} and could not complete ${job.name}.` });
+        continue;
+      }
       if (!isCreatureEligibleForJob(creature, job)) continue;
       if (creature.energy < job.energyCost) {
         results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} was too tired for ${job.name}.` });
@@ -198,7 +262,9 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     }
   }
 
-  const feedRequired = nextCreatures.reduce((total, creature) => total + getDailyFeedCost(creature), 0);
+  const securityEvent = resolveSecurityEvent(save, nextCreatures, save.eggs ?? [], securityScore);
+  const creaturesAfterSecurity = securityEvent.creatures;
+  const feedRequired = creaturesAfterSecurity.reduce((total, creature) => total + getDailyFeedCost(creature), 0);
   const startingFeed = getFlagNumber(save.flags.ranchFeedStock);
   const feedAvailable = startingFeed + producedFeed;
   const feedConsumed = Math.min(feedAvailable, feedRequired);
@@ -216,10 +282,11 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         ? `Food shortage: ${feedConsumed}/${feedRequired} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
         : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`;
 
-  const fedCreatures = nextCreatures.map((creature) => {
+  const fedCreatures = creaturesAfterSecurity.map((creature) => {
     const maxEnergy = creature.maxEnergy ?? creature.energy;
     const targetEnergy = Math.floor(maxEnergy * creatureEnergyRatio);
-    return { ...creature, energy: Math.min(creature.energy, targetEnergy), affection: Math.max(0, Math.min(100, creature.affection + affectionDelta)) };
+    const injuryExpired = typeof creature.injuredUntilDayNumber === "number" && creature.injuredUntilDayNumber < save.dayState.dayNumber;
+    return { ...creature, injuryLabel: injuryExpired ? undefined : creature.injuryLabel, injuredUntilDayNumber: injuryExpired ? undefined : creature.injuredUntilDayNumber, energy: Math.min(creature.energy, targetEnergy), affection: Math.max(0, Math.min(100, creature.affection + affectionDelta)) };
   });
 
   return {
@@ -227,12 +294,14 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       ...save,
       updatedAt: new Date().toISOString(),
       creatures: fedCreatures,
+      eggs: securityEvent.eggs,
       currencies: { ...save.currencies, energy: Math.floor(save.currencies.maxEnergy * playerEnergyRatio) },
       ranchJobs: { ...jobs, assignments, lastProcessedDayNumber: save.dayState.dayNumber, lifetimeCompletions: jobs.lifetimeCompletions + completions },
       flags: {
         ...save.flags,
         m14RanchJobsCreated: true,
         m14RanchJobsProcessed: completions > 0 || save.flags.m14RanchJobsProcessed === true,
+        m14SecurityEventsEnabled: true,
         ranchFeedStock: remainingFeed,
         ranchFeedProducedToday: producedFeed,
         ranchFeedRequiredToday: feedRequired,
@@ -241,6 +310,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         ranchFeedingSummary: feedingSummary,
         ranchSecurityActiveToday: securityScore > 0,
         ranchSecurityScoreToday: Math.round(securityScore),
+        ranchSecurityDangerChanceToday: securityEvent.dangerChance,
+        ranchSecurityEventTypeToday: securityEvent.eventType,
+        ranchSecurityEventSummaryToday: securityEvent.summary,
+        ranchSecuritySuccessToday: securityEvent.success,
         ranchBreedingComfortActiveToday: comfortScore > 0,
         ranchBreedingComfortBonusToday: Math.min(25, Math.round(comfortScore * 2)),
         ranchUpkeepScoreToday: Math.round(upkeepScore),
