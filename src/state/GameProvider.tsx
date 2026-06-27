@@ -38,6 +38,7 @@ type GameContextValue = {
   deleteGame: (slotIndex: number) => void;
   refreshSaveSlots: () => void;
   goToMainMenu: () => void;
+  exitRunToMainMenu: () => void;
   goToRanch: () => void;
   goToHabitat: (family: CreatureFamily) => void;
   goToBreeding: () => void;
@@ -95,6 +96,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const loadGame = useCallback((slotIndex: number) => { const save = loadSaveFromSlot(slotIndex); if (!save) return null; setActiveSaveId(save.saveId); setCurrentSave(save); setSaveSlots(loadAllSaves()); setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return save; }, []);
   const deleteGame = useCallback((slotIndex: number) => { deleteSaveSlot(slotIndex); refreshSaveSlots(); }, [refreshSaveSlots]);
   const goToMainMenu = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("main-menu"); }, []);
+  const exitRunToMainMenu = useCallback(() => { setActiveSaveId(""); setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
   const goToRanch = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-hub"); }, []);
   const goToTown = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("town"); }, []);
   const goToRanchOffice = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-office"); }, []);
@@ -138,14 +140,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave);
     const jobResult = processRanchJobsForNewDay(guildSyncedSave);
     const rewardedSave = applyStarterGoalRewards(jobResult.save);
-    const taxResult = processMonthlyTaxes(rewardedSave, currentSave.dayState);
+    const taxResult = processMonthlyTaxes(rewardedSave, currentSave);
     const summaryItems = [`Advanced from ${previousDateLabel} to ${nextDateLabel}.`, `Energy restored to ${currentSave.currencies.maxEnergy}.`, "Player Hearts restored to full.", recovery.sleepCreatureEnergyBonus || recovery.sleepAffectionBonus ? `Ranch recovery bonus applied: +${recovery.sleepCreatureEnergyBonus} creature energy buffer, +${recovery.sleepAffectionBonus} affection.` : "Creature energy and Hearts restored to full.", ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]), ...(jobResult.results.length ? jobResult.results.map((result) => result.message) : ["No ranch chore assignments resolved today."]), ...taxResult.summaryItems];
     if (nextDayState.weekday === "Mon") summaryItems.push("New week started. The town market and guild board have fresh listings.");
     saveCurrentGame(taxResult.save);
     return { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results };
   }, [currentSave, saveCurrentGame]);
 
-  const value = useMemo<GameContextValue>(() => ({ version: MVP_VERSION, buildPhase: "M15 — Ranch Tax Collector", appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg, buyMarketCreature, rerollMarket, acceptGuildRequest, donateCreatureToGuild, buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus, addDevGuildPoints }), [appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg, buyMarketCreature, rerollMarket, acceptGuildRequest, donateCreatureToGuild, buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus, addDevGuildPoints]);
+  const value = useMemo<GameContextValue>(() => ({ version: MVP_VERSION, buildPhase: "M15 — Ranch Tax Collector", appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, exitRunToMainMenu, goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg, buyMarketCreature, rerollMarket, acceptGuildRequest, donateCreatureToGuild, buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus, addDevGuildPoints }), [appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, exitRunToMainMenu, goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg, buyMarketCreature, rerollMarket, acceptGuildRequest, donateCreatureToGuild, buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus, addDevGuildPoints]);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
 
