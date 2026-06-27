@@ -20,6 +20,11 @@ export type StarterGoal = {
 
 const STARTER_GOAL_REWARDS: Record<string, StarterGoalReward> = {
   "assign-chores": { gold: 50 },
+  "assign-security": { gold: 25 },
+  "assign-comfort": { gold: 25 },
+  "assign-feed": { feed: 2 },
+  "assign-garden": { feed: 2 },
+  "assign-hauling": { materials: 2 },
   "resolve-chores": { feed: 3 },
   "produce-feed": { guildPoints: 1 },
   "gather-materials": { materials: 5 },
@@ -28,6 +33,7 @@ const STARTER_GOAL_REWARDS: Record<string, StarterGoalReward> = {
   breed: { gold: 100 },
   egg: { guildPoints: 2 },
   market: { gold: 50 },
+  tax: { gold: 125 },
   guild: { gold: 150, guildPoints: 3 },
 };
 
@@ -60,8 +66,18 @@ function buildGoal(save: GameSave, goal: Omit<StarterGoal, "reward" | "rewardLab
   return { ...goal, description: `${goal.description} Reward: ${rewardLabel}.`, reward, rewardLabel, rewardClaimed: isRewardClaimed(save, goal.id) };
 }
 
+function hasJobAssignment(save: GameSave, jobId: string): boolean {
+  const assigned = save.ranchJobs?.assignments?.[jobId as keyof typeof save.ranchJobs.assignments];
+  return Array.isArray(assigned) && assigned.length > 0;
+}
+
 export function getStarterGoals(save: GameSave): StarterGoal[] {
   const choresAssigned = Boolean(save.flags.m14RanchJobAssigned) || Boolean(save.flags.m14RanchJobsAutoAssigned) || Boolean(save.flags.m15ChorePlannerUsed) || Object.values(save.ranchJobs?.assignments ?? {}).some((assignment) => Array.isArray(assignment) && assignment.length > 0);
+  const securityAssigned = hasJobAssignment(save, "security_patrol") || getFlagNumber(save.flags.ranchSecurityScoreToday) > 0;
+  const comfortAssigned = hasJobAssignment(save, "comfort_care") || getFlagNumber(save.flags.ranchBreedingComfortBonusToday) > 0;
+  const feedAssigned = hasJobAssignment(save, "stable_production") || getFlagNumber(save.flags.ranchFeedProducedToday) > 0;
+  const gardenAssigned = hasJobAssignment(save, "garden_tending") || getFlagNumber(save.flags.ranchFeedProducedToday) >= 8;
+  const haulingAssigned = hasJobAssignment(save, "field_hauling") || getFlagNumber(save.flags.ranchMaterialsProducedToday) > 0 || getFlagNumber(save.flags.ranchUpkeepScoreToday) > 0;
   const choresResolved = Boolean(save.flags.m14RanchJobsProcessed) || getFlagNumber(save.flags.ranchFeedProducedToday) > 0 || getFlagNumber(save.flags.ranchSecurityScoreToday) > 0 || getFlagNumber(save.flags.ranchBreedingComfortBonusToday) > 0 || getFlagNumber(save.flags.ranchUpkeepScoreToday) > 0;
   const feedProduced = getFlagNumber(save.flags.ranchFeedProducedToday) >= 5 || getFlagNumber(save.flags.ranchFeedStock) >= 5;
   const materialsProduced = Boolean(save.flags.m14FieldHaulingMaterials) || getFlagNumber(save.flags.ranchMaterialsProducedToday) > 0 || getFlagNumber(save.flags.ranchMaterialsStock) > 0;
@@ -71,9 +87,15 @@ export function getStarterGoals(save: GameSave): StarterGoal[] {
   const eggCreatedOrHatched = Boolean(save.flags.m5PregnancyCreated) || Boolean(save.flags.m5EggHatched) || getFlagNumber(save.flags.m9TotalHatched) > 0 || (save.pregnancies?.length ?? 0) > 0 || (save.eggs?.length ?? 0) > 0;
   const guildCompleted = Boolean(save.flags.m7GuildContractCompleted) || (save.guild?.completedCount ?? 0) > 0;
   const marketPurchased = Boolean(save.flags.m6MarketPurchaseMade) || (save.creatures ?? []).some((creature) => creature.origin === "market");
+  const survivedTaxPressure = save.dayState.dayOfMonth >= 8 || save.flags.taxStatus === "paid" || Boolean(save.flags.m21DailyReportUpgrade);
 
   return [
-    buildGoal(save, { id: "assign-chores", label: "Plan the ranch day", description: "Assign at least one helper to a Ranch Chore or use a Daily Planner preset.", complete: choresAssigned, hint: "Ranch Chores → choose a preset or Open Chore" }),
+    buildGoal(save, { id: "assign-chores", label: "Open the chore board", description: "Assign at least one helper to a Ranch Chore or use a planner preset.", complete: choresAssigned, hint: "Ranch Chores → Auto-Assign Best Crew" }),
+    buildGoal(save, { id: "assign-security", label: "Post a guard", description: "Assign a canine or sturdy creature to Security Patrol so danger events are less likely.", complete: securityAssigned, hint: "Ranch Chores → Security Patrol or Security Focus" }),
+    buildGoal(save, { id: "assign-comfort", label: "Create comfort", description: "Assign a feline-style helper to Comfort Care to learn how daily comfort supports future breeding.", complete: comfortAssigned, hint: "Ranch Chores → Comfort Care or Comfort Focus" }),
+    buildGoal(save, { id: "assign-feed", label: "Stock the stable", description: "Assign a cow or bovine helper to Stable Production to build the ranch food loop.", complete: feedAssigned, hint: "Ranch Chores → Stable Production or Food Focus" }),
+    buildGoal(save, { id: "assign-garden", label: "Tend the garden", description: "Assign a bunny or lapine helper to Garden Tending to support extra feed and nursery-style care.", complete: gardenAssigned, hint: "Ranch Chores → Garden Tending or Balanced Plan" }),
+    buildGoal(save, { id: "assign-hauling", label: "Send out a hauler", description: "Assign a horse or equine helper to Field Hauling for materials and ranch upkeep.", complete: haulingAssigned, hint: "Ranch Chores → Field Hauling or Repair Focus" }),
     buildGoal(save, { id: "resolve-chores", label: "Complete the first work night", description: "Sleep after assigning chores so the ranch can process feed, security, comfort, materials, and upkeep.", complete: choresResolved, hint: "Ranch House → Sleep" }),
     buildGoal(save, { id: "produce-feed", label: "Stock 5 Feed", description: "Produce or store at least 5 Feed so creature recovery is less punishing.", complete: feedProduced, hint: "Ranch Chores → Food Focus or Production/Garden" }),
     buildGoal(save, { id: "gather-materials", label: "Gather Ranch Materials", description: "Use Field Hauling to produce Materials for future upgrades and repairs.", complete: materialsProduced, hint: "Ranch Chores → Repair Focus or Field Hauling" }),
@@ -81,7 +103,8 @@ export function getStarterGoals(save: GameSave): StarterGoal[] {
     buildGoal(save, { id: "ranch-upgrade", label: "Buy a ranch upgrade", description: "Purchase any Ranch Office infrastructure upgrade. Tier 1 upgrades only need Gold.", complete: ranchUpgraded, hint: "Ranch Office" }),
     buildGoal(save, { id: "breed", label: "Try breeding", description: "Attempt one breeding pairing and start working toward eggs and inheritance.", complete: breedingAttempted, hint: "Breeding Pen" }),
     buildGoal(save, { id: "egg", label: "Create or hatch an egg", description: "Create a pregnancy, incubate an egg, or hatch one ready egg in the Nursery.", complete: eggCreatedOrHatched, hint: "Breeding Pen → Nursery" }),
-    buildGoal(save, { id: "market", label: "Recruit from town", description: "Buy one creature from the Town Market to expand chore and breeding options.", complete: marketPurchased, hint: "Town Road → Market Stall" }),
+    buildGoal(save, { id: "market", label: "Inspect the market", description: "Buy one creature from the Town Market to expand chore and breeding options.", complete: marketPurchased, hint: "Town Road → Market Stall" }),
+    buildGoal(save, { id: "tax", label: "Prepare for tax pressure", description: "Reach the first week checkpoint or pay the posted monthly bill without defaulting.", complete: survivedTaxPressure, hint: "Keep Gold before Day 30. Ranch Advisor warns when tax is close." }),
     buildGoal(save, { id: "guild", label: "Complete a guild request", description: "Finish one Guild Hall contract to connect the ranch loop to town progression and complete Chapter 1 onboarding.", complete: guildCompleted, hint: "Town Road → Guild Hall" }),
   ];
 }
@@ -95,7 +118,7 @@ export function applyStarterGoalRewards(save: GameSave): GameSave {
   let nextGuildPoints = save.currencies.guildPoints;
   let nextFeed = getFlagNumber(save.flags.ranchFeedStock);
   let nextMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
-  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true };
+  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true };
   const claimedLabels: string[] = [];
 
   for (const goal of claimableGoals) {
