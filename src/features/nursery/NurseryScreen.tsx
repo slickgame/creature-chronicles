@@ -5,6 +5,7 @@ import { NURSERY_ASSETS } from "@/data/nursery";
 import { getNurseryCapacity } from "@/data/ranchUpgrades";
 import { getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { useGameContext } from "@/state/GameProvider";
+import type { CreatureRecord } from "@/types/creature";
 import type { EggId } from "@/types/ids";
 import type { EggRecord, PregnancyRecord } from "@/types/save";
 import styles from "./NurseryScreen.module.css";
@@ -18,6 +19,28 @@ const STAT_LABELS = {
   FER: "Fertility",
 } as const;
 
+type HatchResult = {
+  nickname: string;
+  variantName: string;
+  speciesName: string;
+  generation: number;
+  parents: string;
+  lineageNote: string;
+};
+
+function buildHatchResult(creature: CreatureRecord): HatchResult {
+  const variant = getVariantDefinition(creature.variantId);
+  const species = getSpeciesDefinition(creature.speciesId);
+  return {
+    nickname: creature.nickname,
+    variantName: variant.name,
+    speciesName: species.name,
+    generation: creature.generation,
+    parents: creature.parentDisplayNames?.join(" × ") || creature.originLabel.replace("Hatched · ", ""),
+    lineageNote: creature.lineageNote ?? creature.notes,
+  };
+}
+
 export function NurseryScreen() {
   const { currentSave, goToRanch, hatchReadyEgg, removeNurseryEgg } = useGameContext();
   const pregnancies = currentSave?.pregnancies ?? [];
@@ -28,6 +51,7 @@ export function NurseryScreen() {
   const readyEggs = activeEggs.filter((egg) => egg.status === "ready");
   const [selectedEggId, setSelectedEggId] = useState<EggId | null>(readyEggs[0]?.eggId ?? activeEggs[0]?.eggId ?? null);
   const [hatchName, setHatchName] = useState("");
+  const [hatchResult, setHatchResult] = useState<HatchResult | null>(null);
   const [message, setMessage] = useState("Pregnancies become eggs after sleep. Eggs hatch when their timer reaches zero.");
 
   const selectedEgg = useMemo(
@@ -55,9 +79,11 @@ export function NurseryScreen() {
       return;
     }
 
+    const result = buildHatchResult(creature);
+    setHatchResult(result);
     setHatchName("");
     setSelectedEggId(null);
-    setMessage(`${creature.nickname} hatched and moved into their habitat. Origin, inherited grades, abilities, and collection totals were updated.`);
+    setMessage(`${creature.nickname} hatched and moved into their habitat. Lineage, inherited grades, abilities, and collection totals were updated.`);
   }
 
   function handleRemoveEgg(egg: EggRecord, mode: "release" | "donate") {
@@ -74,9 +100,9 @@ export function NurseryScreen() {
 
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>M11 Nursery Capacity</p>
+            <p className={styles.kicker}>M15 Lineage Polish</p>
             <h1>Egg Nursery</h1>
-            <p>Track pregnancies, egg timers, ready eggs, parent comparison, inherited grades, inherited abilities, variant rolls, and hatch results.</p>
+            <p>Track pregnancies, egg timers, ready eggs, parent comparison, inherited grades, inherited abilities, variant rolls, hatch rename, and lineage results.</p>
           </div>
           <div className={styles.headerStats}>
             <div><span>Pregnancies</span><strong>{activePregnancies.length}</strong></div>
@@ -148,6 +174,23 @@ export function NurseryScreen() {
           </aside>
         </section>
       </section>
+
+      {hatchResult ? (
+        <div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setHatchResult(null)}>
+          <section className={styles.hatchResultModal} role="dialog" aria-modal="true" aria-labelledby="hatch-result-title" onMouseDown={(event) => event.stopPropagation()}>
+            <img src={NURSERY_ASSETS.hatch} alt="" />
+            <p className={styles.kicker}>A new creature hatched</p>
+            <h2 id="hatch-result-title">{hatchResult.nickname}</h2>
+            <p>{hatchResult.variantName} {hatchResult.speciesName} joined the ranch.</p>
+            <div className={styles.lineageResultGrid}>
+              <div><span>Generation</span><strong>{hatchResult.generation}</strong></div>
+              <div><span>Parents</span><strong>{hatchResult.parents}</strong></div>
+            </div>
+            <p className={styles.lineageResultNote}>{hatchResult.lineageNote}</p>
+            <button type="button" onClick={() => setHatchResult(null)}>Continue</button>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -183,6 +226,7 @@ function EggDetail({
   const isReady = egg.status === "ready";
   const highestStat = Math.max(...Object.values(egg.projectedStats));
   const statHighlights = Object.entries(egg.projectedStats).filter(([, value]) => value === highestStat).map(([statKey]) => STAT_LABELS[statKey as keyof typeof STAT_LABELS]);
+  const defaultHatchName = `${variant.name} Hatchling`;
 
   return (
     <article className={styles.eggDetail}>
@@ -212,6 +256,12 @@ function EggDetail({
             <span>{variant.rarity} {variant.name} {species.name}</span>
             <em>Strongest projected stat: {statHighlights.join(", ")}</em>
           </div>
+        </section>
+
+        <section className={styles.lineagePreviewPanel}>
+          <strong>Lineage Preview</strong>
+          <span>Default hatch name: {defaultHatchName}</span>
+          <span>Parents will be saved to the creature profile after hatching.</span>
         </section>
 
         <div className={styles.statGrid}>
@@ -248,7 +298,7 @@ function EggDetail({
           <input
             value={hatchName}
             onChange={(event) => onHatchNameChange(event.target.value)}
-            placeholder={`${variant.name} Hatchling`}
+            placeholder={defaultHatchName}
             disabled={!isReady}
           />
           <button type="button" disabled={!isReady} onClick={() => onHatch(egg)}>Hatch</button>
