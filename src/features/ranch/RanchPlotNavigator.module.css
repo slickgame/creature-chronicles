@@ -179,22 +179,22 @@
   font-size: 0.68rem !important;
 }
 
-:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) { left: 50% !important; top: 52% !important; width: 19% !important; }
-:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Breeding Pen."]) { left: 50% !important; top: 82% !important; width: 16.5% !important; }
-:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Egg Nursery."]) { left: 27% !important; top: 75% !important; width: 15% !important; }
-:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 73% !important; top: 78% !important; width: 11.5% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) { left: 50% !important; top: 47% !important; width: 19% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Breeding Pen."]) { left: 50% !important; top: 77% !important; width: 16.5% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Egg Nursery."]) { left: 27% !important; top: 70% !important; width: 15% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 73% !important; top: 73% !important; width: 11.5% !important; }
 
-:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Feline Habitat."]) { left: 20% !important; top: 57% !important; width: 17% !important; }
-:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Canine Habitat."]) { left: 56% !important; top: 54% !important; width: 17% !important; }
-:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Bovine Habitat."]) { left: 21% !important; top: 82% !important; width: 15.5% !important; }
-:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Lapine Habitat."]) { left: 58% !important; top: 82% !important; width: 14.5% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Feline Habitat."]) { left: 26% !important; top: 51% !important; width: 17% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Canine Habitat."]) { left: 63% !important; top: 48% !important; width: 17% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Bovine Habitat."]) { left: 21% !important; top: 75% !important; width: 15.5% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Lapine Habitat."]) { left: 58% !important; top: 75% !important; width: 14.5% !important; }
 :global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Equine Habitat."]) { left: 82% !important; top: 68% !important; width: 14% !important; }
 
-:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) { left: 23% !important; top: 71% !important; width: 14% !important; }
-:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Office."]) { left: 39% !important; top: 56% !important; width: 16.5% !important; }
-:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Chores."]) { left: 63% !important; top: 56% !important; width: 15% !important; }
-:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Guild Board."]) { left: 80% !important; top: 78% !important; width: 13% !important; }
-:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 51% !important; top: 83% !important; width: 11% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) { left: 23% !important; top: 65% !important; width: 14% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Office."]) { left: 39% !important; top: 50% !important; width: 16.5% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Chores."]) { left: 63% !important; top: 50% !important; width: 15% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Guild Board."]) { left: 80% !important; top: 72% !important; width: 13% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 51% !important; top: 77% !important; width: 11% !important; }
 
 @media (max-width: 900px) {
   .plotArrow {
