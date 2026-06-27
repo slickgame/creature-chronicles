@@ -9,6 +9,7 @@ import { buyMarketListing, ensureCurrentMarketState, rerollMarketListings } from
 import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
 import { assignCreatureToRanchJob, processRanchJobsForNewDay } from "@/data/ranchJobs";
 import { getRanchUpgradeEffects, purchaseRanchUpgrade, repairRanchDamage } from "@/data/ranchUpgrades";
+import { applyStarterGoalRewards } from "@/data/starterGoals";
 import { grantDevGuildPoints, grantGuildIntroBonus, purchaseTownUpgrade } from "@/data/upgrades";
 import { formatGameDate } from "@/lib/formatters";
 import { createNewGameSave, deleteSaveSlot, findFirstEmptySlot, getActiveSaveId, loadAllSaves, loadSaveFromSlot, saveGameToSlot, setActiveSaveId } from "@/lib/save/localSave";
@@ -88,7 +89,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const refreshSaveSlots = useCallback(() => { const saves = loadAllSaves(); setSaveSlots(saves); const activeSaveId = getActiveSaveId(); setCurrentSave(saves.find((save) => save?.saveId === activeSaveId) ?? null); }, []);
   useEffect(() => { refreshSaveSlots(); setIsHydrated(true); }, [refreshSaveSlots]);
 
-  const saveCurrentGame = useCallback((nextSave: GameSave) => { const savedGame = saveGameToSlot(nextSave); setActiveSaveId(savedGame.saveId); setCurrentSave(savedGame); setSaveSlots(loadAllSaves()); return savedGame; }, []);
+  const saveCurrentGame = useCallback((nextSave: GameSave) => { const rewardedSave = applyStarterGoalRewards(nextSave); const savedGame = saveGameToSlot(rewardedSave); setActiveSaveId(savedGame.saveId); setCurrentSave(savedGame); setSaveSlots(loadAllSaves()); return savedGame; }, []);
   const createNewGame = useCallback((playerName: string, preferredSlot?: number) => { const slotIndex = preferredSlot ?? findFirstEmptySlot() ?? 0; const savedGame = saveCurrentGame(createNewGameSave(playerName, slotIndex)); setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return savedGame; }, [saveCurrentGame]);
   const loadGame = useCallback((slotIndex: number) => { const save = loadSaveFromSlot(slotIndex); if (!save) return null; setActiveSaveId(save.saveId); setCurrentSave(save); setSaveSlots(loadAllSaves()); setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return save; }, []);
   const deleteGame = useCallback((slotIndex: number) => { deleteSaveSlot(slotIndex); refreshSaveSlots(); }, [refreshSaveSlots]);
