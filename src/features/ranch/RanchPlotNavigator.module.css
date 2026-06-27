@@ -1,0 +1,182 @@
+.plotNavigator {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.plotArrow {
+  position: fixed;
+  top: 50%;
+  width: 104px;
+  min-height: 76px;
+  display: grid;
+  place-items: center;
+  gap: 0;
+  border: 0;
+  background: transparent;
+  color: #fff7dd;
+  pointer-events: auto;
+  cursor: pointer;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.55));
+  transform: translateY(-50%);
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.leftArrow {
+  left: 18px;
+}
+
+.rightArrow {
+  right: 18px;
+}
+
+.plotArrow span {
+  width: 102px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border: 3px solid rgba(78, 44, 17, 0.7);
+  border-radius: 18px 12px 12px 18px;
+  background:
+    linear-gradient(180deg, rgba(171, 122, 62, 0.94), rgba(91, 55, 22, 0.96)),
+    radial-gradient(circle at center, rgba(255, 244, 201, 0.34), transparent 70%);
+  color: #2a170c;
+  font-size: 5rem;
+  font-family: Georgia, serif;
+  font-weight: 950;
+  line-height: 0.55;
+  text-shadow: 0 2px 0 rgba(255, 244, 201, 0.28);
+  box-shadow: inset 0 0 0 2px rgba(255, 244, 201, 0.16), 0 7px 0 rgba(0, 0, 0, 0.3);
+}
+
+.rightArrow span {
+  border-radius: 12px 18px 18px 12px;
+}
+
+.plotArrow em {
+  margin-top: -8px;
+  border: 1px solid rgba(245, 201, 128, 0.44);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: rgba(20, 12, 10, 0.78);
+  color: #fff7dd;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+.plotArrow:hover {
+  transform: translateY(-53%) scale(1.04);
+  filter: drop-shadow(0 0 16px rgba(255, 216, 121, 0.78)) drop-shadow(0 10px 10px rgba(0, 0, 0, 0.6));
+}
+
+.plotBadge {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  width: min(420px, calc(100vw - 210px));
+  transform: translateX(-50%);
+  display: grid;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 2px solid rgba(245, 201, 128, 0.38);
+  border-radius: 14px;
+  background: rgba(20, 12, 10, 0.72);
+  color: #fff7dd;
+  text-align: center;
+  pointer-events: none;
+  backdrop-filter: blur(5px);
+}
+
+.plotBadge span {
+  color: #d8c7a5;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plotBadge strong {
+  color: #ffffff;
+  font-size: 0.98rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.plotBadge em {
+  color: #7fdbff;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+:global(html[data-ranch-plot] section[aria-label="Ranch buildings"] > button) {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.72);
+  transition: opacity 0.16s ease, transform 0.16s ease, filter 0.16s ease;
+}
+
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]),
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Office."]),
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Chores."]),
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Breeding Pen."]),
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Egg Nursery."]),
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]),
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Feline Habitat."]),
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Canine Habitat."]),
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Bovine Habitat."]),
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Lapine Habitat."]),
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Equine Habitat."]),
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Office."]),
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Chores."]),
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Guild Board."]),
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]),
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) { left: 50% !important; top: 57% !important; width: 16% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Office."]) { left: 34% !important; top: 63% !important; width: 13% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Chores."]) { left: 66% !important; top: 63% !important; width: 12% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Breeding Pen."]) { left: 50% !important; top: 79% !important; width: 14% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Egg Nursery."]) { left: 34% !important; top: 81% !important; width: 12% !important; }
+:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 66% !important; top: 83% !important; width: 9% !important; }
+
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Feline Habitat."]) { left: 25% !important; top: 60% !important; width: 15% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Canine Habitat."]) { left: 54% !important; top: 58% !important; width: 15% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Bovine Habitat."]) { left: 27% !important; top: 79% !important; width: 14% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Lapine Habitat."]) { left: 56% !important; top: 80% !important; width: 12.5% !important; }
+:global(html[data-ranch-plot="habitats"] section[aria-label="Ranch buildings"] > button[aria-label^="Equine Habitat."]) { left: 76% !important; top: 68% !important; width: 12% !important; }
+
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]) { left: 24% !important; top: 66% !important; width: 12% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Office."]) { left: 40% !important; top: 61% !important; width: 14% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Ranch Chores."]) { left: 57% !important; top: 61% !important; width: 13% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Guild Board."]) { left: 70% !important; top: 76% !important; width: 11% !important; }
+:global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 48% !important; top: 81% !important; width: 9% !important; }
+
+@media (max-width: 900px) {
+  .plotArrow {
+    width: 76px;
+  }
+
+  .plotArrow span {
+    width: 74px;
+    height: 54px;
+    font-size: 4rem;
+  }
+
+  .plotArrow em,
+  .plotBadge em {
+    display: none;
+  }
+
+  .plotBadge {
+    width: min(280px, calc(100vw - 160px));
+  }
+}
