@@ -217,6 +217,10 @@
   overflow: hidden;
 }
 
+.officeOverlay[data-office-mode="overview"] {
+  grid-template-columns: 290px minmax(0, 1fr);
+}
+
 .panel {
   min-height: 0;
   padding: 12px;
@@ -518,99 +522,57 @@
   justify-self: center;
 }
 
+.resultGrid,
+.modalActions,
 .helpList {
-  margin: 0;
-  padding-left: 20px;
-  color: #fff0c9;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .resultGrid {
-  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px 14px;
-  padding: 12px;
-  border: 1px solid rgba(245, 201, 128, 0.36);
-  border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.28);
 }
 
 .resultGrid span {
   color: #e7c991;
-  font-size: 0.72rem;
   font-weight: 900;
-  text-transform: uppercase;
 }
 
 .resultGrid strong {
-  color: #7fdbff;
-  font-weight: 900;
+  color: #fff7dd;
 }
 
 .modalActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .versionFooter {
   position: absolute;
-  right: 34px;
-  bottom: 24px;
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  right: 24px;
+  bottom: 16px;
+  color: rgba(255, 247, 221, 0.65);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.75);
 }
 
-@media (max-width: 1180px) {
-  .header {
-    grid-template-columns: 1fr;
-  }
-
-  .headerActions {
-    grid-template-columns: repeat(3, minmax(110px, 1fr));
-  }
-}
-
-@media (max-width: 1100px) {
+@media (max-width: 980px) {
   .frame {
     height: auto;
-    min-height: 980px;
+    min-height: 100vh;
     overflow: auto;
   }
 
-  .officeOverlay {
+  .header,
+  .officeOverlay,
+  .officeOverlay[data-office-mode="overview"] {
     position: relative;
     inset: auto;
     top: auto;
-    margin: 12px;
     grid-template-columns: 1fr;
   }
 
-  .purchaseCard {
-    grid-template-columns: 1fr;
-  }
-
-  .upgradeList {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-
-  .upgradeButton {
-    min-height: 140px;
-  }
-}
-
-@media (max-width: 680px) {
-  .screen,
-  .emptyScreen {
-    padding: 12px;
-  }
-
-  .headerActions,
-  .compareGrid,
-  .resourceGrid {
-    grid-template-columns: 1fr;
+  .officeOverlay {
+    margin: 18px;
   }
 }
