@@ -68,6 +68,9 @@ export type CreatureRecord = {
   maxHearts: number;
   affection: number;
   generation: number;
+  parentCreatureIds?: CreatureId[];
+  parentDisplayNames?: string[];
+  lineageNote?: string;
   shiny: boolean;
   cosmeticVariant: string | null;
   origin: CreatureOrigin;
