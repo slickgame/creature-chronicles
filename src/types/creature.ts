@@ -13,6 +13,16 @@ export type StatGrowthProfile = Record<CreatureStatKey, number>;
 export type AbilityGrade = "F" | "D" | "C" | "B" | "A" | "S";
 export type CreatureOrigin = "starter" | "market" | "hatched" | "guild" | "unknown";
 export type CreatureInjurySeverity = "Bruised" | "Wounded" | "Badly Hurt";
+export type CreatureLineageRisk = "none" | "half-sibling" | "full-sibling" | "parent-child";
+
+export type CreatureLineage = {
+  risk: CreatureLineageRisk;
+  label: string;
+  parentCreatureIds: CreatureId[];
+  parentNames: string[];
+  notes: string[];
+  traits: string[];
+};
 
 export type CreatureAbility = {
   id: string;
@@ -72,6 +82,7 @@ export type CreatureRecord = {
   cosmeticVariant: string | null;
   origin: CreatureOrigin;
   originLabel: string;
+  lineage?: CreatureLineage;
   isLocked: boolean;
   injuredUntilDayNumber?: number;
   injuryLabel?: CreatureInjurySeverity;
