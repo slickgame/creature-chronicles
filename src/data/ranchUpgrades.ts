@@ -47,7 +47,7 @@ export const RANCH_UPGRADE_ASSETS = {
 } as const;
 
 const habitatTiers = [
-  { tier: 1, costGold: 350, costMaterials: 1, effectLabel: "+1 capacity" },
+  { tier: 1, costGold: 350, effectLabel: "+1 capacity" },
   { tier: 2, costGold: 750, costGp: 8, costMaterials: 3, effectLabel: "+2 total capacity" },
   { tier: 3, costGold: 1300, costGp: 20, costMaterials: 6, effectLabel: "+4 total capacity" },
   { tier: 4, costGold: 2200, costGp: 45, costMaterials: 10, effectLabel: "+6 total capacity" },
@@ -60,19 +60,19 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
   { upgradeId: "lapine_habitat_capacity", category: "habitats", name: "Lapine Habitat Expansion", description: "Adds burrow, garden, and hutch space for lapine-family creatures. This prepares Bunny, Antlerhare, and Dream Lop lines for future fertility, garden, nursery, and comfort systems.", iconPath: RANCH_UPGRADE_ASSETS.lapineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Lapine capacity") })) },
   { upgradeId: "equine_habitat_capacity", category: "habitats", name: "Equine Habitat Expansion", description: "Adds stall, paddock, and field space for equine-family creatures. This prepares Horse, Unicorn, Nightmare, and future travel or field creatures for hauling, field-management, and security systems.", iconPath: RANCH_UPGRADE_ASSETS.equineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Equine capacity") })) },
   { upgradeId: "nursery_egg_capacity", category: "nursery", name: "Nursery Egg Capacity", description: "Adds more incubator space for eggs waiting to hatch. Useful once breeding becomes a regular part of your loop.", iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade, maxTier: 4, tiers: [
-    { tier: 1, costGold: 450, costMaterials: 2, effectLabel: "+1 egg slot" },
+    { tier: 1, costGold: 450, effectLabel: "+1 egg slot" },
     { tier: 2, costGold: 900, costGp: 12, costMaterials: 4, effectLabel: "+2 total egg slots" },
     { tier: 3, costGold: 1600, costGp: 28, costMaterials: 7, effectLabel: "+4 total egg slots" },
     { tier: 4, costGold: 2800, costGp: 60, costMaterials: 12, effectLabel: "+6 total egg slots" },
   ] },
   { upgradeId: "breeding_pen_comfort", category: "breeding", name: "Breeding Pen Comfort", description: "Improves breeding efficiency with better bedding, privacy, and comfort fixtures. This is a mid-game upgrade, not required for basic breeding.", iconPath: RANCH_UPGRADE_ASSETS.breedingPenUpgrade, maxTier: 4, tiers: [
-    { tier: 1, costGold: 650, costMaterials: 3, effectLabel: "+2 creature XP from breeding" },
+    { tier: 1, costGold: 650, effectLabel: "+2 creature XP from breeding" },
     { tier: 2, costGold: 1100, costGp: 18, costMaterials: 5, effectLabel: "+3% pregnancy chance and +2 XP" },
     { tier: 3, costGold: 1800, costGp: 38, costMaterials: 8, effectLabel: "+3% chance, +2 XP, -3 energy cost" },
     { tier: 4, costGold: 3100, costGp: 80, costMaterials: 14, effectLabel: "+8% chance, +7 XP, -3 energy cost" },
   ] },
   { upgradeId: "sleep_recovery", category: "recovery", name: "Ranch Sleep Recovery", description: "Improves overnight recovery and makes the ranch feel more restful. This is a convenience upgrade, not mandatory upkeep.", iconPath: RANCH_UPGRADE_ASSETS.sleepRecovery, maxTier: 4, tiers: [
-    { tier: 1, costGold: 300, costMaterials: 1, effectLabel: "+5 bonus creature energy after sleep" },
+    { tier: 1, costGold: 300, effectLabel: "+5 bonus creature energy after sleep" },
     { tier: 2, costGold: 750, costMaterials: 3, effectLabel: "+10 bonus creature energy after sleep" },
     { tier: 3, costGold: 1400, costGp: 24, costMaterials: 6, effectLabel: "+10 energy and +1 affection after sleep" },
     { tier: 4, costGold: 2400, costGp: 50, costMaterials: 10, effectLabel: "+15 energy and +2 affection after sleep" },
@@ -86,6 +86,7 @@ const breedingXpBonusByTier = [0, 2, 2, 2, 7];
 const breedingEnergyDiscountByTier = [0, 0, 0, 3, 3];
 const sleepEnergyBonusByTier = [0, 5, 10, 10, 15];
 const sleepAffectionBonusByTier = [0, 0, 0, 1, 2];
+const MAX_RANCH_EVENT_LOG_ENTRIES = 50;
 
 export function getDefaultRanchUpgrades(): RanchUpgradeState { return { ...DEFAULT_RANCH_UPGRADES }; }
 export function getRanchUpgrades(save: GameSave): RanchUpgradeState { return { ...DEFAULT_RANCH_UPGRADES, ...(save.ranchUpgrades ?? {}) }; }
@@ -95,6 +96,8 @@ export function getTotalRanchUpgradeTiers(save: GameSave): number { const upgrad
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number { const parsed = typeof value === "number" ? value : Number(value ?? fallback); return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback; }
 function getHabitatCapacity(baseCapacity: number, tier: number): number { return baseCapacity + (habitatCapacityBonusByTier[tier] ?? 0); }
+function readRanchEventLog(save: GameSave): string[] { try { const parsed = JSON.parse(String(save.flags.ranchEventLog ?? "[]")); return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : []; } catch { return []; } }
+function appendRanchEventLog(save: GameSave, entry: string): string { return JSON.stringify([entry, ...readRanchEventLog(save)].slice(0, MAX_RANCH_EVENT_LOG_ENTRIES)); }
 export function getRanchConditionLabelFromDamage(damage: number): string { if (damage >= 80) return "Critical"; if (damage >= 50) return "Damaged"; if (damage >= 20) return "Worn"; return "Good"; }
 
 export function getRanchUpgradeEffects(save: GameSave): RanchUpgradeEffects {
@@ -147,6 +150,7 @@ export function repairRanchDamage(save: GameSave): RanchUpgradePurchaseResult {
   const nextDamage = Math.max(0, currentDamage - repairedDamage);
   const remainingMaterials = materialsStock - RANCH_REPAIR_MATERIAL_COST;
   const conditionLabel = getRanchConditionLabelFromDamage(nextDamage);
+  const logEntry = `Day ${save.dayState.dayNumber}: Manual repair fixed ${repairedDamage} ranch damage for ${RANCH_REPAIR_MATERIAL_COST} Materials. Condition is ${conditionLabel}.`;
   return {
     save: {
       ...save,
@@ -159,6 +163,7 @@ export function repairRanchDamage(save: GameSave): RanchUpgradePurchaseResult {
         ranchManualRepairUsed: true,
         ranchManualRepairAmountLast: repairedDamage,
         ranchManualRepairCostLast: RANCH_REPAIR_MATERIAL_COST,
+        ranchEventLog: appendRanchEventLog(save, logEntry),
       },
     },
     ok: true,
