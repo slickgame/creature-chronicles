@@ -23,13 +23,8 @@
   transition: transform 0.14s ease, filter 0.14s ease;
 }
 
-.leftArrow {
-  left: 6px;
-}
-
-.rightArrow {
-  right: 6px;
-}
+.leftArrow { left: 6px; }
+.rightArrow { right: 6px; }
 
 .plotArrow span {
   width: 148px;
@@ -53,9 +48,7 @@
     0 0 28px rgba(0, 0, 0, 0.32);
 }
 
-.rightArrow span {
-  border-radius: 16px 26px 26px 16px;
-}
+.rightArrow span { border-radius: 16px 26px 26px 16px; }
 
 .plotArrow em {
   margin-top: -10px;
@@ -80,26 +73,41 @@
 .buildingMarker {
   position: fixed;
   z-index: 18;
-  min-width: 72px;
-  min-height: 32px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  transform: translate(-50%, -150%);
-  border: 2px solid rgba(245, 201, 128, 0.7);
+  gap: 7px;
+  transform: translate(-50%, 0);
+  border: 2px solid rgba(245, 201, 128, 0.72);
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.88);
+  padding: 6px 10px 6px 13px;
+  background: rgba(0, 0, 0, 0.9);
   color: #ffffff;
   pointer-events: auto;
   cursor: pointer;
+  white-space: nowrap;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.46);
   backdrop-filter: blur(5px);
   transition: transform 0.14s ease, filter 0.14s ease, border-color 0.14s ease;
 }
 
 .buildingMarker span {
-  font-size: 0.72rem;
+  font-size: 0.86rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9);
+}
+
+.buildingMarker em {
+  min-width: 38px;
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: rgba(245, 201, 128, 0.95);
+  color: #1f1108;
+  font-size: 0.66rem;
+  font-style: normal;
   font-weight: 950;
   line-height: 1;
   text-transform: uppercase;
@@ -111,21 +119,19 @@
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(245, 201, 128, 0.96);
-  color: #1f1108;
+  background: rgba(127, 219, 255, 0.96);
+  color: #071923;
   font-size: 0.78rem;
   line-height: 1;
 }
 
 .buildingMarker:hover {
-  transform: translate(-50%, -160%) scale(1.08);
+  transform: translate(-50%, -8%) scale(1.06);
   filter: drop-shadow(0 0 12px rgba(127, 219, 255, 0.78));
   border-color: rgba(127, 219, 255, 0.84);
 }
 
-.hasUpgrade {
-  border-color: rgba(245, 201, 128, 0.92);
-}
+.hasUpgrade { border-color: rgba(245, 201, 128, 0.92); }
 
 .affordableUpgrade {
   border-color: rgba(127, 219, 255, 0.9);
@@ -304,14 +310,8 @@
   padding-top: 4px;
 }
 
-.shortcutActions .primaryShortcutAction {
-  background: linear-gradient(#dff6ff, #7fdbff);
-}
-
-.shortcutActions button:disabled {
-  cursor: not-allowed;
-  filter: grayscale(0.9) brightness(0.68);
-}
+.shortcutActions .primaryShortcutAction { background: linear-gradient(#dff6ff, #7fdbff); }
+.shortcutActions button:disabled { cursor: not-allowed; filter: grayscale(0.9) brightness(0.68); }
 
 :global(html[data-ranch-plot] section[aria-label="Ranch buildings"] > button) {
   opacity: 0;
@@ -350,27 +350,7 @@
   z-index: 1;
 }
 
-:global(html[data-ranch-plot] section[aria-label="Ranch buildings"] > button span[class*="mapBuildingLabel"]) {
-  z-index: 5 !important;
-  bottom: -24px !important;
-  max-width: 190px !important;
-  white-space: nowrap !important;
-  padding: 6px 12px !important;
-  border: 2px solid rgba(245, 201, 128, 0.52) !important;
-  border-radius: 999px !important;
-  background: rgba(0, 0, 0, 0.9) !important;
-  color: #ffffff !important;
-  font-size: 0.9rem !important;
-  font-weight: 950 !important;
-  letter-spacing: 0.01em !important;
-  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.9) !important;
-  box-shadow: 0 7px 16px rgba(0, 0, 0, 0.42) !important;
-}
-
-:global(html[data-ranch-plot="homestead"] section[aria-label="Ranch buildings"] > button[aria-label^="Breeding Pen."] span[class*="mapBuildingLabel"]) {
-  bottom: -12px !important;
-}
-
+:global(html[data-ranch-plot] section[aria-label="Ranch buildings"] > button span[class*="mapBuildingLabel"]),
 :global(html[data-ranch-plot] section[aria-label="Ranch buildings"] > button span[class*="mapBuildingBadge"]) {
   display: none !important;
 }
@@ -393,52 +373,15 @@
 :global(html[data-ranch-plot="services"] section[aria-label="Ranch buildings"] > button[aria-label^="Town Road."]) { left: 51% !important; top: 73% !important; width: 11% !important; }
 
 @media (max-width: 900px) {
-  .plotArrow {
-    width: 106px;
-    min-height: 94px;
-  }
-
-  .plotArrow span {
-    width: 104px;
-    height: 74px;
-    font-size: 5.4rem;
-  }
-
+  .plotArrow { width: 106px; min-height: 94px; }
+  .plotArrow span { width: 104px; height: 74px; font-size: 5.4rem; }
   .plotArrow em,
-  .plotBadge em {
-    display: none;
-  }
-
-  .plotBadge {
-    width: min(300px, calc(100vw - 210px));
-  }
-
-  .buildingMarker {
-    min-width: 58px;
-    min-height: 28px;
-    transform: translate(-50%, -140%);
-  }
-
-  .buildingMarker span {
-    font-size: 0.62rem;
-  }
-
-  .buildingMarker strong {
-    width: 18px;
-    height: 18px;
-  }
-
-  .upgradeStatusGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .shortcutActions {
-    flex-direction: column;
-  }
-
-  :global(html[data-ranch-plot] section[aria-label="Ranch buildings"] > button span[class*="mapBuildingLabel"]) {
-    bottom: -18px !important;
-    font-size: 0.74rem !important;
-    padding: 5px 9px !important;
-  }
+  .plotBadge em { display: none; }
+  .plotBadge { width: min(300px, calc(100vw - 210px)); }
+  .buildingMarker { min-height: 28px; gap: 5px; padding: 5px 8px 5px 10px; }
+  .buildingMarker span { font-size: 0.7rem; }
+  .buildingMarker em { min-width: 32px; font-size: 0.56rem; padding: 3px 6px; }
+  .buildingMarker strong { width: 18px; height: 18px; }
+  .upgradeStatusGrid { grid-template-columns: 1fr; }
+  .shortcutActions { flex-direction: column; }
 }
