@@ -10,7 +10,7 @@ import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
 import { assignCreatureToRanchJob, processRanchJobsForNewDay } from "@/data/ranchJobs";
 import { getRanchUpgradeEffects, purchaseRanchUpgrade, repairRanchDamage } from "@/data/ranchUpgrades";
 import { applyStarterGoalRewards } from "@/data/starterGoals";
-import { processMonthlyTaxes } from "@/data/taxes";
+import { ensureMonthlyTaxPosted, processMonthlyTaxes } from "@/data/taxes";
 import { grantDevGuildPoints, grantGuildIntroBonus, purchaseTownUpgrade } from "@/data/upgrades";
 import { formatGameDate } from "@/lib/formatters";
 import { createNewGameSave, deleteSaveSlot, findFirstEmptySlot, getActiveSaveId, loadAllSaves, loadSaveFromSlot, saveGameToSlot, setActiveSaveId } from "@/lib/save/localSave";
@@ -26,89 +26,30 @@ export type AppScreen = "main-menu" | "ranch-hub" | "habitat" | "breeding" | "nu
 export type DayAdvanceResult = { previousDateLabel: string; nextDateLabel: string; summaryItems: string[]; ranchJobResults: RanchJobResult[] };
 
 type GameContextValue = {
-  version: string;
-  buildPhase: string;
-  appScreen: AppScreen;
-  activeHabitatFamily: CreatureFamily | null;
-  currentSave: GameSave | null;
-  saveSlots: Array<GameSave | null>;
-  isHydrated: boolean;
-  createNewGame: (playerName: string, preferredSlot?: number) => GameSave;
-  loadGame: (slotIndex: number) => GameSave | null;
-  deleteGame: (slotIndex: number) => void;
-  refreshSaveSlots: () => void;
-  goToMainMenu: () => void;
-  exitRunToMainMenu: () => void;
-  goToRanch: () => void;
-  goToHabitat: (family: CreatureFamily) => void;
-  goToBreeding: () => void;
-  goToNursery: () => void;
-  goToTown: () => void;
-  goToMarket: () => void;
-  goToGuildHall: () => void;
-  goToCollection: () => void;
-  goToRanchOffice: () => void;
-  goToRanchJobs: () => void;
-  goToDevTools: () => void;
-  saveCurrentGame: (nextSave: GameSave) => GameSave;
-  advanceDay: () => DayAdvanceResult | null;
-  renameCreature: (creatureId: CreatureId, nickname: string) => void;
-  feedCreature: (creatureId: CreatureId) => void;
-  toggleCreatureLock: (creatureId: CreatureId) => void;
-  releaseCreature: (creatureId: CreatureId) => string;
-  donateCreature: (creatureId: CreatureId) => string;
-  attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
-  hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null;
-  removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
-  buyMarketCreature: (listingId: string) => string;
-  rerollMarket: () => string;
-  acceptGuildRequest: (contractId: string) => string;
-  donateCreatureToGuild: (contractId: string, creatureId: CreatureId) => string;
-  buyTownUpgrade: (upgradeId: TownUpgradeId) => TownUpgradePurchaseResult;
-  buyRanchUpgrade: (upgradeId: RanchUpgradeId) => RanchUpgradePurchaseResult;
-  repairRanch: () => RanchUpgradePurchaseResult;
-  assignRanchJob: (jobId: RanchJobId, creatureId: CreatureId | null) => RanchJobAssignmentResult;
-  claimGuildIntroBonus: () => TownUpgradePurchaseResult;
-  addDevGuildPoints: () => TownUpgradePurchaseResult;
+  version: string; buildPhase: string; appScreen: AppScreen; activeHabitatFamily: CreatureFamily | null; currentSave: GameSave | null; saveSlots: Array<GameSave | null>; isHydrated: boolean;
+  createNewGame: (playerName: string, preferredSlot?: number) => GameSave; loadGame: (slotIndex: number) => GameSave | null; deleteGame: (slotIndex: number) => void; refreshSaveSlots: () => void;
+  goToMainMenu: () => void; exitRunToMainMenu: () => void; goToRanch: () => void; goToHabitat: (family: CreatureFamily) => void; goToBreeding: () => void; goToNursery: () => void; goToTown: () => void; goToMarket: () => void; goToGuildHall: () => void; goToCollection: () => void; goToRanchOffice: () => void; goToRanchJobs: () => void; goToDevTools: () => void;
+  saveCurrentGame: (nextSave: GameSave) => GameSave; advanceDay: () => DayAdvanceResult | null; renameCreature: (creatureId: CreatureId, nickname: string) => void; feedCreature: (creatureId: CreatureId) => void; toggleCreatureLock: (creatureId: CreatureId) => void; releaseCreature: (creatureId: CreatureId) => string; donateCreature: (creatureId: CreatureId) => string; attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null; hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null; removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void; buyMarketCreature: (listingId: string) => string; rerollMarket: () => string; acceptGuildRequest: (contractId: string) => string; donateCreatureToGuild: (contractId: string, creatureId: CreatureId) => string; buyTownUpgrade: (upgradeId: TownUpgradeId) => TownUpgradePurchaseResult; buyRanchUpgrade: (upgradeId: RanchUpgradeId) => RanchUpgradePurchaseResult; repairRanch: () => RanchUpgradePurchaseResult; assignRanchJob: (jobId: RanchJobId, creatureId: CreatureId | null) => RanchJobAssignmentResult; claimGuildIntroBonus: () => TownUpgradePurchaseResult; addDevGuildPoints: () => TownUpgradePurchaseResult;
 };
 
 const GameContext = createContext<GameContextValue | null>(null);
 const WEEKDAYS: DayState["weekday"][] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-function getNextDayState(dayState: DayState): DayState {
-  const currentWeekdayIndex = WEEKDAYS.indexOf(dayState.weekday);
-  const nextWeekdayIndex = (currentWeekdayIndex + 1) % WEEKDAYS.length;
-  return { dayNumber: dayState.dayNumber + 1, weekday: WEEKDAYS[nextWeekdayIndex], month: dayState.dayOfMonth >= 30 ? dayState.month + 1 : dayState.month, dayOfMonth: dayState.dayOfMonth >= 30 ? 1 : dayState.dayOfMonth + 1, weekNumber: nextWeekdayIndex === 0 ? dayState.weekNumber + 1 : dayState.weekNumber };
-}
+function getNextDayState(dayState: DayState): DayState { const currentWeekdayIndex = WEEKDAYS.indexOf(dayState.weekday); const nextWeekdayIndex = (currentWeekdayIndex + 1) % WEEKDAYS.length; return { dayNumber: dayState.dayNumber + 1, weekday: WEEKDAYS[nextWeekdayIndex], month: dayState.dayOfMonth >= 30 ? dayState.month + 1 : dayState.month, dayOfMonth: dayState.dayOfMonth >= 30 ? 1 : dayState.dayOfMonth + 1, weekNumber: nextWeekdayIndex === 0 ? dayState.weekNumber + 1 : dayState.weekNumber }; }
 
 export function GameProvider({ children }: { children: React.ReactNode }) {
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [appScreen, setAppScreen] = useState<AppScreen>("main-menu");
-  const [activeHabitatFamily, setActiveHabitatFamily] = useState<CreatureFamily | null>(null);
-  const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]);
-  const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
-
+  const [isHydrated, setIsHydrated] = useState(false); const [appScreen, setAppScreen] = useState<AppScreen>("main-menu"); const [activeHabitatFamily, setActiveHabitatFamily] = useState<CreatureFamily | null>(null); const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]); const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
   const refreshSaveSlots = useCallback(() => { const saves = loadAllSaves(); setSaveSlots(saves); const activeSaveId = getActiveSaveId(); setCurrentSave(saves.find((save) => save?.saveId === activeSaveId) ?? null); }, []);
   useEffect(() => { refreshSaveSlots(); setIsHydrated(true); }, [refreshSaveSlots]);
-
-  const saveCurrentGame = useCallback((nextSave: GameSave) => { const rewardedSave = applyStarterGoalRewards(nextSave); const savedGame = saveGameToSlot(rewardedSave); setActiveSaveId(savedGame.saveId); setCurrentSave(savedGame); setSaveSlots(loadAllSaves()); return savedGame; }, []);
+  const saveCurrentGame = useCallback((nextSave: GameSave) => { const taxPostedSave = ensureMonthlyTaxPosted(nextSave); const rewardedSave = applyStarterGoalRewards(taxPostedSave); const savedGame = saveGameToSlot(rewardedSave); setActiveSaveId(savedGame.saveId); setCurrentSave(savedGame); setSaveSlots(loadAllSaves()); return savedGame; }, []);
   const createNewGame = useCallback((playerName: string, preferredSlot?: number) => { const slotIndex = preferredSlot ?? findFirstEmptySlot() ?? 0; const savedGame = saveCurrentGame(createNewGameSave(playerName, slotIndex)); setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return savedGame; }, [saveCurrentGame]);
   const loadGame = useCallback((slotIndex: number) => { const save = loadSaveFromSlot(slotIndex); if (!save) return null; setActiveSaveId(save.saveId); setCurrentSave(save); setSaveSlots(loadAllSaves()); setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return save; }, []);
   const deleteGame = useCallback((slotIndex: number) => { deleteSaveSlot(slotIndex); refreshSaveSlots(); }, [refreshSaveSlots]);
   const goToMainMenu = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("main-menu"); }, []);
   const exitRunToMainMenu = useCallback(() => { setActiveSaveId(""); setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
-  const goToRanch = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-hub"); }, []);
-  const goToTown = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("town"); }, []);
-  const goToRanchOffice = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-office"); }, []);
-  const goToRanchJobs = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-jobs"); }, []);
-  const goToDevTools = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("dev-tools"); }, []);
+  const goToRanch = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-hub"); }, []); const goToTown = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("town"); }, []); const goToRanchOffice = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-office"); }, []); const goToRanchJobs = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-jobs"); }, []); const goToDevTools = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("dev-tools"); }, []);
   const goToMarket = useCallback(() => { setActiveHabitatFamily(null); if (currentSave) { const syncedSave = ensureCurrentMarketState(currentSave); if (syncedSave !== currentSave) saveCurrentGame(syncedSave); } setAppScreen("market"); }, [currentSave, saveCurrentGame]);
   const goToGuildHall = useCallback(() => { setActiveHabitatFamily(null); if (currentSave) { const syncedSave = ensureCurrentGuildState(currentSave); if (syncedSave !== currentSave) saveCurrentGame(syncedSave); } setAppScreen("guild-hall"); }, [currentSave, saveCurrentGame]);
-  const goToHabitat = useCallback((family: CreatureFamily) => { setActiveHabitatFamily(family); setAppScreen("habitat"); }, []);
-  const goToBreeding = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("breeding"); }, []);
-  const goToNursery = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("nursery"); }, []);
-  const goToCollection = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("collection"); }, []);
-
+  const goToHabitat = useCallback((family: CreatureFamily) => { setActiveHabitatFamily(family); setAppScreen("habitat"); }, []); const goToBreeding = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("breeding"); }, []); const goToNursery = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("nursery"); }, []); const goToCollection = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("collection"); }, []);
   const renameCreature = useCallback((creatureId: CreatureId, nickname: string) => { if (!currentSave || !nickname.trim()) return; saveCurrentGame({ ...currentSave, creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, nickname: nickname.trim() } : creature), flags: { ...currentSave.flags, m3CreatureRenamed: true, m9RenamePolishUsed: true } }); }, [currentSave, saveCurrentGame]);
   const feedCreature = useCallback((creatureId: CreatureId) => { if (!currentSave) return; saveCurrentGame({ ...currentSave, creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, affection: Math.min(100, creature.affection + 5), energy: Math.min(creature.maxEnergy, creature.energy + 10) } : creature), flags: { ...currentSave.flags, m3CreatureFed: true } }); }, [currentSave, saveCurrentGame]);
   const toggleCreatureLock = useCallback((creatureId: CreatureId) => { if (!currentSave) return; saveCurrentGame({ ...currentSave, creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, isLocked: !creature.isLocked } : creature), flags: { ...currentSave.flags, m9CreatureLockUsed: true } }); }, [currentSave, saveCurrentGame]);
@@ -127,28 +68,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const assignRanchJob = useCallback((jobId: RanchJobId, creatureId: CreatureId | null) => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const result = assignCreatureToRanchJob(currentSave, jobId, creatureId); if (result.ok) saveCurrentGame(result.save); return result; }, [currentSave, saveCurrentGame]);
   const claimGuildIntroBonus = useCallback(() => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const result = grantGuildIntroBonus(currentSave); saveCurrentGame(result.save); return result; }, [currentSave, saveCurrentGame]);
   const addDevGuildPoints = useCallback(() => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const result = grantDevGuildPoints(currentSave); saveCurrentGame(result.save); return result; }, [currentSave, saveCurrentGame]);
-
-  const advanceDay = useCallback((): DayAdvanceResult | null => {
-    if (!currentSave) return null;
-    const previousDateLabel = formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth);
-    const nextDayState = getNextDayState(currentSave.dayState);
-    const nextDateLabel = formatGameDate(nextDayState.weekday, nextDayState.month, nextDayState.dayOfMonth);
-    const recovery = getRanchUpgradeEffects(currentSave);
-    const restoredSave: GameSave = { ...currentSave, updatedAt: new Date().toISOString(), dayState: nextDayState, player: { ...currentSave.player, hearts: currentSave.player.maxHearts ?? 4 }, currencies: { ...currentSave.currencies, energy: currentSave.currencies.maxEnergy }, creatures: (currentSave.creatures ?? []).map((creature) => ({ ...creature, energy: Math.min(creature.maxEnergy + recovery.sleepCreatureEnergyBonus, creature.maxEnergy + recovery.sleepCreatureEnergyBonus), hearts: creature.maxHearts ?? 4, affection: Math.min(100, creature.affection + recovery.sleepAffectionBonus) })), breeding: currentSave.breeding, pregnancies: currentSave.pregnancies ?? [], eggs: currentSave.eggs ?? [], market: currentSave.market, guild: currentSave.guild, townUpgrades: currentSave.townUpgrades, ranchUpgrades: currentSave.ranchUpgrades, ranchJobs: currentSave.ranchJobs, flags: { ...currentSave.flags, lastSleptDayNumber: nextDayState.dayNumber, m2SleepUsed: true, m11SleepRecoveryApplied: recovery.sleepCreatureEnergyBonus > 0 || recovery.sleepAffectionBonus > 0 } };
-    const nurseryResult = advanceNurseryDay(restoredSave);
-    const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save);
-    const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave);
-    const jobResult = processRanchJobsForNewDay(guildSyncedSave);
-    const rewardedSave = applyStarterGoalRewards(jobResult.save);
-    const taxResult = processMonthlyTaxes(rewardedSave, currentSave);
-    const summaryItems = [`Advanced from ${previousDateLabel} to ${nextDateLabel}.`, `Energy restored to ${currentSave.currencies.maxEnergy}.`, "Player Hearts restored to full.", recovery.sleepCreatureEnergyBonus || recovery.sleepAffectionBonus ? `Ranch recovery bonus applied: +${recovery.sleepCreatureEnergyBonus} creature energy buffer, +${recovery.sleepAffectionBonus} affection.` : "Creature energy and Hearts restored to full.", ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]), ...(jobResult.results.length ? jobResult.results.map((result) => result.message) : ["No ranch chore assignments resolved today."]), ...taxResult.summaryItems];
-    if (nextDayState.weekday === "Mon") summaryItems.push("New week started. The town market and guild board have fresh listings.");
-    saveCurrentGame(taxResult.save);
-    return { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results };
-  }, [currentSave, saveCurrentGame]);
-
+  const advanceDay = useCallback((): DayAdvanceResult | null => { if (!currentSave) return null; const previousDateLabel = formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth); const nextDayState = getNextDayState(currentSave.dayState); const nextDateLabel = formatGameDate(nextDayState.weekday, nextDayState.month, nextDayState.dayOfMonth); const recovery = getRanchUpgradeEffects(currentSave); const restoredSave: GameSave = { ...currentSave, updatedAt: new Date().toISOString(), dayState: nextDayState, player: { ...currentSave.player, hearts: currentSave.player.maxHearts ?? 4 }, currencies: { ...currentSave.currencies, energy: currentSave.currencies.maxEnergy }, creatures: (currentSave.creatures ?? []).map((creature) => ({ ...creature, energy: Math.min(creature.maxEnergy + recovery.sleepCreatureEnergyBonus, creature.maxEnergy + recovery.sleepCreatureEnergyBonus), hearts: creature.maxHearts ?? 4, affection: Math.min(100, creature.affection + recovery.sleepAffectionBonus) })), breeding: currentSave.breeding, pregnancies: currentSave.pregnancies ?? [], eggs: currentSave.eggs ?? [], market: currentSave.market, guild: currentSave.guild, townUpgrades: currentSave.townUpgrades, ranchUpgrades: currentSave.ranchUpgrades, ranchJobs: currentSave.ranchJobs, flags: { ...currentSave.flags, lastSleptDayNumber: nextDayState.dayNumber, m2SleepUsed: true, m11SleepRecoveryApplied: recovery.sleepCreatureEnergyBonus > 0 || recovery.sleepAffectionBonus > 0 } }; const nurseryResult = advanceNurseryDay(restoredSave); const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save); const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave); const jobResult = processRanchJobsForNewDay(guildSyncedSave); const rewardedSave = applyStarterGoalRewards(jobResult.save); const taxResult = processMonthlyTaxes(rewardedSave, currentSave); const summaryItems = [`Advanced from ${previousDateLabel} to ${nextDateLabel}.`, `Energy restored to ${currentSave.currencies.maxEnergy}.`, "Player Hearts restored to full.", recovery.sleepCreatureEnergyBonus || recovery.sleepAffectionBonus ? `Ranch recovery bonus applied: +${recovery.sleepCreatureEnergyBonus} creature energy buffer, +${recovery.sleepAffectionBonus} affection.` : "Creature energy and Hearts restored to full.", ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]), ...(jobResult.results.length ? jobResult.results.map((result) => result.message) : ["No ranch chore assignments resolved today."]), ...taxResult.summaryItems]; if (nextDayState.weekday === "Mon") summaryItems.push("New week started. The town market and guild board have fresh listings."); saveCurrentGame(taxResult.save); return { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results }; }, [currentSave, saveCurrentGame]);
   const value = useMemo<GameContextValue>(() => ({ version: MVP_VERSION, buildPhase: "M15 — Ranch Tax Collector", appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, exitRunToMainMenu, goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg, buyMarketCreature, rerollMarket, acceptGuildRequest, donateCreatureToGuild, buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus, addDevGuildPoints }), [appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, exitRunToMainMenu, goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg, buyMarketCreature, rerollMarket, acceptGuildRequest, donateCreatureToGuild, buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus, addDevGuildPoints]);
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
-
 export function useGameContext(): GameContextValue { const context = useContext(GameContext); if (!context) throw new Error("useGameContext must be used inside GameProvider."); return context; }
