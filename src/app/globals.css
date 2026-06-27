@@ -10,7 +10,15 @@ body {
   margin: 0;
 }
 
+html,
+body,
+#__next {
+  width: 100%;
+  min-width: 0;
+}
+
 body {
+  overflow: hidden;
   background: var(--color-bg-dark);
   color: var(--color-text-primary);
   font-family:
@@ -34,4 +42,20 @@ button {
 
 a {
   color: inherit;
+}
+
+main[class*="screen"],
+main[class*="emptyScreen"] {
+  width: 100vw !important;
+  min-height: 100dvh !important;
+  padding: 0 !important;
+}
+
+section[class*="frame"],
+section[class*="ranchFrame"] {
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  min-height: 100dvh !important;
+  border-radius: 0 !important;
 }
