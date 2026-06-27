@@ -13,9 +13,9 @@ type RanchPlot = {
 };
 
 const RANCH_PLOTS: RanchPlot[] = [
-  { id: "homestead", label: "Homestead Yard", shortLabel: "Homestead", description: "House, office, chores, breeding, nursery, and town road." },
-  { id: "habitats", label: "Habitat Fields", shortLabel: "Habitats", description: "Creature habitats spread across the ranch fields." },
-  { id: "services", label: "Service Yard", shortLabel: "Services", description: "Town road, guild board, office, and work buildings." },
+  { id: "homestead", label: "Homestead Yard", shortLabel: "Homestead", description: "House, breeding pen, egg nursery, and town road." },
+  { id: "habitats", label: "Habitat Fields", shortLabel: "Habitats", description: "Feline, canine, bovine, lapine, and equine habitats." },
+  { id: "services", label: "Service Yard", shortLabel: "Services", description: "Ranch office, chores board, guild board, house, and town road." },
 ];
 
 function getNextPlotId(currentId: RanchPlotId, direction: -1 | 1): RanchPlotId {
