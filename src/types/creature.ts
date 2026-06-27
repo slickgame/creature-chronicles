@@ -1,63 +1,21 @@
 import type { CreatureId, HabitatId, SpeciesId, VariantId } from "./ids";
 
 export type CreatureFamily = "feline" | "canine" | "bovine" | "lapine" | "equine";
-
 export type CreatureStatKey = "STR" | "DEX" | "STA" | "CHA" | "WIL" | "FER";
-
 export type CreatureStats = Record<CreatureStatKey, number>;
-
 export type StatGrade = "D" | "C" | "B" | "A" | "S";
 export type StatGrades = Record<CreatureStatKey, StatGrade>;
 export type StatGrowthProfile = Record<CreatureStatKey, number>;
-
+export type CreatureGrowthProgress = Record<CreatureStatKey, number>;
 export type AbilityGrade = "F" | "D" | "C" | "B" | "A" | "S";
 export type CreatureOrigin = "starter" | "market" | "hatched" | "guild" | "unknown";
 export type CreatureInjurySeverity = "Bruised" | "Wounded" | "Badly Hurt";
 export type CreatureLineageRisk = "none" | "half-sibling" | "full-sibling" | "parent-child";
 
-export type CreatureLineage = {
-  risk: CreatureLineageRisk;
-  label: string;
-  parentCreatureIds: CreatureId[];
-  parentNames: string[];
-  notes: string[];
-  traits: string[];
-};
-
-export type CreatureAbility = {
-  id: string;
-  name: string;
-  grade: AbilityGrade;
-  source: "general" | "species" | "variant" | "starter" | "future";
-  description: string;
-};
-
-export type SpeciesDefinition = {
-  speciesId: SpeciesId;
-  family: CreatureFamily;
-  name: string;
-  description: string;
-  baseStats: CreatureStats;
-  baseMaxHearts: number;
-  growthProfile: StatGrowthProfile;
-  exclusiveAbilityPool: CreatureAbility[];
-};
-
-export type VariantDefinition = {
-  variantId: VariantId;
-  speciesId: SpeciesId;
-  family: CreatureFamily;
-  name: string;
-  rarity: "Common" | "Uncommon" | "Rare" | "Epic";
-  description: string;
-  statAdjustments: Partial<CreatureStats>;
-  maxEnergyBonus: number;
-  maxHeartsBonus: number;
-  growthProfile: Partial<StatGrowthProfile>;
-  exclusiveAbilityPool: CreatureAbility[];
-  portraitPath: string;
-  profilePath: string;
-};
+export type CreatureLineage = { risk: CreatureLineageRisk; label: string; parentCreatureIds: CreatureId[]; parentNames: string[]; notes: string[]; traits: string[] };
+export type CreatureAbility = { id: string; name: string; grade: AbilityGrade; source: "general" | "species" | "variant" | "starter" | "future"; description: string };
+export type SpeciesDefinition = { speciesId: SpeciesId; family: CreatureFamily; name: string; description: string; baseStats: CreatureStats; baseMaxHearts: number; growthProfile: StatGrowthProfile; exclusiveAbilityPool: CreatureAbility[] };
+export type VariantDefinition = { variantId: VariantId; speciesId: SpeciesId; family: CreatureFamily; name: string; rarity: "Common" | "Uncommon" | "Rare" | "Epic"; description: string; statAdjustments: Partial<CreatureStats>; maxEnergyBonus: number; maxHeartsBonus: number; growthProfile: Partial<StatGrowthProfile>; exclusiveAbilityPool: CreatureAbility[]; portraitPath: string; profilePath: string };
 
 export type CreatureRecord = {
   creatureId: CreatureId;
@@ -71,6 +29,7 @@ export type CreatureRecord = {
   xpToNext: number;
   stats: CreatureStats;
   statGrades: StatGrades;
+  growthProgress?: CreatureGrowthProgress;
   abilities: CreatureAbility[];
   energy: number;
   maxEnergy: number;
@@ -90,12 +49,4 @@ export type CreatureRecord = {
   notes: string;
 };
 
-export type HabitatRecord = {
-  habitatId: HabitatId;
-  family: CreatureFamily;
-  name: string;
-  level: number;
-  capacity: number;
-  creatureIds: CreatureId[];
-  unlocked: boolean;
-};
+export type HabitatRecord = { habitatId: HabitatId; family: CreatureFamily; name: string; level: number; capacity: number; creatureIds: CreatureId[]; unlocked: boolean };
