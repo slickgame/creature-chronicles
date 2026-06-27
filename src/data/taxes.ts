@@ -36,44 +36,60 @@ function getDaysUntilTax(dayState: DayState): number {
   return Math.max(0, TAX_DUE_DAY - dayState.dayOfMonth);
 }
 
-function shouldCollectTax(previousDayState: DayState, nextDayState: DayState): boolean {
-  return previousDayState.dayOfMonth >= TAX_DUE_DAY && nextDayState.dayOfMonth === 1;
-}
-
 function buildProjectionMessage(amountDue: number, daysUntilTax: number): string {
   if (daysUntilTax <= 0) return `Projected month-end tax: ${amountDue} Gold. Payment is due tonight.`;
   return `Projected month-end tax: ${amountDue} Gold. Due in ${daysUntilTax} day${daysUntilTax === 1 ? "" : "s"}.`;
 }
 
+export function ensureMonthlyTaxPosted(save: GameSave): GameSave {
+  const finalizedMonth = getFlagNumber(save.flags.taxFinalizedMonth);
+  const finalizedDue = getFlagNumber(save.flags.taxCurrentMonthDue);
+  if (finalizedMonth === save.dayState.month && finalizedDue > 0) return save;
+  const amountDue = calculateMonthlyTax(save, save.dayState.month);
+  const daysUntilTax = getDaysUntilTax(save.dayState);
+  return {
+    ...save,
+    flags: {
+      ...save.flags,
+      m15TaxCollectorEnabled: true,
+      taxDueDay: TAX_DUE_DAY,
+      taxFinalizedMonth: save.dayState.month,
+      taxCurrentMonthDue: amountDue,
+      taxDaysUntilDue: daysUntilTax,
+      taxPostedDayNumber: save.dayState.dayNumber,
+      taxProjectionSummary: buildProjectionMessage(amountDue, daysUntilTax),
+      taxCollectorName: "Lady Vesper",
+      taxCollectorTitle: "Royal Tax Collector",
+      taxCollectorVisible: save.dayState.dayOfMonth >= TAX_WARNING_DAY,
+      taxCollectorMood: save.dayState.dayOfMonth >= TAX_WARNING_DAY ? "warning" : "idle",
+      taxCollectorMessage: save.dayState.dayOfMonth >= TAX_WARNING_DAY ? `${amountDue} Gold is due in ${daysUntilTax} day${daysUntilTax === 1 ? "" : "s"}. Keep enough Gold ready.` : `This month's posted tax is ${amountDue} Gold. Notice begins on Day ${TAX_WARNING_DAY}.`,
+      taxStatus: save.dayState.dayOfMonth >= TAX_WARNING_DAY ? "warning" : "pending",
+    },
+  };
+}
+
+function shouldCollectTax(previousDayState: DayState, nextDayState: DayState): boolean {
+  return previousDayState.dayOfMonth >= TAX_DUE_DAY && nextDayState.dayOfMonth === 1;
+}
+
 export function processMonthlyTaxes(save: GameSave, previousSave: GameSave): MonthlyTaxResult {
   const summaryItems: string[] = [];
-  const nextFlags: GameSave["flags"] = {
-    ...save.flags,
-    m15TaxCollectorEnabled: true,
-    taxDueDay: TAX_DUE_DAY,
-  };
+  const postedSave = ensureMonthlyTaxPosted(save);
+  const nextFlags: GameSave["flags"] = { ...postedSave.flags, m15TaxCollectorEnabled: true, taxDueDay: TAX_DUE_DAY };
+  const currentMonthDue = getCurrentMonthFinalizedTax(postedSave);
+  const daysUntilTax = getDaysUntilTax(postedSave.dayState);
 
-  let currentMonthDue = getFlagNumber(nextFlags.taxCurrentMonthDue);
-  const finalizedMonth = getFlagNumber(nextFlags.taxFinalizedMonth);
-  if (finalizedMonth !== save.dayState.month || currentMonthDue <= 0) {
-    currentMonthDue = calculateMonthlyTax(save, save.dayState.month);
-    nextFlags.taxFinalizedMonth = save.dayState.month;
-    nextFlags.taxCurrentMonthDue = currentMonthDue;
-    nextFlags.taxPostedDayNumber = save.dayState.dayNumber;
-  }
-
-  const daysUntilTax = getDaysUntilTax(save.dayState);
   nextFlags.taxDaysUntilDue = daysUntilTax;
-  nextFlags.taxCollectorVisible = save.dayState.dayOfMonth >= TAX_WARNING_DAY;
+  nextFlags.taxCollectorVisible = postedSave.dayState.dayOfMonth >= TAX_WARNING_DAY;
   nextFlags.taxCollectorName = "Lady Vesper";
   nextFlags.taxCollectorTitle = "Royal Tax Collector";
   nextFlags.taxProjectionSummary = buildProjectionMessage(currentMonthDue, daysUntilTax);
   summaryItems.push(String(nextFlags.taxProjectionSummary));
 
-  if (shouldCollectTax(previousSave.dayState, save.dayState)) {
+  if (shouldCollectTax(previousSave.dayState, postedSave.dayState)) {
     const endedMonth = previousSave.dayState.month;
     const amountDue = getFlagNumber(previousSave.flags.taxCurrentMonthDue) || calculateMonthlyTax(previousSave, endedMonth);
-    const goldBeforeTax = save.currencies.gold;
+    const goldBeforeTax = postedSave.currencies.gold;
     nextFlags.taxLastDueMonth = endedMonth;
     nextFlags.taxLastDueAmount = amountDue;
     nextFlags.taxLastGoldBeforePayment = goldBeforeTax;
@@ -87,15 +103,8 @@ export function processMonthlyTaxes(save: GameSave, previousSave: GameSave): Mon
       nextFlags.taxDefaulted = false;
       nextFlags.taxStatus = "paid";
       nextFlags.taxCollectorMood = "paid";
-      nextFlags.taxCollectorMessage = `Your Month ${endedMonth} payment is complete. I will return near the end of Month ${save.dayState.month}.`;
-      return {
-        save: {
-          ...save,
-          currencies: { ...save.currencies, gold: nextGold },
-          flags: nextFlags,
-        },
-        summaryItems,
-      };
+      nextFlags.taxCollectorMessage = `Your Month ${endedMonth} payment is complete. I will return near the end of Month ${postedSave.dayState.month}.`;
+      return { save: { ...postedSave, currencies: { ...postedSave.currencies, gold: nextGold }, flags: nextFlags }, summaryItems };
     }
 
     const shortage = amountDue - goldBeforeTax;
@@ -111,23 +120,14 @@ export function processMonthlyTaxes(save: GameSave, previousSave: GameSave): Mon
     nextFlags.badEndingType = "tax_default";
     nextFlags.badEndingTitle = "Seized by the Crown";
     nextFlags.badEndingReason = `The ranch failed to pay ${amountDue} Gold in Month ${endedMonth}. The Tax Collector seized the deed and ended the run.`;
-    return {
-      save: {
-        ...save,
-        currencies: { ...save.currencies, gold: 0 },
-        flags: nextFlags,
-      },
-      summaryItems,
-    };
+    return { save: { ...postedSave, currencies: { ...postedSave.currencies, gold: 0 }, flags: nextFlags }, summaryItems };
   }
 
-  if (save.dayState.dayOfMonth >= TAX_WARNING_DAY) {
-    const warningMessage = save.dayState.dayOfMonth >= TAX_DUE_DAY
-      ? `Final notice: ${currentMonthDue} Gold is due tonight.`
-      : `${currentMonthDue} Gold is due in ${daysUntilTax} day${daysUntilTax === 1 ? "" : "s"}. Keep enough Gold ready.`;
+  if (postedSave.dayState.dayOfMonth >= TAX_WARNING_DAY) {
+    const warningMessage = postedSave.dayState.dayOfMonth >= TAX_DUE_DAY ? `Final notice: ${currentMonthDue} Gold is due tonight.` : `${currentMonthDue} Gold is due in ${daysUntilTax} day${daysUntilTax === 1 ? "" : "s"}. Keep enough Gold ready.`;
     summaryItems.push(`Tax Collector warning: ${warningMessage}`);
     nextFlags.taxStatus = "warning";
-    nextFlags.taxCollectorMood = save.dayState.dayOfMonth >= TAX_DUE_DAY ? "urgent" : "warning";
+    nextFlags.taxCollectorMood = postedSave.dayState.dayOfMonth >= TAX_DUE_DAY ? "urgent" : "warning";
     nextFlags.taxCollectorMessage = warningMessage;
   } else {
     nextFlags.taxStatus = "pending";
@@ -135,5 +135,5 @@ export function processMonthlyTaxes(save: GameSave, previousSave: GameSave): Mon
     nextFlags.taxCollectorMessage = `This month's posted tax is ${currentMonthDue} Gold. Notice begins on Day ${TAX_WARNING_DAY}.`;
   }
 
-  return { save: { ...save, flags: nextFlags }, summaryItems };
+  return { save: { ...postedSave, flags: nextFlags }, summaryItems };
 }
