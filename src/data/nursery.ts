@@ -13,6 +13,7 @@ import {
   rollStatGrades,
   shiftStatGrade,
 } from "@/data/creatures";
+import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
 import type { BreedingParticipant } from "@/types/breeding";
 import type { CreatureAbility, CreatureRecord, CreatureStats, StatGrade, StatGrades } from "@/types/creature";
 import type { CreatureId, EggId, PregnancyId, SaveId, SpeciesId, VariantId } from "@/types/ids";
@@ -76,8 +77,19 @@ export function createInheritancePreview(save: GameSave, giverParticipant: Breed
   return { projectedSpeciesId: projectedSpecies.speciesId, projectedVariantId: projectedVariant.variantId, projectedStats: statResult.stats, projectedStatGrades: gradeResult.statGrades, projectedAbilities: abilityResult.abilities, statRollNotes: [...gradeResult.notes, ...statResult.notes], abilityRollNotes: abilityResult.notes };
 }
 
-export function createPregnancyRecord(save: GameSave, giverParticipant: BreedingParticipant, receiverParticipant: BreedingParticipant, seed: string): PregnancyRecord { const inheritance = createInheritancePreview(save, giverParticipant, receiverParticipant, seed); const pregnancyId = `pregnancy_${save.dayState.dayNumber}_${Date.now()}` as PregnancyId; return { pregnancyId, createdAtDayNumber: save.dayState.dayNumber, createdAt: new Date().toISOString(), daysRemaining: 1, totalDays: 1, status: "pregnant", giver: parentSnapshot(giverParticipant), receiver: parentSnapshot(receiverParticipant), inheritance }; }
-function createEggFromPregnancy(save: GameSave, pregnancy: PregnancyRecord): EggRecord { const variant = getVariantDefinition(pregnancy.inheritance.projectedVariantId); const eggId = `egg_${save.dayState.dayNumber}_${Date.now()}_${pregnancy.pregnancyId}` as EggId; return { eggId, ownerSaveId: save.saveId, createdAtDayNumber: save.dayState.dayNumber, createdAt: new Date().toISOString(), daysRemaining: 2, totalDays: 2, status: "incubating", rarity: variant.rarity, speciesId: pregnancy.inheritance.projectedSpeciesId, variantId: pregnancy.inheritance.projectedVariantId, habitatId: getHabitatIdForSpecies(pregnancy.inheritance.projectedSpeciesId), parents: { giver: pregnancy.giver, receiver: pregnancy.receiver }, projectedStats: pregnancy.inheritance.projectedStats, projectedStatGrades: pregnancy.inheritance.projectedStatGrades, projectedAbilities: pregnancy.inheritance.projectedAbilities, statRollNotes: pregnancy.inheritance.statRollNotes, abilityRollNotes: pregnancy.inheritance.abilityRollNotes }; }
+export function createPregnancyRecord(save: GameSave, giverParticipant: BreedingParticipant, receiverParticipant: BreedingParticipant, seed: string): PregnancyRecord {
+  const inheritance = createInheritancePreview(save, giverParticipant, receiverParticipant, seed);
+  const pregnancyId = `pregnancy_${save.dayState.dayNumber}_${Date.now()}` as PregnancyId;
+  const pregnancyDays = getRanchUpgradeEffects(save).nurseryPregnancyDays;
+  return { pregnancyId, createdAtDayNumber: save.dayState.dayNumber, createdAt: new Date().toISOString(), daysRemaining: pregnancyDays, totalDays: pregnancyDays, status: "pregnant", giver: parentSnapshot(giverParticipant), receiver: parentSnapshot(receiverParticipant), inheritance };
+}
+
+function createEggFromPregnancy(save: GameSave, pregnancy: PregnancyRecord): EggRecord {
+  const variant = getVariantDefinition(pregnancy.inheritance.projectedVariantId);
+  const eggId = `egg_${save.dayState.dayNumber}_${Date.now()}_${pregnancy.pregnancyId}` as EggId;
+  const eggDays = getRanchUpgradeEffects(save).nurseryEggDays;
+  return { eggId, ownerSaveId: save.saveId, createdAtDayNumber: save.dayState.dayNumber, createdAt: new Date().toISOString(), daysRemaining: eggDays, totalDays: eggDays, status: "incubating", rarity: variant.rarity, speciesId: pregnancy.inheritance.projectedSpeciesId, variantId: pregnancy.inheritance.projectedVariantId, habitatId: getHabitatIdForSpecies(pregnancy.inheritance.projectedSpeciesId), parents: { giver: pregnancy.giver, receiver: pregnancy.receiver }, projectedStats: pregnancy.inheritance.projectedStats, projectedStatGrades: pregnancy.inheritance.projectedStatGrades, projectedAbilities: pregnancy.inheritance.projectedAbilities, statRollNotes: pregnancy.inheritance.statRollNotes, abilityRollNotes: pregnancy.inheritance.abilityRollNotes };
+}
 
 export function advanceNurseryDay(save: GameSave): { save: GameSave; summaryItems: string[] } {
   const summaryItems: string[] = [];
@@ -85,7 +97,7 @@ export function advanceNurseryDay(save: GameSave): { save: GameSave; summaryItem
   const nextPregnancies = (save.pregnancies ?? []).map((pregnancy) => { if (pregnancy.status !== "pregnant") return pregnancy; const nextDaysRemaining = Math.max(0, pregnancy.daysRemaining - 1); if (nextDaysRemaining <= 0) { const egg = createEggFromPregnancy(save, pregnancy); deliveredEggs.push(egg); summaryItems.push(`${pregnancy.receiver.displayName} produced an egg.`); return { ...pregnancy, daysRemaining: 0, status: "delivered" as const }; } summaryItems.push(`${pregnancy.receiver.displayName}'s pregnancy timer advanced.`); return { ...pregnancy, daysRemaining: nextDaysRemaining }; });
   const nextEggs = [...deliveredEggs, ...(save.eggs ?? [])].map((egg) => { if (egg.status !== "incubating") return egg; const nextDaysRemaining = Math.max(0, egg.daysRemaining - 1); if (nextDaysRemaining <= 0) return { ...egg, daysRemaining: 0, status: "ready" as const }; return { ...egg, daysRemaining: nextDaysRemaining }; });
   if (nextEggs.some((egg) => egg.status === "ready")) summaryItems.push("An egg is ready to hatch in the nursery.");
-  return { save: { ...save, pregnancies: nextPregnancies, eggs: nextEggs, eggIds: nextEggs.map((egg) => egg.eggId), flags: { ...save.flags, m5NurseryTimersAdvanced: true, m85EggGradeInheritance: true, m13NurseryContentPack: true } }, summaryItems };
+  return { save: { ...save, pregnancies: nextPregnancies, eggs: nextEggs, eggIds: nextEggs.map((egg) => egg.eggId), flags: { ...save.flags, m5NurseryTimersAdvanced: true, m85EggGradeInheritance: true, m13NurseryContentPack: true, m16NurseryTimersBalanced: true } }, summaryItems };
 }
 
 function getNextCreatureId(save: GameSave): CreatureId { return `creature_hatched_${Date.now()}_${(save.creatures ?? []).length + 1}` as CreatureId; }
