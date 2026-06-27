@@ -60,6 +60,68 @@ section[class*="ranchFrame"] {
   border-radius: 0 !important;
 }
 
+header[data-breeding-header="true"] {
+  grid-template-columns: minmax(180px, 0.55fr) minmax(520px, 1fr) !important;
+  align-items: center !important;
+  padding: 10px 16px !important;
+}
+
+[data-breeding-title="true"] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+[data-breeding-title="true"] h1 {
+  font-size: clamp(1.55rem, 2.35vw, 2.55rem) !important;
+  margin: 0 !important;
+}
+
+header[data-breeding-header="true"] > div:first-child > p,
+header[data-breeding-header="true"] > div:first-child > p + h1 + p {
+  display: none !important;
+}
+
+[data-breeding-controls="true"] {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(145px, 180px)) auto !important;
+  gap: 10px !important;
+  align-items: end !important;
+  justify-content: end !important;
+}
+
+[data-breeding-controls="true"] label {
+  display: grid !important;
+  gap: 4px !important;
+  padding: 6px 8px !important;
+  border: 1px solid rgba(245, 201, 128, 0.34) !important;
+  border-radius: 12px !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  color: #e7c991 !important;
+  font-size: 0.68rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+}
+
+[data-breeding-controls="true"] select {
+  min-height: 32px !important;
+  border: 2px solid rgba(86, 199, 255, 0.54) !important;
+  border-radius: 9px !important;
+  padding: 4px 28px 4px 9px !important;
+  background: linear-gradient(#fff7dd, #dff6ff) !important;
+  color: #10202a !important;
+  font-weight: 950 !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.26) !important;
+}
+
+[data-breeding-controls="true"] > button {
+  align-self: end !important;
+  min-height: 40px !important;
+  border-radius: 12px !important;
+}
+
 section[aria-label*="pair preview"] {
   grid-template-rows: auto auto minmax(300px, 1fr) auto auto auto !important;
   overflow: visible !important;
@@ -203,6 +265,15 @@ section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div > button:n
 }
 
 @media (max-width: 1100px) {
+  header[data-breeding-header="true"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  [data-breeding-controls="true"] {
+    grid-template-columns: repeat(2, minmax(145px, 1fr)) auto !important;
+    justify-content: stretch !important;
+  }
+
   section[aria-label*="pair preview"] > div[class*="pairCards"] {
     grid-template-columns: repeat(2, minmax(220px, 1fr)) !important;
     height: 320px !important;
@@ -210,6 +281,7 @@ section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div > button:n
 }
 
 @media (max-width: 680px) {
+  [data-breeding-controls="true"],
   section[aria-label*="pair preview"] > div[class*="pairCards"],
   section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div {
     grid-template-columns: 1fr !important;
