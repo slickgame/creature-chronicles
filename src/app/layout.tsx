@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./guild-board.css";
-import "./advisor-offset.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
