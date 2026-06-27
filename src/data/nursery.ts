@@ -2,43 +2,101 @@ import {
   DEFAULT_STAT_GRADES,
   STAT_KEYS,
   applyStatGrades,
-  buildStats,
   getBaseMaxHearts,
   getCreatureMaxEnergyFromStats,
   getHabitatIdForFamily,
   getSpeciesDefinition,
   getVariantDefinition,
   getVariantsForFamily,
-  rollCreatureAbilities,
   rollStatGrades,
   shiftStatGrade,
 } from "@/data/creatures";
 import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
 import type { BreedingParticipant } from "@/types/breeding";
-import type { CreatureAbility, CreatureRecord, CreatureStats, StatGrade, StatGrades } from "@/types/creature";
-import type { CreatureId, EggId, PregnancyId, SaveId, SpeciesId, VariantId } from "@/types/ids";
+import type { CreatureAbility, CreatureLineageRisk, CreatureRecord, CreatureStatKey, CreatureStats, StatGrade, StatGrades } from "@/types/creature";
+import type { CreatureId, EggId, PregnancyId, SpeciesId, VariantId } from "@/types/ids";
 import type { EggRecord, GameSave, InheritancePreview, ParentSnapshot, PregnancyRecord } from "@/types/save";
 
 export const NURSERY_ASSETS = { egg: "/images/ui/icons/icon_egg.png", pregnancy: "/images/ui/icons/icon_pregnancy.png", timer: "/images/ui/icons/icon_timer_hourglass.png", hatch: "/images/ui/icons/icon_hatch.png", background: "/images/backgrounds/nursery/egg_nursery_interior.png", originHatched: "/images/ui/icons/icon_origin_hatched.png", parentCompare: "/images/ui/icons/icon_parent_compare.png", statGrade: "/images/ui/icons/icon_stat_grade.png" } as const;
+
+const RISK_LABELS: Record<CreatureLineageRisk, string> = { none: "No Risk", "half-sibling": "Half Sibling Line", "full-sibling": "Full Sibling Line", "parent-child": "Parent/Child Line" };
+const RISK_GRADE_PENALTY_CHANCE: Record<CreatureLineageRisk, number> = { none: 0, "half-sibling": 16, "full-sibling": 28, "parent-child": 36 };
+const RISK_STAT_PENALTY_CHANCE: Record<CreatureLineageRisk, number> = { none: 0, "half-sibling": 14, "full-sibling": 24, "parent-child": 32 };
+const RISK_UPSIDE_CHANCE: Record<CreatureLineageRisk, number> = { none: 0, "half-sibling": 3, "full-sibling": 5, "parent-child": 7 };
+const RISK_FRAGILE_CHANCE: Record<CreatureLineageRisk, number> = { none: 0, "half-sibling": 2, "full-sibling": 4, "parent-child": 6 };
+const RISK_STAT_KEYS: CreatureStatKey[] = ["FER", "STA", "WIL"];
+const GENERIC_NAME_WORDS = new Set(["base", "common", "uncommon", "rare", "epic", "hatchling", "feline", "canine", "bovine", "lapine", "equine", "cow", "horse", "bunny"]);
 
 function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
 function deterministicRoll(seed: string, modulo = 100): number { let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) % 1000003; return Math.abs(hash) % modulo; }
 function getHabitatIdForSpecies(speciesId: SpeciesId) { return getHabitatIdForFamily(getSpeciesDefinition(speciesId).family); }
 function parentSnapshot(participant: BreedingParticipant): ParentSnapshot { return { participantId: participant.participantId, creatureId: participant.creatureId, displayName: participant.displayName, familyLabel: participant.familyLabel, kind: participant.kind }; }
 function averageStat(statKey: keyof CreatureStats, giver?: CreatureRecord, receiver?: CreatureRecord): number { const values = [giver?.stats[statKey], receiver?.stats[statKey]].filter((value): value is number => typeof value === "number"); return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 5; }
+function cleanNameSource(name: string, fallback: string): string { const words = name.replace(/[^a-zA-Z\s]/g, " ").split(/\s+/).filter(Boolean).filter((word) => !GENERIC_NAME_WORDS.has(word.toLowerCase())); return (words.join("") || fallback).replace(/[^a-zA-Z]/g, "").toLowerCase(); }
+function titleCaseName(value: string): string { return value ? value.slice(0, 1).toUpperCase() + value.slice(1).toLowerCase() : "Hatchling"; }
+
+export function getLineageRiskLabel(risk?: CreatureLineageRisk): string { return RISK_LABELS[risk ?? "none"] ?? RISK_LABELS.none; }
+
+export function suggestHatchlingName(egg: Pick<EggRecord, "parents" | "variantId" | "speciesId" | "eggId">): string {
+  const variant = getVariantDefinition(egg.variantId);
+  const species = getSpeciesDefinition(egg.speciesId);
+  const giver = cleanNameSource(egg.parents.giver.displayName, variant.name);
+  const receiver = cleanNameSource(egg.parents.receiver.displayName, species.name);
+  const first = deterministicRoll(`${egg.eggId}_name_order`, 2) === 0 ? giver : receiver;
+  const second = first === giver ? receiver : giver;
+  const firstCut = Math.min(4, Math.max(2, deterministicRoll(`${egg.eggId}_name_a`, 3) + 2));
+  const secondCut = Math.min(4, Math.max(2, deterministicRoll(`${egg.eggId}_name_b`, 3) + 2));
+  const blended = `${first.slice(0, firstCut)}${second.slice(Math.max(0, second.length - secondCut))}`.slice(0, 10);
+  return titleCaseName(blended.length >= 4 ? blended : `${first}${second}`.slice(0, 8));
+}
+
+function getParentIds(creature?: CreatureRecord): CreatureId[] { return creature?.lineage?.parentCreatureIds ?? []; }
+function hasParent(creature: CreatureRecord | undefined, parentId: CreatureId | undefined): boolean { return Boolean(creature && parentId && getParentIds(creature).includes(parentId)); }
+function sharedParentCount(giver?: CreatureRecord, receiver?: CreatureRecord): number { const giverParents = new Set(getParentIds(giver)); return getParentIds(receiver).filter((id) => giverParents.has(id)).length; }
+function getMaxParentGeneration(giver?: CreatureRecord, receiver?: CreatureRecord): number { return Math.max(giver?.generation ?? 1, receiver?.generation ?? 1); }
+
+function analyzeLineage(giver?: CreatureRecord, receiver?: CreatureRecord): { risk: CreatureLineageRisk; label: string; notes: string[] } {
+  if (!giver || !receiver) return { risk: "none", label: RISK_LABELS.none, notes: ["Lineage risk is low because one parent is not a tracked creature."] };
+  if (hasParent(giver, receiver.creatureId) || hasParent(receiver, giver.creatureId)) return { risk: "parent-child", label: RISK_LABELS["parent-child"], notes: ["Parent/child line detected. Small fertility, stamina, and willpower penalties are more likely, but rare positive mutations can still occur."] };
+  const shared = sharedParentCount(giver, receiver);
+  if (shared >= 2) return { risk: "full-sibling", label: RISK_LABELS["full-sibling"], notes: ["Full sibling line detected. The hatchling has elevated risk of weaker FER, STA, or WIL outcomes."] };
+  if (shared === 1) return { risk: "half-sibling", label: RISK_LABELS["half-sibling"], notes: ["Half sibling line detected. The penalty risk is mild, but the lineage is marked for tracking."] };
+  return { risk: "none", label: RISK_LABELS.none, notes: ["No close family risk detected from tracked parents."] };
+}
 
 function inheritGradeForStat(seed: string, statKey: keyof CreatureStats, giver?: CreatureRecord, receiver?: CreatureRecord): { grade: StatGrade; note: string | null } {
   const parentGrades = [giver?.statGrades?.[statKey], receiver?.statGrades?.[statKey]].filter((grade): grade is StatGrade => Boolean(grade));
   const fallbackGrade = rollStatGrades(`${seed}_fallback`, "Common")[statKey];
   const inheritedBase = parentGrades.length ? parentGrades[deterministicRoll(`${seed}_${statKey}_parent`, parentGrades.length)] : fallbackGrade;
   const roll = deterministicRoll(`${seed}_${statKey}_shift`);
-  if (roll >= 94) { const upgraded = shiftStatGrade(inheritedBase, 1); return { grade: upgraded, note: upgraded === inheritedBase ? `${statKey} inherited ${inheritedBase}.` : `${statKey} inherited ${inheritedBase} and upgraded to ${upgraded}.` }; }
+  if (roll >= 96) { const upgraded = shiftStatGrade(inheritedBase, 1); return { grade: upgraded, note: upgraded === inheritedBase ? `${statKey} inherited ${inheritedBase}.` : `${statKey} inherited ${inheritedBase} and rarely upgraded to ${upgraded}.` }; }
   if (roll <= 7) { const downgraded = shiftStatGrade(inheritedBase, -1); return { grade: downgraded, note: downgraded === inheritedBase ? `${statKey} inherited ${inheritedBase}.` : `${statKey} inherited ${inheritedBase} but downgraded to ${downgraded}.` }; }
   return { grade: inheritedBase, note: `${statKey} inherited ${inheritedBase}.` };
 }
 
 function inheritStatGrades(seed: string, giver?: CreatureRecord, receiver?: CreatureRecord): { statGrades: StatGrades; notes: string[] } { const notes: string[] = []; const statGrades = STAT_KEYS.reduce((grades, key) => { const inherited = inheritGradeForStat(seed, key, giver, receiver); if (inherited.note) notes.push(inherited.note); return { ...grades, [key]: inherited.grade }; }, {} as StatGrades); return { statGrades, notes }; }
-function buildInheritedStats(seed: string, baseStats: CreatureStats, statGrades: StatGrades, giver?: CreatureRecord, receiver?: CreatureRecord): { stats: CreatureStats; notes: string[] } { const notes: string[] = []; const rawStats = STAT_KEYS.reduce((nextStats, statKey, index) => { const inheritedAverage = averageStat(statKey, giver, receiver); const gradeAdjustedBase = applyStatGrades(baseStats, statGrades)[statKey]; const baseAnchor = Math.round((inheritedAverage + gradeAdjustedBase) / 2); const roll = deterministicRoll(`${seed}_${statKey}_${index}`, 100); let variance = 0; if (roll <= 7) { variance = -2; notes.push(`${statKey} rolled unusually low.`); } else if (roll <= 24) variance = -1; else if (roll >= 93) { variance = 2; notes.push(`${statKey} rolled unusually high.`); } else if (roll >= 76) variance = 1; return { ...nextStats, [statKey]: Math.max(1, baseAnchor + variance) }; }, {} as CreatureStats); if (!notes.length) notes.push("Stats inherited normally from parent averages, stat grades, and minor RNG."); return { stats: rawStats, notes }; }
+
+function applyLineageRiskToGrades(seed: string, grades: StatGrades, risk: CreatureLineageRisk): { statGrades: StatGrades; notes: string[]; traits: string[] } {
+  let nextGrades = { ...grades };
+  const notes: string[] = [];
+  const traits: string[] = [];
+  const penaltyChance = RISK_GRADE_PENALTY_CHANCE[risk];
+  RISK_STAT_KEYS.forEach((key) => { if (penaltyChance && deterministicRoll(`${seed}_lineage_grade_${key}`, 100) < penaltyChance) { const downgraded = shiftStatGrade(nextGrades[key], -1); if (downgraded !== nextGrades[key]) { notes.push(`${key} grade was softened by ${getLineageRiskLabel(risk)} pressure: ${nextGrades[key]} → ${downgraded}.`); nextGrades = { ...nextGrades, [key]: downgraded }; } } });
+  const upsideChance = RISK_UPSIDE_CHANCE[risk];
+  if (upsideChance && deterministicRoll(`${seed}_lineage_upside`, 100) < upsideChance) { const key = STAT_KEYS[deterministicRoll(`${seed}_lineage_upside_stat`, STAT_KEYS.length)]; const upgraded = shiftStatGrade(nextGrades[key], 1); if (upgraded !== nextGrades[key]) { notes.push(`Risky pairing produced a rare stabilizing mutation: ${key} grade ${nextGrades[key]} → ${upgraded}.`); nextGrades = { ...nextGrades, [key]: upgraded }; } }
+  if (RISK_FRAGILE_CHANCE[risk] && deterministicRoll(`${seed}_fragile_lineage`, 100) < RISK_FRAGILE_CHANCE[risk]) { traits.push("Fragile Lineage"); notes.push("Fragile Lineage marker appeared. This is rare and will be tracked on the creature profile."); }
+  return { statGrades: nextGrades, notes, traits };
+}
+
+function buildInheritedStats(seed: string, baseStats: CreatureStats, statGrades: StatGrades, giver?: CreatureRecord, receiver?: CreatureRecord): { stats: CreatureStats; notes: string[] } { const notes: string[] = []; const rawStats = STAT_KEYS.reduce((nextStats, statKey, index) => { const inheritedAverage = averageStat(statKey, giver, receiver); const gradeAdjustedBase = applyStatGrades(baseStats, statGrades)[statKey]; const baseAnchor = Math.round((inheritedAverage + gradeAdjustedBase) / 2); const roll = deterministicRoll(`${seed}_${statKey}_${index}`, 100); let variance = 0; if (roll <= 7) { variance = -2; notes.push(`${statKey} rolled unusually low.`); } else if (roll <= 24) variance = -1; else if (roll >= 96) { variance = 2; notes.push(`${statKey} rolled unusually high.`); } else if (roll >= 78) variance = 1; return { ...nextStats, [statKey]: Math.max(1, baseAnchor + variance) }; }, {} as CreatureStats); if (!notes.length) notes.push("Stats inherited normally from parent averages, stat grades, and minor RNG."); return { stats: rawStats, notes }; }
+
+function applyLineageRiskToStats(seed: string, stats: CreatureStats, risk: CreatureLineageRisk): { stats: CreatureStats; notes: string[] } {
+  let nextStats = { ...stats };
+  const notes: string[] = [];
+  const chance = RISK_STAT_PENALTY_CHANCE[risk];
+  RISK_STAT_KEYS.forEach((key) => { if (chance && deterministicRoll(`${seed}_lineage_stat_${key}`, 100) < chance) { nextStats = { ...nextStats, [key]: Math.max(1, nextStats[key] - 1) }; notes.push(`${key} lost 1 point from ${getLineageRiskLabel(risk)} pressure.`); } });
+  return { stats: nextStats, notes };
+}
 
 function pickVariant(seed: string, giver?: CreatureRecord, receiver?: CreatureRecord): VariantId {
   const receiverVariant = receiver ? getVariantDefinition(receiver.variantId) : null;
@@ -48,20 +106,26 @@ function pickVariant(seed: string, giver?: CreatureRecord, receiver?: CreatureRe
   const commonVariant = variants.find((variant) => variant.rarity === "Common") ?? variants[0];
   const rareVariants = variants.filter((variant) => variant.rarity !== "Common");
   const rareRoll = deterministicRoll(`${seed}_variant`, 100);
-  if (rareRoll >= 90 && rareVariants.length) return rareVariants[deterministicRoll(`${seed}_rare_variant`, rareVariants.length)].variantId;
-  if (receiverVariant && receiverVariant.rarity !== "Common" && rareRoll >= 82) return receiverVariant.variantId;
-  if (giverVariant && giverVariant.rarity !== "Common" && rareRoll >= 86) return giverVariant.variantId;
+  if (rareRoll >= 93 && rareVariants.length) return rareVariants[deterministicRoll(`${seed}_rare_variant`, rareVariants.length)].variantId;
+  if (receiverVariant && receiverVariant.rarity !== "Common" && rareRoll >= 86) return receiverVariant.variantId;
+  if (giverVariant && giverVariant.rarity !== "Common" && rareRoll >= 90) return giverVariant.variantId;
   return commonVariant.variantId;
 }
 
-function buildInheritedAbilities(seed: string, speciesAbilities: CreatureAbility[], variantAbilities: CreatureAbility[], speciesId: SpeciesId, variantId: VariantId, giver?: CreatureRecord, receiver?: CreatureRecord): { abilities: CreatureAbility[]; notes: string[] } {
+function buildInheritedAbilities(seed: string, speciesAbilities: CreatureAbility[], variantAbilities: CreatureAbility[], risk: CreatureLineageRisk, giver?: CreatureRecord, receiver?: CreatureRecord): { abilities: CreatureAbility[]; notes: string[] } {
   const notes: string[] = [];
   const inheritedPool = [...(giver?.abilities ?? []), ...(receiver?.abilities ?? [])];
-  const chosen = rollCreatureAbilities(`${seed}_base_abilities`, speciesId, variantId, false);
-  if (inheritedPool.length && deterministicRoll(`${seed}_ability_inherit`, 100) >= 62) { const inheritedAbility = inheritedPool[deterministicRoll(`${seed}_ability_pick`, inheritedPool.length)]; if (!chosen.some((ability) => ability.id === inheritedAbility.id)) { chosen.push({ ...inheritedAbility, source: "future" }); notes.push(`${inheritedAbility.name} was inherited from a parent.`); } }
-  if (deterministicRoll(`${seed}_ability_mutation`, 100) >= 94) { const mutationPool = [...speciesAbilities, ...variantAbilities].filter((ability) => !chosen.some((chosenAbility) => chosenAbility.id === ability.id)); if (mutationPool.length) { const mutatedAbility = mutationPool[deterministicRoll(`${seed}_ability_mutation_pick`, mutationPool.length)]; chosen.push({ ...mutatedAbility, source: "future" }); notes.push(`${mutatedAbility.name} appeared as a rare new ability roll.`); } }
-  if (!notes.length) notes.push("Abilities followed normal species, variant, and general ability rolls.");
-  return { abilities: chosen.slice(0, 3), notes };
+  const chosen: CreatureAbility[] = [];
+  const uniqueInheritedPool = inheritedPool.filter((ability, index, pool) => pool.findIndex((item) => item.id === ability.id) === index);
+  if (uniqueInheritedPool.length) {
+    const inheritChance = uniqueInheritedPool.length >= 2 ? 38 : 28;
+    if (deterministicRoll(`${seed}_ability_inherit`, 100) < inheritChance) { const inheritedAbility = uniqueInheritedPool[deterministicRoll(`${seed}_ability_pick`, uniqueInheritedPool.length)]; chosen.push(inheritedAbility); notes.push(`${inheritedAbility.name} was inherited from a parent.`); }
+    if (chosen.length && uniqueInheritedPool.length > 1 && deterministicRoll(`${seed}_ability_second_inherit`, 100) < 5) { const remaining = uniqueInheritedPool.filter((ability) => ability.id !== chosen[0].id); const inheritedAbility = remaining[deterministicRoll(`${seed}_ability_second_pick`, remaining.length)]; chosen.push(inheritedAbility); notes.push(`${inheritedAbility.name} also carried through the lineage.`); }
+  }
+  const mutationChance = risk === "none" ? 1 : 2;
+  if (deterministicRoll(`${seed}_ability_mutation`, 100) < mutationChance) { const mutationPool = [...speciesAbilities, ...variantAbilities].filter((ability) => !chosen.some((chosenAbility) => chosenAbility.id === ability.id)); if (mutationPool.length) { const mutatedAbility = mutationPool[deterministicRoll(`${seed}_ability_mutation_pick`, mutationPool.length)]; chosen.push({ ...mutatedAbility, source: "future" }); notes.push(`${mutatedAbility.name} appeared as an extremely rare new hatch mutation.`); } }
+  if (!notes.length) notes.push(uniqueInheritedPool.length ? "No ability carried through this time. Hatchling abilities usually come from parents; new ability mutations are extremely rare." : "No parental ability was available to inherit. New hatch ability mutations are extremely rare.");
+  return { abilities: chosen.slice(0, 2), notes };
 }
 
 export function createInheritancePreview(save: GameSave, giverParticipant: BreedingParticipant, receiverParticipant: BreedingParticipant, seed: string): InheritancePreview {
@@ -70,11 +134,15 @@ export function createInheritancePreview(save: GameSave, giverParticipant: Breed
   const projectedVariantId = pickVariant(seed, giverCreature, receiverCreature);
   const projectedVariant = getVariantDefinition(projectedVariantId);
   const projectedSpecies = getSpeciesDefinition(projectedVariant.speciesId);
+  const lineage = analyzeLineage(giverCreature, receiverCreature);
   const gradeResult = inheritStatGrades(seed, giverCreature, receiverCreature);
+  const lineageGradeResult = applyLineageRiskToGrades(seed, gradeResult.statGrades, lineage.risk);
   const variantAdjustedStats = STAT_KEYS.reduce((stats, key) => ({ ...stats, [key]: Math.max(1, projectedSpecies.baseStats[key] + (projectedVariant.statAdjustments[key] ?? 0)) }), {} as CreatureStats);
-  const statResult = buildInheritedStats(seed, variantAdjustedStats, gradeResult.statGrades, giverCreature, receiverCreature);
-  const abilityResult = buildInheritedAbilities(seed, projectedSpecies.exclusiveAbilityPool, projectedVariant.exclusiveAbilityPool, projectedSpecies.speciesId, projectedVariant.variantId, giverCreature, receiverCreature);
-  return { projectedSpeciesId: projectedSpecies.speciesId, projectedVariantId: projectedVariant.variantId, projectedStats: statResult.stats, projectedStatGrades: gradeResult.statGrades, projectedAbilities: abilityResult.abilities, statRollNotes: [...gradeResult.notes, ...statResult.notes], abilityRollNotes: abilityResult.notes };
+  const statResult = buildInheritedStats(seed, variantAdjustedStats, lineageGradeResult.statGrades, giverCreature, receiverCreature);
+  const lineageStatResult = applyLineageRiskToStats(seed, statResult.stats, lineage.risk);
+  const abilityResult = buildInheritedAbilities(seed, projectedSpecies.exclusiveAbilityPool, projectedVariant.exclusiveAbilityPool, lineage.risk, giverCreature, receiverCreature);
+  const provisionalEgg = { eggId: `${seed}_egg` as EggId, parents: { giver: parentSnapshot(giverParticipant), receiver: parentSnapshot(receiverParticipant) }, variantId: projectedVariant.variantId, speciesId: projectedSpecies.speciesId };
+  return { projectedSpeciesId: projectedSpecies.speciesId, projectedVariantId: projectedVariant.variantId, projectedStats: lineageStatResult.stats, projectedStatGrades: lineageGradeResult.statGrades, projectedAbilities: abilityResult.abilities, statRollNotes: [...gradeResult.notes, ...lineageGradeResult.notes, ...statResult.notes, ...lineageStatResult.notes], abilityRollNotes: abilityResult.notes, lineageRisk: lineage.risk, lineageRiskLabel: lineage.label, lineageNotes: [...lineage.notes, ...lineageGradeResult.notes, ...lineageStatResult.notes], lineageTraits: lineageGradeResult.traits, suggestedName: suggestHatchlingName(provisionalEgg) };
 }
 
 export function createPregnancyRecord(save: GameSave, giverParticipant: BreedingParticipant, receiverParticipant: BreedingParticipant, seed: string): PregnancyRecord {
@@ -88,7 +156,7 @@ function createEggFromPregnancy(save: GameSave, pregnancy: PregnancyRecord): Egg
   const variant = getVariantDefinition(pregnancy.inheritance.projectedVariantId);
   const eggId = `egg_${save.dayState.dayNumber}_${Date.now()}_${pregnancy.pregnancyId}` as EggId;
   const eggDays = getRanchUpgradeEffects(save).nurseryEggDays;
-  return { eggId, ownerSaveId: save.saveId, createdAtDayNumber: save.dayState.dayNumber, createdAt: new Date().toISOString(), daysRemaining: eggDays, totalDays: eggDays, status: "incubating", rarity: variant.rarity, speciesId: pregnancy.inheritance.projectedSpeciesId, variantId: pregnancy.inheritance.projectedVariantId, habitatId: getHabitatIdForSpecies(pregnancy.inheritance.projectedSpeciesId), parents: { giver: pregnancy.giver, receiver: pregnancy.receiver }, projectedStats: pregnancy.inheritance.projectedStats, projectedStatGrades: pregnancy.inheritance.projectedStatGrades, projectedAbilities: pregnancy.inheritance.projectedAbilities, statRollNotes: pregnancy.inheritance.statRollNotes, abilityRollNotes: pregnancy.inheritance.abilityRollNotes };
+  return { eggId, ownerSaveId: save.saveId, createdAtDayNumber: save.dayState.dayNumber, createdAt: new Date().toISOString(), daysRemaining: eggDays, totalDays: eggDays, status: "incubating", rarity: variant.rarity, speciesId: pregnancy.inheritance.projectedSpeciesId, variantId: pregnancy.inheritance.projectedVariantId, habitatId: getHabitatIdForSpecies(pregnancy.inheritance.projectedSpeciesId), parents: { giver: pregnancy.giver, receiver: pregnancy.receiver }, projectedStats: pregnancy.inheritance.projectedStats, projectedStatGrades: pregnancy.inheritance.projectedStatGrades, projectedAbilities: pregnancy.inheritance.projectedAbilities, statRollNotes: pregnancy.inheritance.statRollNotes, abilityRollNotes: pregnancy.inheritance.abilityRollNotes, lineageRisk: pregnancy.inheritance.lineageRisk, lineageRiskLabel: pregnancy.inheritance.lineageRiskLabel, lineageNotes: pregnancy.inheritance.lineageNotes, lineageTraits: pregnancy.inheritance.lineageTraits, suggestedName: pregnancy.inheritance.suggestedName };
 }
 
 export function advanceNurseryDay(save: GameSave): { save: GameSave; summaryItems: string[] } {
@@ -97,7 +165,7 @@ export function advanceNurseryDay(save: GameSave): { save: GameSave; summaryItem
   const nextPregnancies = (save.pregnancies ?? []).map((pregnancy) => { if (pregnancy.status !== "pregnant") return pregnancy; const nextDaysRemaining = Math.max(0, pregnancy.daysRemaining - 1); if (nextDaysRemaining <= 0) { const egg = createEggFromPregnancy(save, pregnancy); deliveredEggs.push(egg); summaryItems.push(`${pregnancy.receiver.displayName} produced an egg.`); return { ...pregnancy, daysRemaining: 0, status: "delivered" as const }; } summaryItems.push(`${pregnancy.receiver.displayName}'s pregnancy timer advanced.`); return { ...pregnancy, daysRemaining: nextDaysRemaining }; });
   const nextEggs = [...deliveredEggs, ...(save.eggs ?? [])].map((egg) => { if (egg.status !== "incubating") return egg; const nextDaysRemaining = Math.max(0, egg.daysRemaining - 1); if (nextDaysRemaining <= 0) return { ...egg, daysRemaining: 0, status: "ready" as const }; return { ...egg, daysRemaining: nextDaysRemaining }; });
   if (nextEggs.some((egg) => egg.status === "ready")) summaryItems.push("An egg is ready to hatch in the nursery.");
-  return { save: { ...save, pregnancies: nextPregnancies, eggs: nextEggs, eggIds: nextEggs.map((egg) => egg.eggId), flags: { ...save.flags, m5NurseryTimersAdvanced: true, m85EggGradeInheritance: true, m13NurseryContentPack: true, m16NurseryTimersBalanced: true } }, summaryItems };
+  return { save: { ...save, pregnancies: nextPregnancies, eggs: nextEggs, eggIds: nextEggs.map((egg) => egg.eggId), flags: { ...save.flags, m5NurseryTimersAdvanced: true, m85EggGradeInheritance: true, m13NurseryContentPack: true, m16NurseryTimersBalanced: true, m17LineageRiskEnabled: true } }, summaryItems };
 }
 
 function getNextCreatureId(save: GameSave): CreatureId { return `creature_hatched_${Date.now()}_${(save.creatures ?? []).length + 1}` as CreatureId; }
@@ -112,10 +180,14 @@ export function hatchEgg(save: GameSave, eggId: EggId, nickname?: string): { sav
   const level = 1;
   const maxEnergy = getCreatureMaxEnergyFromStats(egg.projectedStats, variant.variantId);
   const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
-  const creature: CreatureRecord = { creatureId, ownerSaveId: save.saveId, speciesId: species.speciesId, variantId: variant.variantId, habitatId: egg.habitatId, nickname: nickname?.trim() || `${variant.name} Hatchling`, level, xp: 0, xpToNext: getCreatureXpToNext(level), stats: egg.projectedStats, statGrades: egg.projectedStatGrades ?? DEFAULT_STAT_GRADES, abilities: egg.projectedAbilities, energy: maxEnergy, maxEnergy, hearts: maxHearts, maxHearts, affection: 35, generation: 2, shiny: false, cosmeticVariant: null, origin: "hatched", originLabel: `Hatched · ${egg.parents.giver.displayName} × ${egg.parents.receiver.displayName}`, isLocked: false, createdAt: new Date().toISOString(), notes: `Hatched from ${egg.parents.giver.displayName} and ${egg.parents.receiver.displayName}.` };
+  const parentCreatureIds = [egg.parents.giver.creatureId, egg.parents.receiver.creatureId].filter(Boolean) as CreatureId[];
+  const generation = Math.max(2, ...parentCreatureIds.map((id) => (save.creatures ?? []).find((creature) => creature.creatureId === id)?.generation ?? 1)) + 1;
+  const finalName = nickname?.trim() || egg.suggestedName || suggestHatchlingName(egg);
+  const lineageRisk = egg.lineageRisk ?? "none";
+  const creature: CreatureRecord = { creatureId, ownerSaveId: save.saveId, speciesId: species.speciesId, variantId: variant.variantId, habitatId: egg.habitatId, nickname: finalName, level, xp: 0, xpToNext: getCreatureXpToNext(level), stats: egg.projectedStats, statGrades: egg.projectedStatGrades ?? DEFAULT_STAT_GRADES, abilities: egg.projectedAbilities ?? [], energy: maxEnergy, maxEnergy, hearts: maxHearts, maxHearts, affection: 35, generation, shiny: false, cosmeticVariant: null, origin: "hatched", originLabel: `Hatched · ${egg.parents.giver.displayName} × ${egg.parents.receiver.displayName}`, lineage: { risk: lineageRisk, label: egg.lineageRiskLabel ?? getLineageRiskLabel(lineageRisk), parentCreatureIds, parentNames: [egg.parents.giver.displayName, egg.parents.receiver.displayName], notes: egg.lineageNotes ?? [], traits: egg.lineageTraits ?? [] }, isLocked: false, createdAt: new Date().toISOString(), notes: `Hatched from ${egg.parents.giver.displayName} and ${egg.parents.receiver.displayName}. ${egg.lineageRiskLabel ?? getLineageRiskLabel(lineageRisk)}.` };
   const nextEggs = (save.eggs ?? []).map((item) => item.eggId === eggId ? { ...item, status: "hatched" as const } : item);
   const totalHatched = Number(save.flags.m9TotalHatched ?? 0) + 1;
-  return { creature, save: { ...save, creatures: [creature, ...(save.creatures ?? [])], creatureIds: [creature.creatureId, ...save.creatureIds], habitats: (save.habitats ?? []).map((habitat) => habitat.habitatId === egg.habitatId ? { ...habitat, creatureIds: [creature.creatureId, ...habitat.creatureIds] } : habitat), eggs: nextEggs, eggIds: nextEggs.map((item) => item.eggId), flags: { ...save.flags, m5EggHatched: true, m85HatchedStatGrades: true, m9HatchResultImproved: true, m9TotalHatched: totalHatched, m13HatchedContentPack: true } } };
+  return { creature, save: { ...save, creatures: [creature, ...(save.creatures ?? [])], creatureIds: [creature.creatureId, ...save.creatureIds], habitats: (save.habitats ?? []).map((habitat) => habitat.habitatId === egg.habitatId ? { ...habitat, creatureIds: [creature.creatureId, ...habitat.creatureIds] } : habitat), eggs: nextEggs, eggIds: nextEggs.map((item) => item.eggId), flags: { ...save.flags, m5EggHatched: true, m85HatchedStatGrades: true, m9HatchResultImproved: true, m9TotalHatched: totalHatched, m13HatchedContentPack: true, m17HatchRevealModal: true, m17LineageRiskEnabled: true } } };
 }
 
 export function removeEgg(save: GameSave, eggId: EggId, mode: "release" | "donate"): GameSave { const nextEggs = (save.eggs ?? []).filter((egg) => egg.eggId !== eggId); return { ...save, eggs: nextEggs, eggIds: nextEggs.map((egg) => egg.eggId), currencies: mode === "donate" ? { ...save.currencies, gold: save.currencies.gold + 75, guildPoints: save.currencies.guildPoints + 1 } : save.currencies, flags: { ...save.flags, m5EggRemoved: mode } }; }
