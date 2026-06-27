@@ -88,7 +88,8 @@
 .centerPanel h2,
 .sidePanel h2,
 .eggInfoPanel h2,
-.emptyChamber h3 {
+.emptyChamber h3,
+.hatchResultModal h2 {
   margin: 0;
   color: #fff7dd;
   line-height: 0.95;
@@ -105,7 +106,8 @@
 .centerHeader p,
 .emptyChamber p,
 .eggInfoPanel p,
-.emptyText {
+.emptyText,
+.hatchResultModal p {
   color: #fff0c9;
   text-shadow: 0 2px 3px rgba(0, 0, 0, 0.86);
 }
@@ -122,7 +124,8 @@
 }
 
 .headerStats div,
-.statGrid div {
+.statGrid div,
+.lineageResultGrid div {
   padding: 8px;
   border: 1px solid rgba(245, 201, 128, 0.52);
   border-radius: var(--radius-sm);
@@ -132,7 +135,8 @@
 .headerStats span,
 .statGrid span,
 .notesPanel h3,
-.abilitiesPanel h3 {
+.abilitiesPanel h3,
+.lineageResultGrid span {
   display: block;
   color: #e7c991;
   font-size: 0.62rem;
@@ -142,7 +146,8 @@
 }
 
 .headerStats strong,
-.statGrid strong {
+.statGrid strong,
+.lineageResultGrid strong {
   display: block;
   color: #fff7dd;
   font-weight: 900;
@@ -151,7 +156,8 @@
 
 .headerStats button,
 .emptyPanel button,
-.hatchControls button {
+.hatchControls button,
+.hatchResultModal button {
   min-height: 38px;
   padding: 8px 14px;
   border: 2px solid var(--border-dark);
@@ -238,7 +244,6 @@
   color: #fff7dd;
 }
 
-.pregnancyCard span,
 .eggListCard span {
   color: #7fdbff;
   font-size: 0.78rem;
@@ -312,7 +317,8 @@
 }
 
 .parentComparePanel,
-.variantRollPanel {
+.variantRollPanel,
+.lineagePreviewPanel {
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr);
   gap: 10px;
@@ -324,6 +330,12 @@
   background: rgba(0, 0, 0, 0.32);
 }
 
+.lineagePreviewPanel {
+  display: block;
+  border-color: rgba(127, 219, 255, 0.46);
+  background: rgba(86, 199, 255, 0.11);
+}
+
 .parentComparePanel img,
 .variantRollPanel img {
   width: 50px;
@@ -333,20 +345,24 @@
 
 .parentComparePanel strong,
 .variantRollPanel strong,
+.lineagePreviewPanel strong,
 .parentComparePanel span,
 .variantRollPanel span,
+.lineagePreviewPanel span,
 .variantRollPanel em {
   display: block;
   text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
 }
 
 .parentComparePanel strong,
-.variantRollPanel strong {
+.variantRollPanel strong,
+.lineagePreviewPanel strong {
   color: #fff7dd;
 }
 
 .parentComparePanel span,
 .variantRollPanel span,
+.lineagePreviewPanel span,
 .variantRollPanel em {
   color: #7fdbff;
   font-size: 0.78rem;
@@ -473,6 +489,53 @@
   width: 160px;
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.hatchResultModal {
+  width: min(100%, 560px);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  border: 3px solid rgba(245, 201, 128, 0.9);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(rgba(70, 34, 24, 0.98), rgba(18, 10, 8, 0.98));
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.64);
+  color: #fff7dd;
+  text-align: center;
+}
+
+.hatchResultModal > img {
+  width: 94px;
+  height: 94px;
+  object-fit: contain;
+}
+
+.lineageResultGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 0.6fr 1.4fr;
+  gap: 8px;
+}
+
+.lineageResultNote {
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid rgba(127, 219, 255, 0.44);
+  border-radius: var(--radius-md);
+  background: rgba(86, 199, 255, 0.12);
+}
+
 @media (max-width: 1100px) {
   .frame {
     height: auto;
@@ -488,7 +551,8 @@
 
 @media (max-width: 760px) {
   .hatchControls,
-  .statGrid {
+  .statGrid,
+  .lineageResultGrid {
     grid-template-columns: 1fr;
   }
 }
