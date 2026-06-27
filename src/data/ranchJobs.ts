@@ -18,9 +18,9 @@ export const RANCH_JOB_ASSETS = {
 
 const MAX_CREATURES_PER_CHORE = 3;
 const MAX_RANCH_EVENT_LOG_ENTRIES = 50;
-const BASE_DANGER_CHANCE = 28;
-const MIN_DANGER_WITH_SECURITY = 5;
-const MIN_DANGER_WITHOUT_SECURITY = 12;
+const BASE_DANGER_CHANCE = 35;
+const MIN_DANGER_WITH_SECURITY = 6;
+const MIN_DANGER_WITHOUT_SECURITY = 18;
 const BASE_WEAR_CHANCE = 22;
 const HAULING_WEAR_CHANCE = 8;
 
@@ -102,7 +102,8 @@ function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs:
   const dangerChance = getSecurityEventChance(securityScore);
   const dangerRoll = deterministicRoll(`${save.saveId}_danger_${save.dayState.dayNumber}`, 100);
   const activeSecurity = securityScore > 0;
-  if (dangerRoll >= dangerChance) {
+  const forcedNoSecurityEvent = !activeSecurity && save.dayState.dayNumber % 3 === 0;
+  if (!forcedNoSecurityEvent && dangerRoll >= dangerChance) {
     if (activeSecurity && deterministicRoll(`${save.saveId}_security_success_${save.dayState.dayNumber}`, 100) < Math.min(75, 20 + securityScore * 6)) {
       const successMessages = [`Security patrol found fresh tracks near the outer fence and scared the threat away.`, `Security patrol kept the nursery quiet overnight. No danger event occurred.`, `Security patrol spotted movement near the trail before it reached the ranch.`, `Security patrol reinforced the evening watch. The ranch stayed safe.`];
       const messageIndex = deterministicRoll(`${save.saveId}_security_success_message_${save.dayState.dayNumber}`, successMessages.length);
@@ -128,13 +129,15 @@ function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs:
   return { creatures, eggs, summary: `Something prowled near the ranch and damaged the outer path. Ranch damage rose by 5.`, eventType: "minor_disturbance", dangerChance, success: false, damageAdded: 5 };
 }
 function resolveRanchWear(save: GameSave, upkeepScore: number, currentDamage: number): WearResult {
-  const baseChance = upkeepScore > 0 ? HAULING_WEAR_CHANCE : BASE_WEAR_CHANCE;
+  const haulingActive = upkeepScore > 0;
   const conditionChance = currentDamage >= 50 ? 8 : currentDamage >= 20 ? 5 : 0;
-  const chance = Math.min(40, baseChance + conditionChance);
+  const chance = haulingActive ? Math.min(40, HAULING_WEAR_CHANCE + conditionChance) : 100;
   const wearRoll = deterministicRoll(`${save.saveId}_wear_${save.dayState.dayNumber}`, 100);
-  if (wearRoll >= chance) return { damageAdded: 0, chance, summary: `No routine ranch wear occurred.` };
-  const damageAdded = currentDamage >= 50 ? 3 : currentDamage >= 20 ? 2 : 1;
-  return { damageAdded, chance, summary: `Routine ranch wear added ${damageAdded} damage. Field Hauling lowers this chance and can repair damage overnight.` };
+  if (haulingActive && wearRoll >= chance) return { damageAdded: 0, chance, summary: `No routine ranch wear occurred.` };
+  const baseDamage = currentDamage >= 50 ? 3 : currentDamage >= 20 ? 2 : 1;
+  const damageAdded = haulingActive ? baseDamage : Math.min(4, baseDamage + (currentDamage >= 20 ? 1 : 0));
+  const summary = haulingActive ? `Routine ranch wear added ${damageAdded} damage despite active upkeep. Field Hauling can still repair damage overnight.` : `Daily ranch wear added ${damageAdded} damage because no Field Hauling crew was assigned.`;
+  return { damageAdded, chance, summary };
 }
 
 export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, creatureId: CreatureId | null): RanchJobAssignmentResult {
@@ -254,6 +257,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         m14RanchEventLog: true,
         m15RanchDangerBalance: true,
         m15RanchWearEnabled: true,
+        m15RanchGuaranteedWear: true,
         m14RanchConditionPenalties: conditionPenalty.energyPenalty > 0 || conditionPenalty.affectionPenalty < 0 || save.flags.m14RanchConditionPenalties === true,
         ranchEventLog: buildRanchEventLog(save, logEntries),
         ranchFeedStock: remainingFeed,
