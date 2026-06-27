@@ -9,6 +9,7 @@ import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
+import { RanchPlotNavigator } from "@/features/ranch/RanchPlotNavigator";
 import { RanchJobsScreen } from "@/features/ranch-jobs/RanchJobsScreen";
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
 import { TownScreen } from "@/features/town/TownScreen";
@@ -37,7 +38,7 @@ export function GameRoot() {
     );
   }
 
-  if (appScreen === "ranch-hub") return <RanchHubScreen />;
+  if (appScreen === "ranch-hub") return <><RanchHubScreen /><RanchPlotNavigator /></>;
   if (appScreen === "habitat") return <HabitatScreen />;
   if (appScreen === "breeding") return <BreedingScreen />;
   if (appScreen === "nursery") return <NurseryScreen />;
