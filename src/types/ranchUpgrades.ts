@@ -1,6 +1,6 @@
 import type { GameSave } from "./save";
 
-export type RanchUpgradeCategory = "habitats" | "nursery" | "breeding" | "recovery" | "ledger";
+export type RanchUpgradeCategory = "habitats" | "nursery" | "breeding" | "chores" | "recovery" | "ledger";
 
 export type RanchUpgradeId =
   | "feline_habitat_capacity"
@@ -9,7 +9,9 @@ export type RanchUpgradeId =
   | "lapine_habitat_capacity"
   | "equine_habitat_capacity"
   | "nursery_egg_capacity"
+  | "nursery_incubation_speed"
   | "breeding_pen_comfort"
+  | "ranch_chores_board"
   | "sleep_recovery";
 
 export type RanchUpgradeState = Record<RanchUpgradeId, number>;
@@ -39,9 +41,13 @@ export type RanchUpgradeEffects = {
   lapineCapacity: number;
   equineCapacity: number;
   nurseryEggCapacity: number;
+  nurseryPregnancyDays: number;
+  nurseryEggDays: number;
   breedingPregnancyBonus: number;
   breedingXpBonus: number;
   breedingEnergyDiscount: number;
+  ranchChoreEnergyDiscount: number;
+  ranchChoreScoreBonus: number;
   sleepCreatureEnergyBonus: number;
   sleepAffectionBonus: number;
 };
