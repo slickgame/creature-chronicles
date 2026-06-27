@@ -15,7 +15,7 @@ import { TownScreen } from "@/features/town/TownScreen";
 import { useGameContext } from "@/state/GameProvider";
 
 export function GameRoot() {
-  const { appScreen, currentSave, goToMainMenu, version } = useGameContext();
+  const { appScreen, currentSave, exitRunToMainMenu, version } = useGameContext();
 
   if (currentSave?.flags.badEnding === true) {
     return (
@@ -30,7 +30,7 @@ export function GameRoot() {
             <div style={{ padding: 10, background: "rgba(0, 0, 0, 0.35)", borderRadius: 10 }}><span>Shortage</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxShortageAmount ?? 0)} Gold</strong></div>
           </div>
           <p style={{ color: "#e7c991" }}>Keep enough Gold before Day 30 ends to survive the monthly collector check.</p>
-          <button type="button" onClick={goToMainMenu} style={{ minHeight: 42, padding: "10px 18px", border: "2px solid #1c120e", borderRadius: 10, background: "linear-gradient(#fff4c9, #dca755)", color: "#241713", fontWeight: 900 }}>Return to Main Menu</button>
+          <button type="button" onClick={exitRunToMainMenu} style={{ minHeight: 42, padding: "10px 18px", border: "2px solid #1c120e", borderRadius: 10, background: "linear-gradient(#fff4c9, #dca755)", color: "#241713", fontWeight: 900 }}>Return to Main Menu</button>
           <footer style={{ marginTop: 18, opacity: 0.75 }}>{version}</footer>
         </section>
       </main>
