@@ -59,3 +59,159 @@ section[class*="ranchFrame"] {
   min-height: 100dvh !important;
   border-radius: 0 !important;
 }
+
+section[aria-label*="pair preview"] {
+  grid-template-rows: auto auto minmax(300px, 1fr) auto auto auto !important;
+  overflow: visible !important;
+}
+
+section[aria-label*="pair preview"] > div[class*="pairCards"] {
+  grid-template-columns: repeat(2, minmax(230px, 360px)) !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  min-height: 300px !important;
+  height: clamp(300px, 38vh, 410px) !important;
+}
+
+section[aria-label*="pair preview"] article[class*="miniCard"] {
+  height: 100% !important;
+  border: 2px solid rgba(245, 201, 128, 0.48) !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(242, 184, 75, 0.18), transparent 58%),
+    linear-gradient(180deg, rgba(255, 247, 221, 0.06), rgba(0, 0, 0, 0.32)) !important;
+}
+
+section[aria-label*="pair preview"] img[class*="previewProfileArt"] {
+  max-height: 285px !important;
+  filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.55)) !important;
+}
+
+section[aria-label*="pair preview"] > section:not([class]) {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 201, 128, 0.34);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+section[aria-label*="pair preview"] > section:not([class]) > strong {
+  color: #fff7dd;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.7);
+}
+
+section[aria-label*="pair preview"] > section:not([class]) > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+section[aria-label*="pair preview"] > section:not([class]) button {
+  min-height: 32px;
+  padding: 6px 11px;
+  border: 2px solid rgba(86, 199, 255, 0.5);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e9fbff, #7fdbff);
+  color: #10202a;
+  font-size: 0.78rem;
+  font-weight: 950;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.34), 0 0 18px rgba(86, 199, 255, 0.12);
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] {
+  overflow: visible !important;
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] > div[title] {
+  position: relative;
+  padding-right: 30px !important;
+  outline: none;
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] > div[title]::before {
+  content: "?";
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(127, 219, 255, 0.18);
+  color: #dff6ff;
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] > div[title]::after {
+  content: attr(title);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  z-index: 30;
+  width: max-content;
+  max-width: 260px;
+  transform: translate(-50%, 6px) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  padding: 10px 12px;
+  border: 2px solid rgba(245, 201, 128, 0.72);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(42, 24, 16, 0.98), rgba(12, 8, 7, 0.98));
+  color: #fff7dd;
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.3;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 244, 201, 0.08) inset;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] > div[title]:hover::after {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div > button:not([class]) {
+  width: fit-content;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 2px solid rgba(245, 201, 128, 0.55);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 201, 0.98), rgba(216, 162, 80, 0.98)),
+    radial-gradient(circle at left, rgba(127, 219, 255, 0.3), transparent 62%);
+  color: #21130f;
+  font-weight: 950;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.34), 0 0 18px rgba(242, 184, 75, 0.14);
+}
+
+section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div > button:not([class]):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+@media (max-width: 1100px) {
+  section[aria-label*="pair preview"] > div[class*="pairCards"] {
+    grid-template-columns: repeat(2, minmax(220px, 1fr)) !important;
+    height: 320px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  section[aria-label*="pair preview"] > div[class*="pairCards"],
+  section[aria-label*="pair preview"] > div[class*="formulaGrid"] + div {
+    grid-template-columns: 1fr !important;
+  }
+}
