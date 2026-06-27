@@ -1,11 +1,11 @@
 import type { BreedingState } from "./breeding";
+import type { CreatureAbility, CreatureLineageRisk, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "./creature";
 import type { GuildState } from "./guild";
+import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
 import type { MarketState } from "./market";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
 import type { TownUpgradeState } from "./upgrades";
-import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
-import type { CreatureAbility, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "./creature";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
@@ -23,28 +23,9 @@ export type PlayerProfile = {
   maxHearts: number;
 };
 
-export type Currencies = {
-  gold: number;
-  guildPoints: number;
-  energy: number;
-  maxEnergy: number;
-};
-
-export type DayState = {
-  dayNumber: number;
-  weekday: Weekday;
-  month: number;
-  dayOfMonth: number;
-  weekNumber: number;
-};
-
-export type SettingsState = {
-  musicVolume: number;
-  sfxVolume: number;
-  textSpeed: "slow" | "normal" | "fast" | "instant";
-  devMode: boolean;
-};
-
+export type Currencies = { gold: number; guildPoints: number; energy: number; maxEnergy: number };
+export type DayState = { dayNumber: number; weekday: Weekday; month: number; dayOfMonth: number; weekNumber: number };
+export type SettingsState = { musicVolume: number; sfxVolume: number; textSpeed: "slow" | "normal" | "fast" | "instant"; devMode: boolean };
 export type NurseryRecordStatus = "incubating" | "ready" | "hatched";
 export type PregnancyStatus = "pregnant" | "delivered";
 
@@ -64,6 +45,11 @@ export type InheritancePreview = {
   projectedAbilities: CreatureAbility[];
   statRollNotes: string[];
   abilityRollNotes: string[];
+  lineageRisk: CreatureLineageRisk;
+  lineageRiskLabel: string;
+  lineageNotes: string[];
+  lineageTraits: string[];
+  suggestedName: string;
 };
 
 export type PregnancyRecord = {
@@ -90,15 +76,17 @@ export type EggRecord = {
   speciesId: SpeciesId;
   variantId: VariantId;
   habitatId: HabitatId;
-  parents: {
-    giver: ParentSnapshot;
-    receiver: ParentSnapshot;
-  };
+  parents: { giver: ParentSnapshot; receiver: ParentSnapshot };
   projectedStats: CreatureStats;
   projectedStatGrades: StatGrades;
   projectedAbilities: CreatureAbility[];
   statRollNotes: string[];
   abilityRollNotes: string[];
+  lineageRisk: CreatureLineageRisk;
+  lineageRiskLabel: string;
+  lineageNotes: string[];
+  lineageTraits: string[];
+  suggestedName: string;
 };
 
 export type GameSave = {
@@ -107,16 +95,13 @@ export type GameSave = {
   slotIndex: number;
   createdAt: string;
   updatedAt: string;
-
   player: PlayerProfile;
   currencies: Currencies;
   dayState: DayState;
   settings: SettingsState;
-
   creatureIds: CreatureId[];
   eggIds: EggId[];
   habitatIds: HabitatId[];
-
   creatures?: CreatureRecord[];
   habitats?: HabitatRecord[];
   breeding?: BreedingState;
@@ -127,7 +112,6 @@ export type GameSave = {
   townUpgrades?: TownUpgradeState;
   ranchUpgrades?: RanchUpgradeState;
   ranchJobs?: RanchJobsState;
-
   flags: Record<string, boolean | number | string>;
 };
 
