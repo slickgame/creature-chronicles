@@ -17,6 +17,7 @@ export const RANCH_JOB_ASSETS = {
 } as const;
 
 const MAX_CREATURES_PER_CHORE = 3;
+const MAX_RANCH_EVENT_LOG_ENTRIES = 50;
 
 export const RANCH_JOB_IDS: RanchJobId[] = ["security_patrol", "comfort_care", "stable_production", "garden_tending", "field_hauling"];
 
@@ -63,7 +64,7 @@ function calculateCreatureChoreScore(creature: CreatureRecord, job: RanchJobDefi
   const statBonus = statAverage / 6;
   return Math.max(1, Math.round((statBonus + levelBonus + affectionBonus + abilityBonus) * 10) / 10);
 }
-function getJobProvisionOutput(jobId: RanchJobId, score: number): number { if (jobId === "stable_production") return Math.max(1, Math.floor(3 + score)); if (jobId === "garden_tending") return Math.max(1, Math.floor(1 + score * 0.75)); return 0; }
+function getJobProvisionOutput(jobId: RanchJobId, score: number): number { if (jobId === "stable_production") return Math.max(1, Math.floor(5 + score)); if (jobId === "garden_tending") return Math.max(1, Math.floor(2 + score)); return 0; }
 function getJobMaterialOutput(jobId: RanchJobId, score: number): number { if (jobId === "field_hauling") return Math.max(1, Math.floor(1 + score * 0.65)); return 0; }
 function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number, materialOutput: number, score: number): string {
   if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security score +${Math.round(score)}.`;
@@ -82,6 +83,9 @@ function getConditionRecoveryPenalty(damage: number): { energyPenalty: number; a
   return { energyPenalty: 0, affectionPenalty: 0, summary: "Ranch condition caused no recovery penalty." };
 }
 function getInjurySeverity(seed: string): { label: CreatureInjurySeverity; days: number } { const roll = deterministicRoll(seed, 100); if (roll >= 85) return { label: "Badly Hurt", days: 3 }; if (roll >= 45) return { label: "Wounded", days: 2 }; return { label: "Bruised", days: 1 }; }
+function readRanchEventLog(save: GameSave): string[] { try { const parsed = JSON.parse(String(save.flags.ranchEventLog ?? "[]")); return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : []; } catch { return []; } }
+function buildRanchEventLog(save: GameSave, entries: string[]): string { const nextEntries = entries.filter(Boolean); return JSON.stringify([...nextEntries, ...readRanchEventLog(save)].slice(0, MAX_RANCH_EVENT_LOG_ENTRIES)); }
+function dayLog(save: GameSave, message: string): string { return `Day ${save.dayState.dayNumber}: ${message}`; }
 
 type SecurityEventResult = { creatures: CreatureRecord[]; eggs: EggRecord[]; summary: string; eventType: string; dangerChance: number; success: boolean; damageAdded: number };
 function resolveSecurityEvent(save: GameSave, creatures: CreatureRecord[], eggs: EggRecord[], securityScore: number): SecurityEventResult {
@@ -196,6 +200,13 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const feedingSummary = feedRequired <= 0 ? "No creatures needed feed today." : foodStatus === "Fed" ? `Ranch provisions covered daily feed: ${feedConsumed}/${feedRequired} Feed consumed.` : foodStatus === "Short" ? `Food shortage: ${feedConsumed}/${feedRequired} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.` : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`;
   const haulingSummary = producedMaterials > 0 ? `Field Hauling added ${producedMaterials} Materials. Ranch material stock is now ${remainingMaterials}.` : "No new ranch materials were hauled today.";
   const upkeepSummary = repairedDamage > 0 ? `Field Hauling repaired ${repairedDamage} ranch damage. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).` : securityEvent.damageAdded > 0 ? `No upkeep repairs were completed. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).` : `No new damage required repairs. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).`;
+  const logEntries = [
+    ...results.map((result) => dayLog(save, result.message)),
+    dayLog(save, feedingSummary),
+    dayLog(save, securityEvent.summary),
+    dayLog(save, upkeepSummary),
+    producedMaterials > 0 ? dayLog(save, haulingSummary) : "",
+  ];
   const fedCreatures = creaturesAfterSecurity.map((creature) => {
     const maxEnergy = creature.maxEnergy ?? creature.energy;
     const targetEnergy = Math.floor(maxEnergy * creatureEnergyRatio);
@@ -217,7 +228,9 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         m14SecurityEventsEnabled: true,
         m14FieldHaulingMaterials: producedMaterials > 0 || save.flags.m14FieldHaulingMaterials === true,
         m14RanchDamageEnabled: true,
+        m14RanchEventLog: true,
         m14RanchConditionPenalties: conditionPenalty.energyPenalty > 0 || conditionPenalty.affectionPenalty < 0 || save.flags.m14RanchConditionPenalties === true,
+        ranchEventLog: buildRanchEventLog(save, logEntries),
         ranchFeedStock: remainingFeed,
         ranchFeedProducedToday: producedFeed,
         ranchFeedRequiredToday: feedRequired,
