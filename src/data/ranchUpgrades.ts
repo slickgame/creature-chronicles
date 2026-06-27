@@ -8,12 +8,14 @@ import type {
   RanchUpgradeState,
 } from "@/types/ranchUpgrades";
 
-export const BASE_FELINE_CAPACITY = 6;
-export const BASE_CANINE_CAPACITY = 6;
-export const BASE_BOVINE_CAPACITY = 6;
-export const BASE_LAPINE_CAPACITY = 6;
-export const BASE_EQUINE_CAPACITY = 6;
-export const BASE_NURSERY_EGG_CAPACITY = 6;
+export const BASE_FELINE_CAPACITY = 4;
+export const BASE_CANINE_CAPACITY = 4;
+export const BASE_BOVINE_CAPACITY = 4;
+export const BASE_LAPINE_CAPACITY = 4;
+export const BASE_EQUINE_CAPACITY = 4;
+export const BASE_NURSERY_EGG_CAPACITY = 2;
+export const BASE_PREGNANCY_DAYS = 3;
+export const BASE_EGG_INCUBATION_DAYS = 6;
 export const RANCH_REPAIR_MATERIAL_COST = 5;
 export const RANCH_REPAIR_DAMAGE_AMOUNT = 20;
 
@@ -24,7 +26,9 @@ export const DEFAULT_RANCH_UPGRADES: RanchUpgradeState = {
   lapine_habitat_capacity: 0,
   equine_habitat_capacity: 0,
   nursery_egg_capacity: 0,
+  nursery_incubation_speed: 0,
   breeding_pen_comfort: 0,
+  ranch_chores_board: 0,
   sleep_recovery: 0,
 };
 
@@ -40,6 +44,7 @@ export const RANCH_UPGRADE_ASSETS = {
   equineHabitat: "/images/buildings/ranch/equine_habitat.png",
   nurseryUpgrade: "/images/ui/icons/icon_nursery_upgrade.png",
   breedingPenUpgrade: "/images/ui/icons/icon_breeding_pen_upgrade.png",
+  choresBoard: "/images/ui/icons/icon_ranch_upgrade.png",
   ranchLedger: "/images/ui/icons/icon_ranch_ledger.png",
   sleepRecovery: "/images/ui/icons/icon_sleep_recovery.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
@@ -54,24 +59,36 @@ const habitatTiers = [
 ] as const;
 
 export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
-  { upgradeId: "feline_habitat_capacity", category: "habitats", name: "Feline Habitat Expansion", description: "Adds more comfortable space for feline-family creatures. Feline upgrades support future comfort, affection, and quality-breeding systems.", iconPath: RANCH_UPGRADE_ASSETS.felineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Feline capacity") })) },
+  { upgradeId: "feline_habitat_capacity", category: "habitats", name: "Feline Habitat Expansion", description: "Adds more comfortable space for feline-family creatures. Base habitats are intentionally tight, so expansion matters once the ranch grows.", iconPath: RANCH_UPGRADE_ASSETS.felineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Feline capacity") })) },
   { upgradeId: "canine_habitat_capacity", category: "habitats", name: "Canine Habitat Expansion", description: "Adds more sturdy lodge space for canine-family creatures. Canine upgrades support future security, patrol, and protection systems.", iconPath: RANCH_UPGRADE_ASSETS.canineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Canine capacity") })) },
-  { upgradeId: "bovine_habitat_capacity", category: "habitats", name: "Bovine Habitat Expansion", description: "Adds stable and pasture space for bovine-family creatures. This prepares Cow, Minotaur, and Moon Yak lines for future production, heavy labor, and ranch-income systems.", iconPath: RANCH_UPGRADE_ASSETS.bovineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Bovine capacity") })) },
-  { upgradeId: "lapine_habitat_capacity", category: "habitats", name: "Lapine Habitat Expansion", description: "Adds burrow, garden, and hutch space for lapine-family creatures. This prepares Bunny, Antlerhare, and Dream Lop lines for future fertility, garden, nursery, and comfort systems.", iconPath: RANCH_UPGRADE_ASSETS.lapineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Lapine capacity") })) },
-  { upgradeId: "equine_habitat_capacity", category: "habitats", name: "Equine Habitat Expansion", description: "Adds stall, paddock, and field space for equine-family creatures. This prepares Horse, Unicorn, Nightmare, and future travel or field creatures for hauling, field-management, and security systems.", iconPath: RANCH_UPGRADE_ASSETS.equineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Equine capacity") })) },
-  { upgradeId: "nursery_egg_capacity", category: "nursery", name: "Nursery Egg Capacity", description: "Adds more incubator space for eggs waiting to hatch. Useful once breeding becomes a regular part of your loop.", iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade, maxTier: 4, tiers: [
+  { upgradeId: "bovine_habitat_capacity", category: "habitats", name: "Bovine Habitat Expansion", description: "Adds stable and pasture space for bovine-family creatures. Production lines need space before the feed economy can really scale.", iconPath: RANCH_UPGRADE_ASSETS.bovineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Bovine capacity") })) },
+  { upgradeId: "lapine_habitat_capacity", category: "habitats", name: "Lapine Habitat Expansion", description: "Adds burrow, garden, and hutch space for lapine-family creatures. This supports fertility, garden, nursery, and comfort systems.", iconPath: RANCH_UPGRADE_ASSETS.lapineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Lapine capacity") })) },
+  { upgradeId: "equine_habitat_capacity", category: "habitats", name: "Equine Habitat Expansion", description: "Adds stall, paddock, and field space for equine-family creatures. This supports hauling, field management, and travel work.", iconPath: RANCH_UPGRADE_ASSETS.equineHabitat, maxTier: 4, tiers: habitatTiers.map((tier) => ({ ...tier, effectLabel: tier.effectLabel.replace("capacity", "Equine capacity") })) },
+  { upgradeId: "nursery_egg_capacity", category: "nursery", name: "Nursery Egg Capacity", description: "Adds more incubator space. The base nursery is deliberately cramped, so a serious breeding ranch needs more slots.", iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade, maxTier: 4, tiers: [
     { tier: 1, costGold: 450, effectLabel: "+1 egg slot" },
     { tier: 2, costGold: 900, costGp: 12, costMaterials: 4, effectLabel: "+2 total egg slots" },
     { tier: 3, costGold: 1600, costGp: 28, costMaterials: 7, effectLabel: "+4 total egg slots" },
     { tier: 4, costGold: 2800, costGp: 60, costMaterials: 12, effectLabel: "+6 total egg slots" },
   ] },
-  { upgradeId: "breeding_pen_comfort", category: "breeding", name: "Breeding Pen Comfort", description: "Improves breeding efficiency with better bedding, privacy, and comfort fixtures. This is a mid-game upgrade, not required for basic breeding.", iconPath: RANCH_UPGRADE_ASSETS.breedingPenUpgrade, maxTier: 4, tiers: [
-    { tier: 1, costGold: 650, effectLabel: "+2 creature XP from breeding" },
-    { tier: 2, costGold: 1100, costGp: 18, costMaterials: 5, effectLabel: "+3% pregnancy chance and +2 XP" },
-    { tier: 3, costGold: 1800, costGp: 38, costMaterials: 8, effectLabel: "+3% chance, +2 XP, -3 energy cost" },
-    { tier: 4, costGold: 3100, costGp: 80, costMaterials: 14, effectLabel: "+8% chance, +7 XP, -3 energy cost" },
+  { upgradeId: "nursery_incubation_speed", category: "nursery", name: "Nursery Incubators", description: "Improves pregnancy care and egg warmth. Base pregnancy and hatching timers are slow until the nursery is upgraded.", iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade, maxTier: 4, tiers: [
+    { tier: 1, costGold: 600, costMaterials: 3, effectLabel: "Egg incubation reduced to 5 days" },
+    { tier: 2, costGold: 1150, costGp: 12, costMaterials: 6, effectLabel: "Pregnancy 2 days, egg incubation 4 days" },
+    { tier: 3, costGold: 1900, costGp: 32, costMaterials: 10, effectLabel: "Pregnancy 2 days, egg incubation 3 days" },
+    { tier: 4, costGold: 3200, costGp: 75, costMaterials: 16, effectLabel: "Pregnancy 1 day, egg incubation 2 days" },
   ] },
-  { upgradeId: "sleep_recovery", category: "recovery", name: "Ranch Sleep Recovery", description: "Improves overnight recovery and makes the ranch feel more restful. This is a convenience upgrade, not mandatory upkeep.", iconPath: RANCH_UPGRADE_ASSETS.sleepRecovery, maxTier: 4, tiers: [
+  { upgradeId: "breeding_pen_comfort", category: "breeding", name: "Breeding Pen Comfort", description: "Improves breeding efficiency with better bedding, privacy, and comfort fixtures. Base breeding is expensive and unreliable until this is improved.", iconPath: RANCH_UPGRADE_ASSETS.breedingPenUpgrade, maxTier: 4, tiers: [
+    { tier: 1, costGold: 650, effectLabel: "+5% pregnancy chance, +2 XP, -4 energy cost" },
+    { tier: 2, costGold: 1100, costGp: 18, costMaterials: 5, effectLabel: "+10% pregnancy chance, +4 XP, -8 energy cost" },
+    { tier: 3, costGold: 1800, costGp: 38, costMaterials: 8, effectLabel: "+16% pregnancy chance, +6 XP, -14 energy cost" },
+    { tier: 4, costGold: 3100, costGp: 80, costMaterials: 14, effectLabel: "+25% pregnancy chance, +10 XP, -22 energy cost" },
+  ] },
+  { upgradeId: "ranch_chores_board", category: "chores", name: "Ranch Chores Board", description: "Upgrades tools, route planning, and chore organization. Base chores are tiring; the board makes daily work cheaper and more productive.", iconPath: RANCH_UPGRADE_ASSETS.choresBoard, maxTier: 4, tiers: [
+    { tier: 1, costGold: 500, costMaterials: 3, effectLabel: "-2 chore energy cost, +1 chore score" },
+    { tier: 2, costGold: 950, costGp: 10, costMaterials: 6, effectLabel: "-4 chore energy cost, +2 chore score" },
+    { tier: 3, costGold: 1700, costGp: 26, costMaterials: 9, effectLabel: "-7 chore energy cost, +3 chore score" },
+    { tier: 4, costGold: 2900, costGp: 55, costMaterials: 14, effectLabel: "-10 chore energy cost, +4 chore score" },
+  ] },
+  { upgradeId: "sleep_recovery", category: "recovery", name: "Ranch Sleep Recovery", description: "Improves overnight recovery and makes the ranch feel more restful. This offsets the harsher base energy economy.", iconPath: RANCH_UPGRADE_ASSETS.sleepRecovery, maxTier: 4, tiers: [
     { tier: 1, costGold: 300, effectLabel: "+5 bonus creature energy after sleep" },
     { tier: 2, costGold: 750, costMaterials: 3, effectLabel: "+10 bonus creature energy after sleep" },
     { tier: 3, costGold: 1400, costGp: 24, costMaterials: 6, effectLabel: "+10 energy and +1 affection after sleep" },
@@ -81,9 +98,13 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
 
 const habitatCapacityBonusByTier = [0, 1, 2, 4, 6];
 const nurseryCapacityBonusByTier = [0, 1, 2, 4, 6];
-const breedingChanceBonusByTier = [0, 0, 3, 3, 8];
-const breedingXpBonusByTier = [0, 2, 2, 2, 7];
-const breedingEnergyDiscountByTier = [0, 0, 0, 3, 3];
+const nurseryPregnancyDaysByTier = [BASE_PREGNANCY_DAYS, 3, 2, 2, 1];
+const nurseryEggDaysByTier = [BASE_EGG_INCUBATION_DAYS, 5, 4, 3, 2];
+const breedingChanceBonusByTier = [0, 5, 10, 16, 25];
+const breedingXpBonusByTier = [0, 2, 4, 6, 10];
+const breedingEnergyDiscountByTier = [0, 4, 8, 14, 22];
+const choreEnergyDiscountByTier = [0, 2, 4, 7, 10];
+const choreScoreBonusByTier = [0, 1, 2, 3, 4];
 const sleepEnergyBonusByTier = [0, 5, 10, 10, 15];
 const sleepAffectionBonusByTier = [0, 0, 0, 1, 2];
 const MAX_RANCH_EVENT_LOG_ENTRIES = 50;
@@ -108,7 +129,9 @@ export function getRanchUpgradeEffects(save: GameSave): RanchUpgradeEffects {
   const lapineTier = upgrades.lapine_habitat_capacity;
   const equineTier = upgrades.equine_habitat_capacity;
   const nurseryTier = upgrades.nursery_egg_capacity;
+  const incubationTier = upgrades.nursery_incubation_speed;
   const breedingTier = upgrades.breeding_pen_comfort;
+  const choresTier = upgrades.ranch_chores_board;
   const sleepTier = upgrades.sleep_recovery;
   return {
     felineCapacity: getHabitatCapacity(BASE_FELINE_CAPACITY, felineTier),
@@ -117,9 +140,13 @@ export function getRanchUpgradeEffects(save: GameSave): RanchUpgradeEffects {
     lapineCapacity: getHabitatCapacity(BASE_LAPINE_CAPACITY, lapineTier),
     equineCapacity: getHabitatCapacity(BASE_EQUINE_CAPACITY, equineTier),
     nurseryEggCapacity: BASE_NURSERY_EGG_CAPACITY + (nurseryCapacityBonusByTier[nurseryTier] ?? 0),
+    nurseryPregnancyDays: nurseryPregnancyDaysByTier[incubationTier] ?? BASE_PREGNANCY_DAYS,
+    nurseryEggDays: nurseryEggDaysByTier[incubationTier] ?? BASE_EGG_INCUBATION_DAYS,
     breedingPregnancyBonus: breedingChanceBonusByTier[breedingTier] ?? 0,
     breedingXpBonus: breedingXpBonusByTier[breedingTier] ?? 0,
     breedingEnergyDiscount: breedingEnergyDiscountByTier[breedingTier] ?? 0,
+    ranchChoreEnergyDiscount: choreEnergyDiscountByTier[choresTier] ?? 0,
+    ranchChoreScoreBonus: choreScoreBonusByTier[choresTier] ?? 0,
     sleepCreatureEnergyBonus: sleepEnergyBonusByTier[sleepTier] ?? 0,
     sleepAffectionBonus: sleepAffectionBonusByTier[sleepTier] ?? 0,
   };
@@ -151,24 +178,7 @@ export function repairRanchDamage(save: GameSave): RanchUpgradePurchaseResult {
   const remainingMaterials = materialsStock - RANCH_REPAIR_MATERIAL_COST;
   const conditionLabel = getRanchConditionLabelFromDamage(nextDamage);
   const logEntry = `Day ${save.dayState.dayNumber}: Manual repair fixed ${repairedDamage} ranch damage for ${RANCH_REPAIR_MATERIAL_COST} Materials. Condition is ${conditionLabel}.`;
-  return {
-    save: {
-      ...save,
-      updatedAt: new Date().toISOString(),
-      flags: {
-        ...save.flags,
-        ranchDamage: nextDamage,
-        ranchConditionToday: conditionLabel,
-        ranchMaterialsStock: remainingMaterials,
-        ranchManualRepairUsed: true,
-        ranchManualRepairAmountLast: repairedDamage,
-        ranchManualRepairCostLast: RANCH_REPAIR_MATERIAL_COST,
-        ranchEventLog: appendRanchEventLog(save, logEntry),
-      },
-    },
-    ok: true,
-    message: `Repairs completed: -${repairedDamage} ranch damage for ${RANCH_REPAIR_MATERIAL_COST} Materials. Ranch condition is now ${conditionLabel} (${nextDamage}/100 damage).`,
-  };
+  return { save: { ...save, updatedAt: new Date().toISOString(), flags: { ...save.flags, ranchDamage: nextDamage, ranchConditionToday: conditionLabel, ranchMaterialsStock: remainingMaterials, ranchManualRepairUsed: true, ranchManualRepairAmountLast: repairedDamage, ranchManualRepairCostLast: RANCH_REPAIR_MATERIAL_COST, ranchEventLog: appendRanchEventLog(save, logEntry) } }, ok: true, message: `Repairs completed: -${repairedDamage} ranch damage for ${RANCH_REPAIR_MATERIAL_COST} Materials. Ranch condition is now ${conditionLabel} (${nextDamage}/100 damage).` };
 }
 
 export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId): RanchUpgradePurchaseResult {
@@ -186,7 +196,7 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
   const remainingGold = save.currencies.gold - nextTier.costGold;
   const remainingGp = save.currencies.guildPoints - costGp;
   const remainingMaterials = materialsStock - costMaterials;
-  const nextSave = applyRanchUpgradeEffectsToHabitats({ ...save, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: remainingGold, guildPoints: remainingGp }, ranchUpgrades: { ...upgrades, [upgradeId]: nextTier.tier }, flags: { ...save.flags, ranchMaterialsStock: remainingMaterials, m11RanchOfficeUsed: true, m11RanchUpgradePurchased: true, m125BalancePass: true, m135M13HabitatUpgradePurchased: true, m14MaterialsSpentOnUpgrade: costMaterials > 0 || save.flags.m14MaterialsSpentOnUpgrade === true } });
+  const nextSave = applyRanchUpgradeEffectsToHabitats({ ...save, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: remainingGold, guildPoints: remainingGp }, ranchUpgrades: { ...upgrades, [upgradeId]: nextTier.tier }, flags: { ...save.flags, ranchMaterialsStock: remainingMaterials, m11RanchOfficeUsed: true, m11RanchUpgradePurchased: true, m125BalancePass: true, m135M13HabitatUpgradePurchased: definition.category === "habitats" || save.flags.m135M13HabitatUpgradePurchased === true, m14MaterialsSpentOnUpgrade: costMaterials > 0 || save.flags.m14MaterialsSpentOnUpgrade === true, m16RanchConstruction: true, m16RanchUpgradePurchased: true } });
   return { save: nextSave, ok: true, message: `${definition.name} upgraded from Tier ${currentTier} to Tier ${nextTier.tier}. ${nextTier.effectLabel}. Ranch effects applied immediately.`, summary: { upgradeId, upgradeName: definition.name, category: definition.category, oldTier: currentTier, newTier: nextTier.tier, effectLabel: nextTier.effectLabel, costGold: nextTier.costGold, costGp, costMaterials, remainingGold, remainingGp, remainingMaterials, immediateEffectLabel: "Ranch effects applied immediately." } };
 }
 
@@ -194,6 +204,7 @@ export function getRanchUpgradeCategoryLabel(category: RanchUpgradeDefinition["c
   if (category === "habitats") return "Habitat Upgrades";
   if (category === "nursery") return "Nursery Upgrades";
   if (category === "breeding") return "Breeding Pen";
+  if (category === "chores") return "Chores Board";
   if (category === "recovery") return "Sleep Recovery";
   return "Ranch Ledger";
 }
