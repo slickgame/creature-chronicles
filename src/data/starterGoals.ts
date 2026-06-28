@@ -63,11 +63,13 @@ function getRewardLabel(reward: StarterGoalReward): string {
 function buildGoal(save: GameSave, goal: Omit<StarterGoal, "reward" | "rewardLabel" | "rewardClaimed">): StarterGoal {
   const reward = STARTER_GOAL_REWARDS[goal.id] ?? {};
   const rewardLabel = getRewardLabel(reward);
-  return { ...goal, description: `${goal.description} Reward: ${rewardLabel}.`, reward, rewardLabel, rewardClaimed: isRewardClaimed(save, goal.id) };
+  const rewardClaimed = isRewardClaimed(save, goal.id);
+  return { ...goal, complete: goal.complete || rewardClaimed, description: `${goal.description} Reward: ${rewardLabel}.`, reward, rewardLabel, rewardClaimed };
 }
 
 function hasJobAssignment(save: GameSave, jobId: string): boolean {
-  const assigned = save.ranchJobs?.assignments?.[jobId as keyof typeof save.ranchJobs.assignments];
+  const assignments = save.ranchJobs?.assignments as Record<string, string[] | undefined> | undefined;
+  const assigned = assignments?.[jobId];
   return Array.isArray(assigned) && assigned.length > 0;
 }
 
@@ -118,7 +120,7 @@ export function applyStarterGoalRewards(save: GameSave): GameSave {
   let nextGuildPoints = save.currencies.guildPoints;
   let nextFeed = getFlagNumber(save.flags.ranchFeedStock);
   let nextMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
-  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true };
+  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true, m31PersistentStarterGoals: true };
   const claimedLabels: string[] = [];
 
   for (const goal of claimableGoals) {
