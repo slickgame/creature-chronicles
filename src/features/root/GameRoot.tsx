@@ -1,6 +1,6 @@
 "use client";
 
-import { BreedingScreen } from "@/features/breeding/BreedingScreen";
+import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreen";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
@@ -40,7 +40,7 @@ export function GameRoot() {
 
   if (appScreen === "ranch-hub") return <><RanchHubScreen /><RanchPlotNavigator /></>;
   if (appScreen === "habitat") return <HabitatScreen />;
-  if (appScreen === "breeding") return <BreedingScreen />;
+  if (appScreen === "breeding") return <BreedingFocusedScreen />;
   if (appScreen === "nursery") return <NurseryScreen />;
   if (appScreen === "town") return <TownScreen />;
   if (appScreen === "market") return <MarketScreen />;
