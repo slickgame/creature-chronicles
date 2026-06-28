@@ -7,7 +7,6 @@ import { RanchAdvisorOverlay } from "@/features/ranch/RanchAdvisorOverlay";
 import { ChapterOneStoryOverlay } from "@/features/story/ChapterOneStoryOverlay";
 import { StoryImageAdminOverlay } from "@/features/story/StoryImageAdminOverlay";
 import { StoryLogOverlay } from "@/features/story/StoryLogOverlay";
-import { VeyraTrustOverlay } from "@/features/story/VeyraTrustOverlay";
 import { useGameContext } from "@/state/GameProvider";
 
 export function RanchHubOverlays() {
@@ -16,5 +15,5 @@ export function RanchHubOverlays() {
   if (appScreen === "breeding") return <SharedInfoOverlay />;
   if (appScreen === "ranch-office") return <><StoryLogOverlay /><StoryImageAdminOverlay /></>;
   if (appScreen !== "ranch-hub") return null;
-  return <><RanchAdvisorOverlay /><ChapterOneGuidePanel /><DailyReportOverlayCards /><VeyraTrustOverlay /><ChapterOneStoryOverlay /></>;
+  return <><RanchAdvisorOverlay /><ChapterOneGuidePanel /><DailyReportOverlayCards /><ChapterOneStoryOverlay /></>;
 }
