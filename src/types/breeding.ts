@@ -4,6 +4,7 @@ import type { CreatureAbility, CreatureStats, StatGrades } from "./creature";
 export type BreedingRole = "giver" | "receiver";
 export type BreedingParticipantKind = "player" | "creature";
 export type BreedingOutcomeType = "pregnancy" | "failed";
+export type BreedingSceneFamily = "player" | "feline" | "canine" | "bovine" | "lapine" | "equine" | "unknown";
 
 export type BreedingProgressionEvent = {
   participantId: string;
@@ -27,6 +28,7 @@ export type BreedingParticipant = {
   creatureId?: CreatureId;
   displayName: string;
   familyLabel: string;
+  sceneFamily: BreedingSceneFamily;
   roleTags: BreedingRole[];
   energy: number;
   maxEnergy: number;
@@ -39,6 +41,11 @@ export type BreedingParticipant = {
   stats?: CreatureStats;
   statGrades?: StatGrades;
   abilities?: CreatureAbility[];
+  isPregnant?: boolean;
+  pregnancyDaysRemaining?: number;
+  isInjured?: boolean;
+  unavailableReason?: string | null;
+  canBreed?: boolean;
   description?: string;
   portraitPath: string;
   profilePath?: string;
@@ -60,6 +67,10 @@ export type BreedingAttemptRecord = {
   dayNumber: number;
   giverId: string;
   receiverId: string;
+  giverName: string;
+  receiverName: string;
+  giverFamily: BreedingSceneFamily;
+  receiverFamily: BreedingSceneFamily;
   pregnancyChance: number;
   energyCost: number;
   heartCost: number;
@@ -69,6 +80,16 @@ export type BreedingAttemptRecord = {
   streakAfter: number;
   outcome: BreedingOutcomeType;
   resultText: string;
+  processText: string;
+  outcomeFlavorText: string;
+  receiverWasPregnant: boolean;
+  pregnancyBlockedReason?: string | null;
+  giverEnergyBefore: number;
+  giverEnergyAfter: number;
+  receiverEnergyBefore: number;
+  receiverEnergyAfter: number;
+  pairingImagePath: string;
+  outcomeImagePath: string;
   progressionEvents: BreedingProgressionEvent[];
   createdAt: string;
 };
@@ -96,4 +117,10 @@ export type BreedingPreview = {
   abilityTriggers: string[];
   canAttempt: boolean;
   blockedReason: string | null;
+  receiverCanBecomePregnant: boolean;
+  receiverPregnant: boolean;
+  pregnancyBlockedReason?: string | null;
+  giverEnergyAfter: number;
+  receiverEnergyAfter: number;
+  readinessNotes: string[];
 };
