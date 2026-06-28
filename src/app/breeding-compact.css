@@ -1,0 +1,137 @@
+/* Breeding Pen compact preview cleanup.
+   Targets stable aria/data attributes so we can clean up the middle preview without touching the CSS module class names. */
+
+section[aria-label="Breeding pair preview"] {
+  align-content: start !important;
+  grid-template-rows: auto auto auto auto auto !important;
+  gap: 8px !important;
+  overflow-y: auto !important;
+  padding-bottom: 14px !important;
+}
+
+section[aria-label="Breeding pair preview"] > h2 {
+  font-size: 1.25rem !important;
+}
+
+section[aria-label="Breeding pair preview"] > p:first-of-type {
+  font-size: 0.82rem !important;
+  line-height: 1.25 !important;
+}
+
+/* Direct div #1 is the selected pair card row. */
+section[aria-label="Breeding pair preview"] > div:nth-of-type(1) {
+  order: 2 !important;
+  height: 132px !important;
+  min-height: 132px !important;
+  gap: 8px !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(1) > article {
+  height: 132px !important;
+  min-height: 132px !important;
+  grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+  gap: 2px !important;
+  padding: 6px 8px !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(1) > article > img {
+  max-height: 70px !important;
+  width: 100% !important;
+  object-fit: contain !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(1) > article strong {
+  font-size: 0.88rem !important;
+  line-height: 1 !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(1) > article em {
+  font-size: 0.64rem !important;
+  line-height: 1.05 !important;
+}
+
+/* Direct div #3 is the action row. Move it directly under the pair cards and keep it visible. */
+section[aria-label="Breeding pair preview"] > div:nth-of-type(3) {
+  order: 3 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 8 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.75fr) !important;
+  gap: 8px !important;
+  padding: 8px !important;
+  border: 1px solid rgba(245, 201, 128, 0.32) !important;
+  border-radius: 14px !important;
+  background: rgba(10, 6, 5, 0.96) !important;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.35) !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(3) button {
+  min-height: 36px !important;
+}
+
+/* Direct div #2 is the formula grid. Make it shorter and place it after actions. */
+section[aria-label="Breeding pair preview"] > div:nth-of-type(2) {
+  order: 4 !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(2) > div {
+  min-height: 48px !important;
+  padding: 6px !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(2) span {
+  font-size: 0.56rem !important;
+}
+
+section[aria-label="Breeding pair preview"] > div:nth-of-type(2) strong {
+  font-size: 0.88rem !important;
+}
+
+/* Push warning/history/detail panels below the core controls. */
+section[aria-label="Breeding pair preview"] > section,
+section[aria-label="Breeding pair preview"] > div:not(:nth-of-type(1)):not(:nth-of-type(2)):not(:nth-of-type(3)) {
+  order: 5 !important;
+}
+
+section[aria-label="Breeding pair preview"] > section {
+  padding: 7px 9px !important;
+  gap: 8px !important;
+}
+
+section[aria-label="Breeding pair preview"] > section img {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+section[aria-label="Breeding pair preview"] > section p,
+section[aria-label="Breeding pair preview"] > section li {
+  font-size: 0.72rem !important;
+  line-height: 1.2 !important;
+}
+
+section[aria-label="Breeding pair preview"] > section ul {
+  margin-top: 2px !important;
+}
+
+@media (max-width: 1300px) {
+  section[aria-label="Breeding pair preview"] > div:nth-of-type(2) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  section[aria-label="Breeding pair preview"] > div:nth-of-type(1),
+  section[aria-label="Breeding pair preview"] > div:nth-of-type(3),
+  section[aria-label="Breeding pair preview"] > div:nth-of-type(2) {
+    grid-template-columns: 1fr !important;
+  }
+
+  section[aria-label="Breeding pair preview"] > div:nth-of-type(1),
+  section[aria-label="Breeding pair preview"] > div:nth-of-type(1) > article {
+    height: auto !important;
+    min-height: 110px !important;
+  }
+}
