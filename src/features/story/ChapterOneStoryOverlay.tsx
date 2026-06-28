@@ -1,7 +1,8 @@
 "use client";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
-import { STORY_IMAGE_PLACEHOLDERS, getNextChapterOneStoryScene, type StoryScene } from "@/data/chapterOneStory";
+import { getNextChapterOneStoryScene, type StoryScene } from "@/data/chapterOneStory";
+import { STORY_IMAGE_FALLBACK_PATH } from "@/data/storyImages";
 import { useGameContext } from "@/state/GameProvider";
 
 const backdropStyle: CSSProperties = { position: "fixed", inset: 0, zIndex: 120, display: "grid", placeItems: "center", padding: 24, background: "rgba(0,0,0,.72)", backdropFilter: "blur(5px)", pointerEvents: "auto" };
@@ -19,19 +20,19 @@ export function ChapterOneStoryOverlay() {
   const [pageIndex, setPageIndex] = useState(0);
   useEffect(() => { setPageIndex(0); }, [scene?.id]);
   if (!currentSave || appScreen !== "ranch-hub" || !scene) return null;
-  const pages = scene.pages?.length ? scene.pages : scene.lines.map((line) => ({ speaker: scene.speaker, portraitPath: scene.portraitPath, imagePath: scene.imagePath, text: line }));
+  const pages = scene.pages?.length ? scene.pages : scene.lines.map((line) => ({ speaker: scene.speaker, portraitPath: scene.portraitPath, imageId: scene.imageId, imagePath: scene.imagePath, text: line }));
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   const isFirst = pageIndex <= 0;
   const isLast = pageIndex >= pages.length - 1;
 
   function closeScene(nextAction?: "chores" | "town") {
     if (!currentSave || !scene) return;
-    saveCurrentGame({ ...currentSave, updatedAt: new Date().toISOString(), flags: { ...currentSave.flags, [scene.flag]: true, m24ChapterOneStoryBeats: true, m26PagedStoryScenes: true, chapterOneLastStoryScene: scene.id } });
+    saveCurrentGame({ ...currentSave, updatedAt: new Date().toISOString(), flags: { ...currentSave.flags, [scene.flag]: true, m24ChapterOneStoryBeats: true, m26PagedStoryScenes: true, m27StoryImageManifest: true, chapterOneLastStoryScene: scene.id } });
     if (nextAction === "chores") goToRanchJobs();
     if (nextAction === "town") goToTown();
   }
 
-  return <div style={backdropStyle} role="presentation"><section style={panelStyle} role="dialog" aria-modal="true" aria-labelledby="chapter-one-story-title"><header style={{ display: "grid", gridTemplateColumns: "76px 1fr", gap: 14, alignItems: "center" }}><img src={page.portraitPath} alt="" style={portraitStyle} /><div><p style={kickerStyle}>{getSceneKicker(scene)} • Page {pageIndex + 1}/{pages.length}</p><h2 id="chapter-one-story-title" style={{ margin: "4px 0", color: "#fff", fontSize: "clamp(1.75rem,4vw,3rem)", lineHeight: .95, textShadow: "0 3px 3px rgba(0,0,0,.72)" }}>{scene.title}</h2><span style={{ color: "#7fdbff", fontWeight: 950 }}>{page.speaker}</span></div></header><section style={{ display: "grid", gridTemplateColumns: "minmax(280px,.95fr) minmax(300px,1.05fr)", gap: 14, alignItems: "stretch" }}><div style={imagePanelStyle}><img src={page.imagePath} alt="" style={{ width: "100%", height: "100%", maxHeight: 360, objectFit: "contain", padding: 18 }} onError={(event) => { event.currentTarget.src = STORY_IMAGE_PLACEHOLDERS.completion; }} /></div><article style={{ display: "grid", gap: 10, alignContent: "center", padding: 14, border: "1px solid rgba(245,201,128,.26)", borderRadius: 16, background: "rgba(0,0,0,.24)" }}><p style={bodyStyle}>{page.text}</p>{page.caption ? <p style={{ ...kickerStyle, color: "#7fdbff" }}>{page.caption}</p> : null}</article></section><div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>{pages.map((_, index) => <span key={`${scene.id}-dot-${index}`} style={{ width: 10, height: 10, borderRadius: 999, background: index === pageIndex ? "#f5c980" : "rgba(255,247,221,.26)", border: "1px solid rgba(0,0,0,.42)" }} />)}</div><footer style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}><span style={{ color: "#e7c991", fontSize: ".78rem", fontWeight: 850 }}>{getFooterHint(scene)}</span><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" style={secondaryButtonStyle} disabled={isFirst} onClick={() => setPageIndex((value) => Math.max(0, value - 1))}>Back</button>{!isLast ? <button type="button" style={buttonStyle} onClick={() => setPageIndex((value) => Math.min(pages.length - 1, value + 1))}>Next</button> : null}{isLast && scene.kind === "intro" ? <button type="button" style={buttonStyle} onClick={() => closeScene("chores")}>Open Chore Board</button> : null}{isLast && scene.kind === "completion" ? <button type="button" style={buttonStyle} onClick={() => closeScene("town")}>Visit Town</button> : null}{isLast ? <button type="button" style={buttonStyle} onClick={() => closeScene()}>{scene.actionLabel}</button> : null}</div></footer></section></div>;
+  return <div style={backdropStyle} role="presentation"><section style={panelStyle} role="dialog" aria-modal="true" aria-labelledby="chapter-one-story-title"><header style={{ display: "grid", gridTemplateColumns: "76px 1fr", gap: 14, alignItems: "center" }}><img src={page.portraitPath} alt="" style={portraitStyle} /><div><p style={kickerStyle}>{getSceneKicker(scene)} • Page {pageIndex + 1}/{pages.length}</p><h2 id="chapter-one-story-title" style={{ margin: "4px 0", color: "#fff", fontSize: "clamp(1.75rem,4vw,3rem)", lineHeight: .95, textShadow: "0 3px 3px rgba(0,0,0,.72)" }}>{scene.title}</h2><span style={{ color: "#7fdbff", fontWeight: 950 }}>{page.speaker}</span></div></header><section style={{ display: "grid", gridTemplateColumns: "minmax(280px,.95fr) minmax(300px,1.05fr)", gap: 14, alignItems: "stretch" }}><div style={imagePanelStyle}><img src={page.imagePath} alt="" style={{ width: "100%", height: "100%", maxHeight: 360, objectFit: "contain", padding: 18 }} onError={(event) => { event.currentTarget.src = STORY_IMAGE_FALLBACK_PATH; }} /></div><article style={{ display: "grid", gap: 10, alignContent: "center", padding: 14, border: "1px solid rgba(245,201,128,.26)", borderRadius: 16, background: "rgba(0,0,0,.24)" }}><p style={bodyStyle}>{page.text}</p>{page.caption ? <p style={{ ...kickerStyle, color: "#7fdbff" }}>{page.caption}</p> : null}</article></section><div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>{pages.map((_, index) => <span key={`${scene.id}-dot-${index}`} style={{ width: 10, height: 10, borderRadius: 999, background: index === pageIndex ? "#f5c980" : "rgba(255,247,221,.26)", border: "1px solid rgba(0,0,0,.42)" }} />)}</div><footer style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "center" }}><span style={{ color: "#e7c991", fontSize: ".78rem", fontWeight: 850 }}>{getFooterHint(scene)}</span><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" style={secondaryButtonStyle} disabled={isFirst} onClick={() => setPageIndex((value) => Math.max(0, value - 1))}>Back</button>{!isLast ? <button type="button" style={buttonStyle} onClick={() => setPageIndex((value) => Math.min(pages.length - 1, value + 1))}>Next</button> : null}{isLast && scene.kind === "intro" ? <button type="button" style={buttonStyle} onClick={() => closeScene("chores")}>Open Chore Board</button> : null}{isLast && scene.kind === "completion" ? <button type="button" style={buttonStyle} onClick={() => closeScene("town")}>Visit Town</button> : null}{isLast ? <button type="button" style={buttonStyle} onClick={() => closeScene()}>{scene.actionLabel}</button> : null}</div></footer></section></div>;
 }
 
 function getSceneKicker(scene: StoryScene): string {
@@ -41,7 +42,7 @@ function getSceneKicker(scene: StoryScene): string {
 }
 
 function getFooterHint(scene: StoryScene): string {
-  if (scene.kind === "intro") return "Story art uses placeholders until final scene images are added.";
+  if (scene.kind === "intro") return "Story art uses the image manifest and placeholder art until final files are added.";
   if (scene.kind === "completion") return "Chapter 1 onboarding is complete.";
   return "Goal dialogue appears once per completed tutorial goal.";
 }
