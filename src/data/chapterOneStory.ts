@@ -15,6 +15,11 @@ export type StoryScene = {
   actionLabel: string;
 };
 
+export type StoryLogEntry = StoryScene & {
+  seen: boolean;
+  lockedReason?: string;
+};
+
 const STORY_PORTRAITS: Record<StorySpeaker, string> = {
   narrator: "/images/ui/icons/icon_paw_crest.png",
   veyra: RANCH_ADVISOR.portraitPath,
@@ -41,8 +46,16 @@ const GOAL_DIALOGUE: Record<string, { speaker: StorySpeaker; title: string; line
   guild: { speaker: "veyra", title: "Chapter 1 complete", lines: ["A guild request means the town has started treating this place like a working ranch again.", "You have feed, chores, market access, breeding records, and a tax clock. That is not everything—but it is a beginning."] },
 };
 
+function getSpeakerName(speaker: StorySpeaker): string {
+  return speaker === "veyra" ? RANCH_ADVISOR.name : speaker === "vesper" ? TAX_COLLECTOR.name : speaker === "town" ? "Town Road" : "Narrator";
+}
+
 export function getChapterOneIntroScene(save: GameSave): StoryScene | null {
   if (save.flags.m24IntroSeen === true) return null;
+  return buildChapterOneIntroScene();
+}
+
+export function buildChapterOneIntroScene(): StoryScene {
   return {
     id: "chapter-one-intro",
     title: "The Deed at Bramble Farm",
@@ -54,7 +67,7 @@ export function getChapterOneIntroScene(save: GameSave): StoryScene | null {
     lines: [
       "The letter arrived folded inside the old deed: Bramble Farm was yours now, whether you felt ready for it or not.",
       "By the time you reached the gate, the fields were overgrown, the fences leaned, and the creatures were watching from the edges of the property.",
-      `Veyra Bramble was waiting on the porch. She works here, lives here, and knows exactly which parts of the farm are still alive enough to save.`,
+      "Veyra Bramble was waiting on the porch. She works here, lives here, and knows exactly which parts of the farm are still alive enough to save.",
       "She explains the first rule before you even unpack: every day begins with priorities. Security, feed, materials, comfort, eggs, taxes. Ignore one long enough and it becomes the whole story.",
       `${TAX_COLLECTOR.name}, the Royal Tax Collector, has already posted the first warning in the town ledger. The Crown will recognize your claim only if the monthly bill is paid.`,
       "The nearby town can help: the Market sells creatures, the Guild posts contracts, and the Ranch Office tracks repairs and upgrades. But the farm has to stand on its own first.",
@@ -62,29 +75,35 @@ export function getChapterOneIntroScene(save: GameSave): StoryScene | null {
   };
 }
 
+export function buildGoalStoryScene(goal: StarterGoal): StoryScene | null {
+  const dialogue = GOAL_DIALOGUE[goal.id];
+  if (!dialogue) return null;
+  return {
+    id: `goal-${goal.id}`,
+    title: dialogue.title,
+    speaker: getSpeakerName(dialogue.speaker),
+    portraitPath: STORY_PORTRAITS[dialogue.speaker],
+    flag: getGoalStoryFlag(goal),
+    kind: "goal",
+    actionLabel: "Continue",
+    lines: [...dialogue.lines, `Goal complete: ${goal.label}. Reward: ${goal.rewardLabel}.`],
+  };
+}
+
 export function getChapterOneGoalScene(save: GameSave): StoryScene | null {
   const goals = getStarterGoals(save);
   const completedGoal = goals.find((goal) => goal.complete && save.flags[getGoalStoryFlag(goal)] !== true);
-  if (!completedGoal) return null;
-  const dialogue = GOAL_DIALOGUE[completedGoal.id];
-  if (!dialogue) return null;
-  const speakerName = dialogue.speaker === "veyra" ? RANCH_ADVISOR.name : dialogue.speaker === "vesper" ? TAX_COLLECTOR.name : dialogue.speaker === "town" ? "Town Road" : "Narrator";
-  return {
-    id: `goal-${completedGoal.id}`,
-    title: dialogue.title,
-    speaker: speakerName,
-    portraitPath: STORY_PORTRAITS[dialogue.speaker],
-    flag: getGoalStoryFlag(completedGoal),
-    kind: "goal",
-    actionLabel: "Continue",
-    lines: [...dialogue.lines, `Goal complete: ${completedGoal.label}. Reward: ${completedGoal.rewardLabel}.`],
-  };
+  return completedGoal ? buildGoalStoryScene(completedGoal) : null;
 }
 
 export function getChapterOneCompletionScene(save: GameSave): StoryScene | null {
   const goals = getStarterGoals(save);
   const complete = goals.every((goal) => goal.complete);
   if (!complete || save.flags.m24ChapterOneStoryComplete === true) return null;
+  return buildChapterOneCompletionScene();
+}
+
+export function buildChapterOneCompletionScene(): StoryScene {
   return {
     id: "chapter-one-complete",
     title: "Bramble Farm Breathes Again",
@@ -104,6 +123,22 @@ export function getChapterOneCompletionScene(save: GameSave): StoryScene | null 
 
 export function getNextChapterOneStoryScene(save: GameSave): StoryScene | null {
   return getChapterOneIntroScene(save) ?? getChapterOneCompletionScene(save) ?? getChapterOneGoalScene(save);
+}
+
+export function getChapterOneStoryLog(save: GameSave): StoryLogEntry[] {
+  const goals = getStarterGoals(save);
+  const goalEntries = goals.map((goal) => {
+    const scene = buildGoalStoryScene(goal);
+    if (!scene) return null;
+    return { ...scene, seen: save.flags[scene.flag] === true, lockedReason: goal.complete ? undefined : goal.hint };
+  }).filter(Boolean) as StoryLogEntry[];
+  const intro = buildChapterOneIntroScene();
+  const completion = buildChapterOneCompletionScene();
+  return [
+    { ...intro, seen: save.flags[intro.flag] === true, lockedReason: "Start a new save and enter the ranch." },
+    ...goalEntries,
+    { ...completion, seen: save.flags[completion.flag] === true, lockedReason: "Complete every Chapter 1 tutorial goal." },
+  ];
 }
 
 export function getGoalStoryFlag(goal: StarterGoal): string {
