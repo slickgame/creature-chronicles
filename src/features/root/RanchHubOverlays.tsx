@@ -5,12 +5,14 @@ import { ChapterOneGuidePanel } from "@/features/ranch/ChapterOneGuidePanel";
 import { DailyReportOverlayCards } from "@/features/ranch/DailyReportOverlayCards";
 import { RanchAdvisorOverlay } from "@/features/ranch/RanchAdvisorOverlay";
 import { ChapterOneStoryOverlay } from "@/features/story/ChapterOneStoryOverlay";
+import { StoryLogOverlay } from "@/features/story/StoryLogOverlay";
 import { useGameContext } from "@/state/GameProvider";
 
 export function RanchHubOverlays() {
   const { appScreen, currentSave } = useGameContext();
   if (!currentSave) return null;
   if (appScreen === "breeding") return <SharedInfoOverlay />;
+  if (appScreen === "ranch-office") return <StoryLogOverlay />;
   if (appScreen !== "ranch-hub") return null;
   return <><RanchAdvisorOverlay /><ChapterOneGuidePanel /><DailyReportOverlayCards /><ChapterOneStoryOverlay /></>;
 }
