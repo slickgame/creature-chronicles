@@ -116,9 +116,101 @@ section[aria-label="Breeding pair preview"] > section ul {
   margin-top: 2px !important;
 }
 
+/* M33 focused Breeding Pen fill layout. */
+section[aria-label="Focused breeding pair preview"] {
+  position: relative !important;
+  display: block !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 14px !important;
+  overflow: hidden !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > div:first-child {
+  position: absolute !important;
+  left: 14px !important;
+  top: 14px !important;
+  right: clamp(220px, 14vw, 270px) !important;
+  bottom: 74px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > div:first-child > article {
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-rows: auto minmax(0, 1fr) auto !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > div:first-child > article > div:nth-of-type(2) {
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > div:first-child > article img {
+  max-height: none !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > aside[aria-label="Breeding preview stats"] {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  bottom: 74px !important;
+  width: clamp(190px, 12vw, 240px) !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: repeat(6, minmax(58px, 1fr)) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > aside[aria-label="Breeding preview stats"] > div {
+  min-height: 0 !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > section:last-child {
+  position: absolute !important;
+  left: 14px !important;
+  right: 14px !important;
+  bottom: 14px !important;
+  min-height: 48px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+section[aria-label="Focused breeding pair preview"] > section:last-child button {
+  min-width: 150px !important;
+}
+
 @media (max-width: 1300px) {
   section[aria-label="Breeding pair preview"] > div:nth-of-type(2) {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  section[aria-label="Focused breeding pair preview"] {
+    overflow: auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto auto auto !important;
+  }
+
+  section[aria-label="Focused breeding pair preview"] > div:first-child,
+  section[aria-label="Focused breeding pair preview"] > aside[aria-label="Breeding preview stats"],
+  section[aria-label="Focused breeding pair preview"] > section:last-child {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
   }
 }
 
