@@ -16,7 +16,7 @@ function goalActionLabel(goal: StarterGoal): string { if (goal.id.includes("chor
 
 export function ChapterOneGuidePanel() {
   const { appScreen, currentSave, goToBreeding, goToNursery, goToRanchJobs, goToRanchOffice, goToTown } = useGameContext();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [page, setPage] = useState<GuidePage>("next");
   const goals = useMemo(() => currentSave ? getStarterGoals(currentSave) : [], [currentSave]);
   const progress = useMemo(() => currentSave ? getStarterGoalProgress(currentSave) : null, [currentSave]);
