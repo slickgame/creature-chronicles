@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { CREATURE_PLACEHOLDER_IMAGE, STAT_KEYS, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { getCreatureGrowthProjections, getProjectedEnergyGainNextLevel } from "@/data/levelGrowth";
 import { formatEnergy } from "@/lib/formatters";
@@ -35,7 +35,7 @@ function isInjured(creature: CreatureRecord, dayNumber?: number): boolean { retu
 function barStyle(percent: number): CSSProperties { return { display: "block", width: `${Math.max(0, Math.min(100, percent))}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, rgba(127,219,255,.88), rgba(245,201,128,.9))" }; }
 function previewBarStyle(currentPercent: number, nextGainPercent: number): CSSProperties { return { position: "absolute", left: `${Math.max(0, Math.min(100, currentPercent))}%`, width: `${Math.max(0, Math.min(100 - currentPercent, nextGainPercent))}%`, top: 0, bottom: 0, borderRadius: 999, background: "rgba(126,229,168,.65)" }; }
 function percent(value: number, max: number): number { return max <= 0 ? 0 : Math.max(0, Math.min(100, Math.round((value / max) * 100))); }
-function progressTrack(children: React.ReactNode) { return <div style={{ position: "relative", height: 10, border: "1px solid rgba(127,219,255,.34)", borderRadius: 999, background: "rgba(0,0,0,.32)", overflow: "hidden" }}>{children}</div>; }
+function progressTrack(children: ReactNode) { return <div style={{ position: "relative", height: 10, border: "1px solid rgba(127,219,255,.34)", borderRadius: 999, background: "rgba(0,0,0,.32)", overflow: "hidden" }}>{children}</div>; }
 
 export function SharedCreatureDetail({ creature, mode = "full", dayNumber, renameValue, onRenameValueChange, onRename, onToggleLock, onRelease, onDonate, showActions = true }: SharedCreatureDetailProps) {
   const variant = getVariantDefinition(creature.variantId);
