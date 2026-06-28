@@ -19,22 +19,22 @@ export type StarterGoal = {
 };
 
 const STARTER_GOAL_REWARDS: Record<string, StarterGoalReward> = {
-  "assign-chores": { gold: 50 },
-  "assign-security": { gold: 25 },
-  "assign-comfort": { gold: 25 },
-  "assign-feed": { feed: 2 },
-  "assign-garden": { feed: 2 },
-  "assign-hauling": { materials: 2 },
-  "resolve-chores": { feed: 3 },
-  "produce-feed": { guildPoints: 1 },
-  "gather-materials": { materials: 5 },
-  "repair-ranch": { gold: 75 },
-  "ranch-upgrade": { guildPoints: 1 },
-  breed: { gold: 100 },
-  egg: { guildPoints: 2 },
-  market: { gold: 50 },
-  tax: { gold: 125 },
-  guild: { gold: 150, guildPoints: 3 },
+  "assign-chores": { gold: 75, feed: 2 },
+  "assign-security": { gold: 75, materials: 1 },
+  "assign-comfort": { gold: 75 },
+  "assign-feed": { gold: 100, feed: 3 },
+  "assign-garden": { gold: 100, feed: 4 },
+  "assign-hauling": { gold: 100, materials: 4 },
+  "resolve-chores": { gold: 150, feed: 2, materials: 2 },
+  "produce-feed": { gold: 75, guildPoints: 1, feed: 4 },
+  "gather-materials": { gold: 75, guildPoints: 1, materials: 5 },
+  "repair-ranch": { gold: 200, materials: 3 },
+  "ranch-upgrade": { gold: 250, guildPoints: 2 },
+  breed: { gold: 250, guildPoints: 3 },
+  egg: { gold: 300, guildPoints: 4 },
+  market: { gold: 200, guildPoints: 2 },
+  tax: { gold: 300, guildPoints: 3 },
+  guild: { gold: 500, guildPoints: 5 },
 };
 
 function getFlagNumber(value: boolean | number | string | undefined): number {
@@ -120,7 +120,7 @@ export function applyStarterGoalRewards(save: GameSave): GameSave {
   let nextGuildPoints = save.currencies.guildPoints;
   let nextFeed = getFlagNumber(save.flags.ranchFeedStock);
   let nextMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
-  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true, m31PersistentStarterGoals: true };
+  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true, m31PersistentStarterGoals: true, m34StarterGoalRewardRebalance: true };
   const claimedLabels: string[] = [];
 
   for (const goal of claimableGoals) {
