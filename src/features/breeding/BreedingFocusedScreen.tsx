@@ -1,8 +1,16 @@
 "use client";
 
 import { type CSSProperties, useMemo, useState } from "react";
-import { getBreedingParticipants, getBreedingPreview, PLAYER_PARTICIPANT_ID } from "@/data/breeding";
-import { BREEDING_OUTCOME_FAILURE_FALLBACK_PATH, BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH, BREEDING_SCENE_FALLBACK_PATH } from "@/data/breedingSceneImages";
+import {
+  getBreedingParticipants,
+  getBreedingPreview,
+  PLAYER_PARTICIPANT_ID,
+} from "@/data/breeding";
+import {
+  BREEDING_OUTCOME_FAILURE_FALLBACK_PATH,
+  BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH,
+  BREEDING_SCENE_FALLBACK_PATH,
+} from "@/data/breedingSceneImages";
 import { CREATURE_PLACEHOLDER_IMAGE } from "@/data/creatures";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { formatEnergy } from "@/lib/formatters";
@@ -11,36 +19,293 @@ import type { BreedingAttemptRecord, BreedingParticipant } from "@/types/breedin
 import type { CreatureRecord } from "@/types/creature";
 
 type SortMode = "name" | "level" | "energy" | "affection" | "fertility";
-type FilterMode = "all" | "creatures" | "player" | "feline" | "canine" | "bovine" | "lapine" | "equine";
+type FilterMode =
+  | "all"
+  | "available"
+  | "nonPregnant"
+  | "creatures"
+  | "player"
+  | "feline"
+  | "canine"
+  | "bovine"
+  | "lapine"
+  | "equine";
 type SelectorRole = "giver" | "receiver";
 type ResultPage = "process" | "outcome";
 
-const screenStyle: CSSProperties = { minHeight: "100vh", padding: 8, display: "grid", background: "radial-gradient(circle at top left, rgba(242,184,75,.18), transparent 34%), linear-gradient(145deg,#241510 0%,#111413 70%)", color: "#fff7dd" };
-const frameStyle: CSSProperties = { width: "calc(100vw - 16px)", height: "calc(100vh - 16px)", minHeight: 640, display: "grid", gridTemplateRows: "auto minmax(0,1fr)", gap: 8, padding: 14, overflow: "hidden", border: "4px solid #2a1b12", borderRadius: 18, background: "linear-gradient(rgba(70,34,24,.94),rgba(18,10,8,.98)), radial-gradient(circle at top left, rgba(255,216,121,.16), transparent 42%)", boxShadow: "0 24px 60px rgba(0,0,0,.55)" };
-const headerStyle: CSSProperties = { minHeight: 52, display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center", padding: "7px 12px", border: "2px solid rgba(245,201,128,.46)", borderRadius: 16, background: "rgba(10,6,5,.72)" };
-const titleStyle: CSSProperties = { margin: 0, fontSize: "clamp(1.45rem,2.4vw,2.35rem)", lineHeight: .9, textShadow: "0 2px 0 rgba(0,0,0,.9),0 4px 10px rgba(0,0,0,.72)" };
-const buttonStyle: CSSProperties = { minHeight: 34, padding: "7px 13px", border: "2px solid #2a1b12", borderRadius: 12, background: "linear-gradient(#fff4c9,#dca755)", color: "#241713", fontWeight: 950, boxShadow: "0 4px 0 rgba(0,0,0,.34)", cursor: "pointer" };
-const primaryButtonStyle: CSSProperties = { ...buttonStyle, background: "linear-gradient(#bfe8ff,#56c7ff)", color: "#071923" };
-const ghostButtonStyle: CSSProperties = { ...buttonStyle, background: "rgba(0,0,0,.28)", color: "#fff7dd", borderColor: "rgba(245,201,128,.42)" };
-const previewStyle: CSSProperties = { minHeight: 0, height: "100%", display: "grid", gridTemplateColumns: "minmax(0,1fr) clamp(190px,12vw,240px)", gridTemplateRows: "minmax(0,1fr) auto", gap: 10, padding: 14, overflow: "hidden", border: "2px solid rgba(245,201,128,.46)", borderRadius: 18, background: "rgba(10,6,5,.72)" };
-const pairGridStyle: CSSProperties = { minHeight: 0, height: "100%", display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 12, alignItems: "stretch" };
-const pairCardStyle: CSSProperties = { position: "relative", minHeight: 0, height: "100%", display: "grid", gridTemplateRows: "auto minmax(280px,1fr) auto", gap: 8, padding: 12, border: "2px solid rgba(245,201,128,.42)", borderRadius: 18, background: "radial-gradient(circle at center, rgba(242,184,75,.14), transparent 58%), rgba(0,0,0,.24)", textAlign: "center", overflow: "hidden" };
-const chooseCardButtonStyle: CSSProperties = { position: "absolute", inset: 0, zIndex: 1, border: 0, background: "transparent", cursor: "pointer" };
-const artWrapStyle: CSSProperties = { minHeight: 0, display: "grid", placeItems: "center", overflow: "hidden" };
-const artStyle: CSSProperties = { width: "100%", height: "100%", minHeight: 0, maxHeight: "min(64vh, 680px)", objectFit: "contain", filter: "drop-shadow(0 14px 18px rgba(0,0,0,.52))" };
-const statColumnStyle: CSSProperties = { minHeight: 0, display: "grid", gridTemplateColumns: "1fr", gridAutoRows: "minmax(58px,auto)", gap: 8, alignContent: "start", overflow: "hidden" };
-const statBoxStyle: CSSProperties = { minHeight: 58, padding: 8, border: "1px solid rgba(245,201,128,.3)", borderRadius: 12, background: "rgba(0,0,0,.28)" };
-const noteBarStyle: CSSProperties = { gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "center", padding: "8px 10px", border: "1px solid rgba(127,219,255,.38)", borderRadius: 14, background: "rgba(86,199,255,.08)" };
-const modalBackdropStyle: CSSProperties = { position: "fixed", inset: 0, zIndex: 80, display: "grid", placeItems: "center", padding: 24, background: "rgba(0,0,0,.72)", backdropFilter: "blur(4px)" };
-const modalStyle: CSSProperties = { width: "min(100%, 1120px)", maxHeight: "92vh", overflow: "auto", display: "grid", gap: 12, padding: 20, border: "3px solid rgba(245,201,128,.86)", borderRadius: 20, background: "linear-gradient(rgba(70,34,24,.98),rgba(18,10,8,.98))", boxShadow: "0 24px 56px rgba(0,0,0,.64)" };
-const smallLabelStyle: CSSProperties = { margin: 0, color: "#f5c980", fontSize: ".66rem", fontWeight: 950, letterSpacing: ".12em", textTransform: "uppercase", textShadow: "0 2px 2px rgba(0,0,0,.75)" };
-const bodyTextStyle: CSSProperties = { margin: 0, color: "#f2dfbd", fontSize: ".92rem", fontWeight: 780, lineHeight: 1.35, textShadow: "0 2px 2px rgba(0,0,0,.72)" };
-const infoButtonStyle: CSSProperties = { position: "absolute", top: 10, right: 10, zIndex: 3, width: 34, height: 34, display: "grid", placeItems: "center", border: "2px solid rgba(45,25,13,.92)", borderRadius: 999, background: "linear-gradient(#fff4cf,#d6a25b)", color: "#1f1108", fontWeight: 950, boxShadow: "0 3px 0 rgba(0,0,0,.34)", cursor: "pointer" };
+const screenStyle: CSSProperties = {
+  minHeight: "100vh",
+  padding: 8,
+  display: "grid",
+  background:
+    "radial-gradient(circle at top left, rgba(242,184,75,.18), transparent 34%), linear-gradient(145deg,#241510 0%,#111413 70%)",
+  color: "#fff7dd",
+};
+const frameStyle: CSSProperties = {
+  width: "calc(100vw - 16px)",
+  height: "calc(100vh - 16px)",
+  minHeight: 640,
+  display: "grid",
+  gridTemplateRows: "auto minmax(0,1fr)",
+  gap: 8,
+  padding: 14,
+  overflow: "hidden",
+  border: "4px solid #2a1b12",
+  borderRadius: 18,
+  background:
+    "linear-gradient(rgba(70,34,24,.94),rgba(18,10,8,.98)), radial-gradient(circle at top left, rgba(255,216,121,.16), transparent 42%)",
+  boxShadow: "0 24px 60px rgba(0,0,0,.55)",
+};
+const headerStyle: CSSProperties = {
+  minHeight: 52,
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 12,
+  alignItems: "center",
+  padding: "7px 12px",
+  border: "2px solid rgba(245,201,128,.46)",
+  borderRadius: 16,
+  background: "rgba(10,6,5,.72)",
+};
+const titleStyle: CSSProperties = {
+  margin: 0,
+  fontSize: "clamp(1.45rem,2.4vw,2.35rem)",
+  lineHeight: 0.9,
+  textShadow: "0 2px 0 rgba(0,0,0,.9),0 4px 10px rgba(0,0,0,.72)",
+};
+const buttonStyle: CSSProperties = {
+  minHeight: 34,
+  padding: "7px 13px",
+  border: "2px solid #2a1b12",
+  borderRadius: 12,
+  background: "linear-gradient(#fff4c9,#dca755)",
+  color: "#241713",
+  fontWeight: 950,
+  boxShadow: "0 4px 0 rgba(0,0,0,.34)",
+  cursor: "pointer",
+};
+const primaryButtonStyle: CSSProperties = {
+  ...buttonStyle,
+  background: "linear-gradient(#bfe8ff,#56c7ff)",
+  color: "#071923",
+};
+const ghostButtonStyle: CSSProperties = {
+  ...buttonStyle,
+  background: "rgba(0,0,0,.28)",
+  color: "#fff7dd",
+  borderColor: "rgba(245,201,128,.42)",
+};
+const previewStyle: CSSProperties = {
+  minHeight: 0,
+  height: "100%",
+  display: "grid",
+  gridTemplateColumns: "minmax(0,1fr) clamp(190px,12vw,240px)",
+  gridTemplateRows: "minmax(0,1fr) auto",
+  gap: 10,
+  padding: 14,
+  overflow: "hidden",
+  border: "2px solid rgba(245,201,128,.46)",
+  borderRadius: 18,
+  background: "rgba(10,6,5,.72)",
+};
+const pairGridStyle: CSSProperties = {
+  minHeight: 0,
+  height: "100%",
+  display: "grid",
+  gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+  gap: 12,
+  alignItems: "stretch",
+};
+const pairCardStyle: CSSProperties = {
+  position: "relative",
+  minHeight: 0,
+  height: "100%",
+  display: "grid",
+  gridTemplateRows: "auto minmax(280px,1fr) auto",
+  gap: 8,
+  padding: 12,
+  border: "2px solid rgba(245,201,128,.42)",
+  borderRadius: 18,
+  background:
+    "radial-gradient(circle at center, rgba(242,184,75,.14), transparent 58%), rgba(0,0,0,.24)",
+  textAlign: "center",
+  overflow: "hidden",
+};
+const chooseCardButtonStyle: CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  zIndex: 1,
+  border: 0,
+  background: "transparent",
+  cursor: "pointer",
+};
+const artWrapStyle: CSSProperties = {
+  minHeight: 0,
+  display: "grid",
+  placeItems: "center",
+  overflow: "hidden",
+};
+const artStyle: CSSProperties = {
+  width: "100%",
+  height: "100%",
+  minHeight: 0,
+  maxHeight: "min(64vh, 680px)",
+  objectFit: "contain",
+  filter: "drop-shadow(0 14px 18px rgba(0,0,0,.52))",
+};
+const statColumnStyle: CSSProperties = {
+  minHeight: 0,
+  display: "grid",
+  gridTemplateColumns: "1fr",
+  gridAutoRows: "minmax(58px,auto)",
+  gap: 8,
+  alignContent: "start",
+  overflow: "hidden",
+};
+const statBoxStyle: CSSProperties = {
+  minHeight: 58,
+  padding: 8,
+  border: "1px solid rgba(245,201,128,.3)",
+  borderRadius: 12,
+  background: "rgba(0,0,0,.28)",
+};
+const noteBarStyle: CSSProperties = {
+  gridColumn: "1 / -1",
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 10,
+  alignItems: "center",
+  padding: "8px 10px",
+  border: "1px solid rgba(127,219,255,.38)",
+  borderRadius: 14,
+  background: "rgba(86,199,255,.08)",
+};
+const modalBackdropStyle: CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  zIndex: 80,
+  display: "grid",
+  placeItems: "center",
+  padding: 24,
+  background: "rgba(0,0,0,.72)",
+  backdropFilter: "blur(4px)",
+};
+const modalStyle: CSSProperties = {
+  width: "min(100%, 1120px)",
+  maxHeight: "92vh",
+  overflow: "auto",
+  display: "grid",
+  gap: 12,
+  padding: 20,
+  border: "3px solid rgba(245,201,128,.86)",
+  borderRadius: 20,
+  background: "linear-gradient(rgba(70,34,24,.98),rgba(18,10,8,.98))",
+  boxShadow: "0 24px 56px rgba(0,0,0,.64)",
+};
+const smallLabelStyle: CSSProperties = {
+  margin: 0,
+  color: "#f5c980",
+  fontSize: ".66rem",
+  fontWeight: 950,
+  letterSpacing: ".12em",
+  textTransform: "uppercase",
+  textShadow: "0 2px 2px rgba(0,0,0,.75)",
+};
+const bodyTextStyle: CSSProperties = {
+  margin: 0,
+  color: "#f2dfbd",
+  fontSize: ".92rem",
+  fontWeight: 780,
+  lineHeight: 1.35,
+  textShadow: "0 2px 2px rgba(0,0,0,.72)",
+};
+const infoButtonStyle: CSSProperties = {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  zIndex: 3,
+  width: 34,
+  height: 34,
+  display: "grid",
+  placeItems: "center",
+  border: "2px solid rgba(45,25,13,.92)",
+  borderRadius: 999,
+  background: "linear-gradient(#fff4cf,#d6a25b)",
+  color: "#1f1108",
+  fontWeight: 950,
+  boxShadow: "0 3px 0 rgba(0,0,0,.34)",
+  cursor: "pointer",
+};
+const selectorToolbarStyle: CSSProperties = {
+  display: "flex",
+  gap: 12,
+  flexWrap: "wrap",
+  alignItems: "end",
+  padding: 12,
+  border: "2px solid rgba(245,201,128,.42)",
+  borderRadius: 16,
+  background: "linear-gradient(180deg, rgba(255,247,221,.08), rgba(0,0,0,.28))",
+  boxShadow: "inset 0 0 18px rgba(245,201,128,.08)",
+};
+const selectorLabelStyle: CSSProperties = {
+  display: "grid",
+  gap: 5,
+  color: "#f5c980",
+  fontSize: ".68rem",
+  fontWeight: 950,
+  letterSpacing: ".12em",
+  textTransform: "uppercase",
+  textShadow: "0 2px 2px rgba(0,0,0,.75)",
+};
+const selectorSelectStyle: CSSProperties = {
+  minWidth: 170,
+  minHeight: 40,
+  padding: "0 12px",
+  border: "2px solid rgba(45,25,13,.95)",
+  borderRadius: 12,
+  background: "linear-gradient(#fff4cf,#d6a25b)",
+  color: "#1f1108",
+  fontWeight: 950,
+  boxShadow: "0 4px 0 rgba(0,0,0,.34)",
+};
+const filterSelectStyle: CSSProperties = {
+  ...selectorSelectStyle,
+  minWidth: 210,
+  background: "linear-gradient(#c9f0ff,#56c7ff)",
+  color: "#071923",
+};
 
-function getParticipantImage(participant: BreedingParticipant | null): string { return participant?.profilePath || participant?.portraitPath || CREATURE_PLACEHOLDER_IMAGE; }
-function participantStatus(participant: BreedingParticipant | null): string { if (!participant) return "Choose participant"; if (participant.isInjured) return participant.unavailableReason ?? "Injured"; if (participant.isPregnant) return `Pregnant${participant.pregnancyDaysRemaining ? ` · ${participant.pregnancyDaysRemaining}d` : ""}`; if (!participant.canBreed) return participant.unavailableReason ?? "Unavailable"; return "Ready"; }
-function sortParticipants(participants: BreedingParticipant[], sortMode: SortMode): BreedingParticipant[] { return [...participants].sort((a, b) => { if (a.participantId === PLAYER_PARTICIPANT_ID) return -1; if (b.participantId === PLAYER_PARTICIPANT_ID) return 1; if (sortMode === "level") return (b.level ?? 0) - (a.level ?? 0) || a.displayName.localeCompare(b.displayName); if (sortMode === "energy") return b.energy - a.energy || a.displayName.localeCompare(b.displayName); if (sortMode === "affection") return b.affection - a.affection || a.displayName.localeCompare(b.displayName); if (sortMode === "fertility") return (b.stats?.FER ?? 0) - (a.stats?.FER ?? 0) || a.displayName.localeCompare(b.displayName); return a.displayName.localeCompare(b.displayName); }); }
-function filterParticipants(participants: BreedingParticipant[], filterMode: FilterMode, onlyAvailable: boolean, nonPregnantOnly: boolean): BreedingParticipant[] { return participants.filter((participant) => { if (filterMode === "player" && participant.kind !== "player") return false; if (filterMode === "creatures" && participant.kind === "player") return false; if (!["all", "creatures", "player"].includes(filterMode) && !participant.familyLabel.toLowerCase().includes(filterMode)) return false; if (onlyAvailable && !participant.canBreed) return false; if (nonPregnantOnly && participant.isPregnant) return false; return true; }); }
+function getParticipantImage(participant: BreedingParticipant | null): string {
+  return participant?.profilePath || participant?.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
+}
+function participantStatus(participant: BreedingParticipant | null): string {
+  if (!participant) return "Choose participant";
+  if (participant.isInjured) return participant.unavailableReason ?? "Injured";
+  if (participant.isPregnant) return `Pregnant${participant.pregnancyDaysRemaining ? ` · ${participant.pregnancyDaysRemaining}d` : ""}`;
+  if (!participant.canBreed) return participant.unavailableReason ?? "Unavailable";
+  return "Ready";
+}
+function sortParticipants(participants: BreedingParticipant[], sortMode: SortMode): BreedingParticipant[] {
+  return [...participants].sort((a, b) => {
+    if (a.participantId === PLAYER_PARTICIPANT_ID) return -1;
+    if (b.participantId === PLAYER_PARTICIPANT_ID) return 1;
+    if (sortMode === "level") return (b.level ?? 0) - (a.level ?? 0) || a.displayName.localeCompare(b.displayName);
+    if (sortMode === "energy") return b.energy - a.energy || a.displayName.localeCompare(b.displayName);
+    if (sortMode === "affection") return b.affection - a.affection || a.displayName.localeCompare(b.displayName);
+    if (sortMode === "fertility") return (b.stats?.FER ?? 0) - (a.stats?.FER ?? 0) || a.displayName.localeCompare(b.displayName);
+    return a.displayName.localeCompare(b.displayName);
+  });
+}
+function filterParticipants(participants: BreedingParticipant[], filterMode: FilterMode): BreedingParticipant[] {
+  return participants.filter((participant) => {
+    if (filterMode === "available") return participant.canBreed;
+    if (filterMode === "nonPregnant") return !participant.isPregnant;
+    if (filterMode === "player") return participant.kind === "player";
+    if (filterMode === "creatures") return participant.kind !== "player";
+    if (!["all", "available", "nonPregnant", "creatures", "player"].includes(filterMode)) return participant.familyLabel.toLowerCase().includes(filterMode);
+    return true;
+  });
+}
 
 export function BreedingFocusedScreen() {
   const { attemptBreeding, currentSave, goToRanch } = useGameContext();
@@ -50,37 +315,85 @@ export function BreedingFocusedScreen() {
   const [infoParticipant, setInfoParticipant] = useState<BreedingParticipant | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>("name");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
-  const [nonPregnantOnly, setNonPregnantOnly] = useState(false);
   const [result, setResult] = useState<BreedingAttemptRecord | null>(null);
   const [message, setMessage] = useState("Click the giver or receiver card to choose participants.");
-  const participants = useMemo(() => currentSave ? getBreedingParticipants(currentSave) : [], [currentSave]);
-  const preview = useMemo(() => currentSave ? getBreedingPreview(currentSave, giverId, receiverId) : null, [currentSave, giverId, receiverId]);
+
+  const participants = useMemo(() => (currentSave ? getBreedingParticipants(currentSave) : []), [currentSave]);
+  const preview = useMemo(() => (currentSave ? getBreedingPreview(currentSave, giverId, receiverId) : null), [currentSave, giverId, receiverId]);
   const giver = participants.find((item) => item.participantId === giverId) ?? null;
   const receiver = participants.find((item) => item.participantId === receiverId) ?? null;
-  const filtered = useMemo(() => filterParticipants(sortParticipants(participants, sortMode), filterMode, onlyAvailable, nonPregnantOnly), [participants, sortMode, filterMode, onlyAvailable, nonPregnantOnly]);
+  const filtered = useMemo(() => filterParticipants(sortParticipants(participants, sortMode), filterMode), [participants, sortMode, filterMode]);
   const infoCreature = infoParticipant?.creatureId ? (currentSave?.creatures ?? []).find((creature) => creature.creatureId === infoParticipant.creatureId) ?? null : null;
 
-  if (!currentSave) return <main style={screenStyle}><section style={{ ...modalStyle, width: "min(100%,520px)" }}><h1>No active save</h1><p>Load or create a save before using the Breeding Pen.</p><button type="button" style={buttonStyle} onClick={goToRanch}>Back to Ranch</button></section></main>;
+  if (!currentSave) {
+    return <main style={screenStyle}><section style={{ ...modalStyle, width: "min(100%,520px)" }}><h1>No active save</h1><p>Load or create a save before using the Breeding Pen.</p><button type="button" style={buttonStyle} onClick={goToRanch}>Back to Ranch</button></section></main>;
+  }
 
   function choose(role: SelectorRole, participantId: string) {
-    if (role === "giver") { setGiverId(participantId); if (participantId === receiverId) setReceiverId(null); setMessage("Giver selected. Choose or review the receiver."); }
-    else { setReceiverId(participantId); if (participantId === giverId) setGiverId(null); setMessage("Receiver selected. Review the preview, then attempt breeding."); }
+    if (role === "giver") {
+      setGiverId(participantId);
+      if (participantId === receiverId) setReceiverId(null);
+      setMessage("Giver selected. Choose or review the receiver.");
+    } else {
+      setReceiverId(participantId);
+      if (participantId === giverId) setGiverId(null);
+      setMessage("Receiver selected. Review the preview, then attempt breeding.");
+    }
     setSelectorRole(null);
     setResult(null);
   }
 
   function handleAttempt() {
-    if (!giverId || !receiverId || !preview?.canAttempt) { setMessage(preview?.blockedReason ?? "Select a valid giver and receiver first."); return; }
+    if (!giverId || !receiverId || !preview?.canAttempt) {
+      setMessage(preview?.blockedReason ?? "Select a valid giver and receiver first.");
+      return;
+    }
     const attempt = attemptBreeding(giverId, receiverId);
-    if (!attempt) { setMessage("Breeding attempt could not be completed."); return; }
+    if (!attempt) {
+      setMessage("Breeding attempt could not be completed.");
+      return;
+    }
     setResult(attempt);
     setMessage(attempt.resultText);
   }
 
   const statusText = preview?.pregnancyBlockedReason ?? preview?.blockedReason ?? (preview ? "Pair is ready." : "Select both participants.");
 
-  return <main style={screenStyle}><section style={frameStyle}><header style={headerStyle}><div><p style={smallLabelStyle}>M32 Focused Breeding Pen</p><h1 style={titleStyle}>Breeding Pen</h1></div><div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "end" }}><button type="button" style={ghostButtonStyle} onClick={() => setSelectorRole("giver")}>Choose Giver</button><button type="button" style={ghostButtonStyle} onClick={() => setSelectorRole("receiver")}>Choose Receiver</button><button type="button" style={buttonStyle} onClick={goToRanch}>Back to Ranch</button></div></header><section style={previewStyle} aria-label="Focused breeding pair preview"><div style={pairGridStyle}><FocusedPairCard role="Giver" participant={giver} onChoose={() => setSelectorRole("giver")} onInfo={setInfoParticipant} /><FocusedPairCard role="Receiver" participant={receiver} onChoose={() => setSelectorRole("receiver")} onInfo={setInfoParticipant} /></div><aside style={statColumnStyle} aria-label="Breeding preview stats"><StatBox label="Pregnancy" value={preview ? `${preview.pregnancyChance}%` : "—"} /><StatBox label="Energy Cost" value={String(preview?.energyCost ?? "—")} /><StatBox label="Heart Cost" value={String(preview?.heartCost ?? "—")} /><StatBox label="Creature XP" value={preview ? `+${preview.xpGain}` : "—"} /><StatBox label="Breeder XP" value={preview ? `+${preview.breederXpGain}` : "—"} /><StatBox label="Pair Streak" value={String(preview?.streakCount ?? "—")} /></aside><section style={noteBarStyle}><div><p style={smallLabelStyle}>Preview</p><p style={bodyTextStyle}>{message}</p><p style={{ ...bodyTextStyle, color: preview?.canAttempt ? "#7fdbff" : "#f5c980" }}>{statusText}</p></div><button type="button" style={primaryButtonStyle} disabled={!preview?.canAttempt} onClick={handleAttempt}>Attempt Breeding</button></section></section></section>{selectorRole ? <ParticipantSelectorModal role={selectorRole} participants={filtered} oppositeId={selectorRole === "giver" ? receiverId : giverId} selectedId={selectorRole === "giver" ? giverId : receiverId} sortMode={sortMode} filterMode={filterMode} onlyAvailable={onlyAvailable} nonPregnantOnly={nonPregnantOnly} onSortChange={setSortMode} onFilterChange={setFilterMode} onOnlyAvailableChange={setOnlyAvailable} onNonPregnantChange={setNonPregnantOnly} onChoose={choose} onInfo={setInfoParticipant} onClose={() => setSelectorRole(null)} /> : null}{infoParticipant ? <ParticipantInfoModal participant={infoParticipant} creature={infoCreature} dayNumber={currentSave.dayState.dayNumber} onClose={() => setInfoParticipant(null)} /> : null}{result ? <BreedingResultModal result={result} onClose={() => setResult(null)} /> : null}</main>;
+  return (
+    <main style={screenStyle}>
+      <section style={frameStyle}>
+        <header style={headerStyle}>
+          <div><p style={smallLabelStyle}>M33 Focused Breeding Pen</p><h1 style={titleStyle}>Breeding Pen</h1></div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "end" }}>
+            <button type="button" style={ghostButtonStyle} onClick={() => setSelectorRole("giver")}>Choose Giver</button>
+            <button type="button" style={ghostButtonStyle} onClick={() => setSelectorRole("receiver")}>Choose Receiver</button>
+            <button type="button" style={buttonStyle} onClick={goToRanch}>Back to Ranch</button>
+          </div>
+        </header>
+        <section style={previewStyle} aria-label="Focused breeding pair preview">
+          <div style={pairGridStyle}>
+            <FocusedPairCard role="Giver" participant={giver} onChoose={() => setSelectorRole("giver")} onInfo={setInfoParticipant} />
+            <FocusedPairCard role="Receiver" participant={receiver} onChoose={() => setSelectorRole("receiver")} onInfo={setInfoParticipant} />
+          </div>
+          <aside style={statColumnStyle} aria-label="Breeding preview stats">
+            <StatBox label="Pregnancy" value={preview ? `${preview.pregnancyChance}%` : "—"} />
+            <StatBox label="Energy Cost" value={String(preview?.energyCost ?? "—")} />
+            <StatBox label="Heart Cost" value={String(preview?.heartCost ?? "—")} />
+            <StatBox label="Creature XP" value={preview ? `+${preview.xpGain}` : "—"} />
+            <StatBox label="Breeder XP" value={preview ? `+${preview.breederXpGain}` : "—"} />
+            <StatBox label="Pair Streak" value={String(preview?.streakCount ?? "—")} />
+          </aside>
+          <section style={noteBarStyle}>
+            <div><p style={smallLabelStyle}>Preview</p><p style={bodyTextStyle}>{message}</p><p style={{ ...bodyTextStyle, color: preview?.canAttempt ? "#7fdbff" : "#f5c980" }}>{statusText}</p></div>
+            <button type="button" style={primaryButtonStyle} disabled={!preview?.canAttempt} onClick={handleAttempt}>Attempt Breeding</button>
+          </section>
+        </section>
+      </section>
+      {selectorRole ? <ParticipantSelectorModal role={selectorRole} participants={filtered} oppositeId={selectorRole === "giver" ? receiverId : giverId} selectedId={selectorRole === "giver" ? giverId : receiverId} sortMode={sortMode} filterMode={filterMode} onSortChange={setSortMode} onFilterChange={setFilterMode} onChoose={choose} onInfo={setInfoParticipant} onClose={() => setSelectorRole(null)} /> : null}
+      {infoParticipant ? <ParticipantInfoModal participant={infoParticipant} creature={infoCreature} dayNumber={currentSave.dayState.dayNumber} onClose={() => setInfoParticipant(null)} /> : null}
+      {result ? <BreedingResultModal result={result} onClose={() => setResult(null)} /> : null}
+    </main>
+  );
 }
 
 function FocusedPairCard({ role, participant, onChoose, onInfo }: { role: string; participant: BreedingParticipant | null; onChoose: () => void; onInfo: (participant: BreedingParticipant) => void }) {
@@ -90,8 +403,28 @@ function FocusedPairCard({ role, participant, onChoose, onInfo }: { role: string
 function MiniReadout({ label, value }: { label: string; value: string }) { return <div style={{ padding: 6, border: "1px solid rgba(245,201,128,.24)", borderRadius: 10, background: "rgba(0,0,0,.24)" }}><span style={{ display: "block", color: "#e7c991", fontSize: ".58rem", fontWeight: 950, textTransform: "uppercase" }}>{label}</span><strong style={{ color: "#7fdbff", fontSize: ".78rem" }}>{value}</strong></div>; }
 function StatBox({ label, value }: { label: string; value: string }) { return <div style={statBoxStyle}><span style={{ display: "block", color: "#e7c991", fontSize: ".62rem", fontWeight: 950, textTransform: "uppercase" }}>{label}</span><strong style={{ display: "block", marginTop: 2, color: "#fff7dd", fontSize: "1.05rem" }}>{value}</strong></div>; }
 
-function ParticipantSelectorModal({ role, participants, oppositeId, selectedId, sortMode, filterMode, onlyAvailable, nonPregnantOnly, onSortChange, onFilterChange, onOnlyAvailableChange, onNonPregnantChange, onChoose, onInfo, onClose }: { role: SelectorRole; participants: BreedingParticipant[]; oppositeId: string | null; selectedId: string | null; sortMode: SortMode; filterMode: FilterMode; onlyAvailable: boolean; nonPregnantOnly: boolean; onSortChange: (value: SortMode) => void; onFilterChange: (value: FilterMode) => void; onOnlyAvailableChange: (value: boolean) => void; onNonPregnantChange: (value: boolean) => void; onChoose: (role: SelectorRole, participantId: string) => void; onInfo: (participant: BreedingParticipant) => void; onClose: () => void }) {
-  return <div style={modalBackdropStyle} role="presentation" onClick={onClose}><section style={modalStyle} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}><header style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "start" }}><div><p style={smallLabelStyle}>Select {role}</p><h2 style={{ margin: 0, color: "#fff7dd", fontSize: "2.2rem" }}>{role === "giver" ? "Choose Giver" : "Choose Receiver"}</h2><p style={bodyTextStyle}>{role === "receiver" ? "Pregnant receivers can be chosen, but cannot become pregnant again until delivery." : "Pregnant participants can still be used as givers if they have enough energy and hearts."}</p></div><button type="button" style={buttonStyle} onClick={onClose}>Close</button></header><div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}><label style={smallLabelStyle}>Sort <select value={sortMode} onChange={(event) => onSortChange(event.target.value as SortMode)}><option value="name">Name</option><option value="level">Level</option><option value="energy">Energy</option><option value="affection">Affection</option><option value="fertility">Fertility</option></select></label><label style={smallLabelStyle}>Filter <select value={filterMode} onChange={(event) => onFilterChange(event.target.value as FilterMode)}><option value="all">All</option><option value="creatures">Creatures</option><option value="player">Player</option><option value="feline">Feline</option><option value="canine">Canine</option><option value="bovine">Bovine</option><option value="lapine">Lapine</option><option value="equine">Equine</option></select></label><label style={{ ...smallLabelStyle, display: "flex", alignItems: "center", gap: 6 }}><input type="checkbox" checked={onlyAvailable} onChange={(event) => onOnlyAvailableChange(event.target.checked)} /> Only Available</label><label style={{ ...smallLabelStyle, display: "flex", alignItems: "center", gap: 6 }}><input type="checkbox" checked={nonPregnantOnly} onChange={(event) => onNonPregnantChange(event.target.checked)} /> Non-Pregnant</label></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 10 }}>{participants.map((participant) => { const disabled = participant.participantId === oppositeId || !participant.canBreed; const selected = participant.participantId === selectedId; return <article key={`${role}-${participant.participantId}`} style={{ position: "relative", minHeight: 110, display: "grid", gridTemplateColumns: "78px 1fr", gap: 10, alignItems: "center", padding: 9, border: `2px solid ${selected ? "rgba(127,219,255,.95)" : "rgba(245,201,128,.36)"}`, borderRadius: 14, background: disabled ? "rgba(80,80,80,.16)" : "rgba(255,247,221,.08)", color: disabled ? "#9d9384" : "#fff7dd", textAlign: "left", filter: disabled ? "grayscale(.8) brightness(.72)" : "none" }}><button type="button" disabled={disabled} onClick={() => onChoose(role, participant.participantId)} style={{ position: "absolute", inset: 0, border: 0, background: "transparent", cursor: disabled ? "not-allowed" : "pointer" }} aria-label={`Select ${participant.displayName}`} /><button type="button" style={{ ...infoButtonStyle, top: 6, right: 6, width: 28, height: 28 }} onClick={() => onInfo(participant)} aria-label={`Inspect ${participant.displayName}`}>i</button><img src={participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt="" style={{ width: 74, height: 74, objectFit: "cover", borderRadius: 10, background: "rgba(255,247,221,.08)" }} onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} /><div><strong style={{ display: "block", color: "#fff7dd" }}>{participant.displayName}</strong><span style={{ display: "block", color: "#7fdbff", fontSize: ".8rem", fontWeight: 900 }}>{participant.familyLabel}</span><span style={{ display: "block", color: "#f2dfbd", fontSize: ".72rem" }}>Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}</span><span style={{ display: "block", color: participant.isPregnant ? "#f5c980" : participant.canBreed ? "#7fdbff" : "#d9a0a0", fontSize: ".72rem", fontWeight: 900 }}>{participantStatus(participant)}</span></div></article>; })}</div></section></div>;
+function ParticipantSelectorModal({ role, participants, oppositeId, selectedId, sortMode, filterMode, onSortChange, onFilterChange, onChoose, onInfo, onClose }: { role: SelectorRole; participants: BreedingParticipant[]; oppositeId: string | null; selectedId: string | null; sortMode: SortMode; filterMode: FilterMode; onSortChange: (value: SortMode) => void; onFilterChange: (value: FilterMode) => void; onChoose: (role: SelectorRole, participantId: string) => void; onInfo: (participant: BreedingParticipant) => void; onClose: () => void }) {
+  return (
+    <div style={modalBackdropStyle} role="presentation" onClick={onClose}>
+      <section style={modalStyle} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+        <header style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 10, alignItems: "start" }}>
+          <div><p style={smallLabelStyle}>Select {role}</p><h2 style={{ margin: 0, color: "#fff7dd", fontSize: "2.2rem" }}>{role === "giver" ? "Choose Giver" : "Choose Receiver"}</h2><p style={bodyTextStyle}>{role === "receiver" ? "Pregnant receivers can be chosen, but cannot become pregnant again until delivery." : "Pregnant participants can still be used as givers if they have enough energy and hearts."}</p></div>
+          <button type="button" style={buttonStyle} onClick={onClose}>Close</button>
+        </header>
+        <div style={selectorToolbarStyle}>
+          <label style={selectorLabelStyle}>Sort<select value={sortMode} onChange={(event) => onSortChange(event.target.value as SortMode)} style={selectorSelectStyle}><option value="name">Name</option><option value="level">Level</option><option value="energy">Energy</option><option value="affection">Affection</option><option value="fertility">Fertility</option></select></label>
+          <label style={{ ...selectorLabelStyle, color: "#7fdbff" }}>Filter<select value={filterMode} onChange={(event) => onFilterChange(event.target.value as FilterMode)} style={filterSelectStyle}><option value="all">All Participants</option><option value="available">Only Available</option><option value="nonPregnant">Non-Pregnant</option><option value="creatures">Creatures Only</option><option value="player">Player</option><option value="feline">Feline</option><option value="canine">Canine</option><option value="bovine">Bovine</option><option value="lapine">Lapine</option><option value="equine">Equine</option></select></label>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 10 }}>
+          {participants.map((participant) => {
+            const disabled = participant.participantId === oppositeId || !participant.canBreed;
+            const selected = participant.participantId === selectedId;
+            return <article key={`${role}-${participant.participantId}`} style={{ position: "relative", minHeight: 110, display: "grid", gridTemplateColumns: "78px 1fr", gap: 10, alignItems: "center", padding: 9, border: `2px solid ${selected ? "rgba(127,219,255,.95)" : "rgba(245,201,128,.36)"}`, borderRadius: 14, background: disabled ? "rgba(80,80,80,.16)" : "rgba(255,247,221,.08)", color: disabled ? "#9d9384" : "#fff7dd", textAlign: "left", filter: disabled ? "grayscale(.8) brightness(.72)" : "none" }}><button type="button" disabled={disabled} onClick={() => onChoose(role, participant.participantId)} style={{ position: "absolute", inset: 0, border: 0, background: "transparent", cursor: disabled ? "not-allowed" : "pointer" }} aria-label={`Select ${participant.displayName}`} /><button type="button" style={{ ...infoButtonStyle, top: 6, right: 6, width: 28, height: 28 }} onClick={() => onInfo(participant)} aria-label={`Inspect ${participant.displayName}`}>i</button><img src={participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt="" style={{ width: 74, height: 74, objectFit: "cover", borderRadius: 10, background: "rgba(255,247,221,.08)" }} onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} /><div><strong style={{ display: "block", color: "#fff7dd" }}>{participant.displayName}</strong><span style={{ display: "block", color: "#7fdbff", fontSize: ".8rem", fontWeight: 900 }}>{participant.familyLabel}</span><span style={{ display: "block", color: "#f2dfbd", fontSize: ".72rem" }}>Energy {formatEnergy(participant.energy, participant.maxEnergy)} • Hearts {participant.hearts}/{participant.maxHearts}</span><span style={{ display: "block", color: participant.isPregnant ? "#f5c980" : participant.canBreed ? "#7fdbff" : "#d9a0a0", fontSize: ".72rem", fontWeight: 900 }}>{participantStatus(participant)}</span></div></article>;
+          })}
+        </div>
+      </section>
+    </div>
+  );
 }
 
 function ParticipantInfoModal({ participant, creature, dayNumber, onClose }: { participant: BreedingParticipant; creature: CreatureRecord | null; dayNumber: number; onClose: () => void }) {
