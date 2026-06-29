@@ -6,6 +6,8 @@ import type { GameSave } from "@/types/save";
 import type { GuildActionResult, GuildContract, GuildContractRequirement, GuildContractTier, GuildState } from "@/types/guild";
 
 const FIRST_COMPLETED_CONTRACT_GP_BONUS = 10;
+const MAX_QUALITY_GOLD_BONUS = 90;
+const MAX_QUALITY_GP_BONUS = 6;
 
 function seededNumber(seed: number): number {
   const value = Math.sin(seed) * 10000;
@@ -59,24 +61,26 @@ type ContractTemplate = Omit<GuildContract, "contractId" | "weekNumber" | "type"
 
 function getBaseTemplates(): ContractTemplate[] {
   return [
-    { tier: "bronze", title: "Stable Starter Request", description: "The guild needs a dependable common ranch creature for a new rural client.", requirement: { kind: "any_creature", label: "Donate any creature." } },
-    { tier: "bronze", title: "Feline Helper Needed", description: "A quiet household wants a reliable feline companion for daily ranch support.", requirement: { kind: "family", family: "feline", label: "Donate any feline creature." } },
-    { tier: "bronze", title: "Canine Patrol Request", description: "A nearby farm wants a loyal canine for basic patrol work.", requirement: { kind: "family", family: "canine", label: "Donate any canine creature." } },
-    { tier: "bronze", title: "Bovine Stock Registry", description: "A rancher wants a sturdy bovine for future production and labor stock.", requirement: { kind: "family", family: "bovine", label: "Donate any bovine creature." } },
-    { tier: "bronze", title: "Lapine Garden Helper", description: "A local gardener needs a quick lapine with strong fertility and garden instincts.", requirement: { kind: "family", family: "lapine", label: "Donate any lapine creature." } },
-    { tier: "bronze", title: "Equine Field Hand", description: "A field crew wants a reliable equine for hauling and travel work.", requirement: { kind: "family", family: "equine", label: "Donate any equine creature." } },
-    { tier: "silver", title: "Healthy Worker Request", description: "The guild is looking for a sturdy creature with strong stamina.", requirement: { kind: "stat_minimum", stat: "STA", minimum: 7, label: "Donate any creature with STA 7+." } },
-    { tier: "silver", title: "Charming Companion Request", description: "A noble client wants a socially gifted creature with strong charm.", requirement: { kind: "stat_minimum", stat: "CHA", minimum: 7, label: "Donate any creature with CHA 7+." } },
-    { tier: "silver", title: "Focused Willpower Request", description: "A guild partner wants a disciplined companion with strong willpower.", requirement: { kind: "stat_minimum", stat: "WIL", minimum: 7, label: "Donate any creature with WIL 7+." } },
-    { tier: "bronze", title: "Reliable Fertility Registry", description: "The registrar is collecting fertile ranch stock for approved clients.", requirement: { kind: "stat_minimum", stat: "FER", minimum: 6, label: "Donate any creature with FER 6+." } },
-    { tier: "gold", title: "Rare Bloodline Request", description: "A prestigious guild patron seeks a rare or better bloodline specimen.", requirement: { kind: "rarity", rarity: "Rare", label: "Donate any Rare or Epic creature." } },
-    { tier: "gold", title: "Exceptional Dexterity Request", description: "A specialist needs a highly agile creature for delicate service work.", requirement: { kind: "stat_minimum", stat: "DEX", minimum: 8, label: "Donate any creature with DEX 8+." } },
-    { tier: "gold", title: "Minotaur Security Trial", description: "A frontier estate wants a rare Minotaur for security and heavy-labor evaluation.", requirement: { kind: "variant", variantId: "variant_minotaur" as import("@/types/ids").VariantId, label: "Donate a Minotaur." } },
+    { tier: "bronze", title: "Veyra's Stable Starter Request", description: "Veyra wants a dependable common ranch creature placed with a careful first-time keeper near Bramblefen.", requirement: { kind: "any_creature", label: "Donate any creature." } },
+    { tier: "bronze", title: "Mira's Feline Hearth Helper", description: "A quiet household wants a reliable feline companion for daily ranch support and pest watching.", requirement: { kind: "family", family: "feline", label: "Donate any feline creature." } },
+    { tier: "bronze", title: "Ranger Canine Patrol Request", description: "A nearby farm wants a loyal canine for fence walks, trail scenting, and basic patrol work.", requirement: { kind: "family", family: "canine", label: "Donate any canine creature." } },
+    { tier: "bronze", title: "Town Clerk Bovine Stock Registry", description: "The town registry is cataloging sturdy bovine lines for future production and labor stock.", requirement: { kind: "family", family: "bovine", label: "Donate any bovine creature." } },
+    { tier: "bronze", title: "Veyra's Lapine Garden Helper", description: "Veyra knows a local gardener who needs a quick lapine with strong garden-ranch instincts.", requirement: { kind: "family", family: "lapine", label: "Donate any lapine creature." } },
+    { tier: "bronze", title: "Mara's Equine Field Hand", description: "Mara Vell is matching a field crew with a reliable equine for hauling and travel work.", requirement: { kind: "family", family: "equine", label: "Donate any equine creature." } },
+    { tier: "silver", title: "Mara's Healthy Worker Request", description: "Mara needs a sturdy creature with strong stamina for approved town service work.", requirement: { kind: "stat_minimum", stat: "STA", minimum: 7, label: "Donate any creature with STA 7+." } },
+    { tier: "silver", title: "Noble Charming Companion Request", description: "A noble client wants a socially gifted creature with enough charm to handle guests and ceremonies.", requirement: { kind: "stat_minimum", stat: "CHA", minimum: 7, label: "Donate any creature with CHA 7+." } },
+    { tier: "silver", title: "Veyra's Focused Willpower Request", description: "Veyra wants a disciplined companion for a skittish client rebuilding trust after a hard season.", requirement: { kind: "stat_minimum", stat: "WIL", minimum: 7, label: "Donate any creature with WIL 7+." } },
+    { tier: "bronze", title: "Nursery Fertility Registry", description: "The nursery registrar is collecting fertile ranch stock for approved, carefully tracked clients.", requirement: { kind: "stat_minimum", stat: "FER", minimum: 6, label: "Donate any creature with FER 6+." } },
+    { tier: "silver", title: "Mara's Hauling Strength Order", description: "The quartermaster desk needs a creature with enough strength for construction errands and supply runs.", requirement: { kind: "stat_minimum", stat: "STR", minimum: 7, label: "Donate any creature with STR 7+." } },
+    { tier: "silver", title: "Quick Courier Dexterity Request", description: "A courier office needs a nimble creature that can handle crowded lanes and delicate parcels.", requirement: { kind: "stat_minimum", stat: "DEX", minimum: 7, label: "Donate any creature with DEX 7+." } },
+    { tier: "gold", title: "Town Clerk Rare Bloodline Request", description: "A prestigious guild patron seeks a rare or better bloodline specimen for the official registry.", requirement: { kind: "rarity", rarity: "Rare", label: "Donate any Rare or Epic creature." } },
+    { tier: "gold", title: "Exceptional Dexterity Request", description: "A specialist needs a highly agile creature for delicate service work and instrument handling.", requirement: { kind: "stat_minimum", stat: "DEX", minimum: 8, label: "Donate any creature with DEX 8+." } },
+    { tier: "gold", title: "Ranger Minotaur Security Trial", description: "A frontier estate wants a rare Minotaur for security and heavy-labor evaluation.", requirement: { kind: "variant", variantId: "variant_minotaur" as import("@/types/ids").VariantId, label: "Donate a Minotaur." } },
     { tier: "gold", title: "Moon Yak Recovery Program", description: "A clinic is searching for a Moon Yak to study calm recovery and rare production lines.", requirement: { kind: "variant", variantId: "variant_moon_yak" as import("@/types/ids").VariantId, label: "Donate a Moon Yak." } },
-    { tier: "gold", title: "Antlerhare Garden Patron", description: "A greenhouse patron wants an Antlerhare for future garden work.", requirement: { kind: "variant", variantId: "variant_antlerhare" as import("@/types/ids").VariantId, label: "Donate an Antlerhare." } },
+    { tier: "gold", title: "Veyra's Antlerhare Garden Patron", description: "A greenhouse patron wants an Antlerhare for future garden restoration work.", requirement: { kind: "variant", variantId: "variant_antlerhare" as import("@/types/ids").VariantId, label: "Donate an Antlerhare." } },
     { tier: "gold", title: "Dream Lop Nursery Study", description: "The nursery guild is looking for a Dream Lop with comfort and recovery traits.", requirement: { kind: "variant", variantId: "variant_dream_lop" as import("@/types/ids").VariantId, label: "Donate a Dream Lop." } },
     { tier: "gold", title: "Unicorn Lineage Request", description: "A prestigious patron seeks a Unicorn for healing and lineage research.", requirement: { kind: "variant", variantId: "variant_unicorn" as import("@/types/ids").VariantId, label: "Donate a Unicorn." } },
-    { tier: "gold", title: "Nightmare Guard Contract", description: "A fortified ranch wants a Nightmare for future security and intimidation work.", requirement: { kind: "variant", variantId: "variant_nightmare" as import("@/types/ids").VariantId, label: "Donate a Nightmare." } },
+    { tier: "gold", title: "Ranger Nightmare Guard Contract", description: "A fortified ranch wants a Nightmare for future security and intimidation work.", requirement: { kind: "variant", variantId: "variant_nightmare" as import("@/types/ids").VariantId, label: "Donate a Nightmare." } },
   ];
 }
 
@@ -162,6 +166,41 @@ export function getEligibleCreaturesForContract(save: GameSave, contractId: stri
   return (syncedSave.creatures ?? []).filter((creature) => doesCreatureMatchContract(creature, contract));
 }
 
+function calculateContractQualityBonus(creature: CreatureRecord, contract: GuildContract): { gold: number; gp: number; reasons: string[] } {
+  const reasons: string[] = [];
+  let points = 0;
+  const requirement = contract.requirement;
+  const variant = getVariantDefinition(creature.variantId);
+  if (requirement.kind === "stat_minimum" && requirement.stat && requirement.minimum) {
+    const excess = Math.max(0, creature.stats[requirement.stat] - requirement.minimum);
+    if (excess > 0) {
+      points += Math.min(6, excess) * 2;
+      reasons.push(`+${excess} ${requirement.stat} above request`);
+    }
+  }
+  if (creature.level > 1) {
+    points += Math.min(8, creature.level - 1);
+    reasons.push(`Lv ${creature.level}`);
+  }
+  const abilityCount = creature.abilities?.length ?? 0;
+  if (abilityCount > 0) {
+    points += abilityCount * 4;
+    reasons.push(`${abilityCount} inherited ${abilityCount === 1 ? "ability" : "abilities"}`);
+  }
+  const rarityRank = getCreatureRarityRank(variant.rarity);
+  if (rarityRank > 1) {
+    points += (rarityRank - 1) * 5;
+    reasons.push(`${variant.rarity} rarity`);
+  }
+  if (creature.affection >= 75) {
+    points += 3;
+    reasons.push("high affection");
+  }
+  const gold = Math.min(MAX_QUALITY_GOLD_BONUS, Math.floor(points / 3) * 10);
+  const gp = Math.min(MAX_QUALITY_GP_BONUS, Math.floor(points / 8));
+  return { gold, gp, reasons };
+}
+
 export function acceptGuildContract(save: GameSave, contractId: string): GuildActionResult {
   const syncedSave = ensureCurrentGuildState(save);
   const guild = syncedSave.guild ?? createDefaultGuildState(syncedSave);
@@ -180,13 +219,27 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   if (!creature) return { save: syncedSave, ok: false, message: "That creature is no longer available." };
   if (creature.isLocked) return { save: syncedSave, ok: false, message: `${creature.nickname} is locked. Unlock them before donating.` };
   if (contract.status !== "accepted" && contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract cannot receive donations." };
-  if (!doesCreatureMatchContract(creature, contract)) return { save: syncedSave, ok: false, message: `${creature.nickname} does not meet this contract's requirements.` };
-  const isWelcomeBonusAvailable = !syncedSave.flags.m105GuildWelcomeBonusClaimed;
-  const welcomeBonusGp = isWelcomeBonusAvailable ? FIRST_COMPLETED_CONTRACT_GP_BONUS : 0;
-  const nextCompletedCount = guild.completedCount + 1;
-  const nextGuildRank = Math.max(guild.guildRank, 1 + Math.floor(nextCompletedCount / 5));
-  const nextM9TotalDonated = Number(syncedSave.flags.m9TotalDonated ?? 0) + 1;
-  const totalGpReward = contract.guildPointReward + welcomeBonusGp;
-  const bonusText = welcomeBonusGp > 0 ? ` Guild Welcome Bonus +${welcomeBonusGp} GP.` : "";
-  return { save: { ...syncedSave, updatedAt: new Date().toISOString(), currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold + contract.goldReward, guildPoints: syncedSave.currencies.guildPoints + totalGpReward }, creatureIds: syncedSave.creatureIds.filter((id) => id !== creature.creatureId), creatures: (syncedSave.creatures ?? []).filter((item) => item.creatureId !== creature.creatureId), habitats: (syncedSave.habitats ?? []).map((habitat) => ({ ...habitat, creatureIds: habitat.creatureIds.filter((id) => id !== creature.creatureId) })), guild: { ...guild, completedCount: nextCompletedCount, donatedCreatureCount: guild.donatedCreatureCount + 1, guildRank: nextGuildRank, contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "completed", completedAtDayNumber: syncedSave.dayState.dayNumber, donatedCreatureId: creature.creatureId, donatedCreatureName: creature.nickname } : item) }, flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m9CreatureManagement: true, m9TotalDonated: nextM9TotalDonated, m105GuildWelcomeBonusClaimed: true, m13GuildContentPack: true } }, ok: true, message: `${creature.nickname} donated. Earned ${contract.goldReward} Gold and ${totalGpReward} GP.${bonusText}` };
+  if (!doesCreatureMatchContract(creature, contract)) return { save: syncedSave, ok: false, message: `${creature.nickname} does not match that contract.` };
+
+  const qualityBonus = calculateContractQualityBonus(creature, contract);
+  const firstBonus = guild.completedCount === 0 ? FIRST_COMPLETED_CONTRACT_GP_BONUS : 0;
+  const goldReward = contract.goldReward + qualityBonus.gold;
+  const guildPointReward = contract.guildPointReward + qualityBonus.gp + firstBonus;
+  const nextContracts = guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "completed" as const, completedAtDayNumber: syncedSave.dayState.dayNumber, donatedCreatureId: creature.creatureId, donatedCreatureName: creature.nickname } : item);
+  const nextCreatures = (syncedSave.creatures ?? []).filter((item) => item.creatureId !== creature.creatureId);
+  const bonusText = qualityBonus.gold || qualityBonus.gp ? ` Quality bonus: +${qualityBonus.gold} Gold, +${qualityBonus.gp} GP (${qualityBonus.reasons.slice(0, 3).join(", ")}).` : "";
+  const firstBonusText = firstBonus ? ` First contract bonus: +${firstBonus} GP.` : "";
+  return {
+    save: {
+      ...syncedSave,
+      creatures: nextCreatures,
+      creatureIds: syncedSave.creatureIds.filter((id) => id !== creature.creatureId),
+      habitats: (syncedSave.habitats ?? []).map((habitat) => ({ ...habitat, creatureIds: habitat.creatureIds.filter((id) => id !== creature.creatureId) })),
+      guild: { ...guild, contracts: nextContracts, completedCount: guild.completedCount + 1, donatedCreatureCount: guild.donatedCreatureCount + 1, guildRank: Math.max(guild.guildRank, Math.floor((guild.completedCount + 1) / 5) + 1) },
+      currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold + goldReward, guildPoints: syncedSave.currencies.guildPoints + guildPointReward },
+      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m33ContractQualityBonus: true },
+    },
+    ok: true,
+    message: `${creature.nickname} completed ${contract.title}. Earned ${goldReward} Gold and ${guildPointReward} GP.${bonusText}${firstBonusText}`,
+  };
 }
