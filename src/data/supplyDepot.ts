@@ -1,4 +1,4 @@
-import { grantNpcTrust } from "@/data/townNpcs";
+import { getPellaSupplyPriceMultiplier, grantNpcTrust } from "@/data/townNpcs";
 import type { GameSave } from "@/types/save";
 
 export type SupplyDepotItemId = "feed_bundle" | "material_crate" | "energy_snack" | "repair_kit" | "fertility_tonic" | "nursery_supply_kit";
@@ -46,6 +46,10 @@ export function getSupplyDepotItem(itemId: string): SupplyDepotItem | null {
   return SUPPLY_DEPOT_ITEMS.find((item) => item.itemId === itemId) ?? null;
 }
 
+export function getSupplyDepotPrice(save: GameSave, item: SupplyDepotItem): number {
+  return Math.max(1, Math.round((item.price * getPellaSupplyPriceMultiplier(save)) / 5) * 5);
+}
+
 export function getSupplyDepotStockLabel(save: GameSave): string {
   const feed = getFlagNumber(save.flags.ranchFeedStock);
   const materials = getFlagNumber(save.flags.ranchMaterialsStock);
@@ -58,11 +62,12 @@ export function getSupplyDepotStockLabel(save: GameSave): string {
 export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyDepotPurchaseResult {
   const item = getSupplyDepotItem(itemId);
   if (!item) return { save, ok: false, message: "Pella cannot find that item on the shelf." };
-  if (save.currencies.gold < item.price) return { save, ok: false, message: `Not enough Gold for ${item.name}. Need ${item.price} Gold.` };
+  const price = getSupplyDepotPrice(save, item);
+  if (save.currencies.gold < price) return { save, ok: false, message: `Not enough Gold for ${item.name}. Need ${price} Gold.` };
 
   const nextFlags: GameSave["flags"] = { ...save.flags, m35SupplyDepotUnlocked: true, pellaMosswickIntroduced: true };
-  let nextCurrencies = { ...save.currencies, gold: save.currencies.gold - item.price };
-  let message = `Bought ${item.name} from Pella for ${item.price} Gold.`;
+  let nextCurrencies = { ...save.currencies, gold: save.currencies.gold - price };
+  let message = `Bought ${item.name} from Pella for ${price} Gold.`;
 
   if (item.itemId === "feed_bundle") {
     nextFlags.ranchFeedStock = getFlagNumber(save.flags.ranchFeedStock) + 5;
