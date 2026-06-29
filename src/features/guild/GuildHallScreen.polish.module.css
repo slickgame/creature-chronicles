@@ -283,18 +283,6 @@
   box-shadow: 0 -8px 16px rgba(0, 0, 0, 0.42);
 }
 
-[data-contract-modal-head="true"] {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 14px;
-  align-items: start;
-}
-
-[data-contract-modal-actions="true"] {
-  display: grid;
-  gap: 8px;
-}
-
 .contractTipBox {
   padding: 10px;
   border: 1px solid rgba(127, 219, 255, 0.34);
