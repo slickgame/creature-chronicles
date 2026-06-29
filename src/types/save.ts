@@ -5,6 +5,7 @@ import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, Speci
 import type { MarketState } from "./market";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
+import type { TownNpcTrustState } from "./townNpc";
 import type { TownUpgradeState } from "./upgrades";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -110,6 +111,7 @@ export type GameSave = {
   market?: MarketState;
   guild?: GuildState;
   townUpgrades?: TownUpgradeState;
+  townNpcTrust?: TownNpcTrustState;
   ranchUpgrades?: RanchUpgradeState;
   ranchJobs?: RanchJobsState;
   flags: Record<string, boolean | number | string>;
