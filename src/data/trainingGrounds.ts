@@ -6,7 +6,8 @@ import type { GameSave } from "@/types/save";
 export type TrainingFocusId = "level_drill" | "stat_coaching";
 export type TrainingFocus = { focusId: TrainingFocusId; name: string; category: "XP" | "Stats"; description: string; costGold: number; durationDays: number; iconPath: string; effectLabel: string };
 export type TrainingAssignment = { creatureId: CreatureId; focusId: TrainingFocusId; startDayNumber: number; returnDayNumber: number; isReady: boolean; daysRemaining: number };
-export type TrainingResult = { save: GameSave; ok: boolean; message: string };
+export type TrainingRewardSummary = { creatureName: string; focusName: string; xpBefore: number; xpAfter: number; xpToNextBefore: number; xpToNextAfter: number; levelBefore: number; levelAfter: number; leveled: boolean; statKey?: CreatureStatKey; statBefore?: number; statAfter?: number; gradeBefore?: StatGrade; gradeAfter?: StatGrade; statRoll?: number; statChance?: number; statSucceeded?: boolean; notes: string[] };
+export type TrainingResult = { save: GameSave; ok: boolean; message: string; reward?: TrainingRewardSummary };
 
 export const RHEA_FLINT = {
   npcId: "rhea_flint",
@@ -53,6 +54,7 @@ export function isCreatureAwayForTraining(save: GameSave, creatureId: CreatureId
 export function getTrainingStatusLabel(save: GameSave, creatureId: CreatureId): string { const assignment = getTrainingAssignment(save, creatureId); if (!assignment) return "Available"; const focus = getTrainingFocus(assignment.focusId); if (assignment.isReady) return `${focus?.name ?? "Training"} complete — collect from Rhea`; return `${focus?.name ?? "Training"} with Rhea — ${assignment.daysRemaining} day(s) left`; }
 export function getTrainingUnavailableReason(save: GameSave, creatureId: CreatureId): string | null { const assignment = getTrainingAssignment(save, creatureId); if (!assignment) return null; return getTrainingStatusLabel(save, creatureId); }
 export function getTrainingReturnSummaryItems(save: GameSave): string[] { return (save.creatures ?? []).flatMap((creature) => { const assignment = getTrainingAssignment(save, creature.creatureId); if (!assignment || !assignment.isReady) return []; const focus = getTrainingFocus(assignment.focusId); return [`${creature.nickname} returns from ${focus?.name ?? "training"} today. Visit Rhea at the Training Grounds to collect the result.`]; }); }
+export function getTrainingHistorySummary(save: GameSave, creatureId: CreatureId): string { return TRAINING_FOCI.map((focus) => `${focus.name}: ${getTrainingCount(save, creatureId, focus.focusId)}`).join(" • "); }
 
 export function startTrainingGroundsAssignment(save: GameSave, creatureId: CreatureId, focusId: TrainingFocusId): TrainingResult {
   const focus = getTrainingFocus(focusId);
@@ -78,28 +80,45 @@ export function collectTrainingGroundsAssignment(save: GameSave, creatureId: Cre
   let trained: CreatureRecord = { ...creature };
   let message = `${creature.nickname} returned from ${focus.name}.`;
   const notes: string[] = [];
+  const reward: TrainingRewardSummary = { creatureName: creature.nickname, focusName: focus.name, xpBefore: creature.xp, xpAfter: creature.xp, xpToNextBefore: creature.xpToNext, xpToNextAfter: creature.xpToNext, levelBefore: creature.level, levelAfter: creature.level, leveled: false, notes };
   if (assignment.focusId === "level_drill") {
     const xpResult = applyXp(trained, 35);
     trained = xpResult.creature;
+    reward.xpAfter = trained.xp;
+    reward.xpToNextAfter = trained.xpToNext;
+    reward.levelAfter = trained.level;
+    reward.leveled = xpResult.leveled;
     message += xpResult.leveled ? " They gained 35 XP and leveled up." : " They gained 35 XP.";
-    notes.push("Training Grounds Level Drill completed after 1 day with Rhea.");
+    notes.push("+35 XP from Level Drill.");
+    if (xpResult.leveled) notes.push(`Level increased from ${creature.level} to ${trained.level}.`);
   } else if (assignment.focusId === "stat_coaching") {
     const roll = deterministicRoll(`${save.saveId}_${creatureId}_${assignment.focusId}_${assignment.startDayNumber}_${attemptNumber}`, 100);
     const statKey = getLowestUpgradeableStatKey(trained, `${creatureId}_${assignment.focusId}_${assignment.startDayNumber}`);
+    reward.statRoll = roll + 1;
+    reward.statChance = STAT_COACHING_CHANCE;
+    reward.statKey = statKey ?? undefined;
     if (statKey && roll < STAT_COACHING_CHANCE) {
       const oldGrade = trained.statGrades[statKey];
       const newGrade = shiftStatGrade(oldGrade, 1);
       const stats = { ...trained.stats, [statKey]: trained.stats[statKey] + 1 };
       const maxEnergy = getCreatureMaxEnergyFromStats(stats, trained.variantId);
       trained = { ...trained, stats, statGrades: { ...trained.statGrades, [statKey]: newGrade }, maxEnergy, energy: Math.min(maxEnergy, trained.energy + (statKey === "STA" ? 4 : 0)) };
+      reward.statBefore = creature.stats[statKey];
+      reward.statAfter = trained.stats[statKey];
+      reward.gradeBefore = oldGrade;
+      reward.gradeAfter = newGrade;
+      reward.statSucceeded = true;
       message += ` Rhea improved ${statKey} from ${oldGrade} to ${newGrade} and added +1 ${statKey}.`;
-      notes.push(`Training Grounds Stat Coaching completed after 3 days and improved ${statKey} from ${oldGrade} to ${newGrade}.`);
+      notes.push(`Roll ${roll + 1}/100 succeeded against ${STAT_COACHING_CHANCE}%.`);
+      notes.push(`${statKey}: Grade ${oldGrade} → ${newGrade}, stat ${creature.stats[statKey]} → ${trained.stats[statKey]}.`);
     } else {
+      reward.statSucceeded = false;
       message += ` No stat grade improved this time. Chance was ${STAT_COACHING_CHANCE}%.`;
-      notes.push("Training Grounds Stat Coaching completed after 3 days with no stat grade improvement.");
+      notes.push(`Roll ${roll + 1}/100 did not hit the ${STAT_COACHING_CHANCE}% improvement chance.`);
+      notes.push(statKey ? `${statKey} was the coached lowest eligible stat.` : "No eligible stat could be improved.");
     }
   }
-  const nextCreatures = (save.creatures ?? []).map((item) => item.creatureId === creatureId ? { ...trained, notes: `${trained.notes ?? ""} ${notes.join(" ")}`.trim() } : item);
-  const nextFlags = { ...save.flags, m46TrainingAssignments: true, [getTrainingCountFlag(creatureId, assignment.focusId)]: attemptNumber + 1, [`trainingGroundsLast_${creatureId}`]: assignment.focusId, [getAssignmentFocusFlag(creatureId)]: "", [getAssignmentStartFlag(creatureId)]: 0, [getAssignmentReturnFlag(creatureId)]: 0 };
-  return { save: { ...save, updatedAt: new Date().toISOString(), creatures: nextCreatures, flags: nextFlags }, ok: true, message };
+  const nextCreatures = (save.creatures ?? []).map((item) => item.creatureId === creatureId ? { ...trained, notes: `${trained.notes ?? ""} Training Grounds: ${notes.join(" ")}`.trim() } : item);
+  const nextFlags = { ...save.flags, m46TrainingAssignments: true, m48TrainingRewardPresentation: true, [getTrainingCountFlag(creatureId, assignment.focusId)]: attemptNumber + 1, [`trainingGroundsLast_${creatureId}`]: assignment.focusId, [`trainingGroundsLastResult_${creatureId}`]: notes.join(" "), [getAssignmentFocusFlag(creatureId)]: "", [getAssignmentStartFlag(creatureId)]: 0, [getAssignmentReturnFlag(creatureId)]: 0 };
+  return { save: { ...save, updatedAt: new Date().toISOString(), creatures: nextCreatures, flags: nextFlags }, ok: true, message, reward };
 }
