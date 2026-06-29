@@ -12,6 +12,7 @@ import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
 import { RanchPlotNavigator } from "@/features/ranch/RanchPlotNavigator";
 import { RanchJobsAdvisorScreen } from "@/features/ranch-jobs/RanchJobsAdvisorScreen";
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
+import { SupplyDepotScreen } from "@/features/supply-depot/SupplyDepotScreen";
 import { TownScreen } from "@/features/town/TownScreen";
 import { useGameContext } from "@/state/GameProvider";
 
@@ -44,6 +45,7 @@ export function GameRoot() {
   if (appScreen === "nursery") return <NurseryScreen />;
   if (appScreen === "town") return <TownScreen />;
   if (appScreen === "market") return <MarketScreen />;
+  if (appScreen === "supply-depot") return <SupplyDepotScreen />;
   if (appScreen === "guild-hall") return <GuildHallScreen />;
   if (appScreen === "collection") return <CollectionScreen />;
   if (appScreen === "ranch-office") return <RanchOfficeScreen />;
