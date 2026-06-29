@@ -15,6 +15,7 @@ import { RanchJobsAdvisorScreen } from "@/features/ranch-jobs/RanchJobsAdvisorSc
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
 import { SupplyDepotScreen } from "@/features/supply-depot/SupplyDepotScreen";
 import { TownScreen } from "@/features/town/TownScreen";
+import { TrainingGroundsScreen } from "@/features/training-grounds/TrainingGroundsScreen";
 import { useGameContext } from "@/state/GameProvider";
 
 export function GameRoot() {
@@ -48,6 +49,7 @@ export function GameRoot() {
   if (appScreen === "market") return <MarketScreen />;
   if (appScreen === "supply-depot") return <SupplyDepotScreen />;
   if (appScreen === "egg-atelier") return <EggAtelierScreen />;
+  if (appScreen === "training-grounds") return <TrainingGroundsScreen />;
   if (appScreen === "guild-hall") return <GuildHallScreen />;
   if (appScreen === "collection") return <CollectionScreen />;
   if (appScreen === "ranch-office") return <RanchOfficeScreen />;
