@@ -4,82 +4,24 @@ import type { TownNpcDefinition, TownNpcId, TownNpcTrustRecord, TownNpcTrustStat
 const TRUST_LEVEL_THRESHOLDS = [0, 20, 50, 90, 140] as const;
 
 export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
-  tamsin_vale: {
-    npcId: "tamsin_vale",
-    name: "Tamsin Vale",
-    title: "Adoption Steward",
-    systemRole: "Vale's Adoption Hearth, adoption listings, welfare screening, new arrivals, special placements",
-    portraitPath: "/images/npcs/town/tamsin_vale_portrait.png",
-    profilePath: "/images/npcs/town/tamsin_vale_profile.png",
-    intro: "Tamsin Vale runs Vale's Adoption Hearth, matching creatures with safe homes and responsible keepers.",
-    trustUnlocks: { 1: "Basic adoption listings", 2: "Small adoption-fee discount", 3: "Cheaper arrival refreshes", 4: "Special placement notices", 5: "Rescue network requests" },
-  },
-  pella_mosswick: {
-    npcId: "pella_mosswick",
-    name: "Pella Mosswick",
-    title: "Supply Depot Keeper",
-    systemRole: "Supply Depot, feed, materials, tools, energy items, nursery supplies, daily bargains",
-    portraitPath: "/images/npcs/town/pella_mosswick_portrait.png",
-    profilePath: "/images/npcs/town/pella_mosswick_profile.png",
-    intro: "Pella Mosswick runs the Supply Depot, a crowded little shop stacked with feed sacks, repair kits, tools, gossip, and emergency bundles.",
-    trustUnlocks: { 1: "Basic Supply Depot stock", 2: "Small supply discount later", 3: "Bulk buying later", 4: "Rare supply shelf later", 5: "Custom orders later" },
-  },
-  mara_vell: {
-    npcId: "mara_vell",
-    name: "Mara Vell",
-    title: "Guild Quartermaster",
-    systemRole: "Guild Points, request board upgrades, town service upgrades, service economy",
-    portraitPath: "/images/npcs/guild/mara_vell_portrait.png",
-    profilePath: "/images/npcs/guild/mara_vell_profile.png",
-    intro: "Mara Vell keeps the guild ledger moving and turns completed work into town upgrades.",
-    trustUnlocks: { 1: "Guild grants", 2: "Service discount later", 3: "Better work orders later", 4: "Upgrade favors later", 5: "Quartermaster contracts later" },
-  },
-  veyra: {
-    npcId: "veyra",
-    name: "Veyra",
-    title: "Ranch Steward",
-    systemRole: "Chapter story, restoration, ranch welfare, early goals",
-    portraitPath: "/images/npcs/story/veyra_portrait.png",
-    profilePath: "/images/npcs/story/veyra_profile.png",
-    intro: "Veyra watches the ranch's recovery closely and cares more about humane outcomes than quick coin.",
-    trustUnlocks: { 1: "Chapter guidance", 2: "Restoration notes", 3: "Welfare bonuses later", 4: "Story route later", 5: "Restoration capstone later" },
-  },
-  selene_virell: {
-    npcId: "selene_virell",
-    name: "Dr. Selene Virell",
-    title: "Nursery Lineage Scholar",
-    systemRole: "Nursery, pregnancy odds, egg care, inheritance, lineage safety",
-    portraitPath: "/images/npcs/town/selene_virell_portrait.png",
-    profilePath: "/images/npcs/town/selene_virell_profile.png",
-    intro: "Dr. Selene Virell treats breeding as medicine, genealogy, and careful ritual all at once.",
-    trustUnlocks: { 1: "Nursery advice later", 2: "Pregnancy preview clarity later", 3: "Lineage warnings later", 4: "Inheritance tools later", 5: "Advanced nursery research later" },
-  },
-  maribel_quince: {
-    npcId: "maribel_quince",
-    name: "Maribel Quince",
-    title: "Town Clerk",
-    systemRole: "Registry, taxes, permits, contract records, town reputation",
-    portraitPath: "/images/npcs/town/maribel_quince_portrait.png",
-    profilePath: "/images/npcs/town/maribel_quince_profile.png",
-    intro: "Maribel Quince keeps the town legal, solvent, and buried under just enough paperwork to survive.",
-    trustUnlocks: { 1: "Registry records later", 2: "Tax notices later", 3: "Contract history later", 4: "Permit favors later", 5: "Legal protection later" },
-  },
-  kaida_thorn: {
-    npcId: "kaida_thorn",
-    name: "Kaida Thorn",
-    title: "Ranger Captain",
-    systemRole: "Security, patrols, danger events, guard contracts, frontier threats",
-    portraitPath: "/images/npcs/town/kaida_thorn_portrait.png",
-    profilePath: "/images/npcs/town/kaida_thorn_profile.png",
-    intro: "Kaida Thorn keeps the roads watched and respects players who send capable creatures to dangerous work.",
-    trustUnlocks: { 1: "Security notices later", 2: "Patrol support later", 3: "Danger reduction later", 4: "Ranger missions later", 5: "Frontier protection later" },
-  },
+  tamsin_vale: { npcId: "tamsin_vale", name: "Tamsin Vale", title: "Adoption Steward", systemRole: "Vale's Adoption Hearth, adoption listings, welfare screening, new arrivals, special placements", portraitPath: "/images/npcs/town/tamsin_vale_portrait.png", profilePath: "/images/npcs/town/tamsin_vale_profile.png", intro: "Tamsin Vale runs Vale's Adoption Hearth, matching creatures with safe homes and responsible keepers.", trustUnlocks: { 1: "Basic adoption listings", 2: "5% cheaper adoption fees", 3: "10% cheaper arrival refreshes", 4: "+0.5% special placement chance", 5: "Rescue network requests later" } },
+  pella_mosswick: { npcId: "pella_mosswick", name: "Pella Mosswick", title: "Supply Depot Keeper", systemRole: "Supply Depot, feed, materials, tools, energy items, nursery supplies, daily bargains", portraitPath: "/images/npcs/town/pella_mosswick_portrait.png", profilePath: "/images/npcs/town/pella_mosswick_profile.png", intro: "Pella Mosswick runs the Supply Depot, a crowded little shop stacked with feed sacks, repair kits, tools, gossip, and emergency bundles.", trustUnlocks: { 1: "Basic Supply Depot stock", 2: "5% cheaper Supply Depot prices", 3: "Bulk bundles later", 4: "Rare supply shelf later", 5: "Custom orders later" } },
+  mara_vell: { npcId: "mara_vell", name: "Mara Vell", title: "Guild Quartermaster", systemRole: "Guild Points, request board upgrades, town service upgrades, service economy", portraitPath: "/images/npcs/guild/mara_vell_portrait.png", profilePath: "/images/npcs/guild/mara_vell_profile.png", intro: "Mara Vell keeps the guild ledger moving and turns completed work into town upgrades.", trustUnlocks: { 1: "Guild grants", 2: "Service discount later", 3: "Better work orders later", 4: "Upgrade favors later", 5: "Quartermaster contracts later" } },
+  veyra: { npcId: "veyra", name: "Veyra", title: "Ranch Steward", systemRole: "Chapter story, restoration, ranch welfare, early goals", portraitPath: "/images/npcs/story/veyra_portrait.png", profilePath: "/images/npcs/story/veyra_profile.png", intro: "Veyra watches the ranch's recovery closely and cares more about humane outcomes than quick coin.", trustUnlocks: { 1: "Chapter guidance", 2: "Restoration notes", 3: "Welfare bonuses later", 4: "Story route later", 5: "Restoration capstone later" } },
+  selene_virell: { npcId: "selene_virell", name: "Dr. Selene Virell", title: "Nursery Lineage Scholar", systemRole: "Nursery, pregnancy odds, egg care, inheritance, lineage safety", portraitPath: "/images/npcs/town/selene_virell_portrait.png", profilePath: "/images/npcs/town/selene_virell_profile.png", intro: "Dr. Selene Virell treats breeding as medicine, genealogy, and careful ritual all at once.", trustUnlocks: { 1: "Nursery advice later", 2: "Pregnancy preview clarity later", 3: "Lineage warnings later", 4: "Inheritance tools later", 5: "Advanced nursery research later" } },
+  maribel_quince: { npcId: "maribel_quince", name: "Maribel Quince", title: "Town Clerk", systemRole: "Registry, taxes, permits, contract records, town reputation", portraitPath: "/images/npcs/town/maribel_quince_portrait.png", profilePath: "/images/npcs/town/maribel_quince_profile.png", intro: "Maribel Quince keeps the town legal, solvent, and buried under just enough paperwork to survive.", trustUnlocks: { 1: "Registry records later", 2: "Tax notices later", 3: "Contract history later", 4: "Permit favors later", 5: "Legal protection later" } },
+  kaida_thorn: { npcId: "kaida_thorn", name: "Kaida Thorn", title: "Ranger Captain", systemRole: "Security, patrols, danger events, guard contracts, frontier threats", portraitPath: "/images/npcs/town/kaida_thorn_portrait.png", profilePath: "/images/npcs/town/kaida_thorn_profile.png", intro: "Kaida Thorn keeps the roads watched and respects players who send capable creatures to dangerous work.", trustUnlocks: { 1: "Security notices later", 2: "Patrol support later", 3: "Danger reduction later", 4: "Ranger missions later", 5: "Frontier protection later" } },
 };
 
 export function getTrustLevel(points: number): number {
   let level = 1;
   TRUST_LEVEL_THRESHOLDS.forEach((threshold, index) => { if (points >= threshold) level = index + 1; });
   return Math.max(1, Math.min(5, level));
+}
+
+export function getNextTrustThreshold(points: number): number | null {
+  const next = TRUST_LEVEL_THRESHOLDS.find((threshold) => threshold > points);
+  return typeof next === "number" ? next : null;
 }
 
 export function getNpcTrustRecord(save: GameSave, npcId: TownNpcId): TownNpcTrustRecord {
@@ -102,5 +44,44 @@ export function grantNpcTrust(save: GameSave, npcId: TownNpcId, amount: number, 
 export function getNpcTrustSummary(save: GameSave, npcId: TownNpcId): string {
   const record = getNpcTrustRecord(save, npcId);
   const definition = TOWN_NPCS[npcId];
-  return `${definition.name} Trust Lv. ${record.level} • ${record.points} pts`;
+  const next = getNextTrustThreshold(record.points);
+  return next ? `${definition.name} Trust Lv. ${record.level} • ${record.points}/${next} pts` : `${definition.name} Trust Lv. ${record.level} • Max Trust`;
+}
+
+export function getNpcNextUnlock(save: GameSave, npcId: TownNpcId): string {
+  const record = getNpcTrustRecord(save, npcId);
+  const definition = TOWN_NPCS[npcId];
+  const nextLevel = Math.min(5, record.level + 1);
+  if (record.level >= 5) return definition.trustUnlocks[5] ?? "Max trust reached";
+  return definition.trustUnlocks[nextLevel] ?? "More trust rewards later";
+}
+
+export function getTamsinAdoptionFeeMultiplier(save: GameSave): number {
+  const level = getNpcTrustRecord(save, "tamsin_vale").level;
+  if (level >= 5) return 0.9;
+  if (level >= 2) return 0.95;
+  return 1;
+}
+
+export function getTamsinArrivalRefreshMultiplier(save: GameSave): number {
+  const level = getNpcTrustRecord(save, "tamsin_vale").level;
+  if (level >= 5) return 0.82;
+  if (level >= 3) return 0.9;
+  return 1;
+}
+
+export function getTamsinSpecialPlacementBonus(save: GameSave): number {
+  return getNpcTrustRecord(save, "tamsin_vale").level >= 4 ? 0.005 : 0;
+}
+
+export function getPellaSupplyPriceMultiplier(save: GameSave): number {
+  const level = getNpcTrustRecord(save, "pella_mosswick").level;
+  if (level >= 5) return 0.88;
+  if (level >= 2) return 0.95;
+  return 1;
+}
+
+export function getIntroducedTownNpcIds(save: GameSave): TownNpcId[] {
+  const trust = getTownNpcTrustState(save);
+  return (Object.keys(TOWN_NPCS) as TownNpcId[]).filter((npcId) => trust[npcId]?.introduced || npcId === "tamsin_vale" || npcId === "pella_mosswick" || npcId === "mara_vell" || npcId === "veyra");
 }
