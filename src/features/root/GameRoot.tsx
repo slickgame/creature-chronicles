@@ -3,6 +3,7 @@
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreen";
+import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
@@ -46,6 +47,7 @@ export function GameRoot() {
   if (appScreen === "town") return <TownScreen />;
   if (appScreen === "market") return <MarketScreen />;
   if (appScreen === "supply-depot") return <SupplyDepotScreen />;
+  if (appScreen === "egg-atelier") return <EggAtelierScreen />;
   if (appScreen === "guild-hall") return <GuildHallScreen />;
   if (appScreen === "collection") return <CollectionScreen />;
   if (appScreen === "ranch-office") return <RanchOfficeScreen />;
