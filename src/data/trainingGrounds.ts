@@ -25,7 +25,7 @@ export const TRAINING_FOCI: TrainingFocus[] = [
 const STAT_GRADE_ORDER: StatGrade[] = ["D", "C", "B", "A", "S"];
 const STAT_COACHING_CHANCE = 18;
 function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
-function getFlagNumber(value: boolean | number | string | undefined): number { const parsed = typeof value === "number" ? value : Number(value ?? 0); return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0; }
+function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number { const parsed = typeof value === "number" ? value : Number(value ?? fallback); return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback; }
 function deterministicRoll(seed: string, modulo = 100): number { let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) % 1000003; return Math.abs(hash) % modulo; }
 function statGradeScore(grade: StatGrade): number { return STAT_GRADE_ORDER.indexOf(grade); }
 function getLowestUpgradeableStatKey(creature: CreatureRecord, seed: string): CreatureStatKey | null { const entries = Object.entries(creature.statGrades).filter((entry): entry is [CreatureStatKey, StatGrade] => entry[1] !== "S"); if (!entries.length) return null; const sorted = entries.sort((a, b) => statGradeScore(a[1]) - statGradeScore(b[1])); const lowest = statGradeScore(sorted[0][1]); const tied = sorted.filter((entry) => statGradeScore(entry[1]) === lowest); return tied[deterministicRoll(seed, tied.length)]?.[0] ?? sorted[0][0]; }
