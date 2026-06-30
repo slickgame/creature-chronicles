@@ -4,7 +4,7 @@ import { applyCreatureLevelGrowth, getProjectedMaxEnergyForCreature, normalizeGr
 import { createPregnancyRecord } from "@/data/nursery";
 import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
-import type { BreedingAttemptRecord, BreedingParticipant, BreedingPreview, BreedingProgressionEvent, BreedingSceneFamily, BreedingState } from "@/types/breeding";
+import type { BreedingAttemptRecord, BreedingOutcomeType, BreedingParticipant, BreedingPreview, BreedingProgressionEvent, BreedingSceneFamily, BreedingState } from "@/types/breeding";
 import type { CreatureAbility, CreatureRecord, CreatureStatKey, CreatureStats, StatGrades } from "@/types/creature";
 import type { BreedingAttemptId, CreatureId } from "@/types/ids";
 import type { GameSave, PlayerProfile } from "@/types/save";
@@ -131,7 +131,7 @@ export function performBreedingAttempt(save: GameSave, giverId: string, receiver
   const pregnancyBlocked = Boolean(preview.pregnancyBlockedReason);
   const usedFertilityTonic = !pregnancyBlocked && getFertilityTonicCount(save) > 0;
   const didBecomePregnant = !pregnancyBlocked && deterministicRoll(`${attemptId}_pregnancy`, 100) < preview.pregnancyChance;
-  const outcome = didBecomePregnant ? "pregnancy" : "failed";
+  const outcome: BreedingOutcomeType = didBecomePregnant ? "pregnancy" : "failed";
   const progressionEvents: BreedingProgressionEvent[] = [];
   let nextPlayer = save.player;
   let nextEnergy = save.currencies.energy;
