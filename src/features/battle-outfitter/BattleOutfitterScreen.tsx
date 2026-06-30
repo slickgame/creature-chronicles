@@ -32,7 +32,7 @@ const CATEGORIES: Array<BattleOutfitterCategory | "All"> = ["All", "Equipment", 
 
 const ICONS = {
   interior: "/images/backgrounds/guild/guild_hall_interior.png",
-  darian: DARIA_VOSS.portraitPath,
+  daria: DARIA_VOSS.portraitPath,
   fallback: "/images/ui/icons/icon_ability_trigger.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
   materials: "/images/ui/icons/icon_ranch_upgrade.png",
@@ -71,7 +71,7 @@ export function BattleOutfitterScreen() {
   const [mode, setMode] = useState<OutfitterMode>("interior");
   const [category, setCategory] = useState<BattleOutfitterCategory | "All">("All");
   const [selectedCreatureId, setSelectedCreatureId] = useState<CreatureId | null>(null);
-  const [message, setMessage] = useState("Darian keeps the combat shelves ready: equipment stock, move manuals, battle consumables, and team-prep kits.");
+  const [message, setMessage] = useState("Daria keeps the combat shelves ready: equipment stock, move manuals, battle consumables, and team-prep kits.");
 
   const visibleItems = useMemo(() => BATTLE_OUTFITTER_ITEMS.filter((item) => category === "All" || item.category === category), [category]);
   const equipmentItems = useMemo(() => BATTLE_OUTFITTER_ITEMS.filter((item) => item.category === "Equipment"), []);
@@ -142,20 +142,20 @@ function InteriorPanel({ summary, materials, setMode }: { summary: ReturnType<ty
       <div style={{ position: "relative", zIndex: 3, display: "grid", gridTemplateColumns: "minmax(260px, 360px) minmax(0, 1fr)", gap: 26, alignItems: "end", minHeight: "58vh" }}>
         <aside style={panelStyle()}>
           <div style={{ display: "grid", gridTemplateColumns: "76px minmax(0,1fr)", gap: 12, alignItems: "center" }}>
-            <img src={ICONS.darian} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: 76, height: 76, objectFit: "cover", borderRadius: 999, border: "1px solid rgba(245,201,128,.55)" }} />
-            <div><p className={styles.kicker}>Outfitter</p><h2 style={{ margin: 0 }}>Darian Voss</h2><p style={{ margin: "6px 0 0" }}>{summary.totalStock} stocked • {summary.assignedEquipment} assigned • {materials} materials</p></div>
+            <img src={ICONS.daria} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: 76, height: 76, objectFit: "cover", borderRadius: 999, border: "1px solid rgba(245,201,128,.55)" }} />
+            <div><p className={styles.kicker}>Outfitter</p><h2 style={{ margin: 0 }}>Daria Voss</h2><p style={{ margin: "6px 0 0" }}>{summary.totalStock} stocked • {summary.assignedEquipment} assigned • {materials} materials</p></div>
           </div>
           <p style={{ marginTop: 16, lineHeight: 1.55 }}>&quot;Training makes a creature better. Loadouts make a team ready. Good gear takes Gold and Materials, so plan your ranch economy before outfitting everyone.&quot;</p>
           <div style={{ display: "grid", gap: 8 }}>
             <button type="button" className={styles.buyButton} onClick={() => setMode("shop")}>Open Shelves</button>
             <button type="button" className={styles.buyButton} onClick={() => setMode("loadouts")}>Creature Loadouts</button>
             <button type="button" className={styles.buyButton} onClick={() => setMode("stock")}>Stock Ledger</button>
-            <button type="button" className={styles.buyButton} onClick={() => setMode("talk")}>Talk to Darian</button>
+            <button type="button" className={styles.buyButton} onClick={() => setMode("talk")}>Talk to Daria</button>
           </div>
         </aside>
         <div style={{ position: "relative", minHeight: 430 }}>
           <button type="button" style={{ ...hotspotStyle(), position: "absolute", left: "10%", top: "38%" }} onClick={() => setMode("shop")}><img src={ICONS.fallback} alt="" style={{ width: 58, height: 58, objectFit: "cover", borderRadius: 999 }} /><strong>Combat Shelves</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Gold + Materials</span></button>
-          <button type="button" style={{ ...hotspotStyle(), position: "absolute", right: "8%", top: "30%" }} onClick={() => setMode("talk")}><img src={ICONS.darian} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: 66, height: 66, objectFit: "cover", borderRadius: 999 }} /><strong>Darian Voss</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Combat prep advice</span></button>
+          <button type="button" style={{ ...hotspotStyle(), position: "absolute", right: "8%", top: "30%" }} onClick={() => setMode("talk")}><img src={ICONS.daria} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: 66, height: 66, objectFit: "cover", borderRadius: 999 }} /><strong>Daria Voss</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Combat prep advice</span></button>
           <button type="button" style={{ ...hotspotStyle(), position: "absolute", left: "39%", bottom: "8%" }} onClick={() => setMode("loadouts")}><img src={ICONS.manual} alt="" style={{ width: 58, height: 58, objectFit: "cover", borderRadius: 999 }} /><strong>Loadout Bench</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Assign equipment</span></button>
         </div>
       </div>
@@ -166,7 +166,7 @@ function InteriorPanel({ summary, materials, setMode }: { summary: ReturnType<ty
 function TalkPanel({ onBack, onLoadouts }: { onBack: () => void; onLoadouts: () => void }) {
   return (
     <section style={{ position: "relative", zIndex: 3, padding: 24, display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 18 }}>
-      <aside style={panelStyle()}><img src={ICONS.darian} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(245,201,128,.45)" }} /><h2>Darian Voss</h2><p>{DARIA_VOSS.title}</p></aside>
+      <aside style={panelStyle()}><img src={ICONS.daria} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(245,201,128,.45)" }} /><h2>Daria Voss</h2><p>{DARIA_VOSS.title}</p></aside>
       <section style={panelStyle()}><p className={styles.kicker}>Combat Prep</p><h2>Loadouts Before Battles</h2><p style={{ fontSize: "1.05rem", lineHeight: 1.65 }}>&quot;The Coliseum can wait. Prepared teams should not. Wraps and charms are simple equipment hooks. Manuals are a quiet way to mark who is ready for move training later.&quot;</p><p style={{ lineHeight: 1.6 }}>Equipment assigned here leaves stock and goes onto a creature. Removing it returns the item to stock. New purchases now cost both Gold and Materials, matching the Training Grounds upgrade economy.</p><div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}><button type="button" className={styles.buyButton} onClick={onLoadouts}>Open Loadouts</button><button type="button" className={styles.backButton} onClick={onBack}>Back to Outfitter</button></div></section>
     </section>
   );
@@ -202,5 +202,7 @@ function LoadoutPanel({ save, creatures, selectedCreature, setSelectedCreatureId
     </section>
   );
 }
+
+
 
 

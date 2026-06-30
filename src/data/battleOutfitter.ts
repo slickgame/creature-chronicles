@@ -315,7 +315,7 @@ export function purchaseBattleOutfitterItem(
   itemId: string,
 ): BattleOutfitterResult {
   const item = getItem(itemId);
-  if (!item) return { save, ok: false, message: "Darian cannot find that item." };
+  if (!item) return { save, ok: false, message: "Daria cannot find that item." };
 
   const currentStock = getBattleOutfitterStock(save, item);
   const materialStock = getBattleOutfitterMaterialStock(save);
@@ -444,7 +444,7 @@ export function useBattleOutfitterManual(
   if (!creature) return { save, ok: false, message: "Creature not found for manual use." };
 
   const manual = getItem("focus_manual");
-  if (!manual) return { save, ok: false, message: "Focus Manual is missing from Darian's records." };
+  if (!manual) return { save, ok: false, message: "Focus Manual is missing from Daria's records." };
 
   const stock = getBattleOutfitterStock(save, manual);
   if (stock <= 0) return { save, ok: false, message: "No Focus Manual in stock." };
@@ -475,5 +475,6 @@ export function useBattleOutfitterManual(
     )}`,
   };
 }
+
 
 
