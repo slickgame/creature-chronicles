@@ -18,9 +18,12 @@ export function VeyraTrustOverlay() {
   const dialogue = useMemo(() => currentSave ? getNextVeyraTrustDialogue(currentSave) : null, [currentSave]);
   if (!currentSave || appScreen !== "ranch-hub" || !trust) return null;
 
+  const activeSave = currentSave;
+  const activeTrust = trust;
+
   function closeDialogue(scene: VeyraTrustDialogue) {
-    if (!currentSave) return;
-    saveCurrentGame({ ...currentSave, updatedAt: new Date().toISOString(), flags: { ...currentSave.flags, [scene.flag]: true, m28VeyraTrustTrack: true, veyraTrustScore: trust.score, veyraTrustTier: trust.tier.id, veyraLastTrustDialogue: scene.id } });
+    
+    saveCurrentGame({ ...activeSave, updatedAt: new Date().toISOString(), flags: { ...activeSave.flags, [scene.flag]: true, m28VeyraTrustTrack: true, veyraTrustScore: activeTrust.score, veyraTrustTier: activeTrust.tier.id, veyraLastTrustDialogue: scene.id } });
   }
 
   return <><section style={meterStyle} aria-label="Veyra trust meter"><div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "start" }}><div><p style={kickerStyle}>Veyra Trust</p><strong style={{ display: "block", color: "#fff", fontSize: "1.08rem", lineHeight: 1.1 }}>{trust.tier.label}</strong></div><strong style={{ color: "#7fdbff" }}>{trust.score}/{trust.maxScore}</strong></div><div style={{ height: 10, border: "1px solid rgba(127,219,255,.34)", borderRadius: 999, background: "rgba(0,0,0,.34)", overflow: "hidden" }}><span style={{ display: "block", width: `${trust.nextTier ? trust.progressPercent : 100}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, rgba(127,219,255,.9), rgba(245,201,128,.95))" }} /></div><p style={bodyStyle}>{trust.nextTier ? `Next: ${trust.nextTier.label} at ${trust.nextTier.threshold} trust.` : "Max Chapter 1 trust reached."}</p><button type="button" style={buttonStyle} onClick={() => setDetailsOpen(true)}>View Trust Path</button></section>{detailsOpen ? <TrustDetailsModal trust={trust} onClose={() => setDetailsOpen(false)} /> : null}{dialogue ? <TrustDialogueModal dialogue={dialogue} onClose={() => closeDialogue(dialogue)} /> : null}</>;
@@ -33,3 +36,4 @@ function TrustDetailsModal({ trust, onClose }: { trust: ReturnType<typeof getVey
 function TrustDialogueModal({ dialogue, onClose }: { dialogue: VeyraTrustDialogue; onClose: () => void }) {
   return <div style={backdropStyle} role="presentation"><section style={panelStyle} role="dialog" aria-modal="true" aria-labelledby="veyra-trust-dialogue-title"><header style={{ display: "grid", gridTemplateColumns: "82px 1fr", gap: 12, alignItems: "center" }}><img src={dialogue.portraitPath} alt="" style={{ width: 74, height: 74, objectFit: "contain", border: "2px solid rgba(127,219,255,.58)", borderRadius: 16, padding: 6, background: "rgba(255,247,221,.08)" }} /><div><p style={kickerStyle}>Trust Dialogue Unlocked</p><h2 id="veyra-trust-dialogue-title" style={{ margin: "4px 0", color: "#fff", fontSize: "clamp(1.7rem,4vw,2.8rem)", lineHeight: .98 }}>{dialogue.title}</h2><span style={{ color: "#7fdbff", fontWeight: 950 }}>{dialogue.speaker}</span></div></header><div style={{ display: "grid", gap: 10 }}>{dialogue.lines.map((line, index) => <p key={`${dialogue.id}-${index}`} style={bodyStyle}>{line}</p>)}</div><section style={{ padding: 12, border: "1px solid rgba(127,219,255,.26)", borderRadius: 14, background: "rgba(127,219,255,.08)" }}><p style={kickerStyle}>Future Path</p><p style={bodyStyle}>{dialogue.nextPathLabel}</p></section><footer style={{ display: "flex", justifyContent: "flex-end" }}><button type="button" style={buttonStyle} onClick={onClose}>Continue</button></footer></section></div>;
 }
+

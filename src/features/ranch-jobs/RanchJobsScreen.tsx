@@ -54,15 +54,18 @@ export function RanchJobsScreen() {
 
   if (!currentSave || !jobs) return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before opening Ranch Chores.</p><button type="button" className={styles.primaryButton} onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
 
-  function getAssignedCreatures(jobId: RanchJobId): CreatureRecord[] { return (jobs?.assignments[jobId] ?? []).map((creatureId) => (currentSave?.creatures ?? []).find((creature) => creature.creatureId === creatureId)).filter(Boolean) as CreatureRecord[]; }
-  function getAssignedJobId(creatureId: CreatureId, exceptJobId?: RanchJobId): RanchJobId | null { return RANCH_JOB_IDS.find((jobId) => jobId !== exceptJobId && (jobs.assignments[jobId] ?? []).includes(creatureId)) ?? null; }
+  const activeSave = currentSave;
+  const activeJobs = jobs;
+
+  function getAssignedCreatures(jobId: RanchJobId): CreatureRecord[] { return (activeJobs.assignments[jobId] ?? []).map((creatureId) => (activeSave.creatures ?? []).find((creature) => creature.creatureId === creatureId)).filter(Boolean) as CreatureRecord[]; }
+  function getAssignedJobId(creatureId: CreatureId, exceptJobId?: RanchJobId): RanchJobId | null { return RANCH_JOB_IDS.find((jobId) => jobId !== exceptJobId && (activeJobs.assignments[jobId] ?? []).includes(creatureId)) ?? null; }
   function getAssignedJobName(creatureId: CreatureId, exceptJobId?: RanchJobId): string | null { const jobId = getAssignedJobId(creatureId, exceptJobId); return jobId ? RANCH_JOB_DEFINITIONS.find((job) => job.jobId === jobId)?.name ?? jobId : null; }
-  function getCandidates(job: RanchJobDefinition, assignments = jobs.assignments, allowCurrentJob = true): CreatureRecord[] {
-    return (currentSave?.creatures ?? [])
+  function getCandidates(job: RanchJobDefinition, assignments = activeJobs.assignments, allowCurrentJob = true): CreatureRecord[] {
+    return (activeSave.creatures ?? [])
       .filter((creature) => {
         const assignedJobId = RANCH_JOB_IDS.find((jobId) => (assignments[jobId] ?? []).includes(creature.creatureId));
         if (assignedJobId && (!allowCurrentJob || assignedJobId !== job.jobId)) return false;
-        return !isCreatureInjured(creature, currentSave.dayState.dayNumber) && isCreatureEligibleForJob(creature, job) && creature.energy >= job.energyCost;
+        return !isCreatureInjured(creature, activeSave.dayState.dayNumber) && isCreatureEligibleForJob(creature, job) && creature.energy >= job.energyCost;
       })
       .sort((a, b) => getProjectedCreatureScore(b, job.jobId) - getProjectedCreatureScore(a, job.jobId));
   }
@@ -74,25 +77,25 @@ export function RanchJobsScreen() {
     return { creature: candidate, score, reason: `${candidate.nickname} has the best ${stats} fit among available helpers.`, output: getProjectedContributionLabel(candidate, job.jobId) };
   }
   function saveAssignments(assignments: Record<RanchJobId, CreatureId[]>, msg: string, extraFlags: Record<string, boolean | number | string> = {}) {
-    saveCurrentGame({ ...currentSave, updatedAt: new Date().toISOString(), ranchJobs: { ...jobs, assignments }, flags: { ...currentSave.flags, m14RanchJobsUsed: true, m20ChoreRecommendations: true, ...extraFlags } });
+    saveCurrentGame({ ...activeSave, updatedAt: new Date().toISOString(), ranchJobs: { assignments, lastProcessedDayNumber: activeJobs.lastProcessedDayNumber, lifetimeCompletions: activeJobs.lifetimeCompletions }, flags: { ...activeSave.flags, m14RanchJobsUsed: true, m20ChoreRecommendations: true, ...extraFlags } });
     setMessage(msg);
   }
   function handleAssign(jobId: RanchJobId, creatureId: CreatureId) {
-    const nextAssignments = RANCH_JOB_IDS.reduce((next, id) => ({ ...next, [id]: (jobs.assignments[id] ?? []).filter((idValue) => idValue !== creatureId) }), getEmptyAssignments());
+    const nextAssignments = RANCH_JOB_IDS.reduce((next, id) => ({ ...next, [id]: (activeJobs.assignments[id] ?? []).filter((idValue) => idValue !== creatureId) }), getEmptyAssignments());
     nextAssignments[jobId] = [...(nextAssignments[jobId] ?? []), creatureId].slice(0, MAX_CREATURES_PER_CHORE);
     const jobName = RANCH_JOB_DEFINITIONS.find((job) => job.jobId === jobId)?.name ?? jobId;
-    const creature = currentSave.creatures?.find((item) => item.creatureId === creatureId);
+    const creature = activeSave.creatures?.find((item) => item.creatureId === creatureId);
     saveAssignments(nextAssignments, `${creature?.nickname ?? "Helper"} assigned to ${jobName}.`, { m20ManualRecommendedAssign: true });
   }
-  function handleRemove(jobId: RanchJobId, creatureId: CreatureId) { const nextAssignments = { ...jobs.assignments, [jobId]: (jobs.assignments[jobId] ?? []).filter((id) => id !== creatureId) }; saveAssignments(nextAssignments, "Helper removed from chore."); }
-  function handleClear(jobId: RanchJobId) { saveAssignments({ ...jobs.assignments, [jobId]: [] }, "Chore assignment cleared."); }
+  function handleRemove(jobId: RanchJobId, creatureId: CreatureId) { const nextAssignments = { ...activeJobs.assignments, [jobId]: (activeJobs.assignments[jobId] ?? []).filter((id) => id !== creatureId) }; saveAssignments(nextAssignments, "Helper removed from chore."); }
+  function handleClear(jobId: RanchJobId) { saveAssignments({ ...activeJobs.assignments, [jobId]: [] }, "Chore assignment cleared."); }
   function handleClearAll() { saveAssignments(getEmptyAssignments(), "All ranch chore assignments cleared.", { m14RanchJobsClearedAll: true }); }
   function handleBestFit(jobId: RanchJobId) {
     const job = RANCH_JOB_DEFINITIONS.find((definition) => definition.jobId === jobId);
     if (!job) return;
-    const usedByOtherJobs = new Set(RANCH_JOB_IDS.filter((id) => id !== jobId).flatMap((id) => jobs.assignments[id] ?? []));
-    const selected = getCandidates(job, jobs.assignments, true).filter((creature) => !usedByOtherJobs.has(creature.creatureId)).slice(0, 1);
-    saveAssignments({ ...jobs.assignments, [jobId]: selected.map((creature) => creature.creatureId) }, selected[0] ? `${selected[0].nickname} is Veyra's best pick for ${job.name}. ${getProjectedContributionLabel(selected[0], jobId)}` : `No eligible helper found for ${job.name}.`, { m20BestFitUsed: true });
+    const usedByOtherJobs = new Set(RANCH_JOB_IDS.filter((id) => id !== jobId).flatMap((id) => activeJobs.assignments[id] ?? []));
+    const selected = getCandidates(job, activeJobs.assignments, true).filter((creature) => !usedByOtherJobs.has(creature.creatureId)).slice(0, 1);
+    saveAssignments({ ...activeJobs.assignments, [jobId]: selected.map((creature) => creature.creatureId) }, selected[0] ? `${selected[0].nickname} is Veyra's best pick for ${job.name}. ${getProjectedContributionLabel(selected[0], jobId)}` : `No eligible helper found for ${job.name}.`, { m20BestFitUsed: true });
   }
   function applyChorePlan(plan: ChorePlan) {
     const nextAssignments = getEmptyAssignments();
@@ -100,8 +103,8 @@ export function RanchJobsScreen() {
     for (const jobId of plan.order) {
       const job = RANCH_JOB_DEFINITIONS.find((definition) => definition.jobId === jobId);
       if (!job) continue;
-      const candidate = (currentSave.creatures ?? [])
-        .filter((creature) => !usedCreatureIds.has(creature.creatureId) && !isCreatureInjured(creature, currentSave.dayState.dayNumber) && isCreatureEligibleForJob(creature, job) && creature.energy >= job.energyCost)
+      const candidate = (activeSave.creatures ?? [])
+        .filter((creature) => !usedCreatureIds.has(creature.creatureId) && !isCreatureInjured(creature, activeSave.dayState.dayNumber) && isCreatureEligibleForJob(creature, job) && creature.energy >= job.energyCost)
         .sort((a, b) => getProjectedCreatureScore(b, jobId) - getProjectedCreatureScore(a, jobId))[0];
       if (candidate) { nextAssignments[jobId] = [candidate.creatureId]; usedCreatureIds.add(candidate.creatureId); }
     }
@@ -111,9 +114,9 @@ export function RanchJobsScreen() {
   function handleAutoAssignAll() { applyChorePlan(CHORE_PLANS[0]); }
 
   const assignedCreatures = RANCH_JOB_IDS.flatMap((jobId) => getAssignedCreatures(jobId));
-  const feedStock = getFlagNumber(currentSave.flags.ranchFeedStock);
-  const materialsStock = getFlagNumber(currentSave.flags.ranchMaterialsStock);
-  const dailyFeedNeed = (currentSave.creatures ?? []).reduce((total, creature) => total + getDailyFeedCost(creature), 0);
+  const feedStock = getFlagNumber(activeSave.flags.ranchFeedStock);
+  const materialsStock = getFlagNumber(activeSave.flags.ranchMaterialsStock);
+  const dailyFeedNeed = (activeSave.creatures ?? []).reduce((total, creature) => total + getDailyFeedCost(creature), 0);
   const projectedFeed = RANCH_JOB_IDS.reduce((total, jobId) => total + getProjectedFeedForAssignment(getAssignedCreatures(jobId), jobId), 0);
   const projectedSecurity = getProjectedScoreTotal(getAssignedCreatures("security_patrol"), "security_patrol");
   const projectedComfort = getProjectedScoreTotal(getAssignedCreatures("comfort_care"), "comfort_care");
@@ -126,7 +129,9 @@ export function RanchJobsScreen() {
   const activeJob = RANCH_JOB_DEFINITIONS.find((job) => job.jobId === activeJobId) ?? RANCH_JOB_DEFINITIONS[0];
   const activeAssigned = getAssignedCreatures(activeJob.jobId);
   const activeAvailable = getCandidates(activeJob).filter((creature) => !activeAssigned.some((assigned) => assigned.creatureId === creature.creatureId));
-  const activeUnavailable = (currentSave.creatures ?? []).map((creature) => ({ creature, reason: getUnavailableReason(creature, activeJob, currentSave.dayState.dayNumber, getAssignedJobName(creature.creatureId, activeJob.jobId)) })).filter((item) => item.reason);
+  const activeUnavailable = (activeSave.creatures ?? []).map((creature) => ({ creature, reason: getUnavailableReason(creature, activeJob, activeSave.dayState.dayNumber, getAssignedJobName(creature.creatureId, activeJob.jobId)) })).filter((item) => item.reason);
 
   return <main className={styles.screen}><section className={styles.frame}><header className={styles.header}><div><div className={styles.titleRow}><h1>Ranch Chores</h1><button type="button" className={styles.infoButton} aria-label="About ranch chores">i</button></div><div className={styles.compactMetaRow}>{CHORE_PLANS.map((plan) => <button key={plan.id} type="button" className={styles.secondaryButton} title={plan.description} onClick={() => applyChorePlan(plan)}>{plan.label}</button>)}</div></div><div className={styles.headerActions}><button type="button" onClick={handleAutoAssignAll}>Auto-Assign Best Crew</button><button type="button" onClick={handleClearAll}>Clear All</button><button type="button" onClick={goToRanch}>Back to Ranch</button><button type="button" onClick={goToMainMenu}>Main Menu</button></div></header><section className={styles.topStats}><div className={styles.topStat}><span>Assigned</span><strong>{assignedCreatures.length}/{RANCH_JOB_IDS.length}</strong></div><div className={styles.topStat}><span>Feed Projection</span><strong>{projectedAvailableFeed}/{dailyFeedNeed}</strong></div><div className={styles.topStat}><span>Security</span><strong>{projectedSecurity ? `+${projectedSecurity} / ${getProjectedDangerChance(projectedSecurity)}% danger` : `${PROJECTED_BASE_DANGER_CHANCE}% danger`}</strong></div><div className={styles.topStat}><span>Comfort</span><strong>{projectedComfort ? `+${Math.min(25, projectedComfort * 2)}% breed` : "None"}</strong></div><div className={styles.topStat}><span>Materials</span><strong>{materialsStock}+{projectedMaterials}</strong></div><div className={styles.topStat}><span>Upkeep Repair</span><strong>{projectedUpkeep ? `-${projectedUpkeep} damage` : "Daily wear"}</strong></div></section><p className={projectedFoodStatus === "Fed" ? styles.statusMessage : styles.warningMessage}>{message} {projectedRecoveryLabel}</p><p className={projectedSecurity && projectedUpkeep ? styles.statusMessage : styles.warningMessage}>{riskWarning}</p><section className={styles.content}><div className={styles.jobGrid}>{RANCH_JOB_DEFINITIONS.map((job) => { const assigned = getAssignedCreatures(job.jobId); const recommendation = getRecommendation(job); const primaryCreature = assigned[0] ?? recommendation.creature; const projectionLabel = getJobProjectionLabel(assigned, job.jobId); return <article key={job.jobId} className={styles.jobCard}><div className={styles.jobHeader}><img className={styles.jobIcon} src={job.iconPath} alt="" /><div className={styles.jobTitleArea}><p className={styles.kicker}>{job.shortName}</p><h2>{job.name}</h2></div><button type="button" className={styles.infoButtonSmall} onClick={() => setActiveJobId(job.jobId)}>i</button></div><div className={styles.compactMetaRow}><span className={styles.rewardLine}>{job.rewardLabel}</span><span className={styles.energyChip}>{job.energyCost} energy</span><span className={styles.energyChip}>{projectionLabel}</span></div><div className={styles.assignmentBox}><div className={`${styles.assignedLine} ${primaryCreature ? styles.assignedLineWithPortrait : ""}`}>{primaryCreature ? <img className={styles.assignedPortrait} src={getCreatureProfilePath(primaryCreature)} alt="" /> : <span className={styles.unassignedDot} />}<div className={styles.assignedText}><strong>{assigned.length ? `${assigned.length} assigned: ${assigned.map((creature) => creature.nickname).join(", ")}` : recommendation.creature ? `Recommended: ${recommendation.creature.nickname}` : "No recommendation"}</strong><span>{assigned.length ? projectionLabel : recommendation.reason}</span><span>{assigned.length ? "Open this chore to adjust helpers." : recommendation.output}</span></div></div></div><div className={styles.cardActions}><button type="button" className={styles.secondaryButton} onClick={() => setActiveJobId(job.jobId)}>Open</button><button type="button" className={styles.secondaryButton} onClick={() => handleBestFit(job.jobId)}>Best Fit</button>{assigned.length ? <button type="button" className={styles.clearButton} onClick={() => handleClear(job.jobId)}>Clear</button> : null}</div></article>; })}</div></section><footer className={styles.footer}>{version}</footer></section><div className={styles.modalBackdrop} role="presentation" onMouseDown={() => setActiveJobId("security_patrol")}><section className={styles.modalPanel} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><header className={styles.modalHeader}><div className={styles.modalTitleRow}><img className={styles.modalIcon} src={activeJob.iconPath} alt="" /><div><p className={styles.kicker}>{activeJob.shortName}</p><h2>{activeJob.name}</h2></div></div><button type="button" className={styles.modalCloseButton} onClick={() => setActiveJobId("security_patrol")}>Close</button></header><div className={styles.modalBody}><section className={styles.modalInfoGrid}><div className={styles.infoPanel}><p className={styles.panelLabel}>Veyra Recommends</p><strong>{getRecommendation(activeJob).creature?.nickname ?? "No eligible helper"}</strong><span>{getRecommendation(activeJob).reason}</span><span>{getRecommendation(activeJob).output}</span></div><div className={styles.infoPanel}><p className={styles.panelLabel}>Projected Output</p><strong>{getJobProjectionLabel(activeAssigned, activeJob.jobId)}</strong><span>{activeJob.rewardLabel}</span></div><div className={styles.infoPanel}><p className={styles.panelLabel}>Current Assignment</p><strong>{activeAssigned.length}/{MAX_CREATURES_PER_CHORE}</strong><span>{activeAssigned.length ? activeAssigned.map((creature) => getCreatureDisplayName(creature)).join(" • ") : "No helpers assigned yet."}</span></div></section><section><div className={styles.modalSectionHeader}><h3>Assigned Helpers</h3><span>{activeAssigned.length}/{MAX_CREATURES_PER_CHORE}</span></div><div className={styles.eligibleList}>{activeAssigned.length ? activeAssigned.map((creature) => <div key={creature.creatureId} className={styles.emptyEligibleCard}><div><strong>{getCreatureDisplayName(creature)}</strong><span>{getCreatureSummary(creature)} • Score {getProjectedCreatureScore(creature, activeJob.jobId).toFixed(1)}</span><span>{getRelevantStatLine(creature, activeJob.jobId)} • {getProjectedContributionLabel(creature, activeJob.jobId)}</span></div><button type="button" className={styles.clearButton} onClick={() => handleRemove(activeJob.jobId, creature.creatureId)}>Remove</button></div>) : <div className={styles.emptyEligibleCard}><strong>No assigned helpers</strong><span>Use Best Fit or select a helper below.</span></div>}</div></section><section><div className={styles.modalSectionHeader}><h3>Available Helpers</h3><span>{activeAvailable.length} ready</span></div><div className={styles.eligibleList}>{activeAvailable.length ? activeAvailable.map((creature) => <button key={creature.creatureId} type="button" className={styles.eligibleCard} onClick={() => handleAssign(activeJob.jobId, creature.creatureId)}><div><strong>{getCreatureDisplayName(creature)}</strong><span>{getCreatureSummary(creature)} • Score {getProjectedCreatureScore(creature, activeJob.jobId).toFixed(1)}</span><span>{getRelevantStatLine(creature, activeJob.jobId)} • {getProjectedContributionLabel(creature, activeJob.jobId)}</span></div><em>{creature === getRecommendation(activeJob).creature ? "Recommended" : "Assign"}</em></button>) : <div className={styles.emptyEligibleCard}><strong>No ready helpers available</strong><span>Check energy, injuries, or family fit.</span></div>}</div></section>{activeUnavailable.length ? <section><div className={styles.modalSectionHeader}><h3>Unavailable Creatures</h3><span>{activeUnavailable.length}</span></div><div className={styles.eligibleList}>{activeUnavailable.slice(0, 8).map(({ creature, reason }) => <div key={creature.creatureId} className={styles.emptyEligibleCard}><strong>{getCreatureDisplayName(creature)}</strong><span>{reason}</span></div>)}</div></section> : null}</div></section></div></main>;
 }
+
+
