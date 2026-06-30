@@ -59,13 +59,13 @@ export type BattleMoveEffect = {
 };
 
 export type BattleLearnRequirements = {
-  speciesIds?: SpeciesId[];
-  familyTags?: CreatureFamily[];
-  bodyTags?: BattleTag[];
-  temperamentTags?: BattleTag[];
-  roleTags?: BattleTag[];
-  requiredAnyTags?: BattleTag[];
-  blockedSpeciesIds?: SpeciesId[];
+  speciesIds?: readonly SpeciesId[];
+  familyTags?: readonly CreatureFamily[];
+  bodyTags?: readonly BattleTag[];
+  temperamentTags?: readonly BattleTag[];
+  roleTags?: readonly BattleTag[];
+  requiredAnyTags?: readonly BattleTag[];
+  blockedSpeciesIds?: readonly SpeciesId[];
 };
 
 export type BattleMove = {
@@ -80,8 +80,8 @@ export type BattleMove = {
   battleEnergyCost: number;
   cooldown: number;
   priority: number;
-  tags: BattleTag[];
-  effects: BattleMoveEffect[];
+  tags: readonly BattleTag[];
+  effects: readonly BattleMoveEffect[];
   inheritable: boolean;
   rarity?: "common" | "uncommon" | "rare" | "signature" | "event";
   learnRequirements?: BattleLearnRequirements;
@@ -90,18 +90,18 @@ export type BattleMove = {
 export type BattleSpeciesProfile = {
   speciesId: SpeciesId;
   family: CreatureFamily;
-  roleTags: BattleTag[];
-  bodyTags: BattleTag[];
-  temperamentTags: BattleTag[];
-  speciesTags: BattleTag[];
-  affinityMoveTags: BattleTag[];
-  vulnerabilityTags: BattleTag[];
-  resistanceTags: BattleTag[];
+  roleTags: readonly BattleTag[];
+  bodyTags: readonly BattleTag[];
+  temperamentTags: readonly BattleTag[];
+  speciesTags: readonly BattleTag[];
+  affinityMoveTags: readonly BattleTag[];
+  vulnerabilityTags: readonly BattleTag[];
+  resistanceTags: readonly BattleTag[];
   signatureMoveId: BattleMoveId;
-  speciesMoveIds: BattleMoveId[];
-  universalCompatibilityMoveIds: BattleMoveId[];
-  defaultLearnedMoveIds: BattleMoveId[];
-  defaultEquippedMoveIds: BattleMoveId[];
+  speciesMoveIds: readonly BattleMoveId[];
+  universalCompatibilityMoveIds: readonly BattleMoveId[];
+  defaultLearnedMoveIds: readonly BattleMoveId[];
+  defaultEquippedMoveIds: readonly BattleMoveId[];
   battleStatBonuses: Partial<BattleStats>;
 };
 
