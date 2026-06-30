@@ -142,6 +142,7 @@ export type BattleStatusStack = {
   status: BattleStatusId;
   duration: number;
   amount?: number;
+  stat?: BattleStatKey;
   sourceCombatantId?: BattleCombatantId;
 };
 
