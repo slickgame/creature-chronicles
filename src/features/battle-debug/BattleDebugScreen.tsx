@@ -80,6 +80,8 @@ export function BattleDebugScreen() {
     );
   }
 
+  const activeSave = currentSave;
+
   function initializeBattle() {
     if (!canInitialize) {
       setMessage("Need at least one creature to initialize a battle debug state.");
@@ -94,12 +96,12 @@ export function BattleDebugScreen() {
     );
 
     const nextBattle = createBattleState({
-      battleId: `debug-${currentSave.dayState.dayNumber}-${Date.now()}`,
+      battleId: `debug-${activeSave.dayState.dayNumber}-${Date.now()}`,
       playerCreatures: teams.playerCreatures,
       enemyCreatures: teams.enemyCreatures,
       playerLoadouts,
       enemyLoadouts,
-      playerTeamName: `${currentSave.player.name}'s Ranch Team`,
+      playerTeamName: `${activeSave.player.name}'s Ranch Team`,
       enemyTeamName: "Echo Test Team",
     });
 
