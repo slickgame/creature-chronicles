@@ -14,11 +14,11 @@ export const MAX_EQUIPPED_BATTLE_MOVES = 4;
 export const REQUIRED_BASIC_BATTLE_MOVE_ID = "strike";
 export const REQUIRED_DEFENSE_BATTLE_MOVE_ID = "defend";
 
-function uniqueMoveIds(moveIds: BattleMoveId[]): BattleMoveId[] {
+function uniqueMoveIds(moveIds: readonly BattleMoveId[]): BattleMoveId[] {
   return Array.from(new Set(moveIds));
 }
 
-function hasAnyMatch(required: string[] | undefined, available: string[]): boolean {
+function hasAnyMatch(required: readonly string[] | undefined, available: readonly string[]): boolean {
   if (!required || required.length === 0) return false;
   return required.some((tag) => available.includes(tag));
 }
@@ -162,7 +162,7 @@ export function getBattleMoveInheritanceCandidates(
 
 export function buildBredCreatureStartingMoveLoadout(
   childSpeciesId: SpeciesId,
-  inheritedMoveIds: BattleMoveId[] = [],
+  inheritedMoveIds: readonly BattleMoveId[] = [],
 ): BattleMoveLoadout {
   const profile = getBattleSpeciesProfile(childSpeciesId);
   const learnedMoveIds = uniqueMoveIds([
