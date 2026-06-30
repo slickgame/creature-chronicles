@@ -7,19 +7,7 @@ import { useGameContext } from "@/state/GameProvider";
 import styles from "./TownScreen.module.css";
 
 type TownLocationId = "adoption" | "supply-depot" | "egg-atelier" | "guild" | "ranch" | "training-grounds" | "battle-outfitter" | "coliseum";
-type TownLocation = {
-  id: TownLocationId;
-  title: string;
-  badge: string;
-  description: string;
-  imageSrc: string;
-  x: number;
-  y: number;
-  width: number;
-  isPlanned?: boolean;
-  futureRole?: string;
-  futureSystems?: string[];
-};
+type TownLocation = { id: TownLocationId; title: string; badge: string; description: string; imageSrc: string; x: number; y: number; width: number; isPlanned?: boolean; futureRole?: string; futureSystems?: string[] };
 type ModalMode = "none" | "town-info" | "nav-menu" | "future-location";
 
 const TOWN_ICONS = {
@@ -54,18 +42,7 @@ function getLocationStyle(location: TownLocation): CSSProperties {
 }
 
 export function TownScreen() {
-  const {
-    currentSave,
-    goToBattleDebug,
-    goToBattleOutfitter,
-    goToEggAtelier,
-    goToGuildHall,
-    goToMainMenu,
-    goToMarket,
-    goToRanch,
-    goToSupplyDepot,
-    goToTrainingGrounds,
-  } = useGameContext();
+  const { currentSave, goToBattleDebug, goToBattleOutfitter, goToEggAtelier, goToGuildHall, goToMainMenu, goToMarket, goToRanch, goToSupplyDepot, goToTrainingGrounds } = useGameContext();
   const [message, setMessage] = useState("Welcome to town. The Battle Debug Lab is open for early combat-engine testing.");
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [selectedFutureLocation, setSelectedFutureLocation] = useState<TownLocation | null>(null);
@@ -73,138 +50,12 @@ export function TownScreen() {
   const boardLevel = useMemo(() => (currentSave ? getTotalTownUpgradeTiers(currentSave, "guild") + 1 : 1), [currentSave]);
   const dateLabel = useMemo(() => currentSave ? formatGameDate(currentSave.dayState.weekday, currentSave.dayState.month, currentSave.dayState.dayOfMonth) : "Mon 1/1", [currentSave]);
 
-  if (!currentSave) {
-    return (
-      <main className={styles.emptyScreen}>
-        <section className={styles.emptyPanel}>
-          <h1>No active save</h1>
-          <p>Load or create a save before entering town.</p>
-          <button type="button" onClick={goToMainMenu}>Return to Main Menu</button>
-        </section>
-      </main>
-    );
-  }
+  if (!currentSave) return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before entering town.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
 
-  function closeModal() {
-    setModalMode("none");
-    setSelectedFutureLocation(null);
-  }
+  function closeModal() { setModalMode("none"); setSelectedFutureLocation(null); }
+  function openFutureLocation(location: TownLocation) { setSelectedFutureLocation(location); setMessage(`${location.title} is planned as a ${location.futureRole ?? "future town service"}.`); setModalMode("future-location"); }
+  function handleLocationClick(location: TownLocation) { if (location.id === "adoption") return goToMarket(); if (location.id === "supply-depot") return goToSupplyDepot(); if (location.id === "egg-atelier") return goToEggAtelier(); if (location.id === "guild") return goToGuildHall(); if (location.id === "training-grounds") return goToTrainingGrounds(); if (location.id === "battle-outfitter") return goToBattleOutfitter(); if (location.id === "coliseum") return goToBattleDebug(); if (location.id === "ranch") return goToRanch(); if (location.isPlanned) return openFutureLocation(location); setMessage("That town location is not available yet."); }
+  function getDynamicBadge(location: TownLocation): string { if (location.id === "adoption") return `Network Lv. ${adoptionLevel}`; if (location.id === "guild") return `Board Lv. ${boardLevel}`; return location.badge; }
 
-  function openFutureLocation(location: TownLocation) {
-    setSelectedFutureLocation(location);
-    setMessage(`${location.title} is planned as a ${location.futureRole ?? "future town service"}.`);
-    setModalMode("future-location");
-  }
-
-  function handleLocationClick(location: TownLocation) {
-    if (location.id === "adoption") return goToMarket();
-    if (location.id === "supply-depot") return goToSupplyDepot();
-    if (location.id === "egg-atelier") return goToEggAtelier();
-    if (location.id === "guild") return goToGuildHall();
-    if (location.id === "training-grounds") return goToTrainingGrounds();
-    if (location.id === "battle-outfitter") return goToBattleOutfitter();
-    if (location.id === "coliseum") return goToBattleDebug();
-    if (location.id === "ranch") return goToRanch();
-    if (location.isPlanned) return openFutureLocation(location);
-    setMessage("That town location is not available yet.");
-  }
-
-  function getDynamicBadge(location: TownLocation): string {
-    if (location.id === "adoption") return `Network Lv. ${adoptionLevel}`;
-    if (location.id === "guild") return `Board Lv. ${boardLevel}`;
-    return location.badge;
-  }
-
-  const futureLocations = LOCATIONS.filter((location) => location.isPlanned);
-
-  return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <div className={styles.backgroundArt} aria-hidden="true" />
-        <div className={styles.mapShade} aria-hidden="true" />
-        <header className={styles.header}>
-          <div className={styles.identity}>
-            <img src={TOWN_ICONS.map} alt="" />
-            <div><span>Town Square</span><strong>{currentSave.player.name}</strong></div>
-          </div>
-          <section className={styles.townStats} aria-label="Town resources">
-            <div><img src={TOWN_ICONS.crest} alt="" /><span>Date</span><strong>{dateLabel}</strong></div>
-            <div><img src={TOWN_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
-            <div><img src={TOWN_ICONS.gp} alt="" /><span>GP</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div>
-            <div><img src={TOWN_ICONS.coliseum} alt="" /><span>Combat</span><strong>Debug</strong></div>
-          </section>
-          <nav className={styles.headerActions} aria-label="Town navigation">
-            <button type="button" onClick={() => setModalMode("nav-menu")}><img src={TOWN_ICONS.menu} alt="" /> Menu</button>
-          </nav>
-        </header>
-
-        <section className={`${styles.titlePanel} ${styles.compactTitlePanel}`}>
-          <div>
-            <p className={styles.kicker}>Town Services</p>
-            <h1>Town Square</h1>
-            <p>{message}</p>
-          </div>
-          <button type="button" className={styles.infoButton} onClick={() => setModalMode("town-info")} aria-label="Town square details">i</button>
-        </section>
-
-        <section className={styles.mapLayer} aria-label="Town locations">
-          {LOCATIONS.map((location) => (
-            <button key={location.id} type="button" style={getLocationStyle(location)} className={styles.mapButton} onClick={() => handleLocationClick(location)} aria-label={`${location.title}. ${location.description}`}>
-              <img src={location.imageSrc} alt="" onError={(event) => { event.currentTarget.src = TOWN_ICONS.crest; }} />
-              <span className={styles.mapLabel}>{location.title}</span>
-              <span className={styles.mapBadge}>{getDynamicBadge(location)}</span>
-            </button>
-          ))}
-        </section>
-
-        {modalMode !== "none" ? (
-          <div className={styles.modalBackdrop} role="presentation">
-            {modalMode === "nav-menu" ? (
-              <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.navMenuPanel}`} role="dialog" aria-modal="true">
-                <header className={styles.modalHeader}>
-                  <div><p className={styles.kicker}>Town Navigation</p><h2>Menu</h2></div>
-                  <button type="button" onClick={closeModal}>Close</button>
-                </header>
-                <div className={styles.navMenuGrid}>
-                  {LOCATIONS.map((location) => (
-                    <button key={location.id} type="button" onClick={() => handleLocationClick(location)}>
-                      <img src={location.imageSrc} alt="" onError={(event) => { event.currentTarget.src = TOWN_ICONS.crest; }} />
-                      <span>{location.title}</span>
-                      <em>{location.description}</em>
-                    </button>
-                  ))}
-                  <button type="button" onClick={goToMainMenu}><img src={TOWN_ICONS.crest} alt="" /><span>Main Menu</span><em>Save slots</em></button>
-                </div>
-              </section>
-            ) : null}
-
-            {modalMode === "future-location" && selectedFutureLocation ? (
-              <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true">
-                <header className={styles.modalHeader}>
-                  <div><p className={styles.kicker}>Planned Location</p><h2>{selectedFutureLocation.title}</h2></div>
-                  <button type="button" onClick={closeModal}>Close</button>
-                </header>
-                <p className={styles.townInfoLead}>{selectedFutureLocation.description}</p>
-                <div className={styles.townInfoStats}>
-                  <div><span>Role</span><strong>{selectedFutureLocation.futureRole ?? "Future town service"}</strong></div>
-                  {selectedFutureLocation.futureSystems?.map((system) => <div key={system}><span>Possible System</span><strong>{system}</strong></div>)}
-                </div>
-              </section>
-            ) : null}
-
-            {modalMode === "town-info" ? (
-              <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true">
-                <header className={styles.modalHeader}>
-                  <div><p className={styles.kicker}>Town Square</p><h2>Current Services</h2></div>
-                  <button type="button" onClick={closeModal}>Close</button>
-                </header>
-                <p className={styles.townInfoLead}>Town now includes adoption, supplies, egg care, contracts, training, the Battle Outfitter, and the temporary Battle Debug Lab for combat-engine testing.</p>
-                <div className={styles.townInfoStats}>{LOCATIONS.map((location) => <div key={location.id}><span>{location.badge}</span><strong>{location.title}</strong></div>)}</div>
-              </section>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
-    </main>
-  );
+  return <main className={styles.screen}><section className={styles.frame}><div className={styles.backgroundArt} aria-hidden="true" /><div className={styles.mapShade} aria-hidden="true" /><header className={styles.header}><div className={styles.identity}><img src={TOWN_ICONS.map} alt="" /><div><span>Town Square</span><strong>{currentSave.player.name}</strong></div></div><section className={styles.townStats} aria-label="Town resources"><div><img src={TOWN_ICONS.crest} alt="" /><span>Date</span><strong>{dateLabel}</strong></div><div><img src={TOWN_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div><div><img src={TOWN_ICONS.gp} alt="" /><span>GP</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div><div><img src={TOWN_ICONS.coliseum} alt="" /><span>Combat</span><strong>Debug</strong></div></section><nav className={styles.headerActions} aria-label="Town navigation"><button type="button" onClick={() => setModalMode("nav-menu")}><img src={TOWN_ICONS.menu} alt="" /> Menu</button></nav></header><section className={`${styles.titlePanel} ${styles.compactTitlePanel}`}><div><p className={styles.kicker}>Town Services</p><h1>Town Square</h1><p>{message}</p></div><button type="button" className={styles.infoButton} onClick={() => setModalMode("town-info")} aria-label="Town square details">i</button></section><section className={styles.mapLayer} aria-label="Town locations">{LOCATIONS.map((location) => <button key={location.id} type="button" style={getLocationStyle(location)} className={styles.mapButton} onClick={() => handleLocationClick(location)} aria-label={`${location.title}. ${location.description}`}><img src={location.imageSrc} alt="" onError={(event) => { event.currentTarget.src = TOWN_ICONS.crest; }} /><span className={styles.mapLabel}>{location.title}</span><span className={styles.mapBadge}>{getDynamicBadge(location)}</span></button>)}</section>{modalMode !== "none" ? <div className={styles.modalBackdrop} role="presentation">{modalMode === "nav-menu" ? <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.navMenuPanel}`} role="dialog" aria-modal="true"><header className={styles.modalHeader}><div><p className={styles.kicker}>Town Navigation</p><h2>Menu</h2></div><button type="button" onClick={closeModal}>Close</button></header><div className={styles.navMenuGrid}>{LOCATIONS.map((location) => <button key={location.id} type="button" onClick={() => handleLocationClick(location)}><img src={location.imageSrc} alt="" onError={(event) => { event.currentTarget.src = TOWN_ICONS.crest; }} /><span>{location.title}</span><em>{location.description}</em></button>)}<button type="button" onClick={goToMainMenu}><img src={TOWN_ICONS.crest} alt="" /><span>Main Menu</span><em>Save slots</em></button></div></section> : null}{modalMode === "future-location" && selectedFutureLocation ? <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true"><header className={styles.modalHeader}><div><p className={styles.kicker}>Planned Location</p><h2>{selectedFutureLocation.title}</h2></div><button type="button" onClick={closeModal}>Close</button></header><p className={styles.townInfoLead}>{selectedFutureLocation.description}</p><div className={styles.townInfoStats}><div><span>Role</span><strong>{selectedFutureLocation.futureRole ?? "Future town service"}</strong></div>{selectedFutureLocation.futureSystems?.map((system) => <div key={system}><span>Possible System</span><strong>{system}</strong></div>)}</div></section> : null}{modalMode === "town-info" ? <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true"><header className={styles.modalHeader}><div><p className={styles.kicker}>Town Square</p><h2>Current Services</h2></div><button type="button" onClick={closeModal}>Close</button></header><p className={styles.townInfoLead}>Town now includes adoption, supplies, egg care, contracts, training, the Battle Outfitter, and the temporary Battle Debug Lab for combat-engine testing.</p><div className={styles.townInfoStats}>{LOCATIONS.map((location) => <div key={location.id}><span>{location.badge}</span><strong>{location.title}</strong></div>)}</div></section> : null}</div> : null}</section></main>;
 }
