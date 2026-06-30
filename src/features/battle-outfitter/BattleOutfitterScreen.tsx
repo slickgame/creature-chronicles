@@ -31,9 +31,9 @@ import styles from "@/features/market/MarketScreen.module.css";
 const CATEGORIES: Array<BattleOutfitterCategory | "All"> = ["All", "Equipment", "Manual", "Consumable", "Team Prep"];
 
 const ICONS = {
-  interior: "/images/buildings/town/battle_outfitter_interior.png",
+  interior: "/images/backgrounds/guild/guild_hall_interior.png",
   darian: DARIAN_VOSS.portraitPath,
-  fallback: "/images/buildings/town/battle_outfitter.png",
+  fallback: "/images/ui/icons/icon_ability_trigger.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
   materials: "/images/ui/icons/icon_ranch_upgrade.png",
   manual: "/images/ui/icons/icon_collection_book.png",
@@ -202,3 +202,4 @@ function LoadoutPanel({ save, creatures, selectedCreature, setSelectedCreatureId
     </section>
   );
 }
+

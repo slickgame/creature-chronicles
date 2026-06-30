@@ -305,3 +305,44 @@
   .purchaseCard { grid-template-columns: 1fr; }
   .contractTabs .filterButton { min-width: unset; flex: 1 1 120px; }
 }
+
+/* qa-guild-button-polish */
+.contractOverlay {
+  align-content: start;
+}
+
+.contractList {
+  align-content: start !important;
+  justify-content: start;
+}
+
+.filters {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(245,201,128,.24);
+  border-radius: 14px;
+  background: rgba(0,0,0,.22);
+}
+
+.filters .filterButton,
+.actionRow button,
+.primaryButton,
+.secondaryButton {
+  border-radius: 999px;
+}
+
+.filters .filterButton {
+  width: auto;
+  min-width: 104px;
+  justify-content: center;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255,244,201,.12), rgba(127,219,255,.08)), rgba(0,0,0,.35);
+}
+
+.filters .filterButton:hover,
+.actionRow button:hover {
+  border-color: rgba(127,219,255,.86);
+  filter: brightness(1.06);
+}

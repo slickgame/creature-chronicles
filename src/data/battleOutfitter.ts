@@ -66,8 +66,8 @@ export const DARIAN_VOSS = {
   npcId: "darian_voss",
   name: "Darian Voss",
   title: "Battle Outfitter",
-  portraitPath: "/images/npcs/town/darian_voss_portrait.png",
-  profilePath: "/images/npcs/town/darian_voss_profile.png",
+  portraitPath: "/images/ui/icons/icon_ability_trigger.png",
+  profilePath: "/images/backgrounds/guild/guild_hall_interior.png",
   intro:
     "Darian Voss keeps the town's combat shelves stocked with safe training gear, manuals, and battle-prep supplies.",
 } as const;
@@ -80,7 +80,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     description: "Basic combat wraps used in future battle loadouts.",
     costGold: 160,
     materialCost: 2,
-    iconPath: "/images/ui/icons/icon_training_whistle.png",
+    iconPath: "/images/ui/icons/icon_ability_trigger.png",
     effectLabel:
       "+1 Sparring Wraps stock. Can be assigned to a creature offense slot.",
     flagKey: "battleItem_sparringWraps",
@@ -133,7 +133,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     description: "A safe combat-prep tonic intended for future PvE challenge attempts.",
     costGold: 120,
     materialCost: 1,
-    iconPath: "/images/ui/icons/icon_energy.png",
+    iconPath: "/images/ui/icons/icon_sleep_recovery.png",
     effectLabel: "+1 Field Tonic stock. Future battle consumable.",
     flagKey: "battleItem_fieldTonics",
     maxStock: 12,
@@ -146,7 +146,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     description: "Emergency salve for future combat recovery rules.",
     costGold: 260,
     materialCost: 6,
-    iconPath: "/images/ui/icons/icon_repair_kit.png",
+    iconPath: "/images/ui/icons/icon_upgrade_arrow.png",
     effectLabel: "+1 Revival Salve stock. Future recovery consumable.",
     flagKey: "battleItem_revivalSalves",
     maxStock: 6,
@@ -475,3 +475,4 @@ export function useBattleOutfitterManual(
     )}`,
   };
 }
+
