@@ -79,7 +79,48 @@ export type BreedingAttemptRecord = {
   streakBefore: number;
   streakAfter: number;
   outcome: BreedingOutcomeType;
-  roll: number;
-  summary: string;
-  progression: BreedingProgressionEvent[];
+  resultText: string;
+  processText: string;
+  outcomeFlavorText: string;
+  receiverWasPregnant: boolean;
+  pregnancyBlockedReason?: string | null;
+  giverEnergyBefore: number;
+  giverEnergyAfter: number;
+  receiverEnergyBefore: number;
+  receiverEnergyAfter: number;
+  pairingImagePath: string;
+  outcomeImagePath: string;
+  progressionEvents: BreedingProgressionEvent[];
+  createdAt: string;
+};
+
+export type BreedingState = {
+  hearts: number;
+  maxHearts: number;
+  attempts: BreedingAttemptRecord[];
+  streaks: BreedingStreakRecord[];
+};
+
+export type BreedingPreview = {
+  pairKey: BreedingPairKey;
+  pregnancyChance: number;
+  baseChance: number;
+  streakBonus: number;
+  affectionBonus: number;
+  abilityBonus: number;
+  energyDiscount: number;
+  streakCount: number;
+  energyCost: number;
+  heartCost: number;
+  xpGain: number;
+  breederXpGain: number;
+  abilityTriggers: string[];
+  canAttempt: boolean;
+  blockedReason: string | null;
+  receiverCanBecomePregnant: boolean;
+  receiverPregnant: boolean;
+  pregnancyBlockedReason?: string | null;
+  giverEnergyAfter: number;
+  receiverEnergyAfter: number;
+  readinessNotes: string[];
 };
