@@ -12,7 +12,7 @@ export type TrainingAssignment = { creatureId: CreatureId; focusId: TrainingFocu
 export type TrainingRewardSummary = { creatureName: string; focusName: string; xpBefore: number; xpAfter: number; xpToNextBefore: number; xpToNextAfter: number; levelBefore: number; levelAfter: number; leveled: boolean; statKey?: CreatureStatKey; statBefore?: number; statAfter?: number; gradeBefore?: StatGrade; gradeAfter?: StatGrade; statRoll?: number; statChance?: number; statSucceeded?: boolean; notes: string[] };
 export type TrainingResult = { save: GameSave; ok: boolean; message: string; reward?: TrainingRewardSummary };
 
-export const RHEA_FLINT = { npcId: "rhea_flint", name: "Rhea Flint", title: "Training Grounds Coach", portraitPath: "/images/ui/icons/icon_breeder_level.png", profilePath: "/images/backgrounds/ranch/ranch_office_interior.png", intro: "Rhea Flint runs focused creature drills for leveling and careful stat coaching." } as const;
+export const RHEA_FLINT = { npcId: "rhea_flint", name: "Rhea Flint", title: "Training Grounds Coach", portraitPath: "/images/npcs/town/rhea_flint_portrait.png", profilePath: "/images/backgrounds/ranch/ranch_office_interior.png", intro: "Rhea Flint runs focused creature drills for leveling and careful stat coaching." } as const;
 
 export const TRAINING_UPGRADES: TrainingUpgrade[] = [
   { upgradeId: "training_yard_upgrade", name: "Upgrade Training Yard", description: "Rebuild the yard with better lanes, safer weights, and recovery stations.", costGold: 350, materialCost: 8, iconPath: "/images/ui/icons/icon_breeder_level.png", effectLabel: "Level Drill XP increases from 35 to 55." },
@@ -143,4 +143,5 @@ export function collectTrainingGroundsAssignment(save: GameSave, creatureId: Cre
   const nextFlags = { ...save.flags, m46TrainingAssignments: true, m48TrainingRewardPresentation: true, m49TrainingUpgrades: true, m50TrainingPolishEconomy: true, [getTrainingCountFlag(creatureId, assignment.focusId)]: attemptNumber + 1, [`trainingGroundsLast_${creatureId}`]: assignment.focusId, [`trainingGroundsLastResult_${creatureId}`]: notes.join(" "), [getAssignmentFocusFlag(creatureId)]: "", [getAssignmentStartFlag(creatureId)]: 0, [getAssignmentReturnFlag(creatureId)]: 0, [getAssignmentTargetFlag(creatureId)]: "" };
   return { save: { ...save, updatedAt: new Date().toISOString(), creatures: nextCreatures, flags: nextFlags }, ok: true, message, reward };
 }
+
 

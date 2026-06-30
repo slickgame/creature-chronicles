@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import {
   assignBattleOutfitterEquipment,
   BATTLE_OUTFITTER_ITEMS,
-  DARIAN_VOSS,
+  DARIA_VOSS,
   getBattleLoadout,
   getBattleOutfitterCostLabel,
   getBattleOutfitterMaterialStock,
@@ -32,7 +32,7 @@ const CATEGORIES: Array<BattleOutfitterCategory | "All"> = ["All", "Equipment", 
 
 const ICONS = {
   interior: "/images/backgrounds/guild/guild_hall_interior.png",
-  darian: DARIAN_VOSS.portraitPath,
+  darian: DARIA_VOSS.portraitPath,
   fallback: "/images/ui/icons/icon_ability_trigger.png",
   gold: "/images/ui/currency/icon_currency_gold.png",
   materials: "/images/ui/icons/icon_ranch_upgrade.png",
@@ -114,7 +114,7 @@ export function BattleOutfitterScreen() {
         <div className={styles.backgroundArt} aria-hidden="true" />
         <div className={styles.shade} aria-hidden="true" />
         <header className={styles.header}>
-          <div><p className={styles.kicker}>M54 Battle Outfitter Economy</p><h1>Battle Outfitter</h1><p>{DARIAN_VOSS.name}, {DARIAN_VOSS.title}, prepares future combat gear, manuals, consumables, and team tools.</p><p className={styles.message}>{message}</p></div>
+          <div><p className={styles.kicker}>M54 Battle Outfitter Economy</p><h1>Battle Outfitter</h1><p>{DARIA_VOSS.name}, {DARIA_VOSS.title}, prepares future combat gear, manuals, consumables, and team tools.</p><p className={styles.message}>{message}</p></div>
           <div className={styles.headerActions}>
             <div className={styles.statBox}><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div>
             <div className={styles.statBox}><span>Materials</span><strong>{materials}</strong></div>
@@ -166,7 +166,7 @@ function InteriorPanel({ summary, materials, setMode }: { summary: ReturnType<ty
 function TalkPanel({ onBack, onLoadouts }: { onBack: () => void; onLoadouts: () => void }) {
   return (
     <section style={{ position: "relative", zIndex: 3, padding: 24, display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 18 }}>
-      <aside style={panelStyle()}><img src={ICONS.darian} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(245,201,128,.45)" }} /><h2>Darian Voss</h2><p>{DARIAN_VOSS.title}</p></aside>
+      <aside style={panelStyle()}><img src={ICONS.darian} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(245,201,128,.45)" }} /><h2>Darian Voss</h2><p>{DARIA_VOSS.title}</p></aside>
       <section style={panelStyle()}><p className={styles.kicker}>Combat Prep</p><h2>Loadouts Before Battles</h2><p style={{ fontSize: "1.05rem", lineHeight: 1.65 }}>&quot;The Coliseum can wait. Prepared teams should not. Wraps and charms are simple equipment hooks. Manuals are a quiet way to mark who is ready for move training later.&quot;</p><p style={{ lineHeight: 1.6 }}>Equipment assigned here leaves stock and goes onto a creature. Removing it returns the item to stock. New purchases now cost both Gold and Materials, matching the Training Grounds upgrade economy.</p><div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}><button type="button" className={styles.buyButton} onClick={onLoadouts}>Open Loadouts</button><button type="button" className={styles.backButton} onClick={onBack}>Back to Outfitter</button></div></section>
     </section>
   );
@@ -202,4 +202,5 @@ function LoadoutPanel({ save, creatures, selectedCreature, setSelectedCreatureId
     </section>
   );
 }
+
 

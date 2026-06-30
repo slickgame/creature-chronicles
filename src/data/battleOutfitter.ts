@@ -62,14 +62,14 @@ export type BattleOutfitterResult = {
   message: string;
 };
 
-export const DARIAN_VOSS = {
-  npcId: "darian_voss",
-  name: "Darian Voss",
+export const DARIA_VOSS = {
+  npcId: "daria_voss",
+  name: "Daria Voss",
   title: "Battle Outfitter",
-  portraitPath: "/images/ui/icons/icon_ability_trigger.png",
-  profilePath: "/images/backgrounds/guild/guild_hall_interior.png",
+  portraitPath: "/images/npcs/town/daria_voss_portrait.png",
+  profilePath: "/images/npcs/town/daria_voss_portrait.png",
   intro:
-    "Darian Voss keeps the town's combat shelves stocked with safe training gear, manuals, and battle-prep supplies.",
+    "Daria Voss keeps the town's combat shelves stocked with safe training gear, manuals, and battle-prep supplies.",
 } as const;
 
 export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
@@ -475,4 +475,5 @@ export function useBattleOutfitterManual(
     )}`,
   };
 }
+
 
