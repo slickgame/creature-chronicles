@@ -311,7 +311,10 @@ function cleanseStatus(target: BattleCombatant, status: BattleStatusId | undefin
 }
 
 function getEffectTargets(state: BattleState, actor: BattleCombatant, actionTargetIds: BattleCombatantId[], effect: BattleMoveEffect): BattleCombatant[] {
-  if (effect.target === "self") return [state.combatants[actor.battleCombatantId]].filter(Boolean);
+  if (effect.target === "self") {
+    const selfTarget = state.combatants[actor.battleCombatantId];
+    return selfTarget ? [selfTarget] : [];
+  }
   if (effect.target === "allies") return getLivingCombatants(state, actor.sideId);
   if (effect.target === "enemies") return getLivingCombatants(state, getOpposingSide(actor.sideId));
   if (effect.target === "field") return [];
