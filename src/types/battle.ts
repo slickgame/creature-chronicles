@@ -1,9 +1,13 @@
 import type { CreatureFamily } from "@/types/creature";
-import type { SpeciesId } from "@/types/ids";
+import type { CreatureId, SpeciesId } from "@/types/ids";
 
 export type BattleMoveId = string;
 export type BattleAbilityId = string;
 export type BattleTag = string;
+export type BattleCombatantId = string;
+export type BattleId = string;
+export type BattleSideId = "player" | "enemy";
+export type BattleOutcome = "ongoing" | "player_won" | "enemy_won" | "draw";
 
 export type BattleStatKey =
   | "maxHp"
@@ -132,4 +136,72 @@ export type BattleDamagePreview = {
   modifierTotal: number;
   finalDamage: number;
   notes: string[];
+};
+
+export type BattleStatusStack = {
+  status: BattleStatusId;
+  duration: number;
+  amount?: number;
+  sourceCombatantId?: BattleCombatantId;
+};
+
+export type BattleCooldowns = Partial<Record<BattleMoveId, number>>;
+
+export type BattleCombatant = {
+  battleCombatantId: BattleCombatantId;
+  sourceCreatureId: CreatureId;
+  sideId: BattleSideId;
+  slotIndex: number;
+  name: string;
+  speciesId: SpeciesId;
+  level: number;
+  battleStats: BattleStats;
+  loadout: BattleMoveLoadout;
+  currentHp: number;
+  maxHp: number;
+  currentBattleEnergy: number;
+  maxBattleEnergy: number;
+  cooldowns: BattleCooldowns;
+  statuses: BattleStatusStack[];
+  isFainted: boolean;
+};
+
+export type BattleTeam = {
+  sideId: BattleSideId;
+  name: string;
+  combatantIds: BattleCombatantId[];
+};
+
+export type BattleAction = {
+  actorId: BattleCombatantId;
+  moveId: BattleMoveId;
+  targetIds: BattleCombatantId[];
+};
+
+export type BattleResolvedAction = {
+  actorId: BattleCombatantId;
+  actorName: string;
+  moveId: BattleMoveId;
+  moveName: string;
+  targetIds: BattleCombatantId[];
+  targetNames: string[];
+  turnScore: number;
+  success: boolean;
+  log: string[];
+};
+
+export type BattleRoundResult = {
+  roundNumber: number;
+  actions: BattleResolvedAction[];
+  log: string[];
+  outcome: BattleOutcome;
+};
+
+export type BattleState = {
+  battleId: BattleId;
+  roundNumber: number;
+  outcome: BattleOutcome;
+  teams: Record<BattleSideId, BattleTeam>;
+  combatants: Record<BattleCombatantId, BattleCombatant>;
+  log: string[];
 };
