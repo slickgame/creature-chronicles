@@ -21,7 +21,7 @@ const TOWN_ICONS = {
   guild: "/images/buildings/town/guild_hall.png",
   ranch: "/images/buildings/town/ranch_gate.png",
   training: "/images/buildings/town/training_grounds.png",
-  battleOutfitter: "/images/ui/icons/icon_ability_trigger.png",
+  battleOutfitter: "/images/buildings/town/battle_outfitter.png",
   coliseum: "/images/ui/icons/icon_ability_trigger.png",
   menu: "/images/ui/icons/icon_collection_book.png",
 } as const;
