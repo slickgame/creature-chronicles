@@ -428,7 +428,7 @@ function resolveEffect(
 
 function spendMoveResources(combatant: BattleCombatant, move: BattleMove): BattleCombatant {
   const cooldowns: BattleCooldowns = { ...combatant.cooldowns };
-  if (move.cooldown > 0) cooldowns[move.id] = move.cooldown;
+  if (move.cooldown > 0) cooldowns[move.id] = move.cooldown + 1;
 
   return {
     ...combatant,
