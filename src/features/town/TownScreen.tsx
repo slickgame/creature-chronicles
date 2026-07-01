@@ -16,7 +16,7 @@ const TOWN_ICONS = {
   gold: "/images/ui/currency/icon_currency_gold.png",
   gp: "/images/ui/icons/icon_guild_points.png",
   adoption: "/images/buildings/town/market_stall.png",
-  supplyDepot: "/images/ui/icons/icon_shop_bag.png",
+  supplyDepot: "/images/buildings/town/supply_depot.png",
   eggAtelier: "/images/buildings/town/egg_atelier.png",
   guild: "/images/buildings/town/guild_hall.png",
   ranch: "/images/buildings/town/ranch_gate.png",
