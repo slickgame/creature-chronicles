@@ -19,7 +19,7 @@ export const PELLA_MOSSWICK = {
   npcId: "pella_mosswick",
   name: "Pella Mosswick",
   title: "Supply Depot Keeper",
-  portraitPath: "/images/ui/icons/icon_shop_bag.png",
+  portraitPath: "/images/npcs/town/pella_mosswick_portrait.png",
   profilePath: "/images/backgrounds/market/market_road_interior.png",
   intro: "Pella Mosswick runs the Supply Depot, a crowded little shop stacked with feed sacks, repair kits, tools, gossip, and emergency bundles for ranchers who should have planned better.",
 } as const;
@@ -97,4 +97,5 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     message: `${message} Pella Trust increased.`,
   };
 }
+
 

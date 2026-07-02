@@ -37,6 +37,10 @@ const ICONS = {
   gold: "/images/ui/currency/icon_currency_gold.png",
   materials: "/images/ui/icons/icon_ranch_upgrade.png",
   manual: "/images/ui/icons/icon_collection_book.png",
+  combatShelves: "/images/props/town/battle_outfitter_combat_shelves.png",
+  loadoutBench: "/images/props/town/battle_outfitter_loadout_bench.png",
+  manualRack: "/images/props/town/battle_outfitter_manual_rack.png",
+  prepKit: "/images/props/town/battle_outfitter_prep_kit.png",
 } as const;
 
 type OutfitterMode = "interior" | "shop" | "talk" | "stock" | "loadouts";
@@ -154,9 +158,9 @@ function InteriorPanel({ summary, materials, setMode }: { summary: ReturnType<ty
           </div>
         </aside>
         <div style={{ position: "relative", minHeight: 430 }}>
-          <button type="button" style={{ ...hotspotStyle(), position: "absolute", left: "10%", top: "38%" }} onClick={() => setMode("shop")}><img src={ICONS.fallback} alt="" style={{ width: 58, height: 58, objectFit: "cover", borderRadius: 999 }} /><strong>Combat Shelves</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Gold + Materials</span></button>
+          <button type="button" style={{ ...hotspotStyle(), position: "absolute", left: "10%", top: "38%" }} onClick={() => setMode("shop")}><img src={ICONS.combatShelves} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: 76, height: 76, objectFit: "contain" }} /><strong>Combat Shelves</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Gold + Materials</span></button>
           <button type="button" style={{ ...hotspotStyle(), position: "absolute", right: "8%", top: "30%" }} onClick={() => setMode("talk")}><img src={ICONS.daria} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} style={{ width: 66, height: 66, objectFit: "cover", borderRadius: 999 }} /><strong>Daria Voss</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Combat prep advice</span></button>
-          <button type="button" style={{ ...hotspotStyle(), position: "absolute", left: "39%", bottom: "8%" }} onClick={() => setMode("loadouts")}><img src={ICONS.manual} alt="" style={{ width: 58, height: 58, objectFit: "cover", borderRadius: 999 }} /><strong>Loadout Bench</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Assign equipment</span></button>
+          <button type="button" style={{ ...hotspotStyle(), position: "absolute", left: "39%", bottom: "8%" }} onClick={() => setMode("loadouts")}><img src={ICONS.loadoutBench} alt="" onError={(event) => { event.currentTarget.src = ICONS.manual; }} style={{ width: 76, height: 76, objectFit: "contain" }} /><strong>Loadout Bench</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Assign equipment</span></button>
         </div>
       </div>
     </section>
@@ -202,6 +206,7 @@ function LoadoutPanel({ save, creatures, selectedCreature, setSelectedCreatureId
     </section>
   );
 }
+
 
 
 
