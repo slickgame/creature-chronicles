@@ -77,13 +77,13 @@ export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
     itemId: "energy_snack",
     name: "Energy Snack",
     category: "Energy",
-    description: "A shelf-stable snack for long ranch days. Stored in player inventory and used later from the inventory screen.",
+    description: "A shelf-stable snack for long ranch days. Stored in player inventory and used later on the player or one creature.",
     price: 90,
     iconPath: "/images/items/supply_depot/energy_snack.png",
     purchaseLabel: "+1 Energy Snack",
     quantityLabel: "1 Snack",
     storageLabel: "Player Inventory",
-    usageLabel: `Use from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy. Disabled when energy is full.`,
+    usageLabel: `Use from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} Energy to the player or one creature. Disabled when the chosen target is full.`,
   },
   {
     itemId: "repair_kit",
@@ -181,6 +181,15 @@ export function getSupplyDepotUsageRows(save: GameSave): Array<{ item: SupplyDep
   });
 }
 
+function getNextEnergySnackFlags(save: GameSave, stock: number): GameSave["flags"] {
+  return {
+    ...save.flags,
+    energySnackStock: stock - 1,
+    supplyDepotEnergySnacksUsed: getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1,
+    m44EnergySnackUsed: true,
+  };
+}
+
 export function useSupplyDepotEnergySnack(save: GameSave): SupplyDepotUseResult {
   const stock = getFlagNumber(save.flags.energySnackStock);
   if (stock <= 0) return { save, ok: false, message: "No Energy Snacks in stock. Buy more from Pella at the Supply Depot." };
@@ -195,15 +204,37 @@ export function useSupplyDepotEnergySnack(save: GameSave): SupplyDepotUseResult 
       ...save,
       updatedAt: new Date().toISOString(),
       currencies: { ...save.currencies, energy: newEnergy },
+      flags: getNextEnergySnackFlags(save, stock),
+    },
+    ok: true,
+    message: `Used 1 Energy Snack on the player and restored ${restored} Energy.`,
+  };
+}
+
+export function useSupplyDepotEnergySnackOnCreature(save: GameSave, creatureId: string): SupplyDepotUseResult {
+  const stock = getFlagNumber(save.flags.energySnackStock);
+  if (stock <= 0) return { save, ok: false, message: "No Energy Snacks in stock. Buy more from Pella at the Supply Depot." };
+
+  const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
+  if (!creature) return { save, ok: false, message: "That creature could not be found." };
+  if (creature.energy >= creature.maxEnergy) return { save, ok: false, message: `${creature.nickname} is already at full energy.` };
+
+  const newEnergy = Math.min(creature.maxEnergy, creature.energy + ENERGY_SNACK_RESTORE_AMOUNT);
+  const restored = newEnergy - creature.energy;
+
+  return {
+    save: {
+      ...save,
+      updatedAt: new Date().toISOString(),
+      creatures: (save.creatures ?? []).map((item) => item.creatureId === creatureId ? { ...item, energy: newEnergy } : item),
       flags: {
-        ...save.flags,
-        energySnackStock: stock - 1,
-        supplyDepotEnergySnacksUsed: getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1,
-        m44EnergySnackUsed: true,
+        ...getNextEnergySnackFlags(save, stock),
+        m58EnergySnackUsedOnCreature: true,
+        lastEnergySnackCreatureId: creatureId,
       },
     },
     ok: true,
-    message: `Used 1 Energy Snack and restored ${restored} player energy.`,
+    message: `Used 1 Energy Snack on ${creature.nickname} and restored ${restored} Energy.`,
   };
 }
 
@@ -225,7 +256,7 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     message += " Ranch materials increased by 5 for upgrades and repairs.";
   } else if (item.itemId === "energy_snack") {
     nextFlags.energySnackStock = getFlagNumber(save.flags.energySnackStock) + 1;
-    message += ` Energy Snack stock increased by 1. Use it later from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy.`;
+    message += ` Energy Snack stock increased by 1. Use it later from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} Energy to the player or one creature.`;
   } else if (item.itemId === "repair_kit") {
     nextFlags.ranchRepairKits = getFlagNumber(save.flags.ranchRepairKits) + 1;
     message += " Repair kit stock increased by 1. Ranch Office manual repairs will consume kits before Materials.";
