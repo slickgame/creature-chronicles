@@ -90,7 +90,7 @@ export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
     purchaseLabel: "+1 Repair Kit",
     quantityLabel: "1 Kit",
     storageLabel: "Ranch Repair Kit Stock",
-    usageLabel: "Stored for ranch repair systems. Next polish pass should let Ranch Office repairs consume kits before loose Materials.",
+    usageLabel: "Consumed first by Ranch Office manual repairs. If no kit is available, repairs fall back to loose Materials.",
   },
   {
     itemId: "fertility_tonic",
@@ -199,7 +199,7 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     message += ` Player energy restored by ${newEnergy - oldEnergy}. Energy Snacks are instant-use items for now.`;
   } else if (item.itemId === "repair_kit") {
     nextFlags.ranchRepairKits = getFlagNumber(save.flags.ranchRepairKits) + 1;
-    message += " Repair kit stock increased by 1 for ranch repair integration.";
+    message += " Repair kit stock increased by 1. Ranch Office manual repairs will consume kits before Materials.";
   } else if (item.itemId === "fertility_tonic") {
     nextFlags.breedingFertilityTonics = getFlagNumber(save.flags.breedingFertilityTonics) + 1;
     message += " The next valid breeding attempt can consume one tonic for +12% pregnancy chance.";
