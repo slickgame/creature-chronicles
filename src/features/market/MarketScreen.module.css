@@ -34,3 +34,150 @@
 .panel {
   scrollbar-color: rgba(245,201,128,.55) rgba(0,0,0,.24);
 }
+
+/* shop-consistency-pass */
+.panel,
+.infoCard,
+.listing,
+.listingCard {
+  color: #fff7dd;
+  font-family: inherit;
+  text-align: left;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  color: #fff7dd;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+
+.listingName,
+.listing h3,
+.listingCard h3,
+.infoCard strong {
+  margin: 0;
+  color: #fff7dd;
+  font-size: 1.1rem;
+  line-height: 1.08;
+  font-weight: 950;
+  letter-spacing: -.01em;
+  text-shadow: 0 2px 2px rgba(0,0,0,.8);
+}
+
+.panel p,
+.listingDesc,
+.listing p,
+.listingCard p,
+.infoCard p {
+  margin: 0;
+  color: #fff0c9;
+  font-size: .88rem;
+  line-height: 1.35;
+  font-weight: 650;
+  text-shadow: 0 2px 3px rgba(0,0,0,.86);
+}
+
+.listingMeta,
+.kicker,
+.price span,
+.statBox span,
+.infoCard span {
+  color: #e7c991;
+  font-size: .68rem;
+  font-weight: 950;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.gradePreview,
+.modalSubtitle,
+.message,
+.listingCard p[style] {
+  color: #7fdbff !important;
+  font-size: .78rem;
+  font-weight: 950;
+  line-height: 1.25;
+}
+
+.listing,
+.listingCard {
+  min-height: 224px;
+  padding: 14px;
+  border: 2px solid rgba(245,201,128,.5);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(25,14,10,.72), rgba(0,0,0,.48));
+  box-shadow: inset 0 1px 0 rgba(255,247,221,.08), 0 12px 22px rgba(0,0,0,.22);
+}
+
+.listingCard {
+  display: grid;
+  gap: 10px;
+}
+
+.listingCard > div:first-child {
+  display: grid !important;
+  grid-template-columns: 110px minmax(0,1fr) !important;
+  gap: 12px !important;
+  align-items: start !important;
+}
+
+.listingArt,
+.listingCard > div:first-child > div:first-child {
+  min-height: 110px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(245,201,128,.32) !important;
+  border-radius: var(--radius-md) !important;
+  background: radial-gradient(circle,rgba(242,184,75,.16),transparent 60%),rgba(0,0,0,.3) !important;
+}
+
+.listingArt img,
+.listingCard > div:first-child > div:first-child img {
+  width: 92px !important;
+  height: 92px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 10px 10px rgba(0,0,0,.34));
+}
+
+.listingBody,
+.listingCard > div:first-child > div:last-child {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.price {
+  min-height: 42px;
+  padding: 7px 8px;
+  border: 1px solid rgba(245,201,128,.28);
+  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,.26);
+}
+
+.price strong {
+  color: #fff7dd;
+  font-size: .95rem;
+  line-height: 1.1;
+}
+
+.buyButton,
+.rerollButton,
+.backButton,
+.infoButton,
+.closeModalButton,
+.headerActions button,
+.emptyPanel button {
+  font-size: .86rem;
+  letter-spacing: .02em;
+}
+
+.infoCard {
+  min-height: 58px;
+}
+
+.infoCard button,
+button.infoCard {
+  cursor: pointer;
+}
