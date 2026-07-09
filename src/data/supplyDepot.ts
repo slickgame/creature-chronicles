@@ -16,18 +16,23 @@ export type SupplyDepotItem = {
 };
 
 export type SupplyDepotPurchaseResult = { save: GameSave; ok: boolean; message: string };
+export type SupplyDepotUseResult = { save: GameSave; ok: boolean; message: string };
 export type SupplyDepotSupplyCounts = {
   feed: number;
   materials: number;
+  energySnacks: number;
   energySnacksUsed: number;
   repairKits: number;
   fertilityTonics: number;
   nurserySupplyKits: number;
 };
 
+export const ENERGY_SNACK_RESTORE_AMOUNT = 12;
+
 export const SUPPLY_DEPOT_FLAGS = {
   feed: "ranchFeedStock",
   materials: "ranchMaterialsStock",
+  energySnacks: "energySnackStock",
   energySnacksUsed: "supplyDepotEnergySnacksUsed",
   repairKits: "ranchRepairKits",
   fertilityTonics: "breedingFertilityTonics",
@@ -72,13 +77,13 @@ export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
     itemId: "energy_snack",
     name: "Energy Snack",
     category: "Energy",
-    description: "A shelf-stable snack for long ranch days. Consumed immediately on purchase to restore player energy.",
+    description: "A shelf-stable snack for long ranch days. Stored as Energy Snack stock and used later from ranch supply panels.",
     price: 90,
     iconPath: "/images/items/supply_depot/energy_snack.png",
-    purchaseLabel: "+12 Player Energy",
-    quantityLabel: "12 Energy",
-    storageLabel: "Instant Use",
-    usageLabel: "Applied immediately at purchase; it does not create an inventory stack yet.",
+    purchaseLabel: "+1 Energy Snack",
+    quantityLabel: "1 Snack",
+    storageLabel: "Energy Snack Stock",
+    usageLabel: `Use from the Depot supply overlay to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy. Disabled when energy is full.`,
   },
   {
     itemId: "repair_kit",
@@ -131,6 +136,7 @@ export function getSupplyDepotSupplyCounts(save: GameSave): SupplyDepotSupplyCou
   return {
     feed: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.feed]),
     materials: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.materials]),
+    energySnacks: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energySnacks]),
     energySnacksUsed: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energySnacksUsed]),
     repairKits: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.repairKits]),
     fertilityTonics: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.fertilityTonics]),
@@ -148,7 +154,7 @@ export function getSupplyDepotPrice(save: GameSave, item: SupplyDepotItem): numb
 
 export function getSupplyDepotStockLabel(save: GameSave): string {
   const counts = getSupplyDepotSupplyCounts(save);
-  return `${counts.feed} Feed • ${counts.materials} Materials • ${counts.repairKits} Repair Kits • ${counts.fertilityTonics} Tonics • ${counts.nurserySupplyKits} Nursery Kits`;
+  return `${counts.feed} Feed • ${counts.materials} Materials • ${counts.energySnacks} Snacks • ${counts.repairKits} Repair Kits • ${counts.fertilityTonics} Tonics • ${counts.nurserySupplyKits} Nursery Kits`;
 }
 
 export function getSupplyDepotUsageRows(save: GameSave): Array<{ item: SupplyDepotItem; countLabel: string; storageLabel: string; usageLabel: string }> {
@@ -159,7 +165,7 @@ export function getSupplyDepotUsageRows(save: GameSave): Array<{ item: SupplyDep
       : item.itemId === "material_crate"
         ? `${counts.materials} Materials`
         : item.itemId === "energy_snack"
-          ? `${counts.energySnacksUsed} used`
+          ? `${counts.energySnacks} Snack(s)`
           : item.itemId === "repair_kit"
             ? `${counts.repairKits} Kit(s)`
             : item.itemId === "fertility_tonic"
@@ -175,6 +181,32 @@ export function getSupplyDepotUsageRows(save: GameSave): Array<{ item: SupplyDep
   });
 }
 
+export function useSupplyDepotEnergySnack(save: GameSave): SupplyDepotUseResult {
+  const stock = getFlagNumber(save.flags.energySnackStock);
+  if (stock <= 0) return { save, ok: false, message: "No Energy Snacks in stock. Buy more from Pella at the Supply Depot." };
+  if (save.currencies.energy >= save.currencies.maxEnergy) return { save, ok: false, message: "Player energy is already full." };
+
+  const oldEnergy = save.currencies.energy;
+  const newEnergy = Math.min(save.currencies.maxEnergy, oldEnergy + ENERGY_SNACK_RESTORE_AMOUNT);
+  const restored = newEnergy - oldEnergy;
+
+  return {
+    save: {
+      ...save,
+      updatedAt: new Date().toISOString(),
+      currencies: { ...save.currencies, energy: newEnergy },
+      flags: {
+        ...save.flags,
+        energySnackStock: stock - 1,
+        supplyDepotEnergySnacksUsed: getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1,
+        m44EnergySnackUsed: true,
+      },
+    },
+    ok: true,
+    message: `Used 1 Energy Snack and restored ${restored} player energy.`,
+  };
+}
+
 export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyDepotPurchaseResult {
   const item = getSupplyDepotItem(itemId);
   if (!item) return { save, ok: false, message: "Pella cannot find that item on the shelf." };
@@ -182,7 +214,7 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
   if (save.currencies.gold < price) return { save, ok: false, message: `Not enough Gold for ${item.name}. Need ${price} Gold.` };
 
   const nextFlags: GameSave["flags"] = { ...save.flags, m35SupplyDepotUnlocked: true, pellaMosswickIntroduced: true };
-  let nextCurrencies = { ...save.currencies, gold: save.currencies.gold - price };
+  const nextCurrencies = { ...save.currencies, gold: save.currencies.gold - price };
   let message = `Bought ${item.name} from Pella for ${price} Gold.`;
 
   if (item.itemId === "feed_bundle") {
@@ -192,11 +224,8 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     nextFlags.ranchMaterialsStock = getFlagNumber(save.flags.ranchMaterialsStock) + 5;
     message += " Ranch materials increased by 5 for upgrades and repairs.";
   } else if (item.itemId === "energy_snack") {
-    const oldEnergy = save.currencies.energy;
-    const newEnergy = Math.min(save.currencies.maxEnergy, save.currencies.energy + 12);
-    nextCurrencies = { ...nextCurrencies, energy: newEnergy };
-    nextFlags.supplyDepotEnergySnacksUsed = getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1;
-    message += ` Player energy restored by ${newEnergy - oldEnergy}. Energy Snacks are instant-use items for now.`;
+    nextFlags.energySnackStock = getFlagNumber(save.flags.energySnackStock) + 1;
+    message += ` Energy Snack stock increased by 1. Use it later to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy.`;
   } else if (item.itemId === "repair_kit") {
     nextFlags.ranchRepairKits = getFlagNumber(save.flags.ranchRepairKits) + 1;
     message += " Repair kit stock increased by 1. Ranch Office manual repairs will consume kits before Materials.";
