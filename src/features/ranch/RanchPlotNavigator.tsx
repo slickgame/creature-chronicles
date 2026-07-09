@@ -1,7 +1,13 @@
 "use client";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
-import { getNextRanchUpgradeTier, getRanchUpgradeDefinition, getRanchUpgrades, RANCH_UPGRADE_DEFINITIONS } from "@/data/ranchUpgrades";
+import {
+  getNextRanchUpgradeTier,
+  getRanchUpgradeDefinition,
+  getRanchUpgrades,
+  RANCH_UPGRADE_DEFINITIONS,
+} from "@/data/ranchUpgrades";
+import { getSupplyDepotSupplyCounts, getSupplyDepotUsageRows } from "@/data/supplyDepot";
 import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureFamily } from "@/types/creature";
@@ -9,18 +15,32 @@ import type { RanchUpgradeCategory, RanchUpgradeId, RanchUpgradeTier } from "@/t
 import styles from "./RanchPlotNavigator.module.css";
 
 type RanchPlotId = "homestead" | "habitats" | "services";
-type BuildingShortcutId = "house" | "breeding" | "nursery" | "town" | "feline" | "canine" | "bovine" | "lapine" | "equine" | "office" | "jobs" | "guild";
+type BuildingShortcutId =
+  | "house"
+  | "breeding"
+  | "nursery"
+  | "town"
+  | "feline"
+  | "canine"
+  | "bovine"
+  | "lapine"
+  | "equine"
+  | "office"
+  | "jobs"
+  | "guild"
+  | "inventory";
 
 type RanchPlot = { id: RanchPlotId; label: string; shortLabel: string; description: string };
 type BuildingShortcut = { id: BuildingShortcutId; plotId: RanchPlotId; title: string; hint: string; x: number; labelY: number; upgradeIds: RanchUpgradeId[] };
 
 const OFFICE_CATEGORY_KEY = "creature-chronicles-ranch-office-category-v1";
 const OFFICE_UPGRADE_KEY = "creature-chronicles-ranch-office-upgrade-v1";
+const FALLBACK_ITEM_ICON = "/images/ui/icons/icon_shop_bag.png";
 
 const RANCH_PLOTS: RanchPlot[] = [
   { id: "homestead", label: "Homestead Yard", shortLabel: "Homestead", description: "House, breeding pen, egg nursery, and town road." },
   { id: "habitats", label: "Habitat Fields", shortLabel: "Habitats", description: "Feline, canine, bovine, lapine, and equine habitats." },
-  { id: "services", label: "Service Yard", shortLabel: "Services", description: "Ranch office, chores board, guild board, house, and town road." },
+  { id: "services", label: "Service Yard", shortLabel: "Services", description: "Ranch office, chores board, inventory, guild board, house, and town road." },
 ];
 
 const BUILDING_SHORTCUTS: BuildingShortcut[] = [
@@ -35,35 +55,95 @@ const BUILDING_SHORTCUTS: BuildingShortcut[] = [
   { id: "equine", plotId: "habitats", title: "Equine Habitat", hint: "Capacity upgrades support hauling, upkeep, and field work lines.", x: 81, labelY: 77, upgradeIds: ["equine_habitat_capacity"] },
   { id: "office", plotId: "services", title: "Ranch Office", hint: "Open the construction ledger, repairs, history, and ranch-wide effects.", x: 39, labelY: 61, upgradeIds: [] },
   { id: "jobs", plotId: "services", title: "Ranch Chores", hint: "Chores Board upgrades reduce high base work costs and improve chore output.", x: 63, labelY: 52, upgradeIds: ["ranch_chores_board"] },
+  { id: "inventory", plotId: "services", title: "Inventory", hint: "View purchased supplies and use player items such as Energy Snacks.", x: 23, labelY: 54, upgradeIds: [] },
   { id: "guild", plotId: "services", title: "Guild Board", hint: "Guild contracts are handled in town.", x: 80, labelY: 81, upgradeIds: [] },
   { id: "town", plotId: "services", title: "Town Road", hint: "Travel to town for market, guild, and future town services.", x: 51, labelY: 81, upgradeIds: [] },
   { id: "house", plotId: "services", title: "Ranch House", hint: "Sleep recovery upgrades make the ranch more restful overnight.", x: 23, labelY: 73, upgradeIds: ["sleep_recovery"] },
 ];
 
-function getNextPlotId(currentId: RanchPlotId, direction: -1 | 1): RanchPlotId { const currentIndex = RANCH_PLOTS.findIndex((plot) => plot.id === currentId); const safeIndex = currentIndex >= 0 ? currentIndex : 0; const nextIndex = (safeIndex + direction + RANCH_PLOTS.length) % RANCH_PLOTS.length; return RANCH_PLOTS[nextIndex].id; }
-function getShortcutStyle(shortcut: BuildingShortcut): CSSProperties { return { left: `${shortcut.x}%`, top: `${shortcut.labelY}%` }; }
-function getCategoryForUpgrade(upgradeId: RanchUpgradeId): RanchUpgradeCategory { return getRanchUpgradeDefinition(upgradeId).category; }
-function getPrimaryUpgradeId(shortcut: BuildingShortcut): RanchUpgradeId | null { return shortcut.upgradeIds[0] ?? null; }
-function formatUpgradeCost(tier: RanchUpgradeTier): string { const parts = [formatGold(tier.costGold)]; if (tier.costGp) parts.push(formatGuildPoints(tier.costGp)); if (tier.costMaterials) parts.push(`${tier.costMaterials} Materials`); return parts.join(" + "); }
-function getHighestLevel(upgradeIds: RanchUpgradeId[], upgrades: Record<RanchUpgradeId, number>): number | null { if (!upgradeIds.length) return null; return Math.max(...upgradeIds.map((upgradeId) => upgrades[upgradeId] ?? 0)); }
-function canAffordTier(currentSave: NonNullable<ReturnType<typeof useGameContext>["currentSave"]>, tier: RanchUpgradeTier): boolean { const materials = Number(currentSave.flags.ranchMaterialsStock ?? 0); return currentSave.currencies.gold >= tier.costGold && currentSave.currencies.guildPoints >= (tier.costGp ?? 0) && materials >= (tier.costMaterials ?? 0); }
-function setOfficeShortcut(upgradeId: RanchUpgradeId | null) { if (!upgradeId || typeof window === "undefined") return; window.localStorage.setItem(OFFICE_UPGRADE_KEY, upgradeId); window.localStorage.setItem(OFFICE_CATEGORY_KEY, getCategoryForUpgrade(upgradeId)); }
+function getNextPlotId(currentId: RanchPlotId, direction: -1 | 1): RanchPlotId {
+  const currentIndex = RANCH_PLOTS.findIndex((plot) => plot.id === currentId);
+  const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+  const nextIndex = (safeIndex + direction + RANCH_PLOTS.length) % RANCH_PLOTS.length;
+  return RANCH_PLOTS[nextIndex].id;
+}
+
+function getShortcutStyle(shortcut: BuildingShortcut): CSSProperties {
+  return { left: `${shortcut.x}%`, top: `${shortcut.labelY}%` };
+}
+
+function getCategoryForUpgrade(upgradeId: RanchUpgradeId): RanchUpgradeCategory {
+  return getRanchUpgradeDefinition(upgradeId).category;
+}
+
+function getPrimaryUpgradeId(shortcut: BuildingShortcut): RanchUpgradeId | null {
+  return shortcut.upgradeIds[0] ?? null;
+}
+
+function formatUpgradeCost(tier: RanchUpgradeTier): string {
+  const parts = [formatGold(tier.costGold)];
+  if (tier.costGp) parts.push(formatGuildPoints(tier.costGp));
+  if (tier.costMaterials) parts.push(`${tier.costMaterials} Materials`);
+  return parts.join(" + ");
+}
+
+function getHighestLevel(upgradeIds: RanchUpgradeId[], upgrades: Record<RanchUpgradeId, number>): number | null {
+  if (!upgradeIds.length) return null;
+  return Math.max(...upgradeIds.map((upgradeId) => upgrades[upgradeId] ?? 0));
+}
+
+function canAffordTier(currentSave: NonNullable<ReturnType<typeof useGameContext>["currentSave"]>, tier: RanchUpgradeTier): boolean {
+  const materials = Number(currentSave.flags.ranchMaterialsStock ?? 0);
+  return currentSave.currencies.gold >= tier.costGold && currentSave.currencies.guildPoints >= (tier.costGp ?? 0) && materials >= (tier.costMaterials ?? 0);
+}
+
+function setOfficeShortcut(upgradeId: RanchUpgradeId | null) {
+  if (!upgradeId || typeof window === "undefined") return;
+  window.localStorage.setItem(OFFICE_UPGRADE_KEY, upgradeId);
+  window.localStorage.setItem(OFFICE_CATEGORY_KEY, getCategoryForUpgrade(upgradeId));
+}
 
 export function RanchPlotNavigator() {
-  const { currentSave, goToBreeding, goToHabitat, goToNursery, goToRanchJobs, goToRanchOffice, goToTown } = useGameContext();
+  const {
+    currentSave,
+    goToBreeding,
+    goToEggAtelier,
+    goToHabitat,
+    goToNursery,
+    goToRanchJobs,
+    goToRanchOffice,
+    goToTown,
+    useEnergySnack,
+  } = useGameContext();
   const [activePlotId, setActivePlotId] = useState<RanchPlotId>("homestead");
   const [selectedShortcut, setSelectedShortcut] = useState<BuildingShortcut | null>(null);
+  const [inventoryMessage, setInventoryMessage] = useState("Energy Snacks are usable from inventory. Other supplies are consumed by their related ranch systems.");
   const activePlot = useMemo(() => RANCH_PLOTS.find((plot) => plot.id === activePlotId) ?? RANCH_PLOTS[0], [activePlotId]);
   const previousPlot = useMemo(() => RANCH_PLOTS.find((plot) => plot.id === getNextPlotId(activePlotId, -1)) ?? RANCH_PLOTS[0], [activePlotId]);
   const nextPlot = useMemo(() => RANCH_PLOTS.find((plot) => plot.id === getNextPlotId(activePlotId, 1)) ?? RANCH_PLOTS[0], [activePlotId]);
   const ranchUpgrades = useMemo(() => (currentSave ? getRanchUpgrades(currentSave) : null), [currentSave]);
   const visibleShortcuts = useMemo(() => BUILDING_SHORTCUTS.filter((shortcut) => shortcut.plotId === activePlotId), [activePlotId]);
+  const supplyRows = useMemo(() => (currentSave ? getSupplyDepotUsageRows(currentSave) : []), [currentSave]);
+  const supplyCounts = useMemo(() => (currentSave ? getSupplyDepotSupplyCounts(currentSave) : null), [currentSave]);
 
-  useEffect(() => { document.documentElement.dataset.ranchPlot = activePlotId; return () => { delete document.documentElement.dataset.ranchPlot; }; }, [activePlotId]);
+  useEffect(() => {
+    document.documentElement.dataset.ranchPlot = activePlotId;
+    return () => {
+      delete document.documentElement.dataset.ranchPlot;
+    };
+  }, [activePlotId]);
 
-  function shiftPlot(direction: -1 | 1) { setSelectedShortcut(null); setActivePlotId((currentId) => getNextPlotId(currentId, direction)); }
+  function shiftPlot(direction: -1 | 1) {
+    setSelectedShortcut(null);
+    setActivePlotId((currentId) => getNextPlotId(currentId, direction));
+  }
+
   function enterBuilding(shortcut: BuildingShortcut) {
     setSelectedShortcut(null);
+    if (shortcut.id === "inventory") {
+      setSelectedShortcut(shortcut);
+      return;
+    }
     if (shortcut.id === "breeding") { goToBreeding(); return; }
     if (shortcut.id === "nursery") { goToNursery(); return; }
     if (shortcut.id === "jobs") { goToRanchJobs(); return; }
@@ -73,13 +153,43 @@ export function RanchPlotNavigator() {
     const mapButton = document.querySelector<HTMLButtonElement>('section[aria-label="Ranch buildings"] > button[aria-label^="Ranch House."]');
     mapButton?.click();
   }
-  function openOfficeForShortcut(shortcut: BuildingShortcut) { setOfficeShortcut(getPrimaryUpgradeId(shortcut)); setSelectedShortcut(null); goToRanchOffice(); }
+
+  function openOfficeForShortcut(shortcut: BuildingShortcut) {
+    setOfficeShortcut(getPrimaryUpgradeId(shortcut));
+    setSelectedShortcut(null);
+    goToRanchOffice();
+  }
+
+  function handleUseEnergySnack() {
+    setInventoryMessage(useEnergySnack());
+  }
+
+  function renderInventoryAction(itemId: string) {
+    if (!currentSave || !supplyCounts) return null;
+    if (itemId === "energy_snack") {
+      const canUseSnack = supplyCounts.energySnacks > 0 && currentSave.currencies.energy < currentSave.currencies.maxEnergy;
+      return (
+        <button type="button" disabled={!canUseSnack} onClick={handleUseEnergySnack}>
+          Use Energy Snack ({currentSave.currencies.energy}/{currentSave.currencies.maxEnergy})
+        </button>
+      );
+    }
+    if (itemId === "material_crate" || itemId === "repair_kit") return <button type="button" onClick={goToRanchOffice}>Open Ranch Office</button>;
+    if (itemId === "fertility_tonic") return <button type="button" onClick={goToBreeding}>Open Breeding Pen</button>;
+    if (itemId === "nursery_supply_kit") return <button type="button" onClick={goToEggAtelier}>Open Egg Atelier</button>;
+    return null;
+  }
 
   return (
     <nav className={styles.plotNavigator} aria-label="Ranch plot navigation">
       <button type="button" className={`${styles.plotArrow} ${styles.leftArrow}`} onClick={() => shiftPlot(-1)} aria-label={`Go to ${previousPlot.label}`}><span aria-hidden="true">‹</span><em>{previousPlot.shortLabel}</em></button>
       {currentSave && ranchUpgrades ? visibleShortcuts.map((shortcut) => {
-        const upgradeStatuses = shortcut.upgradeIds.map((upgradeId) => { const definition = getRanchUpgradeDefinition(upgradeId); const tier = ranchUpgrades[upgradeId] ?? 0; const nextTier = getNextRanchUpgradeTier(definition, tier); return { definition, tier, nextTier, canAfford: nextTier ? canAffordTier(currentSave, nextTier) : false }; });
+        const upgradeStatuses = shortcut.upgradeIds.map((upgradeId) => {
+          const definition = getRanchUpgradeDefinition(upgradeId);
+          const tier = ranchUpgrades[upgradeId] ?? 0;
+          const nextTier = getNextRanchUpgradeTier(definition, tier);
+          return { definition, tier, nextTier, canAfford: nextTier ? canAffordTier(currentSave, nextTier) : false };
+        });
         const level = getHighestLevel(shortcut.upgradeIds, ranchUpgrades);
         const hasUpgrade = upgradeStatuses.some((status) => Boolean(status.nextTier));
         const hasAffordableUpgrade = upgradeStatuses.some((status) => status.canAfford);
@@ -87,7 +197,7 @@ export function RanchPlotNavigator() {
       }) : null}
       <div className={styles.plotBadge} aria-live="polite"><span>Ranch Plot</span><strong>{activePlot.label}</strong><em>{activePlot.description}</em></div>
       <button type="button" className={`${styles.plotArrow} ${styles.rightArrow}`} onClick={() => shiftPlot(1)} aria-label={`Go to ${nextPlot.label}`}><span aria-hidden="true">›</span><em>{nextPlot.shortLabel}</em></button>
-      {selectedShortcut && currentSave && ranchUpgrades ? <div className={styles.shortcutBackdrop} role="presentation" onClick={() => setSelectedShortcut(null)}><section className={styles.shortcutPanel} role="dialog" aria-modal="true" aria-labelledby="building-shortcut-title" onClick={(event) => event.stopPropagation()}><header className={styles.shortcutHeader}><div><p>Building Upgrade Shortcut</p><h2 id="building-shortcut-title">{selectedShortcut.title}</h2></div><button type="button" onClick={() => setSelectedShortcut(null)}>Close</button></header><p className={styles.shortcutLead}>{selectedShortcut.hint}</p>{selectedShortcut.upgradeIds.length ? <div className={styles.upgradeStatusGrid}>{selectedShortcut.upgradeIds.map((upgradeId) => { const definition = getRanchUpgradeDefinition(upgradeId); const tier = ranchUpgrades[upgradeId] ?? 0; const nextTier = getNextRanchUpgradeTier(definition, tier); return <article key={upgradeId} className={styles.upgradeStatusCard}><span>{definition.category} upgrade</span><strong>{definition.name}</strong><div><em>Current</em><b>Tier {tier}</b></div><p>{tier === 0 ? "Base ranch service" : definition.tiers.find((item) => item.tier === tier)?.effectLabel ?? "Base ranch service"}</p><div><em>Next</em><b>{nextTier ? `Tier ${nextTier.tier}` : "Max"}</b></div><p>{nextTier ? nextTier.effectLabel : "Fully upgraded."}</p>{nextTier ? <small>Cost: {formatUpgradeCost(nextTier)}</small> : null}</article>; })}</div> : <p className={styles.shortcutLead}>This building has no ranch construction upgrade yet.</p>}<footer className={styles.shortcutActions}><button type="button" onClick={() => enterBuilding(selectedShortcut)}>Enter Building</button><button type="button" className={styles.primaryShortcutAction} disabled={!selectedShortcut.upgradeIds.length} onClick={() => openOfficeForShortcut(selectedShortcut)}>Upgrade in Office</button></footer></section></div> : null}
+      {selectedShortcut && currentSave && ranchUpgrades ? <div className={styles.shortcutBackdrop} role="presentation" onClick={() => setSelectedShortcut(null)}><section className={styles.shortcutPanel} role="dialog" aria-modal="true" aria-labelledby="building-shortcut-title" onClick={(event) => event.stopPropagation()}><header className={styles.shortcutHeader}><div><p>{selectedShortcut.id === "inventory" ? "Player Items" : "Building Upgrade Shortcut"}</p><h2 id="building-shortcut-title">{selectedShortcut.title}</h2></div><button type="button" onClick={() => setSelectedShortcut(null)}>Close</button></header>{selectedShortcut.id === "inventory" ? <><p className={styles.shortcutLead}>{inventoryMessage}</p><div className={styles.upgradeStatusGrid}>{supplyRows.map((row) => <article key={row.item.itemId} className={styles.upgradeStatusCard}><img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_ITEM_ICON; }} style={{ width: 54, height: 54, objectFit: "contain" }} /><span>{row.storageLabel}</span><strong>{row.item.name}</strong><div><em>Stock</em><b>{row.countLabel}</b></div><p>{row.usageLabel}</p>{renderInventoryAction(row.item.itemId)}</article>)}</div><footer className={styles.shortcutActions}><button type="button" onClick={() => setSelectedShortcut(null)}>Close Inventory</button></footer></> : <><p className={styles.shortcutLead}>{selectedShortcut.hint}</p>{selectedShortcut.upgradeIds.length ? <div className={styles.upgradeStatusGrid}>{selectedShortcut.upgradeIds.map((upgradeId) => { const definition = getRanchUpgradeDefinition(upgradeId); const tier = ranchUpgrades[upgradeId] ?? 0; const nextTier = getNextRanchUpgradeTier(definition, tier); return <article key={upgradeId} className={styles.upgradeStatusCard}><span>{definition.category} upgrade</span><strong>{definition.name}</strong><div><em>Current</em><b>Tier {tier}</b></div><p>{tier === 0 ? "Base ranch service" : definition.tiers.find((item) => item.tier === tier)?.effectLabel ?? "Base ranch service"}</p><div><em>Next</em><b>{nextTier ? `Tier ${nextTier.tier}` : "Max"}</b></div><p>{nextTier ? nextTier.effectLabel : "Fully upgraded."}</p>{nextTier ? <small>Cost: {formatUpgradeCost(nextTier)}</small> : null}</article>; })}</div> : <p className={styles.shortcutLead}>This building has no ranch construction upgrade yet.</p>}<footer className={styles.shortcutActions}><button type="button" onClick={() => enterBuilding(selectedShortcut)}>Enter Building</button><button type="button" className={styles.primaryShortcutAction} disabled={!selectedShortcut.upgradeIds.length} onClick={() => openOfficeForShortcut(selectedShortcut)}>Upgrade in Office</button></footer></>}</section></div> : null}
     </nav>
   );
 }
