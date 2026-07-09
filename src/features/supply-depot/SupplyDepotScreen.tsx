@@ -6,6 +6,7 @@ import {
   SUPPLY_DEPOT_ITEMS,
   getSupplyDepotPrice,
   getSupplyDepotStockLabel,
+  getSupplyDepotUsageRows,
 } from "@/data/supplyDepot";
 import {
   getNpcNextUnlock,
@@ -62,6 +63,15 @@ function getPanelStyle() {
     color: "#fff0c9",
     boxShadow: "0 14px 34px rgba(0,0,0,.42)",
     backdropFilter: "blur(2px)",
+  } as const;
+}
+
+function getMiniSupplyGridStyle() {
+  return {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+    gap: 10,
+    marginTop: 12,
   } as const;
 }
 
@@ -151,7 +161,7 @@ export function SupplyDepotScreen() {
 
         <header className={styles.header}>
           <div>
-            <p className={styles.kicker}>M43 Supply Depot Interior</p>
+            <p className={styles.kicker}>M44 Supply Depot Integration</p>
             <h1>The Supply Depot</h1>
             <p>
               {PELLA_MOSSWICK.name}, {PELLA_MOSSWICK.title}, keeps the ranch
@@ -300,7 +310,17 @@ function DepotInterior({
 
           <p style={{ marginTop: 16, lineHeight: 1.55 }}>{PELLA_GREETING}</p>
 
-          <div style={{ display: "grid", gap: 8 }}>
+          <div style={getMiniSupplyGridStyle()}>
+            {getSupplyDepotUsageRows(save).slice(0, 4).map((row) => (
+              <div key={row.item.itemId} className={styles.infoCard}>
+                <img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+                <span>{row.item.name}</span>
+                <strong>{row.countLabel}</strong>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
             <button type="button" className={styles.buyButton} onClick={onTalk}>
               Talk to Pella
             </button>
@@ -319,7 +339,7 @@ function DepotInterior({
               Special Supplies
             </button>
             <button type="button" className={styles.buyButton} onClick={onTrust}>
-              Trust / Stock Ledger
+              Supply Ledger
             </button>
           </div>
         </aside>
@@ -480,7 +500,7 @@ function PellaTalkPanel({
             Special Supplies
           </button>
           <button type="button" className={styles.buyButton} onClick={onTrust}>
-            Open Ledger
+            Supply Ledger
           </button>
           <button type="button" className={styles.backButton} onClick={onBack}>
             Back to Depot
@@ -500,6 +520,8 @@ function PellaTrustPanel({
   onBack: () => void;
   onShop: (shelf?: DepotShelf) => void;
 }) {
+  const usageRows = getSupplyDepotUsageRows(save);
+
   return (
     <section
       style={{
@@ -536,17 +558,23 @@ function PellaTrustPanel({
 
       <section style={getPanelStyle()}>
         <p className={styles.kicker}>Current Supplies</p>
-        <h2>Ranch Inventory</h2>
+        <h2>Depot Storage & Usage</h2>
         <div className={styles.listings}>
-          {getSupplyDepotStockLabel(save)
-            .split(" - ")
-            .join(" | ")
-            .split(" | ")
-            .map((item) => (
-              <article key={item} className={styles.infoCard}>
-                <strong>{item}</strong>
-              </article>
-            ))}
+          {usageRows.map((row) => (
+            <article key={row.item.itemId} className={styles.listingCard}>
+              <div style={{ display: "grid", gridTemplateColumns: "76px minmax(0, 1fr)", gap: 12, alignItems: "start" }}>
+                <div style={{ minHeight: 76, display: "grid", placeItems: "center", border: "1px solid rgba(245,201,128,.35)", borderRadius: 10, background: "rgba(255,247,221,.08)" }}>
+                  <img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} style={{ width: 66, height: 66, objectFit: "contain" }} />
+                </div>
+                <div>
+                  <p className={styles.kicker}>{row.storageLabel}</p>
+                  <h3>{row.item.name}</h3>
+                  <p style={{ color: "#7fdbff", fontWeight: 900 }}>{row.countLabel}</p>
+                  <p>{row.usageLabel}</p>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
           <button
@@ -587,6 +615,8 @@ function DepotShopPanel({
   onBuy: (itemId: string) => void;
   onBack: () => void;
 }) {
+  const usageRows = getSupplyDepotUsageRows(save);
+
   return (
     <section
       className={styles.grid}
@@ -609,23 +639,21 @@ function DepotShopPanel({
           </div>
 
           <div className={styles.infoCard}>
-            <span>Role</span>
-            <strong>{PELLA_MOSSWICK.title}</strong>
+            <span>Current Stock</span>
+            <strong>{getSupplyDepotStockLabel(save)}</strong>
           </div>
+
+          {usageRows.slice(0, 5).map((row) => (
+            <div key={row.item.itemId} className={styles.infoCard}>
+              <img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+              <span>{row.storageLabel}</span>
+              <strong>{row.countLabel}</strong>
+            </div>
+          ))}
 
           <div className={styles.infoCard}>
             <span>Trust</span>
             <strong>{getNpcTrustSummary(save, "pella_mosswick")}</strong>
-          </div>
-
-          <div className={styles.infoCard}>
-            <span>Next Unlock</span>
-            <strong>{getNpcNextUnlock(save, "pella_mosswick")}</strong>
-          </div>
-
-          <div className={styles.infoCard}>
-            <span>Current Stock</span>
-            <strong>{getSupplyDepotStockLabel(save)}</strong>
           </div>
 
           <button type="button" className={styles.backButton} onClick={onBack}>
@@ -719,8 +747,9 @@ function DepotShopPanel({
                     <h3>{item.name}</h3>
                     <p>{item.description}</p>
                     <p style={{ color: "#7fdbff", fontWeight: 900 }}>
-                      {item.purchaseLabel}
+                      {item.purchaseLabel} - {item.storageLabel}
                     </p>
+                    <p>{item.usageLabel}</p>
                   </div>
                 </div>
 
