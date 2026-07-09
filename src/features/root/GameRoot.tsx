@@ -8,6 +8,7 @@ import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreen";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
+import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
@@ -43,22 +44,28 @@ export function GameRoot() {
     );
   }
 
-  if (appScreen === "ranch-hub") return <><RanchHubScreen /><RanchPlotNavigator /></>;
-  if (appScreen === "habitat") return <HabitatScreen />;
-  if (appScreen === "breeding") return <BreedingFocusedScreen />;
-  if (appScreen === "nursery") return <NurseryScreen />;
-  if (appScreen === "town") return <TownScreen />;
-  if (appScreen === "market") return <MarketScreen />;
-  if (appScreen === "supply-depot") return <SupplyDepotScreen />;
-  if (appScreen === "egg-atelier") return <EggAtelierScreen />;
-  if (appScreen === "training-grounds") return <TrainingGroundsScreen />;
-  if (appScreen === "battle-outfitter") return <BattleOutfitterScreen />;
-  if (appScreen === "battle-debug") return <BattleDebugScreen />;
-  if (appScreen === "guild-hall") return <GuildHallScreen />;
-  if (appScreen === "collection") return <CollectionScreen />;
-  if (appScreen === "ranch-office") return <RanchOfficeScreen />;
-  if (appScreen === "ranch-jobs") return <RanchJobsAdvisorScreen />;
-  if (appScreen === "dev-tools") return <DevToolsScreen />;
+  let screen = <MainMenuScreen />;
+  if (appScreen === "ranch-hub") screen = <><RanchHubScreen /><RanchPlotNavigator /></>;
+  else if (appScreen === "habitat") screen = <HabitatScreen />;
+  else if (appScreen === "breeding") screen = <BreedingFocusedScreen />;
+  else if (appScreen === "nursery") screen = <NurseryScreen />;
+  else if (appScreen === "town") screen = <TownScreen />;
+  else if (appScreen === "market") screen = <MarketScreen />;
+  else if (appScreen === "supply-depot") screen = <SupplyDepotScreen />;
+  else if (appScreen === "egg-atelier") screen = <EggAtelierScreen />;
+  else if (appScreen === "training-grounds") screen = <TrainingGroundsScreen />;
+  else if (appScreen === "battle-outfitter") screen = <BattleOutfitterScreen />;
+  else if (appScreen === "battle-debug") screen = <BattleDebugScreen />;
+  else if (appScreen === "guild-hall") screen = <GuildHallScreen />;
+  else if (appScreen === "collection") screen = <CollectionScreen />;
+  else if (appScreen === "ranch-office") screen = <RanchOfficeScreen />;
+  else if (appScreen === "ranch-jobs") screen = <RanchJobsAdvisorScreen />;
+  else if (appScreen === "dev-tools") screen = <DevToolsScreen />;
 
-  return <MainMenuScreen />;
+  return (
+    <>
+      {screen}
+      {currentSave && appScreen !== "main-menu" ? <PlayerInventoryMenu /> : null}
+    </>
+  );
 }
