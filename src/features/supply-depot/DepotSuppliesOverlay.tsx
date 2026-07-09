@@ -41,7 +41,7 @@ function getContext(screen: AppScreen) {
     return {
       title: "Construction Supplies",
       badge: "Ranch Office",
-      note: "Materials are spent on upgrades and repairs. Repair Kits are tracked from the Depot for the next repair-system integration pass.",
+      note: "Repair Kits are consumed first by Ranch Office manual repairs. If no kit is available, repairs fall back to Materials.",
     };
   }
 
