@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { BattleDebugScreen } from "@/features/battle-debug/BattleDebugScreen";
 import { BattleOutfitterScreen } from "@/features/battle-outfitter/BattleOutfitterScreen";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
@@ -21,7 +22,7 @@ import { TownScreen } from "@/features/town/TownScreen";
 import { TrainingGroundsScreen } from "@/features/training-grounds/TrainingGroundsScreen";
 import { useGameContext } from "@/state/GameProvider";
 
-function withDepotSupplies(screen: React.ReactNode) {
+function withDepotSupplies(screen: ReactNode) {
   return (
     <>
       {screen}
