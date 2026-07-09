@@ -77,13 +77,13 @@ export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
     itemId: "energy_snack",
     name: "Energy Snack",
     category: "Energy",
-    description: "A shelf-stable snack for long ranch days. Stored as Energy Snack stock and used later from ranch supply panels.",
+    description: "A shelf-stable snack for long ranch days. Stored in player inventory and used later from the inventory screen.",
     price: 90,
     iconPath: "/images/items/supply_depot/energy_snack.png",
     purchaseLabel: "+1 Energy Snack",
     quantityLabel: "1 Snack",
-    storageLabel: "Energy Snack Stock",
-    usageLabel: `Use from the Depot supply overlay to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy. Disabled when energy is full.`,
+    storageLabel: "Player Inventory",
+    usageLabel: `Use from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy. Disabled when energy is full.`,
   },
   {
     itemId: "repair_kit",
@@ -225,7 +225,7 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     message += " Ranch materials increased by 5 for upgrades and repairs.";
   } else if (item.itemId === "energy_snack") {
     nextFlags.energySnackStock = getFlagNumber(save.flags.energySnackStock) + 1;
-    message += ` Energy Snack stock increased by 1. Use it later to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy.`;
+    message += ` Energy Snack stock increased by 1. Use it later from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} player energy.`;
   } else if (item.itemId === "repair_kit") {
     nextFlags.ranchRepairKits = getFlagNumber(save.flags.ranchRepairKits) + 1;
     message += " Repair kit stock increased by 1. Ranch Office manual repairs will consume kits before Materials.";
