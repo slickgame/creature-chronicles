@@ -13,7 +13,7 @@ import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
 import { assignCreatureToRanchJob, processRanchJobsForNewDay } from "@/data/ranchJobs";
 import { getRanchUpgradeEffects, purchaseRanchUpgrade, repairRanchDamage } from "@/data/ranchUpgrades";
 import { applyStarterGoalRewards } from "@/data/starterGoals";
-import { purchaseSupplyDepotItem } from "@/data/supplyDepot";
+import { purchaseSupplyDepotItem, useSupplyDepotEnergySnack } from "@/data/supplyDepot";
 import { ensureMonthlyTaxPosted, processMonthlyTaxes } from "@/data/taxes";
 import { collectTrainingGroundsAssignment, getTrainingReturnSummaryItems, getTrainingUnavailableReason, purchaseTrainingUpgrade, startTrainingGroundsAssignment } from "@/data/trainingGrounds";
 import { grantDevGuildPoints, grantGuildIntroBonus, purchaseTownUpgrade } from "@/data/upgrades";
@@ -98,6 +98,7 @@ type GameContextValue = {
   buyMarketCreature: (listingId: string) => string;
   rerollMarket: () => string;
   buySupplyDepotItem: (itemId: string) => string;
+  useEnergySnack: () => string;
   buyBattleOutfitterItem: (itemId: string) => BattleOutfitterResult;
   trainCreature: (creatureId: CreatureId, focusId: TrainingFocusId, targetStatKey?: CreatureStatKey) => TrainingResult;
   collectTrainingCreature: (creatureId: CreatureId) => TrainingResult;
@@ -300,6 +301,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return result.message;
   }, [currentSave, saveCurrentGame]);
 
+  const useEnergySnack = useCallback(() => {
+    if (!currentSave) return "No active save.";
+    const result = useSupplyDepotEnergySnack(currentSave);
+    if (result.ok) saveCurrentGame(result.save);
+    return result.message;
+  }, [currentSave, saveCurrentGame]);
+
   const buyBattleOutfitterItem = useCallback((itemId: string) => {
     if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
     const result = purchaseBattleOutfitterItem(currentSave, itemId);
@@ -443,7 +451,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<GameContextValue>(() => ({
     version: MVP_VERSION,
-    buildPhase: "M55 — Battle Debug Lab",
+    buildPhase: "M56 — Supply Depot Full Integration",
     appScreen,
     activeHabitatFamily,
     currentSave,
@@ -484,6 +492,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     buyMarketCreature,
     rerollMarket,
     buySupplyDepotItem,
+    useEnergySnack,
     buyBattleOutfitterItem,
     trainCreature,
     collectTrainingCreature,
@@ -537,6 +546,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     buyMarketCreature,
     rerollMarket,
     buySupplyDepotItem,
+    useEnergySnack,
     buyBattleOutfitterItem,
     trainCreature,
     collectTrainingCreature,
