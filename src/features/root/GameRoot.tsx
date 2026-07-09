@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { BattleDebugScreen } from "@/features/battle-debug/BattleDebugScreen";
 import { BattleOutfitterScreen } from "@/features/battle-outfitter/BattleOutfitterScreen";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
@@ -16,20 +15,10 @@ import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
 import { RanchPlotNavigator } from "@/features/ranch/RanchPlotNavigator";
 import { RanchJobsAdvisorScreen } from "@/features/ranch-jobs/RanchJobsAdvisorScreen";
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
-import { DepotSuppliesOverlay } from "@/features/supply-depot/DepotSuppliesOverlay";
 import { SupplyDepotScreen } from "@/features/supply-depot/SupplyDepotScreen";
 import { TownScreen } from "@/features/town/TownScreen";
 import { TrainingGroundsScreen } from "@/features/training-grounds/TrainingGroundsScreen";
 import { useGameContext } from "@/state/GameProvider";
-
-function withDepotSupplies(screen: ReactNode) {
-  return (
-    <>
-      {screen}
-      <DepotSuppliesOverlay />
-    </>
-  );
-}
 
 export function GameRoot() {
   const { appScreen, currentSave, exitRunToMainMenu, version } = useGameContext();
@@ -54,21 +43,21 @@ export function GameRoot() {
     );
   }
 
-  if (appScreen === "ranch-hub") return withDepotSupplies(<><RanchHubScreen /><RanchPlotNavigator /></>);
-  if (appScreen === "habitat") return withDepotSupplies(<HabitatScreen />);
-  if (appScreen === "breeding") return withDepotSupplies(<BreedingFocusedScreen />);
-  if (appScreen === "nursery") return withDepotSupplies(<NurseryScreen />);
+  if (appScreen === "ranch-hub") return <><RanchHubScreen /><RanchPlotNavigator /></>;
+  if (appScreen === "habitat") return <HabitatScreen />;
+  if (appScreen === "breeding") return <BreedingFocusedScreen />;
+  if (appScreen === "nursery") return <NurseryScreen />;
   if (appScreen === "town") return <TownScreen />;
   if (appScreen === "market") return <MarketScreen />;
   if (appScreen === "supply-depot") return <SupplyDepotScreen />;
-  if (appScreen === "egg-atelier") return withDepotSupplies(<EggAtelierScreen />);
+  if (appScreen === "egg-atelier") return <EggAtelierScreen />;
   if (appScreen === "training-grounds") return <TrainingGroundsScreen />;
   if (appScreen === "battle-outfitter") return <BattleOutfitterScreen />;
   if (appScreen === "battle-debug") return <BattleDebugScreen />;
   if (appScreen === "guild-hall") return <GuildHallScreen />;
   if (appScreen === "collection") return <CollectionScreen />;
-  if (appScreen === "ranch-office") return withDepotSupplies(<RanchOfficeScreen />);
-  if (appScreen === "ranch-jobs") return withDepotSupplies(<RanchJobsAdvisorScreen />);
+  if (appScreen === "ranch-office") return <RanchOfficeScreen />;
+  if (appScreen === "ranch-jobs") return <RanchJobsAdvisorScreen />;
   if (appScreen === "dev-tools") return <DevToolsScreen />;
 
   return <MainMenuScreen />;
