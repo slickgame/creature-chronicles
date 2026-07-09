@@ -34,6 +34,11 @@ export function PlayerInventoryMenu() {
     setMessage(useEnergySnack());
   }
 
+  function openRelatedSystem(action: () => void) {
+    setIsOpen(false);
+    action();
+  }
+
   function renderItemAction(itemId: string) {
     if (itemId === "energy_snack") {
       return (
@@ -44,15 +49,15 @@ export function PlayerInventoryMenu() {
     }
 
     if (itemId === "material_crate" || itemId === "repair_kit") {
-      return <button type="button" className={styles.secondaryButton} onClick={goToRanchOffice}>Open Ranch Office</button>;
+      return <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToRanchOffice)}>Open Ranch Office</button>;
     }
 
     if (itemId === "fertility_tonic") {
-      return <button type="button" className={styles.secondaryButton} onClick={goToBreeding}>Open Breeding Pen</button>;
+      return <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToBreeding)}>Open Breeding Pen</button>;
     }
 
     if (itemId === "nursery_supply_kit") {
-      return <button type="button" className={styles.secondaryButton} onClick={goToEggAtelier}>Open Egg Atelier</button>;
+      return <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToEggAtelier)}>Open Egg Atelier</button>;
     }
 
     return null;
