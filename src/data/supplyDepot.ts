@@ -25,12 +25,12 @@ export const PELLA_MOSSWICK = {
 } as const;
 
 export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
-  { itemId: "feed_bundle", name: "Feed Bundle", category: "Feed", description: "A practical sack of ranch feed. Adds directly to your ranch feed stock.", price: 50, iconPath: "/images/ui/icons/icon_ranch_ledger.png", purchaseLabel: "+5 Feed", quantityLabel: "5 Feed" },
-  { itemId: "material_crate", name: "Material Crate", category: "Materials", description: "Boards, nails, rope, patch cloth, and other repair basics. Adds directly to your material stock.", price: 75, iconPath: "/images/ui/icons/icon_ranch_upgrade.png", purchaseLabel: "+5 Materials", quantityLabel: "5 Materials" },
-  { itemId: "energy_snack", name: "Energy Snack", category: "Energy", description: "A shelf-stable snack for long ranch days. Restores a small amount of player energy immediately.", price: 90, iconPath: "/images/ui/icons/icon_sleep_recovery.png", purchaseLabel: "+12 Energy", quantityLabel: "12 Energy" },
-  { itemId: "repair_kit", name: "Repair Kit", category: "Repair", description: "A bundled kit for future repair and emergency systems. Stored as depot stock for now.", price: 120, iconPath: "/images/ui/icons/icon_upgrade_arrow.png", purchaseLabel: "+1 Repair Kit", quantityLabel: "1 Kit" },
-  { itemId: "fertility_tonic", name: "Fertility Tonic", category: "Breeding", description: "A careful breeding support tonic. One is consumed automatically on the next valid breeding attempt for +12% pregnancy chance.", price: 180, iconPath: "/images/ui/icons/icon_pregnancy.png", purchaseLabel: "+1 Fertility Tonic", quantityLabel: "1 Tonic" },
-  { itemId: "nursery_supply_kit", name: "Nursery Supply Kit", category: "Nursery", description: "Clean bedding, record tags, soothing oils, and egg-care basics. Stored for future nursery upgrades and events.", price: 150, iconPath: "/images/ui/icons/icon_nursery_upgrade.png", purchaseLabel: "+1 Nursery Supply", quantityLabel: "1 Kit" },
+  { itemId: "feed_bundle", name: "Feed Bundle", category: "Feed", description: "A practical sack of ranch feed. Adds directly to your ranch feed stock.", price: 50, iconPath: "/images/items/supply_depot/feed_bundle.png", purchaseLabel: "+5 Feed", quantityLabel: "5 Feed" },
+  { itemId: "material_crate", name: "Material Crate", category: "Materials", description: "Boards, nails, rope, patch cloth, and other repair basics. Adds directly to your material stock.", price: 75, iconPath: "/images/items/supply_depot/material_crate.png", purchaseLabel: "+5 Materials", quantityLabel: "5 Materials" },
+  { itemId: "energy_snack", name: "Energy Snack", category: "Energy", description: "A shelf-stable snack for long ranch days. Restores a small amount of player energy immediately.", price: 90, iconPath: "/images/items/supply_depot/energy_snack.png", purchaseLabel: "+12 Energy", quantityLabel: "12 Energy" },
+  { itemId: "repair_kit", name: "Repair Kit", category: "Repair", description: "A bundled kit for future repair and emergency systems. Stored as depot stock for now.", price: 120, iconPath: "/images/items/supply_depot/repair_kit.png", purchaseLabel: "+1 Repair Kit", quantityLabel: "1 Kit" },
+  { itemId: "fertility_tonic", name: "Fertility Tonic", category: "Breeding", description: "A careful breeding support tonic. One is consumed automatically on the next valid breeding attempt for +12% pregnancy chance.", price: 180, iconPath: "/images/items/supply_depot/fertility_tonic.png", purchaseLabel: "+1 Fertility Tonic", quantityLabel: "1 Tonic" },
+  { itemId: "nursery_supply_kit", name: "Nursery Supply Kit", category: "Nursery", description: "Clean bedding, record tags, soothing oils, and egg-care basics. Stored for future nursery upgrades and events.", price: 150, iconPath: "/images/items/supply_depot/nursery_supply_kit.png", purchaseLabel: "+1 Nursery Supply", quantityLabel: "1 Kit" },
 ];
 
 function getFlagNumber(value: boolean | number | string | undefined): number {
@@ -97,5 +97,6 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     message: `${message} Pella Trust increased.`,
   };
 }
+
 
 

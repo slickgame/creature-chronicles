@@ -95,9 +95,109 @@ function PellaTrustPanel({ save, onBack, onShop }: { save: GameSave; onBack: () 
 }
 
 function DepotShopPanel({ save, shownItems, activeShelf, onShelf, onBuy, onBack }: { save: GameSave; shownItems: SupplyDepotItem[]; activeShelf: DepotShelf; onShelf: (shelf: DepotShelf) => void; onBuy: (itemId: string) => void; onBack: () => void }) {
-  return <section className={styles.grid} style={{ position: "relative", zIndex: 3, padding: "14px 18px 24px" }}><aside className={styles.panel}><h2>Pella Mosswick</h2><div className={styles.sideList}><div className={styles.infoCard}><img src={PELLA_MOSSWICK.portraitPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} /><span>Keeper</span><strong>{PELLA_MOSSWICK.name}</strong></div><div className={styles.infoCard}><span>Role</span><strong>{PELLA_MOSSWICK.title}</strong></div><div className={styles.infoCard}><span>Trust</span><strong>{getNpcTrustSummary(save, "pella_mosswick")}</strong></div><div className={styles.infoCard}><span>Next Unlock</span><strong>{getNpcNextUnlock(save, "pella_mosswick")}</strong></div><div className={styles.infoCard}><span>Current Stock</span><strong>{getSupplyDepotStockLabel(save)}</strong></div><div className={styles.infoCard}><span>Note</span><strong>{PELLA_MOSSWICK.intro}</strong></div><button type="button" className={styles.backButton} onClick={onBack}>Back to Depot</button></div></aside><section className={styles.panel} aria-label="Supply Depot stock"><div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}><h2>Depot Stock</h2><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}><button type="button" className={styles.buyButton} disabled={activeShelf === "all"} onClick={() => onShelf("all")}>All</button><button type="button" className={styles.buyButton} disabled={activeShelf === "ranch"} onClick={() => onShelf("ranch")}>Ranch</button><button type="button" className={styles.buyButton} disabled={activeShelf === "special"} onClick={() => onShelf("special")}>Special</button></div></div><div className={styles.listings}>{shownItems.map((item) => { const itemPrice = getSupplyDepotPrice(save, item); const canAfford = save.currencies.gold >= itemPrice; return <article key={item.itemId} className={styles.listing}><div className={styles.listingArt}><img src={item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} /></div><div className={styles.listingBody}><div className={styles.listingHeaderRow}><div><span className={styles.listingMeta}>{item.category} â€¢ {item.quantityLabel}</span><h3 className={styles.listingName}>{item.name}</h3></div></div><p className={styles.listingDesc}>{item.description}</p><p className={styles.gradePreview}>{item.purchaseLabel}</p><div className={styles.price}><img src={ICONS.price} alt="" /><div><span>Price</span><strong>{formatGold(itemPrice)}</strong>{itemPrice < item.price ? <em>Pella trust discount from {formatGold(item.price)}</em> : null}</div></div><div className={styles.actions}><button type="button" className={styles.buyButton} onClick={() => onBuy(item.itemId)} disabled={!canAfford}>Buy</button></div></div></article>; })}</div></section></section>;
+  return (
+    <section className={styles.grid} style={{ position: "relative", zIndex: 3, padding: "14px 18px 24px" }}>
+      <aside className={styles.panel}>
+        <h2>Pella Mosswick</h2>
+
+        <div className={styles.sideList}>
+          <div className={styles.infoCard}>
+            <img src={PELLA_MOSSWICK.portraitPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+            <span>Keeper</span>
+            <strong>{PELLA_MOSSWICK.name}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <span>Role</span>
+            <strong>{PELLA_MOSSWICK.title}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <span>Trust</span>
+            <strong>{getNpcTrustSummary(save, "pella_mosswick")}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <span>Next Unlock</span>
+            <strong>{getNpcNextUnlock(save, "pella_mosswick")}</strong>
+          </div>
+
+          <div className={styles.infoCard}>
+            <span>Current Stock</span>
+            <strong>{getSupplyDepotStockLabel(save)}</strong>
+          </div>
+
+          <button type="button" className={styles.backButton} onClick={onBack}>
+            Back to Depot
+          </button>
+        </div>
+      </aside>
+
+      <section className={styles.panel} aria-label="Supply Depot stock">
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 16 }}>
+          <div>
+            <p className={styles.kicker}>Depot Stock</p>
+            <h2 style={{ margin: 0 }}>Shop Items</h2>
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <button type="button" className={activeShelf === "all" ? styles.buyButton : styles.backButton} onClick={() => onShelf("all")}>
+              All
+            </button>
+            <button type="button" className={activeShelf === "ranch" ? styles.buyButton : styles.backButton} onClick={() => onShelf("ranch")}>
+              Ranch
+            </button>
+            <button type="button" className={activeShelf === "special" ? styles.buyButton : styles.backButton} onClick={() => onShelf("special")}>
+              Special
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.listings}>
+          {shownItems.map((item) => {
+            const price = getSupplyDepotPrice(save, item);
+            const canAfford = save.currencies.gold >= price;
+
+            return (
+              <article key={item.itemId} className={styles.listingCard}>
+                <div style={{ display: "grid", gridTemplateColumns: "96px minmax(0, 1fr)", gap: 14, alignItems: "start" }}>
+                  <div style={{ minHeight: 96, display: "grid", placeItems: "center", border: "1px solid rgba(245,201,128,.35)", borderRadius: 10, background: "rgba(255,247,221,.08)" }}>
+                    <img
+                      src={item.iconPath}
+                      alt=""
+                      onError={(event) => { event.currentTarget.src = ICONS.shop; }}
+                      style={{ width: 86, height: 86, objectFit: "contain" }}
+                    />
+                  </div>
+
+                  <div>
+                    <p className={styles.kicker}>{item.category} • {item.quantityLabel}</p>
+                    <h3>{item.name}</h3>
+                    <p>{item.description}</p>
+                    <p style={{ color: "#7fdbff", fontWeight: 900 }}>{item.purchaseLabel}</p>
+                  </div>
+                </div>
+
+                <div className={styles.price}>
+                  <img src={ICONS.price} alt="" />
+                  <span>Price</span>
+                  <strong>{formatGold(price)}</strong>
+                </div>
+
+                <button
+                  type="button"
+                  className={styles.buyButton}
+                  onClick={() => onBuy(item.itemId)}
+                  disabled={!canAfford}
+                >
+                  {canAfford ? "Buy" : "Need Gold"}
+                </button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </section>
+  );
 }
-
-
-
 
