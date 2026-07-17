@@ -20,6 +20,10 @@ const EQUINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/equine%20receiver"
 const EQUINE_RECEIVER_PAIRING_COUNT = 41;
 const BOVINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/bovine%20receiver";
 const BOVINE_RECEIVER_PAIRING_COUNT = 20;
+const FELINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/feline%20receiver";
+const FELINE_RECEIVER_PAIRING_COUNT = 49;
+const CANINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/canine%20receiver";
+const CANINE_RECEIVER_PAIRING_COUNT = 33;
 
 const EQUINE_RECEIVER_PAIRING_PATHS = Array.from(
   { length: EQUINE_RECEIVER_PAIRING_COUNT },
@@ -31,20 +35,37 @@ const BOVINE_RECEIVER_PAIRING_PATHS = Array.from(
   (_, index) => `${BOVINE_RECEIVER_PAIRING_BASE}/${index + 1}.png`,
 );
 
+const FELINE_RECEIVER_PAIRING_PATHS = Array.from(
+  { length: FELINE_RECEIVER_PAIRING_COUNT },
+  (_, index) => `${FELINE_RECEIVER_PAIRING_BASE}/${index + 1}.png`,
+);
+
+const CANINE_RECEIVER_PAIRING_PATHS = Array.from(
+  { length: CANINE_RECEIVER_PAIRING_COUNT },
+  (_, index) => `${CANINE_RECEIVER_PAIRING_BASE}/${index + 1}.png`,
+);
+
+const RECEIVER_PAIRING_PATHS: Partial<Record<BreedingSceneFamily, string[]>> = {
+  equine: EQUINE_RECEIVER_PAIRING_PATHS,
+  bovine: BOVINE_RECEIVER_PAIRING_PATHS,
+  feline: FELINE_RECEIVER_PAIRING_PATHS,
+  canine: CANINE_RECEIVER_PAIRING_PATHS,
+};
+
 function filenameFor(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): string {
   return `${BREEDING_SCENE_BASE}/${giverFamily}_to_${receiverFamily}_${phase}${outcome ? `_${outcome}` : ""}_01.png`;
 }
 
 function getImagePaths(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): string[] {
-  if (receiverFamily === "equine" && phase === "pairing" && !outcome) return EQUINE_RECEIVER_PAIRING_PATHS;
-  if (receiverFamily === "bovine" && phase === "pairing" && !outcome) return BOVINE_RECEIVER_PAIRING_PATHS;
+  const receiverPairingPaths = RECEIVER_PAIRING_PATHS[receiverFamily];
+  if (phase === "pairing" && !outcome && receiverPairingPaths) return receiverPairingPaths;
   return [filenameFor(giverFamily, receiverFamily, phase, outcome)];
 }
 
 function makeBucket(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): BreedingSceneImageBucket {
   const isSuccess = outcome === "pregnancy";
   const isFailure = outcome === "failed" || outcome === "blocked";
-  const usesReceiverTestPool = (receiverFamily === "equine" || receiverFamily === "bovine") && phase === "pairing" && !outcome;
+  const usesReceiverTestPool = phase === "pairing" && !outcome && Boolean(RECEIVER_PAIRING_PATHS[receiverFamily]);
   return {
     id: `${giverFamily}_to_${receiverFamily}_${phase}${outcome ? `_${outcome}` : ""}`,
     giverFamily,
