@@ -191,6 +191,30 @@ section[aria-label="Focused breeding pair preview"] > section:last-child button 
   min-width: 150px !important;
 }
 
+/* Breeding pairing/outcome scene modal. This targets only result dialogs that have a direct scene image. */
+div[role="presentation"] > section[role="dialog"]:has(> img) {
+  width: min(96vw, 1520px) !important;
+  max-height: 96vh !important;
+  gap: 10px !important;
+  padding: clamp(12px, 1.5vw, 22px) !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > header h2 {
+  font-size: clamp(1.7rem, 2.4vw, 2.8rem) !important;
+}
+
+div[role="presentation"] > section[role="dialog"] > img {
+  width: 100% !important;
+  height: min(72vh, 760px) !important;
+  max-height: min(72vh, 760px) !important;
+  padding: 10px !important;
+  object-fit: contain !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > div {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+}
+
 @media (max-width: 1300px) {
   section[aria-label="Breeding pair preview"] > div:nth-of-type(2) {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -211,6 +235,11 @@ section[aria-label="Focused breeding pair preview"] > section:last-child button 
     position: static !important;
     width: auto !important;
     height: auto !important;
+  }
+
+  div[role="presentation"] > section[role="dialog"] > img {
+    height: min(60vh, 640px) !important;
+    max-height: min(60vh, 640px) !important;
   }
 }
 
