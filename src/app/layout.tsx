@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./guild-board.css";
 import "./breeding-compact.css";
+import "./breeding-scene-modal.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
