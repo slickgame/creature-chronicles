@@ -23,7 +23,7 @@ const BOVINE_RECEIVER_PAIRING_COUNT = 20;
 const FELINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/feline%20receiver";
 const FELINE_RECEIVER_PAIRING_COUNT = 49;
 const CANINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/canine%20receiver";
-const CANINE_RECEIVER_PAIRING_COUNT = 33;
+const CANINE_RECEIVER_PAIRING_COUNT = 29;
 
 const EQUINE_RECEIVER_PAIRING_PATHS = Array.from(
   { length: EQUINE_RECEIVER_PAIRING_COUNT },
