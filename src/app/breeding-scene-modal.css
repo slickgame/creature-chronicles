@@ -3,38 +3,47 @@
 
 div[role="presentation"] > section[role="dialog"]:has(> img) {
   position: relative !important;
-  width: min(96vw, 1500px) !important;
-  max-height: 96vh !important;
+  width: min(98vw, 1680px) !important;
+  max-height: 97vh !important;
   overflow: hidden !important;
-  gap: 8px !important;
-  padding: clamp(12px, 1.25vw, 18px) !important;
+  gap: 7px !important;
+  padding: clamp(10px, 1.1vw, 16px) !important;
 }
 
 div[role="presentation"] > section[role="dialog"]:has(> img) > header {
-  min-height: 64px !important;
-  padding-right: 270px !important;
+  min-height: 60px !important;
+  padding-right: 430px !important;
 }
 
 div[role="presentation"] > section[role="dialog"]:has(> img) > header h2 {
-  font-size: clamp(1.6rem, 2.25vw, 2.55rem) !important;
+  font-size: clamp(1.55rem, 2.15vw, 2.45rem) !important;
   line-height: 0.95 !important;
+}
+
+/* Keep Close as the right-most top control. */
+div[role="presentation"] > section[role="dialog"]:has(> img) > header button {
+  position: absolute !important;
+  top: clamp(16px, 1.8vw, 24px) !important;
+  right: clamp(14px, 1.5vw, 22px) !important;
+  z-index: 8 !important;
+  min-height: 36px !important;
 }
 
 /* Process page: move Next: Outcome up beside Close. */
 div[role="presentation"] > section[role="dialog"]:has(> img) > button {
   position: absolute !important;
-  top: clamp(18px, 2vw, 26px) !important;
-  right: 112px !important;
-  z-index: 6 !important;
+  top: clamp(16px, 1.8vw, 24px) !important;
+  right: 116px !important;
+  z-index: 7 !important;
   min-height: 36px !important;
 }
 
 /* Outcome page: move Back/Confirm up beside Close. */
 div[role="presentation"] > section[role="dialog"]:has(> img) > div:last-child:has(> button) {
   position: absolute !important;
-  top: clamp(18px, 2vw, 26px) !important;
-  right: 112px !important;
-  z-index: 6 !important;
+  top: clamp(16px, 1.8vw, 24px) !important;
+  right: 116px !important;
+  z-index: 7 !important;
   display: flex !important;
   gap: 8px !important;
   justify-content: flex-end !important;
@@ -44,41 +53,42 @@ div[role="presentation"] > section[role="dialog"]:has(> img) > div:last-child:ha
   min-height: 36px !important;
 }
 
-/* Slightly scale the scene image down so stats and text fit without scrolling. */
+/* Larger scene image, but still fitted to avoid modal scrolling on desktop. */
 div[role="presentation"] > section[role="dialog"]:has(> img) > img {
   width: 100% !important;
-  height: min(62vh, 700px) !important;
-  max-height: min(62vh, 700px) !important;
-  padding: 8px !important;
+  height: min(64vh, 760px) !important;
+  max-height: min(64vh, 760px) !important;
+  padding: 7px !important;
   object-fit: contain !important;
 }
 
 div[role="presentation"] > section[role="dialog"]:has(> img) > p {
-  font-size: 0.86rem !important;
-  line-height: 1.24 !important;
+  font-size: 0.84rem !important;
+  line-height: 1.2 !important;
+  margin-block: 1px !important;
 }
 
 /* Compact the stat rows just enough to avoid bottom clipping. */
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div,
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div {
   grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-  gap: 6px !important;
+  gap: 5px !important;
 }
 
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div > div,
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div > div {
-  min-height: 48px !important;
-  padding: 6px !important;
+  min-height: 44px !important;
+  padding: 5px 6px !important;
 }
 
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div span,
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div span {
-  font-size: 0.56rem !important;
+  font-size: 0.52rem !important;
 }
 
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div strong,
 div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div strong {
-  font-size: 0.95rem !important;
+  font-size: 0.9rem !important;
 }
 
 @media (max-width: 900px) {
@@ -90,6 +100,7 @@ div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div
     padding-right: 0 !important;
   }
 
+  div[role="presentation"] > section[role="dialog"]:has(> img) > header button,
   div[role="presentation"] > section[role="dialog"]:has(> img) > button,
   div[role="presentation"] > section[role="dialog"]:has(> img) > div:last-child:has(> button) {
     position: static !important;
