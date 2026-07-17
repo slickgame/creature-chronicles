@@ -1,0 +1,107 @@
+/* Larger breeding pairing/outcome scene modal controls.
+   Targets only result dialogs with a direct scene image, leaving selection/info modals alone. */
+
+div[role="presentation"] > section[role="dialog"]:has(> img) {
+  position: relative !important;
+  width: min(96vw, 1500px) !important;
+  max-height: 96vh !important;
+  overflow: hidden !important;
+  gap: 8px !important;
+  padding: clamp(12px, 1.25vw, 18px) !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > header {
+  min-height: 64px !important;
+  padding-right: 270px !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > header h2 {
+  font-size: clamp(1.6rem, 2.25vw, 2.55rem) !important;
+  line-height: 0.95 !important;
+}
+
+/* Process page: move Next: Outcome up beside Close. */
+div[role="presentation"] > section[role="dialog"]:has(> img) > button {
+  position: absolute !important;
+  top: clamp(18px, 2vw, 26px) !important;
+  right: 112px !important;
+  z-index: 6 !important;
+  min-height: 36px !important;
+}
+
+/* Outcome page: move Back/Confirm up beside Close. */
+div[role="presentation"] > section[role="dialog"]:has(> img) > div:last-child:has(> button) {
+  position: absolute !important;
+  top: clamp(18px, 2vw, 26px) !important;
+  right: 112px !important;
+  z-index: 6 !important;
+  display: flex !important;
+  gap: 8px !important;
+  justify-content: flex-end !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > div:last-child:has(> button) button {
+  min-height: 36px !important;
+}
+
+/* Slightly scale the scene image down so stats and text fit without scrolling. */
+div[role="presentation"] > section[role="dialog"]:has(> img) > img {
+  width: 100% !important;
+  height: min(62vh, 700px) !important;
+  max-height: min(62vh, 700px) !important;
+  padding: 8px !important;
+  object-fit: contain !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > p {
+  font-size: 0.86rem !important;
+  line-height: 1.24 !important;
+}
+
+/* Compact the stat rows just enough to avoid bottom clipping. */
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div,
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div > div,
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div > div {
+  min-height: 48px !important;
+  padding: 6px !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div span,
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div span {
+  font-size: 0.56rem !important;
+}
+
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div strong,
+div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div strong {
+  font-size: 0.95rem !important;
+}
+
+@media (max-width: 900px) {
+  div[role="presentation"] > section[role="dialog"]:has(> img) {
+    overflow: auto !important;
+  }
+
+  div[role="presentation"] > section[role="dialog"]:has(> img) > header {
+    padding-right: 0 !important;
+  }
+
+  div[role="presentation"] > section[role="dialog"]:has(> img) > button,
+  div[role="presentation"] > section[role="dialog"]:has(> img) > div:last-child:has(> button) {
+    position: static !important;
+  }
+
+  div[role="presentation"] > section[role="dialog"]:has(> img) > img {
+    height: min(58vh, 600px) !important;
+    max-height: min(58vh, 600px) !important;
+  }
+
+  div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + div,
+  div[role="presentation"] > section[role="dialog"]:has(> img) > img + p + p + div {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
