@@ -1,4 +1,4 @@
-import type { BreedingOutcomeType, BreedingSceneFamily } from "@/types/breeding";
+﻿import type { BreedingOutcomeType, BreedingSceneFamily } from "@/types/breeding";
 
 export type BreedingScenePhase = "pairing" | "outcome";
 export type BreedingSceneImageBucket = {
@@ -36,7 +36,7 @@ function getImagePaths(giverFamily: BreedingSceneFamily, receiverFamily: Breedin
 function makeBucket(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): BreedingSceneImageBucket {
   const isSuccess = outcome === "pregnancy";
   const isFailure = outcome === "failed" || outcome === "blocked";
-  const usesEquineReceiverTestPool = receiverFamily === "equine" && phase === "pairing" && !outcome;
+  const usesReceiverTestPool = (receiverFamily === "equine" || receiverFamily === "bovine") && phase === "pairing" && !outcome;
   return {
     id: `${giverFamily}_to_${receiverFamily}_${phase}${outcome ? `_${outcome}` : ""}`,
     giverFamily,
@@ -68,3 +68,4 @@ export function getBreedingSceneImagePath(giverFamily: BreedingSceneFamily, rece
   const bucket = BREEDING_SCENE_IMAGE_BUCKETS.find((item) => item.giverFamily === giverFamily && item.receiverFamily === receiverFamily && item.phase === phase && item.outcome === outcome) ?? BREEDING_SCENE_IMAGE_BUCKETS.find((item) => item.giverFamily === giverFamily && item.receiverFamily === receiverFamily && item.phase === phase) ?? makeBucket(giverFamily, receiverFamily, phase, outcome);
   return pickFromBucket(bucket, seed);
 }
+
