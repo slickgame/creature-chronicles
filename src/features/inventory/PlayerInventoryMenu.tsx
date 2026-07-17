@@ -142,6 +142,10 @@ export function PlayerInventoryMenu() {
   }
 
   function handleUseCreatureEnergySnack(creatureId: string) {
+    if (!currentSave) {
+      setMessage("No active save.");
+      return;
+    }
     const result = useSupplyDepotEnergySnackOnCreature(currentSave, creatureId);
     if (result.ok) saveCurrentGame(result.save);
     setMessage(result.message);
