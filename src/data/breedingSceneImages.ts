@@ -1,4 +1,4 @@
-﻿import type { BreedingOutcomeType, BreedingSceneFamily } from "@/types/breeding";
+import type { BreedingOutcomeType, BreedingSceneFamily } from "@/types/breeding";
 
 export type BreedingScenePhase = "pairing" | "outcome";
 export type BreedingSceneImageBucket = {
@@ -18,10 +18,17 @@ export const BREEDING_OUTCOME_FAILURE_FALLBACK_PATH = "/images/ui/icons/icon_abi
 const BREEDING_SCENE_BASE = "/images/breeding-scenes";
 const EQUINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/equine%20receiver";
 const EQUINE_RECEIVER_PAIRING_COUNT = 41;
+const BOVINE_RECEIVER_PAIRING_BASE = "/images/breeding/scenes/bovine%20receiver";
+const BOVINE_RECEIVER_PAIRING_COUNT = 20;
 
 const EQUINE_RECEIVER_PAIRING_PATHS = Array.from(
   { length: EQUINE_RECEIVER_PAIRING_COUNT },
   (_, index) => `${EQUINE_RECEIVER_PAIRING_BASE}/${index + 1}.png`,
+);
+
+const BOVINE_RECEIVER_PAIRING_PATHS = Array.from(
+  { length: BOVINE_RECEIVER_PAIRING_COUNT },
+  (_, index) => `${BOVINE_RECEIVER_PAIRING_BASE}/${index + 1}.png`,
 );
 
 function filenameFor(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): string {
@@ -30,6 +37,7 @@ function filenameFor(giverFamily: BreedingSceneFamily, receiverFamily: BreedingS
 
 function getImagePaths(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): string[] {
   if (receiverFamily === "equine" && phase === "pairing" && !outcome) return EQUINE_RECEIVER_PAIRING_PATHS;
+  if (receiverFamily === "bovine" && phase === "pairing" && !outcome) return BOVINE_RECEIVER_PAIRING_PATHS;
   return [filenameFor(giverFamily, receiverFamily, phase, outcome)];
 }
 
@@ -45,8 +53,8 @@ function makeBucket(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSc
     outcome,
     imagePaths: getImagePaths(giverFamily, receiverFamily, phase, outcome),
     placeholderPath: isSuccess ? BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH : isFailure ? BREEDING_OUTCOME_FAILURE_FALLBACK_PATH : BREEDING_SCENE_FALLBACK_PATH,
-    promptNotes: usesEquineReceiverTestPool
-      ? "Receiver-family test bucket. Any giver paired with an equine receiver randomly selects one local test image from public/images/breeding/scenes/equine receiver/."
+    promptNotes: usesReceiverTestPool
+      ? `Receiver-family test bucket. Any giver paired with a ${receiverFamily} receiver randomly selects one local test image from public/images/breeding/scenes/${receiverFamily} receiver/.`
       : phase === "pairing"
         ? `Placeholder bucket for ${giverFamily} giver with ${receiverFamily} receiver during the breeding pen scene. Keep it non-explicit in UI-safe builds unless an adult-art pack is enabled later.`
         : `Placeholder bucket for ${giverFamily} giver with ${receiverFamily} receiver outcome: ${outcome ?? "generic"}.`,
@@ -68,4 +76,3 @@ export function getBreedingSceneImagePath(giverFamily: BreedingSceneFamily, rece
   const bucket = BREEDING_SCENE_IMAGE_BUCKETS.find((item) => item.giverFamily === giverFamily && item.receiverFamily === receiverFamily && item.phase === phase && item.outcome === outcome) ?? BREEDING_SCENE_IMAGE_BUCKETS.find((item) => item.giverFamily === giverFamily && item.receiverFamily === receiverFamily && item.phase === phase) ?? makeBucket(giverFamily, receiverFamily, phase, outcome);
   return pickFromBucket(bucket, seed);
 }
-
