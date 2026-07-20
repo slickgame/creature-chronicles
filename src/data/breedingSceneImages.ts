@@ -1,4 +1,7 @@
-import { GENERATED_RECEIVER_PAIRING_PATHS } from "@/data/generatedBreedingSceneImages";
+import {
+  GENERATED_GIVER_TO_RECEIVER_PAIRING_PATHS,
+  GENERATED_RECEIVER_PAIRING_PATHS,
+} from "@/data/generatedBreedingSceneImages";
 import type { BreedingOutcomeType, BreedingSceneFamily } from "@/types/breeding";
 
 export type BreedingScenePhase = "pairing" | "outcome";
@@ -22,21 +25,32 @@ function filenameFor(giverFamily: BreedingSceneFamily, receiverFamily: BreedingS
   return `${BREEDING_SCENE_BASE}/${giverFamily}_to_${receiverFamily}_${phase}${outcome ? `_${outcome}` : ""}_01.png`;
 }
 
-function getReceiverPairingPaths(receiverFamily: BreedingSceneFamily): readonly string[] | undefined {
-  const paths = GENERATED_RECEIVER_PAIRING_PATHS[receiverFamily];
-  return paths?.length ? paths : undefined;
+function getPairKey(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily): string {
+  return `${giverFamily}_to_${receiverFamily}`;
+}
+
+function getPairingPaths(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily): readonly string[] | undefined {
+  const exactPairPaths = GENERATED_GIVER_TO_RECEIVER_PAIRING_PATHS[getPairKey(giverFamily, receiverFamily)];
+  if (exactPairPaths?.length) return exactPairPaths;
+
+  const receiverPaths = GENERATED_RECEIVER_PAIRING_PATHS[receiverFamily];
+  return receiverPaths?.length ? receiverPaths : undefined;
 }
 
 function getImagePaths(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): readonly string[] {
-  const receiverPairingPaths = getReceiverPairingPaths(receiverFamily);
-  if (phase === "pairing" && !outcome && receiverPairingPaths) return receiverPairingPaths;
+  const pairingPaths = getPairingPaths(giverFamily, receiverFamily);
+  if (phase === "pairing" && !outcome && pairingPaths) return pairingPaths;
   return [filenameFor(giverFamily, receiverFamily, phase, outcome)];
 }
 
 function makeBucket(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSceneFamily, phase: BreedingScenePhase, outcome?: BreedingOutcomeType | "blocked"): BreedingSceneImageBucket {
   const isSuccess = outcome === "pregnancy";
   const isFailure = outcome === "failed" || outcome === "blocked";
-  const usesReceiverFolder = phase === "pairing" && !outcome && Boolean(getReceiverPairingPaths(receiverFamily));
+  const exactPairPaths = GENERATED_GIVER_TO_RECEIVER_PAIRING_PATHS[getPairKey(giverFamily, receiverFamily)];
+  const receiverPaths = GENERATED_RECEIVER_PAIRING_PATHS[receiverFamily];
+  const usesExactPairFolder = phase === "pairing" && !outcome && Boolean(exactPairPaths?.length);
+  const usesReceiverFolder = phase === "pairing" && !outcome && !usesExactPairFolder && Boolean(receiverPaths?.length);
+
   return {
     id: `${giverFamily}_to_${receiverFamily}_${phase}${outcome ? `_${outcome}` : ""}`,
     giverFamily,
@@ -45,11 +59,13 @@ function makeBucket(giverFamily: BreedingSceneFamily, receiverFamily: BreedingSc
     outcome,
     imagePaths: getImagePaths(giverFamily, receiverFamily, phase, outcome),
     placeholderPath: isSuccess ? BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH : isFailure ? BREEDING_OUTCOME_FAILURE_FALLBACK_PATH : BREEDING_SCENE_FALLBACK_PATH,
-    promptNotes: usesReceiverFolder
-      ? `Any giver paired with a ${receiverFamily} receiver selects from every supported image currently found in public/images/breeding/scenes/${receiverFamily} receiver/.`
-      : phase === "pairing"
-        ? `Placeholder bucket for ${giverFamily} giver with ${receiverFamily} receiver during the breeding pen scene. Keep it non-explicit in UI-safe builds unless an adult-art pack is enabled later.`
-        : `Placeholder bucket for ${giverFamily} giver with ${receiverFamily} receiver outcome: ${outcome ?? "generic"}.`,
+    promptNotes: usesExactPairFolder
+      ? `A ${giverFamily} giver paired with a ${receiverFamily} receiver selects from every supported image in public/images/breeding/scenes/${receiverFamily} receiver/${giverFamily}/.`
+      : usesReceiverFolder
+        ? `Any giver paired with a ${receiverFamily} receiver selects from every supported image in public/images/breeding/scenes/${receiverFamily} receiver/.`
+        : phase === "pairing"
+          ? `Placeholder bucket for ${giverFamily} giver with ${receiverFamily} receiver during the breeding pen scene. Keep it non-explicit in UI-safe builds unless an adult-art pack is enabled later.`
+          : `Placeholder bucket for ${giverFamily} giver with ${receiverFamily} receiver outcome: ${outcome ?? "generic"}.`,
   };
 }
 
