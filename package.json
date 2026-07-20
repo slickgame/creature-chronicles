@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "generate:breeding-scenes": "node scripts/generate-breeding-scene-manifest.mjs",
+    "predev": "npm run generate:breeding-scenes",
     "dev": "next dev",
+    "prebuild": "npm run generate:breeding-scenes",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
