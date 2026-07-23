@@ -35,7 +35,7 @@ foreach ($path in $targets) {
 
   $source = [System.Drawing.Bitmap]::FromFile($path)
   try {
-    $bitmap = New-Object System.Drawing.Bitmap(
+    $bitmap = [System.Drawing.Bitmap]::new(
       $source.Width,
       $source.Height,
       [System.Drawing.Imaging.PixelFormat]::Format32bppArgb
@@ -74,7 +74,7 @@ foreach ($path in $targets) {
     }
 
     $visited = New-Object 'bool[]' ($width * $height)
-    $queue = New-Object 'System.Collections.Generic.Queue[int]'
+    $queue = [System.Collections.Generic.Queue[int]]::new()
 
     for ($x = 0; $x -lt $width; $x++) {
       $queue.Enqueue($x)
