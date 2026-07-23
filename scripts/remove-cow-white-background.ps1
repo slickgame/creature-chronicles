@@ -55,21 +55,21 @@ foreach ($path in $targets) {
   try {
     $width = $bitmap.Width
     $height = $bitmap.Height
-    $alreadyTransparent = $false
+    $transparentBorderPixels = 0
+    $borderPixelCount = (2 * $width) + (2 * [Math]::Max(0, $height - 2))
 
-    for ($x = 0; $x -lt $width -and -not $alreadyTransparent; $x++) {
-      if ($bitmap.GetPixel($x, 0).A -lt 250 -or $bitmap.GetPixel($x, $height - 1).A -lt 250) {
-        $alreadyTransparent = $true
-      }
+    for ($x = 0; $x -lt $width; $x++) {
+      if ($bitmap.GetPixel($x, 0).A -lt 250) { $transparentBorderPixels++ }
+      if ($bitmap.GetPixel($x, $height - 1).A -lt 250) { $transparentBorderPixels++ }
     }
-    for ($y = 0; $y -lt $height -and -not $alreadyTransparent; $y++) {
-      if ($bitmap.GetPixel(0, $y).A -lt 250 -or $bitmap.GetPixel($width - 1, $y).A -lt 250) {
-        $alreadyTransparent = $true
-      }
+    for ($y = 1; $y -lt $height - 1; $y++) {
+      if ($bitmap.GetPixel(0, $y).A -lt 250) { $transparentBorderPixels++ }
+      if ($bitmap.GetPixel($width - 1, $y).A -lt 250) { $transparentBorderPixels++ }
     }
 
+    $alreadyTransparent = $borderPixelCount -gt 0 -and ($transparentBorderPixels / $borderPixelCount) -ge 0.5
     if ($alreadyTransparent) {
-      Write-Host "Cow image already has a transparent border; skipped: $path"
+      Write-Host "Cow image already has a transparent background border; skipped: $path"
       continue
     }
 
