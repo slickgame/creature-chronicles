@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "generate:breeding-scenes": "node scripts/generate-breeding-scene-manifest.mjs",
-    "predev": "npm run generate:breeding-scenes",
+    "prepare:cow-images": "node scripts/prepare-cow-images.mjs",
+    "prepare:assets": "npm run generate:breeding-scenes && npm run prepare:cow-images",
+    "predev": "npm run prepare:assets",
     "dev": "next dev",
-    "prebuild": "npm run generate:breeding-scenes",
+    "prebuild": "npm run prepare:assets",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
