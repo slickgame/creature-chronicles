@@ -1,11 +1,11 @@
-import * as core from "./breeding";
+import * as core from "./breedingCore";
 import { getBreedingSceneImagePath } from "./breedingSceneImages";
 import { sanitizeImmediatePregnancyEggs } from "./nurseryLifecycle";
 import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
 import type { PregnancyId } from "@/types/ids";
 import type { GameSave, PregnancyRecord } from "@/types/save";
 
-export * from "./breeding";
+export * from "./breedingCore";
 
 function getReceiver(save: GameSave, receiverId: string | null) {
   if (!receiverId) return null;
