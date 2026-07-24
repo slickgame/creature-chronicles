@@ -1,5 +1,6 @@
 import * as core from "./breeding";
 import { getBreedingSceneImagePath } from "./breedingSceneImages";
+import { sanitizeImmediatePregnancyEggs } from "./nurseryLifecycle";
 import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
 import type { PregnancyId } from "@/types/ids";
 import type { GameSave, PregnancyRecord } from "@/types/save";
@@ -25,18 +26,17 @@ function getFlagNumber(value: boolean | number | string | undefined): number {
 }
 
 /**
- * Breeding may create a PregnancyRecord, but it must never create an EggRecord.
- * Eggs are produced only when advanceNurseryDay reaches the pregnancy delivery day.
- *
- * This also removes legacy eggs whose IDs directly reference an active pregnancy.
- * The old nursery flow could place those eggs in the save at conception time.
+ * A breeding attempt is allowed to add a PregnancyRecord only. It must never
+ * add an EggRecord. The input egg snapshot is restored after the core attempt,
+ * and any legacy conception-time egg tied to an active pregnancy is removed.
  */
 function enforcePregnancyBeforeEgg(
   saveBeforeAttempt: GameSave,
   saveAfterAttempt: GameSave,
 ): GameSave {
+  const cleanBeforeAttempt = sanitizeImmediatePregnancyEggs(saveBeforeAttempt).save;
   const eggIdsBeforeAttempt = new Set(
-    (saveBeforeAttempt.eggs ?? []).map((egg) => String(egg.eggId)),
+    (cleanBeforeAttempt.eggs ?? []).map((egg) => String(egg.eggId)),
   );
   const activePregnancyIds = (saveAfterAttempt.pregnancies ?? [])
     .filter((pregnancy) => pregnancy.status === "pregnant")
@@ -53,15 +53,19 @@ function enforcePregnancyBeforeEgg(
     return wasPresentBeforeAttempt && !isLegacyConceptionEgg;
   });
 
-  const removedCount = eggsAfterAttempt.length - validEggs.length;
-  if (removedCount <= 0) return saveAfterAttempt;
-
-  return {
+  const sanitizedResult = sanitizeImmediatePregnancyEggs({
     ...saveAfterAttempt,
     eggs: validEggs,
     eggIds: validEggs.map((egg) => egg.eggId),
+  }).save;
+  const removedCount = eggsAfterAttempt.length - (sanitizedResult.eggs ?? []).length;
+
+  if (removedCount <= 0) return sanitizedResult;
+
+  return {
+    ...sanitizedResult,
     flags: {
-      ...saveAfterAttempt.flags,
+      ...sanitizedResult.flags,
       immediateBreedingEggSuppressed: true,
       immediateBreedingEggSuppressedCount:
         getFlagNumber(saveAfterAttempt.flags.immediateBreedingEggSuppressedCount) +
@@ -75,10 +79,11 @@ export function getBreedingPreview(
   giverId: string | null,
   receiverId: string | null,
 ): BreedingPreview | null {
-  const preview = core.getBreedingPreview(save, giverId, receiverId);
+  const cleanSave = sanitizeImmediatePregnancyEggs(save).save;
+  const preview = core.getBreedingPreview(cleanSave, giverId, receiverId);
   if (!preview) return null;
 
-  const receiver = getReceiver(save, receiverId);
+  const receiver = getReceiver(cleanSave, receiverId);
   if (!receiver) return preview;
 
   if (receiver.kind === "player") {
@@ -181,25 +186,26 @@ export function performBreedingAttempt(
   giverId: string,
   receiverId: string,
 ): { save: GameSave; attempt: BreedingAttemptRecord } | null {
-  const preview = getBreedingPreview(save, giverId, receiverId);
+  const cleanSave = sanitizeImmediatePregnancyEggs(save).save;
+  const preview = getBreedingPreview(cleanSave, giverId, receiverId);
   if (!preview || !preview.canAttempt) return null;
 
-  const participants = core.getBreedingParticipants(save);
+  const participants = core.getBreedingParticipants(cleanSave);
   const giver = participants.find((participant) => participant.participantId === giverId);
   const receiver = participants.find((participant) => participant.participantId === receiverId);
   if (!giver || !receiver) return null;
 
   if (receiver.kind !== "player") {
-    const result = core.performBreedingAttempt(save, giverId, receiverId);
+    const result = core.performBreedingAttempt(cleanSave, giverId, receiverId);
     if (!result) return null;
     return {
       attempt: result.attempt,
-      save: enforcePregnancyBeforeEgg(save, result.save),
+      save: enforcePregnancyBeforeEgg(cleanSave, result.save),
     };
   }
 
-  const temporaryPregnancy = buildTemporaryPlayerPregnancy(save, receiverId);
-  const validPregnancies = (save.pregnancies ?? []).filter(
+  const temporaryPregnancy = buildTemporaryPlayerPregnancy(cleanSave, receiverId);
+  const validPregnancies = (cleanSave.pregnancies ?? []).filter(
     (pregnancy) =>
       !(
         pregnancy.status === "pregnant" &&
@@ -207,7 +213,7 @@ export function performBreedingAttempt(
       ),
   );
   const guardedSave: GameSave = {
-    ...save,
+    ...cleanSave,
     pregnancies: [temporaryPregnancy, ...validPregnancies],
   };
 
@@ -248,7 +254,7 @@ export function performBreedingAttempt(
   );
 
   return {
-    save: enforcePregnancyBeforeEgg(save, cleanedSave),
+    save: enforcePregnancyBeforeEgg(cleanSave, cleanedSave),
     attempt: updatedAttempt,
   };
 }
