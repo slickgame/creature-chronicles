@@ -15,7 +15,6 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/data/breeding": ["./src/data/breedingLifecycle"],
       "@/data/nursery": ["./src/data/nurseryLifecycle"],
       "@/*": ["./src/*"]
     },
