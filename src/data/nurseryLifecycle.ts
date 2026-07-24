@@ -87,22 +87,42 @@ function clearInvalidPlayerPregnancies(save: GameSave): {
   };
 }
 
+function restoreNewEggIncubationTime(
+  saveBeforeAdvance: GameSave,
+  advancedSave: GameSave,
+): GameSave {
+  const priorEggIds = new Set((saveBeforeAdvance.eggs ?? []).map((egg) => egg.eggId));
+  let changed = false;
+  const eggs = (advancedSave.eggs ?? []).map((egg) => {
+    if (priorEggIds.has(egg.eggId)) return egg;
+    changed = true;
+    return {
+      ...egg,
+      daysRemaining: egg.totalDays,
+      status: "incubating" as const,
+    };
+  });
+
+  return changed
+    ? { ...advancedSave, eggs, eggIds: eggs.map((egg) => egg.eggId) }
+    : advancedSave;
+}
+
 export function advanceNurseryDay(save: GameSave): {
   save: GameSave;
   summaryItems: string[];
 } {
   const sanitized = clearInvalidPlayerPregnancies(save);
   const result = core.advanceNurseryDay(sanitized.save);
+  const correctedSave = restoreNewEggIncubationTime(sanitized.save, result.save);
+  const summaryItems = sanitized.clearedCount
+    ? [
+        `${sanitized.clearedCount} invalid player pregnancy record${sanitized.clearedCount === 1 ? " was" : "s were"} cleared.`,
+        ...result.summaryItems,
+      ]
+    : result.summaryItems;
 
-  if (!sanitized.clearedCount) return result;
-
-  return {
-    save: result.save,
-    summaryItems: [
-      `${sanitized.clearedCount} invalid player pregnancy record${sanitized.clearedCount === 1 ? " was" : "s were"} cleared.`,
-      ...result.summaryItems,
-    ],
-  };
+  return { save: correctedSave, summaryItems };
 }
 
 function buildBirthRecord(
