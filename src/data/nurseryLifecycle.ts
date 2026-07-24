@@ -87,6 +87,26 @@ function clearInvalidPlayerPregnancies(save: GameSave): {
   };
 }
 
+function normalizePregnancyTimersForCurrentDay(save: GameSave): GameSave {
+  const pregnancies = (save.pregnancies ?? []).map((pregnancy) => {
+    if (pregnancy.status !== "pregnant") return pregnancy;
+
+    const totalDays = Math.max(1, Math.floor(pregnancy.totalDays || 1));
+    const scheduledDeliveryDay = pregnancy.createdAtDayNumber + totalDays;
+    const daysUntilScheduledDelivery = Math.max(0, scheduledDeliveryDay - save.dayState.dayNumber);
+
+    // The core nursery pass subtracts one day. Rebuilding the value from the
+    // absolute creation day prevents same-day delivery and accidental double ticks.
+    return {
+      ...pregnancy,
+      totalDays,
+      daysRemaining: Math.max(1, daysUntilScheduledDelivery + 1),
+    };
+  });
+
+  return { ...save, pregnancies };
+}
+
 function restoreNewEggIncubationTime(
   saveBeforeAdvance: GameSave,
   advancedSave: GameSave,
@@ -113,8 +133,9 @@ export function advanceNurseryDay(save: GameSave): {
   summaryItems: string[];
 } {
   const sanitized = clearInvalidPlayerPregnancies(save);
-  const result = core.advanceNurseryDay(sanitized.save);
-  const correctedSave = restoreNewEggIncubationTime(sanitized.save, result.save);
+  const timerSafeSave = normalizePregnancyTimersForCurrentDay(sanitized.save);
+  const result = core.advanceNurseryDay(timerSafeSave);
+  const correctedSave = restoreNewEggIncubationTime(timerSafeSave, result.save);
   const summaryItems = sanitized.clearedCount
     ? [
         `${sanitized.clearedCount} invalid player pregnancy record${sanitized.clearedCount === 1 ? " was" : "s were"} cleared.`,
