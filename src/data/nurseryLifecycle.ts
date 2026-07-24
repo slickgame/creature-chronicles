@@ -4,6 +4,7 @@ import type { CreatureId, EggId } from "@/types/ids";
 import type {
   BirthRecord,
   DayState,
+  EggRecord,
   GameSave,
   PregnancyRecord,
   Weekday,
@@ -65,31 +66,81 @@ export function getActivePregnancyForCreature(
   return getActivePregnancyForParticipant(save, creatureId);
 }
 
+function parseTimestamp(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function eggMatchesPregnancyParents(
+  egg: EggRecord,
+  pregnancy: PregnancyRecord,
+): boolean {
+  return (
+    egg.parents?.giver?.participantId === pregnancy.giver.participantId &&
+    egg.parents?.receiver?.participantId === pregnancy.receiver.participantId
+  );
+}
+
+function isConceptionTimeEgg(
+  egg: EggRecord,
+  pregnancy: PregnancyRecord,
+): boolean {
+  const eggId = String(egg.eggId);
+  const pregnancyId = String(pregnancy.pregnancyId);
+
+  if (eggId.includes(pregnancyId)) return true;
+  if (!eggMatchesPregnancyParents(egg, pregnancy)) return false;
+  if (egg.createdAtDayNumber !== pregnancy.createdAtDayNumber) return false;
+
+  const scheduledDeliveryDay =
+    pregnancy.createdAtDayNumber + Math.max(1, pregnancy.totalDays || 1);
+  if (egg.createdAtDayNumber >= scheduledDeliveryDay) return false;
+
+  const eggCreatedAt = parseTimestamp(egg.createdAt);
+  const pregnancyCreatedAt = parseTimestamp(pregnancy.createdAt);
+
+  // Old conception-time records were written during the same action, usually
+  // within milliseconds of the pregnancy record. Allow a small clock margin
+  // for saves created by older builds whose write order differed.
+  if (eggCreatedAt !== null && pregnancyCreatedAt !== null) {
+    return eggCreatedAt >= pregnancyCreatedAt - 5000;
+  }
+
+  return true;
+}
+
 /**
  * Removes eggs created by the former conception-time egg flow. A valid egg is
- * not created until its matching pregnancy reaches delivery. Eggs produced by
- * createEggFromPregnancy include the pregnancy id in their own id, which lets
- * this migration remove only records directly linked to an active pregnancy.
+ * created only after its matching pregnancy reaches its scheduled delivery
+ * day. Older builds did not always include the pregnancy id in the egg id, so
+ * this migration also compares parent ids, creation day, and timestamps.
  */
 export function sanitizeImmediatePregnancyEggs(save: GameSave): {
   save: GameSave;
   removedCount: number;
 } {
-  const activePregnancyIds = (save.pregnancies ?? [])
-    .filter((pregnancy) => pregnancy.status === "pregnant")
-    .map((pregnancy) => String(pregnancy.pregnancyId));
+  const activePregnancies = (save.pregnancies ?? []).filter(
+    (pregnancy) => pregnancy.status === "pregnant",
+  );
 
-  if (!activePregnancyIds.length || !(save.eggs ?? []).length) {
+  if (!activePregnancies.length || !(save.eggs ?? []).length) {
     return { save, removedCount: 0 };
   }
 
-  const eggs = (save.eggs ?? []).filter((egg) => {
-    const eggId = String(egg.eggId);
-    return !activePregnancyIds.some((pregnancyId) => eggId.includes(pregnancyId));
-  });
+  const eggs = (save.eggs ?? []).filter(
+    (egg) =>
+      !activePregnancies.some((pregnancy) =>
+        isConceptionTimeEgg(egg, pregnancy),
+      ),
+  );
   const removedCount = (save.eggs ?? []).length - eggs.length;
 
   if (!removedCount) return { save, removedCount: 0 };
+
+  const previousRemovedCount = Number(
+    save.flags.legacyConceptionEggsRemovedCount ?? 0,
+  );
 
   return {
     save: {
@@ -100,7 +151,8 @@ export function sanitizeImmediatePregnancyEggs(save: GameSave): {
         ...save.flags,
         legacyConceptionEggsRemoved: true,
         legacyConceptionEggsRemovedCount:
-          Number(save.flags.legacyConceptionEggsRemovedCount ?? 0) + removedCount,
+          (Number.isFinite(previousRemovedCount) ? previousRemovedCount : 0) +
+          removedCount,
       },
     },
     removedCount,
@@ -135,7 +187,10 @@ function normalizePregnancyTimersForCurrentDay(save: GameSave): GameSave {
 
     const totalDays = Math.max(1, Math.floor(pregnancy.totalDays || 1));
     const scheduledDeliveryDay = pregnancy.createdAtDayNumber + totalDays;
-    const daysUntilScheduledDelivery = Math.max(0, scheduledDeliveryDay - save.dayState.dayNumber);
+    const daysUntilScheduledDelivery = Math.max(
+      0,
+      scheduledDeliveryDay - save.dayState.dayNumber,
+    );
 
     return {
       ...pregnancy,
@@ -151,7 +206,9 @@ function restoreNewEggIncubationTime(
   saveBeforeAdvance: GameSave,
   advancedSave: GameSave,
 ): GameSave {
-  const priorEggIds = new Set((saveBeforeAdvance.eggs ?? []).map((egg) => egg.eggId));
+  const priorEggIds = new Set(
+    (saveBeforeAdvance.eggs ?? []).map((egg) => egg.eggId),
+  );
   let changed = false;
   const eggs = (advancedSave.eggs ?? []).map((egg) => {
     if (priorEggIds.has(egg.eggId)) return egg;
@@ -176,7 +233,10 @@ export function advanceNurseryDay(save: GameSave): {
   const sanitized = clearInvalidPlayerPregnancies(legacyCleanup.save);
   const timerSafeSave = normalizePregnancyTimersForCurrentDay(sanitized.save);
   const result = core.advanceNurseryDay(timerSafeSave);
-  const correctedSave = restoreNewEggIncubationTime(timerSafeSave, result.save);
+  const correctedSave = restoreNewEggIncubationTime(
+    timerSafeSave,
+    result.save,
+  );
   const summaryItems = [
     ...(legacyCleanup.removedCount
       ? [
@@ -243,7 +303,9 @@ export function hatchEgg(
   if (!birthRecord) return result;
 
   const historyWithoutDuplicate = (result.save.birthHistory ?? []).filter(
-    (record) => record.eggId !== eggId && record.creatureId !== result.creature.creatureId,
+    (record) =>
+      record.eggId !== eggId &&
+      record.creatureId !== result.creature.creatureId,
   );
 
   return {
