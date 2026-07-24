@@ -1,7 +1,23 @@
 import type { BreedingState } from "./breeding";
-import type { CreatureAbility, CreatureLineageRisk, CreatureRecord, CreatureStats, HabitatRecord, StatGrades } from "./creature";
+import type {
+  CreatureAbility,
+  CreatureLineageRisk,
+  CreatureRecord,
+  CreatureStats,
+  HabitatRecord,
+  StatGrades,
+} from "./creature";
 import type { GuildState } from "./guild";
-import type { CreatureId, EggId, HabitatId, PlayerId, PregnancyId, SaveId, SpeciesId, VariantId } from "./ids";
+import type {
+  CreatureId,
+  EggId,
+  HabitatId,
+  PlayerId,
+  PregnancyId,
+  SaveId,
+  SpeciesId,
+  VariantId,
+} from "./ids";
 import type { MarketState } from "./market";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
@@ -24,9 +40,28 @@ export type PlayerProfile = {
   maxHearts: number;
 };
 
-export type Currencies = { gold: number; guildPoints: number; energy: number; maxEnergy: number };
-export type DayState = { dayNumber: number; weekday: Weekday; month: number; dayOfMonth: number; weekNumber: number };
-export type SettingsState = { musicVolume: number; sfxVolume: number; textSpeed: "slow" | "normal" | "fast" | "instant"; devMode: boolean };
+export type Currencies = {
+  gold: number;
+  guildPoints: number;
+  energy: number;
+  maxEnergy: number;
+};
+
+export type DayState = {
+  dayNumber: number;
+  weekday: Weekday;
+  month: number;
+  dayOfMonth: number;
+  weekNumber: number;
+};
+
+export type SettingsState = {
+  musicVolume: number;
+  sfxVolume: number;
+  textSpeed: "slow" | "normal" | "fast" | "instant";
+  devMode: boolean;
+};
+
 export type NurseryRecordStatus = "incubating" | "ready" | "hatched";
 export type PregnancyStatus = "pregnant" | "delivered";
 
@@ -90,6 +125,24 @@ export type EggRecord = {
   suggestedName: string;
 };
 
+export type BirthRecord = {
+  birthId: string;
+  eggId: EggId;
+  creatureId: CreatureId;
+  hatchedAtDayNumber: number;
+  hatchedAt: string;
+  nickname: string;
+  rarity: EggRecord["rarity"];
+  speciesId: SpeciesId;
+  variantId: VariantId;
+  parents: { giver: ParentSnapshot; receiver: ParentSnapshot };
+  inheritedStatGrades: StatGrades;
+  inheritedAbilities: CreatureAbility[];
+  lineageRisk: CreatureLineageRisk;
+  lineageRiskLabel: string;
+  lineageTraits: string[];
+};
+
 export type GameSave = {
   version: string;
   saveId: SaveId;
@@ -108,6 +161,7 @@ export type GameSave = {
   breeding?: BreedingState;
   pregnancies?: PregnancyRecord[];
   eggs?: EggRecord[];
+  birthHistory?: BirthRecord[];
   market?: MarketState;
   guild?: GuildState;
   townUpgrades?: TownUpgradeState;
