@@ -65,6 +65,48 @@ export function getActivePregnancyForCreature(
   return getActivePregnancyForParticipant(save, creatureId);
 }
 
+/**
+ * Removes eggs created by the former conception-time egg flow. A valid egg is
+ * not created until its matching pregnancy reaches delivery. Eggs produced by
+ * createEggFromPregnancy include the pregnancy id in their own id, which lets
+ * this migration remove only records directly linked to an active pregnancy.
+ */
+export function sanitizeImmediatePregnancyEggs(save: GameSave): {
+  save: GameSave;
+  removedCount: number;
+} {
+  const activePregnancyIds = (save.pregnancies ?? [])
+    .filter((pregnancy) => pregnancy.status === "pregnant")
+    .map((pregnancy) => String(pregnancy.pregnancyId));
+
+  if (!activePregnancyIds.length || !(save.eggs ?? []).length) {
+    return { save, removedCount: 0 };
+  }
+
+  const eggs = (save.eggs ?? []).filter((egg) => {
+    const eggId = String(egg.eggId);
+    return !activePregnancyIds.some((pregnancyId) => eggId.includes(pregnancyId));
+  });
+  const removedCount = (save.eggs ?? []).length - eggs.length;
+
+  if (!removedCount) return { save, removedCount: 0 };
+
+  return {
+    save: {
+      ...save,
+      eggs,
+      eggIds: eggs.map((egg) => egg.eggId),
+      flags: {
+        ...save.flags,
+        legacyConceptionEggsRemoved: true,
+        legacyConceptionEggsRemovedCount:
+          Number(save.flags.legacyConceptionEggsRemovedCount ?? 0) + removedCount,
+      },
+    },
+    removedCount,
+  };
+}
+
 function clearInvalidPlayerPregnancies(save: GameSave): {
   save: GameSave;
   clearedCount: number;
@@ -95,8 +137,6 @@ function normalizePregnancyTimersForCurrentDay(save: GameSave): GameSave {
     const scheduledDeliveryDay = pregnancy.createdAtDayNumber + totalDays;
     const daysUntilScheduledDelivery = Math.max(0, scheduledDeliveryDay - save.dayState.dayNumber);
 
-    // The core nursery pass subtracts one day. Rebuilding the value from the
-    // absolute creation day prevents same-day delivery and accidental double ticks.
     return {
       ...pregnancy,
       totalDays,
@@ -132,16 +172,24 @@ export function advanceNurseryDay(save: GameSave): {
   save: GameSave;
   summaryItems: string[];
 } {
-  const sanitized = clearInvalidPlayerPregnancies(save);
+  const legacyCleanup = sanitizeImmediatePregnancyEggs(save);
+  const sanitized = clearInvalidPlayerPregnancies(legacyCleanup.save);
   const timerSafeSave = normalizePregnancyTimersForCurrentDay(sanitized.save);
   const result = core.advanceNurseryDay(timerSafeSave);
   const correctedSave = restoreNewEggIncubationTime(timerSafeSave, result.save);
-  const summaryItems = sanitized.clearedCount
-    ? [
-        `${sanitized.clearedCount} invalid player pregnancy record${sanitized.clearedCount === 1 ? " was" : "s were"} cleared.`,
-        ...result.summaryItems,
-      ]
-    : result.summaryItems;
+  const summaryItems = [
+    ...(legacyCleanup.removedCount
+      ? [
+          `${legacyCleanup.removedCount} legacy conception-time egg record${legacyCleanup.removedCount === 1 ? " was" : "s were"} removed.`,
+        ]
+      : []),
+    ...(sanitized.clearedCount
+      ? [
+          `${sanitized.clearedCount} invalid player pregnancy record${sanitized.clearedCount === 1 ? " was" : "s were"} cleared.`,
+        ]
+      : []),
+    ...result.summaryItems,
+  ];
 
   return { save: correctedSave, summaryItems };
 }
