@@ -19,6 +19,57 @@ function getPregnantReceiverBlock(receiverName: string): string {
   return `${receiverName} is already pregnant and cannot be selected as a receiver again until delivery.`;
 }
 
+function getFlagNumber(value: boolean | number | string | undefined): number {
+  const parsed = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
+/**
+ * Breeding may create a PregnancyRecord, but it must never create an EggRecord.
+ * Eggs are produced only when advanceNurseryDay reaches the pregnancy delivery day.
+ *
+ * This also removes legacy eggs whose IDs directly reference an active pregnancy.
+ * The old nursery flow could place those eggs in the save at conception time.
+ */
+function enforcePregnancyBeforeEgg(
+  saveBeforeAttempt: GameSave,
+  saveAfterAttempt: GameSave,
+): GameSave {
+  const eggIdsBeforeAttempt = new Set(
+    (saveBeforeAttempt.eggs ?? []).map((egg) => String(egg.eggId)),
+  );
+  const activePregnancyIds = (saveAfterAttempt.pregnancies ?? [])
+    .filter((pregnancy) => pregnancy.status === "pregnant")
+    .map((pregnancy) => String(pregnancy.pregnancyId));
+
+  const eggsAfterAttempt = saveAfterAttempt.eggs ?? [];
+  const validEggs = eggsAfterAttempt.filter((egg) => {
+    const eggId = String(egg.eggId);
+    const wasPresentBeforeAttempt = eggIdsBeforeAttempt.has(eggId);
+    const isLegacyConceptionEgg = activePregnancyIds.some((pregnancyId) =>
+      eggId.includes(pregnancyId),
+    );
+
+    return wasPresentBeforeAttempt && !isLegacyConceptionEgg;
+  });
+
+  const removedCount = eggsAfterAttempt.length - validEggs.length;
+  if (removedCount <= 0) return saveAfterAttempt;
+
+  return {
+    ...saveAfterAttempt,
+    eggs: validEggs,
+    eggIds: validEggs.map((egg) => egg.eggId),
+    flags: {
+      ...saveAfterAttempt.flags,
+      immediateBreedingEggSuppressed: true,
+      immediateBreedingEggSuppressedCount:
+        getFlagNumber(saveAfterAttempt.flags.immediateBreedingEggSuppressedCount) +
+        removedCount,
+    },
+  };
+}
+
 export function getBreedingPreview(
   save: GameSave,
   giverId: string | null,
@@ -139,7 +190,12 @@ export function performBreedingAttempt(
   if (!giver || !receiver) return null;
 
   if (receiver.kind !== "player") {
-    return core.performBreedingAttempt(save, giverId, receiverId);
+    const result = core.performBreedingAttempt(save, giverId, receiverId);
+    if (!result) return null;
+    return {
+      attempt: result.attempt,
+      save: enforcePregnancyBeforeEgg(save, result.save),
+    };
   }
 
   const temporaryPregnancy = buildTemporaryPlayerPregnancy(save, receiverId);
@@ -191,5 +247,8 @@ export function performBreedingAttempt(
     updatedAttempt,
   );
 
-  return { save: cleanedSave, attempt: updatedAttempt };
+  return {
+    save: enforcePregnancyBeforeEgg(save, cleanedSave),
+    attempt: updatedAttempt,
+  };
 }
