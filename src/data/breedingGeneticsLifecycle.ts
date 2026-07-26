@@ -4,6 +4,10 @@ import {
   formatStrategicGeneticsSummary,
   getStrategicGeneticsPreview,
 } from "./genetics";
+import {
+  applyGeneticsPowerCurve,
+  getBalancedStrategicGeneticsPreview,
+} from "./geneticsBalance";
 import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
 import type { GameSave } from "@/types/save";
 
@@ -26,7 +30,12 @@ export function getBreedingPreview(
   );
   if (!giver || !receiver || receiver.kind === "player") return preview;
 
-  const genetics = getStrategicGeneticsPreview(save, giver, receiver);
+  const genetics = getBalancedStrategicGeneticsPreview(
+    save,
+    giver,
+    receiver,
+    getStrategicGeneticsPreview(save, giver, receiver),
+  );
   const geneticsSummary = formatStrategicGeneticsSummary(genetics);
 
   return {
@@ -39,6 +48,7 @@ export function getBreedingPreview(
       ...preview.readinessNotes,
       geneticsSummary,
       genetics.familyBonusLabel,
+      "Trained parent stats contribute only 10%; inherited grades and innate potential matter most.",
     ],
   };
 }
@@ -141,11 +151,19 @@ export function performBreedingAttempt(
     return normalizedResult;
   }
 
-  const inheritance = createStrategicInheritancePreview(
+  const geneticsSeed = `${normalizedResult.attempt.attemptId}_pregnancy`;
+  const rawInheritance = createStrategicInheritancePreview(
     geneticsSave,
     giver,
     receiver,
-    `${normalizedResult.attempt.attemptId}_pregnancy`,
+    geneticsSeed,
+  );
+  const inheritance = applyGeneticsPowerCurve(
+    geneticsSave,
+    giver,
+    receiver,
+    rawInheritance,
+    geneticsSeed,
   );
   const pregnancies = (normalizedResult.save.pregnancies ?? []).map(
     (pregnancy) =>
@@ -166,6 +184,8 @@ export function performBreedingAttempt(
         ...pregnancySave.flags,
         strategicGeneticsEnabled: true,
         weightedInheritanceEnabled: true,
+        geneticPotentialSeparatedFromTraining: true,
+        levelOneOffspringStatCeilingsEnabled: true,
         familyInheritanceBonusesEnabled: true,
         affectionInheritanceStabilityEnabled: true,
         pairStreakGeneticsEnabled: true,
