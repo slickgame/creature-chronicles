@@ -15,7 +15,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/data/nursery": ["./src/data/nurseryLifecycle"],
+      "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
       "@/*": ["./src/*"]
     },
     "plugins": [
