@@ -41,12 +41,16 @@ function enrichNewEggsWithGenetics(
         ...(shiny ? ["Shiny"] : []),
       ]),
     );
+    const statRollNotes = Array.from(
+      new Set([...(egg.statRollNotes ?? []), ...geneticsNotes]),
+    );
     changed = true;
 
     return {
       ...egg,
       shiny,
       geneticsNotes,
+      statRollNotes,
       lineageTraits,
     };
   });
