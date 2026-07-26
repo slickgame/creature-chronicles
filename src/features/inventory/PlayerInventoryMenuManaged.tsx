@@ -6,9 +6,9 @@ import { useGameContext } from "@/state/GameProvider";
 
 type InventoryCreatureEvent = CustomEvent<{ creatureId?: string }>;
 
-function findButtonByText(text: string): HTMLButtonElement | null {
+function findButtonByText(text: string, root: ParentNode = document): HTMLButtonElement | null {
   return (
-    Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
+    Array.from(root.querySelectorAll<HTMLButtonElement>("button")).find(
       (button) => button.textContent?.trim() === text,
     ) ?? null
   );
@@ -29,13 +29,18 @@ export function PlayerInventoryMenu() {
       findButtonByText("Menu")?.click();
 
       window.setTimeout(() => {
-        findButtonByText("Creatures")?.click();
+        const dialog = document.querySelector<HTMLElement>("[role='dialog']");
+        if (!dialog) return;
+        findButtonByText("Creatures", dialog)?.click();
 
         window.setTimeout(() => {
-          const card = Array.from(document.querySelectorAll<HTMLElement>("article")).find(
-            (article) =>
-              article.querySelector("strong")?.textContent?.trim() === creature.nickname,
-          );
+          const openDialog = document.querySelector<HTMLElement>("[role='dialog']");
+          const card = openDialog
+            ? Array.from(openDialog.querySelectorAll<HTMLElement>("article")).find(
+                (article) =>
+                  article.querySelector("strong")?.textContent?.trim() === creature.nickname,
+              )
+            : null;
           if (!card) return;
           card.scrollIntoView({ block: "center", behavior: "smooth" });
           card.animate(
@@ -45,8 +50,8 @@ export function PlayerInventoryMenu() {
             ],
             { duration: 1600, easing: "ease-out" },
           );
-        }, 80);
-      }, 80);
+        }, 100);
+      }, 100);
     }
 
     window.addEventListener(
