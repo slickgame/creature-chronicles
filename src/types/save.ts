@@ -79,8 +79,10 @@ export type InheritancePreview = {
   projectedStats: CreatureStats;
   projectedStatGrades: StatGrades;
   projectedAbilities: CreatureAbility[];
+  projectedShiny?: boolean;
   statRollNotes: string[];
   abilityRollNotes: string[];
+  geneticsNotes?: string[];
   lineageRisk: CreatureLineageRisk;
   lineageRiskLabel: string;
   lineageNotes: string[];
@@ -116,8 +118,10 @@ export type EggRecord = {
   projectedStats: CreatureStats;
   projectedStatGrades: StatGrades;
   projectedAbilities: CreatureAbility[];
+  shiny?: boolean;
   statRollNotes: string[];
   abilityRollNotes: string[];
+  geneticsNotes?: string[];
   lineageRisk: CreatureLineageRisk;
   lineageRiskLabel: string;
   lineageNotes: string[];
@@ -135,6 +139,7 @@ export type BirthRecord = {
   rarity: EggRecord["rarity"];
   speciesId: SpeciesId;
   variantId: VariantId;
+  shiny?: boolean;
   parents: { giver: ParentSnapshot; receiver: ParentSnapshot };
   inheritedStatGrades: StatGrades;
   inheritedAbilities: CreatureAbility[];
