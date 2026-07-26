@@ -10,26 +10,14 @@ import {
 import {
   getActivePregnancyForCreature,
   getEstimatedDeliveryDateLabel,
-  getPregnancyProgressPercent,
 } from "@/data/nursery";
-import {
-  COLLECTION_ASSETS,
-  getBestStatLabels,
-  getOriginIcon,
-} from "@/data/collection";
+import { getBestStatLabels } from "@/data/collection";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { useGameContext } from "@/state/GameProvider";
-import type { CreatureFamily, CreatureRecord } from "@/types/creature";
+import type { CreatureRecord } from "@/types/creature";
 import type { PregnancyRecord } from "@/types/save";
 import styles from "./HabitatScreen.module.css";
-
-const HABITAT_DESCRIPTIONS: Record<CreatureFamily, string> = {
-  feline: "Home for Base Feline, Sphinx, Tiger, and future feline variants.",
-  canine: "Home for Base Canine, Hellhound, Direwolf, and future canine variants.",
-  bovine: "Home for Cow, Minotaur, Moon Yak, and future production-focused bovine variants.",
-  lapine: "Home for Bunny, Antlerhare, Dream Lop, and future garden or nursery lapine variants.",
-  equine: "Home for Horse, Unicorn, Nightmare, and future travel or field-work equine variants.",
-};
+import viewportStyles from "./HabitatViewport.module.css";
 
 function getImagePath(path: string): string {
   return path || CREATURE_PLACEHOLDER_IMAGE;
@@ -41,9 +29,7 @@ function getInjuryStatus(
 ): { injured: boolean; label: string; daysRemaining: number; text: string } {
   const injuredUntil = creature.injuredUntilDayNumber;
   const injured = typeof injuredUntil === "number" && injuredUntil >= dayNumber;
-  const daysRemaining = injured
-    ? Math.max(1, injuredUntil - dayNumber + 1)
-    : 0;
+  const daysRemaining = injured ? Math.max(1, injuredUntil - dayNumber + 1) : 0;
   const label = creature.injuryLabel ?? "Injured";
   return {
     injured,
@@ -70,9 +56,7 @@ export function HabitatScreen() {
 
   const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [message, setMessage] = useState(
-    "Select a creature to view its profile.",
-  );
+  const [message, setMessage] = useState("Select a creature to view its profile.");
 
   const habitat = useMemo(
     () =>
@@ -101,21 +85,17 @@ export function HabitatScreen() {
 
   if (!currentSave || !activeHabitatFamily || !habitat) {
     return (
-      <main className={styles.emptyScreen}>
+      <main className={`${styles.emptyScreen} ${viewportStyles.screen}`}>
         <section className={styles.emptyPanel}>
           <h1>Habitat unavailable</h1>
           <p>Return to the ranch and select an unlocked habitat.</p>
-          <button type="button" onClick={goToRanch}>
-            Back to Ranch
-          </button>
+          <button type="button" onClick={goToRanch}>Back to Ranch</button>
         </section>
       </main>
     );
   }
 
-  const habitatTitle =
-    habitat.name || `${FAMILY_LABELS[activeHabitatFamily]} Habitat`;
-  const habitatDescription = HABITAT_DESCRIPTIONS[activeHabitatFamily];
+  const habitatTitle = habitat.name || `${FAMILY_LABELS[activeHabitatFamily]} Habitat`;
   const dayNumber = currentSave.dayState.dayNumber;
 
   function handleSelectCreature(creature: CreatureRecord) {
@@ -123,6 +103,7 @@ export function HabitatScreen() {
     const pregnancy = getActivePregnancyForCreature(currentSave, creature.creatureId);
     setSelectedCreatureId(creature.creatureId);
     setRenameValue(creature.nickname);
+
     if (pregnancy) {
       const expected = getEstimatedDeliveryDateLabel(
         currentSave.dayState,
@@ -131,29 +112,26 @@ export function HabitatScreen() {
       setMessage(
         `${creature.nickname} selected. Pregnant with ${pregnancy.daysRemaining} day${pregnancy.daysRemaining === 1 ? "" : "s"} remaining; expected ${expected}.`,
       );
-    } else {
-      setMessage(
-        injury.injured
-          ? `${creature.nickname} selected. ${injury.text}.`
-          : `${creature.nickname} selected.`,
-      );
+      return;
     }
+
+    setMessage(
+      injury.injured
+        ? `${creature.nickname} selected. ${injury.text}.`
+        : `${creature.nickname} selected.`,
+    );
   }
 
   function handleRename() {
     if (!selectedCreature || !renameValue.trim()) return;
     renameCreature(selectedCreature.creatureId, renameValue);
-    setMessage(
-      `${selectedCreature.nickname} was renamed to ${renameValue.trim()}.`,
-    );
+    setMessage(`${selectedCreature.nickname} was renamed to ${renameValue.trim()}.`);
   }
 
   function handleFeed() {
     if (!selectedCreature) return;
     feedCreature(selectedCreature.creatureId);
-    setMessage(
-      `${selectedCreature.nickname} was fed. Affection and creature energy increased.`,
-    );
+    setMessage(`${selectedCreature.nickname} was fed. Affection and creature energy increased.`);
   }
 
   function handleToggleLock() {
@@ -185,45 +163,32 @@ export function HabitatScreen() {
     : null;
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>Pregnancy Status Integration</p>
+    <main className={`${styles.screen} ${viewportStyles.screen}`}>
+      <section className={`${styles.frame} ${viewportStyles.frame}`}>
+        <header className={`${styles.header} ${viewportStyles.header}`}>
+          <div className={viewportStyles.titleRow}>
             <h1>{habitatTitle}</h1>
-            <p>{habitatDescription}</p>
+            <span className={viewportStyles.capacityInline}>
+              {creatures.length}/{habitat.capacity} creatures
+            </span>
           </div>
-          <div className={styles.headerActions}>
-            <div className={styles.capacityCard}>
-              <span>Capacity</span>
-              <strong>
-                {creatures.length} / {habitat.capacity}
-              </strong>
-            </div>
-            <button type="button" onClick={goToCollection}>
-              Collection Tracker
-            </button>
-            <button type="button" onClick={goToRanch}>
-              Back to Ranch
-            </button>
+          <div className={`${styles.headerActions} ${viewportStyles.headerActions}`}>
+            <button type="button" onClick={goToCollection}>Collection Tracker</button>
+            <button type="button" onClick={goToRanch}>Back to Ranch</button>
           </div>
         </header>
 
-        <section className={styles.contentGrid}>
-          <aside className={styles.creatureList} aria-label="Creature list">
+        <section className={`${styles.contentGrid} ${viewportStyles.contentGrid}`}>
+          <aside className={`${styles.creatureList} ${viewportStyles.creatureList}`} aria-label="Creature list">
             <h2>Creatures</h2>
             <p className={styles.helpText}>{message}</p>
-            <div className={styles.cards}>
+            <div className={`${styles.cards} ${viewportStyles.cards}`}>
               {creatures.map((creature) => {
                 const variant = getVariantDefinition(creature.variantId);
                 const species = getSpeciesDefinition(creature.speciesId);
-                const isSelected =
-                  selectedCreature?.creatureId === creature.creatureId;
+                const isSelected = selectedCreature?.creatureId === creature.creatureId;
                 const injury = getInjuryStatus(creature, dayNumber);
-                const pregnancy = getActivePregnancyForCreature(
-                  currentSave,
-                  creature.creatureId,
-                );
+                const pregnancy = getActivePregnancyForCreature(currentSave, creature.creatureId);
                 const expectedDate = pregnancy
                   ? getEstimatedDeliveryDateLabel(
                       currentSave.dayState,
@@ -235,47 +200,25 @@ export function HabitatScreen() {
                   <button
                     key={creature.creatureId}
                     type="button"
-                    className={`${styles.creatureCard} ${
-                      isSelected ? styles.selectedCard : ""
-                    } ${injury.injured ? styles.injuredCard : ""}`}
+                    className={`${styles.creatureCard} ${isSelected ? styles.selectedCard : ""} ${injury.injured ? styles.injuredCard : ""}`}
+                    style={creature.shiny ? { borderColor: "rgba(139,233,255,.92)", boxShadow: "0 0 16px rgba(139,233,255,.18)" } : undefined}
                     onClick={() => handleSelectCreature(creature)}
                   >
                     <img
                       src={getImagePath(variant.portraitPath)}
                       alt=""
-                      onError={(event) => {
-                        event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-                      }}
+                      onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }}
                     />
                     <div>
-                      <strong>
-                        {creature.nickname}
-                        {creature.isLocked ? " 🔒" : ""}
-                      </strong>
-                      <span>
-                        {variant.name} {species.name} • Lv {creature.level}
-                      </span>
+                      <strong>{creature.nickname}{creature.shiny ? " ✦" : ""}{creature.isLocked ? " 🔒" : ""}</strong>
+                      <span>{variant.name} {species.name} • Lv {creature.level}</span>
                       <em>
                         {pregnancy
-                          ? `Pregnant • ${pregnancy.daysRemaining}d • Expected ${expectedDate}`
+                          ? `Pregnant • ${pregnancy.daysRemaining}d • ${expectedDate}`
                           : injury.injured
                             ? injury.text
                             : `${variant.rarity} • ${creature.originLabel}`}
                       </em>
-                      {pregnancy ? (
-                        <b
-                          className={styles.injuryBadge}
-                          style={{
-                            background: "rgba(245,201,128,.2)",
-                            color: "#fff1b8",
-                            borderColor: "rgba(245,201,128,.72)",
-                          }}
-                        >
-                          Pregnant
-                        </b>
-                      ) : injury.injured ? (
-                        <b className={styles.injuryBadge}>{injury.label}</b>
-                      ) : null}
                     </div>
                   </button>
                 );
@@ -283,7 +226,7 @@ export function HabitatScreen() {
             </div>
           </aside>
 
-          <section className={styles.profilePanel} aria-label="Creature profile">
+          <section className={`${styles.profilePanel} ${viewportStyles.profilePanel}`} aria-label="Creature profile">
             {selectedCreature ? (
               <CreatureProfile
                 creature={selectedCreature}
@@ -338,68 +281,14 @@ function CreatureProfile({
   const expectedDate = pregnancy
     ? getEstimatedDeliveryDateLabel(dayState, pregnancy.daysRemaining)
     : null;
-  const pregnancyProgress = pregnancy
-    ? getPregnancyProgressPercent(pregnancy)
-    : 0;
+  const statusNote = pregnancy
+    ? `Pregnant • ${pregnancy.daysRemaining} day${pregnancy.daysRemaining === 1 ? "" : "s"} remaining • expected ${expectedDate}. This creature cannot be used as a receiver again until delivery.`
+    : injury.injured
+      ? `${injury.text}. Breeding and ranch work are unavailable until recovery.`
+      : "Healthy and available for breeding or ranch work.";
 
   return (
-    <div className={styles.sharedHabitatProfile}>
-      <section className={styles.profileTopChips}>
-        <span>
-          <img src={getOriginIcon(creature.origin)} alt="" />
-          {creature.originLabel}
-        </span>
-        <span>
-          <img src={COLLECTION_ASSETS.lock} alt="" />
-          {creature.isLocked ? "Locked" : "Unlocked"}
-        </span>
-        <span>Best: {bestStats.join(", ")}</span>
-        {pregnancy ? (
-          <span>
-            Pregnant • {pregnancy.daysRemaining}d • {expectedDate}
-          </span>
-        ) : injury.injured ? (
-          <span className={styles.injuryPill}>
-            Bandaged: {injury.daysRemaining} day
-            {injury.daysRemaining === 1 ? "" : "s"} left
-          </span>
-        ) : (
-          <span>Healthy</span>
-        )}
-        <button type="button" onClick={onFeed}>
-          Feed
-        </button>
-      </section>
-
-      {pregnancy ? (
-        <div
-          className={styles.injuryNotice}
-          style={{
-            borderColor: "rgba(245,201,128,.65)",
-            background: "rgba(245,201,128,.1)",
-          }}
-        >
-          <strong>
-            Pregnancy in progress — expected delivery {expectedDate}
-          </strong>
-          <p>
-            {pregnancy.daysRemaining} day
-            {pregnancy.daysRemaining === 1 ? "" : "s"} remaining. This creature
-            cannot be selected as a breeding receiver again until the egg is
-            delivered. Progress: {pregnancyProgress}%.
-          </p>
-        </div>
-      ) : injury.injured ? (
-        <div className={styles.injuryNotice}>
-          <strong>{injury.text}</strong>
-          <p>
-            This creature cannot be assigned to ranch chores or breeding until
-            recovered. Feeding, locking, renaming, release, and donation still
-            work.
-          </p>
-        </div>
-      ) : null}
-
+    <div className={`${styles.sharedHabitatProfile} ${viewportStyles.sharedHabitatProfile}`}>
       <SharedCreatureDetail
         creature={creature}
         dayNumber={dayNumber}
@@ -407,8 +296,12 @@ function CreatureProfile({
         onRenameValueChange={setRenameValue}
         onRename={onRename}
         onToggleLock={onToggleLock}
+        onFeed={onFeed}
         onRelease={onRelease}
         onDonate={onDonate}
+        fitViewport
+        statusNote={statusNote}
+        bestStatLabels={bestStats}
       />
     </div>
   );
