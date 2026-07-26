@@ -6,6 +6,7 @@
     "generate:breeding-scenes": "node scripts/generate-breeding-scene-manifest.mjs",
     "prepare:cow-images": "node scripts/prepare-cow-images.mjs",
     "restore:cow-images": "node scripts/restore-cow-alpha.mjs",
+    "simulate:genetics": "node scripts/simulate-genetics.mjs",
     "prepare:assets": "npm run generate:breeding-scenes",
     "predev": "npm run prepare:assets",
     "dev": "next dev",
