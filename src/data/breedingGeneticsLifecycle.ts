@@ -90,6 +90,18 @@ function resetReceiverStreaks(
   };
 }
 
+function refreshBreederEnergyCap(save: GameSave): GameSave {
+  const maxEnergy = lifecycle.getPlayerMaxEnergyFromStats(save.player.stats);
+  return {
+    ...save,
+    currencies: {
+      ...save.currencies,
+      maxEnergy,
+      energy: Math.min(save.currencies.energy, maxEnergy),
+    },
+  };
+}
+
 export function performBreedingAttempt(
   save: GameSave,
   giverId: string,
@@ -98,17 +110,26 @@ export function performBreedingAttempt(
   const result = lifecycle.performBreedingAttempt(save, giverId, receiverId);
   if (!result) return null;
 
+  const normalizedResult = {
+    attempt: result.attempt,
+    save: refreshBreederEnergyCap(result.save),
+  };
   const previousPregnancyIds = new Set(
     (save.pregnancies ?? []).map((pregnancy) => pregnancy.pregnancyId),
   );
-  const newPregnancy = (result.save.pregnancies ?? []).find(
+  const newPregnancy = (normalizedResult.save.pregnancies ?? []).find(
     (pregnancy) => !previousPregnancyIds.has(pregnancy.pregnancyId),
   );
-  if (!newPregnancy || newPregnancy.status !== "pregnant") return result;
+  if (!newPregnancy || newPregnancy.status !== "pregnant") {
+    return normalizedResult;
+  }
 
   // Pregnancy chance streaks reset on conception, but the successful session's
   // completed familiarity still influences this offspring's genetics once.
-  const geneticsSave = buildSuccessfulGeneticsSave(result.save, result.attempt);
+  const geneticsSave = buildSuccessfulGeneticsSave(
+    normalizedResult.save,
+    normalizedResult.attempt,
+  );
   const participants = lifecycle.getBreedingParticipants(geneticsSave);
   const giver = participants.find(
     (participant) => participant.participantId === giverId,
@@ -116,26 +137,29 @@ export function performBreedingAttempt(
   const receiver = participants.find(
     (participant) => participant.participantId === receiverId,
   );
-  if (!giver || !receiver || receiver.kind === "player") return result;
+  if (!giver || !receiver || receiver.kind === "player") {
+    return normalizedResult;
+  }
 
   const inheritance = createStrategicInheritancePreview(
     geneticsSave,
     giver,
     receiver,
-    `${result.attempt.attemptId}_pregnancy`,
+    `${normalizedResult.attempt.attemptId}_pregnancy`,
   );
-  const pregnancies = (result.save.pregnancies ?? []).map((pregnancy) =>
-    pregnancy.pregnancyId === newPregnancy.pregnancyId
-      ? { ...pregnancy, inheritance }
-      : pregnancy,
+  const pregnancies = (normalizedResult.save.pregnancies ?? []).map(
+    (pregnancy) =>
+      pregnancy.pregnancyId === newPregnancy.pregnancyId
+        ? { ...pregnancy, inheritance }
+        : pregnancy,
   );
   const pregnancySave = resetReceiverStreaks(
-    { ...result.save, pregnancies },
+    { ...normalizedResult.save, pregnancies },
     receiverId,
   );
 
   return {
-    attempt: result.attempt,
+    attempt: normalizedResult.attempt,
     save: {
       ...pregnancySave,
       flags: {
@@ -148,6 +172,7 @@ export function performBreedingAttempt(
         pairStreakResetsAfterPregnancy: true,
         receiverPairStreaksResetAfterPregnancy: true,
         shinyBreedingOutcomesEnabled: true,
+        breederEnergyCapRefreshEnabled: true,
       },
     },
   };
