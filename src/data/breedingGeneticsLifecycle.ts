@@ -43,6 +43,33 @@ export function getBreedingPreview(
   };
 }
 
+function buildSuccessfulGeneticsSave(
+  save: GameSave,
+  attempt: BreedingAttemptRecord,
+): GameSave {
+  const pairKey = lifecycle.getPairKey(attempt.giverId, attempt.receiverId);
+  const completedFamiliarity = Math.max(1, attempt.streakBefore + 1);
+  const breeding = save.breeding ?? lifecycle.createDefaultBreedingState();
+
+  return {
+    ...save,
+    breeding: {
+      ...breeding,
+      streaks: [
+        ...breeding.streaks.filter((record) => record.pairKey !== pairKey),
+        {
+          pairKey,
+          participantAId: attempt.giverId,
+          participantBId: attempt.receiverId,
+          streakCount: completedFamiliarity,
+          lastAttemptDayNumber: attempt.dayNumber,
+          lastOutcome: attempt.outcome,
+        },
+      ],
+    },
+  };
+}
+
 export function performBreedingAttempt(
   save: GameSave,
   giverId: string,
@@ -59,7 +86,10 @@ export function performBreedingAttempt(
   );
   if (!newPregnancy || newPregnancy.status !== "pregnant") return result;
 
-  const participants = lifecycle.getBreedingParticipants(result.save);
+  // Pregnancy chance streaks reset on conception, but the successful session's
+  // completed familiarity still influences this offspring's genetics once.
+  const geneticsSave = buildSuccessfulGeneticsSave(result.save, result.attempt);
+  const participants = lifecycle.getBreedingParticipants(geneticsSave);
   const giver = participants.find(
     (participant) => participant.participantId === giverId,
   );
@@ -69,7 +99,7 @@ export function performBreedingAttempt(
   if (!giver || !receiver || receiver.kind === "player") return result;
 
   const inheritance = createStrategicInheritancePreview(
-    result.save,
+    geneticsSave,
     giver,
     receiver,
     `${result.attempt.attemptId}_pregnancy`,
@@ -92,6 +122,7 @@ export function performBreedingAttempt(
         familyInheritanceBonusesEnabled: true,
         affectionInheritanceStabilityEnabled: true,
         pairStreakGeneticsEnabled: true,
+        pairStreakResetsAfterPregnancy: true,
         shinyBreedingOutcomesEnabled: true,
       },
     },
