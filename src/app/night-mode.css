@@ -32,18 +32,14 @@ main[class*="emptyScreen"] :where(p, li, dt, dd, em, small) {
 }
 
 /*
- * Interactive cards are frequently buttons. They must inherit the foreground
- * selected by their dark card/panel instead of being forced to black.
- * Light gold/cream buttons already declare their own dark color in their
- * component styles, so those remain unchanged.
+ * Buttons inherit by default, while component classes remain free to override
+ * the color for cream, gold, blue, or other intentionally light controls.
  */
-main[class*="screen"] button,
-main[class*="emptyScreen"] button {
+button {
   color: inherit;
 }
 
-main[class*="screen"] button :where(strong, span, em, b, small, p),
-main[class*="emptyScreen"] button :where(strong, span, em, b, small, p) {
+button :where(strong, span, em, b, small, p) {
   color: inherit;
 }
 
@@ -74,4 +70,19 @@ main[class*="screen"] :where(input, textarea)::placeholder,
 main[class*="emptyScreen"] :where(input, textarea)::placeholder {
   color: var(--color-text-muted, #d8c7a5);
   opacity: 0.78;
+}
+
+/*
+ * The creature-management screen has optional filter and comparison rows.
+ * Flex layout lets its results panel consume the remaining viewport whether
+ * either optional row is open or closed.
+ */
+main[class*="CollectionScreen"][class*="screen"] > section[class*="frame"] {
+  display: flex !important;
+  flex-direction: column;
+}
+
+main[class*="CollectionScreen"][class*="screen"] section[class*="contentGrid"] {
+  flex: 1 1 auto;
+  min-height: 0;
 }
