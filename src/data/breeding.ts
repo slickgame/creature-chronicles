@@ -1,1 +1,1 @@
-export * from "./breedingLifecycle";
+export * from "./breedingGeneticsLifecycle";
