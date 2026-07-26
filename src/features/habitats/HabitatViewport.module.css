@@ -1,0 +1,149 @@
+.screen {
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+  padding: 8px !important;
+  color: #fff7dd !important;
+}
+
+.frame {
+  width: 100% !important;
+  height: calc(100dvh - 16px) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  grid-template-rows: 52px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+}
+
+.header {
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 7px 10px !important;
+}
+
+.titleRow {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.titleRow h1 {
+  margin: 0 !important;
+  color: #fff7dd !important;
+  font-size: clamp(1.35rem, 2vw, 2rem) !important;
+  line-height: 1 !important;
+}
+
+.capacityInline {
+  padding: 5px 9px;
+  border: 1px solid rgba(245, 201, 128, 0.38);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #7fdbff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex !important;
+  align-items: center !important;
+  justify-items: unset !important;
+  gap: 8px !important;
+}
+
+.headerActions button {
+  min-height: 34px !important;
+  padding: 6px 11px !important;
+}
+
+.contentGrid {
+  min-height: 0 !important;
+  height: 100% !important;
+  grid-template-columns: minmax(235px, 285px) minmax(0, 1fr) !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.creatureList,
+.profilePanel {
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 10px !important;
+  overflow: hidden !important;
+  color: #fff7dd !important;
+}
+
+.creatureList h2,
+.creatureList p,
+.profilePanel h1,
+.profilePanel h2,
+.profilePanel h3,
+.profilePanel h4 {
+  color: #fff7dd !important;
+}
+
+.creatureList h2 {
+  margin-bottom: 4px !important;
+  font-size: 1.18rem !important;
+}
+
+.cards {
+  max-height: calc(100% - 58px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.profilePanel {
+  scrollbar-width: none;
+}
+
+.profilePanel::-webkit-scrollbar {
+  display: none;
+}
+
+.sharedHabitatProfile {
+  height: 100% !important;
+  min-height: 0 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 980px) {
+  .screen {
+    overflow: auto !important;
+  }
+
+  .frame {
+    height: auto !important;
+    min-height: 100dvh !important;
+    grid-template-rows: auto auto !important;
+    overflow: visible !important;
+  }
+
+  .header,
+  .titleRow,
+  .headerActions {
+    flex-wrap: wrap !important;
+  }
+
+  .contentGrid {
+    height: auto !important;
+    grid-template-columns: 1fr !important;
+    overflow: visible !important;
+  }
+
+  .creatureList,
+  .profilePanel,
+  .sharedHabitatProfile {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
