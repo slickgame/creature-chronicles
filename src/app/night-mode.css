@@ -1,0 +1,36 @@
+/*
+ * Global readability rule for the game's night-mode interface.
+ * Dark panels inherit light text unless a component deliberately supplies
+ * a light control surface with its own dark text.
+ */
+main[class*="screen"],
+main[class*="emptyScreen"] {
+  color: var(--color-text-primary, #fff7dd);
+}
+
+main[class*="screen"] :where(section, article, aside, nav, header, footer),
+main[class*="emptyScreen"] :where(section, article, aside, nav, header, footer) {
+  color: inherit;
+}
+
+main[class*="screen"] :where(h1, h2, h3, h4, h5, h6),
+main[class*="emptyScreen"] :where(h1, h2, h3, h4, h5, h6) {
+  color: #fff7dd !important;
+  text-shadow: 0 2px 2px rgba(0, 0, 0, 0.72);
+}
+
+main[class*="screen"] :where(p, li, dt, dd, em, small),
+main[class*="emptyScreen"] :where(p, li, dt, dd, em, small) {
+  color: inherit;
+}
+
+/* Light buttons and form controls intentionally keep dark text. */
+main[class*="screen"] :where(button, select, option),
+main[class*="emptyScreen"] :where(button, select, option) {
+  color: var(--color-text-dark, #241713);
+}
+
+main[class*="screen"] :where(input, textarea),
+main[class*="emptyScreen"] :where(input, textarea) {
+  color: inherit;
+}
