@@ -18,6 +18,7 @@
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenManaged"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
+      "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenPolished"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
       "@/features/inventory/PlayerInventoryMenu": ["./src/features/inventory/PlayerInventoryMenuManaged"],
       "@/lib/save/localSave": ["./src/lib/save/localSaveLifecycle"],
