@@ -2,47 +2,155 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { getBreedingParticipants } from "@/data/breeding";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
+import { SharedPlayerDetail } from "@/features/player/PlayerDetailPanel";
 import { useGameContext } from "@/state/GameProvider";
 
-function getInfoTarget() {
-  const nav = document.querySelector('nav[aria-label="Creature info pages"]');
-  return nav?.closest<HTMLElement>('section[role="dialog"]') ?? null;
+type OverlaySelection =
+  | { kind: "creature"; creatureId: string }
+  | { kind: "player" }
+  | null;
+
+function findParticipantDialog(names: Set<string>): HTMLElement | null {
+  const dialogs = Array.from(
+    document.querySelectorAll<HTMLElement>('section[role="dialog"]'),
+  );
+
+  return (
+    dialogs.find((dialog) => {
+      const heading = dialog.querySelector("h2")?.textContent?.trim() ?? "";
+      return names.has(heading);
+    }) ?? null
+  );
+}
+
+function prepareHost(dialog: HTMLElement): HTMLElement {
+  let host = dialog.querySelector<HTMLElement>(
+    '[data-shared-info-host="true"]',
+  );
+
+  if (!host) {
+    host = document.createElement("div");
+    host.dataset.sharedInfoHost = "true";
+    host.style.display = "block";
+    dialog.appendChild(host);
+  }
+
+  const header = dialog.firstElementChild as HTMLElement | null;
+  Array.from(dialog.children).forEach((child) => {
+    const element = child as HTMLElement;
+    if (element === host || element === header) return;
+    element.style.display = "none";
+  });
+
+  return host;
 }
 
 export function SharedInfoOverlay() {
   const { appScreen, currentSave } = useGameContext();
   const [target, setTarget] = useState<HTMLElement | null>(null);
-  const [name, setName] = useState("");
-  const creature = useMemo(() => (currentSave?.creatures ?? []).find((item) => item.nickname === name) ?? null, [currentSave?.creatures, name]);
+  const [selection, setSelection] = useState<OverlaySelection>(null);
+
+  const participantNames = useMemo(() => {
+    if (!currentSave) return new Set<string>();
+    return new Set([
+      currentSave.player.name,
+      ...(currentSave.creatures ?? []).map((creature) => creature.nickname),
+    ]);
+  }, [currentSave]);
+
+  const creature = useMemo(() => {
+    if (!currentSave || selection?.kind !== "creature") return null;
+    return (
+      (currentSave.creatures ?? []).find(
+        (item) => item.creatureId === selection.creatureId,
+      ) ?? null
+    );
+  }, [currentSave, selection]);
+
+  const playerParticipant = useMemo(() => {
+    if (!currentSave) return null;
+    return (
+      getBreedingParticipants(currentSave).find(
+        (participant) => participant.kind === "player",
+      ) ?? null
+    );
+  }, [currentSave]);
 
   useEffect(() => {
-    if (appScreen !== "breeding" || !currentSave) { setTarget(null); setName(""); return; }
-    function sync() {
-      const dialog = getInfoTarget();
-      if (!dialog) { setTarget(null); setName(""); return; }
-      const nextName = dialog.querySelector("h2")?.textContent?.trim() ?? "";
-      let host = dialog.querySelector<HTMLElement>('[data-shared-info-host="true"]');
-      if (!host) {
-        host = document.createElement("div");
-        host.dataset.sharedInfoHost = "true";
-        host.style.display = "block";
-        dialog.appendChild(host);
-      }
-      Array.from(dialog.children).forEach((child) => {
-        const el = child as HTMLElement;
-        if (el === host || el.tagName.toLowerCase() === "button") return;
-        el.style.display = "none";
-      });
-      setName(nextName);
-      setTarget(host);
+    if (appScreen !== "breeding" || !currentSave) {
+      setTarget(null);
+      setSelection(null);
+      return;
     }
+
+    function sync() {
+      const dialog = findParticipantDialog(participantNames);
+      if (!dialog) {
+        setTarget(null);
+        setSelection(null);
+        return;
+      }
+
+      const heading = dialog.querySelector("h2")?.textContent?.trim() ?? "";
+      const nextSelection: OverlaySelection =
+        heading === currentSave.player.name
+          ? { kind: "player" }
+          : (() => {
+              const matchedCreature = (currentSave.creatures ?? []).find(
+                (item) => item.nickname === heading,
+              );
+              return matchedCreature
+                ? {
+                    kind: "creature" as const,
+                    creatureId: matchedCreature.creatureId,
+                  }
+                : null;
+            })();
+
+      if (!nextSelection) {
+        setTarget(null);
+        setSelection(null);
+        return;
+      }
+
+      setSelection(nextSelection);
+      setTarget(prepareHost(dialog));
+    }
+
     sync();
     const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
-  }, [appScreen, currentSave]);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
 
-  if (!target || !creature) return null;
-  return createPortal(<SharedCreatureDetail creature={creature} mode="full" dayNumber={currentSave?.dayState.dayNumber} showActions={false} />, target);
+    return () => observer.disconnect();
+  }, [appScreen, currentSave, participantNames]);
+
+  if (!target || !currentSave || !selection) return null;
+
+  if (selection.kind === "player") {
+    return createPortal(
+      <SharedPlayerDetail
+        save={currentSave}
+        participant={playerParticipant}
+      />,
+      target,
+    );
+  }
+
+  if (!creature) return null;
+
+  return createPortal(
+    <SharedCreatureDetail
+      creature={creature}
+      mode="full"
+      dayNumber={currentSave.dayState.dayNumber}
+      showActions={false}
+    />,
+    target,
+  );
 }
