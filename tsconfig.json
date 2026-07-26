@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
+      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenManaged"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
       "@/features/inventory/PlayerInventoryMenu": ["./src/features/inventory/PlayerInventoryMenuManaged"],
