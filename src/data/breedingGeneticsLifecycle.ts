@@ -59,7 +59,7 @@ export function performBreedingAttempt(
   );
   if (!newPregnancy || newPregnancy.status !== "pregnant") return result;
 
-  const participants = lifecycle.getBreedingParticipants(save);
+  const participants = lifecycle.getBreedingParticipants(result.save);
   const giver = participants.find(
     (participant) => participant.participantId === giverId,
   );
@@ -69,7 +69,7 @@ export function performBreedingAttempt(
   if (!giver || !receiver || receiver.kind === "player") return result;
 
   const inheritance = createStrategicInheritancePreview(
-    save,
+    result.save,
     giver,
     receiver,
     `${result.attempt.attemptId}_pregnancy`,
