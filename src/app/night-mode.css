@@ -47,6 +47,18 @@ main[class*="emptyScreen"] button :where(strong, span, em, b, small, p) {
   color: inherit;
 }
 
+/*
+ * Main-menu image buttons already contain their labels in the artwork. Keep
+ * the accessible DOM label while preventing a second visible text layer from
+ * being drawn over the image.
+ */
+main[class*="screen"] button[class*="imageButton"],
+main[class*="emptyScreen"] button[class*="imageButton"] {
+  color: transparent !important;
+  font-size: 0 !important;
+  text-shadow: none !important;
+}
+
 /* Native light select menus intentionally keep dark text. */
 main[class*="screen"] :where(select, option),
 main[class*="emptyScreen"] :where(select, option) {
