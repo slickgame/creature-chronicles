@@ -1,6 +1,7 @@
 import type { CreatureId, HabitatId, SpeciesId, VariantId } from "./ids";
 
 export type CreatureFamily = "feline" | "canine" | "bovine" | "lapine" | "equine";
+export type CreatureSex = "female" | "male";
 export type CreatureStatKey = "STR" | "DEX" | "STA" | "CHA" | "WIL" | "FER";
 export type CreatureStats = Record<CreatureStatKey, number>;
 export type StatGrade = "D" | "C" | "B" | "A" | "S";
@@ -37,6 +38,8 @@ export type CreatureRecord = {
   maxHearts: number;
   affection: number;
   generation: number;
+  sex?: CreatureSex;
+  isFavorite?: boolean;
   shiny: boolean;
   cosmeticVariant: string | null;
   origin: CreatureOrigin;
