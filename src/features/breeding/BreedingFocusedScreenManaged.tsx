@@ -15,18 +15,19 @@ type BreedingFocus = {
 
 function clickRoleChooser(role: "giver" | "receiver"): boolean {
   const label = role === "giver" ? "Choose Giver" : "Choose Receiver";
-  const button = document.querySelector<HTMLButtonElement>(
-    `button[aria-label="${label}"]`,
-  );
+  const button = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("button[aria-label]"),
+  ).find((candidate) => candidate.getAttribute("aria-label") === label);
   if (!button) return false;
   button.click();
   return true;
 }
 
 function clickParticipant(name: string): boolean {
-  const button = document.querySelector<HTMLButtonElement>(
-    `button[aria-label="Select ${CSS.escape(name)}"]`,
-  );
+  const expectedLabel = `Select ${name}`;
+  const button = Array.from(
+    document.querySelectorAll<HTMLButtonElement>("button[aria-label]"),
+  ).find((candidate) => candidate.getAttribute("aria-label") === expectedLabel);
   if (!button || button.disabled) return false;
   button.click();
   return true;
