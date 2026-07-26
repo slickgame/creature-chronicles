@@ -16,6 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
+      "@/lib/save/localSave": ["./src/lib/save/localSaveLifecycle"],
       "@/*": ["./src/*"]
     },
     "plugins": [
