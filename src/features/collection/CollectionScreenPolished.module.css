@@ -1,0 +1,175 @@
+.polishRoot {
+  display: contents;
+}
+
+/*
+ * The original roster frame used six explicit grid rows even when the optional
+ * advanced-filter and compare rows were absent. That left the creature area in
+ * an auto-sized row instead of the flexible final row, causing the profile and
+ * list cards to be clipped. A column flex layout lets optional sections come
+ * and go while the creature workspace always receives the remaining height.
+ */
+.polishRoot :global([class*="CollectionScreen_frame"]) {
+  height: calc(100vh - 16px) !important;
+  min-height: 640px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+  padding: 10px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_contentGrid"]) {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(360px, 430px) minmax(0, 1fr) !important;
+}
+
+/* Keep the roster header useful without spending profile space on status copy. */
+.polishRoot :global(header[class*="CollectionScreen_header"]) {
+  min-height: 56px !important;
+  padding: 7px 12px !important;
+}
+
+.polishRoot :global(header[class*="CollectionScreen_header"] h1) {
+  font-size: clamp(1.7rem, 2.5vw, 2.45rem) !important;
+  line-height: 0.95 !important;
+}
+
+.polishRoot :global(header[class*="CollectionScreen_header"] > div:first-child > p:last-child) {
+  display: none !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_summaryStrip"]) {
+  min-height: 34px !important;
+  gap: 6px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_summaryPill"]) {
+  padding: 5px 9px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_toolbar"]) {
+  padding: 6px !important;
+  gap: 6px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_toolbar"] input),
+.polishRoot :global([class*="CollectionScreen_toolbar"] select),
+.polishRoot :global([class*="CollectionScreen_toolbar"] button) {
+  min-height: 34px !important;
+}
+
+/* Allow every roster card to grow to its content instead of clipping badges. */
+.polishRoot :global([class*="CollectionScreen_creatureCard"]) {
+  min-height: 126px !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_detailedCard"]) {
+  min-height: 188px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_cardMain"]) {
+  min-width: 0 !important;
+  align-items: start !important;
+  padding: 8px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_cardText"]) {
+  min-width: 0 !important;
+  overflow: visible !important;
+  line-height: 1.18 !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_cardText"] strong),
+.polishRoot :global([class*="CollectionScreen_cardText"] span),
+.polishRoot :global([class*="CollectionScreen_cardText"] em),
+.polishRoot :global([class*="CollectionScreen_cardText"] small) {
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_cardMetrics"]) {
+  margin-top: 5px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_roleBadges"]) {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  width: 100% !important;
+  margin-top: 5px !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_roleBadges"] i) {
+  min-width: 0 !important;
+  min-height: 24px !important;
+  justify-content: center !important;
+  padding: 4px 6px !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.12 !important;
+  text-align: center !important;
+}
+
+.polishRoot :global([class*="CollectionScreen_cardIcons"]) {
+  padding: 8px 7px 8px 0 !important;
+}
+
+/* Give the selected profile all remaining workspace height. */
+.polishRoot :global([class*="CollectionScreen_detailPanel"]) {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.polishRoot :global([data-creature-detail-layout="viewport"]) {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(285px, 0.84fr) minmax(390px, 1.36fr) !important;
+  gap: 10px !important;
+}
+
+/*
+ * Profile art previously filled 94% of the frame. On tall character art that
+ * placed feet and ears directly against the clipping edge. The smaller inset
+ * keeps the complete artwork visible while preserving a large portrait.
+ */
+.polishRoot :global([data-creature-detail-layout="viewport"] > section:first-child > div:last-child) {
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+
+.polishRoot :global([data-creature-detail-layout="viewport"] > section:first-child > div:last-child > img) {
+  width: 86% !important;
+  height: 86% !important;
+  max-width: 86% !important;
+  max-height: 86% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+
+@media (max-width: 1180px) {
+  .polishRoot :global([class*="CollectionScreen_frame"]) {
+    height: auto !important;
+    min-height: 100vh !important;
+  }
+
+  .polishRoot :global([class*="CollectionScreen_contentGrid"]) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .polishRoot :global([data-creature-detail-layout="viewport"]) {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .polishRoot :global([class*="CollectionScreen_roleBadges"]) {
+    grid-template-columns: 1fr !important;
+  }
+}
