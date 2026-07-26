@@ -1,0 +1,37 @@
+{
+  "inheritanceWeights": {
+    "parentGeneticPotential": 0.65,
+    "offspringSpeciesBaseline": 0.25,
+    "parentDevelopedStats": 0.1
+  },
+  "gradeHeadroom": {
+    "D": 1,
+    "C": 2,
+    "B": 3,
+    "A": 4,
+    "S": 5
+  },
+  "rarityHeadroom": {
+    "Common": 1,
+    "Uncommon": 2,
+    "Rare": 3,
+    "Epic": 4
+  },
+  "familyStatBonuses": {
+    "feline": { "DEX": 1, "CHA": 1 },
+    "canine": { "STR": 1, "WIL": 1 },
+    "bovine": { "STA": 2 },
+    "lapine": { "DEX": 1, "FER": 1 },
+    "equine": { "STA": 1, "DEX": 1 }
+  },
+  "stabilityVariance": {
+    "highlyStable": 1,
+    "stable": 1,
+    "variable": 2,
+    "unpredictable": 3
+  },
+  "maxDevelopedStatSignal": 8,
+  "levelOneFloorOffset": 1,
+  "beneficialMutationMaximum": 2,
+  "simulationRuns": 10000
+}
