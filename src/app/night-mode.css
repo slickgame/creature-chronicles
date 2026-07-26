@@ -1,7 +1,14 @@
 /*
  * Global readability rule for the game's night-mode interface.
- * Dark panels inherit light text unless a component deliberately supplies
- * a light control surface with its own dark text.
+ *
+ * Design rule:
+ * - Text rendered on dark game surfaces inherits a light foreground color.
+ * - Components that intentionally use a light control surface must explicitly
+ *   provide their own dark foreground color.
+ *
+ * Do not assign dark text to every button globally. Many creature cards,
+ * participant cards, list rows, tab controls, and other dark interactive
+ * surfaces are implemented as buttons.
  */
 main[class*="screen"],
 main[class*="emptyScreen"] {
@@ -24,13 +31,35 @@ main[class*="emptyScreen"] :where(p, li, dt, dd, em, small) {
   color: inherit;
 }
 
-/* Light buttons and form controls intentionally keep dark text. */
-main[class*="screen"] :where(button, select, option),
-main[class*="emptyScreen"] :where(button, select, option) {
+/*
+ * Interactive cards are frequently buttons. They must inherit the foreground
+ * selected by their dark card/panel instead of being forced to black.
+ * Light gold/cream buttons already declare their own dark color in their
+ * component styles, so those remain unchanged.
+ */
+main[class*="screen"] button,
+main[class*="emptyScreen"] button {
+  color: inherit;
+}
+
+main[class*="screen"] button :where(strong, span, em, b, small, p),
+main[class*="emptyScreen"] button :where(strong, span, em, b, small, p) {
+  color: inherit;
+}
+
+/* Native light select menus intentionally keep dark text. */
+main[class*="screen"] :where(select, option),
+main[class*="emptyScreen"] :where(select, option) {
   color: var(--color-text-dark, #241713);
 }
 
 main[class*="screen"] :where(input, textarea),
 main[class*="emptyScreen"] :where(input, textarea) {
   color: inherit;
+}
+
+main[class*="screen"] :where(input, textarea)::placeholder,
+main[class*="emptyScreen"] :where(input, textarea)::placeholder {
+  color: var(--color-text-muted, #d8c7a5);
+  opacity: 0.78;
 }
