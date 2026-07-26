@@ -70,6 +70,26 @@ function buildSuccessfulGeneticsSave(
   };
 }
 
+function resetReceiverStreaks(
+  save: GameSave,
+  receiverId: string,
+): GameSave {
+  if (!save.breeding) return save;
+
+  return {
+    ...save,
+    breeding: {
+      ...save.breeding,
+      streaks: save.breeding.streaks.map((record) =>
+        record.participantAId === receiverId ||
+        record.participantBId === receiverId
+          ? { ...record, streakCount: 0 }
+          : record,
+      ),
+    },
+  };
+}
+
 export function performBreedingAttempt(
   save: GameSave,
   giverId: string,
@@ -109,20 +129,24 @@ export function performBreedingAttempt(
       ? { ...pregnancy, inheritance }
       : pregnancy,
   );
+  const pregnancySave = resetReceiverStreaks(
+    { ...result.save, pregnancies },
+    receiverId,
+  );
 
   return {
     attempt: result.attempt,
     save: {
-      ...result.save,
-      pregnancies,
+      ...pregnancySave,
       flags: {
-        ...result.save.flags,
+        ...pregnancySave.flags,
         strategicGeneticsEnabled: true,
         weightedInheritanceEnabled: true,
         familyInheritanceBonusesEnabled: true,
         affectionInheritanceStabilityEnabled: true,
         pairStreakGeneticsEnabled: true,
         pairStreakResetsAfterPregnancy: true,
+        receiverPairStreaksResetAfterPregnancy: true,
         shinyBreedingOutcomesEnabled: true,
       },
     },
