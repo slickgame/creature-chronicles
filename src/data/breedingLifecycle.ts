@@ -1,18 +1,86 @@
 import * as core from "./breedingCore";
 import { getBreedingSceneImagePath } from "./breedingSceneImages";
 import { sanitizeImmediatePregnancyEggs } from "./nurseryLifecycle";
-import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
+import type {
+  BreedingAttemptRecord,
+  BreedingParticipant,
+  BreedingPreview,
+} from "@/types/breeding";
 import type { PregnancyId } from "@/types/ids";
 import type { GameSave, PregnancyRecord } from "@/types/save";
 
 export * from "./breedingCore";
 
+type DeliveryRecovery = {
+  deliveryDayNumber: number;
+  availableDayNumber: number;
+  reason: string;
+};
+
+function getPregnancyDeliveryDayNumber(
+  save: GameSave,
+  pregnancy: PregnancyRecord,
+): number {
+  const linkedEgg = (save.eggs ?? []).find((egg) =>
+    String(egg.eggId).includes(String(pregnancy.pregnancyId)),
+  );
+
+  if (linkedEgg) return linkedEgg.createdAtDayNumber;
+
+  return (
+    pregnancy.createdAtDayNumber + Math.max(1, pregnancy.totalDays || 1)
+  );
+}
+
+function getDeliveryRecovery(
+  save: GameSave,
+  participantId: string,
+): DeliveryRecovery | null {
+  const deliveryDays = (save.pregnancies ?? [])
+    .filter(
+      (pregnancy) =>
+        pregnancy.status === "delivered" &&
+        pregnancy.receiver.participantId === participantId,
+    )
+    .map((pregnancy) => getPregnancyDeliveryDayNumber(save, pregnancy));
+
+  if (!deliveryDays.length) return null;
+
+  const deliveryDayNumber = Math.max(...deliveryDays);
+  if (save.dayState.dayNumber !== deliveryDayNumber) return null;
+
+  const availableDayNumber = deliveryDayNumber + 1;
+  const participantName =
+    (save.creatures ?? []).find(
+      (creature) => creature.creatureId === participantId,
+    )?.nickname ?? "This receiver";
+
+  return {
+    deliveryDayNumber,
+    availableDayNumber,
+    reason: `${participantName} delivered an egg today and is recovering. Available tomorrow (Day ${availableDayNumber}).`,
+  };
+}
+
+export function getBreedingParticipants(save: GameSave): BreedingParticipant[] {
+  return core.getBreedingParticipants(save).map((participant) => {
+    const recovery = getDeliveryRecovery(save, participant.participantId);
+    if (!recovery) return participant;
+
+    return {
+      ...participant,
+      canBreed: false,
+      unavailableReason: recovery.reason,
+    };
+  });
+}
+
 function getReceiver(save: GameSave, receiverId: string | null) {
   if (!receiverId) return null;
   return (
-    core
-      .getBreedingParticipants(save)
-      .find((participant) => participant.participantId === receiverId) ?? null
+    getBreedingParticipants(save).find(
+      (participant) => participant.participantId === receiverId,
+    ) ?? null
   );
 }
 
@@ -119,6 +187,26 @@ export function getBreedingPreview(
     };
   }
 
+  const deliveryRecovery = getDeliveryRecovery(
+    cleanSave,
+    receiver.participantId,
+  );
+  if (deliveryRecovery) {
+    return {
+      ...preview,
+      pregnancyChance: 0,
+      canAttempt: false,
+      blockedReason: deliveryRecovery.reason,
+      receiverCanBecomePregnant: false,
+      receiverPregnant: false,
+      pregnancyBlockedReason: deliveryRecovery.reason,
+      readinessNotes: [
+        ...preview.readinessNotes.slice(0, 2),
+        deliveryRecovery.reason,
+      ],
+    };
+  }
+
   return preview;
 }
 
@@ -190,7 +278,7 @@ export function performBreedingAttempt(
   const preview = getBreedingPreview(cleanSave, giverId, receiverId);
   if (!preview || !preview.canAttempt) return null;
 
-  const participants = core.getBreedingParticipants(cleanSave);
+  const participants = getBreedingParticipants(cleanSave);
   const giver = participants.find((participant) => participant.participantId === giverId);
   const receiver = participants.find((participant) => participant.participantId === receiverId);
   if (!giver || !receiver) return null;
