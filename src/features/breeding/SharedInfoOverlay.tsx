@@ -25,7 +25,10 @@ function findParticipantDialog(names: Set<string>): HTMLElement | null {
   );
 }
 
-function prepareHost(dialog: HTMLElement): HTMLElement {
+function prepareHost(
+  dialog: HTMLElement,
+  compactHeader: boolean,
+): HTMLElement {
   let host = dialog.querySelector<HTMLElement>(
     '[data-shared-info-host="true"]',
   );
@@ -43,6 +46,17 @@ function prepareHost(dialog: HTMLElement): HTMLElement {
     if (element === host || element === header) return;
     element.style.display = "none";
   });
+
+  if (compactHeader && header) {
+    Array.from(header.children).forEach((child) => {
+      const element = child as HTMLElement;
+      if (element.tagName.toLowerCase() === "button") return;
+      element.style.display = "none";
+    });
+    header.style.display = "flex";
+    header.style.justifyContent = "flex-end";
+    header.style.minHeight = "0";
+  }
 
   return host;
 }
@@ -116,7 +130,7 @@ export function SharedInfoOverlay() {
       }
 
       setSelection(nextSelection);
-      setTarget(prepareHost(dialog));
+      setTarget(prepareHost(dialog, nextSelection.kind === "player"));
     }
 
     sync();
