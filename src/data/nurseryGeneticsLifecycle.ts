@@ -1,6 +1,7 @@
 import * as lifecycle from "./nurseryLifecycle";
+import { getCorrectOffspringGeneration } from "./geneticsBalance";
 import type { CreatureRecord } from "@/types/creature";
-import type { EggId } from "@/types/ids";
+import type { CreatureId, EggId } from "@/types/ids";
 import type { EggRecord, GameSave, PregnancyRecord } from "@/types/save";
 
 export * from "./nurseryLifecycle";
@@ -123,8 +124,14 @@ export function hatchEgg(
     egg?.shiny || egg?.lineageTraits?.some((trait) => trait === "Shiny"),
   );
   const geneticsNotes = egg?.geneticsNotes ?? [];
+  const parentCreatureIds = [
+    egg?.parents.giver.creatureId,
+    egg?.parents.receiver.creatureId,
+  ].filter(Boolean) as CreatureId[];
+  const generation = getCorrectOffspringGeneration(save, parentCreatureIds);
   const creature: CreatureRecord = {
     ...result.creature,
+    generation,
     shiny,
     lineage: result.creature.lineage
       ? {
@@ -144,6 +151,7 @@ export function hatchEgg(
     notes: [
       result.creature.notes,
       ...geneticsNotes,
+      `Generation ${generation} follows the highest tracked parent generation plus one.`,
       ...(shiny ? ["Rare shiny offspring."] : []),
     ]
       .filter(Boolean)
@@ -158,6 +166,7 @@ export function hatchEgg(
       flags: {
         ...updatedSave.flags,
         strategicOffspringHatched: true,
+        correctOffspringGenerationEnabled: true,
         lastHatchWasShiny: shiny,
       },
     },
