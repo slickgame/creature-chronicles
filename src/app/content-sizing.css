@@ -1,0 +1,130 @@
+/*
+ * CONTENT-AWARE UI SIZING CONTRACT
+ *
+ * Variable text must never be clipped by a decorative card, row, notice, or
+ * panel. New UI should use intrinsic height and allow text to wrap naturally.
+ *
+ * Preferred opt-in for new components:
+ *   className="uiAutoTextBox"
+ *   data-ui-text-box="auto"
+ *
+ * A genuinely fixed visual frame may opt out with:
+ *   data-ui-fixed-size="true"
+ *
+ * A deliberately single-line label may opt out with:
+ *   className="uiSingleLineText"
+ *   data-ui-text="single-line"
+ */
+
+/* Grid and flex children must be allowed to shrink before their text wraps. */
+main[class*="screen"] :where(article, section, aside, nav, header, footer, div, label, button),
+main[class*="emptyScreen"] :where(article, section, aside, nav, header, footer, div, label, button) {
+  min-width: 0;
+}
+
+/*
+ * Existing variable-content surfaces receive the same wrapping behavior
+ * retroactively. This is intentionally limited to text-bearing cards, boxes,
+ * rows, notices, messages, callouts, and status surfaces; artwork frames and
+ * full-screen viewport shells are not resized here.
+ */
+main[class*="screen"] :where(
+  article[class*="Card"], article[class*="card"],
+  button[class*="Card"], button[class*="card"],
+  div[class*="Box"], div[class*="box"],
+  section[class*="Box"], section[class*="box"],
+  div[class*="Notice"], div[class*="notice"],
+  section[class*="Notice"], section[class*="notice"],
+  div[class*="Callout"], div[class*="callout"],
+  section[class*="Callout"], section[class*="callout"],
+  div[class*="Message"], div[class*="message"],
+  section[class*="Message"], section[class*="message"],
+  article[class*="Row"], article[class*="row"],
+  div[class*="Status"], div[class*="status"],
+  section[class*="Status"], section[class*="status"]
+):not([data-ui-fixed-size="true"]),
+main[class*="emptyScreen"] :where(
+  article[class*="Card"], article[class*="card"],
+  button[class*="Card"], button[class*="card"],
+  div[class*="Box"], div[class*="box"],
+  section[class*="Box"], section[class*="box"],
+  div[class*="Notice"], div[class*="notice"],
+  section[class*="Notice"], section[class*="notice"],
+  div[class*="Callout"], div[class*="callout"],
+  section[class*="Callout"], section[class*="callout"],
+  div[class*="Message"], div[class*="message"],
+  section[class*="Message"], section[class*="message"],
+  article[class*="Row"], article[class*="row"],
+  div[class*="Status"], div[class*="status"],
+  section[class*="Status"], section[class*="status"]
+):not([data-ui-fixed-size="true"]) {
+  box-sizing: border-box;
+  min-height: min-content;
+}
+
+main[class*="screen"] :where(
+  article[class*="Card"], article[class*="card"],
+  button[class*="Card"], button[class*="card"],
+  div[class*="Box"], div[class*="box"],
+  section[class*="Box"], section[class*="box"],
+  div[class*="Notice"], div[class*="notice"],
+  section[class*="Notice"], section[class*="notice"],
+  div[class*="Callout"], div[class*="callout"],
+  section[class*="Callout"], section[class*="callout"],
+  div[class*="Message"], div[class*="message"],
+  section[class*="Message"], section[class*="message"],
+  article[class*="Row"], article[class*="row"],
+  div[class*="Status"], div[class*="status"],
+  section[class*="Status"], section[class*="status"]
+) :where(h1, h2, h3, h4, h5, h6, p, span, strong, em, small, li, dt, dd),
+main[class*="emptyScreen"] :where(
+  article[class*="Card"], article[class*="card"],
+  button[class*="Card"], button[class*="card"],
+  div[class*="Box"], div[class*="box"],
+  section[class*="Box"], section[class*="box"],
+  div[class*="Notice"], div[class*="notice"],
+  section[class*="Notice"], section[class*="notice"],
+  div[class*="Callout"], div[class*="callout"],
+  section[class*="Callout"], section[class*="callout"],
+  div[class*="Message"], div[class*="message"],
+  section[class*="Message"], section[class*="message"],
+  article[class*="Row"], article[class*="row"],
+  div[class*="Status"], div[class*="status"],
+  section[class*="Status"], section[class*="status"]
+) :where(h1, h2, h3, h4, h5, h6, p, span, strong, em, small, li, dt, dd) {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-overflow: clip;
+}
+
+/* Reusable rule for all new variable-content text boxes. */
+.uiAutoTextBox,
+[data-ui-text-box="auto"] {
+  box-sizing: border-box;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: min-content;
+  max-height: none;
+}
+
+.uiAutoTextBox :where(h1, h2, h3, h4, h5, h6, p, span, strong, em, small, li, dt, dd),
+[data-ui-text-box="auto"] :where(h1, h2, h3, h4, h5, h6, p, span, strong, em, small, li, dt, dd) {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  text-overflow: clip;
+}
+
+/* Explicit opt-out for labels that are intentionally kept to one line. */
+.uiSingleLineText,
+[data-ui-text="single-line"] {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
