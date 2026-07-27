@@ -66,8 +66,13 @@
   align-content: start !important;
 }
 
+/*
+ * Keep a small breathing margin while allowing longer pregnancy and role text
+ * to expand the card naturally. The previous larger minimums left a noticeable
+ * empty band beneath short records.
+ */
 .polishRoot :global([class*="creatureCard"]) {
-  min-height: 142px !important;
+  min-height: 126px !important;
   height: fit-content !important;
   block-size: fit-content !important;
   grid-template-rows: max-content !important;
@@ -78,7 +83,7 @@
 }
 
 .polishRoot :global([class*="detailedCard"]) {
-  min-height: 204px !important;
+  min-height: 184px !important;
 }
 
 .polishRoot :global([class*="creatureCard"]:hover) {
@@ -88,11 +93,11 @@
 
 .polishRoot :global([class*="cardMain"]) {
   min-width: 0 !important;
-  min-height: 100% !important;
+  min-height: 0 !important;
   height: auto !important;
-  align-self: stretch !important;
+  align-self: start !important;
   align-items: start !important;
-  padding: 8px 8px 12px !important;
+  padding: 8px 8px 8px !important;
   box-sizing: border-box !important;
 }
 
@@ -100,7 +105,7 @@
   min-width: 0 !important;
   height: auto !important;
   overflow: visible !important;
-  padding-bottom: 4px !important;
+  padding-bottom: 1px !important;
   line-height: 1.18 !important;
 }
 
@@ -116,8 +121,8 @@
 }
 
 .polishRoot :global([class*="cardText"] small) {
-  min-height: 1.25em !important;
-  margin-bottom: 2px !important;
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
 }
 
 .polishRoot :global([class*="cardMetrics"]) {
@@ -146,8 +151,10 @@
 }
 
 .polishRoot :global([class*="cardIcons"]) {
-  min-height: 100% !important;
-  padding: 8px 7px 8px 0 !important;
+  min-height: 0 !important;
+  height: fit-content !important;
+  align-self: start !important;
+  padding: 8px 7px 6px 0 !important;
 }
 
 /* Give the selected profile all remaining workspace height. */
