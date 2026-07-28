@@ -1,4 +1,5 @@
 import * as core from "./localSave";
+import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
 import { normalizeCreatureManagementMetadata } from "@/data/creatureManagement";
 import { normalizeTrackedCreatureGenerations } from "@/data/generationMigration";
 import type { GameSave } from "@/types/save";
@@ -6,8 +7,10 @@ import type { GameSave } from "@/types/save";
 export * from "./localSave";
 
 function normalizeSave(save: GameSave): GameSave {
-  return normalizeCreatureManagementMetadata(
-    normalizeTrackedCreatureGenerations(save),
+  return normalizeBreedingRecords(
+    normalizeCreatureManagementMetadata(
+      normalizeTrackedCreatureGenerations(save),
+    ),
   );
 }
 
