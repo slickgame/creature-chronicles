@@ -1,10 +1,45 @@
-import type { BreedingAttemptId, CreatureId } from "./ids";
-import type { CreatureAbility, CreatureStats, StatGrades } from "./creature";
+import type {
+  BreedingAttemptId,
+  CreatureId,
+  PregnancyId,
+  SpeciesId,
+  VariantId,
+} from "./ids";
+import type {
+  CreatureAbility,
+  CreatureSex,
+  CreatureStats,
+  StatGrades,
+} from "./creature";
 
 export type BreedingRole = "giver" | "receiver";
 export type BreedingParticipantKind = "player" | "creature";
 export type BreedingOutcomeType = "pregnancy" | "failed";
-export type BreedingSceneFamily = "player" | "feline" | "canine" | "bovine" | "lapine" | "equine" | "unknown";
+export type BreedingSceneFamily =
+  | "player"
+  | "feline"
+  | "canine"
+  | "bovine"
+  | "lapine"
+  | "equine"
+  | "unknown";
+export type BreedingRecordRarity = "Common" | "Uncommon" | "Rare" | "Epic";
+
+export type BreedingParticipantSnapshot = {
+  participantId: string;
+  creatureId?: CreatureId;
+  kind: BreedingParticipantKind;
+  displayName: string;
+  family: BreedingSceneFamily;
+  speciesId?: SpeciesId;
+  speciesName?: string;
+  variantId?: VariantId;
+  variantName?: string;
+  rarity?: BreedingRecordRarity;
+  sex?: CreatureSex;
+  shiny?: boolean;
+  portraitPath: string;
+};
 
 export type BreedingProgressionEvent = {
   participantId: string;
@@ -71,6 +106,9 @@ export type BreedingAttemptRecord = {
   receiverName: string;
   giverFamily: BreedingSceneFamily;
   receiverFamily: BreedingSceneFamily;
+  giverSnapshot?: BreedingParticipantSnapshot;
+  receiverSnapshot?: BreedingParticipantSnapshot;
+  pregnancyId?: PregnancyId;
   pregnancyChance: number;
   energyCost: number;
   heartCost: number;
