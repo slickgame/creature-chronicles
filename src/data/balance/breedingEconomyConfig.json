@@ -1,0 +1,31 @@
+{
+  "basePregnancyChance": 12,
+  "pregnancyChanceCap": 90,
+  "pairStreakBonusPerFailure": 3,
+  "pairStreakBonusCap": 15,
+  "baseEnergyCost": 35,
+  "minimumEnergyCost": 12,
+  "maximumEnergyDiscount": 22,
+  "creatureHeartCost": 1,
+  "playerHeartCost": 2,
+  "energySnackRestore": 12,
+  "energySnackPrice": 90,
+  "fertilityTonicBonus": 12,
+  "fertilityTonicPrice": 180,
+  "defaultPregnancyDays": 3,
+  "defaultEggDays": 2,
+  "creatureXpBase": 45,
+  "creatureXpPerLevel": 30,
+  "breederXpBase": 70,
+  "breederXpPerRank": 45,
+  "simulationSafetyAttemptsPerDay": 60,
+  "reviewThresholds": {
+    "energyLimitedDayRateLow": 0.05,
+    "unusedEnergyRateHigh": 0.45,
+    "heartLimitedDayRateHigh": 0.2,
+    "abilityOutputDeltaHigh": 0.2,
+    "pregnancyRateLow": 0.15,
+    "pregnancyRateHigh": 0.6,
+    "offspringDaysHigh": 12
+  }
+}
