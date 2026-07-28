@@ -10,6 +10,12 @@ function findPregnancyForEgg(
   pregnancies: PregnancyRecord[],
   egg: EggRecord,
 ): PregnancyRecord | null {
+  if (egg.sourcePregnancyId) {
+    const linked = pregnancies.find(
+      (pregnancy) => pregnancy.pregnancyId === egg.sourcePregnancyId,
+    );
+    if (linked) return linked;
+  }
   return (
     pregnancies.find((pregnancy) =>
       String(egg.eggId).includes(String(pregnancy.pregnancyId)),
@@ -49,6 +55,11 @@ function enrichNewEggsWithGenetics(
 
     return {
       ...egg,
+      sourceAttemptId: pregnancy.sourceAttemptId,
+      sourcePregnancyId: pregnancy.pregnancyId,
+      parents: pregnancy.giver && pregnancy.receiver
+        ? { giver: pregnancy.giver, receiver: pregnancy.receiver }
+        : egg.parents,
       shiny,
       geneticsNotes,
       statRollNotes,
@@ -65,6 +76,7 @@ function enrichNewEggsWithGenetics(
     flags: {
       ...nextSave.flags,
       strategicEggGeneticsPersisted: true,
+      breedingLifecycleLinksEnabled: true,
     },
   };
 }
@@ -97,6 +109,7 @@ export function advanceNurseryDay(save: GameSave): {
 function replaceHatchedCreature(
   save: GameSave,
   creature: CreatureRecord,
+  egg?: EggRecord,
 ): GameSave {
   return {
     ...save,
@@ -105,7 +118,13 @@ function replaceHatchedCreature(
     ),
     birthHistory: (save.birthHistory ?? []).map((record) =>
       record.creatureId === creature.creatureId
-        ? { ...record, shiny: creature.shiny }
+        ? {
+            ...record,
+            sourceAttemptId: egg?.sourceAttemptId ?? record.sourceAttemptId,
+            sourcePregnancyId:
+              egg?.sourcePregnancyId ?? record.sourcePregnancyId,
+            shiny: creature.shiny,
+          }
         : record,
     ),
   };
@@ -157,7 +176,7 @@ export function hatchEgg(
       .filter(Boolean)
       .join(" "),
   };
-  const updatedSave = replaceHatchedCreature(result.save, creature);
+  const updatedSave = replaceHatchedCreature(result.save, creature, egg);
 
   return {
     creature,
@@ -168,6 +187,7 @@ export function hatchEgg(
         strategicOffspringHatched: true,
         correctOffspringGenerationEnabled: true,
         lastHatchWasShiny: shiny,
+        breedingLifecycleLinksEnabled: true,
       },
     },
   };
