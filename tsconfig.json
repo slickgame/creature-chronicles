@@ -15,8 +15,9 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
+      "@/data/breedingRecords": ["./src/data/breedingRecordsSafe"],
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
-      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenQoL"],
+      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenLedger"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
       "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenPolished"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
