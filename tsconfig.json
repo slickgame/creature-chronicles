@@ -19,9 +19,10 @@
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenLedger"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
-      "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenPolished"],
+      "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenLedger"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
       "@/features/inventory/PlayerInventoryMenu": ["./src/features/inventory/PlayerInventoryMenuManaged"],
+      "@/features/nursery/NurseryScreen": ["./src/features/nursery/NurseryScreenLedger"],
       "@/lib/save/localSave": ["./src/lib/save/localSaveLifecycle"],
       "@/*": ["./src/*"]
     },
