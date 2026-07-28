@@ -18,6 +18,29 @@ export function getAttemptOffspring(
   });
 }
 
-// Keep an explicit reference so tree-shaking never drops the underlying module
-// in environments that inspect only named re-exports during development.
-export const BREEDING_RECORDS_MODULE_READY = Boolean(records.getBreedingLedgerOverview);
+export function getBreedingLedgerOverview(
+  save: GameSave,
+): records.BreedingLedgerOverview {
+  const overview = records.getBreedingLedgerOverview(save);
+  return {
+    ...overview,
+    mostSuccessfulPair:
+      overview.mostSuccessfulPair?.successfulPregnancies
+        ? overview.mostSuccessfulPair
+        : null,
+    mostProlificCreature:
+      overview.mostProlificCreature &&
+      (overview.mostProlificCreature.hatchedOffspring > 0 ||
+        overview.mostProlificCreature.successfulPregnancies > 0)
+        ? overview.mostProlificCreature
+        : null,
+    longestPairStreak:
+      overview.longestPairStreak?.longestStreak
+        ? overview.longestPairStreak
+        : null,
+  };
+}
+
+export const BREEDING_RECORDS_MODULE_READY = Boolean(
+  records.getBreedingLedgerOverview,
+);
