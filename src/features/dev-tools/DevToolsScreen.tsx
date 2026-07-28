@@ -1,31 +1,76 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { createDevCreature, createDevEgg, grantDevResources, resetDevGuild, resetDevMarket, resetDevRanchUpgrades } from "@/data/devTools";
+import {
+  createDevCreature,
+  createDevEgg,
+  grantDevResources,
+  resetDevGuild,
+  resetDevMarket,
+  resetDevRanchUpgrades,
+} from "@/data/devTools";
 import { getAllCreatureVariants } from "@/data/creatures";
-import { getRanchUpgradeEffects, getTotalRanchUpgradeTiers } from "@/data/ranchUpgrades";
-import { getTownUpgradeEffects, getTotalTownUpgradeTiers } from "@/data/upgrades";
+import {
+  getRanchUpgradeEffects,
+  getTotalRanchUpgradeTiers,
+} from "@/data/ranchUpgrades";
+import {
+  getTownUpgradeEffects,
+  getTotalTownUpgradeTiers,
+} from "@/data/upgrades";
 import { formatEnergy, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
-import type { GameSave } from "@/types/save";
 import type { VariantId } from "@/types/ids";
+import type { GameSave } from "@/types/save";
+import { BalanceLabPanel } from "./BalanceLabPanel";
 import styles from "./DevToolsScreen.module.css";
 
-type DevTab = "resources" | "spawns" | "resets" | "save-json" | "debug";
-const TABS: Array<{ id: DevTab; label: string }> = [{ id: "resources", label: "Resources" }, { id: "spawns", label: "Add Test Data" }, { id: "resets", label: "Reset Tools" }, { id: "save-json", label: "Save JSON" }, { id: "debug", label: "Debug Display" }];
-function downloadTextFile(filename: string, content: string) { const blob = new Blob([content], { type: "application/json" }); const url = URL.createObjectURL(blob); const anchor = document.createElement("a"); anchor.href = url; anchor.download = filename; anchor.click(); URL.revokeObjectURL(url); }
+type DevTab =
+  | "resources"
+  | "spawns"
+  | "resets"
+  | "balance"
+  | "save-json"
+  | "debug";
+
+type ResetType = "market" | "guild" | "ranch";
+
+const TABS: Array<{ id: DevTab; label: string }> = [
+  { id: "resources", label: "Resources" },
+  { id: "spawns", label: "Add Test Data" },
+  { id: "resets", label: "Reset Tools" },
+  { id: "balance", label: "Balance Lab" },
+  { id: "save-json", label: "Save JSON" },
+  { id: "debug", label: "Debug Display" },
+];
+
+function downloadTextFile(filename: string, content: string) {
+  const blob = new Blob([content], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
 
 export function DevToolsScreen() {
-  const { currentSave, goToMainMenu, goToRanch, saveCurrentGame, version } = useGameContext();
+  const {
+    currentSave,
+    goToMainMenu,
+    goToRanch,
+    saveCurrentGame,
+    version,
+  } = useGameContext();
   const [tab, setTab] = useState<DevTab>("resources");
-  const [message, setMessage] = useState("M13 Dev Tools support all creature content-pack variants.");
+  const [message, setMessage] = useState("Developer tools are ready. Balance Lab simulations never change the active save.");
   const [selectedVariantId, setSelectedVariantId] = useState<VariantId>("variant_base_feline" as VariantId);
   const [readyEgg, setReadyEgg] = useState(true);
   const [goldAmount, setGoldAmount] = useState(1000);
   const [gpAmount, setGpAmount] = useState(25);
   const [energyAmount, setEnergyAmount] = useState(100);
   const [jsonText, setJsonText] = useState("");
-  const [confirmReset, setConfirmReset] = useState<"market" | "guild" | "ranch" | null>(null);
+  const [confirmReset, setConfirmReset] = useState<ResetType | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const variants = useMemo(() => getAllCreatureVariants(), []);
   const selectedVariant = variants.find((variant) => variant.variantId === selectedVariantId) ?? variants[0];
@@ -33,19 +78,294 @@ export function DevToolsScreen() {
   const townEffects = currentSave ? getTownUpgradeEffects(currentSave) : null;
   const totalRanchUpgrades = currentSave ? getTotalRanchUpgradeTiers(currentSave) : 0;
   const totalTownUpgrades = currentSave ? getTotalTownUpgradeTiers(currentSave) : 0;
-  if (!currentSave || !selectedVariant) return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before opening the M13 Dev Tools.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
+
+  if (!currentSave || !selectedVariant) {
+    return (
+      <main className={styles.emptyScreen}>
+        <section className={styles.emptyPanel}>
+          <h1>No active save</h1>
+          <p>Load or create a save before opening Developer Tools.</p>
+          <button type="button" onClick={goToMainMenu}>Return to Main Menu</button>
+        </section>
+      </main>
+    );
+  }
 
   const activeSave = currentSave;
-  function applyResult(result: { save: GameSave; ok: boolean; message: string }) { if (result.ok) saveCurrentGame(result.save); setMessage(result.message); }
-  function handleGrantResources() { applyResult(grantDevResources(activeSave, { gold: goldAmount, guildPoints: gpAmount, energy: energyAmount })); }
-  function handleAddCreature() { applyResult(createDevCreature(activeSave, selectedVariant.variantId)); }
-  function handleAddEgg() { applyResult(createDevEgg(activeSave, selectedVariant.variantId, readyEgg)); }
-  function handleReset(type: "market" | "guild" | "ranch") { if (type === "market") applyResult(resetDevMarket(activeSave)); if (type === "guild") applyResult(resetDevGuild(activeSave)); if (type === "ranch") applyResult(resetDevRanchUpgrades(activeSave)); setConfirmReset(null); }
-  function handleCopyJson() { const text = JSON.stringify(activeSave, null, 2); setJsonText(text); void navigator.clipboard?.writeText(text).then(() => setMessage("Save JSON copied to clipboard.")); }
-  function handleDownloadJson() { downloadTextFile(`${activeSave.player.name || "creature-chronicles"}-save-${activeSave.slotIndex}.json`, JSON.stringify(activeSave, null, 2)); setMessage("Save JSON downloaded."); }
-  function handleImportJson() { try { const parsed = JSON.parse(jsonText) as GameSave; if (!parsed.saveId || parsed.slotIndex === undefined || !parsed.player || !parsed.currencies) { setMessage("Import failed: JSON does not look like a Creature Chronicles save."); return; } const imported = saveCurrentGame({ ...parsed, updatedAt: new Date().toISOString(), flags: { ...parsed.flags, m12ImportedFromJson: true } }); setMessage(`Imported save for ${imported.player.name}.`); } catch { setMessage("Import failed: invalid JSON."); } }
-  function handleFileImport(file: File | null) { if (!file) return; const reader = new FileReader(); reader.onload = () => setJsonText(String(reader.result ?? "")); reader.readAsText(file); }
   const activeEggs = (activeSave.eggs ?? []).filter((egg) => egg.status !== "hatched").length;
 
-  return <main className={styles.screen}><section className={styles.frame}><header className={styles.header}><div><p className={styles.kicker}>M13 Dev / Balance Tools</p><h1>Dev Tools</h1><p>Use this panel to speed up testing. Most actions change the active save immediately.</p><p className={styles.message}>{message}</p></div><div className={styles.headerActions}><button type="button" className={styles.secondaryButton} onClick={goToRanch}>Back to Ranch</button><button type="button" onClick={goToMainMenu}>Main Menu</button></div></header><section className={styles.grid}><aside className={styles.panel}><h2>Tool Tabs</h2><div className={styles.tabs}>{TABS.map((item) => <button key={item.id} type="button" className={`${styles.tabButton} ${tab === item.id ? styles.active : ""}`} onClick={() => setTab(item.id)}>{item.label}</button>)}</div><div className={styles.toolSection}><div className={styles.statCard}><span>Save Slot</span><strong>{activeSave.slotIndex + 1}</strong></div><div className={styles.statCard}><span>Player</span><strong>{activeSave.player.name}</strong></div><div className={styles.statCard}><span>Version</span><strong>{version}</strong></div></div></aside><section className={styles.panel}>{tab === "resources" ? <div><h2>Resource Grants</h2><p>Add or subtract Gold, GP, and energy for quick economy testing.</p><div className={styles.toolSection}><label className={styles.toolRow}><span><span className={styles.smallLabel}>Gold Delta</span><input type="number" value={goldAmount} onChange={(event) => setGoldAmount(Number(event.target.value))} /></span></label><label className={styles.toolRow}><span><span className={styles.smallLabel}>GP Delta</span><input type="number" value={gpAmount} onChange={(event) => setGpAmount(Number(event.target.value))} /></span></label><label className={styles.toolRow}><span><span className={styles.smallLabel}>Energy Delta</span><input type="number" value={energyAmount} onChange={(event) => setEnergyAmount(Number(event.target.value))} /></span></label><div className={styles.buttonRow}><button type="button" className={styles.primaryButton} onClick={handleGrantResources}>Apply Resource Grant</button></div></div></div> : null}{tab === "spawns" ? <div><h2>Add Test Creature / Egg</h2><p>Select any M13 variant, then add a creature directly to its habitat or an egg to the nursery.</p><div className={styles.variantList}>{variants.map((variant) => <button key={variant.variantId} type="button" className={`${styles.variantButton} ${selectedVariantId === variant.variantId ? styles.active : ""}`} onClick={() => setSelectedVariantId(variant.variantId)}><img src={variant.portraitPath} alt="" /><div><strong>{variant.name}</strong><span>{variant.family} • {variant.rarity}</span></div></button>)}</div><div className={styles.toolSection}><label className={styles.toolRow}><span><span className={styles.smallLabel}>Egg State</span><select value={readyEgg ? "ready" : "incubating"} onChange={(event) => setReadyEgg(event.target.value === "ready")}><option value="ready">Ready to hatch</option><option value="incubating">Incubating</option></select></span></label><div className={styles.buttonRow}><button type="button" className={styles.primaryButton} onClick={handleAddCreature}>Add Test Creature</button><button type="button" className={styles.secondaryButton} onClick={handleAddEgg}>Add Test Egg</button></div></div></div> : null}{tab === "resets" ? <div><h2>Reset Tools</h2><p>Reset generated weekly systems or ranch upgrades for testing. These actions ask for confirmation.</p><div className={styles.toolSection}><div className={styles.notice}><strong>Market Reset</strong><p>Refreshes market listings using current town upgrade effects.</p><button type="button" className={styles.secondaryButton} onClick={() => setConfirmReset("market")}>Reset Market</button></div><div className={styles.notice}><strong>Guild Reset</strong><p>Refreshes guild contracts using current request board upgrade effects.</p><button type="button" className={styles.secondaryButton} onClick={() => setConfirmReset("guild")}>Reset Guild Contracts</button></div><div className={styles.notice}><strong>Ranch Upgrade Reset</strong><p>Returns ranch upgrades to Tier 0 and reapplies base habitat capacity.</p><button type="button" className={styles.dangerButton} onClick={() => setConfirmReset("ranch")}>Reset Ranch Upgrades</button></div></div></div> : null}{tab === "save-json" ? <div><h2>Export / Import Save JSON</h2><p>Copy, download, paste, or upload save JSON. Import replaces the active save slot.</p><div className={styles.buttonRow}><button type="button" className={styles.secondaryButton} onClick={handleCopyJson}>Copy Current Save</button><button type="button" className={styles.secondaryButton} onClick={handleDownloadJson}>Download JSON</button><button type="button" className={styles.secondaryButton} onClick={() => fileInputRef.current?.click()}>Upload JSON</button></div><input ref={fileInputRef} className={styles.fileInput} type="file" accept="application/json,.json" onChange={(event) => handleFileImport(event.target.files?.[0] ?? null)} hidden /><div className={styles.toolSection}><textarea value={jsonText} onChange={(event) => setJsonText(event.target.value)} placeholder="Paste save JSON here, or click Copy Current Save." /><button type="button" className={styles.dangerButton} onClick={handleImportJson}>Import JSON Into Active Slot</button></div></div> : null}{tab === "debug" ? <div><h2>Calculated Debug Display</h2><p>Review calculated capacities, bonuses, and generated state counts.</p><div className={styles.debugGrid}><div className={styles.debugCard}><span>Creatures</span><strong>{activeSave.creatures?.length ?? 0}</strong></div><div className={styles.debugCard}><span>Eggs</span><strong>{activeEggs}</strong></div><div className={styles.debugCard}><span>Pregnancies</span><strong>{activeSave.pregnancies?.filter((item) => item.status === "pregnant").length ?? 0}</strong></div>{(activeSave.habitats ?? []).map((habitat) => <div key={habitat.habitatId} className={styles.debugCard}><span>{habitat.name}</span><strong>{habitat.creatureIds.length} / {habitat.capacity}</strong></div>)}<div className={styles.debugCard}><span>Market Listings</span><strong>{activeSave.market?.listings.length ?? 0}</strong></div><div className={styles.debugCard}><span>Guild Contracts</span><strong>{activeSave.guild?.contracts.length ?? 0}</strong></div><div className={styles.debugCard}><span>Town Upgrades</span><strong>{totalTownUpgrades}</strong></div><div className={styles.debugCard}><span>Ranch Upgrades</span><strong>{totalRanchUpgrades}</strong></div><div className={styles.debugCard}><span>Market Target</span><strong>{townEffects?.marketListingCount ?? 0}</strong></div><div className={styles.debugCard}><span>Board Target</span><strong>{townEffects?.guildContractCount ?? 0}</strong></div><div className={styles.debugCard}><span>Nursery Capacity</span><strong>{ranchEffects?.nurseryEggCapacity ?? 0}</strong></div><div className={styles.debugCard}><span>Breed Chance Bonus</span><strong>+{ranchEffects?.breedingPregnancyBonus ?? 0}%</strong></div><div className={styles.debugCard}><span>Breed XP Bonus</span><strong>+{ranchEffects?.breedingXpBonus ?? 0}</strong></div><div className={styles.debugCard}><span>Breed Energy Discount</span><strong>-{ranchEffects?.breedingEnergyDiscount ?? 0}</strong></div></div></div> : null}</section><aside className={styles.panel}><h2>Active Save</h2><div className={styles.resourceGrid}><div className={styles.resourceCard}><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div><div className={styles.resourceCard}><span>GP</span><strong>{formatGuildPoints(activeSave.currencies.guildPoints)}</strong></div><div className={styles.resourceCard}><span>Energy</span><strong>{formatEnergy(activeSave.currencies.energy, activeSave.currencies.maxEnergy)}</strong></div><div className={styles.resourceCard}><span>Day</span><strong>{activeSave.dayState.weekday} {activeSave.dayState.month}/{activeSave.dayState.dayOfMonth}</strong></div></div><div className={styles.notice}><strong>Selected Variant</strong><p>{selectedVariant.name} • {selectedVariant.family} • {selectedVariant.rarity}</p><img src={selectedVariant.profilePath} alt="" style={{ width: "100%", maxHeight: 260, objectFit: "contain" }} /></div></aside></section>{confirmReset ? <div className={styles.modalBackdrop} role="presentation" onClick={() => setConfirmReset(null)}><section className={styles.modal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}><p className={styles.kicker}>Confirm Reset</p><h2>Reset {confirmReset === "market" ? "Market" : confirmReset === "guild" ? "Guild Contracts" : "Ranch Upgrades"}?</h2><p>This action changes the active save immediately.</p><div className={styles.buttonRow}><button type="button" className={styles.secondaryButton} onClick={() => setConfirmReset(null)}>Cancel</button><button type="button" className={confirmReset === "ranch" ? styles.dangerButton : styles.primaryButton} onClick={() => handleReset(confirmReset)}>Confirm Reset</button></div></section></div> : null}</section></main>;
+  function applyResult(result: { save: GameSave; ok: boolean; message: string }) {
+    if (result.ok) saveCurrentGame(result.save);
+    setMessage(result.message);
+  }
+
+  function handleGrantResources() {
+    applyResult(grantDevResources(activeSave, {
+      gold: goldAmount,
+      guildPoints: gpAmount,
+      energy: energyAmount,
+    }));
+  }
+
+  function handleAddCreature() {
+    applyResult(createDevCreature(activeSave, selectedVariant.variantId));
+  }
+
+  function handleAddEgg() {
+    applyResult(createDevEgg(activeSave, selectedVariant.variantId, readyEgg));
+  }
+
+  function handleReset(type: ResetType) {
+    if (type === "market") applyResult(resetDevMarket(activeSave));
+    if (type === "guild") applyResult(resetDevGuild(activeSave));
+    if (type === "ranch") applyResult(resetDevRanchUpgrades(activeSave));
+    setConfirmReset(null);
+  }
+
+  function handleCopyJson() {
+    const text = JSON.stringify(activeSave, null, 2);
+    setJsonText(text);
+    void navigator.clipboard?.writeText(text).then(() => setMessage("Save JSON copied to clipboard."));
+  }
+
+  function handleDownloadJson() {
+    downloadTextFile(
+      `${activeSave.player.name || "creature-chronicles"}-save-${activeSave.slotIndex}.json`,
+      JSON.stringify(activeSave, null, 2),
+    );
+    setMessage("Save JSON downloaded.");
+  }
+
+  function handleImportJson() {
+    try {
+      const parsed = JSON.parse(jsonText) as GameSave;
+      if (!parsed.saveId || parsed.slotIndex === undefined || !parsed.player || !parsed.currencies) {
+        setMessage("Import failed: JSON does not look like a Creature Chronicles save.");
+        return;
+      }
+      const imported = saveCurrentGame({
+        ...parsed,
+        updatedAt: new Date().toISOString(),
+        flags: { ...parsed.flags, m12ImportedFromJson: true },
+      });
+      setMessage(`Imported save for ${imported.player.name}.`);
+    } catch {
+      setMessage("Import failed: invalid JSON.");
+    }
+  }
+
+  function handleFileImport(file: File | null) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setJsonText(String(reader.result ?? ""));
+    reader.readAsText(file);
+  }
+
+  return (
+    <main className={styles.screen}>
+      <section className={styles.frame}>
+        <header className={styles.header}>
+          <div>
+            <p className={styles.kicker}>Developer and Balance Tools</p>
+            <h1>Dev Tools</h1>
+            <p>Save-changing utilities remain separate from the read-only Balance Lab.</p>
+            <p className={styles.message}>{message}</p>
+          </div>
+          <div className={styles.headerActions}>
+            <button type="button" className={styles.secondaryButton} onClick={goToRanch}>Back to Ranch</button>
+            <button type="button" onClick={goToMainMenu}>Main Menu</button>
+          </div>
+        </header>
+
+        <section className={styles.grid}>
+          <aside className={styles.panel}>
+            <h2>Tool Tabs</h2>
+            <div className={styles.tabs}>
+              {TABS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`${styles.tabButton} ${tab === item.id ? styles.active : ""}`}
+                  onClick={() => setTab(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className={styles.toolSection}>
+              <div className={styles.statCard}><span>Save Slot</span><strong>{activeSave.slotIndex + 1}</strong></div>
+              <div className={styles.statCard}><span>Player</span><strong>{activeSave.player.name}</strong></div>
+              <div className={styles.statCard}><span>Version</span><strong>{version}</strong></div>
+            </div>
+          </aside>
+
+          <section className={styles.panel}>
+            {tab === "resources" ? (
+              <div>
+                <h2>Resource Grants</h2>
+                <p>Add or subtract Gold, GP, and Energy for quick economy testing.</p>
+                <div className={styles.toolSection}>
+                  <label className={styles.toolRow}>
+                    <span><span className={styles.smallLabel}>Gold Delta</span><input type="number" value={goldAmount} onChange={(event) => setGoldAmount(Number(event.target.value))} /></span>
+                  </label>
+                  <label className={styles.toolRow}>
+                    <span><span className={styles.smallLabel}>GP Delta</span><input type="number" value={gpAmount} onChange={(event) => setGpAmount(Number(event.target.value))} /></span>
+                  </label>
+                  <label className={styles.toolRow}>
+                    <span><span className={styles.smallLabel}>Energy Delta</span><input type="number" value={energyAmount} onChange={(event) => setEnergyAmount(Number(event.target.value))} /></span>
+                  </label>
+                  <div className={styles.buttonRow}>
+                    <button type="button" className={styles.primaryButton} onClick={handleGrantResources}>Apply Resource Grant</button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === "spawns" ? (
+              <div>
+                <h2>Add Test Creature / Egg</h2>
+                <p>Select any content-pack variant, then add a creature to its habitat or an egg to the Nursery.</p>
+                <div className={styles.variantList}>
+                  {variants.map((variant) => (
+                    <button
+                      key={variant.variantId}
+                      type="button"
+                      className={`${styles.variantButton} ${selectedVariantId === variant.variantId ? styles.active : ""}`}
+                      onClick={() => setSelectedVariantId(variant.variantId)}
+                    >
+                      <img src={variant.portraitPath} alt="" />
+                      <div><strong>{variant.name}</strong><span>{variant.family} • {variant.rarity}</span></div>
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.toolSection}>
+                  <label className={styles.toolRow}>
+                    <span>
+                      <span className={styles.smallLabel}>Egg State</span>
+                      <select value={readyEgg ? "ready" : "incubating"} onChange={(event) => setReadyEgg(event.target.value === "ready")}>
+                        <option value="ready">Ready to hatch</option>
+                        <option value="incubating">Incubating</option>
+                      </select>
+                    </span>
+                  </label>
+                  <div className={styles.buttonRow}>
+                    <button type="button" className={styles.primaryButton} onClick={handleAddCreature}>Add Test Creature</button>
+                    <button type="button" className={styles.secondaryButton} onClick={handleAddEgg}>Add Test Egg</button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === "resets" ? (
+              <div>
+                <h2>Reset Tools</h2>
+                <p>Reset generated systems or Ranch upgrades. These actions ask for confirmation.</p>
+                <div className={styles.toolSection}>
+                  <div className={styles.notice} data-ui-text-box="auto">
+                    <strong>Market Reset</strong>
+                    <p>Refreshes Market listings using current Town upgrade effects.</p>
+                    <button type="button" className={styles.secondaryButton} onClick={() => setConfirmReset("market")}>Reset Market</button>
+                  </div>
+                  <div className={styles.notice} data-ui-text-box="auto">
+                    <strong>Guild Reset</strong>
+                    <p>Refreshes Guild contracts using current request-board effects.</p>
+                    <button type="button" className={styles.secondaryButton} onClick={() => setConfirmReset("guild")}>Reset Guild Contracts</button>
+                  </div>
+                  <div className={styles.notice} data-ui-text-box="auto">
+                    <strong>Ranch Upgrade Reset</strong>
+                    <p>Returns Ranch upgrades to Tier 0 and reapplies base habitat capacity.</p>
+                    <button type="button" className={styles.dangerButton} onClick={() => setConfirmReset("ranch")}>Reset Ranch Upgrades</button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === "balance" ? <BalanceLabPanel save={activeSave} /> : null}
+
+            {tab === "save-json" ? (
+              <div>
+                <h2>Export / Import Save JSON</h2>
+                <p>Copy, download, paste, or upload save JSON. Import replaces the active save slot.</p>
+                <div className={styles.buttonRow}>
+                  <button type="button" className={styles.secondaryButton} onClick={handleCopyJson}>Copy Current Save</button>
+                  <button type="button" className={styles.secondaryButton} onClick={handleDownloadJson}>Download JSON</button>
+                  <button type="button" className={styles.secondaryButton} onClick={() => fileInputRef.current?.click()}>Upload JSON</button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  className={styles.fileInput}
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={(event) => handleFileImport(event.target.files?.[0] ?? null)}
+                  hidden
+                />
+                <div className={styles.toolSection}>
+                  <textarea className={styles.jsonBox} value={jsonText} onChange={(event) => setJsonText(event.target.value)} placeholder="Paste save JSON here, or click Copy Current Save." />
+                  <button type="button" className={styles.dangerButton} onClick={handleImportJson}>Import JSON Into Active Slot</button>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === "debug" ? (
+              <div>
+                <h2>Calculated Debug Display</h2>
+                <p>Review calculated capacities, bonuses, and generated state counts.</p>
+                <div className={styles.debugGrid}>
+                  <div className={styles.debugCard}><span>Creatures</span><strong>{activeSave.creatures?.length ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Eggs</span><strong>{activeEggs}</strong></div>
+                  <div className={styles.debugCard}><span>Pregnancies</span><strong>{activeSave.pregnancies?.filter((item) => item.status === "pregnant").length ?? 0}</strong></div>
+                  {(activeSave.habitats ?? []).map((habitat) => <div key={habitat.habitatId} className={styles.debugCard}><span>{habitat.name}</span><strong>{habitat.creatureIds.length} / {habitat.capacity}</strong></div>)}
+                  <div className={styles.debugCard}><span>Market Listings</span><strong>{activeSave.market?.listings.length ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Guild Contracts</span><strong>{activeSave.guild?.contracts.length ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Town Upgrades</span><strong>{totalTownUpgrades}</strong></div>
+                  <div className={styles.debugCard}><span>Ranch Upgrades</span><strong>{totalRanchUpgrades}</strong></div>
+                  <div className={styles.debugCard}><span>Market Target</span><strong>{townEffects?.marketListingCount ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Board Target</span><strong>{townEffects?.guildContractCount ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Nursery Capacity</span><strong>{ranchEffects?.nurseryEggCapacity ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Breed Chance Bonus</span><strong>+{ranchEffects?.breedingPregnancyBonus ?? 0}%</strong></div>
+                  <div className={styles.debugCard}><span>Breed XP Bonus</span><strong>+{ranchEffects?.breedingXpBonus ?? 0}</strong></div>
+                  <div className={styles.debugCard}><span>Breed Energy Discount</span><strong>-{ranchEffects?.breedingEnergyDiscount ?? 0}</strong></div>
+                </div>
+              </div>
+            ) : null}
+          </section>
+
+          <aside className={styles.panel}>
+            <h2>Active Save</h2>
+            <div className={styles.resourceGrid}>
+              <div className={styles.resourceCard}><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div>
+              <div className={styles.resourceCard}><span>GP</span><strong>{formatGuildPoints(activeSave.currencies.guildPoints)}</strong></div>
+              <div className={styles.resourceCard}><span>Energy</span><strong>{formatEnergy(activeSave.currencies.energy, activeSave.currencies.maxEnergy)}</strong></div>
+              <div className={styles.resourceCard}><span>Day</span><strong>{activeSave.dayState.weekday} {activeSave.dayState.month}/{activeSave.dayState.dayOfMonth}</strong></div>
+            </div>
+            <div className={styles.notice} data-ui-text-box="auto">
+              <strong>{tab === "balance" ? "Balance Lab Snapshot" : "Selected Variant"}</strong>
+              {tab === "balance" ? (
+                <p>Simulations read this save but never call saveCurrentGame. Change tabs to use save-altering tools.</p>
+              ) : (
+                <>
+                  <p>{selectedVariant.name} • {selectedVariant.family} • {selectedVariant.rarity}</p>
+                  <img src={selectedVariant.profilePath} alt="" style={{ width: "100%", maxHeight: 260, objectFit: "contain" }} />
+                </>
+              )}
+            </div>
+          </aside>
+        </section>
+
+        {confirmReset ? (
+          <div className={styles.modalBackdrop} role="presentation" onClick={() => setConfirmReset(null)}>
+            <section className={styles.modal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+              <p className={styles.kicker}>Confirm Reset</p>
+              <h2>Reset {confirmReset === "market" ? "Market" : confirmReset === "guild" ? "Guild Contracts" : "Ranch Upgrades"}?</h2>
+              <p>This action changes the active save immediately.</p>
+              <div className={styles.buttonRow}>
+                <button type="button" className={styles.secondaryButton} onClick={() => setConfirmReset(null)}>Cancel</button>
+                <button type="button" className={confirmReset === "ranch" ? styles.dangerButton : styles.primaryButton} onClick={() => handleReset(confirmReset)}>Confirm Reset</button>
+              </div>
+            </section>
+          </div>
+        ) : null}
+      </section>
+    </main>
+  );
 }
