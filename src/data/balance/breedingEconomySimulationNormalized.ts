@@ -1,4 +1,4 @@
-import { runBreedingEconomySimulation as runCoreSimulation } from "./breedingEconomySimulation";
+import { runBreedingEconomySimulation as runCoreSimulation } from "./breedingEconomySimulationSafe";
 import type {
   BalanceSimulationProgress,
   BreedingEconomyResult,
