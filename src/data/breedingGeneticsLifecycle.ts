@@ -1,4 +1,5 @@
 import * as lifecycle from "./breedingLifecycle";
+import { getSpeciesDefinition, getVariantDefinition } from "./creatures";
 import {
   createStrategicInheritancePreview,
   formatStrategicGeneticsSummary,
@@ -8,7 +9,12 @@ import {
   applyGeneticsPowerCurve,
   getBalancedStrategicGeneticsPreview,
 } from "./geneticsBalance";
-import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
+import type {
+  BreedingAttemptRecord,
+  BreedingParticipant,
+  BreedingParticipantSnapshot,
+  BreedingPreview,
+} from "@/types/breeding";
 import type { GameSave } from "@/types/save";
 
 export * from "./breedingLifecycle";
@@ -40,9 +46,6 @@ export function getBreedingPreview(
 
   return {
     ...preview,
-    // Blocking fields are reserved for real gameplay restrictions. Genetics
-    // information belongs in readiness notes so UI surfaces never mistake an
-    // outcome preview for a disabled pair.
     blockedReason: preview.blockedReason,
     readinessNotes: [
       ...preview.readinessNotes,
@@ -80,12 +83,8 @@ function buildSuccessfulGeneticsSave(
   };
 }
 
-function resetReceiverStreaks(
-  save: GameSave,
-  receiverId: string,
-): GameSave {
+function resetReceiverStreaks(save: GameSave, receiverId: string): GameSave {
   if (!save.breeding) return save;
-
   return {
     ...save,
     breeding: {
@@ -112,34 +111,112 @@ function refreshBreederEnergyCap(save: GameSave): GameSave {
   };
 }
 
+function snapshotParticipant(
+  save: GameSave,
+  participant: BreedingParticipant,
+): BreedingParticipantSnapshot {
+  const creature = participant.creatureId
+    ? (save.creatures ?? []).find(
+        (candidate) => candidate.creatureId === participant.creatureId,
+      )
+    : undefined;
+  const variant = creature ? getVariantDefinition(creature.variantId) : undefined;
+  const species = creature ? getSpeciesDefinition(creature.speciesId) : undefined;
+
+  return {
+    participantId: participant.participantId,
+    creatureId: participant.creatureId,
+    kind: participant.kind,
+    displayName: participant.displayName,
+    family: participant.sceneFamily,
+    speciesId: creature?.speciesId,
+    speciesName: species?.name,
+    variantId: creature?.variantId,
+    variantName: variant?.name,
+    rarity: variant?.rarity,
+    sex: creature?.sex,
+    shiny: creature?.shiny,
+    portraitPath:
+      participant.portraitPath || participant.profilePath || variant?.portraitPath || "",
+  };
+}
+
+function replaceAttemptRecord(
+  save: GameSave,
+  attempt: BreedingAttemptRecord,
+): GameSave {
+  if (!save.breeding) return save;
+  return {
+    ...save,
+    breeding: {
+      ...save.breeding,
+      attempts: save.breeding.attempts.map((record) =>
+        record.attemptId === attempt.attemptId ? attempt : record,
+      ),
+    },
+  };
+}
+
 export function performBreedingAttempt(
   save: GameSave,
   giverId: string,
   receiverId: string,
 ): { save: GameSave; attempt: BreedingAttemptRecord } | null {
+  const participantsBefore = lifecycle.getBreedingParticipants(save);
+  const giverBefore = participantsBefore.find(
+    (participant) => participant.participantId === giverId,
+  );
+  const receiverBefore = participantsBefore.find(
+    (participant) => participant.participantId === receiverId,
+  );
   const result = lifecycle.performBreedingAttempt(save, giverId, receiverId);
   if (!result) return null;
 
-  const normalizedResult = {
-    attempt: result.attempt,
-    save: refreshBreederEnergyCap(result.save),
-  };
   const previousPregnancyIds = new Set(
     (save.pregnancies ?? []).map((pregnancy) => pregnancy.pregnancyId),
   );
-  const newPregnancy = (normalizedResult.save.pregnancies ?? []).find(
+  const firstNewPregnancy = (result.save.pregnancies ?? []).find(
     (pregnancy) => !previousPregnancyIds.has(pregnancy.pregnancyId),
+  );
+  const attempt: BreedingAttemptRecord = {
+    ...result.attempt,
+    giverSnapshot: giverBefore
+      ? snapshotParticipant(save, giverBefore)
+      : result.attempt.giverSnapshot,
+    receiverSnapshot: receiverBefore
+      ? snapshotParticipant(save, receiverBefore)
+      : result.attempt.receiverSnapshot,
+    pregnancyId:
+      firstNewPregnancy?.status === "pregnant"
+        ? firstNewPregnancy.pregnancyId
+        : result.attempt.pregnancyId,
+  };
+
+  let linkedSave = refreshBreederEnergyCap(result.save);
+  linkedSave = {
+    ...linkedSave,
+    pregnancies: (linkedSave.pregnancies ?? []).map((pregnancy) =>
+      pregnancy.pregnancyId === attempt.pregnancyId
+        ? { ...pregnancy, sourceAttemptId: attempt.attemptId }
+        : pregnancy,
+    ),
+    flags: {
+      ...linkedSave.flags,
+      durableBreedingSnapshotsEnabled: true,
+      breedingLifecycleLinksEnabled: true,
+    },
+  };
+  linkedSave = replaceAttemptRecord(linkedSave, attempt);
+
+  const normalizedResult = { attempt, save: linkedSave };
+  const newPregnancy = (linkedSave.pregnancies ?? []).find(
+    (pregnancy) => pregnancy.pregnancyId === attempt.pregnancyId,
   );
   if (!newPregnancy || newPregnancy.status !== "pregnant") {
     return normalizedResult;
   }
 
-  // Pregnancy chance streaks reset on conception, but the successful session's
-  // completed familiarity still influences this offspring's genetics once.
-  const geneticsSave = buildSuccessfulGeneticsSave(
-    normalizedResult.save,
-    normalizedResult.attempt,
-  );
+  const geneticsSave = buildSuccessfulGeneticsSave(linkedSave, attempt);
   const participants = lifecycle.getBreedingParticipants(geneticsSave);
   const giver = participants.find(
     (participant) => participant.participantId === giverId,
@@ -151,7 +228,7 @@ export function performBreedingAttempt(
     return normalizedResult;
   }
 
-  const geneticsSeed = `${normalizedResult.attempt.attemptId}_pregnancy`;
+  const geneticsSeed = `${attempt.attemptId}_pregnancy`;
   const rawInheritance = createStrategicInheritancePreview(
     geneticsSave,
     giver,
@@ -165,35 +242,39 @@ export function performBreedingAttempt(
     rawInheritance,
     geneticsSeed,
   );
-  const pregnancies = (normalizedResult.save.pregnancies ?? []).map(
-    (pregnancy) =>
-      pregnancy.pregnancyId === newPregnancy.pregnancyId
-        ? { ...pregnancy, inheritance }
-        : pregnancy,
+  const pregnancies = (linkedSave.pregnancies ?? []).map((pregnancy) =>
+    pregnancy.pregnancyId === newPregnancy.pregnancyId
+      ? { ...pregnancy, sourceAttemptId: attempt.attemptId, inheritance }
+      : pregnancy,
   );
   const pregnancySave = resetReceiverStreaks(
-    { ...normalizedResult.save, pregnancies },
+    { ...linkedSave, pregnancies },
     receiverId,
   );
 
   return {
-    attempt: normalizedResult.attempt,
-    save: {
-      ...pregnancySave,
-      flags: {
-        ...pregnancySave.flags,
-        strategicGeneticsEnabled: true,
-        weightedInheritanceEnabled: true,
-        geneticPotentialSeparatedFromTraining: true,
-        levelOneOffspringStatCeilingsEnabled: true,
-        familyInheritanceBonusesEnabled: true,
-        affectionInheritanceStabilityEnabled: true,
-        pairStreakGeneticsEnabled: true,
-        pairStreakResetsAfterPregnancy: true,
-        receiverPairStreaksResetAfterPregnancy: true,
-        shinyBreedingOutcomesEnabled: true,
-        breederEnergyCapRefreshEnabled: true,
+    attempt,
+    save: replaceAttemptRecord(
+      {
+        ...pregnancySave,
+        flags: {
+          ...pregnancySave.flags,
+          strategicGeneticsEnabled: true,
+          weightedInheritanceEnabled: true,
+          geneticPotentialSeparatedFromTraining: true,
+          levelOneOffspringStatCeilingsEnabled: true,
+          familyInheritanceBonusesEnabled: true,
+          affectionInheritanceStabilityEnabled: true,
+          pairStreakGeneticsEnabled: true,
+          pairStreakResetsAfterPregnancy: true,
+          receiverPairStreaksResetAfterPregnancy: true,
+          shinyBreedingOutcomesEnabled: true,
+          breederEnergyCapRefreshEnabled: true,
+          durableBreedingSnapshotsEnabled: true,
+          breedingLifecycleLinksEnabled: true,
+        },
       },
-    },
+      attempt,
+    ),
   };
 }
