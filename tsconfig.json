@@ -23,6 +23,7 @@
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
       "@/features/inventory/PlayerInventoryMenu": ["./src/features/inventory/PlayerInventoryMenuManaged"],
       "@/features/nursery/NurseryScreen": ["./src/features/nursery/NurseryScreenLedger"],
+      "@/features/ranch-office/RanchOfficeScreen": ["./src/features/ranch-office/RanchOfficeScreenLedger"],
       "@/lib/save/localSave": ["./src/lib/save/localSaveLifecycle"],
       "@/*": ["./src/*"]
     },
