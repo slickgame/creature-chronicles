@@ -1,14 +1,17 @@
 import type { BreedingState } from "./breeding";
 import type {
   CreatureAbility,
+  CreatureFamily,
   CreatureLineageRisk,
   CreatureRecord,
+  CreatureSex,
   CreatureStats,
   HabitatRecord,
   StatGrades,
 } from "./creature";
 import type { GuildState } from "./guild";
 import type {
+  BreedingAttemptId,
   CreatureId,
   EggId,
   HabitatId,
@@ -71,6 +74,13 @@ export type ParentSnapshot = {
   displayName: string;
   familyLabel: string;
   kind: "player" | "creature";
+  speciesId?: SpeciesId;
+  variantId?: VariantId;
+  family?: CreatureFamily;
+  rarity?: "Common" | "Uncommon" | "Rare" | "Epic";
+  sex?: CreatureSex;
+  shiny?: boolean;
+  portraitPath?: string;
 };
 
 export type InheritancePreview = {
@@ -92,6 +102,7 @@ export type InheritancePreview = {
 
 export type PregnancyRecord = {
   pregnancyId: PregnancyId;
+  sourceAttemptId?: BreedingAttemptId;
   createdAtDayNumber: number;
   createdAt: string;
   daysRemaining: number;
@@ -104,6 +115,8 @@ export type PregnancyRecord = {
 
 export type EggRecord = {
   eggId: EggId;
+  sourceAttemptId?: BreedingAttemptId;
+  sourcePregnancyId?: PregnancyId;
   ownerSaveId: SaveId;
   createdAtDayNumber: number;
   createdAt: string;
@@ -132,6 +145,8 @@ export type EggRecord = {
 export type BirthRecord = {
   birthId: string;
   eggId: EggId;
+  sourceAttemptId?: BreedingAttemptId;
+  sourcePregnancyId?: PregnancyId;
   creatureId: CreatureId;
   hatchedAtDayNumber: number;
   hatchedAt: string;
