@@ -6,6 +6,7 @@ import "./breeding-scene-modal.css";
 import "./breeding-records.css";
 import "./night-mode.css";
 import "./content-sizing.css";
+import "./breeding-focused-polish.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
