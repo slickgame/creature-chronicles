@@ -16,7 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
-      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenManaged"],
+      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenQoL"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
       "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenPolished"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
