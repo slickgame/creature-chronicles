@@ -1,0 +1,10 @@
+main[class*="BreedingRecordsScreen_screen"] header[class*="BreedingRecordsScreen_header"] > button {
+  margin-right: 96px;
+}
+
+@media (max-width: 760px) {
+  main[class*="BreedingRecordsScreen_screen"] header[class*="BreedingRecordsScreen_header"] > button {
+    width: fit-content;
+    margin-right: 82px;
+  }
+}
