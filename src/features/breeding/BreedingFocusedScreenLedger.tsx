@@ -5,14 +5,20 @@ import { BreedingRecordsScreen } from "@/features/breeding-records/BreedingRecor
 import { BreedingFocusedScreen as QualityOfLifeBreedingScreen } from "./BreedingFocusedScreenQoL";
 
 const OPEN_LEDGER_KEY = "creature_chronicles_open_breeding_ledger";
+const OPEN_LEDGER_EVENT = "creature-chronicles:open-breeding-ledger";
 
 export function BreedingFocusedScreen() {
   const [ledgerOpen, setLedgerOpen] = useState(false);
 
   useEffect(() => {
-    if (window.sessionStorage.getItem(OPEN_LEDGER_KEY) !== "1") return;
-    window.sessionStorage.removeItem(OPEN_LEDGER_KEY);
-    setLedgerOpen(true);
+    if (window.sessionStorage.getItem(OPEN_LEDGER_KEY) === "1") {
+      window.sessionStorage.removeItem(OPEN_LEDGER_KEY);
+      setLedgerOpen(true);
+    }
+
+    const openLedger = () => setLedgerOpen(true);
+    window.addEventListener(OPEN_LEDGER_EVENT, openLedger);
+    return () => window.removeEventListener(OPEN_LEDGER_EVENT, openLedger);
   }, []);
 
   if (ledgerOpen) {
