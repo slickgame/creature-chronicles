@@ -40,10 +40,10 @@ export function getBreedingPreview(
 
   return {
     ...preview,
-    blockedReason:
-      preview.canAttempt && !preview.blockedReason
-        ? geneticsSummary
-        : preview.blockedReason,
+    // Blocking fields are reserved for real gameplay restrictions. Genetics
+    // information belongs in readiness notes so UI surfaces never mistake an
+    // outcome preview for a disabled pair.
+    blockedReason: preview.blockedReason,
     readinessNotes: [
       ...preview.readinessNotes,
       geneticsSummary,
