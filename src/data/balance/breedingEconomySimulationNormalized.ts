@@ -15,8 +15,12 @@ function normalizeFlags(
   goldEarned: number,
   goldSpent: number,
 ): BreedingEconomyResult["flags"] {
-  const flags = result.flags.filter((flag) => flag.title !== "Snack economy is unsustainable");
-  if (result.snacksUsed > 0 && goldSpent > goldEarned + scenario.startingGold) {
+  const snackUnsustainable = result.snacksUsed > 0 && goldSpent > goldEarned + scenario.startingGold;
+  const flags = result.flags.filter((flag) =>
+    flag.title !== "Snack economy is unsustainable" &&
+    (!snackUnsustainable || flag.title !== "No major threshold flags"),
+  );
+  if (snackUnsustainable) {
     flags.push({
       severity: "warning",
       title: "Snack economy is unsustainable",
