@@ -15,6 +15,7 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
+      "@/data/balance/breedingEconomySimulation": ["./src/data/balance/breedingEconomySimulationNormalized"],
       "@/data/breedingRecords": ["./src/data/breedingRecordsSafe"],
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenLedger"],
