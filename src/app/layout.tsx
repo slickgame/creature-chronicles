@@ -3,6 +3,7 @@ import "./globals.css";
 import "./guild-board.css";
 import "./breeding-compact.css";
 import "./breeding-scene-modal.css";
+import "./breeding-records.css";
 import "./night-mode.css";
 import "./content-sizing.css";
 import { GameProvider } from "@/state/GameProvider";
