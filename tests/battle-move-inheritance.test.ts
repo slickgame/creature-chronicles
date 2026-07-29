@@ -198,6 +198,10 @@ test("a ready egg applies its stored move lineage to the hatchling and birth his
     });
   }
   assert.ok(inheritance.combinationMoveIds.length, "fixture should discover a combination move");
+  const habitatId = (save.habitats ?? []).find((habitat) =>
+    habitat.creatureIds.includes(receiver.creatureId),
+  )?.habitatId ?? save.habitatIds[0];
+  assert.ok(habitatId, "fixture requires a receiver habitat");
   const eggId = "egg_move_lineage_regression" as never;
   const egg = {
     eggId,
@@ -210,7 +214,7 @@ test("a ready egg applies its stored move lineage to the hatchling and birth his
     rarity: "Common" as const,
     speciesId: receiver.speciesId,
     variantId: receiver.variantId,
-    habitatId: receiver.habitatId,
+    habitatId,
     parents: {
       giver: {
         participantId: String(giver.creatureId),
