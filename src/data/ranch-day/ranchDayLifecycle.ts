@@ -95,6 +95,13 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
       ranchDay: previousSave.ranchDay,
     };
     const goalEvaluated = updateDailyGoalsAndRewards(goalEvaluationInput);
+    const completedGoalSource: GameSave = {
+      ...previousSave,
+      currencies: goalEvaluated.currencies,
+      creatures: goalEvaluated.creatures,
+      flags: goalEvaluated.flags,
+      ranchDay: goalEvaluated.ranchDay,
+    };
     const returnedToNextDay: GameSave = { ...goalEvaluated, dayState: nextState };
     const rewardedSave = applyStarterGoalRewards(returnedToNextDay);
     const trainingReturnItems = getTrainingReturnSummaryItems(rewardedSave);
@@ -126,7 +133,7 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     if (nextState.weekday === "Mon") summaryItems.push("New week started. Vale's Adoption Hearth and the Guild board have fresh listings.");
 
     const completedSummary = buildCompletedDaySummary(
-      previousSave,
+      completedGoalSource,
       reportSave,
       dailyReport.highlights,
       dailyReport.warnings,
@@ -139,7 +146,7 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
         lastCompletedSummary: completedSummary,
       },
     };
-    const morningBrief = buildMorningBrief(previousSave, nextSaveWithDay, completedSummary, dailyReport.nextSteps);
+    const morningBrief = buildMorningBrief(completedGoalSource, nextSaveWithDay, completedSummary, dailyReport.nextSteps);
     const finalSave: GameSave = {
       ...nextSaveWithDay,
       ranchDay: {
