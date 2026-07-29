@@ -10,6 +10,8 @@ const supportedExtensions = [".ts", ".tsx", ".js", ".mjs", ".json"];
 const exactAliases = new Map([
   ["@/data/balance/breedingBalancePresets", "data/balance/breedingBalancePresetsLive"],
   ["@/data/balance/breedingEconomySimulation", "data/balance/breedingEconomySimulationNormalized"],
+  ["@/data/battleMoves", "data/battleMovesExpanded"],
+  ["@/data/battleProfiles", "data/battleProfilesExpanded"],
   ["@/data/breedingRecords", "data/breedingRecordsSafe"],
   ["@/data/nursery", "data/nurseryGeneticsLifecycle"],
   ["@/features/breeding/BreedingFocusedScreen", "features/breeding/BreedingFocusedScreenItems"],
