@@ -1,11 +1,11 @@
-import * as core from "./battleEngine";
+import * as round from "./battleEngineRound";
 import { getCreatureBattleMoveLoadout } from "@/data/battleLoadouts";
 import type { BattleMoveLoadout } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
 
-export * from "./battleEngine";
+export * from "./battleEngineRound";
 
-export function createBattleState(input: core.CreateBattleStateInput) {
+export function createBattleState(input: round.CreateBattleStateInput) {
   const playerLoadouts = input.playerCreatures.reduce(
     (loadouts, creature) => ({
       ...loadouts,
@@ -20,7 +20,7 @@ export function createBattleState(input: core.CreateBattleStateInput) {
     }),
     {} as Partial<Record<CreatureId, BattleMoveLoadout>>,
   );
-  return core.createBattleState({
+  return round.createBattleState({
     ...input,
     playerLoadouts,
     enemyLoadouts,
