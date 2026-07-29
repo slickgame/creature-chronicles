@@ -1,5 +1,6 @@
 import * as core from "./localSave";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
+import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
 import { normalizeCreatureManagementMetadata } from "@/data/creatureManagement";
 import { normalizeTrackedCreatureGenerations } from "@/data/generationMigration";
 import { normalizeRanchDaySave } from "@/data/ranch-day/ranchDayState";
@@ -8,11 +9,29 @@ import type { GameSave } from "@/types/save";
 
 export * from "./localSave";
 
+function normalizeChoreSkillRecords(save: GameSave): GameSave {
+  return {
+    ...save,
+    creatures: (save.creatures ?? []).map((creature) => ({
+      ...creature,
+      choreSkills: normalizeCreatureChoreSkills(creature),
+    })),
+    flags: {
+      ...save.flags,
+      m61ChoreSkills: true,
+      m61SpeciesChoreBaselines: true,
+      m61UniversalChoreAccess: true,
+    },
+  };
+}
+
 function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): GameSave {
   return normalizeRanchDaySave(
-    normalizeBreedingRecords(
-      normalizeCreatureManagementMetadata(
-        normalizeTrackedCreatureGenerations(save),
+    normalizeChoreSkillRecords(
+      normalizeBreedingRecords(
+        normalizeCreatureManagementMetadata(
+          normalizeTrackedCreatureGenerations(save),
+        ),
       ),
     ),
     missingPhase,
@@ -36,5 +55,7 @@ export function loadSaveFromSlot(slotIndex: number): GameSave | null {
 }
 
 export function loadAllSaves(): Array<GameSave | null> {
-  return core.loadAllSaves().map((save) => (save ? normalizeSave(save, save.ranchDay?.phase ?? "active") : null));
+  return core.loadAllSaves().map((save) =>
+    save ? normalizeSave(save, save.ranchDay?.phase ?? "active") : null,
+  );
 }
