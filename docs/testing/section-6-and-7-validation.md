@@ -1,4 +1,4 @@
-# Deferred Validation — Sections 6, 7, 8, 9, 10, 11A, 11B, and Battle M1
+# Deferred Validation — Sections 6, 7, 8, 9, 10, 11A, 11B, Battle M1, and Battle M2
 
 ## Status
 
@@ -10,8 +10,9 @@
 - Section 11A — Unified Creature Capability and Talent Audit: **implemented as the structured talent foundation; build, migration, exact-effect, audit-UI, chore, recovery, battle-stat, and role-tag validation pending**.
 - Section 11B — Chore Skills, Species Aptitudes, Role Tags, and Work-Skill Radars: **implemented; old-save normalization, universal chore access, XP progression, score integration, dual-radar UI, and role-tag validation pending**.
 - Battle M1 — Move and Combat Data Foundation: **implemented; catalog, persistent loadouts, compatibility, advanced move metadata, combination-recipe definitions, audit UI, save normalization, and regression validation pending**.
+- Battle M2 — Round Engine Completion: **implemented; deterministic 3v3 action resolution, validation, accuracy, scaling, tag interactions, status stacks, taunt targeting, cooldown timing, round Energy regeneration, and regression validation pending**.
 
-The project owner explicitly deferred validation until the current patch sequence is complete. Do not mark Sections 6–11B or Battle M1 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
+The project owner explicitly deferred validation until the current patch sequence is complete. Do not mark Sections 6–11B, Battle M1, or Battle M2 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
 
 ## Section 6 — Balance Lab
 
@@ -73,7 +74,7 @@ The project owner explicitly deferred validation until the current patch sequenc
 5. Temporarily delete a manifest-referenced image without regenerating the manifest and confirm the deleted entry is reported.
 6. Temporarily remove one creature family's pregnant or not-pregnant outcome pool and confirm validation fails.
 7. Add a player pregnancy outcome folder and confirm validation fails.
-8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, Talent, chore-skill, and battle-move tests all pass.
+8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, Talent, chore-skill, battle-move, and battle-round tests all pass.
 9. Run `npm test` and confirm asset preparation, validation, and regression tests complete together.
 10. Run `npm run build` and confirm prebuild validation stops the build when an asset error exists.
 11. Push a test branch or commit and confirm GitHub Actions runs `npm test` before `npm run build`.
@@ -159,6 +160,31 @@ The project owner explicitly deferred validation until the current patch sequenc
 15. Run `npm run test:regression` twice and confirm the move catalog, compatibility, persistence, loadout, audit, recipe, and battle-initialization tests are deterministic.
 16. Confirm no Coliseum progression, player-facing loadout editor, move manual consumption, equipment integration, enemy AI overhaul, or breeding move roll was silently added in Battle M1.
 
+## Battle M2 — Round Engine Completion
+
+1. Initialize the same 3v3 battle twice with the same battle id and submitted actions; confirm state, action order, hit rolls, logs, HP, statuses, cooldowns, Energy, and outcome are identical.
+2. Confirm every living creature receives exactly one action and duplicate submitted actions for one actor do not create an extra turn.
+3. Submit an unknown, unequipped, unaffordable, and cooling-down move; confirm each is reported and replaced by a legal fallback without crashing.
+4. Submit missing, allied, fainted, and otherwise illegal targets; confirm the action validator reports them and normalizes to a legal target.
+5. Apply Taunted and confirm single-enemy actions are forced toward the living taunt source while self, ally, and area actions remain legal.
+6. Compare low and high Accuracy against low and high Evasion and confirm the displayed deterministic hit chance changes appropriately and remains clamped to 5–100%.
+7. Compare Physical and Special attacks and confirm each uses its declared scaling stat and resisted-by stat.
+8. Compare a single-target heal with a team heal at equal base strength and confirm Status Power scales both while the team-wide spread modifier reduces each individual heal.
+9. Confirm attacker affinity, defender vulnerability, and defender resistance tags each modify damage once and are written to the round log.
+10. Confirm Guarded, Marked, Pursuit versus Slowed/Exhausted, Finisher versus low HP, Guard Break, and area-damage modifiers each apply once.
+11. Apply Bleed repeatedly and confirm it caps at three stacks, deals combined end-round damage, and decrements duration exactly once per round.
+12. Stack Inspired, Weakened, Slowed, Exhausted, and stat-specific buffs/debuffs; confirm stack limits, duration refresh, and effective-stat calculations are correct without double application.
+13. Use a move with cooldown 1 and confirm the next round begins at cooldown 1, the move is unavailable for that round, and it becomes available after the next end-round tick.
+14. Spend Battle Energy and confirm living combatants regenerate the configured deterministic amount at round end without exceeding maximum Energy.
+15. Confirm Exhausted halves round Energy regeneration, Inspired adds its regeneration bonus, and fainted creatures regenerate nothing.
+16. Confirm Stun prevents the action without charging Energy or starting cooldown.
+17. Confirm a creature fainted before its queued turn cannot act.
+18. Confirm hostile accuracy is rolled once per target so a missed attack cannot still apply its hostile secondary status, while self-effects on the same move may still resolve.
+19. Confirm status-effect chances use Status Power versus Status Resistance and stay within their configured bounds.
+20. Open Battle Debug and resolve several automatic rounds; confirm stack counts, durations, cooldowns, Energy regeneration, misses, fallbacks, tag modifiers, and outcomes are readable in the logs.
+21. Run `npm run test:regression` twice and confirm all battle-round tests are deterministic.
+22. Confirm M2 does not yet add the player-facing target-first action-selection UI, tactical enemy AI scoring, Coliseum progression, battle rewards, equipment effects, or breeding move rolls.
+
 ## Final combined smoke test
 
-Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S Talent curve → open two creature Work Skills tabs and compare both radar graphs → assign an off-family creature to a ranch chore → open Move Audit and inspect one move from each category → compare one creature's learned and equipped move lists → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → complete chores and confirm skill XP → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → verify the skill level and move loadout persisted → open Battle Debug and confirm the persistent equipped moves are used → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, Talent instance, chore skill, role tag, battle move, loadout, audit warning, radar readout, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
+Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S Talent curve → open two creature Work Skills tabs and compare both radar graphs → assign an off-family creature to a ranch chore → open Move Audit and inspect one move from each category → compare one creature's learned and equipped move lists → initialize Battle Debug → resolve at least three deterministic 3v3 rounds and inspect hit, miss, cooldown, Energy, status-stack, taunt, healing, and tag-modifier logs → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → complete chores and confirm skill XP → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → verify the skill level and move loadout persisted → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, Talent instance, chore skill, role tag, battle move, loadout, round result, audit warning, radar readout, and backup remains consistent, and confirm the Balance Lab and Battle Debug did not mutate the save.
