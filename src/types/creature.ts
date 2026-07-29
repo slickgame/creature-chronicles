@@ -1,6 +1,7 @@
 import type { CreatureId, HabitatId, SpeciesId, VariantId } from "./ids";
 import type { TalentCategory } from "./talent";
 import type { CreatureChoreSkills } from "./choreSkills";
+import type { BattleMoveLoadout } from "./battle";
 
 export type CreatureFamily = "feline" | "canine" | "bovine" | "lapine" | "equine";
 export type CreatureSex = "female" | "male";
@@ -58,6 +59,11 @@ export type CreatureRecord = {
    * event writes the complete record.
    */
   choreSkills?: CreatureChoreSkills;
+  /**
+   * Persistent learned move library and active combat loadout. Optional for
+   * old saves; save-boundary normalization supplies a legal species loadout.
+   */
+  battleMoveLoadout?: BattleMoveLoadout;
   energy: number;
   maxEnergy: number;
   hearts: number;
