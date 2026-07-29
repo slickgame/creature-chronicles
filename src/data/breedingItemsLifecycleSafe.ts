@@ -1,5 +1,10 @@
 import * as lifecycle from "./breedingItemsLifecycle";
 import { isBreedingSupportItemArmed } from "./breedingItems";
+import {
+  abortSaveTransaction,
+  beginSaveTransaction,
+  tagSaveTransaction,
+} from "@/lib/save/saveReliability";
 import type { BreedingAttemptRecord } from "@/types/breeding";
 import type { GameSave } from "@/types/save";
 
@@ -10,23 +15,43 @@ export function performBreedingAttempt(
   giverId: string,
   receiverId: string,
 ): { save: GameSave; attempt: BreedingAttemptRecord } | null {
-  const fertilityWasArmed = isBreedingSupportItemArmed(save, "fertility_tonic");
-  const result = lifecycle.performBreedingAttempt(save, giverId, receiverId);
-  if (!result) return null;
-
-  const conceptionWasBlocked = Boolean(
-    result.attempt.receiverWasPregnant || result.attempt.pregnancyBlockedReason,
+  const transaction = beginSaveTransaction(
+    save,
+    "breeding-attempt",
+    `${save.saveId}:${save.dayState.dayNumber}:${giverId}:${receiverId}:${save.breeding?.attempts.length ?? 0}`,
   );
-  if (!fertilityWasArmed || !conceptionWasBlocked) return result;
+  const fertilityWasArmed = isBreedingSupportItemArmed(save, "fertility_tonic");
 
-  return {
-    attempt: result.attempt,
-    save: {
-      ...result.save,
-      flags: {
-        ...result.save.flags,
-        breedingFertilityTonicArmed: 1,
-      },
-    },
-  };
+  try {
+    const result = lifecycle.performBreedingAttempt(save, giverId, receiverId);
+    if (!result) {
+      abortSaveTransaction(transaction);
+      return null;
+    }
+
+    const conceptionWasBlocked = Boolean(
+      result.attempt.receiverWasPregnant || result.attempt.pregnancyBlockedReason,
+    );
+    const correctedSave = fertilityWasArmed && conceptionWasBlocked
+      ? {
+          ...result.save,
+          flags: {
+            ...result.save.flags,
+            breedingFertilityTonicArmed: 1,
+          },
+        }
+      : result.save;
+
+    return {
+      attempt: result.attempt,
+      save: tagSaveTransaction(
+        correctedSave,
+        transaction,
+        String(result.attempt.attemptId),
+      ),
+    };
+  } catch (error) {
+    abortSaveTransaction(transaction);
+    throw error;
+  }
 }
