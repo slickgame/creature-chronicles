@@ -66,6 +66,20 @@ export type SettingsState = {
   devMode: boolean;
 };
 
+export type SaveReliabilityState = {
+  lastValidatedAt?: string;
+  lastValidationIssues?: string[];
+  lastMigrationAt?: string;
+  lastMigrationFromSchema?: number;
+  lastBackupAt?: string;
+  lastAutosaveAt?: string;
+  lastAutosaveReason?: string;
+  lastCommittedTransactionId?: string;
+  recoveredInterruptedTransactions?: number;
+  preventedDuplicateOutcomes?: number;
+  repairedCollectionEntries?: number;
+};
+
 export type NurseryRecordStatus = "incubating" | "ready" | "hatched";
 export type PregnancyStatus = "pregnant" | "delivered";
 
@@ -166,6 +180,7 @@ export type BirthRecord = {
 
 export type GameSave = {
   version: string;
+  schemaVersion?: number;
   saveId: SaveId;
   slotIndex: number;
   createdAt: string;
@@ -190,6 +205,7 @@ export type GameSave = {
   townNpcTrust?: TownNpcTrustState;
   ranchUpgrades?: RanchUpgradeState;
   ranchJobs?: RanchJobsState;
+  saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };
 
