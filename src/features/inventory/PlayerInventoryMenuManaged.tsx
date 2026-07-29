@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { PlayerInventoryMenu as CorePlayerInventoryMenu } from "./PlayerInventoryMenu";
+import { PlayerInventoryMenu as CorePlayerInventoryMenu } from "./PlayerInventoryMenuExpanded";
 import { useGameContext } from "@/state/GameProvider";
 
 type InventoryCreatureEvent = CustomEvent<{ creatureId?: string }>;
