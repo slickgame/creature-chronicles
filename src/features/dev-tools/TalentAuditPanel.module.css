@@ -1,0 +1,492 @@
+.launchButton {
+  position: fixed;
+  top: 134px;
+  right: 18px;
+  z-index: 420;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid rgba(139, 233, 255, 0.58);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(30, 52, 62, 0.98), rgba(17, 25, 31, 0.98));
+  color: #dff9ff;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(4, 7, 10, 0.8);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: min(1180px, 96vw);
+  height: min(850px, 93vh);
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 2px solid rgba(127, 219, 255, 0.48);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(25, 31, 38, 0.99), rgba(13, 17, 22, 0.99));
+  color: #f7f1e7;
+  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.62);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.header p,
+.header h1,
+.header span {
+  margin: 0;
+}
+
+.header p,
+.kicker {
+  color: #7fdbff;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.header h1 {
+  margin-top: 3px;
+  color: #fff8e8;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+
+.header span {
+  display: block;
+  max-width: 760px;
+  margin-top: 7px;
+  color: #d8d7d1;
+  line-height: 1.45;
+}
+
+.header button,
+.tabs button,
+.card button,
+.gradeButtons button {
+  min-height: 38px;
+  padding: 8px 13px;
+  border: 1px solid rgba(127, 219, 255, 0.38);
+  border-radius: 9px;
+  background: linear-gradient(180deg, #dff9ff, #77bfdc);
+  color: #10212a;
+  font-weight: 900;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 19, 24, 0.94);
+}
+
+.tabs button {
+  background: rgba(42, 49, 57, 0.94);
+  color: #ece8df;
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.tabs .activeTab,
+.gradeButtons .selectedGrade {
+  background: linear-gradient(180deg, #dff9ff, #77bfdc);
+  color: #10212a;
+  border-color: rgba(201, 244, 255, 0.9);
+}
+
+.content {
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric,
+.card,
+.creatureCard,
+.warningCard,
+.filterBar,
+.definitionPicker {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(34, 40, 47, 0.88);
+  color: #f6f0e6;
+}
+
+.metric span,
+.metric strong {
+  display: block;
+}
+
+.metric span {
+  color: #b8b7b1;
+  font-size: 0.74rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  margin-top: 4px;
+  color: #fff3ca;
+  font-size: 1.65rem;
+}
+
+.metric_good {
+  border-color: rgba(106, 220, 145, 0.4);
+}
+
+.metric_warning {
+  border-color: rgba(242, 194, 105, 0.46);
+}
+
+.metric_bad {
+  border-color: rgba(232, 105, 105, 0.48);
+}
+
+.card h2,
+.card h3,
+.card p,
+.card ul,
+.creatureCard h2,
+.creatureCard p,
+.warningCard p,
+.definitionPicker p {
+  margin-top: 0;
+}
+
+.card h2,
+.creatureCard h2 {
+  margin-bottom: 7px;
+  color: #fff3ca;
+}
+
+.card h3 {
+  margin: 15px 0 7px;
+  color: #dff9ff;
+}
+
+.card p,
+.card li,
+.creatureCard p,
+.warningCard p,
+.definitionPicker p {
+  color: #d8d6d0;
+  line-height: 1.48;
+  overflow-wrap: anywhere;
+}
+
+.card code,
+.creatureCard code {
+  color: #9fe7ff;
+  overflow-wrap: anywhere;
+}
+
+.card ul {
+  margin-bottom: 0;
+  padding-left: 20px;
+}
+
+.warningCard {
+  border-color: rgba(242, 194, 105, 0.42);
+  background: rgba(86, 61, 25, 0.28);
+}
+
+.warningCard strong {
+  color: #f4ce87;
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 9px 0;
+}
+
+.chipRow span {
+  padding: 4px 8px;
+  border: 1px solid rgba(127, 219, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(127, 219, 255, 0.08);
+  color: #dff9ff;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.chipRow .goodChip {
+  border-color: rgba(106, 220, 145, 0.34);
+  background: rgba(106, 220, 145, 0.1);
+  color: #bbf5cc;
+}
+
+.filterBar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(2, minmax(160px, 0.75fr));
+  gap: 10px;
+}
+
+.filterBar label,
+.definitionPicker label {
+  display: grid;
+  gap: 5px;
+}
+
+.filterBar label > span,
+.definitionPicker label > span {
+  color: #b8b7b1;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.filterBar input,
+.filterBar select,
+.definitionPicker select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(127, 219, 255, 0.24);
+  border-radius: 9px;
+  background: rgba(7, 11, 15, 0.78);
+  color: #f7f3eb;
+  font-weight: 750;
+}
+
+.resultCount {
+  margin: 0;
+  color: #c9c6be;
+  font-weight: 800;
+}
+
+.definitionGrid,
+.creatureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cardHeader h2,
+.cardHeader p {
+  margin: 0;
+}
+
+.status_fully_implemented,
+.status_partially_implemented,
+.status_description_only,
+.status_unknown_definition {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 950;
+}
+
+.status_fully_implemented {
+  background: rgba(106, 220, 145, 0.16);
+  color: #bbf5cc;
+}
+
+.status_partially_implemented {
+  background: rgba(242, 194, 105, 0.17);
+  color: #f4ce87;
+}
+
+.status_description_only,
+.status_unknown_definition {
+  background: rgba(232, 105, 105, 0.16);
+  color: #ffb4b4;
+}
+
+.goodText {
+  color: #bbf5cc !important;
+  font-weight: 850;
+}
+
+.creatureCard {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.creatureCard img {
+  width: 116px;
+  height: 150px;
+  object-fit: contain;
+  object-position: center bottom;
+  border: 1px solid rgba(127, 219, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.talentLine {
+  margin: 7px 0 0 !important;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+}
+
+.gradeLayout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.65fr) minmax(0, 1.6fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.definitionPicker {
+  display: grid;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+}
+
+.gradeButtons {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.gradeButtons button {
+  min-width: 0;
+  padding: 7px 4px;
+  background: rgba(42, 49, 57, 0.94);
+  color: #ece8df;
+}
+
+.exactDescription {
+  padding: 12px;
+  border: 1px solid rgba(127, 219, 255, 0.26);
+  border-radius: 10px;
+  background: rgba(127, 219, 255, 0.08);
+  color: #ecfbff !important;
+  font-weight: 750;
+}
+
+.effectGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.effectGrid article {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.effectGrid strong,
+.effectGrid span,
+.effectGrid small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.effectGrid strong {
+  color: #7fdbff;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+}
+
+.effectGrid span {
+  margin-top: 4px;
+  color: #fff3ca;
+  font-weight: 800;
+}
+
+.effectGrid small {
+  margin-top: 5px;
+  color: #aaa8a2;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  .metricGrid,
+  .definitionGrid,
+  .creatureGrid,
+  .effectGrid,
+  .gradeLayout,
+  .filterBar {
+    grid-template-columns: 1fr;
+  }
+
+  .definitionPicker {
+    position: static;
+  }
+
+  .launchButton {
+    top: auto;
+    bottom: 122px;
+  }
+}
+
+@media (max-width: 560px) {
+  .backdrop {
+    padding: 6px;
+  }
+
+  .modal {
+    width: 99vw;
+    height: 97vh;
+  }
+
+  .header {
+    padding: 13px;
+  }
+
+  .content {
+    padding: 10px;
+  }
+
+  .creatureCard {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+
+  .creatureCard img {
+    width: 82px;
+    height: 112px;
+  }
+
+  .gradeButtons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
