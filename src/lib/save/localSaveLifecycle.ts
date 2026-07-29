@@ -18,6 +18,9 @@ function normalizeChoreSkillRecords(save: GameSave): GameSave {
     })),
     flags: {
       ...save.flags,
+      m15RanchGuaranteedWear:
+        save.flags.m15RanchGuaranteedWear === true ||
+        save.flags.m15GuaranteedWear === true,
       m61ChoreSkills: true,
       m61SpeciesChoreBaselines: true,
       m61UniversalChoreAccess: true,
