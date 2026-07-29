@@ -59,6 +59,7 @@ export type BattleStatusId =
   | "guarded"
   | "inspired"
   | "marked"
+  | "taunted"
   | "exhausted"
   | "weakened"
   | "slowed";
@@ -186,12 +187,22 @@ export type BattleDamagePreview = {
   notes: string[];
 };
 
+export type BattleHealingPreview = {
+  baseHealing: number;
+  scalingBonus: number;
+  targetModifier: number;
+  finalHealing: number;
+  notes: string[];
+};
+
 export type BattleStatusStack = {
   status: BattleStatusId;
   duration: number;
   amount?: number;
   stat?: BattleStatKey;
   sourceCombatantId?: BattleCombatantId;
+  stacks?: number;
+  maxStacks?: number;
 };
 
 export type BattleCooldowns = Partial<Record<BattleMoveId, number>>;
@@ -227,6 +238,32 @@ export type BattleAction = {
   targetIds: BattleCombatantId[];
 };
 
+export type BattleActionValidationCode =
+  | "battle-complete"
+  | "unknown-actor"
+  | "actor-fainted"
+  | "unknown-move"
+  | "move-not-equipped"
+  | "insufficient-energy"
+  | "move-on-cooldown"
+  | "missing-target"
+  | "invalid-target"
+  | "taunt-target-enforced";
+
+export type BattleActionValidationIssue = {
+  code: BattleActionValidationCode;
+  message: string;
+};
+
+export type BattleActionValidationResult = {
+  valid: boolean;
+  actorId: BattleCombatantId;
+  moveId: BattleMoveId;
+  legalTargetIds: BattleCombatantId[];
+  normalizedTargetIds: BattleCombatantId[];
+  issues: BattleActionValidationIssue[];
+};
+
 export type BattleResolvedAction = {
   actorId: BattleCombatantId;
   actorName: string;
@@ -237,6 +274,10 @@ export type BattleResolvedAction = {
   turnScore: number;
   success: boolean;
   log: string[];
+  usedFallback?: boolean;
+  validationIssues?: string[];
+  hitTargetIds?: BattleCombatantId[];
+  missedTargetIds?: BattleCombatantId[];
 };
 
 export type BattleRoundResult = {
