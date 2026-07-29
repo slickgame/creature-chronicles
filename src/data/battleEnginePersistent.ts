@@ -1,11 +1,12 @@
 import * as round from "./battleEngineRound";
+import type { CreateBattleStateInput } from "./battleEngine";
 import { getCreatureBattleMoveLoadout } from "@/data/battleLoadouts";
 import type { BattleMoveLoadout } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
 
 export * from "./battleEngineRound";
 
-export function createBattleState(input: round.CreateBattleStateInput) {
+export function createBattleState(input: CreateBattleStateInput) {
   const playerLoadouts = input.playerCreatures.reduce(
     (loadouts, creature) => ({
       ...loadouts,
