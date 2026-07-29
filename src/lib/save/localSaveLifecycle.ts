@@ -1,5 +1,6 @@
 import * as core from "./localSave";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
+import { normalizeCreatureBattleMoveLoadoutRecord } from "@/data/battleLoadouts";
 import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
 import { normalizeCreatureManagementMetadata } from "@/data/creatureManagement";
 import { normalizeTrackedCreatureGenerations } from "@/data/generationMigration";
@@ -9,13 +10,17 @@ import type { GameSave } from "@/types/save";
 
 export * from "./localSave";
 
-function normalizeChoreSkillRecords(save: GameSave): GameSave {
-  return {
-    ...save,
-    creatures: (save.creatures ?? []).map((creature) => ({
+function normalizeCreatureCapabilityRecords(save: GameSave): GameSave {
+  const creatures = (save.creatures ?? []).map((creature) =>
+    normalizeCreatureBattleMoveLoadoutRecord({
       ...creature,
       choreSkills: normalizeCreatureChoreSkills(creature),
-    })),
+    }),
+  );
+  return {
+    ...save,
+    creatures,
+    creatureIds: creatures.map((creature) => creature.creatureId),
     flags: {
       ...save.flags,
       m15RanchGuaranteedWear:
@@ -24,13 +29,15 @@ function normalizeChoreSkillRecords(save: GameSave): GameSave {
       m61ChoreSkills: true,
       m61SpeciesChoreBaselines: true,
       m61UniversalChoreAccess: true,
+      m62BattleMoveFoundation: true,
+      m62PersistentMoveLoadouts: true,
     },
   };
 }
 
 function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): GameSave {
   return normalizeRanchDaySave(
-    normalizeChoreSkillRecords(
+    normalizeCreatureCapabilityRecords(
       normalizeBreedingRecords(
         normalizeCreatureManagementMetadata(
           normalizeTrackedCreatureGenerations(save),
