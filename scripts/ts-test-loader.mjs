@@ -7,6 +7,20 @@ import ts from "typescript";
 const projectRoot = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = resolvePath(projectRoot, "src");
 const supportedExtensions = [".ts", ".tsx", ".js", ".mjs", ".json"];
+const exactAliases = new Map([
+  ["@/data/balance/breedingBalancePresets", "data/balance/breedingBalancePresetsLive"],
+  ["@/data/balance/breedingEconomySimulation", "data/balance/breedingEconomySimulationNormalized"],
+  ["@/data/breedingRecords", "data/breedingRecordsSafe"],
+  ["@/data/nursery", "data/nurseryGeneticsLifecycle"],
+  ["@/features/breeding/BreedingFocusedScreen", "features/breeding/BreedingFocusedScreenItems"],
+  ["@/features/breeding/BreedingScreen", "features/breeding/BreedingScreenManaged"],
+  ["@/features/collection/CollectionScreen", "features/collection/CollectionScreenLedger"],
+  ["@/features/habitats/HabitatScreen", "features/habitats/HabitatScreenManaged"],
+  ["@/features/inventory/PlayerInventoryMenu", "features/inventory/PlayerInventoryMenuManaged"],
+  ["@/features/nursery/NurseryScreen", "features/nursery/NurseryScreenLedger"],
+  ["@/features/ranch-office/RanchOfficeScreen", "features/ranch-office/RanchOfficeScreenLedger"],
+  ["@/lib/save/localSave", "lib/save/localSaveLifecycle"],
+]);
 
 async function firstExistingPath(basePath) {
   const extension = extname(basePath);
@@ -30,7 +44,8 @@ async function firstExistingPath(basePath) {
 
 export async function resolve(specifier, context, defaultResolve) {
   if (specifier.startsWith("@/")) {
-    const candidate = await firstExistingPath(resolvePath(sourceRoot, specifier.slice(2)));
+    const mapped = exactAliases.get(specifier) ?? specifier.slice(2);
+    const candidate = await firstExistingPath(resolvePath(sourceRoot, mapped));
     if (!candidate) throw new Error(`Test loader could not resolve ${specifier}.`);
     return { url: pathToFileURL(candidate).href, shortCircuit: true };
   }
