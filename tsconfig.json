@@ -19,7 +19,7 @@
       "@/data/balance/breedingEconomySimulation": ["./src/data/balance/breedingEconomySimulationNormalized"],
       "@/data/breedingRecords": ["./src/data/breedingRecordsSafe"],
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
-      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenLedger"],
+      "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenItems"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
       "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenLedger"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
