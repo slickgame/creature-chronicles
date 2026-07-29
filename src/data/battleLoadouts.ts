@@ -11,16 +11,33 @@ import { getBattleSpeciesProfile, getBattleSpeciesTags } from "@/data/battleProf
 
 export const MAX_LEARNED_BATTLE_MOVES = 8;
 export const MAX_EQUIPPED_BATTLE_MOVES = 4;
+export const BATTLE_MOVE_LOADOUT_VERSION = 1;
 export const REQUIRED_BASIC_BATTLE_MOVE_ID = "strike";
 export const REQUIRED_DEFENSE_BATTLE_MOVE_ID = "defend";
 
+export type BattleMoveLoadoutChangeResult = {
+  ok: boolean;
+  loadout: BattleMoveLoadout;
+  message: string;
+};
+
 function uniqueMoveIds(moveIds: readonly BattleMoveId[]): BattleMoveId[] {
-  return Array.from(new Set(moveIds));
+  return Array.from(new Set(moveIds.filter(Boolean)));
 }
 
 function hasAnyMatch(required: readonly string[] | undefined, available: readonly string[]): boolean {
   if (!required || required.length === 0) return false;
   return required.some((tag) => available.includes(tag));
+}
+
+function hasAllMatches(required: readonly string[] | undefined, available: readonly string[]): boolean {
+  if (!required || required.length === 0) return true;
+  return required.every((tag) => available.includes(tag));
+}
+
+function isAlwaysUsableMove(moveId: BattleMoveId): boolean {
+  const move = BATTLE_MOVES_BY_ID[moveId];
+  return Boolean(move && move.battleEnergyCost <= 0 && move.cooldown <= 0);
 }
 
 export function canSpeciesLearnBattleMove(speciesId: SpeciesId, moveId: BattleMoveId): boolean {
@@ -37,6 +54,7 @@ export function canSpeciesLearnBattleMove(speciesId: SpeciesId, moveId: BattleMo
   if (requirements.familyTags?.includes(profile.family)) return true;
 
   const availableTags = getBattleSpeciesTags(speciesId);
+  if (!hasAllMatches(requirements.requiredAllTags, availableTags)) return false;
   return (
     hasAnyMatch(requirements.bodyTags, availableTags) ||
     hasAnyMatch(requirements.temperamentTags, availableTags) ||
@@ -45,24 +63,44 @@ export function canSpeciesLearnBattleMove(speciesId: SpeciesId, moveId: BattleMo
   );
 }
 
-export function normalizeBattleMoveLoadout(speciesId: SpeciesId, loadout: Partial<BattleMoveLoadout> = {}): BattleMoveLoadout {
+function ensureAlwaysUsableEquippedMove(
+  learnedMoveIds: BattleMoveId[],
+  equippedMoveIds: BattleMoveId[],
+): BattleMoveId[] {
+  if (equippedMoveIds.some(isAlwaysUsableMove)) return equippedMoveIds;
+  const fallbackMoveId = learnedMoveIds.find(isAlwaysUsableMove) ?? REQUIRED_BASIC_BATTLE_MOVE_ID;
+  return uniqueMoveIds([fallbackMoveId, ...equippedMoveIds]).slice(0, MAX_EQUIPPED_BATTLE_MOVES);
+}
+
+export function normalizeBattleMoveLoadout(
+  speciesId: SpeciesId,
+  loadout: Partial<BattleMoveLoadout> = {},
+): BattleMoveLoadout {
   const profile = getBattleSpeciesProfile(speciesId);
+  const savedLearned = loadout.learnedMoveIds?.length ? loadout.learnedMoveIds : profile.defaultLearnedMoveIds;
   const learnedMoveIds = uniqueMoveIds([
     REQUIRED_BASIC_BATTLE_MOVE_ID,
     profile.signatureMoveId,
-    ...(loadout.learnedMoveIds ?? profile.defaultLearnedMoveIds),
+    ...savedLearned,
     REQUIRED_DEFENSE_BATTLE_MOVE_ID,
+    ...profile.defaultLearnedMoveIds,
   ])
     .filter((moveId) => canSpeciesLearnBattleMove(speciesId, moveId))
     .slice(0, MAX_LEARNED_BATTLE_MOVES);
 
-  const equippedMoveIds = uniqueMoveIds(loadout.equippedMoveIds ?? profile.defaultEquippedMoveIds)
+  const savedEquipped = loadout.equippedMoveIds?.length ? loadout.equippedMoveIds : profile.defaultEquippedMoveIds;
+  const legalEquipped = uniqueMoveIds(savedEquipped)
     .filter((moveId) => learnedMoveIds.includes(moveId))
     .slice(0, MAX_EQUIPPED_BATTLE_MOVES);
+  const equippedMoveIds = ensureAlwaysUsableEquippedMove(
+    learnedMoveIds,
+    legalEquipped.length > 0 ? legalEquipped : learnedMoveIds.slice(0, MAX_EQUIPPED_BATTLE_MOVES),
+  );
 
   return {
     learnedMoveIds,
-    equippedMoveIds: equippedMoveIds.length > 0 ? equippedMoveIds : learnedMoveIds.slice(0, MAX_EQUIPPED_BATTLE_MOVES),
+    equippedMoveIds,
+    version: BATTLE_MOVE_LOADOUT_VERSION,
   };
 }
 
@@ -70,8 +108,116 @@ export function getDefaultBattleMoveLoadout(speciesId: SpeciesId): BattleMoveLoa
   return normalizeBattleMoveLoadout(speciesId);
 }
 
+export function getCreatureBattleMoveLoadout(creature: CreatureRecord): BattleMoveLoadout {
+  return normalizeBattleMoveLoadout(creature.speciesId, creature.battleMoveLoadout ?? {});
+}
+
 export function getCreatureDefaultBattleMoveLoadout(creature: CreatureRecord): BattleMoveLoadout {
   return getDefaultBattleMoveLoadout(creature.speciesId);
+}
+
+export function normalizeCreatureBattleMoveLoadoutRecord(creature: CreatureRecord): CreatureRecord {
+  return {
+    ...creature,
+    battleMoveLoadout: getCreatureBattleMoveLoadout(creature),
+  };
+}
+
+export function learnBattleMove(
+  speciesId: SpeciesId,
+  currentLoadout: Partial<BattleMoveLoadout>,
+  moveId: BattleMoveId,
+): BattleMoveLoadoutChangeResult {
+  const loadout = normalizeBattleMoveLoadout(speciesId, currentLoadout);
+  const move = BATTLE_MOVES_BY_ID[moveId];
+  if (!move) return { ok: false, loadout, message: `Unknown move: ${moveId}.` };
+  if (!canSpeciesLearnBattleMove(speciesId, moveId)) return { ok: false, loadout, message: `${move.name} is not compatible with this species.` };
+  if (loadout.learnedMoveIds.includes(moveId)) return { ok: true, loadout, message: `${move.name} is already learned.` };
+  if (loadout.learnedMoveIds.length >= MAX_LEARNED_BATTLE_MOVES) {
+    return { ok: false, loadout, message: `The learned move library is full (${MAX_LEARNED_BATTLE_MOVES}/${MAX_LEARNED_BATTLE_MOVES}).` };
+  }
+  const next = normalizeBattleMoveLoadout(speciesId, {
+    ...loadout,
+    learnedMoveIds: [...loadout.learnedMoveIds, moveId],
+  });
+  return { ok: true, loadout: next, message: `${move.name} added to the learned move library.` };
+}
+
+export function equipBattleMove(
+  speciesId: SpeciesId,
+  currentLoadout: Partial<BattleMoveLoadout>,
+  moveId: BattleMoveId,
+  replaceMoveId?: BattleMoveId,
+): BattleMoveLoadoutChangeResult {
+  const loadout = normalizeBattleMoveLoadout(speciesId, currentLoadout);
+  const move = BATTLE_MOVES_BY_ID[moveId];
+  if (!move) return { ok: false, loadout, message: `Unknown move: ${moveId}.` };
+  if (!loadout.learnedMoveIds.includes(moveId)) return { ok: false, loadout, message: `${move.name} must be learned before it can be equipped.` };
+  if (loadout.equippedMoveIds.includes(moveId)) return { ok: true, loadout, message: `${move.name} is already equipped.` };
+
+  let equippedMoveIds = loadout.equippedMoveIds;
+  if (replaceMoveId) equippedMoveIds = equippedMoveIds.filter((id) => id !== replaceMoveId);
+  if (equippedMoveIds.length >= MAX_EQUIPPED_BATTLE_MOVES) {
+    return { ok: false, loadout, message: `The active move loadout is full (${MAX_EQUIPPED_BATTLE_MOVES}/${MAX_EQUIPPED_BATTLE_MOVES}). Choose a move to replace.` };
+  }
+
+  const next = normalizeBattleMoveLoadout(speciesId, {
+    ...loadout,
+    equippedMoveIds: [...equippedMoveIds, moveId],
+  });
+  return { ok: true, loadout: next, message: `${move.name} equipped.` };
+}
+
+export function unequipBattleMove(
+  speciesId: SpeciesId,
+  currentLoadout: Partial<BattleMoveLoadout>,
+  moveId: BattleMoveId,
+): BattleMoveLoadoutChangeResult {
+  const loadout = normalizeBattleMoveLoadout(speciesId, currentLoadout);
+  if (!loadout.equippedMoveIds.includes(moveId)) return { ok: true, loadout, message: `${moveId} is not equipped.` };
+  const remaining = loadout.equippedMoveIds.filter((id) => id !== moveId);
+  if (!remaining.some(isAlwaysUsableMove)) {
+    return { ok: false, loadout, message: "At least one zero-cost, zero-cooldown move must remain equipped." };
+  }
+  const next = normalizeBattleMoveLoadout(speciesId, { ...loadout, equippedMoveIds: remaining });
+  return { ok: true, loadout: next, message: `${getBattleMove(moveId).name} unequipped.` };
+}
+
+export function forgetBattleMove(
+  speciesId: SpeciesId,
+  currentLoadout: Partial<BattleMoveLoadout>,
+  moveId: BattleMoveId,
+): BattleMoveLoadoutChangeResult {
+  const loadout = normalizeBattleMoveLoadout(speciesId, currentLoadout);
+  const profile = getBattleSpeciesProfile(speciesId);
+  if (moveId === REQUIRED_BASIC_BATTLE_MOVE_ID || moveId === profile.signatureMoveId) {
+    return { ok: false, loadout, message: "The required basic move and native signature move cannot be forgotten." };
+  }
+  if (!loadout.learnedMoveIds.includes(moveId)) return { ok: true, loadout, message: `${moveId} is not learned.` };
+  const next = normalizeBattleMoveLoadout(speciesId, {
+    learnedMoveIds: loadout.learnedMoveIds.filter((id) => id !== moveId),
+    equippedMoveIds: loadout.equippedMoveIds.filter((id) => id !== moveId),
+  });
+  return { ok: true, loadout: next, message: `${getBattleMove(moveId).name} forgotten.` };
+}
+
+export function getBattleMoveLoadoutIssues(speciesId: SpeciesId, raw: Partial<BattleMoveLoadout>): string[] {
+  const issues: string[] = [];
+  const learned = raw.learnedMoveIds ?? [];
+  const equipped = raw.equippedMoveIds ?? [];
+  if (learned.length > MAX_LEARNED_BATTLE_MOVES) issues.push(`Learned library exceeds ${MAX_LEARNED_BATTLE_MOVES} moves.`);
+  if (equipped.length > MAX_EQUIPPED_BATTLE_MOVES) issues.push(`Equipped loadout exceeds ${MAX_EQUIPPED_BATTLE_MOVES} moves.`);
+  if (new Set(learned).size !== learned.length) issues.push("Learned library contains duplicate move ids.");
+  if (new Set(equipped).size !== equipped.length) issues.push("Equipped loadout contains duplicate move ids.");
+  learned.forEach((moveId) => {
+    if (!BATTLE_MOVES_BY_ID[moveId]) issues.push(`Unknown learned move: ${moveId}.`);
+    else if (!canSpeciesLearnBattleMove(speciesId, moveId)) issues.push(`Incompatible learned move: ${moveId}.`);
+  });
+  equipped.forEach((moveId) => {
+    if (!learned.includes(moveId)) issues.push(`Equipped move is not learned: ${moveId}.`);
+  });
+  if (!equipped.some(isAlwaysUsableMove)) issues.push("No zero-cost, zero-cooldown move is equipped.");
+  return issues;
 }
 
 export function getStoreBattleMoveLoadout(speciesId: SpeciesId, rarity: "common" | "rare" = "common"): BattleMoveLoadout {
@@ -109,6 +255,7 @@ function getCompatibilityBonus(speciesId: SpeciesId, moveId: BattleMoveId): numb
   if (move.learnRequirements?.speciesIds?.includes(speciesId)) return 10;
   if (move.learnRequirements?.familyTags?.includes(profile.family)) return 8;
   if (move.learnRequirements?.requiredAnyTags?.some((tag) => speciesTags.includes(tag))) return 6;
+  if (move.learnRequirements?.requiredAllTags?.every((tag) => speciesTags.includes(tag))) return 6;
   return 0;
 }
 
