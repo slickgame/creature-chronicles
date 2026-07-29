@@ -4,7 +4,7 @@ import type { GameSave } from "@/types/save";
 
 export * from "./saveReliability";
 
-export const CURRENT_SAVE_SCHEMA_VERSION = 4;
+export const CURRENT_SAVE_SCHEMA_VERSION = 5;
 export type SaveTransactionKind = core.SaveTransactionKind | "day-end";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -37,10 +37,13 @@ export function migrateUnknownSave(raw: unknown, slotIndex: number): core.SaveMi
     };
   }
 
-  const legacyCompatible = sourceSchemaVersion === CURRENT_SAVE_SCHEMA_VERSION && isRecord(raw)
+  const newerWrapperSchema = sourceSchemaVersion > core.CURRENT_SAVE_SCHEMA_VERSION
+    && sourceSchemaVersion <= CURRENT_SAVE_SCHEMA_VERSION
+    && isRecord(raw);
+  const coreCompatible = newerWrapperSchema
     ? { ...raw, schemaVersion: core.CURRENT_SAVE_SCHEMA_VERSION }
     : raw;
-  const result = core.migrateUnknownSave(legacyCompatible, slotIndex);
+  const result = core.migrateUnknownSave(coreCompatible, slotIndex);
   if (!result.save) return { ...result, sourceSchemaVersion };
   const save = normalizeRanchDaySave({
     ...result.save,
@@ -49,11 +52,15 @@ export function migrateUnknownSave(raw: unknown, slotIndex: number): core.SaveMi
       ...result.save.flags,
       saveSchemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
       m60RanchDaySchema: true,
+      m65BattleMoveInheritanceSchema: true,
     },
   }, "active");
   return {
     save,
-    changed: result.changed || sourceSchemaVersion !== CURRENT_SAVE_SCHEMA_VERSION || !isRecord(raw) || !isRecord(raw.ranchDay),
+    changed: result.changed
+      || sourceSchemaVersion !== CURRENT_SAVE_SCHEMA_VERSION
+      || !isRecord(raw)
+      || !isRecord(raw.ranchDay),
     sourceSchemaVersion,
     issues: result.issues,
   };
@@ -69,21 +76,36 @@ export function repairLoadedSave(input: GameSave, slotIndex: number): core.SaveR
       ...result.save.flags,
       saveSchemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
       m60RanchDaySchema: true,
+      m65BattleMoveInheritanceSchema: true,
     },
   }, input.ranchDay ? input.ranchDay.phase : "active");
   return {
     ...result,
     save,
-    changed: result.changed || input.schemaVersion !== CURRENT_SAVE_SCHEMA_VERSION || !input.ranchDay,
+    changed: result.changed
+      || input.schemaVersion !== CURRENT_SAVE_SCHEMA_VERSION
+      || !input.ranchDay,
   };
 }
 
-export function beginSaveTransaction(save: GameSave, kind: SaveTransactionKind, dedupeKey: string): core.SaveTransactionJournal {
+export function beginSaveTransaction(
+  save: GameSave,
+  kind: SaveTransactionKind,
+  dedupeKey: string,
+): core.SaveTransactionJournal {
   return core.beginSaveTransaction(save, kind as core.SaveTransactionKind, dedupeKey);
 }
 
 export function exportSavePackage(save: GameSave): string {
-  const payload = normalizeRanchDaySave({ ...save, schemaVersion: CURRENT_SAVE_SCHEMA_VERSION });
+  const payload = normalizeRanchDaySave({
+    ...save,
+    schemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+    flags: {
+      ...save.flags,
+      saveSchemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+      m65BattleMoveInheritanceSchema: true,
+    },
+  });
   const payloadText = JSON.stringify(payload);
   return JSON.stringify({
     format: "creature-chronicles-save-package",
@@ -126,6 +148,7 @@ export function inspectSaveImport(text: string, targetSlotIndex: number): core.S
           ...repaired.save.flags,
           importedFromDevelopmentSavePackage: true,
           importedSavePackageFormat: packageFormat,
+          m65BattleMoveInheritanceSchema: true,
         },
       },
       issues,
