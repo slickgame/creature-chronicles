@@ -66,8 +66,13 @@ export function BreedingFocusedScreen() {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         const host = document.querySelector<HTMLElement>('aside[aria-label="Breeding preview details"]');
-        setShelfHost(host);
-        setPair(readPair(String(currentSave.saveId)));
+        setShelfHost((previous) => previous === host ? previous : host);
+        const nextPair = readPair(String(currentSave.saveId));
+        setPair((previous) =>
+          previous.giverId === nextPair.giverId && previous.receiverId === nextPair.receiverId
+            ? previous
+            : nextPair,
+        );
       });
     };
     sync();
