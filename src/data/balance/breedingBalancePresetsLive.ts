@@ -25,7 +25,7 @@ export function buildCurrentSaveBalanceScenario(
   if (!scenario) return null;
   const snack = getSupplyDepotItem("energy_snack");
   const tonic = getSupplyDepotItem("fertility_tonic");
-  const previewIncludedTonic = getFlagCount(save.flags.breedingFertilityTonics) > 0
+  const previewIncludedTonic = getFlagCount(save.flags.breedingFertilityTonicArmed) > 0
     ? scenario.fertilityTonicBonus
     : 0;
   return {
