@@ -61,25 +61,38 @@ export function normalizeRanchDaySave(
     };
   }
 
-  const normalized: RanchDayState = {
-    ...existing,
-    dayNumber: save.dayState.dayNumber,
-    phase: normalizePhase(existing.phase, missingPhase),
-    startedAt: existing.startedAt || new Date().toISOString(),
-    startingResources: existing.startingResources ?? getRanchResourceSnapshot(save),
-    activities: Array.isArray(existing.activities) ? existing.activities.slice(-100) : [],
-    goals: Array.isArray(existing.goals) && existing.goals.length
-      ? existing.goals.slice(0, 3)
-      : generateDailyGoals(save),
-    event: existing.event ?? generateDailyRanchEvent(save),
-  };
+  const phase = normalizePhase(existing.phase, missingPhase);
+  const startedAt = existing.startedAt || new Date().toISOString();
+  const startingResources = existing.startingResources ?? getRanchResourceSnapshot(save);
+  const activities = Array.isArray(existing.activities)
+    ? existing.activities.length > 100 ? existing.activities.slice(-100) : existing.activities
+    : [];
+  const goals = Array.isArray(existing.goals) && existing.goals.length
+    ? existing.goals.length > 3 ? existing.goals.slice(0, 3) : existing.goals
+    : generateDailyGoals(save);
+  const event = existing.event ?? generateDailyRanchEvent(save);
 
-  const unchanged = normalized.phase === existing.phase
-    && normalized.activities === existing.activities
-    && normalized.goals === existing.goals
-    && normalized.event === existing.event;
+  const unchanged = existing.dayNumber === save.dayState.dayNumber
+    && phase === existing.phase
+    && startedAt === existing.startedAt
+    && startingResources === existing.startingResources
+    && activities === existing.activities
+    && goals === existing.goals
+    && event === existing.event;
   if (unchanged) return save;
-  return { ...save, ranchDay: normalized };
+  return {
+    ...save,
+    ranchDay: {
+      ...existing,
+      dayNumber: save.dayState.dayNumber,
+      phase,
+      startedAt,
+      startingResources,
+      activities,
+      goals,
+      event,
+    },
+  };
 }
 
 export function beginRanchDay(save: GameSave): GameSave {
