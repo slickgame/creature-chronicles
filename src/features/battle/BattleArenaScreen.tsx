@@ -1,6 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  buildBattleAiPlan,
+  formatBattleAiDecision,
+  getBattleAiDifficultyDescription,
+  getBattleAiDifficultyLabel,
+} from "@/data/battleAi";
 import { createBattleState, getEffectiveBattleStats, resolveBattleRound } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import {
@@ -20,6 +26,7 @@ import type {
   BattleMove,
   BattleState,
 } from "@/types/battle";
+import type { BattleAiDifficulty } from "@/types/battleAi";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import styles from "./BattleArenaScreen.module.css";
@@ -155,6 +162,7 @@ export function BattleArenaScreen() {
   const [queuedActions, setQueuedActions] = useState<Map<BattleCombatantId, BattleAction>>(new Map());
   const [activeActorId, setActiveActorId] = useState<BattleCombatantId | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<BattleUiTarget | null>(null);
+  const [aiDifficulty, setAiDifficulty] = useState<BattleAiDifficulty>("tactical");
   const [message, setMessage] = useState("Choose exactly three available creatures for a target-first exhibition match.");
 
   const roster = currentSave?.creatures ?? [];
@@ -198,11 +206,11 @@ export function BattleArenaScreen() {
     }
     const enemies = [...team].reverse().map(makeEnemyCreature);
     const state = createBattleState({
-      battleId: `coliseum_exhibition_${currentSave.saveId}_${currentSave.dayState.dayNumber}_${team.map((creature) => creature.creatureId).join("_")}`,
+      battleId: `coliseum_exhibition_${currentSave.saveId}_${currentSave.dayState.dayNumber}_${aiDifficulty}_${team.map((creature) => creature.creatureId).join("_")}`,
       playerCreatures: team,
       enemyCreatures: enemies,
       playerTeamName: `${currentSave.player.name}'s Ranch Team`,
-      enemyTeamName: "Coliseum Echo Team",
+      enemyTeamName: `${getBattleAiDifficultyLabel(aiDifficulty)} Echo Team`,
     });
     const queue = new Map<BattleCombatantId, BattleAction>();
     setPlayerSources(team);
@@ -212,7 +220,7 @@ export function BattleArenaScreen() {
     setActiveActorId(getNextUnqueuedPlayerActorId(state, queue));
     setSelectedTarget(null);
     setPhase("battle");
-    setMessage("Select a target, then choose one compatible move for the highlighted creature.");
+    setMessage(`Select a target, then choose one compatible move. The ${getBattleAiDifficultyLabel(aiDifficulty)} AI plans only after your queue is confirmed.`);
   }
 
   function chooseMove(moveId: string) {
@@ -253,7 +261,15 @@ export function BattleArenaScreen() {
       setMessage("Queue one action for every living player creature before confirming the round.");
       return;
     }
-    const resolved = resolveBattleRound(battleState, Array.from(queuedActions.values()));
+    const aiPlan = buildBattleAiPlan(battleState, "enemy", aiDifficulty);
+    const stateWithAiPlan: BattleState = {
+      ...battleState,
+      log: [...battleState.log, ...aiPlan.decisions.map(formatBattleAiDecision)],
+    };
+    const resolved = resolveBattleRound(stateWithAiPlan, [
+      ...Array.from(queuedActions.values()),
+      ...aiPlan.actions,
+    ]);
     const nextQueue = new Map<BattleCombatantId, BattleAction>();
     setBattleState(resolved.state);
     setQueuedActions(nextQueue);
@@ -261,12 +277,12 @@ export function BattleArenaScreen() {
     if (resolved.state.outcome !== "ongoing") {
       setActiveActorId(null);
       setPhase("result");
-      setMessage(resolved.state.outcome === "player_won" ? "Exhibition victory." : resolved.state.outcome === "enemy_won" ? "The Echo Team won the exhibition." : "The exhibition ended in a draw.");
+      setMessage(resolved.state.outcome === "player_won" ? "Exhibition victory." : resolved.state.outcome === "enemy_won" ? `The ${getBattleAiDifficultyLabel(aiDifficulty)} Echo Team won the exhibition.` : "The exhibition ended in a draw.");
       return;
     }
     const nextActor = getNextUnqueuedPlayerActorId(resolved.state, nextQueue);
     setActiveActorId(nextActor);
-    setMessage(`Round ${resolved.result.roundNumber} resolved. Select a target for ${nextActor ? resolved.state.combatants[nextActor].name : "your next creature"}.`);
+    setMessage(`Round ${resolved.result.roundNumber} resolved against ${getBattleAiDifficultyLabel(aiDifficulty)} AI. Select a target for ${nextActor ? resolved.state.combatants[nextActor].name : "your next creature"}.`);
   }
 
   function resetToSelection() {
@@ -286,9 +302,21 @@ export function BattleArenaScreen() {
             <div><p className={styles.kicker}>Coliseum Exhibition</p><h1>Build Your 3v3 Team</h1><p>{message}</p></div>
             <div className={styles.headerActions}><button type="button" className={styles.secondaryButton} onClick={goToBattleOutfitter}>Battle Outfitter</button><button type="button" onClick={goToTown}>Town</button></div>
           </header>
-          <section className={styles.selectionSummary} data-ui-text-box="auto"><div><span>Selected</span><strong>{effectiveSelection.length} / 3</strong></div><div><span>Format</span><strong>3 Active vs. 3 Active</strong></div><div><span>Rewards</span><strong>Preview Match · None</strong></div></section>
+          <section className={styles.selectionSummary} data-ui-text-box="auto">
+            <div><span>Selected</span><strong>{effectiveSelection.length} / 3</strong></div>
+            <div><span>Format</span><strong>3 Active vs. 3 Active</strong></div>
+            <div>
+              <span>Opponent AI</span>
+              <select value={aiDifficulty} onChange={(event) => setAiDifficulty(event.target.value as BattleAiDifficulty)} aria-label="Opponent AI difficulty">
+                <option value="basic">Basic</option>
+                <option value="tactical">Tactical</option>
+                <option value="champion">Champion</option>
+              </select>
+              <small>{getBattleAiDifficultyDescription(aiDifficulty)}</small>
+            </div>
+          </section>
           <section className={styles.rosterGrid}>{roster.map((creature) => <TeamSelectionCard key={creature.creatureId} creature={creature} selected={effectiveSelection.includes(creature.creatureId)} unavailableReason={getUnavailableReason(currentSave, creature)} onToggle={() => toggleCreature(creature)} />)}</section>
-          <footer className={styles.selectionFooter}><p>This M3 exhibition uses persistent equipped moves but does not change HP, Ranch Energy, items, records, or rewards.</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter Exhibition</button></footer>
+          <footer className={styles.selectionFooter}><p>This M4 exhibition uses persistent moves and deterministic enemy AI but still grants no rewards or persistent battle consequences.</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter Exhibition</button></footer>
         </section>
       </main>
     );
@@ -298,18 +326,18 @@ export function BattleArenaScreen() {
   const combatants = Object.values(battleState.combatants).sort((left, right) => left.sideId.localeCompare(right.sideId) || left.slotIndex - right.slotIndex);
   const enemies = combatants.filter((combatant) => combatant.sideId === "enemy");
   const players = combatants.filter((combatant) => combatant.sideId === "player");
-  const recentLog = battleState.log.slice(-18);
+  const recentLog = battleState.log.slice(-22);
 
   return (
     <main className={styles.screen}>
       <section className={styles.frame}>
         <header className={styles.header}>
-          <div><p className={styles.kicker}>Target-First 3v3 Exhibition</p><h1>{phase === "result" ? "Match Complete" : `Round ${battleState.roundNumber}`}</h1><p>{message}</p></div>
+          <div><p className={styles.kicker}>Target-First 3v3 Exhibition · {getBattleAiDifficultyLabel(aiDifficulty)} AI</p><h1>{phase === "result" ? "Match Complete" : `Round ${battleState.roundNumber}`}</h1><p>{message}</p></div>
           <div className={styles.headerActions}><button type="button" className={styles.secondaryButton} onClick={resetToSelection}>Change Team</button><button type="button" onClick={goToTown}>Leave Arena</button></div>
         </header>
 
         <section className={styles.battlefield}>
-          <div className={styles.teamSection}><div className={styles.teamHeading}><span>Enemy Team</span><strong>{battleState.teams.enemy.name}</strong></div><div className={styles.teamGrid}>{enemies.map((combatant) => <CombatantCard key={combatant.battleCombatantId} combatant={combatant} portraitPath={sourceById.get(String(combatant.sourceCreatureId))?.portraitPath} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedAction={queuedActions.get(combatant.battleCombatantId)} onTarget={() => setSelectedTarget({ kind: "combatant", combatantId: combatant.battleCombatantId })} />)}</div></div>
+          <div className={styles.teamSection}><div className={styles.teamHeading}><span>Enemy Team · {getBattleAiDifficultyLabel(aiDifficulty)} AI</span><strong>{battleState.teams.enemy.name}</strong></div><div className={styles.teamGrid}>{enemies.map((combatant) => <CombatantCard key={combatant.battleCombatantId} combatant={combatant} portraitPath={sourceById.get(String(combatant.sourceCreatureId))?.portraitPath} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedAction={queuedActions.get(combatant.battleCombatantId)} onTarget={() => setSelectedTarget({ kind: "combatant", combatantId: combatant.battleCombatantId })} />)}</div></div>
           <div className={styles.arenaDivider}><span>VS</span><button type="button" className={selectedTarget?.kind === "field" ? styles.fieldSelected : undefined} onClick={() => setSelectedTarget({ kind: "field" })}>Select Field</button></div>
           <div className={styles.teamSection}><div className={styles.teamHeading}><span>Player Team</span><strong>{battleState.teams.player.name}</strong></div><div className={styles.teamGrid}>{players.map((combatant) => <CombatantCard key={combatant.battleCombatantId} combatant={combatant} portraitPath={sourceById.get(String(combatant.sourceCreatureId))?.portraitPath} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedAction={queuedActions.get(combatant.battleCombatantId)} onTarget={() => setSelectedTarget({ kind: "combatant", combatantId: combatant.battleCombatantId })} onPlan={() => planFor(combatant.battleCombatantId)} />)}</div></div>
         </section>
@@ -323,6 +351,7 @@ export function BattleArenaScreen() {
           <aside className={styles.queuePanel}>
             <div className={styles.panelHeading}><div><span>Round Queue</span><strong>{queuedActions.size} / {livingPlayerIds.length}</strong></div></div>
             <div className={styles.queueList}>{players.filter((combatant) => !combatant.isFainted).map((combatant) => { const action = queuedActions.get(combatant.battleCombatantId); return <div key={combatant.battleCombatantId} className={styles.queueEntry}><div><strong>{combatant.name}</strong><span>{action ? `${getBattleMove(action.moveId).name} → ${action.targetIds.length ? action.targetIds.map((id) => battleState.combatants[id]?.name ?? "Unknown").join(", ") : "Field"}` : "Action not queued"}</span></div>{action ? <button type="button" onClick={() => clearQueuedAction(combatant.battleCombatantId)}>Edit</button> : <button type="button" onClick={() => planFor(combatant.battleCombatantId)}>Plan</button>}</div>; })}</div>
+            <p className={styles.statusLine}>Enemy actions remain hidden until the round resolves. {getBattleAiDifficultyDescription(aiDifficulty)}</p>
             <button type="button" className={styles.confirmButton} onClick={resolveRound} disabled={!allPlayerActionsQueued || phase === "result"}>Confirm Round</button>
           </aside>
 
