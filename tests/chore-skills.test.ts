@@ -25,6 +25,9 @@ const {
 const {
   createNewGameSave,
 } = await import("../src/lib/save/localSave.ts");
+const {
+  createNewGameSave: createLifecycleSave,
+} = await import("@/lib/save/localSave");
 
 function starterByFamily(family: "feline" | "canine" | "bovine" | "lapine" | "equine") {
   const save = createNewGameSave(`Chore ${family}`, 0);
@@ -51,6 +54,17 @@ test("chore skill registry separates five domestic and five ranch proficiencies"
     "hauling",
     "ranch_care",
   ]);
+});
+
+test("save lifecycle persists complete chore skill records for every creature", () => {
+  const save = createLifecycleSave("Skill Boundary", 2);
+  assert.ok((save.creatures ?? []).length > 0);
+  for (const creature of save.creatures ?? []) {
+    assert.ok(creature.choreSkills, `${creature.nickname} should have persistent chore skills`);
+    assert.equal(Object.keys(creature.choreSkills ?? {}).length, 10);
+  }
+  assert.equal(save.flags.m61ChoreSkills, true);
+  assert.equal(save.flags.m61UniversalChoreAccess, true);
 });
 
 test("old creature records receive complete species-based chore baselines", () => {
