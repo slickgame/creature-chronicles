@@ -1,4 +1,5 @@
 import * as core from "./localSave";
+import { normalizeBattleMoveInheritanceSave } from "@/data/battleMoveInheritanceMigration";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
 import { normalizeCreatureBattleMoveLoadoutRecord } from "@/data/battleLoadouts";
 import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
@@ -31,16 +32,19 @@ function normalizeCreatureCapabilityRecords(save: GameSave): GameSave {
       m61UniversalChoreAccess: true,
       m62BattleMoveFoundation: true,
       m62PersistentMoveLoadouts: true,
+      m65BattleMoveInheritance: true,
     },
   };
 }
 
 function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): GameSave {
   return normalizeRanchDaySave(
-    normalizeCreatureCapabilityRecords(
-      normalizeBreedingRecords(
-        normalizeCreatureManagementMetadata(
-          normalizeTrackedCreatureGenerations(save),
+    normalizeBattleMoveInheritanceSave(
+      normalizeCreatureCapabilityRecords(
+        normalizeBreedingRecords(
+          normalizeCreatureManagementMetadata(
+            normalizeTrackedCreatureGenerations(save),
+          ),
         ),
       ),
     ),
