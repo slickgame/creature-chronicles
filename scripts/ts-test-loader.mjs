@@ -18,8 +18,11 @@ const exactAliases = new Map([
   ["@/features/habitats/HabitatScreen", "features/habitats/HabitatScreenManaged"],
   ["@/features/inventory/PlayerInventoryMenu", "features/inventory/PlayerInventoryMenuManaged"],
   ["@/features/nursery/NurseryScreen", "features/nursery/NurseryScreenLedger"],
+  ["@/features/ranch/RanchHubScreen", "features/ranch/RanchHubScreenDayLoop"],
   ["@/features/ranch-office/RanchOfficeScreen", "features/ranch-office/RanchOfficeScreenLedger"],
   ["@/lib/save/localSave", "lib/save/localSaveLifecycle"],
+  ["@/lib/save/saveReliability", "lib/save/saveReliabilityRanchDay"],
+  ["@/state/GameProvider", "state/GameProviderRanchDay"],
 ]);
 
 async function firstExistingPath(basePath) {
