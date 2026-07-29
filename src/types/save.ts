@@ -21,6 +21,7 @@ import type {
   SpeciesId,
   VariantId,
 } from "./ids";
+import type { ItemUseRecord } from "./items";
 import type { MarketState } from "./market";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
@@ -182,6 +183,7 @@ export type GameSave = {
   pregnancies?: PregnancyRecord[];
   eggs?: EggRecord[];
   birthHistory?: BirthRecord[];
+  itemUseHistory?: ItemUseRecord[];
   market?: MarketState;
   guild?: GuildState;
   townUpgrades?: TownUpgradeState;
