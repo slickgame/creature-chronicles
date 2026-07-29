@@ -40,6 +40,12 @@ export function BattleMoveAuditPanel() {
   const [category, setCategory] = useState<CategoryFilter>("all");
   const [source, setSource] = useState<SourceFilter>("all");
   const audit = useMemo(() => auditBattleMoveFoundation(currentSave ?? undefined), [currentSave]);
+  const inheritanceRecordCount = useMemo(() => {
+    if (!currentSave) return 0;
+    return (currentSave.pregnancies ?? []).filter((record) => record.inheritance.battleMoveInheritance).length
+      + (currentSave.eggs ?? []).filter((record) => record.battleMoveInheritance).length
+      + (currentSave.birthHistory ?? []).filter((record) => record.startingBattleMoveLoadout).length;
+  }, [currentSave]);
 
   useEffect(() => {
     function onEscape(event: KeyboardEvent) {
@@ -75,7 +81,7 @@ export function BattleMoveAuditPanel() {
               <div>
                 <p>Developer Combat Foundation</p>
                 <h1>Battle Move Audit</h1>
-                <span>Read-only inspection of move definitions, species compatibility, persistent loadouts, fallback safety, and future breeding-combination recipes.</span>
+                <span>Read-only inspection of move definitions, species compatibility, persistent loadouts, fallback safety, and active breeding-combination recipes.</span>
               </div>
               <button type="button" onClick={() => setOpen(false)}>Close</button>
             </header>
@@ -99,9 +105,9 @@ export function BattleMoveAuditPanel() {
                     <Metric label="Move Definitions" value={audit.moveCount} />
                     <Metric label="Species Profiles" value={audit.speciesProfileCount} />
                     <Metric label="Combination Recipes" value={audit.recipeCount} />
+                    <Metric label="Move-Lineage Records" value={inheritanceRecordCount} />
                     <Metric label="Errors" value={audit.errorCount} tone={audit.errorCount ? "bad" : "good"} />
                     <Metric label="Warnings" value={audit.warningCount} tone={audit.warningCount ? "warning" : "good"} />
-                    <Metric label="Owned Loadouts" value={audit.ownedCreatureCount} />
                   </section>
                   <section className={styles.card} data-ui-text-box="auto">
                     <h2>Move Categories</h2>
@@ -121,7 +127,7 @@ export function BattleMoveAuditPanel() {
                       <span>Species {audit.speciesCount}</span>
                       <span>Combination {audit.combinationCount}</span>
                     </div>
-                    <p>Variant, manual, Talent, Coliseum, story, and event sources are supported by the type model and can be populated in later patches.</p>
+                    <p>Direct parent-move inheritance and combination recipes now resolve at conception. Variant, manual, Talent, Coliseum, story, and event sources remain supported for later content.</p>
                   </section>
                   {audit.issues.length ? audit.issues.map((entry) => (
                     <section key={entry.issueId} className={entry.severity === "error" ? styles.errorCard : styles.warningCard} data-ui-text-box="auto">
@@ -198,7 +204,7 @@ export function BattleMoveAuditPanel() {
                 <div className={styles.grid}>
                   {BATTLE_MOVE_COMBINATION_RECIPES.map((recipe) => (
                     <article key={recipe.recipeId} className={styles.card} data-ui-text-box="auto">
-                      <p className={styles.kicker}>Future Breeding Combination · {recipe.baseChance}% base</p>
+                      <p className={styles.kicker}>Active Breeding Combination · {recipe.baseChance}% base</p>
                       <h2>{recipe.name}</h2>
                       <code>{recipe.recipeId}</code>
                       <p>{recipe.description}</p>
