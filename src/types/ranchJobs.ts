@@ -1,4 +1,5 @@
 import type { CreatureFamily } from "./creature";
+import type { ChoreSkillId } from "./choreSkills";
 import type { CreatureId, VariantId } from "./ids";
 
 export type RanchJobId = "security_patrol" | "comfort_care" | "stable_production" | "garden_tending" | "field_hauling";
@@ -20,6 +21,7 @@ export type RanchJobDefinition = {
   shortName: string;
   description: string;
   iconPath: string;
+  /** Natural starting advantages only. Every species may perform every job. */
   preferredFamilies: CreatureFamily[];
   preferredVariants?: VariantId[];
   energyCost: number;
@@ -38,6 +40,10 @@ export type RanchJobResult = {
   guildPointReward: number;
   affectionReward: number;
   energyCost: number;
+  skillId?: ChoreSkillId;
+  skillXpGained?: number;
+  skillLevelBefore?: number;
+  skillLevelAfter?: number;
   message: string;
 };
 
