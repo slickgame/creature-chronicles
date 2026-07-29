@@ -1,1 +1,1 @@
-export * from "./breedingItemsLifecycleSafe";
+export * from "./breedingMoveInheritanceLifecycle";
