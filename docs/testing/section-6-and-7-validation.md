@@ -1,4 +1,4 @@
-# Deferred Validation — Sections 6, 7, 8, 9, 10, and 11A
+# Deferred Validation — Sections 6, 7, 8, 9, 10, 11A, and 11B
 
 ## Status
 
@@ -8,8 +8,9 @@
 - Section 9 — Automated Testing and Asset Validation: **implemented; the automated suite and local asset folders have not yet been run by the project owner**.
 - Section 10 — Ranch Day Loop: **implemented; build, migration, lifecycle, and UI validation pending**.
 - Section 11A — Unified Creature Capability and Talent Audit: **implemented as the structured talent foundation; build, migration, exact-effect, audit-UI, chore, recovery, battle-stat, and role-tag validation pending**.
+- Section 11B — Chore Skills, Species Aptitudes, Role Tags, and Work-Skill Radars: **implemented; old-save normalization, universal chore access, XP progression, score integration, dual-radar UI, and role-tag validation pending**.
 
-The project owner explicitly deferred validation until the next patches are complete. Do not mark Sections 6, 7, 8, 9, 10, or 11A fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
+The project owner explicitly deferred validation until the current patch sequence is complete. Do not mark Sections 6, 7, 8, 9, 10, 11A, or 11B fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
 
 ## Section 6 — Balance Lab
 
@@ -71,7 +72,7 @@ The project owner explicitly deferred validation until the next patches are comp
 5. Temporarily delete a manifest-referenced image without regenerating the manifest and confirm the deleted entry is reported.
 6. Temporarily remove one creature family's pregnant or not-pregnant outcome pool and confirm validation fails.
 7. Add a player pregnancy outcome folder and confirm validation fails.
-8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, and Talent tests all pass.
+8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, Talent, and chore-skill tests all pass.
 9. Run `npm test` and confirm asset preparation, validation, and regression tests complete together.
 10. Run `npm run build` and confirm prebuild validation stops the build when an asset error exists.
 11. Push a test branch or commit and confirm GitHub Actions runs `npm test` before `npm run build`.
@@ -114,8 +115,31 @@ The project owner explicitly deferred validation until the next patches are comp
 12. Confirm unknown or manually edited talent ids are reported rather than silently receiving guessed effects.
 13. Run `npm run test:regression` twice and confirm all Talent tests are deterministic.
 14. Confirm inheritance-related Talent definitions remain labeled Partial until their final genetics-roll hook is connected in the dedicated genetics follow-up patch.
-15. Confirm Section 11A does not add chore-skill levels, remove species job restrictions, add Coliseum progression, or alter the six-move combat-loadout plan; those belong to subsequent sections.
+15. Confirm Section 11A does not yet implement the full Coliseum, combat move library, move inheritance, or combination-move recipes; those remain scheduled for the battle-system sequence.
+
+## Section 11B — Chore Skills, Species Aptitudes, and Work-Skill Radars
+
+1. Load an older save that has no `choreSkills` field and confirm all creatures display ten complete proficiencies without save loss or a crash.
+2. Confirm the Work Skills tab contains separate **Domestic Chores** and **Ranch Chores** radar graphs.
+3. Confirm Domestic Chores displays Cooking, Cleaning, Crafting, Caregiving, and Hospitality.
+4. Confirm Ranch Chores displays Security, Harvesting, Production, Hauling, and Ranch Care.
+5. Confirm the two graphs show the same levels and XP values as their text readouts and update after a save/reload.
+6. Confirm species baselines differ as intended: canines favor Security, lapines Harvesting, bovines Production, equines Hauling, and felines Ranch Care/domestic work.
+7. Attempt to assign every starter family to every ranch job and confirm none are rejected merely because of species or variant.
+8. Confirm injuries, insufficient Energy, another chore assignment, and Training Grounds absence still prevent assignment correctly.
+9. Complete each ranch job and confirm it grants XP only to its mapped skill: Security, Ranch Care, Production, Harvesting, or Hauling.
+10. Force a skill near its threshold, complete the mapped job, and confirm the skill levels up exactly once while preserving overflow XP.
+11. Save and reload after a skill increase and confirm level, current XP, XP-to-next, and lifetime XP persist.
+12. Compare otherwise identical creatures with low and high skill levels; confirm the higher skill produces a higher live chore score and projected output.
+13. Confirm Best Fit and Auto-Assign use the same skill-aware score as overnight job resolution.
+14. Confirm role tags update from skills, including Cook, Cleaner, Crafter, Caregiver, Host, Security, Harvester, Producer, Field Worker, and Ranch Caregiver where appropriate.
+15. Confirm Overview shows role chips and Work Skills shows expanded role chips with readable explanation tooltips.
+16. Confirm full creature details allow internal scrolling for the dual-radar view without clipping the portrait, tabs, labels, or level readouts.
+17. Confirm compact creature details remain limited to Overview and Talents and do not become overcrowded by the radar graphs.
+18. Confirm no domestic skill gains XP yet unless a future domestic assignment explicitly calls the shared skill engine.
+19. Run `npm run test:regression` twice and confirm chore-skill baseline, access, score, progression, and role-tag tests are deterministic.
+20. Confirm the battle move design document is planning-only and has not silently added move libraries or altered existing Battle Debug behavior.
 
 ## Final combined smoke test
 
-Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S talent curve → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → assign a talent-bearing creature to chores → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → open Battle Debug and compare a talent-bearing creature → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, talent instance, audit warning, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
+Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S Talent curve → open two creature Work Skills tabs and compare both radar graphs → assign an off-family creature to a ranch chore → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → complete chores and confirm skill XP → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → verify the skill level persisted → open Battle Debug and compare a Talent-bearing creature → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, Talent instance, chore skill, role tag, audit warning, radar readout, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
