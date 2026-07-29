@@ -36,7 +36,7 @@ const {
   createNewGameSave,
   loadSaveFromSlot,
   saveGameToSlot,
-} = await import("../src/lib/save/localSave.ts");
+} = await import("@/lib/save/localSave");
 const {
   getBreedingPreview,
   getPairKey,
@@ -155,10 +155,10 @@ test("controlled breeding chance and Energy cost use the live formulas", () => {
   assert.equal(preview.baseChance, 12);
   assert.equal(preview.affectionBonus, 0);
   assert.equal(preview.streakBonus, 0);
-  assert.equal(preview.abilityBonus, 0);
-  assert.equal(preview.pregnancyChance, 18, "12 base + 4 FER + 2 CHA");
-  assert.equal(preview.energyDiscount, 2, "combined STA 12 gives a 2-point discount");
-  assert.equal(preview.energyCost, 33, "35 base Energy minus 2 STA discount");
+  assert.equal(preview.abilityBonus, -8, "Tier-0 Breeding Pen applies the live -8% comfort penalty");
+  assert.equal(preview.pregnancyChance, 10, "12 base + 4 FER + 2 CHA - 8 Tier-0 penalty");
+  assert.equal(preview.energyDiscount, -18, "2 STA discount plus the live Tier-0 -20 efficiency penalty");
+  assert.equal(preview.energyCost, 53, "35 base Energy minus a -18 net discount");
 });
 
 test("pair familiarity adds 3 percent per failure and caps at 15 percent", () => {
@@ -181,7 +181,7 @@ test("pair familiarity adds 3 percent per failure and caps at 15 percent", () =>
   const fourPreview = getBreedingPreview(withFour, fixture.giverId, fixture.receiverId);
   assert.ok(fourPreview);
   assert.equal(fourPreview.streakBonus, 12);
-  assert.equal(fourPreview.pregnancyChance, 30);
+  assert.equal(fourPreview.pregnancyChance, 22);
 
   const overCap = {
     ...withFour,
@@ -193,7 +193,7 @@ test("pair familiarity adds 3 percent per failure and caps at 15 percent", () =>
   const cappedPreview = getBreedingPreview(overCap, fixture.giverId, fixture.receiverId);
   assert.ok(cappedPreview);
   assert.equal(cappedPreview.streakBonus, 15);
-  assert.equal(cappedPreview.pregnancyChance, 33);
+  assert.equal(cappedPreview.pregnancyChance, 25);
 });
 
 test("an already-pregnant receiver cannot create another pregnancy", () => {
