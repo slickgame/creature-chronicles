@@ -3,6 +3,7 @@
 import { DevToolsScreen as BaseDevToolsScreen } from "./DevToolsScreen";
 import { SaveReliabilityPanel } from "./SaveReliabilityPanel";
 import { TalentAuditPanel } from "./TalentAuditPanel";
+import { BattleMoveAuditPanel } from "./BattleMoveAuditPanel";
 
 export function DevToolsScreen() {
   return (
@@ -10,6 +11,7 @@ export function DevToolsScreen() {
       <BaseDevToolsScreen />
       <SaveReliabilityPanel />
       <TalentAuditPanel />
+      <BattleMoveAuditPanel />
     </>
   );
 }
