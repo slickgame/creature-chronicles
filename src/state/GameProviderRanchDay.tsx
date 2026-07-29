@@ -81,7 +81,7 @@ function RanchDayBridge({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<BaseContextValue>(() => ({
     ...base,
-    buildPhase: "Battle M4 — Deterministic Enemy AI",
+    buildPhase: "Battle M5 — Breeding Move Inheritance",
     saveCurrentGame,
     advanceDay,
   }), [base, saveCurrentGame, advanceDay]);
