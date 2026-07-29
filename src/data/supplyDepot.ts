@@ -1,18 +1,37 @@
+import {
+  BREEDING_SUPPORT_ITEMS,
+  ENERGY_SNACK_RESTORE,
+  getBreedingSupportItem,
+  getBreedingSupportItemActiveCount,
+  getBreedingSupportItemCount,
+  useBreedingSupportItem,
+} from "@/data/breedingItems";
 import { getPellaSupplyPriceMultiplier, grantNpcTrust } from "@/data/townNpcs";
+import type { BreedingSupportItemId, ItemRarity } from "@/types/items";
 import type { GameSave } from "@/types/save";
 
-export type SupplyDepotItemId = "feed_bundle" | "material_crate" | "energy_snack" | "repair_kit" | "fertility_tonic" | "nursery_supply_kit";
+export type SupplyDepotItemId =
+  | "feed_bundle"
+  | "material_crate"
+  | "repair_kit"
+  | "nursery_supply_kit"
+  | BreedingSupportItemId;
+
 export type SupplyDepotItem = {
   itemId: SupplyDepotItemId;
   name: string;
-  category: "Feed" | "Materials" | "Energy" | "Repair" | "Breeding" | "Nursery";
+  category: "Feed" | "Materials" | "Energy" | "Care" | "Repair" | "Breeding" | "Pregnancy" | "Nursery";
+  rarity: ItemRarity;
   description: string;
+  exactEffect: string;
   price: number;
   iconPath: string;
   purchaseLabel: string;
   quantityLabel: string;
   storageLabel: string;
   usageLabel: string;
+  stockFlag: string;
+  confirmationRequired: boolean;
 };
 
 export type SupplyDepotPurchaseResult = { save: GameSave; ok: boolean; message: string };
@@ -21,21 +40,33 @@ export type SupplyDepotSupplyCounts = {
   feed: number;
   materials: number;
   energySnacks: number;
+  energyMeals: number;
   energySnacksUsed: number;
   repairKits: number;
   fertilityTonics: number;
+  affectionTreats: number;
+  recoveryBalms: number;
+  traitStabilizers: number;
+  mutationCatalysts: number;
+  gestationTonics: number;
   nurserySupplyKits: number;
 };
 
-export const ENERGY_SNACK_RESTORE_AMOUNT = 12;
+export const ENERGY_SNACK_RESTORE_AMOUNT = ENERGY_SNACK_RESTORE;
 
 export const SUPPLY_DEPOT_FLAGS = {
   feed: "ranchFeedStock",
   materials: "ranchMaterialsStock",
   energySnacks: "energySnackStock",
+  energyMeals: "energyMealStock",
   energySnacksUsed: "supplyDepotEnergySnacksUsed",
   repairKits: "ranchRepairKits",
   fertilityTonics: "breedingFertilityTonics",
+  affectionTreats: "affectionTreatStock",
+  recoveryBalms: "recoveryBalmStock",
+  traitStabilizers: "traitStabilizerStock",
+  mutationCatalysts: "mutationCatalystStock",
+  gestationTonics: "gestationTonicStock",
   nurserySupplyKits: "nurserySupplyKits",
 } as const;
 
@@ -48,79 +79,110 @@ export const PELLA_MOSSWICK = {
   intro: "Pella Mosswick runs the Supply Depot, a crowded little shop stacked with feed sacks, repair kits, tools, gossip, and emergency bundles for ranchers who should have planned better.",
 } as const;
 
-export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
+const BASE_SUPPLIES: SupplyDepotItem[] = [
   {
     itemId: "feed_bundle",
     name: "Feed Bundle",
     category: "Feed",
-    description: "A practical sack of ranch feed. Stored in Feed Stock and consumed automatically during overnight ranch feeding.",
+    rarity: "Common",
+    description: "A practical sack of ranch feed for overnight ranch care.",
+    exactEffect: "Adds exactly 5 Feed to Ranch Feed Stock.",
     price: 50,
     iconPath: "/images/items/supply_depot/feed_bundle.png",
     purchaseLabel: "+5 Feed",
     quantityLabel: "5 Feed",
     storageLabel: "Ranch Feed Stock",
-    usageLabel: "Used automatically when the ranch processes daily creature feeding after Sleep.",
+    usageLabel: "Adds 5 Feed. Feed is consumed automatically during overnight ranch feeding.",
+    stockFlag: SUPPLY_DEPOT_FLAGS.feed,
+    confirmationRequired: false,
   },
   {
     itemId: "material_crate",
     name: "Material Crate",
     category: "Materials",
-    description: "Boards, nails, rope, patch cloth, and other repair basics. Stored in Materials and spent on Ranch Office upgrades and repairs.",
+    rarity: "Common",
+    description: "Boards, nails, rope, patch cloth, and other repair basics.",
+    exactEffect: "Adds exactly 5 Materials to Ranch Material Stock.",
     price: 75,
     iconPath: "/images/items/supply_depot/material_crate.png",
     purchaseLabel: "+5 Materials",
     quantityLabel: "5 Materials",
     storageLabel: "Ranch Material Stock",
-    usageLabel: "Spent by Ranch Office construction, habitat upgrades, nursery upgrades, chore upgrades, and repair actions.",
-  },
-  {
-    itemId: "energy_snack",
-    name: "Energy Snack",
-    category: "Energy",
-    description: "A shelf-stable snack for long ranch days. Stored in player inventory and used later on the player or one creature.",
-    price: 90,
-    iconPath: "/images/items/supply_depot/energy_snack.png",
-    purchaseLabel: "+1 Energy Snack",
-    quantityLabel: "1 Snack",
-    storageLabel: "Player Inventory",
-    usageLabel: `Use from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} Energy to the player or one creature. Disabled when the chosen target is full.`,
+    usageLabel: "Adds 5 Materials for Ranch Office construction, habitat upgrades, nursery upgrades, chores, and repairs.",
+    stockFlag: SUPPLY_DEPOT_FLAGS.materials,
+    confirmationRequired: false,
   },
   {
     itemId: "repair_kit",
     name: "Repair Kit",
     category: "Repair",
-    description: "A bundled kit for ranch damage and emergency systems. Stored as Repair Kit stock for Ranch Office repair integration.",
+    rarity: "Uncommon",
+    description: "A bundled kit for ranch damage and emergency systems.",
+    exactEffect: "Provides one Repair Kit. Ranch Office repairs consume a kit before loose Materials.",
     price: 120,
     iconPath: "/images/items/supply_depot/repair_kit.png",
     purchaseLabel: "+1 Repair Kit",
     quantityLabel: "1 Kit",
     storageLabel: "Ranch Repair Kit Stock",
-    usageLabel: "Consumed first by Ranch Office manual repairs. If no kit is available, repairs fall back to loose Materials.",
-  },
-  {
-    itemId: "fertility_tonic",
-    name: "Fertility Tonic",
-    category: "Breeding",
-    description: "A careful breeding support tonic. Stored until the next valid breeding attempt, then consumed for a pregnancy chance bonus.",
-    price: 180,
-    iconPath: "/images/items/supply_depot/fertility_tonic.png",
-    purchaseLabel: "+1 Fertility Tonic",
-    quantityLabel: "1 Tonic",
-    storageLabel: "Breeding Tonic Stock",
-    usageLabel: "Automatically adds +12% pregnancy chance in the Breeding Pen and consumes one tonic on a valid attempt.",
+    usageLabel: "Consumed first by Ranch Office manual repairs. Repairs fall back to loose Materials when no kit is owned.",
+    stockFlag: SUPPLY_DEPOT_FLAGS.repairKits,
+    confirmationRequired: false,
   },
   {
     itemId: "nursery_supply_kit",
     name: "Nursery Supply Kit",
     category: "Nursery",
-    description: "Clean bedding, record tags, soothing oils, and egg-care basics. Stored for Egg Atelier services and nursery upgrades.",
+    rarity: "Uncommon",
+    description: "Clean bedding, record tags, soothing oils, and egg-care basics.",
+    exactEffect: "Provides one Nursery Supply Kit for Egg Atelier services and nursery upgrades.",
     price: 150,
     iconPath: "/images/items/supply_depot/nursery_supply_kit.png",
     purchaseLabel: "+1 Nursery Supply",
     quantityLabel: "1 Kit",
     storageLabel: "Nursery Supply Kit Stock",
-    usageLabel: "Spent by Egg Atelier services and furniture/upgrades such as accelerated incubation and egg-care improvements.",
+    usageLabel: "Spent by Egg Atelier services and nursery improvements.",
+    stockFlag: SUPPLY_DEPOT_FLAGS.nurserySupplyKits,
+    confirmationRequired: false,
   },
+];
+
+const BREEDING_ITEM_PRICES: Record<BreedingSupportItemId, number> = {
+  energy_snack: 90,
+  energy_meal: 180,
+  fertility_tonic: 180,
+  affection_treat: 75,
+  recovery_balm: 130,
+  trait_stabilizer: 350,
+  mutation_catalyst: 500,
+  gestation_tonic: 260,
+};
+
+function supportStorageLabel(itemId: BreedingSupportItemId): string {
+  if (itemId === "fertility_tonic" || itemId === "trait_stabilizer" || itemId === "mutation_catalyst") return "Breeding Support Stock";
+  if (itemId === "gestation_tonic") return "Pregnancy Care Stock";
+  return "Player Inventory";
+}
+
+const SUPPORT_SUPPLIES: SupplyDepotItem[] = BREEDING_SUPPORT_ITEMS.map((item) => ({
+  itemId: item.itemId,
+  name: item.name,
+  category: item.category,
+  rarity: item.rarity,
+  description: item.description,
+  exactEffect: item.exactEffect,
+  price: BREEDING_ITEM_PRICES[item.itemId],
+  iconPath: item.iconPath,
+  purchaseLabel: `+1 ${item.name}`,
+  quantityLabel: `1 ${item.name}`,
+  storageLabel: supportStorageLabel(item.itemId),
+  usageLabel: item.exactEffect,
+  stockFlag: item.stockFlag,
+  confirmationRequired: item.confirmationRequired,
+}));
+
+export const SUPPLY_DEPOT_ITEMS: SupplyDepotItem[] = [
+  ...BASE_SUPPLIES,
+  ...SUPPORT_SUPPLIES,
 ];
 
 function getFlagNumber(value: boolean | number | string | undefined): number {
@@ -137,9 +199,15 @@ export function getSupplyDepotSupplyCounts(save: GameSave): SupplyDepotSupplyCou
     feed: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.feed]),
     materials: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.materials]),
     energySnacks: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energySnacks]),
+    energyMeals: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energyMeals]),
     energySnacksUsed: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energySnacksUsed]),
     repairKits: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.repairKits]),
     fertilityTonics: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.fertilityTonics]),
+    affectionTreats: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.affectionTreats]),
+    recoveryBalms: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.recoveryBalms]),
+    traitStabilizers: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.traitStabilizers]),
+    mutationCatalysts: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.mutationCatalysts]),
+    gestationTonics: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.gestationTonics]),
     nurserySupplyKits: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.nurserySupplyKits]),
   };
 }
@@ -154,87 +222,83 @@ export function getSupplyDepotPrice(save: GameSave, item: SupplyDepotItem): numb
 
 export function getSupplyDepotStockLabel(save: GameSave): string {
   const counts = getSupplyDepotSupplyCounts(save);
-  return `${counts.feed} Feed • ${counts.materials} Materials • ${counts.energySnacks} Snacks • ${counts.repairKits} Repair Kits • ${counts.fertilityTonics} Tonics • ${counts.nurserySupplyKits} Nursery Kits`;
+  return `${counts.feed} Feed • ${counts.materials} Materials • ${counts.energySnacks + counts.energyMeals} Energy Items • ${counts.fertilityTonics + counts.traitStabilizers + counts.mutationCatalysts} Breeding Items • ${counts.gestationTonics} Pregnancy Items`;
 }
 
-export function getSupplyDepotUsageRows(save: GameSave): Array<{ item: SupplyDepotItem; countLabel: string; storageLabel: string; usageLabel: string }> {
-  const counts = getSupplyDepotSupplyCounts(save);
-  return SUPPLY_DEPOT_ITEMS.map((item) => {
-    const countLabel = item.itemId === "feed_bundle"
-      ? `${counts.feed} Feed`
-      : item.itemId === "material_crate"
-        ? `${counts.materials} Materials`
-        : item.itemId === "energy_snack"
-          ? `${counts.energySnacks} Snack(s)`
-          : item.itemId === "repair_kit"
-            ? `${counts.repairKits} Kit(s)`
-            : item.itemId === "fertility_tonic"
-              ? `${counts.fertilityTonics} Tonic(s)`
-              : `${counts.nurserySupplyKits} Kit(s)`;
+function countForItem(save: GameSave, item: SupplyDepotItem): number {
+  if (item.itemId === "feed_bundle") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.feed]);
+  if (item.itemId === "material_crate") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.materials]);
+  if (item.itemId === "repair_kit") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.repairKits]);
+  if (item.itemId === "nursery_supply_kit") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.nurserySupplyKits]);
+  return getBreedingSupportItemCount(save, item.itemId);
+}
 
+function countLabel(item: SupplyDepotItem, count: number): string {
+  if (item.itemId === "feed_bundle") return `${count} Feed`;
+  if (item.itemId === "material_crate") return `${count} Materials`;
+  if (item.itemId === "repair_kit" || item.itemId === "nursery_supply_kit") return `${count} Kit(s)`;
+  return `${count} Owned`;
+}
+
+export function getSupplyDepotUsageRows(save: GameSave): Array<{
+  item: SupplyDepotItem;
+  countLabel: string;
+  storageLabel: string;
+  usageLabel: string;
+  activeLabel?: string;
+}> {
+  return SUPPLY_DEPOT_ITEMS.map((item) => {
+    const count = countForItem(save, item);
+    const supportItem = getBreedingSupportItem(item.itemId);
+    const active = supportItem?.activeFlag
+      ? getBreedingSupportItemActiveCount(save, supportItem.itemId)
+      : 0;
     return {
       item,
-      countLabel,
+      countLabel: countLabel(item, count),
       storageLabel: item.storageLabel,
       usageLabel: item.usageLabel,
+      activeLabel: active > 0 ? "Armed" : undefined,
     };
   });
 }
 
-function getNextEnergySnackFlags(save: GameSave, stock: number): GameSave["flags"] {
-  return {
-    ...save.flags,
-    energySnackStock: stock - 1,
-    supplyDepotEnergySnacksUsed: getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1,
-    m44EnergySnackUsed: true,
-  };
-}
-
 export function useSupplyDepotEnergySnack(save: GameSave): SupplyDepotUseResult {
-  const stock = getFlagNumber(save.flags.energySnackStock);
-  if (stock <= 0) return { save, ok: false, message: "No Energy Snacks in stock. Buy more from Pella at the Supply Depot." };
-  if (save.currencies.energy >= save.currencies.maxEnergy) return { save, ok: false, message: "Player energy is already full." };
-
-  const oldEnergy = save.currencies.energy;
-  const newEnergy = Math.min(save.currencies.maxEnergy, oldEnergy + ENERGY_SNACK_RESTORE_AMOUNT);
-  const restored = newEnergy - oldEnergy;
-
+  const result = useBreedingSupportItem(save, "energy_snack", {
+    source: "inventory",
+    targetId: "player",
+  });
+  if (!result.ok) return result;
   return {
+    ...result,
     save: {
-      ...save,
-      updatedAt: new Date().toISOString(),
-      currencies: { ...save.currencies, energy: newEnergy },
-      flags: getNextEnergySnackFlags(save, stock),
+      ...result.save,
+      flags: {
+        ...result.save.flags,
+        supplyDepotEnergySnacksUsed: getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1,
+        m44EnergySnackUsed: true,
+      },
     },
-    ok: true,
-    message: `Used 1 Energy Snack on the player and restored ${restored} Energy.`,
   };
 }
 
 export function useSupplyDepotEnergySnackOnCreature(save: GameSave, creatureId: string): SupplyDepotUseResult {
-  const stock = getFlagNumber(save.flags.energySnackStock);
-  if (stock <= 0) return { save, ok: false, message: "No Energy Snacks in stock. Buy more from Pella at the Supply Depot." };
-
-  const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
-  if (!creature) return { save, ok: false, message: "That creature could not be found." };
-  if (creature.energy >= creature.maxEnergy) return { save, ok: false, message: `${creature.nickname} is already at full energy.` };
-
-  const newEnergy = Math.min(creature.maxEnergy, creature.energy + ENERGY_SNACK_RESTORE_AMOUNT);
-  const restored = newEnergy - creature.energy;
-
+  const result = useBreedingSupportItem(save, "energy_snack", {
+    source: "inventory",
+    targetId: creatureId,
+  });
+  if (!result.ok) return result;
   return {
+    ...result,
     save: {
-      ...save,
-      updatedAt: new Date().toISOString(),
-      creatures: (save.creatures ?? []).map((item) => item.creatureId === creatureId ? { ...item, energy: newEnergy } : item),
+      ...result.save,
       flags: {
-        ...getNextEnergySnackFlags(save, stock),
+        ...result.save.flags,
+        supplyDepotEnergySnacksUsed: getFlagNumber(save.flags.supplyDepotEnergySnacksUsed) + 1,
         m58EnergySnackUsedOnCreature: true,
         lastEnergySnackCreatureId: creatureId,
       },
     },
-    ok: true,
-    message: `Used 1 Energy Snack on ${creature.nickname} and restored ${restored} Energy.`,
   };
 }
 
@@ -244,35 +308,29 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
   const price = getSupplyDepotPrice(save, item);
   if (save.currencies.gold < price) return { save, ok: false, message: `Not enough Gold for ${item.name}. Need ${price} Gold.` };
 
-  const nextFlags: GameSave["flags"] = { ...save.flags, m35SupplyDepotUnlocked: true, pellaMosswickIntroduced: true };
-  const nextCurrencies = { ...save.currencies, gold: save.currencies.gold - price };
-  let message = `Bought ${item.name} from Pella for ${price} Gold.`;
+  const nextFlags: GameSave["flags"] = {
+    ...save.flags,
+    m35SupplyDepotUnlocked: true,
+    pellaMosswickIntroduced: true,
+  };
+  let amount = 1;
+  if (item.itemId === "feed_bundle" || item.itemId === "material_crate") amount = 5;
+  nextFlags[item.stockFlag] = getFlagNumber(save.flags[item.stockFlag]) + amount;
 
-  if (item.itemId === "feed_bundle") {
-    nextFlags.ranchFeedStock = getFlagNumber(save.flags.ranchFeedStock) + 5;
-    message += " Ranch feed stock increased by 5. It will be consumed automatically during overnight feeding.";
-  } else if (item.itemId === "material_crate") {
-    nextFlags.ranchMaterialsStock = getFlagNumber(save.flags.ranchMaterialsStock) + 5;
-    message += " Ranch materials increased by 5 for upgrades and repairs.";
-  } else if (item.itemId === "energy_snack") {
-    nextFlags.energySnackStock = getFlagNumber(save.flags.energySnackStock) + 1;
-    message += ` Energy Snack stock increased by 1. Use it later from player inventory to restore +${ENERGY_SNACK_RESTORE_AMOUNT} Energy to the player or one creature.`;
-  } else if (item.itemId === "repair_kit") {
-    nextFlags.ranchRepairKits = getFlagNumber(save.flags.ranchRepairKits) + 1;
-    message += " Repair kit stock increased by 1. Ranch Office manual repairs will consume kits before Materials.";
-  } else if (item.itemId === "fertility_tonic") {
-    nextFlags.breedingFertilityTonics = getFlagNumber(save.flags.breedingFertilityTonics) + 1;
-    message += " The next valid breeding attempt can consume one tonic for +12% pregnancy chance.";
-  } else if (item.itemId === "nursery_supply_kit") {
-    nextFlags.nurserySupplyKits = getFlagNumber(save.flags.nurserySupplyKits) + 1;
-    message += " Nursery supply stock increased by 1 for Egg Atelier services and upgrades.";
-  }
-
-  const purchasedSave: GameSave = { ...save, updatedAt: new Date().toISOString(), currencies: nextCurrencies, flags: nextFlags };
-  const trustedSave = grantNpcTrust(purchasedSave, "pella_mosswick", item.category === "Breeding" || item.category === "Nursery" ? 3 : 2);
+  const purchasedSave: GameSave = {
+    ...save,
+    updatedAt: new Date().toISOString(),
+    currencies: { ...save.currencies, gold: save.currencies.gold - price },
+    flags: nextFlags,
+  };
+  const trustedSave = grantNpcTrust(
+    purchasedSave,
+    "pella_mosswick",
+    item.category === "Breeding" || item.category === "Pregnancy" || item.category === "Nursery" ? 3 : 2,
+  );
   return {
     save: trustedSave,
     ok: true,
-    message: `${message} Pella Trust increased.`,
+    message: `Bought ${item.name} from Pella for ${price} Gold. ${item.purchaseLabel} added to ${item.storageLabel}. Pella Trust increased.`,
   };
 }
