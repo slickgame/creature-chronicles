@@ -24,7 +24,7 @@ const { enterEveningReview, normalizeRanchDaySave } = await import("../src/data/
 
 function activeSave(slotIndex = 0) {
   const created = createNewGameSave("Ranch Day Tester", slotIndex);
-  return normalizeRanchDaySave({
+  const normalized = normalizeRanchDaySave({
     ...created,
     flags: {
       ...created.flags,
@@ -33,6 +33,10 @@ function activeSave(slotIndex = 0) {
       ranchDamage: 0,
     },
   }, "active");
+  return {
+    ...normalized,
+    ranchDay: normalized.ranchDay ? { ...normalized.ranchDay, phase: "active" as const } : normalized.ranchDay,
+  };
 }
 
 function parentSnapshot(save: ReturnType<typeof createNewGameSave>, creatureIndex: number) {
@@ -90,27 +94,34 @@ test("daily goal rewards can only be claimed once", () => {
     ...save,
     ranchDay: {
       ...save.ranchDay!,
-      goals: [{
-        goalId: `${dayNumber}:keep-gold-reserve`,
+      activities: [{
+        activityId: "test-breeding-activity",
         dayNumber,
-        label: "Protect the ranch reserve",
-        description: "Hold Gold.",
-        progressLabel: "Gold held",
-        target: 200,
+        type: "breeding" as const,
+        label: "Completed a test breeding session.",
+        createdAt: new Date(0).toISOString(),
+      }],
+      goals: [{
+        goalId: `${dayNumber}:breed-once`,
+        dayNumber,
+        label: "Complete a breeding session",
+        description: "Breed once.",
+        progressLabel: "Breeding sessions",
+        target: 1,
         progress: 0,
         complete: false,
-        reward: { feed: 1, materials: 1 },
-        rewardLabel: "1 Feed + 1 Materials",
+        reward: { gold: 50 },
+        rewardLabel: "50 Gold",
         rewardClaimed: false,
       }],
     },
   };
   const first = updateDailyGoalsAndRewards(custom);
   const second = updateDailyGoalsAndRewards(first);
-  assert.equal(Number(first.flags.ranchFeedStock), Number(custom.flags.ranchFeedStock) + 2, "goal reward plus all-goals bonus adds 2 Feed");
-  assert.equal(Number(first.flags.ranchMaterialsStock), Number(custom.flags.ranchMaterialsStock) + 1);
+  assert.equal(first.currencies.gold, custom.currencies.gold + 100, "goal reward plus all-goals bonus adds 100 Gold");
+  assert.equal(Number(first.flags.ranchFeedStock), Number(custom.flags.ranchFeedStock) + 1, "all-goals bonus adds 1 Feed");
+  assert.equal(second.currencies.gold, first.currencies.gold);
   assert.equal(second.flags.ranchFeedStock, first.flags.ranchFeedStock);
-  assert.equal(second.flags.ranchMaterialsStock, first.flags.ranchMaterialsStock);
 });
 
 test("Ranch Day event choices resolve once and do not reroll", () => {
