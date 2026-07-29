@@ -1,4 +1,4 @@
-# Deferred Validation — Sections 6, 7, 8, 9, 10, 11A, and 11B
+# Deferred Validation — Sections 6, 7, 8, 9, 10, 11A, 11B, and Battle M1
 
 ## Status
 
@@ -9,8 +9,9 @@
 - Section 10 — Ranch Day Loop: **implemented; build, migration, lifecycle, and UI validation pending**.
 - Section 11A — Unified Creature Capability and Talent Audit: **implemented as the structured talent foundation; build, migration, exact-effect, audit-UI, chore, recovery, battle-stat, and role-tag validation pending**.
 - Section 11B — Chore Skills, Species Aptitudes, Role Tags, and Work-Skill Radars: **implemented; old-save normalization, universal chore access, XP progression, score integration, dual-radar UI, and role-tag validation pending**.
+- Battle M1 — Move and Combat Data Foundation: **implemented; catalog, persistent loadouts, compatibility, advanced move metadata, combination-recipe definitions, audit UI, save normalization, and regression validation pending**.
 
-The project owner explicitly deferred validation until the current patch sequence is complete. Do not mark Sections 6, 7, 8, 9, 10, 11A, or 11B fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
+The project owner explicitly deferred validation until the current patch sequence is complete. Do not mark Sections 6–11B or Battle M1 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
 
 ## Section 6 — Balance Lab
 
@@ -46,7 +47,7 @@ The project owner explicitly deferred validation until the current patch sequenc
 
 ## Section 8 — Save Reliability and Versioning
 
-1. Load every existing save slot and confirm each opens with schema version 4 without losing creatures, pregnancies, eggs, attempts, birth history, inventory, or Ranch Day state.
+1. Load every existing save slot and confirm each opens with schema version 4 without losing creatures, pregnancies, eggs, attempts, birth history, inventory, Ranch Day state, chore skills, or battle move loadouts.
 2. Confirm a pre-migration backup is created the first time an older schema or build is loaded.
 3. Create a manual backup in Dev Tools → Save Reliability and confirm it appears with a timestamp and reason.
 4. Export a versioned save package, inspect it, and confirm it contains schema version, export timestamp, checksum, and save payload.
@@ -72,7 +73,7 @@ The project owner explicitly deferred validation until the current patch sequenc
 5. Temporarily delete a manifest-referenced image without regenerating the manifest and confirm the deleted entry is reported.
 6. Temporarily remove one creature family's pregnant or not-pregnant outcome pool and confirm validation fails.
 7. Add a player pregnancy outcome folder and confirm validation fails.
-8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, Talent, and chore-skill tests all pass.
+8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, Talent, chore-skill, and battle-move tests all pass.
 9. Run `npm test` and confirm asset preparation, validation, and regression tests complete together.
 10. Run `npm run build` and confirm prebuild validation stops the build when an asset error exists.
 11. Push a test branch or commit and confirm GitHub Actions runs `npm test` before `npm run build`.
@@ -115,7 +116,7 @@ The project owner explicitly deferred validation until the current patch sequenc
 12. Confirm unknown or manually edited talent ids are reported rather than silently receiving guessed effects.
 13. Run `npm run test:regression` twice and confirm all Talent tests are deterministic.
 14. Confirm inheritance-related Talent definitions remain labeled Partial until their final genetics-roll hook is connected in the dedicated genetics follow-up patch.
-15. Confirm Section 11A does not yet implement the full Coliseum, combat move library, move inheritance, or combination-move recipes; those remain scheduled for the battle-system sequence.
+15. Confirm Section 11A does not yet implement the full Coliseum or complete combat progression; those remain scheduled for the battle-system sequence.
 
 ## Section 11B — Chore Skills, Species Aptitudes, and Work-Skill Radars
 
@@ -138,8 +139,26 @@ The project owner explicitly deferred validation until the current patch sequenc
 17. Confirm compact creature details remain limited to Overview and Talents and do not become overcrowded by the radar graphs.
 18. Confirm no domestic skill gains XP yet unless a future domestic assignment explicitly calls the shared skill engine.
 19. Run `npm run test:regression` twice and confirm chore-skill baseline, access, score, progression, and role-tag tests are deterministic.
-20. Confirm the battle move design document is planning-only and has not silently added move libraries or altered existing Battle Debug behavior.
+
+## Battle M1 — Move and Combat Data Foundation
+
+1. Load every existing save and confirm every creature receives a persistent `battleMoveLoadout` without losing any other creature data.
+2. Confirm every creature has no more than 8 learned moves and 4 equipped moves.
+3. Confirm every equipped move is present in the learned library.
+4. Confirm every creature has at least one equipped zero-cost, zero-cooldown fallback move.
+5. Confirm custom legal learned and equipped selections persist through save, reload, export, import, and backup restore.
+6. Corrupt a copied loadout with duplicates, unknown move ids, over-limit arrays, and an equipped-but-unlearned move; confirm save-boundary normalization repairs it safely.
+7. Open Dev Tools → Move Audit and confirm the Overview counts match the catalog, species profiles, owned creatures, and combination recipes.
+8. Review Moves and confirm Physical, Special, Support, Status, and Healing categories all appear with exact Power, Accuracy, Battle Energy, Cooldown, Priority, targeting, effects, scaling, resisted stat, tags, and AI hints.
+9. Review each species profile and confirm its signature, species pool, universal compatibility, default library, and active loadout are valid.
+10. Confirm Feline, Canine, Bovine, Lapine, and Equine profiles can each access their new advanced species move without changing the default four-move loadout unexpectedly.
+11. Confirm `Will Bolt`, `Mend Wounds`, `Suppress`, and `Energy Link` follow their compatibility rules.
+12. Confirm Battle Debug initializes player and enemy combatants from the creature's persistent equipped loadout unless an explicit debug override is supplied.
+13. Confirm combination recipes reference valid parent moves and produce `Predator Pursuit`, `Guardian Chorus`, and `Restorative Rhythm`.
+14. Confirm combination recipes remain data-only and do not yet grant moves during conception or hatching.
+15. Run `npm run test:regression` twice and confirm the move catalog, compatibility, persistence, loadout, audit, recipe, and battle-initialization tests are deterministic.
+16. Confirm no Coliseum progression, player-facing loadout editor, move manual consumption, equipment integration, enemy AI overhaul, or breeding move roll was silently added in Battle M1.
 
 ## Final combined smoke test
 
-Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S Talent curve → open two creature Work Skills tabs and compare both radar graphs → assign an off-family creature to a ranch chore → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → complete chores and confirm skill XP → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → verify the skill level persisted → open Battle Debug and compare a Talent-bearing creature → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, Talent instance, chore skill, role tag, audit warning, radar readout, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
+Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S Talent curve → open two creature Work Skills tabs and compare both radar graphs → assign an off-family creature to a ranch chore → open Move Audit and inspect one move from each category → compare one creature's learned and equipped move lists → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → complete chores and confirm skill XP → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → verify the skill level and move loadout persisted → open Battle Debug and confirm the persistent equipped moves are used → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, Talent instance, chore skill, role tag, battle move, loadout, audit warning, radar readout, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
