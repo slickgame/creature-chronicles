@@ -56,14 +56,20 @@ export function calculateBattleStats(creature: CreatureRecord): BattleStats {
 }
 
 export function getRelevantAttackStat(move: BattleMove, battleStats: BattleStats): number {
+  if (move.scalingStat === "none") return 0;
+  if (move.scalingStat === "physicalPower") return battleStats.physicalPower;
+  if (move.scalingStat === "specialPower") return battleStats.specialPower;
+  if (move.scalingStat === "statusPower") return battleStats.statusPower;
   if (move.category === "physical") return battleStats.physicalPower;
   if (move.category === "special") return battleStats.specialPower;
-  if (move.category === "status") return battleStats.statusPower;
-  if (move.category === "healing") return battleStats.statusPower;
   return battleStats.statusPower;
 }
 
 export function getRelevantDefenseStat(move: BattleMove, battleStats: BattleStats): number {
+  if (move.resistedBy === "none") return 0;
+  if (move.resistedBy === "defense") return battleStats.defense;
+  if (move.resistedBy === "resistance") return battleStats.resistance;
+  if (move.resistedBy === "statusResist") return battleStats.statusResist;
   if (move.category === "physical") return battleStats.defense;
   if (move.category === "special") return battleStats.resistance;
   if (move.category === "status") return battleStats.statusResist;
@@ -87,7 +93,7 @@ export function previewBattleDamage(attackerStats: BattleStats, defenderStats: B
     modifierTotal,
     finalDamage,
     notes: [
-      `${move.name} uses ${move.category} scaling.`,
+      `${move.name} uses ${move.scalingStat ?? move.category} scaling.`,
       `Attack stat ${relevantAttackStat} vs defense stat ${relevantDefenseStat}.`,
     ],
   };
