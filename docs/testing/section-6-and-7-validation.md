@@ -1,4 +1,4 @@
-# Deferred Validation — Sections 6, 7, 8, and 9
+# Deferred Validation — Sections 6, 7, 8, 9, and 10
 
 ## Status
 
@@ -6,8 +6,9 @@
 - Section 7 — Inventory and Breeding Item Expansion: **implemented but not yet tested by the project owner**.
 - Section 8 — Save-System Reliability and Versioning: **implemented; build and gameplay validation pending**.
 - Section 9 — Automated Testing and Asset Validation: **implemented; the automated suite and local asset folders have not yet been run by the project owner**.
+- Section 10 — Ranch Day Loop: **implemented; build, migration, lifecycle, and UI validation pending**.
 
-The project owner explicitly deferred validation until the next patches are complete. Do not mark Sections 6, 7, 8, or 9 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
+The project owner explicitly deferred validation until the next patches are complete. Do not mark Sections 6, 7, 8, 9, or 10 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
 
 ## Section 6 — Balance Lab
 
@@ -43,7 +44,7 @@ The project owner explicitly deferred validation until the next patches are comp
 
 ## Section 8 — Save Reliability and Versioning
 
-1. Load every existing save slot and confirm each opens with schema version 3 without losing creatures, pregnancies, eggs, attempts, birth history, or inventory.
+1. Load every existing save slot and confirm each opens with schema version 4 without losing creatures, pregnancies, eggs, attempts, birth history, inventory, or Ranch Day state.
 2. Confirm a pre-migration backup is created the first time an older schema or build is loaded.
 3. Create a manual backup in Dev Tools → Save Reliability and confirm it appears with a timestamp and reason.
 4. Export a versioned save package, inspect it, and confirm it contains schema version, export timestamp, checksum, and save payload.
@@ -58,6 +59,7 @@ The project owner explicitly deferred validation until the next patches are comp
 13. Restore a backup and confirm the current save is backed up before restoration.
 14. Delete one save slot and confirm its active-save pointer, backups, and interrupted transaction journal are removed.
 15. Save after a normal breeding attempt and confirm Last Autosave Reason shows `breeding-attempt`.
+16. End a Ranch Day and confirm Last Autosave Reason shows `day-end` and the transaction journal clears after persistence.
 
 ## Section 9 — Automated Tests and Asset Validation
 
@@ -68,12 +70,33 @@ The project owner explicitly deferred validation until the next patches are comp
 5. Temporarily delete a manifest-referenced image without regenerating the manifest and confirm the deleted entry is reported.
 6. Temporarily remove one creature family's pregnant or not-pregnant outcome pool and confirm validation fails.
 7. Add a player pregnancy outcome folder and confirm validation fails.
-8. Run `npm run test:regression` and confirm deterministic scene selection, live pregnancy math, live Energy costs, pair familiarity, already-pregnant handling, player pregnancy prevention, item consumption, and save persistence all pass.
+8. Run `npm run test:regression` and confirm breeding, inventory, persistence, and Ranch Day tests all pass.
 9. Run `npm test` and confirm asset preparation, validation, and regression tests complete together.
 10. Run `npm run build` and confirm prebuild validation stops the build when an asset error exists.
 11. Push a test branch or commit and confirm GitHub Actions runs `npm test` before `npm run build`.
 12. Confirm player-receiver sessions always show 0% pregnancy chance, produce failure/not-pregnant outcomes, never create pregnancy records, and do not consume an armed Fertility Tonic.
 
+## Section 10 — Ranch Day Loop
+
+1. Load an existing schema-3 save and confirm it migrates to schema 4 with the current day in Active Day phase.
+2. Create a new save and confirm Ranch Day 1 begins with the Morning Brief.
+3. Confirm Begin Ranch Day changes the phase to Active Day without advancing the calendar.
+4. Confirm exactly three unique, achievable goals are generated for the current save.
+5. Complete goals through breeding, purchases, item use, care, chores, contracts, hatching, production, or repair; confirm each reward is granted once.
+6. Complete all three goals and confirm the 50 Gold + 1 Feed completion bonus is granted once.
+7. Confirm the activity log records major actions without duplicating Breeding Ledger, Item History, or Birth History records.
+8. Resolve the same deterministic Ranch Day event on a copied save and confirm the same choice produces the same outcome.
+9. Confirm reloading does not reroll or resolve the event again.
+10. Review Creature Moods for injured, expecting, hungry, tired, overworked, thriving, content, and restless conditions.
+11. Open Evening Review and confirm goals, activities, Gold change, Feed projection, Nursery counts, and warnings match the save.
+12. Click the Ranch House Sleep action and confirm it opens Evening Review rather than bypassing it.
+13. End the day and confirm jobs, Feed consumption, recovery, danger, ranch wear, Nursery timers, training returns, taxes, Market/Guild refreshes, and summaries process once.
+14. Confirm pregnancy and egg timers decrease exactly once.
+15. Confirm the next day begins in Morning Brief phase with resource flow, highlights, warnings, moods, goals, event, and suggested next step.
+16. Attempt to end the same completed day again and confirm no duplicate day, goal reward, job reward, Feed consumption, tax, pregnancy progress, or event is produced.
+17. Simulate an interrupted `day-end` transaction and confirm reload returns either the prior Active Day or the fully committed next Morning, never a partial result.
+18. Confirm there is no hard action-point cap, hourly clock, automatic daily Gold rent, automatic production sale, automatic mood drift, or automatic day advancement.
+
 ## Final combined smoke test
 
-Run `npm test`, then complete this sequence without reloading: create manual backup → run a Balance Lab simulation → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
+Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → assign chores → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
