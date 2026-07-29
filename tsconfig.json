@@ -17,6 +17,8 @@
     "paths": {
       "@/data/balance/breedingBalancePresets": ["./src/data/balance/breedingBalancePresetsLive"],
       "@/data/balance/breedingEconomySimulation": ["./src/data/balance/breedingEconomySimulationNormalized"],
+      "@/data/battleMoves": ["./src/data/battleMovesExpanded"],
+      "@/data/battleProfiles": ["./src/data/battleProfilesExpanded"],
       "@/data/breedingRecords": ["./src/data/breedingRecordsSafe"],
       "@/data/nursery": ["./src/data/nurseryGeneticsLifecycle"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenItems"],
