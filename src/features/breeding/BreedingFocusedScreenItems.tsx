@@ -18,6 +18,10 @@ import styles from "./BreedingFocusedScreenItems.module.css";
 type PairMemory = { giverId: string | null; receiverId: string | null };
 type PendingUse = { itemId: BreedingSupportItemId; targetId?: string };
 
+const ENERGY_ITEM_IDS = ["energy_snack", "energy_meal"] as const satisfies readonly BreedingSupportItemId[];
+const PAIR_ITEM_IDS = ["fertility_tonic", "trait_stabilizer", "mutation_catalyst"] as const satisfies readonly BreedingSupportItemId[];
+const SHELF_ITEM_IDS = [...ENERGY_ITEM_IDS, ...PAIR_ITEM_IDS] as const;
+
 function pairMemoryKey(saveId: string): string {
   return `creature_chronicles_breeding_pair_${saveId}`;
 }
@@ -132,68 +136,72 @@ export function BreedingFocusedScreen() {
     return Boolean(currentSave && getBreedingSupportItemActiveCount(currentSave, itemId) > 0);
   }
 
+  const ownedShelfItems = SHELF_ITEM_IDS.reduce((total, itemId) => total + supportCount(itemId), 0);
+  const armedShelfItems = PAIR_ITEM_IDS.filter((itemId) => armed(itemId)).length;
+
   const shelf = currentSave ? (
-    <section className={styles.shelf} data-ui-text-box="auto" aria-label="Breeding support items">
-      <div className={styles.shelfHeader}>
+    <details className={styles.shelf} data-ui-text-box="auto" aria-label="Breeding support items">
+      <summary>
         <span>Support Items</span>
-        <strong>Owned counts shown</strong>
+        <span className={styles.summaryCount}>{ownedShelfItems} owned{armedShelfItems ? ` · ${armedShelfItems} armed` : ""}</span>
+      </summary>
+      <div className={styles.shelfBody}>
+        {ENERGY_ITEM_IDS.map((itemId) => {
+          const item = getBreedingSupportItem(itemId)!;
+          const count = supportCount(itemId);
+          return (
+            <div key={itemId} className={styles.itemRow}>
+              <div className={styles.itemInfo}>
+                <strong>{item.name} ×{count}</strong>
+                <span>{item.exactEffect}</span>
+              </div>
+              <div className={styles.itemActions}>
+                <button
+                  type="button"
+                  disabled={count <= 0 || !targetCanReceiveEnergy(giver)}
+                  onClick={() => requestUse(itemId, targetId(giver))}
+                >
+                  Giver
+                </button>
+                <button
+                  type="button"
+                  disabled={count <= 0 || !targetCanReceiveEnergy(receiver)}
+                  onClick={() => requestUse(itemId, targetId(receiver))}
+                >
+                  Receiver
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {PAIR_ITEM_IDS.map((itemId) => {
+          const item = getBreedingSupportItem(itemId)!;
+          const count = supportCount(itemId);
+          const isArmed = armed(itemId);
+          return (
+            <div key={itemId} className={styles.itemRow}>
+              <div className={styles.itemInfo}>
+                <strong>{item.name} ×{count}</strong>
+                <span className={isArmed ? styles.armed : undefined}>{isArmed ? "Armed — " : ""}{item.exactEffect}</span>
+              </div>
+              <div className={styles.itemActions}>
+                <button
+                  type="button"
+                  className={styles.primary}
+                  disabled={count <= 0 || isArmed}
+                  onClick={() => requestUse(itemId)}
+                >
+                  {isArmed ? "Armed" : "Arm"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        <p className={styles.message}>{message}</p>
       </div>
-
-      {(["energy_snack", "energy_meal"] as BreedingSupportItemId[]).map((itemId) => {
-        const item = getBreedingSupportItem(itemId)!;
-        const count = supportCount(itemId);
-        return (
-          <div key={itemId} className={styles.itemRow}>
-            <div className={styles.itemInfo}>
-              <strong>{item.name} ×{count}</strong>
-              <span>{item.exactEffect}</span>
-            </div>
-            <div className={styles.itemActions}>
-              <button
-                type="button"
-                disabled={count <= 0 || !targetCanReceiveEnergy(giver)}
-                onClick={() => requestUse(itemId, targetId(giver))}
-              >
-                Giver
-              </button>
-              <button
-                type="button"
-                disabled={count <= 0 || !targetCanReceiveEnergy(receiver)}
-                onClick={() => requestUse(itemId, targetId(receiver))}
-              >
-                Receiver
-              </button>
-            </div>
-          </div>
-        );
-      })}
-
-      {(["fertility_tonic", "trait_stabilizer", "mutation_catalyst"] as BreedingSupportItemId[]).map((itemId) => {
-        const item = getBreedingSupportItem(itemId)!;
-        const count = supportCount(itemId);
-        const isArmed = armed(itemId);
-        return (
-          <div key={itemId} className={styles.itemRow}>
-            <div className={styles.itemInfo}>
-              <strong>{item.name} ×{count}</strong>
-              <span className={isArmed ? styles.armed : undefined}>{isArmed ? "Armed — " : ""}{item.exactEffect}</span>
-            </div>
-            <div className={styles.itemActions}>
-              <button
-                type="button"
-                className={styles.primary}
-                disabled={count <= 0 || isArmed}
-                onClick={() => requestUse(itemId)}
-              >
-                {isArmed ? "Armed" : "Arm"}
-              </button>
-            </div>
-          </div>
-        );
-      })}
-
-      <p className={styles.message}>{message}</p>
-    </section>
+    </details>
   ) : null;
 
   return (
