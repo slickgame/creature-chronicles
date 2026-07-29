@@ -24,10 +24,34 @@ export type BattleStatKey =
 
 export type BattleStats = Record<BattleStatKey, number>;
 
-export type BattleMoveSourceType = "species" | "universal" | "inherited" | "manual" | "event";
+export type BattleMoveSourceType =
+  | "species"
+  | "variant"
+  | "universal"
+  | "inherited"
+  | "combination"
+  | "manual"
+  | "talent"
+  | "coliseum"
+  | "story"
+  | "event";
 export type BattleMoveCategory = "physical" | "special" | "support" | "status" | "healing";
 export type BattleTargetType = "self" | "single_enemy" | "all_enemies" | "single_ally" | "all_allies" | "field";
 export type BattleEffectTarget = "self" | "target" | "allies" | "enemies" | "field";
+export type BattleMoveScalingStat = "physicalPower" | "specialPower" | "statusPower" | "none";
+export type BattleMoveDefenseStat = "defense" | "resistance" | "statusResist" | "none";
+export type BattleMoveAiHint =
+  | "damage"
+  | "finisher"
+  | "heal_lowest"
+  | "guard_self"
+  | "guard_ally"
+  | "buff_team"
+  | "debuff_threat"
+  | "restore_energy"
+  | "cleanse"
+  | "taunt"
+  | "setup";
 
 export type BattleStatusId =
   | "bleed"
@@ -59,6 +83,7 @@ export type BattleMoveEffect = {
   amount?: number;
   chance?: number;
   duration?: number;
+  maxStacks?: number;
   note?: string;
 };
 
@@ -69,6 +94,7 @@ export type BattleLearnRequirements = {
   temperamentTags?: readonly BattleTag[];
   roleTags?: readonly BattleTag[];
   requiredAnyTags?: readonly BattleTag[];
+  requiredAllTags?: readonly BattleTag[];
   blockedSpeciesIds?: readonly SpeciesId[];
 };
 
@@ -89,6 +115,27 @@ export type BattleMove = {
   inheritable: boolean;
   rarity?: "common" | "uncommon" | "rare" | "signature" | "event";
   learnRequirements?: BattleLearnRequirements;
+  scalingStat?: BattleMoveScalingStat;
+  resistedBy?: BattleMoveDefenseStat;
+  aiHints?: readonly BattleMoveAiHint[];
+  definitionVersion?: number;
+  combinationRecipeIds?: readonly string[];
+};
+
+export type BattleMoveCombinationRecipe = {
+  recipeId: string;
+  name: string;
+  description: string;
+  outputMoveId: BattleMoveId;
+  parentAMoveIds: readonly BattleMoveId[];
+  parentBMoveIds: readonly BattleMoveId[];
+  symmetric: boolean;
+  baseChance: number;
+  requiredChildSpeciesIds?: readonly SpeciesId[];
+  requiredChildFamilyTags?: readonly CreatureFamily[];
+  requiredChildTags?: readonly BattleTag[];
+  blockedChildSpeciesIds?: readonly SpeciesId[];
+  notes: readonly string[];
 };
 
 export type BattleSpeciesProfile = {
@@ -112,6 +159,7 @@ export type BattleSpeciesProfile = {
 export type BattleMoveLoadout = {
   learnedMoveIds: BattleMoveId[];
   equippedMoveIds: BattleMoveId[];
+  version?: number;
 };
 
 export type ParentBattleMoveSource = {
