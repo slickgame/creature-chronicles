@@ -48,6 +48,10 @@ function hasFamily(save: GameSave, family: string): boolean {
   return (save.creatures ?? []).some((creature) => getVariantDefinition(creature.variantId).family === family);
 }
 
+function overnightResolvedForGoalDay(save: GameSave): boolean {
+  return (save.ranchJobs?.lastProcessedDayNumber ?? 0) > save.dayState.dayNumber;
+}
+
 const GOAL_TEMPLATES: GoalTemplate[] = [
   {
     id: "breed-once",
@@ -136,7 +140,7 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
     target: 5,
     reward: { gold: 40, feed: 1 },
     available: (save) => hasFamily(save, "bovine") || hasFamily(save, "lapine"),
-    progress: (save) => readFlagNumber(save.flags.ranchFeedProducedToday),
+    progress: (save) => overnightResolvedForGoalDay(save) ? readFlagNumber(save.flags.ranchFeedProducedToday) : 0,
   },
   {
     id: "produce-materials",
@@ -146,7 +150,7 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
     target: 2,
     reward: { gold: 40, materials: 1 },
     available: (save) => hasFamily(save, "equine"),
-    progress: (save) => readFlagNumber(save.flags.ranchMaterialsProducedToday),
+    progress: (save) => overnightResolvedForGoalDay(save) ? readFlagNumber(save.flags.ranchMaterialsProducedToday) : 0,
   },
   {
     id: "finish-contract",
@@ -162,11 +166,11 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
     id: "keep-gold-reserve",
     label: "Protect the ranch reserve",
     description: "End the day with at least 200 Gold available for supplies and taxes.",
-    progressLabel: "Gold held",
+    progressLabel: "Gold held at day end",
     target: 200,
     reward: { feed: 1, materials: 1 },
     available: () => true,
-    progress: (save) => save.currencies.gold,
+    progress: (save) => overnightResolvedForGoalDay(save) ? save.currencies.gold : 0,
   },
 ];
 
@@ -185,22 +189,19 @@ export function generateDailyGoals(save: GameSave): DailyGoalRecord[] {
     if (!selected.some((goal) => goal.id === fallback.id) && fallback.available(save)) selected.push(fallback);
   }
 
-  return selected.map((goal) => {
-    const progress = Math.min(goal.target, goal.progress(save, []));
-    return {
-      goalId: `${save.dayState.dayNumber}:${goal.id}`,
-      dayNumber: save.dayState.dayNumber,
-      label: goal.label,
-      description: goal.description,
-      progressLabel: goal.progressLabel,
-      target: goal.target,
-      progress,
-      complete: progress >= goal.target,
-      reward: { ...goal.reward },
-      rewardLabel: rewardLabel(goal.reward),
-      rewardClaimed: false,
-    };
-  });
+  return selected.map((goal) => ({
+    goalId: `${save.dayState.dayNumber}:${goal.id}`,
+    dayNumber: save.dayState.dayNumber,
+    label: goal.label,
+    description: goal.description,
+    progressLabel: goal.progressLabel,
+    target: goal.target,
+    progress: 0,
+    complete: false,
+    reward: { ...goal.reward },
+    rewardLabel: rewardLabel(goal.reward),
+    rewardClaimed: false,
+  }));
 }
 
 function applyReward(save: GameSave, reward: RanchDayReward): GameSave {
