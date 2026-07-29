@@ -23,6 +23,7 @@ import type {
 } from "./ids";
 import type { ItemUseRecord } from "./items";
 import type { MarketState } from "./market";
+import type { RanchDayState } from "./ranchDay";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
 import type { TownNpcTrustState } from "./townNpc";
@@ -205,6 +206,7 @@ export type GameSave = {
   townNpcTrust?: TownNpcTrustState;
   ranchUpgrades?: RanchUpgradeState;
   ranchJobs?: RanchJobsState;
+  ranchDay?: RanchDayState;
   saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };
