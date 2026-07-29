@@ -120,6 +120,24 @@ export function recordRanchDayTransition(previous: GameSave | null, incoming: Ga
     ));
   }
 
+  for (const creature of next.creatures ?? []) {
+    const creatureId = String(creature.creatureId);
+    const flag = `trainingGroundsAssignment_${creatureId}`;
+    const priorFocus = String(previous.flags[flag] ?? "");
+    const nextFocus = String(next.flags[flag] ?? "");
+    if (priorFocus === nextFocus) continue;
+    const started = Boolean(nextFocus);
+    addIfNew(additions, existingIds, activity(
+      next,
+      `training:${next.dayState.dayNumber}:${creatureId}:${nextFocus || "collected"}`,
+      "training",
+      started
+        ? `${creature.nickname} began ${nextFocus.replace(/_/g, " ")} at the Training Grounds.`
+        : `${creature.nickname} returned from training and the result was collected.`,
+      { participantIds: [creatureId] },
+    ));
+  }
+
   const priorUpgradeTotal = upgradeTotal(previous);
   const nextUpgradeTotal = upgradeTotal(next);
   if (nextUpgradeTotal > priorUpgradeTotal) {
