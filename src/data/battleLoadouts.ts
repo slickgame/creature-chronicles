@@ -54,7 +54,15 @@ export function canSpeciesLearnBattleMove(speciesId: SpeciesId, moveId: BattleMo
   if (requirements.familyTags?.includes(profile.family)) return true;
 
   const availableTags = getBattleSpeciesTags(speciesId);
-  if (!hasAllMatches(requirements.requiredAllTags, availableTags)) return false;
+  const allTagsMatch = hasAllMatches(requirements.requiredAllTags, availableTags);
+  if (!allTagsMatch) return false;
+  const hasFlexibleRequirement = Boolean(
+    requirements.bodyTags?.length ||
+    requirements.temperamentTags?.length ||
+    requirements.roleTags?.length ||
+    requirements.requiredAnyTags?.length,
+  );
+  if (!hasFlexibleRequirement && requirements.requiredAllTags?.length) return true;
   return (
     hasAnyMatch(requirements.bodyTags, availableTags) ||
     hasAnyMatch(requirements.temperamentTags, availableTags) ||
@@ -77,14 +85,11 @@ export function normalizeBattleMoveLoadout(
   loadout: Partial<BattleMoveLoadout> = {},
 ): BattleMoveLoadout {
   const profile = getBattleSpeciesProfile(speciesId);
-  const savedLearned = loadout.learnedMoveIds?.length ? loadout.learnedMoveIds : profile.defaultLearnedMoveIds;
-  const learnedMoveIds = uniqueMoveIds([
-    REQUIRED_BASIC_BATTLE_MOVE_ID,
-    profile.signatureMoveId,
-    ...savedLearned,
-    REQUIRED_DEFENSE_BATTLE_MOVE_ID,
-    ...profile.defaultLearnedMoveIds,
-  ])
+  const hasSavedLearnedLibrary = Boolean(loadout.learnedMoveIds?.length);
+  const candidateLearnedMoveIds = hasSavedLearnedLibrary
+    ? [REQUIRED_BASIC_BATTLE_MOVE_ID, profile.signatureMoveId, ...(loadout.learnedMoveIds ?? [])]
+    : [...profile.defaultLearnedMoveIds, REQUIRED_BASIC_BATTLE_MOVE_ID, profile.signatureMoveId, REQUIRED_DEFENSE_BATTLE_MOVE_ID];
+  const learnedMoveIds = uniqueMoveIds(candidateLearnedMoveIds)
     .filter((moveId) => canSpeciesLearnBattleMove(speciesId, moveId))
     .slice(0, MAX_LEARNED_BATTLE_MOVES);
 
@@ -216,7 +221,7 @@ export function getBattleMoveLoadoutIssues(speciesId: SpeciesId, raw: Partial<Ba
   equipped.forEach((moveId) => {
     if (!learned.includes(moveId)) issues.push(`Equipped move is not learned: ${moveId}.`);
   });
-  if (!equipped.some(isAlwaysUsableMove)) issues.push("No zero-cost, zero-cooldown move is equipped.");
+  if (equipped.length > 0 && !equipped.some(isAlwaysUsableMove)) issues.push("No zero-cost, zero-cooldown move is equipped.");
   return issues;
 }
 
