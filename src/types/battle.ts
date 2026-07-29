@@ -180,6 +180,55 @@ export type BattleMoveInheritanceCandidate = {
   reasons: string[];
 };
 
+export type BattleMoveCombinationCandidate = {
+  recipeId: string;
+  recipeName: string;
+  outputMoveId: BattleMoveId;
+  outputMoveName: string;
+  chance: number;
+  parentAContributingMoveId: BattleMoveId;
+  parentBContributingMoveId: BattleMoveId;
+  contributingMoveNames: string[];
+  reasons: string[];
+};
+
+export type BattleMoveInheritanceSource = "giver" | "receiver" | "both" | "combination";
+
+export type BattleMoveInheritanceRoll = {
+  moveId: BattleMoveId;
+  moveName: string;
+  source: BattleMoveInheritanceSource;
+  chance: number;
+  roll: number;
+  inherited: boolean;
+  recipeId?: string;
+  contributingMoveIds: BattleMoveId[];
+  reasons: string[];
+};
+
+export type BattleMoveInheritanceResult = {
+  version: number;
+  childSpeciesId: SpeciesId;
+  giverCreatureId?: CreatureId;
+  receiverCreatureId?: CreatureId;
+  giverMoveSnapshot: ParentBattleMoveSource;
+  receiverMoveSnapshot: ParentBattleMoveSource;
+  directInheritedMoveIds: BattleMoveId[];
+  combinationMoveIds: BattleMoveId[];
+  projectedLoadout: BattleMoveLoadout;
+  rolls: BattleMoveInheritanceRoll[];
+  notes: string[];
+};
+
+export type BattleMoveInheritancePreview = {
+  childSpeciesId?: SpeciesId;
+  canProduceOffspring: boolean;
+  reason: string;
+  contextBonus: number;
+  directCandidates: BattleMoveInheritanceCandidate[];
+  combinationCandidates: BattleMoveCombinationCandidate[];
+};
+
 export type BattleDamagePreview = {
   baseDamage: number;
   modifierTotal: number;
