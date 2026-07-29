@@ -147,7 +147,7 @@ test("derived creature moods are deterministic", () => {
 });
 
 test("ending a Ranch Day advances pregnancy and egg timers exactly once", () => {
-  const save = activeSave();
+  const save = { ...activeSave(), saveId: "ranch_day_test" as never };
   const giver = parentSnapshot(save, 0);
   const receiver = parentSnapshot(save, 1);
   const pregnancy = {
