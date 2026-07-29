@@ -1,6 +1,7 @@
 import type { CreatureRecord } from "@/types/creature";
 import type { BattleDamagePreview, BattleMove, BattleStats, BattleStatKey } from "@/types/battle";
 import { getBattleSpeciesProfile } from "@/data/battleProfiles";
+import { applyTalentBattleStats } from "@/data/talents/talentEngine";
 
 const DEFAULT_BATTLE_STATS: BattleStats = {
   maxHp: 1,
@@ -50,7 +51,8 @@ export function calculateBattleStats(creature: CreatureRecord): BattleStats {
     battleEnergy: 40 + stats.STA * 3 + stats.WIL * 2,
   };
 
-  return applyBattleStatBonuses(baseBattleStats, profile.battleStatBonuses);
+  const speciesAdjusted = applyBattleStatBonuses(baseBattleStats, profile.battleStatBonuses);
+  return applyTalentBattleStats(speciesAdjusted, creature.abilities);
 }
 
 export function getRelevantAttackStat(move: BattleMove, battleStats: BattleStats): number {
