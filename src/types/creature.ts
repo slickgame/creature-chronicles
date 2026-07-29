@@ -1,5 +1,6 @@
 import type { CreatureId, HabitatId, SpeciesId, VariantId } from "./ids";
 import type { TalentCategory } from "./talent";
+import type { CreatureChoreSkills } from "./choreSkills";
 
 export type CreatureFamily = "feline" | "canine" | "bovine" | "lapine" | "equine";
 export type CreatureSex = "female" | "male";
@@ -51,6 +52,12 @@ export type CreatureRecord = {
   statGrades: StatGrades;
   growthProgress?: CreatureGrowthProgress;
   abilities: CreatureAbility[];
+  /**
+   * Persistent domestic and ranch proficiencies. Optional for old saves; the
+   * chore-skill engine derives species baselines until the first progression
+   * event writes the complete record.
+   */
+  choreSkills?: CreatureChoreSkills;
   energy: number;
   maxEnergy: number;
   hearts: number;
