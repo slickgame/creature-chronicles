@@ -1,11 +1,12 @@
-# Deferred Validation — Sections 6 and 7
+# Deferred Validation — Sections 6, 7, and 8
 
 ## Status
 
 - Section 6 — Economy and Energy Balance Lab: **implemented but not yet tested by the project owner**.
-- Section 7 — Inventory and Breeding Item Expansion: **implemented; build and gameplay validation pending**.
+- Section 7 — Inventory and Breeding Item Expansion: **implemented but not yet tested by the project owner**.
+- Section 8 — Save-System Reliability and Versioning: **implemented; build and gameplay validation pending**.
 
-Do not mark either section fully verified until this checklist has been completed against a pulled local build.
+The project owner explicitly deferred Sections 6 and 7 until the next patches are complete. Do not mark Sections 6, 7, or 8 fully verified until this checklist has been completed against a pulled local build.
 
 ## Section 6 — Balance Lab
 
@@ -39,6 +40,24 @@ Do not mark either section fully verified until this checklist has been complete
 15. Confirm Item History records Ranch Day, local timestamp, source menu, target, and exact effect.
 16. Confirm no item use creates an extra Breeding Ledger attempt or changes unrelated creatures.
 
-## Final smoke test
+## Section 8 — Save Reliability and Versioning
 
-Complete this sequence without reloading: purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → save → reload. Confirm every count, effect, record, pregnancy, and breeding attempt remains consistent.
+1. Load every existing save slot and confirm each opens with schema version 3 without losing creatures, pregnancies, eggs, attempts, birth history, or inventory.
+2. Confirm a pre-migration backup is created the first time an older schema or build is loaded.
+3. Create a manual backup in Dev Tools → Save Reliability and confirm it appears with a timestamp and reason.
+4. Export a versioned save package, inspect it, and confirm it contains schema version, export timestamp, checksum, and save payload.
+5. Import the exported package into the active slot and confirm the previous state is backed up before replacement.
+6. Import older raw save JSON and confirm it is accepted as a legacy format, migrated, validated, and deduplicated.
+7. Corrupt or remove nonessential fields in a copied save JSON and confirm the importer reports repairs rather than crashing.
+8. Attempt to import malformed JSON, a bad checksum, and a future unsupported schema; confirm all are rejected without changing the active save.
+9. Rapidly click Attempt Breeding and confirm exactly one attempt, pregnancy outcome, resource charge, and ledger record are saved.
+10. Begin a breeding attempt, simulate an interrupted transaction using DevTools/localStorage, reload, and confirm the stale journal clears without applying an uncommitted outcome.
+11. Duplicate one attempt, pregnancy, egg, or birth record in exported JSON, reimport it, and confirm duplicate-outcome prevention removes the duplicate and records the prevention count.
+12. Test every individual reset and confirm only the named system changes. Verify the automatic safety backup exists before the reset.
+13. Restore a backup and confirm the current save is backed up before restoration.
+14. Delete one save slot and confirm its active-save pointer, backups, and interrupted transaction journal are removed.
+15. Save after a normal breeding attempt and confirm Last Autosave Reason shows `breeding-attempt`.
+
+## Final combined smoke test
+
+Complete this sequence without reloading: create manual backup → run a Balance Lab simulation → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
