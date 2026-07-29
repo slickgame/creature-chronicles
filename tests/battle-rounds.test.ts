@@ -63,9 +63,10 @@ function strikeActions(state: ReturnType<typeof createThreeVsThree>) {
 
 test("the same 3v3 state and action queue resolve identically", () => {
   const firstState = createThreeVsThree("deterministic-round");
-  const secondState = createThreeVsThree("deterministic-round");
-  const first = resolveBattleRound(firstState, strikeActions(firstState));
-  const second = resolveBattleRound(secondState, strikeActions(secondState));
+  const secondState = structuredClone(firstState);
+  const actions = strikeActions(firstState);
+  const first = resolveBattleRound(firstState, actions);
+  const second = resolveBattleRound(secondState, structuredClone(actions));
   assert.deepEqual(first, second);
   assert.equal(first.result.actions.length, 6, "every living combatant should act once");
   assert.equal(new Set(first.result.actions.map((action) => action.actorId)).size, 6);
