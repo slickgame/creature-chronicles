@@ -4,7 +4,7 @@ import { BattleDebugScreen } from "@/features/battle-debug/BattleDebugScreen";
 import { BattleOutfitterScreen } from "@/features/battle-outfitter/BattleOutfitterScreen";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
-import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreen";
+import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
