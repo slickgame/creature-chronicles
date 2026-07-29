@@ -14,7 +14,7 @@ import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
 import { RanchPlotNavigator } from "@/features/ranch/RanchPlotNavigator";
-import { RanchJobsAdvisorScreen } from "@/features/ranch-jobs/RanchJobsAdvisorScreen";
+import { RanchJobsScreen } from "@/features/ranch-jobs/RanchJobsScreen";
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
 import { SupplyDepotScreen } from "@/features/supply-depot/SupplyDepotScreen";
 import { TownScreen } from "@/features/town/TownScreen";
@@ -59,7 +59,7 @@ export function GameRoot() {
   else if (appScreen === "guild-hall") screen = <GuildHallScreen />;
   else if (appScreen === "collection") screen = <CollectionScreen />;
   else if (appScreen === "ranch-office") screen = <RanchOfficeScreen />;
-  else if (appScreen === "ranch-jobs") screen = <RanchJobsAdvisorScreen />;
+  else if (appScreen === "ranch-jobs") screen = <RanchJobsScreen />;
   else if (appScreen === "dev-tools") screen = <DevToolsScreen />;
 
   return (
