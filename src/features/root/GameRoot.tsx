@@ -1,6 +1,6 @@
 "use client";
 
-import { BattleDebugScreen } from "@/features/battle-debug/BattleDebugScreen";
+import { BattleArenaScreen } from "@/features/battle/BattleArenaScreen";
 import { BattleOutfitterScreen } from "@/features/battle-outfitter/BattleOutfitterScreen";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
@@ -55,7 +55,7 @@ export function GameRoot() {
   else if (appScreen === "egg-atelier") screen = <EggAtelierScreen />;
   else if (appScreen === "training-grounds") screen = <TrainingGroundsScreen />;
   else if (appScreen === "battle-outfitter") screen = <BattleOutfitterScreen />;
-  else if (appScreen === "battle-debug") screen = <BattleDebugScreen />;
+  else if (appScreen === "battle-debug") screen = <BattleArenaScreen />;
   else if (appScreen === "guild-hall") screen = <GuildHallScreen />;
   else if (appScreen === "collection") screen = <CollectionScreen />;
   else if (appScreen === "ranch-office") screen = <RanchOfficeScreen />;
@@ -65,7 +65,7 @@ export function GameRoot() {
   return (
     <>
       {screen}
-      {currentSave && appScreen !== "main-menu" ? <PlayerInventoryMenu /> : null}
+      {currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug" ? <PlayerInventoryMenu /> : null}
     </>
   );
 }
