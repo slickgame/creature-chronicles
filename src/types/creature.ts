@@ -1,4 +1,5 @@
 import type { CreatureId, HabitatId, SpeciesId, VariantId } from "./ids";
+import type { TalentCategory } from "./talent";
 
 export type CreatureFamily = "feline" | "canine" | "bovine" | "lapine" | "equine";
 export type CreatureSex = "female" | "male";
@@ -14,7 +15,25 @@ export type CreatureInjurySeverity = "Bruised" | "Wounded" | "Badly Hurt";
 export type CreatureLineageRisk = "none" | "half-sibling" | "full-sibling" | "parent-child";
 
 export type CreatureLineage = { risk: CreatureLineageRisk; label: string; parentCreatureIds: CreatureId[]; parentNames: string[]; notes: string[]; traits: string[] };
-export type CreatureAbility = { id: string; name: string; grade: AbilityGrade; source: "general" | "species" | "variant" | "starter" | "future"; description: string };
+
+/**
+ * Persistent talent instance stored on a creature. Effects live in the central
+ * talent-definition registry so old saves only need an id and grade. The
+ * CreatureAbility alias is retained for backwards-compatible save data and
+ * imports while the player-facing system is now consistently called Talents.
+ */
+export type CreatureTalent = {
+  id: string;
+  name: string;
+  grade: AbilityGrade;
+  source: "general" | "species" | "variant" | "starter" | "future" | "combat" | "chore" | "role";
+  description: string;
+  category?: TalentCategory;
+  tags?: string[];
+  definitionVersion?: number;
+};
+export type CreatureAbility = CreatureTalent;
+
 export type SpeciesDefinition = { speciesId: SpeciesId; family: CreatureFamily; name: string; description: string; baseStats: CreatureStats; baseMaxHearts: number; growthProfile: StatGrowthProfile; exclusiveAbilityPool: CreatureAbility[] };
 export type VariantDefinition = { variantId: VariantId; speciesId: SpeciesId; family: CreatureFamily; name: string; rarity: "Common" | "Uncommon" | "Rare" | "Epic"; description: string; statAdjustments: Partial<CreatureStats>; maxEnergyBonus: number; maxHeartsBonus: number; growthProfile: Partial<StatGrowthProfile>; exclusiveAbilityPool: CreatureAbility[]; portraitPath: string; profilePath: string };
 
