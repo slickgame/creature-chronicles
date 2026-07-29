@@ -13,6 +13,7 @@ import {
 import { buildEveningPreview } from "@/data/ranch-day/ranchDaySummary";
 import { useGameContext } from "@/state/GameProvider";
 import type { RanchDayPhase } from "@/types/ranchDay";
+import type { GameSave } from "@/types/save";
 import styles from "./RanchHubScreenDayLoop.module.css";
 
 type PanelMode = "morning" | "goals" | "activities" | "moods" | "review" | null;
@@ -50,7 +51,7 @@ export function RanchHubScreen() {
 
   if (!save) return <BaseRanchHubScreen />;
 
-  function persist(nextSave: typeof save) {
+  function persist(nextSave: GameSave) {
     saveCurrentGame(nextSave);
   }
 
