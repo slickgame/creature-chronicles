@@ -25,8 +25,11 @@
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
       "@/features/inventory/PlayerInventoryMenu": ["./src/features/inventory/PlayerInventoryMenuManaged"],
       "@/features/nursery/NurseryScreen": ["./src/features/nursery/NurseryScreenLedger"],
+      "@/features/ranch/RanchHubScreen": ["./src/features/ranch/RanchHubScreenDayLoop"],
       "@/features/ranch-office/RanchOfficeScreen": ["./src/features/ranch-office/RanchOfficeScreenLedger"],
       "@/lib/save/localSave": ["./src/lib/save/localSaveLifecycle"],
+      "@/lib/save/saveReliability": ["./src/lib/save/saveReliabilityRanchDay"],
+      "@/state/GameProvider": ["./src/state/GameProviderRanchDay"],
       "@/*": ["./src/*"]
     },
     "plugins": [
