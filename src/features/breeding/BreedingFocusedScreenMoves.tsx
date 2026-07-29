@@ -61,9 +61,11 @@ export function BreedingFocusedScreen() {
       attributes: true,
       attributeFilter: ["disabled", "value"],
     });
+    const interval = window.setInterval(sync, 250);
     window.addEventListener("storage", sync);
     return () => {
       observer.disconnect();
+      window.clearInterval(interval);
       window.removeEventListener("storage", sync);
       window.cancelAnimationFrame(frame);
     };
