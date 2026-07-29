@@ -1,5 +1,13 @@
 import type { CreatureRecord } from "@/types/creature";
-import type { BattleDamagePreview, BattleMove, BattleStats, BattleStatKey } from "@/types/battle";
+import type {
+  BattleDamagePreview,
+  BattleHealingPreview,
+  BattleMove,
+  BattleMoveDefenseStat,
+  BattleMoveScalingStat,
+  BattleStats,
+  BattleStatKey,
+} from "@/types/battle";
 import { getBattleSpeciesProfile } from "@/data/battleProfiles";
 import { applyTalentBattleStats } from "@/data/talents/talentEngine";
 
@@ -55,35 +63,47 @@ export function calculateBattleStats(creature: CreatureRecord): BattleStats {
   return applyTalentBattleStats(speciesAdjusted, creature.abilities);
 }
 
+function fallbackScalingStat(move: BattleMove): BattleMoveScalingStat {
+  if (move.category === "physical") return "physicalPower";
+  if (move.category === "special") return "specialPower";
+  if (move.category === "status" || move.category === "healing") return "statusPower";
+  return "none";
+}
+
+function fallbackDefenseStat(move: BattleMove): BattleMoveDefenseStat {
+  if (move.category === "physical") return "defense";
+  if (move.category === "special") return "resistance";
+  if (move.category === "status") return "statusResist";
+  return "none";
+}
+
 export function getRelevantAttackStat(move: BattleMove, battleStats: BattleStats): number {
-  if (move.scalingStat === "none") return 0;
-  if (move.scalingStat === "physicalPower") return battleStats.physicalPower;
-  if (move.scalingStat === "specialPower") return battleStats.specialPower;
-  if (move.scalingStat === "statusPower") return battleStats.statusPower;
-  if (move.category === "physical") return battleStats.physicalPower;
-  if (move.category === "special") return battleStats.specialPower;
-  return battleStats.statusPower;
+  const scalingStat = move.scalingStat ?? fallbackScalingStat(move);
+  if (scalingStat === "none") return 0;
+  return battleStats[scalingStat];
 }
 
 export function getRelevantDefenseStat(move: BattleMove, battleStats: BattleStats): number {
-  if (move.resistedBy === "none") return 0;
-  if (move.resistedBy === "defense") return battleStats.defense;
-  if (move.resistedBy === "resistance") return battleStats.resistance;
-  if (move.resistedBy === "statusResist") return battleStats.statusResist;
-  if (move.category === "physical") return battleStats.defense;
-  if (move.category === "special") return battleStats.resistance;
-  if (move.category === "status") return battleStats.statusResist;
-  return 0;
+  const resistedBy = move.resistedBy ?? fallbackDefenseStat(move);
+  if (resistedBy === "none") return 0;
+  return battleStats[resistedBy];
 }
 
 export function getBattleTurnScore(battleStats: BattleStats, move: BattleMove): number {
   return battleStats.speed + move.priority * 10;
 }
 
-export function previewBattleDamage(attackerStats: BattleStats, defenderStats: BattleStats, move: BattleMove, modifierTotal = 1): BattleDamagePreview {
+export function previewBattleDamage(
+  attackerStats: BattleStats,
+  defenderStats: BattleStats,
+  move: BattleMove,
+  modifierTotal = 1,
+): BattleDamagePreview {
   const relevantAttackStat = getRelevantAttackStat(move, attackerStats);
   const relevantDefenseStat = getRelevantDefenseStat(move, defenderStats);
-  const baseDamage = Math.max(0, move.power + relevantAttackStat - relevantDefenseStat);
+  const attackContribution = Math.round(relevantAttackStat * 0.75);
+  const defenseContribution = Math.round(relevantDefenseStat * 0.5);
+  const baseDamage = Math.max(0, move.power + attackContribution - defenseContribution);
   const finalDamage = move.category === "healing" || move.category === "support" || move.category === "status"
     ? 0
     : Math.max(1, Math.round(baseDamage * modifierTotal));
@@ -93,8 +113,33 @@ export function previewBattleDamage(attackerStats: BattleStats, defenderStats: B
     modifierTotal,
     finalDamage,
     notes: [
-      `${move.name} uses ${move.scalingStat ?? move.category} scaling.`,
-      `Attack stat ${relevantAttackStat} vs defense stat ${relevantDefenseStat}.`,
+      `${move.name} scales from ${move.scalingStat ?? fallbackScalingStat(move)}.`,
+      `${relevantAttackStat} attack contributes ${attackContribution}; ${relevantDefenseStat} ${move.resistedBy ?? fallbackDefenseStat(move)} prevents ${defenseContribution}.`,
+      `Final modifier: ${modifierTotal.toFixed(2)}x.`,
+    ],
+  };
+}
+
+export function previewBattleHealing(
+  sourceStats: BattleStats,
+  move: BattleMove,
+  baseAmount = move.power,
+): BattleHealingPreview {
+  const relevantStat = getRelevantAttackStat(move, sourceStats);
+  const scalingBonus = move.scalingStat === "none" ? 0 : Math.max(0, Math.round(relevantStat * 0.6));
+  const targetModifier = move.targetType === "all_allies" ? 0.78 : 1;
+  const baseHealing = Math.max(1, Math.round(baseAmount));
+  const finalHealing = Math.max(1, Math.round((baseHealing + scalingBonus) * targetModifier));
+
+  return {
+    baseHealing,
+    scalingBonus,
+    targetModifier,
+    finalHealing,
+    notes: [
+      `${move.name} begins with ${baseHealing} healing.`,
+      `${move.scalingStat ?? fallbackScalingStat(move)} adds ${scalingBonus}.`,
+      move.targetType === "all_allies" ? "Team-wide healing uses a 0.78x spread modifier." : "Single-target healing uses full strength.",
     ],
   };
 }
