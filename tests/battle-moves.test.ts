@@ -3,17 +3,17 @@ import assert from "node:assert/strict";
 
 const {
   auditBattleMoveFoundation,
-} = await import("../src/data/battleMoveAudit.ts");
+} = await import("@/data/battleMoveAudit");
 const {
   BATTLE_MOVE_COMBINATION_RECIPES,
-} = await import("../src/data/battleMoveRecipes.ts");
+} = await import("@/data/battleMoveRecipes");
 const {
   BATTLE_MOVES,
   BATTLE_MOVES_BY_ID,
-} = await import("../src/data/battleMoves.ts");
+} = await import("@/data/battleMoves");
 const {
   BATTLE_SPECIES_PROFILES,
-} = await import("../src/data/battleProfiles.ts");
+} = await import("@/data/battleProfiles");
 const {
   MAX_EQUIPPED_BATTLE_MOVES,
   MAX_LEARNED_BATTLE_MOVES,
@@ -23,14 +23,14 @@ const {
   getCreatureBattleMoveLoadout,
   learnBattleMove,
   normalizeBattleMoveLoadout,
-} = await import("../src/data/battleLoadouts.ts");
+} = await import("@/data/battleLoadouts");
 const {
   createBattleState,
-} = await import("../src/data/battleEngine.ts");
+} = await import("@/data/battleEngine");
 const {
   createNewGameSave,
   saveGameToSlot,
-} = await import("../src/lib/save/localSave.ts");
+} = await import("@/lib/save/localSave");
 
 function firstCreature() {
   const save = createNewGameSave("Move Test", 0);
