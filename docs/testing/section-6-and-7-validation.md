@@ -1,4 +1,4 @@
-# Deferred Validation — Sections 6, 7, 8, 9, and 10
+# Deferred Validation — Sections 6, 7, 8, 9, 10, and 11A
 
 ## Status
 
@@ -7,8 +7,9 @@
 - Section 8 — Save-System Reliability and Versioning: **implemented; build and gameplay validation pending**.
 - Section 9 — Automated Testing and Asset Validation: **implemented; the automated suite and local asset folders have not yet been run by the project owner**.
 - Section 10 — Ranch Day Loop: **implemented; build, migration, lifecycle, and UI validation pending**.
+- Section 11A — Unified Creature Capability and Talent Audit: **implemented as the structured talent foundation; build, migration, exact-effect, audit-UI, chore, recovery, battle-stat, and role-tag validation pending**.
 
-The project owner explicitly deferred validation until the next patches are complete. Do not mark Sections 6, 7, 8, 9, or 10 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
+The project owner explicitly deferred validation until the next patches are complete. Do not mark Sections 6, 7, 8, 9, 10, or 11A fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
 
 ## Section 6 — Balance Lab
 
@@ -70,7 +71,7 @@ The project owner explicitly deferred validation until the next patches are comp
 5. Temporarily delete a manifest-referenced image without regenerating the manifest and confirm the deleted entry is reported.
 6. Temporarily remove one creature family's pregnant or not-pregnant outcome pool and confirm validation fails.
 7. Add a player pregnancy outcome folder and confirm validation fails.
-8. Run `npm run test:regression` and confirm breeding, inventory, persistence, and Ranch Day tests all pass.
+8. Run `npm run test:regression` and confirm breeding, inventory, persistence, Ranch Day, and Talent tests all pass.
 9. Run `npm test` and confirm asset preparation, validation, and regression tests complete together.
 10. Run `npm run build` and confirm prebuild validation stops the build when an asset error exists.
 11. Push a test branch or commit and confirm GitHub Actions runs `npm test` before `npm run build`.
@@ -97,6 +98,24 @@ The project owner explicitly deferred validation until the next patches are comp
 17. Simulate an interrupted `day-end` transaction and confirm reload returns either the prior Active Day or the fully committed next Morning, never a partial result.
 18. Confirm there is no hard action-point cap, hourly clock, automatic daily Gold rent, automatic production sale, automatic mood drift, or automatic day advancement.
 
+## Section 11A — Unified Creature Capability and Talent Audit
+
+1. Load every existing save and confirm each saved `abilities` entry remains present, keeps its id and grade, and gains the correct Talent category, tags, definition version, and exact grade text without changing ownership or lineage.
+2. Open Dev Tools → Talent Audit and confirm Overview counts match the current save.
+3. Review Definitions and confirm every general, species, variant, starter, and low-grade talent has a recognized central definition.
+4. Confirm every definition exposes exact F, D, C, B, A, and S descriptions and at least one structured effect per grade.
+5. Confirm the audit distinguishes Implemented, Partial, Description Only, and Unknown Definition states accurately.
+6. Confirm the Grade Preview shows the same effect values used by the structured engine.
+7. Compare representative live Breeding Pen previews before and after migration: Quick Learner, Feline Grace, Steady Nerves, and Guard Instinct must preserve pregnancy, XP, Energy, breeder-XP, and growth-bias behavior.
+8. Assign creatures with relevant structured talents to Security, Comfort, Production, Garden, and Hauling chores; confirm exact score and Energy modifiers appear once in the result message.
+9. End a Ranch Day and confirm recovery talents affect Energy or Affection once without exceeding normal caps.
+10. Open Battle Debug with and without combat-tagged talents and confirm calculated HP, Power, Defense, Speed, Accuracy, Evasion, Status Power, or Status Resistance changes exactly once.
+11. Review Owned Creatures in Talent Audit and confirm derived role tags are deterministic and include an explanation tooltip.
+12. Confirm unknown or manually edited talent ids are reported rather than silently receiving guessed effects.
+13. Run `npm run test:regression` twice and confirm all Talent tests are deterministic.
+14. Confirm inheritance-related Talent definitions remain labeled Partial until their final genetics-roll hook is connected in the dedicated genetics follow-up patch.
+15. Confirm Section 11A does not add chore-skill levels, remove species job restrictions, add Coliseum progression, or alter the six-move combat-loadout plan; those belong to subsequent sections.
+
 ## Final combined smoke test
 
-Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → assign chores → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
+Run `npm test`, then complete this sequence without reloading: create manual backup → begin Morning Brief → run a Balance Lab simulation → open Talent Audit → review one F–S talent curve → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → assign a talent-bearing creature to chores → review goals and activities → resolve the Ranch Day event → open Evening Review → end day → confirm Morning Brief → open Battle Debug and compare a talent-bearing creature → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, Ranch Day state, event, goal reward, talent instance, audit warning, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
