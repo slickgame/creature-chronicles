@@ -1,6 +1,6 @@
 import type { BattleMoveCombinationRecipe } from "@/types/battle";
 
-export const BATTLE_MOVE_COMBINATION_RECIPES = [
+export const BATTLE_MOVE_COMBINATION_RECIPES: readonly BattleMoveCombinationRecipe[] = [
   {
     recipeId: "recipe_predator_pursuit",
     name: "Predator Pursuit",
@@ -13,7 +13,7 @@ export const BATTLE_MOVE_COMBINATION_RECIPES = [
     requiredChildTags: ["pursuit", "predatory", "finisher", "cunning"],
     notes: [
       "The parents may satisfy either side of the recipe when symmetric is true.",
-      "The final breeding roll is deferred to the dedicated move-inheritance milestone.",
+      "Successful conception resolves and stores this recipe once using immutable parent move snapshots.",
     ],
   },
   {
@@ -43,10 +43,10 @@ export const BATTLE_MOVE_COMBINATION_RECIPES = [
     requiredChildTags: ["nurturing", "calm", "support", "healer"],
     notes: [
       "This rare recipe produces a team healing and cleansing move.",
-      "Actual generation is intentionally not connected to conception yet.",
+      "The result is rolled once at conception and carried through pregnancy, egg, hatchling, and birth history.",
     ],
   },
-] as const satisfies readonly BattleMoveCombinationRecipe[];
+];
 
 export const BATTLE_MOVE_COMBINATION_RECIPES_BY_ID: Record<string, BattleMoveCombinationRecipe> =
   BATTLE_MOVE_COMBINATION_RECIPES.reduce(
