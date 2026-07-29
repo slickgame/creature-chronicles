@@ -1,12 +1,13 @@
-# Deferred Validation — Sections 6, 7, and 8
+# Deferred Validation — Sections 6, 7, 8, and 9
 
 ## Status
 
 - Section 6 — Economy and Energy Balance Lab: **implemented but not yet tested by the project owner**.
 - Section 7 — Inventory and Breeding Item Expansion: **implemented but not yet tested by the project owner**.
 - Section 8 — Save-System Reliability and Versioning: **implemented; build and gameplay validation pending**.
+- Section 9 — Automated Testing and Asset Validation: **implemented; the automated suite and local asset folders have not yet been run by the project owner**.
 
-The project owner explicitly deferred Sections 6 and 7 until the next patches are complete. Do not mark Sections 6, 7, or 8 fully verified until this checklist has been completed against a pulled local build.
+The project owner explicitly deferred validation until the next patches are complete. Do not mark Sections 6, 7, 8, or 9 fully verified until this checklist has been completed against a pulled local build and the owner's current local image folders.
 
 ## Section 6 — Balance Lab
 
@@ -58,6 +59,21 @@ The project owner explicitly deferred Sections 6 and 7 until the next patches ar
 14. Delete one save slot and confirm its active-save pointer, backups, and interrupted transaction journal are removed.
 15. Save after a normal breeding attempt and confirm Last Autosave Reason shows `breeding-attempt`.
 
+## Section 9 — Automated Tests and Asset Validation
+
+1. Run `npm run validate:breeding-assets` against the owner's complete local scene folders.
+2. Confirm the validator reports checked folders, images, receiver pools, exact pair pools, outcome pools, warnings, and errors.
+3. Temporarily add an empty leaf scene folder and confirm validation fails.
+4. Temporarily add an unsupported file, corrupt image header, invalid family folder, and duplicate case-insensitive filename; confirm each is reported.
+5. Temporarily delete a manifest-referenced image without regenerating the manifest and confirm the deleted entry is reported.
+6. Temporarily remove one creature family's pregnant or not-pregnant outcome pool and confirm validation fails.
+7. Add a player pregnancy outcome folder and confirm validation fails.
+8. Run `npm run test:regression` and confirm deterministic scene selection, live pregnancy math, live Energy costs, pair familiarity, already-pregnant handling, player pregnancy prevention, item consumption, and save persistence all pass.
+9. Run `npm test` and confirm asset preparation, validation, and regression tests complete together.
+10. Run `npm run build` and confirm prebuild validation stops the build when an asset error exists.
+11. Push a test branch or commit and confirm GitHub Actions runs `npm test` before `npm run build`.
+12. Confirm player-receiver sessions always show 0% pregnancy chance, produce failure/not-pregnant outcomes, never create pregnancy records, and do not consume an armed Fertility Tonic.
+
 ## Final combined smoke test
 
-Complete this sequence without reloading: create manual backup → run a Balance Lab simulation → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
+Run `npm test`, then complete this sequence without reloading: create manual backup → run a Balance Lab simulation → purchase items → use a care item → arm breeding support → attempt breeding → create pregnancy → shorten pregnancy → export save package → save → reload. Confirm every count, effect, record, pregnancy, attempt, schema value, and backup remains consistent, and confirm the Balance Lab did not mutate the save.
