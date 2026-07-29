@@ -20,6 +20,10 @@ function RanchDayBridge({ children }: { children: React.ReactNode }) {
   const dayEndLockRef = useRef(false);
 
   useEffect(() => {
+    dayEndLockRef.current = false;
+  }, [base.currentSave?.saveId, base.currentSave?.dayState.dayNumber]);
+
+  useEffect(() => {
     const current = base.currentSave;
     if (!current) {
       previousSaveRef.current = null;
@@ -62,12 +66,16 @@ function RanchDayBridge({ children }: { children: React.ReactNode }) {
     dayEndLockRef.current = true;
     try {
       const bundle = advanceRanchDay(normalized);
-      if (!bundle) return null;
+      if (!bundle) {
+        dayEndLockRef.current = false;
+        return null;
+      }
       base.saveCurrentGame(bundle.save);
       previousSaveRef.current = bundle.save;
       return bundle.result;
-    } finally {
+    } catch (error) {
       dayEndLockRef.current = false;
+      throw error;
     }
   }, [base.currentSave, base.saveCurrentGame, saveCurrentGame]);
 
