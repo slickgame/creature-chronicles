@@ -1,9 +1,10 @@
 import { calculateBattleStats } from "@/data/battleStats";
+import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
 import { getVariantDefinition } from "@/data/creatures";
 import { getCreatureTalentRoleTags } from "./talentEngine";
 import type { CreatureRecord } from "@/types/creature";
 
-export type CreatureRoleTagCategory = "combat" | "ranch" | "development";
+export type CreatureRoleTagCategory = "combat" | "domestic" | "ranch" | "development";
 
 export type CreatureRoleTag = {
   id: string;
@@ -49,6 +50,38 @@ function addTalentTags(creature: CreatureRecord, map: Map<string, MutableTag>) {
   }
 }
 
+function addChoreSkillTags(creature: CreatureRecord, map: Map<string, MutableTag>) {
+  const labels: Record<string, string> = {
+    cooking: "Cook",
+    cleaning: "Cleaner",
+    crafting: "Crafter",
+    caregiving: "Caregiver",
+    hospitality: "Host",
+    security: "Security",
+    harvesting: "Harvester",
+    production: "Producer",
+    hauling: "Field Worker",
+    ranch_care: "Ranch Caregiver",
+  };
+
+  for (const category of ["domestic", "ranch"] as const) {
+    for (const { definition, progress, naturalBaselineLevel } of getCreatureChoreSkillGroup(creature, category)) {
+      if (progress.level < 3) continue;
+      const trainedLevels = Math.max(0, progress.level - naturalBaselineLevel);
+      addTag(
+        map,
+        `skill-${definition.skillId}`,
+        labels[definition.skillId] ?? definition.label,
+        category,
+        Math.min(10, progress.level + (trainedLevels > 0 ? 1 : 0)),
+        trainedLevels > 0
+          ? `${definition.label} Level ${progress.level}; ${trainedLevels} level${trainedLevels === 1 ? "" : "s"} above the species baseline.`
+          : `${definition.label} Level ${progress.level} from natural species proficiency.`,
+      );
+    }
+  }
+}
+
 function addStatTags(creature: CreatureRecord, map: Map<string, MutableTag>) {
   const { STR, DEX, STA, CHA, WIL, FER } = creature.stats;
   const battle = calculateBattleStats(creature);
@@ -69,10 +102,10 @@ function addStatTags(creature: CreatureRecord, map: Map<string, MutableTag>) {
     addTag(map, "field-worker", "Field Worker", "ranch", 3, `Strong field-work stats: STR ${STR}, STA ${STA}.`);
   }
   if (DEX + CHA >= 15) {
-    addTag(map, "domestic-worker", "Domestic Worker", "ranch", 3, `Strong domestic-work stats: DEX ${DEX}, CHA ${CHA}.`);
+    addTag(map, "domestic-worker", "Domestic Worker", "domestic", 3, `Strong domestic-work stats: DEX ${DEX}, CHA ${CHA}.`);
   }
   if (CHA + WIL >= 15) {
-    addTag(map, "caregiver", "Caregiver", "ranch", 3, `Strong care profile: CHA ${CHA}, WIL ${WIL}.`);
+    addTag(map, "caregiver", "Caregiver", "domestic", 3, `Strong care profile: CHA ${CHA}, WIL ${WIL}.`);
   }
   if (FER + CHA >= 16) {
     addTag(map, "breeding-specialist", "Breeding Specialist", "ranch", 3, `Strong breeding profile: FER ${FER}, CHA ${CHA}.`);
@@ -107,7 +140,8 @@ function addFamilyTags(creature: CreatureRecord, map: Map<string, MutableTag>) {
       striker: "Striker",
     };
     const combat = ["support", "tank", "striker"].includes(id);
-    addTag(map, `family-${id}`, labels[id] ?? id, combat ? "combat" : "ranch", 2, reason);
+    const domestic = ["domestic-worker", "caregiver"].includes(id);
+    addTag(map, `family-${id}`, labels[id] ?? id, combat ? "combat" : domestic ? "domestic" : "ranch", 2, reason);
   }
 }
 
@@ -115,10 +149,11 @@ export function getCreatureRoleTags(creature: CreatureRecord): CreatureRoleTag[]
   const map = new Map<string, MutableTag>();
   addFamilyTags(creature, map);
   addStatTags(creature, map);
+  addChoreSkillTags(creature, map);
   addTalentTags(creature, map);
   const sorted = [...map.values()]
     .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label))
-    .slice(0, 10);
+    .slice(0, 12);
   return sorted.map((tag, index) => ({ ...tag, primary: index < 2 }));
 }
 
