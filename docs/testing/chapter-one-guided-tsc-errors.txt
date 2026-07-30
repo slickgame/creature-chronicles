@@ -1,0 +1,14 @@
+src/data/breedingSceneImages.ts(5,8): error TS2307: Cannot find module '@/data/generatedBreedingSceneImages' or its corresponding type declarations.
+src/features/ranch/RanchHubScreenDayLoop.tsx(59,27): error TS2345: Argument of type 'GameSave | null' is not assignable to parameter of type 'GameSave'.
+  Type 'null' is not assignable to type 'GameSave'.
+src/features/ranch/RanchHubScreenDayLoop.tsx(61,29): error TS18047: 'save' is possibly 'null'.
+src/features/ranch/RanchHubScreenDayLoop.tsx(65,32): error TS2345: Argument of type 'GameSave | null' is not assignable to parameter of type 'GameSave'.
+  Type 'null' is not assignable to type 'GameSave'.
+src/features/ranch/RanchHubScreenDayLoop.tsx(70,33): error TS2345: Argument of type 'GameSave | null' is not assignable to parameter of type 'GameSave'.
+  Type 'null' is not assignable to type 'GameSave'.
+src/features/ranch/RanchHubScreenDayLoop.tsx(83,49): error TS2345: Argument of type 'GameSave | null' is not assignable to parameter of type 'GameSave'.
+  Type 'null' is not assignable to type 'GameSave'.
+src/features/tutorial/ChapterOneGuidedTutorial.tsx(152,37): error TS18047: 'step' is possibly 'null'.
+src/features/tutorial/ChapterOneGuidedTutorial.tsx(159,11): error TS18047: 'step' is possibly 'null'.
+src/features/tutorial/ChapterOneGuidedTutorial.tsx(164,50): error TS2345: Argument of type 'GameSave | null' is not assignable to parameter of type 'GameSave'.
+  Type 'null' is not assignable to type 'GameSave'.
