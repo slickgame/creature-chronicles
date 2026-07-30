@@ -1,0 +1,52 @@
+name: One-off Chapter 1R cleanup
+
+on:
+  push:
+    branches:
+      - agent/chapter-one-guided-onboarding
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/chapter-one-guided-onboarding
+          fetch-depth: 0
+      - name: Restore static C4 import and strict checking
+        shell: python
+        run: |
+          from pathlib import Path
+
+          shell_path = Path("src/features/coliseum/ColiseumProgressionShellC4.tsx")
+          shell = shell_path.read_text(encoding="utf-8")
+          old = '''import { ColiseumProgressionScreen as ColiseumProgressionScreenC3 } from "./ColiseumProgressionShellC3";
+import styles from "./ColiseumC4.module.css";
+
+const { ColiseumC4Battle } = require("./ColiseumC4Battle") as {
+  ColiseumC4Battle: React.ElementType;
+};'''
+          new = '''import { ColiseumC4Battle } from "./ColiseumC4Battle";
+import { ColiseumProgressionScreen as ColiseumProgressionScreenC3 } from "./ColiseumProgressionShellC3";
+import styles from "./ColiseumC4.module.css";'''
+          if old not in shell:
+              raise SystemExit("Expected temporary C4 adapter block was not found")
+          shell_path.write_text(shell.replace(old, new), encoding="utf-8")
+
+          config_path = Path("tsconfig.json")
+          config = config_path.read_text(encoding="utf-8")
+          config = config.replace(',\n    "src/features/coliseum/ColiseumC4Battle.tsx"', '')
+          config_path.write_text(config, encoding="utf-8")
+
+          Path(".github/workflows/one-off-chapter1r-cleanup.yml").unlink(missing_ok=True)
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/coliseum/ColiseumProgressionShellC4.tsx tsconfig.json .github/workflows/one-off-chapter1r-cleanup.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Restore strict C4 battle typechecking"
+          git push origin HEAD:agent/chapter-one-guided-onboarding
