@@ -1,0 +1,45 @@
+name: One-off permanent Coliseum save narrowing
+
+on:
+  push:
+    branches:
+      - agent/chapter-one-guided-onboarding
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/chapter-one-guided-onboarding
+          fetch-depth: 0
+      - name: Apply active save narrowing
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path("src/features/coliseum/ColiseumProgressionScreen.tsx")
+          source = path.read_text(encoding="utf-8")
+          marker = '''  if (!currentSave) {
+            return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load a save before entering the Coliseum.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
+          }'''.replace("          ", "")
+          if marker not in source:
+              raise SystemExit("Expected Coliseum save guard was not found")
+          before, after = source.split(marker, 1)
+          if "  const save = currentSave;" not in after:
+              after = after.replace("currentSave", "save")
+              source = before + marker + "\n  const save = currentSave;" + after
+              path.write_text(source, encoding="utf-8")
+
+          Path(".github/workflows/one-off-coliseum-save-narrowing.yml").unlink(missing_ok=True)
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/coliseum/ColiseumProgressionScreen.tsx .github/workflows/one-off-coliseum-save-narrowing.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Narrow active save in permanent Coliseum screen"
+          git push origin HEAD:agent/chapter-one-guided-onboarding
