@@ -137,18 +137,19 @@ export function PlayerInventoryMenu() {
   const selectedRow = supplyRows.find((row) => row.item.itemId === selectedItemId) ?? filteredRows[0] ?? null;
 
   if (!currentSave || appScreen === "main-menu") return null;
+  const save = currentSave;
 
   const energySnackStock = supplyCounts?.energySnacks ?? 0;
   const energyMealStock = supplyCounts?.energyMeals ?? 0;
   const materialsStock = supplyCounts?.materials ?? 0;
   const repairKitStock = supplyCounts?.repairKits ?? 0;
   const feedStock = supplyCounts?.feed ?? 0;
-  const ranchDamage = getFlagNumber(currentSave.flags.ranchDamage);
+  const ranchDamage = getFlagNumber(save.flags.ranchDamage);
   const ranchCondition = getConditionLabel(ranchDamage);
-  const readyEggs = (currentSave.eggs ?? []).filter((egg) => egg.status === "ready").length;
-  const activeEggs = (currentSave.eggs ?? []).filter((egg) => egg.status !== "hatched").length;
+  const readyEggs = (save.eggs ?? []).filter((egg) => egg.status === "ready").length;
+  const activeEggs = (save.eggs ?? []).filter((egg) => egg.status !== "hatched").length;
   const lowEnergyCreatures = creatureTargets.filter((creature) => creature.energy < Math.ceil(creature.maxEnergy * 0.35));
-  const attentionCreatures = creatureTargets.filter((creature) => getCreatureStatus(creature, currentSave.dayState.dayNumber).needsAttention);
+  const attentionCreatures = creatureTargets.filter((creature) => getCreatureStatus(creature, save.dayState.dayNumber).needsAttention);
 
   function openRelatedSystem(action: () => void) {
     setIsOpen(false);
@@ -156,7 +157,7 @@ export function PlayerInventoryMenu() {
   }
 
   function executeUse(itemId: BreedingSupportItemId, targetId?: string) {
-    const result = useBreedingSupportItem(currentSave, itemId, {
+    const result = useBreedingSupportItem(save, itemId, {
       source: "inventory",
       targetId,
     });
@@ -178,8 +179,8 @@ export function PlayerInventoryMenu() {
   function renderSupportAction(row: InventoryRow) {
     if (!isSupportItem(row.item.itemId)) return null;
     const item = getBreedingSupportItem(row.item.itemId)!;
-    const owned = getBreedingSupportItemCount(currentSave, item.itemId);
-    const active = getBreedingSupportItemActiveCount(currentSave, item.itemId);
+    const owned = getBreedingSupportItemCount(save, item.itemId);
+    const active = getBreedingSupportItemActiveCount(save, item.itemId);
 
     if (item.target === "player-or-creature") {
       return (
@@ -198,7 +199,7 @@ export function PlayerInventoryMenu() {
             <button
               type="button"
               className={styles.actionButton}
-              disabled={owned <= 0 || currentSave.currencies.energy >= currentSave.currencies.maxEnergy}
+              disabled={owned <= 0 || save.currencies.energy >= save.currencies.maxEnergy}
               onClick={() => requestUse(item.itemId, "player")}
             >
               Use on Player
@@ -221,7 +222,7 @@ export function PlayerInventoryMenu() {
         ? Boolean(selectedCreature && selectedCreature.affection < 100)
         : Boolean(selectedCreature && (
             selectedCreature.hearts < selectedCreature.maxHearts ||
-            (selectedCreature.injuredUntilDayNumber ?? 0) >= currentSave.dayState.dayNumber
+            (selectedCreature.injuredUntilDayNumber ?? 0) >= save.dayState.dayNumber
           ));
       return (
         <div className={extra.targetPanel}>
@@ -414,7 +415,7 @@ export function PlayerInventoryMenu() {
         </div>
         <div className={styles.creatureCareGrid}>
           {creatureTargets.map((creature) => {
-            const status = getCreatureStatus(creature, currentSave.dayState.dayNumber);
+            const status = getCreatureStatus(creature, save.dayState.dayNumber);
             return (
               <article key={creature.creatureId} className={`${styles.creatureCareCard} ${status.needsAttention ? styles.creatureNeedsAttention : ""}`} data-ui-text-box="auto">
                 <div><span>{creature.originLabel}</span><strong>{creature.nickname}</strong><p>{status.label} — {status.hint}</p></div>
@@ -487,15 +488,15 @@ export function PlayerInventoryMenu() {
             </nav>
 
             <div className={styles.statusGrid}>
-              <div><span>Player Energy</span><strong>{currentSave.currencies.energy}/{currentSave.currencies.maxEnergy}</strong></div>
-              <div><span>Gold</span><strong>{currentSave.currencies.gold.toLocaleString("en-US")}</strong></div>
+              <div><span>Player Energy</span><strong>{save.currencies.energy}/{save.currencies.maxEnergy}</strong></div>
+              <div><span>Gold</span><strong>{save.currencies.gold.toLocaleString("en-US")}</strong></div>
               <div><span>Energy Items</span><strong>{energySnackStock + energyMealStock}</strong></div>
-              <div><span>Armed Support</span><strong>{armedItems.filter((itemId) => getBreedingSupportItemActiveCount(currentSave, itemId) > 0).length}</strong></div>
+              <div><span>Armed Support</span><strong>{armedItems.filter((itemId) => getBreedingSupportItemActiveCount(save, itemId) > 0).length}</strong></div>
             </div>
 
-            {armedItems.some((itemId) => getBreedingSupportItemActiveCount(currentSave, itemId) > 0) ? (
+            {armedItems.some((itemId) => getBreedingSupportItemActiveCount(save, itemId) > 0) ? (
               <div className={extra.activeSummary} data-ui-text-box="auto">
-                {armedItems.filter((itemId) => getBreedingSupportItemActiveCount(currentSave, itemId) > 0).map((itemId) => (
+                {armedItems.filter((itemId) => getBreedingSupportItemActiveCount(save, itemId) > 0).map((itemId) => (
                   <div key={itemId}><span>{getBreedingSupportItem(itemId)?.name}</span><strong>Armed</strong></div>
                 ))}
               </div>
