@@ -531,6 +531,10 @@ export function buildColiseumC4Encounter(challenge: ColiseumC4ChallengeDefinitio
   const encounterId = challenge.encounterIds[safeStage];
   const base = getColiseumC2Encounter(encounterId);
   if (!base) throw new Error(`Unknown C4 source encounter: ${encounterId}`);
+  const enemyTeam = base.enemyTeam.map((entry) => ({
+    ...entry,
+    level: Math.max(1, entry.level + challenge.levelBonus),
+  })) as unknown as ColiseumC2EncounterDefinition["enemyTeam"];
   return {
     ...base,
     name: challenge.mode === "gauntlet" ? `${challenge.name} — Stage ${safeStage + 1}` : challenge.name,
@@ -539,7 +543,7 @@ export function buildColiseumC4Encounter(challenge: ColiseumC4ChallengeDefinitio
     strategyLabel: `${base.strategyLabel} · ${challenge.modifierIds.map((id) => getColiseumC4Modifier(id).name).join(" + ")}`,
     aiDifficulty: challenge.aiDifficultyOverride ?? base.aiDifficulty,
     recommendedLevel: base.recommendedLevel + challenge.levelBonus,
-    enemyTeam: base.enemyTeam.map((entry) => ({ ...entry, level: Math.max(1, entry.level + challenge.levelBonus) })),
+    enemyTeam,
   };
 }
 
