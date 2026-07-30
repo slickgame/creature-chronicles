@@ -331,7 +331,8 @@ function ColiseumBattle({
   onComplete: (outcome: BattleOutcome, rounds: number, teamCreatureIds: CreatureId[]) => void;
   onReturn: () => void;
 }) {
-  const { save, goToBattleOutfitter, saveCurrentGame } = useGameContext();
+  const { currentSave, goToBattleOutfitter, saveCurrentGame } = useGameContext();
+  const save = currentSave;
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
   const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[]>([]);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
