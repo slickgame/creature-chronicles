@@ -19,6 +19,7 @@ The project owner has not yet run the planned local validation pass for the foll
 - Coliseum C2 — Authored Opponents and Combat Progression
 - Coliseum C3 — Marks, Combat Loot, Exclusive Moves, Equipment, and Creature Contracts
 - Coliseum C4 — Daily Challenges, Gauntlets, Boss Trials, Rotating Modifiers, Partial Recovery, and Local Weekly Scoring
+- Chapter 1R — Guided Onboarding, Beginner Milestones, Safe First Pairing, Quickhatch Item Lesson, and First-Battle Handoff
 
 None of these patches should be described as fully verified until the project owner completes the automated, build, migration, UI, save, gameplay, and local-asset checks.
 
@@ -43,3 +44,4 @@ Detailed subsystem checklists remain in:
 - `docs/testing/coliseum-c2-validation.md`
 - `docs/testing/coliseum-c3-validation.md`
 - `docs/testing/coliseum-c4-validation.md`
+- `docs/testing/chapter-one-guided-onboarding-validation.md`
