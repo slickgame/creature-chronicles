@@ -74,8 +74,10 @@ function hasResolvedFirstNight(save: GameSave): boolean {
 }
 
 function hasSolvedResourceProblem(save: GameSave): boolean {
-  return flagNumber(save.flags.ranchFeedStock) >= 5 ||
-    flagNumber(save.flags.ranchMaterialsStock) > 0 ||
+  return Boolean(save.flags.chapterOneGuidedResourceDecisionMade) ||
+    flagNumber(save.flags.ranchFeedProducedToday) > 0 ||
+    flagNumber(save.flags.ranchMaterialsProducedToday) > 0 ||
+    Boolean(save.flags.m14FieldHaulingMaterials) ||
     Boolean(save.flags.ranchManualRepairUsed) ||
     flagNumber(save.flags.ranchDamageRepairedToday) > 0;
 }
@@ -114,7 +116,17 @@ export function getChapterOneTutorialProgress(save: GameSave): ChapterOneTutoria
   const quickhatchUsed = Boolean(save.flags.chapterOneQuickhatchCatalystUsed) || flagNumber(save.flags.m9TotalHatched) > 0;
   const battleOutfitterOpened = Boolean(save.flags.chapterOneGuidedBattleOutfitterOpened);
   const firstBattleWon = hasWonBattle(save);
-  const complete = choresAssigned && secondChoreAssigned && firstNightResolved && resourceProblemSolved && guildRequestCompleted && breedingAttempted && pregnancyCreated && eggAvailable && quickhatchUsed && firstBattleWon;
+  const complete = choresAssigned &&
+    secondChoreAssigned &&
+    firstNightResolved &&
+    resourceProblemSolved &&
+    guildRequestCompleted &&
+    breedingAttempted &&
+    pregnancyCreated &&
+    eggAvailable &&
+    quickhatchUsed &&
+    battleOutfitterOpened &&
+    firstBattleWon;
   return {
     choresAssigned,
     secondChoreAssigned,
@@ -134,7 +146,7 @@ export function getChapterOneTutorialProgress(save: GameSave): ChapterOneTutoria
 export function isChapterOneGuidedTutorialActive(save: GameSave): boolean {
   if (save.flags.chapterOneGuidedReplay === true) return true;
   if (save.flags.chapterOneGuidedSkipped === true || save.flags.chapterOneGuidedComplete === true) return false;
-  if (save.flags.m24ChapterOneStoryComplete === true || save.flags.m15ChapterOneOnboardingComplete === true) return false;
+  if (save.flags.m24ChapterOneStoryComplete === true) return false;
   return true;
 }
 
@@ -175,7 +187,14 @@ export function markChapterOneTutorialSignal(save: GameSave, signal: ChapterOneT
   };
   const flag = flagBySignal[signal];
   if (save.flags[flag] === true) return save;
-  return { ...save, flags: { ...save.flags, chapterOneGuidedVersion: CHAPTER_ONE_GUIDED_VERSION, [flag]: true } };
+  return {
+    ...save,
+    flags: {
+      ...save.flags,
+      chapterOneGuidedVersion: CHAPTER_ONE_GUIDED_VERSION,
+      [flag]: true,
+    },
+  };
 }
 
 export function skipChapterOneGuidedTutorial(save: GameSave): GameSave {
@@ -285,7 +304,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       id: "solve-resource-problem",
       dayLabel: "Day 2 — Make a Choice",
       title: "Create Some Breathing Room",
-      body: "Stock at least 5 Feed, gather Materials, or repair ranch damage. Choose the problem that matters most to your current ranch.",
+      body: "Produce Feed, gather Materials, or repair ranch damage. Choose the problem that matters most to your current ranch.",
       hint: "Ranch Chores shows projected Feed, Materials, Security, Comfort, and upkeep before the night resolves.",
       action: "chores",
       actionLabel: "Plan Ranch Work",
