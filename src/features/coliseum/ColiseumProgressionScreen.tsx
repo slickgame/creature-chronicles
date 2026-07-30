@@ -354,10 +354,11 @@ function ColiseumBattle({
   const effectiveSelection = selectedCreatureIds.length ? selectedCreatureIds : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
 
   if (!save) return null;
+  const activeSave = save;
 
-  const tacticsStock = getBattleOutfitterCombatStock(save, TEAM_TACTICS_KIT_ID);
-  const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
-  const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
+  const tacticsStock = getBattleOutfitterCombatStock(activeSave, TEAM_TACTICS_KIT_ID);
+  const tonicStock = getBattleOutfitterCombatStock(activeSave, FIELD_TONIC_ID);
+  const revivalStock = getBattleOutfitterCombatStock(activeSave, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
   const activeActor = battleState && activeActorId ? battleState.combatants[activeActorId] : null;
@@ -366,7 +367,7 @@ function ColiseumBattle({
   const allPlayerActionsQueued = Boolean(battleState) && livingPlayerIds.length > 0 && livingPlayerIds.every((id) => queuedActions.has(id));
 
   function toggleCreature(creature: CreatureRecord) {
-    const unavailableReason = getUnavailableReason(save, creature);
+    const unavailableReason = getUnavailableReason(activeSave, creature);
     if (unavailableReason) { setMessage(unavailableReason); return; }
     if (effectiveSelection.includes(creature.creatureId)) {
       setSelectedCreatureIds(effectiveSelection.filter((id) => id !== creature.creatureId));
@@ -384,20 +385,20 @@ function ColiseumBattle({
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
     const enemies = buildColiseumEnemyTeam(team, encounter);
     let state = applyBattleOutfitterLoadouts(
-      save,
+      activeSave,
       createBattleState({
-        battleId: `coliseum_${encounter.encounterId}_${save.saveId}_${save.dayState.dayNumber}_${team.map((creature) => creature.creatureId).join("_")}`,
+        battleId: `coliseum_${encounter.encounterId}_${activeSave.saveId}_${activeSave.dayState.dayNumber}_${team.map((creature) => creature.creatureId).join("_")}`,
         playerCreatures: team,
         enemyCreatures: enemies,
-        playerTeamName: `${save.player.name}'s Ranch Team`,
+        playerTeamName: `${activeSave.player.name}'s Ranch Team`,
         enemyTeamName: encounter.opponentName,
       }),
     );
     let tacticsUsed = false;
     if (armTacticsKit) {
-      const result = applyTeamTacticsKit(save, state);
+      const result = applyTeamTacticsKit(activeSave, state);
       if (!result.ok) { setMessage(result.message); return; }
-      saveCurrentGame(result.save);
+      saveCurrentGame(result.activeSave);
       state = result.state;
       tacticsUsed = true;
     }
@@ -446,10 +447,10 @@ function ColiseumBattle({
   function useSupportItem(item: "tonic" | "revival") {
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
     const result = item === "tonic"
-      ? useFieldTonic(save, battleState, selectedTarget.combatantId)
-      : useRevivalSalve(save, battleState, selectedTarget.combatantId);
+      ? useFieldTonic(activeSave, battleState, selectedTarget.combatantId)
+      : useRevivalSalve(activeSave, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
-    saveCurrentGame(result.save);
+    saveCurrentGame(result.activeSave);
     setBattleState(result.state);
     setSelectedTarget(null);
     setUsedItems((current) => ({ ...current, fieldTonic: current.fieldTonic || item === "tonic", revivalSalve: current.revivalSalve || item === "revival" }));
@@ -503,7 +504,7 @@ function ColiseumBattle({
             <div><span>AI</span><strong>{getBattleAiDifficultyLabel(encounter.aiDifficulty)}</strong><small>{getBattleAiDifficultyDescription(encounter.aiDifficulty)}</small></div>
             <div><span>Team Prep</span><button type="button" className={armTacticsKit ? battleStyles.confirmButton : battleStyles.secondaryButton} onClick={() => setArmTacticsKit((value) => !value)} disabled={tacticsStock <= 0}>{armTacticsKit ? "Tactics Kit Armed" : `Use Tactics Kit (${tacticsStock})`}</button><small>Consumed when the match starts.</small></div>
           </section>
-          <section className={battleStyles.rosterGrid}>{roster.map((creature) => <TeamSelectionCard key={creature.creatureId} creature={creature} selected={effectiveSelection.includes(creature.creatureId)} unavailableReason={getUnavailableReason(save, creature)} readinessLabel={getBattleReadinessLabel(save, creature.creatureId)} onToggle={() => toggleCreature(creature)} />)}</section>
+          <section className={battleStyles.rosterGrid}>{roster.map((creature) => <TeamSelectionCard key={creature.creatureId} creature={creature} selected={effectiveSelection.includes(creature.creatureId)} unavailableReason={getUnavailableReason(activeSave, creature)} readinessLabel={getBattleReadinessLabel(activeSave, creature.creatureId)} onToggle={() => toggleCreature(creature)} />)}</section>
           <footer className={battleStyles.selectionFooter}><p>Victory rewards are recorded only after the completed result is confirmed. Leaving now creates no attempt.</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter {encounter.name}</button></footer>
         </section>
       </main>
@@ -536,7 +537,7 @@ function ColiseumBattle({
             {phase === "result" ? (
               <div className={battleStyles.resultPanel}>
                 <h2>{outcomeLabel(battleState.outcome)}</h2>
-                <p>{battleState.outcome === "player_won" ? `Reward preview: ${getColiseumRewardLabel(getColiseumProgress(save).claimedFirstClearEncounterIds.includes(encounter.encounterId) ? encounter.repeatReward : encounter.firstClearReward)}` : "Defeats and draws are recorded without a reward."}</p>
+                <p>{battleState.outcome === "player_won" ? `Reward preview: ${getColiseumRewardLabel(getColiseumProgress(activeSave).claimedFirstClearEncounterIds.includes(encounter.encounterId) ? encounter.repeatReward : encounter.firstClearReward)}` : "Defeats and draws are recorded without a reward."}</p>
                 {battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock > 0 ? <p>Select a fainted ranch creature and use a Revival Salve to resume before recording the result.</p> : null}
                 <button type="button" onClick={() => finalize()}>Record Result & Return to Coliseum</button>
               </div>
