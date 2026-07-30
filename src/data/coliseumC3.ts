@@ -431,19 +431,20 @@ export function purchaseColiseumC3Reward(save: GameSave, rewardId: string): Coli
     fulfillment = "Champion Banner unlocked";
   }
 
+  const purchaseAward: ColiseumC3AwardHistory = {
+    awardId: `purchase_${reward.rewardId}_${(state.purchaseCounts[reward.rewardId] ?? 0) + 1}_${workingSave.dayState.dayNumber}`,
+    sourceResultId: reward.rewardId,
+    encounterName: reward.name,
+    dayNumber: workingSave.dayState.dayNumber,
+    marks: -reward.costMarks,
+    lootLabel: fulfillment,
+    reason: "purchase",
+  };
   state = {
     ...state,
     marks: state.marks - reward.costMarks,
     purchaseCounts: { ...state.purchaseCounts, [reward.rewardId]: (state.purchaseCounts[reward.rewardId] ?? 0) + 1 },
-    awardHistory: [{
-      awardId: `purchase_${reward.rewardId}_${(state.purchaseCounts[reward.rewardId] ?? 0) + 1}_${workingSave.dayState.dayNumber}`,
-      sourceResultId: reward.rewardId,
-      encounterName: reward.name,
-      dayNumber: workingSave.dayState.dayNumber,
-      marks: -reward.costMarks,
-      lootLabel: fulfillment,
-      reason: "purchase",
-    }, ...state.awardHistory].slice(0, COLISEUM_C3_HISTORY_LIMIT),
+    awardHistory: [purchaseAward, ...state.awardHistory].slice(0, COLISEUM_C3_HISTORY_LIMIT),
   };
   const nextSave = writeState(workingSave, state, flags);
   return { save: nextSave, state, ok: true, changed: true, message: `${reward.name} purchased for ${reward.costMarks} Marks. ${fulfillment}.` };
@@ -573,19 +574,20 @@ export function redeemColiseumCreatureContract(save: GameSave, contractId: strin
   if ((save.creatures ?? []).some((entry) => entry.creatureId === creature.creatureId)) return { save, state, ok: false, changed: false, message: `${contract.nickname} is already present in this save.` };
   const creatures = [...(save.creatures ?? []), creature];
   const habitats = (save.habitats ?? []).map((habitat) => habitat.habitatId === creature.habitatId ? { ...habitat, creatureIds: Array.from(new Set([...habitat.creatureIds, creature.creatureId])) } : habitat);
+  const contractAward: ColiseumC3AwardHistory = {
+    awardId: `contract_${contractId}_${save.dayState.dayNumber}`,
+    sourceResultId: contractId,
+    encounterName: contract.name,
+    dayNumber: save.dayState.dayNumber,
+    marks: 0,
+    lootLabel: `${contract.nickname} joined ${capacity.habitatName}`,
+    reason: "contract",
+  };
   state = {
     ...state,
     pendingContractIds: state.pendingContractIds.filter((id) => id !== contractId),
     recruitedContractIds: [...state.recruitedContractIds, contractId],
-    awardHistory: [{
-      awardId: `contract_${contractId}_${save.dayState.dayNumber}`,
-      sourceResultId: contractId,
-      encounterName: contract.name,
-      dayNumber: save.dayState.dayNumber,
-      marks: 0,
-      lootLabel: `${contract.nickname} joined ${capacity.habitatName}`,
-      reason: "contract",
-    }, ...state.awardHistory].slice(0, COLISEUM_C3_HISTORY_LIMIT),
+    awardHistory: [contractAward, ...state.awardHistory].slice(0, COLISEUM_C3_HISTORY_LIMIT),
   };
   const nextSave = writeState({ ...save, creatures, creatureIds: creatures.map((entry) => entry.creatureId), habitats, habitatIds: habitats.map((entry) => entry.habitatId) }, state);
   return { save: nextSave, state, ok: true, changed: true, message: `${contract.nickname}, the ${contract.name}, joined the ranch at level ${contract.level}.` };
