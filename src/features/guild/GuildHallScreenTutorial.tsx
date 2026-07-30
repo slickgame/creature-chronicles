@@ -22,7 +22,7 @@ export function GuildHallScreen() {
     };
     tagControls();
     const observer = new MutationObserver(tagControls);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    observer.observe(document.body, { childList: true, subtree: true });
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(frame);
