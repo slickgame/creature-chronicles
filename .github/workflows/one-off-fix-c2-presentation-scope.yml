@@ -1,0 +1,41 @@
+name: One-off fix C2 presentation scope
+
+on:
+  push:
+    branches:
+      - agent/battle-presentation-vertical-slice
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/battle-presentation-vertical-slice
+          fetch-depth: 0
+      - name: Move the controller into the match component
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("src/features/coliseum/ColiseumC2Screen.tsx")
+          text = path.read_text(encoding="utf-8")
+          controller = '  const presentation = useBattlePresentationController();\n'
+          if text.count(controller) != 1:
+              raise SystemExit(f"Expected one misplaced controller, found {text.count(controller)}")
+          text = text.replace(controller, "", 1)
+          marker = '  const [message, setMessage] = useState(`Choose exactly three available creatures for ${encounter.name}.`);\n'
+          if marker not in text:
+              raise SystemExit("Inner Coliseum battle message marker not found")
+          text = text.replace(marker, marker + controller, 1)
+          path.write_text(text, encoding="utf-8")
+          Path(".github/workflows/one-off-fix-c2-presentation-scope.yml").unlink(missing_ok=True)
+      - name: Commit scope fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "4189826+github-actions[bot]@users.noreply.github.com"
+          git add src/features/coliseum/ColiseumC2Screen.tsx .github/workflows/one-off-fix-c2-presentation-scope.yml
+          git commit -m "Fix C2 battle presentation scope"
+          git push origin HEAD:agent/battle-presentation-vertical-slice
