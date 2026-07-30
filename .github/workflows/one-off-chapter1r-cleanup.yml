@@ -1,3 +1,4 @@
+# Temporary branch cleanup; this file deletes itself after restoring strict C4 imports.
 name: One-off Chapter 1R cleanup
 
 on:
@@ -24,14 +25,16 @@ jobs:
           shell_path = Path("src/features/coliseum/ColiseumProgressionShellC4.tsx")
           shell = shell_path.read_text(encoding="utf-8")
           old = '''import { ColiseumProgressionScreen as ColiseumProgressionScreenC3 } from "./ColiseumProgressionShellC3";
-import styles from "./ColiseumC4.module.css";
+          import styles from "./ColiseumC4.module.css";
 
-const { ColiseumC4Battle } = require("./ColiseumC4Battle") as {
-  ColiseumC4Battle: React.ElementType;
-};'''
+          const { ColiseumC4Battle } = require("./ColiseumC4Battle") as {
+            ColiseumC4Battle: React.ElementType;
+          };'''
           new = '''import { ColiseumC4Battle } from "./ColiseumC4Battle";
-import { ColiseumProgressionScreen as ColiseumProgressionScreenC3 } from "./ColiseumProgressionShellC3";
-import styles from "./ColiseumC4.module.css";'''
+          import { ColiseumProgressionScreen as ColiseumProgressionScreenC3 } from "./ColiseumProgressionShellC3";
+          import styles from "./ColiseumC4.module.css";'''
+          old = old.replace("          ", "")
+          new = new.replace("          ", "")
           if old not in shell:
               raise SystemExit("Expected temporary C4 adapter block was not found")
           shell_path.write_text(shell.replace(old, new), encoding="utf-8")
