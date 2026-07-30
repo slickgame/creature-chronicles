@@ -12,6 +12,7 @@ import {
   getChapterOneGuidedTutorialStep,
   getChapterOneTutorialProgress,
   prepareChapterOneGuidedTutorialSave,
+  QUICKHATCH_CATALYST_STOCK_FLAG,
 } from "../src/data/chapterOneGuidedTutorialBattle.ts";
 import { getChapterOneCompletionScene } from "../src/data/chapterOneStoryGuided.ts";
 import { getStarterGoalProgress } from "../src/data/starterGoals.ts";
@@ -133,6 +134,22 @@ test("Quickhatch Catalyst is granted once, recorded, consumed, and hatches the t
   const duplicate = useTutorialQuickhatchCatalyst(hatch.save, egg.eggId);
   assert.equal(duplicate.ok, false);
   assert.equal(duplicate.save, hatch.save);
+});
+
+test("an unused Catalyst expires if the guided egg hatches naturally", () => {
+  const base = guidedSave();
+  const save = {
+    ...base,
+    flags: {
+      ...base.flags,
+      chapterOneQuickhatchCatalystGranted: true,
+      [QUICKHATCH_CATALYST_STOCK_FLAG]: 1,
+      m9TotalHatched: 1,
+    },
+  };
+  const prepared = prepareChapterOneGuidedTutorialSave(save);
+  assert.equal(getQuickhatchCatalystCount(prepared), 0);
+  assert.equal(prepared.flags.chapterOneQuickhatchCatalystExpired, true);
 });
 
 test("visiting Battle Outfitter early cannot skip earlier guided lessons", () => {
