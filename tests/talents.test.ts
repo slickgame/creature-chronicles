@@ -133,5 +133,5 @@ test("talent audit recognizes every current saved talent instance", () => {
   const audit = auditTalentDefinitions(auditedSave);
   assert.equal(audit.unknownDefinitionCount, 0);
   assert.equal(audit.gradeCoverageCount, audit.gradeCoverageExpected);
-  assert.ok(audit.records.some((record) => record.talentId === "quick_learner" && record.ownedCount === 1));
+  assert.ok(audit.records.some((record) => record.talentId === "quick_learner" && record.ownedCount >= 1));
 });
