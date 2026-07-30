@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { getColiseumC3State } from "@/data/coliseumC3";
 import {
   abandonColiseumC4Run,
@@ -16,7 +16,6 @@ import {
   getColiseumC4WeeklyBoss,
   recordColiseumC4BattleResult,
   type ColiseumC4ChallengeDefinition,
-  type ColiseumC4Mode,
   type ColiseumC4Result,
 } from "@/data/coliseumC4";
 import { useGameContext } from "@/state/GameProvider";
@@ -194,8 +193,14 @@ export function ColiseumProgressionScreen() {
 
   const dailyClaimed = state.dailyClaimKeys.includes(daily.claimKey);
   const bossClaimed = state.weeklyBossClaimKeys.includes(boss.claimKey);
-  const rankedCreatures = useMemo(() => Object.values(state.creatureRecords).sort((left, right) => right.bestScore - left.bestScore || right.wins - left.wins).slice(0, 8), [state.creatureRecords]);
-  const weeklyScores = Object.values(state.weeklyScores).sort((left, right) => Number(right.weekKey.replace("week_", "")) - Number(left.weekKey.replace("week_", ""))).slice(0, 12);
+  const rankedCreatures = Object.values(state.creatureRecords)
+    .sort((left, right) => right.bestScore - left.bestScore || right.wins - left.wins)
+    .slice(0, 8);
+  const weeklyScores = Object.values(state.weeklyScores)
+    .sort((left, right) => Number(right.weekKey.replace("week_", "")) - Number(left.weekKey.replace("week_", "")))
+    .slice(0, 12);
+  const dailyAccess = getColiseumC4Access(save, daily);
+  const bossAccess = getColiseumC4Access(save, boss);
 
   const toolbar = (
     <nav className={styles.toolbar} aria-label="Coliseum C4 navigation">
@@ -242,11 +247,11 @@ export function ColiseumProgressionScreen() {
           <>
             <section className={styles.panel}>
               <div className={styles.panelHeader}><div><p className={styles.kicker}>Today</p><h2>Daily Challenge</h2><p>One deterministic encounter and modifier pair per Ranch Day.</p></div></div>
-              <div className={styles.challengeGrid}><ChallengeCard challenge={daily} unlocked={getColiseumC4Access(save, daily).unlocked} lockReason={getColiseumC4Access(save, daily).reason} claimed={dailyClaimed} onLaunch={() => launchChallenge(daily)} /></div>
+              <div className={styles.challengeGrid}><ChallengeCard challenge={daily} unlocked={dailyAccess.unlocked} lockReason={dailyAccess.reason} claimed={dailyClaimed} onLaunch={() => launchChallenge(daily)} /></div>
             </section>
             <section className={styles.panel}>
               <div className={styles.panelHeader}><div><p className={styles.kicker}>This Week</p><h2>Rotating Boss Trial</h2><p>One elevated authored formation with a weekly reward claim.</p></div></div>
-              <div className={styles.challengeGrid}><ChallengeCard challenge={boss} unlocked={getColiseumC4Access(save, boss).unlocked} lockReason={getColiseumC4Access(save, boss).reason} claimed={bossClaimed} onLaunch={() => launchChallenge(boss)} /></div>
+              <div className={styles.challengeGrid}><ChallengeCard challenge={boss} unlocked={bossAccess.unlocked} lockReason={bossAccess.reason} claimed={bossClaimed} onLaunch={() => launchChallenge(boss)} /></div>
             </section>
             <section className={styles.panel}>
               <div className={styles.panelHeader}><div><p className={styles.kicker}>Multi-Battle Progression</p><h2>Gauntlet Routes</h2><p>Locked teams, persistent stage progress, and partial recovery between fights.</p></div></div>
@@ -255,11 +260,11 @@ export function ColiseumProgressionScreen() {
           </>
         ) : null}
 
-        {mode === "daily" ? <section className={styles.panel}><div className={styles.panelHeader}><div><p className={styles.kicker}>Ranch Day {save.dayState.dayNumber}</p><h2>Daily Challenge</h2><p>The opponent and modifiers are deterministic for this save and day. Reloading does not reroll them.</p></div></div><div className={styles.challengeGrid}><ChallengeCard challenge={daily} unlocked={getColiseumC4Access(save, daily).unlocked} lockReason={getColiseumC4Access(save, daily).reason} claimed={dailyClaimed} onLaunch={() => launchChallenge(daily)} /></div></section> : null}
+        {mode === "daily" ? <section className={styles.panel}><div className={styles.panelHeader}><div><p className={styles.kicker}>Ranch Day {save.dayState.dayNumber}</p><h2>Daily Challenge</h2><p>The opponent and modifiers are deterministic for this save and day. Reloading does not reroll them.</p></div></div><div className={styles.challengeGrid}><ChallengeCard challenge={daily} unlocked={dailyAccess.unlocked} lockReason={dailyAccess.reason} claimed={dailyClaimed} onLaunch={() => launchChallenge(daily)} /></div></section> : null}
 
         {mode === "gauntlets" ? <section className={styles.panel}><div className={styles.panelHeader}><div><p className={styles.kicker}>Three Consecutive Battles</p><h2>Gauntlet Routes</h2><p>Winning a stage stores the exact roster plus recovered HP and Battle Energy. Statuses and cooldowns clear between stages.</p></div></div><div className={styles.challengeGrid}>{gauntlets.map((challenge) => { const access = getColiseumC4Access(save, challenge); return <ChallengeCard key={challenge.challengeKey} challenge={challenge} unlocked={access.unlocked} lockReason={access.reason} claimed={state.weeklyGauntletClaimKeys.includes(challenge.claimKey)} activeStage={state.activeRun?.challengeKey === challenge.challengeKey ? state.activeRun.stageIndex : undefined} onLaunch={() => launchChallenge(challenge)} />; })}</div></section> : null}
 
-        {mode === "boss" ? <section className={styles.panel}><div className={styles.panelHeader}><div><p className={styles.kicker}>{summary.weekKey.replace("_", " ")}</p><h2>Weekly Boss Trial</h2><p>The active boss changes by save and week. Practice rematches still grant XP after the weekly Marks reward is claimed.</p></div></div><div className={styles.challengeGrid}><ChallengeCard challenge={boss} unlocked={getColiseumC4Access(save, boss).unlocked} lockReason={getColiseumC4Access(save, boss).reason} claimed={bossClaimed} onLaunch={() => launchChallenge(boss)} /></div></section> : null}
+        {mode === "boss" ? <section className={styles.panel}><div className={styles.panelHeader}><div><p className={styles.kicker}>{summary.weekKey.replace("_", " ")}</p><h2>Weekly Boss Trial</h2><p>The active boss changes by save and week. Practice rematches still grant XP after the weekly Marks reward is claimed.</p></div></div><div className={styles.challengeGrid}><ChallengeCard challenge={boss} unlocked={bossAccess.unlocked} lockReason={bossAccess.reason} claimed={bossClaimed} onLaunch={() => launchChallenge(boss)} /></div></section> : null}
 
         {mode === "records" ? (
           <>
