@@ -1,3 +1,4 @@
+# Temporary workflow; deletes itself after applying the exact null-narrowing edit.
 name: One-off permanent Coliseum save narrowing
 
 on:
