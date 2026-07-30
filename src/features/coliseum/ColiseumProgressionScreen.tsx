@@ -398,7 +398,7 @@ function ColiseumBattle({
     if (armTacticsKit) {
       const result = applyTeamTacticsKit(activeSave, state);
       if (!result.ok) { setMessage(result.message); return; }
-      saveCurrentGame(result.activeSave);
+      saveCurrentGame(result.save);
       state = result.state;
       tacticsUsed = true;
     }
@@ -450,7 +450,7 @@ function ColiseumBattle({
       ? useFieldTonic(activeSave, battleState, selectedTarget.combatantId)
       : useRevivalSalve(activeSave, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
-    saveCurrentGame(result.activeSave);
+    saveCurrentGame(result.save);
     setBattleState(result.state);
     setSelectedTarget(null);
     setUsedItems((current) => ({ ...current, fieldTonic: current.fieldTonic || item === "tonic", revivalSalve: current.revivalSalve || item === "revival" }));
