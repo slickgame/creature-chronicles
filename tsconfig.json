@@ -28,7 +28,7 @@
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenMoves"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],
       "@/features/collection/CollectionScreen": ["./src/features/collection/CollectionScreenLedger"],
-      "@/features/coliseum/ColiseumProgressionScreen": ["./src/features/coliseum/ColiseumProgressionShellC4"],
+      "@/features/coliseum/ColiseumProgressionScreen": ["./src/features/coliseum/ColiseumProgressionShellC4Active"],
       "@/features/habitats/HabitatScreen": ["./src/features/habitats/HabitatScreenManaged"],
       "@/features/inventory/PlayerInventoryMenu": ["./src/features/inventory/PlayerInventoryMenuManaged"],
       "@/features/nursery/NurseryScreen": ["./src/features/nursery/NurseryScreenMoves"],
