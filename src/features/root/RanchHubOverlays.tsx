@@ -1,7 +1,7 @@
 "use client";
 
 import { SharedInfoOverlay } from "@/features/breeding/SharedInfoOverlay";
-import { ChapterOneGuidePanel } from "@/features/ranch/ChapterOneGuidePanel";
+import { BeginnerMilestonesPanel } from "@/features/ranch/BeginnerMilestonesPanel";
 import { DailyReportOverlayCards } from "@/features/ranch/DailyReportOverlayCards";
 import { RanchAdvisorOverlay } from "@/features/ranch/RanchAdvisorOverlay";
 import { ChapterOneStoryOverlay } from "@/features/story/ChapterOneStoryOverlay";
@@ -15,5 +15,5 @@ export function RanchHubOverlays() {
   if (appScreen === "breeding") return <SharedInfoOverlay />;
   if (appScreen === "ranch-office") return <><StoryLogOverlay /><StoryImageAdminOverlay /></>;
   if (appScreen !== "ranch-hub") return null;
-  return <><RanchAdvisorOverlay /><ChapterOneGuidePanel /><DailyReportOverlayCards /><ChapterOneStoryOverlay /></>;
+  return <><RanchAdvisorOverlay /><BeginnerMilestonesPanel /><DailyReportOverlayCards /><ChapterOneStoryOverlay /></>;
 }
