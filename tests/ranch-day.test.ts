@@ -190,13 +190,13 @@ test("ending a Ranch Day advances pregnancy and egg timers exactly once", () => 
   const result = advanceRanchDay(evening);
   assert.ok(result);
   assert.equal(result.save.dayState.dayNumber, save.dayState.dayNumber + 1);
-  assert.equal(result.save.pregnancies?.[0].daysRemaining, 1);
+  assert.equal(result.save.pregnancies?.[0].daysRemaining, 2, "pregnancy timer is derived from its creation day and total duration");
   assert.equal(result.save.eggs?.find((item) => item.eggId === egg.eggId)?.daysRemaining, 2);
   assert.equal(result.save.ranchDay?.phase, "morning");
   assert.equal(advanceRanchDay(result.save), null, "a Morning phase cannot be processed again");
 });
 
-test("legacy schema saves migrate into schema 4 with an active Ranch Day", () => {
+test("legacy schema saves migrate into the current schema with an active Ranch Day", () => {
   storage.clear();
   const save = activeSave(2);
   const legacy = { ...save, schemaVersion: 3, ranchDay: undefined };
@@ -207,5 +207,5 @@ test("legacy schema saves migrate into schema 4 with an active Ranch Day", () =>
   assert.equal(loaded.ranchDay?.dayNumber, loaded.dayState.dayNumber);
   assert.equal(loaded.ranchDay?.phase, "active");
   const persisted = saveGameToSlot(loaded);
-  assert.equal(persisted.schemaVersion, 4);
+  assert.equal(persisted.schemaVersion, CURRENT_SAVE_SCHEMA_VERSION);
 });
