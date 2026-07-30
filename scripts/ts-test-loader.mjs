@@ -72,6 +72,16 @@ export async function load(url, context, defaultLoad) {
     return { format: "module", source: "export default {};", shortCircuit: true };
   }
 
+  if (url.endsWith(".json")) {
+    const raw = await readFile(fileURLToPath(url), "utf8");
+    const parsed = JSON.parse(raw);
+    return {
+      format: "module",
+      source: `export default ${JSON.stringify(parsed)};`,
+      shortCircuit: true,
+    };
+  }
+
   if (url.endsWith(".ts") || url.endsWith(".tsx")) {
     const source = await readFile(fileURLToPath(url), "utf8");
     const output = ts.transpileModule(source, {
