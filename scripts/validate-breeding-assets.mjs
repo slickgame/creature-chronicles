@@ -19,7 +19,7 @@ const scenesRoot = join(publicRoot, "images", "breeding", "scenes");
 const outcomesRoot = join(scenesRoot, "outcomes");
 const generatedManifestPath = join(projectRoot, "src", "data", "generatedBreedingSceneImages.ts");
 const supportedExtensions = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
-const ignoredFiles = new Set([".ds_store", "thumbs.db", "desktop.ini"]);
+const ignoredFiles = new Set([".ds_store", "thumbs.db", "desktop.ini", "log.csv"]);
 const families = ["player", "feline", "canine", "bovine", "lapine", "equine"];
 const creatureFamilies = families.filter((family) => family !== "player");
 const validFamilySet = new Set(families);
@@ -244,7 +244,7 @@ function validateGeneratedManifest() {
     return;
   }
   const source = readFileSync(generatedManifestPath, "utf8");
-  const matches = [...source.matchAll(/"(\/images\/[^"\\]*(?:\\.[^"\\]*)*)"/g)];
+  const matches = [...source.matchAll(/"(\/images\/[^"\\]*(?:\.[^"\\]*)*)"/g)];
   const manifestPaths = new Set(matches.map((match) => JSON.parse(`"${match[1]}"`)));
   for (const url of manifestPaths) {
     const decoded = url.split("/").map((segment) => decodeURIComponent(segment)).join("/");
