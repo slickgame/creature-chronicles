@@ -19,11 +19,8 @@ const {
 const { createNewGameSave } = await import("@/lib/save/localSave");
 
 type TestSave = ReturnType<typeof createNewGameSave>;
-type TeamIds = TestSave["creatures"] extends Array<infer Creature>
-  ? Creature extends { creatureId: infer CreatureId }
-    ? CreatureId[]
-    : never
-  : never;
+type TestCreature = NonNullable<TestSave["creatures"]>[number];
+type TeamIds = TestCreature["creatureId"][];
 type C4Challenge = ReturnType<typeof getColiseumC4DailyChallenge>;
 
 function fixture() {
@@ -32,7 +29,7 @@ function fixture() {
   assert.ok(creatures.length >= 3, "fixture needs three creatures");
   return {
     save,
-    teamIds: creatures.slice(0, 3).map((creature) => creature.creatureId) as TeamIds,
+    teamIds: creatures.slice(0, 3).map((creature) => creature.creatureId),
   };
 }
 
