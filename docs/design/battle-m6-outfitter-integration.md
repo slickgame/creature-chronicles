@@ -48,7 +48,7 @@ A standard manual cannot teach:
 - Talent-granted moves
 - Signature-rarity moves
 
-The normal eight-learned-move limit and species compatibility rules remain active.
+The normal eight-learned-move limit and species compatibility rules remain active. Because established species begin with full eight-move libraries, the player must choose one non-protected learned move to forget when teaching a new technique. The required basic move and native signature move cannot be replaced.
 
 ## Player Move Loadout Editor
 
@@ -63,7 +63,7 @@ For each creature it displays:
 - Compatible techniques that can be taught with Focus Manuals
 - Techniques that require breeding or another dedicated source
 
-Learned moves may be equipped or unequipped. A full four-move loadout requires the player to choose an equipped move to replace. The loadout engine continues to require at least one zero-cost, zero-cooldown action.
+Learned moves may be equipped or unequipped. A full four-move active loadout requires the player to choose an equipped move to replace. A full eight-move learned library requires a separate learned-move replacement choice. Forgetting a move also removes it from the active loadout when necessary. The loadout engine continues to require at least one zero-cost, zero-cooldown action.
 
 ## Team Tactics Kit
 
