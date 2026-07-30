@@ -224,7 +224,6 @@ export function ColiseumC2Screen() {
   const [mode, setMode] = useState<ColiseumMode>("hub");
   const [selectedEncounter, setSelectedEncounter] = useState<ColiseumC2EncounterDefinition | null>(null);
   const [message, setMessage] = useState("Choose an unlocked authored opponent. Recorded matches now grant combat XP and persistent creature battle records.");
-  const presentation = useBattlePresentationController();
 
   if (!currentSave) {
     return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load a save before entering the Coliseum.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
@@ -381,6 +380,7 @@ function ColiseumBattle({
   const [performance, setPerformance] = useState<ColiseumCombatPerformanceMap>({});
   const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState(`Choose exactly three available creatures for ${encounter.name}.`);
+  const presentation = useBattlePresentationController();
 
   const roster = currentSave?.creatures ?? [];
   const availableRoster = useMemo(() => currentSave ? roster.filter((creature) => !getUnavailableReason(currentSave, creature)) : [], [currentSave, roster]);
