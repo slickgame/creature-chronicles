@@ -270,10 +270,11 @@ export function ColiseumC4Battle({
   const aidRestricted = isColiseumC4AidRestricted(challenge.modifierIds);
 
   if (!currentSave) return null;
+  const save = currentSave;
 
-  const tacticsStock = getBattleOutfitterCombatStock(currentSave, TEAM_TACTICS_KIT_ID);
-  const tonicStock = getBattleOutfitterCombatStock(currentSave, FIELD_TONIC_ID);
-  const revivalStock = getBattleOutfitterCombatStock(currentSave, REVIVAL_SALVE_ID);
+  const tacticsStock = getBattleOutfitterCombatStock(save, TEAM_TACTICS_KIT_ID);
+  const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
+  const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
   const activeActor = battleState && activeActorId ? battleState.combatants[activeActorId] : null;
@@ -283,7 +284,7 @@ export function ColiseumC4Battle({
 
   function toggleCreature(creature: CreatureRecord) {
     if (locked) return;
-    const unavailableReason = getUnavailableReason(currentSave, creature);
+    const unavailableReason = getUnavailableReason(save, creature);
     if (unavailableReason) { setMessage(unavailableReason); return; }
     if (effectiveSelection.includes(creature.creatureId)) {
       setSelectedCreatureIds(effectiveSelection.filter((id) => id !== creature.creatureId));
@@ -301,20 +302,20 @@ export function ColiseumC4Battle({
       .map((id) => roster.find((creature) => creature.creatureId === id))
       .filter((creature): creature is CreatureRecord => Boolean(creature));
     if (team.length !== 3) { setMessage("Select exactly three available creatures before entering the challenge."); return; }
-    const unavailable = team.find((creature) => getUnavailableReason(currentSave, creature));
+    const unavailable = team.find((creature) => getUnavailableReason(save, creature));
     if (unavailable) { setMessage(`${unavailable.nickname} is no longer available for battle.`); return; }
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
-    const enemies = buildAuthoredColiseumEnemyTeam(currentSave.saveId, encounter);
+    const enemies = buildAuthoredColiseumEnemyTeam(save.saveId, encounter);
     let state = applyColiseumC4Carryover(
       applyColiseumC4Modifiers(
         applyAuthoredColiseumEquipment(
           applyBattleOutfitterLoadouts(
-            currentSave,
+            save,
             createBattleState({
-              battleId: `coliseum_c4_${challenge.challengeKey}_${stageIndex}_${currentSave.saveId}_${currentSave.dayState.dayNumber}_${Date.now()}`,
+              battleId: `coliseum_c4_${challenge.challengeKey}_${stageIndex}_${save.saveId}_${save.dayState.dayNumber}_${Date.now()}`,
               playerCreatures: team,
               enemyCreatures: enemies,
-              playerTeamName: `${currentSave.player.name}'s Challenge Team`,
+              playerTeamName: `${save.player.name}'s Challenge Team`,
               enemyTeamName: encounter.opponentName,
             }),
           ),
@@ -326,7 +327,7 @@ export function ColiseumC4Battle({
     );
     let tacticsUsed = false;
     if (armTacticsKit) {
-      const result = applyTeamTacticsKit(currentSave, state);
+      const result = applyTeamTacticsKit(save, state);
       if (!result.ok) { setMessage(result.message); return; }
       saveCurrentGame(result.save);
       state = result.state;
@@ -379,8 +380,8 @@ export function ColiseumC4Battle({
     if (aidRestricted) { setMessage("Restricted Aid prevents Field Tonics and Revival Salves in this challenge."); return; }
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
     const result = item === "tonic"
-      ? useFieldTonic(currentSave, battleState, selectedTarget.combatantId)
-      : useRevivalSalve(currentSave, battleState, selectedTarget.combatantId);
+      ? useFieldTonic(save, battleState, selectedTarget.combatantId)
+      : useRevivalSalve(save, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
     saveCurrentGame(result.save);
     setBattleState(result.state);
@@ -458,9 +459,9 @@ export function ColiseumC4Battle({
               key={creature.creatureId}
               creature={creature}
               selected={effectiveSelection.includes(creature.creatureId)}
-              unavailableReason={getUnavailableReason(currentSave, creature)}
+              unavailableReason={getUnavailableReason(save, creature)}
               locked={locked}
-              readinessLabel={getBattleReadinessLabel(currentSave, creature.creatureId)}
+              readinessLabel={getBattleReadinessLabel(save, creature.creatureId)}
               carryover={carryover?.[String(creature.creatureId)]}
               onToggle={() => toggleCreature(creature)}
             />)}
