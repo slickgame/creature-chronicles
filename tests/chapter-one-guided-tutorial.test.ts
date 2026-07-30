@@ -9,9 +9,10 @@ import {
 } from "../src/data/breedingTutorial.ts";
 import { advanceNurseryDay } from "../src/data/nurseryMoveInheritanceLifecycle.ts";
 import {
+  getChapterOneGuidedTutorialStep,
   getChapterOneTutorialProgress,
   prepareChapterOneGuidedTutorialSave,
-} from "../src/data/chapterOneGuidedTutorial.ts";
+} from "../src/data/chapterOneGuidedTutorialBattle.ts";
 import { getChapterOneCompletionScene } from "../src/data/chapterOneStoryGuided.ts";
 import { getStarterGoalProgress } from "../src/data/starterGoals.ts";
 import {
@@ -32,6 +33,39 @@ function guidedSave() {
       chapterOneGuidedComplete: false,
       m15ChapterOneOnboardingComplete: false,
       m24ChapterOneStoryComplete: false,
+    },
+  };
+}
+
+function readyForBattleSave() {
+  const base = guidedSave();
+  if (!base.ranchJobs || !base.creatures?.[0] || !base.creatures[1]) {
+    throw new Error("New save is missing required guided tutorial fixtures.");
+  }
+  return {
+    ...base,
+    dayState: { ...base.dayState, dayNumber: 2 },
+    ranchJobs: {
+      ...base.ranchJobs,
+      assignments: {
+        ...base.ranchJobs.assignments,
+        security_patrol: [base.creatures[0].creatureId],
+        stable_production: [base.creatures[1].creatureId],
+      },
+    },
+    flags: {
+      ...base.flags,
+      chapterOneGuidedMorningOpened: true,
+      chapterOneGuidedDayTwoBriefOpened: true,
+      m14RanchJobsProcessed: true,
+      ranchFeedProducedToday: 5,
+      ranchFeedStock: 5,
+      m7GuildContractCompleted: true,
+      m4BreedingAttempted: true,
+      m5PregnancyCreated: true,
+      m9TotalHatched: 1,
+      chapterOneQuickhatchCatalystUsed: true,
+      chapterOneGuidedBattleOutfitterOpened: true,
     },
   };
 }
@@ -101,32 +135,31 @@ test("Quickhatch Catalyst is granted once, recorded, consumed, and hatches the t
   assert.equal(duplicate.save, hatch.save);
 });
 
-test("guided Chapter 1 completion no longer requires all sixteen optional starter goals", () => {
+test("visiting Battle Outfitter early cannot skip earlier guided lessons", () => {
   const base = guidedSave();
-  assert.ok(base.ranchJobs, "new save should include ranch job state");
-  assert.ok(base.creatures?.[0] && base.creatures[1], "new save should include at least two creatures");
   const save = {
     ...base,
-    dayState: { ...base.dayState, dayNumber: 2 },
-    ranchJobs: {
-      ...base.ranchJobs,
-      assignments: {
-        ...base.ranchJobs.assignments,
-        security_patrol: [base.creatures[0].creatureId],
-        stable_production: [base.creatures[1].creatureId],
-      },
-    },
     flags: {
       ...base.flags,
-      m14RanchJobsProcessed: true,
-      ranchFeedProducedToday: 5,
-      ranchFeedStock: 5,
-      m7GuildContractCompleted: true,
-      m4BreedingAttempted: true,
-      m5PregnancyCreated: true,
-      m9TotalHatched: 1,
-      chapterOneQuickhatchCatalystUsed: true,
       chapterOneGuidedBattleOutfitterOpened: true,
+    },
+  };
+  const step = getChapterOneGuidedTutorialStep(save);
+  assert.equal(step?.id, "read-morning-brief");
+});
+
+test("the active first battle handoff names Opening Scrimmage", () => {
+  const step = getChapterOneGuidedTutorialStep(readyForBattleSave());
+  assert.equal(step?.id, "win-first-battle");
+  assert.equal(step?.title, "Win the Opening Scrimmage");
+});
+
+test("guided Chapter 1 completion no longer requires all sixteen optional starter goals", () => {
+  const ready = readyForBattleSave();
+  const save = {
+    ...ready,
+    flags: {
+      ...ready.flags,
       chapterOneFirstBattleWon: true,
     },
   };
