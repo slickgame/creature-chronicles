@@ -23,6 +23,7 @@
       "@/data/battleOutfitterIntegration": ["./src/data/battleOutfitterIntegrationC3"],
       "@/data/battleProfiles": ["./src/data/battleProfilesExpanded"],
       "@/data/breedingRecords": ["./src/data/breedingRecordsSafe"],
+      "@/data/coliseumC4": ["./src/data/coliseumC4Hardened"],
       "@/data/nursery": ["./src/data/nurseryMoveInheritanceLifecycle"],
       "@/features/battle-outfitter/BattleOutfitterScreenActive": ["./src/features/battle-outfitter/BattleOutfitterScreenC3Active"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenMoves"],
