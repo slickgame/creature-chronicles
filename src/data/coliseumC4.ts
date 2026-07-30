@@ -22,9 +22,7 @@ import {
   getProjectedMaxEnergyForCreature,
 } from "@/data/levelGrowth";
 import { resolveTalentEffects } from "@/data/talents/talentEngine";
-import type {
-  BattleAiDifficulty,
-} from "@/types/battleAi";
+import type { BattleAiDifficulty } from "@/types/battleAi";
 import type {
   BattleOutcome,
   BattleState,
@@ -44,7 +42,6 @@ export const COLISEUM_C4_HISTORY_LIMIT = 80;
 export const COLISEUM_C4_RESULT_LIMIT = 180;
 
 export type ColiseumC4Mode = "daily" | "gauntlet" | "boss";
-
 export type ColiseumC4ModifierId =
   | "quickened_field"
   | "deep_reserves"
@@ -91,7 +88,6 @@ export type ColiseumC4CarryoverEntry = {
   hpRatio: number;
   battleEnergyRatio: number;
 };
-
 export type ColiseumC4CarryoverMap = Record<string, ColiseumC4CarryoverEntry>;
 
 export type ColiseumC4ActiveRun = {
@@ -190,69 +186,15 @@ export type ColiseumC4Result = {
 };
 
 export const COLISEUM_C4_MODIFIERS: readonly ColiseumC4ModifierDefinition[] = [
-  {
-    modifierId: "quickened_field",
-    name: "Quickened Field",
-    description: "Every combatant gains +4 Speed. Initiative becomes much less forgiving.",
-    rewardBonusPercent: 10,
-    tone: "mixed",
-  },
-  {
-    modifierId: "deep_reserves",
-    name: "Deep Reserves",
-    description: "Every combatant gains +12 maximum Battle Energy and begins with the additional reserve.",
-    rewardBonusPercent: -5,
-    tone: "benefit",
-  },
-  {
-    modifierId: "fragile_ground",
-    name: "Fragile Ground",
-    description: "Every combatant enters with 15% less maximum HP.",
-    rewardBonusPercent: 15,
-    tone: "hazard",
-  },
-  {
-    modifierId: "enemy_bulwark",
-    name: "Bulwark Opening",
-    description: "Every enemy begins Guarded for two rounds.",
-    rewardBonusPercent: 15,
-    tone: "hazard",
-  },
-  {
-    modifierId: "marked_opening",
-    name: "Marked Opening",
-    description: "Every combatant begins Marked for two rounds and takes increased focused damage.",
-    rewardBonusPercent: 10,
-    tone: "mixed",
-  },
-  {
-    modifierId: "exhausting_heat",
-    name: "Exhausting Heat",
-    description: "The ranch team begins Exhausted for two rounds, reducing Battle Energy recovery.",
-    rewardBonusPercent: 20,
-    tone: "hazard",
-  },
-  {
-    modifierId: "restricted_aid",
-    name: "Restricted Aid",
-    description: "Field Tonics and Revival Salves cannot be used during this challenge.",
-    rewardBonusPercent: 25,
-    tone: "hazard",
-  },
-  {
-    modifierId: "enemy_focus",
-    name: "Focused Opposition",
-    description: "Enemies gain +6 Accuracy and +6 Status Power.",
-    rewardBonusPercent: 15,
-    tone: "hazard",
-  },
-  {
-    modifierId: "rallying_start",
-    name: "Rallying Start",
-    description: "The ranch team begins Inspired for two rounds.",
-    rewardBonusPercent: -10,
-    tone: "benefit",
-  },
+  { modifierId: "quickened_field", name: "Quickened Field", description: "Every combatant gains +4 Speed. Initiative becomes much less forgiving.", rewardBonusPercent: 10, tone: "mixed" },
+  { modifierId: "deep_reserves", name: "Deep Reserves", description: "Every combatant gains +12 maximum Battle Energy and begins with the additional reserve.", rewardBonusPercent: -5, tone: "benefit" },
+  { modifierId: "fragile_ground", name: "Fragile Ground", description: "Every combatant enters with 15% less maximum HP.", rewardBonusPercent: 15, tone: "hazard" },
+  { modifierId: "enemy_bulwark", name: "Bulwark Opening", description: "Every enemy begins Guarded for two rounds.", rewardBonusPercent: 15, tone: "hazard" },
+  { modifierId: "marked_opening", name: "Marked Opening", description: "Every combatant begins Marked for two rounds and takes increased focused damage.", rewardBonusPercent: 10, tone: "mixed" },
+  { modifierId: "exhausting_heat", name: "Exhausting Heat", description: "The ranch team begins Exhausted for two rounds, reducing Battle Energy recovery.", rewardBonusPercent: 20, tone: "hazard" },
+  { modifierId: "restricted_aid", name: "Restricted Aid", description: "Field Tonics and Revival Salves cannot be used during this challenge.", rewardBonusPercent: 25, tone: "hazard" },
+  { modifierId: "enemy_focus", name: "Focused Opposition", description: "Enemies gain +6 Accuracy and +6 Status Power.", rewardBonusPercent: 15, tone: "hazard" },
+  { modifierId: "rallying_start", name: "Rallying Start", description: "The ranch team begins Inspired for two rounds.", rewardBonusPercent: -10, tone: "benefit" },
 ] as const;
 
 const C4_GAUNTLETS: readonly ColiseumC4ChallengeDefinition[] = [
@@ -360,16 +302,14 @@ function uniqueStrings(value: unknown): string[] {
     : [];
 }
 
+function sameTeam(left: CreatureId[], right: CreatureId[]): boolean {
+  if (left.length !== right.length) return false;
+  const rightIds = new Set(right.map(String));
+  return left.every((id) => rightIds.has(String(id)));
+}
+
 function emptyModeRecord(): ColiseumC4ModeRecord {
-  return {
-    runsStarted: 0,
-    battles: 0,
-    clears: 0,
-    losses: 0,
-    draws: 0,
-    bestScore: 0,
-    bestStage: 0,
-  };
+  return { runsStarted: 0, battles: 0, clears: 0, losses: 0, draws: 0, bestScore: 0, bestStage: 0 };
 }
 
 function normalizeModeRecord(value?: Partial<ColiseumC4ModeRecord>): ColiseumC4ModeRecord {
@@ -394,11 +334,7 @@ function emptyState(): ColiseumC4State {
     dailyClaimKeys: [],
     weeklyBossClaimKeys: [],
     weeklyGauntletClaimKeys: [],
-    modeRecords: {
-      daily: emptyModeRecord(),
-      gauntlet: emptyModeRecord(),
-      boss: emptyModeRecord(),
-    },
+    modeRecords: { daily: emptyModeRecord(), gauntlet: emptyModeRecord(), boss: emptyModeRecord() },
     creatureRecords: {},
     weeklyScores: {},
     history: [],
@@ -407,25 +343,20 @@ function emptyState(): ColiseumC4State {
 
 function normalizeCarryover(value: unknown): ColiseumC4CarryoverMap {
   if (!value || typeof value !== "object") return {};
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).flatMap(([key, entry]) => {
-      if (!entry || typeof entry !== "object") return [];
-      const raw = entry as Partial<ColiseumC4CarryoverEntry>;
-      return [[key, {
-        hpRatio: clampRatio(raw.hpRatio),
-        battleEnergyRatio: clampRatio(raw.battleEnergyRatio),
-      } satisfies ColiseumC4CarryoverEntry]];
-    }),
-  );
+  return Object.fromEntries(Object.entries(value as Record<string, unknown>).flatMap(([key, entry]) => {
+    if (!entry || typeof entry !== "object") return [];
+    const raw = entry as Partial<ColiseumC4CarryoverEntry>;
+    return [[key, { hpRatio: clampRatio(raw.hpRatio), battleEnergyRatio: clampRatio(raw.battleEnergyRatio) } satisfies ColiseumC4CarryoverEntry]];
+  }));
 }
 
 function normalizeState(raw: Partial<ColiseumC4State>): ColiseumC4State {
   const active = raw.activeRun;
-  const activeRun = active && active.mode === "gauntlet" && typeof active.challengeKey === "string"
+  const activeRun: ColiseumC4ActiveRun | undefined = active && active.mode === "gauntlet" && typeof active.challengeKey === "string"
     ? {
         runId: typeof active.runId === "string" ? active.runId : `c4_run_${active.challengeKey}`,
         challengeKey: active.challengeKey,
-        mode: "gauntlet" as const,
+        mode: "gauntlet",
         stageIndex: finiteCount(active.stageIndex),
         teamCreatureIds: uniqueStrings(active.teamCreatureIds) as CreatureId[],
         carryover: normalizeCarryover(active.carryover),
@@ -434,35 +365,31 @@ function normalizeState(raw: Partial<ColiseumC4State>): ColiseumC4State {
         modifierIds: uniqueStrings(active.modifierIds).filter((id): id is ColiseumC4ModifierId => COLISEUM_C4_MODIFIERS.some((entry) => entry.modifierId === id)),
       }
     : undefined;
-  const creatureRecords = Object.fromEntries(
-    Object.entries(raw.creatureRecords ?? {}).map(([key, value]) => {
-      const entry = value as Partial<ColiseumC4CreatureRecord>;
-      return [key, {
-        creatureId: key as CreatureId,
-        battles: finiteCount(entry.battles),
-        wins: finiteCount(entry.wins),
-        losses: finiteCount(entry.losses),
-        draws: finiteCount(entry.draws),
-        totalCombatXp: finiteCount(entry.totalCombatXp),
-        dailyWins: finiteCount(entry.dailyWins),
-        gauntletClears: finiteCount(entry.gauntletClears),
-        bossClears: finiteCount(entry.bossClears),
-        bestScore: finiteCount(entry.bestScore),
-      } satisfies ColiseumC4CreatureRecord];
-    }),
-  );
-  const weeklyScores = Object.fromEntries(
-    Object.entries(raw.weeklyScores ?? {}).map(([key, value]) => {
-      const entry = value as Partial<ColiseumC4WeeklyScore>;
-      return [key, {
-        weekKey: key,
-        score: finiteCount(entry.score),
-        clears: finiteCount(entry.clears),
-        bestMode: entry.bestMode === "daily" || entry.bestMode === "gauntlet" || entry.bestMode === "boss" ? entry.bestMode : undefined,
-        bestChallengeName: typeof entry.bestChallengeName === "string" ? entry.bestChallengeName : undefined,
-      } satisfies ColiseumC4WeeklyScore];
-    }),
-  );
+  const creatureRecords = Object.fromEntries(Object.entries(raw.creatureRecords ?? {}).map(([key, value]) => {
+    const entry = value as Partial<ColiseumC4CreatureRecord>;
+    return [key, {
+      creatureId: key as CreatureId,
+      battles: finiteCount(entry.battles),
+      wins: finiteCount(entry.wins),
+      losses: finiteCount(entry.losses),
+      draws: finiteCount(entry.draws),
+      totalCombatXp: finiteCount(entry.totalCombatXp),
+      dailyWins: finiteCount(entry.dailyWins),
+      gauntletClears: finiteCount(entry.gauntletClears),
+      bossClears: finiteCount(entry.bossClears),
+      bestScore: finiteCount(entry.bestScore),
+    } satisfies ColiseumC4CreatureRecord];
+  }));
+  const weeklyScores = Object.fromEntries(Object.entries(raw.weeklyScores ?? {}).map(([key, value]) => {
+    const entry = value as Partial<ColiseumC4WeeklyScore>;
+    return [key, {
+      weekKey: key,
+      score: finiteCount(entry.score),
+      clears: finiteCount(entry.clears),
+      bestMode: entry.bestMode === "daily" || entry.bestMode === "gauntlet" || entry.bestMode === "boss" ? entry.bestMode : undefined,
+      bestChallengeName: typeof entry.bestChallengeName === "string" ? entry.bestChallengeName : undefined,
+    } satisfies ColiseumC4WeeklyScore];
+  }));
   return {
     version: COLISEUM_C4_STATE_VERSION,
     processedResultIds: uniqueStrings(raw.processedResultIds).slice(-COLISEUM_C4_RESULT_LIMIT),
@@ -508,9 +435,7 @@ function writeC4State(save: GameSave, state: ColiseumC4State, flags: GameSave["f
 
 function deterministicRoll(seed: string, modulo: number): number {
   let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) {
-    hash = (hash * 31 + seed.charCodeAt(index)) % 1000003;
-  }
+  for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) % 1000003;
   return Math.abs(hash) % Math.max(1, modulo);
 }
 
@@ -550,7 +475,7 @@ export function getColiseumC4DailyChallenge(save: GameSave): ColiseumC4Challenge
   const first = hazards[deterministicRoll(`${seed}_hazard`, hazards.length)]?.modifierId ?? "quickened_field";
   let second = wildcards[deterministicRoll(`${seed}_wild`, wildcards.length)]?.modifierId ?? "rallying_start";
   if (second === first) second = second === "quickened_field" ? "rallying_start" : "quickened_field";
-  const modifierIds = [first, second] as ColiseumC4ModifierId[];
+  const modifierIds: ColiseumC4ModifierId[] = [first, second];
   const division = getColiseumC2Division(encounter.divisionId);
   return {
     challengeKey: `daily_${day}`,
@@ -571,24 +496,14 @@ export function getColiseumC4DailyChallenge(save: GameSave): ColiseumC4Challenge
 
 export function getColiseumC4Gauntlets(save: GameSave): ColiseumC4ChallengeDefinition[] {
   const weekKey = getColiseumC4WeekKey(save.dayState.dayNumber);
-  return C4_GAUNTLETS.map((entry) => ({
-    ...entry,
-    claimKey: `${weekKey}_${entry.challengeKey}`,
-    reward: scaledReward(entry.reward, entry.modifierIds),
-  }));
+  return C4_GAUNTLETS.map((entry) => ({ ...entry, claimKey: `${weekKey}_${entry.challengeKey}`, reward: scaledReward(entry.reward, entry.modifierIds) }));
 }
 
 export function getColiseumC4WeeklyBoss(save: GameSave): ColiseumC4ChallengeDefinition {
   const weekKey = getColiseumC4WeekKey(save.dayState.dayNumber);
-  const index = deterministicRoll(`${save.saveId}_${weekKey}_boss`, BOSS_ROTATION.length);
-  const template = BOSS_ROTATION[index] ?? BOSS_ROTATION[0];
+  const template = BOSS_ROTATION[deterministicRoll(`${save.saveId}_${weekKey}_boss`, BOSS_ROTATION.length)] ?? BOSS_ROTATION[0];
   const slug = template.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-  return {
-    ...template,
-    challengeKey: `boss_${weekKey}_${slug}`,
-    claimKey: `boss_${weekKey}_${slug}`,
-    reward: scaledReward(template.reward, template.modifierIds),
-  };
+  return { ...template, challengeKey: `boss_${weekKey}_${slug}`, claimKey: `boss_${weekKey}_${slug}`, reward: scaledReward(template.reward, template.modifierIds) };
 }
 
 export function getColiseumC4ChallengeByKey(save: GameSave, challengeKey: string): ColiseumC4ChallengeDefinition | null {
@@ -602,116 +517,103 @@ export function getColiseumC4ChallengeByKey(save: GameSave, challengeKey: string
 export function getColiseumC4Access(save: GameSave, challenge: ColiseumC4ChallengeDefinition): { unlocked: boolean; reason: string } {
   const progress = getColiseumC2Progress(save);
   if (!progress.completedEncounterIds.includes(challenge.requiredEncounterId)) {
-    return {
-      unlocked: false,
-      reason: `Clear ${getColiseumC2Encounter(challenge.requiredEncounterId)?.name ?? challenge.requiredEncounterId} in the permanent circuit first.`,
-    };
+    return { unlocked: false, reason: `Clear ${getColiseumC2Encounter(challenge.requiredEncounterId)?.name ?? challenge.requiredEncounterId} in the permanent circuit first.` };
   }
-  const state = getColiseumC4State(save);
-  if (state.activeRun && state.activeRun.challengeKey !== challenge.challengeKey) {
-    return { unlocked: false, reason: `Finish or abandon ${state.activeRun.challengeKey} before starting another C4 run.` };
+  const activeRun = getColiseumC4State(save).activeRun;
+  if (activeRun && activeRun.challengeKey !== challenge.challengeKey) {
+    return { unlocked: false, reason: `Finish or abandon ${activeRun.challengeKey} before starting another C4 run.` };
   }
   return { unlocked: true, reason: "Challenge available." };
 }
 
-export function buildColiseumC4Encounter(
-  challenge: ColiseumC4ChallengeDefinition,
-  stageIndex: number,
-): ColiseumC2EncounterDefinition {
-  const encounterId = challenge.encounterIds[Math.max(0, Math.min(challenge.encounterIds.length - 1, stageIndex))];
+export function buildColiseumC4Encounter(challenge: ColiseumC4ChallengeDefinition, stageIndex: number): ColiseumC2EncounterDefinition {
+  const safeStage = Math.max(0, Math.min(challenge.encounterIds.length - 1, stageIndex));
+  const encounterId = challenge.encounterIds[safeStage];
   const base = getColiseumC2Encounter(encounterId);
   if (!base) throw new Error(`Unknown C4 source encounter: ${encounterId}`);
-  const enemyTeam = base.enemyTeam.map((entry) => ({
-    ...entry,
-    level: Math.max(1, entry.level + challenge.levelBonus),
-  })) as unknown as ColiseumC2EncounterDefinition["enemyTeam"];
   return {
     ...base,
-    name: challenge.mode === "gauntlet" ? `${challenge.name} — Stage ${stageIndex + 1}` : challenge.name,
+    name: challenge.mode === "gauntlet" ? `${challenge.name} — Stage ${safeStage + 1}` : challenge.name,
     opponentName: challenge.mode === "boss" ? `${base.opponentName} · Boss Formation` : base.opponentName,
     description: `${challenge.description} ${base.description}`,
     strategyLabel: `${base.strategyLabel} · ${challenge.modifierIds.map((id) => getColiseumC4Modifier(id).name).join(" + ")}`,
     aiDifficulty: challenge.aiDifficultyOverride ?? base.aiDifficulty,
     recommendedLevel: base.recommendedLevel + challenge.levelBonus,
-    enemyTeam,
+    enemyTeam: base.enemyTeam.map((entry) => ({ ...entry, level: Math.max(1, entry.level + challenge.levelBonus) })),
   };
 }
 
 function upsertStatus(statuses: BattleStatusStack[], status: BattleStatusId, duration: number): BattleStatusStack[] {
-  const existing = statuses.find((entry) => entry.status === status);
-  if (!existing) return [...statuses, { status, duration, stacks: 1, maxStacks: 1 }];
-  return statuses.map((entry) => entry.status === status ? { ...entry, duration: Math.max(entry.duration, duration), stacks: 1, maxStacks: 1 } : entry);
+  const existing = statuses.some((entry) => entry.status === status);
+  return existing
+    ? statuses.map((entry) => entry.status === status ? { ...entry, duration: Math.max(entry.duration, duration), stacks: 1, maxStacks: 1 } : entry)
+    : [...statuses, { status, duration, stacks: 1, maxStacks: 1 }];
 }
 
 export function applyColiseumC4Modifiers(state: BattleState, modifierIds: ColiseumC4ModifierId[]): BattleState {
   const modifiers = new Set(modifierIds);
-  const combatants = Object.fromEntries(
-    Object.entries(state.combatants).map(([id, combatant]) => {
-      const stats = { ...combatant.battleStats };
-      let statuses = [...combatant.statuses];
-      let maxHp = combatant.maxHp;
-      let currentHp = combatant.currentHp;
-      let maxBattleEnergy = combatant.maxBattleEnergy;
-      let currentBattleEnergy = combatant.currentBattleEnergy;
-      if (modifiers.has("quickened_field")) stats.speed += 4;
-      if (modifiers.has("deep_reserves")) {
-        stats.battleEnergy += 12;
-        maxBattleEnergy += 12;
-        currentBattleEnergy += 12;
-      }
-      if (modifiers.has("fragile_ground")) {
-        const ratio = combatant.maxHp > 0 ? combatant.currentHp / combatant.maxHp : 1;
-        stats.maxHp = Math.max(1, Math.round(stats.maxHp * 0.85));
-        maxHp = stats.maxHp;
-        currentHp = combatant.isFainted ? 0 : Math.max(1, Math.round(maxHp * ratio));
-      }
-      if (modifiers.has("enemy_bulwark") && combatant.sideId === "enemy") statuses = upsertStatus(statuses, "guarded", 2);
-      if (modifiers.has("marked_opening")) statuses = upsertStatus(statuses, "marked", 2);
-      if (modifiers.has("exhausting_heat") && combatant.sideId === "player") statuses = upsertStatus(statuses, "exhausted", 2);
-      if (modifiers.has("enemy_focus") && combatant.sideId === "enemy") {
-        stats.accuracy += 6;
-        stats.statusPower += 6;
-      }
-      if (modifiers.has("rallying_start") && combatant.sideId === "player") statuses = upsertStatus(statuses, "inspired", 2);
-      return [id, {
-        ...combatant,
-        battleStats: stats,
-        maxHp,
-        currentHp: Math.min(maxHp, currentHp),
-        maxBattleEnergy,
-        currentBattleEnergy: Math.min(maxBattleEnergy, currentBattleEnergy),
-        statuses,
-        isFainted: currentHp <= 0,
-      }];
-    }),
-  ) as BattleState["combatants"];
-  const labels = modifierIds.map((id) => getColiseumC4Modifier(id).name);
-  return { ...state, combatants, log: [...state.log, `C4 modifiers active: ${labels.join(" • ")}.`] };
+  const combatants = Object.fromEntries(Object.entries(state.combatants).map(([id, combatant]) => {
+    const battleStats = { ...combatant.battleStats };
+    let statuses = [...combatant.statuses];
+    let maxHp = combatant.maxHp;
+    let currentHp = combatant.currentHp;
+    let maxBattleEnergy = combatant.maxBattleEnergy;
+    let currentBattleEnergy = combatant.currentBattleEnergy;
+    if (modifiers.has("quickened_field")) battleStats.speed += 4;
+    if (modifiers.has("deep_reserves")) {
+      battleStats.battleEnergy += 12;
+      maxBattleEnergy += 12;
+      currentBattleEnergy += 12;
+    }
+    if (modifiers.has("fragile_ground")) {
+      const ratio = combatant.maxHp > 0 ? combatant.currentHp / combatant.maxHp : 1;
+      battleStats.maxHp = Math.max(1, Math.round(battleStats.maxHp * 0.85));
+      maxHp = battleStats.maxHp;
+      currentHp = combatant.isFainted ? 0 : Math.max(1, Math.round(maxHp * ratio));
+    }
+    if (modifiers.has("enemy_bulwark") && combatant.sideId === "enemy") statuses = upsertStatus(statuses, "guarded", 2);
+    if (modifiers.has("marked_opening")) statuses = upsertStatus(statuses, "marked", 2);
+    if (modifiers.has("exhausting_heat") && combatant.sideId === "player") statuses = upsertStatus(statuses, "exhausted", 2);
+    if (modifiers.has("enemy_focus") && combatant.sideId === "enemy") {
+      battleStats.accuracy += 6;
+      battleStats.statusPower += 6;
+    }
+    if (modifiers.has("rallying_start") && combatant.sideId === "player") statuses = upsertStatus(statuses, "inspired", 2);
+    return [id, {
+      ...combatant,
+      battleStats,
+      maxHp,
+      currentHp: Math.min(maxHp, currentHp),
+      maxBattleEnergy,
+      currentBattleEnergy: Math.min(maxBattleEnergy, currentBattleEnergy),
+      statuses,
+      isFainted: currentHp <= 0,
+    }];
+  })) as BattleState["combatants"];
+  return { ...state, combatants, log: [...state.log, `C4 modifiers active: ${modifierIds.map((id) => getColiseumC4Modifier(id).name).join(" • ")}.`] };
 }
 
 export function applyColiseumC4Carryover(state: BattleState, carryover?: ColiseumC4CarryoverMap): BattleState {
   if (!carryover) return state;
-  const combatants = Object.fromEntries(
-    Object.entries(state.combatants).map(([id, combatant]) => {
-      if (combatant.sideId !== "player") return [id, combatant];
-      const snapshot = carryover[String(combatant.sourceCreatureId)];
-      if (!snapshot) return [id, combatant];
-      const currentHp = Math.max(1, Math.min(combatant.maxHp, Math.round(combatant.maxHp * clampRatio(snapshot.hpRatio))));
-      const currentBattleEnergy = Math.max(0, Math.min(combatant.maxBattleEnergy, Math.round(combatant.maxBattleEnergy * clampRatio(snapshot.battleEnergyRatio))));
-      return [id, { ...combatant, currentHp, currentBattleEnergy, isFainted: false, statuses: [], cooldowns: {} }];
-    }),
-  ) as BattleState["combatants"];
+  const combatants = Object.fromEntries(Object.entries(state.combatants).map(([id, combatant]) => {
+    if (combatant.sideId !== "player") return [id, combatant];
+    const snapshot = carryover[String(combatant.sourceCreatureId)];
+    if (!snapshot) return [id, combatant];
+    const currentHp = Math.max(1, Math.min(combatant.maxHp, Math.round(combatant.maxHp * clampRatio(snapshot.hpRatio))));
+    const currentBattleEnergy = Math.max(0, Math.min(combatant.maxBattleEnergy, Math.round(combatant.maxBattleEnergy * clampRatio(snapshot.battleEnergyRatio))));
+    return [id, { ...combatant, currentHp, currentBattleEnergy, isFainted: false, statuses: [], cooldowns: {} }];
+  })) as BattleState["combatants"];
   return { ...state, combatants, log: [...state.log, "Gauntlet carryover applied after partial between-stage recovery."] };
 }
 
 export function createColiseumC4Carryover(state: BattleState): ColiseumC4CarryoverMap {
   return state.teams.player.combatantIds.reduce((next, id) => {
     const combatant = state.combatants[id];
-    const baseHpRatio = combatant.maxHp > 0 ? combatant.currentHp / combatant.maxHp : 0;
-    const baseEnergyRatio = combatant.maxBattleEnergy > 0 ? combatant.currentBattleEnergy / combatant.maxBattleEnergy : 0;
+    const hpRatio = combatant.maxHp > 0 ? combatant.currentHp / combatant.maxHp : 0;
+    const energyRatio = combatant.maxBattleEnergy > 0 ? combatant.currentBattleEnergy / combatant.maxBattleEnergy : 0;
     next[String(combatant.sourceCreatureId)] = {
-      hpRatio: combatant.isFainted ? 0.15 : Math.min(1, baseHpRatio + 0.3),
-      battleEnergyRatio: Math.min(1, baseEnergyRatio + 0.25),
+      hpRatio: combatant.isFainted ? 0.15 : Math.min(1, hpRatio + 0.3),
+      battleEnergyRatio: Math.min(1, energyRatio + 0.25),
     };
     return next;
   }, {} as ColiseumC4CarryoverMap);
@@ -731,13 +633,7 @@ function getGrowthBiases(creature: CreatureRecord): CreatureStatKey[] {
     .map((effect) => effect.creatureStatKey as CreatureStatKey);
 }
 
-function getC4CombatXp(
-  challenge: ColiseumC4ChallengeDefinition,
-  encounter: ColiseumC2EncounterDefinition,
-  outcome: BattleOutcome,
-  creature: CreatureRecord,
-  performance: ColiseumCombatPerformanceMap[string] | undefined,
-): number {
+function getC4CombatXp(challenge: ColiseumC4ChallengeDefinition, encounter: ColiseumC2EncounterDefinition, outcome: BattleOutcome, creature: CreatureRecord, performance?: ColiseumCombatPerformanceMap[string]): number {
   const modeMultiplier = challenge.mode === "boss" ? 1.6 : challenge.mode === "gauntlet" ? 1.1 : 1.15;
   const outcomeMultiplier = outcome === "player_won" ? 1 : outcome === "draw" ? 0.6 : 0.45;
   const overLevel = Math.max(0, creature.level - encounter.recommendedLevel);
@@ -762,45 +658,24 @@ function applyC4CombatXp(creature: CreatureRecord, xpGain: number, seed: string)
   }
   const growth = levelUps > 0
     ? applyCreatureLevelGrowth(creature, levelUps, getGrowthBiases(creature), seed)
-    : {
-        stats: creature.stats,
-        growthProgress: creature.growthProgress ?? { STR: 0, DEX: 0, STA: 0, CHA: 0, WIL: 0, FER: 0 },
-      };
+    : { stats: creature.stats, growthProgress: creature.growthProgress ?? { STR: 0, DEX: 0, STA: 0, CHA: 0, WIL: 0, FER: 0 } };
   const projected = { ...creature, level, stats: growth.stats, growthProgress: growth.growthProgress };
   const maxEnergy = getProjectedMaxEnergyForCreature(projected);
-  const updated: CreatureRecord = {
-    ...projected,
-    xp,
-    xpToNext: threshold,
-    maxEnergy,
-    energy: Math.min(maxEnergy, creature.energy + levelUps * 8),
-    notes: `${creature.notes ?? ""} Coliseum C4: +${xpGain} combat XP${levelUps ? `, +${levelUps} level${levelUps === 1 ? "" : "s"}` : ""}.`.trim(),
-  };
   return {
-    creature: updated,
-    summary: {
-      creatureId: creature.creatureId,
-      creatureName: creature.nickname,
-      xpGained: xpGain,
-      levelBefore,
-      levelAfter: level,
+    creature: {
+      ...projected,
+      xp,
+      xpToNext: threshold,
+      maxEnergy,
+      energy: Math.min(maxEnergy, creature.energy + levelUps * 8),
+      notes: `${creature.notes ?? ""} Coliseum C4: +${xpGain} combat XP${levelUps ? `, +${levelUps} level${levelUps === 1 ? "" : "s"}` : ""}.`.trim(),
     },
+    summary: { creatureId: creature.creatureId, creatureName: creature.nickname, xpGained: xpGain, levelBefore, levelAfter: level },
   };
 }
 
 function emptyCreatureRecord(creatureId: CreatureId): ColiseumC4CreatureRecord {
-  return {
-    creatureId,
-    battles: 0,
-    wins: 0,
-    losses: 0,
-    draws: 0,
-    totalCombatXp: 0,
-    dailyWins: 0,
-    gauntletClears: 0,
-    bossClears: 0,
-    bestScore: 0,
-  };
+  return { creatureId, battles: 0, wins: 0, losses: 0, draws: 0, totalCombatXp: 0, dailyWins: 0, gauntletClears: 0, bossClears: 0, bestScore: 0 };
 }
 
 function addItemReward(save: GameSave, flags: GameSave["flags"], reward: ColiseumC4Reward): { flags: GameSave["flags"]; label?: string } {
@@ -808,23 +683,12 @@ function addItemReward(save: GameSave, flags: GameSave["flags"], reward: Coliseu
   const item = BATTLE_OUTFITTER_ITEMS.find((entry) => entry.itemId === reward.itemId);
   if (!item) return { flags };
   const current = getBattleOutfitterStock({ ...save, flags }, item);
-  const cap = item.maxStock ?? Number.MAX_SAFE_INTEGER;
-  const added = Math.max(0, Math.min(reward.itemQuantity, cap - current));
+  const added = Math.max(0, Math.min(reward.itemQuantity, (item.maxStock ?? Number.MAX_SAFE_INTEGER) - current));
   if (added <= 0) return { flags, label: `${item.name} stock full` };
-  return {
-    flags: { ...flags, [item.flagKey]: current + added },
-    label: `+${added} ${item.name}`,
-  };
+  return { flags: { ...flags, [item.flagKey]: current + added }, label: `+${added} ${item.name}` };
 }
 
-function creditC3Marks(
-  save: GameSave,
-  flags: GameSave["flags"],
-  challenge: ColiseumC4ChallengeDefinition,
-  resultId: string,
-  marks: number,
-  lootLabel: string,
-): GameSave["flags"] {
+function creditC3Marks(save: GameSave, flags: GameSave["flags"], challenge: ColiseumC4ChallengeDefinition, resultId: string, marks: number, lootLabel: string): GameSave["flags"] {
   if (marks <= 0) return flags;
   const c3 = getColiseumC3State({ ...save, flags });
   const nextC3 = {
@@ -840,20 +704,24 @@ function creditC3Marks(
       reason: "battle" as const,
     }, ...c3.awardHistory].slice(0, COLISEUM_C3_HISTORY_LIMIT),
   };
-  return { ...flags, [COLISEUM_C3_STATE_FLAG]: JSON.stringify(nextC3) };
+  return {
+    ...flags,
+    [COLISEUM_C3_STATE_FLAG]: JSON.stringify(nextC3),
+    coliseumMarksUnlocked: true,
+    mColiseumC3: true,
+  };
 }
 
-function calculateScore(
-  challenge: ColiseumC4ChallengeDefinition,
-  outcome: BattleOutcome,
-  stageNumber: number,
-  totalRounds: number,
-): number {
+function calculateScore(challenge: ColiseumC4ChallengeDefinition, outcome: BattleOutcome, stageNumber: number, totalRounds: number): number {
   const base = challenge.mode === "boss" ? 4000 : challenge.mode === "gauntlet" ? 2500 : 1200;
   const clearValue = outcome === "player_won" ? 1000 : outcome === "draw" ? 250 : 0;
   const stageValue = stageNumber * (challenge.mode === "gauntlet" ? 450 : 150);
   const modifierValue = Math.max(0, Math.round((getColiseumC4RewardMultiplier(challenge.modifierIds) - 1) * 1200));
   return Math.max(0, base + clearValue + stageValue + modifierValue - totalRounds * 15);
+}
+
+function invalidResult(save: GameSave, state: ColiseumC4State, message: string, duplicate = false): ColiseumC4Result {
+  return { save, state, ok: false, changed: false, duplicate, message, xpSummaries: [] };
 }
 
 export function recordColiseumC4BattleResult(
@@ -869,64 +737,63 @@ export function recordColiseumC4BattleResult(
 ): ColiseumC4Result {
   let state = getColiseumC4State(save);
   if (state.processedResultIds.includes(resultId)) {
-    return {
-      save,
-      state,
-      ok: false,
-      changed: false,
-      duplicate: true,
-      message: "This C4 result was already processed. No duplicate XP, Marks, materials, score, or run progress was granted.",
-      xpSummaries: [],
-    };
+    return invalidResult(save, state, "This C4 result was already processed. No duplicate XP, Marks, materials, score, or run progress was granted.", true);
   }
+  if (teamCreatureIds.length !== 3 || new Set(teamCreatureIds.map(String)).size !== 3) {
+    return invalidResult(save, state, "A C4 result requires exactly three unique ranch creatures.");
+  }
+  const previousRun = state.activeRun;
+  if (challenge.mode === "gauntlet") {
+    if (stageIndex === 0 && previousRun && previousRun.challengeKey !== challenge.challengeKey) {
+      return invalidResult(save, state, "Another C4 gauntlet is already active.");
+    }
+    if (stageIndex > 0) {
+      if (!previousRun || previousRun.challengeKey !== challenge.challengeKey || previousRun.stageIndex !== stageIndex) {
+        return invalidResult(save, state, "This gauntlet stage is not the currently saved continuation.");
+      }
+      if (!sameTeam(previousRun.teamCreatureIds, teamCreatureIds)) {
+        return invalidResult(save, state, "The gauntlet roster is locked and cannot be changed between stages.");
+      }
+    }
+  }
+
   const encounter = buildColiseumC4Encounter(challenge, stageIndex);
   const win = outcome === "player_won";
   const loss = outcome === "enemy_won";
   const draw = outcome === "draw";
   const stageNumber = Math.max(1, stageIndex + 1);
   const stageCount = challenge.encounterIds.length;
-  const previousRun = state.activeRun?.challengeKey === challenge.challengeKey ? state.activeRun : undefined;
-  const totalRunRounds = (previousRun?.totalRounds ?? 0) + Math.max(1, Math.floor(roundCount));
+  const run = previousRun?.challengeKey === challenge.challengeKey ? previousRun : undefined;
+  const totalRunRounds = (run?.totalRounds ?? 0) + Math.max(1, Math.floor(roundCount));
   const completedRun = win && stageNumber >= stageCount;
   const runEnded = challenge.mode !== "gauntlet" || !win || completedRun;
   const weekKey = getColiseumC4WeekKey(save.dayState.dayNumber);
-  const dailyClaimed = state.dailyClaimKeys.includes(challenge.claimKey);
-  const bossClaimed = state.weeklyBossClaimKeys.includes(challenge.claimKey);
-  const gauntletClaimed = state.weeklyGauntletClaimKeys.includes(challenge.claimKey);
+
+  const alreadyClaimed = challenge.mode === "daily"
+    ? state.dailyClaimKeys.includes(challenge.claimKey)
+    : challenge.mode === "boss"
+      ? state.weeklyBossClaimKeys.includes(challenge.claimKey)
+      : state.weeklyGauntletClaimKeys.includes(challenge.claimKey);
   let rewardTier: ColiseumC4HistoryEntry["rewardTier"] = "none";
-  let marks = 0;
-  let materials = 0;
-  let itemReward: ColiseumC4Reward = { marks: 0, materials: 0 };
-  if (completedRun || (challenge.mode !== "gauntlet" && win)) {
-    if (challenge.mode === "daily" && !dailyClaimed) {
-      rewardTier = "full";
-    } else if (challenge.mode === "boss" && !bossClaimed) {
-      rewardTier = "full";
-    } else if (challenge.mode === "gauntlet" && !gauntletClaimed) {
-      rewardTier = "full";
-    } else if (challenge.mode === "gauntlet") {
-      rewardTier = "repeat";
-    }
-  }
-  if (rewardTier === "full") {
-    marks = challenge.reward.marks;
-    materials = challenge.reward.materials;
-    itemReward = challenge.reward;
-  } else if (rewardTier === "repeat") {
-    marks = Math.max(1, Math.round(challenge.reward.marks * challenge.repeatRewardRatio));
-    materials = 1;
-  }
+  if ((challenge.mode !== "gauntlet" && win) || completedRun) rewardTier = alreadyClaimed ? (challenge.mode === "gauntlet" ? "repeat" : "none") : "full";
+
+  const marks = rewardTier === "full"
+    ? challenge.reward.marks
+    : rewardTier === "repeat"
+      ? Math.max(1, Math.round(challenge.reward.marks * challenge.repeatRewardRatio))
+      : 0;
+  const materials = rewardTier === "full" ? challenge.reward.materials : rewardTier === "repeat" ? 1 : 0;
 
   const xpSummaries: ColiseumC4XpSummary[] = [];
-  const nextCreatureRecords = { ...state.creatureRecords };
+  const creatureRecords = { ...state.creatureRecords };
   const score = runEnded ? calculateScore(challenge, outcome, stageNumber, totalRunRounds) : 0;
   const creatures = (save.creatures ?? []).map((creature) => {
     if (!teamCreatureIds.includes(creature.creatureId)) return creature;
     const xpGain = getC4CombatXp(challenge, encounter, outcome, creature, performance[String(creature.creatureId)]);
     const xpResult = applyC4CombatXp(creature, xpGain, `${resultId}_${creature.creatureId}`);
     xpSummaries.push(xpResult.summary);
-    const previous = nextCreatureRecords[String(creature.creatureId)] ?? emptyCreatureRecord(creature.creatureId);
-    nextCreatureRecords[String(creature.creatureId)] = {
+    const previous = creatureRecords[String(creature.creatureId)] ?? emptyCreatureRecord(creature.creatureId);
+    creatureRecords[String(creature.creatureId)] = {
       ...previous,
       battles: previous.battles + 1,
       wins: previous.wins + (win ? 1 : 0),
@@ -941,32 +808,53 @@ export function recordColiseumC4BattleResult(
     return xpResult.creature;
   });
 
-  const previousModeRecord = state.modeRecords[challenge.mode];
-  const nextModeRecord: ColiseumC4ModeRecord = {
-    ...previousModeRecord,
-    runsStarted: previousModeRecord.runsStarted + (stageIndex === 0 ? 1 : 0),
-    battles: previousModeRecord.battles + 1,
-    clears: previousModeRecord.clears + ((challenge.mode === "gauntlet" ? completedRun : win) ? 1 : 0),
-    losses: previousModeRecord.losses + (loss ? 1 : 0),
-    draws: previousModeRecord.draws + (draw ? 1 : 0),
-    bestScore: Math.max(previousModeRecord.bestScore, score),
-    bestRounds: runEnded && win ? previousModeRecord.bestRounds ? Math.min(previousModeRecord.bestRounds, totalRunRounds) : totalRunRounds : previousModeRecord.bestRounds,
-    bestStage: Math.max(previousModeRecord.bestStage, win ? stageNumber : Math.max(0, stageNumber - 1)),
+  if (xpSummaries.length !== 3) return invalidResult(save, state, "One or more C4 team creatures no longer exist in the save.");
+
+  const previousMode = state.modeRecords[challenge.mode];
+  const modeRecord: ColiseumC4ModeRecord = {
+    ...previousMode,
+    runsStarted: previousMode.runsStarted + (stageIndex === 0 ? 1 : 0),
+    battles: previousMode.battles + 1,
+    clears: previousMode.clears + ((challenge.mode === "gauntlet" ? completedRun : win) ? 1 : 0),
+    losses: previousMode.losses + (loss ? 1 : 0),
+    draws: previousMode.draws + (draw ? 1 : 0),
+    bestScore: Math.max(previousMode.bestScore, score),
+    bestRounds: runEnded && win ? previousMode.bestRounds ? Math.min(previousMode.bestRounds, totalRunRounds) : totalRunRounds : previousMode.bestRounds,
+    bestStage: Math.max(previousMode.bestStage, win ? stageNumber : Math.max(0, stageNumber - 1)),
   };
 
   const activeRun: ColiseumC4ActiveRun | undefined = challenge.mode === "gauntlet" && win && !completedRun
     ? {
-        runId: previousRun?.runId ?? `c4_${challenge.challengeKey}_${save.dayState.dayNumber}_${resultId}`,
+        runId: run?.runId ?? `c4_${challenge.challengeKey}_${save.dayState.dayNumber}_${resultId}`,
         challengeKey: challenge.challengeKey,
         mode: "gauntlet",
         stageIndex: stageIndex + 1,
         teamCreatureIds: [...teamCreatureIds],
         carryover: createColiseumC4Carryover(finalBattleState),
         totalRounds: totalRunRounds,
-        startedDayNumber: previousRun?.startedDayNumber ?? save.dayState.dayNumber,
+        startedDayNumber: run?.startedDayNumber ?? save.dayState.dayNumber,
         modifierIds: [...challenge.modifierIds],
       }
     : undefined;
+
+  const weeklyPrevious = state.weeklyScores[weekKey] ?? { weekKey, score: 0, clears: 0 };
+  const weeklyNext: ColiseumC4WeeklyScore = runEnded
+    ? {
+        ...weeklyPrevious,
+        score: Math.max(weeklyPrevious.score, score),
+        clears: weeklyPrevious.clears + ((challenge.mode === "gauntlet" ? completedRun : win) ? 1 : 0),
+        bestMode: score > weeklyPrevious.score ? challenge.mode : weeklyPrevious.bestMode,
+        bestChallengeName: score > weeklyPrevious.score ? challenge.name : weeklyPrevious.bestChallengeName,
+      }
+    : weeklyPrevious;
+
+  let flags = { ...save.flags };
+  if (materials > 0) flags.ranchMaterialsStock = finiteCount(flags.ranchMaterialsStock) + materials;
+  const itemResult: { flags: GameSave["flags"]; label?: string } = rewardTier === "full"
+    ? addItemReward(save, flags, challenge.reward)
+    : { flags, label: undefined };
+  flags = itemResult.flags;
+  const lootPieces = [`+${marks} Marks`, `+${materials} Materials`, itemResult.label].filter(Boolean).join(" • ");
 
   const historyEntry: ColiseumC4HistoryEntry = {
     resultId,
@@ -982,20 +870,10 @@ export function recordColiseumC4BattleResult(
     teamCreatureIds: [...teamCreatureIds],
     marks,
     materials,
+    itemLabel: itemResult.label,
     score,
     rewardTier,
   };
-
-  const weeklyPrevious = state.weeklyScores[weekKey] ?? { weekKey, score: 0, clears: 0 };
-  const weeklyNext: ColiseumC4WeeklyScore = runEnded
-    ? {
-        ...weeklyPrevious,
-        score: Math.max(weeklyPrevious.score, score),
-        clears: weeklyPrevious.clears + ((challenge.mode === "gauntlet" ? completedRun : win) ? 1 : 0),
-        bestMode: score > weeklyPrevious.score ? challenge.mode : weeklyPrevious.bestMode,
-        bestChallengeName: score > weeklyPrevious.score ? challenge.name : weeklyPrevious.bestChallengeName,
-      }
-    : weeklyPrevious;
 
   state = {
     ...state,
@@ -1004,17 +882,12 @@ export function recordColiseumC4BattleResult(
     weeklyBossClaimKeys: rewardTier === "full" && challenge.mode === "boss" ? [...state.weeklyBossClaimKeys, challenge.claimKey] : state.weeklyBossClaimKeys,
     weeklyGauntletClaimKeys: rewardTier === "full" && challenge.mode === "gauntlet" ? [...state.weeklyGauntletClaimKeys, challenge.claimKey] : state.weeklyGauntletClaimKeys,
     activeRun,
-    modeRecords: { ...state.modeRecords, [challenge.mode]: nextModeRecord },
-    creatureRecords: nextCreatureRecords,
+    modeRecords: { ...state.modeRecords, [challenge.mode]: modeRecord },
+    creatureRecords,
     weeklyScores: { ...state.weeklyScores, [weekKey]: weeklyNext },
     history: [historyEntry, ...state.history].slice(0, COLISEUM_C4_HISTORY_LIMIT),
   };
 
-  let flags = { ...save.flags };
-  if (materials > 0) flags.ranchMaterialsStock = finiteCount(flags.ranchMaterialsStock) + materials;
-  const item = rewardTier === "full" ? addItemReward(save, flags, itemReward) : { flags };
-  flags = item.flags;
-  const lootPieces = [`+${marks} Marks`, `+${materials} Materials`, item.label].filter(Boolean).join(" • ");
   flags = creditC3Marks(save, flags, challenge, resultId, marks, lootPieces || "C4 result recorded");
   const nextSave = writeC4State({ ...save, creatures }, state, flags);
   const xpLabel = xpSummaries.map((entry) => `${entry.creatureName} +${entry.xpGained} XP${entry.levelAfter > entry.levelBefore ? ` (Lv. ${entry.levelAfter})` : ""}`).join(" • ");
@@ -1034,13 +907,10 @@ export function recordColiseumC4BattleResult(
 
 export function abandonColiseumC4Run(save: GameSave): ColiseumC4Result {
   const state = getColiseumC4State(save);
-  if (!state.activeRun) {
-    return { save, state, ok: false, changed: false, duplicate: false, message: "No active C4 gauntlet is waiting.", xpSummaries: [] };
-  }
+  if (!state.activeRun) return invalidResult(save, state, "No active C4 gauntlet is waiting.");
   const nextState = { ...state, activeRun: undefined };
-  const nextSave = writeC4State(save, nextState);
   return {
-    save: nextSave,
+    save: writeC4State(save, nextState),
     state: nextState,
     ok: true,
     changed: true,
