@@ -23,12 +23,12 @@ const ACTIVE_ITEM_TEXT = {
     effectLabel: "+12 Max HP, +5 Defense, +5 Resistance, and +3 Status Resist in battle.",
   },
   focus_manual: {
-    description: "Permanent combat study. Each rank improves precision, status techniques, and Battle Energy capacity.",
-    effectLabel: "Each rank grants +2 Accuracy, +2 Status Power, and +2 maximum Battle Energy. Maximum rank 3.",
+    description: "Permanent combat study. Each rank improves precision, status techniques, and Battle Energy capacity. Manuals may also teach compatible standard techniques from Move Training.",
+    effectLabel: "Each training rank grants +2 Accuracy, +2 Status Power, and +2 maximum Battle Energy, up to rank 3. A manual can instead teach one compatible move.",
   },
   team_tactics_kit: {
     description: "A one-battle team preparation kit that can be armed before entering the arena.",
-    effectLabel: "Consumed at battle start: all ranch creatures begin Inspired for 1 round and gain 10 Battle Energy.",
+    effectLabel: "Consumed at battle start: all ranch creatures begin Inspired for 1 round and gain 10 current and maximum Battle Energy.",
   },
   field_tonic: {
     description: "A once-per-battle restorative used on a living ranch creature between rounds.",
