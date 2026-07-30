@@ -20,6 +20,7 @@
       "@/data/battleEngine": ["./src/data/battleEnginePersistent"],
       "@/data/battleMoves": ["./src/data/battleMovesExpanded"],
       "@/data/battleOutfitter": ["./src/data/battleOutfitterActive"],
+      "@/data/battleOutfitterIntegration": ["./src/data/battleOutfitterIntegrationActive"],
       "@/data/battleProfiles": ["./src/data/battleProfilesExpanded"],
       "@/data/breedingRecords": ["./src/data/breedingRecordsSafe"],
       "@/data/nursery": ["./src/data/nurseryMoveInheritanceLifecycle"],
