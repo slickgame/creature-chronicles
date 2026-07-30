@@ -7,8 +7,11 @@ import {
 } from "@/data/chapterOneGuidedTutorial";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
 import { useGameContext } from "@/state/GameProvider";
-import { ColiseumC2Screen as BaseColiseumC2Screen } from "./ColiseumC2Screen";
 import styles from "./ColiseumC2ScreenTutorial.module.css";
+
+const { ColiseumC2Screen: BaseColiseumC2Screen } = require("./ColiseumC2Screen") as {
+  ColiseumC2Screen: React.ComponentType;
+};
 
 type CoachState = {
   key: string;
