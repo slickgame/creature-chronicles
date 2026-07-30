@@ -1,7 +1,7 @@
 "use client";
 
 import { type CSSProperties, useMemo, useState } from "react";
-import { getColiseumHighestDivision, getColiseumProgress } from "@/data/coliseum";
+import { getColiseumC2HighestDivision, getColiseumC2Progress } from "@/data/coliseumC2";
 import { getTotalTownUpgradeTiers } from "@/data/upgrades";
 import { formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
@@ -113,8 +113,8 @@ const LOCATIONS: TownLocation[] = [
   {
     id: "coliseum",
     title: "Coliseum",
-    badge: "PvE Divisions",
-    description: "Climb four permanent 3v3 divisions, unlock harder AI brackets, earn first-clear rewards, and build a lasting battle record.",
+    badge: "Authored PvE Circuit",
+    description: "Challenge twelve authored 3v3 teams across four divisions, earn combat XP, and build permanent creature battle records.",
     imageSrc: TOWN_ICONS.coliseum,
     x: 57,
     y: 45,
@@ -149,7 +149,7 @@ export function TownScreen() {
     goToSupplyDepot,
     goToTrainingGrounds,
   } = useGameContext();
-  const [message, setMessage] = useState("Welcome to town. The Coliseum now tracks permanent divisions, rewards, and battle records.");
+  const [message, setMessage] = useState("Welcome to town. The Coliseum now fields authored opponents and grants persistent combat XP.");
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [selectedFutureLocation, setSelectedFutureLocation] = useState<TownLocation | null>(null);
 
@@ -168,11 +168,11 @@ export function TownScreen() {
     [currentSave],
   );
   const coliseumProgress = useMemo(
-    () => currentSave ? getColiseumProgress(currentSave) : null,
+    () => currentSave ? getColiseumC2Progress(currentSave) : null,
     [currentSave],
   );
   const coliseumStanding = useMemo(
-    () => currentSave ? getColiseumHighestDivision(currentSave) : null,
+    () => currentSave ? getColiseumC2HighestDivision(currentSave) : null,
     [currentSave],
   );
 
@@ -236,7 +236,7 @@ export function TownScreen() {
             <div><img src={TOWN_ICONS.crest} alt="" /><span>Date</span><strong>{dateLabel}</strong></div>
             <div><img src={TOWN_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
             <div><img src={TOWN_ICONS.gp} alt="" /><span>GP</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div>
-            <div><img src={TOWN_ICONS.coliseum} alt="" /><span>Coliseum</span><strong>{coliseumProgress?.completedEncounterIds.length ?? 0}/4 Clears</strong></div>
+            <div><img src={TOWN_ICONS.coliseum} alt="" /><span>Coliseum</span><strong>{coliseumProgress?.completedEncounterIds.length ?? 0}/12 Clears</strong></div>
           </section>
           <nav className={styles.headerActions} aria-label="Town navigation">
             <button type="button" onClick={() => setModalMode("nav-menu")}><img src={TOWN_ICONS.menu} alt="" /> Menu</button>
@@ -297,7 +297,7 @@ export function TownScreen() {
             {modalMode === "town-info" ? (
               <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true">
                 <header className={styles.modalHeader}><div><p className={styles.kicker}>Town Square</p><h2>Current Services</h2></div><button type="button" onClick={closeModal}>Close</button></header>
-                <p className={styles.townInfoLead}>Town includes adoption, supplies, egg care, contracts, training, the Battle Outfitter, and a four-division Coliseum with permanent first clears, repeat rewards, and battle records.</p>
+                <p className={styles.townInfoLead}>Town includes adoption, supplies, egg care, contracts, training, the Battle Outfitter, and a twelve-encounter authored Coliseum circuit with combat XP, weighted repeat purses, and permanent creature records.</p>
                 <div className={styles.townInfoStats}>{LOCATIONS.map((location) => <div key={location.id}><span>{getDynamicBadge(location)}</span><strong>{location.title}</strong></div>)}</div>
               </section>
             ) : null}
