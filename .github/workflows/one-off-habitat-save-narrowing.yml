@@ -1,0 +1,44 @@
+name: One-off habitat save narrowing
+
+on:
+  push:
+    branches:
+      - agent/chapter-one-guided-onboarding
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/chapter-one-guided-onboarding
+          fetch-depth: 0
+      - name: Preserve habitat save narrowing in closures
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("src/features/habitats/HabitatScreen.tsx")
+          source = path.read_text(encoding="utf-8")
+          boundary = "\n  const habitatTitle = habitat.name"
+          if boundary not in source:
+              raise SystemExit("Expected habitat post-guard boundary was not found")
+          before, after = source.split(boundary, 1)
+          if "  const save = currentSave;" not in before:
+              before += "\n  const save = currentSave;\n"
+          after = re.sub(r"\bcurrentSave\b", "save", after)
+          path.write_text(before + boundary + after, encoding="utf-8")
+
+          Path(".github/workflows/one-off-habitat-save-narrowing.yml").unlink(missing_ok=True)
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/habitats/HabitatScreen.tsx .github/workflows/one-off-habitat-save-narrowing.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Preserve habitat save context narrowing"
+          git push origin HEAD:agent/chapter-one-guided-onboarding
