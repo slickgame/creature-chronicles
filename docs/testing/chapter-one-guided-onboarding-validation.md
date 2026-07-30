@@ -2,6 +2,10 @@
 
 This checklist validates the guided Chapter 1 redesign after automated tests and the production build complete successfully.
 
+## Automated merge gate
+
+Before this branch is merged, GitHub Actions must complete asset validation, the full regression suite, and the optimized production build successfully. The browser walkthrough below remains a separate deferred gameplay-validation pass.
+
 ## Starting commands
 
 ```powershell
