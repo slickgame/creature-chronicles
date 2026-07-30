@@ -36,6 +36,13 @@ Upgrade the active 3v3 Coliseum battle screens from stacked combatant cards to a
 
 Move definitions select a family from category, effects, and tags. Signature-specific VFX can extend this layer later without changing the engine.
 
+## Integration audit
+
+- The presentation controller belongs to each active match component, not the surrounding Coliseum hub.
+- C2 and C4 share the same visual stage and effect queue.
+- Team selection, result recording, support items, and reward calculations remain outside the presentation layer.
+- Temporary integration workflows must remove themselves before the PR is opened.
+
 ## Deferred
 
 - Unique frame-by-frame creature animation
