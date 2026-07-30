@@ -84,7 +84,7 @@ function RanchDayBridge({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<BaseContextValue>(() => ({
     ...base,
-    buildPhase: "Coliseum C1 — PvE Progression Foundation",
+    buildPhase: "Coliseum C2 — Authored Opponents & Combat Progression",
     saveCurrentGame,
     advanceDay,
   }), [base, saveCurrentGame, advanceDay]);
