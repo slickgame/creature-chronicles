@@ -74,6 +74,8 @@ export type CreatureRecord = {
   isFavorite?: boolean;
   shiny: boolean;
   cosmeticVariant: string | null;
+  portraitPath?: string;
+  profilePath?: string;
   origin: CreatureOrigin;
   originLabel: string;
   lineage?: CreatureLineage;
