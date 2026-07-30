@@ -1,0 +1,101 @@
+.coach {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1250;
+  width: min(390px, calc(100vw - 36px));
+  overflow: hidden;
+  border: 3px solid rgba(245, 201, 128, 0.9);
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(34, 43, 51, 0.99), rgba(8, 11, 14, 0.99));
+  color: #fff7dd;
+  box-shadow: 0 24px 68px rgba(0, 0, 0, 0.72);
+  pointer-events: auto;
+}
+
+.coach header {
+  display: grid;
+  grid-template-columns: 46px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(127, 219, 255, 0.28);
+  background: linear-gradient(90deg, rgba(127, 219, 255, 0.15), rgba(245, 201, 128, 0.08));
+}
+
+.coach header img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border: 2px solid rgba(127, 219, 255, 0.72);
+  border-radius: 50%;
+}
+
+.coach header span,
+.coach header strong {
+  display: block;
+}
+
+.coach header span {
+  color: #7fdbff;
+  font-size: 0.66rem;
+  font-weight: 950;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.coach header strong {
+  margin-top: 2px;
+  color: #fff;
+}
+
+.coach section {
+  padding: 13px 14px;
+}
+
+.coach h2 {
+  margin: 0 0 7px;
+  color: #fff;
+  font-size: 1.25rem;
+}
+
+.coach p {
+  margin: 0;
+  color: #f2dfbd;
+  line-height: 1.42;
+}
+
+.coach > button {
+  width: calc(100% - 28px);
+  min-height: 39px;
+  margin: 0 14px 14px;
+  border: 2px solid rgba(45, 25, 13, 0.92);
+  border-radius: 10px;
+  background: linear-gradient(#fff4cf, #d6a25b);
+  color: #211309;
+  font-weight: 950;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.34);
+  cursor: pointer;
+}
+
+:global([data-battle-tutorial-target="true"]) {
+  position: relative;
+  z-index: 1240 !important;
+  outline: 3px solid #7fdbff !important;
+  outline-offset: 4px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.48), 0 0 28px rgba(127, 219, 255, 0.92) !important;
+  animation: battleTutorialPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes battleTutorialPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.25); }
+}
+
+@media (max-width: 680px) {
+  .coach {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100vw - 20px);
+  }
+}
