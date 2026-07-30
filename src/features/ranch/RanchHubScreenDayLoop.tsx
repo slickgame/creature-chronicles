@@ -50,24 +50,25 @@ export function RanchHubScreen() {
   }, [phase, save?.dayState.dayNumber]);
 
   if (!save) return <BaseRanchHubScreen />;
+  const activeSave = save;
 
   function persist(nextSave: GameSave) {
     saveCurrentGame(nextSave);
   }
 
   function handleBeginDay() {
-    persist(beginRanchDay(save));
+    persist(beginRanchDay(activeSave));
     setPanel(null);
-    setMessage(`Ranch Day ${save.dayState.dayNumber} is active.`);
+    setMessage(`Ranch Day ${activeSave.dayState.dayNumber} is active.`);
   }
 
   function handleReviewDay() {
-    persist(enterEveningReview(save));
+    persist(enterEveningReview(activeSave));
     setPanel("review");
   }
 
   function handleCancelReview() {
-    persist(cancelEveningReview(save));
+    persist(cancelEveningReview(activeSave));
     setPanel(null);
   }
 
@@ -80,21 +81,21 @@ export function RanchHubScreen() {
   }
 
   function handleEventChoice(choiceId: string) {
-    const result = resolveDailyRanchEventChoice(save, choiceId);
+    const result = resolveDailyRanchEventChoice(activeSave, choiceId);
     if (result.ok) persist(result.save);
     setMessage(result.message);
   }
 
-  const brief = save.ranchDay?.morningBrief;
-  const event = save.ranchDay?.event;
+  const brief = activeSave.ranchDay?.morningBrief;
+  const event = activeSave.ranchDay?.event;
 
   return (
     <>
-      <BaseRanchHubScreen key={`${save.dayState.dayNumber}-${phase}`} />
+      <BaseRanchHubScreen key={`${activeSave.dayState.dayNumber}-${phase}`} />
 
       <aside className={styles.phaseBar} aria-label="Ranch Day controls">
         <div>
-          <span>Ranch Day {save.dayState.dayNumber}</span>
+          <span>Ranch Day {activeSave.dayState.dayNumber}</span>
           <strong>{phaseLabel(phase)}</strong>
         </div>
         <div className={styles.phaseActions}>
@@ -112,7 +113,7 @@ export function RanchHubScreen() {
           <section className={styles.modal} role="dialog" aria-modal="true" aria-label={`Ranch Day ${panel}`} onMouseDown={(eventObject) => eventObject.stopPropagation()}>
             <header className={styles.header}>
               <div>
-                <p>Ranch Day {save.dayState.dayNumber}</p>
+                <p>Ranch Day {activeSave.dayState.dayNumber}</p>
                 <h1>{panel === "morning" ? "Morning Brief" : panel === "goals" ? "Daily Goals" : panel === "activities" ? "Activity Log" : panel === "moods" ? "Creature Moods" : "Evening Review"}</h1>
               </div>
               {phase !== "morning" && phase !== "evening" ? <button type="button" onClick={() => setPanel(null)}>Close</button> : null}
@@ -122,7 +123,7 @@ export function RanchHubScreen() {
               {panel === "morning" ? (
                 <div className={styles.stack}>
                   <section className={styles.heroCard} data-ui-text-box="auto">
-                    <span>{brief?.dateLabel ?? `${save.dayState.weekday} ${save.dayState.month}/${save.dayState.dayOfMonth}`}</span>
+                    <span>{brief?.dateLabel ?? `${activeSave.dayState.weekday} ${activeSave.dayState.month}/${activeSave.dayState.dayOfMonth}`}</span>
                     <h2>{brief ? `Ranch Day ${brief.currentDayNumber} is ready.` : "Your ranch day is ready."}</h2>
                     <p>{brief?.nextSteps[0] ?? "Review assignments, supplies, breeding plans, and Nursery needs before ending the day."}</p>
                   </section>
@@ -132,7 +133,7 @@ export function RanchHubScreen() {
                       <div><span>Gold</span><strong>{brief.resourceFlow.ending.gold}</strong><small>{signed(brief.resourceFlow.goldChange)} last day</small></div>
                       <div><span>Feed</span><strong>{brief.resourceFlow.ending.feed}</strong><small>{signed(brief.resourceFlow.feedChange)} last day</small></div>
                       <div><span>Materials</span><strong>{brief.resourceFlow.ending.materials}</strong><small>{signed(brief.resourceFlow.materialChange)} last day</small></div>
-                      <div><span>Energy</span><strong>{save.currencies.energy}/{save.currencies.maxEnergy}</strong><small>Recovery applied</small></div>
+                      <div><span>Energy</span><strong>{activeSave.currencies.energy}/{activeSave.currencies.maxEnergy}</strong><small>Recovery applied</small></div>
                     </section>
                   ) : null}
 
@@ -148,7 +149,7 @@ export function RanchHubScreen() {
                       {event.resultText ? <strong className={styles.eventResult}>{event.resultText}</strong> : (
                         <div className={styles.choiceGrid}>
                           {event.choices.map((choice) => {
-                            const availability = canResolveDailyEventChoice(save, choice.choiceId);
+                            const availability = canResolveDailyEventChoice(activeSave, choice.choiceId);
                             return (
                               <button key={choice.choiceId} type="button" disabled={!availability.ok} onClick={() => handleEventChoice(choice.choiceId)}>
                                 <strong>{choice.label}</strong>

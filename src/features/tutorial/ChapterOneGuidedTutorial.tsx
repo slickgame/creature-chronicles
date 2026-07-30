@@ -125,10 +125,12 @@ export function ChapterOneGuidedTutorial() {
   }, [step?.id, step?.lockToTarget, step?.targetId]);
 
   if (!currentSave || !step) return null;
+  const activeSave = currentSave;
+  const activeStep = step;
 
   function persistSignal(signal: ChapterOneTutorialSignal) {
-    if (!currentSave) return;
-    saveCurrentGame(markChapterOneTutorialSignal(currentSave, signal));
+    if (!activeSave) return;
+    saveCurrentGame(markChapterOneTutorialSignal(activeSave, signal));
   }
 
   function route(action: ChapterOneTutorialAction) {
@@ -149,19 +151,19 @@ export function ChapterOneGuidedTutorial() {
   }
 
   function showTarget() {
-    const selector = targetSelector(step.targetId);
+    const selector = targetSelector(activeStep.targetId);
     const element = selector ? document.querySelector<HTMLElement>(selector) : null;
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
       setHelpPulse((value) => value + 1);
       return;
     }
-    route(step.action);
+    route(activeStep.action);
   }
 
   function handleSkip() {
     if (!window.confirm("Skip the guided Chapter 1 walkthrough? Beginner Milestones and story scenes will remain available.")) return;
-    saveCurrentGame(skipChapterOneGuidedTutorial(currentSave));
+    saveCurrentGame(skipChapterOneGuidedTutorial(activeSave));
   }
 
   return (
@@ -189,22 +191,22 @@ export function ChapterOneGuidedTutorial() {
             <header className={styles.header}>
               <img src={RANCH_ADVISOR.portraitPath} alt="" />
               <div>
-                <span>{step.dayLabel}</span>
+                <span>{activeStep.dayLabel}</span>
                 <strong>{RANCH_ADVISOR.name}</strong>
               </div>
               <button type="button" onClick={() => setCollapsed(true)} aria-label="Collapse tutorial">−</button>
             </header>
             <section className={styles.body}>
               <p className={styles.kicker}>Current Lesson</p>
-              <h2>{step.title}</h2>
-              <p>{step.body}</p>
-              <div className={styles.hint}>{step.hint}</div>
+              <h2>{activeStep.title}</h2>
+              <p>{activeStep.body}</p>
+              <div className={styles.hint}>{activeStep.hint}</div>
             </section>
             <footer className={styles.actions}>
               <button type="button" className={styles.secondary} onClick={handleSkip}>Skip</button>
               <button type="button" className={styles.secondary} onClick={showTarget}>Help</button>
-              {step.action !== "none" ? (
-                <button type="button" className={styles.primary} onClick={() => route(step.action)}>{step.actionLabel}</button>
+              {activeStep.action !== "none" ? (
+                <button type="button" className={styles.primary} onClick={() => route(activeStep.action)}>{activeStep.actionLabel}</button>
               ) : null}
             </footer>
           </>
