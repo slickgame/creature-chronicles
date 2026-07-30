@@ -13,7 +13,7 @@ const {
   getBattleOutfitterCombatStock,
   useFieldTonic,
   useRevivalSalve,
-} = await import("../src/data/battleOutfitterIntegration.ts");
+} = await import("@/data/battleOutfitterIntegration");
 const {
   createNewGameSave,
 } = await import("@/lib/save/localSave");
@@ -36,17 +36,16 @@ function createFixture() {
     save: {
       ...save,
       creatures: [player, enemy],
-      creatureById: {
-        [player.creatureId]: player,
-        [enemy.creatureId]: enemy,
-      },
     },
     player,
     enemy,
   };
 }
 
-function createState(player: ReturnType<typeof createFixture>["player"], enemy: ReturnType<typeof createFixture>["enemy"]) {
+function createState(
+  player: ReturnType<typeof createFixture>["player"],
+  enemy: ReturnType<typeof createFixture>["enemy"],
+) {
   return createBattleState({
     battleId: "outfitter-integration",
     playerCreatures: [player],
@@ -98,9 +97,11 @@ test("Team Tactics Kit consumes one stock and prepares every living ranch combat
   assert.equal(result.ok, true);
   assert.equal(getBattleOutfitterCombatStock(result.save, TEAM_TACTICS_KIT_ID), 0);
   state.teams.player.combatantIds.forEach((combatantId) => {
+    const before = state.combatants[combatantId];
     const combatant = result.state.combatants[combatantId];
     assert.ok(combatant.statuses.some((status) => status.status === "inspired"));
-    assert.ok(combatant.currentBattleEnergy <= combatant.maxBattleEnergy);
+    assert.equal(combatant.maxBattleEnergy, before.maxBattleEnergy + 10);
+    assert.equal(combatant.currentBattleEnergy, before.currentBattleEnergy + 10);
   });
 });
 
