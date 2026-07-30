@@ -103,20 +103,23 @@ test("Quickhatch Catalyst is granted once, recorded, consumed, and hatches the t
 
 test("guided Chapter 1 completion no longer requires all sixteen optional starter goals", () => {
   const base = guidedSave();
+  assert.ok(base.ranchJobs, "new save should include ranch job state");
+  assert.ok(base.creatures?.[0] && base.creatures[1], "new save should include at least two creatures");
   const save = {
     ...base,
     dayState: { ...base.dayState, dayNumber: 2 },
     ranchJobs: {
-      ...(base.ranchJobs ?? { version: 1, assignments: {}, history: [] }),
+      ...base.ranchJobs,
       assignments: {
-        ...(base.ranchJobs?.assignments ?? {}),
-        security_patrol: [String(base.creatures?.[0]?.creatureId ?? "guard")],
-        stable_production: [String(base.creatures?.[1]?.creatureId ?? "producer")],
+        ...base.ranchJobs.assignments,
+        security_patrol: [base.creatures[0].creatureId],
+        stable_production: [base.creatures[1].creatureId],
       },
     },
     flags: {
       ...base.flags,
       m14RanchJobsProcessed: true,
+      ranchFeedProducedToday: 5,
       ranchFeedStock: 5,
       m7GuildContractCompleted: true,
       m4BreedingAttempted: true,
