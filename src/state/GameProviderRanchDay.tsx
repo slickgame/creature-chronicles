@@ -47,7 +47,10 @@ function RanchDayBridge({ children }: { children: React.ReactNode }) {
   }, [base.currentSave, base.saveCurrentGame]);
 
   const saveCurrentGame = useCallback((nextSave: GameSave) => {
-    const prepared = recordRanchDayTransition(base.currentSave, normalizeRanchDaySave(nextSave, nextSave.ranchDay?.phase ?? "active"));
+    const prepared = recordRanchDayTransition(
+      base.currentSave,
+      normalizeRanchDaySave(nextSave, nextSave.ranchDay?.phase ?? "active"),
+    );
     previousSaveRef.current = prepared;
     return base.saveCurrentGame(prepared);
   }, [base.currentSave, base.saveCurrentGame]);
@@ -81,7 +84,7 @@ function RanchDayBridge({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<BaseContextValue>(() => ({
     ...base,
-    buildPhase: "Battle M5 — Breeding Move Inheritance",
+    buildPhase: "Coliseum C1 — PvE Progression Foundation",
     saveCurrentGame,
     advanceDay,
   }), [base, saveCurrentGame, advanceDay]);
