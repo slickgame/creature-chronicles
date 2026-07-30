@@ -1,7 +1,7 @@
 "use client";
 
 import { BattleArenaScreenOutfitter } from "@/features/battle/BattleArenaScreenOutfitter";
-import { BattleOutfitterScreenMoves } from "@/features/battle-outfitter/BattleOutfitterScreenMoves";
+import { BattleOutfitterScreenActive } from "@/features/battle-outfitter/BattleOutfitterScreenActive";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
@@ -54,7 +54,7 @@ export function GameRoot() {
   else if (appScreen === "supply-depot") screen = <SupplyDepotScreen />;
   else if (appScreen === "egg-atelier") screen = <EggAtelierScreen />;
   else if (appScreen === "training-grounds") screen = <TrainingGroundsScreen />;
-  else if (appScreen === "battle-outfitter") screen = <BattleOutfitterScreenMoves />;
+  else if (appScreen === "battle-outfitter") screen = <BattleOutfitterScreenActive />;
   else if (appScreen === "battle-debug") screen = <BattleArenaScreenOutfitter />;
   else if (appScreen === "guild-hall") screen = <GuildHallScreen />;
   else if (appScreen === "collection") screen = <CollectionScreen />;
