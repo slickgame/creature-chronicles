@@ -63,6 +63,7 @@
   "exclude": [
     "node_modules",
     "src/features/battle/BattleArenaScreenOutfitter.tsx",
-    "src/features/coliseum/ColiseumC2Screen.tsx"
+    "src/features/coliseum/ColiseumC2Screen.tsx",
+    "src/features/coliseum/ColiseumC4Battle.tsx"
   ]
 }
