@@ -12,11 +12,11 @@ export function BreedingFocusedScreen() {
         const workspace = document.querySelector<HTMLElement>(
           'section[aria-label="Focused breeding pair preview"]',
         );
-        if (workspace) workspace.dataset.tutorialId = "tutorial-breeding-workspace";
+        if (workspace) workspace.dataset.tutorialId = "tutorial-breeding-attempt";
         const attempt = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
           (button) => button.textContent?.trim() === "Attempt Breeding",
         );
-        if (attempt) attempt.dataset.tutorialId = "tutorial-breeding-attempt";
+        if (attempt) attempt.dataset.tutorialAction = "attempt-breeding";
       });
     };
     tagControls();
