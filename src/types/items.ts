@@ -8,11 +8,12 @@ export type BreedingSupportItemId =
   | "recovery_balm"
   | "trait_stabilizer"
   | "mutation_catalyst"
-  | "gestation_tonic";
+  | "gestation_tonic"
+  | "quickhatch_catalyst";
 
 export type ItemRarity = "Common" | "Uncommon" | "Rare" | "Epic";
 export type ItemUseSource = "inventory" | "breeding-pen" | "nursery";
-export type ItemTargetKind = "player" | "creature" | "pregnancy" | "pair" | "none";
+export type ItemTargetKind = "player" | "creature" | "pregnancy" | "pair" | "egg" | "none";
 
 export type ItemUseRecord = {
   itemUseId: string;
