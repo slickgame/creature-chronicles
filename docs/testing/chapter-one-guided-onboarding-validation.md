@@ -87,10 +87,26 @@ npm run dev
 
 1. Open Battle Outfitter through the tutorial.
 2. Inspect the three-creature roster, equipped moves, roles, and equipment.
-3. Enter the Coliseum.
-4. Complete the Novice Echo Trial.
-5. Confirm a victory advances Chapter 1.
-6. Confirm a loss does not falsely complete the lesson.
+3. Enter the authored Coliseum circuit.
+4. Confirm the normal Chapter 1 guide is replaced by the smaller first-battle coach.
+5. Confirm Opening Scrimmage is highlighted.
+6. Open its first-clear match.
+7. Confirm the default three-creature team and enemy preview are visible.
+8. Enter Opening Scrimmage.
+9. Confirm the coach highlights an enemy Select Target action.
+10. Select the enemy.
+11. Confirm the coach highlights a compatible equipped move.
+12. Choose the move.
+13. Repeat target then move for the other two active creatures.
+14. Confirm the enabled Confirm Round button is highlighted.
+15. Resolve the first round.
+16. Confirm the coach steps back once Round 2 begins.
+17. Finish the match.
+18. Confirm Record Result, XP & Purse is highlighted.
+19. Record the result.
+20. Confirm a recorded victory advances Chapter 1.
+21. Confirm a recorded loss preserves its normal record and XP but does not complete the lesson.
+22. Confirm returning after a loss highlights Opening Scrimmage again.
 
 ## Story and milestones
 
@@ -109,6 +125,7 @@ npm run dev
 3. Reload during the pregnancy, egg, catalyst, Battle Outfitter, and first battle stages.
 4. Confirm the catalyst is never granted more than once.
 5. Confirm a save that naturally hatched its first egg cannot become stuck on the catalyst step.
+6. Confirm an existing recorded Coliseum victory satisfies the first-battle objective.
 
 ## Expected automated coverage
 
