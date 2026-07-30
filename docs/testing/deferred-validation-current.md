@@ -15,6 +15,7 @@ The project owner has not yet run the planned local validation pass for the foll
 - Battle M4 — Deterministic Enemy AI
 - Battle M5 — Breeding Move Inheritance
 - Battle M6 — Battle Outfitter Integration and Move Training
+- Coliseum C1 — PvE Progression Foundation
 
 None of these patches should be described as fully verified until the project owner completes the automated, build, migration, UI, save, gameplay, and local-asset checks.
 
@@ -35,3 +36,4 @@ Detailed subsystem checklists remain in:
 - `docs/testing/battle-m4-validation.md`
 - `docs/testing/battle-m5-validation.md`
 - `docs/testing/battle-m6-validation.md`
+- `docs/testing/coliseum-c1-validation.md`
