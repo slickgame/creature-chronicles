@@ -8,6 +8,7 @@ import {
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
 import { createBattleState, getEffectiveBattleStats, resolveBattleRound } from "@/data/battleEngine";
+import { buildBattlePresentationEvents } from "@/data/battlePresentation";
 import { getBattleMove } from "@/data/battleMoves";
 import {
   FIELD_TONIC_ID,
@@ -64,6 +65,8 @@ import type {
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import battleStyles from "@/features/battle/BattleArenaScreen.module.css";
+import { BattlePortraitStage } from "@/features/battle/BattlePortraitStage";
+import { useBattlePresentationController } from "@/features/battle/useBattlePresentationController";
 import styles from "./ColiseumProgressionScreen.module.css";
 
 const FALLBACK_PORTRAIT = "/images/ui/icons/icon_paw_crest.png";
@@ -377,6 +380,7 @@ function ColiseumBattle({
   const [performance, setPerformance] = useState<ColiseumCombatPerformanceMap>({});
   const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState(`Choose exactly three available creatures for ${encounter.name}.`);
+  const presentation = useBattlePresentationController();
 
   const roster = currentSave?.creatures ?? [];
   const availableRoster = useMemo(() => currentSave ? roster.filter((creature) => !getUnavailableReason(currentSave, creature)) : [], [currentSave, roster]);
@@ -444,7 +448,7 @@ function ColiseumBattle({
   }
 
   function chooseMove(moveId: string) {
-    if (!battleState || !activeActorId || !selectedTarget) return;
+    if (presentation.isPlaying || !battleState || !activeActorId || !selectedTarget) return;
     const action = buildBattleUiAction(battleState, activeActorId, moveId, selectedTarget);
     if (!action) { setMessage("That move cannot be used on the selected target."); return; }
     const nextQueue = new Map(queuedActions);
@@ -457,14 +461,14 @@ function ColiseumBattle({
   }
 
   function planFor(actorId: BattleCombatantId) {
-    if (!battleState || battleState.combatants[actorId]?.isFainted) return;
+    if (presentation.isPlaying || !battleState || battleState.combatants[actorId]?.isFainted) return;
     setActiveActorId(actorId);
     setSelectedTarget(null);
     setMessage(`Planning ${battleState.combatants[actorId].name}'s action. Select a target first.`);
   }
 
   function clearQueuedAction(actorId: BattleCombatantId) {
-    if (!battleState) return;
+    if (presentation.isPlaying || !battleState) return;
     const nextQueue = new Map(queuedActions);
     nextQueue.delete(actorId);
     setQueuedActions(nextQueue);
@@ -473,6 +477,7 @@ function ColiseumBattle({
   }
 
   function useSupportItem(item: "tonic" | "revival") {
+    if (presentation.isPlaying) return;
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
     const result = item === "tonic" ? useFieldTonic(currentSave, battleState, selectedTarget.combatantId) : useRevivalSalve(currentSave, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
@@ -490,10 +495,11 @@ function ColiseumBattle({
   }
 
   function resolveRound() {
-    if (!battleState || !allPlayerActionsQueued) { setMessage("Queue one action for every living ranch creature."); return; }
+    if (presentation.isPlaying || !battleState || !allPlayerActionsQueued) { setMessage("Queue one action for every living ranch creature."); return; }
     const aiPlan = buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty);
     const stateWithAiPlan: BattleState = { ...battleState, log: [...battleState.log, ...aiPlan.decisions.map(formatBattleAiDecision)] };
     const resolved = resolveBattleRound(stateWithAiPlan, [...Array.from(queuedActions.values()), ...aiPlan.actions]);
+    presentation.play(buildBattlePresentationEvents(battleState, resolved.state, resolved.result));
     const nextPerformance = accumulateColiseumRoundPerformance(performance, battleState, resolved.result);
     const nextQueue = new Map<BattleCombatantId, BattleAction>();
     setPerformance(nextPerformance);
@@ -566,11 +572,23 @@ function ColiseumBattle({
           <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
         </header>
 
-        <section className={battleStyles.battlefield}>
-          <div className={battleStyles.teamSection}><div className={battleStyles.teamHeading}><span>Authored Enemy Team</span><strong>{battleState.teams.enemy.name}</strong></div><div className={battleStyles.teamGrid}>{enemies.map((combatant) => <CombatantCard key={combatant.battleCombatantId} combatant={combatant} portraitPath={creaturePortrait(sourceById.get(String(combatant.sourceCreatureId)))} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedAction={queuedActions.get(combatant.battleCombatantId)} onTarget={() => setSelectedTarget({ kind: "combatant", combatantId: combatant.battleCombatantId })} />)}</div></div>
-          <div className={battleStyles.arenaDivider}><span>VS</span><button type="button" className={selectedTarget?.kind === "field" ? battleStyles.fieldSelected : undefined} onClick={() => setSelectedTarget({ kind: "field" })}>Select Field</button></div>
-          <div className={battleStyles.teamSection}><div className={battleStyles.teamHeading}><span>Ranch Team</span><strong>{battleState.teams.player.name}</strong></div><div className={battleStyles.teamGrid}>{players.map((combatant) => <CombatantCard key={combatant.battleCombatantId} combatant={combatant} portraitPath={creaturePortrait(sourceById.get(String(combatant.sourceCreatureId)))} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedAction={queuedActions.get(combatant.battleCombatantId)} onTarget={() => setSelectedTarget({ kind: "combatant", combatantId: combatant.battleCombatantId })} onPlan={() => planFor(combatant.battleCombatantId)} />)}</div></div>
-        </section>
+      <BattlePortraitStage
+        battleState={battleState}
+        sourceById={sourceById}
+        selectedTarget={selectedTarget}
+        activeActorId={activeActorId}
+        queuedActions={queuedActions}
+        activeEvent={presentation.activeEvent}
+        isResolving={presentation.isPlaying}
+        queuedEventCount={presentation.queuedEventCount}
+        speed={presentation.speed}
+        reducedMotion={presentation.reducedMotion}
+        onSpeedChange={presentation.setSpeed}
+        onReducedMotionChange={presentation.setReducedMotion}
+        onTarget={(combatantId) => setSelectedTarget({ kind: "combatant", combatantId })}
+        onPlan={planFor}
+        onFieldTarget={() => setSelectedTarget({ kind: "field" })}
+      />
 
         <section className={battleStyles.commandDeck}>
           <div className={battleStyles.actionPanel}>
@@ -598,7 +616,7 @@ function ColiseumBattle({
             <div className={battleStyles.panelHeading}><div><span>Round Queue</span><strong>{queuedActions.size} / {livingPlayerIds.length}</strong></div></div>
             <div className={battleStyles.queueList}>{players.filter((combatant) => !combatant.isFainted).map((combatant) => { const action = queuedActions.get(combatant.battleCombatantId); return <div key={combatant.battleCombatantId} className={battleStyles.queueEntry}><div><strong>{combatant.name}</strong><span>{action ? `${getBattleMove(action.moveId).name} → ${action.targetIds.length ? action.targetIds.map((id) => battleState.combatants[id]?.name ?? "Unknown").join(", ") : "Field"}` : "Action not queued"}</span></div>{action ? <button type="button" onClick={() => clearQueuedAction(combatant.battleCombatantId)}>Edit</button> : <button type="button" onClick={() => planFor(combatant.battleCombatantId)}>Plan</button>}</div>; })}</div>
             <p className={battleStyles.statusLine}>Enemy actions remain hidden until resolution. {getBattleAiDifficultyDescription(encounter.aiDifficulty)}</p>
-            <button type="button" className={battleStyles.confirmButton} onClick={resolveRound} disabled={!allPlayerActionsQueued || phase === "result"}>Confirm Round</button>
+            <button type="button" className={battleStyles.confirmButton} onClick={resolveRound} disabled={presentation.isPlaying || !allPlayerActionsQueued || phase === "result"}>Confirm Round</button>
           </aside>
 
           <aside className={battleStyles.logPanel}><div className={battleStyles.panelHeading}><div><span>Battle Log</span><strong>Latest Events</strong></div></div><div className={battleStyles.logList}>{recentLog.map((entry, index) => <p key={`${index}-${entry}`}>{entry}</p>)}</div></aside>
