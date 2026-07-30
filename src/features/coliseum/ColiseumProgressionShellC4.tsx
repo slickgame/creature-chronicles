@@ -22,9 +22,12 @@ import { useGameContext } from "@/state/GameProvider";
 import type { BattleOutcome, BattleState } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
 import type { ColiseumCombatPerformanceMap } from "@/data/coliseumC2";
-import { ColiseumC4Battle } from "./ColiseumC4Battle";
 import { ColiseumProgressionScreen as ColiseumProgressionScreenC3 } from "./ColiseumProgressionShellC3";
 import styles from "./ColiseumC4.module.css";
+
+const { ColiseumC4Battle } = require("./ColiseumC4Battle") as {
+  ColiseumC4Battle: React.ElementType;
+};
 
 type C4HubMode = "overview" | "daily" | "gauntlets" | "boss" | "records" | "legacy";
 
