@@ -11,9 +11,9 @@ const exactAliases = new Map([
   ["@/data/balance/breedingBalancePresets", "data/balance/breedingBalancePresetsLive"],
   ["@/data/balance/breedingEconomySimulation", "data/balance/breedingEconomySimulationNormalized"],
   ["@/data/battleEngine", "data/battleEnginePersistent"],
-  ["@/data/battleMoves", "data/battleMovesExpanded"],
-  ["@/data/battleOutfitter", "data/battleOutfitterActive"],
-  ["@/data/battleOutfitterIntegration", "data/battleOutfitterIntegrationActive"],
+  ["@/data/battleMoves", "data/battleMovesC3"],
+  ["@/data/battleOutfitter", "data/battleOutfitterC3"],
+  ["@/data/battleOutfitterIntegration", "data/battleOutfitterIntegrationC3"],
   ["@/data/battleProfiles", "data/battleProfilesExpanded"],
   ["@/data/breedingRecords", "data/breedingRecordsSafe"],
   ["@/data/nursery", "data/nurseryMoveInheritanceLifecycle"],
@@ -70,6 +70,16 @@ export async function resolve(specifier, context, defaultResolve) {
 export async function load(url, context, defaultLoad) {
   if (url.endsWith(".css")) {
     return { format: "module", source: "export default {};", shortCircuit: true };
+  }
+
+  if (url.endsWith(".json")) {
+    const raw = await readFile(fileURLToPath(url), "utf8");
+    const parsed = JSON.parse(raw);
+    return {
+      format: "module",
+      source: `export default ${JSON.stringify(parsed)};`,
+      shortCircuit: true,
+    };
   }
 
   if (url.endsWith(".ts") || url.endsWith(".tsx")) {

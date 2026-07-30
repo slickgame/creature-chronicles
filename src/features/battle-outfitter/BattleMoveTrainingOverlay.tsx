@@ -82,6 +82,7 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
   }, [selectedCreatureId]);
 
   if (!open || !currentSave) return null;
+  const activeSave = currentSave;
 
   function applyResult(result: BattleOutfitterResult) {
     if (result.ok) saveCurrentGame(result.save);
@@ -95,7 +96,7 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
       return;
     }
     const result = teachBattleMoveWithFocusManual(
-      currentSave,
+      activeSave,
       selectedCreature.creatureId,
       moveId,
       requiresReplacement ? replaceLearnedMoveId || undefined : undefined,
@@ -112,7 +113,7 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
       return;
     }
     const result = equipCreatureBattleMove(
-      currentSave,
+      activeSave,
       selectedCreature.creatureId,
       moveId,
       full ? replaceEquippedMoveId || undefined : undefined,
@@ -123,7 +124,7 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
 
   function unequip(moveId: BattleMoveId) {
     if (!selectedCreature) return;
-    applyResult(unequipCreatureBattleMove(currentSave, selectedCreature.creatureId, moveId));
+    applyResult(unequipCreatureBattleMove(activeSave, selectedCreature.creatureId, moveId));
   }
 
   const protectedMoveIds = new Set<BattleMoveId>([

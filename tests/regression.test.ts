@@ -50,7 +50,7 @@ const {
 } = await import("../src/data/breedingItems.ts");
 const {
   CURRENT_SAVE_SCHEMA_VERSION,
-} = await import("../src/lib/save/saveReliability.ts");
+} = await import("../src/lib/save/saveReliabilityRanchDay.ts");
 
 const CONTROLLED_STATS = { STR: 6, DEX: 6, STA: 6, CHA: 6, WIL: 6, FER: 6 } as const;
 

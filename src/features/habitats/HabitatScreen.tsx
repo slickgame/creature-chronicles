@@ -95,18 +95,20 @@ export function HabitatScreen() {
     );
   }
 
+  const save = currentSave;
+
   const habitatTitle = habitat.name || `${FAMILY_LABELS[activeHabitatFamily]} Habitat`;
-  const dayNumber = currentSave.dayState.dayNumber;
+  const dayNumber = save.dayState.dayNumber;
 
   function handleSelectCreature(creature: CreatureRecord) {
     const injury = getInjuryStatus(creature, dayNumber);
-    const pregnancy = getActivePregnancyForCreature(currentSave, creature.creatureId);
+    const pregnancy = getActivePregnancyForCreature(save, creature.creatureId);
     setSelectedCreatureId(creature.creatureId);
     setRenameValue(creature.nickname);
 
     if (pregnancy) {
       const expected = getEstimatedDeliveryDateLabel(
-        currentSave.dayState,
+        save.dayState,
         pregnancy.daysRemaining,
       );
       setMessage(
@@ -159,7 +161,7 @@ export function HabitatScreen() {
   }
 
   const selectedPregnancy = selectedCreature
-    ? getActivePregnancyForCreature(currentSave, selectedCreature.creatureId)
+    ? getActivePregnancyForCreature(save, selectedCreature.creatureId)
     : null;
 
   return (
@@ -188,10 +190,10 @@ export function HabitatScreen() {
                 const species = getSpeciesDefinition(creature.speciesId);
                 const isSelected = selectedCreature?.creatureId === creature.creatureId;
                 const injury = getInjuryStatus(creature, dayNumber);
-                const pregnancy = getActivePregnancyForCreature(currentSave, creature.creatureId);
+                const pregnancy = getActivePregnancyForCreature(save, creature.creatureId);
                 const expectedDate = pregnancy
                   ? getEstimatedDeliveryDateLabel(
-                      currentSave.dayState,
+                      save.dayState,
                       pregnancy.daysRemaining,
                     )
                   : null;
@@ -231,7 +233,7 @@ export function HabitatScreen() {
               <CreatureProfile
                 creature={selectedCreature}
                 pregnancy={selectedPregnancy}
-                dayState={currentSave.dayState}
+                dayState={save.dayState}
                 dayNumber={dayNumber}
                 onDonate={handleDonate}
                 onFeed={handleFeed}

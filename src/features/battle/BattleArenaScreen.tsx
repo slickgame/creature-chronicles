@@ -172,6 +172,7 @@ export function BattleArenaScreen() {
   if (!currentSave) {
     return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load a save before entering the Coliseum exhibition arena.</p><button type="button" onClick={goToTown}>Return to Town</button></section></main>;
   }
+  const activeSave = currentSave;
 
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
@@ -181,7 +182,7 @@ export function BattleArenaScreen() {
   const allPlayerActionsQueued = Boolean(battleState) && livingPlayerIds.length > 0 && livingPlayerIds.every((id) => queuedActions.has(id));
 
   function toggleCreature(creature: CreatureRecord) {
-    const unavailableReason = getUnavailableReason(currentSave, creature);
+    const unavailableReason = getUnavailableReason(activeSave, creature);
     if (unavailableReason) {
       setMessage(unavailableReason);
       return;
@@ -206,10 +207,10 @@ export function BattleArenaScreen() {
     }
     const enemies = [...team].reverse().map(makeEnemyCreature);
     const state = createBattleState({
-      battleId: `coliseum_exhibition_${currentSave.saveId}_${currentSave.dayState.dayNumber}_${aiDifficulty}_${team.map((creature) => creature.creatureId).join("_")}`,
+      battleId: `coliseum_exhibition_${activeSave.saveId}_${activeSave.dayState.dayNumber}_${aiDifficulty}_${team.map((creature) => creature.creatureId).join("_")}`,
       playerCreatures: team,
       enemyCreatures: enemies,
-      playerTeamName: `${currentSave.player.name}'s Ranch Team`,
+      playerTeamName: `${activeSave.player.name}'s Ranch Team`,
       enemyTeamName: `${getBattleAiDifficultyLabel(aiDifficulty)} Echo Team`,
     });
     const queue = new Map<BattleCombatantId, BattleAction>();
@@ -315,7 +316,7 @@ export function BattleArenaScreen() {
               <small>{getBattleAiDifficultyDescription(aiDifficulty)}</small>
             </div>
           </section>
-          <section className={styles.rosterGrid}>{roster.map((creature) => <TeamSelectionCard key={creature.creatureId} creature={creature} selected={effectiveSelection.includes(creature.creatureId)} unavailableReason={getUnavailableReason(currentSave, creature)} onToggle={() => toggleCreature(creature)} />)}</section>
+          <section className={styles.rosterGrid}>{roster.map((creature) => <TeamSelectionCard key={creature.creatureId} creature={creature} selected={effectiveSelection.includes(creature.creatureId)} unavailableReason={getUnavailableReason(activeSave, creature)} onToggle={() => toggleCreature(creature)} />)}</section>
           <footer className={styles.selectionFooter}><p>This M4 exhibition uses persistent moves and deterministic enemy AI but still grants no rewards or persistent battle consequences.</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter Exhibition</button></footer>
         </section>
       </main>

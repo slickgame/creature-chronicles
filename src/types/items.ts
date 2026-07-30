@@ -10,13 +10,15 @@ export type BreedingSupportItemId =
   | "mutation_catalyst"
   | "gestation_tonic";
 
+export type TutorialItemId = "quickhatch_catalyst";
+export type InventoryItemId = BreedingSupportItemId | TutorialItemId;
 export type ItemRarity = "Common" | "Uncommon" | "Rare" | "Epic";
 export type ItemUseSource = "inventory" | "breeding-pen" | "nursery";
-export type ItemTargetKind = "player" | "creature" | "pregnancy" | "pair" | "none";
+export type ItemTargetKind = "player" | "creature" | "pregnancy" | "pair" | "egg" | "none";
 
 export type ItemUseRecord = {
   itemUseId: string;
-  itemId: BreedingSupportItemId;
+  itemId: InventoryItemId;
   itemName: string;
   rarity: ItemRarity;
   source: ItemUseSource;

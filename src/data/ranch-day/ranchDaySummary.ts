@@ -41,7 +41,7 @@ export function buildEveningPreview(save: GameSave): RanchEveningPreview {
   const goals = day?.goals ?? [];
   const currentFeed = readFlagNumber(save.flags.ranchFeedStock);
   const feedRequired = projectedFeedRequired(save);
-  const assignments = save.ranchJobs?.assignments ?? {};
+  const assignments = (save.ranchJobs?.assignments ?? {}) as Record<string, string[] | undefined>;
   const securityAssigned = (assignments.security_patrol ?? []).length > 0;
   const readyEggs = (save.eggs ?? []).filter((egg) => egg.status === "ready").length;
   const warnings: string[] = [];

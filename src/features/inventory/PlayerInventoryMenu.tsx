@@ -99,23 +99,24 @@ export function PlayerInventoryMenu() {
   const selectedRow = supplyRows.find((row) => row.item.itemId === selectedItemId) ?? filteredRows[0] ?? null;
 
   if (!currentSave || appScreen === "main-menu") return null;
+  const save = currentSave;
 
   const energySnackStock = supplyCounts?.energySnacks ?? 0;
   const materialsStock = supplyCounts?.materials ?? 0;
   const repairKitStock = supplyCounts?.repairKits ?? 0;
   const feedStock = supplyCounts?.feed ?? 0;
-  const ranchDamage = getFlagNumber(currentSave.flags.ranchDamage);
+  const ranchDamage = getFlagNumber(save.flags.ranchDamage);
   const ranchCondition = getConditionLabel(ranchDamage);
-  const readyEggs = (currentSave.eggs ?? []).filter((egg) => String(egg.status).toLowerCase() === "ready").length;
-  const activeEggs = (currentSave.eggs ?? []).filter((egg) => String(egg.status).toLowerCase() !== "hatched").length;
-  const pregnancies = currentSave.pregnancies ?? [];
+  const readyEggs = (save.eggs ?? []).filter((egg) => String(egg.status).toLowerCase() === "ready").length;
+  const activeEggs = (save.eggs ?? []).filter((egg) => String(egg.status).toLowerCase() !== "hatched").length;
+  const pregnancies = save.pregnancies ?? [];
   const lowEnergyCreatures = creatureTargets.filter((creature) => creature.energy < Math.ceil(creature.maxEnergy * 0.35));
-  const attentionCreatures = creatureTargets.filter((creature) => getCreatureStatus(creature, currentSave.dayState.dayNumber).needsAttention);
+  const attentionCreatures = creatureTargets.filter((creature) => getCreatureStatus(creature, save.dayState.dayNumber).needsAttention);
   const repairCostLabel = repairKitStock > 0 ? "1 Repair Kit" : "5 Materials";
   const repairReady = ranchDamage <= 0 ? "No repair needed" : repairKitStock > 0 || materialsStock >= 5 ? `Ready - uses ${repairCostLabel}` : "Need Repair Kit or 5 Materials";
   const playerSnackDisabledReason = energySnackStock <= 0
     ? "No Energy Snacks owned."
-    : currentSave.currencies.energy >= currentSave.currencies.maxEnergy
+    : save.currencies.energy >= save.currencies.maxEnergy
       ? "Player energy is already full."
       : "Ready to use on player.";
   const creatureSnackDisabledReason = energySnackStock <= 0
@@ -142,11 +143,11 @@ export function PlayerInventoryMenu() {
   }
 
   function handleUseCreatureEnergySnack(creatureId: string) {
-    if (!currentSave) {
+    if (!save) {
       setMessage("No active save.");
       return;
     }
-    const result = useSupplyDepotEnergySnackOnCreature(currentSave, creatureId);
+    const result = useSupplyDepotEnergySnackOnCreature(save, creatureId);
     if (result.ok) saveCurrentGame(result.save);
     setMessage(result.message);
   }
@@ -161,7 +162,7 @@ export function PlayerInventoryMenu() {
       <div className={styles.energySnackActions}>
         <div className={styles.actionStack}>
           <button type="button" className={styles.actionButton} disabled={!canUseSnackOnPlayer} onClick={handleUseEnergySnack}>
-            Use on Player ({currentSave.currencies.energy}/{currentSave.currencies.maxEnergy})
+            Use on Player ({save.currencies.energy}/{save.currencies.maxEnergy})
           </button>
           <small>{playerSnackDisabledReason}</small>
         </div>
@@ -345,7 +346,7 @@ export function PlayerInventoryMenu() {
         </div>
         <div className={styles.creatureCareGrid}>
           {creatureTargets.length ? creatureTargets.map((creature) => {
-            const status = getCreatureStatus(creature, currentSave.dayState.dayNumber);
+            const status = getCreatureStatus(creature, save.dayState.dayNumber);
             const canSnack = energySnackStock > 0 && creature.energy < creature.maxEnergy;
             return (
               <article key={creature.creatureId} className={`${styles.creatureCareCard} ${status.needsAttention ? styles.creatureNeedsAttention : ""}`}>
@@ -408,8 +409,8 @@ export function PlayerInventoryMenu() {
             </nav>
 
             <div className={styles.statusGrid}>
-              <div><span>Player Energy</span><strong>{currentSave.currencies.energy}/{currentSave.currencies.maxEnergy}</strong></div>
-              <div><span>Gold</span><strong>{currentSave.currencies.gold}</strong></div>
+              <div><span>Player Energy</span><strong>{save.currencies.energy}/{save.currencies.maxEnergy}</strong></div>
+              <div><span>Gold</span><strong>{save.currencies.gold}</strong></div>
               <div><span>Energy Snacks</span><strong>{energySnackStock}</strong></div>
               <div><span>Ranch</span><strong>{ranchCondition}</strong></div>
             </div>

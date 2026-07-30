@@ -81,8 +81,9 @@ export function SaveReliabilityPanel() {
   }, [open, pendingAction]);
 
   if (!currentSave) return null;
+  const save = currentSave;
 
-  const reliability = currentSave.saveReliability ?? {};
+  const reliability = save.saveReliability ?? {};
   const validationIssues = reliability.lastValidationIssues ?? [];
 
   function refreshBackups() {
@@ -90,38 +91,38 @@ export function SaveReliabilityPanel() {
   }
 
   function createManualBackup() {
-    const backup = createSaveBackupFromSave(currentSave, "manual");
+    const backup = createSaveBackupFromSave(save, "manual");
     if (!backup) {
       setMessage("Backup could not be created because browser storage is unavailable.");
       return;
     }
     saveCurrentGame({
-      ...currentSave,
+      ...save,
       saveReliability: {
         ...reliability,
         lastBackupAt: backup.createdAt,
       },
     });
     refreshBackups();
-    setMessage(`Manual backup created for Save Slot ${currentSave.slotIndex + 1}.`);
+    setMessage(`Manual backup created for Save Slot ${save.slotIndex + 1}.`);
   }
 
   function exportPackage() {
-    const text = exportSavePackage(currentSave);
+    const text = exportSavePackage(save);
     downloadTextFile(
-      `${currentSave.player.name || "creature-chronicles"}-slot-${currentSave.slotIndex + 1}-package.json`,
+      `${save.player.name || "creature-chronicles"}-slot-${save.slotIndex + 1}-package.json`,
       text,
     );
     setMessage("Versioned save package downloaded.");
   }
 
   function copyPackage() {
-    const text = exportSavePackage(currentSave);
+    const text = exportSavePackage(save);
     void navigator.clipboard?.writeText(text).then(() => setMessage("Versioned save package copied to clipboard."));
   }
 
   function inspectImport() {
-    const report = inspectSaveImport(importText, currentSave.slotIndex);
+    const report = inspectSaveImport(importText, save.slotIndex);
     setImportReport(report);
     setMessage(report.ok
       ? `Import is valid. Source schema ${report.sourceSchemaVersion}; target schema ${CURRENT_SAVE_SCHEMA_VERSION}.`
@@ -129,14 +130,14 @@ export function SaveReliabilityPanel() {
   }
 
   function applyImport() {
-    const report = inspectSaveImport(importText, currentSave.slotIndex);
+    const report = inspectSaveImport(importText, save.slotIndex);
     setImportReport(report);
     if (!report.ok || !report.save) {
       setMessage(`Import rejected: ${report.issues.join(" ")}`);
       setPendingAction(null);
       return;
     }
-    const backup = createSaveBackupFromSave(currentSave, "before-import");
+    const backup = createSaveBackupFromSave(save, "before-import");
     const imported = saveCurrentGame({
       ...report.save,
       saveReliability: {
@@ -151,19 +152,19 @@ export function SaveReliabilityPanel() {
   }
 
   function restoreBackup(backupId: string) {
-    const backup = getSaveBackup(currentSave.slotIndex, backupId);
+    const backup = getSaveBackup(save.slotIndex, backupId);
     if (!backup) {
       setMessage("That backup is no longer available.");
       setPendingAction(null);
       return;
     }
-    const report = inspectSaveImport(backup.rawJson, currentSave.slotIndex);
+    const report = inspectSaveImport(backup.rawJson, save.slotIndex);
     if (!report.ok || !report.save) {
       setMessage(`Backup could not be restored: ${report.issues.join(" ")}`);
       setPendingAction(null);
       return;
     }
-    createSaveBackupFromSave(currentSave, "before-restore");
+    createSaveBackupFromSave(save, "before-restore");
     saveCurrentGame({
       ...report.save,
       saveReliability: {
@@ -177,9 +178,9 @@ export function SaveReliabilityPanel() {
   }
 
   function applySystemReset(resetId: SaveSystemResetId) {
-    const result = resetSaveSystem(currentSave, resetId);
+    const result = resetSaveSystem(save, resetId);
     if (result.ok) {
-      createSaveBackupFromSave(currentSave, "manual");
+      createSaveBackupFromSave(save, "manual");
       saveCurrentGame({
         ...result.save,
         saveReliability: {
@@ -251,8 +252,8 @@ export function SaveReliabilityPanel() {
               {tab === "status" ? (
                 <div className={styles.stack}>
                   <section className={styles.summaryGrid}>
-                    <div><span>Schema</span><strong>{currentSave.schemaVersion ?? 0} / {CURRENT_SAVE_SCHEMA_VERSION}</strong></div>
-                    <div><span>Last Autosave</span><strong>{localTimestamp(reliability.lastAutosaveAt ?? currentSave.updatedAt)}</strong></div>
+                    <div><span>Schema</span><strong>{save.schemaVersion ?? 0} / {CURRENT_SAVE_SCHEMA_VERSION}</strong></div>
+                    <div><span>Last Autosave</span><strong>{localTimestamp(reliability.lastAutosaveAt ?? save.updatedAt)}</strong></div>
                     <div><span>Autosave Reason</span><strong>{reliability.lastAutosaveReason ?? "Legacy save"}</strong></div>
                     <div><span>Backups</span><strong>{backups.length}</strong></div>
                     <div><span>Interrupted Recoveries</span><strong>{reliability.recoveredInterruptedTransactions ?? 0}</strong></div>

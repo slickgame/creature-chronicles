@@ -98,6 +98,7 @@ export function SharedInfoOverlay() {
       setSelection(null);
       return;
     }
+    const activeSave = currentSave;
 
     function sync() {
       const dialog = findParticipantDialog(participantNames);
@@ -109,10 +110,10 @@ export function SharedInfoOverlay() {
 
       const heading = dialog.querySelector("h2")?.textContent?.trim() ?? "";
       const nextSelection: OverlaySelection =
-        heading === currentSave.player.name
+        heading === activeSave.player.name
           ? { kind: "player" }
           : (() => {
-              const matchedCreature = (currentSave.creatures ?? []).find(
+              const matchedCreature = (activeSave.creatures ?? []).find(
                 (item) => item.nickname === heading,
               );
               return matchedCreature
