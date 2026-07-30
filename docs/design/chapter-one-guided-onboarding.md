@@ -105,10 +105,20 @@ The player:
 
 1. Visits the Battle Outfitter.
 2. Inspects the three-creature team, moves, roles, and basic equipment.
-3. Enters the Coliseum.
-4. Wins the Novice Echo Trial.
+3. Opens the authored Coliseum circuit.
+4. Enters the Opening Scrimmage.
+5. Confirms the default three-creature team.
+6. Selects an enemy before choosing a move.
+7. Chooses a compatible move for each active creature.
+8. Confirms and resolves the first round.
+9. Finishes the match.
+10. Records the result, Combat XP, and purse.
 
-The existing Novice Echo Trial is the Chapter 1 combat handoff. More advanced Coliseum modes remain outside the tutorial.
+A dedicated battle coach follows the live battle UI. During the first round it highlights the exact enemy-target, compatible-move, and Confirm Round controls. Once Round 2 begins, the coach steps back and asks the player to repeat the learned rhythm independently.
+
+A recorded victory in the Opening Scrimmage completes the combat lesson. A recorded loss preserves the battle record and Combat XP but returns the player to the first-match step.
+
+More advanced Coliseum divisions, C3 rewards, C4 challenges, gauntlets, bosses, and weekly scoring remain outside Chapter 1.
 
 ## Tutorial interface
 
@@ -121,6 +131,8 @@ The global tutorial overlay provides:
 - a Help action that scrolls to or opens the relevant system;
 - collapse and skip controls;
 - progress derived from existing save data.
+
+The battle screen temporarily replaces the global card with a smaller first-battle coach so two instruction overlays do not compete.
 
 Target controls use `data-tutorial-id` attributes or wrappers. The overlay does not rely on fixed screen coordinates.
 
@@ -149,11 +161,13 @@ Chapter 1 story reactions are limited to larger milestones rather than every min
 - Guided completion also sets the existing onboarding compatibility flag.
 - A naturally hatched egg counts as completing the hatch/item lesson fallback so a save cannot become stuck.
 - Tutorial-specific stock, target, completion, skip, and one-use flags live in the existing save flag map.
+- A recorded Coliseum win, including an existing valid win record, satisfies the first-battle objective.
 
 ## Acceptance criteria
 
 - A new player can move through the ranch, chore, Guild, breeding, inventory, Battle Outfitter, and Coliseum screens with one persistent guide.
 - Early required controls are visibly highlighted.
+- The first battle coaches target-first planning, move selection, and first-round resolution through live controls.
 - Progress survives save and reload.
 - The first eligible guided pairing always creates a safe one-day pregnancy.
 - The catalyst is granted once, requires confirmation, hatches one egg, and records its use.
