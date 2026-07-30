@@ -7,7 +7,10 @@ import {
   getBreedingPreview,
   performBreedingAttempt,
 } from "../src/data/breedingTutorial.ts";
-import { advanceNurseryDay } from "../src/data/nurseryMoveInheritanceLifecycle.ts";
+import {
+  advanceGameDate,
+  advanceNurseryDay,
+} from "../src/data/nurseryMoveInheritanceLifecycle.ts";
 import {
   getChapterOneGuidedTutorialStep,
   getChapterOneTutorialProgress,
@@ -113,9 +116,13 @@ test("Quickhatch Catalyst is granted once, recorded, consumed, and hatches the t
   const breeding = performBreedingAttempt(save, pair.giverId, pair.receiverId);
   assert.ok(breeding);
 
-  const nursery = advanceNurseryDay(breeding.save).save;
+  const nextDaySave = {
+    ...breeding.save,
+    dayState: advanceGameDate(breeding.save.dayState, 1),
+  };
+  const nursery = advanceNurseryDay(nextDaySave).save;
   const egg = (nursery.eggs ?? []).find((record) => record.status !== "hatched");
-  assert.ok(egg, "one-day pregnancy should deliver an egg after the next day advance");
+  assert.ok(egg, "one-day pregnancy should deliver an egg on the next game day");
 
   const granted = prepareChapterOneGuidedTutorialSave(nursery);
   assert.equal(getQuickhatchCatalystCount(granted), 1);
