@@ -10,7 +10,7 @@
     "simulate:genetics": "node scripts/simulate-genetics.mjs",
     "simulate:breeding-economy": "node scripts/simulate-breeding-economy.mjs",
     "prepare:assets": "npm run generate:breeding-scenes && npm run validate:breeding-assets",
-    "test:regression": "node --no-warnings --loader ./scripts/ts-test-loader.mjs --test tests/regression.test.ts tests/ranch-day.test.ts tests/talents.test.ts tests/chore-skills.test.ts tests/battle-moves.test.ts tests/battle-rounds.test.ts tests/battle-ui.test.ts tests/battle-ai.test.ts tests/battle-move-inheritance.test.ts tests/battle-outfitter-integration.test.ts",
+    "test:regression": "node --no-warnings --loader ./scripts/ts-test-loader.mjs --test tests/regression.test.ts tests/ranch-day.test.ts tests/talents.test.ts tests/chore-skills.test.ts tests/battle-moves.test.ts tests/battle-rounds.test.ts tests/battle-ui.test.ts tests/battle-ai.test.ts tests/battle-move-inheritance.test.ts tests/battle-outfitter-integration.test.ts tests/battle-move-training.test.ts",
     "test": "npm run prepare:assets && npm run test:regression",
     "predev": "npm run prepare:assets",
     "dev": "next dev",
