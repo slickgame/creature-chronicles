@@ -1,0 +1,44 @@
+name: One-off save reliability narrowing
+
+on:
+  push:
+    branches:
+      - agent/chapter-one-guided-onboarding
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/chapter-one-guided-onboarding
+          fetch-depth: 0
+      - name: Preserve save reliability narrowing in closures
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path("src/features/dev-tools/SaveReliabilityPanel.tsx")
+          source = path.read_text(encoding="utf-8")
+          marker = "  if (!currentSave) return null;"
+          if marker not in source:
+              raise SystemExit("Expected save reliability guard was not found")
+          before, after = source.split(marker, 1)
+          if "  const save = currentSave;" not in after:
+              after = re.sub(r"\bcurrentSave\b", "save", after)
+              source = before + marker + "\n  const save = currentSave;" + after
+              path.write_text(source, encoding="utf-8")
+
+          Path(".github/workflows/one-off-save-reliability-narrowing.yml").unlink(missing_ok=True)
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/dev-tools/SaveReliabilityPanel.tsx .github/workflows/one-off-save-reliability-narrowing.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Preserve save reliability context narrowing"
+          git push origin HEAD:agent/chapter-one-guided-onboarding
