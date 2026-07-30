@@ -8,6 +8,7 @@ import {
   MAX_LEARNED_BATTLE_MOVES,
   canSpeciesLearnBattleMove,
   equipBattleMove,
+  forgetBattleMove,
   getCreatureBattleMoveLoadout,
   learnBattleMove,
   unequipBattleMove,
@@ -23,6 +24,7 @@ export type BattleMoveTrainingOption = {
   learned: boolean;
   equipped: boolean;
   teachableByFocusManual: boolean;
+  requiresLibraryReplacement: boolean;
   blockedReason: string | null;
 };
 
@@ -77,6 +79,7 @@ export function getBattleMoveTrainingOptions(
   creature: CreatureRecord,
 ): BattleMoveTrainingOption[] {
   const loadout = getCreatureBattleMoveLoadout(creature);
+  const libraryFull = loadout.learnedMoveIds.length >= MAX_LEARNED_BATTLE_MOVES;
   return BATTLE_MOVES
     .filter((move) => canSpeciesLearnBattleMove(creature.speciesId, move.id))
     .map((move) => {
@@ -89,14 +92,13 @@ export function getBattleMoveTrainingOptions(
           move.sourceType === "combination"
             ? "Combination moves must emerge through breeding."
             : `${move.sourceType} moves require their dedicated source.`;
-      } else if (!learned && loadout.learnedMoveIds.length >= MAX_LEARNED_BATTLE_MOVES) {
-        blockedReason = `Learned library is full (${MAX_LEARNED_BATTLE_MOVES}/${MAX_LEARNED_BATTLE_MOVES}).`;
       }
       return {
         move,
         learned,
         equipped,
         teachableByFocusManual,
+        requiresLibraryReplacement: teachableByFocusManual && libraryFull,
         blockedReason,
       };
     })
@@ -111,6 +113,7 @@ export function teachBattleMoveWithFocusManual(
   save: GameSave,
   creatureId: CreatureId,
   moveId: BattleMoveId,
+  replaceLearnedMoveId?: BattleMoveId,
 ): BattleOutfitterResult {
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for move training." };
@@ -124,19 +127,42 @@ export function teachBattleMoveWithFocusManual(
     };
   }
 
+  const currentLoadout = getCreatureBattleMoveLoadout(creature);
+  if (currentLoadout.learnedMoveIds.includes(moveId)) {
+    return { save, ok: false, message: `${creature.nickname} already knows ${move.name}.` };
+  }
+
   const manual = getFocusManualItem();
   const stock = getBattleOutfitterStock(save, manual);
   if (stock <= 0) return { save, ok: false, message: "No Focus Manual is available." };
 
+  let workingLoadout = currentLoadout;
+  let replacementLabel = "";
+  if (workingLoadout.learnedMoveIds.length >= MAX_LEARNED_BATTLE_MOVES) {
+    if (!replaceLearnedMoveId) {
+      return {
+        save,
+        ok: false,
+        message: `The learned library is full. Choose one learned move to replace before teaching ${move.name}.`,
+      };
+    }
+    const forgottenMove = getBattleMove(replaceLearnedMoveId);
+    const forgotten = forgetBattleMove(
+      creature.speciesId,
+      workingLoadout,
+      replaceLearnedMoveId,
+    );
+    if (!forgotten.ok) return { save, ok: false, message: forgotten.message };
+    workingLoadout = forgotten.loadout;
+    replacementLabel = ` ${forgottenMove.name} was forgotten.`;
+  }
+
   const change = learnBattleMove(
     creature.speciesId,
-    creature.battleMoveLoadout ?? {},
+    workingLoadout,
     moveId,
   );
   if (!change.ok) return { save, ok: false, message: change.message };
-  if (getCreatureBattleMoveLoadout(creature).learnedMoveIds.includes(moveId)) {
-    return { save, ok: false, message: `${creature.nickname} already knows ${move.name}.` };
-  }
 
   const nextSave = applyLoadout(save, creatureId, change.loadout);
   if (!nextSave) return { save, ok: false, message: "Creature move library could not be updated." };
@@ -151,7 +177,7 @@ export function teachBattleMoveWithFocusManual(
       },
     },
     ok: true,
-    message: `${creature.nickname} studied a Focus Manual and learned ${move.name}. ${change.loadout.learnedMoveIds.length}/${MAX_LEARNED_BATTLE_MOVES} moves learned.`,
+    message: `${creature.nickname} studied a Focus Manual and learned ${move.name}.${replacementLabel} ${change.loadout.learnedMoveIds.length}/${MAX_LEARNED_BATTLE_MOVES} moves learned.`,
   };
 }
 
