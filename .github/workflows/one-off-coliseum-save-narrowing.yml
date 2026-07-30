@@ -24,16 +24,14 @@ jobs:
 
           path = Path("src/features/coliseum/ColiseumProgressionScreen.tsx")
           source = path.read_text(encoding="utf-8")
-          marker = '''  if (!currentSave) {
-            return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load a save before entering the Coliseum.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
-          }'''.replace("          ", "")
-          if marker not in source:
-              raise SystemExit("Expected Coliseum save guard was not found")
-          before, after = source.split(marker, 1)
-          if "  const save = currentSave;" not in after:
-              after = after.replace("currentSave", "save")
-              source = before + marker + "\n  const save = currentSave;" + after
-              path.write_text(source, encoding="utf-8")
+          insertion = "\n  function openEncounter(encounter: ColiseumEncounterDefinition) {"
+          if insertion not in source:
+              raise SystemExit("Expected Coliseum openEncounter boundary was not found")
+          before, after = source.split(insertion, 1)
+          if "  const save = currentSave;" not in before:
+              before += "\n  const save = currentSave;\n"
+          after = after.replace("currentSave", "save")
+          path.write_text(before + insertion + after, encoding="utf-8")
 
           Path(".github/workflows/one-off-coliseum-save-narrowing.yml").unlink(missing_ok=True)
       - name: Commit patch
