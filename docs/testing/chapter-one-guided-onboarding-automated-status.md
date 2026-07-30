@@ -4,7 +4,7 @@ This file records the final automated merge gate for the guided Chapter 1 onboar
 
 - Asset validation: passing in the latest completed CI runs.
 - Regression suite: 109/109 tests passing in the latest completed CI runs.
-- Production build: rerunning after the nested permanent-Coliseum battle component received a post-guard `activeSave` reference for closure safety.
+- Production build: rerunning after restoring the nested Coliseum item-result `save` properties while retaining the post-guard `activeSave` reference.
 - Browser and responsive walkthrough: deferred until hands-on testing is available.
 
 The branch must not be marked ready or merged until the production build completes successfully.
