@@ -5,10 +5,18 @@ import { createStrategicInheritancePreview } from "./genetics";
 import { applyGeneticsPowerCurve } from "./geneticsBalance";
 import { getBreedingSceneImagePath } from "./breedingSceneImages";
 import { isChapterOneGuidedTutorialActive } from "./chapterOneGuidedTutorial";
-import type { BreedingAttemptRecord } from "@/types/breeding";
+import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
 import type { GameSave, PregnancyRecord } from "@/types/save";
 
 export * from "./breeding";
+
+export function getBreedingPreview(
+  save: GameSave | null,
+  giverId: string | null,
+  receiverId: string | null,
+): BreedingPreview | null {
+  return save ? base.getBreedingPreview(save, giverId, receiverId) : null;
+}
 
 function replaceAttempt(save: GameSave, attempt: BreedingAttemptRecord): GameSave {
   if (!save.breeding) return save;
