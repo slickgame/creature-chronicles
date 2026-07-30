@@ -12,6 +12,7 @@ const exactAliases = new Map([
   ["@/data/balance/breedingEconomySimulation", "data/balance/breedingEconomySimulationNormalized"],
   ["@/data/battleEngine", "data/battleEnginePersistent"],
   ["@/data/battleMoves", "data/battleMovesExpanded"],
+  ["@/data/battleOutfitter", "data/battleOutfitterActive"],
   ["@/data/battleProfiles", "data/battleProfilesExpanded"],
   ["@/data/breedingRecords", "data/breedingRecordsSafe"],
   ["@/data/nursery", "data/nurseryMoveInheritanceLifecycle"],
