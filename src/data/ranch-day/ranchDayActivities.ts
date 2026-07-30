@@ -36,7 +36,7 @@ function activity(
 }
 
 function assignmentSignature(save: GameSave): string {
-  const assignments = save.ranchJobs?.assignments ?? {};
+  const assignments = (save.ranchJobs?.assignments ?? {}) as Record<string, string[] | undefined>;
   return JSON.stringify(Object.entries(assignments).sort(([left], [right]) => left.localeCompare(right)).map(([jobId, ids]) => [jobId, [...(ids ?? [])].sort()]));
 }
 
