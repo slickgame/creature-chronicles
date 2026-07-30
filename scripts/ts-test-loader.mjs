@@ -13,6 +13,7 @@ const exactAliases = new Map([
   ["@/data/battleEngine", "data/battleEnginePersistent"],
   ["@/data/battleMoves", "data/battleMovesExpanded"],
   ["@/data/battleOutfitter", "data/battleOutfitterActive"],
+  ["@/data/battleOutfitterIntegration", "data/battleOutfitterIntegrationActive"],
   ["@/data/battleProfiles", "data/battleProfilesExpanded"],
   ["@/data/breedingRecords", "data/breedingRecordsSafe"],
   ["@/data/nursery", "data/nurseryMoveInheritanceLifecycle"],
