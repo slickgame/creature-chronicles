@@ -164,7 +164,7 @@ test("ending a Ranch Day advances pregnancy and egg timers exactly once", () => 
   const egg = {
     eggId: "egg_day_loop" as never,
     ownerSaveId: save.saveId,
-    createdAtDayNumber: save.dayState.dayNumber,
+    createdAtDayNumber: Math.max(0, save.dayState.dayNumber - 1),
     createdAt: new Date(0).toISOString(),
     daysRemaining: 3,
     totalDays: 6,
