@@ -275,9 +275,10 @@ function applyMutationCatalyst(
       deterministicRoll(`${seed}_catalyst_ability_pick`, pool.length)
     ];
     if (ability) {
+      const mutatedAbility: CreatureAbility = { ...ability, source: "future" };
       next = {
         ...next,
-        projectedAbilities: [...next.projectedAbilities, { ...ability, source: "future" }].slice(0, 2),
+        projectedAbilities: [...next.projectedAbilities, mutatedAbility].slice(0, 2),
       };
       abilityRollNotes.push(`${ability.name} appeared through Mutation Catalyst's +${MUTATION_CATALYST_ABILITY_MUTATION_BONUS}% new-ability check.`);
       geneticsNotes.push("Mutation Catalyst produced a new ability mutation.");
