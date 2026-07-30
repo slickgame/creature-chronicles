@@ -1,0 +1,242 @@
+.quickButton {
+  position: fixed;
+  left: 18px;
+  bottom: 76px;
+  z-index: 75;
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 12px 6px 7px;
+  border: 2px solid rgba(127, 219, 255, 0.82);
+  border-radius: 999px;
+  background: linear-gradient(120deg, rgba(35, 25, 58, 0.98), rgba(12, 16, 30, 0.98));
+  color: #fff7dd;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.quickButton img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.quickButton strong {
+  color: #7fdbff;
+}
+
+.backdrop,
+.confirmBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.76);
+  backdrop-filter: blur(5px);
+}
+
+.confirmBackdrop {
+  z-index: 1310;
+}
+
+.panel,
+.confirm {
+  width: min(720px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 3px solid rgba(127, 219, 255, 0.78);
+  border-radius: 20px;
+  background: linear-gradient(155deg, rgba(38, 31, 58, 0.99), rgba(10, 13, 22, 0.99));
+  color: #fff7dd;
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.68);
+}
+
+.panel header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.panel header p,
+.confirm > p:first-child {
+  margin: 0;
+  color: #7fdbff;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.panel h2,
+.confirm h2 {
+  margin: 2px 0 0;
+  color: #fff;
+}
+
+.panel button,
+.confirm button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(127, 219, 255, 0.42);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #f2dfbd;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.itemCard {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border: 2px solid rgba(245, 201, 128, 0.66);
+  border-radius: 16px;
+  background: radial-gradient(circle at left, rgba(127, 219, 255, 0.17), transparent 42%), rgba(0, 0, 0, 0.24);
+}
+
+.itemCard img {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+}
+
+.itemCard span {
+  color: #f5c980;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.itemCard h3 {
+  margin: 3px 0 5px;
+  color: #fff;
+  font-size: 1.3rem;
+}
+
+.itemCard p {
+  margin: 0 0 7px;
+  color: #f2dfbd;
+  line-height: 1.35;
+}
+
+.itemCard strong {
+  display: block;
+  color: #c9f0ff;
+  line-height: 1.35;
+}
+
+.targetPicker {
+  display: grid;
+  gap: 6px;
+  color: #f5c980;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.targetPicker select {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 2px solid rgba(45, 25, 13, 0.95);
+  border-radius: 11px;
+  background: linear-gradient(#fff4cf, #d6a25b);
+  color: #211309;
+  font-weight: 900;
+}
+
+.eggSummary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.eggSummary div {
+  padding: 9px;
+  border: 1px solid rgba(127, 219, 255, 0.28);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.eggSummary span,
+.eggSummary strong {
+  display: block;
+}
+
+.eggSummary span {
+  color: #e7c991;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.eggSummary strong {
+  margin-top: 3px;
+  color: #7fdbff;
+}
+
+.message {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: rgba(127, 219, 255, 0.08);
+  color: #d8f4ff;
+}
+
+.panel footer,
+.confirm div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.primary {
+  border: 2px solid rgba(45, 25, 13, 0.92) !important;
+  background: linear-gradient(#c9f0ff, #56c7ff) !important;
+  color: #071923 !important;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.confirm {
+  width: min(520px, 100%);
+}
+
+.confirm > p:not(:first-child) {
+  color: #f2dfbd;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .quickButton {
+    left: 10px;
+    bottom: 70px;
+  }
+
+  .itemCard {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .itemCard img {
+    width: 58px;
+    height: 58px;
+  }
+
+  .eggSummary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
