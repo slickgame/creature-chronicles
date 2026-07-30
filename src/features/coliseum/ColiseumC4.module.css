@@ -1,0 +1,483 @@
+.shell {
+  min-height: 100vh;
+  padding: 18px;
+  color: #fff3d2;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(141, 76, 38, 0.2), transparent 34%),
+    radial-gradient(circle at 84% 8%, rgba(86, 111, 159, 0.17), transparent 30%),
+    linear-gradient(180deg, #090d12 0%, #0c1117 48%, #090b0e 100%);
+}
+
+.frame {
+  width: min(1480px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.header,
+.toolbar,
+.panel,
+.challengeCard,
+.summaryCard,
+.activeRun,
+.previewPanel,
+.supportPanel,
+.historyEntry,
+.scoreCard {
+  border: 1px solid rgba(239, 190, 103, 0.32);
+  border-radius: 14px;
+  background: rgba(9, 14, 20, 0.88);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.35);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 18px;
+}
+
+.header h1,
+.panel h2,
+.challengeCard h3,
+.activeRun h2 {
+  margin: 0;
+  color: #fff4d7;
+}
+
+.header p,
+.panel p,
+.challengeCard p,
+.activeRun p {
+  margin: 6px 0 0;
+  color: #d7c9ae;
+  line-height: 1.45;
+}
+
+.kicker {
+  margin: 0 0 4px !important;
+  color: #e6b963 !important;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.toolbar {
+  position: sticky;
+  top: 8px;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  backdrop-filter: blur(14px);
+}
+
+.toolbar button,
+.primaryButton,
+.secondaryButton,
+.dangerButton {
+  min-height: 38px;
+  border: 1px solid rgba(235, 188, 102, 0.38);
+  border-radius: 9px;
+  padding: 8px 12px;
+  color: #fff0c8;
+  background: rgba(40, 27, 19, 0.86);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.toolbar button[data-active="true"],
+.primaryButton {
+  border-color: rgba(255, 211, 130, 0.9);
+  background: linear-gradient(180deg, #9b5d2f, #68401f);
+  box-shadow: 0 0 0 1px rgba(255, 221, 153, 0.18) inset;
+}
+
+.secondaryButton {
+  background: rgba(23, 34, 45, 0.92);
+}
+
+.dangerButton {
+  border-color: rgba(225, 112, 92, 0.6);
+  background: rgba(88, 30, 25, 0.9);
+}
+
+.toolbar button:disabled,
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.markPill {
+  display: grid;
+  gap: 1px;
+  min-width: 126px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  background: rgba(119, 74, 31, 0.28);
+  border: 1px solid rgba(239, 190, 103, 0.35);
+}
+
+.markPill span {
+  color: #d9b672;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.markPill strong {
+  font-size: 1.08rem;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.summaryCard {
+  display: grid;
+  gap: 4px;
+  padding: 13px;
+}
+
+.summaryCard span,
+.scoreCard span {
+  color: #d2a95f;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.summaryCard strong,
+.scoreCard strong {
+  color: #fff1cb;
+  font-size: 1.1rem;
+}
+
+.summaryCard small,
+.scoreCard small {
+  color: #b8b2a7;
+}
+
+.message {
+  margin: 0;
+  padding: 11px 14px;
+  border-left: 4px solid #d7a54d;
+  border-radius: 8px;
+  color: #f4dfb5;
+  background: rgba(86, 55, 24, 0.28);
+}
+
+.panel {
+  padding: 16px;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.challengeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 12px;
+}
+
+.challengeCard {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+}
+
+.challengeCard[data-locked="true"] {
+  opacity: 0.58;
+}
+
+.cardMeta,
+.rewardLine,
+.recordLine {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.cardMeta span,
+.recordLine span,
+.compactModifiers span {
+  border: 1px solid rgba(229, 178, 91, 0.28);
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #e6c98f;
+  background: rgba(117, 73, 32, 0.24);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.rewardLine {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rewardLine strong {
+  color: #9ee0a7;
+}
+
+.modifierList,
+.compactModifiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.modifierList article {
+  flex: 1 1 185px;
+  padding: 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.modifierList article strong,
+.modifierList article span,
+.modifierList article small {
+  display: block;
+}
+
+.modifierList article span {
+  margin-top: 3px;
+  color: #c9c2b5;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.modifierList article small {
+  margin-top: 5px;
+  color: #d9aa60;
+}
+
+.activeRun {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border-color: rgba(117, 205, 148, 0.55);
+  background: linear-gradient(145deg, rgba(18, 53, 38, 0.88), rgba(9, 17, 20, 0.9));
+}
+
+.activeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modifierStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 9px;
+  margin: 12px 0;
+}
+
+.modifierStrip article {
+  display: grid;
+  gap: 3px;
+  min-height: 96px;
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(13, 19, 25, 0.86);
+}
+
+.modifierStrip article[data-tone="hazard"] {
+  border-color: rgba(223, 112, 92, 0.5);
+  background: rgba(65, 27, 24, 0.62);
+}
+
+.modifierStrip article[data-tone="benefit"] {
+  border-color: rgba(102, 194, 134, 0.48);
+  background: rgba(21, 57, 39, 0.58);
+}
+
+.modifierStrip article strong {
+  color: #ffe6af;
+}
+
+.modifierStrip article span {
+  color: #d4cbbc;
+  line-height: 1.35;
+}
+
+.modifierStrip article small {
+  color: #e4b968;
+}
+
+.previewPanel,
+.supportPanel {
+  margin: 12px 0;
+  padding: 12px;
+}
+
+.previewPanel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 9px;
+}
+
+.previewPanel header span,
+.previewPanel header strong,
+.previewPanel header small {
+  display: block;
+}
+
+.previewPanel header span {
+  color: #d7ae66;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.previewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 9px;
+}
+
+.previewGrid article {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(224, 160, 87, 0.25);
+  background: rgba(48, 24, 22, 0.72);
+}
+
+.previewGrid article span {
+  color: #e2b66e;
+}
+
+.previewGrid article small {
+  color: #c8beb0;
+  line-height: 1.35;
+}
+
+.compactModifiers {
+  margin: 8px 0 12px;
+}
+
+.historyList,
+.scoreGrid {
+  display: grid;
+  gap: 9px;
+}
+
+.historyEntry,
+.scoreCard {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) repeat(3, minmax(120px, 0.7fr));
+  gap: 12px;
+  align-items: center;
+  padding: 11px;
+}
+
+.historyEntry div,
+.scoreCard div {
+  display: grid;
+  gap: 2px;
+}
+
+.historyEntry span,
+.historyEntry small {
+  color: #bdb6aa;
+}
+
+.positive {
+  color: #9de5aa;
+}
+
+.negative {
+  color: #ec9c8a;
+}
+
+.legacyOverlay {
+  position: sticky;
+  top: 8px;
+  z-index: 220;
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.legacyOverlay button {
+  pointer-events: auto;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 213, 133, 0.75);
+  border-radius: 10px;
+  color: #fff0c9;
+  background: rgba(54, 31, 16, 0.96);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.48);
+}
+
+.empty {
+  padding: 20px;
+  color: #bcb5aa;
+  text-align: center;
+}
+
+@media (max-width: 980px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+  }
+
+  .historyEntry,
+  .scoreCard {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .shell {
+    padding: 8px;
+  }
+
+  .header,
+  .panelHeader,
+  .previewPanel header {
+    display: grid;
+  }
+
+  .summaryGrid,
+  .historyEntry,
+  .scoreCard {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    position: static;
+  }
+
+  .toolbar button,
+  .markPill {
+    flex: 1 1 145px;
+  }
+}
