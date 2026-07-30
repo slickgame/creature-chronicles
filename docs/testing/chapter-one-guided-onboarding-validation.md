@@ -4,7 +4,7 @@ This checklist validates the guided Chapter 1 redesign after automated tests and
 
 ## Automated merge gate
 
-Before this branch is merged, GitHub Actions must complete asset validation, the full regression suite, and the optimized production build successfully. The merge gate is rerun after every compiler correction. The browser walkthrough below remains a separate deferred gameplay-validation pass.
+Before this branch is merged, GitHub Actions must complete asset validation, the full regression suite, and the optimized production build successfully. The merge gate is rerun after every compiler correction, and those corrections must preserve existing gameplay behavior. The browser walkthrough below remains a separate deferred gameplay-validation pass.
 
 ## Starting commands
 
