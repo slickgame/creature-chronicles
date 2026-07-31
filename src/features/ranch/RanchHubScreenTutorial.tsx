@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { getChapterTwoState } from "@/data/chapterTwoTroubleBeyondFence";
+import { ChapterTwoAftermathPanel } from "@/features/story/ChapterTwoAftermathPanel";
 import { ChapterTwoQuestPanel } from "@/features/story/ChapterTwoQuestPanel";
 import { useGameContext } from "@/state/GameProvider";
 import { RanchHubScreen as DayLoopRanchHubScreen } from "./RanchHubScreenDayLoop";
@@ -50,10 +52,12 @@ export function RanchHubScreen() {
     };
   }, [currentSave]);
 
+  const chapterTwoComplete = currentSave ? getChapterTwoState(currentSave).stage === "complete" : false;
+
   return (
     <>
       <DayLoopRanchHubScreen />
-      <ChapterTwoQuestPanel />
+      {chapterTwoComplete ? <ChapterTwoAftermathPanel /> : <ChapterTwoQuestPanel />}
     </>
   );
 }

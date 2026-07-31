@@ -5,6 +5,7 @@ import {
   isBuilderProjectBuilt,
 } from "@/data/builderProjects";
 import { getChapterTwoDoctrineBonuses } from "@/data/chapterTwoTroubleBeyondFence";
+import { getChapterTwoAftermathBonuses } from "@/data/chapterTwoWoodlineAftermath";
 import type { GameSave } from "@/types/save";
 
 export type PredatorThreatTier = "none" | "low" | "guarded" | "elevated" | "severe";
@@ -44,6 +45,7 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
   const habitatPressure = getBuilderPredatorPressure(save);
   const builtFutureHabitats = getBuiltFutureHabitatIds(save);
   const doctrine = getChapterTwoDoctrineBonuses(save);
+  const aftermath = getChapterTwoAftermathBonuses(save);
   const chapterGate = save.flags.chapterOneGuidedComplete === true ||
     save.flags.m24ChapterOneStoryComplete === true ||
     save.dayState.dayNumber >= 7;
@@ -75,6 +77,10 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
     pressure = Math.max(0, pressure - doctrine.pressureReduction);
     reasons.push(`Quiet Pastures routines remove ${doctrine.pressureReduction} Predator Pressure.`);
   }
+  if (aftermath.pressureReduction > 0) {
+    pressure = Math.max(0, pressure - aftermath.pressureReduction);
+    reasons.push(`The Woodline aftermath operation removes another ${aftermath.pressureReduction} Predator Pressure.`);
+  }
 
   if (!chapterGate) blockers.push("Predator incidents remain disabled until Chapter 1 is complete or Day 7 begins.");
   const hasAttractor = creatureCount >= 7 || feedStock >= 12 || builtFutureHabitats.length > 0;
@@ -83,8 +89,9 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
     blockers.push(`Predator pressure ${pressure} is below the 18-point incident threshold.`);
   }
 
-  const security = 6 + patrolScore + permanentSecurity + doctrine.security;
+  const security = 6 + patrolScore + permanentSecurity + doctrine.security + aftermath.security;
   if (doctrine.security > 0) reasons.push(`Fortified Perimeter doctrine adds ${doctrine.security} permanent Security.`);
+  if (aftermath.security > 0) reasons.push(`Woodline fallback gates add ${aftermath.security} permanent Security.`);
   const requiredSecurity = Math.max(18, pressure + 6);
   const eligible = chapterGate && hasAttractor && pressure >= 18 && security < requiredSecurity;
   const eventChance = eligible ? clamp(12 + pressure - Math.floor(security * 0.65), 8, 72) : 0;

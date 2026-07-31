@@ -28,6 +28,7 @@
       "@/data/chapterOneStory": ["./src/data/chapterOneStoryGuided"],
       "@/data/coliseumC4": ["./src/data/coliseumC4Hardened"],
       "@/data/nursery": ["./src/data/nurseryMoveInheritanceLifecycle"],
+      "@/data/predatorEvents": ["./src/data/predatorEventsAftermath"],
       "@/data/ranchJobs": ["./src/data/ranchJobsPredator"],
       "@/features/battle-outfitter/BattleOutfitterScreenActive": ["./src/features/battle-outfitter/BattleOutfitterScreenTutorial"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenTutorial"],
