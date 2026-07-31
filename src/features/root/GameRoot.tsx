@@ -1,5 +1,6 @@
 "use client";
 
+import { getPendingPredatorEvent } from "@/data/predatorEvents";
 import { BattleOutfitterScreenActive } from "@/features/battle-outfitter/BattleOutfitterScreenActive";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
 import { ColiseumC2Screen } from "@/features/coliseum/ColiseumC2Screen";
@@ -12,6 +13,7 @@ import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
+import { PredatorDefenseScreen } from "@/features/predators/PredatorDefenseScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
 import { RanchPlotNavigator } from "@/features/ranch/RanchPlotNavigator";
 import { RanchJobsScreen } from "@/features/ranch-jobs/RanchJobsScreen";
@@ -42,6 +44,10 @@ export function GameRoot() {
         </section>
       </main>
     );
+  }
+
+  if (currentSave && appScreen !== "main-menu" && getPendingPredatorEvent(currentSave)) {
+    return <PredatorDefenseScreen />;
   }
 
   let screen = <MainMenuScreen />;

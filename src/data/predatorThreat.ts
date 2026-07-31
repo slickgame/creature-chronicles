@@ -73,6 +73,9 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
   if (!chapterGate) blockers.push("Predator incidents remain disabled until Chapter 1 is complete or Day 7 begins.");
   const hasAttractor = creatureCount >= 7 || feedStock >= 12 || builtFutureHabitats.length > 0;
   if (!hasAttractor) blockers.push("The ranch does not yet have enough livestock, stored feed, or expansion habitats to attract predators.");
+  if (chapterGate && hasAttractor && pressure < 18) {
+    blockers.push(`Predator pressure ${pressure} is below the 18-point incident threshold.`);
+  }
 
   const security = 6 + patrolScore + permanentSecurity;
   const requiredSecurity = Math.max(18, pressure + 6);
