@@ -17,8 +17,6 @@ type PortraitStyle = CSSProperties & {
   "--portrait-scale": number;
   "--portrait-offset-x": string;
   "--portrait-offset-y": string;
-  "--portrait-frame-width": string;
-  "--portrait-frame-height": string;
 };
 
 export type BattlePortraitStageProps = {
@@ -45,6 +43,12 @@ function creatureProfile(source?: CreatureRecord): string {
   return source.profilePath || variant.profilePath || source.portraitPath || variant.portraitPath || FALLBACK_IMAGE;
 }
 
+function creaturePortrait(source?: CreatureRecord): string {
+  if (!source) return FALLBACK_IMAGE;
+  const variant = getVariantDefinition(source.variantId);
+  return source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE;
+}
+
 function compactStatus(combatant: BattleCombatant): string[] {
   return combatant.statuses
     .filter((status) => status.duration > 0)
@@ -68,7 +72,6 @@ function CombatantFigure({
   activeEvent,
   resolving,
   onTarget,
-  onPlan,
 }: {
   combatant: BattleCombatant;
   source?: CreatureRecord;
@@ -78,7 +81,6 @@ function CombatantFigure({
   activeEvent: BattlePresentationEvent | null;
   resolving: boolean;
   onTarget: () => void;
-  onPlan?: () => void;
 }) {
   const portrait = getBattlePortraitConfig(combatant.speciesId);
   const effective = getEffectiveBattleStats(combatant);
@@ -88,11 +90,9 @@ function CombatantFigure({
   const eventKind = isEventTarget ? activeEvent?.kind : isActor ? activeEvent?.kind : null;
   const canTarget = !combatant.isFainted || combatant.sideId === "player";
   const profileStyle: PortraitStyle = {
-    "--portrait-scale": Math.max(0.55, portrait.scale * 0.78),
-    "--portrait-offset-x": `${portrait.offsetX}px`,
-    "--portrait-offset-y": `${portrait.offsetY}px`,
-    "--portrait-frame-width": `${portrait.frameWidth}px`,
-    "--portrait-frame-height": `${portrait.frameHeight}px`,
+    "--portrait-scale": Math.min(0.82, Math.max(0.45, portrait.scale * 0.64)),
+    "--portrait-offset-x": `${Math.round(portrait.offsetX * 0.55)}px`,
+    "--portrait-offset-y": `${Math.round(portrait.offsetY * 0.55)}px`,
   };
   const classNames = [
     styles.combatant,
@@ -110,9 +110,19 @@ function CombatantFigure({
   ].filter(Boolean).join(" ");
 
   const hpPercent = Math.max(0, Math.min(100, Math.round((combatant.currentHp / Math.max(1, combatant.maxHp)) * 100)));
+  const queuedMove = queuedAction ? getBattleMove(queuedAction.moveId).name : null;
+  const detailTitle = [
+    combatant.name,
+    `Level ${combatant.level}`,
+    `Speed ${effective.speed}`,
+    `HP ${combatant.currentHp}/${combatant.maxHp}`,
+    `Battle Energy ${combatant.currentBattleEnergy}/${combatant.maxBattleEnergy}`,
+    statuses.length ? `Statuses: ${statuses.join(", ")}` : "No status effects",
+    queuedMove ? `Queued: ${queuedMove}` : combatant.sideId === "enemy" ? "Enemy action hidden" : "Action not queued",
+  ].join("\n");
 
   return (
-    <article className={classNames} style={profileStyle} data-side={combatant.sideId} data-slot={combatant.slotIndex}>
+    <article className={classNames} style={profileStyle} data-side={combatant.sideId} data-slot={combatant.slotIndex} title={detailTitle}>
       <button
         type="button"
         className={styles.figureButton}
@@ -138,19 +148,14 @@ function CombatantFigure({
 
       <section className={styles.nameplate} data-tone={hpTone(combatant)}>
         <div className={styles.identityLine}>
-          <div>
-            <strong>{combatant.name}</strong>
-            <span>Lv. {combatant.level} · SPD {effective.speed}</span>
-          </div>
-          {active ? <em className={styles.activeMarker} title="Current actor">●</em> : queuedAction ? <em title={getBattleMove(queuedAction.moveId).name}>✓</em> : null}
+          <strong>{combatant.name}</strong>
+          {active ? <em className={styles.activeMarker} title="Current actor">●</em> : queuedMove ? <em title={`Queued: ${queuedMove}`}>✓</em> : null}
         </div>
-        <div className={styles.hpHeader}><span>HP</span><strong>{combatant.currentHp}/{combatant.maxHp}</strong></div>
         <div className={styles.hpTrack}><span style={{ width: `${hpPercent}%` }} /></div>
-        <div className={styles.energyLine}>
-          <span>BE {combatant.currentBattleEnergy}/{combatant.maxBattleEnergy}</span>
-          <span>{statuses.length ? statuses.join(" · ") : combatant.isFainted ? "K.O." : "Ready"}</span>
+        <div className={styles.compactMeta}>
+          <span>{combatant.isFainted ? "K.O." : statuses[0] ?? `BE ${combatant.currentBattleEnergy}`}</span>
+          <strong>{combatant.currentHp}/{combatant.maxHp}</strong>
         </div>
-        {active ? <span className={styles.actorPrompt}>Choose a target</span> : queuedAction && onPlan ? <button type="button" className={styles.planButton} onClick={onPlan} disabled={resolving}>Edit queued action</button> : null}
       </section>
       {eventKind === "knockout" ? <span className={styles.koStamp}>K.O.</span> : null}
     </article>
@@ -180,6 +185,18 @@ export function BattlePortraitStage({
   const actorSide = activeEvent?.actorId ? battleState.combatants[activeEvent.actorId]?.sideId : undefined;
   const fieldSelected = selectedTarget?.kind === "field";
   const hasCombatantTarget = selectedTarget?.kind === "combatant";
+  const projectedOrder = combatants
+    .filter((combatant) => !combatant.isFainted)
+    .sort((left, right) => {
+      const leftAction = queuedActions.get(left.battleCombatantId);
+      const rightAction = queuedActions.get(right.battleCombatantId);
+      const leftPriority = leftAction ? getBattleMove(leftAction.moveId).priority : 0;
+      const rightPriority = rightAction ? getBattleMove(rightAction.moveId).priority : 0;
+      if (rightPriority !== leftPriority) return rightPriority - leftPriority;
+      const speedDifference = getEffectiveBattleStats(right).speed - getEffectiveBattleStats(left).speed;
+      if (speedDifference !== 0) return speedDifference;
+      return left.slotIndex - right.slotIndex;
+    });
 
   const renderCombatant = (combatant: BattleCombatant) => (
     <CombatantFigure
@@ -192,7 +209,6 @@ export function BattlePortraitStage({
       activeEvent={activeEvent}
       resolving={isResolving}
       onTarget={() => onTarget(combatant.battleCombatantId)}
-      onPlan={combatant.sideId === "player" ? () => onPlan(combatant.battleCombatantId) : undefined}
     />
   );
 
@@ -204,14 +220,48 @@ export function BattlePortraitStage({
       aria-label="3 versus 3 battle stage"
     >
       <header className={styles.stageHeader}>
-        <div><span>Ranch Team</span><strong>{battleState.teams.player.name}</strong></div>
+        <div className={`${styles.teamLabel} ${styles.playerTeamLabel}`}><span>Ranch</span><strong>{battleState.teams.player.name}</strong></div>
+
+        <div className={styles.turnOrderStrip}>
+          <span>Projected Order</span>
+          <div>
+            {projectedOrder.map((combatant, index) => {
+              const action = queuedActions.get(combatant.battleCombatantId);
+              const source = sourceById.get(String(combatant.sourceCreatureId));
+              const effective = getEffectiveBattleStats(combatant);
+              const title = combatant.sideId === "enemy"
+                ? `${index + 1}. ${combatant.name} · Enemy · SPD ${effective.speed} · Action hidden`
+                : `${index + 1}. ${combatant.name} · Ranch · SPD ${effective.speed} · ${action ? `Queued ${getBattleMove(action.moveId).name}` : "Action not queued"}`;
+              return (
+                <button
+                  key={combatant.battleCombatantId}
+                  type="button"
+                  className={styles.orderToken}
+                  data-side={combatant.sideId}
+                  data-active={activeActorId === combatant.battleCombatantId ? "true" : "false"}
+                  data-queued={action ? "true" : "false"}
+                  onClick={combatant.sideId === "player" ? () => onPlan(combatant.battleCombatantId) : undefined}
+                  disabled={isResolving || combatant.sideId === "enemy"}
+                  title={title}
+                  aria-label={title}
+                >
+                  <img src={creaturePortrait(source)} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} />
+                  <small>{index + 1}</small>
+                  {action ? <em>✓</em> : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className={styles.presentationControls}>
-          <span>{isResolving ? `Resolving ${queuedEventCount}` : "Animation"}</span>
+          <span>{isResolving ? `${queuedEventCount} FX` : "FX"}</span>
           <button type="button" className={speed === 1 ? styles.controlActive : ""} onClick={() => onSpeedChange(1)}>1×</button>
           <button type="button" className={speed === 2 ? styles.controlActive : ""} onClick={() => onSpeedChange(2)}>2×</button>
-          <button type="button" className={reducedMotion ? styles.controlActive : ""} onClick={() => onReducedMotionChange(!reducedMotion)}>Reduced Motion</button>
+          <button type="button" className={reducedMotion ? styles.controlActive : ""} onClick={() => onReducedMotionChange(!reducedMotion)}>Reduced</button>
         </div>
-        <div><span>Enemy Team</span><strong>{battleState.teams.enemy.name}</strong></div>
+
+        <div className={`${styles.teamLabel} ${styles.enemyTeamLabel}`}><span>Enemy</span><strong>{battleState.teams.enemy.name}</strong></div>
       </header>
 
       <div className={styles.arena}>
