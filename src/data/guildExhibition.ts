@@ -60,21 +60,51 @@ export function applyGuildExhibitionReputation(save: GameSave): GameSave {
   };
 }
 
+export function applyPatronRegistryReputation(save: GameSave): GameSave {
+  const goldPercent = numberFlag(save.flags.chapterThreePatronGuildGoldPercent);
+  const guildPointBonus = numberFlag(save.flags.chapterThreePatronGuildGpBonus);
+  if (goldPercent <= 0 && guildPointBonus <= 0) return save;
+  if (!save.guild) return save;
+
+  const appliedWeek = numberFlag(save.flags.chapterThreePatronGuildAppliedWeek);
+  if (appliedWeek === save.dayState.weekNumber) return save;
+
+  const contracts = save.guild.contracts.map((contract) => contract.weekNumber === save.dayState.weekNumber
+    ? applyRewardBonus(contract, goldPercent, guildPointBonus)
+    : contract);
+
+  return {
+    ...save,
+    guild: { ...save.guild, contracts },
+    flags: {
+      ...save.flags,
+      chapterThreePatronGuildAppliedWeek: save.dayState.weekNumber,
+      chapterThreePatronGuildRewardsActive: true,
+      m69PatronRegistryRewardBonus: true,
+    },
+  };
+}
+
+function applyAllReputation(save: GameSave): GameSave {
+  return applyPatronRegistryReputation(applyGuildExhibitionReputation(save));
+}
+
 export function createDefaultGuildState(save: GameSave): GuildState {
   const guild = createDefaultGuildStateBase(save);
-  const applied = applyGuildExhibitionReputation({
+  const applied = applyAllReputation({
     ...save,
     guild,
     flags: {
       ...save.flags,
       chapterThreeExhibitionGuildAppliedWeek: 0,
+      chapterThreePatronGuildAppliedWeek: 0,
     },
   });
   return applied.guild ?? guild;
 }
 
 export function ensureCurrentGuildState(save: GameSave): GameSave {
-  return applyGuildExhibitionReputation(ensureCurrentGuildStateBase(save));
+  return applyAllReputation(ensureCurrentGuildStateBase(save));
 }
 
 export function getEligibleCreaturesForContract(save: GameSave, contractId: string): CreatureRecord[] {
