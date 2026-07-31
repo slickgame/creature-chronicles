@@ -1,0 +1,108 @@
+.glossaryTerm {
+  display: inline;
+  color: #bfe8ff;
+  cursor: help;
+  font-weight: 800;
+  text-decoration: underline dotted rgba(151, 213, 248, 0.78);
+  text-underline-offset: 3px;
+}
+
+.glossaryTerm:focus {
+  border-radius: 3px;
+  outline: 2px solid rgba(139, 210, 250, 0.7);
+  outline-offset: 2px;
+}
+
+.effectDetail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.effectDetail > strong {
+  color: #f6e7c5;
+}
+
+.effectDetail > span {
+  color: #cbc7bf;
+}
+
+.glossaryHint {
+  margin: -2px 0 1px;
+  color: #9db9c8;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.glossaryReferenceSection {
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid rgba(129, 196, 232, 0.22);
+  border-radius: 10px;
+  background: rgba(9, 18, 25, 0.52);
+}
+
+.glossaryReferenceSection > div:first-child h3,
+.glossaryReferenceSection > div:first-child p {
+  margin: 0;
+}
+
+.glossaryReferenceSection > div:first-child h3 {
+  color: #dff2ff;
+  font-size: 0.95rem;
+}
+
+.glossaryReferenceSection > div:first-child p {
+  margin-top: 3px;
+  color: #9db1bd;
+  font-size: 0.7rem;
+}
+
+.glossaryReferenceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.glossaryReferenceGrid article {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background: rgba(5, 10, 15, 0.58);
+}
+
+.glossaryReferenceGrid strong,
+.glossaryReferenceGrid em,
+.glossaryReferenceGrid p {
+  display: block;
+  margin: 0;
+}
+
+.glossaryReferenceGrid strong {
+  color: #c9edff;
+  font-size: 0.8rem;
+}
+
+.glossaryReferenceGrid em {
+  margin-top: 3px;
+  color: #d8bd86;
+  font-size: 0.68rem;
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.glossaryReferenceGrid p {
+  margin-top: 5px;
+  color: #c9c5bd;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 620px) {
+  .glossaryReferenceGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,61 @@
+.arena {
+  min-height: 388px !important;
+}
+
+.formation {
+  top: 2px !important;
+  bottom: 12px !important;
+}
+
+.combatant {
+  width: min(100%, 220px) !important;
+}
+
+.figureButton {
+  height: clamp(208px, 15.5vw, 272px) !important;
+  min-height: 208px !important;
+}
+
+.portraitWindow {
+  border-radius: 14px 14px 4px 4px !important;
+}
+
+.fieldTarget {
+  top: 51% !important;
+}
+
+.statusTerm {
+  cursor: help;
+  text-decoration: underline dotted rgba(184, 224, 245, 0.72);
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 1180px) {
+  .arena {
+    min-height: 352px !important;
+  }
+
+  .combatant {
+    width: min(100%, 190px) !important;
+  }
+
+  .figureButton {
+    height: clamp(186px, 16.5vw, 228px) !important;
+    min-height: 186px !important;
+  }
+}
+
+@media (max-width: 850px) {
+  .arena {
+    min-height: 332px !important;
+  }
+
+  .combatant {
+    width: min(100%, 152px) !important;
+  }
+
+  .figureButton {
+    height: 172px !important;
+    min-height: 172px !important;
+  }
+}

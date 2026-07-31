@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import {
+  getBattleEffectGlossary,
+  getBattleStatGlossary,
+  getBattleStatusGlossary,
+  getBattleTagGlossary,
+  type BattleGlossaryEntry,
+} from "@/data/battleGlossary";
+import {
   getBattleTargetTypeLabel,
   type BattleUiMoveAvailability,
 } from "@/data/battleUi";
 import type { BattleCombatant, BattleMoveEffect } from "@/types/battle";
 import styles from "./BattleArenaScreen.module.css";
+import glossaryStyles from "./BattleCommandGlossary.module.css";
 
 type BattleMoveGridProps = {
   options: readonly BattleUiMoveAvailability[];
@@ -20,21 +28,60 @@ function titleCase(value: string): string {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function effectDetail(effect: BattleMoveEffect): string {
-  const pieces: string[] = [titleCase(effect.type)];
-  if (effect.target) pieces.push(`Target: ${titleCase(effect.target)}`);
-  if (effect.amount !== undefined) pieces.push(`Amount: ${effect.amount}`);
-  if (effect.status) pieces.push(`Status: ${titleCase(effect.status)}`);
-  if (effect.stat) pieces.push(`Stat: ${titleCase(effect.stat)}`);
-  if (effect.chance !== undefined) pieces.push(`Chance: ${effect.chance}%`);
-  if (effect.duration !== undefined) pieces.push(`Duration: ${effect.duration} round${effect.duration === 1 ? "" : "s"}`);
-  if (effect.maxStacks !== undefined) pieces.push(`Max stacks: ${effect.maxStacks}`);
-  if (effect.note) pieces.push(effect.note);
-  return pieces.join(" · ");
+function glossaryTitle(entry: BattleGlossaryEntry): string {
+  return `${entry.label}\n${entry.flavor}\n${entry.mechanics}`;
+}
+
+function GlossaryTerm({ entry, label }: { entry: BattleGlossaryEntry; label?: string }) {
+  return (
+    <span
+      className={glossaryStyles.glossaryTerm}
+      tabIndex={0}
+      title={glossaryTitle(entry)}
+      aria-label={`${entry.label}. ${entry.mechanics}`}
+    >
+      {label ?? entry.label}
+    </span>
+  );
+}
+
+function EffectDetail({ effect }: { effect: BattleMoveEffect }) {
+  const effectEntry = getBattleEffectGlossary(effect.type);
+  return (
+    <div className={glossaryStyles.effectDetail}>
+      <strong><GlossaryTerm entry={effectEntry} label={titleCase(effect.type)} /></strong>
+      {effect.target ? <span>Target: {titleCase(effect.target)}</span> : null}
+      {effect.amount !== undefined ? <span>Amount: {effect.amount}</span> : null}
+      {effect.status ? <span>Status: <GlossaryTerm entry={getBattleStatusGlossary(effect.status)} /></span> : null}
+      {effect.stat ? <span>Stat: <GlossaryTerm entry={getBattleStatGlossary(effect.stat)} /></span> : null}
+      {effect.chance !== undefined ? <span>Chance: {effect.chance}%</span> : null}
+      {effect.duration !== undefined ? <span>Duration: {effect.duration} round{effect.duration === 1 ? "" : "s"}</span> : null}
+      {effect.maxStacks !== undefined ? <span>Max stacks: {effect.maxStacks}</span> : null}
+      {effect.note ? <span>{effect.note}</span> : null}
+    </div>
+  );
+}
+
+function moveGlossaryEntries(option: BattleUiMoveAvailability): BattleGlossaryEntry[] {
+  const entries = new Map<string, BattleGlossaryEntry>();
+  const add = (entry: BattleGlossaryEntry | null) => {
+    if (entry) entries.set(entry.key, entry);
+  };
+
+  option.move.effects.forEach((effect) => {
+    add(getBattleEffectGlossary(effect.type));
+    if (effect.status) add(getBattleStatusGlossary(effect.status));
+    if (effect.stat) add(getBattleStatGlossary(effect.stat));
+  });
+  if (option.move.scalingStat && option.move.scalingStat !== "none") add(getBattleStatGlossary(option.move.scalingStat));
+  if (option.move.resistedBy && option.move.resistedBy !== "none") add(getBattleStatGlossary(option.move.resistedBy));
+  option.move.tags.forEach((tag) => add(getBattleTagGlossary(tag)));
+  return Array.from(entries.values());
 }
 
 export function BattleMoveGrid({ options, actor, onChooseMove }: BattleMoveGridProps) {
   const [inspected, setInspected] = useState<BattleUiMoveAvailability | null>(null);
+  const glossaryEntries = inspected ? moveGlossaryEntries(inspected) : [];
 
   return (
     <>
@@ -102,16 +149,35 @@ export function BattleMoveGrid({ options, actor, onChooseMove }: BattleMoveGridP
               <div><span>Battle Energy</span><strong>{inspected.move.battleEnergyCost}</strong></div>
               <div><span>Cooldown</span><strong>{actor.cooldowns[inspected.move.id] ?? 0}/{inspected.move.cooldown}</strong></div>
               <div><span>Priority</span><strong>{inspected.move.priority >= 0 ? "+" : ""}{inspected.move.priority}</strong></div>
-              <div><span>Scaling</span><strong>{titleCase(inspected.move.scalingStat ?? "none")}</strong></div>
-              <div><span>Resisted By</span><strong>{titleCase(inspected.move.resistedBy ?? "none")}</strong></div>
+              <div><span>Scaling</span><strong>{inspected.move.scalingStat && inspected.move.scalingStat !== "none" ? <GlossaryTerm entry={getBattleStatGlossary(inspected.move.scalingStat)} /> : "None"}</strong></div>
+              <div><span>Resisted By</span><strong>{inspected.move.resistedBy && inspected.move.resistedBy !== "none" ? <GlossaryTerm entry={getBattleStatGlossary(inspected.move.resistedBy)} /> : "None"}</strong></div>
             </div>
 
             <section className={styles.moveEffectsSection}>
               <h3>Effects</h3>
+              <p className={glossaryStyles.glossaryHint}>Hover or focus an underlined term for its definition and exact battle rule.</p>
               <ul>
-                {inspected.move.effects.map((effect, index) => <li key={`${effect.type}-${index}`}>{effectDetail(effect)}</li>)}
+                {inspected.move.effects.map((effect, index) => <li key={`${effect.type}-${index}`}><EffectDetail effect={effect} /></li>)}
               </ul>
             </section>
+
+            {glossaryEntries.length ? (
+              <section className={glossaryStyles.glossaryReferenceSection}>
+                <div>
+                  <h3>Gameplay Terms</h3>
+                  <p>Definitions used by this move, including flavor and live mechanical values.</p>
+                </div>
+                <div className={glossaryStyles.glossaryReferenceGrid}>
+                  {glossaryEntries.map((entry) => (
+                    <article key={entry.key}>
+                      <strong>{entry.label}</strong>
+                      <em>{entry.flavor}</em>
+                      <p>{entry.mechanics}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ) : null}
 
             <div className={styles.moveMetaLine}>
               <span>{titleCase(inspected.move.sourceType)} source</span>
@@ -119,7 +185,15 @@ export function BattleMoveGrid({ options, actor, onChooseMove }: BattleMoveGridP
               <span>{inspected.move.inheritable ? "Inheritable" : "Not inheritable"}</span>
             </div>
 
-            {inspected.move.tags.length ? <p className={styles.moveTags}><strong>Tags:</strong> {inspected.move.tags.join(" · ")}</p> : null}
+            {inspected.move.tags.length ? (
+              <p className={styles.moveTags}>
+                <strong>Tags:</strong>{" "}
+                {inspected.move.tags.map((tag, index) => {
+                  const entry = getBattleTagGlossary(tag);
+                  return <span key={tag}>{index > 0 ? " · " : ""}{entry ? <GlossaryTerm entry={entry} /> : titleCase(tag)}</span>;
+                })}
+              </p>
+            ) : null}
             <p className={inspected.usable ? styles.moveReady : styles.moveUnavailable}>{inspected.reason ?? "This move is ready to use on the selected target."}</p>
           </section>
         </div>

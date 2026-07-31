@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { getBattleStatusGlossary } from "@/data/battleGlossary";
 import { getBattlePortraitConfig, type BattlePresentationEvent } from "@/data/battlePresentation";
 import { getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
@@ -10,6 +11,7 @@ import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } fr
 import type { CreatureRecord } from "@/types/creature";
 import type { BattlePresentationSpeed } from "./useBattlePresentationController";
 import styles from "./BattlePortraitStage.module.css";
+import polishStyles from "./BattlePortraitStagePolish.module.css";
 
 const FALLBACK_IMAGE = "/images/ui/icons/icon_paw_crest.png";
 
@@ -84,18 +86,27 @@ function CombatantFigure({
 }) {
   const portrait = getBattlePortraitConfig(combatant.speciesId);
   const effective = getEffectiveBattleStats(combatant);
+  const activeStatuses = combatant.statuses.filter((status) => status.duration > 0).slice(0, 2);
   const statuses = compactStatus(combatant);
+  const primaryStatus = activeStatuses[0];
+  const primaryStatusEntry = primaryStatus ? getBattleStatusGlossary(primaryStatus.status) : null;
+  const statusDetails = activeStatuses.map((status) => {
+    const entry = getBattleStatusGlossary(status.status);
+    const stacks = (status.stacks ?? 1) > 1 ? ` (${status.stacks} stacks)` : "";
+    return `${entry.label}${stacks}: ${entry.mechanics}`;
+  });
   const isActor = activeEvent?.actorId === combatant.battleCombatantId;
   const isEventTarget = activeEvent?.targetIds.includes(combatant.battleCombatantId) ?? false;
   const eventKind = isEventTarget ? activeEvent?.kind : isActor ? activeEvent?.kind : null;
   const canTarget = !combatant.isFainted || combatant.sideId === "player";
   const profileStyle: PortraitStyle = {
-    "--portrait-scale": Math.min(0.82, Math.max(0.45, portrait.scale * 0.64)),
-    "--portrait-offset-x": `${Math.round(portrait.offsetX * 0.55)}px`,
-    "--portrait-offset-y": `${Math.round(portrait.offsetY * 0.55)}px`,
+    "--portrait-scale": Math.min(1.02, Math.max(0.56, portrait.scale * 0.78)),
+    "--portrait-offset-x": `${Math.round(portrait.offsetX * 0.62)}px`,
+    "--portrait-offset-y": `${Math.round(portrait.offsetY * 0.62 - 10)}px`,
   };
   const classNames = [
     styles.combatant,
+    polishStyles.combatant,
     styles[combatant.sideId],
     styles[`slot${combatant.slotIndex}`],
     selected ? styles.selected : "",
@@ -117,7 +128,7 @@ function CombatantFigure({
     `Speed ${effective.speed}`,
     `HP ${combatant.currentHp}/${combatant.maxHp}`,
     `Battle Energy ${combatant.currentBattleEnergy}/${combatant.maxBattleEnergy}`,
-    statuses.length ? `Statuses: ${statuses.join(", ")}` : "No status effects",
+    statusDetails.length ? `Statuses:\n${statusDetails.join("\n")}` : "No status effects",
     queuedMove ? `Queued: ${queuedMove}` : combatant.sideId === "enemy" ? "Enemy action hidden" : "Action not queued",
   ].join("\n");
 
@@ -125,14 +136,14 @@ function CombatantFigure({
     <article className={classNames} style={profileStyle} data-side={combatant.sideId} data-slot={combatant.slotIndex} title={detailTitle}>
       <button
         type="button"
-        className={styles.figureButton}
+        className={`${styles.figureButton} ${polishStyles.figureButton}`}
         onClick={onTarget}
         disabled={!canTarget || resolving}
         aria-label={`${selected ? "Selected target" : "Select"} ${combatant.name}`}
       >
         <span className={styles.shadow} aria-hidden="true" />
         <span className={styles.selectionRing} aria-hidden="true" />
-        <span className={styles.portraitWindow} data-ui-fixed-size="true">
+        <span className={`${styles.portraitWindow} ${polishStyles.portraitWindow}`} data-ui-fixed-size="true">
           <img
             src={creatureProfile(source)}
             alt=""
@@ -153,7 +164,12 @@ function CombatantFigure({
         </div>
         <div className={styles.hpTrack}><span style={{ width: `${hpPercent}%` }} /></div>
         <div className={styles.compactMeta}>
-          <span>{combatant.isFainted ? "K.O." : statuses[0] ?? `BE ${combatant.currentBattleEnergy}`}</span>
+          <span
+            className={primaryStatusEntry ? polishStyles.statusTerm : undefined}
+            title={primaryStatusEntry ? `${primaryStatusEntry.label}\n${primaryStatusEntry.flavor}\n${primaryStatusEntry.mechanics}` : undefined}
+          >
+            {combatant.isFainted ? "K.O." : statuses[0] ?? `BE ${combatant.currentBattleEnergy}`}
+          </span>
           <strong>{combatant.currentHp}/{combatant.maxHp}</strong>
         </div>
       </section>
@@ -264,12 +280,12 @@ export function BattlePortraitStage({
         <div className={`${styles.teamLabel} ${styles.enemyTeamLabel}`}><span>Enemy</span><strong>{battleState.teams.enemy.name}</strong></div>
       </header>
 
-      <div className={styles.arena}>
+      <div className={`${styles.arena} ${polishStyles.arena}`}>
         <div className={styles.environmentGlow} aria-hidden="true" />
-        <div className={styles.playerFormation}>{players.map(renderCombatant)}</div>
-        <div className={styles.enemyFormation}>{enemies.map(renderCombatant)}</div>
+        <div className={`${styles.playerFormation} ${polishStyles.formation}`}>{players.map(renderCombatant)}</div>
+        <div className={`${styles.enemyFormation} ${polishStyles.formation}`}>{enemies.map(renderCombatant)}</div>
 
-        <button type="button" className={`${styles.fieldTarget} ${fieldSelected ? styles.fieldSelected : ""}`} onClick={onFieldTarget} disabled={isResolving}>
+        <button type="button" className={`${styles.fieldTarget} ${polishStyles.fieldTarget} ${fieldSelected ? styles.fieldSelected : ""}`} onClick={onFieldTarget} disabled={isResolving}>
           <span>VS</span>
           <small>{fieldSelected ? "Field selected" : "Target field"}</small>
         </button>
