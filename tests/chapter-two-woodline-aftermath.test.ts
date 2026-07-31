@@ -272,13 +272,17 @@ test("Guild aid options validate resources and completion rewards cannot duplica
   assert.equal(duplicate.save.currencies.guildPoints, first.save.currencies.guildPoints);
 });
 
-test("the active ranch UI switches from Act I to the Woodline aftermath journal", async () => {
+test("the active ranch UI preserves Act II and hands completed saves to Act III", async () => {
   const wrapper = await readFile(new URL("src/features/ranch/RanchHubScreenTutorial.tsx", ROOT), "utf8");
   const panel = await readFile(new URL("src/features/story/ChapterTwoAftermathPanel.tsx", ROOT), "utf8");
   const tsconfig = await readFile(new URL("tsconfig.json", ROOT), "utf8");
-  assert.match(wrapper, /chapterTwoComplete \? <ChapterTwoAftermathPanel \/> : <ChapterTwoQuestPanel \/>/);
+  assert.match(wrapper, /ChapterTwoQuestPanel/);
+  assert.match(wrapper, /ChapterTwoAftermathPanel/);
+  assert.match(wrapper, /ChapterTwoIntoWoodlinePanel/);
+  assert.match(wrapper, /chapterTwoComplete/);
+  assert.match(wrapper, /aftermathComplete/);
   assert.match(panel, /The Woodline Aftermath/);
   assert.match(panel, /Send 6 Feed/);
   assert.match(panel, /Fund 120 Gold/);
-  assert.match(tsconfig, /predatorEventsAftermath/);
+  assert.match(tsconfig, /predatorEventsWoodline/);
 });
