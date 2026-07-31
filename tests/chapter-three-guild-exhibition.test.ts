@@ -78,6 +78,13 @@ function replaceFirstCreature(save: GameSave, transform: (creature: CreatureReco
   };
 }
 
+function transformAllCreatures(save: GameSave, transform: (creature: CreatureRecord) => CreatureRecord): GameSave {
+  return {
+    ...save,
+    creatures: (save.creatures ?? []).map(transform),
+  };
+}
+
 function withoutExhibitionReputation(flags: GameSave["flags"]): GameSave["flags"] {
   const next = { ...flags };
   delete next.chapterThreeExhibitionGuildGoldPercent;
@@ -114,10 +121,11 @@ test("the invitation opens representative selection and filters unavailable crea
 });
 
 test("one preparation discipline is always free and paid plans enforce exact resources", () => {
-  const poor = {
-    ...representativeSelectedSave(),
-    currencies: { ...representativeSelectedSave().currencies, gold: 0 },
-    flags: { ...representativeSelectedSave().flags, ranchFeedStock: 0 },
+  const selected = representativeSelectedSave();
+  const poor: GameSave = {
+    ...selected,
+    currencies: { ...selected.currencies, gold: 0 },
+    flags: { ...selected.flags, ranchFeedStock: 0 },
   };
   assert.equal(GUILD_EXHIBITION_DISCIPLINES.length, 3);
   assert.equal(canAffordGuildExhibitionDiscipline(poor, "bond"), true);
@@ -152,7 +160,7 @@ test("exhibition scoring is deterministic and each discipline emphasizes differe
 });
 
 test("weak and elite representatives earn deterministic non-blocking placements", () => {
-  const weakBase = replaceFirstCreature(chapterTwoCompleteSave(), (creature) => ({
+  const weakBase = transformAllCreatures(chapterTwoCompleteSave(), (creature) => ({
     ...creature,
     level: 1,
     stats: { STR: 0, DEX: 0, STA: 0, CHA: 0, WIL: 0, FER: 0 },
@@ -168,7 +176,7 @@ test("weak and elite representatives earn deterministic non-blocking placements"
   assert.equal(weak.state.placement, "participant");
   assert.equal(weak.state.stage, "complete");
 
-  const eliteBase = replaceFirstCreature(chapterTwoCompleteSave(), (creature) => ({
+  const eliteBase = transformAllCreatures(chapterTwoCompleteSave(), (creature) => ({
     ...creature,
     level: 20,
     stats: { STR: 10, DEX: 10, STA: 10, CHA: 10, WIL: 10, FER: 10 },
@@ -206,7 +214,7 @@ test("entry spends Energy, rewards once, and cannot be rerolled or duplicated", 
 test("exhibition reputation raises current and future weekly Guild rewards exactly once", () => {
   const synced = ensureCurrentGuildState(chapterTwoCompleteSave());
   const baseline = synced.guild!.contracts.find((contract) => contract.weekNumber === synced.dayState.weekNumber)!;
-  const strong = replaceFirstCreature(synced, (creature) => ({
+  const strong = transformAllCreatures(synced, (creature) => ({
     ...creature,
     level: 20,
     stats: { STR: 10, DEX: 10, STA: 10, CHA: 10, WIL: 10, FER: 10 },
