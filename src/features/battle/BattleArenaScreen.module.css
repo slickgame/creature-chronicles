@@ -1,24 +1,24 @@
 .screen {
   min-height: 100vh;
-  padding: 16px;
+  padding: 12px;
   background:
-    radial-gradient(circle at 50% 5%, rgba(160, 74, 38, 0.22), transparent 34%),
+    radial-gradient(circle at 50% 5%, rgba(160, 74, 38, 0.2), transparent 34%),
     linear-gradient(160deg, #111417, #07090b 70%);
   color: #f7f0df;
 }
 
 .frame {
-  width: min(1500px, 100%);
-  min-height: calc(100vh - 32px);
+  width: min(1740px, 100%);
+  min-height: calc(100vh - 24px);
   margin: 0 auto;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 12px;
-  padding: 14px;
-  border: 2px solid rgba(224, 172, 87, 0.52);
+  gap: 10px;
+  padding: 12px;
+  border: 2px solid rgba(224, 172, 87, 0.48);
   border-radius: 18px;
   background: rgba(17, 20, 24, 0.96);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.54);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.52);
 }
 
 .header {
@@ -26,33 +26,32 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  padding: 4px 4px 10px;
+  padding: 2px 4px 9px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header h1,
 .header p,
-.kicker {
-  margin: 0;
-}
+.kicker { margin: 0; }
 
 .header h1 {
   margin-top: 2px;
-  font-size: clamp(1.75rem, 3vw, 2.55rem);
+  font-size: clamp(1.65rem, 2.5vw, 2.25rem);
   color: #fff6db;
 }
 
 .header > div:first-child > p:last-child {
-  margin-top: 6px;
+  margin-top: 5px;
   color: #d2cec5;
-  line-height: 1.45;
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
 .kicker {
   color: #e3ad5b;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -97,7 +96,7 @@
 
 .selectionSummary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 10px;
 }
 
@@ -109,10 +108,7 @@
 }
 
 .selectionSummary span,
-.selectionSummary strong {
-  display: block;
-}
-
+.selectionSummary strong { display: block; }
 .selectionSummary span {
   color: #aaa8a3;
   font-size: 0.72rem;
@@ -120,7 +116,6 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-
 .selectionSummary strong {
   margin-top: 4px;
   color: #fff1c7;
@@ -178,33 +173,16 @@
   object-fit: cover;
 }
 
-.rosterInfo {
-  min-width: 0;
-}
-
+.rosterInfo { min-width: 0; }
 .rosterInfo strong,
 .rosterInfo em,
 .rosterInfo small {
   display: block;
   overflow-wrap: anywhere;
 }
-
-.rosterInfo strong {
-  color: #fff4d3;
-  font-size: 1rem;
-}
-
-.rosterInfo em {
-  margin-top: 3px;
-  color: #c8c4bb;
-  font-style: normal;
-}
-
-.rosterInfo small {
-  margin-top: 6px;
-  color: #a9c9b4;
-  line-height: 1.35;
-}
+.rosterInfo strong { color: #fff4d3; font-size: 1rem; }
+.rosterInfo em { margin-top: 3px; color: #c8c4bb; font-style: normal; }
+.rosterInfo small { margin-top: 6px; color: #a9c9b4; line-height: 1.35; }
 
 .selectionMark {
   width: 30px;
@@ -233,24 +211,14 @@
   line-height: 1.4;
 }
 
-.battlefield {
-  display: grid;
-  grid-template-rows: auto auto auto;
-  gap: 8px;
-}
-
-.teamSection {
-  display: grid;
-  gap: 7px;
-}
-
+.battlefield { display: grid; gap: 8px; }
+.teamSection { display: grid; gap: 7px; }
 .teamHeading {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   padding: 0 3px;
 }
-
 .teamHeading span {
   color: #d0a65d;
   font-size: 0.72rem;
@@ -258,11 +226,7 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-
-.teamHeading strong {
-  color: #f0e6cf;
-}
-
+.teamHeading strong { color: #f0e6cf; }
 .teamGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -279,35 +243,19 @@
   background: rgba(31, 35, 41, 0.94);
   transition: border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
-
-.enemyCard {
-  background: linear-gradient(145deg, rgba(66, 30, 31, 0.94), rgba(35, 28, 32, 0.94));
-}
-
-.playerCard {
-  background: linear-gradient(145deg, rgba(28, 47, 57, 0.94), rgba(26, 32, 39, 0.94));
-}
-
+.enemyCard { background: linear-gradient(145deg, rgba(66, 30, 31, 0.94), rgba(35, 28, 32, 0.94)); }
+.playerCard { background: linear-gradient(145deg, rgba(28, 47, 57, 0.94), rgba(26, 32, 39, 0.94)); }
 .selectedTarget {
   border-color: #ef4f4f;
   box-shadow: 0 0 0 2px rgba(239, 79, 79, 0.28), 0 0 24px rgba(239, 79, 79, 0.22);
   transform: translateY(-1px);
 }
-
 .playerCard.selectedTarget {
   border-color: #f0bd59;
   box-shadow: 0 0 0 2px rgba(240, 189, 89, 0.25), 0 0 24px rgba(240, 189, 89, 0.18);
 }
-
-.activeActor {
-  outline: 2px solid rgba(89, 214, 149, 0.72);
-  outline-offset: 1px;
-}
-
-.fainted {
-  filter: grayscale(0.8);
-  opacity: 0.52;
-}
+.activeActor { outline: 2px solid rgba(89, 214, 149, 0.72); outline-offset: 1px; }
+.fainted { filter: grayscale(0.8); opacity: 0.52; }
 
 .combatantTop {
   display: flex;
@@ -315,24 +263,11 @@
   align-items: center;
   min-width: 0;
 }
-
-.portraitFrame {
-  width: 58px;
-  height: 58px;
-  border-radius: 9px;
-}
-
-.combatantIdentity {
-  min-width: 0;
-}
-
+.portraitFrame { width: 58px; height: 58px; border-radius: 9px; }
+.combatantIdentity { min-width: 0; }
 .combatantIdentity span,
 .combatantIdentity strong,
-.combatantIdentity em {
-  display: block;
-  overflow-wrap: anywhere;
-}
-
+.combatantIdentity em { display: block; overflow-wrap: anywhere; }
 .combatantIdentity span {
   color: #b7b3ab;
   font-size: 0.68rem;
@@ -340,23 +275,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+.combatantIdentity strong { color: #fff3d1; font-size: 0.96rem; }
+.combatantIdentity em { color: #c7c5bf; font-size: 0.78rem; font-style: normal; }
 
-.combatantIdentity strong {
-  color: #fff3d1;
-  font-size: 0.96rem;
-}
-
-.combatantIdentity em {
-  color: #c7c5bf;
-  font-size: 0.78rem;
-  font-style: normal;
-}
-
-.meterBlock {
-  display: grid;
-  gap: 3px;
-}
-
+.meterBlock { display: grid; gap: 3px; }
 .meterBlock > div:first-child {
   display: flex;
   justify-content: space-between;
@@ -364,48 +286,26 @@
   color: #c8c4bc;
   font-size: 0.72rem;
 }
-
 .meterTrack {
   height: 7px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.52);
 }
-
-.meterTrack span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-}
-
-.hpFill {
-  background: linear-gradient(90deg, #b43a3a, #e98965);
-}
-
-.energyFill {
-  background: linear-gradient(90deg, #356fba, #7cc2ef);
-}
+.meterTrack span { display: block; height: 100%; border-radius: inherit; }
+.hpFill { background: linear-gradient(90deg, #b43a3a, #e98965); }
+.energyFill { background: linear-gradient(90deg, #356fba, #7cc2ef); }
 
 .statusLine,
 .queuedLine {
   margin: 0;
   min-height: 1.2em;
   color: #bbb7af;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   line-height: 1.35;
 }
-
-.queuedLine {
-  color: #99d9b7;
-  font-weight: 800;
-}
-
-.cardActions button {
-  flex: 1;
-  min-height: 32px;
-  padding: 6px 8px;
-  font-size: 0.72rem;
-}
+.queuedLine { color: #99d9b7; font-weight: 800; }
+.cardActions button { flex: 1; min-height: 34px; padding: 6px 8px; font-size: 0.75rem; }
 
 .arenaDivider {
   display: flex;
@@ -413,14 +313,12 @@
   align-items: center;
   gap: 12px;
 }
-
 .arenaDivider span {
   color: #f0b94f;
   font-size: 1.1rem;
   font-weight: 1000;
   letter-spacing: 0.16em;
 }
-
 .arenaDivider button {
   min-height: 30px;
   padding: 5px 10px;
@@ -428,7 +326,6 @@
   color: #ece8e0;
   border-color: rgba(255, 255, 255, 0.16);
 }
-
 .arenaDivider .fieldSelected {
   border-color: #ef4f4f;
   box-shadow: 0 0 0 2px rgba(239, 79, 79, 0.25);
@@ -437,8 +334,12 @@
 .commandDeck {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(250px, 0.75fr) minmax(250px, 0.75fr);
-  gap: 10px;
+  grid-template-columns: minmax(0, 2.1fr) minmax(310px, 0.82fr);
+  grid-template-areas:
+    "action queue"
+    "action log";
+  align-items: start;
+  gap: 12px;
 }
 
 .actionPanel,
@@ -448,22 +349,28 @@
   min-height: 0;
   display: grid;
   align-content: start;
-  gap: 9px;
-  padding: 10px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   background: rgba(29, 33, 39, 0.94);
 }
 
 .actionPanel {
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-area: action;
+  min-height: 300px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 14px;
+  gap: 12px;
 }
-
 .queuePanel {
+  grid-area: queue;
+  max-height: 214px;
   grid-template-rows: auto minmax(0, 1fr) auto;
 }
-
 .logPanel {
+  grid-area: log;
+  max-height: 196px;
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -472,91 +379,74 @@
   justify-content: space-between;
   gap: 12px;
 }
-
 .panelHeading span,
-.panelHeading strong {
-  display: block;
-}
-
+.panelHeading strong { display: block; }
 .panelHeading span {
   color: #b2aea6;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-
 .panelHeading strong {
   margin-top: 2px;
   color: #fff1c7;
+  font-size: 1rem;
 }
+
+.actionPanel > .panelHeading {
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(244, 193, 95, 0.22);
+  border-radius: 10px;
+  background: rgba(12, 17, 22, 0.62);
+}
+.actionPanel > .panelHeading > div { min-width: 0; flex: 1; }
 
 .moveGrid {
   min-height: 0;
-  overflow: auto;
+  overflow: visible;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  gap: 8px;
-  padding-right: 3px;
+  gap: 10px;
 }
 
 .moveButton {
   min-width: 0;
+  min-height: 96px;
   display: grid;
-  gap: 6px;
-  padding: 10px;
+  gap: 7px;
+  padding: 12px;
   border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 10px;
+  border-radius: 11px;
   background: rgba(46, 50, 57, 0.96);
   color: #f2eee7;
   text-align: left;
 }
-
 .moveButton:not(:disabled):hover {
   border-color: rgba(243, 196, 105, 0.8);
   transform: translateY(-1px);
 }
-
-.moveTitle {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.moveTitle strong {
-  color: #fff2cc;
-}
-
+.moveTitle { display: flex; justify-content: space-between; gap: 8px; }
+.moveTitle strong { color: #fff2cc; font-size: 1rem; }
 .moveTitle em {
   color: #c8c4bc;
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   font-style: normal;
   text-transform: uppercase;
 }
-
 .moveButton > span:not(.moveTitle),
 .moveButton small {
   color: #c6c2b9;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
-
-.moveButton small {
-  color: #9dd6b2;
-  font-weight: 800;
-}
-
-.moveButton:disabled small {
-  color: #d49b91;
-}
-
-.moveNumbers {
-  color: #e5c27c !important;
-  font-weight: 800;
-}
-
+.moveButton small { color: #9dd6b2; font-weight: 800; }
+.moveButton:disabled small { color: #d49b91; }
+.moveNumbers { color: #e5c27c !important; font-weight: 800; }
 .category_physical { border-left: 4px solid #d16f52; }
 .category_special { border-left: 4px solid #8a83d8; }
 .category_support { border-left: 4px solid #d2b254; }
@@ -565,29 +455,33 @@
 
 .emptyMoveState,
 .resultPanel {
-  min-height: 150px;
+  min-height: 210px;
   display: grid;
   place-items: center;
   align-content: center;
   gap: 6px;
-  padding: 20px;
+  padding: 24px;
   border: 1px dashed rgba(255, 255, 255, 0.14);
   border-radius: 10px;
   text-align: center;
   color: #c7c3bb;
 }
-
 .emptyMoveState strong,
-.resultPanel h2 {
-  margin: 0;
-  color: #fff2cc;
-}
-
+.resultPanel h2 { margin: 0; color: #fff2cc; font-size: 1.2rem; }
 .emptyMoveState p,
-.resultPanel p {
-  margin: 0;
-  line-height: 1.45;
+.resultPanel p { margin: 0; line-height: 1.45; }
+
+.actionPanel > section:last-child {
+  max-height: 118px;
+  overflow: auto;
+  margin-top: 0 !important;
+  padding: 9px 11px !important;
+  border: 1px solid rgba(245, 201, 128, 0.2) !important;
+  border-radius: 10px;
+  background: rgba(8, 13, 18, 0.68) !important;
 }
+.actionPanel > section:last-child .panelHeading strong { font-size: 0.88rem; }
+.actionPanel > section:last-child .statusLine { margin: 4px 0 7px; }
 
 .queueList,
 .logList {
@@ -595,54 +489,31 @@
   overflow: auto;
   display: grid;
   align-content: start;
-  gap: 7px;
+  gap: 6px;
   padding-right: 3px;
 }
-
 .queueEntry {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding: 8px 9px;
   border-radius: 9px;
   background: rgba(11, 14, 18, 0.5);
 }
-
 .queueEntry strong,
-.queueEntry span {
-  display: block;
-}
-
-.queueEntry strong {
-  color: #f2ead8;
-  font-size: 0.82rem;
-}
-
-.queueEntry span {
-  margin-top: 2px;
-  color: #bcb8b0;
-  font-size: 0.72rem;
-  line-height: 1.3;
-}
-
-.queueEntry button {
-  min-height: 30px;
-  padding: 5px 8px;
-  flex: 0 0 auto;
-}
-
-.confirmButton {
-  width: 100%;
-}
-
+.queueEntry span { display: block; }
+.queueEntry strong { color: #f2ead8; font-size: 0.86rem; }
+.queueEntry span { margin-top: 2px; color: #bcb8b0; font-size: 0.76rem; line-height: 1.3; }
+.queueEntry button { min-height: 30px; padding: 5px 8px; flex: 0 0 auto; }
+.confirmButton { width: 100%; min-height: 44px; font-size: 0.92rem; }
 .logList p {
   margin: 0;
   padding: 7px 8px;
   border-radius: 8px;
   background: rgba(9, 11, 14, 0.52);
   color: #c8c5be;
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   line-height: 1.35;
 }
 
@@ -653,7 +524,6 @@
   padding: 20px;
   background: #0b0d10;
 }
-
 .emptyPanel {
   width: min(520px, 100%);
   padding: 24px;
@@ -666,25 +536,34 @@
 
 @media (max-width: 1100px) {
   .commandDeck {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.65fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "action action"
+      "queue log";
   }
-
-  .logPanel {
-    grid-column: 1 / -1;
-    max-height: 220px;
-  }
+  .queuePanel,
+  .logPanel { max-height: 230px; }
 }
 
 @media (max-width: 800px) {
-  .screen { padding: 8px; }
-  .frame { min-height: calc(100vh - 16px); padding: 10px; }
+  .screen { padding: 7px; }
+  .frame { min-height: calc(100vh - 14px); padding: 8px; }
   .header { flex-direction: column; }
   .selectionSummary,
   .teamGrid,
-  .commandDeck,
   .moveGrid { grid-template-columns: 1fr; }
-  .battlefield { min-height: auto; }
-  .commandDeck { min-height: 700px; }
+  .commandDeck {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "action"
+      "queue"
+      "log";
+  }
+  .actionPanel,
+  .queuePanel,
+  .logPanel { max-height: none; }
+  .moveButton { min-height: 84px; }
   .selectionFooter { align-items: stretch; flex-direction: column; }
   .selectionFooter button { width: 100%; }
+  .actionPanel > section:last-child { max-height: none; }
 }
