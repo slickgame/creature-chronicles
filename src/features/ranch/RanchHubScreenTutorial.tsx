@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { getChapterThreeGuildExhibitionState } from "@/data/chapterThreeGuildExhibition";
 import { getChapterTwoIntoWoodlineState } from "@/data/chapterTwoIntoWoodline";
 import { getChapterTwoAftermathState } from "@/data/chapterTwoWoodlineAftermath";
 import { getChapterTwoState } from "@/data/chapterTwoTroubleBeyondFence";
 import { ChapterThreeGuildExhibitionPanel } from "@/features/story/ChapterThreeGuildExhibitionPanel";
+import { ChapterThreePatronCircuitPanel } from "@/features/story/ChapterThreePatronCircuitPanel";
 import { ChapterTwoAftermathPanel } from "@/features/story/ChapterTwoAftermathPanel";
 import { ChapterTwoIntoWoodlinePanel } from "@/features/story/ChapterTwoIntoWoodlinePanel";
 import { ChapterTwoQuestPanel } from "@/features/story/ChapterTwoQuestPanel";
@@ -59,17 +61,20 @@ export function RanchHubScreen() {
   const chapterTwoComplete = currentSave ? getChapterTwoState(currentSave).stage === "complete" : false;
   const aftermathComplete = currentSave ? getChapterTwoAftermathState(currentSave).stage === "complete" : false;
   const woodlineComplete = currentSave ? getChapterTwoIntoWoodlineState(currentSave).stage === "complete" : false;
+  const exhibitionComplete = currentSave ? getChapterThreeGuildExhibitionState(currentSave).stage === "complete" : false;
 
   return (
     <>
       <DayLoopRanchHubScreen />
-      {woodlineComplete
-        ? <ChapterThreeGuildExhibitionPanel />
-        : aftermathComplete
-          ? <ChapterTwoIntoWoodlinePanel />
-          : chapterTwoComplete
-            ? <ChapterTwoAftermathPanel />
-            : <ChapterTwoQuestPanel />}
+      {exhibitionComplete
+        ? <ChapterThreePatronCircuitPanel />
+        : woodlineComplete
+          ? <ChapterThreeGuildExhibitionPanel />
+          : aftermathComplete
+            ? <ChapterTwoIntoWoodlinePanel />
+            : chapterTwoComplete
+              ? <ChapterTwoAftermathPanel />
+              : <ChapterTwoQuestPanel />}
     </>
   );
 }
