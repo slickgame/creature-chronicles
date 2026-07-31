@@ -2,12 +2,12 @@
   position: relative;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 220, 150, 0.32);
-  border-radius: 18px;
+  border: 1px solid rgba(255, 220, 150, 0.3);
+  border-radius: 16px;
   background:
-    radial-gradient(circle at 50% 18%, rgba(255, 191, 99, 0.18), transparent 35%),
+    radial-gradient(circle at 50% 16%, rgba(255, 191, 99, 0.15), transparent 34%),
     linear-gradient(180deg, rgba(27, 34, 43, 0.98), rgba(9, 13, 18, 0.98));
-  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.42), 0 18px 45px rgba(0, 0, 0, 0.34);
+  box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.4), 0 14px 34px rgba(0, 0, 0, 0.3);
 }
 
 .stageHeader {
@@ -16,21 +16,17 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(7, 10, 14, 0.78);
+  gap: 14px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(7, 10, 14, 0.82);
   backdrop-filter: blur(8px);
 }
 
 .stageHeader > div:first-child,
-.stageHeader > div:last-child {
-  min-width: 0;
-}
-
-.stageHeader > div:last-child {
-  text-align: right;
-}
+.stageHeader > div:last-child { min-width: 0; }
+.stageHeader > div:last-child { text-align: right; }
 
 .stageHeader span,
 .stageHeader strong {
@@ -42,7 +38,7 @@
 
 .stageHeader span {
   color: #c5bda9;
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -50,7 +46,7 @@
 
 .stageHeader strong {
   color: #fff0c8;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
 }
 
 .presentationControls {
@@ -63,18 +59,19 @@
 .presentationControls span {
   margin-right: 3px;
   color: #9ba8b8;
-  letter-spacing: 0.04em;
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
   text-transform: none;
 }
 
 .presentationControls button {
-  min-height: 28px;
+  min-height: 27px;
   padding: 4px 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
+  border-radius: 7px;
   background: rgba(37, 44, 54, 0.92);
   color: #dedbd4;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 900;
 }
 
@@ -86,33 +83,33 @@
 
 .arena {
   position: relative;
-  min-height: 570px;
+  min-height: 438px;
   overflow: hidden;
   isolation: isolate;
   background:
-    linear-gradient(180deg, rgba(90, 116, 134, 0.13), transparent 48%),
-    radial-gradient(ellipse at 50% 92%, rgba(211, 155, 78, 0.2), transparent 46%),
-    repeating-linear-gradient(90deg, transparent 0 94px, rgba(255, 255, 255, 0.018) 95px 96px);
+    linear-gradient(180deg, rgba(90, 116, 134, 0.11), transparent 48%),
+    radial-gradient(ellipse at 50% 91%, rgba(211, 155, 78, 0.18), transparent 45%),
+    repeating-linear-gradient(90deg, transparent 0 92px, rgba(255, 255, 255, 0.014) 93px 94px);
 }
 
 .arena::before {
   content: "";
   position: absolute;
-  left: 4%;
-  right: 4%;
-  bottom: 7%;
-  height: 30%;
+  left: 7%;
+  right: 7%;
+  bottom: 5%;
+  height: 27%;
   border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(92, 74, 48, 0.48), rgba(23, 25, 28, 0.08) 66%, transparent 74%);
+  background: radial-gradient(ellipse, rgba(92, 74, 48, 0.45), rgba(23, 25, 28, 0.06) 66%, transparent 74%);
   transform: perspective(450px) rotateX(64deg);
   z-index: -1;
 }
 
 .environmentGlow {
   position: absolute;
-  inset: 12% 22%;
+  inset: 15% 28%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(250, 200, 116, 0.11), transparent 65%);
+  background: radial-gradient(circle, rgba(250, 200, 116, 0.1), transparent 65%);
   filter: blur(18px);
   pointer-events: none;
 }
@@ -120,33 +117,43 @@
 .playerFormation,
 .enemyFormation {
   position: absolute;
-  top: 24px;
-  bottom: 24px;
-  width: 45%;
+  top: 14px;
+  bottom: 12px;
+  width: 43%;
 }
 
-.playerFormation { left: 2%; }
-.enemyFormation { right: 2%; }
+.playerFormation { left: 2.5%; }
+.enemyFormation { right: 2.5%; }
 
 .combatant {
+  --lane-scale: 1;
   position: absolute;
-  width: min(var(--portrait-frame-width), 31vw);
-  min-width: 145px;
-  transition: filter 180ms ease, opacity 180ms ease;
+  width: clamp(136px, 11.5vw, 182px);
+  transform: scale(var(--lane-scale));
+  transform-origin: 50% 100%;
+  transition: filter 180ms ease, opacity 180ms ease, transform 180ms ease;
 }
 
-.player.slot0 { right: 0; top: 25%; z-index: 6; }
+.slot1,
+.slot2 { --lane-scale: 0.9; }
+
+.player.slot0 { right: 0; top: 23%; z-index: 7; }
 .player.slot1 { left: 0; top: 0; z-index: 3; }
-.player.slot2 { left: 3%; bottom: 0; z-index: 5; }
-.enemy.slot0 { left: 0; top: 25%; z-index: 6; }
+.player.slot2 { left: 7%; bottom: 0; z-index: 5; }
+.enemy.slot0 { left: 0; top: 23%; z-index: 7; }
 .enemy.slot1 { right: 0; top: 0; z-index: 3; }
-.enemy.slot2 { right: 3%; bottom: 0; z-index: 5; }
+.enemy.slot2 { right: 7%; bottom: 0; z-index: 5; }
+
+.stage[data-has-target="true"] .enemy:not(.selected) {
+  filter: saturate(0.72) brightness(0.78);
+  opacity: 0.72;
+}
 
 .figureButton {
   position: relative;
   width: 100%;
-  height: min(var(--portrait-frame-height), 43vh);
-  min-height: 220px;
+  height: clamp(176px, 19vw, 246px);
+  min-height: 176px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -154,9 +161,7 @@
   cursor: pointer;
 }
 
-.figureButton:disabled {
-  cursor: default;
-}
+.figureButton:disabled { cursor: default; }
 
 .portraitWindow {
   position: absolute;
@@ -166,7 +171,7 @@
   overflow: visible;
   transform-origin: 50% 100%;
   animation: idleFloat 3.2s ease-in-out infinite;
-  filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 11px 9px rgba(0, 0, 0, 0.5));
 }
 
 .portraitWindow img {
@@ -186,23 +191,22 @@
 
 .shadow {
   position: absolute;
-  left: 20%;
-  right: 20%;
-  bottom: 3px;
-  height: 28px;
+  left: 22%;
+  right: 22%;
+  bottom: 2px;
+  height: 23px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  filter: blur(6px);
-  transform: scaleY(0.5);
-  transition: transform 180ms ease, opacity 180ms ease;
+  background: rgba(0, 0, 0, 0.53);
+  filter: blur(5px);
+  transform: scaleY(0.46);
 }
 
 .selectionRing {
   position: absolute;
-  left: 12%;
-  right: 12%;
+  left: 14%;
+  right: 14%;
   bottom: -1px;
-  height: 34px;
+  height: 29px;
   border: 3px solid transparent;
   border-radius: 50%;
   opacity: 0;
@@ -212,14 +216,14 @@
 
 .selected .selectionRing {
   border-color: #ff5555;
-  box-shadow: 0 0 14px rgba(255, 78, 78, 0.9), inset 0 0 12px rgba(255, 78, 78, 0.45);
+  box-shadow: 0 0 14px rgba(255, 78, 78, 0.9), inset 0 0 12px rgba(255, 78, 78, 0.42);
   opacity: 1;
   animation: targetPulse 1s ease-in-out infinite;
 }
 
 .player.selected .selectionRing {
   border-color: #f4c15f;
-  box-shadow: 0 0 14px rgba(244, 193, 95, 0.85), inset 0 0 12px rgba(244, 193, 95, 0.4);
+  box-shadow: 0 0 14px rgba(244, 193, 95, 0.85), inset 0 0 12px rgba(244, 193, 95, 0.38);
 }
 
 .active .selectionRing {
@@ -229,20 +233,20 @@
 }
 
 .active .portraitWindow {
-  filter: drop-shadow(0 0 13px rgba(82, 226, 156, 0.62)) drop-shadow(0 12px 10px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 0 12px rgba(82, 226, 156, 0.6)) drop-shadow(0 11px 9px rgba(0, 0, 0, 0.5));
 }
 
 .nameplate {
   position: relative;
   z-index: 10;
   display: grid;
-  gap: 4px;
-  margin-top: -8px;
-  padding: 7px 8px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 10px;
-  background: rgba(8, 12, 17, 0.88);
-  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.4);
+  gap: 3px;
+  margin-top: -5px;
+  padding: 6px 7px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9px;
+  background: rgba(7, 11, 16, 0.91);
+  box-shadow: 0 7px 17px rgba(0, 0, 0, 0.36);
   backdrop-filter: blur(8px);
 }
 
@@ -258,9 +262,7 @@
   gap: 6px;
 }
 
-.identityLine > div {
-  min-width: 0;
-}
+.identityLine > div { min-width: 0; }
 
 .identityLine strong,
 .identityLine span {
@@ -272,36 +274,42 @@
 
 .identityLine strong {
   color: #fff1ce;
-  font-size: 0.84rem;
+  font-size: 0.77rem;
 }
 
 .identityLine span,
 .hpHeader,
 .energyLine {
   color: #bfc3c5;
-  font-size: 0.61rem;
+  font-size: 0.56rem;
 }
 
 .identityLine em {
-  width: 21px;
-  height: 21px;
+  width: 18px;
+  height: 18px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
   border-radius: 50%;
   background: rgba(79, 190, 131, 0.2);
   color: #8ff0b6;
+  font-size: 0.7rem;
   font-style: normal;
   font-weight: 1000;
+}
+
+.identityLine .activeMarker {
+  color: #6fe0a3;
+  box-shadow: 0 0 10px rgba(111, 224, 163, 0.35);
 }
 
 .hpHeader strong { color: #f7e6ca; }
 
 .hpTrack {
-  height: 7px;
+  height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.66);
 }
 
 .hpTrack span {
@@ -323,23 +331,35 @@
   white-space: nowrap;
 }
 
+.actorPrompt,
 .planButton {
-  min-height: 25px;
-  padding: 3px 8px;
-  border: 1px solid rgba(124, 214, 177, 0.34);
-  border-radius: 7px;
-  background: rgba(26, 75, 62, 0.72);
-  color: #b9f0d4;
-  font-size: 0.64rem;
+  min-height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 0.58rem;
   font-weight: 900;
+}
+
+.actorPrompt {
+  border: 1px solid rgba(111, 224, 163, 0.3);
+  background: rgba(29, 89, 66, 0.45);
+  color: #aef1ce;
+}
+
+.planButton {
+  border: 1px solid rgba(124, 214, 177, 0.32);
+  background: rgba(26, 75, 62, 0.68);
+  color: #b9f0d4;
 }
 
 .fainted {
   filter: grayscale(0.92);
-  opacity: 0.46;
+  opacity: 0.44;
 }
 
-.fainted .shadow { opacity: 0.35; }
+.fainted .shadow { opacity: 0.32; }
 
 .fieldTarget {
   position: absolute;
@@ -348,41 +368,41 @@
   z-index: 15;
   display: grid;
   place-items: center;
-  min-width: 80px;
-  min-height: 56px;
-  padding: 7px 10px;
-  border: 1px solid rgba(255, 220, 151, 0.34);
+  min-width: 68px;
+  min-height: 50px;
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 220, 151, 0.3);
   border-radius: 50%;
-  background: rgba(13, 18, 24, 0.82);
+  background: rgba(13, 18, 24, 0.8);
   color: #f7c866;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 0 17px rgba(0, 0, 0, 0.34);
 }
 
 .fieldTarget span {
-  font-size: 1rem;
+  font-size: 0.88rem;
   font-weight: 1000;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.11em;
 }
 
 .fieldTarget small {
   color: #bbb9b1;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
 }
 
 .fieldSelected {
   border-color: #ef5555;
-  box-shadow: 0 0 0 3px rgba(239, 85, 85, 0.22), 0 0 24px rgba(239, 85, 85, 0.45);
+  box-shadow: 0 0 0 3px rgba(239, 85, 85, 0.2), 0 0 21px rgba(239, 85, 85, 0.4);
 }
 
 .actionBanner {
   position: absolute;
   left: 50%;
-  top: 12%;
+  top: 9%;
   z-index: 30;
-  min-width: 190px;
-  padding: 7px 18px 9px;
-  border: 1px solid rgba(255, 216, 139, 0.55);
+  min-width: 180px;
+  padding: 6px 16px 8px;
+  border: 1px solid rgba(255, 216, 139, 0.52);
   border-radius: 999px;
   background: rgba(9, 12, 17, 0.9);
   color: #fff0ca;
@@ -392,28 +412,26 @@
 }
 
 .actionBanner span,
-.actionBanner strong {
-  display: block;
-}
+.actionBanner strong { display: block; }
 
 .actionBanner span {
   color: #d7a857;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   font-weight: 900;
   letter-spacing: 0.13em;
   text-transform: uppercase;
 }
 
-.actionBanner strong { font-size: 0.9rem; }
+.actionBanner strong { font-size: 0.86rem; }
 
 .targetEffect,
 .attackFlash {
   position: absolute;
   left: 50%;
-  top: 46%;
+  top: 45%;
   z-index: 12;
-  width: 94px;
-  height: 94px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -425,8 +443,8 @@
 }
 
 .effect_slash {
-  width: 120px;
-  height: 70px;
+  width: 108px;
+  height: 64px;
   border-radius: 0;
   background: linear-gradient(158deg, transparent 42%, #fff6d6 44% 48%, #eb684f 50% 54%, transparent 56%);
   filter: drop-shadow(0 0 8px rgba(255, 95, 70, 0.9));
@@ -452,8 +470,8 @@
 }
 
 .effect_shield {
-  width: 112px;
-  height: 128px;
+  width: 98px;
+  height: 112px;
   border: 4px solid rgba(116, 201, 255, 0.85);
   border-radius: 48% 48% 62% 62%;
   background: linear-gradient(180deg, rgba(124, 212, 255, 0.28), rgba(65, 112, 226, 0.1));
@@ -468,8 +486,8 @@
 }
 
 .attackFlash {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   background: radial-gradient(circle, rgba(255, 244, 189, 0.9), rgba(255, 171, 68, 0.45), transparent 70%);
   animation: attackCharge 420ms ease-out both;
 }
@@ -477,15 +495,14 @@
 .floatingText {
   position: absolute;
   left: 50%;
-  top: 25%;
+  top: 22%;
   z-index: 40;
-  min-width: 84px;
+  min-width: 78px;
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 1000;
-  letter-spacing: 0.02em;
   text-align: center;
-  text-shadow: 0 2px 3px #000, 0 0 9px rgba(255, 255, 255, 0.45);
+  text-shadow: 0 2px 3px #000, 0 0 9px rgba(255, 255, 255, 0.42);
   transform: translateX(-50%);
   animation: floatNumber 620ms ease-out both;
 }
@@ -493,21 +510,21 @@
 .text_damage { color: #ff7c68; }
 .text_heal { color: #7ff0ad; }
 .text_energy { color: #85cfff; }
-.text_status { color: #e3a3ff; font-size: 0.94rem; text-transform: capitalize; }
-.text_miss { color: #f5e7b2; font-size: 1rem; }
+.text_status { color: #e3a3ff; font-size: 0.9rem; text-transform: capitalize; }
+.text_miss { color: #f5e7b2; font-size: 0.96rem; }
 .text_knockout { color: #ffca68; }
 
 .koStamp {
   position: absolute;
   left: 50%;
-  top: 40%;
+  top: 39%;
   z-index: 45;
-  padding: 4px 11px;
+  padding: 4px 10px;
   border: 3px solid #f6c25f;
   border-radius: 7px;
   background: rgba(28, 15, 10, 0.9);
   color: #ffd77e;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 1000;
   letter-spacing: 0.12em;
   transform: translate(-50%, -50%) rotate(-8deg);
@@ -518,8 +535,8 @@
   position: absolute;
   top: 47%;
   z-index: 25;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff, #7fd5ff 26%, #5d5fff 56%, transparent 72%);
   filter: drop-shadow(0 0 10px rgba(111, 174, 255, 0.95));
@@ -527,7 +544,6 @@
 
 .projectilePlayer { animation: projectilePlayer 520ms ease-in both; }
 .projectileEnemy { animation: projectileEnemy 520ms ease-in both; }
-
 .attacking[data-side="player"] .figureButton { animation: lungeRight 520ms ease-in-out; }
 .attacking[data-side="enemy"] .figureButton { animation: lungeLeft 520ms ease-in-out; }
 .hit .portraitWindow { animation: hitShake 430ms ease-out; }
@@ -537,103 +553,103 @@
 .missed .portraitWindow { animation: dodgeHop 380ms ease-out; }
 
 @keyframes idleFloat {
-  0%, 100% { transform: translateY(0) rotate(-0.4deg); }
-  50% { transform: translateY(-5px) rotate(0.5deg); }
+  0%, 100% { transform: translateY(0) rotate(-0.3deg); }
+  50% { transform: translateY(-4px) rotate(0.4deg); }
 }
 
 @keyframes targetPulse {
   0%, 100% { transform: scaleY(0.42) scale(1); }
-  50% { transform: scaleY(0.42) scale(1.12); }
+  50% { transform: scaleY(0.42) scale(1.1); }
 }
 
 @keyframes criticalPulse {
   0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.4); }
+  50% { filter: brightness(1.35); }
 }
 
 @keyframes bannerIn {
-  from { opacity: 0; transform: translate(-50%, -10px) scale(0.92); }
+  from { opacity: 0; transform: translate(-50%, -8px) scale(0.94); }
   to { opacity: 1; transform: translate(-50%, 0) scale(1); }
 }
 
 @keyframes lungeRight {
   0% { transform: translateX(0) scale(1); }
-  28% { transform: translateX(-14px) scale(0.98); }
-  62% { transform: translateX(60px) scale(1.04); }
+  28% { transform: translateX(-10px) scale(0.98); }
+  62% { transform: translateX(48px) scale(1.03); }
   100% { transform: translateX(0) scale(1); }
 }
 
 @keyframes lungeLeft {
   0% { transform: translateX(0) scale(1); }
-  28% { transform: translateX(14px) scale(0.98); }
-  62% { transform: translateX(-60px) scale(1.04); }
+  28% { transform: translateX(10px) scale(0.98); }
+  62% { transform: translateX(-48px) scale(1.03); }
   100% { transform: translateX(0) scale(1); }
 }
 
 @keyframes hitShake {
   0%, 100% { transform: translateX(0); filter: brightness(1); }
-  18% { transform: translateX(-13px); filter: brightness(2.2) saturate(0.4); }
-  38% { transform: translateX(10px); }
-  58% { transform: translateX(-7px); }
-  78% { transform: translateX(4px); }
+  18% { transform: translateX(-10px); filter: brightness(2.1) saturate(0.45); }
+  38% { transform: translateX(8px); }
+  58% { transform: translateX(-6px); }
+  78% { transform: translateX(3px); }
 }
 
 @keyframes dodgeHop {
   0%, 100% { transform: translateY(0); }
-  45% { transform: translateY(-14px) scale(0.98); }
+  45% { transform: translateY(-11px) scale(0.98); }
 }
 
 @keyframes knockoutDrop {
   0% { transform: translateY(0) rotate(0); opacity: 1; }
-  35% { transform: translateY(-6px) rotate(-2deg); opacity: 0.9; }
-  100% { transform: translateY(46px) rotate(-9deg); opacity: 0.22; filter: grayscale(1); }
+  35% { transform: translateY(-5px) rotate(-2deg); opacity: 0.9; }
+  100% { transform: translateY(36px) rotate(-8deg); opacity: 0.22; filter: grayscale(1); }
 }
 
 @keyframes floatNumber {
-  0% { opacity: 0; transform: translate(-50%, 12px) scale(0.68); }
-  20% { opacity: 1; transform: translate(-50%, 0) scale(1.18); }
-  100% { opacity: 0; transform: translate(-50%, -48px) scale(0.96); }
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.7); }
+  20% { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -42px) scale(0.96); }
 }
 
 @keyframes impactBurst {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
-  35% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.65); }
+  35% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
 }
 
 @keyframes slashSweep {
   0% { opacity: 0; transform: translate(-70%, -20%) scale(0.45) rotate(-12deg); }
   30% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-30%, -80%) scale(1.25) rotate(7deg); }
+  100% { opacity: 0; transform: translate(-30%, -80%) scale(1.2) rotate(7deg); }
 }
 
 @keyframes chargeImpact {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.15); }
   45% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.7); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
 
 @keyframes healRing {
   0% { opacity: 0; transform: translate(-50%, -30%) scale(0.4); }
   35% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -80%) scale(1.35); }
+  100% { opacity: 0; transform: translate(-50%, -75%) scale(1.3); }
 }
 
 @keyframes shieldBloom {
   0% { opacity: 0; transform: translate(-50%, -50%) scale(0.35); }
   35%, 70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.14); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.12); }
 }
 
 @keyframes statusSpin {
   0% { opacity: 0; transform: translate(-50%, -50%) rotate(0) scale(0.35); }
   50% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -50%) rotate(150deg) scale(1.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(150deg) scale(1.35); }
 }
 
 @keyframes attackCharge {
   0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.25); }
-  45% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  45% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
 }
 
 @keyframes koStamp {
@@ -642,15 +658,15 @@
 }
 
 @keyframes projectilePlayer {
-  from { left: 34%; opacity: 0.2; transform: scale(0.45); }
+  from { left: 35%; opacity: 0.2; transform: scale(0.45); }
   25% { opacity: 1; }
-  to { left: 68%; opacity: 0; transform: scale(1.2); }
+  to { left: 67%; opacity: 0; transform: scale(1.16); }
 }
 
 @keyframes projectileEnemy {
-  from { left: 66%; opacity: 0.2; transform: scale(0.45); }
+  from { left: 65%; opacity: 0.2; transform: scale(0.45); }
   25% { opacity: 1; }
-  to { left: 32%; opacity: 0; transform: scale(1.2); }
+  to { left: 33%; opacity: 0; transform: scale(1.16); }
 }
 
 .stage[data-reduced-motion="true"] *,
@@ -662,26 +678,34 @@
   transition-duration: 1ms !important;
 }
 
-@media (max-width: 1050px) {
-  .arena { min-height: 520px; }
-  .combatant { width: min(var(--portrait-frame-width), 25vw); min-width: 130px; }
-  .figureButton { height: min(var(--portrait-frame-height), 38vh); min-height: 205px; }
-  .nameplate { padding: 6px; }
+@media (max-width: 1100px) {
+  .arena { min-height: 420px; }
+  .combatant { width: clamp(126px, 13vw, 160px); }
+  .figureButton { height: clamp(168px, 21vw, 218px); }
+  .nameplate { padding: 5px 6px 6px; }
   .energyLine span:last-child { display: none; }
 }
 
 @media (max-width: 760px) {
   .stageHeader { grid-template-columns: 1fr 1fr; }
   .presentationControls { grid-column: 1 / -1; grid-row: 2; order: 3; }
-  .arena { min-height: 470px; overflow-x: auto; }
+  .arena { min-height: 548px; }
   .playerFormation,
-  .enemyFormation { width: 48%; }
-  .combatant { width: min(var(--portrait-frame-width), 29vw); min-width: 105px; }
-  .figureButton { height: 220px; min-height: 190px; }
+  .enemyFormation { width: 49%; top: 7px; bottom: 7px; }
+  .combatant { width: 108px; --lane-scale: 1; }
+  .figureButton { height: 114px; min-height: 114px; }
+  .player.slot0 { left: 4%; top: 34%; right: auto; }
+  .player.slot1 { left: 4%; top: 1%; }
+  .player.slot2 { left: 4%; bottom: 1%; }
+  .enemy.slot0 { right: 4%; top: 34%; left: auto; }
+  .enemy.slot1 { right: 4%; top: 1%; }
+  .enemy.slot2 { right: 4%; bottom: 1%; }
   .identityLine span { display: none; }
-  .identityLine strong { font-size: 0.72rem; }
+  .identityLine strong { font-size: 0.66rem; }
   .hpHeader,
-  .energyLine { font-size: 0.54rem; }
-  .planButton { min-height: 22px; }
-  .fieldTarget { min-width: 62px; min-height: 48px; }
+  .energyLine { font-size: 0.5rem; }
+  .actorPrompt,
+  .planButton { min-height: 19px; font-size: 0.5rem; }
+  .fieldTarget { min-width: 56px; min-height: 44px; }
+  .actionBanner { top: 4%; min-width: 150px; }
 }
