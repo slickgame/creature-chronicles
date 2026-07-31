@@ -42,6 +42,10 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
 
   const trustPercent = Math.min(100, state.trust);
   const nextRankText = rank.nextAt ? `${rank.nextAt - state.trust} Trust to next rank` : "Maximum current rank";
+  const shiftGoldBonus = Number(activeSave.flags.chapterThreePatronHospitalityGoldBonus ?? 0);
+  const shiftTrustBonus = Number(activeSave.flags.chapterThreePatronHospitalityTrustBonus ?? 0);
+  const shiftRumorBonus = Number(activeSave.flags.chapterThreePatronHospitalityRumorBonus ?? 0);
+  const patronCharterActive = shiftGoldBonus > 0 || shiftTrustBonus > 0 || shiftRumorBonus > 0;
 
   return (
     <div
@@ -109,6 +113,13 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
                   <span style={{ width: `${trustPercent}%` }} />
                 </div>
 
+                {patronCharterActive ? (
+                  <section className={styles.rumorCard}>
+                    <span>Hospitality Charter Active</span>
+                    <p>Every shift now grants +{shiftGoldBonus} bonus Gold, +{shiftTrustBonus} additional House Trust, and +{shiftRumorBonus} additional Rumor Token{shiftRumorBonus === 1 ? "" : "s"}.</p>
+                  </section>
+                ) : null}
+
                 <section className={styles.actionGrid}>
                   <article>
                     <span>Social</span>
@@ -121,7 +132,9 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
                     <span>Work</span>
                     <h2>Hospitality Shift</h2>
                     <p>Help with tables, guest service, music scheduling, and front-house organization. Romantic participation is never part of the job.</p>
-                    <strong>15 Energy · 32–50 Gold · +3 Trust</strong>
+                    <strong>
+                      15 Energy · {32 + shiftGoldBonus}–{50 + shiftGoldBonus} Gold · +{3 + shiftTrustBonus} Trust · +{1 + shiftRumorBonus} Rumor Token{1 + shiftRumorBonus === 1 ? "" : "s"}
+                    </strong>
                     <button type="button" onClick={() => apply(workRoseLanternHospitalityShift(activeSave))} disabled={state.lastShiftDayNumber === activeSave.dayState.dayNumber}>Work a Shift</button>
                   </article>
                   <article>
