@@ -66,7 +66,7 @@ export function TownScreen() {
               maxHeight: "88dvh",
               overflow: "auto",
               display: "grid",
-              gridTemplateColumns: "minmax(160px, .65fr) minmax(0, 1.35fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
               gap: 18,
               padding: 20,
               border: "2px solid rgba(239,185,120,.78)",
@@ -76,13 +76,13 @@ export function TownScreen() {
               boxShadow: "0 26px 70px rgba(0,0,0,.68)",
             }}
           >
-            <img src={ROSE_LANTERN_ICON} alt="The Rose Lantern" style={{ width: "100%", borderRadius: 14 }} />
+            <img src={ROSE_LANTERN_ICON} alt="The Rose Lantern" style={{ width: "100%", maxHeight: 320, objectFit: "contain", borderRadius: 14 }} />
             <div>
               <span style={{ color: "#eeb768", fontWeight: 900, letterSpacing: ".12em", textTransform: "uppercase", fontSize: ".72rem" }}>Planned Town Location</span>
               <h2 id="rose-lantern-title" style={{ margin: "6px 0 8px", fontSize: "clamp(1.8rem, 5vw, 2.8rem)" }}>The Rose Lantern</h2>
               <p style={{ color: "#eadfce", lineHeight: 1.5 }}>A future adults-only social house for mature storylines, relationships, hospitality work, town rumors, and optional character-focused contracts.</p>
               <p style={{ color: "#cdbfae", lineHeight: 1.45 }}>This update reserves the location and tone only. Its full systems, staff, progression, consent boundaries, economy, and story content will receive a dedicated design and implementation milestone.</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8, margin: "14px 0" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(145px,1fr))", gap: 8, margin: "14px 0" }}>
                 {[
                   "Relationship scenes",
                   "Mature social contracts",
