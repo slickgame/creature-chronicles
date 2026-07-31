@@ -1,11 +1,10 @@
 import { getChapterTwoAftermathState } from "@/data/chapterTwoWoodlineAftermath";
-import { getPredatorThreatAssessment } from "@/data/predatorThreat";
+import { getPredatorThreatAssessment, type PredatorThreatTier } from "@/data/predatorThreat";
 import {
   PREDATOR_EVENT_VERSION,
   PREDATOR_PENDING_EVENT_FLAG,
   getPendingPredatorEvent,
   type PredatorNightEvent,
-  type PredatorThreatTier,
 } from "./predatorEvents";
 import type { BattleOutcome } from "@/types/battle";
 import type { GameSave } from "@/types/save";
