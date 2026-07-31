@@ -229,12 +229,15 @@ test("Ranger Network improves future forced interceptions without changing the e
 test("the active Ranch Hub exposes Act III only after the aftermath is complete", async () => {
   const wrapper = await readFile(new URL("src/features/ranch/RanchHubScreenTutorial.tsx", ROOT), "utf8");
   const panel = await readFile(new URL("src/features/story/ChapterTwoIntoWoodlinePanel.tsx", ROOT), "utf8");
+  const model = await readFile(new URL("src/data/chapterTwoIntoWoodline.ts", ROOT), "utf8");
   const activeEvents = await readFile(new URL("src/data/predatorEventsWoodline.ts", ROOT), "utf8");
   assert.match(wrapper, /ChapterTwoIntoWoodlinePanel/);
   assert.match(wrapper, /aftermathComplete/);
   assert.match(panel, /Into the Woodline/);
-  assert.match(panel, /Cautious Survey/);
-  assert.match(panel, /Protected Woodline/);
+  assert.match(panel, /WOODLINE_APPROACHES/);
+  assert.match(panel, /WOODLINE_RESOLUTIONS/);
+  assert.match(model, /Cautious Survey/);
+  assert.match(model, /Protected Woodline/);
   assert.match(activeEvents, /CHAPTER_TWO_WOODLINE_HUNT_TAG/);
   assert.match(activeEvents, /champion/);
 });
