@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">The Founders' Gala</title>
+  <desc id="desc">A lantern-lit town plaza prepared for a public ranch gala.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#201637"/>
+      <stop offset="0.62" stop-color="#5b3150"/>
+      <stop offset="1" stop-color="#c77b59"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#726b76"/>
+      <stop offset="1" stop-color="#37333d"/>
+    </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#sky)"/>
+  <circle cx="930" cy="125" r="68" fill="#f6dca0" opacity=".8"/>
+  <g fill="#171527" opacity=".86">
+    <path d="M0 315L120 225l115 95 130-155 145 155 130-120 145 120 120-95 135 90v180H0z"/>
+  </g>
+  <rect y="440" width="1200" height="235" fill="url(#stone)"/>
+  <path d="M0 515h1200M0 590h1200M130 440v235M310 440v235M505 440v235M710 440v235M915 440v235M1080 440v235" stroke="#928894" stroke-width="3" opacity=".32"/>
+  <g>
+    <path d="M330 458V270h540v188" fill="#332334" stroke="#e4b86d" stroke-width="8"/>
+    <path d="M360 425V305h480v120" fill="#5c3b4d"/>
+    <path d="M575 305h50v120h-50z" fill="#d6a45d"/>
+    <path d="M300 270h600l-72-72H372z" fill="#7b4355" stroke="#e4b86d" stroke-width="8"/>
+    <text x="600" y="250" fill="#fff1c3" font-family="Georgia,serif" font-size="42" text-anchor="middle" font-weight="700">FOUNDERS' PLAZA</text>
+  </g>
+  <g fill="#ffd47b">
+    <circle cx="180" cy="350" r="12"/><circle cx="260" cy="300" r="12"/><circle cx="940" cy="300" r="12"/><circle cx="1020" cy="350" r="12"/>
+  </g>
+  <g fill="#ffd47b" opacity=".5" filter="url(#glow)">
+    <circle cx="180" cy="350" r="32"/><circle cx="260" cy="300" r="32"/><circle cx="940" cy="300" r="32"/><circle cx="1020" cy="350" r="32"/>
+  </g>
+  <path d="M180 350Q600 105 1020 350" fill="none" stroke="#e2b05d" stroke-width="4"/>
+  <g fill="#241923">
+    <circle cx="250" cy="505" r="26"/><path d="M205 610q8-96 45-96t45 96z"/>
+    <circle cx="390" cy="520" r="25"/><path d="M350 620q8-90 40-90t40 90z"/>
+    <circle cx="810" cy="520" r="25"/><path d="M770 620q8-90 40-90t40 90z"/>
+    <circle cx="950" cy="505" r="26"/><path d="M905 610q8-96 45-96t45 96z"/>
+  </g>
+  <g transform="translate(530 445)">
+    <ellipse cx="70" cy="132" rx="90" ry="20" fill="#18131b" opacity=".45"/>
+    <path d="M38 92q0-70 32-70t32 70v52H38z" fill="#efe0c1" stroke="#6e493c" stroke-width="6"/>
+    <path d="M44 45L15 5l42 21M96 45l29-40-42 21" fill="#b77b58" stroke="#6e493c" stroke-width="6"/>
+    <circle cx="58" cy="65" r="5" fill="#2b2425"/><circle cx="82" cy="65" r="5" fill="#2b2425"/>
+    <path d="M62 80q8 8 16 0" fill="none" stroke="#6e493c" stroke-width="4" stroke-linecap="round"/>
+    <path d="M38 112h64" stroke="#d9aa55" stroke-width="10"/>
+  </g>
+  <rect x="50" y="44" width="620" height="130" rx="24" fill="#130f1c" opacity=".76"/>
+  <text x="86" y="98" fill="#e6b96b" font-family="Arial,sans-serif" font-size="25" font-weight="700" letter-spacing="5">CHAPTER 3 · ACT III</text>
+  <text x="86" y="148" fill="#fff5df" font-family="Georgia,serif" font-size="58" font-weight="700">The Founders' Gala</text>
+</svg>

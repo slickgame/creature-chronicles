@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Founders' Plaza</title>
+  <desc id="desc">A stone town plaza with a gold arch and evening lanterns.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#211b39"/>
+      <stop offset="1" stop-color="#7a4052"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#82798a"/>
+      <stop offset="1" stop-color="#3f3a48"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" rx="48" fill="url(#night)"/>
+  <circle cx="650" cy="95" r="52" fill="#f5d98f" opacity=".85"/>
+  <path d="M0 355L120 250l100 80 115-135 125 140 112-100 105 95 123-90v180H0z" fill="#171526"/>
+  <path d="M0 390h800v210H0z" fill="url(#stone)"/>
+  <path d="M0 470h800M0 540h800M130 390v210M300 390v210M500 390v210M675 390v210" stroke="#aaa0ae" stroke-width="4" opacity=".3"/>
+  <path d="M205 392V205h390v187" fill="#4c3045" stroke="#e2b35f" stroke-width="14"/>
+  <path d="M235 350V245h330v105" fill="#6c4052"/>
+  <path d="M175 205h450l-60-68H235z" fill="#894b5b" stroke="#e2b35f" stroke-width="12"/>
+  <text x="400" y="185" fill="#fff1c7" font-family="Georgia,serif" font-size="34" text-anchor="middle" font-weight="700">FOUNDERS' PLAZA</text>
+  <g fill="#ffd16d">
+    <circle cx="120" cy="320" r="13"/><circle cx="680" cy="320" r="13"/><circle cx="285" cy="235" r="10"/><circle cx="515" cy="235" r="10"/>
+  </g>
+  <path d="M120 320Q400 115 680 320" fill="none" stroke="#dca54f" stroke-width="5"/>
+  <rect x="225" y="430" width="350" height="88" rx="18" fill="#221827" opacity=".9" stroke="#e2b35f" stroke-width="5"/>
+  <text x="400" y="470" fill="#e5b865" font-family="Arial,sans-serif" font-size="19" text-anchor="middle" font-weight="700" letter-spacing="4">PUBLIC EVENTS</text>
+  <text x="400" y="501" fill="#fff5df" font-family="Georgia,serif" font-size="27" text-anchor="middle">Ranch · Guild · Town</text>
+</svg>

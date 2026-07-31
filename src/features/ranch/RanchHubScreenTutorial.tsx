@@ -2,9 +2,11 @@
 
 import { useEffect } from "react";
 import { getChapterThreeGuildExhibitionState } from "@/data/chapterThreeGuildExhibition";
+import { getChapterThreePatronCircuitState } from "@/data/chapterThreePatronCircuit";
 import { getChapterTwoIntoWoodlineState } from "@/data/chapterTwoIntoWoodline";
 import { getChapterTwoAftermathState } from "@/data/chapterTwoWoodlineAftermath";
 import { getChapterTwoState } from "@/data/chapterTwoTroubleBeyondFence";
+import { ChapterThreeFoundersGalaPanel } from "@/features/story/ChapterThreeFoundersGalaPanel";
 import { ChapterThreeGuildExhibitionPanel } from "@/features/story/ChapterThreeGuildExhibitionPanel";
 import { ChapterThreePatronCircuitPanel } from "@/features/story/ChapterThreePatronCircuitPanel";
 import { ChapterTwoAftermathPanel } from "@/features/story/ChapterTwoAftermathPanel";
@@ -62,19 +64,22 @@ export function RanchHubScreen() {
   const aftermathComplete = currentSave ? getChapterTwoAftermathState(currentSave).stage === "complete" : false;
   const woodlineComplete = currentSave ? getChapterTwoIntoWoodlineState(currentSave).stage === "complete" : false;
   const exhibitionComplete = currentSave ? getChapterThreeGuildExhibitionState(currentSave).stage === "complete" : false;
+  const patronComplete = currentSave ? getChapterThreePatronCircuitState(currentSave).stage === "complete" : false;
 
   return (
     <>
       <DayLoopRanchHubScreen />
-      {exhibitionComplete
-        ? <ChapterThreePatronCircuitPanel />
-        : woodlineComplete
-          ? <ChapterThreeGuildExhibitionPanel />
-          : aftermathComplete
-            ? <ChapterTwoIntoWoodlinePanel />
-            : chapterTwoComplete
-              ? <ChapterTwoAftermathPanel />
-              : <ChapterTwoQuestPanel />}
+      {patronComplete
+        ? <ChapterThreeFoundersGalaPanel />
+        : exhibitionComplete
+          ? <ChapterThreePatronCircuitPanel />
+          : woodlineComplete
+            ? <ChapterThreeGuildExhibitionPanel />
+            : aftermathComplete
+              ? <ChapterTwoIntoWoodlinePanel />
+              : chapterTwoComplete
+                ? <ChapterTwoAftermathPanel />
+                : <ChapterTwoQuestPanel />}
     </>
   );
 }
