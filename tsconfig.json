@@ -27,6 +27,7 @@
       "@/data/chapterOneGuidedTutorial": ["./src/data/chapterOneGuidedTutorialBattle"],
       "@/data/chapterOneStory": ["./src/data/chapterOneStoryGuided"],
       "@/data/coliseumC4": ["./src/data/coliseumC4Hardened"],
+      "@/data/guild": ["./src/data/guildExhibition"],
       "@/data/nursery": ["./src/data/nurseryMoveInheritanceLifecycle"],
       "@/data/predatorEvents": ["./src/data/predatorEventsWoodline"],
       "@/data/ranchJobs": ["./src/data/ranchJobsPredator"],
