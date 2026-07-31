@@ -66,6 +66,7 @@ export function ChapterTwoQuestPanel() {
   const objective = getChapterTwoObjective(activeSave);
   const threat = getPredatorThreatAssessment(activeSave);
   if (!objective) return null;
+  const activeObjective = objective;
 
   function persist(result: { save: GameSave; ok: boolean; message: string }) {
     if (result.ok) saveCurrentGame(result.save);
@@ -73,11 +74,11 @@ export function ChapterTwoQuestPanel() {
   }
 
   function handlePrimaryAction() {
-    if (objective.action === "inspect") {
+    if (activeObjective.action === "inspect") {
       persist(inspectChapterTwoTracks(activeSave));
       return;
     }
-    if (objective.action === "town") {
+    if (activeObjective.action === "town") {
       if (state.stage === "petra") {
         const result = consultChapterTwoPetra(activeSave);
         persist(result);
@@ -88,12 +89,12 @@ export function ChapterTwoQuestPanel() {
       goToTown();
       return;
     }
-    if (objective.action === "chores") {
+    if (activeObjective.action === "chores") {
       setOpen(false);
       goToRanchJobs();
       return;
     }
-    if (objective.action === "end-day") {
+    if (activeObjective.action === "end-day") {
       setMessage("Close the journal, use Review Day, and confirm End Day when the ranch is ready.");
     }
   }
@@ -118,7 +119,7 @@ export function ChapterTwoQuestPanel() {
         <img src={CHAPTER_ART} alt="" />
         <span>
           <span>Chapter 2</span>
-          <strong>{objective.title}</strong>
+          <strong>{activeObjective.title}</strong>
           <small>{state.stage === "complete" ? "Complete" : `${completedCount}/6 objectives`}</small>
         </span>
         <span className={styles.launcherBadge}>{state.stage === "complete" ? "✓" : completedCount}</span>
@@ -140,17 +141,17 @@ export function ChapterTwoQuestPanel() {
               <div>
                 <section className={styles.objectiveCard} data-ui-text-box="auto">
                   <p className={styles.kicker}>Current Objective</p>
-                  <h2>{objective.title}</h2>
-                  <p>{objective.body}</p>
-                  <small className={styles.hint}>{objective.hint}</small>
+                  <h2>{activeObjective.title}</h2>
+                  <p>{activeObjective.body}</p>
+                  <small className={styles.hint}>{activeObjective.hint}</small>
 
-                  {objective.action !== "choose" && objective.action !== "none" ? (
+                  {activeObjective.action !== "choose" && activeObjective.action !== "none" ? (
                     <div className={styles.actionRow}>
-                      <button type="button" className={styles.primary} onClick={handlePrimaryAction}>{objective.actionLabel}</button>
+                      <button type="button" className={styles.primary} onClick={handlePrimaryAction}>{activeObjective.actionLabel}</button>
                     </div>
                   ) : null}
 
-                  {objective.action === "choose" ? (
+                  {activeObjective.action === "choose" ? (
                     <div className={styles.doctrineGrid}>
                       <button type="button" className={styles.doctrineButton} onClick={() => handleDoctrine("fortify")}>
                         <strong>Fortified Perimeter</strong>
