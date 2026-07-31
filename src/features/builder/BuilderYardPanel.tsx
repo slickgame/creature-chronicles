@@ -27,13 +27,13 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
   const threat = useMemo(() => currentSave ? getPredatorThreatAssessment(currentSave) : null, [currentSave]);
 
   if (!currentSave) return null;
+  const activeSave = currentSave;
 
-  const selected = selectedProjectId ? getBuilderProjectProgress(currentSave, selectedProjectId) : null;
-  const materials = Number(currentSave.flags.ranchMaterialsStock ?? 0);
+  const selected = selectedProjectId ? getBuilderProjectProgress(activeSave, selectedProjectId) : null;
+  const materials = Number(activeSave.flags.ranchMaterialsStock ?? 0);
 
   function build(projectId: BuilderProjectId) {
-    if (!currentSave) return;
-    const result = commissionBuilderProject(currentSave, projectId);
+    const result = commissionBuilderProject(activeSave, projectId);
     setMessage(result.message);
     if (result.ok) {
       saveCurrentGame(result.save);
@@ -56,9 +56,9 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
       </header>
 
       <div className={styles.resourceStrip}>
-        <div><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
+        <div><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div>
         <div><span>Materials</span><strong>{materials}</strong></div>
-        <div><span>Completed Projects</span><strong>{Number(currentSave.flags.builderProjectsCompleted ?? 0)}</strong></div>
+        <div><span>Completed Projects</span><strong>{Number(activeSave.flags.builderProjectsCompleted ?? 0)}</strong></div>
         <div data-tier={threat?.tier ?? "none"}><span>Predator Threat</span><strong>{threat?.tier ?? "none"}</strong></div>
       </div>
 
@@ -74,7 +74,7 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
               </div>
               <div className={styles.projectGrid}>
                 {BUILDER_PROJECTS.filter((project) => project.category === category).map((project) => {
-                  const progress = getBuilderProjectProgress(currentSave, project.id);
+                  const progress = getBuilderProjectProgress(activeSave, project.id);
                   return (
                     <button
                       key={project.id}
