@@ -12,14 +12,16 @@ import {
 import { SAVE_SLOT_COUNT, summarizeSave } from "@/lib/save/localSave";
 import { useGameContext } from "@/state/GameProvider";
 import type { GameSave } from "@/types/save";
+import { SaveTransferPanel } from "./SaveTransferPanel";
 import styles from "./MainMenuScreen.module.css";
 
-type MenuMode = "main" | "new-game" | "load-game" | "options";
+type MenuMode = "main" | "new-game" | "load-game" | "save-transfer" | "options";
 
 const IMAGE_PATHS = {
   logo: "/images/ui/logo/creature_chronicles_logo.png",
   newGameButton: "/images/ui/buttons/button_new_game.png",
   loadGameButton: "/images/ui/buttons/button_load_game.png",
+  transferSaveButton: "/images/ui/buttons/button_transfer_save.svg",
   settingsButton: "/images/ui/buttons/button_settings.png",
   exitButton: "/images/ui/buttons/button_exit_game.png",
   crestIcon: "/images/ui/icons/icon_paw_crest.png",
@@ -104,6 +106,7 @@ export function MainMenuScreen() {
     goToRanch,
     isHydrated,
     loadGame,
+    refreshSaveSlots,
     saveSlots,
     version,
   } = useGameContext();
@@ -111,7 +114,7 @@ export function MainMenuScreen() {
   const [mode, setMode] = useState<MenuMode>("main");
   const [playerName, setPlayerName] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(0);
-  const [message, setMessage] = useState("M2 ranch hub ready.");
+  const [message, setMessage] = useState("Ranch systems ready.");
   const [confirmDeleteSlot, setConfirmDeleteSlot] = useState<number | null>(null);
 
   const activeSummary = useMemo(() => {
@@ -212,7 +215,7 @@ export function MainMenuScreen() {
                 </div>
               </dl>
             ) : (
-              <p>No active save yet. Start a new game or load an existing file.</p>
+              <p>No active save yet. Start a new game, load a file, or import a travel save.</p>
             )}
 
             {currentSave ? (
@@ -243,6 +246,14 @@ export function MainMenuScreen() {
                 onClick={() => setMode("load-game")}
               >
                 Load Game
+              </button>
+              <button
+                type="button"
+                className={styles.imageButton}
+                style={{ backgroundImage: `url(${IMAGE_PATHS.transferSaveButton})` }}
+                onClick={() => setMode("save-transfer")}
+              >
+                Transfer Save
               </button>
               <button
                 type="button"
@@ -357,12 +368,34 @@ export function MainMenuScreen() {
               </div>
 
               <p className={styles.panelHint}>
-                These are display-only for M2. Full settings editing comes later.
+                These are display-only for now. Full settings editing comes later.
               </p>
             </section>
           ) : null}
         </section>
       </section>
+
+      {mode === "save-transfer" ? (
+        <div
+          role="presentation"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 300,
+            display: "grid",
+            placeItems: "center",
+            padding: "max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left))",
+            background: "rgba(0, 0, 0, 0.78)",
+            backdropFilter: "blur(7px)",
+          }}
+        >
+          <SaveTransferPanel
+            saveSlots={saveSlots}
+            refreshSaveSlots={refreshSaveSlots}
+            onBack={() => setMode("main")}
+          />
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="160" viewBox="0 0 760 160" role="img" aria-labelledby="title desc">
+  <title id="title">Transfer Save</title>
+  <desc id="desc">Gold framed travel save button with opposing arrows.</desc>
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7a462d"/>
+      <stop offset="0.48" stop-color="#4c281f"/>
+      <stop offset="1" stop-color="#2d1816"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff0a9"/>
+      <stop offset="0.45" stop-color="#e5b95e"/>
+      <stop offset="1" stop-color="#9a5f24"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="18" y="18" width="724" height="124" rx="28" fill="#160e0c" stroke="#1c100d" stroke-width="10"/>
+    <rect x="28" y="28" width="704" height="104" rx="22" fill="url(#wood)" stroke="url(#gold)" stroke-width="6"/>
+    <path d="M50 53h660M50 107h660" stroke="#f6d789" stroke-opacity=".18" stroke-width="3"/>
+    <g transform="translate(72 44)" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round" stroke-width="9">
+      <path d="M8 27h72l-19-18M80 27 61 45"/>
+      <path d="M80 67H8l19-18M8 67l19 18"/>
+    </g>
+    <text x="420" y="96" text-anchor="middle" fill="#fff2c5" font-family="Georgia,serif" font-size="48" font-weight="900" letter-spacing="3">TRANSFER SAVE</text>
+  </g>
+</svg>

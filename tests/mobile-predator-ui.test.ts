@@ -39,9 +39,14 @@ test("the application exposes iPhone standalone metadata and safe-area styles", 
   assert.match(mobile, /min-height:\s*44px/);
 });
 
-test("town reserves the Rose Lantern as a planned mature venue", async () => {
+test("town opens the functional Rose Lantern adult social-house foundation", async () => {
   const town = await source("src/features/town/TownScreenC4.tsx");
+  const lantern = await source("src/features/town/RoseLanternScreen.tsx");
+  assert.match(town, /<RoseLanternScreen/);
   assert.match(town, /The Rose Lantern/);
-  assert.match(town, /planned mature social venue/i);
-  assert.match(town, /This update reserves the location and tone only/);
+  assert.match(town, />OPEN</);
+  assert.match(lantern, /Adults-Only Social House/);
+  assert.match(lantern, /Acknowledge House Rules/);
+  assert.match(lantern, /Hospitality Shift/);
+  assert.match(lantern, /Rumor Network/);
 });

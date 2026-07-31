@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960" role="img" aria-labelledby="title desc">
+  <title id="title">Rose Lantern hostess placeholder</title>
+  <desc id="desc">Stylized adult woman in an elegant burgundy evening dress standing beneath a rose lantern.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#361d35"/>
+      <stop offset="1" stop-color="#0c1118"/>
+    </linearGradient>
+    <linearGradient id="dress" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b35a74"/>
+      <stop offset="0.5" stop-color="#762d51"/>
+      <stop offset="1" stop-color="#3c1731"/>
+    </linearGradient>
+    <radialGradient id="lantern" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff0aa" stop-opacity=".95"/>
+      <stop offset=".52" stop-color="#ff9a78" stop-opacity=".75"/>
+      <stop offset="1" stop-color="#d55270" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>
+  <rect width="720" height="960" rx="34" fill="url(#bg)"/>
+  <circle cx="360" cy="170" r="180" fill="url(#lantern)"/>
+  <g filter="url(#shadow)">
+    <path d="M284 82h152l-18 126H302z" fill="#6f263e" stroke="#efb376" stroke-width="10"/>
+    <path d="M318 112h84l-9 66h-66z" fill="#ffd790"/>
+    <path d="M360 54v28" stroke="#efb376" stroke-width="12" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(0 40)" filter="url(#shadow)">
+    <ellipse cx="360" cy="330" rx="108" ry="132" fill="#d29b79"/>
+    <path d="M255 322c9-115 61-166 113-166 77 0 123 73 99 186-25-39-61-64-99-70-38 29-76 47-113 50z" fill="#211821"/>
+    <path d="M286 440c-70 60-103 184-88 347h324c18-170-18-291-92-347-32 27-112 27-144 0z" fill="url(#dress)" stroke="#d9859c" stroke-width="5"/>
+    <path d="M274 466c-63 29-96 100-102 196l54 13c18-70 48-113 91-128z" fill="#d29b79"/>
+    <path d="M446 466c63 29 96 100 102 196l-54 13c-18-70-48-113-91-128z" fill="#d29b79"/>
+    <path d="M319 443c21 29 62 34 84 0l35 49c-39 42-118 42-156 0z" fill="#e7b28d"/>
+    <ellipse cx="321" cy="325" rx="12" ry="8" fill="#312328"/>
+    <ellipse cx="399" cy="325" rx="12" ry="8" fill="#312328"/>
+    <path d="M328 379c20 14 45 14 65 0" fill="none" stroke="#8e3f50" stroke-width="8" stroke-linecap="round"/>
+    <path d="M280 550h160" stroke="#efb376" stroke-width="10" stroke-linecap="round"/>
+    <path d="M264 670h192" stroke="#efb376" stroke-width="6" stroke-opacity=".55"/>
+  </g>
+  <text x="360" y="890" text-anchor="middle" fill="#fff1cf" font-family="Georgia,serif" font-size="44" font-weight="700">Madam Selene Vale</text>
+  <text x="360" y="928" text-anchor="middle" fill="#e3ad78" font-family="Arial,sans-serif" font-size="24" letter-spacing="4">ROSE LANTERN HOSTESS</text>
+</svg>

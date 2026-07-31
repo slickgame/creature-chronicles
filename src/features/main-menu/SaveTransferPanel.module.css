@@ -1,0 +1,210 @@
+.panel {
+  width: min(100%, 980px);
+  max-height: min(84dvh, 860px);
+  overflow: auto;
+  padding: clamp(14px, 2.2vw, 24px);
+  border: 2px solid rgba(240, 196, 111, 0.68);
+  border-radius: 20px;
+  background: linear-gradient(150deg, rgba(17, 24, 31, 0.98), rgba(8, 11, 16, 0.98));
+  color: #fff3d2;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(240, 196, 111, 0.24);
+}
+
+.header p,
+.cardHeading span {
+  margin: 0;
+  color: #efbf72;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.header h2,
+.cardHeading h3 {
+  margin: 4px 0 5px;
+}
+
+.header span {
+  display: block;
+  max-width: 680px;
+  color: #c9d0d7;
+  line-height: 1.45;
+}
+
+.panel button,
+.panel select,
+.panel textarea {
+  font: inherit;
+}
+
+.panel button {
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid rgba(240, 196, 111, 0.62);
+  border-radius: 10px;
+  background: linear-gradient(#3a4652, #202a33);
+  color: #fff4d8;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.message {
+  margin: 14px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(117, 187, 228, 0.3);
+  border-radius: 10px;
+  background: rgba(36, 71, 92, 0.28);
+  color: #dcefff;
+  line-height: 1.42;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(240, 196, 111, 0.28);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.card label {
+  display: grid;
+  gap: 6px;
+  color: #f8e6bd;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.card select,
+.card textarea {
+  width: 100%;
+  border: 1px solid rgba(218, 228, 238, 0.35);
+  border-radius: 10px;
+  background: rgba(7, 11, 16, 0.92);
+  color: #fff7df;
+}
+
+.card select {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
+.card textarea {
+  min-height: 150px;
+  resize: vertical;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.preview,
+.validPreview,
+.invalidPreview,
+.empty {
+  display: grid;
+  gap: 3px;
+  padding: 11px;
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.preview,
+.validPreview {
+  border: 1px solid rgba(108, 222, 157, 0.34);
+}
+
+.invalidPreview {
+  border: 1px solid rgba(239, 112, 112, 0.42);
+  color: #ffd5d5;
+}
+
+.preview span,
+.validPreview span,
+.preview small,
+.validPreview small,
+.invalidPreview small,
+.empty {
+  color: #c4ccd4;
+  line-height: 1.35;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.importButton {
+  background: linear-gradient(#ffe8a9, #d79a4a) !important;
+  color: #24160b !important;
+}
+
+.dangerButton {
+  border-color: rgba(255, 118, 118, 0.72) !important;
+  background: linear-gradient(#8f3838, #552020) !important;
+}
+
+.footer {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(239, 185, 102, 0.09);
+  color: #d7c9b4;
+}
+
+.footer strong {
+  color: #ffd78f;
+}
+
+.footer p {
+  margin: 4px 0 0;
+  line-height: 1.42;
+}
+
+@media (max-width: 760px) {
+  .panel {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 16px);
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .columns {
+    grid-template-columns: 1fr;
+  }
+
+  .actions button {
+    flex: 1 1 140px;
+  }
+
+  .card textarea {
+    min-height: 120px;
+  }
+}
