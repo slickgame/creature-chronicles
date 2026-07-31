@@ -1,27 +1,66 @@
 .arena {
-  min-height: 388px !important;
+  min-height: 480px !important;
 }
 
 .formation {
-  top: 2px !important;
-  bottom: 12px !important;
+  top: 0 !important;
+  bottom: 8px !important;
 }
 
 .combatant {
-  width: min(100%, 220px) !important;
+  width: min(100%, 250px) !important;
+  --portrait-offset-y: -14px !important;
 }
 
 .figureButton {
-  height: clamp(208px, 15.5vw, 272px) !important;
-  min-height: 208px !important;
+  height: clamp(260px, 19vw, 338px) !important;
+  min-height: 260px !important;
 }
 
 .portraitWindow {
   border-radius: 14px 14px 4px 4px !important;
 }
 
+/* Desktop battle scale hierarchy: lapine/feline < canine < equine < bovine. */
+.combatant:has(.portraitWindow img[src*="lapine"]),
+.combatant:has(.portraitWindow img[src*="rabbit"]),
+.combatant:has(.portraitWindow img[src*="hare"]) {
+  --portrait-scale: 0.88 !important;
+  --portrait-offset-y: -10px !important;
+}
+
+.combatant:has(.portraitWindow img[src*="feline"]),
+.combatant:has(.portraitWindow img[src*="cat"]) {
+  --portrait-scale: 0.93 !important;
+  --portrait-offset-y: -16px !important;
+}
+
+.combatant:has(.portraitWindow img[src*="canine"]),
+.combatant:has(.portraitWindow img[src*="dog"]),
+.combatant:has(.portraitWindow img[src*="hound"]),
+.combatant:has(.portraitWindow img[src*="wolf"]) {
+  --portrait-scale: 1.04 !important;
+  --portrait-offset-y: -14px !important;
+}
+
+.combatant:has(.portraitWindow img[src*="equine"]),
+.combatant:has(.portraitWindow img[src*="horse"]),
+.combatant:has(.portraitWindow img[src*="mare"]),
+.combatant:has(.portraitWindow img[src*="stallion"]) {
+  --portrait-scale: 1.17 !important;
+  --portrait-offset-y: -10px !important;
+}
+
+.combatant:has(.portraitWindow img[src*="bovine"]),
+.combatant:has(.portraitWindow img[src*="cow"]),
+.combatant:has(.portraitWindow img[src*="bull"]),
+.combatant:has(.portraitWindow img[src*="minotaur"]) {
+  --portrait-scale: 1.3 !important;
+  --portrait-offset-y: -4px !important;
+}
+
 .fieldTarget {
-  top: 51% !important;
+  top: 52% !important;
 }
 
 .statusTerm {
@@ -32,30 +71,61 @@
 
 @media (max-width: 1180px) {
   .arena {
-    min-height: 352px !important;
+    min-height: 410px !important;
   }
 
   .combatant {
-    width: min(100%, 190px) !important;
+    width: min(100%, 210px) !important;
   }
 
   .figureButton {
-    height: clamp(186px, 16.5vw, 228px) !important;
-    min-height: 186px !important;
+    height: clamp(220px, 19vw, 286px) !important;
+    min-height: 220px !important;
   }
+
+  .combatant:has(.portraitWindow img[src*="lapine"]),
+  .combatant:has(.portraitWindow img[src*="rabbit"]),
+  .combatant:has(.portraitWindow img[src*="hare"]) { --portrait-scale: 0.8 !important; }
+  .combatant:has(.portraitWindow img[src*="feline"]),
+  .combatant:has(.portraitWindow img[src*="cat"]) { --portrait-scale: 0.84 !important; }
+  .combatant:has(.portraitWindow img[src*="canine"]),
+  .combatant:has(.portraitWindow img[src*="dog"]),
+  .combatant:has(.portraitWindow img[src*="hound"]),
+  .combatant:has(.portraitWindow img[src*="wolf"]) { --portrait-scale: 0.93 !important; }
+  .combatant:has(.portraitWindow img[src*="equine"]),
+  .combatant:has(.portraitWindow img[src*="horse"]) { --portrait-scale: 1.03 !important; }
+  .combatant:has(.portraitWindow img[src*="bovine"]),
+  .combatant:has(.portraitWindow img[src*="cow"]),
+  .combatant:has(.portraitWindow img[src*="bull"]) { --portrait-scale: 1.12 !important; }
 }
 
 @media (max-width: 850px) {
   .arena {
-    min-height: 332px !important;
+    min-height: 350px !important;
   }
 
   .combatant {
-    width: min(100%, 152px) !important;
+    width: min(100%, 158px) !important;
+    --portrait-offset-y: -6px !important;
   }
 
   .figureButton {
-    height: 172px !important;
-    min-height: 172px !important;
+    height: 190px !important;
+    min-height: 190px !important;
   }
+
+  .combatant:has(.portraitWindow img[src*="lapine"]),
+  .combatant:has(.portraitWindow img[src*="rabbit"]),
+  .combatant:has(.portraitWindow img[src*="hare"]) { --portrait-scale: 0.67 !important; }
+  .combatant:has(.portraitWindow img[src*="feline"]),
+  .combatant:has(.portraitWindow img[src*="cat"]) { --portrait-scale: 0.7 !important; }
+  .combatant:has(.portraitWindow img[src*="canine"]),
+  .combatant:has(.portraitWindow img[src*="dog"]),
+  .combatant:has(.portraitWindow img[src*="hound"]),
+  .combatant:has(.portraitWindow img[src*="wolf"]) { --portrait-scale: 0.76 !important; }
+  .combatant:has(.portraitWindow img[src*="equine"]),
+  .combatant:has(.portraitWindow img[src*="horse"]) { --portrait-scale: 0.84 !important; }
+  .combatant:has(.portraitWindow img[src*="bovine"]),
+  .combatant:has(.portraitWindow img[src*="cow"]),
+  .combatant:has(.portraitWindow img[src*="bull"]) { --portrait-scale: 0.92 !important; }
 }
