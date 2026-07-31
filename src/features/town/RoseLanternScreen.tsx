@@ -17,6 +17,11 @@ import styles from "./RoseLanternScreen.module.css";
 const BUILDING_ART = "/images/buildings/town/rose_lantern.svg";
 const HOSTESS_ART = "/images/characters/town/rose_lantern_hostess.svg";
 
+function numericFlag(value: boolean | number | string | undefined): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
 export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
   const { currentSave, saveCurrentGame } = useGameContext();
   const [message, setMessage] = useState("Madam Selene welcomes adult guests, workers, and information brokers under the same house rules.");
@@ -42,10 +47,13 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
 
   const trustPercent = Math.min(100, state.trust);
   const nextRankText = rank.nextAt ? `${rank.nextAt - state.trust} Trust to next rank` : "Maximum current rank";
-  const shiftGoldBonus = Number(activeSave.flags.chapterThreePatronHospitalityGoldBonus ?? 0);
-  const shiftTrustBonus = Number(activeSave.flags.chapterThreePatronHospitalityTrustBonus ?? 0);
-  const shiftRumorBonus = Number(activeSave.flags.chapterThreePatronHospitalityRumorBonus ?? 0);
-  const patronCharterActive = shiftGoldBonus > 0 || shiftTrustBonus > 0 || shiftRumorBonus > 0;
+  const shiftGoldBonus = numericFlag(activeSave.flags.chapterThreePatronHospitalityGoldBonus)
+    + numericFlag(activeSave.flags.chapterThreeGalaHospitalityGoldBonus);
+  const shiftTrustBonus = numericFlag(activeSave.flags.chapterThreePatronHospitalityTrustBonus)
+    + numericFlag(activeSave.flags.chapterThreeGalaHospitalityTrustBonus);
+  const shiftRumorBonus = numericFlag(activeSave.flags.chapterThreePatronHospitalityRumorBonus)
+    + numericFlag(activeSave.flags.chapterThreeGalaHospitalityRumorBonus);
+  const hospitalityLegacyActive = shiftGoldBonus > 0 || shiftTrustBonus > 0 || shiftRumorBonus > 0;
 
   return (
     <div
@@ -113,9 +121,9 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
                   <span style={{ width: `${trustPercent}%` }} />
                 </div>
 
-                {patronCharterActive ? (
+                {hospitalityLegacyActive ? (
                   <section className={styles.rumorCard}>
-                    <span>Hospitality Charter Active</span>
+                    <span>Charter and Civic Legacy Active</span>
                     <p>Every shift now grants +{shiftGoldBonus} bonus Gold, +{shiftTrustBonus} additional House Trust, and +{shiftRumorBonus} additional Rumor Token{shiftRumorBonus === 1 ? "" : "s"}.</p>
                   </section>
                 ) : null}
