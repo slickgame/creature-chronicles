@@ -48,6 +48,11 @@ function deterministicRoll(seed: string, modulo: number): number {
   return Math.abs(hash) % Math.max(1, modulo);
 }
 
+function finiteCount(value: unknown, max = Number.MAX_SAFE_INTEGER): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.min(max, Math.floor(parsed))) : 0;
+}
+
 function parseState(value: boolean | number | string | undefined): RoseLanternState {
   if (typeof value !== "string" || !value.trim()) return { ...DEFAULT_STATE };
   try {
@@ -57,9 +62,13 @@ function parseState(value: boolean | number | string | undefined): RoseLanternSt
       ...parsed,
       version: ROSE_LANTERN_VERSION,
       houseRulesAccepted: parsed.houseRulesAccepted === true,
-      visits: Math.max(0, Number(parsed.visits ?? 0)),
-      trust: Math.max(0, Math.min(100, Number(parsed.trust ?? 0))),
-      rumorTokens: Math.max(0, Number(parsed.rumorTokens ?? 0)),
+      visits: finiteCount(parsed.visits),
+      trust: finiteCount(parsed.trust, 100),
+      rumorTokens: finiteCount(parsed.rumorTokens),
+      lastVisitDayNumber: finiteCount(parsed.lastVisitDayNumber),
+      lastShiftDayNumber: finiteCount(parsed.lastShiftDayNumber),
+      lastRumorDayNumber: finiteCount(parsed.lastRumorDayNumber),
+      lastRumor: typeof parsed.lastRumor === "string" ? parsed.lastRumor : "",
       history: Array.isArray(parsed.history) ? parsed.history.filter((item) => typeof item === "string").slice(0, 20) : [],
     };
   } catch {
@@ -153,10 +162,10 @@ function buildRumors(save: GameSave): string[] {
     ? `A woodcutter reports fresh ${threat.likelyPredator.replace(/_/g, " ")} tracks. Predator Pressure is ${threat.pressure}; Security needs ${threat.requiredSecurity} to fully discourage an attack.`
     : threat.blockers[0] ?? "The roads around the ranch are unusually quiet tonight.";
   const marketRumor = `Merchants expect the next weekly refresh on Ranch Day ${save.dayState.dayNumber + Math.max(1, 7 - ((save.dayState.dayNumber - 1) % 7))}. Holding extra Gold may open better choices.`;
-  const builderRumor = Number(save.flags.ranchMaterialsStock ?? 0) < 10
+  const builderRumor = finiteCount(save.flags.ranchMaterialsStock) < 10
     ? "Petra's crews are short on Materials. Field Hauling is the fastest reliable way to restock construction supplies."
     : "Petra has enough nearby material traffic to keep expansion work moving; land deeds remain the key prerequisite for new habitats.";
-  const guildRumor = Number(save.currencies.guildPoints ?? 0) < 5
+  const guildRumor = finiteCount(save.currencies.guildPoints) < 5
     ? "The Guild is quietly favoring ranchers who complete contracts and defensive work. A few more Guild Points could unlock better standing."
     : "Guild officers have noticed your standing. Higher-risk contracts may begin appearing as the ranch grows.";
   return [predatorRumor, marketRumor, builderRumor, guildRumor];
