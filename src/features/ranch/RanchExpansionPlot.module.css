@@ -1,0 +1,51 @@
+.expansionTint {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(18, 28, 24, 0.18), rgba(31, 26, 19, 0.28)),
+    repeating-linear-gradient(90deg, transparent 0 12%, rgba(240, 216, 157, 0.025) 12% 12.5%);
+}
+
+.lockedProject {
+  filter: grayscale(1) brightness(0.62) !important;
+  opacity: 0.72;
+  border-color: rgba(176, 184, 188, 0.48) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.46) !important;
+}
+.lockedProject em { background: rgba(141, 149, 153, 0.92) !important; color: #17191a !important; }
+
+.availableProject {
+  border-color: rgba(226, 177, 92, 0.82) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.46), 0 0 13px rgba(226, 177, 92, 0.2) !important;
+}
+.availableProject em { background: rgba(226, 177, 92, 0.95) !important; }
+
+.affordableProject {
+  border-color: rgba(107, 221, 153, 0.88) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.46), 0 0 18px rgba(107, 221, 153, 0.3) !important;
+}
+.affordableProject em { background: rgba(107, 221, 153, 0.96) !important; }
+
+.builtProject {
+  filter: none !important;
+  opacity: 1;
+  border-color: rgba(107, 221, 153, 0.92) !important;
+  background: rgba(11, 35, 26, 0.92) !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.46), 0 0 18px rgba(107, 221, 153, 0.3) !important;
+}
+.builtProject em { background: rgba(107, 221, 153, 0.96) !important; color: #092116 !important; }
+
+.projectDetail { grid-template-columns: 1fr; }
+.projectDetail[data-status="locked"] { filter: grayscale(0.75); opacity: 0.72; }
+.projectDetail[data-status="built"] { border-color: rgba(107, 221, 153, 0.58); background: rgba(16, 63, 41, 0.34); }
+
+:global(html[data-ranch-plot="expansion"] section[aria-label="Ranch buildings"] > button) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 760px) {
+  .expansionTint { background: rgba(22, 30, 25, 0.2); }
+}
