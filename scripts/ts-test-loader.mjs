@@ -17,6 +17,7 @@ const exactAliases = new Map([
   ["@/data/battleProfiles", "data/battleProfilesExpanded"],
   ["@/data/breedingRecords", "data/breedingRecordsSafe"],
   ["@/data/coliseumC4", "data/coliseumC4Hardened"],
+  ["@/data/guild", "data/guildExhibition"],
   ["@/data/nursery", "data/nurseryMoveInheritanceLifecycle"],
   ["@/data/predatorEvents", "data/predatorEventsWoodline"],
   ["@/features/breeding/BreedingFocusedScreen", "features/breeding/BreedingFocusedScreenMoves"],
