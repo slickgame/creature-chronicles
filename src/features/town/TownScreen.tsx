@@ -211,6 +211,7 @@ export function TownScreen() {
       </main>
     );
   }
+  const activeSave = currentSave;
 
   function closeModal() {
     setModalMode("none");
@@ -240,7 +241,7 @@ export function TownScreen() {
   function getDynamicBadge(location: TownLocation): string {
     if (location.id === "adoption") return `Network Lv. ${adoptionLevel}`;
     if (location.id === "guild") return `Board Lv. ${boardLevel}`;
-    if (location.id === "builder-yard") return `${Number(currentSave.flags.builderProjectsCompleted ?? 0)} Projects`;
+    if (location.id === "builder-yard") return `${Number(activeSave.flags.builderProjectsCompleted ?? 0)} Projects`;
     if (location.id === "coliseum") {
       const standing = coliseumStanding?.name.replace(" Division", "") ?? "Novice";
       return `${standing} · ${coliseumProgress?.totalWins ?? 0}W`;
@@ -256,12 +257,12 @@ export function TownScreen() {
         <header className={styles.header}>
           <div className={styles.identity}>
             <img src={TOWN_ICONS.map} alt="" />
-            <div><span>Town Square</span><strong>{currentSave.player.name}</strong></div>
+            <div><span>Town Square</span><strong>{activeSave.player.name}</strong></div>
           </div>
           <section className={styles.townStats} aria-label="Town resources">
             <div><img src={TOWN_ICONS.crest} alt="" /><span>Date</span><strong>{dateLabel}</strong></div>
-            <div><img src={TOWN_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
-            <div><img src={TOWN_ICONS.gp} alt="" /><span>GP</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div>
+            <div><img src={TOWN_ICONS.gold} alt="" /><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div>
+            <div><img src={TOWN_ICONS.gp} alt="" /><span>GP</span><strong>{formatGuildPoints(activeSave.currencies.guildPoints)}</strong></div>
             <div><img src={TOWN_ICONS.coliseum} alt="" /><span>Coliseum</span><strong>{coliseumProgress?.completedEncounterIds.length ?? 0}/12 Clears</strong></div>
           </section>
           <nav className={styles.headerActions} aria-label="Town navigation">
