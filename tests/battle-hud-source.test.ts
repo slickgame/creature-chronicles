@@ -20,9 +20,14 @@ test("portrait battlefield uses horizontal formations and projected order contro
   assert.match(component, /portrait\.offsetY \* 0\.62 - 10/);
   assert.match(styles, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(styles, /\.portraitWindow[\s\S]*overflow:\s*hidden/);
-  assert.match(polish, /min-height:\s*388px/);
-  assert.match(polish, /width:\s*min\(100%, 220px\)/);
-  assert.match(polish, /height:\s*clamp\(208px, 15\.5vw, 272px\)/);
+  assert.match(polish, /min-height:\s*480px/);
+  assert.match(polish, /width:\s*min\(100%, 250px\)/);
+  assert.match(polish, /height:\s*clamp\(260px, 19vw, 338px\)/);
+  assert.match(polish, /bovine[\s\S]*--portrait-scale:\s*1\.3/);
+  assert.match(polish, /equine[\s\S]*--portrait-scale:\s*1\.17/);
+  assert.match(polish, /canine[\s\S]*--portrait-scale:\s*1\.04/);
+  assert.match(polish, /feline[\s\S]*--portrait-scale:\s*0\.93/);
+  assert.match(polish, /lapine[\s\S]*--portrait-scale:\s*0\.88/);
 });
 
 test("C2 battle HUD exposes compact move details and modal battle log", async () => {
