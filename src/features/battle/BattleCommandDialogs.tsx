@@ -14,6 +14,7 @@ import {
 } from "@/data/battleUi";
 import type { BattleCombatant, BattleMoveEffect } from "@/types/battle";
 import styles from "./BattleArenaScreen.module.css";
+import glossaryStyles from "./BattleCommandGlossary.module.css";
 
 type BattleMoveGridProps = {
   options: readonly BattleUiMoveAvailability[];
@@ -34,7 +35,7 @@ function glossaryTitle(entry: BattleGlossaryEntry): string {
 function GlossaryTerm({ entry, label }: { entry: BattleGlossaryEntry; label?: string }) {
   return (
     <span
-      className={styles.glossaryTerm}
+      className={glossaryStyles.glossaryTerm}
       tabIndex={0}
       title={glossaryTitle(entry)}
       aria-label={`${entry.label}. ${entry.mechanics}`}
@@ -47,7 +48,7 @@ function GlossaryTerm({ entry, label }: { entry: BattleGlossaryEntry; label?: st
 function EffectDetail({ effect }: { effect: BattleMoveEffect }) {
   const effectEntry = getBattleEffectGlossary(effect.type);
   return (
-    <div className={styles.effectDetail}>
+    <div className={glossaryStyles.effectDetail}>
       <strong><GlossaryTerm entry={effectEntry} label={titleCase(effect.type)} /></strong>
       {effect.target ? <span>Target: {titleCase(effect.target)}</span> : null}
       {effect.amount !== undefined ? <span>Amount: {effect.amount}</span> : null}
@@ -154,19 +155,19 @@ export function BattleMoveGrid({ options, actor, onChooseMove }: BattleMoveGridP
 
             <section className={styles.moveEffectsSection}>
               <h3>Effects</h3>
-              <p className={styles.glossaryHint}>Hover or focus an underlined term for its definition and exact battle rule.</p>
+              <p className={glossaryStyles.glossaryHint}>Hover or focus an underlined term for its definition and exact battle rule.</p>
               <ul>
                 {inspected.move.effects.map((effect, index) => <li key={`${effect.type}-${index}`}><EffectDetail effect={effect} /></li>)}
               </ul>
             </section>
 
             {glossaryEntries.length ? (
-              <section className={styles.glossaryReferenceSection}>
+              <section className={glossaryStyles.glossaryReferenceSection}>
                 <div>
                   <h3>Gameplay Terms</h3>
                   <p>Definitions used by this move, including flavor and live mechanical values.</p>
                 </div>
-                <div className={styles.glossaryReferenceGrid}>
+                <div className={glossaryStyles.glossaryReferenceGrid}>
                   {glossaryEntries.map((entry) => (
                     <article key={entry.key}>
                       <strong>{entry.label}</strong>
