@@ -36,12 +36,8 @@ function getOpeningScrimmageButton(): HTMLButtonElement | null {
 }
 
 function getEnemyTargetButton(): HTMLButtonElement | null {
-  const enemyHeading = Array.from(document.querySelectorAll<HTMLElement>("span")).find(
-    (element) => element.textContent?.trim() === "Authored Enemy Team",
-  );
-  const teamSection = enemyHeading?.closest<HTMLElement>("div");
-  const outerSection = teamSection?.parentElement;
-  return outerSection ? buttonByText((text) => text === "Select Target", outerSection) : null;
+  const stage = document.querySelector<HTMLElement>('section[aria-label="3 versus 3 battle stage"]');
+  return stage?.querySelector<HTMLButtonElement>('article[data-side="enemy"] > button') ?? null;
 }
 
 function getEnabledMoveButton(): HTMLButtonElement | null {
