@@ -103,6 +103,7 @@ export function commissionBuilderProject(save: GameSave, projectId: BuilderProje
     };
   }
   const materials = numberFlag(save.flags.ranchMaterialsStock);
+  const galaDiscount = numberFlag(save.flags.chapterThreeGalaBuilderDiscountPercent);
   if (save.currencies.gold < progress.effectiveCostGold || materials < progress.effectiveCostMaterials) {
     return {
       save,
