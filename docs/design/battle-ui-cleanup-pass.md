@@ -10,8 +10,8 @@ Make the portrait-based 3v3 battle screen easier to read and operate without cha
 - The 570px arena pushed commands below the fold on a 1750×895 desktop viewport.
 - Per-creature Plan buttons competed with target selection and the command HUD.
 - The three-column command deck made moves, queue entries, and battle logs too narrow.
-- Support items occupied permanent space despite being optional.
-- A 24-entry battle log added unnecessary density.
+- Support items occupied too much permanent space despite being optional.
+- Dense log and queue panels competed with move selection.
 
 ## Patch scope
 
@@ -21,13 +21,13 @@ Make the portrait-based 3v3 battle screen easier to read and operate without cha
 - Dim non-selected enemies after a target is chosen.
 - Expand the desktop frame and use a wide action panel with a stacked queue/log sidebar.
 - Increase move-button and command text size.
-- Collapse support items into an optional details drawer.
-- Limit the live battle log to the six most recent entries.
+- Compress the support-item section into a smaller optional area.
+- Constrain queue and log panels so the command area remains dominant.
 - Preserve responsive one-column behavior on narrow screens.
 
-## Automated implementation
+## Implementation
 
-The shared portrait-stage changes are committed directly. A branch-scoped one-off workflow applies the command-deck and support-drawer updates to both active Coliseum battle screens, then removes itself before review.
+The cleanup is contained in the shared portrait-stage component and the shared battle UI styles used by active C2 and C4 battles. Battle resolution, AI, rewards, support-item behavior, result recording, and save data remain unchanged.
 
 ## Manual validation focus
 
