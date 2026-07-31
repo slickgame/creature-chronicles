@@ -60,7 +60,9 @@ export function getBuilderProjectEffectiveCost(
   projectId: BuilderProjectId,
 ): BuilderProjectEffectiveCost {
   const project = getBuilderProject(projectId);
-  const discountPercent = Math.min(50, numberFlag(save.flags.chapterThreePatronBuilderDiscountPercent));
+  const patronDiscount = numberFlag(save.flags.chapterThreePatronBuilderDiscountPercent);
+  const galaDiscount = numberFlag(save.flags.chapterThreeGalaBuilderDiscountPercent);
+  const discountPercent = Math.min(50, patronDiscount + galaDiscount);
   const multiplier = 1 - discountPercent / 100;
   return {
     gold: Math.max(1, Math.ceil(project.costGold * multiplier)),
@@ -110,7 +112,7 @@ export function commissionBuilderProject(save: GameSave, projectId: BuilderProje
     };
   }
   const discountMessage = progress.discountPercent > 0
-    ? ` The patron charter reduced both costs by ${progress.discountPercent}%.`
+    ? ` Active charters and civic legacies reduced both costs by ${progress.discountPercent}%.`
     : "";
   const nextSave: GameSave = {
     ...save,
@@ -128,6 +130,7 @@ export function commissionBuilderProject(save: GameSave, projectId: BuilderProje
       ...(project.category === "habitat" ? { m63FutureHabitatBuilt: true } : {}),
       ...(project.category === "security" ? { m63PermanentSecurityBuilt: true } : {}),
       ...(progress.discountPercent > 0 ? { m69BuilderPatronDiscountUsed: true } : {}),
+      ...(galaDiscount > 0 ? { m70FoundersGalaBuilderLegacyUsed: true } : {}),
     },
   };
   return {
