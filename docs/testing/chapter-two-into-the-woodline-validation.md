@@ -1,6 +1,6 @@
 # Chapter 2 Act III — Into the Woodline manual validation
 
-Automated regression and production-build validation run in GitHub Actions. These gameplay and responsive checks remain deferred until manual testing is practical.
+Automated regression and production-build validation run in GitHub Actions. These gameplay and responsive checks remain deferred until manual testing is practical. The automated gate validates this patch together with the two earlier stacked Chapter 2 branches.
 
 ## Setup
 
