@@ -25,6 +25,10 @@ Make the portrait-based 3v3 battle screen easier to read and operate without cha
 - Limit the live battle log to the six most recent entries.
 - Preserve responsive one-column behavior on narrow screens.
 
+## Automated implementation
+
+The shared portrait-stage changes are committed directly. A branch-scoped one-off workflow applies the command-deck and support-drawer updates to both active Coliseum battle screens, then removes itself before review.
+
 ## Manual validation focus
 
 - No same-team portrait overlap at 1750×895 and 1366×768.
