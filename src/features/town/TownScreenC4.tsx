@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getColiseumC3Summary } from "@/data/coliseumC3";
 import { getColiseumC4Summary, getColiseumC4WeeklyBoss } from "@/data/coliseumC4";
+import { ChapterThreeFoundersGalaPanel } from "@/features/story/ChapterThreeFoundersGalaPanel";
 import { useGameContext } from "@/state/GameProvider";
 import { RoseLanternScreen } from "./RoseLanternScreen";
 import { TownScreen as BaseTownScreen } from "./TownScreen";
@@ -18,6 +19,8 @@ export function TownScreen() {
   return (
     <>
       <BaseTownScreen />
+
+      <ChapterThreeFoundersGalaPanel launcherMode="town" />
 
       <button
         type="button"
