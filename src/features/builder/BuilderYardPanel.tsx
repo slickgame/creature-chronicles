@@ -31,6 +31,7 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
 
   const selected = selectedProjectId ? getBuilderProjectProgress(activeSave, selectedProjectId) : null;
   const materials = Number(activeSave.flags.ranchMaterialsStock ?? 0);
+  const patronDiscount = Number(activeSave.flags.chapterThreePatronBuilderDiscountPercent ?? 0);
 
   function build(projectId: BuilderProjectId) {
     const result = commissionBuilderProject(activeSave, projectId);
@@ -48,7 +49,7 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
           <img src={BUILDER_PROJECT_ASSETS.builder} alt="Petra Hale, the town builder" />
           <div>
             <span>Master Builder</span>
-            <h2 id="builder-yard-title">Petra Hale's Builder's Yard</h2>
+            <h2 id="builder-yard-title">Petra Hale&apos;s Builder&apos;s Yard</h2>
             <p>“Give me solid materials, a clear plan, and enough Gold to keep my crew fed.”</p>
           </div>
         </div>
@@ -62,7 +63,14 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
         <div data-tier={threat?.tier ?? "none"}><span>Predator Threat</span><strong>{threat?.tier ?? "none"}</strong></div>
       </div>
 
-      <p className={styles.message} aria-live="polite">{message}</p>
+      {patronDiscount > 0 ? (
+        <p className={styles.message} aria-live="polite">
+          Petra&apos;s Works Charter is active: every remaining project costs {patronDiscount}% less Gold and Materials.
+        </p>
+      ) : <p className={styles.message} aria-live="polite">{message}</p>}
+      {patronDiscount > 0 && message !== "Petra can expand the ranch, reserve future habitats, and strengthen the perimeter." ? (
+        <p className={styles.message} aria-live="polite">{message}</p>
+      ) : null}
 
       <div className={styles.contentGrid}>
         <div className={styles.catalog}>
@@ -87,7 +95,10 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
                       <span>{progress.status === "built" ? "Built" : progress.status === "locked" ? "Locked" : "Available"}</span>
                       <strong>{project.title}</strong>
                       <p>{project.description}</p>
-                      <small>{project.costGold} Gold · {project.costMaterials} Materials</small>
+                      <small>
+                        {progress.effectiveCostGold} Gold · {progress.effectiveCostMaterials} Materials
+                        {progress.discountPercent > 0 && !progress.built ? ` · ${progress.discountPercent}% charter discount` : ""}
+                      </small>
                     </button>
                   );
                 })}
@@ -124,8 +135,9 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
               <h3 id="builder-project-title">{selected.definition.title}</h3>
               <p>{selected.definition.flavor}</p>
               <dl>
-                <div><dt>Gold</dt><dd>{selected.definition.costGold}</dd></div>
-                <div><dt>Materials</dt><dd>{selected.definition.costMaterials}</dd></div>
+                <div><dt>Gold</dt><dd>{selected.effectiveCostGold}</dd></div>
+                <div><dt>Materials</dt><dd>{selected.effectiveCostMaterials}</dd></div>
+                {selected.discountPercent > 0 && !selected.built ? <div><dt>Charter</dt><dd>−{selected.discountPercent}%</dd></div> : null}
                 {selected.definition.securityBonus ? <div><dt>Security</dt><dd>+{selected.definition.securityBonus}</dd></div> : null}
                 {selected.definition.predatorPressure ? <div><dt>Pressure</dt><dd>+{selected.definition.predatorPressure}</dd></div> : null}
               </dl>
