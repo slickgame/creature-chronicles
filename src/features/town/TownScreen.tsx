@@ -1,8 +1,10 @@
 "use client";
 
-import { type CSSProperties, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import { BUILDER_PROJECT_ASSETS } from "@/data/builderProjects";
 import { getColiseumC2HighestDivision, getColiseumC2Progress } from "@/data/coliseumC2";
 import { getTotalTownUpgradeTiers } from "@/data/upgrades";
+import { BuilderYardPanel } from "@/features/builder/BuilderYardPanel";
 import { formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import styles from "./TownScreen.module.css";
@@ -10,6 +12,7 @@ import styles from "./TownScreen.module.css";
 type TownLocationId =
   | "adoption"
   | "supply-depot"
+  | "builder-yard"
   | "egg-atelier"
   | "guild"
   | "ranch"
@@ -31,7 +34,9 @@ type TownLocation = {
   futureSystems?: string[];
 };
 
-type ModalMode = "none" | "town-info" | "nav-menu" | "future-location";
+type ModalMode = "none" | "town-info" | "nav-menu" | "future-location" | "builder-yard";
+
+const BUILDER_AUTO_OPEN_KEY = "creature-chronicles-open-builder-yard";
 
 const TOWN_ICONS = {
   crest: "/images/ui/icons/icon_paw_crest.png",
@@ -40,6 +45,7 @@ const TOWN_ICONS = {
   gp: "/images/ui/icons/icon_guild_points.png",
   adoption: "/images/buildings/town/market_stall.png",
   supplyDepot: "/images/buildings/town/supply_depot.png",
+  builder: BUILDER_PROJECT_ASSETS.yard,
   eggAtelier: "/images/buildings/town/egg_atelier.png",
   guild: "/images/buildings/town/guild_hall.png",
   ranch: "/images/buildings/town/ranch_gate.png",
@@ -56,9 +62,9 @@ const LOCATIONS: TownLocation[] = [
     badge: "Adoption",
     description: "Meet Tamsin Vale to review weekly adoption listings, adoption fees, and new arrivals.",
     imageSrc: TOWN_ICONS.adoption,
-    x: 21,
-    y: 66,
-    width: 13,
+    x: 18,
+    y: 67,
+    width: 12,
   },
   {
     id: "supply-depot",
@@ -66,9 +72,19 @@ const LOCATIONS: TownLocation[] = [
     badge: "Pella",
     description: "Visit Pella Mosswick for feed, materials, energy snacks, repair kits, and practical ranch supplies.",
     imageSrc: TOWN_ICONS.supplyDepot,
-    x: 38,
-    y: 72,
-    width: 11,
+    x: 33,
+    y: 73,
+    width: 10,
+  },
+  {
+    id: "builder-yard",
+    title: "Petra Hale's Builder's Yard",
+    badge: "Construction",
+    description: "Commission ranch land, future habitats, reinforced fencing, and permanent security projects.",
+    imageSrc: TOWN_ICONS.builder,
+    x: 45,
+    y: 65,
+    width: 12,
   },
   {
     id: "egg-atelier",
@@ -76,9 +92,9 @@ const LOCATIONS: TownLocation[] = [
     badge: "Selene",
     description: "Visit Dr. Selene Virell for egg appraisal, incubation care, and small odds-based hatch improvements.",
     imageSrc: TOWN_ICONS.eggAtelier,
-    x: 52,
-    y: 73,
-    width: 11,
+    x: 55,
+    y: 75,
+    width: 10,
   },
   {
     id: "guild",
@@ -86,9 +102,9 @@ const LOCATIONS: TownLocation[] = [
     badge: "Contracts",
     description: "Review contracts, donate creatures into requests, earn Guild Points, and upgrade town services.",
     imageSrc: TOWN_ICONS.guild,
-    x: 67,
+    x: 68,
     y: 60,
-    width: 13,
+    width: 12,
   },
   {
     id: "training-grounds",
@@ -97,8 +113,8 @@ const LOCATIONS: TownLocation[] = [
     description: "Train creatures with Rhea Flint for timed XP drills, stat coaching, and trainer upgrades.",
     imageSrc: TOWN_ICONS.training,
     x: 79,
-    y: 70,
-    width: 10,
+    y: 71,
+    width: 9,
   },
   {
     id: "battle-outfitter",
@@ -106,9 +122,9 @@ const LOCATIONS: TownLocation[] = [
     badge: "Combat Prep",
     description: "Visit Daria Voss for equipment, move training, combat consumables, and team-preparation kits.",
     imageSrc: TOWN_ICONS.battleOutfitter,
-    x: 84,
+    x: 85,
     y: 50,
-    width: 10,
+    width: 9,
   },
   {
     id: "coliseum",
@@ -116,9 +132,9 @@ const LOCATIONS: TownLocation[] = [
     badge: "Authored PvE Circuit",
     description: "Challenge twelve authored 3v3 teams across four divisions, earn combat XP, and build permanent creature battle records.",
     imageSrc: TOWN_ICONS.coliseum,
-    x: 57,
-    y: 45,
-    width: 12,
+    x: 58,
+    y: 44,
+    width: 11,
   },
   {
     id: "ranch",
@@ -126,9 +142,9 @@ const LOCATIONS: TownLocation[] = [
     badge: "Return",
     description: "Travel back to your ranch hub.",
     imageSrc: TOWN_ICONS.ranch,
-    x: 90,
+    x: 91,
     y: 82,
-    width: 9,
+    width: 8,
   },
 ];
 
@@ -149,9 +165,17 @@ export function TownScreen() {
     goToSupplyDepot,
     goToTrainingGrounds,
   } = useGameContext();
-  const [message, setMessage] = useState("Welcome to town. The Coliseum now fields authored opponents and grants persistent combat XP.");
+  const [message, setMessage] = useState("Welcome to town. Petra Hale has opened the Builder's Yard for ranch expansion and security work.");
   const [modalMode, setModalMode] = useState<ModalMode>("none");
   const [selectedFutureLocation, setSelectedFutureLocation] = useState<TownLocation | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem(BUILDER_AUTO_OPEN_KEY) !== "1") return;
+    window.localStorage.removeItem(BUILDER_AUTO_OPEN_KEY);
+    setModalMode("builder-yard");
+    setMessage("Petra pulled up the work order you selected at the ranch.");
+  }, []);
 
   const adoptionLevel = useMemo(
     () => (currentSave ? getTotalTownUpgradeTiers(currentSave, "market") + 1 : 1),
@@ -202,6 +226,7 @@ export function TownScreen() {
   function handleLocationClick(location: TownLocation) {
     if (location.id === "adoption") return goToMarket();
     if (location.id === "supply-depot") return goToSupplyDepot();
+    if (location.id === "builder-yard") { setModalMode("builder-yard"); return; }
     if (location.id === "egg-atelier") return goToEggAtelier();
     if (location.id === "guild") return goToGuildHall();
     if (location.id === "training-grounds") return goToTrainingGrounds();
@@ -215,6 +240,7 @@ export function TownScreen() {
   function getDynamicBadge(location: TownLocation): string {
     if (location.id === "adoption") return `Network Lv. ${adoptionLevel}`;
     if (location.id === "guild") return `Board Lv. ${boardLevel}`;
+    if (location.id === "builder-yard") return `${Number(currentSave.flags.builderProjectsCompleted ?? 0)} Projects`;
     if (location.id === "coliseum") {
       const standing = coliseumStanding?.name.replace(" Division", "") ?? "Novice";
       return `${standing} · ${coliseumProgress?.totalWins ?? 0}W`;
@@ -267,6 +293,8 @@ export function TownScreen() {
 
         {modalMode !== "none" ? (
           <div className={styles.modalBackdrop} role="presentation">
+            {modalMode === "builder-yard" ? <BuilderYardPanel onClose={closeModal} /> : null}
+
             {modalMode === "nav-menu" ? (
               <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.navMenuPanel}`} role="dialog" aria-modal="true">
                 <header className={styles.modalHeader}><div><p className={styles.kicker}>Town Navigation</p><h2>Menu</h2></div><button type="button" onClick={closeModal}>Close</button></header>
@@ -297,7 +325,7 @@ export function TownScreen() {
             {modalMode === "town-info" ? (
               <section className={`${styles.modalPanel} ${styles.nightModalPanel} ${styles.townInfoPanel}`} role="dialog" aria-modal="true">
                 <header className={styles.modalHeader}><div><p className={styles.kicker}>Town Square</p><h2>Current Services</h2></div><button type="button" onClick={closeModal}>Close</button></header>
-                <p className={styles.townInfoLead}>Town includes adoption, supplies, egg care, contracts, training, the Battle Outfitter, and a twelve-encounter authored Coliseum circuit with combat XP, weighted repeat purses, and permanent creature records.</p>
+                <p className={styles.townInfoLead}>Town includes adoption, supplies, construction, egg care, contracts, training, the Battle Outfitter, and a twelve-encounter authored Coliseum circuit.</p>
                 <div className={styles.townInfoStats}>{LOCATIONS.map((location) => <div key={location.id}><span>{getDynamicBadge(location)}</span><strong>{location.title}</strong></div>)}</div>
               </section>
             ) : null}
