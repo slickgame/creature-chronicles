@@ -23,7 +23,6 @@ import {
 import { getBattleReadinessLabel } from "@/data/battleOutfitter";
 import {
   buildBattleUiAction,
-  getBattleTargetTypeLabel,
   getBattleUiMoveOptions,
   getNextUnqueuedPlayerActorId,
   type BattleUiTarget,
@@ -58,13 +57,13 @@ import type {
   BattleAction,
   BattleCombatant,
   BattleCombatantId,
-  BattleMove,
   BattleOutcome,
   BattleState,
 } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import battleStyles from "@/features/battle/BattleArenaScreen.module.css";
+import { BattleLogButton, BattleMoveGrid } from "@/features/battle/BattleCommandDialogs";
 import { BattlePortraitStage } from "@/features/battle/BattlePortraitStage";
 import { useBattlePresentationController } from "@/features/battle/useBattlePresentationController";
 import styles from "./ColiseumProgressionScreen.module.css";
@@ -107,21 +106,6 @@ function statusLabel(combatant: BattleCombatant): string {
   if (!combatant.statuses.length) return "No status effects";
   return combatant.statuses
     .map((status) => `${status.status}${(status.stacks ?? 1) > 1 ? ` ×${status.stacks}` : ""} · ${status.duration}r`)
-    .join(" • ");
-}
-
-function moveEffectLabel(move: BattleMove): string {
-  return move.effects
-    .map((effect) => {
-      const amount = effect.amount ?? (effect.type === "damage" || effect.type === "heal" ? move.power : undefined);
-      const pieces = [effect.type.replaceAll("_", " ")];
-      if (amount !== undefined) pieces.push(String(amount));
-      if (effect.status) pieces.push(effect.status);
-      if (effect.stat) pieces.push(effect.stat);
-      if (effect.chance !== undefined && effect.chance < 100) pieces.push(`${effect.chance}%`);
-      if (effect.duration) pieces.push(`${effect.duration}r`);
-      return pieces.join(" ");
-    })
     .join(" • ");
 }
 
@@ -467,15 +451,6 @@ function ColiseumBattle({
     setMessage(`Planning ${battleState.combatants[actorId].name}'s action. Select a target first.`);
   }
 
-  function clearQueuedAction(actorId: BattleCombatantId) {
-    if (presentation.isPlaying || !battleState) return;
-    const nextQueue = new Map(queuedActions);
-    nextQueue.delete(actorId);
-    setQueuedActions(nextQueue);
-    setActiveActorId(actorId);
-    setSelectedTarget(null);
-  }
-
   function useSupportItem(item: "tonic" | "revival") {
     if (presentation.isPlaying) return;
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
@@ -556,10 +531,6 @@ function ColiseumBattle({
   }
 
   if (!battleState) return null;
-  const combatants = Object.values(battleState.combatants).sort((left, right) => left.sideId.localeCompare(right.sideId) || left.slotIndex - right.slotIndex);
-  const enemies = combatants.filter((combatant) => combatant.sideId === "enemy");
-  const players = combatants.filter((combatant) => combatant.sideId === "player");
-  const recentLog = battleState.log.slice(-24);
   const xpPreview = phase === "result" ? previewColiseumCombatXp(currentSave, encounter, battleState.outcome, playerSources.map((creature) => creature.creatureId), performance) : [];
   const progress = getColiseumC2Progress(currentSave);
   const firstClearAvailable = !progress.claimedFirstClearEncounterIds.includes(encounter.encounterId);
@@ -567,28 +538,28 @@ function ColiseumBattle({
   return (
     <main className={battleStyles.screen}>
       <section className={battleStyles.frame}>
-        <header className={battleStyles.header}>
-          <div><p className={battleStyles.kicker}>{getColiseumC2Division(encounter.divisionId).name} · {getBattleAiDifficultyLabel(encounter.aiDifficulty)} AI</p><h1>{phase === "result" ? "Match Complete" : `Round ${battleState.roundNumber}`}</h1><p>{message}</p></div>
+        <header className={`${battleStyles.header} ${battleStyles.battleHeader}`}>
+          <div><p className={battleStyles.kicker}>{getColiseumC2Division(encounter.divisionId).name} · {getBattleAiDifficultyLabel(encounter.aiDifficulty)} AI</p><h1>{phase === "result" ? "Match Complete" : `Round ${battleState.roundNumber}`}</h1><p title={message}>{message}</p></div>
           <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
         </header>
 
-      <BattlePortraitStage
-        battleState={battleState}
-        sourceById={sourceById}
-        selectedTarget={selectedTarget}
-        activeActorId={activeActorId}
-        queuedActions={queuedActions}
-        activeEvent={presentation.activeEvent}
-        isResolving={presentation.isPlaying}
-        queuedEventCount={presentation.queuedEventCount}
-        speed={presentation.speed}
-        reducedMotion={presentation.reducedMotion}
-        onSpeedChange={presentation.setSpeed}
-        onReducedMotionChange={presentation.setReducedMotion}
-        onTarget={(combatantId) => setSelectedTarget({ kind: "combatant", combatantId })}
-        onPlan={planFor}
-        onFieldTarget={() => setSelectedTarget({ kind: "field" })}
-      />
+        <BattlePortraitStage
+          battleState={battleState}
+          sourceById={sourceById}
+          selectedTarget={selectedTarget}
+          activeActorId={activeActorId}
+          queuedActions={queuedActions}
+          activeEvent={presentation.activeEvent}
+          isResolving={presentation.isPlaying}
+          queuedEventCount={presentation.queuedEventCount}
+          speed={presentation.speed}
+          reducedMotion={presentation.reducedMotion}
+          onSpeedChange={presentation.setSpeed}
+          onReducedMotionChange={presentation.setReducedMotion}
+          onTarget={(combatantId) => setSelectedTarget({ kind: "combatant", combatantId })}
+          onPlan={planFor}
+          onFieldTarget={() => setSelectedTarget({ kind: "field" })}
+        />
 
         <section className={battleStyles.commandDeck}>
           <div className={battleStyles.actionPanel}>
@@ -602,24 +573,28 @@ function ColiseumBattle({
                 <button type="button" onClick={() => finalize()} disabled={recording}>{recording ? "Recording…" : "Record Result, XP & Purse"}</button>
               </div>
             ) : selectedTarget && activeActor ? (
-              <div className={battleStyles.moveGrid}>{compatibleMoves.length ? compatibleMoves.map((option) => <button key={option.move.id} type="button" className={`${battleStyles.moveButton} ${battleStyles[`category_${option.move.category}`]}`} onClick={() => chooseMove(option.move.id)} disabled={!option.usable}><span className={battleStyles.moveTitle}><strong>{option.move.name}</strong><em>{option.move.category}</em></span><span className={battleStyles.moveNumbers}>PWR {option.move.power} · ACC {option.move.accuracy}% · BE {option.move.battleEnergyCost} · CD {activeActor.cooldowns[option.move.id] ?? 0}/{option.move.cooldown}</span><span>{getBattleTargetTypeLabel(option.move.targetType)} · {moveEffectLabel(option.move)}</span>{option.reason ? <small>{option.reason}</small> : <small>Ready</small>}</button>) : <div className={battleStyles.emptyMoveState}><strong>No compatible equipped moves</strong><p>Select a different target pattern.</p></div>}</div>
-            ) : <div className={battleStyles.emptyMoveState}><strong>Target first</strong><p>Select a living enemy, ally, the active creature, a fainted ranch creature for Revival, or the battlefield.</p></div>}
+              compatibleMoves.length ? <BattleMoveGrid options={compatibleMoves} actor={activeActor} onChooseMove={chooseMove} /> : <div className={battleStyles.emptyMoveState}><strong>No compatible equipped moves</strong><p>Select a different target pattern.</p></div>
+            ) : <div className={battleStyles.emptyMoveState}><strong>Target first</strong><p>Select a creature or the battlefield, then choose one of the active creature's moves.</p></div>}
 
-            <section style={{ ...darkPanel, marginTop: 12, padding: 12 }} data-ui-text-box="auto">
-              <div className={battleStyles.panelHeading}><div><span>Battle Outfitter</span><strong>Support Items</strong></div></div>
-              <p className={battleStyles.statusLine}>Each item type may be used once in this match.</p>
-              <div className={battleStyles.cardActions}><button type="button" onClick={() => useSupportItem("tonic")} disabled={usedItems.fieldTonic || tonicStock <= 0 || phase === "result"}>Field Tonic ({tonicStock})</button><button type="button" onClick={() => useSupportItem("revival")} disabled={usedItems.revivalSalve || revivalStock <= 0}>Revival Salve ({revivalStock})</button></div>
-            </section>
+            <footer className={battleStyles.actionFooter}>
+              <div className={battleStyles.queueSummary} title={`Enemy actions remain hidden until resolution. ${getBattleAiDifficultyDescription(encounter.aiDifficulty)}`}>
+                <span>Ranch Actions</span>
+                <strong>{queuedActions.size} / {livingPlayerIds.length} planned</strong>
+                <small>Click a green portrait above to plan or edit.</small>
+              </div>
+
+              <details className={battleStyles.supportDrawer}>
+                <summary>Support Items</summary>
+                <div>
+                  <p className={battleStyles.statusLine}>Each item type may be used once. Select a ranch creature before using an item.</p>
+                  <div className={battleStyles.cardActions}><button type="button" onClick={() => useSupportItem("tonic")} disabled={usedItems.fieldTonic || tonicStock <= 0 || phase === "result"}>Field Tonic ({tonicStock})</button><button type="button" onClick={() => useSupportItem("revival")} disabled={usedItems.revivalSalve || revivalStock <= 0}>Revival Salve ({revivalStock})</button></div>
+                </div>
+              </details>
+
+              <BattleLogButton entries={battleState.log} />
+              {phase !== "result" ? <button type="button" className={battleStyles.confirmButton} onClick={resolveRound} disabled={presentation.isPlaying || !allPlayerActionsQueued}>Confirm Round</button> : null}
+            </footer>
           </div>
-
-          <aside className={battleStyles.queuePanel}>
-            <div className={battleStyles.panelHeading}><div><span>Round Queue</span><strong>{queuedActions.size} / {livingPlayerIds.length}</strong></div></div>
-            <div className={battleStyles.queueList}>{players.filter((combatant) => !combatant.isFainted).map((combatant) => { const action = queuedActions.get(combatant.battleCombatantId); return <div key={combatant.battleCombatantId} className={battleStyles.queueEntry}><div><strong>{combatant.name}</strong><span>{action ? `${getBattleMove(action.moveId).name} → ${action.targetIds.length ? action.targetIds.map((id) => battleState.combatants[id]?.name ?? "Unknown").join(", ") : "Field"}` : "Action not queued"}</span></div>{action ? <button type="button" onClick={() => clearQueuedAction(combatant.battleCombatantId)}>Edit</button> : <button type="button" onClick={() => planFor(combatant.battleCombatantId)}>Plan</button>}</div>; })}</div>
-            <p className={battleStyles.statusLine}>Enemy actions remain hidden until resolution. {getBattleAiDifficultyDescription(encounter.aiDifficulty)}</p>
-            <button type="button" className={battleStyles.confirmButton} onClick={resolveRound} disabled={presentation.isPlaying || !allPlayerActionsQueued || phase === "result"}>Confirm Round</button>
-          </aside>
-
-          <aside className={battleStyles.logPanel}><div className={battleStyles.panelHeading}><div><span>Battle Log</span><strong>Latest Events</strong></div></div><div className={battleStyles.logList}>{recentLog.map((entry, index) => <p key={`${index}-${entry}`}>{entry}</p>)}</div></aside>
         </section>
       </section>
     </main>
