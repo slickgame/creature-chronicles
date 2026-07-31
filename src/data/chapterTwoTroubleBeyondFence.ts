@@ -182,8 +182,8 @@ export function prepareChapterTwoSave(save: GameSave): GameSave {
     }, `Day ${save.dayState.dayNumber}: Deep tracks appeared beyond the outer fence.`);
   }
 
-  const fortificationBuilt = hasPermanentFortification(save);
-  const patrolPrepared = hasSecurityAssignment(save);
+  const fortificationBuilt = current.fortificationBuilt || hasPermanentFortification(save);
+  const patrolPrepared = current.patrolPrepared || hasSecurityAssignment(save);
   next = {
     ...next,
     fortificationBuilt,
