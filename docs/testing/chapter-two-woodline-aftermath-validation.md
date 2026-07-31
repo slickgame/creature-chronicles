@@ -2,6 +2,8 @@
 
 Automated tests and the production build run in GitHub Actions. The following browser checks remain deferred until manual testing is practical.
 
+This checklist accompanies the stacked Act II patch and should be completed after both Chapter 2 pull requests are integrated.
+
 ## Setup
 
 1. Use a save that has completed Chapter 2 — Trouble Beyond the Fence and chosen a doctrine.
