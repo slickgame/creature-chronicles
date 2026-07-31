@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RanchHubScreen as BaseRanchHubScreen } from "./RanchHubScreen";
+import { getLatestPredatorEvent } from "@/data/predatorEvents";
 import { canResolveDailyEventChoice, resolveDailyRanchEventChoice } from "@/data/ranch-day/ranchDayEvents";
 import { deriveCreatureMoods } from "@/data/ranch-day/ranchDayMood";
 import {
@@ -43,6 +44,7 @@ export function RanchHubScreen() {
   const completedGoals = goals.filter((goal) => goal.complete).length;
   const eveningPreview = useMemo(() => save ? buildEveningPreview(save) : null, [save]);
   const moods = useMemo(() => save ? deriveCreatureMoods(save) : [], [save]);
+  const predatorEvent = useMemo(() => save ? getLatestPredatorEvent(save) : null, [save]);
 
   useEffect(() => {
     if (phase === "morning") setPanel("morning");
@@ -88,6 +90,7 @@ export function RanchHubScreen() {
 
   const brief = activeSave.ranchDay?.morningBrief;
   const event = activeSave.ranchDay?.event;
+  const showPredatorEvent = Boolean(predatorEvent && predatorEvent.dayNumber === activeSave.dayState.dayNumber && predatorEvent.status !== "battle_pending");
 
   return (
     <>
@@ -127,6 +130,21 @@ export function RanchHubScreen() {
                     <h2>{brief ? `Ranch Day ${brief.currentDayNumber} is ready.` : "Your ranch day is ready."}</h2>
                     <p>{brief?.nextSteps[0] ?? "Review assignments, supplies, breeding plans, and Nursery needs before ending the day."}</p>
                   </section>
+
+                  {showPredatorEvent && predatorEvent ? (
+                    <section className={predatorEvent.status === "victory" ? styles.eventCard : styles.warningCard} data-ui-text-box="auto">
+                      <img src={predatorEvent.imagePath} alt="Predator defense outcome" style={{ width: "100%", maxHeight: 240, objectFit: "contain", borderRadius: 12, background: "rgba(0,0,0,.24)" }} />
+                      <span>Overnight Predator Defense</span>
+                      <h2>{predatorEvent.status === "victory" ? "Ranch Secured" : predatorEvent.status === "draw" ? "Predators Withdrew" : "Ranch Breached"}</h2>
+                      <p>{predatorEvent.resolutionSummary ?? predatorEvent.summary}</p>
+                      <div className={styles.summaryGrid}>
+                        <div><span>Predators</span><strong>{predatorEvent.predatorName}</strong></div>
+                        <div><span>Threat</span><strong>{predatorEvent.tier}</strong></div>
+                        <div><span>Security</span><strong>{predatorEvent.security}/{predatorEvent.requiredSecurity}</strong></div>
+                        <div><span>Rounds</span><strong>{predatorEvent.resolvedRounds ?? 0}</strong></div>
+                      </div>
+                    </section>
+                  ) : null}
 
                   {brief ? (
                     <section className={styles.resourceGrid}>
@@ -222,7 +240,7 @@ export function RanchHubScreen() {
                     <h2>Before You End the Day</h2>
                     {eveningPreview.warnings.length ? <ul>{eveningPreview.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul> : <p>No urgent ranch warnings are projected.</p>}
                   </section>
-                  <p className={styles.note}>Ending the day resolves assignments, Feed, recovery, danger, pregnancy and egg timers, training returns, taxes, Market/Guild refreshes, goals, and the next Morning Brief exactly once.</p>
+                  <p className={styles.note}>Ending the day resolves assignments, Feed, recovery, predator pressure, pregnancy and egg timers, training returns, taxes, Market/Guild refreshes, goals, and the next Morning Brief exactly once.</p>
                 </div>
               ) : null}
             </div>
