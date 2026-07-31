@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { getChapterTwoIntoWoodlineState } from "@/data/chapterTwoIntoWoodline";
 import { getChapterTwoAftermathState } from "@/data/chapterTwoWoodlineAftermath";
 import { getChapterTwoState } from "@/data/chapterTwoTroubleBeyondFence";
+import { ChapterThreeGuildExhibitionPanel } from "@/features/story/ChapterThreeGuildExhibitionPanel";
 import { ChapterTwoAftermathPanel } from "@/features/story/ChapterTwoAftermathPanel";
 import { ChapterTwoIntoWoodlinePanel } from "@/features/story/ChapterTwoIntoWoodlinePanel";
 import { ChapterTwoQuestPanel } from "@/features/story/ChapterTwoQuestPanel";
@@ -56,15 +58,18 @@ export function RanchHubScreen() {
 
   const chapterTwoComplete = currentSave ? getChapterTwoState(currentSave).stage === "complete" : false;
   const aftermathComplete = currentSave ? getChapterTwoAftermathState(currentSave).stage === "complete" : false;
+  const woodlineComplete = currentSave ? getChapterTwoIntoWoodlineState(currentSave).stage === "complete" : false;
 
   return (
     <>
       <DayLoopRanchHubScreen />
-      {aftermathComplete
-        ? <ChapterTwoIntoWoodlinePanel />
-        : chapterTwoComplete
-          ? <ChapterTwoAftermathPanel />
-          : <ChapterTwoQuestPanel />}
+      {woodlineComplete
+        ? <ChapterThreeGuildExhibitionPanel />
+        : aftermathComplete
+          ? <ChapterTwoIntoWoodlinePanel />
+          : chapterTwoComplete
+            ? <ChapterTwoAftermathPanel />
+            : <ChapterTwoQuestPanel />}
     </>
   );
 }
