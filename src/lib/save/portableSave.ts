@@ -44,6 +44,7 @@ function looksLikeSave(value: unknown): value is GameSave {
   const record = value as Partial<GameSave>;
   return Boolean(
     record.saveId &&
+    typeof record.slotIndex === "number" &&
     Number.isInteger(record.slotIndex) &&
     record.player &&
     typeof record.player.name === "string" &&
