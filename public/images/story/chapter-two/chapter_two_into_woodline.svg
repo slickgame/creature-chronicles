@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+  <title id="title">Into the Woodline</title>
+  <desc id="desc">A lantern-lit ranch expedition approaches a wolf den beneath ancient trees.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#101d2a"/>
+      <stop offset="1" stop-color="#263325"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#171711"/>
+      <stop offset=".55" stop-color="#2c2a18"/>
+      <stop offset="1" stop-color="#12140f"/>
+    </linearGradient>
+    <radialGradient id="lantern" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffe7a1" stop-opacity=".95"/>
+      <stop offset=".45" stop-color="#df9d43" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#df9d43" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="12"/></filter>
+  </defs>
+  <rect width="1200" height="600" fill="url(#sky)"/>
+  <circle cx="870" cy="104" r="58" fill="#e8d7a7" opacity=".72"/>
+  <circle cx="895" cy="88" r="58" fill="#152331"/>
+  <path d="M0 330 C160 275 300 315 450 280 C620 240 760 300 910 250 C1040 215 1130 248 1200 220 L1200 600 L0 600Z" fill="#172117"/>
+  <g fill="#0c130f">
+    <path d="M52 0h78l-12 270 55 190H12l52-190z"/><path d="M210 0h92l-17 260 70 208H156l67-208z"/>
+    <path d="M990 0h86l-14 270 73 205H922l76-205z"/><path d="M1100 0h74l-8 280 50 180h-164l58-180z"/>
+  </g>
+  <g fill="#1d2d20" opacity=".95">
+    <circle cx="88" cy="92" r="118"/><circle cx="236" cy="78" r="132"/><circle cx="1040" cy="84" r="142"/><circle cx="1160" cy="100" r="118"/>
+  </g>
+  <path d="M0 438 C180 412 300 448 470 422 C630 396 760 434 912 402 C1040 376 1120 398 1200 386 L1200 600H0Z" fill="url(#ground)"/>
+  <path d="M420 600 C470 512 544 456 635 426 C718 398 790 358 844 304" fill="none" stroke="#7b6b42" stroke-width="56" opacity=".42"/>
+  <path d="M420 600 C470 512 544 456 635 426 C718 398 790 358 844 304" fill="none" stroke="#b49a5d" stroke-width="4" stroke-dasharray="12 18" opacity=".35"/>
+  <ellipse cx="390" cy="428" rx="210" ry="170" fill="url(#lantern)" filter="url(#soft)"/>
+  <g transform="translate(270 330)">
+    <path d="M54 118l22-72 24 72-9 78H63z" fill="#49311f"/><circle cx="77" cy="38" r="21" fill="#d8a96f"/>
+    <path d="M65 19q12-24 28 0l-2 18H67z" fill="#2f211a"/>
+    <rect x="98" y="68" width="16" height="52" rx="6" fill="#5c3b23"/><circle cx="106" cy="126" r="23" fill="#e9aa4d"/><circle cx="106" cy="126" r="11" fill="#fff0b5"/>
+  </g>
+  <g transform="translate(395 365)" fill="#242019">
+    <path d="M0 110q20-80 70-64l38 18 34-40 18 8-22 65-53 17-31 55H8z"/>
+    <circle cx="72" cy="52" r="28"/><path d="M54 28l-8-30 25 20M84 25l19-28 2 38"/>
+  </g>
+  <g transform="translate(690 282)" fill="#080b09">
+    <path d="M0 154q25-94 92-72l48 16 41-50 24 9-27 79-69 22-36 68H8z"/>
+    <circle cx="96" cy="88" r="40"/><path d="M70 54L55 5l42 31M113 52l38-47-8 61"/>
+    <circle cx="85" cy="86" r="4" fill="#e7a74a"/><circle cx="111" cy="84" r="4" fill="#e7a74a"/>
+  </g>
+  <g transform="translate(840 330) scale(.78)" fill="#0b0e0c">
+    <path d="M0 154q25-94 92-72l48 16 41-50 24 9-27 79-69 22-36 68H8z"/><circle cx="96" cy="88" r="40"/><path d="M70 54L55 5l42 31M113 52l38-47-8 61"/>
+    <circle cx="85" cy="86" r="5" fill="#d77f42"/><circle cx="111" cy="84" r="5" fill="#d77f42"/>
+  </g>
+  <path d="M970 250q95 35 150 120-68-26-132-8-22-58-18-112z" fill="#090d0a"/>
+  <g fill="#dcc48a" opacity=".6">
+    <circle cx="563" cy="455" r="5"/><circle cx="601" cy="431" r="4"/><circle cx="646" cy="413" r="4"/><circle cx="688" cy="395" r="3"/>
+  </g>
+  <rect x="24" y="24" width="1152" height="552" rx="28" fill="none" stroke="#d5ad61" stroke-width="5" opacity=".5"/>
+</svg>

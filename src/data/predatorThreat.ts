@@ -46,6 +46,8 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
   const builtFutureHabitats = getBuiltFutureHabitatIds(save);
   const doctrine = getChapterTwoDoctrineBonuses(save);
   const aftermath = getChapterTwoAftermathBonuses(save);
+  const woodlinePressureReduction = numberFlag(save.flags.chapterTwoWoodlinePressureReduction);
+  const woodlineSecurity = numberFlag(save.flags.chapterTwoWoodlineSecurityBonus);
   const chapterGate = save.flags.chapterOneGuidedComplete === true ||
     save.flags.m24ChapterOneStoryComplete === true ||
     save.dayState.dayNumber >= 7;
@@ -81,6 +83,10 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
     pressure = Math.max(0, pressure - aftermath.pressureReduction);
     reasons.push(`The Woodline aftermath operation removes another ${aftermath.pressureReduction} Predator Pressure.`);
   }
+  if (woodlinePressureReduction > 0) {
+    pressure = Math.max(0, pressure - woodlinePressureReduction);
+    reasons.push(`Protected Woodline policy removes ${woodlinePressureReduction} permanent Predator Pressure.`);
+  }
 
   if (!chapterGate) blockers.push("Predator incidents remain disabled until Chapter 1 is complete or Day 7 begins.");
   const hasAttractor = creatureCount >= 7 || feedStock >= 12 || builtFutureHabitats.length > 0;
@@ -89,9 +95,10 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
     blockers.push(`Predator pressure ${pressure} is below the 18-point incident threshold.`);
   }
 
-  const security = 6 + patrolScore + permanentSecurity + doctrine.security + aftermath.security;
+  const security = 6 + patrolScore + permanentSecurity + doctrine.security + aftermath.security + woodlineSecurity;
   if (doctrine.security > 0) reasons.push(`Fortified Perimeter doctrine adds ${doctrine.security} permanent Security.`);
   if (aftermath.security > 0) reasons.push(`Woodline fallback gates add ${aftermath.security} permanent Security.`);
+  if (woodlineSecurity > 0) reasons.push(`Stone Boundary policy adds ${woodlineSecurity} permanent Security.`);
   const requiredSecurity = Math.max(18, pressure + 6);
   const eligible = chapterGate && hasAttractor && pressure >= 18 && security < requiredSecurity;
   const eventChance = eligible ? clamp(12 + pressure - Math.floor(security * 0.65), 8, 72) : 0;

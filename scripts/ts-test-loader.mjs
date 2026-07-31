@@ -18,7 +18,7 @@ const exactAliases = new Map([
   ["@/data/breedingRecords", "data/breedingRecordsSafe"],
   ["@/data/coliseumC4", "data/coliseumC4Hardened"],
   ["@/data/nursery", "data/nurseryMoveInheritanceLifecycle"],
-  ["@/data/predatorEvents", "data/predatorEventsAftermath"],
+  ["@/data/predatorEvents", "data/predatorEventsWoodline"],
   ["@/features/breeding/BreedingFocusedScreen", "features/breeding/BreedingFocusedScreenMoves"],
   ["@/features/breeding/BreedingScreen", "features/breeding/BreedingScreenManaged"],
   ["@/features/collection/CollectionScreen", "features/collection/CollectionScreenLedger"],
