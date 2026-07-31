@@ -15,7 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/images/ui/icons/icon_paw_crest.png",
         sizes: "any",
         type: "image/png",
-        purpose: "any maskable",
+        purpose: "maskable",
       },
     ],
   };
