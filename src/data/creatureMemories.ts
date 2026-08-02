@@ -52,6 +52,10 @@ export type CreatureMemorySaveState = {
   chronicle: ChronicleEntry[];
 };
 
+type MemoryAwareSave = GameSave & {
+  creatureMemories?: CreatureMemorySaveState;
+};
+
 export type AddCreatureMemoryInput = Omit<
   CreatureMemory,
   "memoryId" | "version" | "createdAt"
@@ -76,7 +80,7 @@ function chronicleIdFor(memory: CreatureMemory): string {
   return `chronicle_${hashString(`${memory.memoryId}:${memory.sourceKey}`)}`;
 }
 
-function sortMemories<T extends { dayNumber: number; createdAt: string }>(entries: T[]): T[] {
+function sortEntries<T extends { dayNumber: number; createdAt: string }>(entries: T[]): T[] {
   return [...entries].sort((left, right) => {
     if (left.dayNumber !== right.dayNumber) return right.dayNumber - left.dayNumber;
     return right.createdAt.localeCompare(left.createdAt);
@@ -92,7 +96,7 @@ export function createEmptyCreatureMemoryState(): CreatureMemorySaveState {
 }
 
 export function getCreatureMemoryState(save: GameSave): CreatureMemorySaveState {
-  const candidate = save.creatureMemories;
+  const candidate = (save as MemoryAwareSave).creatureMemories;
   if (!candidate || typeof candidate !== "object") return createEmptyCreatureMemoryState();
 
   const memoriesByCreatureId =
@@ -112,11 +116,11 @@ export function getCreatureMemories(
   save: GameSave,
   creatureId: CreatureId,
 ): CreatureMemory[] {
-  return sortMemories(getCreatureMemoryState(save).memoriesByCreatureId[String(creatureId)] ?? []);
+  return sortEntries(getCreatureMemoryState(save).memoriesByCreatureId[String(creatureId)] ?? []);
 }
 
 export function getChronicleEntries(save: GameSave): ChronicleEntry[] {
-  return sortMemories(getCreatureMemoryState(save).chronicle);
+  return sortEntries(getCreatureMemoryState(save).chronicle);
 }
 
 export function addCreatureMemory(
@@ -153,19 +157,21 @@ export function addCreatureMemory(
     tags: memory.tags,
   };
 
-  return {
+  const updated: MemoryAwareSave = {
     ...save,
     creatureMemories: {
       version: CREATURE_MEMORY_VERSION,
       memoriesByCreatureId: {
         ...state.memoriesByCreatureId,
-        [key]: sortMemories([...existing, memory]),
+        [key]: sortEntries([...existing, memory]),
       },
       chronicle: state.chronicle.some((entry) => entry.entryId === chronicleEntry.entryId)
         ? state.chronicle
-        : sortMemories([...state.chronicle, chronicleEntry]),
+        : sortEntries([...state.chronicle, chronicleEntry]),
     },
   };
+
+  return updated;
 }
 
 function originMemoryFor(creature: CreatureRecord, dayNumber: number): AddCreatureMemoryInput {
@@ -189,21 +195,22 @@ export function normalizeCreatureMemorySave(save: GameSave): GameSave {
   let normalized: GameSave = {
     ...save,
     creatureMemories: getCreatureMemoryState(save),
-  };
+  } as MemoryAwareSave;
 
   for (const creature of save.creatures ?? []) {
-    const createdDay = Math.max(1, Number(save.dayState?.dayNumber ?? 1));
-    normalized = addCreatureMemory(normalized, originMemoryFor(creature, createdDay));
+    const recordedDay = Math.max(1, Number(save.dayState?.dayNumber ?? 1));
+    normalized = addCreatureMemory(normalized, originMemoryFor(creature, recordedDay));
 
     if (creature.level >= 10) {
+      const milestone = Math.floor(creature.level / 10) * 10;
       normalized = addCreatureMemory(normalized, {
         creatureId: creature.creatureId,
         category: "achievement",
         importance: creature.level >= 50 ? "major" : "notable",
-        title: `${creature.nickname} reached level ${creature.level}`,
-        description: `${creature.nickname} has grown into an experienced member of the ranch.`,
-        dayNumber: createdDay,
-        sourceKey: `level-milestone:${Math.floor(creature.level / 10) * 10}`,
+        title: `${creature.nickname} reached level ${milestone}`,
+        description: `${creature.nickname} grew into an experienced member of the ranch.`,
+        dayNumber: recordedDay,
+        sourceKey: `level-milestone:${milestone}`,
         tags: ["level", "growth"],
       });
     }
