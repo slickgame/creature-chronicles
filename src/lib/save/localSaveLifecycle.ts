@@ -6,6 +6,8 @@ import { normalizeCreatureCareerSave } from "@/data/creatureCareerRecords";
 import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
 import { normalizeCreatureManagementMetadata } from "@/data/creatureManagement";
 import { normalizeCreatureMemorySave } from "@/data/creatureMemories";
+import { normalizeCreaturePersonalitySave } from "@/data/creaturePersonalities";
+import { normalizeCreatureRelationshipSave } from "@/data/creatureRelationships";
 import { normalizeTrackedCreatureGenerations } from "@/data/generationMigration";
 import { normalizeRanchDaySave } from "@/data/ranch-day/ranchDayState";
 import {
@@ -62,19 +64,23 @@ function normalizeCreatureCapabilityRecords(save: GameSave): GameSave {
 }
 
 function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): GameSave {
-  return normalizeCreatureCareerSave(
-    normalizeCreatureMemorySave(
-      normalizeRanchDaySave(
-        normalizeBattleMoveInheritanceSave(
-          normalizeCreatureCapabilityRecords(
-            normalizeBreedingRecords(
-              normalizeCreatureManagementMetadata(
-                normalizeTrackedCreatureGenerations(save),
+  return normalizeCreatureRelationshipSave(
+    normalizeCreaturePersonalitySave(
+      normalizeCreatureCareerSave(
+        normalizeCreatureMemorySave(
+          normalizeRanchDaySave(
+            normalizeBattleMoveInheritanceSave(
+              normalizeCreatureCapabilityRecords(
+                normalizeBreedingRecords(
+                  normalizeCreatureManagementMetadata(
+                    normalizeTrackedCreatureGenerations(save),
+                  ),
+                ),
               ),
             ),
+            missingPhase,
           ),
         ),
-        missingPhase,
       ),
     ),
   );
