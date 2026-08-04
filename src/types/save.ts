@@ -4,6 +4,7 @@ import type {
   BattleMoveLoadout,
 } from "./battle";
 import type { BreedingState } from "./breeding";
+import type { CreatureCareerSaveState } from "./career";
 import type {
   CreatureAbility,
   CreatureFamily,
@@ -14,6 +15,7 @@ import type {
   HabitatRecord,
   StatGrades,
 } from "./creature";
+import type { CreatureMemorySaveState } from "@/data/creatureMemories";
 import type { GuildState } from "./guild";
 import type {
   BreedingAttemptId,
@@ -217,6 +219,8 @@ export type GameSave = {
   ranchUpgrades?: RanchUpgradeState;
   ranchJobs?: RanchJobsState;
   ranchDay?: RanchDayState;
+  creatureMemories?: CreatureMemorySaveState;
+  creatureCareers?: CreatureCareerSaveState;
   saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };
