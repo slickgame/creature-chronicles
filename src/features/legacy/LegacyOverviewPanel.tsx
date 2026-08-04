@@ -4,6 +4,10 @@ import {
   getHallOfLegendsCandidates,
   getRanchLegacySummary,
 } from "@/data/creatureLegacyRankings";
+import {
+  getCreatureHeirlooms,
+  getHallOfLegendsEntries,
+} from "@/data/creatureRetirement";
 import { getRanchSocialSummary } from "@/data/creatureSocialSummary";
 import { LegacyPrestigeBadge } from "./LegacyPrestigeBadge";
 import type { GameSave } from "@/types/save";
@@ -12,6 +16,8 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
   const summary = getRanchLegacySummary(save);
   const social = getRanchSocialSummary(save);
   const candidates = getHallOfLegendsCandidates(save, compact ? 3 : 5);
+  const hallEntries = getHallOfLegendsEntries(save).slice(0, compact ? 3 : 6);
+  const heirlooms = getCreatureHeirlooms(save).slice(0, compact ? 3 : 6);
 
   return (
     <section
@@ -41,14 +47,20 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
         <Metric label="Chronicle Entries" value={summary.chronicleEntries} />
         <Metric label="Ambitions Fulfilled" value={summary.fulfilledAmbitions} />
         <Metric label="Hall Candidates" value={summary.hallEligibleCreatures} />
+        <Metric label="Hall Inductees" value={summary.hallInductedCreatures} />
+        <Metric label="Retired Legends" value={summary.retiredCreatures} />
+        <Metric label="Heirlooms" value={summary.heirlooms} />
         <Metric label="Social Bonds" value={social.totalRelationships} />
         <Metric label="Daily Stories" value={social.dailyStories} />
       </div>
 
       {summary.topCreature ? (
         <div style={{ padding: 10, borderRadius: 12, background: "rgba(245,201,128,.08)" }}>
-          <small style={{ display: "block", opacity: 0.68 }}>Highest current Legacy score</small>
-          <strong>{summary.topCreature.creature.nickname} · {summary.topCreature.title}</strong>
+          <small style={{ display: "block", opacity: 0.68 }}>Highest all-time Legacy score</small>
+          <strong>
+            {summary.topCreature.creature.nickname} · {summary.topCreature.title}
+            {summary.topCreature.inductedIntoHall ? " · Hall Legend" : summary.topCreature.retired ? " · Retired" : ""}
+          </strong>
           <span style={{ display: "block", opacity: 0.76 }}>
             Score {summary.topCreature.legacyScore} · Known for {summary.topCreature.strongestContribution}
           </span>
@@ -80,9 +92,63 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
         </div>
       ) : null}
 
+      {hallEntries.length ? (
+        <div data-hall-of-legends="true" style={{ display: "grid", gap: 6 }}>
+          <strong style={{ fontSize: 14, color: "#ffe4a8" }}>Hall of Legends</strong>
+          {hallEntries.map((entry, index) => (
+            <div
+              key={entry.hallEntryId}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr auto",
+                gap: 8,
+                alignItems: "center",
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "1px solid rgba(245,201,128,.24)",
+                background: "rgba(245,201,128,.08)",
+              }}
+            >
+              <span>✦</span>
+              <span>
+                <strong style={{ display: "block" }}>{entry.creatureName}</strong>
+                <small style={{ opacity: .72 }}>
+                  {entry.legacyTitle} · inducted Day {entry.inductedAtDayNumber}
+                </small>
+              </span>
+              <strong>{entry.legacyScore}</strong>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {heirlooms.length ? (
+        <div data-legacy-heirloom-collection="true" style={{ display: "grid", gap: 6 }}>
+          <strong style={{ fontSize: 14 }}>Heirloom collection</strong>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 7 }}>
+            {heirlooms.map((heirloom) => (
+              <div
+                key={heirloom.heirloomId}
+                style={{
+                  padding: 9,
+                  borderRadius: 10,
+                  border: "1px solid rgba(127,219,255,.16)",
+                  background: "rgba(127,219,255,.06)",
+                }}
+              >
+                <strong style={{ display: "block" }}>{heirloom.name}</strong>
+                <small style={{ display: "block", opacity: .7 }}>
+                  {heirloom.category} · {heirloom.legacyPrestigeValue} Prestige
+                </small>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       {!compact || candidates.length ? (
         <div style={{ display: "grid", gap: 6 }}>
-          <strong style={{ fontSize: 14 }}>Hall of Legends candidates</strong>
+          <strong style={{ fontSize: 14 }}>Active Hall of Legends candidates</strong>
           {candidates.length ? candidates.map((candidate, index) => (
             <div
               key={candidate.creature.creatureId}
@@ -103,7 +169,7 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
               </span>
               <strong>{candidate.legacyScore}</strong>
             </div>
-          )) : <p style={{ margin: 0, opacity: 0.68 }}>No creature has reached Hall candidacy yet.</p>}
+          )) : <p style={{ margin: 0, opacity: 0.68 }}>No active creature has reached Hall candidacy yet.</p>}
         </div>
       ) : null}
     </section>
