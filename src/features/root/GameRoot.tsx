@@ -8,10 +8,12 @@ import { ColiseumC2Screen } from "@/features/coliseum/ColiseumC2Screen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
+import { GuildAmbitionAdvisor } from "@/features/guild/GuildAmbitionAdvisor";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
 import { ChronicleScreen } from "@/features/legacy/ChronicleScreen";
+import { LegacyPrestigeBadge } from "@/features/legacy/LegacyPrestigeBadge";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
@@ -38,8 +40,8 @@ export function GameRoot() {
           <p style={{ color: "#fff0c9", lineHeight: 1.5 }}>{String(currentSave.flags.badEndingReason ?? "The ranch could not continue.")}</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "18px 0" }}>
             <div style={{ padding: 10, background: "rgba(0, 0, 0, 0.35)", borderRadius: 10 }}><span>Month</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxDefaultMonth ?? currentSave.dayState.month)}</strong></div>
-            <div style={{ padding: 10, background: "rgba(0, 0, 0, 0.35)", borderRadius: 10 }}><span>Tax Due</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxMissedAmount ?? 0)} Gold</strong></div>
-            <div style={{ padding: 10, background: "rgba(0, 0, 0, 0.35)", borderRadius: 10 }}><span>Shortage</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxShortageAmount ?? 0)} Gold</strong></div>
+            <div style={{ padding: 10, background: "rgba(0, 0,0,.35)", borderRadius: 10 }}><span>Tax Due</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxMissedAmount ?? 0)} Gold</strong></div>
+            <div style={{ padding: 10, background: "rgba(0, 0,0,.35)", borderRadius: 10 }}><span>Shortage</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxShortageAmount ?? 0)} Gold</strong></div>
           </div>
           <p style={{ color: "#e7c991" }}>Keep enough Gold before Day 30 ends to survive the monthly collector check.</p>
           <button type="button" onClick={exitRunToMainMenu} style={{ minHeight: 42, padding: "10px 18px", border: "2px solid #1c120e", borderRadius: 10, background: "linear-gradient(#fff4c9, #dca755)", color: "#241713", fontWeight: 900 }}>Return to Main Menu</button>
@@ -79,29 +81,39 @@ export function GameRoot() {
     <>
       {screen}
       {currentSave && appScreen === "ranch-hub" ? (
-        <button
-          type="button"
-          onClick={() => setShowChronicle(true)}
-          aria-label="Open the ranch Chronicle"
-          data-legacy-chronicle-launcher="true"
+        <div
           style={{
             position: "fixed",
             right: 18,
             bottom: 82,
             zIndex: 50,
-            minHeight: 46,
-            padding: "10px 15px",
-            border: "2px solid #2d190d",
-            borderRadius: 999,
-            background: "linear-gradient(#fff4cf,#d6a25b)",
-            color: "#211208",
-            boxShadow: "0 10px 26px rgba(0,0,0,.35)",
-            fontWeight: 950,
+            display: "grid",
+            justifyItems: "end",
+            gap: 8,
           }}
         >
-          Chronicle
-        </button>
+          <LegacyPrestigeBadge save={currentSave} compact />
+          <button
+            type="button"
+            onClick={() => setShowChronicle(true)}
+            aria-label="Open the ranch Chronicle"
+            data-legacy-chronicle-launcher="true"
+            style={{
+              minHeight: 46,
+              padding: "10px 15px",
+              border: "2px solid #2d190d",
+              borderRadius: 999,
+              background: "linear-gradient(#fff4cf,#d6a25b)",
+              color: "#211208",
+              boxShadow: "0 10px 26px rgba(0,0,0,.35)",
+              fontWeight: 950,
+            }}
+          >
+            Chronicle
+          </button>
+        </div>
       ) : null}
+      {currentSave && appScreen === "guild-hall" ? <GuildAmbitionAdvisor save={currentSave} /> : null}
       {currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug" ? <PlayerInventoryMenu /> : null}
     </>
   );
