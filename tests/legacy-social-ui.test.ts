@@ -6,6 +6,8 @@ const personalitySource = readFileSync("src/features/legacy/CreaturePersonalityP
 const relationshipsSource = readFileSync("src/features/legacy/CreatureRelationshipsPanel.tsx", "utf8");
 const detailSource = readFileSync("src/features/legacy/CreatureDetailWithMemories.tsx", "utf8");
 const overviewSource = readFileSync("src/features/legacy/LegacyOverviewPanel.tsx", "utf8");
+const chronicleSource = readFileSync("src/features/legacy/ChronicleScreen.tsx", "utf8");
+const rosterSource = readFileSync("src/features/legacy/RanchSocialRoster.tsx", "utf8");
 const guildSource = readFileSync("src/data/guildAmbitionRecommendations.ts", "utf8");
 const transactionSource = readFileSync("src/data/legacyGameTransactions.ts", "utf8");
 
@@ -18,11 +20,14 @@ test("creature Legacy details expose personality and relationship panels", () =>
   assert.match(detailSource, /<CreatureRelationshipsPanel/);
 });
 
-test("the Chronicle overview includes social history metrics", () => {
+test("the Chronicle includes social history metrics and a live creature roster", () => {
   assert.match(overviewSource, /getRanchSocialSummary/);
   assert.match(overviewSource, /Social Bonds/);
   assert.match(overviewSource, /Daily Stories/);
   assert.match(overviewSource, /data-legacy-social-summary="true"/);
+  assert.match(chronicleSource, /<RanchSocialRoster save=\{save\}/);
+  assert.match(rosterSource, /data-legacy-social-roster="true"/);
+  assert.match(rosterSource, /Personalities and strongest bonds/);
 });
 
 test("Guild recommendations and Ranch Day processing consume personality systems", () => {
