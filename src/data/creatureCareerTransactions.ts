@@ -8,6 +8,7 @@ import {
 } from "@/data/creatureCareerRecords";
 import { recordNewAmbitionMilestones } from "@/data/creatureAmbitionEvents";
 import { recordBirthMemories } from "@/data/creatureMemoryEvents";
+import { recordCreatureRelationshipEvent } from "@/data/creatureRelationships";
 import { hatchEgg } from "@/data/nurseryLifecycle";
 import { processRanchJobsForNewDay } from "@/data/ranchJobs";
 import type { CreatureRecord } from "@/types/creature";
@@ -33,6 +34,28 @@ function parseProducedResources(result: RanchJobResult): number {
   if (result.jobId !== "stable_production" && result.jobId !== "garden_tending" && result.jobId !== "field_hauling") return 0;
   const match = result.message.match(/\+(\d+)\s+(?:Feed|Materials)/i);
   return match ? Math.max(0, Number(match[1]) || 0) : 0;
+}
+
+function recordTeamRelationships(
+  save: GameSave,
+  participantIds: CreatureId[],
+  eventPrefix: string,
+  dayNumber: number,
+  affinityDelta: number,
+): GameSave {
+  let nextSave = save;
+  const uniqueIds = Array.from(new Set(participantIds.map(String))).map((id) => id as CreatureId);
+  for (let leftIndex = 0; leftIndex < uniqueIds.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < uniqueIds.length; rightIndex += 1) {
+      nextSave = recordCreatureRelationshipEvent(nextSave, {
+        eventKey: `${eventPrefix}:${String(uniqueIds[leftIndex])}:${String(uniqueIds[rightIndex])}`,
+        creatureIds: [uniqueIds[leftIndex], uniqueIds[rightIndex]],
+        dayNumber,
+        affinityDelta,
+      });
+    }
+  }
+  return nextSave;
 }
 
 export function processRanchJobsWithCareers(save: GameSave): {
@@ -83,6 +106,21 @@ export function hatchEggWithLegacyRecords(
       role: "parent",
       offspringRarity: birth.rarity,
     });
+    nextSave = recordCreatureRelationshipEvent(nextSave, {
+      eventKey: `family-birth:${String(birth.birthId)}:${String(parent.creatureId)}`,
+      creatureIds: [birth.creatureId, parent.creatureId],
+      dayNumber: birth.hatchedAtDayNumber,
+      affinityDelta: 35,
+      family: true,
+    });
+  }
+  if (parentIds.length === 2) {
+    nextSave = recordCreatureRelationshipEvent(nextSave, {
+      eventKey: `co-parents:${String(birth.birthId)}`,
+      creatureIds: [parentIds[0], parentIds[1]],
+      dayNumber: birth.hatchedAtDayNumber,
+      affinityDelta: 3,
+    });
   }
   return {
     save: recordNewAmbitionMilestones(save, nextSave, parentIds, birth.hatchedAtDayNumber),
@@ -99,7 +137,7 @@ export function applyBattleCareerResults(
     participants: CareerBattleParticipant[];
   },
 ): GameSave {
-  const nextSave = input.participants.reduce(
+  let nextSave = input.participants.reduce(
     (next, participant) => recordCreatureBattleCareer(next, {
       eventKey: `battle:${input.battleId}:${String(participant.creatureId)}`,
       creatureId: participant.creatureId,
@@ -113,6 +151,13 @@ export function applyBattleCareerResults(
     }),
     save,
   );
+  nextSave = recordTeamRelationships(
+    nextSave,
+    input.participants.map((participant) => participant.creatureId),
+    `battle-team:${input.battleId}`,
+    input.dayNumber,
+    input.outcome === "victory" ? 2 : input.outcome === "draw" ? 1 : 0,
+  );
   return recordNewAmbitionMilestones(
     save,
     nextSave,
@@ -125,7 +170,7 @@ export function applyGuildCareerCompletion(
   save: GameSave,
   input: { requestId: string; dayNumber: number; participantIds: CreatureId[]; featured?: boolean },
 ): GameSave {
-  const nextSave = input.participantIds.reduce(
+  let nextSave = input.participantIds.reduce(
     (next, creatureId) => recordCreatureGuildCareer(next, {
       eventKey: `guild:${input.requestId}:${String(creatureId)}`,
       creatureId,
@@ -133,6 +178,13 @@ export function applyGuildCareerCompletion(
       featured: input.featured,
     }),
     save,
+  );
+  nextSave = recordTeamRelationships(
+    nextSave,
+    input.participantIds,
+    `guild-team:${input.requestId}`,
+    input.dayNumber,
+    input.featured ? 3 : 2,
   );
   return recordNewAmbitionMilestones(save, nextSave, input.participantIds, input.dayNumber);
 }
