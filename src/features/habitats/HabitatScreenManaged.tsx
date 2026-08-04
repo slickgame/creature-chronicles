@@ -1,13 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { getVariantDefinition } from "@/data/creatures";
+import { LegacyCreatureProfileLauncher } from "@/features/legacy/LegacyCreatureProfileLauncher";
 import { HabitatScreen as CoreHabitatScreen } from "./HabitatScreen";
 import { useGameContext } from "@/state/GameProvider";
 
 const STORAGE_KEY = "creature_chronicles_habitat_focus";
 
 export function HabitatScreen() {
-  const { appScreen, currentSave } = useGameContext();
+  const { activeHabitatFamily, appScreen, currentSave } = useGameContext();
+  const habitatCreatures = useMemo(
+    () =>
+      currentSave && activeHabitatFamily
+        ? (currentSave.creatures ?? []).filter(
+            (creature) => getVariantDefinition(creature.variantId).family === activeHabitatFamily,
+          )
+        : [],
+    [activeHabitatFamily, currentSave],
+  );
 
   useEffect(() => {
     if (appScreen !== "habitat" || !currentSave) return;
@@ -40,5 +51,19 @@ export function HabitatScreen() {
     window.setTimeout(focusCreature, 0);
   }, [appScreen, currentSave]);
 
-  return <CoreHabitatScreen />;
+  return (
+    <>
+      <CoreHabitatScreen />
+      {currentSave && habitatCreatures.length ? (
+        <LegacyCreatureProfileLauncher
+          save={currentSave}
+          creatures={habitatCreatures}
+          label="Habitat Legacy"
+          title="Habitat Creature Legacy Profiles"
+          defaultCreatureId={window.sessionStorage.getItem(STORAGE_KEY)}
+          position="right"
+        />
+      ) : null}
+    </>
+  );
 }
