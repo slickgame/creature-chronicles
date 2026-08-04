@@ -2,6 +2,7 @@
 
 import { ChronicleFeed } from "./ChronicleFeed";
 import { LegacyOverviewPanel } from "./LegacyOverviewPanel";
+import { RanchSocialRoster } from "./RanchSocialRoster";
 import type { GameSave } from "@/types/save";
 
 type ChronicleScreenProps = {
@@ -60,6 +61,7 @@ export function ChronicleScreen({ save, onBack }: ChronicleScreenProps) {
         </header>
 
         <LegacyOverviewPanel save={save} />
+        <RanchSocialRoster save={save} />
         <ChronicleFeed save={save} limit={100} />
       </section>
     </main>
