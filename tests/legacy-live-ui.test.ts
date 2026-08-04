@@ -7,12 +7,14 @@ const chronicleSource = readFileSync("src/features/legacy/ChronicleScreen.tsx", 
 const overviewSource = readFileSync("src/features/legacy/LegacyOverviewPanel.tsx", "utf8");
 const prestigeSource = readFileSync("src/features/legacy/LegacyPrestigeBadge.tsx", "utf8");
 const recommendationSource = readFileSync("src/features/guild/GuildRecommendationPanel.tsx", "utf8");
+const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
 const careerSource = readFileSync("src/features/legacy/CreatureCareerPanel.tsx", "utf8");
 
-test("the Ranch Hub exposes a live Chronicle launcher", () => {
+test("the Ranch Hub exposes a live Chronicle launcher and Prestige badge", () => {
   assert.match(rootSource, /useState\(false\)/);
   assert.match(rootSource, /data-legacy-chronicle-launcher="true"/);
   assert.match(rootSource, /<ChronicleScreen save=\{currentSave\}/);
+  assert.match(rootSource, /<LegacyPrestigeBadge save=\{currentSave\} compact/);
 });
 
 test("the Chronicle includes the Ranch Legacy overview before the event feed", () => {
@@ -33,9 +35,12 @@ test("Legacy UI exposes Prestige, titles, Hall candidacy, and ambition rewards",
   assert.match(ambitionSource, /Ranch Legacy Prestige/);
 });
 
-test("Guild recommendation component explains ambition-aware choices", () => {
+test("Guild recommendations are explained and mounted as a live advisor", () => {
   assert.match(recommendationSource, /getGuildCreatureRecommendations/);
   assert.match(recommendationSource, /data-guild-recommendations="true"/);
   assert.match(recommendationSource, /recommendation\.reasons/);
   assert.match(recommendationSource, /onSelect\(recommendation\.creature\.creatureId\)/);
+  assert.match(advisorSource, /data-guild-ambition-advisor="true"/);
+  assert.match(advisorSource, /Ambition Advisor/);
+  assert.match(rootSource, /appScreen === "guild-hall" \? <GuildAmbitionAdvisor save=\{currentSave\}/);
 });
