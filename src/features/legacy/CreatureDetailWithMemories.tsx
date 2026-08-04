@@ -5,6 +5,8 @@ import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels"
 import { CreatureAmbitionPanel } from "./CreatureAmbitionPanel";
 import { CreatureCareerPanel } from "./CreatureCareerPanel";
 import { CreatureMemoriesPanel } from "./CreatureMemoriesPanel";
+import { CreaturePersonalityPanel } from "./CreaturePersonalityPanel";
+import { CreatureRelationshipsPanel } from "./CreatureRelationshipsPanel";
 import type { GameSave } from "@/types/save";
 
 type SharedDetailProps = ComponentProps<typeof SharedCreatureDetail>;
@@ -12,21 +14,28 @@ type SharedDetailProps = ComponentProps<typeof SharedCreatureDetail>;
 type CreatureDetailWithMemoriesProps = SharedDetailProps & {
   save: GameSave;
   memoryLimit?: number;
+  relationshipLimit?: number;
   compactCareer?: boolean;
   compactAmbition?: boolean;
+  compactPersonality?: boolean;
+  compactRelationships?: boolean;
 };
 
 /**
  * Drop-in Legacy composition for screens that already render
  * SharedCreatureDetail. It keeps the established detail UI intact while
- * presenting ambition, structured career totals, and narrative memories.
+ * presenting ambitions, personality, relationships, career totals, and
+ * narrative memories.
  */
 export function CreatureDetailWithMemories({
   save,
   creature,
   memoryLimit = 8,
+  relationshipLimit = 4,
   compactCareer = false,
   compactAmbition = false,
+  compactPersonality = false,
+  compactRelationships = false,
   ...detailProps
 }: CreatureDetailWithMemoriesProps) {
   return (
@@ -36,6 +45,17 @@ export function CreatureDetailWithMemories({
         save={save}
         creatureId={creature.creatureId}
         compact={compactAmbition}
+      />
+      <CreaturePersonalityPanel
+        save={save}
+        creatureId={creature.creatureId}
+        compact={compactPersonality}
+      />
+      <CreatureRelationshipsPanel
+        save={save}
+        creatureId={creature.creatureId}
+        limit={relationshipLimit}
+        compact={compactRelationships}
       />
       <CreatureCareerPanel
         save={save}
