@@ -28,6 +28,13 @@ function lastMatchingAction(
   return null;
 }
 
+function isProtectiveMove(moveId: string): boolean {
+  const move = getBattleMove(moveId);
+  return move.tags.includes("guard") || move.effects.some(
+    (effect) => effect.type === "guard" || effect.status === "guarded",
+  );
+}
+
 /**
  * Derives conservative per-creature telemetry from a completed round. The battle
  * engine currently returns one before/after snapshot for the whole round rather
@@ -87,9 +94,7 @@ export function deriveRoundBattleTelemetry(
   }
 
   for (const action of playerActions) {
-    if (!action.success) continue;
-    const move = getBattleMove(action.moveId);
-    if (!move.effects.some((effect) => effect.type === "guard")) continue;
+    if (!action.success || !isProtectiveMove(action.moveId)) continue;
     const protectedAllies = actionTargets(action).filter(
       (targetId) => previousState.combatants[targetId]?.sideId === "player",
     ).length;
