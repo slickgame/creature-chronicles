@@ -2,9 +2,9 @@
 
 import type { ComponentProps } from "react";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
+import { CreatureMemoriesPanel } from "@/features/creatures/CreatureMemoriesPanel";
 import { CreatureAmbitionPanel } from "./CreatureAmbitionPanel";
 import { CreatureCareerPanel } from "./CreatureCareerPanel";
-import { CreatureMemoriesPanel } from "./CreatureMemoriesPanel";
 import { CreaturePersonalityPanel } from "./CreaturePersonalityPanel";
 import { CreatureRelationshipsPanel } from "./CreatureRelationshipsPanel";
 import type { GameSave } from "@/types/save";
