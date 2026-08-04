@@ -29,6 +29,7 @@ import type {
   VariantId,
 } from "./ids";
 import type { ItemUseRecord } from "./items";
+import type { CreatureLegacyState } from "./legacy";
 import type { MarketState } from "./market";
 import type { CreaturePersonalitySaveState } from "./personality";
 import type { RanchDayState } from "./ranchDay";
@@ -225,6 +226,7 @@ export type GameSave = {
   creatureCareers?: CreatureCareerSaveState;
   creaturePersonalities?: CreaturePersonalitySaveState;
   creatureRelationships?: CreatureRelationshipSaveState;
+  creatureLegacy?: CreatureLegacyState;
   saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };
