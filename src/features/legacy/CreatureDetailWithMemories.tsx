@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from "react";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
+import { CreatureCareerPanel } from "./CreatureCareerPanel";
 import { CreatureMemoriesPanel } from "./CreatureMemoriesPanel";
 import type { GameSave } from "@/types/save";
 
@@ -10,22 +11,29 @@ type SharedDetailProps = ComponentProps<typeof SharedCreatureDetail>;
 type CreatureDetailWithMemoriesProps = SharedDetailProps & {
   save: GameSave;
   memoryLimit?: number;
+  compactCareer?: boolean;
 };
 
 /**
- * Drop-in composition for screens that already render SharedCreatureDetail.
- * Keeping Legacy UI outside the large creature-detail module lowers regression
- * risk while the memories system is introduced incrementally.
+ * Drop-in Legacy composition for screens that already render
+ * SharedCreatureDetail. It keeps the established detail UI intact while
+ * presenting structured career totals and narrative memories together.
  */
 export function CreatureDetailWithMemories({
   save,
   creature,
   memoryLimit = 8,
+  compactCareer = false,
   ...detailProps
 }: CreatureDetailWithMemoriesProps) {
   return (
     <div style={{ display: "grid", gap: 12, minHeight: 0 }}>
       <SharedCreatureDetail creature={creature} {...detailProps} />
+      <CreatureCareerPanel
+        save={save}
+        creatureId={creature.creatureId}
+        compact={compactCareer}
+      />
       <CreatureMemoriesPanel
         save={save}
         creatureId={creature.creatureId}
