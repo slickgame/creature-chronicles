@@ -4,11 +4,13 @@ import {
   getHallOfLegendsCandidates,
   getRanchLegacySummary,
 } from "@/data/creatureLegacyRankings";
+import { getRanchSocialSummary } from "@/data/creatureSocialSummary";
 import { LegacyPrestigeBadge } from "./LegacyPrestigeBadge";
 import type { GameSave } from "@/types/save";
 
 export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave; compact?: boolean }) {
   const summary = getRanchLegacySummary(save);
+  const social = getRanchSocialSummary(save);
   const candidates = getHallOfLegendsCandidates(save, compact ? 3 : 5);
 
   return (
@@ -39,6 +41,8 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
         <Metric label="Chronicle Entries" value={summary.chronicleEntries} />
         <Metric label="Ambitions Fulfilled" value={summary.fulfilledAmbitions} />
         <Metric label="Hall Candidates" value={summary.hallEligibleCreatures} />
+        <Metric label="Social Bonds" value={social.totalRelationships} />
+        <Metric label="Daily Stories" value={social.dailyStories} />
       </div>
 
       {summary.topCreature ? (
@@ -48,6 +52,31 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
           <span style={{ display: "block", opacity: 0.76 }}>
             Score {summary.topCreature.legacyScore} · Known for {summary.topCreature.strongestContribution}
           </span>
+        </div>
+      ) : null}
+
+      {social.strongestBond ? (
+        <div
+          data-legacy-social-summary="true"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))",
+            gap: 8,
+            padding: 10,
+            borderRadius: 12,
+            background: "rgba(236,171,211,.08)",
+          }}
+        >
+          <div>
+            <small style={{ display: "block", opacity: .68 }}>Strongest current bond</small>
+            <strong>{social.strongestBond.leftName} &amp; {social.strongestBond.rightName}</strong>
+            <span style={{ display: "block", opacity: .76, textTransform: "capitalize" }}>
+              {social.strongestBond.label} · {social.strongestBond.affinity > 0 ? "+" : ""}{social.strongestBond.affinity}
+            </span>
+          </div>
+          <Metric label="Friendships" value={social.friendships} />
+          <Metric label="Family Bonds" value={social.familyBonds} />
+          <Metric label="Rivalries" value={social.rivalries} />
         </div>
       ) : null}
 
