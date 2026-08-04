@@ -6,9 +6,16 @@ import {
   getSpeciesDefinition,
   getVariantDefinition,
 } from "@/data/creatures";
+import {
+  getHallOfLegendsEntries,
+  getRetiredCreatureRecord,
+  getRetiredCreatureRecords,
+} from "@/data/creatureRetirement";
+import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import type { GameSave } from "@/types/save";
 import { CreatureDetailWithMemories } from "./CreatureDetailWithMemories";
+import { CreatureRetirementPanel } from "./CreatureRetirementPanel";
 
 type LegacyCreatureProfileLauncherProps = {
   save: GameSave;
@@ -27,30 +34,43 @@ export function LegacyCreatureProfileLauncher({
   defaultCreatureId = null,
   position = "right",
 }: LegacyCreatureProfileLauncherProps) {
+  const { saveCurrentGame } = useGameContext();
+  const allCreatures = useMemo(() => {
+    const byId = new Map<string, CreatureRecord>();
+    for (const creature of creatures) byId.set(String(creature.creatureId), creature);
+    for (const retired of getRetiredCreatureRecords(save)) {
+      byId.set(String(retired.creatureId), retired.creature);
+    }
+    return Array.from(byId.values());
+  }, [creatures, save]);
+  const hallIds = useMemo(
+    () => new Set(getHallOfLegendsEntries(save).map((entry) => String(entry.creatureId))),
+    [save],
+  );
   const [open, setOpen] = useState(false);
   const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(
-    defaultCreatureId ?? creatures[0]?.creatureId ?? null,
+    defaultCreatureId ?? allCreatures[0]?.creatureId ?? null,
   );
 
   useEffect(() => {
-    if (!creatures.length) {
+    if (!allCreatures.length) {
       setSelectedCreatureId(null);
       return;
     }
-    if (!creatures.some((creature) => creature.creatureId === selectedCreatureId)) {
-      setSelectedCreatureId(defaultCreatureId ?? creatures[0].creatureId);
+    if (!allCreatures.some((creature) => creature.creatureId === selectedCreatureId)) {
+      setSelectedCreatureId(defaultCreatureId ?? allCreatures[0].creatureId);
     }
-  }, [creatures, defaultCreatureId, selectedCreatureId]);
+  }, [allCreatures, defaultCreatureId, selectedCreatureId]);
 
   const selectedCreature = useMemo(
     () =>
-      creatures.find((creature) => creature.creatureId === selectedCreatureId) ??
-      creatures[0] ??
+      allCreatures.find((creature) => creature.creatureId === selectedCreatureId) ??
+      allCreatures[0] ??
       null,
-    [creatures, selectedCreatureId],
+    [allCreatures, selectedCreatureId],
   );
 
-  if (!creatures.length) return null;
+  if (!allCreatures.length) return null;
 
   return (
     <>
@@ -177,10 +197,12 @@ export function LegacyCreatureProfileLauncher({
                   paddingRight: 2,
                 }}
               >
-                {creatures.map((creature) => {
+                {allCreatures.map((creature) => {
                   const variant = getVariantDefinition(creature.variantId);
                   const species = getSpeciesDefinition(creature.speciesId);
                   const selected = creature.creatureId === selectedCreature?.creatureId;
+                  const retired = getRetiredCreatureRecord(save, creature.creatureId);
+                  const hallLegend = hallIds.has(String(creature.creatureId));
                   return (
                     <button
                       key={creature.creatureId}
@@ -195,9 +217,15 @@ export function LegacyCreatureProfileLauncher({
                         textAlign: "left",
                         border: selected
                           ? "2px solid rgba(127,219,255,.9)"
-                          : "1px solid rgba(245,201,128,.24)",
+                          : hallLegend
+                            ? "1px solid rgba(245,201,128,.58)"
+                            : "1px solid rgba(245,201,128,.24)",
                         borderRadius: 13,
-                        background: selected ? "rgba(86,199,255,.14)" : "rgba(0,0,0,.22)",
+                        background: selected
+                          ? "rgba(86,199,255,.14)"
+                          : retired
+                            ? "rgba(245,201,128,.08)"
+                            : "rgba(0,0,0,.22)",
                         color: "#fff7dd",
                       }}
                     >
@@ -213,6 +241,7 @@ export function LegacyCreatureProfileLauncher({
                           objectFit: "contain",
                           borderRadius: 10,
                           background: "rgba(255,255,255,.04)",
+                          filter: retired ? "sepia(.18) saturate(.84)" : undefined,
                         }}
                       />
                       <span style={{ minWidth: 0 }}>
@@ -222,6 +251,22 @@ export function LegacyCreatureProfileLauncher({
                         <small style={{ display: "block", color: "#ead8b7", lineHeight: 1.35 }}>
                           {variant.name} {species.name} · Lv {creature.level}
                         </small>
+                        <small
+                          style={{
+                            display: "inline-block",
+                            marginTop: 4,
+                            padding: "2px 6px",
+                            borderRadius: 999,
+                            background: hallLegend
+                              ? "rgba(245,201,128,.2)"
+                              : retired
+                                ? "rgba(127,219,255,.12)"
+                                : "rgba(255,255,255,.06)",
+                            color: hallLegend ? "#ffe4a8" : retired ? "#d9f4ff" : "#d8d0c2",
+                          }}
+                        >
+                          {hallLegend ? "Hall Legend" : retired ? "Retired" : "Active"}
+                        </small>
                       </span>
                     </button>
                   );
@@ -230,19 +275,31 @@ export function LegacyCreatureProfileLauncher({
 
               <div style={{ minHeight: 0, overflow: "auto", paddingRight: 2 }}>
                 {selectedCreature ? (
-                  <CreatureDetailWithMemories
-                    save={save}
-                    creature={selectedCreature}
-                    dayNumber={save.dayState.dayNumber}
-                    showActions={false}
-                    statusNote="Legacy profile: ambitions, personality, relationships, career records, and memories are shown below the standard creature details."
-                    compactAmbition
-                    compactCareer
-                    compactPersonality
-                    compactRelationships
-                    relationshipLimit={5}
-                    memoryLimit={8}
-                  />
+                  <div style={{ display: "grid", gap: 12 }}>
+                    <CreatureDetailWithMemories
+                      save={save}
+                      creature={selectedCreature}
+                      dayNumber={save.dayState.dayNumber}
+                      showActions={false}
+                      statusNote={
+                        getRetiredCreatureRecord(save, selectedCreature.creatureId)
+                          ? "Retired Legacy profile: the complete career, personality, relationships, and memories remain permanently preserved."
+                          : "Legacy profile: ambitions, personality, relationships, career records, and memories are shown below the standard creature details."
+                      }
+                      compactAmbition
+                      compactCareer
+                      compactPersonality
+                      compactRelationships
+                      relationshipLimit={5}
+                      memoryLimit={8}
+                    />
+                    <CreatureRetirementPanel
+                      save={save}
+                      creature={selectedCreature}
+                      onSave={(nextSave) => saveCurrentGame(nextSave)}
+                      compact
+                    />
+                  </div>
                 ) : null}
               </div>
             </div>
