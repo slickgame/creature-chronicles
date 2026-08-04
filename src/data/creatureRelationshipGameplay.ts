@@ -104,6 +104,9 @@ export function applyBreedingRelationshipAftermath(
   dayNumber: number,
 ): GameSave {
   if (!compatibility) return save;
+  const rewardFlag = `breedingRelationshipAftermath_${attemptId}`;
+  if (save.flags[rewardFlag] === true) return save;
+
   const success = outcome === "pregnancy";
   const affectionDelta = success
     ? compatibility.score >= 3 ? 2 : 1
@@ -119,6 +122,7 @@ export function applyBreedingRelationshipAftermath(
     ...nextSave,
     flags: {
       ...nextSave.flags,
+      [rewardFlag]: true,
       [`breedingCompatibility_${attemptId}`]: `${compatibility.label}|${compatibility.score}|${affectionDelta}`,
     },
   };
@@ -140,6 +144,14 @@ export function applyTrainingRelationshipSupport(
   const supporter = (save.creatures ?? []).find((creature) => creature.creatureId === supporterId);
   if (!supporter) return { save, support: null };
 
+  const support: TrainingRelationshipSupport = {
+    supporterId,
+    supporterName: supporter.nickname,
+    relationshipLabel: relationship.family ? "family bond" : "friendship",
+  };
+  const rewardFlag = `trainingSupportReward_${assignmentId}_${String(creatureId)}`;
+  if (save.flags[rewardFlag] === true) return { save, support };
+
   let nextSave = recordCreatureRelationshipEvent(save, {
     eventKey: `training-support:${assignmentId}:${String(creatureId)}:${String(supporterId)}`,
     creatureIds: [creatureId, supporterId],
@@ -147,15 +159,15 @@ export function applyTrainingRelationshipSupport(
     affinityDelta: 1,
   });
   nextSave = addAffection(nextSave, [creatureId], 1);
-
-  return {
-    save: nextSave,
-    support: {
-      supporterId,
-      supporterName: supporter.nickname,
-      relationshipLabel: relationship.family ? "family bond" : "friendship",
+  nextSave = {
+    ...nextSave,
+    flags: {
+      ...nextSave.flags,
+      [rewardFlag]: true,
     },
   };
+
+  return { save: nextSave, support };
 }
 
 export function applyBattleTeamworkMorale(
