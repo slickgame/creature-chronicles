@@ -1,4 +1,11 @@
-import { recordCreatureBreedingCareer, recordCreatureWorkCareer } from "@/data/creatureCareerRecords";
+import {
+  recordCreatureBattleCareer,
+  recordCreatureBreedingCareer,
+  recordCreatureGuildCareer,
+  recordCreatureInjuryCareer,
+  recordCreatureTrainingCareer,
+  recordCreatureWorkCareer,
+} from "@/data/creatureCareerRecords";
 import { recordBirthMemories } from "@/data/creatureMemoryEvents";
 import { hatchEgg } from "@/data/nurseryLifecycle";
 import { processRanchJobsForNewDay } from "@/data/ranchJobs";
@@ -12,27 +19,27 @@ export type CareerAwareHatchResult = {
   creature: CreatureRecord;
 };
 
-function parseProducedResources(result: RanchJobResult): number {
-  if (result.jobId !== "stable_production" && result.jobId !== "garden_tending" && result.jobId !== "field_hauling") {
-    return 0;
-  }
+export type CareerBattleParticipant = {
+  creatureId: CreatureId;
+  damageDealt?: number;
+  healingDone?: number;
+  alliesProtected?: number;
+  knockouts?: number;
+  fainted?: boolean;
+};
 
+function parseProducedResources(result: RanchJobResult): number {
+  if (result.jobId !== "stable_production" && result.jobId !== "garden_tending" && result.jobId !== "field_hauling") return 0;
   const match = result.message.match(/\+(\d+)\s+(?:Feed|Materials)/i);
   return match ? Math.max(0, Number(match[1]) || 0) : 0;
 }
 
-/**
- * Applies lifetime work credit to each creature returned by the canonical ranch
- * job processor. The event key is tied to Ranch Day, job, and creature, making
- * this safe to repeat after autosave recovery.
- */
 export function processRanchJobsWithCareers(save: GameSave): {
   save: GameSave;
   results: RanchJobResult[];
 } {
   const processed = processRanchJobsForNewDay(save);
   let nextSave = processed.save;
-
   for (const result of processed.results) {
     nextSave = recordCreatureWorkCareer(nextSave, {
       eventKey: `ranch-job:${save.dayState.dayNumber}:${result.jobId}:${String(result.creatureId)}`,
@@ -42,22 +49,13 @@ export function processRanchJobsWithCareers(save: GameSave): {
       resourcesProduced: parseProducedResources(result),
     });
   }
-
   return { save: nextSave, results: processed.results };
 }
 
 function getBirthForCreature(save: GameSave, creatureId: CreatureId): BirthRecord | null {
-  return (
-    (save.birthHistory ?? []).find((birth) => birth.creatureId === creatureId) ??
-    null
-  );
+  return (save.birthHistory ?? []).find((birth) => birth.creatureId === creatureId) ?? null;
 }
 
-/**
- * Canonical hatch transaction for the Legacy stack. It preserves the existing
- * hatch result, writes narrative birth/parent memories, and credits each
- * creature parent with one offspring in the structured career record.
- */
 export function hatchEggWithLegacyRecords(
   save: GameSave,
   eggId: EggId,
@@ -65,10 +63,8 @@ export function hatchEggWithLegacyRecords(
 ): CareerAwareHatchResult | null {
   const result = hatchEgg(save, eggId, nickname);
   if (!result) return null;
-
   const birth = getBirthForCreature(result.save, result.creature.creatureId);
   if (!birth) return result;
-
   let nextSave = recordBirthMemories(result.save, birth);
   for (const parent of [birth.parents.giver, birth.parents.receiver]) {
     if (!parent.creatureId) continue;
@@ -80,6 +76,82 @@ export function hatchEggWithLegacyRecords(
       offspringRarity: birth.rarity,
     });
   }
-
   return { save: nextSave, creature: result.creature };
+}
+
+export function applyBattleCareerResults(
+  save: GameSave,
+  input: {
+    battleId: string;
+    outcome: "victory" | "draw" | "defeat";
+    dayNumber: number;
+    participants: CareerBattleParticipant[];
+  },
+): GameSave {
+  return input.participants.reduce(
+    (next, participant) => recordCreatureBattleCareer(next, {
+      eventKey: `battle:${input.battleId}:${String(participant.creatureId)}`,
+      creatureId: participant.creatureId,
+      dayNumber: input.dayNumber,
+      outcome: input.outcome,
+      damageDealt: participant.damageDealt,
+      healingDone: participant.healingDone,
+      alliesProtected: participant.alliesProtected,
+      knockouts: participant.knockouts,
+      fainted: participant.fainted,
+    }),
+    save,
+  );
+}
+
+export function applyGuildCareerCompletion(
+  save: GameSave,
+  input: { requestId: string; dayNumber: number; participantIds: CreatureId[]; featured?: boolean },
+): GameSave {
+  return input.participantIds.reduce(
+    (next, creatureId) => recordCreatureGuildCareer(next, {
+      eventKey: `guild:${input.requestId}:${String(creatureId)}`,
+      creatureId,
+      dayNumber: input.dayNumber,
+      featured: input.featured,
+    }),
+    save,
+  );
+}
+
+export function applyTrainingCareerCompletion(
+  save: GameSave,
+  input: { assignmentId: string; creatureId: CreatureId; dayNumber: number },
+): GameSave {
+  return recordCreatureTrainingCareer(save, {
+    eventKey: `training:${input.assignmentId}:${String(input.creatureId)}`,
+    creatureId: input.creatureId,
+    dayNumber: input.dayNumber,
+  });
+}
+
+export function applyBreedingAttemptCareer(
+  save: GameSave,
+  input: { attemptId: string; dayNumber: number; parentCreatureIds: CreatureId[] },
+): GameSave {
+  return input.parentCreatureIds.reduce(
+    (next, creatureId) => recordCreatureBreedingCareer(next, {
+      eventKey: `breeding-attempt:${input.attemptId}:${String(creatureId)}`,
+      creatureId,
+      dayNumber: input.dayNumber,
+      role: "attempt",
+    }),
+    save,
+  );
+}
+
+export function applyInjuryCareerEvent(
+  save: GameSave,
+  input: { injuryId: string; creatureId: CreatureId; dayNumber: number },
+): GameSave {
+  return recordCreatureInjuryCareer(save, {
+    eventKey: `injury:${input.injuryId}:${String(input.creatureId)}`,
+    creatureId: input.creatureId,
+    dayNumber: input.dayNumber,
+  });
 }
