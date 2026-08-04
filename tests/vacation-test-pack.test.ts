@@ -125,3 +125,15 @@ test("main menu, dev tools, and town expose the vacation test features", async (
   assert.match(lantern, /Hospitality Shift/);
   assert.match(lantern, /Rumor Network/);
 });
+
+test("the main menu fits dynamic iPhone portrait and landscape viewports", async () => {
+  const menuStyles = await source("src/features/main-menu/MainMenuScreen.module.css");
+
+  assert.match(menuStyles, /height:\s*100dvh/);
+  assert.match(menuStyles, /overflow-y:\s*auto/);
+  assert.match(menuStyles, /env\(safe-area-inset-top\)/);
+  assert.match(menuStyles, /@media \(max-width: 620px\)/);
+  assert.match(menuStyles, /min-height:\s*52px/);
+  assert.match(menuStyles, /:has\(\.menuPanel\)/);
+  assert.match(menuStyles, /@media \(max-width: 980px\) and \(max-height: 520px\)/);
+});
