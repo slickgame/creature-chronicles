@@ -1,6 +1,8 @@
 "use client";
 
+import { getAmbitionCompletionReward } from "@/data/creatureAmbitionEvents";
 import { getCreatureAmbitionProgress } from "@/data/creatureAmbitions";
+import { getLegacyPrestige } from "@/data/legacyProgressReconciliation";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
@@ -13,6 +15,9 @@ type CreatureAmbitionPanelProps = {
 export function CreatureAmbitionPanel({ save, creatureId, compact = false }: CreatureAmbitionPanelProps) {
   const ambition = getCreatureAmbitionProgress(save, creatureId);
   const { definition } = ambition;
+  const completionReward = getAmbitionCompletionReward(definition);
+  const rewardClaimed = save.flags[`ambitionReward:${String(creatureId)}:${definition.ambitionId}`] === true;
+  const legacyPrestige = getLegacyPrestige(save);
 
   return (
     <section
@@ -70,7 +75,7 @@ export function CreatureAmbitionPanel({ save, creatureId, compact = false }: Cre
         </div>
       </div>
 
-      <footer style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      <footer style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
         {definition.milestoneTargets.map((target) => {
           const reached = ambition.reachedMilestones.includes(target);
           return (
@@ -92,6 +97,27 @@ export function CreatureAmbitionPanel({ save, creatureId, compact = false }: Cre
           {ambition.completed ? "Ambition fulfilled" : ambition.nextMilestone ? `Next milestone: ${ambition.nextMilestone}` : "Final milestone reached"}
         </span>
       </footer>
+
+      {!compact ? (
+        <div
+          data-legacy-ambition-reward="true"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            gap: 8,
+            paddingTop: 9,
+            borderTop: "1px solid rgba(255,255,255,0.1)",
+            fontSize: 12,
+            opacity: 0.84,
+          }}
+        >
+          <span>
+            {rewardClaimed ? "Reward earned" : "Completion reward"}: {completionReward.gold} Gold · {completionReward.guildPoints} GP · {completionReward.prestige} Prestige
+          </span>
+          <strong>Ranch Legacy Prestige: {legacyPrestige}</strong>
+        </div>
+      ) : null}
     </section>
   );
 }
