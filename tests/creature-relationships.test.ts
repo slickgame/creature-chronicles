@@ -17,8 +17,28 @@ import {
   recordCreatureRelationshipEvent,
 } from "@/data/creatureRelationships";
 import { createNewGameSave } from "@/lib/save/localSave";
+import type { CreatureId } from "@/types/ids";
 import type { RanchJobResult } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
+
+function buildAffinity(
+  save: GameSave,
+  leftId: CreatureId,
+  rightId: CreatureId,
+  eventPrefix: string,
+  events: number,
+): GameSave {
+  let nextSave = save;
+  for (let index = 0; index < events; index += 1) {
+    nextSave = recordCreatureRelationshipEvent(nextSave, {
+      eventKey: `${eventPrefix}:${index}`,
+      creatureIds: [leftId, rightId],
+      dayNumber: save.dayState.dayNumber,
+      affinityDelta: 20,
+    });
+  }
+  return nextSave;
+}
 
 test("relationship events are symmetric and idempotent", () => {
   const save = createNewGameSave("Relationship Tester", 0);
@@ -82,12 +102,7 @@ test("shared Ranch work applies preference and friendship satisfaction once", ()
   const save = createNewGameSave("Work Satisfaction Tester", 0);
   const [left, right] = save.creatures ?? [];
   assert.ok(left && right);
-  const bonded = recordCreatureRelationshipEvent(save, {
-    eventKey: "work-friends",
-    creatureIds: [left.creatureId, right.creatureId],
-    dayNumber: save.dayState.dayNumber,
-    affinityDelta: 35,
-  });
+  const bonded = buildAffinity(save, left.creatureId, right.creatureId, "work-friends", 2);
   const leftProfile = getCreaturePersonalityProfile(bonded, left.creatureId);
   const rightProfile = getCreaturePersonalityProfile(bonded, right.creatureId);
   const prepared: GameSave = {
@@ -136,19 +151,14 @@ test("shared Ranch work applies preference and friendship satisfaction once", ()
   assert.equal(updatedLeft?.affection, Math.min(100, leftAffection + 2));
   assert.equal(repeatedLeft?.affection, updatedLeft?.affection);
   assert.match(first.results[0].message, /Relationship satisfaction \+2 Affection/);
-  assert.equal(getCreatureRelationship(first.save, left.creatureId, right.creatureId).affinity, 36);
+  assert.equal(getCreatureRelationship(first.save, left.creatureId, right.creatureId).affinity, 41);
 });
 
 test("an established friend provides idempotent Training Grounds support", () => {
   const save = createNewGameSave("Training Support Tester", 0);
   const [trainee, supporter] = save.creatures ?? [];
   assert.ok(trainee && supporter);
-  const bonded = recordCreatureRelationshipEvent(save, {
-    eventKey: "training-friends",
-    creatureIds: [trainee.creatureId, supporter.creatureId],
-    dayNumber: save.dayState.dayNumber,
-    affinityDelta: 40,
-  });
+  const bonded = buildAffinity(save, trainee.creatureId, supporter.creatureId, "training-friends", 2);
   const first = applyTrainingRelationshipSupport(
     bonded,
     trainee.creatureId,
@@ -165,7 +175,7 @@ test("an established friend provides idempotent Training Grounds support", () =>
   const secondTrainee = second.save.creatures?.find((creature) => creature.creatureId === trainee.creatureId);
   assert.equal(first.support?.supporterId, supporter.creatureId);
   assert.equal(firstTrainee?.affection, Math.min(100, trainee.affection + 1));
-  assert.equal(secondTrainee?.affection, firstTrainee?.affection + 1);
+  assert.equal(secondTrainee?.affection, firstTrainee?.affection);
   assert.equal(
     getCreatureRelationship(second.save, trainee.creatureId, supporter.creatureId).affinity,
     41,
@@ -176,12 +186,7 @@ test("breeding compatibility combines personality and relationship history", () 
   const save = createNewGameSave("Breeding Compatibility Tester", 0);
   const [giver, receiver] = save.creatures ?? [];
   assert.ok(giver && receiver);
-  const bonded = recordCreatureRelationshipEvent(save, {
-    eventKey: "breeding-bond",
-    creatureIds: [giver.creatureId, receiver.creatureId],
-    dayNumber: save.dayState.dayNumber,
-    affinityDelta: 70,
-  });
+  const bonded = buildAffinity(save, giver.creatureId, receiver.creatureId, "breeding-bond", 4);
   const compatibility = getBreedingRelationshipCompatibility(
     bonded,
     giver.creatureId,
@@ -196,9 +201,12 @@ test("breeding compatibility combines personality and relationship history", () 
     "attempt-compatibility-one",
     bonded.dayState.dayNumber,
   );
-  assert.equal(updated.flags.breedingCompatibility_attempt-compatibility-one !== undefined, true);
+  assert.equal(
+    updated.flags["breedingCompatibility_attempt-compatibility-one"] !== undefined,
+    true,
+  );
   assert.ok(
-    getCreatureRelationship(updated, giver.creatureId, receiver.creatureId).affinity > 70,
+    getCreatureRelationship(updated, giver.creatureId, receiver.creatureId).affinity > 80,
   );
 });
 
@@ -206,12 +214,7 @@ test("victorious friends receive one battle teamwork morale reward", () => {
   const save = createNewGameSave("Battle Morale Tester", 0);
   const [left, right] = save.creatures ?? [];
   assert.ok(left && right);
-  const bonded = recordCreatureRelationshipEvent(save, {
-    eventKey: "battle-friends",
-    creatureIds: [left.creatureId, right.creatureId],
-    dayNumber: save.dayState.dayNumber,
-    affinityDelta: 35,
-  });
+  const bonded = buildAffinity(save, left.creatureId, right.creatureId, "battle-friends", 2);
   const first = applyBattleTeamworkMorale(
     bonded,
     "battle-morale-one",
@@ -228,5 +231,5 @@ test("victorious friends receive one battle teamwork morale reward", () => {
   const secondLeft = second.creatures?.find((creature) => creature.creatureId === left.creatureId);
   assert.equal(firstLeft?.affection, Math.min(100, left.affection + 1));
   assert.equal(secondLeft?.affection, firstLeft?.affection);
-  assert.equal(first.flags.battleTeamworkMoraleCount_battle-morale-one, 2);
+  assert.equal(first.flags["battleTeamworkMoraleCount_battle-morale-one"], 2);
 });
