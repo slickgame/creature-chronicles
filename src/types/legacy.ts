@@ -1,8 +1,17 @@
-import type { CreatureLegacyTitle } from "@/data/creatureLegacyRankings";
 import type { CreatureRecord } from "./creature";
 import type { CreatureId } from "./ids";
 
 export const CREATURE_LEGACY_STATE_VERSION = 1 as const;
+
+export type CreatureLegacyTitle =
+  | "Rising Ranch Hand"
+  | "Coliseum Veteran"
+  | "Ranch Guardian"
+  | "Master Caregiver"
+  | "Guild Envoy"
+  | "Dynasty Founder"
+  | "Master Worker"
+  | "Ranch Legend";
 
 export type HeirloomCategory =
   | "combat"
