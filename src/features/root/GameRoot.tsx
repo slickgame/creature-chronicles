@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getPendingPredatorEvent } from "@/data/predatorEvents";
 import { BattleOutfitterScreenActive } from "@/features/battle-outfitter/BattleOutfitterScreenActive";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
@@ -10,6 +11,7 @@ import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
+import { ChronicleScreen } from "@/features/legacy/ChronicleScreen";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
@@ -25,6 +27,7 @@ import { useGameContext } from "@/state/GameProvider";
 
 export function GameRoot() {
   const { appScreen, currentSave, exitRunToMainMenu, version } = useGameContext();
+  const [showChronicle, setShowChronicle] = useState(false);
 
   if (currentSave?.flags.badEnding === true) {
     return (
@@ -50,6 +53,10 @@ export function GameRoot() {
     return <PredatorDefenseScreen />;
   }
 
+  if (currentSave && showChronicle) {
+    return <ChronicleScreen save={currentSave} onBack={() => setShowChronicle(false)} />;
+  }
+
   let screen = <MainMenuScreen />;
   if (appScreen === "ranch-hub") screen = <><RanchHubScreen /><RanchPlotNavigator /></>;
   else if (appScreen === "habitat") screen = <HabitatScreen />;
@@ -71,6 +78,30 @@ export function GameRoot() {
   return (
     <>
       {screen}
+      {currentSave && appScreen === "ranch-hub" ? (
+        <button
+          type="button"
+          onClick={() => setShowChronicle(true)}
+          aria-label="Open the ranch Chronicle"
+          data-legacy-chronicle-launcher="true"
+          style={{
+            position: "fixed",
+            right: 18,
+            bottom: 82,
+            zIndex: 50,
+            minHeight: 46,
+            padding: "10px 15px",
+            border: "2px solid #2d190d",
+            borderRadius: 999,
+            background: "linear-gradient(#fff4cf,#d6a25b)",
+            color: "#211208",
+            boxShadow: "0 10px 26px rgba(0,0,0,.35)",
+            fontWeight: 950,
+          }}
+        >
+          Chronicle
+        </button>
+      ) : null}
       {currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug" ? <PlayerInventoryMenu /> : null}
     </>
   );
