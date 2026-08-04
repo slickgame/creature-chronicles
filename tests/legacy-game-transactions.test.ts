@@ -31,7 +31,8 @@ test("training wrapper captures assignment before canonical collection", () => {
   assert.match(source, /assignmentId: `\$\{assignment\.startDayNumber\}:\$\{assignment\.focusId\}`/);
 });
 
-test("Ranch Day wrapper delegates to career-aware job processing", () => {
-  assert.match(source, /processLegacyRanchJobs/);
-  assert.match(source, /return processRanchJobsWithCareers\(save\)/);
+test("Ranch Day wrapper composes career work with personality-driven daily stories", () => {
+  assert.match(source, /const processed = processRanchJobsWithCareers\(save\)/);
+  assert.match(source, /processDailyCreatureStories\(processed\.save, processed\.results, save\.dayState\.dayNumber\)/);
+  assert.match(source, /return \{[\s\S]*\.\.\.processed/);
 });
