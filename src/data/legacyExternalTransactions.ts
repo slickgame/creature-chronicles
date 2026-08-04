@@ -1,5 +1,6 @@
 import { recordColiseumBattleResult, type ColiseumEncounterId, type ColiseumResult } from "@/data/coliseum";
 import { applyBattleCareerResults, applyGuildCareerCompletion, type CareerBattleParticipant } from "@/data/creatureCareerTransactions";
+import { applyBattleTeamworkMorale } from "@/data/creatureRelationshipGameplay";
 import { donateCreatureToGuildContract, ensureCurrentGuildState } from "@/data/guild";
 import type { BattleOutcome } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
@@ -23,7 +24,8 @@ function normalizeParticipants(
 /**
  * Records the canonical Coliseum result and credits every player creature that
  * entered the match. Optional telemetry forwards damage, healing, protection,
- * knockouts, and fainting into lifetime Career Records.
+ * knockouts, and fainting into lifetime Career Records. Victorious teammates
+ * with an established friendship also receive a small, idempotent morale gain.
  */
 export function recordColiseumBattleResultWithCareers(
   save: GameSave,
@@ -34,14 +36,21 @@ export function recordColiseumBattleResultWithCareers(
   telemetry?: CareerBattleParticipant[],
 ): ColiseumResult {
   const result = recordColiseumBattleResult(save, encounterId, outcome, roundCount, teamCreatureIds);
+  const careerOutcome = toCareerOutcome(outcome);
   const careerSave = applyBattleCareerResults(result.save, {
     battleId: result.historyEntry.historyId,
-    outcome: toCareerOutcome(outcome),
+    outcome: careerOutcome,
     dayNumber: result.historyEntry.completedAtDayNumber,
     participants: normalizeParticipants(teamCreatureIds, telemetry),
   });
+  const moraleSave = applyBattleTeamworkMorale(
+    careerSave,
+    result.historyEntry.historyId,
+    teamCreatureIds,
+    careerOutcome,
+  );
 
-  return { ...result, save: careerSave };
+  return { ...result, save: moraleSave };
 }
 
 /**
