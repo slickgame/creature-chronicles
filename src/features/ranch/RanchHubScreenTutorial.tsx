@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { MorningCreatureStoryNotice } from "@/features/legacy/MorningCreatureStoryNotice";
 import { useGameContext } from "@/state/GameProvider";
 import { RanchHubScreen as DayLoopRanchHubScreen } from "./RanchHubScreenDayLoop";
 
@@ -49,5 +50,10 @@ export function RanchHubScreen() {
     };
   }, [currentSave]);
 
-  return <DayLoopRanchHubScreen />;
+  return (
+    <>
+      <DayLoopRanchHubScreen />
+      {currentSave ? <MorningCreatureStoryNotice save={currentSave} /> : null}
+    </>
+  );
 }
