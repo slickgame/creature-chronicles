@@ -6,6 +6,7 @@ import {
   recordCreatureTrainingCareer,
   recordCreatureWorkCareer,
 } from "@/data/creatureCareerRecords";
+import { recordNewAmbitionMilestones } from "@/data/creatureAmbitionEvents";
 import { recordBirthMemories } from "@/data/creatureMemoryEvents";
 import { hatchEgg } from "@/data/nurseryLifecycle";
 import { processRanchJobsForNewDay } from "@/data/ranchJobs";
@@ -40,7 +41,9 @@ export function processRanchJobsWithCareers(save: GameSave): {
 } {
   const processed = processRanchJobsForNewDay(save);
   let nextSave = processed.save;
+  const participantIds: CreatureId[] = [];
   for (const result of processed.results) {
+    participantIds.push(result.creatureId);
     nextSave = recordCreatureWorkCareer(nextSave, {
       eventKey: `ranch-job:${save.dayState.dayNumber}:${result.jobId}:${String(result.creatureId)}`,
       creatureId: result.creatureId,
@@ -49,7 +52,10 @@ export function processRanchJobsWithCareers(save: GameSave): {
       resourcesProduced: parseProducedResources(result),
     });
   }
-  return { save: nextSave, results: processed.results };
+  return {
+    save: recordNewAmbitionMilestones(save, nextSave, participantIds, save.dayState.dayNumber),
+    results: processed.results,
+  };
 }
 
 function getBirthForCreature(save: GameSave, creatureId: CreatureId): BirthRecord | null {
@@ -66,8 +72,10 @@ export function hatchEggWithLegacyRecords(
   const birth = getBirthForCreature(result.save, result.creature.creatureId);
   if (!birth) return result;
   let nextSave = recordBirthMemories(result.save, birth);
+  const parentIds: CreatureId[] = [];
   for (const parent of [birth.parents.giver, birth.parents.receiver]) {
     if (!parent.creatureId) continue;
+    parentIds.push(parent.creatureId);
     nextSave = recordCreatureBreedingCareer(nextSave, {
       eventKey: `offspring:${String(birth.birthId)}:${String(parent.creatureId)}`,
       creatureId: parent.creatureId,
@@ -76,7 +84,10 @@ export function hatchEggWithLegacyRecords(
       offspringRarity: birth.rarity,
     });
   }
-  return { save: nextSave, creature: result.creature };
+  return {
+    save: recordNewAmbitionMilestones(save, nextSave, parentIds, birth.hatchedAtDayNumber),
+    creature: result.creature,
+  };
 }
 
 export function applyBattleCareerResults(
@@ -88,7 +99,7 @@ export function applyBattleCareerResults(
     participants: CareerBattleParticipant[];
   },
 ): GameSave {
-  return input.participants.reduce(
+  const nextSave = input.participants.reduce(
     (next, participant) => recordCreatureBattleCareer(next, {
       eventKey: `battle:${input.battleId}:${String(participant.creatureId)}`,
       creatureId: participant.creatureId,
@@ -102,13 +113,19 @@ export function applyBattleCareerResults(
     }),
     save,
   );
+  return recordNewAmbitionMilestones(
+    save,
+    nextSave,
+    input.participants.map((participant) => participant.creatureId),
+    input.dayNumber,
+  );
 }
 
 export function applyGuildCareerCompletion(
   save: GameSave,
   input: { requestId: string; dayNumber: number; participantIds: CreatureId[]; featured?: boolean },
 ): GameSave {
-  return input.participantIds.reduce(
+  const nextSave = input.participantIds.reduce(
     (next, creatureId) => recordCreatureGuildCareer(next, {
       eventKey: `guild:${input.requestId}:${String(creatureId)}`,
       creatureId,
@@ -117,24 +134,26 @@ export function applyGuildCareerCompletion(
     }),
     save,
   );
+  return recordNewAmbitionMilestones(save, nextSave, input.participantIds, input.dayNumber);
 }
 
 export function applyTrainingCareerCompletion(
   save: GameSave,
   input: { assignmentId: string; creatureId: CreatureId; dayNumber: number },
 ): GameSave {
-  return recordCreatureTrainingCareer(save, {
+  const nextSave = recordCreatureTrainingCareer(save, {
     eventKey: `training:${input.assignmentId}:${String(input.creatureId)}`,
     creatureId: input.creatureId,
     dayNumber: input.dayNumber,
   });
+  return recordNewAmbitionMilestones(save, nextSave, [input.creatureId], input.dayNumber);
 }
 
 export function applyBreedingAttemptCareer(
   save: GameSave,
   input: { attemptId: string; dayNumber: number; parentCreatureIds: CreatureId[] },
 ): GameSave {
-  return input.parentCreatureIds.reduce(
+  const nextSave = input.parentCreatureIds.reduce(
     (next, creatureId) => recordCreatureBreedingCareer(next, {
       eventKey: `breeding-attempt:${input.attemptId}:${String(creatureId)}`,
       creatureId,
@@ -143,15 +162,17 @@ export function applyBreedingAttemptCareer(
     }),
     save,
   );
+  return recordNewAmbitionMilestones(save, nextSave, input.parentCreatureIds, input.dayNumber);
 }
 
 export function applyInjuryCareerEvent(
   save: GameSave,
   input: { injuryId: string; creatureId: CreatureId; dayNumber: number },
 ): GameSave {
-  return recordCreatureInjuryCareer(save, {
+  const nextSave = recordCreatureInjuryCareer(save, {
     eventKey: `injury:${input.injuryId}:${String(input.creatureId)}`,
     creatureId: input.creatureId,
     dayNumber: input.dayNumber,
   });
+  return recordNewAmbitionMilestones(save, nextSave, [input.creatureId], input.dayNumber);
 }
