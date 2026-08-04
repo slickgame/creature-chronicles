@@ -15,9 +15,14 @@ function toCareerOutcome(outcome: BattleOutcome): "victory" | "draw" | "defeat" 
   return "defeat";
 }
 
-function isTrackableCreature(save: GameSave, creatureId: CreatureId): boolean {
+function isTrackableBattleCreature(save: GameSave, creatureId: CreatureId): boolean {
   if ((save.creatures ?? []).some((creature) => creature.creatureId === creatureId)) return true;
   return Boolean(save.creatureCareers?.recordsByCreatureId?.[String(creatureId)]);
+}
+
+function nonNegativeFlagNumber(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
 }
 
 /**
@@ -35,7 +40,7 @@ export function reconcileLegacyExternalProgress(save: GameSave): GameSave {
   );
   for (const entry of coliseumHistory) {
     const participantIds = entry.teamCreatureIds.filter((creatureId) =>
-      isTrackableCreature(nextSave, creatureId),
+      isTrackableBattleCreature(nextSave, creatureId),
     );
     if (!participantIds.length) continue;
     const before = nextSave;
@@ -57,7 +62,6 @@ export function reconcileLegacyExternalProgress(save: GameSave): GameSave {
     );
   for (const contract of completedContracts) {
     const creatureId = contract.submittedCreatureId as CreatureId;
-    if (!isTrackableCreature(nextSave, creatureId)) continue;
     const before = nextSave;
     nextSave = applyGuildCareerCompletion(nextSave, {
       requestId: String(contract.contractId),
@@ -75,7 +79,7 @@ export function reconcileLegacyExternalProgress(save: GameSave): GameSave {
       legacyExternalProgressReconciliationVersion: LEGACY_RECONCILIATION_VERSION,
       legacyExternalProgressReconciledAtDay: save.dayState.dayNumber,
       legacyExternalProgressReconciledEvents:
-        Number(nextSave.flags.legacyExternalProgressReconciledEvents ?? 0) + reconciledEvents,
+        nonNegativeFlagNumber(nextSave.flags.legacyExternalProgressReconciledEvents) + reconciledEvents,
     },
   };
 }
