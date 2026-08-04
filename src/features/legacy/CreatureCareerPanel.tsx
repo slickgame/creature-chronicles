@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { getCreatureCareerRecord } from "@/data/creatureCareerRecords";
+import { getCreatureLegacyProfile } from "@/data/creatureLegacyRankings";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
@@ -45,6 +46,8 @@ function StatCard({ label, value }: { label: string; value: number }) {
 
 export function CreatureCareerPanel({ save, creatureId, compact = false }: CreatureCareerPanelProps) {
   const record = getCreatureCareerRecord(save, creatureId);
+  const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
+  const legacyProfile = creature ? getCreatureLegacyProfile(save, creature) : null;
   const combat = [
     ["Battles", record.battlesEntered],
     ["Victories", record.victories],
@@ -84,6 +87,12 @@ export function CreatureCareerPanel({ save, creatureId, compact = false }: Creat
             Career Record
           </p>
           <h3 style={{ margin: "3px 0 0", fontSize: "1rem" }}>Lifetime accomplishments</h3>
+          {legacyProfile ? (
+            <p style={{ margin: "4px 0 0", color: "#e9d4ae", fontSize: ".76rem" }}>
+              {legacyProfile.title} · Legacy Score {legacyProfile.legacyScore}
+              {legacyProfile.hallEligible ? " · Hall candidate" : ""}
+            </p>
+          ) : null}
         </div>
         <span style={{ color: "#d9c39e", fontSize: ".7rem" }}>
           Since Day {record.firstRecordedDayNumber}
