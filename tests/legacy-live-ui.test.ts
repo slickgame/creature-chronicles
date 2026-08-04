@@ -10,6 +10,7 @@ const recommendationSource = readFileSync("src/features/guild/GuildRecommendatio
 const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
 const careerSource = readFileSync("src/features/legacy/CreatureCareerPanel.tsx", "utf8");
 const profileLauncherSource = readFileSync("src/features/legacy/LegacyCreatureProfileLauncher.tsx", "utf8");
+const retirementSource = readFileSync("src/features/legacy/CreatureRetirementPanel.tsx", "utf8");
 const collectionSource = readFileSync("src/features/collection/CollectionScreenLedger.tsx", "utf8");
 const habitatSource = readFileSync("src/features/habitats/HabitatScreenManaged.tsx", "utf8");
 const ranchTutorialSource = readFileSync("src/features/ranch/RanchHubScreenTutorial.tsx", "utf8");
@@ -58,7 +59,20 @@ test("Collection and Habitat screens expose the full Legacy creature profile flo
   assert.match(profileLauncherSource, /data-legacy-profile-launcher="true"/);
   assert.match(profileLauncherSource, /data-legacy-profile-dialog="true"/);
   assert.match(profileLauncherSource, /<CreatureDetailWithMemories/);
+  assert.match(profileLauncherSource, /<CreatureRetirementPanel/);
+  assert.match(profileLauncherSource, /getRetiredCreatureRecords/);
   assert.match(profileLauncherSource, /compactRelationships/);
+});
+
+test("Legacy profiles provide confirmed retirement, Heirlooms, and permanent Hall induction", () => {
+  assert.match(retirementSource, /data-legacy-panel="retirement"/);
+  assert.match(retirementSource, /window\.confirm/);
+  assert.match(retirementSource, /Retire &amp; Create Heirloom/);
+  assert.match(retirementSource, /Retire &amp; Induct into Hall/);
+  assert.match(retirementSource, /data-legacy-heirloom="true"/);
+  assert.match(retirementSource, /data-hall-of-legends-entry="true"/);
+  assert.match(overviewSource, /data-hall-of-legends="true"/);
+  assert.match(overviewSource, /data-legacy-heirloom-collection="true"/);
 });
 
 test("the Morning Brief surfaces the previous Ranch Day creature story", () => {
