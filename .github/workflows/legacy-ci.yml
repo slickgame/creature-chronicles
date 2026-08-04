@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Run regression suite
-        run: npm run test:regression
+      - name: Generate assets and run regression suite
+        run: npm test
 
       - name: Build production application
         run: npm run build
