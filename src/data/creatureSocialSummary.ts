@@ -1,8 +1,8 @@
 import {
   getCreatureRelationshipKind,
   getCreatureRelationshipState,
-  type CreatureRelationshipRecord,
 } from "@/data/creatureRelationships";
+import type { CreatureRelationshipRecord } from "@/types/relationships";
 import type { GameSave } from "@/types/save";
 
 export type RanchSocialSummary = {
