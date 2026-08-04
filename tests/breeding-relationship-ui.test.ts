@@ -28,3 +28,11 @@ test("the compatibility panel explains personality, bond, score, and pregnancy s
   assert.match(panelSource, /affects social aftermath, not pregnancy chance/);
   assert.match(panelSource, /Creature pairs only/);
 });
+
+test("the breeding preview compatibility row wraps safely on narrow layouts", () => {
+  assert.match(
+    screenSource,
+    /repeat\(auto-fit,minmax\(min\(100%,220px\),1fr\)\)/,
+  );
+  assert.match(screenSource, /style=\{\{ \.\.\.primaryButtonStyle, width: "100%" \}\}/);
+});
