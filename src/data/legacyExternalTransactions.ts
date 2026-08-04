@@ -1,5 +1,5 @@
 import { recordColiseumBattleResult, type ColiseumEncounterId, type ColiseumResult } from "@/data/coliseum";
-import { applyBattleCareerResults, applyGuildCareerCompletion } from "@/data/creatureCareerTransactions";
+import { applyBattleCareerResults, applyGuildCareerCompletion, type CareerBattleParticipant } from "@/data/creatureCareerTransactions";
 import { donateCreatureToGuildContract, ensureCurrentGuildState } from "@/data/guild";
 import type { BattleOutcome } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
@@ -12,10 +12,18 @@ function toCareerOutcome(outcome: BattleOutcome): "victory" | "draw" | "defeat" 
   return "defeat";
 }
 
+function normalizeParticipants(
+  teamCreatureIds: CreatureId[],
+  telemetry: CareerBattleParticipant[] | undefined,
+): CareerBattleParticipant[] {
+  const telemetryById = new Map((telemetry ?? []).map((participant) => [String(participant.creatureId), participant]));
+  return teamCreatureIds.map((creatureId) => telemetryById.get(String(creatureId)) ?? { creatureId });
+}
+
 /**
- * Records the canonical Coliseum result and then credits every player creature
- * that entered the match. Detailed damage/healing metrics can be supplied by a
- * future battle telemetry pass without changing the lifetime record contract.
+ * Records the canonical Coliseum result and credits every player creature that
+ * entered the match. Optional telemetry forwards damage, healing, protection,
+ * knockouts, and fainting into lifetime Career Records.
  */
 export function recordColiseumBattleResultWithCareers(
   save: GameSave,
@@ -23,13 +31,14 @@ export function recordColiseumBattleResultWithCareers(
   outcome: BattleOutcome,
   roundCount: number,
   teamCreatureIds: CreatureId[],
+  telemetry?: CareerBattleParticipant[],
 ): ColiseumResult {
   const result = recordColiseumBattleResult(save, encounterId, outcome, roundCount, teamCreatureIds);
   const careerSave = applyBattleCareerResults(result.save, {
     battleId: result.historyEntry.historyId,
     outcome: toCareerOutcome(outcome),
     dayNumber: result.historyEntry.completedAtDayNumber,
-    participants: teamCreatureIds.map((creatureId) => ({ creatureId })),
+    participants: normalizeParticipants(teamCreatureIds, telemetry),
   });
 
   return { ...result, save: careerSave };
