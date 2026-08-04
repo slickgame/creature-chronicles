@@ -30,11 +30,17 @@ test("the Chronicle includes social history metrics and a live creature roster",
   assert.match(rosterSource, /Personalities and strongest bonds/);
 });
 
-test("Guild recommendations and Ranch Day processing consume personality systems", () => {
+test("Guild, training, and Ranch Day transactions consume personality and relationship systems", () => {
   assert.match(guildSource, /getCreaturePersonalityProfile/);
   assert.match(guildSource, /getPersonalityGuildCategoryBonus/);
   assert.match(guildSource, /personality prefers/);
-  assert.match(transactionSource, /processDailyCreatureStories\(processed\.save, processed\.results/);
   assert.match(transactionSource, /isPreferredTrainingFocus/);
   assert.match(transactionSource, /preferred-training:/);
+  assert.match(transactionSource, /applyTrainingRelationshipSupport/);
+  assert.match(transactionSource, /applyRanchWorkRelationshipEffects/);
+  assert.match(transactionSource, /processDailyCreatureStories/);
+  const relationshipIndex = transactionSource.indexOf("applyRanchWorkRelationshipEffects(");
+  const storyIndex = transactionSource.indexOf("processDailyCreatureStories(");
+  assert.ok(relationshipIndex >= 0);
+  assert.ok(storyIndex > relationshipIndex);
 });
