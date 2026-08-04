@@ -9,6 +9,7 @@ import {
 import type { GameSave } from "@/types/save";
 
 const MAX_RELATIONSHIP_EVENT_KEYS = 3000;
+const FAMILY_SEED_AFFINITY = 35;
 
 function clampAffinity(value: number): number {
   if (!Number.isFinite(value)) return 0;
@@ -188,6 +189,12 @@ export function getRelationshipsForCreature(
     });
 }
 
+/**
+ * Birth history is authoritative legacy data rather than a normal social event.
+ * It therefore establishes the complete family baseline directly instead of
+ * routing through the ordinary +/-20 event clamp. One migration marker and one
+ * positive shared event are retained for stable reporting and idempotency.
+ */
 function seedFamilyRelationship(
   save: GameSave,
   childId: CreatureId,
@@ -195,15 +202,29 @@ function seedFamilyRelationship(
   dayNumber: number,
   sourceKey: string,
 ): GameSave {
+  if (childId === parentId) return save;
+  const state = getCreatureRelationshipState(save);
+  if (state.appliedEventKeys.includes(sourceKey)) return save;
   const current = getCreatureRelationship(save, childId, parentId);
-  if (current.family && current.affinity >= 35) return save;
-  return recordCreatureRelationshipEvent(save, {
-    eventKey: sourceKey,
-    creatureIds: [childId, parentId],
-    dayNumber,
-    affinityDelta: Math.max(0, 35 - current.affinity),
+  const next: CreatureRelationshipRecord = {
+    ...current,
+    affinity: Math.max(current.affinity, FAMILY_SEED_AFFINITY),
+    sharedEvents: Math.max(1, current.sharedEvents),
+    positiveEvents: Math.max(1, current.positiveEvents),
     family: true,
-  });
+    lastUpdatedDayNumber: Math.max(current.lastUpdatedDayNumber, dayNumber),
+  };
+  return {
+    ...save,
+    creatureRelationships: {
+      version: CREATURE_RELATIONSHIP_VERSION,
+      recordsByRelationshipId: {
+        ...state.recordsByRelationshipId,
+        [next.relationshipId]: next,
+      },
+      appliedEventKeys: [...state.appliedEventKeys, sourceKey].slice(-MAX_RELATIONSHIP_EVENT_KEYS),
+    },
+  };
 }
 
 export function normalizeCreatureRelationshipSave(save: GameSave): GameSave {
@@ -223,11 +244,12 @@ export function normalizeCreatureRelationshipSave(save: GameSave): GameSave {
       );
     }
   }
+  const relationshipState = getCreatureRelationshipState(normalized);
   return {
     ...normalized,
     creatureRelationships: {
-      ...getCreatureRelationshipState(normalized),
-      appliedEventKeys: getCreatureRelationshipState(normalized).appliedEventKeys.slice(-MAX_RELATIONSHIP_EVENT_KEYS),
+      ...relationshipState,
+      appliedEventKeys: relationshipState.appliedEventKeys.slice(-MAX_RELATIONSHIP_EVENT_KEYS),
     },
     flags: {
       ...normalized.flags,
