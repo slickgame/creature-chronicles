@@ -1,6 +1,7 @@
 "use client";
 
 import { ChronicleFeed } from "./ChronicleFeed";
+import { LegacyOverviewPanel } from "./LegacyOverviewPanel";
 import type { GameSave } from "@/types/save";
 
 type ChronicleScreenProps = {
@@ -58,6 +59,7 @@ export function ChronicleScreen({ save, onBack }: ChronicleScreenProps) {
           </button>
         </header>
 
+        <LegacyOverviewPanel save={save} />
         <ChronicleFeed save={save} limit={100} />
       </section>
     </main>
