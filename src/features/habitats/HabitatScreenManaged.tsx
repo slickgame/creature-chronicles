@@ -60,7 +60,6 @@ export function HabitatScreen() {
           creatures={habitatCreatures}
           label="Habitat Legacy"
           title="Habitat Creature Legacy Profiles"
-          defaultCreatureId={window.sessionStorage.getItem(STORAGE_KEY)}
           position="right"
         />
       ) : null}
