@@ -2,23 +2,41 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getBattleOutfitterDailySummaryItems, purchaseBattleOutfitterItem } from "@/data/battleOutfitter";
-import { performBreedingAttempt } from "@/data/breeding";
 import { releaseOrDonateCreature } from "@/data/collection";
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
-import { applyEggAtelierHatchEffects } from "@/data/eggAtelier";
 import { MVP_VERSION } from "@/data/gameConstants";
 import { acceptGuildContract, donateCreatureToGuildContract, ensureCurrentGuildState } from "@/data/guild";
+import {
+  collectTrainingWithCareer,
+  hatchEggWithAtelierLegacy,
+  performBreedingAttemptWithCareers,
+  processLegacyRanchJobs,
+} from "@/data/legacyGameTransactions";
 import { buyMarketListing, ensureCurrentMarketState, rerollMarketListings } from "@/data/market";
-import { advanceNurseryDay, hatchEgg, removeEgg } from "@/data/nursery";
-import { assignCreatureToRanchJob, processRanchJobsForNewDay } from "@/data/ranchJobs";
+import { advanceNurseryDay, removeEgg } from "@/data/nursery";
+import { assignCreatureToRanchJob } from "@/data/ranchJobs";
 import { getRanchUpgradeEffects, purchaseRanchUpgrade, repairRanchDamage } from "@/data/ranchUpgrades";
 import { applyStarterGoalRewards } from "@/data/starterGoals";
 import { purchaseSupplyDepotItem, useSupplyDepotEnergySnack } from "@/data/supplyDepot";
 import { ensureMonthlyTaxPosted, processMonthlyTaxes } from "@/data/taxes";
-import { collectTrainingGroundsAssignment, getTrainingReturnSummaryItems, getTrainingUnavailableReason, purchaseTrainingUpgrade, startTrainingGroundsAssignment } from "@/data/trainingGrounds";
+import {
+  getTrainingReturnSummaryItems,
+  getTrainingUnavailableReason,
+  purchaseTrainingUpgrade,
+  startTrainingGroundsAssignment,
+} from "@/data/trainingGrounds";
 import { grantDevGuildPoints, grantGuildIntroBonus, purchaseTownUpgrade } from "@/data/upgrades";
 import { formatGameDate } from "@/lib/formatters";
-import { createNewGameSave, deleteSaveSlot, findFirstEmptySlot, getActiveSaveId, loadAllSaves, loadSaveFromSlot, saveGameToSlot, setActiveSaveId } from "@/lib/save/localSave";
+import {
+  createNewGameSave,
+  deleteSaveSlot,
+  findFirstEmptySlot,
+  getActiveSaveId,
+  loadAllSaves,
+  loadSaveFromSlot,
+  saveGameToSlot,
+  setActiveSaveId,
+} from "@/lib/save/localSave";
 import type { BattleOutfitterResult } from "@/data/battleOutfitter";
 import type { TrainingFocusId, TrainingResult, TrainingUpgradeId } from "@/data/trainingGrounds";
 import type { BreedingAttemptRecord } from "@/types/breeding";
@@ -30,23 +48,10 @@ import type { DayState, GameSave } from "@/types/save";
 import type { TownUpgradeId, TownUpgradePurchaseResult } from "@/types/upgrades";
 
 export type AppScreen =
-  | "main-menu"
-  | "ranch-hub"
-  | "habitat"
-  | "breeding"
-  | "nursery"
-  | "town"
-  | "market"
-  | "supply-depot"
-  | "egg-atelier"
-  | "training-grounds"
-  | "battle-outfitter"
-  | "battle-debug"
-  | "guild-hall"
-  | "collection"
-  | "ranch-office"
-  | "ranch-jobs"
-  | "dev-tools";
+  | "main-menu" | "ranch-hub" | "habitat" | "breeding" | "nursery" | "town"
+  | "market" | "supply-depot" | "egg-atelier" | "training-grounds"
+  | "battle-outfitter" | "battle-debug" | "guild-hall" | "collection"
+  | "ranch-office" | "ranch-jobs" | "dev-tools";
 
 export type DayAdvanceResult = {
   previousDateLabel: string;
@@ -117,14 +122,14 @@ const GameContext = createContext<GameContextValue | null>(null);
 const WEEKDAYS: DayState["weekday"][] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 function getNextDayState(dayState: DayState): DayState {
-  const currentWeekdayIndex = WEEKDAYS.indexOf(dayState.weekday);
-  const nextWeekdayIndex = (currentWeekdayIndex + 1) % WEEKDAYS.length;
+  const current = WEEKDAYS.indexOf(dayState.weekday);
+  const next = (current + 1) % WEEKDAYS.length;
   return {
     dayNumber: dayState.dayNumber + 1,
-    weekday: WEEKDAYS[nextWeekdayIndex],
+    weekday: WEEKDAYS[next],
     month: dayState.dayOfMonth >= 30 ? dayState.month + 1 : dayState.month,
     dayOfMonth: dayState.dayOfMonth >= 30 ? 1 : dayState.dayOfMonth + 1,
-    weekNumber: nextWeekdayIndex === 0 ? dayState.weekNumber + 1 : dayState.weekNumber,
+    weekNumber: next === 0 ? dayState.weekNumber + 1 : dayState.weekNumber,
   };
 }
 
@@ -138,253 +143,115 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const refreshSaveSlots = useCallback(() => {
     const saves = loadAllSaves();
     setSaveSlots(saves);
-    const activeSaveId = getActiveSaveId();
-    setCurrentSave(saves.find((save) => save?.saveId === activeSaveId) ?? null);
+    setCurrentSave(saves.find((save) => save?.saveId === getActiveSaveId()) ?? null);
   }, []);
 
-  useEffect(() => {
-    refreshSaveSlots();
-    setIsHydrated(true);
-  }, [refreshSaveSlots]);
+  useEffect(() => { refreshSaveSlots(); setIsHydrated(true); }, [refreshSaveSlots]);
 
   const saveCurrentGame = useCallback((nextSave: GameSave) => {
-    const taxPostedSave = ensureMonthlyTaxPosted(nextSave);
-    const rewardedSave = applyStarterGoalRewards(taxPostedSave);
-    const savedGame = saveGameToSlot(rewardedSave);
-    setActiveSaveId(savedGame.saveId);
-    setCurrentSave(savedGame);
+    const saved = saveGameToSlot(applyStarterGoalRewards(ensureMonthlyTaxPosted(nextSave)));
+    setActiveSaveId(saved.saveId);
+    setCurrentSave(saved);
     setSaveSlots(loadAllSaves());
-    return savedGame;
+    return saved;
   }, []);
 
   const createNewGame = useCallback((playerName: string, preferredSlot?: number) => {
-    const slotIndex = preferredSlot ?? findFirstEmptySlot() ?? 0;
-    const savedGame = saveCurrentGame(createNewGameSave(playerName, slotIndex));
-    setActiveHabitatFamily(null);
-    setAppScreen("ranch-hub");
-    return savedGame;
+    const saved = saveCurrentGame(createNewGameSave(playerName, preferredSlot ?? findFirstEmptySlot() ?? 0));
+    setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return saved;
   }, [saveCurrentGame]);
 
   const loadGame = useCallback((slotIndex: number) => {
-    const save = loadSaveFromSlot(slotIndex);
-    if (!save) return null;
-    setActiveSaveId(save.saveId);
-    setCurrentSave(save);
-    setSaveSlots(loadAllSaves());
-    setActiveHabitatFamily(null);
-    setAppScreen("ranch-hub");
-    return save;
+    const save = loadSaveFromSlot(slotIndex); if (!save) return null;
+    setActiveSaveId(save.saveId); setCurrentSave(save); setSaveSlots(loadAllSaves());
+    setActiveHabitatFamily(null); setAppScreen("ranch-hub"); return save;
   }, []);
 
-  const deleteGame = useCallback((slotIndex: number) => {
-    deleteSaveSlot(slotIndex);
-    refreshSaveSlots();
-  }, [refreshSaveSlots]);
-
-  const goToMainMenu = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("main-menu"); }, []);
-  const exitRunToMainMenu = useCallback(() => { setActiveSaveId(""); setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
-  const goToRanch = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-hub"); }, []);
-  const goToRanchOffice = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-office"); }, []);
-  const goToRanchJobs = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-jobs"); }, []);
-  const goToDevTools = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("dev-tools"); }, []);
-  const goToSupplyDepot = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("supply-depot"); }, []);
-  const goToEggAtelier = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("egg-atelier"); }, []);
-  const goToTrainingGrounds = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("training-grounds"); }, []);
-  const goToBattleOutfitter = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("battle-outfitter"); }, []);
-  const goToBattleDebug = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("battle-debug"); }, []);
+  const deleteGame = useCallback((slotIndex: number) => { deleteSaveSlot(slotIndex); refreshSaveSlots(); }, [refreshSaveSlots]);
+  const navigate = useCallback((screen: AppScreen) => { setActiveHabitatFamily(null); setAppScreen(screen); }, []);
+  const goToMainMenu = useCallback(() => navigate("main-menu"), [navigate]);
+  const exitRunToMainMenu = useCallback(() => { setActiveSaveId(""); setCurrentSave(null); setSaveSlots(loadAllSaves()); navigate("main-menu"); }, [navigate]);
+  const goToRanch = useCallback(() => navigate("ranch-hub"), [navigate]);
+  const goToRanchOffice = useCallback(() => navigate("ranch-office"), [navigate]);
+  const goToRanchJobs = useCallback(() => navigate("ranch-jobs"), [navigate]);
+  const goToDevTools = useCallback(() => navigate("dev-tools"), [navigate]);
+  const goToSupplyDepot = useCallback(() => navigate("supply-depot"), [navigate]);
+  const goToEggAtelier = useCallback(() => navigate("egg-atelier"), [navigate]);
+  const goToTrainingGrounds = useCallback(() => navigate("training-grounds"), [navigate]);
+  const goToBattleOutfitter = useCallback(() => navigate("battle-outfitter"), [navigate]);
+  const goToBattleDebug = useCallback(() => navigate("battle-debug"), [navigate]);
+  const goToBreeding = useCallback(() => navigate("breeding"), [navigate]);
+  const goToNursery = useCallback(() => navigate("nursery"), [navigate]);
+  const goToCollection = useCallback(() => navigate("collection"), [navigate]);
+  const goToTown = useCallback(() => navigate("town"), [navigate]);
   const goToHabitat = useCallback((family: CreatureFamily) => { setActiveHabitatFamily(family); setAppScreen("habitat"); }, []);
-  const goToBreeding = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("breeding"); }, []);
-  const goToNursery = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("nursery"); }, []);
-  const goToCollection = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("collection"); }, []);
 
   const goToMarket = useCallback(() => {
-    setActiveHabitatFamily(null);
-    if (currentSave) {
-      const syncedSave = ensureCurrentMarketState(currentSave);
-      if (syncedSave !== currentSave) saveCurrentGame(syncedSave);
-    }
-    setAppScreen("market");
-  }, [currentSave, saveCurrentGame]);
+    if (currentSave) { const synced = ensureCurrentMarketState(currentSave); if (synced !== currentSave) saveCurrentGame(synced); }
+    navigate("market");
+  }, [currentSave, navigate, saveCurrentGame]);
 
   const goToGuildHall = useCallback(() => {
-    setActiveHabitatFamily(null);
-    if (currentSave) {
-      const syncedSave = ensureCurrentGuildState(currentSave);
-      if (syncedSave !== currentSave) saveCurrentGame(syncedSave);
-    }
-    setAppScreen("guild-hall");
-  }, [currentSave, saveCurrentGame]);
-
-  const goToTown = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("town"); }, []);
+    if (currentSave) { const synced = ensureCurrentGuildState(currentSave); if (synced !== currentSave) saveCurrentGame(synced); }
+    navigate("guild-hall");
+  }, [currentSave, navigate, saveCurrentGame]);
 
   const renameCreature = useCallback((creatureId: CreatureId, nickname: string) => {
     if (!currentSave || !nickname.trim()) return;
-    saveCurrentGame({
-      ...currentSave,
-      creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, nickname: nickname.trim() } : creature),
-      flags: { ...currentSave.flags, m3CreatureRenamed: true, m9RenamePolishUsed: true },
-    });
+    saveCurrentGame({ ...currentSave, creatures: (currentSave.creatures ?? []).map((c) => c.creatureId === creatureId ? { ...c, nickname: nickname.trim() } : c), flags: { ...currentSave.flags, m3CreatureRenamed: true, m9RenamePolishUsed: true } });
   }, [currentSave, saveCurrentGame]);
 
   const feedCreature = useCallback((creatureId: CreatureId) => {
-    if (!currentSave) return;
-    if (getTrainingUnavailableReason(currentSave, creatureId)) return;
-    saveCurrentGame({
-      ...currentSave,
-      creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, affection: Math.min(100, creature.affection + 5), energy: Math.min(creature.maxEnergy, creature.energy + 10) } : creature),
-      flags: { ...currentSave.flags, m3CreatureFed: true },
-    });
+    if (!currentSave || getTrainingUnavailableReason(currentSave, creatureId)) return;
+    saveCurrentGame({ ...currentSave, creatures: (currentSave.creatures ?? []).map((c) => c.creatureId === creatureId ? { ...c, affection: Math.min(100, c.affection + 5), energy: Math.min(c.maxEnergy, c.energy + 10) } : c), flags: { ...currentSave.flags, m3CreatureFed: true } });
   }, [currentSave, saveCurrentGame]);
 
   const toggleCreatureLock = useCallback((creatureId: CreatureId) => {
     if (!currentSave) return;
-    saveCurrentGame({
-      ...currentSave,
-      creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, isLocked: !creature.isLocked } : creature),
-      flags: { ...currentSave.flags, m9CreatureLockUsed: true },
-    });
+    saveCurrentGame({ ...currentSave, creatures: (currentSave.creatures ?? []).map((c) => c.creatureId === creatureId ? { ...c, isLocked: !c.isLocked } : c), flags: { ...currentSave.flags, m9CreatureLockUsed: true } });
   }, [currentSave, saveCurrentGame]);
 
-  const releaseCreature = useCallback((creatureId: CreatureId) => {
-    if (!currentSave) return "No active save.";
-    const result = releaseOrDonateCreature(currentSave, creatureId, "release");
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const donateCreature = useCallback((creatureId: CreatureId) => {
-    if (!currentSave) return "No active save.";
-    const result = releaseOrDonateCreature(currentSave, creatureId, "donate");
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
+  const releaseCreature = useCallback((creatureId: CreatureId) => { if (!currentSave) return "No active save."; const r = releaseOrDonateCreature(currentSave, creatureId, "release"); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const donateCreature = useCallback((creatureId: CreatureId) => { if (!currentSave) return "No active save."; const r = releaseOrDonateCreature(currentSave, creatureId, "donate"); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
 
   const attemptBreeding = useCallback((giverId: string, receiverId: string) => {
     if (!currentSave) return null;
-    const result = performBreedingAttempt(currentSave, giverId, receiverId);
+    const result = performBreedingAttemptWithCareers(currentSave, giverId, receiverId);
     if (!result) return null;
-    saveCurrentGame(result.save);
-    return result.attempt;
+    saveCurrentGame(result.save); return result.attempt;
   }, [currentSave, saveCurrentGame]);
 
   const hatchReadyEgg = useCallback((eggId: EggId, nickname?: string) => {
     if (!currentSave) return null;
-    const result = hatchEgg(currentSave, eggId, nickname);
+    const result = hatchEggWithAtelierLegacy(currentSave, eggId, nickname);
     if (!result) return null;
-    const atelierResult = applyEggAtelierHatchEffects(currentSave, result, eggId);
-    saveCurrentGame(atelierResult.save);
-    return atelierResult.creature;
+    saveCurrentGame(result.save); return result.creature;
   }, [currentSave, saveCurrentGame]);
 
-  const removeNurseryEgg = useCallback((eggId: EggId, mode: "release" | "donate") => {
-    if (currentSave) saveCurrentGame(removeEgg(currentSave, eggId, mode));
-  }, [currentSave, saveCurrentGame]);
+  const removeNurseryEgg = useCallback((eggId: EggId, mode: "release" | "donate") => { if (currentSave) saveCurrentGame(removeEgg(currentSave, eggId, mode)); }, [currentSave, saveCurrentGame]);
+  const buyMarketCreature = useCallback((listingId: string) => { if (!currentSave) return "No active save."; const r = buyMarketListing(currentSave, listingId); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const rerollMarket = useCallback(() => { if (!currentSave) return "No active save."; const r = rerollMarketListings(currentSave); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const buySupplyDepotItem = useCallback((itemId: string) => { if (!currentSave) return "No active save."; const r = purchaseSupplyDepotItem(currentSave, itemId); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const useEnergySnack = useCallback(() => { if (!currentSave) return "No active save."; const r = useSupplyDepotEnergySnack(currentSave); if (r.ok) saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const buyBattleOutfitterItem = useCallback((itemId: string) => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = purchaseBattleOutfitterItem(currentSave, itemId); if (r.ok) saveCurrentGame(r.save); return r; }, [currentSave, saveCurrentGame]);
 
-  const buyMarketCreature = useCallback((listingId: string) => {
-    if (!currentSave) return "No active save.";
-    const result = buyMarketListing(currentSave, listingId);
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const rerollMarket = useCallback(() => {
-    if (!currentSave) return "No active save.";
-    const result = rerollMarketListings(currentSave);
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const buySupplyDepotItem = useCallback((itemId: string) => {
-    if (!currentSave) return "No active save.";
-    const result = purchaseSupplyDepotItem(currentSave, itemId);
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const useEnergySnack = useCallback(() => {
-    if (!currentSave) return "No active save.";
-    const result = useSupplyDepotEnergySnack(currentSave);
-    if (result.ok) saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const buyBattleOutfitterItem = useCallback((itemId: string) => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = purchaseBattleOutfitterItem(currentSave, itemId);
-    if (result.ok) saveCurrentGame(result.save);
-    return result;
-  }, [currentSave, saveCurrentGame]);
-
-  const trainCreature = useCallback((creatureId: CreatureId, focusId: TrainingFocusId, targetStatKey?: CreatureStatKey) => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    return startTrainingGroundsAssignment(currentSave, creatureId, focusId, targetStatKey);
-  }, [currentSave]);
-
+  const trainCreature = useCallback((creatureId: CreatureId, focusId: TrainingFocusId, targetStatKey?: CreatureStatKey) => currentSave ? startTrainingGroundsAssignment(currentSave, creatureId, focusId, targetStatKey) : ({ save: currentSave as unknown as GameSave, ok: false, message: "No active save." }), [currentSave]);
   const collectTrainingCreature = useCallback((creatureId: CreatureId) => {
     if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    return collectTrainingGroundsAssignment(currentSave, creatureId);
-  }, [currentSave]);
-
-  const purchaseTrainingGroundsUpgrade = useCallback((upgradeId: TrainingUpgradeId) => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    return purchaseTrainingUpgrade(currentSave, upgradeId);
-  }, [currentSave]);
-
-  const acceptGuildRequest = useCallback((contractId: string) => {
-    if (!currentSave) return "No active save.";
-    const result = acceptGuildContract(currentSave, contractId);
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const donateCreatureToGuild = useCallback((contractId: string, creatureId: CreatureId) => {
-    if (!currentSave) return "No active save.";
-    const result = donateCreatureToGuildContract(currentSave, contractId, creatureId);
-    saveCurrentGame(result.save);
-    return result.message;
-  }, [currentSave, saveCurrentGame]);
-
-  const buyTownUpgrade = useCallback((upgradeId: TownUpgradeId) => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = purchaseTownUpgrade(currentSave, upgradeId);
-    saveCurrentGame(ensureCurrentGuildState(ensureCurrentMarketState(result.save)));
-    return result;
-  }, [currentSave, saveCurrentGame]);
-
-  const buyRanchUpgrade = useCallback((upgradeId: RanchUpgradeId) => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = purchaseRanchUpgrade(currentSave, upgradeId);
-    saveCurrentGame(result.save);
-    return result;
-  }, [currentSave, saveCurrentGame]);
-
-  const repairRanch = useCallback(() => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = repairRanchDamage(currentSave);
+    const result = collectTrainingWithCareer(currentSave, creatureId);
     if (result.ok) saveCurrentGame(result.save);
     return result;
   }, [currentSave, saveCurrentGame]);
+  const purchaseTrainingGroundsUpgrade = useCallback((upgradeId: TrainingUpgradeId) => currentSave ? purchaseTrainingUpgrade(currentSave, upgradeId) : ({ save: currentSave as unknown as GameSave, ok: false, message: "No active save." }), [currentSave]);
 
-  const assignRanchJob = useCallback((jobId: RanchJobId, creatureId: CreatureId | null) => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = assignCreatureToRanchJob(currentSave, jobId, creatureId);
-    if (result.ok) saveCurrentGame(result.save);
-    return result;
-  }, [currentSave, saveCurrentGame]);
-
-  const claimGuildIntroBonus = useCallback(() => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = grantGuildIntroBonus(currentSave);
-    saveCurrentGame(result.save);
-    return result;
-  }, [currentSave, saveCurrentGame]);
-
-  const addDevGuildPoints = useCallback(() => {
-    if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
-    const result = grantDevGuildPoints(currentSave);
-    saveCurrentGame(result.save);
-    return result;
-  }, [currentSave, saveCurrentGame]);
+  const acceptGuildRequest = useCallback((contractId: string) => { if (!currentSave) return "No active save."; const r = acceptGuildContract(currentSave, contractId); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const donateCreatureToGuild = useCallback((contractId: string, creatureId: CreatureId) => { if (!currentSave) return "No active save."; const r = donateCreatureToGuildContract(currentSave, contractId, creatureId); saveCurrentGame(r.save); return r.message; }, [currentSave, saveCurrentGame]);
+  const buyTownUpgrade = useCallback((upgradeId: TownUpgradeId) => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = purchaseTownUpgrade(currentSave, upgradeId); saveCurrentGame(ensureCurrentGuildState(ensureCurrentMarketState(r.save))); return r; }, [currentSave, saveCurrentGame]);
+  const buyRanchUpgrade = useCallback((upgradeId: RanchUpgradeId) => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = purchaseRanchUpgrade(currentSave, upgradeId); saveCurrentGame(r.save); return r; }, [currentSave, saveCurrentGame]);
+  const repairRanch = useCallback(() => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = repairRanchDamage(currentSave); if (r.ok) saveCurrentGame(r.save); return r; }, [currentSave, saveCurrentGame]);
+  const assignRanchJob = useCallback((jobId: RanchJobId, creatureId: CreatureId | null) => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = assignCreatureToRanchJob(currentSave, jobId, creatureId); if (r.ok) saveCurrentGame(r.save); return r; }, [currentSave, saveCurrentGame]);
+  const claimGuildIntroBonus = useCallback(() => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = grantGuildIntroBonus(currentSave); saveCurrentGame(r.save); return r; }, [currentSave, saveCurrentGame]);
+  const addDevGuildPoints = useCallback(() => { if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." }; const r = grantDevGuildPoints(currentSave); saveCurrentGame(r.save); return r; }, [currentSave, saveCurrentGame]);
 
   const advanceDay = useCallback((): DayAdvanceResult | null => {
     if (!currentSave) return null;
@@ -398,12 +265,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       dayState: nextDayState,
       player: { ...currentSave.player, hearts: currentSave.player.maxHearts ?? 4 },
       currencies: { ...currentSave.currencies, energy: currentSave.currencies.maxEnergy },
-      creatures: (currentSave.creatures ?? []).map((creature) => getTrainingUnavailableReason(currentSave, creature.creatureId) ? creature : ({
-        ...creature,
-        energy: Math.min(creature.maxEnergy + recovery.sleepCreatureEnergyBonus, creature.maxEnergy + recovery.sleepCreatureEnergyBonus),
-        hearts: creature.maxHearts ?? 4,
-        affection: Math.min(100, creature.affection + recovery.sleepAffectionBonus),
-      })),
+      creatures: (currentSave.creatures ?? []).map((creature) => getTrainingUnavailableReason(currentSave, creature.creatureId) ? creature : ({ ...creature, energy: creature.maxEnergy + recovery.sleepCreatureEnergyBonus, hearts: creature.maxHearts ?? 4, affection: Math.min(100, creature.affection + recovery.sleepAffectionBonus) })),
       breeding: currentSave.breeding,
       pregnancies: currentSave.pregnancies ?? [],
       eggs: currentSave.eggs ?? [],
@@ -413,23 +275,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       townNpcTrust: currentSave.townNpcTrust,
       ranchUpgrades: currentSave.ranchUpgrades,
       ranchJobs: currentSave.ranchJobs,
-      flags: {
-        ...currentSave.flags,
-        lastSleptDayNumber: nextDayState.dayNumber,
-        m2SleepUsed: true,
-        m11SleepRecoveryApplied: recovery.sleepCreatureEnergyBonus > 0 || recovery.sleepAffectionBonus > 0,
-        m47TrainingAvailability: true,
-      },
+      flags: { ...currentSave.flags, lastSleptDayNumber: nextDayState.dayNumber, m2SleepUsed: true, m11SleepRecoveryApplied: recovery.sleepCreatureEnergyBonus > 0 || recovery.sleepAffectionBonus > 0, m47TrainingAvailability: true },
     };
-
     const nurseryResult = advanceNurseryDay(restoredSave);
-    const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save);
-    const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave);
-    const jobResult = processRanchJobsForNewDay(guildSyncedSave);
-    const rewardedSave = applyStarterGoalRewards(jobResult.save);
-    const trainingReturnItems = getTrainingReturnSummaryItems(rewardedSave);
-    const battleReadinessItems = getBattleOutfitterDailySummaryItems(rewardedSave);
-    const taxResult = processMonthlyTaxes(rewardedSave, currentSave);
+    const guildSynced = ensureCurrentGuildState(ensureCurrentMarketState(nurseryResult.save));
+    const jobResult = processLegacyRanchJobs(guildSynced);
+    const rewarded = applyStarterGoalRewards(jobResult.save);
+    const trainingReturnItems = getTrainingReturnSummaryItems(rewarded);
+    const battleReadinessItems = getBattleOutfitterDailySummaryItems(rewarded);
+    const taxResult = processMonthlyTaxes(rewarded, currentSave);
     const dailyReport = buildDailyReportBundle(taxResult.save, jobResult.results);
     const finalSave: GameSave = { ...taxResult.save, flags: { ...taxResult.save.flags, ...serializeDailyReportBundle(dailyReport) } };
     const summaryItems = [
@@ -451,113 +305,31 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<GameContextValue>(() => ({
     version: MVP_VERSION,
-    buildPhase: "M56 — Supply Depot Full Integration",
-    appScreen,
-    activeHabitatFamily,
-    currentSave,
-    saveSlots,
-    isHydrated,
-    createNewGame,
-    loadGame,
-    deleteGame,
-    refreshSaveSlots,
-    goToMainMenu,
-    exitRunToMainMenu,
-    goToRanch,
-    goToHabitat,
-    goToBreeding,
-    goToNursery,
-    goToTown,
-    goToMarket,
-    goToSupplyDepot,
-    goToEggAtelier,
-    goToTrainingGrounds,
-    goToBattleOutfitter,
-    goToBattleDebug,
-    goToGuildHall,
-    goToCollection,
-    goToRanchOffice,
-    goToRanchJobs,
-    goToDevTools,
-    saveCurrentGame,
-    advanceDay,
-    renameCreature,
-    feedCreature,
-    toggleCreatureLock,
-    releaseCreature,
-    donateCreature,
-    attemptBreeding,
-    hatchReadyEgg,
-    removeNurseryEgg,
-    buyMarketCreature,
-    rerollMarket,
-    buySupplyDepotItem,
-    useEnergySnack,
-    buyBattleOutfitterItem,
-    trainCreature,
-    collectTrainingCreature,
-    purchaseTrainingGroundsUpgrade,
-    acceptGuildRequest,
-    donateCreatureToGuild,
-    buyTownUpgrade,
-    buyRanchUpgrade,
-    repairRanch,
-    assignRanchJob,
-    claimGuildIntroBonus,
+    buildPhase: "Legacy A2 — Career Records Integration",
+    appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated,
+    createNewGame, loadGame, deleteGame, refreshSaveSlots, goToMainMenu, exitRunToMainMenu,
+    goToRanch, goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket,
+    goToSupplyDepot, goToEggAtelier, goToTrainingGrounds, goToBattleOutfitter,
+    goToBattleDebug, goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs,
+    goToDevTools, saveCurrentGame, advanceDay, renameCreature, feedCreature,
+    toggleCreatureLock, releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg,
+    removeNurseryEgg, buyMarketCreature, rerollMarket, buySupplyDepotItem, useEnergySnack,
+    buyBattleOutfitterItem, trainCreature, collectTrainingCreature,
+    purchaseTrainingGroundsUpgrade, acceptGuildRequest, donateCreatureToGuild,
+    buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus,
     addDevGuildPoints,
   }), [
-    appScreen,
-    activeHabitatFamily,
-    currentSave,
-    saveSlots,
-    isHydrated,
-    createNewGame,
-    loadGame,
-    deleteGame,
-    refreshSaveSlots,
-    goToMainMenu,
-    exitRunToMainMenu,
-    goToRanch,
-    goToHabitat,
-    goToBreeding,
-    goToNursery,
-    goToTown,
-    goToMarket,
-    goToSupplyDepot,
-    goToEggAtelier,
-    goToTrainingGrounds,
-    goToBattleOutfitter,
-    goToBattleDebug,
-    goToGuildHall,
-    goToCollection,
-    goToRanchOffice,
-    goToRanchJobs,
-    goToDevTools,
-    saveCurrentGame,
-    advanceDay,
-    renameCreature,
-    feedCreature,
-    toggleCreatureLock,
-    releaseCreature,
-    donateCreature,
-    attemptBreeding,
-    hatchReadyEgg,
-    removeNurseryEgg,
-    buyMarketCreature,
-    rerollMarket,
-    buySupplyDepotItem,
-    useEnergySnack,
-    buyBattleOutfitterItem,
-    trainCreature,
-    collectTrainingCreature,
-    purchaseTrainingGroundsUpgrade,
-    acceptGuildRequest,
-    donateCreatureToGuild,
-    buyTownUpgrade,
-    buyRanchUpgrade,
-    repairRanch,
-    assignRanchJob,
-    claimGuildIntroBonus,
+    appScreen, activeHabitatFamily, currentSave, saveSlots, isHydrated, createNewGame,
+    loadGame, deleteGame, refreshSaveSlots, goToMainMenu, exitRunToMainMenu, goToRanch,
+    goToHabitat, goToBreeding, goToNursery, goToTown, goToMarket, goToSupplyDepot,
+    goToEggAtelier, goToTrainingGrounds, goToBattleOutfitter, goToBattleDebug,
+    goToGuildHall, goToCollection, goToRanchOffice, goToRanchJobs, goToDevTools,
+    saveCurrentGame, advanceDay, renameCreature, feedCreature, toggleCreatureLock,
+    releaseCreature, donateCreature, attemptBreeding, hatchReadyEgg, removeNurseryEgg,
+    buyMarketCreature, rerollMarket, buySupplyDepotItem, useEnergySnack,
+    buyBattleOutfitterItem, trainCreature, collectTrainingCreature,
+    purchaseTrainingGroundsUpgrade, acceptGuildRequest, donateCreatureToGuild,
+    buyTownUpgrade, buyRanchUpgrade, repairRanch, assignRanchJob, claimGuildIntroBonus,
     addDevGuildPoints,
   ]);
 
