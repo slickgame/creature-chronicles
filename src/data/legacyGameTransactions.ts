@@ -73,7 +73,7 @@ export function performBreedingAttemptWithCareers(
       eventKey: `breeding-pair:${String(result.attempt.attemptId)}`,
       creatureIds: [parentCreatureIds[0], parentCreatureIds[1]],
       dayNumber: result.attempt.dayNumber,
-      affinityDelta: result.attempt.success ? 3 : 1,
+      affinityDelta: result.attempt.outcome === "pregnancy" ? 3 : 1,
     });
   }
 
