@@ -1,238 +1,114 @@
-import type { CreatureId } from "@/types/ids";
+export * from "./creatureRelationshipsCore";
+
+import { addSharedCreatureMemory } from "@/data/creatureMemories";
 import {
-  CREATURE_RELATIONSHIP_VERSION,
-  type CreatureRelationshipEvent,
-  type CreatureRelationshipKind,
-  type CreatureRelationshipRecord,
-  type CreatureRelationshipSaveState,
-} from "@/types/relationships";
+  getCreatureRelationship,
+  recordCreatureRelationshipEvent as recordCreatureRelationshipEventCore,
+} from "./creatureRelationshipsCore";
+import type { CreatureId } from "@/types/ids";
+import type { CreatureRelationshipEvent, CreatureRelationshipKind } from "@/types/relationships";
 import type { GameSave } from "@/types/save";
 
-const MAX_RELATIONSHIP_EVENT_KEYS = 3000;
+type RelationshipMilestone = {
+  kind: Extract<CreatureRelationshipKind, "friend" | "close_friend" | "strained" | "rival" | "trusted_family">;
+  importance: "notable" | "major";
+};
 
-function clampAffinity(value: number): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(-100, Math.min(100, Math.round(value)));
+function creatureName(save: GameSave, creatureId: CreatureId): string {
+  return (save.creatures ?? []).find((creature) => creature.creatureId === creatureId)?.nickname
+    ?? "A former ranch creature";
 }
 
-function nonNegative(value: number | undefined): number {
-  if (!Number.isFinite(value)) return 0;
-  return Math.max(0, Math.floor(value ?? 0));
+function crossedMilestones(
+  beforeAffinity: number,
+  afterAffinity: number,
+  family: boolean,
+): RelationshipMilestone[] {
+  const milestones: RelationshipMilestone[] = [];
+  if (beforeAffinity < 30 && afterAffinity >= 30 && !family) {
+    milestones.push({ kind: "friend", importance: "notable" });
+  }
+  if (beforeAffinity < 70 && afterAffinity >= 70 && !family) {
+    milestones.push({ kind: "close_friend", importance: "major" });
+  }
+  if (beforeAffinity > -15 && afterAffinity <= -15 && !family) {
+    milestones.push({ kind: "strained", importance: "notable" });
+  }
+  if (beforeAffinity > -45 && afterAffinity <= -45 && !family) {
+    milestones.push({ kind: "rival", importance: "major" });
+  }
+  if (family && beforeAffinity < 65 && afterAffinity >= 65) {
+    milestones.push({ kind: "trusted_family", importance: "major" });
+  }
+  return milestones;
 }
 
-export function getRelationshipId(leftId: CreatureId, rightId: CreatureId): string {
-  return [String(leftId), String(rightId)].sort().join("::");
-}
-
-function canonicalPair(leftId: CreatureId, rightId: CreatureId): [CreatureId, CreatureId] {
-  return String(leftId).localeCompare(String(rightId)) <= 0
-    ? [leftId, rightId]
-    : [rightId, leftId];
-}
-
-export function createEmptyCreatureRelationshipState(): CreatureRelationshipSaveState {
+function milestoneStory(
+  kind: RelationshipMilestone["kind"],
+  leftName: string,
+  rightName: string,
+): { title: string; description: string } {
+  if (kind === "friend") {
+    return {
+      title: `${leftName} and ${rightName} became friends`,
+      description: `After enough shared days and experiences, ${leftName} and ${rightName} began to seek out each other's company as true ranch friends.`,
+    };
+  }
+  if (kind === "close_friend") {
+    return {
+      title: `${leftName} and ${rightName} formed a lasting friendship`,
+      description: `${leftName} and ${rightName} became close friends whose shared history now forms part of the ranch's living legacy.`,
+    };
+  }
+  if (kind === "strained") {
+    return {
+      title: `${leftName} and ${rightName} developed a strained bond`,
+      description: `Repeated friction left ${leftName} and ${rightName} wary of one another. Future shared experiences may mend the tension or deepen it.`,
+    };
+  }
+  if (kind === "rival") {
+    return {
+      title: `${leftName} and ${rightName} became rivals`,
+      description: `${leftName} and ${rightName} now measure themselves against one another, turning their difficult history into a lasting ranch rivalry.`,
+    };
+  }
   return {
-    version: CREATURE_RELATIONSHIP_VERSION,
-    recordsByRelationshipId: {},
-    appliedEventKeys: [],
+    title: `${leftName} and ${rightName} became trusted family`,
+    description: `${leftName} and ${rightName} strengthened their family bond through years of shared ranch life and now trust one another deeply.`,
   };
 }
 
-export function createCreatureRelationshipRecord(
-  leftId: CreatureId,
-  rightId: CreatureId,
-  dayNumber: number,
-): CreatureRelationshipRecord {
-  const creatureIds = canonicalPair(leftId, rightId);
-  const safeDay = Math.max(1, nonNegative(dayNumber));
-  return {
-    version: CREATURE_RELATIONSHIP_VERSION,
-    relationshipId: getRelationshipId(leftId, rightId),
-    creatureIds,
-    affinity: 0,
-    sharedEvents: 0,
-    positiveEvents: 0,
-    negativeEvents: 0,
-    family: false,
-    firstRecordedDayNumber: safeDay,
-    lastUpdatedDayNumber: safeDay,
-  };
-}
-
-function normalizeRecord(
-  leftId: CreatureId,
-  rightId: CreatureId,
-  candidate: Partial<CreatureRelationshipRecord> | undefined,
-  dayNumber: number,
-): CreatureRelationshipRecord {
-  const empty = createCreatureRelationshipRecord(leftId, rightId, dayNumber);
-  if (!candidate) return empty;
-  return {
-    ...empty,
-    ...candidate,
-    version: CREATURE_RELATIONSHIP_VERSION,
-    relationshipId: empty.relationshipId,
-    creatureIds: empty.creatureIds,
-    affinity: clampAffinity(candidate.affinity ?? 0),
-    sharedEvents: nonNegative(candidate.sharedEvents),
-    positiveEvents: nonNegative(candidate.positiveEvents),
-    negativeEvents: nonNegative(candidate.negativeEvents),
-    family: Boolean(candidate.family),
-    firstRecordedDayNumber: Math.max(1, nonNegative(candidate.firstRecordedDayNumber ?? dayNumber)),
-    lastUpdatedDayNumber: Math.max(1, nonNegative(candidate.lastUpdatedDayNumber ?? dayNumber)),
-  };
-}
-
-export function getCreatureRelationshipState(save: GameSave): CreatureRelationshipSaveState {
-  const candidate = save.creatureRelationships;
-  if (!candidate || typeof candidate !== "object") return createEmptyCreatureRelationshipState();
-  return {
-    version: CREATURE_RELATIONSHIP_VERSION,
-    recordsByRelationshipId:
-      candidate.recordsByRelationshipId && typeof candidate.recordsByRelationshipId === "object"
-        ? candidate.recordsByRelationshipId
-        : {},
-    appliedEventKeys: Array.isArray(candidate.appliedEventKeys)
-      ? candidate.appliedEventKeys.filter((key): key is string => typeof key === "string")
-      : [],
-  };
-}
-
-export function getCreatureRelationship(
-  save: GameSave,
-  leftId: CreatureId,
-  rightId: CreatureId,
-): CreatureRelationshipRecord {
-  const state = getCreatureRelationshipState(save);
-  return normalizeRecord(
-    leftId,
-    rightId,
-    state.recordsByRelationshipId[getRelationshipId(leftId, rightId)],
-    save.dayState?.dayNumber ?? 1,
-  );
-}
-
+/**
+ * Persistent relationship transaction with automatic milestone storytelling.
+ * Core affinity/event accounting remains isolated in creatureRelationshipsCore;
+ * this facade mirrors newly crossed social thresholds into both creature Memory
+ * books and one shared Chronicle entry.
+ */
 export function recordCreatureRelationshipEvent(
   save: GameSave,
   event: CreatureRelationshipEvent,
 ): GameSave {
   const [leftId, rightId] = event.creatureIds;
-  if (leftId === rightId) return save;
-  const state = getCreatureRelationshipState(save);
-  if (state.appliedEventKeys.includes(event.eventKey)) return save;
-  const current = getCreatureRelationship(save, leftId, rightId);
-  const delta = Math.max(-20, Math.min(20, Math.round(event.affinityDelta)));
-  const next: CreatureRelationshipRecord = {
-    ...current,
-    affinity: clampAffinity(current.affinity + delta),
-    sharedEvents: current.sharedEvents + 1,
-    positiveEvents: current.positiveEvents + (delta > 0 ? 1 : 0),
-    negativeEvents: current.negativeEvents + (delta < 0 ? 1 : 0),
-    family: current.family || Boolean(event.family),
-    lastUpdatedDayNumber: Math.max(current.lastUpdatedDayNumber, event.dayNumber),
-  };
-  return {
-    ...save,
-    creatureRelationships: {
-      version: CREATURE_RELATIONSHIP_VERSION,
-      recordsByRelationshipId: {
-        ...state.recordsByRelationshipId,
-        [next.relationshipId]: next,
-      },
-      appliedEventKeys: [...state.appliedEventKeys, event.eventKey].slice(-MAX_RELATIONSHIP_EVENT_KEYS),
-    },
-  };
-}
+  const before = getCreatureRelationship(save, leftId, rightId);
+  let nextSave = recordCreatureRelationshipEventCore(save, event);
+  if (nextSave === save) return save;
+  const after = getCreatureRelationship(nextSave, leftId, rightId);
+  const milestones = crossedMilestones(before.affinity, after.affinity, after.family);
+  const leftName = creatureName(save, leftId);
+  const rightName = creatureName(save, rightId);
 
-export function getCreatureRelationshipKind(
-  record: CreatureRelationshipRecord,
-): CreatureRelationshipKind {
-  if (record.family && record.affinity >= 65) return "trusted_family";
-  if (record.family) return "family";
-  if (record.affinity >= 70) return "close_friend";
-  if (record.affinity >= 30) return "friend";
-  if (record.affinity <= -45) return "rival";
-  if (record.affinity <= -15) return "strained";
-  if (record.sharedEvents > 0) return "acquaintance";
-  return "unfamiliar";
-}
-
-export function getCreatureRelationshipLabel(record: CreatureRelationshipRecord): string {
-  const kind = getCreatureRelationshipKind(record);
-  if (kind === "trusted_family") return "Trusted Family";
-  if (kind === "family") return "Family";
-  if (kind === "close_friend") return "Close Friend";
-  if (kind === "friend") return "Friend";
-  if (kind === "rival") return "Rival";
-  if (kind === "strained") return "Strained";
-  if (kind === "acquaintance") return "Acquaintance";
-  return "Unfamiliar";
-}
-
-export function getRelationshipsForCreature(
-  save: GameSave,
-  creatureId: CreatureId,
-): CreatureRelationshipRecord[] {
-  return Object.values(getCreatureRelationshipState(save).recordsByRelationshipId)
-    .filter((record) => record.creatureIds.includes(creatureId))
-    .map((record) => normalizeRecord(
-      record.creatureIds[0],
-      record.creatureIds[1],
-      record,
-      save.dayState?.dayNumber ?? 1,
-    ))
-    .sort((left, right) => {
-      if (left.family !== right.family) return left.family ? -1 : 1;
-      if (left.affinity !== right.affinity) return right.affinity - left.affinity;
-      return right.sharedEvents - left.sharedEvents;
+  for (const milestone of milestones) {
+    const story = milestoneStory(milestone.kind, leftName, rightName);
+    nextSave = addSharedCreatureMemory(nextSave, {
+      creatureIds: [leftId, rightId],
+      category: "relationship",
+      importance: milestone.importance,
+      title: story.title,
+      description: story.description,
+      dayNumber: event.dayNumber,
+      sourceKey: `relationship-milestone:${after.relationshipId}:${milestone.kind}`,
+      tags: ["relationship", "milestone", milestone.kind],
     });
-}
-
-function seedFamilyRelationship(
-  save: GameSave,
-  childId: CreatureId,
-  parentId: CreatureId,
-  dayNumber: number,
-  sourceKey: string,
-): GameSave {
-  const current = getCreatureRelationship(save, childId, parentId);
-  if (current.family && current.affinity >= 35) return save;
-  return recordCreatureRelationshipEvent(save, {
-    eventKey: sourceKey,
-    creatureIds: [childId, parentId],
-    dayNumber,
-    affinityDelta: Math.max(0, 35 - current.affinity),
-    family: true,
-  });
-}
-
-export function normalizeCreatureRelationshipSave(save: GameSave): GameSave {
-  let normalized: GameSave = {
-    ...save,
-    creatureRelationships: getCreatureRelationshipState(save),
-  };
-  for (const birth of save.birthHistory ?? []) {
-    for (const parent of [birth.parents.giver, birth.parents.receiver]) {
-      if (!parent.creatureId) continue;
-      normalized = seedFamilyRelationship(
-        normalized,
-        birth.creatureId,
-        parent.creatureId,
-        birth.hatchedAtDayNumber,
-        `family-seed:${String(birth.birthId)}:${String(parent.creatureId)}`,
-      );
-    }
   }
-  return {
-    ...normalized,
-    creatureRelationships: {
-      ...getCreatureRelationshipState(normalized),
-      appliedEventKeys: getCreatureRelationshipState(normalized).appliedEventKeys.slice(-MAX_RELATIONSHIP_EVENT_KEYS),
-    },
-    flags: {
-      ...normalized.flags,
-      creatureRelationshipVersion: CREATURE_RELATIONSHIP_VERSION,
-      creatureRelationshipsMigrated: true,
-    },
-  };
+  return nextSave;
 }
