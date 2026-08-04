@@ -6,7 +6,7 @@
     "generate:breeding-scenes": "node scripts/generate-breeding-scene-manifest.mjs",
     "validate:breeding-assets": "node scripts/validate-breeding-assets.mjs",
     "prepare:cow-images": "node scripts/prepare-cow-images.mjs",
-    "restore:cow-alpha": "node scripts/restore-cow-alpha.mjs",
+    "restore:cow-images": "node scripts/restore-cow-alpha.mjs",
     "simulate:genetics": "node scripts/simulate-genetics.mjs",
     "simulate:breeding-economy": "node scripts/simulate-breeding-economy.mjs",
     "prepare:assets": "npm run generate:breeding-scenes && npm run validate:breeding-assets",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^19",
-    "@types/react-dom": "^20",
+    "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "typescript": "^5"
