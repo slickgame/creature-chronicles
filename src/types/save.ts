@@ -30,9 +30,11 @@ import type {
 } from "./ids";
 import type { ItemUseRecord } from "./items";
 import type { MarketState } from "./market";
+import type { CreaturePersonalitySaveState } from "./personality";
 import type { RanchDayState } from "./ranchDay";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
+import type { CreatureRelationshipSaveState } from "./relationships";
 import type { TownNpcTrustState } from "./townNpc";
 import type { TownUpgradeState } from "./upgrades";
 
@@ -221,6 +223,8 @@ export type GameSave = {
   ranchDay?: RanchDayState;
   creatureMemories?: CreatureMemorySaveState;
   creatureCareers?: CreatureCareerSaveState;
+  creaturePersonalities?: CreaturePersonalitySaveState;
+  creatureRelationships?: CreatureRelationshipSaveState;
   saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };
