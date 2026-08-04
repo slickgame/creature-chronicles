@@ -174,7 +174,7 @@ const statBoxStyle: CSSProperties = {
 const noteBarStyle: CSSProperties = {
   gridColumn: "1 / -1",
   display: "grid",
-  gridTemplateColumns: "minmax(0,1fr) minmax(220px,360px) auto",
+  gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,220px),1fr))",
   gap: 10,
   alignItems: "center",
   padding: "8px 10px",
@@ -478,7 +478,7 @@ export function BreedingFocusedScreen() {
             <BreedingRelationshipCompatibilityPanel compatibility={compatibility} />
             <button
               type="button"
-              style={primaryButtonStyle}
+              style={{ ...primaryButtonStyle, width: "100%" }}
               disabled={!preview?.canAttempt}
               onClick={handleAttempt}
             >
