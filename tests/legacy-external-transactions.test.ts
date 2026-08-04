@@ -8,10 +8,11 @@ const source = fs.readFileSync(
   "utf8",
 );
 
-test("Coliseum wrapper records canonical result before career credit", () => {
+test("Coliseum wrapper records canonical result before normalized career credit", () => {
   assert.match(source, /recordColiseumBattleResult\(save, encounterId, outcome, roundCount, teamCreatureIds\)/);
   assert.match(source, /battleId: result\.historyEntry\.historyId/);
-  assert.match(source, /participants: teamCreatureIds\.map/);
+  assert.match(source, /participants: normalizeParticipants\(teamCreatureIds, telemetry\)/);
+  assert.match(source, /telemetryById/);
   assert.match(source, /outcome: toCareerOutcome\(outcome\)/);
 });
 
