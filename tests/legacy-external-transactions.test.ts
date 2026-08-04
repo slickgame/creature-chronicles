@@ -8,12 +8,20 @@ const source = fs.readFileSync(
   "utf8",
 );
 
-test("Coliseum wrapper records canonical result before normalized career credit", () => {
-  assert.match(source, /recordColiseumBattleResult\(save, encounterId, outcome, roundCount, teamCreatureIds\)/);
+test("Coliseum wrapper records canonical result before career and teamwork credit", () => {
+  const resultIndex = source.indexOf(
+    "recordColiseumBattleResult(save, encounterId, outcome, roundCount, teamCreatureIds)",
+  );
+  const careerIndex = source.indexOf("applyBattleCareerResults(result.save");
+  const moraleIndex = source.indexOf("applyBattleTeamworkMorale(");
+  assert.ok(resultIndex >= 0);
+  assert.ok(careerIndex > resultIndex);
+  assert.ok(moraleIndex > careerIndex);
+  assert.match(source, /const careerOutcome = toCareerOutcome\(outcome\)/);
   assert.match(source, /battleId: result\.historyEntry\.historyId/);
   assert.match(source, /participants: normalizeParticipants\(teamCreatureIds, telemetry\)/);
   assert.match(source, /telemetryById/);
-  assert.match(source, /outcome: toCareerOutcome\(outcome\)/);
+  assert.match(source, /careerOutcome/);
 });
 
 test("Guild wrapper credits the submitted creature and featured Gold requests", () => {
