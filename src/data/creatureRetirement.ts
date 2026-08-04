@@ -11,6 +11,7 @@ import {
   type HeirloomCategory,
   type RetiredCreatureRecord,
 } from "@/types/legacy";
+import type { RanchJobsState } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
 
 const MAX_PROCESSED_EVENT_KEYS = 2500;
@@ -41,6 +42,11 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+function flagNumber(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
 function hashString(value: string): string {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -52,8 +58,9 @@ function hashString(value: string): string {
 
 function boundedEventKeys(keys: unknown): string[] {
   if (!Array.isArray(keys)) return [];
-  return Array.from(new Set(keys.filter((key): key is string => typeof key === "string" && key.length > 0)))
-    .slice(-MAX_PROCESSED_EVENT_KEYS);
+  return Array.from(
+    new Set(keys.filter((key): key is string => typeof key === "string" && key.length > 0)),
+  ).slice(-MAX_PROCESSED_EVENT_KEYS);
 }
 
 export function createEmptyCreatureLegacyState(): CreatureLegacyState {
@@ -103,11 +110,11 @@ export function normalizeCreatureLegacySave(save: GameSave): GameSave {
 }
 
 export function getRetiredCreatureRecords(save: GameSave): RetiredCreatureRecord[] {
-  return Object.values(getCreatureLegacyState(save).retiredByCreatureId)
-    .sort((left, right) =>
+  return Object.values(getCreatureLegacyState(save).retiredByCreatureId).sort(
+    (left, right) =>
       right.retiredAtDayNumber - left.retiredAtDayNumber ||
       left.creature.nickname.localeCompare(right.creature.nickname),
-    );
+  );
 }
 
 export function getRetiredCreatureRecord(
@@ -118,19 +125,19 @@ export function getRetiredCreatureRecord(
 }
 
 export function getCreatureHeirlooms(save: GameSave): CreatureHeirloom[] {
-  return Object.values(getCreatureLegacyState(save).heirloomsById)
-    .sort((left, right) =>
+  return Object.values(getCreatureLegacyState(save).heirloomsById).sort(
+    (left, right) =>
       right.createdAtDayNumber - left.createdAtDayNumber || left.name.localeCompare(right.name),
-    );
+  );
 }
 
 export function getHallOfLegendsEntries(save: GameSave): HallOfLegendsEntry[] {
-  return Object.values(getCreatureLegacyState(save).hallByCreatureId)
-    .sort((left, right) =>
+  return Object.values(getCreatureLegacyState(save).hallByCreatureId).sort(
+    (left, right) =>
       right.legacyScore - left.legacyScore ||
       right.fulfilledAmbitions - left.fulfilledAmbitions ||
       left.creatureName.localeCompare(right.creatureName),
-    );
+  );
 }
 
 function hasActivePregnancy(save: GameSave, creatureId: CreatureId): boolean {
@@ -148,21 +155,28 @@ export function getRetirementEligibility(
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) {
     const retired = getRetiredCreatureRecord(save, creatureId);
+    const profile = retired ? getCreatureLegacyProfile(save, retired.creature) : null;
     return {
       eligible: false,
       reasons: [retired ? `${retired.creature.nickname} is already retired.` : "Creature not found."],
-      profile: retired ? getCreatureLegacyProfile(save, retired.creature) : null,
-      hallEligible: Boolean(retired && getCreatureLegacyProfile(save, retired.creature).hallEligible),
+      profile,
+      hallEligible: Boolean(profile?.hallEligible),
     };
   }
 
   const profile = getCreatureLegacyProfile(save, creature);
   const reasons: string[] = [];
-  if ((save.creatures ?? []).length <= 1) reasons.push("At least one active creature must remain on the ranch.");
+  if ((save.creatures ?? []).length <= 1) {
+    reasons.push("At least one active creature must remain on the ranch.");
+  }
   if (creature.isLocked) reasons.push("Unlock this creature before retirement.");
   const trainingReason = getTrainingUnavailableReason(save, creatureId);
-  if (trainingReason) reasons.push(`Collect this creature from Training Grounds first: ${trainingReason}`);
-  if (hasActivePregnancy(save, creatureId)) reasons.push("Resolve this creature's active pregnancy before retirement.");
+  if (trainingReason) {
+    reasons.push(`Collect this creature from Training Grounds first: ${trainingReason}`);
+  }
+  if (hasActivePregnancy(save, creatureId)) {
+    reasons.push("Resolve this creature's active pregnancy before retirement.");
+  }
   if (
     profile.legacyScore < MINIMUM_RETIREMENT_LEGACY_SCORE &&
     profile.fulfilledAmbitions < 1 &&
@@ -234,13 +248,13 @@ function heirloomDefinition(
 }
 
 function removeCreatureFromActiveRanch(save: GameSave, creatureId: CreatureId): GameSave {
-  const assignments = save.ranchJobs?.assignments
-    ? Object.fromEntries(
+  const assignments: RanchJobsState["assignments"] | undefined = save.ranchJobs?.assignments
+    ? (Object.fromEntries(
         Object.entries(save.ranchJobs.assignments).map(([jobId, creatureIds]) => [
           jobId,
           creatureIds.filter((id) => id !== creatureId),
         ]),
-      ) as GameSave["ranchJobs"] extends { assignments: infer T } ? T : never
+      ) as RanchJobsState["assignments"])
     : undefined;
 
   return {
@@ -251,9 +265,8 @@ function removeCreatureFromActiveRanch(save: GameSave, creatureId: CreatureId): 
       ...habitat,
       creatureIds: habitat.creatureIds.filter((id) => id !== creatureId),
     })),
-    ranchJobs: save.ranchJobs && assignments
-      ? { ...save.ranchJobs, assignments }
-      : save.ranchJobs,
+    ranchJobs:
+      save.ranchJobs && assignments ? { ...save.ranchJobs, assignments } : save.ranchJobs,
   };
 }
 
@@ -337,9 +350,12 @@ export function retireCreature(
     },
     flags: {
       ...nextSave.flags,
-      legacyPrestige: Number(nextSave.flags.legacyPrestige ?? 0) + RETIREMENT_PRESTIGE + heirloom.legacyPrestigeValue,
-      totalRetiredCreatures: Number(nextSave.flags.totalRetiredCreatures ?? 0) + 1,
-      totalHeirloomsCreated: Number(nextSave.flags.totalHeirloomsCreated ?? 0) + 1,
+      legacyPrestige:
+        flagNumber(nextSave.flags.legacyPrestige) +
+        RETIREMENT_PRESTIGE +
+        heirloom.legacyPrestigeValue,
+      totalRetiredCreatures: flagNumber(nextSave.flags.totalRetiredCreatures) + 1,
+      totalHeirloomsCreated: flagNumber(nextSave.flags.totalHeirloomsCreated) + 1,
       lastRetiredCreatureName: creature.nickname,
     },
   };
@@ -382,20 +398,39 @@ export function inductRetiredCreatureIntoHall(
 ): CreatureLegacyActionResult {
   const state = getCreatureLegacyState(save);
   const retired = state.retiredByCreatureId[String(creatureId)];
-  if (!retired) return { save, ok: false, message: "Only a retired creature can enter the Hall of Legends." };
+  if (!retired) {
+    return { save, ok: false, message: "Only a retired creature can enter the Hall of Legends." };
+  }
   const existing = state.hallByCreatureId[String(creatureId)];
   if (existing) {
-    return { save, ok: false, message: `${retired.creature.nickname} is already in the Hall of Legends.`, retired, hallEntry: existing };
+    return {
+      save,
+      ok: false,
+      message: `${retired.creature.nickname} is already in the Hall of Legends.`,
+      retired,
+      hallEntry: existing,
+    };
   }
   const profile = getCreatureLegacyProfile(save, retired.creature);
   if (!profile.hallEligible) {
-    return { save, ok: false, message: `${retired.creature.nickname} has not earned Hall of Legends eligibility.`, retired };
+    return {
+      save,
+      ok: false,
+      message: `${retired.creature.nickname} has not earned Hall of Legends eligibility.`,
+      retired,
+    };
   }
 
   const eventKey = `hall-induction:${String(creatureId)}`;
   if (state.processedEventKeys.includes(eventKey)) {
-    return { save, ok: false, message: `${retired.creature.nickname}'s Hall induction was already recorded.`, retired };
+    return {
+      save,
+      ok: false,
+      message: `${retired.creature.nickname}'s Hall induction was already recorded.`,
+      retired,
+    };
   }
+
   const inductedAt = nowIso();
   const hallEntry: HallOfLegendsEntry = {
     hallEntryId: `hall_${hashString(String(creatureId))}`,
@@ -411,7 +446,7 @@ export function inductRetiredCreatureIntoHall(
     inductedAtDayNumber: save.dayState.dayNumber,
     inductedAt,
   };
-  const updatedRetired = { ...retired, inductedIntoHall: true };
+  const updatedRetired: RetiredCreatureRecord = { ...retired, inductedIntoHall: true };
   let nextSave: GameSave = {
     ...save,
     creatureLegacy: {
@@ -429,8 +464,8 @@ export function inductRetiredCreatureIntoHall(
     },
     flags: {
       ...save.flags,
-      legacyPrestige: Number(save.flags.legacyPrestige ?? 0) + HALL_INDUCTION_PRESTIGE,
-      hallOfLegendsInductions: Number(save.flags.hallOfLegendsInductions ?? 0) + 1,
+      legacyPrestige: flagNumber(save.flags.legacyPrestige) + HALL_INDUCTION_PRESTIGE,
+      hallOfLegendsInductions: flagNumber(save.flags.hallOfLegendsInductions) + 1,
       lastHallInducteeName: retired.creature.nickname,
     },
   };
