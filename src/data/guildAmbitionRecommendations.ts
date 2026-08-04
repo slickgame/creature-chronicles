@@ -1,4 +1,8 @@
 import { getCreatureAmbitionProgress, getPrimaryCreatureAmbition } from "@/data/creatureAmbitions";
+import {
+  getCreaturePersonalityProfile,
+  getPersonalityGuildCategoryBonus,
+} from "@/data/creaturePersonalities";
 import { getEligibleCreaturesForContract } from "@/data/guild";
 import type { CreatureRecord } from "@/types/creature";
 import type { GuildContract } from "@/types/guild";
@@ -10,6 +14,7 @@ export type GuildCreatureRecommendation = {
   reasons: string[];
   ambitionName: string;
   ambitionPercent: number;
+  personalityName: string;
 };
 
 function categoryBonus(contract: GuildContract, ambitionCategory: string): number {
@@ -23,8 +28,8 @@ function categoryBonus(contract: GuildContract, ambitionCategory: string): numbe
 
 /**
  * Ranks already-eligible creatures without changing contract validation. The
- * recommendation favors a matching ambition, progress close enough to make the
- * assignment meaningful, and healthy reserves for service work.
+ * recommendation favors matching Ambitions and personality preferences,
+ * meaningful progress, and healthy reserves for service work.
  */
 export function getGuildCreatureRecommendations(
   save: GameSave,
@@ -35,9 +40,16 @@ export function getGuildCreatureRecommendations(
     .map((creature) => {
       const ambition = getPrimaryCreatureAmbition(save, creature.creatureId);
       const progress = getCreatureAmbitionProgress(save, creature.creatureId, ambition.ambitionId);
+      const personality = getCreaturePersonalityProfile(save, creature.creatureId);
       const reasons: string[] = [];
       let score = categoryBonus(contract, ambition.category);
       if (score > 0) reasons.push(`${ambition.name} aligns with this ${contract.category} request`);
+
+      const personalityBonus = getPersonalityGuildCategoryBonus(personality, contract.category);
+      score += personalityBonus;
+      if (personalityBonus > 0) {
+        reasons.push(`${personality.displayName} personality prefers ${contract.category} work`);
+      }
 
       const momentum = Math.min(25, Math.round(progress.percent / 4));
       score += momentum;
@@ -63,6 +75,7 @@ export function getGuildCreatureRecommendations(
         reasons: reasons.length ? reasons : ["meets every contract requirement"],
         ambitionName: ambition.name,
         ambitionPercent: progress.percent,
+        personalityName: personality.displayName,
       };
     })
     .sort((left, right) => right.score - left.score || right.creature.level - left.creature.level || left.creature.nickname.localeCompare(right.creature.nickname))
