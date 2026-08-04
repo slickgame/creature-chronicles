@@ -1,6 +1,6 @@
 "use client";
 
-import { ChronicleFeed } from "./ChronicleFeed";
+import { ChronicleFeed } from "@/features/chronicle/ChronicleFeed";
 import { LegacyOverviewPanel } from "./LegacyOverviewPanel";
 import { RanchSocialRoster } from "./RanchSocialRoster";
 import type { GameSave } from "@/types/save";
