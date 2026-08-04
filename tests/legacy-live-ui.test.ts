@@ -9,6 +9,11 @@ const prestigeSource = readFileSync("src/features/legacy/LegacyPrestigeBadge.tsx
 const recommendationSource = readFileSync("src/features/guild/GuildRecommendationPanel.tsx", "utf8");
 const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
 const careerSource = readFileSync("src/features/legacy/CreatureCareerPanel.tsx", "utf8");
+const profileLauncherSource = readFileSync("src/features/legacy/LegacyCreatureProfileLauncher.tsx", "utf8");
+const collectionSource = readFileSync("src/features/collection/CollectionScreenLedger.tsx", "utf8");
+const habitatSource = readFileSync("src/features/habitats/HabitatScreenManaged.tsx", "utf8");
+const ranchTutorialSource = readFileSync("src/features/ranch/RanchHubScreenTutorial.tsx", "utf8");
+const morningStorySource = readFileSync("src/features/legacy/MorningCreatureStoryNotice.tsx", "utf8");
 
 test("the Ranch Hub exposes a live Chronicle launcher and Prestige badge", () => {
   assert.match(rootSource, /useState\(false\)/);
@@ -43,4 +48,22 @@ test("Guild recommendations are explained and mounted as a live advisor", () => 
   assert.match(advisorSource, /data-guild-ambition-advisor="true"/);
   assert.match(advisorSource, /Ambition Advisor/);
   assert.match(rootSource, /appScreen === "guild-hall" \? <GuildAmbitionAdvisor save=\{currentSave\}/);
+});
+
+test("Collection and Habitat screens expose the full Legacy creature profile flow", () => {
+  assert.match(collectionSource, /<LegacyCreatureProfileLauncher/);
+  assert.match(collectionSource, /Ranch Roster Legacy Profiles/);
+  assert.match(habitatSource, /<LegacyCreatureProfileLauncher/);
+  assert.match(habitatSource, /Habitat Creature Legacy Profiles/);
+  assert.match(profileLauncherSource, /data-legacy-profile-launcher="true"/);
+  assert.match(profileLauncherSource, /data-legacy-profile-dialog="true"/);
+  assert.match(profileLauncherSource, /<CreatureDetailWithMemories/);
+  assert.match(profileLauncherSource, /compactRelationships/);
+});
+
+test("the Morning Brief surfaces the previous Ranch Day creature story", () => {
+  assert.match(ranchTutorialSource, /<MorningCreatureStoryNotice save=\{currentSave\}/);
+  assert.match(morningStorySource, /getMorningCreatureStory/);
+  assert.match(morningStorySource, /data-morning-creature-story="true"/);
+  assert.match(morningStorySource, /Morning Brief · Creature Story/);
 });
