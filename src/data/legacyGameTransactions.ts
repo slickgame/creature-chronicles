@@ -11,6 +11,13 @@ import {
   getCreaturePersonalityProfile,
   isPreferredTrainingFocus,
 } from "@/data/creaturePersonalities";
+import {
+  applyBreedingRelationshipAftermath,
+  applyRanchWorkRelationshipEffects,
+  applyTrainingRelationshipSupport,
+  getBreedingRelationshipCompatibility,
+  type BreedingRelationshipCompatibility,
+} from "@/data/creatureRelationshipGameplay";
 import { recordCreatureRelationshipEvent } from "@/data/creatureRelationships";
 import { applyEggAtelierHatchEffects } from "@/data/eggAtelier";
 import {
@@ -27,6 +34,7 @@ import type { GameSave } from "@/types/save";
 export type LegacyBreedingAttemptResult = {
   save: GameSave;
   attempt: BreedingAttemptRecord;
+  relationshipCompatibility: BreedingRelationshipCompatibility | null;
 };
 
 export type LegacyHatchResult = {
@@ -47,14 +55,20 @@ function addCreatureAffection(save: GameSave, creatureId: CreatureId, amount: nu
 
 /**
  * GameProvider-ready breeding transaction. The existing breeding engine remains
- * authoritative; this wrapper adds lifetime attempt credit and a small shared
- * relationship event for creature-creature pairings.
+ * authoritative; this wrapper adds lifetime attempt credit, relationship-aware
+ * compatibility consequences, and a shared relationship event for creature
+ * pairings without replacing the canonical pregnancy roll.
  */
 export function performBreedingAttemptWithCareers(
   save: GameSave,
   giverId: string,
   receiverId: string,
 ): LegacyBreedingAttemptResult | null {
+  const relationshipCompatibility = getBreedingRelationshipCompatibility(
+    save,
+    giverId,
+    receiverId,
+  );
   const result = performBreedingAttempt(save, giverId, receiverId);
   if (!result) return null;
 
@@ -76,10 +90,18 @@ export function performBreedingAttemptWithCareers(
       affinityDelta: result.attempt.outcome === "pregnancy" ? 3 : 1,
     });
   }
+  nextSave = applyBreedingRelationshipAftermath(
+    nextSave,
+    relationshipCompatibility,
+    result.attempt.outcome,
+    String(result.attempt.attemptId),
+    result.attempt.dayNumber,
+  );
 
   return {
     attempt: result.attempt,
     save: nextSave,
+    relationshipCompatibility,
   };
 }
 
@@ -101,7 +123,8 @@ export function hatchEggWithAtelierLegacy(
 
 /**
  * Credits a completed Training Grounds assignment exactly once. A preferred
- * focus also grants a small affection increase and a personality-backed Memory.
+ * focus grants a personality-backed reward, while an established friend or
+ * family bond can provide one additional point of return-day morale.
  */
 export function collectTrainingWithCareer(
   save: GameSave,
@@ -111,8 +134,9 @@ export function collectTrainingWithCareer(
   const result = collectTrainingGroundsAssignment(save, creatureId);
   if (!result.ok || !assignment) return result;
 
+  const assignmentId = `${assignment.startDayNumber}:${assignment.focusId}`;
   let nextSave = applyTrainingCareerCompletion(result.save, {
-    assignmentId: `${assignment.startDayNumber}:${assignment.focusId}`,
+    assignmentId,
     creatureId,
     dayNumber: save.dayState.dayNumber,
   });
@@ -132,7 +156,25 @@ export function collectTrainingWithCareer(
     });
   }
 
-  return { ...result, save: nextSave };
+  const supported = applyTrainingRelationshipSupport(
+    nextSave,
+    creatureId,
+    assignmentId,
+    save.dayState.dayNumber,
+  );
+  nextSave = supported.save;
+  const supportNote = supported.support
+    ? `${supported.support.supporterName}'s ${supported.support.relationshipLabel} provided +1 Affection on return.`
+    : null;
+
+  return {
+    ...result,
+    save: nextSave,
+    message: supportNote ? `${result.message} ${supportNote}` : result.message,
+    reward: result.reward && supportNote
+      ? { ...result.reward, notes: [...result.reward.notes, supportNote] }
+      : result.reward,
+  };
 }
 
 /** Canonical Ranch Day work transaction for GameProvider.advanceDay. */
@@ -141,8 +183,17 @@ export function processLegacyRanchJobs(save: GameSave): {
   results: RanchJobResult[];
 } {
   const processed = processRanchJobsWithCareers(save);
+  const relationshipEffects = applyRanchWorkRelationshipEffects(
+    processed.save,
+    processed.results,
+    save.dayState.dayNumber,
+  );
   return {
-    ...processed,
-    save: processDailyCreatureStories(processed.save, processed.results, save.dayState.dayNumber),
+    results: relationshipEffects.results,
+    save: processDailyCreatureStories(
+      relationshipEffects.save,
+      relationshipEffects.results,
+      save.dayState.dayNumber,
+    ),
   };
 }
