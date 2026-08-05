@@ -1,0 +1,343 @@
+.launcher {
+  position: fixed;
+  top: calc(18px + env(safe-area-inset-top));
+  right: calc(18px + env(safe-area-inset-right));
+  z-index: 180;
+  width: min(310px, calc(100vw - 36px));
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 72px;
+  padding: 8px 10px;
+  border: 2px solid rgba(229, 187, 105, .86);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(25, 35, 42, .97), rgba(20, 14, 13, .97));
+  color: #fff4d4;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .52);
+  text-align: left;
+}
+
+.launcher img {
+  width: 62px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 9px;
+}
+
+.launcher span,
+.launcher strong,
+.launcher small {
+  display: block;
+}
+
+.launcher span {
+  color: #e7b96b;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.launcher strong {
+  margin-top: 2px;
+  font-size: .92rem;
+}
+
+.launcher small {
+  margin-top: 3px;
+  color: #d5cec2;
+  line-height: 1.25;
+}
+
+.launcherBadge {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  background: #bd5c49;
+  color: white;
+  font-size: .74rem;
+  font-weight: 900;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 280;
+  display: grid;
+  place-items: center;
+  padding: calc(16px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(16px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
+  background: rgba(4, 8, 11, .76);
+  backdrop-filter: blur(6px);
+}
+
+.modal {
+  width: min(100%, 920px);
+  max-height: 92dvh;
+  overflow: auto;
+  border: 3px solid rgba(229, 187, 105, .9);
+  border-radius: 22px;
+  background: linear-gradient(150deg, rgba(30, 43, 48, .99), rgba(23, 15, 15, .99));
+  color: #fff5db;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .72);
+}
+
+.hero {
+  position: relative;
+  min-height: 240px;
+  display: flex;
+  align-items: end;
+  padding: 24px;
+  background-position: center;
+  background-size: cover;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 10%, rgba(7, 10, 13, .42) 50%, rgba(7, 10, 13, .96));
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+}
+
+.kicker {
+  margin: 0 0 5px;
+  color: #edc477;
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+}
+
+.hero p {
+  margin: 8px 0 0;
+  color: #e2d9c8;
+  line-height: 1.5;
+}
+
+.close {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(255, 238, 190, .7);
+  border-radius: 10px;
+  background: rgba(5, 8, 10, .78);
+  color: white;
+  font-weight: 900;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr);
+  gap: 18px;
+  padding: 20px;
+}
+
+.card,
+.objectiveCard,
+.doctrineCard {
+  padding: 16px;
+  border: 1px solid rgba(230, 187, 105, .32);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, .24);
+}
+
+.objectiveCard {
+  border-color: rgba(234, 190, 104, .66);
+  background: linear-gradient(145deg, rgba(89, 57, 31, .34), rgba(0, 0, 0, .28));
+}
+
+.objectiveCard h2,
+.card h2 {
+  margin: 0 0 8px;
+}
+
+.objectiveCard p,
+.card p {
+  color: #ded5c7;
+  line-height: 1.48;
+}
+
+.hint {
+  display: block;
+  margin-top: 12px;
+  color: #9fd1d8;
+  line-height: 1.4;
+}
+
+.progressList {
+  display: grid;
+  gap: 7px;
+  margin: 14px 0 0;
+}
+
+.progressRow {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .045);
+  color: #cfc8bc;
+}
+
+.progressRowDone {
+  color: #dff1c4;
+  background: rgba(91, 133, 73, .19);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .1);
+  font-size: .75rem;
+  font-weight: 900;
+}
+
+.progressRowDone .check {
+  background: #719a55;
+  color: white;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.primary,
+.secondary,
+.doctrineButton {
+  min-height: 44px;
+  padding: 10px 15px;
+  border: 1px solid #e6b969;
+  border-radius: 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary {
+  background: linear-gradient(#ffe6a7, #d69a4f);
+  color: #23150e;
+}
+
+.secondary {
+  background: rgba(255, 255, 255, .08);
+  color: #fff0cb;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.stat {
+  padding: 11px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .055);
+}
+
+.stat span,
+.stat strong {
+  display: block;
+}
+
+.stat span {
+  color: #bcb3a6;
+  font-size: .72rem;
+  text-transform: uppercase;
+}
+
+.stat strong {
+  margin-top: 3px;
+  font-size: 1.1rem;
+}
+
+.doctrineGrid {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.doctrineButton {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  background: rgba(255, 255, 255, .07);
+  color: #fff4d5;
+}
+
+.doctrineButton span {
+  color: #cfc5b7;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.history {
+  display: grid;
+  gap: 8px;
+  max-height: 210px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.history p {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .045);
+  font-size: .84rem;
+}
+
+.message {
+  margin: 12px 0 0;
+  color: #f0c97d !important;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .launcher {
+    top: calc(10px + env(safe-area-inset-top));
+    right: calc(10px + env(safe-area-inset-right));
+    width: min(270px, calc(100vw - 20px));
+    grid-template-columns: 48px 1fr auto;
+  }
+
+  .launcher img {
+    width: 48px;
+    height: 46px;
+  }
+
+  .body {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .hero {
+    min-height: 210px;
+    padding: 18px 16px;
+  }
+}

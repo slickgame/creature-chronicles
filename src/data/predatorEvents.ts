@@ -5,6 +5,13 @@ import {
   type ColiseumEnemySlotDefinition,
 } from "@/data/coliseumC2";
 import {
+  CHAPTER_TWO_DEFENSE_TAG,
+  getChapterTwoDoctrineBonuses,
+  recordChapterTwoDefenseResolution,
+  shouldForceChapterTwoDefense,
+  tagChapterTwoDefenseEvent,
+} from "@/data/chapterTwoTroubleBeyondFence";
+import {
   PREDATOR_EVENT_ASSETS,
   getPredatorBattleStartingHpPercent,
   getPredatorThreatAssessment,
@@ -46,6 +53,7 @@ export type PredatorNightEvent = {
   imagePath: string;
   rewardPreview: string[];
   penaltyPreview: string[];
+  storyTag?: string;
   resolvedOutcome?: BattleOutcome;
   resolvedRounds?: number;
   resolvedTeamCreatureIds?: CreatureId[];
@@ -142,8 +150,9 @@ export function resolvePredatorNightCheck(save: GameSave, securityScore: number)
     return { save: assessmentInput, event: pending, assessment, summary: pending.summary, rolled: false };
   }
 
+  const chapterTwoForced = shouldForceChapterTwoDefense(assessmentInput);
   const lastCheckedDay = numericFlag(save.flags.predatorLastCheckDayNumber);
-  if (lastCheckedDay >= save.dayState.dayNumber) {
+  if (!chapterTwoForced && lastCheckedDay >= save.dayState.dayNumber) {
     return {
       save: assessmentInput,
       event: null,
@@ -153,8 +162,9 @@ export function resolvePredatorNightCheck(save: GameSave, securityScore: number)
     };
   }
 
-  const forced = save.flags.devForcePredatorEvent === true;
-  const forcedType = String(save.flags.devForcePredatorType ?? "");
+  const devForced = save.flags.devForcePredatorEvent === true;
+  const forced = devForced || chapterTwoForced;
+  const forcedType = chapterTwoForced ? "wolves" : String(save.flags.devForcePredatorType ?? "");
   const roll = deterministicRoll(`${save.saveId}:predator-check:${save.dayState.dayNumber}`, 100);
   const occurred = forced || (assessment.eligible && roll < assessment.eventChance);
 
@@ -186,15 +196,26 @@ export function resolvePredatorNightCheck(save: GameSave, securityScore: number)
   const predatorType = (["foxes", "feral_hounds", "wolves", "boars"] as PredatorKind[]).includes(forcedType as PredatorKind)
     ? forcedType as PredatorKind
     : assessment.likelyPredator;
-  const interceptChance = clamp(18 + assessment.security * 3 - assessment.pressure, 8, 86);
+  const doctrine = getChapterTwoDoctrineBonuses(save);
+  const interceptChance = clamp(18 + assessment.security * 3 - assessment.pressure + doctrine.intercept, 8, 96);
   const interceptRoll = deterministicRoll(`${save.saveId}:predator-intercept:${save.dayState.dayNumber}`, 100);
   const intercepted = save.flags.devForcePredatorIntercept === true || interceptRoll < interceptChance;
-  const startingHpPercent = intercepted ? getPredatorBattleStartingHpPercent({ ...assessment, eligible: true }) : 100;
-  const eventId = `predator_${save.saveId}_${save.dayState.dayNumber}_${predatorType}`;
+  const baseStartingHp = intercepted ? getPredatorBattleStartingHpPercent({ ...assessment, eligible: true }) : 100;
+  const startingHpPercent = intercepted && doctrine.intercept > 0 ? clamp(baseStartingHp - 10, 45, 82) : baseStartingHp;
+  const eventId = chapterTwoForced
+    ? `chapter_two_defense_${save.saveId}_${save.dayState.dayNumber}`
+    : `predator_${save.saveId}_${save.dayState.dayNumber}_${predatorType}`;
   const name = predatorLabel(predatorType);
-  const summary = intercepted
-    ? `Security spotted ${name.toLowerCase()} before it reached the pens. The pack is wounded and cornered, but the ranch team must finish the defense.`
-    : `${name} breached the outer line before the patrol could contain it. Defend the ranch before morning work can begin.`;
+  const summary = chapterTwoForced
+    ? intercepted
+      ? "The prepared patrol catches Ashfang's Woodline Wolf Pack against the reinforced perimeter. The wolves are wounded, but the ranch team must finish the defense."
+      : "Ashfang's Woodline Wolf Pack finds a weak approach despite the new preparations. Defend the ranch and prove the new security plan under pressure."
+    : intercepted
+      ? `Security spotted ${name.toLowerCase()} before it reached the pens. The pack is wounded and cornered, but the ranch team must finish the defense.`
+      : `${name} breached the outer line before the patrol could contain it. Defend the ranch before morning work can begin.`;
+  const tier: PredatorThreatTier = chapterTwoForced
+    ? "elevated"
+    : assessment.tier === "none" || assessment.tier === "guarded" ? "low" : assessment.tier;
   const event: PredatorNightEvent = {
     version: PREDATOR_EVENT_VERSION,
     eventId,
@@ -202,40 +223,47 @@ export function resolvePredatorNightCheck(save: GameSave, securityScore: number)
     nightOfDayNumber: Math.max(1, save.dayState.dayNumber - 1),
     predatorType,
     predatorName: name,
-    tier: assessment.tier === "none" || assessment.tier === "guarded" ? "low" : assessment.tier,
+    tier,
     status: "battle_pending",
     intercepted,
     startingHpPercent,
-    eventChance: assessment.eventChance,
+    eventChance: chapterTwoForced ? 100 : assessment.eventChance,
     pressure: assessment.pressure,
     security: assessment.security,
     requiredSecurity: assessment.requiredSecurity,
-    reasons: assessment.reasons,
+    reasons: chapterTwoForced
+      ? ["Chapter 2 authored defense became ready.", ...assessment.reasons]
+      : assessment.reasons,
     summary,
     imagePath: intercepted ? PREDATOR_EVENT_ASSETS.repelled : PREDATOR_EVENT_ASSETS.breached,
-    rewardPreview: rewardPreview(assessment.tier),
-    penaltyPreview: penaltyPreview(assessment.tier),
+    rewardPreview: rewardPreview(tier),
+    penaltyPreview: penaltyPreview(tier),
+    ...(chapterTwoForced ? { storyTag: CHAPTER_TWO_DEFENSE_TAG } : {}),
   };
 
-  return {
-    save: {
-      ...assessmentInput,
-      flags: {
-        ...assessmentInput.flags,
-        [PREDATOR_PENDING_EVENT_FLAG]: JSON.stringify(event),
-        predatorLastCheckDayNumber: save.dayState.dayNumber,
-        predatorLastCheckSummary: summary,
-        predatorThreatTierToday: event.tier,
-        predatorThreatChanceToday: assessment.eventChance,
-        predatorThreatPressureToday: assessment.pressure,
-        predatorThreatSecurityToday: assessment.security,
-        predatorBattlePending: true,
-        predatorBattleEventId: eventId,
-        predatorBattleStartingHpPercent: startingHpPercent,
-        m62ConditionGatedPredators: true,
-        m63PredatorBattles: true,
-      },
+  let eventSave: GameSave = {
+    ...assessmentInput,
+    flags: {
+      ...assessmentInput.flags,
+      [PREDATOR_PENDING_EVENT_FLAG]: JSON.stringify(event),
+      predatorLastCheckDayNumber: save.dayState.dayNumber,
+      predatorLastCheckSummary: summary,
+      predatorThreatTierToday: event.tier,
+      predatorThreatChanceToday: event.eventChance,
+      predatorThreatPressureToday: assessment.pressure,
+      predatorThreatSecurityToday: assessment.security,
+      predatorBattlePending: true,
+      predatorBattleEventId: eventId,
+      predatorBattleStartingHpPercent: startingHpPercent,
+      m62ConditionGatedPredators: true,
+      m63PredatorBattles: true,
+      ...(chapterTwoForced ? { chapterTwoAuthoredDefenseTriggered: true } : {}),
     },
+  };
+  if (chapterTwoForced) eventSave = tagChapterTwoDefenseEvent(eventSave, eventId);
+
+  return {
+    save: eventSave,
     event,
     assessment,
     summary,
@@ -309,7 +337,9 @@ export function getPredatorEncounterDefinition(save: GameSave, event: PredatorNi
   return {
     encounterId: `predator_${event.predatorType}_${event.dayNumber}` as ColiseumC2EncounterId,
     divisionId: "novice",
-    name: event.intercepted ? "Intercepted Predator Defense" : "Ranch Breach Defense",
+    name: event.storyTag === CHAPTER_TWO_DEFENSE_TAG
+      ? "Chapter 2 — Woodline Breach"
+      : event.intercepted ? "Intercepted Predator Defense" : "Ranch Breach Defense",
     opponentName: event.predatorName,
     description: event.summary,
     strategyLabel: event.intercepted ? `${event.startingHpPercent}% starting HP` : "Full-strength breach",
@@ -442,6 +472,9 @@ export function recordPredatorBattleOutcome(
       m63PredatorBattleResolved: true,
     },
   };
+  if (pending.storyTag === CHAPTER_TWO_DEFENSE_TAG) {
+    nextSave = recordChapterTwoDefenseResolution(nextSave, pending.eventId, outcome);
+  }
 
   return { save: nextSave, event: resolvedEvent, duplicate: false, message: resolutionSummary };
 }
