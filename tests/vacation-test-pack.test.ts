@@ -125,3 +125,15 @@ test("main menu, dev tools, and town expose the vacation test features", async (
   assert.match(lantern, /Hospitality Shift/);
   assert.match(lantern, /Rumor Network/);
 });
+
+test("the Chapter 1 story overlay stays above Ranch Day controls and fits iPhone", async () => {
+  const story = await source("src/features/story/ChapterOneStoryOverlay.tsx");
+
+  assert.match(story, /zIndex:\s*1200/);
+  assert.match(story, /100dvh/);
+  assert.match(story, /env\(safe-area-inset-top\)/);
+  assert.match(story, /overflowY:\s*"auto"/);
+  assert.match(story, /repeat\(auto-fit, minmax\(min\(280px, 100%\), 1fr\)\)/);
+  assert.match(story, /data-chapter-one-story-actions="true"/);
+  assert.match(story, /minHeight:\s*44/);
+});
