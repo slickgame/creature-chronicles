@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { MorningCreatureStoryNotice } from "@/features/legacy/MorningCreatureStoryNotice";
 import { useGameContext } from "@/state/GameProvider";
 import { RanchHubScreen as DayLoopRanchHubScreen } from "./RanchHubScreenDayLoop";
+import mobileStyles from "./RanchHubMobile.module.css";
 
 const SIGNAL_EVENT = "creature-chronicles:tutorial-signal";
 
@@ -51,9 +52,9 @@ export function RanchHubScreen() {
   }, [currentSave]);
 
   return (
-    <>
+    <div className={mobileStyles.mobileShell} data-ranch-mobile-shell="true">
       <DayLoopRanchHubScreen />
       {currentSave ? <MorningCreatureStoryNotice save={currentSave} /> : null}
-    </>
+    </div>
   );
 }
