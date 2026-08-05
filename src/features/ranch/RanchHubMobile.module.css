@@ -1,0 +1,308 @@
+.mobileShell {
+  display: contents;
+}
+
+@media (max-width: 700px) {
+  :global(html),
+  :global(body) {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .mobileShell > main {
+    min-height: 100dvh !important;
+    display: block !important;
+    padding: 0 0 210px !important;
+    overflow-x: hidden !important;
+  }
+
+  .mobileShell > main > section {
+    width: 100% !important;
+    min-height: max(900px, calc(100dvh + 150px)) !important;
+    aspect-ratio: auto !important;
+    border-right: 0 !important;
+    border-left: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .mobileShell > main > section::before {
+    inset: 8px !important;
+    border-width: 1px !important;
+    border-radius: 13px !important;
+  }
+
+  .mobileShell > main > section > header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "identity menu"
+      "stats stats" !important;
+    gap: 7px !important;
+    min-height: 0 !important;
+    padding: 10px 10px 6px !important;
+    align-items: stretch !important;
+  }
+
+  .mobileShell > main > section > header > div:first-child {
+    grid-area: identity;
+    min-height: 56px !important;
+    gap: 8px !important;
+    padding: 7px 9px !important;
+    border-width: 1px !important;
+    border-radius: 13px !important;
+  }
+
+  .mobileShell > main > section > header > div:first-child img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .mobileShell > main > section > header > div:first-child span {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .mobileShell > main > section > header > div:first-child strong {
+    font-size: 1rem !important;
+  }
+
+  .mobileShell > main > section > header > [aria-label="Player resources"] {
+    grid-area: stats;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .mobileShell > main > section > header > [aria-label="Player resources"] > div {
+    min-height: 48px !important;
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    column-gap: 6px !important;
+    padding: 6px 8px !important;
+    border-width: 1px !important;
+    border-radius: 12px !important;
+  }
+
+  .mobileShell > main > section > header > [aria-label="Player resources"] img {
+    width: 24px !important;
+    height: 24px !important;
+    transform: none !important;
+  }
+
+  .mobileShell > main > section > header > [aria-label="Player resources"] span {
+    font-size: 0.55rem !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  .mobileShell > main > section > header > [aria-label="Player resources"] strong {
+    font-size: 0.88rem !important;
+    white-space: nowrap !important;
+  }
+
+  .mobileShell > main > section > header > nav[aria-label="Ranch navigation"] {
+    grid-area: menu;
+    align-self: stretch !important;
+    justify-content: flex-end !important;
+  }
+
+  .mobileShell > main > section > header > nav[aria-label="Ranch navigation"] button {
+    min-width: 76px !important;
+    min-height: 56px !important;
+    padding: 6px 9px !important;
+    border-radius: 13px !important;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.34) !important;
+  }
+
+  .mobileShell > main > section > header > nav[aria-label="Ranch navigation"] img {
+    width: 25px !important;
+    height: 25px !important;
+  }
+
+  .mobileShell > main > section > header + section {
+    position: relative !important;
+    z-index: 7 !important;
+    width: calc(100% - 20px) !important;
+    margin: 6px 10px !important;
+    padding: 8px 10px !important;
+    gap: 8px !important;
+    border-width: 2px !important;
+    border-radius: 14px !important;
+  }
+
+  .mobileShell > main > section > header + section h1 {
+    font-size: 1.15rem !important;
+    line-height: 1 !important;
+  }
+
+  .mobileShell > main > section > header + section p:first-child {
+    margin-bottom: 2px !important;
+    font-size: 0.6rem !important;
+  }
+
+  .mobileShell > main > section > header + section p:last-child {
+    display: none !important;
+  }
+
+  .mobileShell > main > section > header + section button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .mobileShell > main > section > section[aria-label="Ranch buildings"] > button {
+    transform: translate(-50%, -50%) scale(1.08) !important;
+  }
+
+  .mobileShell > main > section > section[aria-label="Ranch buildings"] > button span {
+    font-size: 0.54rem !important;
+  }
+
+  .mobileShell > main > section > small,
+  .mobileShell > main > section > footer {
+    display: none !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] {
+    top: auto !important;
+    right: 8px !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    left: 8px !important;
+    width: auto !important;
+    transform: none !important;
+    grid-template-columns: 1fr !important;
+    gap: 5px !important;
+    padding: 7px 8px !important;
+    border-radius: 14px !important;
+    z-index: 800 !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] > div:first-child {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] > div:first-child span,
+  .mobileShell > aside[aria-label="Ranch Day controls"] > div:first-child strong {
+    margin: 0 !important;
+    font-size: 0.7rem !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] > div:nth-child(2) {
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    overscroll-behavior-inline: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] > div:nth-child(2)::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] button {
+    min-height: 36px !important;
+    padding: 6px 9px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .mobileShell > aside[aria-label="Ranch Day controls"] > p {
+    display: none !important;
+  }
+
+  :global([data-tutorial-card="true"]) {
+    right: 8px !important;
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 92px) !important;
+    width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 112px) !important;
+    overflow-y: auto !important;
+    z-index: 950 !important;
+  }
+
+  :global([data-tutorial-card="true"] > button) {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  :global([data-morning-creature-story="true"]) {
+    right: 8px !important;
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 154px) !important;
+    left: 8px !important;
+    width: auto !important;
+    max-height: calc(100dvh - 180px) !important;
+    overflow-y: auto !important;
+    z-index: 1000 !important;
+  }
+
+  :global(aside[style*="top: 330px"]:has(> button)) {
+    top: 181px !important;
+    bottom: auto !important;
+    left: 8px !important;
+    z-index: 40 !important;
+  }
+
+  :global(aside[style*="top: 330px"]:has(> button) > button) {
+    min-height: 43px !important;
+    grid-template-columns: 34px 22px !important;
+    gap: 4px !important;
+    padding: 3px 7px !important;
+  }
+
+  :global(aside[style*="top: 330px"]:has(> button) > button > span) {
+    display: none !important;
+  }
+
+  :global(aside[style*="top: 330px"]:has(> button) img) {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  :global(aside[aria-label="Ranch Advisor morning planner"]) {
+    top: 8px !important;
+    right: 8px !important;
+    bottom: 104px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-height: none !important;
+    z-index: 1100 !important;
+  }
+
+  :global(aside[style*="top: 252px"]:has(> button)) {
+    top: 181px !important;
+    right: 8px !important;
+    bottom: auto !important;
+    z-index: 39 !important;
+  }
+
+  :global(aside[style*="top: 252px"]:has(> button) > button) {
+    min-height: 43px !important;
+    max-width: 145px !important;
+    padding: 5px 10px !important;
+    font-size: 0.72rem !important;
+    white-space: nowrap !important;
+  }
+
+  :global(aside[aria-label="Optional beginner milestones"]) {
+    top: 8px !important;
+    right: 8px !important;
+    bottom: 104px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-height: none !important;
+    z-index: 1100 !important;
+  }
+}
+
+@media (max-width: 430px) and (max-height: 760px) {
+  .mobileShell > main > section {
+    min-height: 850px !important;
+  }
+
+  .mobileShell > main > section > header > [aria-label="Player resources"] > div {
+    min-height: 44px !important;
+  }
+
+  :global([data-tutorial-card="true"]) {
+    max-height: calc(100dvh - 104px) !important;
+  }
+}
