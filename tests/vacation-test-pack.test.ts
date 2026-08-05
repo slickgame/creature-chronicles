@@ -149,3 +149,19 @@ test("the Chapter 1 story overlay stays above Ranch Day controls and fits iPhone
   assert.match(story, /data-chapter-one-story-actions="true"/);
   assert.match(story, /minHeight:\s*44/);
 });
+
+test("the Ranch Hub uses iPhone-only compaction without changing desktop rules", async () => {
+  const wrapper = await source("src/features/ranch/RanchHubScreenTutorial.tsx");
+  const mobileStyles = await source("src/features/ranch/RanchHubMobile.module.css");
+
+  assert.match(wrapper, /RanchHubMobile\.module\.css/);
+  assert.match(wrapper, /data-ranch-mobile-shell="true"/);
+  assert.match(mobileStyles, /@media \(max-width: 700px\)/);
+  assert.match(mobileStyles, /grid-template-areas:[\s\S]*"identity menu"[\s\S]*"stats stats"/);
+  assert.match(mobileStyles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(mobileStyles, /aside\[aria-label="Ranch Day controls"\]/);
+  assert.match(mobileStyles, /data-tutorial-card="true"/);
+  assert.match(mobileStyles, /Ranch Advisor morning planner/);
+  assert.match(mobileStyles, /Optional beginner milestones/);
+  assert.match(mobileStyles, /env\(safe-area-inset-bottom\)/);
+});
