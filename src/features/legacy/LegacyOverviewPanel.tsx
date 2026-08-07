@@ -4,6 +4,7 @@ import {
   getHallOfLegendsCandidates,
   getRanchLegacySummary,
 } from "@/data/creatureLegacyRankings";
+import { getHeirloomPassiveDefinition } from "@/data/creatureHeirloomEffects";
 import {
   getCreatureHeirlooms,
   getHallOfLegendsEntries,
@@ -95,7 +96,7 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
       {hallEntries.length ? (
         <div data-hall-of-legends="true" style={{ display: "grid", gap: 6 }}>
           <strong style={{ fontSize: 14, color: "#ffe4a8" }}>Hall of Legends</strong>
-          {hallEntries.map((entry, index) => (
+          {hallEntries.map((entry) => (
             <div
               key={entry.hallEntryId}
               style={{
@@ -125,23 +126,33 @@ export function LegacyOverviewPanel({ save, compact = false }: { save: GameSave;
       {heirlooms.length ? (
         <div data-legacy-heirloom-collection="true" style={{ display: "grid", gap: 6 }}>
           <strong style={{ fontSize: 14 }}>Heirloom collection</strong>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 7 }}>
-            {heirlooms.map((heirloom) => (
-              <div
-                key={heirloom.heirloomId}
-                style={{
-                  padding: 9,
-                  borderRadius: 10,
-                  border: "1px solid rgba(127,219,255,.16)",
-                  background: "rgba(127,219,255,.06)",
-                }}
-              >
-                <strong style={{ display: "block" }}>{heirloom.name}</strong>
-                <small style={{ display: "block", opacity: .7 }}>
-                  {heirloom.category} · {heirloom.legacyPrestigeValue} Prestige
-                </small>
-              </div>
-            ))}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 7 }}>
+            {heirlooms.map((heirloom) => {
+              const passive = getHeirloomPassiveDefinition(heirloom.category);
+              return (
+                <div
+                  key={heirloom.heirloomId}
+                  data-heirloom-passive="true"
+                  style={{
+                    padding: 9,
+                    borderRadius: 10,
+                    border: "1px solid rgba(127,219,255,.16)",
+                    background: "rgba(127,219,255,.06)",
+                  }}
+                >
+                  <strong style={{ display: "block" }}>{heirloom.name}</strong>
+                  <small style={{ display: "block", opacity: .7 }}>
+                    {heirloom.category} · {heirloom.legacyPrestigeValue} Prestige
+                  </small>
+                  <small style={{ display: "block", marginTop: 5, color: "#d9f4ff" }}>
+                    {passive.name} — {passive.trigger}
+                  </small>
+                  <small style={{ display: "block", marginTop: 2, opacity: .72 }}>
+                    {passive.effect}
+                  </small>
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : null}
