@@ -37,9 +37,13 @@ test("Legacy dev presets prepare real retirement and Hall candidates", () => {
   assert.equal(getCreatureLegacyProfile(hall.save, hallCreature).hallEligible, true);
 });
 
-test("the reliable Dev Tools screen exposes the Legacy Test Lab and real-flow instructions", () => {
+test("the reliable Dev Tools screen exposes the Legacy Test Lab from a visible launcher", () => {
   assert.match(reliableDevToolsSource, /LegacyTestPanel/);
+  assert.match(panelSource, /data-legacy-test-launcher="true"/);
+  assert.match(panelSource, />\s*Legacy Lab\s*</);
+  assert.match(panelSource, /data-legacy-test-backdrop="true"/);
   assert.match(panelSource, /data-legacy-test-lab="true"/);
+  assert.match(panelSource, /role="dialog"/);
   assert.match(panelSource, /Prepare Retirement Candidate/);
   assert.match(panelSource, /Prepare Hall-Ready Candidate/);
   assert.match(panelSource, /Retire & Create Heirloom/);
