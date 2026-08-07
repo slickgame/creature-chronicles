@@ -11,6 +11,8 @@ const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx"
 const careerSource = readFileSync("src/features/legacy/CreatureCareerPanel.tsx", "utf8");
 const profileLauncherSource = readFileSync("src/features/legacy/LegacyCreatureProfileLauncher.tsx", "utf8");
 const retirementSource = readFileSync("src/features/legacy/CreatureRetirementPanel.tsx", "utf8");
+const heirloomEffectsSource = readFileSync("src/data/creatureHeirloomEffects.ts", "utf8");
+const legacyNotificationSource = readFileSync("src/data/creatureLegacyNotifications.ts", "utf8");
 const collectionSource = readFileSync("src/features/collection/CollectionScreenLedger.tsx", "utf8");
 const habitatSource = readFileSync("src/features/habitats/HabitatScreenManaged.tsx", "utf8");
 const ranchTutorialSource = readFileSync("src/features/ranch/RanchHubScreenTutorial.tsx", "utf8");
@@ -72,22 +74,32 @@ test("Collection and Habitat screens expose the full Legacy creature profile flo
   assert.match(profileLauncherSource, /compactRelationships/);
 });
 
-test("Legacy profiles provide confirmed retirement, Heirlooms, and permanent Hall induction", () => {
+test("Legacy profiles provide confirmed retirement, Heirlooms, permanent Hall induction, and visible passives", () => {
   assert.match(retirementSource, /data-legacy-panel="retirement"/);
   assert.match(retirementSource, /window\.confirm/);
   assert.match(retirementSource, /Retire &amp; Create Heirloom/);
   assert.match(retirementSource, /Retire &amp; Induct into Hall/);
   assert.match(retirementSource, /data-legacy-heirloom="true"/);
   assert.match(retirementSource, /data-hall-of-legends-entry="true"/);
+  assert.match(retirementSource, /data-heirloom-passive="true"/);
   assert.match(overviewSource, /data-hall-of-legends="true"/);
   assert.match(overviewSource, /data-legacy-heirloom-collection="true"/);
+  assert.match(overviewSource, /getHeirloomPassiveDefinition/);
+  assert.match(heirloomEffectsSource, /Founder's Blessing/);
+  assert.match(heirloomEffectsSource, /applyHeirloomBattleEffect/);
+  assert.match(heirloomEffectsSource, /applyHeirloomRanchWorkEffect/);
 });
 
-test("the Morning Brief surfaces the previous Ranch Day creature story", () => {
+test("the Morning Brief surfaces previous-day creature stories and Legacy lifecycle announcements", () => {
   assert.match(ranchTutorialSource, /<MorningCreatureStoryNotice save=\{currentSave\}/);
   assert.match(morningStorySource, /getMorningCreatureStory/);
-  assert.match(morningStorySource, /data-morning-creature-story="true"/);
+  assert.match(morningStorySource, /getMorningLegacyAnnouncement/);
+  assert.match(morningStorySource, /data-morning-creature-story/);
+  assert.match(morningStorySource, /data-morning-legacy-announcement/);
   assert.match(morningStorySource, /Morning Brief · Creature Story/);
+  assert.match(morningStorySource, /Morning Brief · Hall of Legends/);
+  assert.match(legacyNotificationSource, /hall-induction:/);
+  assert.match(legacyNotificationSource, /retirement:/);
 });
 
 test("Guided Chapter 1 reopens from Menu Quests instead of a floating collapsed button", () => {
