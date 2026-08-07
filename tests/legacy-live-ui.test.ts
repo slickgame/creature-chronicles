@@ -16,6 +16,12 @@ const habitatSource = readFileSync("src/features/habitats/HabitatScreenManaged.t
 const ranchTutorialSource = readFileSync("src/features/ranch/RanchHubScreenTutorial.tsx", "utf8");
 const morningStorySource = readFileSync("src/features/legacy/MorningCreatureStoryNotice.tsx", "utf8");
 
+test("GameRoot routes live Ranch, Roster, and Habitat screens through Legacy-aware wrappers", () => {
+  assert.match(rootSource, /@\/features\/collection\/CollectionScreenLedger/);
+  assert.match(rootSource, /@\/features\/habitats\/HabitatScreenManaged/);
+  assert.match(rootSource, /@\/features\/ranch\/RanchHubScreenTutorial/);
+});
+
 test("the Ranch Hub exposes a live Chronicle launcher and Prestige badge", () => {
   assert.match(rootSource, /useState\(false\)/);
   assert.match(rootSource, /data-legacy-chronicle-launcher="true"/);
