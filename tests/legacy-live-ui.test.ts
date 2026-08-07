@@ -15,6 +15,8 @@ const collectionSource = readFileSync("src/features/collection/CollectionScreenL
 const habitatSource = readFileSync("src/features/habitats/HabitatScreenManaged.tsx", "utf8");
 const ranchTutorialSource = readFileSync("src/features/ranch/RanchHubScreenTutorial.tsx", "utf8");
 const morningStorySource = readFileSync("src/features/legacy/MorningCreatureStoryNotice.tsx", "utf8");
+const playerMenuSource = readFileSync("src/features/inventory/PlayerInventoryMenu.tsx", "utf8");
+const guidedTutorialSource = readFileSync("src/features/tutorial/ChapterOneGuidedTutorial.tsx", "utf8");
 
 test("GameRoot routes live Ranch, Roster, and Habitat screens through Legacy-aware wrappers", () => {
   assert.match(rootSource, /@\/features\/collection\/CollectionScreenLedger/);
@@ -86,4 +88,14 @@ test("the Morning Brief surfaces the previous Ranch Day creature story", () => {
   assert.match(morningStorySource, /getMorningCreatureStory/);
   assert.match(morningStorySource, /data-morning-creature-story="true"/);
   assert.match(morningStorySource, /Morning Brief · Creature Story/);
+});
+
+test("Guided Chapter 1 reopens from Menu Quests instead of a floating collapsed button", () => {
+  assert.match(playerMenuSource, /\{ id: "quests", label: "Quests" \}/);
+  assert.match(playerMenuSource, /data-player-menu-guided-chapter-one="true"/);
+  assert.match(playerMenuSource, /Open Guided Chapter 1/);
+  assert.match(playerMenuSource, /creature-chronicles:open-guided-chapter-one/);
+  assert.match(guidedTutorialSource, /CHAPTER_ONE_TUTORIAL_OPEN_EVENT/);
+  assert.match(guidedTutorialSource, /if \(collapsed\) return null/);
+  assert.doesNotMatch(guidedTutorialSource, /className=\{styles\.reopen\}/);
 });
