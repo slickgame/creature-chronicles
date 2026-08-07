@@ -6,6 +6,11 @@ import {
   processRanchJobsWithCareers,
 } from "@/data/creatureCareerTransactions";
 import { processDailyCreatureStories } from "@/data/creatureDailyStories";
+import {
+  applyHeirloomHatchEffect,
+  applyHeirloomRanchWorkEffect,
+  applyHeirloomTrainingEffect,
+} from "@/data/creatureHeirloomEffects";
 import { addCreatureMemory } from "@/data/creatureMemories";
 import {
   getCreaturePersonalityProfile,
@@ -108,7 +113,9 @@ export function performBreedingAttemptWithCareers(
 /**
  * Preserves the existing Egg Atelier post-hatch effects while retaining the
  * child/parent memories, personalities, and relationship records written by the
- * Legacy hatch layer.
+ * Legacy hatch layer. Permanent ranch Heirlooms can also welcome a hatchling
+ * with a small, visible Affection bonus; Founder's Ribbons only affect direct
+ * descendants of their retired source creature.
  */
 export function hatchEggWithAtelierLegacy(
   save: GameSave,
@@ -118,13 +125,15 @@ export function hatchEggWithAtelierLegacy(
   const legacyResult = hatchEggWithLegacyRecords(save, eggId, nickname);
   if (!legacyResult) return null;
   const atelierResult = applyEggAtelierHatchEffects(save, legacyResult, eggId);
-  return { save: atelierResult.save, creature: atelierResult.creature };
+  const heirloom = applyHeirloomHatchEffect(atelierResult.save, atelierResult.creature);
+  return { save: heirloom.save, creature: heirloom.save.creatures?.find((entry) => entry.creatureId === atelierResult.creature.creatureId) ?? atelierResult.creature };
 }
 
 /**
  * Credits a completed Training Grounds assignment exactly once. A preferred
- * focus grants a personality-backed reward, while an established friend or
- * family bond can provide one additional point of return-day morale.
+ * focus grants a personality-backed reward, an established friend or family
+ * bond can provide one additional point of return-day morale, and caregiving
+ * Heirlooms provide a capped permanent ranch-wide training morale passive.
  */
 export function collectTrainingWithCareer(
   save: GameSave,
@@ -163,16 +172,21 @@ export function collectTrainingWithCareer(
     save.dayState.dayNumber,
   );
   nextSave = supported.save;
-  const supportNote = supported.support
-    ? `${supported.support.supporterName}'s ${supported.support.relationshipLabel} provided +1 Affection on return.`
-    : null;
+  const heirloom = applyHeirloomTrainingEffect(nextSave, assignmentId, creatureId);
+  nextSave = heirloom.save;
+  const notes = [
+    supported.support
+      ? `${supported.support.supporterName}'s ${supported.support.relationshipLabel} provided +1 Affection on return.`
+      : null,
+    heirloom.note,
+  ].filter((note): note is string => Boolean(note));
 
   return {
     ...result,
     save: nextSave,
-    message: supportNote ? `${result.message} ${supportNote}` : result.message,
-    reward: result.reward && supportNote
-      ? { ...result.reward, notes: [...result.reward.notes, supportNote] }
+    message: notes.length ? `${result.message} ${notes.join(" ")}` : result.message,
+    reward: result.reward && notes.length
+      ? { ...result.reward, notes: [...result.reward.notes, ...notes] }
       : result.reward,
   };
 }
@@ -188,11 +202,16 @@ export function processLegacyRanchJobs(save: GameSave): {
     processed.results,
     save.dayState.dayNumber,
   );
+  const heirloomEffects = applyHeirloomRanchWorkEffect(
+    relationshipEffects.save,
+    relationshipEffects.results,
+    save.dayState.dayNumber,
+  );
   return {
-    results: relationshipEffects.results,
+    results: heirloomEffects.results,
     save: processDailyCreatureStories(
-      relationshipEffects.save,
-      relationshipEffects.results,
+      heirloomEffects.save,
+      heirloomEffects.results,
       save.dayState.dayNumber,
     ),
   };
