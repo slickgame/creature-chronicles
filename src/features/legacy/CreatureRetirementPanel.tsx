@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { getHeirloomPassiveDefinition } from "@/data/creatureHeirloomEffects";
 import {
   getCreatureHeirlooms,
   getHallOfLegendsEntries,
@@ -32,6 +33,7 @@ export function CreatureRetirementPanel({
   const heirloom = retired
     ? getCreatureHeirlooms(save).find((entry) => entry.heirloomId === retired.heirloomId) ?? null
     : null;
+  const heirloomPassive = heirloom ? getHeirloomPassiveDefinition(heirloom.category) : null;
   const hallEntry = getHallOfLegendsEntries(save).find(
     (entry) => entry.creatureId === creature.creatureId,
   );
@@ -146,6 +148,26 @@ export function CreatureRetirementPanel({
               <small style={{ display: "block", marginTop: 5, opacity: .68 }}>
                 Preserves {heirloom.legacyPrestigeValue} Legacy Prestige
               </small>
+              {heirloomPassive ? (
+                <div
+                  data-heirloom-passive="true"
+                  style={{
+                    marginTop: 8,
+                    padding: 8,
+                    borderRadius: 9,
+                    background: "rgba(127,219,255,.08)",
+                    border: "1px solid rgba(127,219,255,.18)",
+                  }}
+                >
+                  <small style={{ display: "block", color: "#d9f4ff" }}>
+                    Permanent Passive · {heirloomPassive.name}
+                  </small>
+                  <strong style={{ display: "block", marginTop: 2 }}>{heirloomPassive.trigger}</strong>
+                  <span style={{ display: "block", marginTop: 3, opacity: .76 }}>
+                    {heirloomPassive.effect}
+                  </span>
+                </div>
+              ) : null}
             </div>
           ) : null}
           {hallEntry ? (
