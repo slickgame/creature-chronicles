@@ -2,6 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
+  getChapterOneGuidedTutorialStep,
+  isChapterOneGuidedTutorialActive,
+  replayChapterOneGuidedTutorial,
+} from "@/data/chapterOneGuidedTutorial";
+import {
   getSupplyDepotSupplyCounts,
   getSupplyDepotUsageRows,
   useSupplyDepotEnergySnackOnCreature,
@@ -10,6 +15,7 @@ import { useGameContext } from "@/state/GameProvider";
 import styles from "./PlayerInventoryMenu.module.css";
 
 const FALLBACK_ITEM_ICON = "/images/ui/icons/icon_shop_bag.png";
+const CHAPTER_ONE_TUTORIAL_OPEN_EVENT = "creature-chronicles:open-guided-chapter-one";
 
 type PlayerMenuTab = "inventory" | "ranch" | "creatures" | "quests" | "map" | "settings";
 type InventoryCategory = "all" | "consumables" | "ranch" | "breeding" | "nursery" | "materials";
@@ -19,7 +25,7 @@ const MENU_TABS: Array<{ id: PlayerMenuTab; label: string; disabled?: boolean }>
   { id: "inventory", label: "Inventory" },
   { id: "ranch", label: "Ranch Status" },
   { id: "creatures", label: "Creatures" },
-  { id: "quests", label: "Quests", disabled: true },
+  { id: "quests", label: "Quests" },
   { id: "map", label: "Map", disabled: true },
   { id: "settings", label: "Settings", disabled: true },
 ];
@@ -95,6 +101,10 @@ export function PlayerInventoryMenu() {
     () => [...(currentSave?.creatures ?? [])].sort((a, b) => a.nickname.localeCompare(b.nickname)),
     [currentSave],
   );
+  const tutorialStep = useMemo(
+    () => currentSave ? getChapterOneGuidedTutorialStep(currentSave) : null,
+    [currentSave],
+  );
   const selectedCreature = creatureTargets.find((creature) => creature.creatureId === selectedCreatureId) ?? creatureTargets.find((creature) => creature.energy < creature.maxEnergy) ?? creatureTargets[0] ?? null;
   const selectedRow = supplyRows.find((row) => row.item.itemId === selectedItemId) ?? filteredRows[0] ?? null;
 
@@ -128,6 +138,14 @@ export function PlayerInventoryMenu() {
         : `Ready to use on ${selectedCreature.nickname}.`;
   const canUseSnackOnPlayer = playerSnackDisabledReason === "Ready to use on player.";
   const canUseSnackOnCreature = Boolean(selectedCreature) && creatureSnackDisabledReason.startsWith("Ready");
+  const guidedTutorialActive = isChapterOneGuidedTutorialActive(save);
+  const guidedTutorialStatus = guidedTutorialActive
+    ? "Active"
+    : save.flags.chapterOneGuidedComplete === true
+      ? "Completed"
+      : save.flags.chapterOneGuidedSkipped === true
+        ? "Skipped"
+        : "Available to replay";
 
   const plannerItems = [
     { label: "Feed Stock", value: `${feedStock} Feed`, state: feedStock <= 3 ? "warning" : "ok", detail: feedStock <= 3 ? "Low feed. Restock before sleeping if possible." : "Feed stock looks stable." },
@@ -143,10 +161,6 @@ export function PlayerInventoryMenu() {
   }
 
   function handleUseCreatureEnergySnack(creatureId: string) {
-    if (!save) {
-      setMessage("No active save.");
-      return;
-    }
     const result = useSupplyDepotEnergySnackOnCreature(save, creatureId);
     if (result.ok) saveCurrentGame(result.save);
     setMessage(result.message);
@@ -155,6 +169,23 @@ export function PlayerInventoryMenu() {
   function openRelatedSystem(action: () => void) {
     setIsOpen(false);
     action();
+  }
+
+  function openGuidedTutorial() {
+    setIsOpen(false);
+    window.setTimeout(
+      () => window.dispatchEvent(new CustomEvent(CHAPTER_ONE_TUTORIAL_OPEN_EVENT)),
+      20,
+    );
+  }
+
+  function replayGuidedTutorial() {
+    saveCurrentGame(replayChapterOneGuidedTutorial(save));
+    setIsOpen(false);
+    window.setTimeout(
+      () => window.dispatchEvent(new CustomEvent(CHAPTER_ONE_TUTORIAL_OPEN_EVENT)),
+      80,
+    );
   }
 
   function renderEnergySnackActions() {
@@ -376,6 +407,52 @@ export function PlayerInventoryMenu() {
     );
   }
 
+  function renderQuestsTab() {
+    return (
+      <section className={styles.tabPanel} aria-label="Quests and guided walkthroughs">
+        <div className={styles.creatureCareHeader}>
+          <div>
+            <p className={styles.kicker}>Guided Progress</p>
+            <h3>Chapter 1</h3>
+          </div>
+          <strong>{guidedTutorialStatus}</strong>
+        </div>
+        <article className={styles.plannerCard} data-player-menu-guided-chapter-one="true">
+          <span>Guided Chapter 1</span>
+          <strong>{tutorialStep?.title ?? (guidedTutorialActive ? "Ranch introduction" : "Walkthrough available")}</strong>
+          <p>
+            {tutorialStep?.body ??
+              (guidedTutorialActive
+                ? "The guided walkthrough becomes available after the opening ranch introduction."
+                : "Replay the Chapter 1 walkthrough whenever you want step-by-step guidance again.")}
+          </p>
+          {tutorialStep ? (
+            <div className={styles.detailRows}>
+              <div><span>Stage</span><strong>{tutorialStep.dayLabel}</strong></div>
+              <div><span>Hint</span><strong>{tutorialStep.hint}</strong></div>
+            </div>
+          ) : null}
+          <div className={styles.quickActions}>
+            {guidedTutorialActive ? (
+              <button
+                type="button"
+                className={styles.actionButton}
+                disabled={!tutorialStep}
+                onClick={openGuidedTutorial}
+              >
+                Open Guided Chapter 1
+              </button>
+            ) : (
+              <button type="button" className={styles.actionButton} onClick={replayGuidedTutorial}>
+                Replay Guided Chapter 1
+              </button>
+            )}
+          </div>
+        </article>
+      </section>
+    );
+  }
+
   return (
     <>
       <button type="button" className={styles.menuButton} onClick={() => setIsOpen(true)}>
@@ -389,7 +466,7 @@ export function PlayerInventoryMenu() {
               <div>
                 <p className={styles.kicker}>Player Menu</p>
                 <h2 id="player-menu-title">{MENU_TABS.find((tab) => tab.id === activeMenuTab)?.label ?? "Inventory"}</h2>
-                <p className={styles.lead}>Inventory, ranch planning, and creature care are available from anywhere while a save is loaded.</p>
+                <p className={styles.lead}>Inventory, ranch planning, creature care, and guided progress are available from anywhere while a save is loaded.</p>
               </div>
               <button type="button" className={styles.closeButton} onClick={() => setIsOpen(false)}>Close</button>
             </header>
@@ -419,6 +496,7 @@ export function PlayerInventoryMenu() {
             {activeMenuTab === "inventory" ? renderInventoryTab() : null}
             {activeMenuTab === "ranch" ? renderRanchStatusTab() : null}
             {activeMenuTab === "creatures" ? renderCreaturesTab() : null}
+            {activeMenuTab === "quests" ? renderQuestsTab() : null}
           </section>
         </div>
       ) : null}
