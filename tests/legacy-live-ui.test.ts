@@ -42,6 +42,14 @@ test("the Chronicle includes the Ranch Legacy overview before the event feed", (
   assert.match(overviewSource, /getRanchLegacySummary/);
 });
 
+test("the Chronicle owns a viewport-height vertical scroll region", () => {
+  assert.match(chronicleSource, /data-chronicle-scroll-region="true"/);
+  assert.match(chronicleSource, /height: "100dvh"/);
+  assert.match(chronicleSource, /overflowY: "auto"/);
+  assert.match(chronicleSource, /overflowX: "hidden"/);
+  assert.match(chronicleSource, /overscrollBehaviorY: "contain"/);
+});
+
 test("Legacy UI exposes Prestige, titles, Hall candidacy, and ambition rewards", () => {
   assert.match(prestigeSource, /data-legacy-prestige="true"/);
   assert.match(careerSource, /Legacy Score/);
