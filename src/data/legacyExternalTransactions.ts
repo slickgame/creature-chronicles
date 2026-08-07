@@ -1,5 +1,9 @@
 import { recordColiseumBattleResult, type ColiseumEncounterId, type ColiseumResult } from "@/data/coliseum";
 import { applyBattleCareerResults, applyGuildCareerCompletion, type CareerBattleParticipant } from "@/data/creatureCareerTransactions";
+import {
+  applyHeirloomBattleEffect,
+  applyHeirloomGuildEffect,
+} from "@/data/creatureHeirloomEffects";
 import { applyBattleTeamworkMorale } from "@/data/creatureRelationshipGameplay";
 import { donateCreatureToGuildContract, ensureCurrentGuildState } from "@/data/guild";
 import type { BattleOutcome } from "@/types/battle";
@@ -25,7 +29,8 @@ function normalizeParticipants(
  * Records the canonical Coliseum result and credits every player creature that
  * entered the match. Optional telemetry forwards damage, healing, protection,
  * knockouts, and fainting into lifetime Career Records. Victorious teammates
- * with an established friendship also receive a small, idempotent morale gain.
+ * with an established friendship receive a small, idempotent morale gain, and
+ * combat/guardian Heirlooms provide a separate capped ranch-wide victory aura.
  */
 export function recordColiseumBattleResultWithCareers(
   save: GameSave,
@@ -49,14 +54,21 @@ export function recordColiseumBattleResultWithCareers(
     teamCreatureIds,
     careerOutcome,
   );
+  const heirloom = applyHeirloomBattleEffect(
+    moraleSave,
+    result.historyEntry.historyId,
+    teamCreatureIds,
+    outcome,
+  );
 
-  return { ...result, save: moraleSave };
+  return { ...result, save: heirloom.save };
 }
 
 /**
  * Completes the existing Guild submission transaction and credits the submitted
  * creature with one request completion. Gold-tier contracts count as featured
- * requests for the first Ambitions pass.
+ * requests for the first Ambitions pass. Guild Heirlooms add a capped Affection
+ * reward after the canonical contract and Career transaction have succeeded.
  */
 export function submitGuildContractWithCareer(
   save: GameSave,
@@ -68,13 +80,17 @@ export function submitGuildContractWithCareer(
   const result = donateCreatureToGuildContract(syncedSave, contractId, creatureId);
   if (!result.ok || !contract) return result;
 
+  const careerSave = applyGuildCareerCompletion(result.save, {
+    requestId: String(contract.contractId),
+    dayNumber: syncedSave.dayState.dayNumber,
+    participantIds: [creatureId],
+    featured: contract.tier === "gold",
+  });
+  const heirloom = applyHeirloomGuildEffect(careerSave, String(contract.contractId), creatureId);
+
   return {
     ...result,
-    save: applyGuildCareerCompletion(result.save, {
-      requestId: String(contract.contractId),
-      dayNumber: syncedSave.dayState.dayNumber,
-      participantIds: [creatureId],
-      featured: contract.tier === "gold",
-    }),
+    save: heirloom.save,
+    message: heirloom.note ? `${result.message} ${heirloom.note}` : result.message,
   };
 }
