@@ -288,7 +288,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                 data-requester-trust-card="true"
                 data-guild-requester-trust="true"
               >
-                <small>Requester</small>
+                <small>Requester:</small>
                 <strong>{selectedContract.requesterName}</strong>
                 <small>{trustSummary} · Completion +{trustReward} Trust</small>
               </div>
