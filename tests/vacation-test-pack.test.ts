@@ -125,3 +125,43 @@ test("main menu, dev tools, and town expose the vacation test features", async (
   assert.match(lantern, /Hospitality Shift/);
   assert.match(lantern, /Rumor Network/);
 });
+
+test("the main menu fits dynamic iPhone portrait and landscape viewports", async () => {
+  const menuStyles = await source("src/features/main-menu/MainMenuScreen.module.css");
+
+  assert.match(menuStyles, /height:\s*100dvh/);
+  assert.match(menuStyles, /overflow-y:\s*auto/);
+  assert.match(menuStyles, /env\(safe-area-inset-top\)/);
+  assert.match(menuStyles, /@media \(max-width: 620px\)/);
+  assert.match(menuStyles, /min-height:\s*52px/);
+  assert.match(menuStyles, /:has\(\.menuPanel\)/);
+  assert.match(menuStyles, /@media \(max-width: 980px\) and \(max-height: 520px\)/);
+});
+
+test("the Chapter 1 story overlay stays above Ranch Day controls and fits iPhone", async () => {
+  const story = await source("src/features/story/ChapterOneStoryOverlay.tsx");
+
+  assert.match(story, /zIndex:\s*1200/);
+  assert.match(story, /100dvh/);
+  assert.match(story, /env\(safe-area-inset-top\)/);
+  assert.match(story, /overflowY:\s*"auto"/);
+  assert.match(story, /repeat\(auto-fit, minmax\(min\(280px, 100%\), 1fr\)\)/);
+  assert.match(story, /data-chapter-one-story-actions="true"/);
+  assert.match(story, /minHeight:\s*44/);
+});
+
+test("the Ranch Hub uses iPhone-only compaction without changing desktop rules", async () => {
+  const wrapper = await source("src/features/ranch/RanchHubScreenTutorial.tsx");
+  const mobileStyles = await source("src/features/ranch/RanchHubMobile.module.css");
+
+  assert.match(wrapper, /RanchHubMobile\.module\.css/);
+  assert.match(wrapper, /data-ranch-mobile-shell="true"/);
+  assert.match(mobileStyles, /@media \(max-width: 700px\)/);
+  assert.match(mobileStyles, /grid-template-areas:[\s\S]*"identity menu"[\s\S]*"stats stats"/);
+  assert.match(mobileStyles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(mobileStyles, /aside\[aria-label="Ranch Day controls"\]/);
+  assert.match(mobileStyles, /data-tutorial-card="true"/);
+  assert.match(mobileStyles, /Ranch Advisor morning planner/);
+  assert.match(mobileStyles, /Optional beginner milestones/);
+  assert.match(mobileStyles, /env\(safe-area-inset-bottom\)/);
+});

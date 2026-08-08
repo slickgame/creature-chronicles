@@ -19,6 +19,14 @@ After Git integration is active:
 - Changes merged into `master` receive a Production Deployment.
 - Vercel supplies a public `*.vercel.app` address that can be opened from the iPhone while away from the development computer.
 
+## Current preview address
+
+Use the active PR preview while testing the large Legacy branch:
+
+`https://creature-chronicles-git-feature-crea-686892-slickgames-projects.vercel.app`
+
+The branch alias is reused after each successful preview deployment, so the address remains the same when a new commit becomes Ready.
+
 ## Install on iPhone
 
 1. Open the Vercel deployment in Safari.
@@ -28,6 +36,12 @@ After Git integration is active:
 5. Launch it from the new Home Screen icon.
 
 The app manifest requests standalone display, a dark theme, safe-area support, and the existing paw crest as the install icon.
+
+## Refresh after a deployment
+
+In Safari, tap the circular reload arrow in the address bar. In a Home Screen installation, open the app switcher, swipe the Creature Chronicles preview upward, and launch it again.
+
+Do not clear Safari website data. Current MVP saves live in browser local storage.
 
 ## Move a desktop save to the iPhone
 
@@ -68,6 +82,8 @@ Do not continue playing two copies independently unless you intend to keep separ
 - Import a desktop travel save into the iPhone.
 - Rotate between portrait and landscape orientation.
 - Confirm the iPhone safe areas do not cover buttons around the notch or Home indicator.
+- Confirm the main menu fits without losing New Game, Continue, Load, Options, or Transfer Save.
+- Open the Chapter 1 story overlay and confirm the Ranch Day dock remains behind the story, the story uses one column on narrow screens, and Back/Next/action buttons remain reachable by scrolling.
 - Test Ranch, Town, Builder's Yard, Expansion Fields, Coliseum, and move-detail dialogs.
 - Visit **The Rose Lantern**, acknowledge its house rules, complete a salon visit and hospitality shift, and spend a Rumor Token.
 - Open **Dev Tools → Predator Event Lab**.

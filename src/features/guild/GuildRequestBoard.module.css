@@ -1,0 +1,538 @@
+:global([data-contract-board="list"][data-request-board-enhanced="true"]) {
+  display: block !important;
+  min-height: 0;
+  overflow: hidden;
+}
+
+:global([data-contract-board="list"][data-request-board-enhanced="true"]) > aside,
+:global([data-contract-board="list"][data-request-board-enhanced="true"]) > section[data-contract-list="true"] {
+  display: none !important;
+}
+
+.boardShell {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  color: #fff7dd;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid rgba(245, 201, 128, 0.34);
+  border-radius: 14px;
+  background: rgba(11, 7, 5, 0.68);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filterButton,
+.pageButton,
+.detailButton,
+.secondaryButton {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid rgba(245, 201, 128, 0.42);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff7dd;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.filterButton:hover,
+.pageButton:hover,
+.detailButton:hover,
+.secondaryButton:hover {
+  border-color: rgba(127, 219, 255, 0.82);
+  background: rgba(86, 199, 255, 0.1);
+}
+
+.filterButtonActive {
+  border-color: #7fdbff;
+  background: rgba(86, 199, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(86, 199, 255, 0.28) inset;
+}
+
+.boardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e7c991;
+  font-size: 0.76rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.pageButton:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.boardViewport {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+
+.boardArt {
+  position: relative;
+  width: min(100%, 1180px);
+  aspect-ratio: 3 / 2;
+  min-width: 760px;
+  filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.5));
+}
+
+.boardBackground {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.flyer {
+  position: absolute;
+  left: var(--flyer-left);
+  top: var(--flyer-top);
+  width: var(--flyer-width);
+  aspect-ratio: 2 / 3;
+  transform: translate(-50%, -50%) rotate(var(--flyer-rotation));
+  transform-origin: 50% 10%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #2b1a10;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.35));
+}
+
+.flyer:hover,
+.flyer:focus-visible {
+  z-index: 8;
+  transform: translate(-50%, -52%) rotate(var(--flyer-rotation)) scale(1.045);
+  filter: drop-shadow(0 12px 12px rgba(0, 0, 0, 0.48)) brightness(1.05);
+  outline: none;
+}
+
+.flyerBase {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.badge {
+  position: absolute;
+  top: 7%;
+  left: 50%;
+  width: 28%;
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+}
+
+.flyerCopy {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 30%;
+  bottom: 13%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 4px;
+  align-content: start;
+  overflow: hidden;
+  text-align: center;
+  text-shadow: 0 1px rgba(255, 249, 220, 0.45);
+}
+
+.flyerTier {
+  color: #7b4b1f;
+  font-size: clamp(0.48rem, 0.72vw, 0.68rem);
+  font-weight: 950;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.flyerTitle {
+  margin: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #26170f;
+  font-size: clamp(0.62rem, 1vw, 0.96rem);
+  font-weight: 950;
+  line-height: 1.02;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.flyerRequester {
+  align-self: end;
+  overflow: hidden;
+  color: #64462d;
+  font-size: clamp(0.45rem, 0.68vw, 0.66rem);
+  font-weight: 900;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flyerReward {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  color: #4b2c17;
+  font-size: clamp(0.44rem, 0.64vw, 0.62rem);
+  font-weight: 950;
+}
+
+.statusStamp {
+  position: absolute;
+  right: 4%;
+  bottom: 8%;
+  z-index: 3;
+  padding: 3px 7px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  background: rgba(250, 235, 188, 0.78);
+  font-size: clamp(0.48rem, 0.66vw, 0.66rem);
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+.statusAccepted { color: #1f6686; }
+.statusCompleted { color: #47744d; }
+
+.emptyBoard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(72%, 520px);
+  transform: translate(-50%, -50%);
+  padding: 18px 22px;
+  border: 1px solid rgba(83, 48, 25, 0.34);
+  border-radius: 12px;
+  background: rgba(255, 246, 209, 0.76);
+  color: #4a2f1b;
+  text-align: center;
+  font-weight: 900;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.detailSheet {
+  position: relative;
+  width: min(960px, 96vw);
+  max-height: 91vh;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 18px;
+  padding: 26px;
+  border: 3px solid rgba(245, 201, 128, 0.88);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(77, 42, 27, 0.98), rgba(24, 14, 11, 0.99));
+  color: #fff7dd;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.7);
+}
+
+.closeButton {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(245, 201, 128, 0.5);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.38);
+  color: #fff7dd;
+  font-size: 1.25rem;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.detailMain,
+.detailSide {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.detailHeader {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding-right: 32px;
+}
+
+.detailBadge {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.detailKicker {
+  margin: 0 0 3px;
+  color: #f5c980;
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.detailTitle {
+  margin: 0;
+  color: #fff7dd;
+  font-size: clamp(1.55rem, 3vw, 2.55rem);
+  line-height: 0.98;
+}
+
+.description {
+  margin: 0;
+  color: #fff0c9;
+  line-height: 1.45;
+}
+
+.requesterCard,
+.infoCard,
+.recommendationCard,
+.creatureSection,
+.messageCard {
+  padding: 12px;
+  border: 1px solid rgba(245, 201, 128, 0.34);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.requesterCard strong,
+.infoCard strong,
+.recommendationCard strong {
+  color: #7fdbff;
+}
+
+.requesterCard small,
+.infoCard small,
+.recommendationCard small {
+  display: block;
+  margin-top: 3px;
+  color: #e7c991;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.infoGrid > div {
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.infoGrid span {
+  display: block;
+  color: #e7c991;
+  font-size: 0.65rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.infoGrid strong {
+  display: block;
+  margin-top: 2px;
+  color: #fff7dd;
+}
+
+.recommendationButton {
+  width: 100%;
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid rgba(127, 219, 255, 0.34);
+  border-radius: 11px;
+  background: rgba(86, 199, 255, 0.08);
+  color: #fff7dd;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recommendationButton img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.recommendationButton span,
+.recommendationButton small {
+  display: block;
+}
+
+.recommendationButton small {
+  opacity: 0.72;
+}
+
+.creatureSection h3 {
+  margin: 0 0 8px;
+}
+
+.creatureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.creatureButton {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(245, 201, 128, 0.26);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff7dd;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.creatureButtonSelected {
+  border-color: #7fdbff;
+  background: rgba(86, 199, 255, 0.12);
+}
+
+.creatureButton img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.creatureButton strong,
+.creatureButton small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.creatureButton small {
+  margin-top: 2px;
+  color: #e7c991;
+  font-size: 0.68rem;
+}
+
+.actionStack {
+  display: grid;
+  gap: 8px;
+}
+
+.detailButton {
+  min-height: 42px;
+  border-color: rgba(245, 201, 128, 0.82);
+  background: linear-gradient(#fff4c9, #dca755);
+  color: #241713;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.34);
+}
+
+.detailButton:disabled,
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.8) brightness(0.7);
+}
+
+.warning {
+  color: #ffd5a1;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.messageCard {
+  color: #7fdbff;
+  font-weight: 900;
+}
+
+@media (max-width: 980px) {
+  .boardArt {
+    min-width: 690px;
+  }
+
+  .detailSheet {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .toolbar {
+    align-items: stretch;
+  }
+
+  .filters {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 2px;
+  }
+
+  .filterButton {
+    flex: 0 0 auto;
+  }
+
+  .boardArt {
+    min-width: 620px;
+  }
+
+  .infoGrid,
+  .creatureGrid {
+    grid-template-columns: 1fr;
+  }
+}

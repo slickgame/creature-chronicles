@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getChapterOneGuidedTutorialStep,
   markChapterOneTutorialSignal,
@@ -11,10 +11,12 @@ import {
 } from "@/data/chapterOneGuidedTutorial";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
 import { useGameContext } from "@/state/GameProvider";
+import { useTutorialViewportDock } from "./useTutorialViewportDock";
 import styles from "./ChapterOneGuidedTutorial.module.css";
 
 const SIGNAL_EVENT = "creature-chronicles:tutorial-signal";
 const INVENTORY_EVENT = "creature-chronicles:open-tutorial-inventory";
+export const CHAPTER_ONE_TUTORIAL_OPEN_EVENT = "creature-chronicles:open-guided-chapter-one";
 
 type TutorialSignalEvent = CustomEvent<{ signal: ChapterOneTutorialSignal }>;
 
@@ -45,10 +47,13 @@ export function ChapterOneGuidedTutorial() {
   const [targetBox, setTargetBox] = useState<TargetBox | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [helpPulse, setHelpPulse] = useState(0);
+  const cardRef = useRef<HTMLElement | null>(null);
   const step = useMemo(
     () => currentSave ? getChapterOneGuidedTutorialStep(currentSave) : null,
     [currentSave],
   );
+
+  useTutorialViewportDock("chapter-one-guided-card", cardRef, Boolean(currentSave && step && !collapsed));
 
   useEffect(() => {
     if (!currentSave) return;
@@ -73,6 +78,19 @@ export function ChapterOneGuidedTutorial() {
   }, [currentSave, saveCurrentGame]);
 
   useEffect(() => {
+    function handleOpenFromMenu() {
+      setCollapsed(false);
+      window.setTimeout(() => setHelpPulse((value) => value + 1), 20);
+    }
+    window.addEventListener(CHAPTER_ONE_TUTORIAL_OPEN_EVENT, handleOpenFromMenu);
+    return () => window.removeEventListener(CHAPTER_ONE_TUTORIAL_OPEN_EVENT, handleOpenFromMenu);
+  }, []);
+
+  useEffect(() => {
+    if (collapsed) {
+      setTargetBox(null);
+      return;
+    }
     const selector = targetSelector(step?.targetId);
     if (!selector) {
       setTargetBox(null);
@@ -105,10 +123,10 @@ export function ChapterOneGuidedTutorial() {
       window.removeEventListener("scroll", sync, true);
       window.cancelAnimationFrame(frame);
     };
-  }, [step?.targetId, appScreen, helpPulse]);
+  }, [step?.targetId, appScreen, helpPulse, collapsed]);
 
   useEffect(() => {
-    if (!step?.lockToTarget || !step.targetId) return;
+    if (collapsed || !step?.lockToTarget || !step.targetId) return;
     const selector = targetSelector(step.targetId)!;
     function enforceTarget(event: MouseEvent) {
       const clicked = event.target as Element | null;
@@ -122,14 +140,13 @@ export function ChapterOneGuidedTutorial() {
     }
     document.addEventListener("click", enforceTarget, true);
     return () => document.removeEventListener("click", enforceTarget, true);
-  }, [step?.id, step?.lockToTarget, step?.targetId]);
+  }, [step?.id, step?.lockToTarget, step?.targetId, collapsed]);
 
   if (!currentSave || !step) return null;
   const activeSave = currentSave;
   const activeStep = step;
 
   function persistSignal(signal: ChapterOneTutorialSignal) {
-    if (!activeSave) return;
     saveCurrentGame(markChapterOneTutorialSignal(activeSave, signal));
   }
 
@@ -166,6 +183,8 @@ export function ChapterOneGuidedTutorial() {
     saveCurrentGame(skipChapterOneGuidedTutorial(activeSave));
   }
 
+  if (collapsed) return null;
+
   return (
     <>
       {targetBox ? (
@@ -180,37 +199,34 @@ export function ChapterOneGuidedTutorial() {
           aria-hidden="true"
         />
       ) : null}
-      <aside className={`${styles.card} ${collapsed ? styles.collapsed : ""}`} data-tutorial-card="true" aria-label="Guided Chapter 1 tutorial">
-        {collapsed ? (
-          <button type="button" className={styles.reopen} onClick={() => setCollapsed(false)}>
-            <img src={RANCH_ADVISOR.portraitPath} alt="" />
-            <span>Guided Chapter 1</span>
-          </button>
-        ) : (
-          <>
-            <header className={styles.header}>
-              <img src={RANCH_ADVISOR.portraitPath} alt="" />
-              <div>
-                <span>{activeStep.dayLabel}</span>
-                <strong>{RANCH_ADVISOR.name}</strong>
-              </div>
-              <button type="button" onClick={() => setCollapsed(true)} aria-label="Collapse tutorial">−</button>
-            </header>
-            <section className={styles.body}>
-              <p className={styles.kicker}>Current Lesson</p>
-              <h2>{activeStep.title}</h2>
-              <p>{activeStep.body}</p>
-              <div className={styles.hint}>{activeStep.hint}</div>
-            </section>
-            <footer className={styles.actions}>
-              <button type="button" className={styles.secondary} onClick={handleSkip}>Skip</button>
-              <button type="button" className={styles.secondary} onClick={showTarget}>Help</button>
-              {activeStep.action !== "none" ? (
-                <button type="button" className={styles.primary} onClick={() => route(activeStep.action)}>{activeStep.actionLabel}</button>
-              ) : null}
-            </footer>
-          </>
-        )}
+      <aside
+        ref={cardRef}
+        className={styles.card}
+        data-tutorial-card="true"
+        data-tutorial-dock-card="true"
+        aria-label="Guided Chapter 1 tutorial"
+      >
+        <header className={styles.header}>
+          <img src={RANCH_ADVISOR.portraitPath} alt="" />
+          <div>
+            <span>{activeStep.dayLabel}</span>
+            <strong>{RANCH_ADVISOR.name}</strong>
+          </div>
+          <button type="button" onClick={() => setCollapsed(true)} aria-label="Hide tutorial; reopen it from Menu → Quests">−</button>
+        </header>
+        <section className={styles.body}>
+          <p className={styles.kicker}>Current Lesson</p>
+          <h2>{activeStep.title}</h2>
+          <p>{activeStep.body}</p>
+          <div className={styles.hint}>{activeStep.hint}</div>
+        </section>
+        <footer className={styles.actions}>
+          <button type="button" className={styles.secondary} onClick={handleSkip}>Skip</button>
+          <button type="button" className={styles.secondary} onClick={showTarget}>Help</button>
+          {activeStep.action !== "none" ? (
+            <button type="button" className={styles.primary} onClick={() => route(activeStep.action)}>{activeStep.actionLabel}</button>
+          ) : null}
+        </footer>
       </aside>
     </>
   );

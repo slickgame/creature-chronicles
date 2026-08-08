@@ -29,6 +29,7 @@
       "@/data/coliseumC4": ["./src/data/coliseumC4Hardened"],
       "@/data/nursery": ["./src/data/nurseryMoveInheritanceLifecycle"],
       "@/data/ranchJobs": ["./src/data/ranchJobsPredator"],
+      "@/data/trainingGrounds": ["./src/data/trainingGroundsAvailability"],
       "@/features/battle-outfitter/BattleOutfitterScreenActive": ["./src/features/battle-outfitter/BattleOutfitterScreenTutorial"],
       "@/features/breeding/BreedingFocusedScreen": ["./src/features/breeding/BreedingFocusedScreenTutorial"],
       "@/features/breeding/BreedingScreen": ["./src/features/breeding/BreedingScreenManaged"],

@@ -37,6 +37,14 @@ export type GuildContract = {
   serviceEnergyCost?: number;
   serviceXpReward?: number;
   serviceAffectionReward?: number;
+  /** Ranch Days the creature is physically away after a service submission. */
+  serviceDurationDays?: number;
+  /** Absolute Ranch Day when a submitted service creature becomes available again. */
+  serviceReturnDayNumber?: number;
+  /** Personal requester Trust granted for this completion. Presence makes the award idempotent. */
+  requesterTrustAwarded?: number;
+  /** Ranch Day on which the personal requester Trust award was recorded. */
+  requesterTrustAwardedAtDayNumber?: number;
   createdAtDayNumber: number;
   expiresAtWeekNumber: number;
   acceptedAtDayNumber?: number;

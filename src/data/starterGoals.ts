@@ -1,3 +1,4 @@
+import { reconcileLegacyExternalProgress } from "@/data/legacyProgressReconciliation";
 import type { GameSave } from "@/types/save";
 
 export type StarterGoalReward = {
@@ -97,7 +98,7 @@ export function getStarterGoals(save: GameSave): StarterGoal[] {
     buildGoal(save, { id: "assign-comfort", label: "Create comfort", description: "Assign a feline-style helper to Comfort Care to learn how daily comfort supports future breeding.", complete: comfortAssigned, hint: "Ranch Chores → Comfort Care or Comfort Focus" }),
     buildGoal(save, { id: "assign-feed", label: "Stock the stable", description: "Assign a cow or bovine helper to Stable Production to build the ranch food loop.", complete: feedAssigned, hint: "Ranch Chores → Stable Production or Food Focus" }),
     buildGoal(save, { id: "assign-garden", label: "Tend the garden", description: "Assign a bunny or lapine helper to Garden Tending to support extra feed and nursery-style care.", complete: gardenAssigned, hint: "Ranch Chores → Garden Tending or Balanced Plan" }),
-    buildGoal(save, { id: "assign-hauling", label: "Send out a hauler", description: "Assign a horse or equine helper to Field Hauling for materials and ranch upkeep.", complete: haulingAssigned, hint: "Ranch Chores → Field Hauling or Repair Focus" }),
+    buildGoal(save, { id: "assign-hauling", label: "Send out a hauler", description: "Assign a horse or equine helper to Field Hauling for materials and ranch upkeep.", complete: haulingAssigned, hint: "Ranch Chores → Repair Focus or Field Hauling" }),
     buildGoal(save, { id: "resolve-chores", label: "Complete the first work night", description: "Sleep after assigning chores so the ranch can process feed, security, comfort, materials, and upkeep.", complete: choresResolved, hint: "Ranch House → Sleep" }),
     buildGoal(save, { id: "produce-feed", label: "Stock 5 Feed", description: "Produce or store at least 5 Feed so creature recovery is less punishing.", complete: feedProduced, hint: "Ranch Chores → Food Focus or Production/Garden" }),
     buildGoal(save, { id: "gather-materials", label: "Gather Ranch Materials", description: "Use Field Hauling to produce Materials for future upgrades and repairs.", complete: materialsProduced, hint: "Ranch Chores → Repair Focus or Field Hauling" }),
@@ -111,16 +112,23 @@ export function getStarterGoals(save: GameSave): StarterGoal[] {
   ];
 }
 
+/**
+ * This function is the central save-boundary reward pass used by GameProvider.
+ * Reconcile persisted Coliseum and Guild history first so live external actions
+ * feed Career Records, Ambitions, Memories, and Chronicle entries even when an
+ * older screen still calls its original transaction directly.
+ */
 export function applyStarterGoalRewards(save: GameSave): GameSave {
-  const goals = getStarterGoals(save);
+  const reconciledSave = reconcileLegacyExternalProgress(save);
+  const goals = getStarterGoals(reconciledSave);
   const claimableGoals = goals.filter((goal) => goal.complete && !goal.rewardClaimed);
-  if (!claimableGoals.length) return save;
+  if (!claimableGoals.length) return reconciledSave;
 
-  let nextGold = save.currencies.gold;
-  let nextGuildPoints = save.currencies.guildPoints;
-  let nextFeed = getFlagNumber(save.flags.ranchFeedStock);
-  let nextMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
-  const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true, m31PersistentStarterGoals: true, m34StarterGoalRewardRebalance: true };
+  let nextGold = reconciledSave.currencies.gold;
+  let nextGuildPoints = reconciledSave.currencies.guildPoints;
+  let nextFeed = getFlagNumber(reconciledSave.flags.ranchFeedStock);
+  let nextMaterials = getFlagNumber(reconciledSave.flags.ranchMaterialsStock);
+  const nextFlags: GameSave["flags"] = { ...reconciledSave.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true, m31PersistentStarterGoals: true, m34StarterGoalRewardRebalance: true };
   const claimedLabels: string[] = [];
 
   for (const goal of claimableGoals) {
@@ -135,14 +143,14 @@ export function applyStarterGoalRewards(save: GameSave): GameSave {
   if (claimableGoals.some((goal) => goal.id === "guild")) nextFlags.m15ChapterOneOnboardingComplete = true;
 
   return {
-    ...save,
-    currencies: { ...save.currencies, gold: nextGold, guildPoints: nextGuildPoints },
+    ...reconciledSave,
+    currencies: { ...reconciledSave.currencies, gold: nextGold, guildPoints: nextGuildPoints },
     flags: {
       ...nextFlags,
       ranchFeedStock: nextFeed,
       ranchMaterialsStock: nextMaterials,
       starterGoalRewardsLastClaimed: claimedLabels.join(" | "),
-      starterGoalRewardsClaimedCount: getFlagNumber(save.flags.starterGoalRewardsClaimedCount) + claimableGoals.length,
+      starterGoalRewardsClaimedCount: getFlagNumber(reconciledSave.flags.starterGoalRewardsClaimedCount) + claimableGoals.length,
     },
   };
 }
