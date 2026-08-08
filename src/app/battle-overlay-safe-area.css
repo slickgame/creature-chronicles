@@ -1,35 +1,20 @@
 /*
- * Keep the fixed guided/advisor card from covering the live battle controls.
- * The battle footer uses CSS-module class names, so this global safeguard
- * keys off the stable local-name fragments emitted by Next.js.
+ * Battle controls may wrap when space is tight, but tutorial cards no longer
+ * reserve battle-specific padding here. The shared tutorial dock now reserves
+ * viewport space for every fixed tutorial card across the application.
  */
 
-@media (min-width: 1201px) {
-  [class*="actionFooter"]:has([class*="confirmButton"]) {
-    box-sizing: border-box;
-    flex-wrap: wrap;
-    padding-right: clamp(360px, 23vw, 430px);
-  }
-
-  [class*="actionFooter"]:has([class*="confirmButton"]) [class*="confirmButton"] {
-    margin-left: auto;
-  }
+[class*="actionFooter"]:has([class*="confirmButton"]) {
+  box-sizing: border-box;
+  flex-wrap: wrap;
 }
 
-@media (min-width: 1201px) and (max-height: 900px) {
-  [class*="actionFooter"]:has([class*="confirmButton"]) {
-    padding-right: clamp(330px, 22vw, 400px);
-  }
-}
-
-@media (max-width: 1200px) {
-  [class*="actionFooter"]:has([class*="confirmButton"]) {
-    flex-wrap: wrap;
-  }
+[class*="actionFooter"]:has([class*="confirmButton"]) [class*="confirmButton"] {
+  margin-left: auto;
 }
 
 @media (max-width: 800px) {
-  [class*="actionFooter"]:has([class*="confirmButton"]) {
-    padding-right: 0;
+  [class*="actionFooter"]:has([class*="confirmButton"]) [class*="confirmButton"] {
+    margin-left: 0;
   }
 }
