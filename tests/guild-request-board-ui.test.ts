@@ -30,7 +30,7 @@ test("Request Board mode still mounts the visible board surface and five-contrac
 
 test("Ambition Advisor docks inside the Request Board instead of floating over Guild gameplay", () => {
   assert.match(advisorSource, /createPortal/);
-  assert.match(advisorSource, /data-contract-board=\\"list\\"/);
+  assert.match(advisorSource, /\[data-contract-board="list"\]/);
   assert.match(advisorSource, /Recommended Assignments/);
   assert.doesNotMatch(advisorSource, /position:\s*"fixed"/);
   assert.match(polishCss, /grid-template-columns:\s*220px minmax\(0, 1fr\) minmax\(260px, 300px\)/);
