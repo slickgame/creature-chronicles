@@ -59,13 +59,15 @@ test("Legacy UI exposes Prestige, titles, Hall candidacy, and ambition rewards",
   assert.match(ambitionSource, /Ranch Legacy Prestige/);
 });
 
-test("Guild recommendations are explained and mounted as a live advisor", () => {
+test("Guild recommendations are explained and mounted inside the live Request Board", () => {
   assert.match(recommendationSource, /getGuildCreatureRecommendations/);
   assert.match(recommendationSource, /data-guild-recommendations="true"/);
   assert.match(recommendationSource, /recommendation\.reasons/);
   assert.match(recommendationSource, /onSelect\(recommendation\.creature\.creatureId\)/);
   assert.match(advisorSource, /data-guild-ambition-advisor="true"/);
-  assert.match(advisorSource, /Ambition Advisor/);
+  assert.match(advisorSource, /Recommended Assignments/);
+  assert.match(advisorSource, /createPortal/);
+  assert.match(advisorSource, /\[data-contract-board="list"\]/);
   assert.match(rootSource, /appScreen === "guild-hall" \? <GuildAmbitionAdvisor save=\{currentSave\}/);
 });
 
