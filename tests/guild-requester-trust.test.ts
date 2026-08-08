@@ -153,7 +153,9 @@ test("personal Trust has readable relationship tiers and is visible in Request B
 
   const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
   assert.match(advisorSource, /data-guild-requester-trust="true"/);
-  assert.match(advisorSource, /<small>Requester:?<\/small>/);
+  assert.match(advisorSource, /<small>Posted by<\/small>/);
+  assert.match(advisorSource, /requesterDefinition\.portraitPath/);
+  assert.match(advisorSource, /requesterDefinition\.title/);
   assert.match(advisorSource, /getGuildRequesterTrustReward/);
   assert.match(advisorSource, /Completion \+\{trustReward\} Trust/);
   assert.match(advisorSource, /data-contract-detail-modal="flyer"/);
