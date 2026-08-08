@@ -2,7 +2,7 @@ import * as core from "./localSaveCore";
 import { normalizeBattleMoveInheritanceSave } from "@/data/battleMoveInheritanceMigration";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
 import { normalizeCreatureBattleMoveLoadoutRecord } from "@/data/battleLoadouts";
-import { normalizeChapterOneTutorialLifecycle } from "@/data/chapterOneGuidedTutorial";
+import { normalizeChapterOneTutorialLifecycle } from "../../data/chapterOneGuidedTutorialBattle";
 import { normalizeCreatureCareerSave } from "@/data/creatureCareerRecords";
 import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
 import { normalizeCreatureLegacySave } from "@/data/creatureRetirement";
