@@ -13,7 +13,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/npcs/town/tamsin_vale_portrait.png",
     profilePath: "/images/buildings/town/market_stall.png",
     intro: "Tamsin Vale runs Vale's Adoption Hearth, matching creatures with safe homes and responsible keepers.",
-    trustUnlocks: { 1: "Basic adoption listings", 2: "5% cheaper adoption fees", 3: "10% cheaper arrival refreshes", 4: "+0.5% special placement chance", 5: "Rescue network requests later" },
+    trustUnlocks: { 1: "Basic adoption listings", 2: "5% cheaper adoption fees + personal Guild requests", 3: "10% cheaper arrival refreshes + priority personal requests", 4: "+0.5% special placement chance + Gold personal requests", 5: "10% cheaper adoption fees + Confidant request rewards" },
   },
   pella_mosswick: {
     npcId: "pella_mosswick",
@@ -23,7 +23,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/ui/icons/icon_shop_bag.png",
     profilePath: "/images/backgrounds/market/market_road_interior.png",
     intro: "Pella Mosswick runs the Supply Depot, a crowded little shop stacked with feed sacks, repair kits, tools, gossip, and emergency bundles.",
-    trustUnlocks: { 1: "Basic Supply Depot stock", 2: "5% cheaper Supply Depot prices", 3: "Bulk bundles later", 4: "Rare supply shelf later", 5: "Custom orders later" },
+    trustUnlocks: { 1: "Basic Supply Depot stock", 2: "5% cheaper Supply Depot prices + personal Guild requests", 3: "Priority personal requests with enhanced rewards", 4: "Gold personal Guild requests", 5: "12% cheaper Supply Depot prices + Confidant request rewards" },
   },
   petra_hale: {
     npcId: "petra_hale",
@@ -33,7 +33,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/buildings/town/builders_yard.png",
     profilePath: "/images/backgrounds/town/town_square.png",
     intro: "Petra Hale runs the Builder's Yard and posts practical contracts whenever town construction needs reliable ranch help.",
-    trustUnlocks: { 1: "Builder work orders", 2: "Priority repair requests later", 3: "Construction favors later", 4: "Special project contracts later", 5: "Masterwork projects later" },
+    trustUnlocks: { 1: "Builder work orders", 2: "Petra personal construction requests", 3: "Priority construction requests with enhanced rewards", 4: "Gold construction requests", 5: "Confidant construction requests with bonus rewards" },
   },
   mara_vell: {
     npcId: "mara_vell",
@@ -43,7 +43,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/npcs/guild/mara_vell_portrait.png",
     profilePath: "/images/npcs/guild/mara_vell_profile.png",
     intro: "Mara Vell keeps the guild ledger moving and turns completed work into town upgrades.",
-    trustUnlocks: { 1: "Guild grants", 2: "Service discount later", 3: "Better work orders later", 4: "Upgrade favors later", 5: "Quartermaster contracts later" },
+    trustUnlocks: { 1: "Standard Guild work orders", 2: "Mara personal Guild requests", 3: "Priority Mara requests with enhanced rewards", 4: "Gold quartermaster requests", 5: "Confidant quartermaster requests with bonus rewards" },
   },
   veyra: {
     npcId: "veyra",
@@ -53,7 +53,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/ui/icons/icon_ranch_ledger.png",
     profilePath: "/images/backgrounds/ranch/ranch_office_interior.png",
     intro: "Veyra Bramble watches the ranch's recovery closely and cares more about humane outcomes than quick coin.",
-    trustUnlocks: { 1: "Chapter guidance", 2: "Restoration notes", 3: "Welfare bonuses later", 4: "Story route later", 5: "Restoration capstone later" },
+    trustUnlocks: { 1: "Chapter guidance and ordinary restoration work", 2: "Veyra personal restoration requests", 3: "Priority restoration requests with enhanced rewards", 4: "Gold restoration requests", 5: "Confidant restoration requests with bonus rewards" },
   },
   selene_virell: {
     npcId: "selene_virell",
@@ -63,7 +63,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/npcs/town/selene_virell_portrait.png",
     profilePath: "/images/backgrounds/nursery/egg_nursery_interior.png",
     intro: "Dr. Selene Virell runs the Egg Atelier and maintains the town's most careful lineage and fertility records.",
-    trustUnlocks: { 1: "Egg Atelier services", 2: "Slightly cheaper acceleration later", 3: "Cheaper accelerated incubation", 4: "Cheaper ability polish", 5: "Higher polish efficiency later" },
+    trustUnlocks: { 1: "Egg Atelier services", 2: "Selene personal lineage requests", 3: "Cheaper accelerated incubation + Selene's 3-part lineage study", 4: "Cheaper ability/stat polish + Gold lineage requests", 5: "Confidant lineage rewards; completed study activates permanent Lineage Consultation" },
   },
   rhea_flint: {
     npcId: "rhea_flint",
@@ -73,7 +73,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/ui/icons/icon_breeder_level.png",
     profilePath: "/images/backgrounds/ranch/ranch_office_interior.png",
     intro: "Rhea Flint runs the Training Grounds and values creatures that can finish difficult work without cutting corners.",
-    trustUnlocks: { 1: "Training requests", 2: "Coach notes later", 3: "Advanced drill contracts later", 4: "Special coaching favors later", 5: "Elite training contracts later" },
+    trustUnlocks: { 1: "Standard Training Grounds access", 2: "Rhea personal drill requests", 3: "Priority drill requests with enhanced rewards", 4: "Gold training requests", 5: "Confidant training requests with bonus rewards" },
   },
   daria_voss: {
     npcId: "daria_voss",
@@ -83,7 +83,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/ui/icons/icon_battle_outfitter.png",
     profilePath: "/images/backgrounds/town/town_square.png",
     intro: "Daria Voss outfits serious teams for dangerous work and occasionally needs proven creatures for field tests and security contracts.",
-    trustUnlocks: { 1: "Outfitter requests", 2: "Field-test favors later", 3: "Special equipment requests later", 4: "Rare preparation contracts later", 5: "Master outfitter contracts later" },
+    trustUnlocks: { 1: "Standard outfitter services", 2: "Daria personal field-test requests", 3: "Priority field tests with enhanced rewards", 4: "Gold outfitter requests", 5: "Confidant outfitter requests with bonus rewards" },
   },
   maribel_quince: {
     npcId: "maribel_quince",
@@ -93,7 +93,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/ui/icons/icon_contract_scroll.png",
     profilePath: "/images/buildings/town/guild_board.png",
     intro: "Maribel Quince keeps the town legal, solvent, and buried under just enough paperwork to survive.",
-    trustUnlocks: { 1: "Registry records later", 2: "Tax notices later", 3: "Contract history later", 4: "Permit favors later", 5: "Legal protection later" },
+    trustUnlocks: { 1: "Standard registry notices", 2: "Maribel personal registry requests", 3: "Priority registry requests with enhanced rewards", 4: "Gold registry requests", 5: "Confidant registry requests with bonus rewards" },
   },
   kaida_thorn: {
     npcId: "kaida_thorn",
@@ -103,7 +103,7 @@ export const TOWN_NPCS: Record<TownNpcId, TownNpcDefinition> = {
     portraitPath: "/images/ui/icons/icon_bronze_contract.png",
     profilePath: "/images/backgrounds/town/town_square.png",
     intro: "Kaida Thorn keeps the roads watched and respects ranchers who send capable creatures to dangerous work.",
-    trustUnlocks: { 1: "Security notices later", 2: "Patrol support later", 3: "Danger reduction later", 4: "Ranger missions later", 5: "Frontier protection later" },
+    trustUnlocks: { 1: "Standard security notices", 2: "Kaida personal patrol requests", 3: "Priority patrol requests with enhanced rewards", 4: "Gold ranger requests", 5: "Confidant ranger requests with bonus rewards" },
   },
 };
 
