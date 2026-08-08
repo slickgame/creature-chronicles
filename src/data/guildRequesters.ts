@@ -1,3 +1,4 @@
+import { addCreatureMemory } from "@/data/creatureMemories";
 import {
   TOWN_NPCS,
   getNpcTrustRecord,
@@ -7,6 +8,7 @@ import {
 } from "@/data/townNpcs";
 import type { GameSave } from "@/types/save";
 import type { GuildContract, GuildContractCategory, GuildContractTier } from "@/types/guild";
+import type { CreatureId } from "@/types/ids";
 import type { TownNpcDefinition, TownNpcId } from "@/types/townNpc";
 
 export type GuildRequesterDefinition = TownNpcDefinition & {
@@ -168,9 +170,35 @@ export type GuildRequesterTrustAward = {
   requesterName: string;
   amount: number;
   points: number;
+  previousLevel: number;
   level: number;
   tierLabel: string;
+  unlockLabel?: string;
 };
+
+function recordTrustLevelUpMemory(
+  save: GameSave,
+  contract: GuildContract,
+  definition: GuildRequesterDefinition,
+  previousLevel: number,
+  nextLevel: number,
+): GameSave {
+  if (nextLevel <= previousLevel) return save;
+  const creatureId = (contract.submittedCreatureId ?? contract.donatedCreatureId) as CreatureId | undefined;
+  if (!creatureId) return save;
+  const tierLabel = getTrustTierLabel(nextLevel);
+  const unlockLabel = definition.trustUnlocks[nextLevel] ?? "New relationship opportunities unlocked";
+  return addCreatureMemory(save, {
+    creatureId,
+    category: "guild",
+    importance: nextLevel >= 4 ? "major" : "notable",
+    title: `Relationship Deepened — ${definition.name}`,
+    description: `${definition.name} now considers the ranch ${tierLabel}. New relationship benefit: ${unlockLabel}.`,
+    dayNumber: contract.completedAtDayNumber ?? save.dayState.dayNumber,
+    sourceKey: `guild-requester-trust-tier:${definition.npcId}:${nextLevel}`,
+    tags: ["guild", "trust", definition.npcId, tierLabel.toLowerCase().replace(/\s+/g, "-")],
+  });
+}
 
 /**
  * Awards personal requester Trust for every completed contract exactly once.
@@ -189,6 +217,7 @@ export function reconcileGuildRequesterTrust(save: GameSave): { save: GameSave; 
     if (contract.status !== "completed" || typeof contract.requesterTrustAwarded === "number") return contract;
 
     const definition = getGuildRequesterDefinition(contract);
+    const before = getNpcTrustRecord(nextSave, definition.npcId);
     const amount = getGuildRequesterTrustReward(contract);
     nextSave = grantNpcTrust(nextSave, definition.npcId, amount, true);
     const record = getNpcTrustRecord(nextSave, definition.npcId);
@@ -197,6 +226,7 @@ export function reconcileGuildRequesterTrust(save: GameSave): { save: GameSave; 
       requesterTrustAwarded: amount,
       requesterTrustAwardedAtDayNumber: contract.completedAtDayNumber ?? save.dayState.dayNumber,
     };
+    nextSave = recordTrustLevelUpMemory(nextSave, contract, definition, before.level, record.level);
     changedContracts = true;
     awards.push({
       contractId: String(contract.contractId),
@@ -204,8 +234,10 @@ export function reconcileGuildRequesterTrust(save: GameSave): { save: GameSave; 
       requesterName: definition.name,
       amount,
       points: record.points,
+      previousLevel: before.level,
       level: record.level,
       tierLabel: getTrustTierLabel(record.level),
+      unlockLabel: record.level > before.level ? definition.trustUnlocks[record.level] : undefined,
     });
     return contract;
   });
