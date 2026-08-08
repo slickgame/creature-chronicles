@@ -3,6 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { getGuildCreatureRecommendations } from "@/data/guildAmbitionRecommendations";
+import {
+  getGuildRequesterTrustReward,
+  getGuildRequesterTrustSummary,
+  normalizeGuildContractRequester,
+} from "@/data/guildRequesters";
 import type { GameSave } from "@/types/save";
 
 export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
@@ -29,7 +34,10 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
   const recommendations = useMemo(
     () => (save.guild?.contracts ?? [])
       .filter((contract) => contract.status === "available" || contract.status === "accepted")
-      .map((contract) => ({ contract, matches: getGuildCreatureRecommendations(save, contract, 1) }))
+      .map((rawContract) => {
+        const contract = normalizeGuildContractRequester(rawContract);
+        return { contract, matches: getGuildCreatureRecommendations(save, contract, 1) };
+      })
       .filter((entry) => entry.matches.length > 0)
       .sort((left, right) => {
         const acceptedDifference = Number(right.contract.status === "accepted") - Number(left.contract.status === "accepted");
@@ -44,7 +52,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
 
   return createPortal(
     <aside
-      aria-label="Guild ambition advisor"
+      aria-label="Guild assignment recommendations"
       data-guild-ambition-advisor="true"
       style={{
         minWidth: 0,
@@ -89,7 +97,13 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
             <article key={contract.contractId} style={{ padding: 9, borderRadius: 11, background: "rgba(255,255,255,.05)" }}>
               <small style={{ display: "block", color: "#f5c980" }}>{contract.status === "accepted" ? "Accepted request" : contract.tier.toUpperCase()}</small>
               <strong style={{ display: "block" }}>{contract.title}</strong>
-              <span style={{ display: "block", marginTop: 4 }}>
+              <small style={{ display: "block", marginTop: 3, opacity: 0.78 }}>
+                Requester: <strong>{contract.requesterName}</strong>
+              </small>
+              <small style={{ display: "block", opacity: 0.68 }} data-guild-requester-trust="true">
+                {getGuildRequesterTrustSummary(save, contract)} · Completion +{getGuildRequesterTrustReward(contract)} Trust
+              </small>
+              <span style={{ display: "block", marginTop: 5 }}>
                 Recommended: <strong>{recommendation.creature.nickname}</strong>
               </span>
               <small style={{ display: "block", opacity: 0.72 }}>
