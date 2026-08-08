@@ -11,6 +11,11 @@ import {
   getGuildRequesterTrustSummary,
   getGuildTrustBonusContractCount,
 } from "@/data/guild";
+import {
+  getEggAtelierAbilityPolishChance,
+  getEggAtelierServiceCost,
+  hasSeleneLineageConsultation,
+} from "@/data/eggAtelier";
 import { getChronicleEntries } from "@/data/creatureMemories";
 import { GUILD_REQUESTERS } from "@/data/guildRequesters";
 import { grantNpcTrust, TOWN_NPCS } from "@/data/townNpcs";
@@ -256,7 +261,7 @@ test("Trusted Selene unlocks a sequential three-stage personal lineage chain", (
   assert.match(stage1Result.message, /Selene personal quest 1\/3 complete/);
 });
 
-test("Selene lineage capstone is duplicate-safe and unlocks a permanent consultation flag", () => {
+test("Selene lineage capstone is duplicate-safe and activates permanent Egg Atelier consultation", () => {
   let save = ensureCurrentGuildState(createNewGameSave("Selene Capstone Tester", 0));
   save = grantNpcTrust(save, "selene_virell", 50);
   save = {
@@ -271,10 +276,18 @@ test("Selene lineage capstone is duplicate-safe and unlocks a permanent consulta
   const stage3 = save.guild?.contracts.find((contract) => String(contract.contractId) === "guild_personal_selene_lineage_3");
   const creature = save.creatures?.[0];
   assert.ok(stage3 && creature);
+  const costBefore = getEggAtelierServiceCost("ability_polish", save).gold;
+  const chanceBefore = getEggAtelierAbilityPolishChance(save);
+  assert.equal(hasSeleneLineageConsultation(save), false);
+
   const first = applyGuildTrustContractCompletion(save, stage3, creature.creatureId);
   assert.equal(Boolean(first.save.flags.guildSeleneLineageStage3), true);
   assert.equal(Boolean(first.save.flags.seleneLineageConsultationUnlocked), true);
+  assert.equal(hasSeleneLineageConsultation(first.save), true);
+  assert.ok(getEggAtelierServiceCost("ability_polish", first.save).gold < costBefore);
+  assert.ok(getEggAtelierAbilityPolishChance(first.save) > chanceBefore);
   assert.match(first.message, /Lineage Consultation/);
+
   const kits = Number(first.save.flags.nurserySupplyKits ?? 0);
   const second = applyGuildTrustContractCompletion(first.save, stage3, creature.creatureId);
   assert.equal(Number(second.save.flags.nurserySupplyKits ?? 0), kits);
