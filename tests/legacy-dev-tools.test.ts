@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import {
+  GUILD_TRUST_TEST_PRESETS,
   prepareGuildTrustPreset,
   prepareGuildTrustThresholdTest,
   prepareLegacyHallCandidate,
@@ -42,6 +43,10 @@ test("Legacy dev presets prepare real retirement and Hall candidates", () => {
 });
 
 test("Guild Trust dev presets expose real relationship-backed requests at each threshold", () => {
+  assert.deepEqual(
+    GUILD_TRUST_TEST_PRESETS.map(({ points, label }) => [points, label]),
+    [[20, "Familiar"], [50, "Trusted"], [90, "Favored"], [140, "Confidant"]],
+  );
   const save = createNewGameSave("Guild Trust QA Tester", 0);
 
   const familiar = prepareGuildTrustPreset(save, "mara_vell", 20);
@@ -107,10 +112,8 @@ test("the reliable Dev Tools screen exposes Legacy and Guild Trust QA from one v
   assert.match(panelSource, /Retire & Induct into Hall/);
   assert.match(panelSource, /data-guild-trust-test-lab="true"/);
   assert.match(panelSource, /Prepare 18 → 20 Threshold Test/);
-  assert.match(panelSource, /Familiar · 20/);
-  assert.match(panelSource, /Trusted · 50/);
-  assert.match(panelSource, /Favored · 90/);
-  assert.match(panelSource, /Confidant · 140/);
+  assert.match(panelSource, /GUILD_TRUST_TEST_PRESETS\.map/);
+  assert.match(panelSource, /\{preset\.label\} · \{preset\.points\}/);
   assert.match(panelSource, /data-selene-lineage-test-controls="true"/);
   assert.match(panelSource, /Prepare Selene Stage \{stage\}/);
 });
