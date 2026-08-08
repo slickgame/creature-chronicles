@@ -1,11 +1,31 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { getGuildCreatureRecommendations } from "@/data/guildAmbitionRecommendations";
 import type { GameSave } from "@/types/save";
 
 export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
   const [expanded, setExpanded] = useState(false);
+  const [boardHost, setBoardHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    let frame = 0;
+    const findBoard = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        setBoardHost(document.querySelector<HTMLElement>('[data-contract-board="list"]'));
+      });
+    };
+    findBoard();
+    const observer = new MutationObserver(findBoard);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
   const recommendations = useMemo(
     () => (save.guild?.contracts ?? [])
       .filter((contract) => contract.status === "available" || contract.status === "accepted")
@@ -20,22 +40,22 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
     [expanded, save],
   );
 
-  return (
+  if (!boardHost) return null;
+
+  return createPortal(
     <aside
       aria-label="Guild ambition advisor"
       data-guild-ambition-advisor="true"
       style={{
-        position: "fixed",
-        right: 16,
-        bottom: 80,
-        zIndex: 60,
-        width: "min(360px,calc(100vw - 32px))",
+        minWidth: 0,
+        alignSelf: "start",
+        maxHeight: "100%",
         border: "1px solid rgba(245,201,128,.42)",
         borderRadius: 16,
-        background: "rgba(17,15,18,.94)",
+        background: "rgba(17,15,18,.9)",
         color: "#fff7dd",
-        boxShadow: "0 18px 44px rgba(0,0,0,.48)",
-        overflow: "hidden",
+        boxShadow: "0 12px 30px rgba(0,0,0,.3)",
+        overflow: "auto",
       }}
     >
       <button
@@ -53,12 +73,16 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
           color: "inherit",
           fontWeight: 900,
           textAlign: "left",
+          cursor: "pointer",
         }}
       >
-        <span>Ambition Advisor</span>
-        <span>{expanded ? "Hide" : "Best Match"}</span>
+        <span>Recommended Assignments</span>
+        <span>{expanded ? "Show Best" : "Show More"}</span>
       </button>
       <div style={{ display: "grid", gap: 8, padding: 10 }}>
+        <small style={{ opacity: 0.7, lineHeight: 1.35 }}>
+          Uses contract eligibility, Ambition progress, personality fit, Energy reserves, level, and Affection to suggest a creature. Recommendations never override contract rules.
+        </small>
         {recommendations.length ? recommendations.map(({ contract, matches }) => {
           const recommendation = matches[0];
           return recommendation ? (
@@ -77,6 +101,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
           <p style={{ margin: 0, opacity: 0.72 }}>No current request has an eligible ranch creature.</p>
         )}
       </div>
-    </aside>
+    </aside>,
+    boardHost,
   );
 }
