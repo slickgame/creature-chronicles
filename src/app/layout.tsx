@@ -8,6 +8,7 @@ import "./night-mode.css";
 import "./content-sizing.css";
 import "./breeding-focused-polish.css";
 import "./mobile-install.css";
+import "./battle-overlay-safe-area.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
