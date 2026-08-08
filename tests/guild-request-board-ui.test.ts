@@ -111,3 +111,25 @@ test("contract details own requester Trust, recommendations, service timing, and
   assert.match(boardSource, /Permanent donation/);
   assert.doesNotMatch(boardSource, /position:\s*"fixed"[\s\S]*Recommended Assignments/);
 });
+
+test("Guild flyers and detail sheets use tactile pins, status stamps, tier identity, and named requester signatures", () => {
+  assert.match(boardSource, /getGuildRequesterDefinition/);
+  assert.match(boardSource, /requesterDefinition\.portraitPath/);
+  assert.match(boardSource, /requesterDefinition\.title/);
+  assert.match(boardSource, /data-request-signature="true"/);
+  assert.match(boardSource, /Posted under Guild seal/);
+  assert.match(boardSource, /styles\.flyerPin/);
+  assert.match(boardSource, /styles\.statusStamp/);
+  assert.match(boardSource, /styles\.detailStatusStamp/);
+  assert.match(boardSource, /data-detail-tier=\{selectedContract\.tier\}/);
+  assert.match(boardSource, /data-detail-status=\{selectedContract\.status\}/);
+
+  assert.match(boardCss, /\.flyerPin\s*\{/);
+  assert.match(boardCss, /\.statusStamp\s*\{/);
+  assert.match(boardCss, /\.detailStatusStamp\s*\{/);
+  assert.match(boardCss, /\.detailSheet\[data-detail-tier="bronze"\]/);
+  assert.match(boardCss, /\.detailSheet\[data-detail-tier="silver"\]/);
+  assert.match(boardCss, /\.detailSheet\[data-detail-tier="gold"\]/);
+  assert.match(boardCss, /\.requesterPortrait\s*\{/);
+  assert.match(boardCss, /\.signatureBlock\s*\{/);
+});
