@@ -47,14 +47,18 @@ test("later authoritative milestones reconcile missing old prompt signals", () =
   const normalized = normalizeGameSave({
     ...base,
     tutorials: undefined,
+    dayState: {
+      ...base.dayState,
+      dayNumber: Math.max(2, base.dayState.dayNumber),
+    },
     flags: {
       ...base.flags,
       chapterOneGuidedMorningOpened: false,
       chapterOneGuidedDayTwoBriefOpened: false,
       chapterOneGuidedInventoryOpened: false,
       chapterOneGuidedBattleOutfitterOpened: false,
-      chapterOneFirstNightResolved: true,
-      chapterOneResourceProblemSolved: true,
+      m14RanchJobsProcessed: true,
+      chapterOneGuidedResourceDecisionMade: true,
       m62FirstBattleWon: true,
     },
   });
