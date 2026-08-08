@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   getChapterOneGuidedTutorialStep,
   markChapterOneTutorialSignal,
@@ -11,6 +11,7 @@ import {
 } from "@/data/chapterOneGuidedTutorial";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
 import { useGameContext } from "@/state/GameProvider";
+import { useTutorialViewportDock } from "./useTutorialViewportDock";
 import styles from "./ChapterOneGuidedTutorial.module.css";
 
 const SIGNAL_EVENT = "creature-chronicles:tutorial-signal";
@@ -46,10 +47,13 @@ export function ChapterOneGuidedTutorial() {
   const [targetBox, setTargetBox] = useState<TargetBox | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const [helpPulse, setHelpPulse] = useState(0);
+  const cardRef = useRef<HTMLElement | null>(null);
   const step = useMemo(
     () => currentSave ? getChapterOneGuidedTutorialStep(currentSave) : null,
     [currentSave],
   );
+
+  useTutorialViewportDock("chapter-one-guided-card", cardRef, Boolean(currentSave && step && !collapsed));
 
   useEffect(() => {
     if (!currentSave) return;
@@ -195,7 +199,13 @@ export function ChapterOneGuidedTutorial() {
           aria-hidden="true"
         />
       ) : null}
-      <aside className={styles.card} data-tutorial-card="true" aria-label="Guided Chapter 1 tutorial">
+      <aside
+        ref={cardRef}
+        className={styles.card}
+        data-tutorial-card="true"
+        data-tutorial-dock-card="true"
+        aria-label="Guided Chapter 1 tutorial"
+      >
         <header className={styles.header}>
           <img src={RANCH_ADVISOR.portraitPath} alt="" />
           <div>
