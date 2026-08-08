@@ -1,4 +1,14 @@
-export type TownNpcId = "tamsin_vale" | "pella_mosswick" | "mara_vell" | "veyra" | "selene_virell" | "maribel_quince" | "kaida_thorn";
+export type TownNpcId =
+  | "tamsin_vale"
+  | "pella_mosswick"
+  | "petra_hale"
+  | "mara_vell"
+  | "veyra"
+  | "selene_virell"
+  | "rhea_flint"
+  | "daria_voss"
+  | "maribel_quince"
+  | "kaida_thorn";
 
 export type TownNpcTrustRecord = {
   npcId: TownNpcId;
