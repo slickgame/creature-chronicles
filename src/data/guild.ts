@@ -1,5 +1,6 @@
 export * from "./guildCore";
 export * from "./guildServiceAvailability";
+export * from "./guildRequesters";
 
 import { applyGuildCareerCompletion } from "@/data/creatureCareerTransactions";
 import { addCreatureMemory } from "@/data/creatureMemories";
@@ -8,6 +9,10 @@ import {
   ensureCurrentGuildState as ensureCurrentGuildStateCore,
   getEligibleCreaturesForContract as getEligibleCreaturesForContractCore,
 } from "./guildCore";
+import {
+  normalizeGuildContractRequester,
+  reconcileGuildRequesterTrust,
+} from "./guildRequesters";
 import {
   getGuildServiceDurationDays,
   getGuildServiceUnavailableReason,
@@ -18,10 +23,14 @@ import type { GuildActionResult, GuildContract } from "@/types/guild";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
+function normalizeLiveGuildContract(contract: GuildContract): GuildContract {
+  return normalizeGuildServiceContract(normalizeGuildContractRequester(contract));
+}
+
 function activeServiceContractsFrom(save: GameSave): GuildContract[] {
   const dayNumber = save.dayState.dayNumber;
   return (save.guild?.contracts ?? [])
-    .map(normalizeGuildServiceContract)
+    .map(normalizeLiveGuildContract)
     .filter((contract) =>
       contract.type === "service_creature" &&
       contract.status === "completed" &&
@@ -32,25 +41,29 @@ function activeServiceContractsFrom(save: GameSave): GuildContract[] {
 
 /**
  * Guild normalization keeps timed service assignments alive across a weekly
- * board refresh and adds explicit duration terms to every current service job.
+ * board refresh, upgrades legacy role requesters into real town characters,
+ * and reconciles personal requester Trust exactly once for completed history.
  */
 export function ensureCurrentGuildState(save: GameSave): GameSave {
   const activeServices = activeServiceContractsFrom(save);
   const synced = ensureCurrentGuildStateCore(save);
   if (!synced.guild) return synced;
 
-  const normalizedContracts = synced.guild.contracts.map(normalizeGuildServiceContract);
+  const normalizedContracts = synced.guild.contracts.map(normalizeLiveGuildContract);
   const knownIds = new Set(normalizedContracts.map((contract) => String(contract.contractId)));
   const retainedServices = activeServices.filter((contract) => !knownIds.has(String(contract.contractId)));
-  if (!retainedServices.length && normalizedContracts.every((contract, index) => contract === synced.guild?.contracts[index])) return synced;
+  const normalizedChanged = normalizedContracts.some((contract, index) => contract !== synced.guild?.contracts[index]);
+  const withNormalizedContracts = !normalizedChanged && retainedServices.length === 0
+    ? synced
+    : {
+        ...synced,
+        guild: {
+          ...synced.guild,
+          contracts: [...normalizedContracts, ...retainedServices],
+        },
+      };
 
-  return {
-    ...synced,
-    guild: {
-      ...synced.guild,
-      contracts: [...normalizedContracts, ...retainedServices],
-    },
-  };
+  return reconcileGuildRequesterTrust(withNormalizedContracts).save;
 }
 
 /**
@@ -93,12 +106,12 @@ function applyTimedServiceAbsence(
   const returnDayNumber = save.dayState.dayNumber + durationDays;
   const nextContracts = save.guild.contracts.map((item) =>
     item.contractId === contract.contractId
-      ? normalizeGuildServiceContract({
+      ? normalizeLiveGuildContract({
           ...item,
           serviceDurationDays: durationDays,
           serviceReturnDayNumber: returnDayNumber,
         })
-      : normalizeGuildServiceContract(item),
+      : normalizeLiveGuildContract(item),
   );
   const withoutChore = clearCreatureFromRanchJobs(save, creatureId);
   return {
@@ -117,8 +130,9 @@ function applyTimedServiceAbsence(
 
 /**
  * Career-aware facade for all live Guild submissions. The original Guild engine
- * remains authoritative for validation and rewards. Service submissions now
- * also create a timed physical absence that every gameplay roster can respect.
+ * remains authoritative for validation and rewards. Service submissions also
+ * create a timed physical absence, while every successful completion now earns
+ * duplicate-safe personal Trust with the named requester.
  */
 export function donateCreatureToGuildContract(
   save: GameSave,
@@ -172,9 +186,15 @@ export function donateCreatureToGuildContract(
     tags: ["guild", contract.category, contract.tier, contract.type],
   });
 
+  const trustResult = reconcileGuildRequesterTrust(legacySave);
+  const trustAward = trustResult.awards.find((award) => award.contractId === String(contract.contractId));
+  const trustMessage = trustAward
+    ? ` ${trustAward.requesterName} Trust +${trustAward.amount} (${trustAward.tierLabel}, ${trustAward.points} total).`
+    : "";
+
   return {
     ...result,
-    save: legacySave,
-    message: serviceMessage ? `${result.message} ${serviceMessage}` : result.message,
+    save: trustResult.save,
+    message: `${serviceMessage ? `${result.message} ${serviceMessage}` : result.message}${trustMessage}`,
   };
 }
