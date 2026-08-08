@@ -10,6 +10,7 @@ import {
   getRelationshipId,
   recordCreatureRelationshipEvent,
 } from "@/data/creatureRelationships";
+import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobId, RanchJobResult } from "@/types/ranchJobs";
@@ -70,7 +71,9 @@ function choosePair(save: GameSave, results: RanchJobResult[], dayNumber: number
     return [workers[offset], workers[(offset + 1) % workers.length]];
   }
 
-  const ranchCreatures = (save.creatures ?? []).map((creature) => creature.creatureId);
+  const ranchCreatures = (save.creatures ?? [])
+    .filter((creature) => !getTrainingUnavailableReason(save, creature.creatureId))
+    .map((creature) => creature.creatureId);
   if (ranchCreatures.length < 2) return null;
   const offset = stableHash(`ranch-pair:${save.saveId}:${dayNumber}`) % ranchCreatures.length;
   return [ranchCreatures[offset], ranchCreatures[(offset + 1) % ranchCreatures.length]];
@@ -148,8 +151,9 @@ function recordSoloPreferenceStory(
 
 /**
  * Produces at most one deterministic social story per Ranch Day. Shared work is
- * preferred, but quiet off-duty interactions ensure creatures still develop
- * relationships on days without multi-creature chores.
+ * preferred, but quiet off-duty interactions ensure present creatures still
+ * develop relationships on days without multi-creature chores. Creatures away
+ * for Training Grounds or Guild service cannot appear in Ranch social scenes.
  */
 export function processDailyCreatureStories(
   save: GameSave,
@@ -158,9 +162,10 @@ export function processDailyCreatureStories(
 ): GameSave {
   if (Number(save.flags.creatureDailyStoryDayNumber ?? 0) === dayNumber) return save;
 
-  const pair = choosePair(save, results, dayNumber);
+  const presentResults = results.filter((result) => !getTrainingUnavailableReason(save, result.creatureId));
+  const pair = choosePair(save, presentResults, dayNumber);
   if (!pair) {
-    const solo = results[0] ? recordSoloPreferenceStory(save, results[0], dayNumber) : save;
+    const solo = presentResults[0] ? recordSoloPreferenceStory(save, presentResults[0], dayNumber) : save;
     return {
       ...solo,
       flags: { ...solo.flags, creatureDailyStoryDayNumber: dayNumber },
@@ -178,7 +183,7 @@ export function processDailyCreatureStories(
   const eventRoll = stableHash(`daily-social:${dayNumber}:${getRelationshipId(leftId, rightId)}`) % 5;
   const friction = compatibility < 0 && eventRoll === 0;
   const affinityDelta = friction ? -2 : Math.max(1, Math.min(5, 2 + compatibility));
-  const jobId = sharedJobForPair(results, leftId, rightId);
+  const jobId = sharedJobForPair(presentResults, leftId, rightId);
 
   let nextSave = recordCreatureRelationshipEvent(save, {
     eventKey: `daily-relationship:${dayNumber}:${getRelationshipId(leftId, rightId)}`,
