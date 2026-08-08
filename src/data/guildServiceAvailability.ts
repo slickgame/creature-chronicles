@@ -29,19 +29,22 @@ function stripDurationSuffix(label: string): string {
 
 /**
  * Gives every service request an explicit time-away term without changing its
- * eligibility rules or rewards. Re-normalization is intentionally idempotent.
+ * eligibility rules or rewards. Re-normalization is intentionally idempotent
+ * and referentially stable once no changes are required.
  */
 export function normalizeGuildServiceContract(contract: GuildContract): GuildContract {
   if (contract.type !== "service_creature") return contract;
   const serviceDurationDays = getGuildServiceDurationDays(contract);
   const baseLabel = stripDurationSuffix(contract.requirement.label);
   const durationLabel = `${serviceDurationDays} ${serviceDurationDays === 1 ? "day" : "days"}`;
+  const requirementLabel = `${baseLabel} Away for ${durationLabel}.`;
+  if (contract.serviceDurationDays === serviceDurationDays && contract.requirement.label === requirementLabel) return contract;
   return {
     ...contract,
     serviceDurationDays,
     requirement: {
       ...contract.requirement,
-      label: `${baseLabel} Away for ${durationLabel}.`,
+      label: requirementLabel,
     },
   };
 }
