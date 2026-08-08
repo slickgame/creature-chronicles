@@ -22,6 +22,10 @@ import {
   getGuildRequesterTrustSummary,
   normalizeGuildContractRequester,
 } from "@/data/guildRequesters";
+import {
+  getGuildRequesterProgression,
+  isGuildTrustContract,
+} from "@/data/guildTrustProgression";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
@@ -162,9 +166,11 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
   const requesterDefinition = selectedContract ? getGuildRequesterDefinition(selectedContract) : null;
   const trustSummary = selectedContract ? getGuildRequesterTrustSummary(sourceSave, selectedContract) : null;
   const trustReward = selectedContract ? getGuildRequesterTrustReward(selectedContract) : 0;
+  const trustProgression = selectedContract ? getGuildRequesterProgression(sourceSave, selectedContract) : null;
   const serviceTiming = selectedContract ? getServiceTiming(selectedContract) : null;
   const canAccept = selectedContract?.status === "available";
   const canSubmit = Boolean(selectedContract?.status === "accepted" && selectedCreatureId);
+  const selectedIsPersonal = selectedContract ? isGuildTrustContract(selectedContract) : false;
 
   function openContract(contract: GuildContract) {
     setSelectedContractId(String(contract.contractId));
@@ -238,6 +244,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
               "--flyer-rotation": `${rotation}deg`,
             } as CSSProperties;
             const statusClass = contract.status === "accepted" ? styles.statusAccepted : styles.statusCompleted;
+            const personalRequest = isGuildTrustContract(contract);
             return (
               <button
                 key={String(contract.contractId)}
@@ -250,10 +257,12 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                 data-request-tier={contract.tier}
                 data-request-badge={getGuildFlyerBadgeKind(contract)}
                 data-request-status={contract.status}
+                data-personal-request={personalRequest ? "true" : "false"}
               >
                 <img className={styles.flyerBase} src={getGuildFlyerBaseAsset(contract.tier)} alt="" />
                 <span className={styles.flyerPin} aria-hidden="true" />
                 <img className={styles.badge} src={getGuildFlyerBadgeAsset(contract)} alt="" />
+                {personalRequest ? <span className={styles.relationshipRibbon}>Personal</span> : null}
                 <span className={styles.flyerCopy}>
                   <span className={styles.flyerTier}>{contract.tier} · {getCategoryLabel(contract)}</span>
                   <strong className={styles.flyerTitle}>{contract.title}</strong>
@@ -281,6 +290,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
             data-contract-detail-modal="flyer"
             data-detail-tier={selectedContract.tier}
             data-detail-status={selectedContract.status}
+            data-personal-request={selectedIsPersonal ? "true" : "false"}
             onClick={(event) => event.stopPropagation()}
           >
             <button type="button" className={styles.closeButton} onClick={closeContract} aria-label="Close request details">×</button>
@@ -296,7 +306,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                   <span className={styles.tierSeal}>{selectedContract.tier}</span>
                 </div>
                 <div>
-                  <p className={styles.detailKicker}>{selectedContract.tier} · {getCategoryLabel(selectedContract)} · {getTypeLabel(selectedContract)}</p>
+                  <p className={styles.detailKicker}>{selectedContract.tier} · {getCategoryLabel(selectedContract)} · {getTypeLabel(selectedContract)}{selectedIsPersonal ? " · Personal Request" : ""}</p>
                   <h2 className={styles.detailTitle}>{selectedContract.title}</h2>
                 </div>
               </header>
@@ -314,6 +324,27 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                     <span className={styles.requesterRole}>{requesterDefinition.title}</span>
                     <small>{trustSummary} · Completion +{trustReward} Trust</small>
                   </div>
+                </div>
+              ) : null}
+              {trustProgression ? (
+                <div className={styles.trustProgressCard} data-guild-trust-progression="true">
+                  <div>
+                    <small>Current relationship benefit</small>
+                    <strong>{trustProgression.currentUnlock}</strong>
+                  </div>
+                  {trustProgression.nextThreshold != null ? (
+                    <div>
+                      <small>Next Trust unlock · {trustProgression.nextThreshold} Trust</small>
+                      <strong>{trustProgression.pointsToNext} Trust to go</strong>
+                      {trustProgression.nextUnlock ? <span>{trustProgression.nextUnlock}</span> : null}
+                    </div>
+                  ) : (
+                    <div>
+                      <small>Relationship standing</small>
+                      <strong>Maximum Trust reached</strong>
+                    </div>
+                  )}
+                  <p>{trustProgression.requestPoolStatus}</p>
                 </div>
               ) : null}
               <div className={styles.infoGrid}>
