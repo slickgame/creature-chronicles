@@ -37,6 +37,10 @@ export type GuildContract = {
   serviceEnergyCost?: number;
   serviceXpReward?: number;
   serviceAffectionReward?: number;
+  /** Ranch Days the creature is physically away after a service submission. */
+  serviceDurationDays?: number;
+  /** Absolute Ranch Day when a submitted service creature becomes available again. */
+  serviceReturnDayNumber?: number;
   createdAtDayNumber: number;
   expiresAtWeekNumber: number;
   acceptedAtDayNumber?: number;
