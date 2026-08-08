@@ -22,6 +22,7 @@ export function isChapterOneGuidedTutorialActive(save: GameSave): boolean {
   if (save.flags.chapterOneGuidedReplay === true || isTutorialReplayActive(save, TUTORIAL_IDS.chapterOneGuided)) {
     return true;
   }
+  if (base.getChapterOneTutorialProgress(save).complete) return false;
   if (!shouldShowTutorial(save, TUTORIAL_IDS.chapterOneGuided)) return false;
   return base.isChapterOneGuidedTutorialActive(save);
 }
