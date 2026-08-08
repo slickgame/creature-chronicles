@@ -37,6 +37,7 @@ import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
 import type { CreatureRelationshipSaveState } from "./relationships";
 import type { TownNpcTrustState } from "./townNpc";
+import type { TutorialLifecycleState } from "./tutorial";
 import type { TownUpgradeState } from "./upgrades";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -227,6 +228,7 @@ export type GameSave = {
   creaturePersonalities?: CreaturePersonalitySaveState;
   creatureRelationships?: CreatureRelationshipSaveState;
   creatureLegacy?: CreatureLegacyState;
+  tutorials?: TutorialLifecycleState;
   saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };
