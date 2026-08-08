@@ -18,6 +18,39 @@ function flagNumber(value: boolean | number | string | undefined): number {
   return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
 }
 
+function reconcileCompletedTutorialSignals(save: GameSave): GameSave {
+  const progress = base.getChapterOneTutorialProgress(save);
+  const laterThanMorning = progress.firstNightResolved || progress.resourceProblemSolved || progress.guildRequestCompleted || progress.breedingAttempted || progress.eggAvailable || progress.quickhatchUsed || progress.battleOutfitterOpened || progress.firstBattleWon;
+  const laterThanDayTwoBrief = progress.resourceProblemSolved || progress.guildRequestCompleted || progress.breedingAttempted || progress.eggAvailable || progress.quickhatchUsed || progress.battleOutfitterOpened || progress.firstBattleWon;
+  const laterThanInventory = progress.quickhatchUsed || progress.battleOutfitterOpened || progress.firstBattleWon;
+  const laterThanOutfitter = progress.firstBattleWon;
+
+  const morningOpened = save.flags.chapterOneGuidedMorningOpened === true || laterThanMorning;
+  const dayTwoBriefOpened = save.flags.chapterOneGuidedDayTwoBriefOpened === true || laterThanDayTwoBrief;
+  const inventoryOpened = save.flags.chapterOneGuidedInventoryOpened === true || laterThanInventory;
+  const battleOutfitterOpened = save.flags.chapterOneGuidedBattleOutfitterOpened === true || laterThanOutfitter;
+
+  if (
+    save.flags.chapterOneGuidedMorningOpened === morningOpened &&
+    save.flags.chapterOneGuidedDayTwoBriefOpened === dayTwoBriefOpened &&
+    save.flags.chapterOneGuidedInventoryOpened === inventoryOpened &&
+    save.flags.chapterOneGuidedBattleOutfitterOpened === battleOutfitterOpened
+  ) {
+    return save;
+  }
+
+  return {
+    ...save,
+    flags: {
+      ...save.flags,
+      chapterOneGuidedMorningOpened: morningOpened,
+      chapterOneGuidedDayTwoBriefOpened: dayTwoBriefOpened,
+      chapterOneGuidedInventoryOpened: inventoryOpened,
+      chapterOneGuidedBattleOutfitterOpened: battleOutfitterOpened,
+    },
+  };
+}
+
 export function isChapterOneGuidedTutorialActive(save: GameSave): boolean {
   if (save.flags.chapterOneGuidedReplay === true || isTutorialReplayActive(save, TUTORIAL_IDS.chapterOneGuided)) {
     return true;
@@ -28,7 +61,7 @@ export function isChapterOneGuidedTutorialActive(save: GameSave): boolean {
 }
 
 export function normalizeChapterOneTutorialLifecycle(save: GameSave): GameSave {
-  let normalized = normalizeTutorialLifecycle(save);
+  let normalized = reconcileCompletedTutorialSignals(normalizeTutorialLifecycle(save));
   const progress = base.getChapterOneTutorialProgress(normalized);
 
   if (progress.firstBattleWon) {
@@ -55,7 +88,7 @@ export function normalizeChapterOneTutorialLifecycle(save: GameSave): GameSave {
 }
 
 export function prepareChapterOneGuidedTutorialSave(save: GameSave): GameSave {
-  let prepared = base.prepareChapterOneGuidedTutorialSave(save);
+  let prepared = base.prepareChapterOneGuidedTutorialSave(reconcileCompletedTutorialSignals(save));
   const progress = base.getChapterOneTutorialProgress(prepared);
 
   if (progress.firstBattleWon) {
@@ -99,7 +132,8 @@ export function replayChapterOneGuidedTutorial(save: GameSave): GameSave {
 
 export function getChapterOneGuidedTutorialStep(save: GameSave): base.ChapterOneTutorialStep | null {
   if (!isChapterOneGuidedTutorialActive(save)) return null;
-  const baseStep = base.getChapterOneGuidedTutorialStep(save);
+  const reconciled = reconcileCompletedTutorialSignals(save);
+  const baseStep = base.getChapterOneGuidedTutorialStep(reconciled);
   if (!baseStep || baseStep.id !== "win-first-battle") return baseStep;
   return {
     ...baseStep,
