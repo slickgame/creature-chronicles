@@ -7,7 +7,7 @@ import { useGameContext } from "@/state/GameProvider";
 import { RoseLanternScreen } from "./RoseLanternScreen";
 import { TownScreen as BaseTownScreen } from "./TownScreen";
 
-const ROSE_LANTERN_ICON = "/images/buildings/town/rose_lantern.svg";
+const ROSE_LANTERN_ICON = "/images/buildings/town/rose_lantern.png";
 
 export function TownScreen() {
   const { currentSave, goToBattleDebug } = useGameContext();
