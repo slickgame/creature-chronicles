@@ -2,12 +2,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  applyGuildTrustContractCompletion,
   donateCreatureToGuildContract,
   ensureCurrentGuildState,
   getGuildRequesterDefinition,
+  getGuildRequesterProgression,
   getGuildRequesterTrustReward,
   getGuildRequesterTrustSummary,
+  getGuildTrustBonusContractCount,
 } from "@/data/guild";
+import { getChronicleEntries } from "@/data/creatureMemories";
 import { GUILD_REQUESTERS } from "@/data/guildRequesters";
 import { grantNpcTrust, TOWN_NPCS } from "@/data/townNpcs";
 import { createNewGameSave } from "@/lib/save/localSave";
@@ -150,13 +154,129 @@ test("personal Trust has readable relationship tiers and is visible in Request B
   const requester = getGuildRequesterDefinition(contract);
   save = grantNpcTrust(save, requester.npcId, 50);
   assert.match(getGuildRequesterTrustSummary(save, contract), /Trusted/);
+  const progression = getGuildRequesterProgression(save, contract);
+  assert.ok(progression);
+  assert.equal(progression.tierLabel, "Trusted");
+  assert.ok(progression.currentUnlock.length > 0);
+  assert.equal(progression.nextThreshold, 90);
 
   const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
   assert.match(advisorSource, /data-guild-requester-trust="true"/);
+  assert.match(advisorSource, /data-guild-trust-progression="true"/);
+  assert.match(advisorSource, /Current relationship benefit/);
+  assert.match(advisorSource, /Next Trust unlock/);
   assert.match(advisorSource, /<small>Posted by<\/small>/);
   assert.match(advisorSource, /requesterDefinition\.portraitPath/);
   assert.match(advisorSource, /requesterDefinition\.title/);
   assert.match(advisorSource, /getGuildRequesterTrustReward/);
   assert.match(advisorSource, /Completion \+\{trustReward\} Trust/);
   assert.match(advisorSource, /data-contract-detail-modal="flyer"/);
+});
+
+test("Familiar requester Trust adds rotating personal Guild requests without replacing the weekly board", () => {
+  let save = ensureCurrentGuildState(createNewGameSave("Trust Pool Tester", 0));
+  const baseCount = save.guild?.contracts.length ?? 0;
+  save = grantNpcTrust(save, "mara_vell", 20);
+  save = ensureCurrentGuildState(save);
+  assert.equal(getGuildTrustBonusContractCount(save), 1);
+  const personal = save.guild?.contracts.find((contract) => String(contract.contractId).startsWith(`guild_trust_${save.dayState.weekNumber}_mara_vell`));
+  assert.ok(personal);
+  assert.equal(personal.requesterName, "Mara Vell");
+  assert.equal(personal.type, "service_creature");
+  assert.equal(personal.tier, "silver");
+  assert.ok((save.guild?.contracts.length ?? 0) > baseCount);
+});
+
+test("Favored Trust upgrades an NPC personal request to Gold with stronger relationship rewards", () => {
+  let save = ensureCurrentGuildState(createNewGameSave("Favored Pool Tester", 0));
+  save = grantNpcTrust(save, "petra_hale", 90);
+  save = ensureCurrentGuildState(save);
+  const personal = save.guild?.contracts.find((contract) => String(contract.contractId).includes("petra_hale"));
+  assert.ok(personal);
+  assert.equal(personal.tier, "gold");
+  assert.equal(personal.requesterName, "Petra Hale");
+  assert.ok(personal.guildPointReward >= 30);
+});
+
+test("crossing a requester Trust tier announces the deeper relationship and records it in the Chronicle", () => {
+  let save = ensureCurrentGuildState(createNewGameSave("Trust Level Up Tester", 0));
+  const creature = save.creatures?.[0];
+  const original = save.guild?.contracts[0];
+  assert.ok(creature && original);
+  save = grantNpcTrust(save, "mara_vell", 18);
+  save = withContract(save, {
+    ...original,
+    tier: "bronze",
+    type: "service_creature",
+    category: "service",
+    requesterId: "mara_vell",
+    requesterName: "Mara Vell",
+    trustTarget: "Mara Vell",
+    title: "Mara Trust Threshold Test",
+    description: "A small Guild job used to cross the Familiar threshold.",
+    requirement: { kind: "any_creature", label: "Send any creature." },
+    serviceEnergyCost: 1,
+    serviceXpReward: 1,
+    serviceAffectionReward: 1,
+    status: "available",
+    requesterTrustAwarded: undefined,
+    requesterTrustAwardedAtDayNumber: undefined,
+  });
+  const result = donateCreatureToGuildContract(save, String(original.contractId), String(creature.creatureId));
+  assert.equal(result.ok, true);
+  assert.equal(result.save.townNpcTrust?.mara_vell?.level, 2);
+  assert.match(result.message, /Relationship Deepened — Mara Vell/);
+  assert.match(result.message, /Familiar/);
+  assert.ok(getChronicleEntries(result.save).some((entry) => entry.sourceKey === "guild-requester-trust-tier:mara_vell:2"));
+});
+
+test("Trusted Selene unlocks a sequential three-stage personal lineage chain", () => {
+  let save = ensureCurrentGuildState(createNewGameSave("Selene Chain Tester", 0));
+  save = grantNpcTrust(save, "selene_virell", 50);
+  save = ensureCurrentGuildState(save);
+  const stage1 = save.guild?.contracts.find((contract) => String(contract.contractId) === "guild_personal_selene_lineage_1");
+  assert.ok(stage1);
+  assert.equal(stage1.requesterName, "Dr. Selene Virell");
+  assert.equal(stage1.tier, "silver");
+  assert.match(stage1.title, /Lineage Calibration/);
+
+  const creature = save.creatures?.[0];
+  assert.ok(creature);
+  const prepared = {
+    ...save,
+    creatures: (save.creatures ?? []).map((entry) => entry.creatureId === creature.creatureId
+      ? { ...entry, stats: { ...entry.stats, FER: Math.max(entry.stats.FER, 10) }, energy: Math.max(entry.energy, 40) }
+      : entry),
+  };
+  const stage1Result = donateCreatureToGuildContract(prepared, String(stage1.contractId), String(creature.creatureId));
+  assert.equal(stage1Result.ok, true);
+  assert.equal(Boolean(stage1Result.save.flags.guildSeleneLineageStage1), true);
+  assert.ok((Number(stage1Result.save.flags.nurserySupplyKits ?? 0)) >= 1);
+  assert.ok(stage1Result.save.guild?.contracts.some((contract) => String(contract.contractId) === "guild_personal_selene_lineage_2"));
+  assert.match(stage1Result.message, /Selene personal quest 1\/3 complete/);
+});
+
+test("Selene lineage capstone is duplicate-safe and unlocks a permanent consultation flag", () => {
+  let save = ensureCurrentGuildState(createNewGameSave("Selene Capstone Tester", 0));
+  save = grantNpcTrust(save, "selene_virell", 50);
+  save = {
+    ...save,
+    flags: {
+      ...save.flags,
+      guildSeleneLineageStage1: true,
+      guildSeleneLineageStage2: true,
+    },
+  };
+  save = ensureCurrentGuildState(save);
+  const stage3 = save.guild?.contracts.find((contract) => String(contract.contractId) === "guild_personal_selene_lineage_3");
+  const creature = save.creatures?.[0];
+  assert.ok(stage3 && creature);
+  const first = applyGuildTrustContractCompletion(save, stage3, creature.creatureId);
+  assert.equal(Boolean(first.save.flags.guildSeleneLineageStage3), true);
+  assert.equal(Boolean(first.save.flags.seleneLineageConsultationUnlocked), true);
+  assert.match(first.message, /Lineage Consultation/);
+  const kits = Number(first.save.flags.nurserySupplyKits ?? 0);
+  const second = applyGuildTrustContractCompletion(first.save, stage3, creature.creatureId);
+  assert.equal(Number(second.save.flags.nurserySupplyKits ?? 0), kits);
+  assert.equal(second.message, "");
 });
