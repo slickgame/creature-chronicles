@@ -17,6 +17,7 @@ import type { GuildContract } from "../src/types/guild";
 const screenSource = readFileSync("src/features/guild/GuildHallScreen.tsx", "utf8");
 const boardSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
 const boardCss = readFileSync("src/features/guild/GuildRequestBoard.module.css", "utf8");
+const trustCss = readFileSync("src/features/guild/GuildRequestBoardTrust.module.css", "utf8");
 const baseCss = readFileSync("src/features/guild/GuildHallScreen.module.css", "utf8");
 const polishCss = readFileSync("src/features/guild/GuildHallScreen.polish.module.css", "utf8");
 
@@ -132,4 +133,15 @@ test("Guild flyers and detail sheets use tactile pins, status stamps, tier ident
   assert.match(boardCss, /\.detailSheet\[data-detail-tier="gold"\]/);
   assert.match(boardCss, /\.requesterPortrait\s*\{/);
   assert.match(boardCss, /\.signatureBlock\s*\{/);
+});
+
+test("personal Guild requests and Trust progression use dedicated readable styling", () => {
+  assert.match(boardSource, /GuildRequestBoardTrust\.module\.css/);
+  assert.match(boardSource, /data-personal-request=\{personalRequest \? "true" : "false"\}/);
+  assert.match(boardSource, /data-guild-trust-progression="true"/);
+  assert.match(boardSource, />Personal<\/span>/);
+  assert.match(trustCss, /data-personal-request="true"/);
+  assert.match(trustCss, /data-guild-trust-progression="true"/);
+  assert.match(trustCss, /grid-template-columns:\s*repeat\(2/);
+  assert.match(trustCss, /@media \(max-width: 720px\)/);
 });
