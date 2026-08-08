@@ -31,6 +31,7 @@ import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { GuildContract, GuildContractFilter } from "@/types/guild";
 import type { GameSave } from "@/types/save";
+import "./GuildRequestBoardTrust.module.css";
 import styles from "./GuildRequestBoard.module.css";
 
 const FILTERS: Array<{ id: GuildContractFilter; label: string }> = [
