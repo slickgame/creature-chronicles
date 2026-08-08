@@ -1,0 +1,23 @@
+:root {
+  --tutorial-dock-space: 0px;
+}
+
+html[data-tutorial-dock-side="right"] body {
+  padding-right: max(var(--tutorial-dock-space), env(safe-area-inset-right));
+}
+
+html[data-tutorial-dock-side="bottom"] body {
+  padding-bottom: max(var(--tutorial-dock-space), env(safe-area-inset-bottom));
+}
+
+html[data-tutorial-dock-side="right"] body,
+html[data-tutorial-dock-side="bottom"] body {
+  transition: padding 140ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-tutorial-dock-side="right"] body,
+  html[data-tutorial-dock-side="bottom"] body {
+    transition: none;
+  }
+}
