@@ -2,6 +2,7 @@ import * as core from "./localSaveCore";
 import { normalizeBattleMoveInheritanceSave } from "@/data/battleMoveInheritanceMigration";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
 import { normalizeCreatureBattleMoveLoadoutRecord } from "@/data/battleLoadouts";
+import { normalizeChapterOneTutorialLifecycle } from "@/data/chapterOneGuidedTutorial";
 import { normalizeCreatureCareerSave } from "@/data/creatureCareerRecords";
 import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
 import { normalizeCreatureLegacySave } from "@/data/creatureRetirement";
@@ -68,22 +69,24 @@ export function normalizeGameSave(
   save: GameSave,
   missingPhase: RanchDayPhase = "active",
 ): GameSave {
-  return normalizeCreatureLegacySave(
-    normalizeCreatureRelationshipSave(
-      normalizeCreaturePersonalitySave(
-        normalizeCreatureCareerSave(
-          normalizeCreatureMemorySave(
-            normalizeRanchDaySave(
-              normalizeBattleMoveInheritanceSave(
-                normalizeCreatureCapabilityRecords(
-                  normalizeBreedingRecords(
-                    normalizeCreatureManagementMetadata(
-                      normalizeTrackedCreatureGenerations(save),
+  return normalizeChapterOneTutorialLifecycle(
+    normalizeCreatureLegacySave(
+      normalizeCreatureRelationshipSave(
+        normalizeCreaturePersonalitySave(
+          normalizeCreatureCareerSave(
+            normalizeCreatureMemorySave(
+              normalizeRanchDaySave(
+                normalizeBattleMoveInheritanceSave(
+                  normalizeCreatureCapabilityRecords(
+                    normalizeBreedingRecords(
+                      normalizeCreatureManagementMetadata(
+                        normalizeTrackedCreatureGenerations(save),
+                      ),
                     ),
                   ),
                 ),
+                missingPhase,
               ),
-              missingPhase,
             ),
           ),
         ),
