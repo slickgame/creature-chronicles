@@ -13,7 +13,17 @@ import type { TownUpgradeCategory, TownUpgradeId, TownUpgradePurchaseSummary } f
 import baseStyles from "./GuildHallScreen.module.css";
 import polishStyles from "./GuildHallScreen.polish.module.css";
 
-const styles = { ...baseStyles, ...polishStyles } as typeof baseStyles & typeof polishStyles;
+function composeStyleModules(...modules: Array<Record<string, string>>): Record<string, string> {
+  const composed: Record<string, string> = {};
+  for (const moduleStyles of modules) {
+    for (const [key, value] of Object.entries(moduleStyles)) {
+      composed[key] = composed[key] ? `${composed[key]} ${value}` : value;
+    }
+  }
+  return composed;
+}
+
+const styles = composeStyleModules(baseStyles, polishStyles);
 const ICONS = { contract: "/images/ui/icons/icon_contract_scroll.png", donate: "/images/ui/icons/icon_donate_creature.png", gp: "/images/ui/icons/icon_guild_points.png", gold: "/images/ui/currency/icon_currency_gold.png" } as const;
 const FILTERS: Array<{ id: GuildContractFilter; label: string }> = [
   { id: "all", label: "All" },
