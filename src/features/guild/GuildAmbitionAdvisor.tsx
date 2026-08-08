@@ -17,6 +17,7 @@ import {
   getGuildFlyerRotation,
 } from "@/data/guildRequestBoardPresentation";
 import {
+  getGuildRequesterDefinition,
   getGuildRequesterTrustReward,
   getGuildRequesterTrustSummary,
   normalizeGuildContractRequester,
@@ -158,6 +159,7 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
   if (!boardHost) return null;
 
   const selectedCreature = eligibleCreatures.find((creature) => creature.creatureId === selectedCreatureId) ?? null;
+  const requesterDefinition = selectedContract ? getGuildRequesterDefinition(selectedContract) : null;
   const trustSummary = selectedContract ? getGuildRequesterTrustSummary(sourceSave, selectedContract) : null;
   const trustReward = selectedContract ? getGuildRequesterTrustReward(selectedContract) : 0;
   const serviceTiming = selectedContract ? getServiceTiming(selectedContract) : null;
@@ -247,8 +249,10 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                 data-request-flyer="true"
                 data-request-tier={contract.tier}
                 data-request-badge={getGuildFlyerBadgeKind(contract)}
+                data-request-status={contract.status}
               >
                 <img className={styles.flyerBase} src={getGuildFlyerBaseAsset(contract.tier)} alt="" />
+                <span className={styles.flyerPin} aria-hidden="true" />
                 <img className={styles.badge} src={getGuildFlyerBadgeAsset(contract)} alt="" />
                 <span className={styles.flyerCopy}>
                   <span className={styles.flyerTier}>{contract.tier} · {getCategoryLabel(contract)}</span>
@@ -272,26 +276,46 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
 
       {selectedContract ? (
         <div className={styles.modalBackdrop} data-contract-detail-popup="flyer" onClick={closeContract}>
-          <section className={styles.detailSheet} data-contract-detail-modal="flyer" onClick={(event) => event.stopPropagation()}>
+          <section
+            className={styles.detailSheet}
+            data-contract-detail-modal="flyer"
+            data-detail-tier={selectedContract.tier}
+            data-detail-status={selectedContract.status}
+            onClick={(event) => event.stopPropagation()}
+          >
             <button type="button" className={styles.closeButton} onClick={closeContract} aria-label="Close request details">×</button>
+            {selectedContract.status === "accepted" || selectedContract.status === "completed" ? (
+              <span className={`${styles.detailStatusStamp} ${selectedContract.status === "accepted" ? styles.statusAccepted : styles.statusCompleted}`} aria-hidden="true">
+                {getStatusLabel(selectedContract)}
+              </span>
+            ) : null}
             <div className={styles.detailMain}>
               <header className={styles.detailHeader}>
-                <img className={styles.detailBadge} src={getGuildFlyerBadgeAsset(selectedContract)} alt="" />
+                <div className={styles.detailEmblem}>
+                  <img className={styles.detailBadge} src={getGuildFlyerBadgeAsset(selectedContract)} alt="" />
+                  <span className={styles.tierSeal}>{selectedContract.tier}</span>
+                </div>
                 <div>
                   <p className={styles.detailKicker}>{selectedContract.tier} · {getCategoryLabel(selectedContract)} · {getTypeLabel(selectedContract)}</p>
                   <h2 className={styles.detailTitle}>{selectedContract.title}</h2>
                 </div>
               </header>
               <p className={styles.description}>{selectedContract.description}</p>
-              <div
-                className={styles.requesterCard}
-                data-requester-trust-card="true"
-                data-guild-requester-trust="true"
-              >
-                <small>Requester:</small>
-                <strong>{selectedContract.requesterName}</strong>
-                <small>{trustSummary} · Completion +{trustReward} Trust</small>
-              </div>
+              {requesterDefinition ? (
+                <div
+                  className={styles.requesterCard}
+                  data-requester-trust-card="true"
+                  data-guild-requester-trust="true"
+                >
+                  <img className={styles.requesterPortrait} src={requesterDefinition.portraitPath} alt={`${requesterDefinition.name} portrait`} />
+                  <div className={styles.requesterIdentity}>
+                    <small>Posted by</small>
+                    <strong>{requesterDefinition.name}</strong>
+                    <span className={styles.requesterRole}>{requesterDefinition.title}</span>
+                    <small>{trustSummary} · Completion +{trustReward} Trust</small>
+                  </div>
+                </div>
+              ) : null}
               <div className={styles.infoGrid}>
                 <div><span>Status</span><strong>{getStatusLabel(selectedContract)}</strong></div>
                 <div><span>Requirement</span><strong>{selectedContract.requirement.label}</strong></div>
@@ -300,6 +324,12 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                 {selectedContract.type === "service_creature" ? <div><span>Energy / XP</span><strong>{selectedContract.serviceEnergyCost ?? 0} Energy · +{selectedContract.serviceXpReward ?? 0} XP</strong></div> : null}
                 <div><span>Eligible</span><strong>{eligibleCreatures.length} creature{eligibleCreatures.length === 1 ? "" : "s"}</strong></div>
               </div>
+              {requesterDefinition ? (
+                <div className={styles.signatureBlock} data-request-signature="true">
+                  <span>Posted under Guild seal</span>
+                  <strong>— {requesterDefinition.name}</strong>
+                </div>
+              ) : null}
               {selectedContract.type === "donate_creature" ? <p className={styles.warning}>Donation permanently places the selected creature with {selectedContract.requesterName}. The creature leaves your ranch.</p> : null}
               {selectedContract.status === "completed" ? <div className={styles.messageCard}>Completed with {selectedContract.submittedCreatureName ?? selectedContract.donatedCreatureName ?? "a submitted creature"}. This request cannot be completed again.</div> : null}
               {message ? <div className={styles.messageCard}>{message}</div> : null}
