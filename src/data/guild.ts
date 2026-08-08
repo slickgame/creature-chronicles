@@ -1,6 +1,7 @@
 export * from "./guildCore";
 export * from "./guildServiceAvailability";
 export * from "./guildRequesters";
+export * from "./guildTrustProgression";
 
 import { applyGuildCareerCompletion } from "@/data/creatureCareerTransactions";
 import { addCreatureMemory } from "@/data/creatureMemories";
@@ -18,6 +19,10 @@ import {
   getGuildServiceUnavailableReason,
   normalizeGuildServiceContract,
 } from "./guildServiceAvailability";
+import {
+  applyGuildTrustContractCompletion,
+  applyGuildTrustContractPools,
+} from "./guildTrustProgression";
 import { getTrainingUnavailableReason as getTrainingUnavailableReasonCore } from "./trainingGrounds";
 import type { GuildActionResult, GuildContract } from "@/types/guild";
 import type { CreatureId } from "@/types/ids";
@@ -42,7 +47,8 @@ function activeServiceContractsFrom(save: GameSave): GuildContract[] {
 /**
  * Guild normalization keeps timed service assignments alive across a weekly
  * board refresh, upgrades legacy role requesters into real town characters,
- * and reconciles personal requester Trust exactly once for completed history.
+ * reconciles personal requester Trust exactly once for completed history, and
+ * then layers relationship-backed request pools over the ordinary weekly board.
  */
 export function ensureCurrentGuildState(save: GameSave): GameSave {
   const activeServices = activeServiceContractsFrom(save);
@@ -63,7 +69,8 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
         },
       };
 
-  return reconcileGuildRequesterTrust(withNormalizedContracts).save;
+  const withTrust = reconcileGuildRequesterTrust(withNormalizedContracts).save;
+  return applyGuildTrustContractPools(withTrust);
 }
 
 /**
@@ -132,7 +139,8 @@ function applyTimedServiceAbsence(
  * Career-aware facade for all live Guild submissions. The original Guild engine
  * remains authoritative for validation and rewards. Service submissions also
  * create a timed physical absence, while every successful completion now earns
- * duplicate-safe personal Trust with the named requester.
+ * duplicate-safe personal Trust, can deepen an NPC relationship, and can advance
+ * authored Trust-gated personal quest chains.
  */
 export function donateCreatureToGuildContract(
   save: GameSave,
@@ -191,10 +199,16 @@ export function donateCreatureToGuildContract(
   const trustMessage = trustAward
     ? ` ${trustAward.requesterName} Trust +${trustAward.amount} (${trustAward.tierLabel}, ${trustAward.points} total).`
     : "";
+  const levelUpMessage = trustAward && trustAward.level > trustAward.previousLevel
+    ? ` Relationship Deepened — ${trustAward.requesterName} now considers the ranch ${trustAward.tierLabel}.${trustAward.unlockLabel ? ` Unlocked: ${trustAward.unlockLabel}.` : ""}`
+    : "";
+
+  const personalResult = applyGuildTrustContractCompletion(trustResult.save, contract, typedCreatureId);
+  const finalSave = applyGuildTrustContractPools(personalResult.save);
 
   return {
     ...result,
-    save: trustResult.save,
-    message: `${serviceMessage ? `${result.message} ${serviceMessage}` : result.message}${trustMessage}`,
+    save: finalSave,
+    message: `${serviceMessage ? `${result.message} ${serviceMessage}` : result.message}${trustMessage}${levelUpMessage}${personalResult.message}`,
   };
 }
