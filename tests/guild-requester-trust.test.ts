@@ -143,7 +143,7 @@ test("older completed contracts receive one retroactive named-requester Trust aw
   assert.equal(secondPass.townNpcTrust?.kaida_thorn?.points, 2);
 });
 
-test("personal Trust has readable relationship tiers and is visible in Request Board recommendations", () => {
+test("personal Trust has readable relationship tiers and is visible in Request Board request details", () => {
   let save = ensureCurrentGuildState(createNewGameSave("Trust UI Tester", 0));
   const contract = save.guild?.contracts.find((item) => item.requesterId === "selene_virell") ?? save.guild?.contracts[0];
   assert.ok(contract);
@@ -153,6 +153,8 @@ test("personal Trust has readable relationship tiers and is visible in Request B
 
   const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
   assert.match(advisorSource, /data-guild-requester-trust="true"/);
-  assert.match(advisorSource, /Requester:/);
-  assert.match(advisorSource, /Completion \+\{getGuildRequesterTrustReward\(contract\)\} Trust/);
+  assert.match(advisorSource, /<small>Requester<\/small>/);
+  assert.match(advisorSource, /getGuildRequesterTrustReward/);
+  assert.match(advisorSource, /Completion \+\{trustReward\} Trust/);
+  assert.match(advisorSource, /data-contract-detail-modal="flyer"/);
 });
