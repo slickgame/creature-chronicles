@@ -10,6 +10,7 @@ import {
   markTutorialCompleted,
   shouldShowTutorial,
 } from "../src/data/tutorialLifecycle.ts";
+import { getChapterOneGuidedTutorialStep } from "../src/data/chapterOneGuidedTutorialBattle.ts";
 import {
   normalizeGameSave,
   createNewGameSave,
@@ -39,6 +40,31 @@ test("legacy completion flags retroactively suppress completed tutorials", () =>
   assert.equal(isTutorialCompleted(normalized, TUTORIAL_IDS.chapterOneFirstBattle), true);
   assert.equal(shouldShowTutorial(normalized, TUTORIAL_IDS.chapterOneGuided), false);
   assert.equal(shouldShowTutorial(normalized, TUTORIAL_IDS.chapterOneFirstBattle), false);
+});
+
+test("later authoritative milestones reconcile missing old prompt signals", () => {
+  const base = createNewGameSave("Old Save Tester", 0);
+  const normalized = normalizeGameSave({
+    ...base,
+    tutorials: undefined,
+    flags: {
+      ...base.flags,
+      chapterOneGuidedMorningOpened: false,
+      chapterOneGuidedDayTwoBriefOpened: false,
+      chapterOneGuidedInventoryOpened: false,
+      chapterOneGuidedBattleOutfitterOpened: false,
+      chapterOneFirstNightResolved: true,
+      chapterOneResourceProblemSolved: true,
+      m62FirstBattleWon: true,
+    },
+  });
+
+  assert.equal(normalized.flags.chapterOneGuidedMorningOpened, true);
+  assert.equal(normalized.flags.chapterOneGuidedDayTwoBriefOpened, true);
+  assert.equal(normalized.flags.chapterOneGuidedInventoryOpened, true);
+  assert.equal(normalized.flags.chapterOneGuidedBattleOutfitterOpened, true);
+  assert.equal(isTutorialCompleted(normalized, TUTORIAL_IDS.chapterOneFirstBattle), true);
+  assert.notEqual(getChapterOneGuidedTutorialStep(normalized)?.id, "read-morning-brief");
 });
 
 test("completed tutorials stay suppressed until an explicit replay begins", () => {
