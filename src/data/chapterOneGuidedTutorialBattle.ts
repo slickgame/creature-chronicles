@@ -20,9 +20,11 @@ function flagNumber(value: boolean | number | string | undefined): number {
 
 function reconcileCompletedTutorialSignals(save: GameSave): GameSave {
   const progress = base.getChapterOneTutorialProgress(save);
-  const laterThanMorning = progress.firstNightResolved || progress.resourceProblemSolved || progress.guildRequestCompleted || progress.breedingAttempted || progress.eggAvailable || progress.quickhatchUsed || progress.battleOutfitterOpened || progress.firstBattleWon;
-  const laterThanDayTwoBrief = progress.resourceProblemSolved || progress.guildRequestCompleted || progress.breedingAttempted || progress.eggAvailable || progress.quickhatchUsed || progress.battleOutfitterOpened || progress.firstBattleWon;
-  const laterThanInventory = progress.quickhatchUsed || progress.battleOutfitterOpened || progress.firstBattleWon;
+  // Only authoritative gameplay milestones may imply that an earlier tutorial prompt was already passed.
+  // Visiting a later screen out of order is intentionally not enough to skip earlier lessons.
+  const laterThanMorning = progress.firstNightResolved || progress.resourceProblemSolved || progress.guildRequestCompleted || progress.breedingAttempted || progress.eggAvailable || progress.quickhatchUsed || progress.firstBattleWon;
+  const laterThanDayTwoBrief = progress.resourceProblemSolved || progress.guildRequestCompleted || progress.breedingAttempted || progress.eggAvailable || progress.quickhatchUsed || progress.firstBattleWon;
+  const laterThanInventory = progress.quickhatchUsed || progress.firstBattleWon;
   const laterThanOutfitter = progress.firstBattleWon;
 
   const morningOpened = save.flags.chapterOneGuidedMorningOpened === true || laterThanMorning;
