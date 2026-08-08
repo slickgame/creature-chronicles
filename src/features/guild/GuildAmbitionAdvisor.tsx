@@ -283,7 +283,11 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
                 </div>
               </header>
               <p className={styles.description}>{selectedContract.description}</p>
-              <div className={styles.requesterCard} data-requester-trust-card="true">
+              <div
+                className={styles.requesterCard}
+                data-requester-trust-card="true"
+                data-guild-requester-trust="true"
+              >
                 <small>Requester</small>
                 <strong>{selectedContract.requesterName}</strong>
                 <small>{trustSummary} · Completion +{trustReward} Trust</small>
