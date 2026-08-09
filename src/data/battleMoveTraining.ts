@@ -14,6 +14,7 @@ import {
   unequipBattleMove,
 } from "@/data/battleLoadouts";
 import { BATTLE_MOVES, getBattleMove } from "@/data/battleMoves";
+import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import type { BattleMove, BattleMoveId, BattleMoveLoadout } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
@@ -75,6 +76,19 @@ function canFocusManualTeach(move: BattleMove): boolean {
   return true;
 }
 
+function getMoveTrainingUnavailableResult(
+  save: GameSave,
+  creature: CreatureRecord,
+): BattleOutfitterResult | null {
+  const reason = getTrainingUnavailableReason(save, creature.creatureId);
+  if (!reason) return null;
+  return {
+    save,
+    ok: false,
+    message: `${creature.nickname} is unavailable for move training. ${reason}`,
+  };
+}
+
 export function getBattleMoveTrainingOptions(
   creature: CreatureRecord,
 ): BattleMoveTrainingOption[] {
@@ -117,6 +131,8 @@ export function teachBattleMoveWithFocusManual(
 ): BattleOutfitterResult {
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for move training." };
+  const unavailable = getMoveTrainingUnavailableResult(save, creature);
+  if (unavailable) return unavailable;
 
   const move = getBattleMove(moveId);
   if (!canFocusManualTeach(move)) {
@@ -189,6 +205,8 @@ export function equipCreatureBattleMove(
 ): BattleOutfitterResult {
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for move loadout editing." };
+  const unavailable = getMoveTrainingUnavailableResult(save, creature);
+  if (unavailable) return unavailable;
 
   const change = equipBattleMove(
     creature.speciesId,
@@ -217,6 +235,8 @@ export function unequipCreatureBattleMove(
 ): BattleOutfitterResult {
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for move loadout editing." };
+  const unavailable = getMoveTrainingUnavailableResult(save, creature);
+  if (unavailable) return unavailable;
 
   const change = unequipBattleMove(
     creature.speciesId,
