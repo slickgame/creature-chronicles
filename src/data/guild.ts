@@ -15,6 +15,7 @@ import {
   reconcileGuildRequesterTrust,
 } from "./guildRequesters";
 import {
+  ensureGuildServiceReturnNotices,
   getGuildServiceDurationDays,
   getGuildServiceUnavailableReason,
   normalizeGuildServiceContract,
@@ -49,10 +50,13 @@ function activeServiceContractsFrom(save: GameSave): GuildContract[] {
  * board refresh, upgrades legacy role requesters into real town characters,
  * reconciles personal requester Trust exactly once for completed history, and
  * then layers relationship-backed request pools over the ordinary weekly board.
+ * Return notices are persisted before refresh so Monday returns cannot vanish
+ * when the previous week's completed flyer is rotated off the board.
  */
 export function ensureCurrentGuildState(save: GameSave): GameSave {
-  const activeServices = activeServiceContractsFrom(save);
-  const synced = ensureCurrentGuildStateCore(save);
+  const withReturnNotices = ensureGuildServiceReturnNotices(save);
+  const activeServices = activeServiceContractsFrom(withReturnNotices);
+  const synced = ensureCurrentGuildStateCore(withReturnNotices);
   if (!synced.guild) return synced;
 
   const normalizedContracts = synced.guild.contracts.map(normalizeLiveGuildContract);
@@ -121,16 +125,17 @@ function applyTimedServiceAbsence(
       : normalizeLiveGuildContract(item),
   );
   const withoutChore = clearCreatureFromRanchJobs(save, creatureId);
-  return {
-    save: {
-      ...withoutChore,
-      guild: { ...save.guild, contracts: nextContracts },
-      flags: {
-        ...withoutChore.flags,
-        m34ServiceContracts: true,
-        guildTimedServiceAssignments: true,
-      },
+  const withAssignment: GameSave = {
+    ...withoutChore,
+    guild: { ...save.guild, contracts: nextContracts },
+    flags: {
+      ...withoutChore.flags,
+      m34ServiceContracts: true,
+      guildTimedServiceAssignments: true,
     },
+  };
+  return {
+    save: ensureGuildServiceReturnNotices(withAssignment),
     message: `${creatureName} will be away for ${durationDays} ${durationDays === 1 ? "day" : "days"} and returns on Ranch Day ${returnDayNumber}.`,
   };
 }
