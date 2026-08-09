@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { getBreedingParticipants } from "@/data/breedingCore";
+import { releaseOrDonateCreature } from "@/data/collection";
+import {
+  DEFAULT_CREATURE_MANAGEMENT_FILTERS,
+  filterAndSortManagedCreatures,
+  getCreatureManagementStatus,
+} from "@/data/creatureManagement";
+import { getRetirementEligibility } from "@/data/creatureRetirement";
 import {
   donateCreatureToGuildContract,
   ensureCurrentGuildState,
@@ -17,6 +25,9 @@ import {
 } from "@/data/trainingGrounds";
 import { createNewGameSave } from "@/lib/save/localSave";
 import type { GuildContract } from "@/types/guild";
+
+const outfitterSource = readFileSync("src/features/battle-outfitter/BattleOutfitterScreenC3.tsx", "utf8");
+const moveTrainingSource = readFileSync("src/features/battle-outfitter/BattleMoveTrainingOverlay.tsx", "utf8");
 
 function makeServiceFixture(tier: GuildContract["tier"] = "silver") {
   let save = ensureCurrentGuildState(createNewGameSave("Guild Service Tester", 0));
@@ -98,6 +109,44 @@ test("submitted service creatures stay visible but become unavailable to ranch s
   assert.match(trainingAttempt.message, /cannot start training while away/i);
 });
 
+test("Guild service is a distinct roster status instead of being mislabeled Training", () => {
+  const { save, creature, contract } = makeServiceFixture("silver");
+  const submitted = donateCreatureToGuildContract(save, String(contract.contractId), String(creature.creatureId));
+  assert.equal(submitted.ok, true);
+
+  const status = getCreatureManagementStatus(submitted.save, creature);
+  assert.equal(status.isTraining, false);
+  assert.equal(status.needsAttention, true);
+  assert.match(status.primaryStatus, /Guild service:/);
+
+  const trainingOnly = filterAndSortManagedCreatures(
+    submitted.save,
+    { ...DEFAULT_CREATURE_MANAGEMENT_FILTERS, status: "training" },
+    "name",
+    "asc",
+  );
+  assert.equal(trainingOnly.some((item) => item.creatureId === creature.creatureId), false);
+});
+
+test("away service creatures cannot be released, donated, or retired and receive accurate wording", () => {
+  const { save, creature, contract } = makeServiceFixture("silver");
+  const submitted = donateCreatureToGuildContract(save, String(contract.contractId), String(creature.creatureId));
+  assert.equal(submitted.ok, true);
+
+  for (const mode of ["release", "donate"] as const) {
+    const result = releaseOrDonateCreature(submitted.save, creature.creatureId, mode);
+    assert.equal(result.ok, false);
+    assert.match(result.message, /unavailable:/i);
+    assert.match(result.message, /Guild service:/i);
+    assert.doesNotMatch(result.message, /away at the Training Grounds/i);
+  }
+
+  const retirement = getRetirementEligibility(submitted.save, creature.creatureId);
+  assert.equal(retirement.eligible, false);
+  assert.ok(retirement.reasons.some((reason) => /Wait until this creature returns before retirement: Guild service:/i.test(reason)));
+  assert.equal(retirement.reasons.some((reason) => /Collect this creature from Training Grounds first/i.test(reason)), false);
+});
+
 test("Guild service availability returns automatically on the promised Ranch Day", () => {
   const { save, creature, contract } = makeServiceFixture("silver");
   const submitted = donateCreatureToGuildContract(save, String(contract.contractId), String(creature.creatureId));
@@ -120,6 +169,39 @@ test("Guild service availability returns automatically on the promised Ranch Day
   assert.ok(getGuildServiceReturnSummaryItems(returnDay).some((item) => item.includes(creature.nickname)));
 });
 
+test("a Monday Guild return notice survives the weekly Request Board refresh", () => {
+  const fixture = makeServiceFixture("bronze");
+  const sundaySave = ensureCurrentGuildState({
+    ...fixture.save,
+    dayState: {
+      ...fixture.save.dayState,
+      dayNumber: 7,
+      weekday: "Sun",
+      weekNumber: 1,
+    },
+  });
+  const contract = sundaySave.guild?.contracts.find((item) => item.contractId === fixture.contract.contractId);
+  assert.ok(contract);
+  const submitted = donateCreatureToGuildContract(sundaySave, String(contract.contractId), String(fixture.creature.creatureId));
+  assert.equal(submitted.ok, true);
+  const assignment = getGuildServiceAssignment(submitted.save, fixture.creature.creatureId);
+  assert.ok(assignment);
+  assert.equal(assignment.returnDayNumber, 8);
+
+  const monday = ensureCurrentGuildState({
+    ...submitted.save,
+    dayState: {
+      ...submitted.save.dayState,
+      dayNumber: 8,
+      weekday: "Mon",
+      weekNumber: 2,
+    },
+  });
+  assert.equal(getGuildServiceUnavailableReason(monday, fixture.creature.creatureId), null);
+  const notices = getGuildServiceReturnSummaryItems(monday);
+  assert.ok(notices.some((item) => item.includes(fixture.creature.nickname) && item.includes("Temporary Guild Field Assignment")));
+});
+
 test("an active service assignment survives a weekly Request Board refresh", () => {
   const { save, creature, contract } = makeServiceFixture("gold");
   const submitted = donateCreatureToGuildContract(save, String(contract.contractId), String(creature.creatureId));
@@ -138,4 +220,13 @@ test("an active service assignment survives a weekly Request Board refresh", () 
   const preserved = getGuildServiceAssignment(refreshed, creature.creatureId);
   assert.ok(preserved);
   assert.equal(preserved.returnDayNumber, assignment.returnDayNumber);
+});
+
+test("Battle Outfitter and Move Training keep away creatures visible but visibly locked", () => {
+  assert.match(outfitterSource, /data-creature-outfitter-availability/);
+  assert.match(outfitterSource, /data-selected-outfitter-unavailable/);
+  assert.match(outfitterSource, /grayscale/);
+  assert.match(moveTrainingSource, /data-move-training-availability/);
+  assert.match(moveTrainingSource, /data-selected-move-training-unavailable/);
+  assert.match(moveTrainingSource, /grayscale/);
 });
