@@ -8,6 +8,7 @@ import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type { GuildContract } from "@/types/guild";
 import styles from "./GuildHallCharacterHub.module.css";
+import polishStyles from "./GuildHallCharacterHub.polish.module.css";
 
 const MARA = TOWN_NPCS.mara_vell;
 const ICONS = {
@@ -23,7 +24,14 @@ type HubPanel = "menu" | "relationship" | "records";
 type SuppressedElement = {
   element: HTMLElement;
   hidden: boolean;
+  display: string;
+  displayPriority: string;
+  ariaHidden: string | null;
 };
+
+function classNames(...names: Array<string | undefined>): string {
+  return names.filter(Boolean).join(" ");
+}
 
 function isHomeMaraButton(button: HTMLButtonElement): boolean {
   const text = button.textContent ?? "";
@@ -82,7 +90,13 @@ export function GuildHallCharacterHub() {
     let frame = 0;
 
     const restoreSuppressed = () => {
-      for (const item of suppressedRef.current) item.element.hidden = item.hidden;
+      for (const item of suppressedRef.current) {
+        item.element.hidden = item.hidden;
+        if (item.display) item.element.style.setProperty("display", item.display, item.displayPriority);
+        else item.element.style.removeProperty("display");
+        if (item.ariaHidden === null) item.element.removeAttribute("aria-hidden");
+        else item.element.setAttribute("aria-hidden", item.ariaHidden);
+      }
       suppressedRef.current = [];
     };
 
@@ -92,8 +106,16 @@ export function GuildHallCharacterHub() {
       for (const element of candidates) {
         if (element.dataset.guildCharacterHubOverlay === "true") continue;
         if (element.tagName !== "HEADER" && element.tagName !== "SECTION" && element.tagName !== "BUTTON") continue;
-        suppressedRef.current.push({ element, hidden: element.hidden });
+        suppressedRef.current.push({
+          element,
+          hidden: element.hidden,
+          display: element.style.getPropertyValue("display"),
+          displayPriority: element.style.getPropertyPriority("display"),
+          ariaHidden: element.getAttribute("aria-hidden"),
+        });
         element.hidden = true;
+        element.setAttribute("aria-hidden", "true");
+        element.style.setProperty("display", "none", "important");
       }
       nextHost.dataset.guildCharacterHubActive = "true";
     };
@@ -188,23 +210,23 @@ export function GuildHallCharacterHub() {
 
       <button
         type="button"
-        className={styles.physicalBoardHotspot}
+        className={classNames(styles.physicalBoardHotspot, polishStyles.physicalBoardHotspot)}
         data-guild-hub-action="board"
         onClick={() => clickBaseHomeAction("board")}
         aria-label={`Open Request Board, ${availableCount} available`}
       >
         <span className={styles.hotspotGlow} aria-hidden="true" />
-        <span className={styles.hotspotLabel}>
+        <span className={classNames(styles.hotspotLabel, polishStyles.hotspotLabel)}>
           <img src={ICONS.board} alt="" />
           <span><strong>Request Board</strong><small>{availableCount} available · Board Lv. {boardLevel}</small></span>
         </span>
       </button>
 
-      <figure className={styles.maraFigure} aria-label="Mara Vell, Guild Quartermaster">
+      <figure className={classNames(styles.maraFigure, polishStyles.maraFigure)} aria-label="Mara Vell, Guild Quartermaster">
         <img src={MARA.profilePath} alt="Mara Vell" />
       </figure>
 
-      <section className={styles.dialoguePanel} data-guild-hub-panel={panel}>
+      <section className={classNames(styles.dialoguePanel, polishStyles.dialoguePanel)} data-guild-hub-panel={panel}>
         <div className={styles.speakerRow}>
           <img src={MARA.portraitPath} alt="" />
           <div>
