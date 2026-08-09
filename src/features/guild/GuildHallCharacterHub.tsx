@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { getTotalTownUpgradeTiers } from "@/data/upgrades";
 import { getNextTrustThreshold, getNpcNextUnlock, getNpcTrustRecord, getTrustTierLabel, TOWN_NPCS } from "@/data/townNpcs";
 import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
@@ -139,8 +140,8 @@ export function GuildHallCharacterHub() {
   const completedContracts = useMemo(() => sortRecentCompleted(contracts), [contracts]);
   const completedCount = currentSave?.guild?.completedCount ?? completedContracts.length;
   const guildRank = currentSave?.guild?.guildRank ?? 1;
-  const marketLevel = currentSave ? Number(currentSave.townUpgrades?.market_listing_capacity ?? 0) + Number(currentSave.townUpgrades?.market_variant_scouting ?? 0) + Number(currentSave.townUpgrades?.market_quality_network ?? 0) + Number(currentSave.townUpgrades?.market_reroll_efficiency ?? 0) + 1 : 1;
-  const boardLevel = currentSave ? Number(currentSave.townUpgrades?.guild_contract_capacity ?? 0) + Number(currentSave.townUpgrades?.guild_contract_quality ?? 0) + Number(currentSave.townUpgrades?.guild_gold_negotiation ?? 0) + Number(currentSave.townUpgrades?.guild_gp_efficiency ?? 0) + 1 : 1;
+  const marketLevel = currentSave ? getTotalTownUpgradeTiers(currentSave, "market") + 1 : 1;
+  const boardLevel = currentSave ? getTotalTownUpgradeTiers(currentSave, "guild") + 1 : 1;
   const maraTrust = currentSave ? getNpcTrustRecord(currentSave, "mara_vell") : null;
   const trustTier = maraTrust ? getTrustTierLabel(maraTrust.level) : "New Contact";
   const nextTrustThreshold = maraTrust ? getNextTrustThreshold(maraTrust.points) : 20;
