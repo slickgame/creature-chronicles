@@ -19,6 +19,9 @@ const {
   getBattleMove,
 } = await import("@/data/battleMoves");
 const {
+  ensureCurrentGuildState,
+} = await import("@/data/guild");
+const {
   createNewGameSave,
 } = await import("@/lib/save/localSave");
 
@@ -34,6 +37,37 @@ function getReplaceableLearnedMoveId(creature: ReturnType<typeof createFixture>[
   return loadout.learnedMoveIds.find(
     (moveId) => moveId !== "strike" && getBattleMove(moveId).rarity !== "signature",
   );
+}
+
+function putCreatureOnGuildService() {
+  const fixture = createFixture();
+  const synced = ensureCurrentGuildState(fixture.save);
+  const guild = synced.guild;
+  const original = guild?.contracts[0];
+  assert.ok(guild && original);
+  return {
+    ...fixture,
+    save: {
+      ...synced,
+      guild: {
+        ...guild,
+        contracts: [
+          {
+            ...original,
+            type: "service_creature" as const,
+            status: "completed" as const,
+            title: "Move Training Absence Test",
+            submittedCreatureId: fixture.creature.creatureId,
+            submittedCreatureName: fixture.creature.nickname,
+            completedAtDayNumber: synced.dayState.dayNumber,
+            serviceDurationDays: 2,
+            serviceReturnDayNumber: synced.dayState.dayNumber + 2,
+          },
+          ...guild.contracts.slice(1),
+        ],
+      },
+    },
+  };
 }
 
 test("Focus Manual replaces one learned move in a full library and consumes exactly one manual", () => {
@@ -112,6 +146,58 @@ test("manual teaching rejects protected combination and event sources without co
   );
   assert.equal(result.ok, false);
   assert.equal(getBattleOutfitterStock(result.save, manual), 1);
+});
+
+test("move teaching and loadout editing refuse creatures away on Guild service without consuming stock", () => {
+  const fixture = putCreatureOnGuildService();
+  const manual = BATTLE_OUTFITTER_ITEMS.find((item) => item.itemId === "focus_manual");
+  assert.ok(manual);
+  const stockedSave = {
+    ...fixture.save,
+    flags: { ...fixture.save.flags, [manual.flagKey]: 2 },
+  };
+  const teachable = getBattleMoveTrainingOptions(fixture.creature).find(
+    (candidate) => candidate.teachableByFocusManual && !candidate.blockedReason,
+  );
+  assert.ok(teachable);
+  const replacementMoveId = teachable.requiresLibraryReplacement
+    ? getReplaceableLearnedMoveId(fixture.creature)
+    : undefined;
+  const beforeLoadout = getCreatureBattleMoveLoadout(fixture.creature);
+  const equippedMoveId = beforeLoadout.equippedMoveIds[0];
+  assert.ok(equippedMoveId);
+
+  const taught = teachBattleMoveWithFocusManual(
+    stockedSave,
+    fixture.creature.creatureId,
+    teachable.move.id,
+    replacementMoveId,
+  );
+  assert.equal(taught.ok, false);
+  assert.match(taught.message, /Guild service:/i);
+  assert.equal(getBattleOutfitterStock(taught.save, manual), 2);
+
+  const equipped = equipCreatureBattleMove(
+    stockedSave,
+    fixture.creature.creatureId,
+    equippedMoveId,
+  );
+  assert.equal(equipped.ok, false);
+  assert.match(equipped.message, /Guild service:/i);
+
+  const unequipped = unequipCreatureBattleMove(
+    stockedSave,
+    fixture.creature.creatureId,
+    equippedMoveId,
+  );
+  assert.equal(unequipped.ok, false);
+  assert.match(unequipped.message, /Guild service:/i);
+
+  const persistedCreature = (unequipped.save.creatures ?? []).find(
+    (entry) => entry.creatureId === fixture.creature.creatureId,
+  );
+  assert.ok(persistedCreature);
+  assert.deepEqual(getCreatureBattleMoveLoadout(persistedCreature), beforeLoadout);
 });
 
 test("newly learned moves can replace an equipped move while respecting the four-move limit", () => {
