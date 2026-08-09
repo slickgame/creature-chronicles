@@ -104,15 +104,30 @@ function getRequesterForCategory(category: GuildContractCategory) {
 }
 
 function normalizeContract(contract: GuildContract): GuildContract {
+  const type = contract.type ?? "donate_creature";
   const category = contract.category ?? inferCategoryFromText(contract);
   const requester = getRequesterForCategory(category);
+  const requesterId = contract.requesterId ?? requester.requesterId;
+  const requesterName = contract.requesterName ?? requester.requesterName;
+  const trustTarget = contract.trustTarget ?? requester.trustTarget;
+
+  if (
+    contract.type === type &&
+    contract.category === category &&
+    contract.requesterId === requesterId &&
+    contract.requesterName === requesterName &&
+    contract.trustTarget === trustTarget
+  ) {
+    return contract;
+  }
+
   return {
     ...contract,
-    type: contract.type ?? "donate_creature",
+    type,
     category,
-    requesterId: contract.requesterId ?? requester.requesterId,
-    requesterName: contract.requesterName ?? requester.requesterName,
-    trustTarget: contract.trustTarget ?? requester.trustTarget,
+    requesterId,
+    requesterName,
+    trustTarget,
   };
 }
 
@@ -181,8 +196,9 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
   if (!save.guild) return { ...save, guild: createDefaultGuildState(save), flags: { ...save.flags, m15GuildWeeklyRefresh: true } };
 
   const normalizedContracts = save.guild.contracts.map(normalizeContract);
-  const normalizedGuild = { ...save.guild, contracts: normalizedContracts };
-  const normalizedSave = { ...save, guild: normalizedGuild };
+  const contractsChanged = normalizedContracts.some((contract, index) => contract !== save.guild?.contracts[index]);
+  const normalizedGuild = contractsChanged ? { ...save.guild, contracts: normalizedContracts } : save.guild;
+  const normalizedSave = contractsChanged ? { ...save, guild: normalizedGuild } : save;
   const weekChanged = normalizedGuild.weekNumber !== save.dayState.weekNumber;
   const currentWeekContracts = normalizedContracts.filter((contract) => contract.weekNumber === save.dayState.weekNumber && contract.status !== "expired");
   if (!weekChanged && currentWeekContracts.length >= expectedContractCount) return normalizedSave;
