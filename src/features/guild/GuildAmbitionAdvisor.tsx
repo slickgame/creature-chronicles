@@ -105,10 +105,14 @@ export function GuildAmbitionAdvisor({ save }: { save: GameSave }) {
 
   useEffect(() => {
     let frame = 0;
+    let lastHost: HTMLElement | null = null;
     const findBoard = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
-        setBoardHost(document.querySelector<HTMLElement>('[data-contract-board="list"]'));
+        const nextHost = document.querySelector<HTMLElement>('[data-contract-board="list"]');
+        if (nextHost === lastHost) return;
+        lastHost = nextHost;
+        setBoardHost(nextHost);
       });
     };
     findBoard();
