@@ -10,11 +10,20 @@ export type GuildServiceAssignment = {
   daysRemaining: number;
 };
 
+type GuildServiceReturnNotice = {
+  contractId: string;
+  creatureName: string;
+  title: string;
+  returnDayNumber: number;
+};
+
 const SERVICE_DURATION_BY_TIER: Record<GuildContractTier, number> = {
   bronze: 1,
   silver: 2,
   gold: 3,
 };
+
+const RETURN_NOTICE_FLAG_PREFIX = "guildServiceReturnNotice_";
 
 export function getGuildServiceDurationDays(contract: Pick<GuildContract, "type" | "tier" | "serviceDurationDays">): number {
   if (contract.type !== "service_creature") return 0;
@@ -25,6 +34,51 @@ export function getGuildServiceDurationDays(contract: Pick<GuildContract, "type"
 
 function stripDurationSuffix(label: string): string {
   return label.replace(/\s*Away for \d+\s+days?\.$/i, "").trim();
+}
+
+function getReturnNoticeFlagKey(contractId: string): string {
+  return `${RETURN_NOTICE_FLAG_PREFIX}${contractId}`;
+}
+
+function getReturnNoticeFromContract(contract: GuildContract): GuildServiceReturnNotice | null {
+  if (
+    contract.type !== "service_creature" ||
+    contract.status !== "completed" ||
+    !contract.submittedCreatureName ||
+    typeof contract.serviceReturnDayNumber !== "number"
+  ) {
+    return null;
+  }
+  return {
+    contractId: String(contract.contractId),
+    creatureName: contract.submittedCreatureName,
+    title: contract.title,
+    returnDayNumber: contract.serviceReturnDayNumber,
+  };
+}
+
+function parseReturnNotice(value: unknown): GuildServiceReturnNotice | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const parsed = JSON.parse(value) as Partial<GuildServiceReturnNotice>;
+    const returnDayNumber = Number(parsed.returnDayNumber);
+    if (
+      typeof parsed.contractId !== "string" ||
+      typeof parsed.creatureName !== "string" ||
+      typeof parsed.title !== "string" ||
+      !Number.isFinite(returnDayNumber)
+    ) {
+      return null;
+    }
+    return {
+      contractId: parsed.contractId,
+      creatureName: parsed.creatureName,
+      title: parsed.title,
+      returnDayNumber: Math.max(1, Math.floor(returnDayNumber)),
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -47,6 +101,30 @@ export function normalizeGuildServiceContract(contract: GuildContract): GuildCon
       label: requirementLabel,
     },
   };
+}
+
+/**
+ * Persist compact return notices outside the rotating Request Board. This keeps
+ * the Morning Brief reliable when a creature returns on the same Monday that a
+ * weekly board refresh removes the completed service flyer.
+ */
+export function ensureGuildServiceReturnNotices(save: GameSave): GameSave {
+  const notices = (save.guild?.contracts ?? [])
+    .map(normalizeGuildServiceContract)
+    .map(getReturnNoticeFromContract)
+    .filter((notice): notice is GuildServiceReturnNotice => Boolean(notice));
+  if (!notices.length) return save;
+
+  let changed = false;
+  let nextFlags = save.flags;
+  for (const notice of notices) {
+    const key = getReturnNoticeFlagKey(notice.contractId);
+    if (parseReturnNotice(save.flags[key])) continue;
+    if (!changed) nextFlags = { ...save.flags };
+    nextFlags[key] = JSON.stringify(notice);
+    changed = true;
+  }
+  return changed ? { ...save, flags: nextFlags } : save;
 }
 
 export function getGuildServiceAssignment(save: GameSave, creatureId: CreatureId): GuildServiceAssignment | null {
@@ -87,13 +165,20 @@ export function getGuildServiceUnavailableReason(save: GameSave, creatureId: Cre
 
 export function getGuildServiceReturnSummaryItems(save: GameSave): string[] {
   const dayNumber = save.dayState.dayNumber;
-  return (save.guild?.contracts ?? [])
+  const contractNotices = (save.guild?.contracts ?? [])
     .map(normalizeGuildServiceContract)
-    .filter((contract) =>
-      contract.type === "service_creature" &&
-      contract.status === "completed" &&
-      Boolean(contract.submittedCreatureName) &&
-      contract.serviceReturnDayNumber === dayNumber,
-    )
-    .map((contract) => `${contract.submittedCreatureName} returned from “${contract.title}” and is available for chores, breeding, training, and combat again.`);
+    .map(getReturnNoticeFromContract)
+    .filter((notice): notice is GuildServiceReturnNotice => Boolean(notice) && notice.returnDayNumber === dayNumber);
+  const persistedNotices = Object.entries(save.flags)
+    .filter(([key]) => key.startsWith(RETURN_NOTICE_FLAG_PREFIX))
+    .map(([, value]) => parseReturnNotice(value))
+    .filter((notice): notice is GuildServiceReturnNotice => Boolean(notice) && notice.returnDayNumber === dayNumber);
+
+  const unique = new Map<string, GuildServiceReturnNotice>();
+  for (const notice of [...contractNotices, ...persistedNotices]) {
+    unique.set(notice.contractId, notice);
+  }
+  return [...unique.values()].map(
+    (notice) => `${notice.creatureName} returned from “${notice.title}” and is available for chores, breeding, training, and combat again.`,
+  );
 }
