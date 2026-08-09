@@ -15,7 +15,7 @@ import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
 import { ChronicleScreen } from "@/features/legacy/ChronicleScreen";
 import { LegacyPrestigeBadge } from "@/features/legacy/LegacyPrestigeBadge";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
-import { MarketScreen } from "@/features/market/MarketScreen";
+import { MarketScreen } from "@/features/market/MarketScreenCharacterHub";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { PredatorDefenseScreen } from "@/features/predators/PredatorDefenseScreen";
 import { RanchHubScreen } from "@/features/ranch/RanchHubScreenTutorial";
