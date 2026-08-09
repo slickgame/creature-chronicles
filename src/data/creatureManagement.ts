@@ -3,7 +3,8 @@ import {
   getSpeciesDefinition,
   getVariantDefinition,
 } from "@/data/creatures";
-import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
+import { getGuildServiceUnavailableReason } from "./guildServiceAvailability";
+import { getTrainingUnavailableReason as getActualTrainingUnavailableReason } from "./trainingGrounds";
 import type {
   CreatureFamily,
   CreatureRecord,
@@ -231,8 +232,10 @@ export function getCreatureManagementStatus(
     (item) => item.creatureId === creature.creatureId,
   );
   const pregnancy = getActivePregnancy(save, creature.creatureId);
-  const trainingReason = getTrainingUnavailableReason(save, creature.creatureId);
+  const trainingReason = getActualTrainingUnavailableReason(save, creature.creatureId);
+  const guildServiceReason = getGuildServiceUnavailableReason(save, creature.creatureId);
   const isTraining = Boolean(trainingReason);
+  const isOnGuildService = Boolean(guildServiceReason);
   const isInjured =
     typeof creature.injuredUntilDayNumber === "number" &&
     creature.injuredUntilDayNumber >= save.dayState.dayNumber;
@@ -263,6 +266,7 @@ export function getCreatureManagementStatus(
   );
   const needsAttention =
     isTraining ||
+    isOnGuildService ||
     isInjured ||
     isRecovering ||
     energyBand === "tired" ||
@@ -270,7 +274,8 @@ export function getCreatureManagementStatus(
     creature.hearts < creature.maxHearts;
 
   let primaryStatus = "Ready";
-  if (isTraining) primaryStatus = "Training";
+  if (isOnGuildService) primaryStatus = guildServiceReason ?? "Guild Service";
+  else if (isTraining) primaryStatus = "Training";
   else if (isInjured) primaryStatus = creature.injuryLabel ?? "Injured";
   else if (isRecovering) primaryStatus = "Recovering";
   else if (pregnancy) primaryStatus = `Pregnant · ${pregnancy.daysRemaining}d`;
