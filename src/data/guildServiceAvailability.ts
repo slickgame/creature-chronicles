@@ -112,7 +112,7 @@ export function ensureGuildServiceReturnNotices(save: GameSave): GameSave {
   const notices = (save.guild?.contracts ?? [])
     .map(normalizeGuildServiceContract)
     .map(getReturnNoticeFromContract)
-    .filter((notice): notice is GuildServiceReturnNotice => Boolean(notice));
+    .filter((notice): notice is GuildServiceReturnNotice => notice !== null);
   if (!notices.length) return save;
 
   let changed = false;
@@ -168,11 +168,11 @@ export function getGuildServiceReturnSummaryItems(save: GameSave): string[] {
   const contractNotices = (save.guild?.contracts ?? [])
     .map(normalizeGuildServiceContract)
     .map(getReturnNoticeFromContract)
-    .filter((notice): notice is GuildServiceReturnNotice => Boolean(notice) && notice.returnDayNumber === dayNumber);
+    .filter((notice): notice is GuildServiceReturnNotice => notice !== null && notice.returnDayNumber === dayNumber);
   const persistedNotices = Object.entries(save.flags)
     .filter(([key]) => key.startsWith(RETURN_NOTICE_FLAG_PREFIX))
     .map(([, value]) => parseReturnNotice(value))
-    .filter((notice): notice is GuildServiceReturnNotice => Boolean(notice) && notice.returnDayNumber === dayNumber);
+    .filter((notice): notice is GuildServiceReturnNotice => notice !== null && notice.returnDayNumber === dayNumber);
 
   const unique = new Map<string, GuildServiceReturnNotice>();
   for (const notice of [...contractNotices, ...persistedNotices]) {
