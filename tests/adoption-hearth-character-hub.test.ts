@@ -4,6 +4,8 @@ import test from "node:test";
 
 const hubSource = readFileSync("src/features/market/AdoptionHearthCharacterHub.tsx", "utf8");
 const hubCss = readFileSync("src/features/market/AdoptionHearthCharacterHub.module.css", "utf8");
+const backgroundCss = readFileSync("src/app/adoption-hearth-hub.css", "utf8");
+const layoutSource = readFileSync("src/app/layout.tsx", "utf8");
 const wrapperSource = readFileSync("src/features/market/MarketScreenCharacterHub.tsx", "utf8");
 const rootSource = readFileSync("src/features/root/GameRoot.tsx", "utf8");
 
@@ -41,5 +43,11 @@ test("Tamsin and the Adoption Board receive the approved large-room staging", ()
   assert.match(hubCss, /height:\s*82%/);
   assert.match(hubCss, /\.dialoguePanel\s*\{/);
   assert.match(hubCss, /\.boardHotspot\s*\{/);
-  assert.match(hubCss, /adoption_hearth_interior\.png/);
+});
+
+test("the Tamsin hub owns the same proven Adoption Hearth room background as the legacy screen", () => {
+  assert.match(layoutSource, /adoption-hearth-hub\.css/);
+  assert.match(backgroundCss, /data-adoption-character-hub="tamsin"/);
+  assert.match(backgroundCss, /\/images\/backgrounds\/market\/market_road_interior\.png/);
+  assert.doesNotMatch(backgroundCss, /adoption_hearth_interior\.png/);
 });
