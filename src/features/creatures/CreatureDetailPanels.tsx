@@ -88,7 +88,9 @@ const buttonStyle: CSSProperties = {
 const tabButtonStyle: CSSProperties = {
   minHeight: 34,
   padding: "6px 11px",
-  border: "1px solid rgba(245,201,128,.34)",
+  borderWidth: 1,
+  borderStyle: "solid",
+  borderColor: "rgba(245,201,128,.34)",
   borderRadius: 999,
   background: "rgba(255,247,221,.07)",
   color: "#f2dfbd",
