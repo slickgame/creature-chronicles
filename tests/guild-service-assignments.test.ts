@@ -28,6 +28,8 @@ import type { GuildContract } from "@/types/guild";
 
 const outfitterSource = readFileSync("src/features/battle-outfitter/BattleOutfitterScreenC3.tsx", "utf8");
 const moveTrainingSource = readFileSync("src/features/battle-outfitter/BattleMoveTrainingOverlay.tsx", "utf8");
+const guildAdvisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
+const creatureDetailSource = readFileSync("src/features/creatures/CreatureDetailPanels.tsx", "utf8");
 
 function makeServiceFixture(tier: GuildContract["tier"] = "silver") {
   let save = ensureCurrentGuildState(createNewGameSave("Guild Service Tester", 0));
@@ -63,6 +65,30 @@ function makeServiceFixture(tier: GuildContract["tier"] = "silver") {
   assert.ok(normalized);
   return { save, creature, contract: normalized };
 }
+
+test("Guild normalization is referentially stable after the save is current", () => {
+  const synced = ensureCurrentGuildState(createNewGameSave("Guild Stability Tester", 0));
+  const secondPass = ensureCurrentGuildState(synced);
+  assert.equal(secondPass, synced, "a current Guild save must not be cloned on every render");
+  assert.equal(secondPass.guild, synced.guild);
+  assert.equal(secondPass.guild?.contracts, synced.guild?.contracts);
+});
+
+test("Guild board host discovery ignores MutationObserver callbacks when the host is unchanged", () => {
+  assert.match(guildAdvisorSource, /let lastHost: HTMLElement \| null = null;/);
+  assert.match(guildAdvisorSource, /const nextHost = document\.querySelector<HTMLElement>/);
+  assert.match(guildAdvisorSource, /if \(nextHost === lastHost\) return;/);
+  assert.match(guildAdvisorSource, /lastHost = nextHost;\s*setBoardHost\(nextHost\);/);
+});
+
+test("creature detail tabs do not mix border shorthand with dynamic borderColor", () => {
+  const tabStyle = creatureDetailSource.match(/const tabButtonStyle: CSSProperties = \{[\s\S]*?\n\};/);
+  assert.ok(tabStyle);
+  assert.doesNotMatch(tabStyle[0], /\bborder:\s*/);
+  assert.match(tabStyle[0], /borderWidth:\s*1/);
+  assert.match(tabStyle[0], /borderStyle:\s*"solid"/);
+  assert.match(tabStyle[0], /borderColor:\s*"rgba\(245,201,128,\.34\)"/);
+});
 
 test("service contracts advertise a tier-based time away before submission", () => {
   const bronze = makeServiceFixture("bronze").contract;
