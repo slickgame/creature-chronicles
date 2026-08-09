@@ -1,3 +1,7 @@
+:global([data-guild-character-hub="mara"]) > header button:last-child {
+  display: none;
+}
+
 .maraFigure {
   left: 43%;
   bottom: -2%;
