@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { GuildHallCharacterHub } from "./GuildHallCharacterHub";
 import { GuildHallScreen as BaseGuildHallScreen } from "./GuildHallScreen";
 
 export function GuildHallScreen() {
@@ -9,13 +10,18 @@ export function GuildHallScreen() {
     const tagControls = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
+        const characterHubBoard = document.querySelector<HTMLElement>('[data-guild-hub-action="board"]');
+        if (characterHubBoard) {
+          characterHubBoard.dataset.tutorialId = "tutorial-guild-request";
+          return;
+        }
         const board = document.querySelector<HTMLElement>('[data-contract-board="list"]');
         if (board) {
           board.dataset.tutorialId = "tutorial-guild-request";
           return;
         }
         const requestBoard = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-          (button) => button.textContent?.includes("Request Board"),
+          (button) => button.textContent?.includes("Request Board") && !button.hidden,
         );
         if (requestBoard) requestBoard.dataset.tutorialId = "tutorial-guild-request";
       });
@@ -29,5 +35,10 @@ export function GuildHallScreen() {
     };
   }, []);
 
-  return <BaseGuildHallScreen />;
+  return (
+    <>
+      <BaseGuildHallScreen />
+      <GuildHallCharacterHub />
+    </>
+  );
 }
