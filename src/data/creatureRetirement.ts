@@ -170,9 +170,9 @@ export function getRetirementEligibility(
     reasons.push("At least one active creature must remain on the ranch.");
   }
   if (creature.isLocked) reasons.push("Unlock this creature before retirement.");
-  const trainingReason = getTrainingUnavailableReason(save, creatureId);
-  if (trainingReason) {
-    reasons.push(`Collect this creature from Training Grounds first: ${trainingReason}`);
+  const unavailableReason = getTrainingUnavailableReason(save, creatureId);
+  if (unavailableReason) {
+    reasons.push(`Wait until this creature returns before retirement: ${unavailableReason}`);
   }
   if (hasActivePregnancy(save, creatureId)) {
     reasons.push("Resolve this creature's active pregnancy before retirement.");
