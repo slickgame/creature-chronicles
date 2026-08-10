@@ -44,6 +44,12 @@ test("Welfare Ledger exposes Trust progress, relationship milestones, perks, and
   assert.match(css, /\.benefitGrid\b/);
 });
 
+test("Special Placements uses a real welfare benefit icon", () => {
+  assert.match(source, /special: "\/images\/ui\/icons\/icon_breeder_level\.png"/);
+  assert.match(source, /icon: ICONS\.special, title: "Special Placements"/);
+  assert.doesNotMatch(source, /icon_affection\.png/);
+});
+
 test("Tamsin subpages preserve compact navigation and responsive layouts", () => {
   assert.match(source, /Back to Hearth/);
   assert.match(source, /Back to Town/);
