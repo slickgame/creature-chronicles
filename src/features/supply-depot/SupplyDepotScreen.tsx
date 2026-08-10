@@ -21,6 +21,7 @@ import { useGameContext } from "@/state/GameProvider";
 import type { SupplyDepotItem } from "@/data/supplyDepot";
 import type { GameSave } from "@/types/save";
 import styles from "./SupplyDepotScreen.module.css";
+import polish from "./SupplyDepotScreen.polish.module.css";
 
 const PELLA_TRUST = TOWN_NPCS.pella_mosswick;
 const TRUST_THRESHOLDS = [0, 20, 50, 90, 140] as const;
@@ -52,7 +53,11 @@ function getShelfItems(shelf: DepotShelf): SupplyDepotItem[] {
   }
   if (shelf === "special") {
     return SUPPLY_DEPOT_ITEMS.filter(
-      (item) => item.category === "Breeding" || item.category === "Nursery",
+      (item) =>
+        item.category === "Breeding" ||
+        item.category === "Nursery" ||
+        item.category === "Care" ||
+        item.category === "Pregnancy",
     );
   }
   return SUPPLY_DEPOT_ITEMS;
@@ -84,7 +89,7 @@ function getTalkCopy(topic: PellaTopic, trustLevel: number): { title: string; bo
     case "counter":
       return {
         title: "Behind the Counter",
-        body: "The counter stock is for breeding and nursery work. It costs more because it has to be clean, measured, labeled, and kept away from customers who think every bottle is a snack.",
+        body: "The counter stock is for breeding, nursery, care, and pregnancy work. It costs more because it has to be clean, measured, labeled, and kept away from customers who think every bottle is a snack.",
         note: trustLevel >= 4
           ? "You've earned enough trust that Pella treats you like a serious regular when special requests come through."
           : "Higher Trust with Pella also opens stronger personal Guild requests.",
@@ -150,7 +155,7 @@ export function SupplyDepotScreen() {
   }
 
   const modeLabel = depotMode === "interior"
-    ? "Supply Depot"
+    ? "Main Floor"
     : depotMode === "shop"
       ? activeShelf === "special" ? "Counter Cabinet" : activeShelf === "ranch" ? "Ranch Shelves" : "All Stock"
       : depotMode === "talk"
@@ -201,13 +206,8 @@ export function SupplyDepotScreen() {
         />
       ) : null}
 
-      {depotMode === "talk" ? (
-        <PellaConversation save={save} onShop={openShop} onTrust={() => setDepotMode("trust")} />
-      ) : null}
-
-      {depotMode === "trust" ? (
-        <PellaSupplyLedger save={save} onShop={openShop} />
-      ) : null}
+      {depotMode === "talk" ? <PellaConversation save={save} onShop={openShop} onTrust={() => setDepotMode("trust")} /> : null}
+      {depotMode === "trust" ? <PellaSupplyLedger save={save} onShop={openShop} /> : null}
     </main>
   );
 }
@@ -234,16 +234,24 @@ function DepotInterior({ save, trustTier, trustPoints, onTalk, onShop, onTrust, 
         <p className={styles.sectionLabel}>What do you need?</p>
         <div className={styles.actionList}>
           <button type="button" className={styles.actionButton} onClick={() => onShop("ranch")}>
-            <img src={ICONS.shelfProp} alt="" /><span><strong>Ranch Supplies</strong><small>Feed, materials, energy, and repairs</small></span><b className={styles.actionValue}>{counts.feed} Feed · {counts.materials} Materials</b>
+            <img src={ICONS.shelfProp} alt="" />
+            <span><strong>Ranch Supplies</strong><small>Feed, materials, energy, and repairs</small></span>
+            <b className={styles.actionValue}>{counts.feed} Feed · {counts.materials} Materials</b>
           </button>
           <button type="button" className={styles.actionButton} onClick={() => onShop("special")}>
-            <img src={ICONS.counterCabinet} alt="" /><span><strong>Special Supplies</strong><small>Breeding and nursery stock</small></span><b className={styles.actionValue}>Counter Cabinet</b>
+            <img src={ICONS.counterCabinet} alt="" />
+            <span><strong>Special Supplies</strong><small>Breeding, nursery, care, and pregnancy stock</small></span>
+            <b className={styles.actionValue}>Counter Cabinet</b>
           </button>
           <button type="button" className={styles.actionButton} onClick={onTalk}>
-            <img src={ICONS.pella} alt="" /><span><strong>Talk to Pella</strong><small>Supplies, trade, and unsolicited advice</small></span><b className={styles.actionValue}>Talk</b>
+            <img src={ICONS.pella} alt="" />
+            <span><strong>Talk to Pella</strong><small>Supplies, trade, and unsolicited advice</small></span>
+            <b className={styles.actionValue}>Talk</b>
           </button>
           <button type="button" className={styles.actionButton} onClick={onTrust}>
-            <img src={ICONS.stockLedger} alt="" /><span><strong>Supply Ledger</strong><small>Trust, discounts, and current ranch stock</small></span><b className={styles.actionValue}>{trustTier}</b>
+            <img src={ICONS.stockLedger} alt="" />
+            <span><strong>Supply Ledger</strong><small>Trust, discounts, and current ranch stock</small></span>
+            <b className={styles.actionValue}>{trustTier}</b>
           </button>
         </div>
         <button type="button" className={styles.leaveButton} onClick={onLeave}>Leave Supply Depot</button>
@@ -257,7 +265,7 @@ function DepotInterior({ save, trustTier, trustPoints, onTalk, onShop, onTrust, 
         <img src={ICONS.shelfProp} alt="" /><span><strong>Ranch Shelves</strong><small>Feed · Materials · Repairs</small></span>
       </button>
       <button type="button" className={`${styles.hotspot} ${styles.counterHotspot}`} onClick={() => onShop("special")}>
-        <img src={ICONS.counterCabinet} alt="" /><span><strong>Counter Cabinet</strong><small>Breeding · Nursery</small></span>
+        <img src={ICONS.counterCabinet} alt="" /><span><strong>Counter Cabinet</strong><small>Breeding · Nursery · Care</small></span>
       </button>
     </section>
   );
@@ -278,7 +286,7 @@ function DepotShopPanel({ save, shownItems, activeShelf, message, onShelf, onBuy
   const discount = Math.round((1 - getPellaSupplyPriceMultiplier(save)) * 100);
   const title = activeShelf === "special" ? "Counter Cabinet" : activeShelf === "ranch" ? "Ranch Shelves" : "All Depot Stock";
   const subtitle = activeShelf === "special"
-    ? "Breeding and nursery supplies Pella keeps behind the counter."
+    ? "Breeding, nursery, creature-care, and pregnancy supplies Pella keeps behind the counter."
     : activeShelf === "ranch"
       ? "The practical goods that keep a ranch fed, repaired, and moving."
       : "Everything Pella currently sells in one ledger.";
@@ -290,8 +298,8 @@ function DepotShopPanel({ save, shownItems, activeShelf, message, onShelf, onBuy
         <b className={styles.trustPill}>{getTrustTierLabel(trust.level)} · {discount}% price discount</b>
       </div>
 
-      <div className={styles.shopLayout}>
-        <aside className={styles.shopSidebar}>
+      <div className={`${styles.shopLayout} ${polish.shopLayout}`}>
+        <aside className={`${styles.shopSidebar} ${polish.shopSidebar}`}>
           <div className={styles.shopKeeper}>
             <img src={ICONS.pella} alt="Pella Mosswick" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
             <div><span className={styles.kicker}>Keeper</span><h2>Pella Mosswick</h2><small>{trust.points} Trust</small></div>
@@ -305,7 +313,7 @@ function DepotShopPanel({ save, shownItems, activeShelf, message, onShelf, onBuy
           </div>
         </aside>
 
-        <section className={styles.shopMain}>
+        <section className={`${styles.shopMain} ${polish.shopMain}`}>
           <div className={styles.shopToolbar}>
             <div><span className={styles.kicker}>Browse Stock</span></div>
             <div className={styles.filters}>
@@ -357,7 +365,7 @@ function PellaConversation({ save, onShop, onTrust }: {
   const topics: Array<{ id: PellaTopic; title: string; subtitle: string }> = [
     { id: "advice", title: "Practical Advice", subtitle: "Pella's rules for avoiding preventable disasters" },
     { id: "stock", title: "Keeping a Ranch Stocked", subtitle: "Feed, materials, energy, and repairs" },
-    { id: "counter", title: "Special Supplies", subtitle: "What Pella keeps behind the counter" },
+    { id: "counter", title: "Special Supplies", subtitle: "Breeding, nursery, care, and pregnancy stock" },
     { id: "trade", title: "Town Trade", subtitle: "Coin, shortages, favors, and local business" },
     { id: "standing", title: "My Standing With You", subtitle: "How Pella views your ranch" },
   ];
@@ -412,7 +420,7 @@ function PellaSupplyLedger({ save, onShop }: { save: GameSave; onShop: (shelf: D
 
   return (
     <section className={styles.subpage} aria-label="Pella Supply Ledger">
-      <div className={styles.ledgerLayout}>
+      <div className={`${styles.ledgerLayout} ${polish.ledgerLayout}`}>
         <aside className={styles.ledgerAside}>
           <img src={ICONS.stockLedger} alt="Supply ledger" onError={(event) => { event.currentTarget.src = ICONS.register; }} />
           <span className={styles.kicker}>Supply Depot Keeper</span>
@@ -477,7 +485,7 @@ function PellaSupplyLedger({ save, onShop }: { save: GameSave; onShop: (shelf: D
             </div>
           </section>
 
-          <div className={styles.ledgerActions}>
+          <div className={`${styles.ledgerActions} ${polish.ledgerActions}`}>
             <button type="button" className={styles.secondaryButton} onClick={() => onShop("ranch")}>Open Ranch Shelves</button>
             <button type="button" className={styles.secondaryButton} onClick={() => onShop("special")}>Open Counter Cabinet</button>
           </div>
