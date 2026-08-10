@@ -4,6 +4,7 @@ import test from "node:test";
 
 const source = readFileSync("src/features/supply-depot/SupplyDepotScreen.tsx", "utf8");
 const css = readFileSync("src/features/supply-depot/SupplyDepotScreen.module.css", "utf8");
+const polish = readFileSync("src/features/supply-depot/SupplyDepotScreen.polish.module.css", "utf8");
 
 test("Supply Depot landing is a Pella-led character hub with environmental hotspots", () => {
   assert.match(source, /data-supply-depot-mode=\{depotMode\}/);
@@ -14,6 +15,8 @@ test("Supply Depot landing is a Pella-led character hub with environmental hotsp
   assert.match(source, /Supply Ledger/);
   assert.match(source, /Ranch Shelves/);
   assert.match(source, /Counter Cabinet/);
+  assert.match(source, /\? "Main Floor"/);
+  assert.doesNotMatch(source, /\? "Supply Depot"\s*:/);
   assert.match(css, /\.pellaFigure\b/);
   assert.match(css, /\.hubPanel\b/);
   assert.match(css, /\.hotspot\b/);
@@ -29,6 +32,16 @@ test("Supply Depot storefront shares a modern filtered product layout", () => {
   assert.match(css, /\.productGrid\b/);
   assert.match(css, /\.productCard\b/);
   assert.match(css, /\.shopToolbar\b/);
+  assert.match(polish, /\.shopLayout\s*\{[^}]*min-height:\s*0;[^}]*align-items:\s*start;/s);
+  assert.match(polish, /\.shopSidebar,[\s\S]*\.shopMain\s*\{[^}]*align-self:\s*start;/);
+});
+
+test("Counter Cabinet owns all delicate care and breeding categories", () => {
+  for (const category of ["Breeding", "Nursery", "Care", "Pregnancy"]) {
+    assert.match(source, new RegExp(`item\\.category === \\"${category}\\"`));
+  }
+  assert.match(source, /Breeding, nursery, creature-care, and pregnancy supplies/);
+  assert.match(source, /Breeding · Nursery · Care/);
 });
 
 test("Talk to Pella offers authored conversation topics", () => {
@@ -56,8 +69,19 @@ test("Supply Ledger presents Trust progression, real perks, and live stock count
   assert.match(css, /\.benefitGrid\b/);
 });
 
+test("Supply Ledger uses themed scrolling and keeps actions reachable", () => {
+  assert.match(source, /polish\.ledgerLayout/);
+  assert.match(source, /polish\.ledgerActions/);
+  assert.match(polish, /scrollbar-width:\s*thin/);
+  assert.match(polish, /scrollbar-color:/);
+  assert.match(polish, /::-webkit-scrollbar-thumb/);
+  assert.match(polish, /\.ledgerActions\s*\{[^}]*position:\s*sticky;[^}]*bottom:/s);
+  assert.match(polish, /padding-bottom:\s*82px/);
+});
+
 test("Supply Depot redesign keeps responsive PC and compact layouts", () => {
   assert.match(css, /@media \(max-width: 1180px\)/);
   assert.match(css, /@media \(max-width: 900px\)/);
   assert.match(css, /@media \(max-width: 640px\)/);
+  assert.match(polish, /@media \(max-width: 900px\)/);
 });
