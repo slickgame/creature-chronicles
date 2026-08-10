@@ -25,7 +25,7 @@ const ICONS = {
   board: "/images/buildings/town/market_stall.png",
   reroll: "/images/ui/icons/icon_reroll.png",
   ledger: "/images/ui/icons/icon_ranch_ledger.png",
-  trust: "/images/ui/icons/icon_affection.png",
+  special: "/images/ui/icons/icon_breeder_level.png",
   check: "/images/ui/icons/icon_contract_scroll.png",
 } as const;
 
@@ -351,7 +351,7 @@ function WelfareLedger({ trustTier, trustLevel, trustPoints, nextThreshold, tier
     { level: 1, icon: ICONS.board, title: "Adoption Board Access", detail: "Browse Tamsin's screened weekly placements." },
     { level: 2, icon: ICONS.gold, title: "Adoption Fee Advocacy", detail: `${adoptionDiscount || 5}% cheaper adoption fees and personal Guild requests.` },
     { level: 3, icon: ICONS.reroll, title: "Priority Arrival Network", detail: `${refreshDiscount || 10}% cheaper arrival refreshes and priority personal requests.` },
-    { level: 4, icon: ICONS.trust, title: "Special Placements", detail: `+${(specialBonus * 100).toFixed(1)}% special placement chance and Gold personal requests.` },
+    { level: 4, icon: ICONS.special, title: "Special Placements", detail: `+${(specialBonus * 100).toFixed(1)}% special placement chance and Gold personal requests.` },
     { level: 5, icon: ICONS.check, title: "Confidant Network", detail: "10% cheaper adoption fees and Confidant request rewards." },
   ];
 
