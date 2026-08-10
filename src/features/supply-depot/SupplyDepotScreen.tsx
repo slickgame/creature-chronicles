@@ -5,75 +5,40 @@ import {
   PELLA_MOSSWICK,
   SUPPLY_DEPOT_ITEMS,
   getSupplyDepotPrice,
-  getSupplyDepotStockLabel,
+  getSupplyDepotSupplyCounts,
   getSupplyDepotUsageRows,
 } from "@/data/supplyDepot";
 import {
+  TOWN_NPCS,
+  getNextTrustThreshold,
   getNpcNextUnlock,
   getNpcTrustRecord,
-  getNpcTrustSummary,
+  getPellaSupplyPriceMultiplier,
+  getTrustTierLabel,
 } from "@/data/townNpcs";
 import { formatGold } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type { SupplyDepotItem } from "@/data/supplyDepot";
 import type { GameSave } from "@/types/save";
-import styles from "@/features/market/MarketScreen.module.css";
+import styles from "./SupplyDepotScreen.module.css";
+
+const PELLA_TRUST = TOWN_NPCS.pella_mosswick;
+const TRUST_THRESHOLDS = [0, 20, 50, 90, 140] as const;
 
 const ICONS = {
   shop: "/images/ui/icons/icon_shop_bag.png",
   price: "/images/ui/icons/icon_price_tag.png",
-  shelves: "/images/backgrounds/market/market_road_interior.png",
-  register: "/images/ui/icons/icon_ranch_upgrade.png",
   shelfProp: "/images/props/town/supply_depot_shelves.png",
   counterCabinet: "/images/props/town/supply_depot_counter_cabinet.png",
   stockLedger: "/images/props/town/supply_depot_stock_ledger.png",
+  register: "/images/ui/icons/icon_ranch_upgrade.png",
+  gold: "/images/ui/currency/icon_currency_gold.png",
   pella: PELLA_MOSSWICK.portraitPath,
 } as const;
 
 type DepotMode = "interior" | "shop" | "talk" | "trust";
 type DepotShelf = "all" | "ranch" | "special";
-
-const PELLA_GREETING =
-  "Come in, wipe your boots, and do not knock over the feed sacks. I have the practical goods up front and the delicate ranch supplies behind the counter.";
-
-function getInteriorButtonStyle() {
-  return {
-    display: "grid",
-    gap: 4,
-    justifyItems: "center",
-    minWidth: 220,
-    padding: "18px 20px",
-    border: "2px solid rgba(245,201,128,.72)",
-    borderRadius: 4,
-    background: "rgba(0,0,0,.42)",
-    color: "#fff7dd",
-    boxShadow: "0 14px 28px rgba(0,0,0,.35)",
-    cursor: "pointer",
-  } as const;
-}
-
-function getPanelStyle() {
-  return {
-    position: "relative",
-    zIndex: 3,
-    padding: 18,
-    border: "1px solid rgba(245,201,128,.55)",
-    borderRadius: 4,
-    background: "rgba(21, 10, 5, .72)",
-    color: "#fff0c9",
-    boxShadow: "0 14px 34px rgba(0,0,0,.42)",
-    backdropFilter: "blur(2px)",
-  } as const;
-}
-
-function getMiniSupplyGridStyle() {
-  return {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
-    gap: 10,
-    marginTop: 12,
-  } as const;
-}
+type PellaTopic = "advice" | "stock" | "counter" | "trade" | "standing";
 
 function getShelfItems(shelf: DepotShelf): SupplyDepotItem[] {
   if (shelf === "ranch") {
@@ -85,693 +50,439 @@ function getShelfItems(shelf: DepotShelf): SupplyDepotItem[] {
         item.category === "Repair",
     );
   }
-
   if (shelf === "special") {
     return SUPPLY_DEPOT_ITEMS.filter(
       (item) => item.category === "Breeding" || item.category === "Nursery",
     );
   }
-
   return SUPPLY_DEPOT_ITEMS;
 }
 
+function getThresholdForLevel(level: number): number {
+  return TRUST_THRESHOLDS[Math.max(0, Math.min(TRUST_THRESHOLDS.length - 1, level - 1))] ?? 0;
+}
+
+function getPellaGreeting(save: GameSave): string {
+  const counts = getSupplyDepotSupplyCounts(save);
+  const trust = getNpcTrustRecord(save, "pella_mosswick");
+  if (counts.feed <= 5) return "You're running thin on feed. I'd fix that before the ranch starts reminding you in louder ways.";
+  if (counts.repairKits <= 0) return "No repair kits on hand? That's exactly when fences decide to develop opinions.";
+  if (counts.materials <= 5) return "You're light on materials. If Petra has plans for you, I'd take a crate before you leave.";
+  if (trust.level >= 4) return "Good timing. I've got the usual stock out front and the better conversations behind the counter.";
+  if (trust.level >= 2) return "Back again? Good. Regular customers are easier to stock for than heroes who arrive after something breaks.";
+  return "Come in, wipe your boots, and don't knock over the feed sacks. Practical goods up front; delicate supplies behind the counter.";
+}
+
+function getTalkCopy(topic: PellaTopic, trustLevel: number): { title: string; body: string; note: string } {
+  switch (topic) {
+    case "stock":
+      return {
+        title: "Keeping a Ranch Stocked",
+        body: "Feed disappears every night, materials disappear whenever somebody gets ambitious, and repair kits disappear five minutes before you remember why I sell them.",
+        note: "The Ranch Shelves carry feed, materials, energy supplies, and repair basics.",
+      };
+    case "counter":
+      return {
+        title: "Behind the Counter",
+        body: "The counter stock is for breeding and nursery work. It costs more because it has to be clean, measured, labeled, and kept away from customers who think every bottle is a snack.",
+        note: trustLevel >= 4
+          ? "You've earned enough trust that Pella treats you like a serious regular when special requests come through."
+          : "Higher Trust with Pella also opens stronger personal Guild requests.",
+      };
+    case "trade":
+      return {
+        title: "Town Trade",
+        body: "Half this town runs on invoices, favors, and somebody remembering who still owes for rope. Keep coin in reserve and buy necessities before shortages turn them into emergencies.",
+        note: "Pella's advice is practical, mildly judgmental, and usually correct.",
+      };
+    case "standing":
+      return {
+        title: "My Standing With You",
+        body: trustLevel >= 5
+          ? "You're on the short list now. I know what your ranch uses, I know you pay, and I know which jobs I can hand you without having to explain them twice."
+          : trustLevel >= 3
+            ? "You're becoming one of my regulars. I pay attention to what you buy, what you actually use, and whether your creatures come back from work in one piece."
+            : trustLevel >= 2
+              ? "You've stopped feeling like a stranger. Keep doing reliable business and I'll keep making the numbers a little kinder."
+              : "We're still new to each other. Buy what you need, follow through on Guild work, and don't make me chase you for payment.",
+        note: "Open the Supply Ledger for exact Trust progress and unlocked benefits.",
+      };
+    default:
+      return {
+        title: "Practical Advice",
+        body: "Buy feed before you run out, buy repair kits before a wall breaks, and never trust a rancher who says they only need one crate of rope.",
+        note: "Pella runs the depot like a storeroom first and a social club a distant second.",
+      };
+  }
+}
+
 export function SupplyDepotScreen() {
-  const { buySupplyDepotItem, currentSave, goToMainMenu, goToTown } =
-    useGameContext();
-  const [message, setMessage] = useState(PELLA_GREETING);
+  const { buySupplyDepotItem, currentSave, goToMainMenu, goToTown } = useGameContext();
+  const [message, setMessage] = useState("");
   const [depotMode, setDepotMode] = useState<DepotMode>("interior");
-  const [activeShelf, setActiveShelf] = useState<DepotShelf>("all");
+  const [activeShelf, setActiveShelf] = useState<DepotShelf>("ranch");
   const shownItems = useMemo(() => getShelfItems(activeShelf), [activeShelf]);
 
   if (!currentSave) {
     return (
-      <main className={styles.emptyScreen}>
-        <section className={styles.emptyPanel}>
+      <main className={styles.screen}>
+        <section className={styles.hubPanel}>
           <h1>No active save</h1>
           <p>Load or create a save before entering the Supply Depot.</p>
-          <button type="button" onClick={goToMainMenu}>
-            Return to Main Menu
-          </button>
+          <button type="button" className={styles.secondaryButton} onClick={goToMainMenu}>Return to Main Menu</button>
         </section>
       </main>
     );
   }
 
-  const activeSave = currentSave;
+  const save = currentSave;
+  const trust = getNpcTrustRecord(save, "pella_mosswick");
+  const trustTier = getTrustTierLabel(trust.level);
+
+  function openShop(shelf: DepotShelf) {
+    setActiveShelf(shelf);
+    setMessage("");
+    setDepotMode("shop");
+  }
 
   function handleBuy(itemId: string) {
     setMessage(buySupplyDepotItem(itemId));
-    setDepotMode("shop");
   }
 
-  function openShop(shelf: DepotShelf = "all") {
-    setActiveShelf(shelf);
-    setMessage(
-      shelf === "special"
-        ? "Pella unlocks the counter cabinet with the breeding and nursery supplies."
-        : shelf === "ranch"
-          ? "Pella points you toward the everyday ranch shelves."
-          : "Pella opens the shop ledger and starts counting your coin before you even choose anything.",
-    );
-    setDepotMode("shop");
-  }
-
-  function openTalk() {
-    const trust = getNpcTrustRecord(activeSave, "pella_mosswick");
-    setMessage(
-      trust.level >= 3
-        ? "Pella grins. You are becoming one of my regulars. That means I can start keeping a few things aside before other ranchers clean me out."
-        : "Pella taps the counter. A rancher who stocks up before trouble is a rancher who sleeps better. Remember that.",
-    );
-    setDepotMode("talk");
-  }
-
-  function openTrust() {
-    setMessage(
-      "Pella flips open a supply ledger full of notes, discounts, favors, and warnings about who still owes her for rope.",
-    );
-    setDepotMode("trust");
-  }
+  const modeLabel = depotMode === "interior"
+    ? "Supply Depot"
+    : depotMode === "shop"
+      ? activeShelf === "special" ? "Counter Cabinet" : activeShelf === "ranch" ? "Ranch Shelves" : "All Stock"
+      : depotMode === "talk"
+        ? "Conversation"
+        : "Supply Ledger";
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <div className={styles.backgroundArt} aria-hidden="true" />
-        <div className={styles.shade} aria-hidden="true" />
+    <main className={styles.screen} data-supply-depot-mode={depotMode}>
+      <div className={styles.scene} aria-hidden="true" />
+      <div className={styles.sceneShade} aria-hidden="true" />
 
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>M44 Supply Depot Integration</p>
-            <h1>The Supply Depot</h1>
-            <p>
-              {PELLA_MOSSWICK.name}, {PELLA_MOSSWICK.title}, keeps the ranch
-              stocked with practical goods and unsolicited local gossip.
-            </p>
-            <p className={styles.message}>{message}</p>
+      <header className={styles.topBar}>
+        <div className={styles.identity}>
+          <span>The Supply Depot · {modeLabel}</span>
+          <strong>{PELLA_MOSSWICK.name}</strong>
+          <small>{PELLA_MOSSWICK.title}</small>
+        </div>
+        <div className={styles.topActions}>
+          <div className={styles.currencyPill}>
+            <img src={ICONS.gold} alt="" />
+            <span><small>Gold</small><strong>{formatGold(save.currencies.gold)}</strong></span>
           </div>
+          {depotMode !== "interior" ? <button type="button" onClick={() => setDepotMode("interior")}>Back to Depot</button> : null}
+          <button type="button" onClick={goToTown}>Back to Town</button>
+        </div>
+      </header>
 
-          <div className={styles.headerActions}>
-            <div className={styles.statBox}>
-              <span>Gold</span>
-              <strong>{formatGold(activeSave.currencies.gold)}</strong>
-            </div>
-            <div className={styles.statBox}>
-              <span>Stock</span>
-              <strong>{getSupplyDepotStockLabel(activeSave)}</strong>
-            </div>
-            <button type="button" className={styles.backButton} onClick={goToTown}>
-              Back to Town
-            </button>
-            <button
-              type="button"
-              className={styles.backButton}
-              onClick={goToMainMenu}
-            >
-              Main Menu
-            </button>
-          </div>
-        </header>
+      {depotMode === "interior" ? (
+        <DepotInterior
+          save={save}
+          trustTier={trustTier}
+          trustPoints={trust.points}
+          onTalk={() => setDepotMode("talk")}
+          onShop={openShop}
+          onTrust={() => setDepotMode("trust")}
+          onLeave={goToTown}
+        />
+      ) : null}
 
-        {depotMode === "interior" ? (
-          <DepotInterior
-            save={activeSave}
-            onTalk={openTalk}
-            onShop={openShop}
-            onTrust={openTrust}
-          />
-        ) : null}
+      {depotMode === "shop" ? (
+        <DepotShopPanel
+          save={save}
+          shownItems={shownItems}
+          activeShelf={activeShelf}
+          message={message}
+          onShelf={setActiveShelf}
+          onBuy={handleBuy}
+        />
+      ) : null}
 
-        {depotMode === "talk" ? (
-          <PellaTalkPanel
-            save={activeSave}
-            onBack={() => setDepotMode("interior")}
-            onShop={openShop}
-            onTrust={openTrust}
-          />
-        ) : null}
+      {depotMode === "talk" ? (
+        <PellaConversation save={save} onShop={openShop} onTrust={() => setDepotMode("trust")} />
+      ) : null}
 
-        {depotMode === "trust" ? (
-          <PellaTrustPanel
-            save={activeSave}
-            onBack={() => setDepotMode("interior")}
-            onShop={openShop}
-          />
-        ) : null}
-
-        {depotMode === "shop" ? (
-          <DepotShopPanel
-            save={activeSave}
-            shownItems={shownItems}
-            activeShelf={activeShelf}
-            onShelf={setActiveShelf}
-            onBuy={handleBuy}
-            onBack={() => setDepotMode("interior")}
-          />
-        ) : null}
-      </section>
+      {depotMode === "trust" ? (
+        <PellaSupplyLedger save={save} onShop={openShop} />
+      ) : null}
     </main>
   );
 }
 
-function DepotInterior({
-  save,
-  onTalk,
-  onShop,
-  onTrust,
-}: {
+function DepotInterior({ save, trustTier, trustPoints, onTalk, onShop, onTrust, onLeave }: {
   save: GameSave;
+  trustTier: string;
+  trustPoints: number;
   onTalk: () => void;
-  onShop: (shelf?: DepotShelf) => void;
+  onShop: (shelf: DepotShelf) => void;
   onTrust: () => void;
+  onLeave: () => void;
 }) {
+  const counts = getSupplyDepotSupplyCounts(save);
   return (
-    <section
-      aria-label="Supply Depot interior"
-      style={{
-        position: "relative",
-        zIndex: 2,
-        minHeight: "calc(100vh - 230px)",
-        padding: "28px 34px 34px",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.58)), url(${ICONS.shelves}) center/cover`,
-          opacity: 0.44,
-        }}
-      />
+    <section className={styles.interior} aria-label="Supply Depot interior">
+      <aside className={styles.hubPanel}>
+        <div className={styles.speakerRow}>
+          <img src={ICONS.pella} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+          <div><span>Supply Depot Keeper</span><h1>{PELLA_MOSSWICK.name}</h1></div>
+          <b className={styles.trustPill}>{trustTier} · {trustPoints} Trust</b>
+        </div>
+        <div className={styles.dialogue}>“{getPellaGreeting(save)}”</div>
+        <p className={styles.sectionLabel}>What do you need?</p>
+        <div className={styles.actionList}>
+          <button type="button" className={styles.actionButton} onClick={() => onShop("ranch")}>
+            <img src={ICONS.shelfProp} alt="" /><span><strong>Ranch Supplies</strong><small>Feed, materials, energy, and repairs</small></span><b className={styles.actionValue}>{counts.feed} Feed · {counts.materials} Materials</b>
+          </button>
+          <button type="button" className={styles.actionButton} onClick={() => onShop("special")}>
+            <img src={ICONS.counterCabinet} alt="" /><span><strong>Special Supplies</strong><small>Breeding and nursery stock</small></span><b className={styles.actionValue}>Counter Cabinet</b>
+          </button>
+          <button type="button" className={styles.actionButton} onClick={onTalk}>
+            <img src={ICONS.pella} alt="" /><span><strong>Talk to Pella</strong><small>Supplies, trade, and unsolicited advice</small></span><b className={styles.actionValue}>Talk</b>
+          </button>
+          <button type="button" className={styles.actionButton} onClick={onTrust}>
+            <img src={ICONS.stockLedger} alt="" /><span><strong>Supply Ledger</strong><small>Trust, discounts, and current ranch stock</small></span><b className={styles.actionValue}>{trustTier}</b>
+          </button>
+        </div>
+        <button type="button" className={styles.leaveButton} onClick={onLeave}>Leave Supply Depot</button>
+      </aside>
 
-      <div
-        style={{
-          position: "relative",
-          zIndex: 3,
-          display: "grid",
-          gridTemplateColumns: "minmax(260px, 360px) minmax(0, 1fr)",
-          gap: 26,
-          alignItems: "end",
-          minHeight: "58vh",
-        }}
-      >
-        <aside style={getPanelStyle()}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "76px minmax(0,1fr)",
-              gap: 12,
-              alignItems: "center",
-            }}
-          >
-            <img
-              src={ICONS.pella}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = ICONS.shop;
-              }}
-              style={{
-                width: 76,
-                height: 76,
-                objectFit: "cover",
-                borderRadius: 999,
-                border: "1px solid rgba(245,201,128,.55)",
-              }}
-            />
-            <div>
-              <p className={styles.kicker}>Supply Depot Keeper</p>
-              <h2 style={{ margin: 0 }}>Pella Mosswick</h2>
-              <p style={{ margin: "6px 0 0" }}>
-                {getNpcTrustSummary(save, "pella_mosswick")}
-              </p>
-            </div>
+      <figure className={styles.pellaFigure} aria-label="Pella Mosswick">
+        <img src={ICONS.pella} alt="Pella Mosswick" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+      </figure>
+
+      <button type="button" className={`${styles.hotspot} ${styles.ranchHotspot}`} onClick={() => onShop("ranch")}>
+        <img src={ICONS.shelfProp} alt="" /><span><strong>Ranch Shelves</strong><small>Feed · Materials · Repairs</small></span>
+      </button>
+      <button type="button" className={`${styles.hotspot} ${styles.counterHotspot}`} onClick={() => onShop("special")}>
+        <img src={ICONS.counterCabinet} alt="" /><span><strong>Counter Cabinet</strong><small>Breeding · Nursery</small></span>
+      </button>
+    </section>
+  );
+}
+
+function DepotShopPanel({ save, shownItems, activeShelf, message, onShelf, onBuy }: {
+  save: GameSave;
+  shownItems: SupplyDepotItem[];
+  activeShelf: DepotShelf;
+  message: string;
+  onShelf: (shelf: DepotShelf) => void;
+  onBuy: (itemId: string) => void;
+}) {
+  const counts = getSupplyDepotSupplyCounts(save);
+  const usageRows = getSupplyDepotUsageRows(save);
+  const ownedById = new Map(usageRows.map((row) => [row.item.itemId, row.countLabel]));
+  const trust = getNpcTrustRecord(save, "pella_mosswick");
+  const discount = Math.round((1 - getPellaSupplyPriceMultiplier(save)) * 100);
+  const title = activeShelf === "special" ? "Counter Cabinet" : activeShelf === "ranch" ? "Ranch Shelves" : "All Depot Stock";
+  const subtitle = activeShelf === "special"
+    ? "Breeding and nursery supplies Pella keeps behind the counter."
+    : activeShelf === "ranch"
+      ? "The practical goods that keep a ranch fed, repaired, and moving."
+      : "Everything Pella currently sells in one ledger.";
+
+  return (
+    <section className={styles.subpage} aria-label="Supply Depot storefront">
+      <div className={styles.subpageHeader}>
+        <div><span className={styles.kicker}>Depot Stock</span><h1>{title}</h1><p>{subtitle}</p></div>
+        <b className={styles.trustPill}>{getTrustTierLabel(trust.level)} · {discount}% price discount</b>
+      </div>
+
+      <div className={styles.shopLayout}>
+        <aside className={styles.shopSidebar}>
+          <div className={styles.shopKeeper}>
+            <img src={ICONS.pella} alt="Pella Mosswick" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+            <div><span className={styles.kicker}>Keeper</span><h2>Pella Mosswick</h2><small>{trust.points} Trust</small></div>
           </div>
-
-          <p style={{ marginTop: 16, lineHeight: 1.55 }}>{PELLA_GREETING}</p>
-
-          <div style={getMiniSupplyGridStyle()}>
-            {getSupplyDepotUsageRows(save).slice(0, 4).map((row) => (
-              <div key={row.item.itemId} className={styles.infoCard}>
-                <img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
-                <span>{row.item.name}</span>
-                <strong>{row.countLabel}</strong>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
-            <button type="button" className={styles.buyButton} onClick={onTalk}>
-              Talk to Pella
-            </button>
-            <button
-              type="button"
-              className={styles.buyButton}
-              onClick={() => onShop("all")}
-            >
-              Open Depot Stock
-            </button>
-            <button
-              type="button"
-              className={styles.buyButton}
-              onClick={() => onShop("special")}
-            >
-              Special Supplies
-            </button>
-            <button type="button" className={styles.buyButton} onClick={onTrust}>
-              Supply Ledger
-            </button>
+          <p className={styles.shopSidebarQuote}>“Take what you need. Take two if it's the sort of thing you'll regret only buying one of.”</p>
+          <div className={styles.stockMiniGrid}>
+            <div className={styles.statChip}><span>Feed</span><strong>{counts.feed}</strong></div>
+            <div className={styles.statChip}><span>Materials</span><strong>{counts.materials}</strong></div>
+            <div className={styles.statChip}><span>Repair Kits</span><strong>{counts.repairKits}</strong></div>
+            <div className={styles.statChip}><span>Nursery Kits</span><strong>{counts.nurserySupplyKits}</strong></div>
           </div>
         </aside>
 
-        <div style={{ position: "relative", minHeight: 430 }}>
-          <button
-            type="button"
-            style={{
-              ...getInteriorButtonStyle(),
-              position: "absolute",
-              left: "10%",
-              top: "38%",
-            }}
-            onClick={() => onShop("ranch")}
-          >
-            <img
-              src={ICONS.shelfProp}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = ICONS.register;
-              }}
-              style={{ width: 76, height: 76, objectFit: "contain" }}
-            />
-            <strong>Ranch Shelves</strong>
-            <span style={{ color: "#7fdbff", fontWeight: 900 }}>
-              Feed - Materials - Repairs
-            </span>
-          </button>
-
-          <button
-            type="button"
-            style={{
-              ...getInteriorButtonStyle(),
-              position: "absolute",
-              right: "7%",
-              top: "31%",
-            }}
-            onClick={onTalk}
-          >
-            <img
-              src={ICONS.pella}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = ICONS.shop;
-              }}
-              style={{
-                width: 66,
-                height: 66,
-                objectFit: "cover",
-                borderRadius: 999,
-              }}
-            />
-            <strong>Pella Mosswick</strong>
-            <span style={{ color: "#7fdbff", fontWeight: 900 }}>
-              Talk - Trust - Notes
-            </span>
-          </button>
-
-          <button
-            type="button"
-            style={{
-              ...getInteriorButtonStyle(),
-              position: "absolute",
-              left: "38%",
-              bottom: "8%",
-            }}
-            onClick={() => onShop("special")}
-          >
-            <img
-              src={ICONS.counterCabinet}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = ICONS.shop;
-              }}
-              style={{ width: 76, height: 76, objectFit: "contain" }}
-            />
-            <strong>Counter Cabinet</strong>
-            <span style={{ color: "#7fdbff", fontWeight: 900 }}>
-              Breeding - Nursery
-            </span>
-          </button>
-        </div>
+        <section className={styles.shopMain}>
+          <div className={styles.shopToolbar}>
+            <div><span className={styles.kicker}>Browse Stock</span></div>
+            <div className={styles.filters}>
+              {(["ranch", "special", "all"] as DepotShelf[]).map((shelf) => (
+                <button key={shelf} type="button" className={`${styles.filterButton} ${activeShelf === shelf ? styles.filterActive : ""}`} onClick={() => onShelf(shelf)}>
+                  {shelf === "ranch" ? "Ranch Shelves" : shelf === "special" ? "Counter Cabinet" : "All Stock"}
+                </button>
+              ))}
+            </div>
+          </div>
+          {message ? <div className={styles.purchaseMessage}>{message}</div> : null}
+          <div className={styles.productGrid}>
+            {shownItems.map((item) => {
+              const price = getSupplyDepotPrice(save, item);
+              const canAfford = save.currencies.gold >= price;
+              return (
+                <article key={item.itemId} className={styles.productCard}>
+                  <div className={styles.productArt}><img src={item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} /></div>
+                  <div className={styles.productInfo}>
+                    <span className={styles.cardEyebrow}>{item.rarity} · {item.category}</span>
+                    <h3>{item.name}</h3>
+                    <p>{item.description}</p>
+                    <p className={styles.purchaseEffect}>{item.purchaseLabel} · {item.storageLabel}</p>
+                    <p>{item.usageLabel}</p>
+                  </div>
+                  <div className={styles.productFooter}>
+                    <span className={styles.ownedLabel}>You own: {ownedById.get(item.itemId) ?? "0"}</span>
+                    <span className={styles.priceLabel}><img src={ICONS.price} alt="" />{formatGold(price)}</span>
+                    <button type="button" className={styles.buyButton} disabled={!canAfford} onClick={() => onBuy(item.itemId)}>{canAfford ? "Buy" : "Need Gold"}</button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
       </div>
     </section>
   );
 }
 
-function PellaTalkPanel({
-  save,
-  onBack,
-  onShop,
-  onTrust,
-}: {
+function PellaConversation({ save, onShop, onTrust }: {
   save: GameSave;
-  onBack: () => void;
-  onShop: (shelf?: DepotShelf) => void;
+  onShop: (shelf: DepotShelf) => void;
   onTrust: () => void;
 }) {
   const trust = getNpcTrustRecord(save, "pella_mosswick");
-  const line =
-    trust.level >= 4
-      ? "You have earned a place on my better customer list. I warn you before shortages and keep the stranger supplies off the open shelf until you ask."
-      : trust.level >= 2
-        ? "You buy regularly and you do not haggle like a raccoon in a grain bin. I can shave a little off the price and still sleep at night."
-        : "Buy feed before you run out, buy repair kits before a wall breaks, and never trust a rancher who says they only need one crate of rope.";
+  const [topic, setTopic] = useState<PellaTopic>("advice");
+  const copy = getTalkCopy(topic, trust.level);
+  const topics: Array<{ id: PellaTopic; title: string; subtitle: string }> = [
+    { id: "advice", title: "Practical Advice", subtitle: "Pella's rules for avoiding preventable disasters" },
+    { id: "stock", title: "Keeping a Ranch Stocked", subtitle: "Feed, materials, energy, and repairs" },
+    { id: "counter", title: "Special Supplies", subtitle: "What Pella keeps behind the counter" },
+    { id: "trade", title: "Town Trade", subtitle: "Coin, shortages, favors, and local business" },
+    { id: "standing", title: "My Standing With You", subtitle: "How Pella views your ranch" },
+  ];
 
   return (
-    <section
-      style={{
-        position: "relative",
-        zIndex: 3,
-        padding: 24,
-        display: "grid",
-        gridTemplateColumns: "320px minmax(0, 1fr)",
-        gap: 18,
-      }}
-    >
-      <aside style={getPanelStyle()}>
-        <img
-          src={ICONS.pella}
-          alt=""
-          onError={(event) => {
-            event.currentTarget.src = ICONS.shop;
-          }}
-          style={{
-            width: "100%",
-            maxHeight: 280,
-            objectFit: "cover",
-            borderRadius: 8,
-            border: "1px solid rgba(245,201,128,.45)",
-          }}
-        />
-        <h2>Pella Mosswick</h2>
-        <p>{getNpcTrustSummary(save, "pella_mosswick")}</p>
-      </aside>
-
-      <section style={getPanelStyle()}>
-        <p className={styles.kicker}>Conversation</p>
-        <h2>Practical Advice</h2>
-        <p style={{ fontSize: "1.05rem", lineHeight: 1.65 }}>{line}</p>
-        <p style={{ lineHeight: 1.6 }}>
-          Pella explains which shelves hold everyday ranch supplies and which
-          counter cabinet stores the more delicate breeding and nursery items.
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          <button
-            type="button"
-            className={styles.buyButton}
-            onClick={() => onShop("all")}
-          >
-            Open Stock
-          </button>
-          <button
-            type="button"
-            className={styles.buyButton}
-            onClick={() => onShop("special")}
-          >
-            Special Supplies
-          </button>
-          <button type="button" className={styles.buyButton} onClick={onTrust}>
-            Supply Ledger
-          </button>
-          <button type="button" className={styles.backButton} onClick={onBack}>
-            Back to Depot
-          </button>
+    <section className={styles.conversationLayout} aria-label="Conversation with Pella Mosswick">
+      <div className={styles.conversationPanel}>
+        <div className={styles.speakerRow}>
+          <img src={ICONS.pella} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+          <div><span>Supply Depot Keeper</span><h2>Pella Mosswick</h2></div>
+          <b className={styles.trustPill}>{getTrustTierLabel(trust.level)} · {trust.points} Trust</b>
         </div>
-      </section>
-    </section>
-  );
-}
-
-function PellaTrustPanel({
-  save,
-  onBack,
-  onShop,
-}: {
-  save: GameSave;
-  onBack: () => void;
-  onShop: (shelf?: DepotShelf) => void;
-}) {
-  const usageRows = getSupplyDepotUsageRows(save);
-
-  return (
-    <section
-      style={{
-        position: "relative",
-        zIndex: 3,
-        padding: 24,
-        display: "grid",
-        gridTemplateColumns: "320px minmax(0, 1fr)",
-        gap: 18,
-      }}
-    >
-      <aside style={getPanelStyle()}>
-        <img
-          src={ICONS.stockLedger}
-          alt=""
-          onError={(event) => {
-            event.currentTarget.src = ICONS.register;
-          }}
-          style={{
-            width: "100%",
-            maxHeight: 260,
-            objectFit: "contain",
-            borderRadius: 8,
-            border: "1px solid rgba(245,201,128,.45)",
-          }}
-        />
-        <h2>Stock Ledger</h2>
-        <p>{getNpcTrustSummary(save, "pella_mosswick")}</p>
-        <p>
-          <strong>Next:</strong> {getNpcNextUnlock(save, "pella_mosswick")}
-        </p>
-        <p>{PELLA_MOSSWICK.intro}</p>
-      </aside>
-
-      <section style={getPanelStyle()}>
-        <p className={styles.kicker}>Current Supplies</p>
-        <h2>Depot Storage & Usage</h2>
-        <div className={styles.listings}>
-          {usageRows.map((row) => (
-            <article key={row.item.itemId} className={styles.listingCard}>
-              <div style={{ display: "grid", gridTemplateColumns: "76px minmax(0, 1fr)", gap: 12, alignItems: "start" }}>
-                <div style={{ minHeight: 76, display: "grid", placeItems: "center", border: "1px solid rgba(245,201,128,.35)", borderRadius: 10, background: "rgba(255,247,221,.08)" }}>
-                  <img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} style={{ width: 66, height: 66, objectFit: "contain" }} />
-                </div>
-                <div>
-                  <p className={styles.kicker}>{row.storageLabel}</p>
-                  <h3>{row.item.name}</h3>
-                  <p style={{ color: "#7fdbff", fontWeight: 900 }}>{row.countLabel}</p>
-                  <p>{row.usageLabel}</p>
-                </div>
-              </div>
-            </article>
+        <div className={styles.dialogue}>
+          <span className={styles.kicker}>{copy.title}</span>
+          <div>“{copy.body}”</div>
+          <small>{copy.note}</small>
+        </div>
+        <p className={styles.sectionLabel}>What do you want to ask?</p>
+        <div className={styles.topicList}>
+          {topics.map((item) => (
+            <button key={item.id} type="button" className={`${styles.topicButton} ${topic === item.id ? styles.topicButtonActive : ""}`} onClick={() => setTopic(item.id)}>
+              <span><strong>{item.title}</strong><small>{item.subtitle}</small></span><b>›</b>
+            </button>
           ))}
         </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
-          <button
-            type="button"
-            className={styles.buyButton}
-            onClick={() => onShop("all")}
-          >
-            Open All Stock
-          </button>
-          <button
-            type="button"
-            className={styles.buyButton}
-            onClick={() => onShop("special")}
-          >
-            Special Supplies
-          </button>
-          <button type="button" className={styles.backButton} onClick={onBack}>
-            Back to Depot
-          </button>
+        <div className={styles.conversationLinks}>
+          <button type="button" className={styles.secondaryButton} onClick={() => onShop("ranch")}>Open Ranch Shelves</button>
+          <button type="button" className={styles.secondaryButton} onClick={() => onShop("special")}>Counter Cabinet</button>
+          <button type="button" className={styles.secondaryButton} onClick={onTrust}>Open Supply Ledger</button>
         </div>
-      </section>
+      </div>
+      <figure className={styles.conversationFigure}><img src={ICONS.pella} alt="Pella Mosswick" onError={(event) => { event.currentTarget.src = ICONS.shop; }} /></figure>
     </section>
   );
 }
 
-function DepotShopPanel({
-  save,
-  shownItems,
-  activeShelf,
-  onShelf,
-  onBuy,
-  onBack,
-}: {
-  save: GameSave;
-  shownItems: SupplyDepotItem[];
-  activeShelf: DepotShelf;
-  onShelf: (shelf: DepotShelf) => void;
-  onBuy: (itemId: string) => void;
-  onBack: () => void;
-}) {
-  const usageRows = getSupplyDepotUsageRows(save);
+function PellaSupplyLedger({ save, onShop }: { save: GameSave; onShop: (shelf: DepotShelf) => void }) {
+  const trust = getNpcTrustRecord(save, "pella_mosswick");
+  const nextThreshold = getNextTrustThreshold(trust.points);
+  const currentThreshold = getThresholdForLevel(trust.level);
+  const span = nextThreshold ? Math.max(1, nextThreshold - currentThreshold) : 1;
+  const progress = nextThreshold ? Math.max(0, Math.min(100, ((trust.points - currentThreshold) / span) * 100)) : 100;
+  const counts = getSupplyDepotSupplyCounts(save);
+  const discount = Math.round((1 - getPellaSupplyPriceMultiplier(save)) * 100);
+  const benefits = [
+    { level: 1, icon: ICONS.shelfProp, title: "Depot Stock Access", detail: "Standard Supply Depot inventory and everyday ranch goods." },
+    { level: 2, icon: ICONS.price, title: "Regular Customer Pricing", detail: "5% cheaper Supply Depot prices and Pella personal Guild requests." },
+    { level: 3, icon: ICONS.stockLedger, title: "Priority Supply Requests", detail: "Priority Pella personal requests with enhanced rewards." },
+    { level: 4, icon: ICONS.counterCabinet, title: "Gold Personal Requests", detail: "Gold-tier Pella personal Guild requests become available." },
+    { level: 5, icon: ICONS.shop, title: "Confidant Pricing", detail: "12% cheaper Supply Depot prices and Confidant request rewards." },
+  ];
 
   return (
-    <section
-      className={styles.grid}
-      style={{ position: "relative", zIndex: 3, padding: "14px 18px 24px" }}
-    >
-      <aside className={styles.panel}>
-        <h2>Pella Mosswick</h2>
+    <section className={styles.subpage} aria-label="Pella Supply Ledger">
+      <div className={styles.ledgerLayout}>
+        <aside className={styles.ledgerAside}>
+          <img src={ICONS.stockLedger} alt="Supply ledger" onError={(event) => { event.currentTarget.src = ICONS.register; }} />
+          <span className={styles.kicker}>Supply Depot Keeper</span>
+          <h2>Pella Mosswick</h2>
+          <p>“A good ledger tells you what you have. A great ledger tells you what you're about to regret not buying.”</p>
+          <div className={styles.statChip}><span>Current Discount</span><strong>{discount}%</strong></div>
+          <div className={styles.statChip}><span>Current Trust</span><strong>{trust.points}</strong></div>
+        </aside>
 
-        <div className={styles.sideList}>
-          <div className={styles.infoCard}>
-            <img
-              src={PELLA_MOSSWICK.portraitPath}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = ICONS.shop;
-              }}
-            />
-            <span>Keeper</span>
-            <strong>{PELLA_MOSSWICK.name}</strong>
-          </div>
-
-          <div className={styles.infoCard}>
-            <span>Current Stock</span>
-            <strong>{getSupplyDepotStockLabel(save)}</strong>
-          </div>
-
-          {usageRows.slice(0, 5).map((row) => (
-            <div key={row.item.itemId} className={styles.infoCard}>
-              <img src={row.item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
-              <span>{row.storageLabel}</span>
-              <strong>{row.countLabel}</strong>
+        <main className={styles.ledgerMain}>
+          <section className={styles.standingCard}>
+            <div className={styles.standingHeader}>
+              <div><span className={styles.kicker}>Your Standing</span><h1>{getTrustTierLabel(trust.level)}</h1></div>
+              <strong>{nextThreshold ? `${trust.points} / ${nextThreshold} Trust` : `${trust.points} Trust · Max`}</strong>
             </div>
-          ))}
+            <div className={styles.progressTrack}><span style={{ width: `${progress}%` }} /></div>
+            <div className={styles.nextUnlock}><span>Next relationship unlock</span><strong>{trust.level >= 5 ? "Maximum Trust reached" : getNpcNextUnlock(save, "pella_mosswick")}</strong></div>
+          </section>
 
-          <div className={styles.infoCard}>
-            <span>Trust</span>
-            <strong>{getNpcTrustSummary(save, "pella_mosswick")}</strong>
-          </div>
-
-          <button type="button" className={styles.backButton} onClick={onBack}>
-            Back to Depot
-          </button>
-        </div>
-      </aside>
-
-      <section className={styles.panel} aria-label="Supply Depot stock">
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            gap: 12,
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <div>
-            <p className={styles.kicker}>Depot Stock</p>
-            <h2 style={{ margin: 0 }}>Shop Items</h2>
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            <button
-              type="button"
-              className={activeShelf === "all" ? styles.buyButton : styles.backButton}
-              onClick={() => onShelf("all")}
-            >
-              All
-            </button>
-            <button
-              type="button"
-              className={activeShelf === "ranch" ? styles.buyButton : styles.backButton}
-              onClick={() => onShelf("ranch")}
-            >
-              Ranch
-            </button>
-            <button
-              type="button"
-              className={
-                activeShelf === "special" ? styles.buyButton : styles.backButton
-              }
-              onClick={() => onShelf("special")}
-            >
-              Special
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.listings}>
-          {shownItems.map((item) => {
-            const price = getSupplyDepotPrice(save, item);
-            const canAfford = save.currencies.gold >= price;
-
-            return (
-              <article key={item.itemId} className={styles.listingCard}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "96px minmax(0, 1fr)",
-                    gap: 14,
-                    alignItems: "start",
-                  }}
-                >
-                  <div
-                    style={{
-                      minHeight: 96,
-                      display: "grid",
-                      placeItems: "center",
-                      border: "1px solid rgba(245,201,128,.35)",
-                      borderRadius: 10,
-                      background: "rgba(255,247,221,.08)",
-                    }}
-                  >
-                    <img
-                      src={item.iconPath}
-                      alt=""
-                      onError={(event) => {
-                        event.currentTarget.src = ICONS.shop;
-                      }}
-                      style={{ width: 86, height: 86, objectFit: "contain" }}
-                    />
+          <section className={styles.pathSection}>
+            <div className={styles.sectionHeading}><span className={styles.kicker}>Relationship Path</span><small>Trust with Pella affects prices and personal Guild work.</small></div>
+            <div className={styles.trustPath}>
+              {TRUST_THRESHOLDS.map((threshold, index) => {
+                const level = index + 1;
+                const reached = trust.points >= threshold;
+                const current = trust.level === level;
+                return (
+                  <div key={threshold} className={`${styles.pathStep} ${reached ? styles.pathReached : ""} ${current ? styles.pathCurrent : ""}`}>
+                    <div className={styles.pathMarker}>{reached ? "✓" : level}</div>
+                    <strong>{getTrustTierLabel(level)}</strong>
+                    <small>{threshold} Trust</small>
+                    <span>{PELLA_TRUST.trustUnlocks[level as 1 | 2 | 3 | 4 | 5]}</span>
                   </div>
+                );
+              })}
+            </div>
+          </section>
 
-                  <div>
-                    <p className={styles.kicker}>
-                      {item.category} - {item.quantityLabel}
-                    </p>
-                    <h3>{item.name}</h3>
-                    <p>{item.description}</p>
-                    <p style={{ color: "#7fdbff", fontWeight: 900 }}>
-                      {item.purchaseLabel} - {item.storageLabel}
-                    </p>
-                    <p>{item.usageLabel}</p>
-                  </div>
-                </div>
+          <section className={styles.benefitsSection}>
+            <div className={styles.sectionHeading}><span className={styles.kicker}>Depot Benefits</span><small>Unlocked benefits apply immediately.</small></div>
+            <div className={styles.benefitGrid}>
+              {benefits.map((benefit) => {
+                const active = trust.level >= benefit.level;
+                const next = !active && benefit.level === trust.level + 1;
+                return (
+                  <article key={benefit.level} className={`${styles.benefitCard} ${active ? styles.benefitActive : ""} ${next ? styles.benefitNext : ""}`}>
+                    <img src={benefit.icon} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} />
+                    <div><span className={styles.perkState}>{active ? "Active" : next ? "Next" : "Locked"}</span><h3>{benefit.title}</h3><p>{benefit.detail}</p></div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
 
-                <div className={styles.price}>
-                  <img src={ICONS.price} alt="" />
-                  <span>Price</span>
-                  <strong>{formatGold(price)}</strong>
-                </div>
+          <section className={styles.stockRecord}>
+            <div className={styles.sectionHeading}><span className={styles.kicker}>Current Ranch Stock</span><small>Live counts from Pella's supply ledger.</small></div>
+            <div className={styles.stockRecordGrid}>
+              <div className={styles.recordCard}><span>Feed</span><strong>{counts.feed}</strong></div>
+              <div className={styles.recordCard}><span>Materials</span><strong>{counts.materials}</strong></div>
+              <div className={styles.recordCard}><span>Repair Kits</span><strong>{counts.repairKits}</strong></div>
+              <div className={styles.recordCard}><span>Nursery Kits</span><strong>{counts.nurserySupplyKits}</strong></div>
+            </div>
+          </section>
 
-                <button
-                  type="button"
-                  className={styles.buyButton}
-                  onClick={() => onBuy(item.itemId)}
-                  disabled={!canAfford}
-                >
-                  {canAfford ? "Buy" : "Need Gold"}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+          <div className={styles.ledgerActions}>
+            <button type="button" className={styles.secondaryButton} onClick={() => onShop("ranch")}>Open Ranch Shelves</button>
+            <button type="button" className={styles.secondaryButton} onClick={() => onShop("special")}>Open Counter Cabinet</button>
+          </div>
+        </main>
+      </div>
     </section>
   );
 }
