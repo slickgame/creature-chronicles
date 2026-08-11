@@ -1,3 +1,31 @@
-.eggAtelierShell > button[class*="quickButton"] {
+/* Egg Atelier hard cleanup.
+   Keep only the shared Player Menu launcher and prevent tutorial-only Quickhatch
+   shortcuts from cluttering Atelier screens. */
+
+/* The Egg Atelier header's first button is its old local Menu action. The shared
+   Player Menu is rendered outside <main>, so this structural selector only
+   removes the obsolete local control. */
+.eggAtelierShell main > section > header > div:last-child > button:first-of-type {
+  display: none !important;
+}
+
+/* With the local Menu gone, the Atelier header is a simple 2x2 resource/nav grid.
+   The shared Player Menu remains fixed in the open space at the far right. */
+.eggAtelierShell main > section > header > div:last-child {
+  grid-template-columns: repeat(2, minmax(128px, 1fr)) !important;
+  width: min(100%, 300px) !important;
+  margin-right: 76px !important;
+}
+
+/* Backup guard for the tutorial shortcut if another wrapper renders it later. */
+.eggAtelierShell button[data-tutorial-id="quickhatch-catalyst"] {
+  display: none !important;
+}
+
+/* Selene's Care Records and Egg Services sidebars used to embed a second
+   Quickhatch chip. In those Atelier sidebars the chip is the only direct child
+   div containing both an image and a text span, so remove that presentation
+   without touching Selene portraits or normal metric rows. */
+.eggAtelierShell main aside > div:has(> img):has(> span) {
   display: none !important;
 }
