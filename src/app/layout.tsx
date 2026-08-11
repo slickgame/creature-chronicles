@@ -11,6 +11,7 @@ import "./mobile-install.css";
 import "./battle-overlay-safe-area.css";
 import "./tutorial-dock.css";
 import "./adoption-hearth-hub.css";
+import "./egg-atelier-tutorial-cleanup.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
