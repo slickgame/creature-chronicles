@@ -1,43 +1,21 @@
 /* Egg Atelier control cleanup.
-   The Atelier keeps its own header Menu presentation, but that button is bridged
-   to the shared Player Menu behavior by EggAtelierUiBridge. */
+   Keep the Atelier header Menu presentation, but hide the separate fixed Player
+   Menu launcher while the same Player Menu remains mounted and callable. */
 
-/* Restore the Atelier-local Menu button even though the earlier polish sheet hid it. */
-.eggAtelierShell main button[class*="menuButton"] {
-  display: grid !important;
-}
-
-/* The global Player Menu launcher is still mounted so its dialog/state remain available,
-   but its old floating launcher is hidden while inside the Atelier. */
-.eggAtelierShell > button[class*="menuButton"],
+.eggAtelierShell [data-player-menu-root="true"][data-player-menu-launcher-hidden="true"] > button,
 .eggAtelierShell button[data-atelier-shared-menu-launcher="true"] {
   display: none !important;
 }
 
-/* Arrange Gold + Nursery Kits above the two navigation buttons, with the Atelier
-   Menu occupying the right-side slot across both rows. */
-.eggAtelierShell main > section > header > div:last-child {
-  grid-template-columns: repeat(2, minmax(128px, 1fr)) 64px !important;
-  width: min(100%, 382px) !important;
-  margin-right: 0 !important;
-  align-items: stretch !important;
-}
-
-.eggAtelierShell main > section > header > div:last-child > button:first-of-type {
+/* The Atelier-local Menu is the one visible launcher. */
+.eggAtelierShell main button[data-atelier-player-menu-launcher="true"] {
   display: grid !important;
-  grid-column: 3 !important;
-  grid-row: 1 / span 2 !important;
-  place-items: center !important;
-  min-width: 64px !important;
 }
 
-/* Tutorial-only Quickhatch shortcut belongs in Inventory/Breeding/Nursery, not Atelier. */
-.eggAtelierShell button[data-tutorial-id="quickhatch-catalyst"] {
-  display: none !important;
-}
-
-/* Egg Atelier panels previously embedded their own Quickhatch inventory chip. */
-.eggAtelierShell main [class*="inventoryChip"],
-.eggAtelierShell [data-atelier-quickhatch-hidden="true"] {
+/* Quickhatch is intentionally surfaced only by relevant inventory/breeding/nursery
+   flows. It should never float over or appear inside Egg Atelier screens. */
+.eggAtelierShell [data-tutorial-id="quickhatch-catalyst"],
+.eggAtelierShell [data-atelier-quickhatch-hidden="true"],
+.eggAtelierShell main [class*="inventoryChip"] {
   display: none !important;
 }
