@@ -12,6 +12,7 @@ import "./battle-overlay-safe-area.css";
 import "./tutorial-dock.css";
 import "./adoption-hearth-hub.css";
 import "./egg-atelier-tutorial-cleanup.css";
+import "./egg-atelier-landing-concept.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
