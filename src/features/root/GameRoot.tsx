@@ -8,6 +8,7 @@ import { ColiseumC2Screen } from "@/features/coliseum/ColiseumC2Screen";
 import { CollectionScreen } from "@/features/collection/CollectionScreenLedger";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
+import { EggAtelierUiBridge } from "@/features/egg-atelier/EggAtelierUiBridge";
 import { GuildAmbitionAdvisor } from "@/features/guild/GuildAmbitionAdvisor";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreenManaged";
@@ -44,7 +45,7 @@ export function GameRoot() {
             <div style={{ padding: 10, background: "rgba(0, 0,0,.35)", borderRadius: 10 }}><span>Shortage</span><strong style={{ display: "block" }}>{String(currentSave.flags.taxShortageAmount ?? 0)} Gold</strong></div>
           </div>
           <p style={{ color: "#e7c991" }}>Keep enough Gold before Day 30 ends to survive the monthly collector check.</p>
-          <button type="button" onClick={exitRunToMainMenu} style={{ minHeight: 42, padding: "10px 18px", border: "2px solid #1c120e", borderRadius: 10, background: "linear-gradient(#fff4c9, #dca755)", color: "#241713", fontWeight: 900 }}>Return to Main Menu</button>
+          <button type="button" onClick={exitRunToMainMenu} style={{ minHeight: 42, padding: "10px 18px", border: "2px solid #1c120e", borderRadius: 10, background: "linear-gradient(#fff4c9,#dca755)", color: "#241713", fontWeight: 900 }}>Return to Main Menu</button>
           <footer style={{ marginTop: 18, opacity: 0.75 }}>{version}</footer>
         </section>
       </main>
@@ -76,6 +77,16 @@ export function GameRoot() {
   else if (appScreen === "ranch-office") screen = <RanchOfficeScreen />;
   else if (appScreen === "ranch-jobs") screen = <RanchJobsScreen />;
   else if (appScreen === "dev-tools") screen = <DevToolsScreen />;
+
+  if (appScreen === "egg-atelier") {
+    return (
+      <div className="eggAtelierShell">
+        {screen}
+        {currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug" ? <PlayerInventoryMenu /> : null}
+        <EggAtelierUiBridge />
+      </div>
+    );
+  }
 
   return (
     <>
