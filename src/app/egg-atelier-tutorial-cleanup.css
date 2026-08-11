@@ -1,0 +1,3 @@
+.eggAtelierShell > button[class*="quickButton"] {
+  display: none !important;
+}
