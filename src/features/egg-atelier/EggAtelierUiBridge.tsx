@@ -2,17 +2,10 @@
 
 import { useEffect } from "react";
 
-function normalizeButtonText(button: HTMLButtonElement): string {
-  return (button.textContent ?? "").replace(/\s+/g, " ").trim().toLowerCase();
-}
+const OPEN_PLAYER_MENU_EVENT = "creature-chronicles:open-player-menu";
 
-function findSharedPlayerMenuButton(): HTMLButtonElement | null {
-  return (
-    Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find((button) => {
-      const text = normalizeButtonText(button);
-      return text === "menu" && !button.closest("main");
-    }) ?? null
-  );
+function normalizeText(element: Element): string {
+  return (element.textContent ?? "").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 function findAtelierMenuButton(): HTMLButtonElement | null {
@@ -20,55 +13,66 @@ function findAtelierMenuButton(): HTMLButtonElement | null {
   if (!main) return null;
 
   return (
-    Array.from(main.querySelectorAll<HTMLButtonElement>("button")).find((button) => {
-      const text = normalizeButtonText(button);
+    Array.from(main.querySelectorAll<HTMLButtonElement>("header button")).find((button) => {
+      const text = normalizeText(button);
       return text === "menu" || text === "☰ menu" || text.endsWith(" menu");
     }) ?? null
   );
 }
 
-function hideAtelierQuickhatchPresentation(): void {
-  const main = document.querySelector(".eggAtelierShell main");
-  if (main) {
-    Array.from(main.querySelectorAll<HTMLElement>("span")).forEach((span) => {
-      if (!(span.textContent ?? "").includes("Quickhatch Catalyst")) return;
-      const container = span.closest<HTMLElement>("button, div");
-      if (container) {
-        container.dataset.atelierQuickhatchHidden = "true";
-        container.style.setProperty("display", "none", "important");
-      }
+function hideQuickhatchEverywhereInAtelier(): void {
+  const shell = document.querySelector<HTMLElement>(".eggAtelierShell");
+  if (!shell) return;
+
+  shell
+    .querySelectorAll<HTMLElement>('[data-tutorial-id="quickhatch-catalyst"]')
+    .forEach((element) => {
+      element.dataset.atelierQuickhatchHidden = "true";
+      element.style.setProperty("display", "none", "important");
     });
+
+  Array.from(shell.querySelectorAll<HTMLElement>("span, strong")).forEach((label) => {
+    if (!normalizeText(label).includes("quickhatch catalyst")) return;
+    const container = label.closest<HTMLElement>("button") ?? label.closest<HTMLElement>("div");
+    if (!container) return;
+    container.dataset.atelierQuickhatchHidden = "true";
+    container.style.setProperty("display", "none", "important");
+  });
+}
+
+function hideSharedMenuLauncher(): void {
+  const shell = document.querySelector<HTMLElement>(".eggAtelierShell");
+  if (!shell) return;
+
+  const managedRoot = shell.querySelector<HTMLElement>('[data-player-menu-root="true"]');
+  if (managedRoot) {
+    const launcher = Array.from(managedRoot.querySelectorAll<HTMLButtonElement>("button")).find(
+      (button) => normalizeText(button) === "menu",
+    );
+    if (launcher) {
+      launcher.dataset.atelierSharedMenuLauncher = "true";
+      launcher.style.setProperty("display", "none", "important");
+    }
   }
 
-  document
-    .querySelectorAll<HTMLButtonElement>('button[data-tutorial-id="quickhatch-catalyst"]')
-    .forEach((button) => {
-      if (!button.closest(".eggAtelierShell")) return;
-      button.dataset.atelierQuickhatchHidden = "true";
-      button.style.setProperty("display", "none", "important");
-    });
+  Array.from(shell.querySelectorAll<HTMLButtonElement>("button")).forEach((button) => {
+    if (button.closest("main")) return;
+    if (normalizeText(button) !== "menu") return;
+    button.dataset.atelierSharedMenuLauncher = "true";
+    button.style.setProperty("display", "none", "important");
+  });
 }
 
 export function EggAtelierUiBridge() {
   useEffect(() => {
-    let sharedMenuButton: HTMLButtonElement | null = null;
-    let atelierMenuButton: HTMLButtonElement | null = null;
-
-    const syncControls = () => {
-      sharedMenuButton = findSharedPlayerMenuButton();
-      atelierMenuButton = findAtelierMenuButton();
-
-      if (sharedMenuButton) {
-        sharedMenuButton.dataset.atelierSharedMenuLauncher = "true";
-        sharedMenuButton.style.setProperty("display", "none", "important");
+    const sync = () => {
+      const localMenu = findAtelierMenuButton();
+      if (localMenu) {
+        localMenu.dataset.atelierPlayerMenuLauncher = "true";
+        localMenu.setAttribute("aria-label", "Open player menu");
       }
-
-      if (atelierMenuButton) {
-        atelierMenuButton.dataset.atelierPlayerMenuLauncher = "true";
-        atelierMenuButton.setAttribute("aria-label", "Open player menu");
-      }
-
-      hideAtelierQuickhatchPresentation();
+      hideSharedMenuLauncher();
+      hideQuickhatchEverywhereInAtelier();
     };
 
     const interceptAtelierMenu = (event: MouseEvent) => {
@@ -77,34 +81,30 @@ export function EggAtelierUiBridge() {
       const localMenu = findAtelierMenuButton();
       if (!clickedButton || !localMenu || clickedButton !== localMenu) return;
 
-      const sharedMenu = findSharedPlayerMenuButton();
-      if (!sharedMenu) return;
-
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
-      sharedMenu.click();
+      window.dispatchEvent(new Event(OPEN_PLAYER_MENU_EVENT));
     };
 
-    syncControls();
-    const observer = new MutationObserver(syncControls);
+    sync();
+    const observer = new MutationObserver(sync);
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener("click", interceptAtelierMenu, true);
+
+    const retryTimers = [0, 50, 150, 350, 750].map((delay) =>
+      window.setTimeout(sync, delay),
+    );
 
     return () => {
       observer.disconnect();
       document.removeEventListener("click", interceptAtelierMenu, true);
-      if (sharedMenuButton) {
-        sharedMenuButton.style.removeProperty("display");
-        delete sharedMenuButton.dataset.atelierSharedMenuLauncher;
-      }
-      if (atelierMenuButton) {
-        delete atelierMenuButton.dataset.atelierPlayerMenuLauncher;
-      }
+      retryTimers.forEach((timer) => window.clearTimeout(timer));
       document
-        .querySelectorAll<HTMLElement>('[data-atelier-quickhatch-hidden="true"]')
+        .querySelectorAll<HTMLElement>('[data-atelier-shared-menu-launcher="true"], [data-atelier-quickhatch-hidden="true"]')
         .forEach((element) => {
           element.style.removeProperty("display");
+          delete element.dataset.atelierSharedMenuLauncher;
           delete element.dataset.atelierQuickhatchHidden;
         });
     };
