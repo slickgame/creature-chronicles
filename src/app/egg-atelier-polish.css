@@ -1,0 +1,515 @@
+/* Egg Atelier integration + visual polish.
+   The Atelier keeps its own presentation while reusing the global Player Menu. */
+
+.eggAtelierShell {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* The Atelier-local Menu button used to exit directly to the main menu.
+   Hide it and move the existing global Player Menu launcher into the same header slot. */
+.eggAtelierShell main button[class*="menuButton"] {
+  display: none !important;
+}
+
+.eggAtelierShell main [class*="headerActions"] {
+  grid-template-columns: repeat(2, minmax(128px, 1fr)) !important;
+  width: min(100%, 300px) !important;
+  margin-right: 76px !important;
+}
+
+.eggAtelierShell > button[class*="menuButton"] {
+  position: fixed !important;
+  z-index: 130 !important;
+  top: 17px !important;
+  right: 16px !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 64px !important;
+  min-width: 64px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  padding: 5px 8px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(236, 190, 99, 0.95) !important;
+  border-radius: 18px !important;
+  background:
+    linear-gradient(180deg, #fff0bd 0%, #e7bb66 58%, #c98a31 100%) !important;
+  color: #2b190e !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 0.86rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  box-shadow:
+    0 5px 0 rgba(57, 31, 11, 0.72),
+    0 10px 24px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
+}
+
+.eggAtelierShell > button[class*="menuButton"]::before {
+  content: "☰";
+  display: block;
+  margin-bottom: -3px;
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.eggAtelierShell > button[class*="menuButton"]:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.05) !important;
+}
+
+/* Quickhatch belongs to inventory/tutorial flow, not to every Atelier panel. */
+.eggAtelierShell main [class*="inventoryChip"] {
+  display: none !important;
+}
+
+/* Shared Atelier depth. */
+.eggAtelierShell main [class*="ornatePanel"],
+.eggAtelierShell main [class*="conversationPanel"],
+.eggAtelierShell main [class*="serviceCard"] {
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 232, 167, 0.04) !important;
+}
+
+/* Landing — keep Selene fully visible without an internal scrollbar and make room hotspots feel diegetic. */
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="seleneCard"] {
+  align-self: center !important;
+  max-height: calc(100dvh - 176px) !important;
+  overflow: hidden !important;
+  padding: 16px 18px 17px !important;
+  background:
+    linear-gradient(180deg, rgba(25, 14, 9, 0.94), rgba(12, 8, 6, 0.9)),
+    radial-gradient(circle at 50% 8%, rgba(209, 150, 63, 0.12), transparent 36%) !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="portraitMedallion"] {
+  width: 166px !important;
+  height: 166px !important;
+  margin: 0 auto 10px !important;
+  box-shadow:
+    0 0 0 4px rgba(19, 10, 6, 0.72),
+    0 0 0 6px rgba(216, 164, 75, 0.58),
+    0 14px 28px rgba(0, 0, 0, 0.44) !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="seleneIntro"] {
+  margin: 9px 0 11px !important;
+  font-size: 0.86rem !important;
+  line-height: 1.42 !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="verticalActions"] {
+  gap: 6px !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="verticalActions"] button {
+  min-height: 35px !important;
+  padding: 6px 11px !important;
+  border-radius: 8px !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="stage"] {
+  min-height: 500px !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="hotspot"] {
+  min-width: 188px !important;
+  padding: 13px 16px 12px !important;
+  border-radius: 17px !important;
+  border: 1px solid rgba(237, 186, 88, 0.82) !important;
+  background:
+    linear-gradient(180deg, rgba(18, 12, 9, 0.88), rgba(5, 6, 6, 0.76)),
+    radial-gradient(circle at 50% 0%, rgba(223, 166, 75, 0.15), transparent 62%) !important;
+  backdrop-filter: blur(4px) !important;
+  box-shadow:
+    0 13px 28px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(255, 231, 160, 0.05) inset !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="hotspot"] img {
+  filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.58)) !important;
+}
+
+.eggAtelierShell main section[aria-label="Egg Atelier interior"] [class*="hotspot"]:hover {
+  transform: translateY(-4px) scale(1.02) !important;
+  border-color: #f5c56d !important;
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.5),
+    0 0 22px rgba(236, 178, 76, 0.18) !important;
+}
+
+/* Conversation — closer to a character scene than a generic dashboard. */
+.eggAtelierShell main [class*="talkLayout"] {
+  grid-template-columns: minmax(360px, 0.72fr) minmax(520px, 1.28fr) !important;
+  gap: 18px !important;
+  padding: 16px 26px 28px !important;
+}
+
+.eggAtelierShell main [class*="talkPortrait"] {
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(226, 173, 79, 0.72) !important;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(213, 154, 67, 0.17), transparent 46%),
+    rgba(15, 10, 7, 0.78) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.42) !important;
+}
+
+.eggAtelierShell main [class*="talkPortrait"] > img {
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.36)) !important;
+}
+
+.eggAtelierShell main [class*="conversationPanel"] {
+  align-self: center !important;
+  min-height: 390px !important;
+  padding: 38px 44px !important;
+  border-radius: 16px !important;
+  background:
+    linear-gradient(120deg, rgba(35, 19, 12, 0.96), rgba(14, 10, 8, 0.94)),
+    radial-gradient(circle at 84% 20%, rgba(177, 112, 45, 0.13), transparent 38%) !important;
+}
+
+.eggAtelierShell main [class*="conversationQuote"] {
+  max-width: 860px !important;
+  font-size: clamp(1.2rem, 1.45vw, 1.55rem) !important;
+  line-height: 1.46 !important;
+}
+
+/* Furniture Catalog — preserve the live HTML controls but sell the illusion of a physical folio. */
+.eggAtelierShell main [class*="catalogMain"] {
+  position: relative !important;
+  overflow: visible !important;
+  border: 5px solid rgba(83, 51, 23, 0.92) !important;
+  border-radius: 20px 22px 16px 20px !important;
+  background:
+    radial-gradient(circle at 50% 6%, rgba(255, 245, 201, 0.42), transparent 30%),
+    linear-gradient(90deg, #ead19b 0%, #f4dfac 46%, #d6b879 49.5%, #8c6132 50%, #d4b574 50.5%, #f2dda8 54%, #e9cf95 100%) !important;
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.48),
+    inset 0 0 30px rgba(104, 65, 27, 0.16),
+    inset 0 0 0 2px rgba(255, 245, 214, 0.42) !important;
+}
+
+.eggAtelierShell main [class*="catalogMain"]::before,
+.eggAtelierShell main [class*="catalogMain"]::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.eggAtelierShell main [class*="catalogMain"]::before {
+  inset: 8px;
+  border: 1px solid rgba(118, 78, 37, 0.3);
+  border-radius: 14px;
+  box-shadow: inset 0 0 22px rgba(92, 54, 24, 0.11);
+}
+
+.eggAtelierShell main [class*="catalogMain"]::after {
+  top: 18px;
+  bottom: 62px;
+  left: 50%;
+  width: 14px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(88, 53, 25, 0.3), rgba(255, 242, 199, 0.4), rgba(88, 53, 25, 0.27), transparent);
+  filter: blur(0.2px);
+}
+
+.eggAtelierShell main [class*="catalogHeading"] {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.eggAtelierShell main [class*="catalogEntry"] {
+  position: relative !important;
+  z-index: 2 !important;
+  padding: 22px 26px !important;
+  border-color: rgba(104, 70, 34, 0.26) !important;
+}
+
+.eggAtelierShell main [class*="catalogEntry"] h3,
+.eggAtelierShell main [class*="catalogEntry"] p,
+.eggAtelierShell main [class*="catalogEntry"] span,
+.eggAtelierShell main [class*="catalogEntry"] strong {
+  text-shadow: none !important;
+}
+
+.eggAtelierShell main [class*="catalogArt"] img {
+  filter: drop-shadow(0 9px 8px rgba(83, 52, 22, 0.35)) !important;
+}
+
+.eggAtelierShell main [class*="catalogTabs"] {
+  position: relative !important;
+  z-index: 4 !important;
+  margin: 0 18px -43px !important;
+  gap: 5px !important;
+}
+
+.eggAtelierShell main [class*="catalogTab"] {
+  min-height: 58px !important;
+  border-radius: 0 0 9px 9px !important;
+  border: 2px solid rgba(84, 50, 21, 0.9) !important;
+  background: linear-gradient(#dcb77a, #b88345) !important;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* Registry — make the dossiers read like actual records instead of washed-out cards. */
+.eggAtelierShell main [class*="registryMain"] {
+  background:
+    linear-gradient(180deg, rgba(19, 12, 8, 0.91), rgba(11, 8, 6, 0.93)),
+    radial-gradient(circle at 50% 0%, rgba(178, 112, 44, 0.13), transparent 35%) !important;
+}
+
+.eggAtelierShell main [class*="dossier"] {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 2px solid #9f7843 !important;
+  border-radius: 8px 8px 4px 4px !important;
+  background:
+    linear-gradient(180deg, rgba(248, 228, 184, 0.98), rgba(222, 193, 136, 0.98)),
+    repeating-linear-gradient(0deg, transparent 0 28px, rgba(97, 69, 38, 0.06) 28px 29px) !important;
+  color: #3d2a19 !important;
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, 0.36),
+    inset 0 0 24px rgba(116, 74, 32, 0.12) !important;
+}
+
+.eggAtelierShell main [class*="dossier"]::after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: 17px;
+  width: 20px;
+  height: 66px;
+  border: 3px solid rgba(82, 64, 45, 0.55);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  transform: rotate(4deg);
+  pointer-events: none;
+}
+
+.eggAtelierShell main [class*="dossier"] h3,
+.eggAtelierShell main [class*="dossier"] p,
+.eggAtelierShell main [class*="dossier"] strong {
+  color: #3b291a !important;
+  text-shadow: none !important;
+}
+
+.eggAtelierShell main [class*="dossierLabel"] {
+  color: #4f5a2c !important;
+  border-color: rgba(86, 96, 46, 0.52) !important;
+  background: rgba(231, 223, 176, 0.66) !important;
+}
+
+.eggAtelierShell main [class*="dossierArt"] {
+  border-color: rgba(99, 67, 31, 0.76) !important;
+  background: rgba(23, 17, 10, 0.92) !important;
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.42) !important;
+}
+
+.eggAtelierShell main [class*="dossierPrice"] {
+  border-top-color: rgba(104, 75, 40, 0.38) !important;
+}
+
+.eggAtelierShell main [class*="trustStamp"] {
+  background: rgba(236, 222, 179, 0.72) !important;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Incubator — keep the real workstation central and make service modules feel attached to it. */
+.eggAtelierShell main [class*="servicesShell"] {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 38% 36%, rgba(213, 155, 69, 0.12), transparent 34%),
+    linear-gradient(90deg, rgba(9, 10, 9, 0.86), rgba(19, 12, 8, 0.78)) !important;
+  box-shadow: inset 0 0 0 1px rgba(237, 187, 94, 0.22) !important;
+}
+
+.eggAtelierShell main [class*="workbenchArt"] {
+  filter:
+    saturate(1.04)
+    contrast(1.03)
+    drop-shadow(0 24px 24px rgba(0, 0, 0, 0.5)) !important;
+}
+
+.eggAtelierShell main [class*="selectedEggInfo"] {
+  border-radius: 12px !important;
+  border-color: rgba(231, 183, 92, 0.68) !important;
+  background: linear-gradient(180deg, rgba(25, 16, 10, 0.94), rgba(8, 8, 7, 0.86)) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+.eggAtelierShell main [class*="heroEgg"] {
+  filter:
+    drop-shadow(0 12px 10px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 15px rgba(238, 187, 80, 0.18)) !important;
+}
+
+.eggAtelierShell main [class*="serviceGrid"] {
+  gap: 10px !important;
+}
+
+.eggAtelierShell main [class*="serviceCard"] {
+  border: 1px solid rgba(229, 181, 91, 0.58) !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(180deg, rgba(26, 16, 10, 0.93), rgba(9, 9, 8, 0.9)),
+    radial-gradient(circle at 9% 10%, rgba(219, 163, 70, 0.12), transparent 28%) !important;
+}
+
+.eggAtelierShell main [class*="serviceIcon"] {
+  border-color: rgba(229, 181, 91, 0.58) !important;
+  background: radial-gradient(circle, rgba(227, 171, 77, 0.14), rgba(0, 0, 0, 0.28)) !important;
+}
+
+.eggAtelierShell main [class*="appraisalNotice"] {
+  border-radius: 9px !important;
+  border-color: rgba(91, 205, 246, 0.5) !important;
+  background: linear-gradient(90deg, rgba(15, 52, 64, 0.88), rgba(10, 24, 28, 0.74)) !important;
+}
+
+.eggAtelierShell main [class*="eggDrawer"] {
+  border-top: 2px solid rgba(211, 155, 68, 0.6) !important;
+  background:
+    linear-gradient(180deg, rgba(74, 35, 18, 0.66), rgba(25, 14, 9, 0.9)) !important;
+  box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Care records — tone the bright sheet into an old specialist ledger and add a page seam. */
+.eggAtelierShell main [class*="ledgerMain"] {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 5px solid rgba(50, 71, 61, 0.85) !important;
+  border-radius: 12px !important;
+  background:
+    radial-gradient(circle at 22% 12%, rgba(255, 246, 203, 0.38), transparent 25%),
+    linear-gradient(90deg, #ead6a8 0%, #f1ddb0 48%, #c7aa77 49.5%, #907049 50%, #c5a874 50.5%, #efdbab 52%, #e5ca94 100%) !important;
+  color: #47311e !important;
+  box-shadow:
+    0 20px 38px rgba(0, 0, 0, 0.44),
+    inset 0 0 32px rgba(80, 55, 25, 0.12) !important;
+}
+
+.eggAtelierShell main [class*="ledgerMain"]::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 18px;
+  bottom: 18px;
+  left: 50%;
+  width: 8px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(91, 65, 36, 0.18), rgba(255, 248, 213, 0.38), rgba(91, 65, 36, 0.16), transparent);
+  pointer-events: none;
+}
+
+.eggAtelierShell main [class*="ledgerMain"] > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.eggAtelierShell main [class*="ledgerMain"] h2,
+.eggAtelierShell main [class*="ledgerMain"] [class*="kicker"],
+.eggAtelierShell main [class*="ledgerMain"] [class*="installHeading"] {
+  color: #3f3926 !important;
+  text-shadow: none !important;
+}
+
+.eggAtelierShell main [class*="benefitRow"] {
+  border-color: rgba(99, 72, 39, 0.24) !important;
+  background: rgba(255, 246, 216, 0.3) !important;
+  color: #4c3520 !important;
+}
+
+.eggAtelierShell main [class*="benefitRow"] span {
+  color: #553b23 !important;
+}
+
+.eggAtelierShell main [class*="benefitRow"] strong {
+  color: #0a6f98 !important;
+  text-shadow: none !important;
+}
+
+.eggAtelierShell main [class*="installBadge"] {
+  border: 1px solid rgba(103, 75, 40, 0.26) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 245, 209, 0.24) !important;
+  color: #4c3520 !important;
+}
+
+.eggAtelierShell main [class*="installBadge"] strong {
+  color: #4c3520 !important;
+  text-shadow: none !important;
+}
+
+/* Compact side panels now that tutorial inventory chips are gone. */
+.eggAtelierShell main [class*="modeLayout"] > aside[class*="sidePanel"] {
+  align-self: start !important;
+  max-height: calc(100dvh - 190px) !important;
+  overflow: hidden !important;
+}
+
+@media (max-width: 1180px) {
+  .eggAtelierShell main [class*="headerActions"] {
+    margin-right: 70px !important;
+  }
+
+  .eggAtelierShell main [class*="talkLayout"] {
+    grid-template-columns: minmax(300px, 0.7fr) minmax(430px, 1.3fr) !important;
+  }
+
+  .eggAtelierShell main [class*="catalogEntry"] {
+    padding: 17px 18px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .eggAtelierShell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .eggAtelierShell main [class*="headerActions"] {
+    width: 100% !important;
+    margin-right: 0 !important;
+    padding-right: 70px !important;
+  }
+
+  .eggAtelierShell > button[class*="menuButton"] {
+    top: max(10px, env(safe-area-inset-top)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    width: 58px !important;
+    min-width: 58px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    font-size: 0.76rem !important;
+  }
+
+  .eggAtelierShell main [class*="talkLayout"] {
+    grid-template-columns: 1fr !important;
+    padding: 12px !important;
+  }
+
+  .eggAtelierShell main [class*="conversationPanel"] {
+    min-height: 0 !important;
+    padding: 24px !important;
+  }
+
+  .eggAtelierShell main [class*="catalogMain"]::after,
+  .eggAtelierShell main [class*="ledgerMain"]::after {
+    display: none !important;
+  }
+
+  .eggAtelierShell main [class*="catalogTabs"] {
+    margin-bottom: 0 !important;
+  }
+}
