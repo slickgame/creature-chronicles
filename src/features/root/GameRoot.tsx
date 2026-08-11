@@ -68,10 +68,23 @@ export function GameRoot() {
   else if (appScreen === "ranch-jobs") screen = <RanchJobsScreen />;
   else if (appScreen === "dev-tools") screen = <DevToolsScreen />;
 
+  const showPlayerMenu = Boolean(
+    currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug",
+  );
+
+  if (appScreen === "egg-atelier") {
+    return (
+      <div className="eggAtelierShell">
+        {screen}
+        {showPlayerMenu ? <PlayerInventoryMenu /> : null}
+      </div>
+    );
+  }
+
   return (
     <>
       {screen}
-      {currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug" ? <PlayerInventoryMenu /> : null}
+      {showPlayerMenu ? <PlayerInventoryMenu /> : null}
     </>
   );
 }
