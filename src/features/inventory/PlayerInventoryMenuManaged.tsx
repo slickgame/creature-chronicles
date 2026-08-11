@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { PlayerInventoryMenu as CorePlayerInventoryMenu } from "./PlayerInventoryMenuExpanded";
 import { useGameContext } from "@/state/GameProvider";
 
 type InventoryCreatureEvent = CustomEvent<{ creatureId?: string }>;
+
+const OPEN_PLAYER_MENU_EVENT = "creature-chronicles:open-player-menu";
+const OPEN_CREATURE_EVENT = "creature-chronicles:open-inventory-creature";
 
 function findButtonByText(text: string, root: ParentNode = document): HTMLButtonElement | null {
   return (
@@ -15,10 +18,21 @@ function findButtonByText(text: string, root: ParentNode = document): HTMLButton
 }
 
 export function PlayerInventoryMenu() {
-  const { currentSave } = useGameContext();
+  const { appScreen, currentSave } = useGameContext();
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleOpen(event: Event) {
+    function openManagedMenu() {
+      const root = rootRef.current;
+      if (!root) return;
+      findButtonByText("Menu", root)?.click();
+    }
+
+    function handleOpenPlayerMenu() {
+      openManagedMenu();
+    }
+
+    function handleOpenCreature(event: Event) {
       const creatureId = (event as InventoryCreatureEvent).detail?.creatureId;
       if (!creatureId || !currentSave) return;
       const creature = (currentSave.creatures ?? []).find(
@@ -26,15 +40,16 @@ export function PlayerInventoryMenu() {
       );
       if (!creature) return;
 
-      findButtonByText("Menu")?.click();
+      openManagedMenu();
 
       window.setTimeout(() => {
-        const dialog = document.querySelector<HTMLElement>("[role='dialog']");
+        const root = rootRef.current;
+        const dialog = root?.querySelector<HTMLElement>("[role='dialog']") ?? null;
         if (!dialog) return;
         findButtonByText("Creatures", dialog)?.click();
 
         window.setTimeout(() => {
-          const openDialog = document.querySelector<HTMLElement>("[role='dialog']");
+          const openDialog = rootRef.current?.querySelector<HTMLElement>("[role='dialog']") ?? null;
           const card = openDialog
             ? Array.from(openDialog.querySelectorAll<HTMLElement>("article")).find(
                 (article) =>
@@ -54,16 +69,22 @@ export function PlayerInventoryMenu() {
       }, 100);
     }
 
-    window.addEventListener(
-      "creature-chronicles:open-inventory-creature",
-      handleOpen,
-    );
-    return () =>
-      window.removeEventListener(
-        "creature-chronicles:open-inventory-creature",
-        handleOpen,
-      );
+    window.addEventListener(OPEN_PLAYER_MENU_EVENT, handleOpenPlayerMenu);
+    window.addEventListener(OPEN_CREATURE_EVENT, handleOpenCreature);
+    return () => {
+      window.removeEventListener(OPEN_PLAYER_MENU_EVENT, handleOpenPlayerMenu);
+      window.removeEventListener(OPEN_CREATURE_EVENT, handleOpenCreature);
+    };
   }, [currentSave]);
 
-  return <CorePlayerInventoryMenu />;
+  return (
+    <div
+      ref={rootRef}
+      data-player-menu-root="true"
+      data-player-menu-launcher-hidden={appScreen === "egg-atelier" ? "true" : "false"}
+      style={{ display: "contents" }}
+    >
+      <CorePlayerInventoryMenu />
+    </div>
+  );
 }
