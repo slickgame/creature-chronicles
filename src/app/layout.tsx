@@ -14,6 +14,7 @@ import "./adoption-hearth-hub.css";
 import "./egg-atelier-tutorial-cleanup.css";
 import "./egg-atelier-landing-concept.css";
 import "./egg-atelier-background-art.css";
+import "./egg-atelier-landing-viewport-fit.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
