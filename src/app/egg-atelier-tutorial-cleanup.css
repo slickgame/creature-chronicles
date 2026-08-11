@@ -1,14 +1,9 @@
 /* Egg Atelier control cleanup.
-   Keep the Atelier header Menu presentation, but hide the separate fixed Player
-   Menu launcher while the same Player Menu remains mounted and callable. */
+   This branch does not render a local Atelier Menu button, so the shared Player
+   Menu launcher remains visible and is styled into the Atelier header area. */
 
-.eggAtelierShell [data-player-menu-root="true"][data-player-menu-launcher-hidden="true"] > button,
+.eggAtelierShell [data-player-menu-root="true"] > button[data-atelier-shared-menu-launcher="true"],
 .eggAtelierShell button[data-atelier-shared-menu-launcher="true"] {
-  display: none !important;
-}
-
-/* The Atelier-local Menu is the one visible launcher. */
-.eggAtelierShell main button[data-atelier-player-menu-launcher="true"] {
   display: grid !important;
 }
 
