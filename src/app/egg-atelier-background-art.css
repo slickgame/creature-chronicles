@@ -1,0 +1,38 @@
+/* Egg Atelier landing background plate.
+   This is intentionally landing-only so Services, Registry, Furniture, Talk, and
+   Care Records keep their existing scene treatment. The image is supplied as a
+   local/public asset at /images/buildings/egg-atelier/landing-concept-bg.png. */
+
+.eggAtelierShell main > section:has(section[aria-label="Egg Atelier interior"]) > div:first-child {
+  background-image: url("/images/buildings/egg-atelier/landing-concept-bg.png") !important;
+  background-position: center 51% !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  filter: saturate(1.03) contrast(1.04) brightness(0.98) !important;
+  transform: none !important;
+}
+
+/* Preserve the painting's desk, Selene, incubator, shelving, and cradle detail.
+   The concept plate is already richly lit, so use only restrained UI readability
+   shading instead of the older heavy brown veil. */
+.eggAtelierShell main > section:has(section[aria-label="Egg Atelier interior"]) > div:nth-child(2) {
+  background:
+    linear-gradient(90deg, rgba(6, 4, 2, 0.18) 0%, rgba(6, 4, 2, 0.03) 26%, rgba(6, 4, 2, 0.01) 72%, rgba(6, 4, 2, 0.10) 100%),
+    linear-gradient(180deg, rgba(4, 3, 2, 0.05), rgba(4, 3, 2, 0.03) 60%, rgba(4, 3, 2, 0.18)) !important;
+}
+
+/* Keep the background Selene behind her desk visible just beyond the portrait
+   panel rather than allowing the panel shadow to muddy the scene. */
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside {
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 5px rgba(227, 175, 78, 0.11) !important;
+}
+
+@media (max-width: 860px) {
+  .eggAtelierShell main > section:has(section[aria-label="Egg Atelier interior"]) > div:first-child {
+    background-position: 44% center !important;
+  }
+}
