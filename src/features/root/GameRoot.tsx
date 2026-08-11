@@ -7,6 +7,7 @@ import { ColiseumC2Screen } from "@/features/coliseum/ColiseumC2Screen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
+import { EggAtelierUiBridge } from "@/features/egg-atelier/EggAtelierUiBridge";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
 import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
@@ -77,6 +78,7 @@ export function GameRoot() {
       <div className="eggAtelierShell">
         {screen}
         {showPlayerMenu ? <PlayerInventoryMenu /> : null}
+        <EggAtelierUiBridge />
       </div>
     );
   }
