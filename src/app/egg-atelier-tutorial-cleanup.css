@@ -1,31 +1,43 @@
-/* Egg Atelier hard cleanup.
-   Keep only the shared Player Menu launcher and prevent tutorial-only Quickhatch
-   shortcuts from cluttering Atelier screens. */
+/* Egg Atelier control cleanup.
+   The Atelier keeps its own header Menu presentation, but that button is bridged
+   to the shared Player Menu behavior by EggAtelierUiBridge. */
 
-/* The Egg Atelier header's first button is its old local Menu action. The shared
-   Player Menu is rendered outside <main>, so this structural selector only
-   removes the obsolete local control. */
-.eggAtelierShell main > section > header > div:last-child > button:first-of-type {
+/* Restore the Atelier-local Menu button even though the earlier polish sheet hid it. */
+.eggAtelierShell main button[class*="menuButton"] {
+  display: grid !important;
+}
+
+/* The global Player Menu launcher is still mounted so its dialog/state remain available,
+   but its old floating launcher is hidden while inside the Atelier. */
+.eggAtelierShell > button[class*="menuButton"],
+.eggAtelierShell button[data-atelier-shared-menu-launcher="true"] {
   display: none !important;
 }
 
-/* With the local Menu gone, the Atelier header is a simple 2x2 resource/nav grid.
-   The shared Player Menu remains fixed in the open space at the far right. */
+/* Arrange Gold + Nursery Kits above the two navigation buttons, with the Atelier
+   Menu occupying the right-side slot across both rows. */
 .eggAtelierShell main > section > header > div:last-child {
-  grid-template-columns: repeat(2, minmax(128px, 1fr)) !important;
-  width: min(100%, 300px) !important;
-  margin-right: 76px !important;
+  grid-template-columns: repeat(2, minmax(128px, 1fr)) 64px !important;
+  width: min(100%, 382px) !important;
+  margin-right: 0 !important;
+  align-items: stretch !important;
 }
 
-/* Backup guard for the tutorial shortcut if another wrapper renders it later. */
+.eggAtelierShell main > section > header > div:last-child > button:first-of-type {
+  display: grid !important;
+  grid-column: 3 !important;
+  grid-row: 1 / span 2 !important;
+  place-items: center !important;
+  min-width: 64px !important;
+}
+
+/* Tutorial-only Quickhatch shortcut belongs in Inventory/Breeding/Nursery, not Atelier. */
 .eggAtelierShell button[data-tutorial-id="quickhatch-catalyst"] {
   display: none !important;
 }
 
-/* Selene's Care Records and Egg Services sidebars used to embed a second
-   Quickhatch chip. In those Atelier sidebars the chip is the only direct child
-   div containing both an image and a text span, so remove that presentation
-   without touching Selene portraits or normal metric rows. */
-.eggAtelierShell main aside > div:has(> img):has(> span) {
+/* Egg Atelier panels previously embedded their own Quickhatch inventory chip. */
+.eggAtelierShell main [class*="inventoryChip"],
+.eggAtelierShell [data-atelier-quickhatch-hidden="true"] {
   display: none !important;
 }
