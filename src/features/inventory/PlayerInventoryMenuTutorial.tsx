@@ -12,6 +12,7 @@ import { PlayerInventoryMenu as ManagedInventoryMenu } from "./PlayerInventoryMe
 import styles from "./PlayerInventoryMenuTutorial.module.css";
 
 const OPEN_EVENT = "creature-chronicles:open-tutorial-inventory";
+const QUICKHATCH_SHORTCUT_SCREENS = new Set(["breeding", "nursery"]);
 
 export function PlayerInventoryMenu() {
   const { appScreen, currentSave, saveCurrentGame } = useGameContext();
@@ -25,6 +26,7 @@ export function PlayerInventoryMenu() {
   );
   const stock = currentSave ? getQuickhatchCatalystCount(currentSave) : 0;
   const selectedEgg = activeEggs.find((egg) => String(egg.eggId) === selectedEggId) ?? activeEggs[0] ?? null;
+  const showQuickhatchShortcut = stock > 0 && QUICKHATCH_SHORTCUT_SCREENS.has(appScreen);
 
   useEffect(() => {
     if (!selectedEggId && activeEggs[0]) setSelectedEggId(String(activeEggs[0].eggId));
@@ -76,7 +78,7 @@ export function PlayerInventoryMenu() {
   return (
     <>
       <ManagedInventoryMenu />
-      {stock > 0 ? (
+      {showQuickhatchShortcut ? (
         <button
           type="button"
           className={styles.quickButton}
