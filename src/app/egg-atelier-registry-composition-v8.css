@@ -1,0 +1,220 @@
+/* Egg Registry composition pass 8.
+   Surgical alignment pass based on the locked Registry composition: center live
+   content inside the physical artwork zones without changing the screen structure. */
+
+/* ---------- Offer dossiers: align live content to the painted dossier zones ---------- */
+html body .eggAtelierShell [data-registry-offer] h3[class*="listingName"] {
+  top: 68px !important;
+  height: 48px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 5px 10px 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* The generated dossier's illustration well is centered at roughly 30% of the page. */
+html body .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+  left: 9% !important;
+  top: 119px !important;
+  width: 42% !important;
+  height: 166px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  width: auto !important;
+  height: auto !important;
+  max-width: 138px !important;
+  max-height: 138px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  margin: 0 !important;
+}
+
+html body .eggAtelierShell [data-registry-offer="3"] img[data-registry-hero-art="true"] {
+  max-width: 134px !important;
+  max-height: 134px !important;
+}
+
+/* Give descriptions a real vertical text zone instead of pinning them to its top edge. */
+html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  left: 52% !important;
+  right: 24px !important;
+  top: 132px !important;
+  width: auto !important;
+  height: 116px !important;
+  max-height: 116px !important;
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* Center cost and requirement copy in the dossier's printed purchase-information box. */
+html body .eggAtelierShell [data-registry-offer] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+  left: 46% !important;
+  right: 25% !important;
+  bottom: 72px !important;
+  width: auto !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 2px 0 1px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
+  left: 3px !important;
+  top: 50% !important;
+  width: 17px !important;
+  height: 17px !important;
+  transform: translateY(-50%) !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] span,
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] strong,
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+/* Center the colored trust mark inside the circular stamp target printed on the dossier. */
+html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+  left: auto !important;
+  right: 46px !important;
+  bottom: 78px !important;
+  width: 56px !important;
+  height: 56px !important;
+  transform: rotate(-5deg) !important;
+  transform-origin: center !important;
+}
+
+/* Keep the live action visibly inset so the dossier's painted button frame survives. */
+html body .eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  left: 46px !important;
+  right: 46px !important;
+  bottom: 29px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] button[class*="buyButton"] {
+  width: 100% !important;
+  height: 29px !important;
+  min-height: 29px !important;
+  padding: 0 12px 1px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+}
+
+/* ---------- Registry sidebar ---------- */
+html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
+  top: 121px !important;
+  font-size: 1.72rem !important;
+}
+
+/* Raise the explanatory copy and quote slightly into their intended upper zones. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+  top: 171px !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar-quote="true"] {
+  top: 263px !important;
+}
+
+/* Center the selected-egg record in its inset compartment and nudge it right. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] {
+  top: 335px !important;
+  left: 52px !important;
+  right: 38px !important;
+  height: 142px !important;
+  padding: 8px 14px 7px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+/* The four painted action slots are correct; center their live labels inside them. */
+html body .eggAtelierShell [data-registry-sidebar="true"] button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 10px 2px !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+}
+
+/* ---------- Active Egg record ---------- */
+/* Move the portrait to the true center of the generated oval mount. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] {
+  left: 6.3% !important;
+  top: 18% !important;
+  width: 23% !important;
+  height: 64% !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"] img,
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] img {
+  margin: 0 !important;
+  object-position: center !important;
+}
+
+/* Lower the live record text slightly so it sits in the ruled parchment body. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  top: 30% !important;
+  bottom: 9% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+    left: 51% !important;
+    right: 20px !important;
+    top: 130px !important;
+    height: 112px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+    left: 8% !important;
+    width: 42% !important;
+  }
+
+  html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+    right: 40px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-offer] div[class*="actions"] {
+    left: 40px !important;
+    right: 40px !important;
+  }
+}
