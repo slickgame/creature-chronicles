@@ -1,0 +1,306 @@
+/* Furniture Catalog composition pass 3.
+   Targeted cleanup after the full-size illustrated book reached the right scale.
+   This pass preserves the overall composition and fixes collisions/readability. */
+
+/* ---------- header ----------
+   Pass 2 shortened the header by replacing ALL horizontal padding; that let the
+   decorative Egg Atelier crest overlap the title. Keep the compact height while
+   restoring the reserved crest/menu gutters from the location header. */
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > header {
+  min-height: 0 !important;
+  padding: 10px 92px 11px 106px !important;
+  grid-template-columns: minmax(0, 1fr) 390px !important;
+  gap: 18px !important;
+}
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > header::before {
+  left: 28px !important;
+  top: 24px !important;
+  width: 58px !important;
+  height: 58px !important;
+}
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > header h1 {
+  margin: 0 !important;
+  font-size: clamp(2.45rem, 3vw, 3.05rem) !important;
+  line-height: .94 !important;
+}
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > header > div:first-child > p:first-child {
+  margin: 0 0 3px !important;
+}
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > header > div:first-child > p:not(:first-child) {
+  margin-top: 5px !important;
+}
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > header > div:last-child {
+  align-self: start !important;
+}
+
+/* ---------- book title hierarchy ----------
+   Let the generated book crest breathe. The teal plaque is the top title; the
+   secondary title/subtitle live cleanly on the upper left page, like the concept. */
+.eggAtelierShell [data-catalog-book-heading="true"] {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
+  display: block !important;
+  pointer-events: none !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] > span {
+  position: absolute !important;
+  top: 18px !important;
+  left: 50% !important;
+  min-width: 238px !important;
+  transform: translateX(-50%) !important;
+  padding: 6px 20px 7px !important;
+  text-align: center !important;
+  font-size: .82rem !important;
+  z-index: 12 !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] > strong {
+  position: absolute !important;
+  top: 78px !important;
+  left: 25.5% !important;
+  transform: translateX(-50%) !important;
+  width: 300px !important;
+  margin: 0 !important;
+  color: #594129 !important;
+  font: 700 .94rem/1 Georgia, "Times New Roman", serif !important;
+  letter-spacing: .08em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px rgba(255,255,255,.24) !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] > em {
+  position: absolute !important;
+  top: 99px !important;
+  left: 25.5% !important;
+  transform: translateX(-50%) !important;
+  width: 315px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  color: #745d42 !important;
+  font: italic .66rem/1.18 Georgia, "Times New Roman", serif !important;
+  text-align: center !important;
+}
+
+/* Shift the item grid just enough to clear that page heading without shrinking
+   the book or losing the bottom illustrated navigation. */
+.eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+  top: 19.2% !important;
+  bottom: 20.7% !important;
+  left: 6.6% !important;
+  right: 6.6% !important;
+  column-gap: 6.2% !important;
+  row-gap: 1.6% !important;
+}
+
+.eggAtelierShell [data-catalog-entry] {
+  grid-template-columns: 32% minmax(0, 1fr) !important;
+  gap: 9px !important;
+  padding: 4px 8px 6px !important;
+}
+
+/* Lower entries were visually overpowering their copy in the screenshot. */
+.eggAtelierShell [data-catalog-entry] img[data-catalog-hero-art="true"] {
+  max-width: 158px !important;
+  max-height: 154px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="1"] img[data-catalog-hero-art="true"] {
+  max-width: 164px !important;
+  max-height: 150px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="2"] img[data-catalog-hero-art="true"] {
+  max-width: 145px !important;
+  max-height: 156px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="3"] img[data-catalog-hero-art="true"] {
+  max-width: 178px !important;
+  max-height: 156px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="4"] img[data-catalog-hero-art="true"] {
+  max-width: 145px !important;
+  max-height: 164px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+  margin-bottom: 4px !important;
+  font-size: clamp(1.02rem, 1.08vw, 1.18rem) !important;
+  line-height: 1.04 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+  margin-bottom: 4px !important;
+  color: #5b432e !important;
+  font-size: .69rem !important;
+  line-height: 1.22 !important;
+  font-weight: 650 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+  margin-bottom: 5px !important;
+  color: #08749d !important;
+  font-size: .67rem !important;
+  line-height: 1.18 !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] {
+  min-height: 34px !important;
+  margin-top: 2px !important;
+  padding: 4px 7px !important;
+  background: rgba(255, 247, 218, .42) !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] span {
+  font-size: .46rem !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] strong {
+  font-size: .66rem !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="actions"] {
+  margin-top: 4px !important;
+  min-height: 28px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"] {
+  min-width: 90px !important;
+  min-height: 27px !important;
+  padding: 4px 12px !important;
+}
+
+/* Disabled installs should still look intentionally designed, not washed-out grey. */
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"]:disabled {
+  opacity: .62 !important;
+  filter: saturate(.55) brightness(.86) !important;
+  color: #d8c59c !important;
+  background: linear-gradient(180deg, #3a3125, #211b15) !important;
+  border-color: #836636 !important;
+}
+
+/* Bring the number medallions closer to their titles and make the digits readable. */
+.eggAtelierShell [data-catalog-entry-badge="true"] {
+  top: 3px !important;
+  left: 31.7% !important;
+  width: 30px !important;
+  height: 42px !important;
+  transform: scale(.9) !important;
+}
+
+/* ---------- illustrated tabs ----------
+   The generated tabs are complete 600x360 cards. Cover-cropping destroyed their
+   silhouettes; preserve the whole art and add a readable live label strip. */
+.eggAtelierShell [data-catalog-tabs="true"] {
+  left: 6.2% !important;
+  right: 25.0% !important;
+  bottom: 1.1% !important;
+  height: 94px !important;
+  gap: 6px !important;
+}
+
+.eggAtelierShell [data-catalog-tabs="true"] button {
+  height: 94px !important;
+  min-height: 94px !important;
+  border: 1px solid rgba(128, 88, 41, .58) !important;
+  border-radius: 4px !important;
+  background: rgba(55, 37, 21, .18) !important;
+}
+
+.eggAtelierShell [data-catalog-tabs="true"] button img {
+  object-fit: fill !important;
+}
+
+.eggAtelierShell [data-catalog-tabs="true"] button span {
+  left: 5px !important;
+  right: 5px !important;
+  bottom: 4px !important;
+  padding: 4px 4px 3px !important;
+  border-top: 1px solid rgba(112, 75, 36, .28) !important;
+  color: #3b2819 !important;
+  background: linear-gradient(180deg, rgba(247,232,194,.18), rgba(236,210,151,.82)) !important;
+  font-size: .64rem !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px rgba(255,255,255,.42) !important;
+}
+
+.eggAtelierShell [data-catalog-tab][data-active="true"] {
+  transform: translateY(-5px) !important;
+  box-shadow: 0 0 0 1px rgba(226,177,78,.65), 0 7px 12px rgba(0,0,0,.22) !important;
+}
+
+.eggAtelierShell [data-catalog-notes="true"] {
+  right: 6.1% !important;
+  bottom: 1.1% !important;
+  width: 18.1% !important;
+  height: 94px !important;
+}
+
+.eggAtelierShell [data-catalog-notes="true"] > span {
+  font-size: .78rem !important;
+  line-height: 1.05 !important;
+}
+
+/* Put the quill on the desk plane rather than hanging below the composition. */
+.eggAtelierShell [data-catalog-quill="true"] {
+  left: 236px !important;
+  bottom: 14px !important;
+  height: 170px !important;
+  max-height: 19vh !important;
+  opacity: .98 !important;
+  transform: rotate(-7deg) !important;
+}
+
+/* Slightly reduce the invisible stage footprint around the book so the artwork
+   feels like a physical object in the room instead of a panel inside a panel. */
+.eggAtelierShell [data-catalog-book="true"] {
+  background-color: transparent !important;
+  outline: 0 !important;
+}
+
+@media (min-width: 1450px) and (max-height: 980px) {
+  .eggAtelierShell [data-atelier-furniture-catalog="true"] {
+    width: min(100%, 1580px) !important;
+  }
+
+  .eggAtelierShell [data-catalog-book="true"] {
+    height: 690px !important;
+  }
+}
+
+@media (max-width: 1250px) {
+  .eggAtelierShell[data-atelier-furniture-active="true"] main > section > header {
+    padding-left: 94px !important;
+    padding-right: 82px !important;
+    grid-template-columns: minmax(0, 1fr) 340px !important;
+  }
+
+  .eggAtelierShell [data-catalog-book-heading="true"] > strong,
+  .eggAtelierShell [data-catalog-book-heading="true"] > em {
+    left: 25% !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .eggAtelierShell [data-catalog-book-heading="true"] > strong,
+  .eggAtelierShell [data-catalog-book-heading="true"] > em {
+    display: none !important;
+  }
+
+  .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+    top: 16% !important;
+  }
+}
