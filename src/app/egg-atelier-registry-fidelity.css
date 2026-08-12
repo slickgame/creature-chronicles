@@ -1,0 +1,644 @@
+/* Egg Registry concept-fidelity pass.
+   Binary art is supplied locally under /public/images/egg-atelier/egg-registry/.
+   The live prices, trust gates, buttons, selection, and egg data remain HTML. */
+
+.eggAtelierShell[data-atelier-registry-active="true"] main > section > div:first-child {
+  background-image: url("/images/buildings/egg-atelier/landing-concept-bg.png") !important;
+  background-position: center 47% !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  filter: saturate(.9) contrast(1.04) brightness(.55) blur(.25px) !important;
+  transform: scale(1.01) !important;
+}
+
+.eggAtelierShell[data-atelier-registry-active="true"] main > section > div:nth-child(2) {
+  background:
+    linear-gradient(180deg, rgba(6,4,2,.08), rgba(5,3,2,.23) 58%, rgba(5,3,2,.46)),
+    radial-gradient(circle at 64% 34%, rgba(214,159,68,.08), transparent 48%) !important;
+}
+
+.eggAtelierShell [data-atelier-egg-registry="true"] {
+  position: relative !important;
+  z-index: 3 !important;
+  width: min(calc(100vw - 56px), 1700px) !important;
+  max-width: none !important;
+  min-height: calc(100vh - 166px) !important;
+  margin: 0 auto !important;
+  padding: 12px 0 26px !important;
+  display: grid !important;
+  grid-template-columns: 305px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: start !important;
+  overflow: visible !important;
+}
+
+/* ---------- Registry sidebar ---------- */
+.eggAtelierShell [data-registry-sidebar="true"] {
+  position: relative !important;
+  width: 305px !important;
+  height: 710px !important;
+  min-height: 710px !important;
+  margin: 4px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: url("/images/egg-atelier/egg-registry/egg_registry_sidebar_frame.png") center top / 100% 100% no-repeat !important;
+  box-shadow: none !important;
+  color: #f7e8be !important;
+  overflow: visible !important;
+  backdrop-filter: none !important;
+}
+
+.eggAtelierShell [data-registry-sidebar-crest="true"] {
+  position: absolute !important;
+  z-index: 3 !important;
+  top: 26px !important;
+  left: 50% !important;
+  width: 91px !important;
+  height: 91px !important;
+  transform: translateX(-50%) !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 5px 8px rgba(0,0,0,.38)) !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > h2 {
+  position: absolute !important;
+  z-index: 4 !important;
+  top: 119px !important;
+  left: 34px !important;
+  right: 34px !important;
+  margin: 0 !important;
+  color: #f7e6b7 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 1.86rem !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.7) !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > h2::after {
+  content: "";
+  display: block;
+  width: 72%;
+  height: 1px;
+  margin: 10px auto 0;
+  background: linear-gradient(90deg, transparent, #c79338 28%, #e9c066 50%, #c79338 72%, transparent);
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+  position: absolute !important;
+  z-index: 4 !important;
+  top: 181px !important;
+  left: 42px !important;
+  right: 42px !important;
+  margin: 0 !important;
+  color: #ecdfbd !important;
+  font-size: .84rem !important;
+  line-height: 1.42 !important;
+  text-align: center !important;
+}
+
+.eggAtelierShell [data-registry-sidebar-quote="true"] {
+  position: absolute !important;
+  z-index: 4 !important;
+  top: 276px !important;
+  left: 48px !important;
+  right: 48px !important;
+  margin: 0 !important;
+  color: #69d4ef !important;
+  font: italic 700 .84rem/1.35 Georgia, "Times New Roman", serif !important;
+  text-align: center !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] {
+  position: absolute !important;
+  z-index: 5 !important;
+  top: 335px !important;
+  left: 45px !important;
+  right: 45px !important;
+  height: 142px !important;
+  margin: 0 !important;
+  padding: 16px 15px 10px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #f2e5c4 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span {
+  display: block !important;
+  color: #d8b45d !important;
+  font-size: .58rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #fff2cb !important;
+  font: 700 1rem/1.08 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  margin: 5px 0 0 !important;
+  color: #d9c69c !important;
+  font-size: .72rem !important;
+}
+
+/* Four physical action slots are already painted into the generated sidebar.
+   The two selected-egg actions occupy the first pair; Services and Back use the next pair. */
+.eggAtelierShell [data-registry-sidebar="true"] button {
+  position: absolute !important;
+  z-index: 6 !important;
+  left: 48px !important;
+  right: 48px !important;
+  width: auto !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  margin: 0 !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 2px !important;
+  color: #f2dca8 !important;
+  background: rgba(18, 11, 7, .42) !important;
+  box-shadow: inset 0 0 0 1px rgba(221,174,78,.24) !important;
+  font: 700 .82rem/1 Georgia, "Times New Roman", serif !important;
+  cursor: pointer !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(1) {
+  top: 159px !important;
+  left: 3px !important;
+  right: 3px !important;
+}
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(2) {
+  top: 202px !important;
+  left: 3px !important;
+  right: 3px !important;
+}
+.eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(1) { top: 580px !important; }
+.eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2) { top: 625px !important; }
+
+.eggAtelierShell [data-registry-sidebar="true"] button:hover:not(:disabled) {
+  color: #fff4ce !important;
+  background: rgba(67, 43, 21, .58) !important;
+  box-shadow: inset 0 0 0 1px rgba(240,197,101,.52), 0 2px 8px rgba(0,0,0,.25) !important;
+}
+
+/* ---------- Main Registry board ---------- */
+.eggAtelierShell [data-registry-main="true"] {
+  position: relative !important;
+  z-index: 4 !important;
+  min-width: 0 !important;
+  margin: 4px 0 0 !important;
+  padding: 18px 20px 22px !important;
+  border: 1px solid rgba(192,135,45,.7) !important;
+  border-radius: 4px !important;
+  color: #f2e2ba !important;
+  background:
+    linear-gradient(180deg, rgba(21,14,9,.94), rgba(9,7,5,.965)),
+    radial-gradient(circle at 50% 0%, rgba(178,125,47,.08), transparent 54%) !important;
+  box-shadow: 0 20px 46px rgba(0,0,0,.42), inset 0 0 0 3px rgba(0,0,0,.34) !important;
+  overflow: visible !important;
+  backdrop-filter: blur(1px) !important;
+}
+
+.eggAtelierShell [data-registry-section-heading] {
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 0 0 10px !important;
+  padding: 1px 18px 8px 44px !important;
+  color: #f7e7bd !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 1.72rem !important;
+  line-height: 1 !important;
+  border-bottom: 1px solid rgba(197,143,57,.34) !important;
+}
+
+.eggAtelierShell [data-registry-section-heading]::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: -7px;
+  width: 36px;
+  height: 36px;
+  background: url("/images/egg-atelier/egg-registry/egg_registry_crest.png") center/contain no-repeat;
+  opacity: .88;
+}
+
+.eggAtelierShell [data-registry-section-heading]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 22px;
+  background-image: url("/images/egg-atelier/egg-registry/egg_registry_page_flourishes.png");
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: center top;
+  opacity: .44;
+  pointer-events: none;
+}
+
+.eggAtelierShell [data-registry-section-heading="active"] {
+  margin-top: 14px !important;
+}
+
+/* ---------- Three placement dossiers ---------- */
+.eggAtelierShell [data-registry-offer-list="true"] {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-registry-offer] {
+  position: relative !important;
+  display: block !important;
+  min-width: 0 !important;
+  height: 455px !important;
+  min-height: 455px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #4b3421 !important;
+  background: url("/images/egg-atelier/egg-registry/egg_registry_offer_dossier_shell.png") center/100% 100% no-repeat !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 27px !important;
+  top: 144px !important;
+  width: 37% !important;
+  height: 145px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 158px !important;
+  max-height: 158px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 8px 8px rgba(74,42,17,.2)) !important;
+}
+
+.eggAtelierShell [data-registry-offer] > div[class*="listingBody"] {
+  position: absolute !important;
+  z-index: 4 !important;
+  inset: 0 !important;
+  padding: 54px 26px 24px !important;
+  color: #4a3321 !important;
+}
+
+.eggAtelierShell [data-registry-classification] {
+  position: absolute !important;
+  z-index: 5 !important;
+  top: 24px !important;
+  left: 26px !important;
+  right: 26px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 20px !important;
+  color: #f6ebc5 !important;
+  background-image: url("/images/egg-atelier/egg-registry/egg_registry_classification_ribbons.png") !important;
+  background-repeat: no-repeat !important;
+  background-size: 300% auto !important;
+  font-size: .55rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: .075em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.65) !important;
+  white-space: nowrap !important;
+}
+.eggAtelierShell [data-registry-classification="1"] { background-position: 0% 49% !important; }
+.eggAtelierShell [data-registry-classification="2"] { background-position: 50% 49% !important; }
+.eggAtelierShell [data-registry-classification="3"] { background-position: 100% 49% !important; }
+
+.eggAtelierShell [data-registry-offer] h3[class*="listingName"] {
+  margin: 17px 0 16px !important;
+  color: #3f2b1b !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.17rem, 1.25vw, 1.42rem) !important;
+  line-height: 1.02 !important;
+  text-align: center !important;
+  text-shadow: 0 1px rgba(255,250,226,.4) !important;
+}
+
+.eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  margin: 0 0 0 42% !important;
+  min-height: 98px !important;
+  color: #5b4732 !important;
+  font-size: .73rem !important;
+  font-weight: 600 !important;
+  line-height: 1.36 !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] {
+  position: absolute !important;
+  z-index: 5 !important;
+  left: 26px !important;
+  right: 26px !important;
+  bottom: 76px !important;
+  min-height: 66px !important;
+  margin: 0 !important;
+  padding: 9px 12px 8px 34px !important;
+  display: block !important;
+  border: 0 !important;
+  color: #49331f !important;
+  background: rgba(245,224,183,.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(117,78,37,.12) !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] > img {
+  position: absolute !important;
+  left: 10px !important;
+  top: 12px !important;
+  width: 18px !important;
+  height: 18px !important;
+  object-fit: contain !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] span {
+  display: block !important;
+  color: #735635 !important;
+  font-size: .53rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .11em !important;
+  text-transform: uppercase !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] strong {
+  display: block !important;
+  margin-top: 1px !important;
+  color: #3e2b1b !important;
+  font: 700 1rem/1 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #654d33 !important;
+  font-size: .64rem !important;
+  font-style: normal !important;
+  font-weight: 700 !important;
+  line-height: 1.15 !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  position: absolute !important;
+  z-index: 6 !important;
+  left: 26px !important;
+  right: 26px !important;
+  bottom: 29px !important;
+  margin: 0 !important;
+}
+
+.eggAtelierShell [data-registry-offer] button[class*="buyButton"] {
+  min-width: 122px !important;
+  min-height: 33px !important;
+  padding: 7px 18px !important;
+  border: 1px solid #815d27 !important;
+  border-radius: 2px !important;
+  color: #f2dfa8 !important;
+  background: linear-gradient(180deg, #35471c 0%, #17210d 100%) !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,.2), inset 0 0 0 1px rgba(238,193,92,.12) !important;
+  font: 700 .78rem/1 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-registry-offer] button[class*="buyButton"]:disabled {
+  opacity: 1 !important;
+  color: #d1c3a5 !important;
+  border-color: #7d6e55 !important;
+  background: linear-gradient(180deg, #665d4d, #3a342c) !important;
+  cursor: not-allowed !important;
+}
+
+/* Trust stamps are physical art with live level text layered over the blank banners. */
+.eggAtelierShell [data-registry-trust-stamp="true"] {
+  position: absolute !important;
+  z-index: 8 !important;
+  right: 22px !important;
+  bottom: 105px !important;
+  width: 96px !important;
+  height: 96px !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 1px !important;
+  background-image: url("/images/egg-atelier/egg-registry/egg_registry_trust_stamps.png") !important;
+  background-repeat: no-repeat !important;
+  background-size: 200% auto !important;
+  color: #f4e7bd !important;
+  text-align: center !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,.7) !important;
+  transform: rotate(-7deg) !important;
+  pointer-events: none !important;
+}
+.eggAtelierShell [data-registry-trust-level="2"] { background-position: 0% 50% !important; }
+.eggAtelierShell [data-registry-trust-level="4"] { background-position: 100% 50% !important; }
+.eggAtelierShell [data-registry-trust-stamp="true"] span {
+  margin-top: 8px !important;
+  font-size: .42rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+.eggAtelierShell [data-registry-trust-stamp="true"] strong {
+  font: 700 .88rem/1 Georgia, "Times New Roman", serif !important;
+}
+
+/* ---------- Active egg records ---------- */
+.eggAtelierShell [data-registry-active-list="true"] {
+  display: grid !important;
+  gap: 9px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] {
+  position: relative !important;
+  min-height: 170px !important;
+  margin: 0 !important;
+  padding: 20px 34px !important;
+  display: grid !important;
+  grid-template-columns: 23% minmax(0, 1fr) !important;
+  gap: 18px !important;
+  align-items: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #4b3421 !important;
+  background: url("/images/egg-atelier/egg-registry/egg_registry_active_egg_frame.png") center/100% 100% no-repeat !important;
+  box-shadow: none !important;
+  text-align: left !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] div[class*="listingArt"] {
+  width: 100% !important;
+  height: 116px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] div[class*="listingArt"] img {
+  max-width: 90px !important;
+  max-height: 90px !important;
+  object-fit: contain !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] div[class*="listingBody"] {
+  padding-right: 14% !important;
+  color: #49331f !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] span[class*="listingMeta"] {
+  color: #7b5e3a !important;
+  font-size: .61rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] h3[class*="listingName"] {
+  margin: 4px 0 !important;
+  color: #3f2b1a !important;
+  font: 700 1.22rem/1.05 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] p {
+  margin: 2px 0 !important;
+  color: #5b4731 !important;
+  font-size: .74rem !important;
+  line-height: 1.28 !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"]:hover,
+.eggAtelierShell [data-registry-active-record="true"][class*="sold"] {
+  filter: brightness(1.04) !important;
+  transform: translateY(-1px) !important;
+}
+
+.eggAtelierShell [data-registry-empty-state="true"] {
+  min-height: 182px !important;
+  display: grid !important;
+  grid-template-columns: 250px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 4px 90px !important;
+  color: #ead7a9 !important;
+  text-align: left !important;
+}
+
+.eggAtelierShell [data-registry-empty-state="true"] > img {
+  width: 230px !important;
+  height: 150px !important;
+  object-fit: contain !important;
+  opacity: .86 !important;
+  filter: drop-shadow(0 9px 12px rgba(0,0,0,.35)) !important;
+}
+
+.eggAtelierShell [data-registry-empty-state="true"] strong {
+  display: block !important;
+  color: #f3dfad !important;
+  font: 700 1.18rem/1.1 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-registry-empty-state="true"] span {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #cdbb91 !important;
+  font-size: .79rem !important;
+}
+
+@media (max-width: 1450px) {
+  .eggAtelierShell [data-atelier-egg-registry="true"] {
+    width: min(calc(100vw - 32px), 1420px) !important;
+    grid-template-columns: 270px minmax(0, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar="true"] {
+    width: 270px !important;
+    height: 650px !important;
+    min-height: 650px !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar-crest="true"] { width: 78px !important; height: 78px !important; }
+  .eggAtelierShell [data-registry-sidebar="true"] > h2 { top: 108px !important; font-size: 1.6rem !important; }
+  .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) { top: 163px !important; font-size: .76rem !important; }
+  .eggAtelierShell [data-registry-sidebar-quote="true"] { top: 250px !important; font-size: .76rem !important; }
+  .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] { top: 304px !important; }
+  .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(1) { top: 526px !important; }
+  .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2) { top: 568px !important; }
+
+  .eggAtelierShell [data-registry-offer] {
+    height: 425px !important;
+    min-height: 425px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+    top: 132px !important;
+    height: 130px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+    max-width: 138px !important;
+    max-height: 138px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+    min-height: 90px !important;
+    font-size: .66rem !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] div[class*="price"] { bottom: 69px !important; }
+  .eggAtelierShell [data-registry-offer] div[class*="actions"] { bottom: 26px !important; }
+  .eggAtelierShell [data-registry-trust-stamp="true"] { width: 84px !important; height: 84px !important; bottom: 100px !important; }
+}
+
+@media (max-width: 1080px) {
+  .eggAtelierShell [data-atelier-egg-registry="true"] {
+    grid-template-columns: 1fr !important;
+    width: min(calc(100vw - 24px), 980px) !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar="true"] {
+    width: min(100%, 540px) !important;
+    justify-self: center !important;
+  }
+
+  .eggAtelierShell [data-registry-offer-list="true"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] {
+    width: min(100%, 520px) !important;
+    justify-self: center !important;
+    height: 580px !important;
+  }
+}
