@@ -10,18 +10,6 @@ const CATALOG_HERO_ART = [
   `${CATALOG_ROOT}/furniture_lineage_ledger_desk_hero.png`,
   `${CATALOG_ROOT}/furniture_incubator_cradle_hero.png`,
 ] as const;
-const CATALOG_TAB_ART = [
-  `${CATALOG_ROOT}/catalog_tab_soft_bedding.png`,
-  `${CATALOG_ROOT}/catalog_tab_warming_lamp.png`,
-  `${CATALOG_ROOT}/catalog_tab_lineage_ledger.png`,
-  `${CATALOG_ROOT}/catalog_tab_incubator_cradle.png`,
-] as const;
-const CATALOG_LABELS = [
-  "Soft Bedding Set",
-  "Warming Lamp",
-  "Lineage Ledger Desk",
-  "Incubator Cradle",
-] as const;
 
 function normalizeText(element: Element): string {
   return (element.textContent ?? "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -122,6 +110,14 @@ function decorateFurnitureCatalog(): void {
   sidebar.dataset.catalogSidebar = "true";
   mainPanel.dataset.catalogBook = "true";
 
+  // The live catalog is a single complete four-item spread. Remove any injected
+  // legacy controls that imply extra pages rather than merely hiding them in CSS.
+  mainPanel
+    .querySelectorAll<HTMLElement>(
+      '[data-catalog-tabs="true"], [data-catalog-notes="true"], nav[aria-label="Furniture catalog entries"]',
+    )
+    .forEach((element) => element.remove());
+
   if (!sidebar.querySelector('[data-catalog-sidebar-crest="true"]')) {
     const crest = document.createElement("img");
     crest.src = `${CATALOG_ROOT}/catalog_sidebar_crest.png`;
@@ -167,53 +163,6 @@ function decorateFurnitureCatalog(): void {
       entry.appendChild(badge);
     }
   });
-
-  if (!mainPanel.querySelector('[data-catalog-tabs="true"]')) {
-    const tabs = document.createElement("nav");
-    tabs.dataset.catalogTabs = "true";
-    tabs.dataset.catalogInjected = "true";
-    tabs.setAttribute("aria-label", "Furniture catalog entries");
-
-    entries.forEach((entry, index) => {
-      const tab = document.createElement("button");
-      tab.type = "button";
-      tab.dataset.catalogTab = String(index + 1);
-      tab.setAttribute("aria-label", `View ${CATALOG_LABELS[index]}`);
-
-      const image = document.createElement("img");
-      image.src = CATALOG_TAB_ART[index];
-      image.alt = "";
-      const label = document.createElement("span");
-      label.textContent = CATALOG_LABELS[index];
-
-      tab.append(image, label);
-      tab.addEventListener("click", () => {
-        entry.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
-        tabs.querySelectorAll<HTMLButtonElement>("button").forEach((button) => {
-          button.dataset.active = button === tab ? "true" : "false";
-        });
-      });
-      if (index === 0) tab.dataset.active = "true";
-      tabs.appendChild(tab);
-    });
-
-    mainPanel.appendChild(tabs);
-  }
-
-  if (!mainPanel.querySelector('[data-catalog-notes="true"]')) {
-    const notes = document.createElement("div");
-    notes.dataset.catalogNotes = "true";
-    notes.dataset.catalogInjected = "true";
-
-    const image = document.createElement("img");
-    image.src = `${CATALOG_ROOT}/catalog_notes_plaque.png`;
-    image.alt = "";
-    const label = document.createElement("span");
-    label.textContent = "Notes & Tips";
-
-    notes.append(image, label);
-    mainPanel.appendChild(notes);
-  }
 
   if (!root.querySelector('[data-catalog-quill="true"]')) {
     const quill = document.createElement("img");
