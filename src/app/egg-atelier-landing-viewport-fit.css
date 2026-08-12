@@ -49,9 +49,12 @@
     line-height: 1.32 !important;
   }
 
+  /* Keep the action stack grouped near the bottom, but lift the whole set away
+     from the viewport edge so the fifth button never sits on the screen cut-off. */
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:last-child {
     gap: 3px !important;
     margin-top: auto !important;
+    transform: translateY(-22px) !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside button {
@@ -101,6 +104,7 @@
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:last-child {
     gap: 2px !important;
+    transform: translateY(-28px) !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside button {
