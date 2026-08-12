@@ -1,6 +1,6 @@
 /* Final Furniture Catalog page-heading placement.
-   The live heading should read as printed content belonging to the upper-left
-   parchment page, not as a floating overlay between the plaque and listings. */
+   Keep the live page heading visibly printed into the upper-left parchment page,
+   clear of the large central crown ornament and separate from the first listing. */
 
 .eggAtelierShell [data-catalog-book-heading="true"] {
   position: absolute !important;
@@ -16,99 +16,114 @@
   transform: translateX(-50%) !important;
 }
 
-/* Make Essential Upgrades a true left-page section heading. */
+/* The crown ornament reaches well into the upper center of the spread. Keep the
+   section title fully on the left page and below that ornament instead of letting
+   it ghost behind the filigree. */
 .eggAtelierShell [data-catalog-book-heading="true"] > strong {
   position: absolute !important;
-  top: 66px !important;
+  top: 88px !important;
   left: 7.4% !important;
-  width: 42.2% !important;
+  width: 36.5% !important;
   margin: 0 !important;
   transform: none !important;
-  color: #56391f !important;
+  color: #4c301b !important;
   font-family: Georgia, "Times New Roman", serif !important;
-  font-size: 1.02rem !important;
+  font-size: 1.06rem !important;
   line-height: 1 !important;
   font-weight: 700 !important;
-  letter-spacing: .105em !important;
+  letter-spacing: .095em !important;
   text-transform: uppercase !important;
   text-align: center !important;
-  text-shadow: 0 1px rgba(255, 248, 217, .55) !important;
+  text-shadow: 0 1px rgba(255, 248, 217, .58) !important;
 }
 
 .eggAtelierShell [data-catalog-book-heading="true"] > strong::before,
 .eggAtelierShell [data-catalog-book-heading="true"] > strong::after {
   content: "" !important;
   display: inline-block !important;
-  width: 34px !important;
+  width: 30px !important;
   height: 1px !important;
   margin: 0 9px 4px !important;
   vertical-align: middle !important;
-  background: linear-gradient(90deg, transparent, rgba(111, 73, 38, .72)) !important;
+  background: linear-gradient(90deg, transparent, rgba(104, 67, 32, .76)) !important;
 }
 
 .eggAtelierShell [data-catalog-book-heading="true"] > strong::after {
-  background: linear-gradient(90deg, rgba(111, 73, 38, .72), transparent) !important;
+  background: linear-gradient(90deg, rgba(104, 67, 32, .76), transparent) !important;
 }
 
-/* The supporting sentence sits immediately beneath the heading and is centered
-   within the same parchment page column. */
+/* Supporting copy belongs directly beneath the title as printed catalog copy. */
 .eggAtelierShell [data-catalog-book-heading="true"] > em {
   position: absolute !important;
-  top: 91px !important;
-  left: 12.0% !important;
-  width: 33.0% !important;
+  top: 114px !important;
+  left: 10.0% !important;
+  width: 31.0% !important;
   margin: 0 !important;
   transform: none !important;
-  color: #70563a !important;
+  color: #67492f !important;
   font-family: Georgia, "Times New Roman", serif !important;
-  font-size: .68rem !important;
-  line-height: 1.23 !important;
+  font-size: .69rem !important;
+  line-height: 1.24 !important;
   font-style: normal !important;
   font-weight: 500 !important;
   text-align: center !important;
-  text-shadow: 0 1px rgba(255, 249, 224, .48) !important;
+  text-shadow: 0 1px rgba(255, 249, 224, .5) !important;
 }
 
-/* Use the generated flourish as a subtle page divider, not a floating ornament. */
+/* Use one restrained generated flourish as the lower edge of the heading block. */
 .eggAtelierShell [data-catalog-book-heading="true"] > em::after {
-  top: 31px !important;
-  width: 220px !important;
-  height: 18px !important;
-  opacity: .30 !important;
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 33px !important;
+  width: 188px !important;
+  height: 16px !important;
+  transform: translateX(-50%) !important;
+  background-image: url("/images/egg-atelier/furniture-catalog/catalog_page_flourishes.png") !important;
+  background-repeat: no-repeat !important;
+  background-size: 244% 1707% !important;
+  background-position: 50% 15.8% !important;
+  opacity: .34 !important;
+  pointer-events: none !important;
 }
 
-/* Give the page heading a defined zone before the first furnishing row begins. */
+/* Reserve a real heading zone before the first furnishing row begins. */
 .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
-  top: 21.2% !important;
-  bottom: 13.8% !important;
+  top: 24.0% !important;
+  bottom: 12.2% !important;
 }
 
 @media (min-width: 1650px) and (max-height: 930px) {
   .eggAtelierShell [data-catalog-book-heading="true"] > strong {
-    top: 62px !important;
+    top: 84px !important;
   }
 
   .eggAtelierShell [data-catalog-book-heading="true"] > em {
-    top: 86px !important;
+    top: 109px !important;
   }
 
   .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
-    top: 21.0% !important;
+    top: 23.7% !important;
+    bottom: 12.0% !important;
   }
 }
 
 @media (max-width: 1450px) {
   .eggAtelierShell [data-catalog-book-heading="true"] > strong {
-    top: 58px !important;
-    font-size: .9rem !important;
+    top: 76px !important;
+    width: 37% !important;
+    font-size: .92rem !important;
   }
 
   .eggAtelierShell [data-catalog-book-heading="true"] > em {
-    top: 80px !important;
-    font-size: .6rem !important;
+    top: 99px !important;
+    left: 9.8% !important;
+    width: 31.5% !important;
+    font-size: .61rem !important;
   }
 
   .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
-    top: 20.8% !important;
+    top: 23.4% !important;
+    bottom: 11.8% !important;
   }
 }
