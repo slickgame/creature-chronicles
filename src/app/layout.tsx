@@ -20,6 +20,7 @@ import "./egg-atelier-talk-fidelity.css";
 import "./egg-atelier-talk-composition-final.css";
 import "./egg-atelier-furniture-catalog-fidelity.css";
 import "./egg-atelier-furniture-catalog-composition-v2.css";
+import "./egg-atelier-furniture-catalog-composition-v3.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
