@@ -1,0 +1,298 @@
+/* Furniture Catalog composition pass 4.
+   Fidelity pass against the final concept reference. This widens the catalog stage,
+   gives the live copy room to breathe, anchors the quill to the desk edge, and uses
+   the generated ornament atlases selectively rather than as full-screen decoration. */
+
+/* ---------- overall stage ---------- */
+.eggAtelierShell [data-atelier-furniture-catalog="true"] {
+  width: min(calc(100vw - 64px), 1760px) !important;
+  max-width: none !important;
+  grid-template-columns: 290px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  padding: 0 0 8px !important;
+  margin: -2px auto 0 !important;
+  align-items: start !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] {
+  width: 290px !important;
+  max-height: none !important;
+  margin-top: 13px !important;
+  padding: 13px 17px 15px !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar-crest="true"] {
+  width: 84px !important;
+  height: 84px !important;
+  margin-bottom: 2px !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] > h2 {
+  font-size: 1.82rem !important;
+  line-height: .95 !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] > p {
+  margin-inline: 3px !important;
+  font-size: .86rem !important;
+  line-height: 1.42 !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] div[class*="infoCard"] {
+  margin-top: 11px !important;
+  padding: 10px 12px !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] button[class*="backButton"] {
+  margin-top: 2px !important;
+  min-height: 39px !important;
+  font-size: .88rem !important;
+}
+
+/* Let the book consume the width the concept gives it. */
+.eggAtelierShell [data-catalog-book="true"] {
+  width: 100% !important;
+  height: clamp(670px, 73.5vh, 710px) !important;
+  min-height: 670px !important;
+  justify-self: stretch !important;
+  background-size: 100% 100% !important;
+  background-position: center top !important;
+}
+
+/* ---------- book heading ---------- */
+.eggAtelierShell [data-catalog-book-heading="true"] > span {
+  top: 13px !important;
+  min-width: 252px !important;
+  padding: 6px 21px 7px !important;
+  font-size: .84rem !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] > strong {
+  top: 71px !important;
+  left: 25.2% !important;
+  width: 330px !important;
+  font-size: 1rem !important;
+  letter-spacing: .09em !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] > em {
+  top: 94px !important;
+  left: 25.2% !important;
+  width: 350px !important;
+  font-size: .68rem !important;
+  line-height: 1.2 !important;
+}
+
+/* One restrained flourish from catalog_page_flourishes beneath the page heading. */
+.eggAtelierShell [data-catalog-book-heading="true"] > em::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 26px;
+  width: 210px;
+  height: 20px;
+  transform: translateX(-50%);
+  background-image: url("/images/egg-atelier/furniture-catalog/catalog_page_flourishes.png");
+  background-repeat: no-repeat;
+  background-size: 244% 1707%;
+  background-position: 50% 15.8%;
+  opacity: .48;
+  pointer-events: none;
+}
+
+/* ---------- live furnishing entries ---------- */
+.eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+  left: 6.4% !important;
+  right: 6.4% !important;
+  top: 19.0% !important;
+  bottom: 20.5% !important;
+  column-gap: 6.0% !important;
+  row-gap: 1.4% !important;
+}
+
+.eggAtelierShell [data-catalog-entry] {
+  grid-template-columns: 31% minmax(0, 1fr) !important;
+  gap: 11px !important;
+  padding: 5px 10px 7px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] img[data-catalog-hero-art="true"] {
+  max-width: 174px !important;
+  max-height: 166px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="1"] img[data-catalog-hero-art="true"] {
+  max-width: 178px !important;
+  max-height: 160px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="2"] img[data-catalog-hero-art="true"] {
+  max-width: 150px !important;
+  max-height: 168px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="3"] img[data-catalog-hero-art="true"] {
+  max-width: 188px !important;
+  max-height: 168px !important;
+}
+
+.eggAtelierShell [data-catalog-entry="4"] img[data-catalog-hero-art="true"] {
+  max-width: 150px !important;
+  max-height: 174px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+  margin-bottom: 5px !important;
+  font-size: clamp(1.12rem, 1.18vw, 1.3rem) !important;
+  line-height: 1.04 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+  margin-bottom: 5px !important;
+  font-size: .75rem !important;
+  line-height: 1.25 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+  margin-bottom: 6px !important;
+  font-size: .73rem !important;
+  line-height: 1.2 !important;
+}
+
+/* Keep the number plaques visually attached to the title, as in the concept. */
+.eggAtelierShell [data-catalog-entry-badge="true"] {
+  top: 4px !important;
+  left: 30.5% !important;
+  width: 31px !important;
+  height: 43px !important;
+  transform: scale(.92) !important;
+}
+
+/* ---------- purchase row ----------
+   Use the generated cost ornament atlas only as a faint physical frame. The live
+   price text and actual button remain HTML, so gameplay behavior is untouched. */
+.eggAtelierShell [data-catalog-entry] div[class*="price"] {
+  position: relative !important;
+  isolation: isolate !important;
+  min-height: 39px !important;
+  margin-top: 3px !important;
+  padding: 6px 9px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: rgba(247, 226, 181, .18) !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -2px -3px;
+  background-image: url("/images/egg-atelier/furniture-catalog/catalog_install_cost_ornaments.png");
+  background-repeat: no-repeat;
+  background-size: 209% 582%;
+  background-position: 4.4% 3.6%;
+  opacity: .38;
+  pointer-events: none;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] span {
+  font-size: .49rem !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] strong {
+  font-size: .72rem !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="actions"] {
+  margin-top: 5px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"] {
+  min-width: 98px !important;
+  min-height: 29px !important;
+  font-size: .71rem !important;
+}
+
+/* ---------- tabs and notes ---------- */
+.eggAtelierShell [data-catalog-tabs="true"] {
+  left: 6.0% !important;
+  right: 25.0% !important;
+  bottom: 1.15% !important;
+  height: 100px !important;
+  gap: 7px !important;
+}
+
+.eggAtelierShell [data-catalog-tabs="true"] button {
+  height: 100px !important;
+  min-height: 100px !important;
+}
+
+.eggAtelierShell [data-catalog-tabs="true"] button span {
+  bottom: 4px !important;
+  font-size: .67rem !important;
+}
+
+.eggAtelierShell [data-catalog-notes="true"] {
+  right: 5.9% !important;
+  bottom: 1.15% !important;
+  width: 18.3% !important;
+  height: 100px !important;
+}
+
+/* Quill should sit on the foreground desk like the concept, not beside the book. */
+.eggAtelierShell [data-catalog-quill="true"] {
+  left: -55px !important;
+  bottom: 4px !important;
+  height: 225px !important;
+  max-height: 24vh !important;
+  opacity: 1 !important;
+  transform: rotate(-5deg) !important;
+  filter: drop-shadow(0 14px 12px rgba(0, 0, 0, .52)) !important;
+}
+
+@media (min-width: 1650px) and (max-height: 1000px) {
+  .eggAtelierShell [data-atelier-furniture-catalog="true"] {
+    width: min(calc(100vw - 72px), 1780px) !important;
+    grid-template-columns: 300px minmax(0, 1fr) !important;
+  }
+
+  .eggAtelierShell [data-catalog-book="true"] {
+    height: 700px !important;
+  }
+}
+
+@media (max-width: 1450px) {
+  .eggAtelierShell [data-atelier-furniture-catalog="true"] {
+    width: min(calc(100vw - 32px), 1430px) !important;
+    grid-template-columns: 255px minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .eggAtelierShell [data-catalog-sidebar="true"] {
+    width: 255px !important;
+  }
+
+  .eggAtelierShell [data-catalog-book="true"] {
+    height: 650px !important;
+    min-height: 650px !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+    font-size: .68rem !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+    font-size: .66rem !important;
+  }
+
+  .eggAtelierShell [data-catalog-quill="true"] {
+    left: -38px !important;
+    height: 190px !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .eggAtelierShell [data-catalog-book-heading="true"] > em::after {
+    display: none !important;
+  }
+}
