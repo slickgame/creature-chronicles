@@ -4,9 +4,9 @@
 @media (min-width: 861px) and (max-height: 940px) {
   .eggAtelierShell section[aria-label="Egg Atelier interior"] {
     box-sizing: border-box !important;
-    height: calc(100dvh - 184px) !important;
+    height: calc(100dvh - 178px) !important;
     min-height: 0 !important;
-    padding: 12px 22px 10px !important;
+    padding: 10px 22px 8px !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) {
@@ -20,35 +20,49 @@
     box-sizing: border-box !important;
     height: 100% !important;
     min-height: 0 !important;
-    padding: 13px 16px 14px !important;
+    max-height: 100% !important;
+    padding: 10px 14px 11px !important;
+    overflow: hidden !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:first-child > img {
-    width: 148px !important;
-    height: 148px !important;
-    margin: 0 auto 8px !important;
-    padding: 5px !important;
+    width: 132px !important;
+    height: 132px !important;
+    margin: 0 auto 6px !important;
+    padding: 4px !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:first-child p {
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside h2 {
-    margin: 3px 0 !important;
-    font-size: 1.6rem !important;
+    margin: 2px 0 !important;
+    font-size: 1.48rem !important;
+    line-height: 1 !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > p {
-    margin: 9px 0 10px !important;
-    font-size: 0.82rem !important;
-    line-height: 1.4 !important;
+    margin: 6px 0 7px !important;
+    font-size: 0.77rem !important;
+    line-height: 1.32 !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:last-child {
-    gap: 4px !important;
+    gap: 3px !important;
+    margin-top: auto !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside button {
-    min-height: 34px !important;
-    padding: 5px 10px !important;
-    font-size: 0.84rem !important;
+    box-sizing: border-box !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    max-height: 31px !important;
+    padding: 3px 8px !important;
+    line-height: 1.05 !important;
+    font-size: 0.79rem !important;
+    box-shadow: none !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child {
@@ -59,23 +73,41 @@
 
 @media (min-width: 861px) and (max-height: 800px) {
   .eggAtelierShell section[aria-label="Egg Atelier interior"] {
-    height: calc(100dvh - 170px) !important;
+    height: calc(100dvh - 168px) !important;
+    padding-top: 7px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] aside {
     padding-top: 8px !important;
     padding-bottom: 8px !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:first-child > img {
-    width: 126px !important;
-    height: 126px !important;
+    width: 112px !important;
+    height: 112px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] aside h2 {
+    font-size: 1.36rem !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > p {
-    margin: 7px 0 8px !important;
-    font-size: 0.78rem !important;
+    margin: 5px 0 6px !important;
+    font-size: 0.73rem !important;
+    line-height: 1.28 !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:last-child {
+    gap: 2px !important;
   }
 
   .eggAtelierShell section[aria-label="Egg Atelier interior"] aside button {
-    min-height: 31px !important;
-    padding-block: 4px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    padding: 2px 7px !important;
+    font-size: 0.75rem !important;
   }
 }
