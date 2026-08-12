@@ -27,6 +27,7 @@ import "./egg-atelier-furniture-catalog-heading-final.css";
 import "./egg-atelier-furniture-catalog-readability.css";
 import "./egg-atelier-registry-fidelity.css";
 import "./egg-atelier-registry-composition-v2.css";
+import "./egg-atelier-registry-composition-v3.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
