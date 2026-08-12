@@ -1,0 +1,251 @@
+/* Egg Registry composition pass 5.
+   Keep the successful full-screen composition from v4, then tighten only the
+   live-content zones: deconflict hero art/body copy, settle the trust seals,
+   and target the Active Eggs list structurally so it no longer depends on the
+   mutation bridge applying data attributes in time. */
+
+/* ---------- offer dossiers: final zone separation ---------- */
+html body .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+  left: 25px !important;
+  top: 118px !important;
+  width: 32% !important;
+  height: 166px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  max-width: 154px !important;
+  max-height: 154px !important;
+}
+
+/* Rare art has a broader silhouette than the other two; keep it contained. */
+html body .eggAtelierShell [data-registry-offer="3"] img[data-registry-hero-art="true"] {
+  max-width: 146px !important;
+  max-height: 146px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  top: 126px !important;
+  left: 45% !important;
+  right: 28px !important;
+  max-height: 116px !important;
+  color: #46311f !important;
+  font-size: clamp(.72rem, .63vw, .82rem) !important;
+  font-weight: 700 !important;
+  line-height: 1.28 !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] {
+  left: 45% !important;
+  right: 28px !important;
+  bottom: 76px !important;
+  min-height: 50px !important;
+  padding: 4px 4px 4px 30px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
+  top: 7px !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] span {
+  font-size: .54rem !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] strong {
+  font-size: clamp(.88rem, .72vw, 1rem) !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  margin-top: 3px !important;
+  font-size: clamp(.56rem, .49vw, .64rem) !important;
+  line-height: 1.08 !important;
+}
+
+/* Trust requirements belong in the dossier's circular archival area, not over text. */
+html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+  left: 33px !important;
+  right: auto !important;
+  bottom: 72px !important;
+  width: 62px !important;
+  height: 62px !important;
+  transform: rotate(-6deg) !important;
+  opacity: .88 !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"] span {
+  font-size: .29rem !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"] strong {
+  font-size: .62rem !important;
+}
+
+/* Keep the classification copy comfortably inside the painted plaques. */
+html body .eggAtelierShell [data-registry-classification] {
+  padding-left: 42px !important;
+  padding-right: 42px !important;
+  font-size: clamp(.56rem, .50vw, .67rem) !important;
+}
+
+/* ---------- Active Eggs: structural targeting, independent of bridge timing ---------- */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"],
+html body .eggAtelierShell [data-registry-active-list="true"] {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-content: start !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button,
+html body .eggAtelierShell [data-registry-active-record="true"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button {
+  position: relative !important;
+  display: block !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: 150px !important;
+  min-height: 150px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: url("/images/egg-atelier/egg-registry/egg_registry_active_egg_frame.png") !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  box-shadow: none !important;
+  color: #49331f !important;
+  text-align: left !important;
+  filter: none !important;
+  opacity: 1 !important;
+  overflow: hidden !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] {
+  position: absolute !important;
+  left: 4.2% !important;
+  top: 17px !important;
+  width: 15.5% !important;
+  height: 116px !important;
+  min-height: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"] img,
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] img {
+  width: 88px !important;
+  height: 88px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 5px 6px rgba(80,48,20,.16)) !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  position: absolute !important;
+  left: 23% !important;
+  right: 18% !important;
+  top: 30px !important;
+  bottom: 20px !important;
+  display: block !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #49331f !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button span[class*="listingMeta"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button span[class*="listingMeta"] {
+  display: block !important;
+  margin: 0 0 4px !important;
+  color: #735432 !important;
+  font-size: .65rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .08em !important;
+  line-height: 1.1 !important;
+  text-shadow: none !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button h3[class*="listingName"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button h3[class*="listingName"] {
+  margin: 0 0 5px !important;
+  color: #392619 !important;
+  font: 700 1.24rem/1.03 Georgia, "Times New Roman", serif !important;
+  text-shadow: none !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button p,
+html body .eggAtelierShell [data-registry-active-list="true"] > button p {
+  margin: 2px 0 !important;
+  color: #58412c !important;
+  font-size: .72rem !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+  text-shadow: none !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button p[class*="gradePreview"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button p[class*="gradePreview"] {
+  color: #76552f !important;
+  font-weight: 900 !important;
+}
+
+/* Selected records should gain a restrained Registry highlight, never the inherited sold-state dimming. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button[class*="sold"] {
+  filter: none !important;
+  opacity: 1 !important;
+  box-shadow: inset 0 0 0 2px rgba(182,132,50,.2) !important;
+}
+
+/* ---------- modest desktop compaction ---------- */
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+    left: 44% !important;
+    right: 24px !important;
+    font-size: .68rem !important;
+  }
+
+  html body .eggAtelierShell [data-registry-offer] div[class*="price"] {
+    left: 44% !important;
+    right: 24px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+    width: 31% !important;
+  }
+
+  html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+    max-width: 142px !important;
+    max-height: 142px !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"],
+  html body .eggAtelierShell [data-registry-offer] div[class*="price"] {
+    left: 43% !important;
+  }
+
+  html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button {
+    height: 142px !important;
+    min-height: 142px !important;
+  }
+}
