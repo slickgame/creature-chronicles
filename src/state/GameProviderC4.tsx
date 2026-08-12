@@ -10,7 +10,7 @@ function ColiseumC4Bridge({ children }: { children: React.ReactNode }) {
   const base = Base.useGameContext();
   const value = useMemo<BaseContextValue>(() => ({
     ...base,
-    buildPhase: "Coliseum C4 — Daily Challenges, Gauntlets, Boss Trials & Rotating Modifiers",
+    buildPhase: "Chapter 2 — Trouble Beyond the Fence & Coliseum C4",
   }), [base]);
   return <ColiseumC4Context.Provider value={value}>{children}</ColiseumC4Context.Provider>;
 }

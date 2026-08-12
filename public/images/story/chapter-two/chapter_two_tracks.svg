@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Tracks beyond the fence</title>
+  <desc id="desc">Moonlit ranch fence with large wolf tracks leading toward the woodline.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#17263e"/><stop offset="1" stop-color="#42342b"/></linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#53604b"/><stop offset="1" stop-color="#211d19"/></linearGradient>
+    <radialGradient id="moon" cx="50%" cy="50%" r="50%"><stop stop-color="#fff6c5"/><stop offset="1" stop-color="#d8ddc7"/></radialGradient>
+  </defs>
+  <rect width="1200" height="700" rx="30" fill="url(#sky)"/>
+  <circle cx="900" cy="145" r="88" fill="url(#moon)" opacity=".9"/>
+  <path d="M0 370C220 320 400 400 610 350c220-52 365-8 590 30v320H0z" fill="url(#ground)"/>
+  <g fill="#0d1718" opacity=".9">
+    <path d="M0 315l80-90 54 70 72-116 82 128 62-101 80 115 70-145 95 158 78-130 77 133 68-105 74 105 78-133 86 130 94-116 70 98v180H0z"/>
+  </g>
+  <g stroke="#2c1b14" stroke-width="22" stroke-linecap="round">
+    <path d="M70 410h1060"/>
+    <path d="M145 330v220M395 330v220M645 330v220M895 330v220M1100 330v220"/>
+  </g>
+  <g fill="#15110f" opacity=".92" transform="translate(0 10)">
+    <g transform="translate(230 530) rotate(-14)"><ellipse cx="0" cy="0" rx="34" ry="45"/><circle cx="-35" cy="-48" r="15"/><circle cx="-10" cy="-63" r="16"/><circle cx="18" cy="-62" r="16"/><circle cx="42" cy="-43" r="15"/></g>
+    <g transform="translate(430 470) rotate(-8) scale(.86)"><ellipse cx="0" cy="0" rx="34" ry="45"/><circle cx="-35" cy="-48" r="15"/><circle cx="-10" cy="-63" r="16"/><circle cx="18" cy="-62" r="16"/><circle cx="42" cy="-43" r="15"/></g>
+    <g transform="translate(610 430) rotate(2) scale(.72)"><ellipse cx="0" cy="0" rx="34" ry="45"/><circle cx="-35" cy="-48" r="15"/><circle cx="-10" cy="-63" r="16"/><circle cx="18" cy="-62" r="16"/><circle cx="42" cy="-43" r="15"/></g>
+  </g>
+  <rect x="45" y="42" width="510" height="104" rx="18" fill="rgba(9,12,17,.78)" stroke="#e6b966" stroke-width="4"/>
+  <text x="76" y="91" fill="#f6d88c" font-family="Georgia,serif" font-size="30" font-weight="700">CHAPTER 2</text>
+  <text x="76" y="128" fill="#fff6de" font-family="Georgia,serif" font-size="44" font-weight="800">Trouble Beyond the Fence</text>
+</svg>
