@@ -17,6 +17,7 @@ import "./egg-atelier-background-art.css";
 import "./egg-atelier-landing-viewport-fit.css";
 import "./egg-atelier-landing-fidelity-v2.css";
 import "./egg-atelier-talk-fidelity.css";
+import "./egg-atelier-talk-composition-final.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
