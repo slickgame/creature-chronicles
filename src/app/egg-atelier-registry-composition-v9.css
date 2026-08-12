@@ -1,0 +1,160 @@
+/* Egg Registry composition pass 9.
+   Final physical-slot alignment after screenshot review. This pass only moves live
+   HTML into the exact painted zones of the approved Registry assets. */
+
+/* ---------- Offer dossiers ---------- */
+/* Keep the title and description treatment from v8; only refine the lower purchase zone. */
+html body .eggAtelierShell [data-registry-offer] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+  left: 42% !important;
+  right: 30% !important;
+  bottom: 82px !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  padding: 0 0 1px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
+  left: -19px !important;
+  top: 50% !important;
+  width: 16px !important;
+  height: 16px !important;
+  transform: translateY(-50%) !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] span {
+  margin: 0 !important;
+  font-size: .56rem !important;
+  line-height: 1 !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] strong {
+  margin: 1px 0 0 !important;
+  line-height: 1 !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  margin: 2px 0 0 !important;
+  font-size: clamp(.57rem, .49vw, .64rem) !important;
+  line-height: 1.04 !important;
+}
+
+/* The printed trust target is considerably farther left than the v8 live stamp. */
+html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+  left: auto !important;
+  right: 94px !important;
+  bottom: 82px !important;
+  width: 54px !important;
+  height: 54px !important;
+  transform: rotate(-4deg) !important;
+  transform-origin: center !important;
+}
+
+/* Fit the live action inside the dossier's painted action frame rather than across it. */
+html body .eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  left: 78px !important;
+  right: 78px !important;
+  bottom: 39px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] button[class*="buyButton"] {
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 10px 1px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
+/* ---------- Registry sidebar ---------- */
+html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
+  font-size: 1.66rem !important;
+}
+
+/* Keep the descriptive paragraph high and lift the quote clear of the selected-record frame. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+  top: 168px !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar-quote="true"] {
+  top: 242px !important;
+}
+
+/* The selected record copy was visually landing below its leather compartment.
+   Move only the three data lines up; the action buttons are positioned separately. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  position: relative !important;
+  left: 5px !important;
+  transform: translateY(-58px) !important;
+  text-align: center !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span {
+  margin-bottom: 2px !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong {
+  margin-top: 0 !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  margin-top: 5px !important;
+}
+
+/* Sell and Research were each one painted action slot too low. Services and Back
+   already occupy their intended third/fourth slots, so do not move those. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(1),
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(2) {
+  transform: translateY(-47px) !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  padding-top: 0 !important;
+  padding-bottom: 1px !important;
+}
+
+/* ---------- Active Egg record ---------- */
+/* The egg portrait is now centered; only lower the ruled-record text a few pixels. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  top: 33% !important;
+  bottom: 7% !important;
+  justify-content: flex-start !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] {
+  left: 6.5% !important;
+  top: 18.5% !important;
+}
+
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-offer] div[class*="price"],
+  html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+  html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+    left: 41% !important;
+    right: 30% !important;
+  }
+
+  html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+    right: 86px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-offer] div[class*="actions"] {
+    left: 70px !important;
+    right: 70px !important;
+  }
+}
