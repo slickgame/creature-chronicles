@@ -3,6 +3,12 @@
 import { useEffect } from "react";
 
 const REGISTRY_ART = "/images/props/town/egg_atelier_egg_registry.png";
+const REGISTRY_ROOT = "/images/egg-atelier/egg-registry";
+const REGISTRY_HERO_ART = [
+  `${REGISTRY_ROOT}/egg_registry_common_offer_hero.png`,
+  `${REGISTRY_ROOT}/egg_registry_appraised_offer_hero.png`,
+  `${REGISTRY_ROOT}/egg_registry_rare_offer_hero.png`,
+] as const;
 const CATALOG_ROOT = "/images/egg-atelier/furniture-catalog";
 const CATALOG_HERO_ART = [
   `${CATALOG_ROOT}/furniture_soft_bedding_hero.png`,
@@ -87,6 +93,120 @@ function decorateRegistryHotspot(): void {
   if (subtitle) subtitle.textContent = "Placement • Purchase • Notes";
 }
 
+function decorateEggRegistry(): void {
+  const shell = document.querySelector<HTMLElement>(".eggAtelierShell");
+  if (!shell) return;
+
+  const headings = Array.from(shell.querySelectorAll<HTMLHeadingElement>("h2"));
+  const sidebarHeading = headings.find((heading) => normalizeText(heading) === "egg registry");
+  const offersHeading = headings.find((heading) => normalizeText(heading) === "egg offers");
+  const activeHeading = headings.find((heading) => normalizeText(heading) === "your active eggs");
+
+  if (!sidebarHeading || !offersHeading || !activeHeading) {
+    delete shell.dataset.atelierRegistryActive;
+    return;
+  }
+
+  const root = sidebarHeading.closest<HTMLElement>("section");
+  const sidebar = sidebarHeading.closest<HTMLElement>("aside");
+  const mainPanel = offersHeading.closest<HTMLElement>("section");
+  if (!root || !sidebar || !mainPanel || !root.contains(mainPanel)) return;
+
+  shell.dataset.atelierRegistryActive = "true";
+  root.dataset.atelierEggRegistry = "true";
+  sidebar.dataset.registrySidebar = "true";
+  mainPanel.dataset.registryMain = "true";
+  offersHeading.dataset.registrySectionHeading = "offers";
+  activeHeading.dataset.registrySectionHeading = "active";
+
+  if (!sidebar.querySelector('[data-registry-sidebar-crest="true"]')) {
+    const crest = document.createElement("img");
+    crest.src = `${REGISTRY_ROOT}/egg_registry_crest.png`;
+    crest.alt = "";
+    crest.dataset.registrySidebarCrest = "true";
+    crest.dataset.registryInjected = "true";
+    sidebar.insertBefore(crest, sidebar.firstChild);
+  }
+
+  const sidebarCopy = Array.from(sidebar.children).find(
+    (child) => child.tagName === "P" && normalizeText(child).startsWith("buy documented eggs"),
+  );
+  if (sidebarCopy && !sidebar.querySelector('[data-registry-sidebar-quote="true"]')) {
+    const quote = document.createElement("p");
+    quote.textContent = "Every egg is a placement. Every note is a legacy.";
+    quote.dataset.registrySidebarQuote = "true";
+    quote.dataset.registryInjected = "true";
+    sidebarCopy.insertAdjacentElement("afterend", quote);
+  }
+
+  const offerListings = offersHeading.nextElementSibling as HTMLElement | null;
+  if (offerListings) {
+    offerListings.dataset.registryOfferList = "true";
+    const offerEntries = Array.from(offerListings.children).filter(
+      (child): child is HTMLElement => child instanceof HTMLElement,
+    ).slice(0, 3);
+
+    offerEntries.forEach((entry, index) => {
+      entry.dataset.registryOffer = String(index + 1);
+      entry.dataset.registryTier = index === 0 ? "common" : index === 1 ? "appraised" : "rare";
+
+      const art = entry.querySelector<HTMLImageElement>('div[class*="listingArt"] img');
+      if (art) {
+        art.src = REGISTRY_HERO_ART[index];
+        art.alt = "";
+        art.dataset.registryHeroArt = "true";
+      }
+
+      const classification = entry.querySelector<HTMLElement>('span[class*="listingMeta"]');
+      if (classification) classification.dataset.registryClassification = String(index + 1);
+
+      if (index > 0 && !entry.querySelector('[data-registry-trust-stamp="true"]')) {
+        const stamp = document.createElement("div");
+        stamp.dataset.registryTrustStamp = "true";
+        stamp.dataset.registryTrustLevel = index === 1 ? "2" : "4";
+        stamp.dataset.registryInjected = "true";
+        stamp.setAttribute("aria-label", `Requires Selene Trust Level ${index === 1 ? 2 : 4}`);
+
+        const label = document.createElement("span");
+        label.textContent = "Selene Trust";
+        const level = document.createElement("strong");
+        level.textContent = `Lv. ${index === 1 ? 2 : 4}`;
+        stamp.append(label, level);
+        entry.appendChild(stamp);
+      }
+    });
+  }
+
+  const activeListings = activeHeading.nextElementSibling as HTMLElement | null;
+  if (activeListings) {
+    activeListings.dataset.registryActiveList = "true";
+    const records = Array.from(activeListings.children).filter(
+      (child): child is HTMLElement => child instanceof HTMLElement && child.tagName !== "DIV",
+    );
+    records.forEach((record) => {
+      record.dataset.registryActiveRecord = "true";
+    });
+
+    if (records.length === 0 && !activeListings.querySelector('[data-registry-empty-state="true"]')) {
+      const empty = document.createElement("div");
+      empty.dataset.registryEmptyState = "true";
+      empty.dataset.registryInjected = "true";
+
+      const image = document.createElement("img");
+      image.src = `${REGISTRY_ROOT}/egg_registry_empty_state_emblem.png`;
+      image.alt = "";
+      const copy = document.createElement("div");
+      const title = document.createElement("strong");
+      title.textContent = "No active egg placements";
+      const detail = document.createElement("span");
+      detail.textContent = "Purchase or place an egg to create a Registry record.";
+      copy.append(title, detail);
+      empty.append(image, copy);
+      activeListings.appendChild(empty);
+    }
+  }
+}
+
 function decorateFurnitureCatalog(): void {
   const shell = document.querySelector<HTMLElement>(".eggAtelierShell");
   if (!shell) return;
@@ -110,8 +230,6 @@ function decorateFurnitureCatalog(): void {
   sidebar.dataset.catalogSidebar = "true";
   mainPanel.dataset.catalogBook = "true";
 
-  // The live catalog is a single complete four-item spread. Remove any injected
-  // legacy controls that imply extra pages rather than merely hiding them in CSS.
   mainPanel
     .querySelectorAll<HTMLElement>(
       '[data-catalog-tabs="true"], [data-catalog-notes="true"], nav[aria-label="Furniture catalog entries"]',
@@ -180,6 +298,7 @@ export function EggAtelierUiBridge() {
       exposeSharedPlayerMenu();
       hideQuickhatchEverywhereInAtelier();
       decorateRegistryHotspot();
+      decorateEggRegistry();
       decorateFurnitureCatalog();
     };
 
@@ -231,7 +350,9 @@ export function EggAtelierUiBridge() {
         });
 
       document
-        .querySelectorAll<HTMLElement>('[data-catalog-injected="true"]')
+        .querySelectorAll<HTMLElement>(
+          '[data-catalog-injected="true"], [data-registry-injected="true"]',
+        )
         .forEach((element) => element.remove());
     };
   }, []);
