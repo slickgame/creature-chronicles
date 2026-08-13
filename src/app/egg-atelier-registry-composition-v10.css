@@ -1,0 +1,48 @@
+/* Egg Registry composition pass 10.
+   Final micro-polish: the offer dossiers and sidebar are locked. Only refine the
+   live text stack inside the generated Active Egg record so every line stays on
+   the ruled parchment and the sell-value line no longer clips below the asset. */
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  top: 29% !important;
+  bottom: 13% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button span[class*="listingMeta"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button span[class*="listingMeta"] {
+  margin: 0 0 6px !important;
+  line-height: 1 !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button h3[class*="listingName"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button h3[class*="listingName"] {
+  margin: 0 0 7px !important;
+  line-height: 1 !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button p[class*="listingDesc"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button p[class*="listingDesc"] {
+  margin: 0 0 5px !important;
+  line-height: 1.08 !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button p[class*="gradePreview"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button p[class*="gradePreview"] {
+  margin: 0 !important;
+  line-height: 1 !important;
+  transform: translateY(-1px) !important;
+}
+
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+  html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+    top: 28% !important;
+    bottom: 12% !important;
+  }
+}
