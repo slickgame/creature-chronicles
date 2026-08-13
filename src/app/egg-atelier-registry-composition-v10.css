@@ -39,10 +39,19 @@ html body .eggAtelierShell [data-registry-active-list="true"] > button p[class*=
   transform: translateY(-1px) !important;
 }
 
+/* Sit the live Registry title just above the decorative rule in the painted sidebar. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
+  top: 111px !important;
+}
+
 @media (max-width: 1450px) {
   html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
   html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
     top: 28% !important;
     bottom: 12% !important;
+  }
+
+  html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
+    top: 111px !important;
   }
 }
