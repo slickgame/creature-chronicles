@@ -35,6 +35,7 @@ import "./egg-atelier-registry-composition-v7.css";
 import "./egg-atelier-registry-composition-v8.css";
 import "./egg-atelier-registry-composition-v9.css";
 import "./egg-atelier-registry-composition-v10.css";
+import "./egg-atelier-registry-composition-v11.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
@@ -58,7 +59,6 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#10151b",
 };
 
 export default function RootLayout({
