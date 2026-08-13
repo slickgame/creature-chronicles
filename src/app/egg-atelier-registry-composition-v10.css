@@ -44,12 +44,10 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
   top: 107px !important;
 }
 
-/* Sidebar description micro-polish: keep the functional description, remove the
-   redundant italic quote, and optically center the remaining copy in its painted
-   record area. The existing cyan heart is pulled inward so it reads as part of
-   the description instead of floating against the left edge. */
+/* Sidebar description micro-polish: keep only the functional description,
+   raise it within the painted record area, and remove the decorative cyan heart. */
 html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
-  top: 169px !important;
+  top: 159px !important;
   left: 34px !important;
   right: 50px !important;
 }
@@ -59,7 +57,8 @@ html body .eggAtelierShell [data-registry-sidebar-quote="true"] {
 }
 
 html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::before {
-  left: 8px !important;
+  content: none !important;
+  display: none !important;
 }
 
 @media (max-width: 1450px) {
@@ -74,7 +73,7 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry
   }
 
   html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
-    top: 169px !important;
+    top: 159px !important;
     left: 34px !important;
     right: 50px !important;
   }
