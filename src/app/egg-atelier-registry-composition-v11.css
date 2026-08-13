@@ -43,17 +43,29 @@ html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
 }
 
 /* ---------- Trust stamp ---------- */
-/* Center the trust artwork inside the dossier's printed parchment seal target
-   and render it large enough for the tier artwork to remain readable. */
+/* The artwork is a 2-up sprite (Lv.2 | Lv.4). Render one exact half of the
+   source with no rotation so browser resampling does not soften the fine ink
+   lines, then place the seal at the visual center of the printed oval. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   left: auto !important;
-  right: 58px !important;
-  bottom: 80px !important;
-  width: 72px !important;
-  height: 72px !important;
-  object-fit: contain !important;
-  transform: rotate(-5deg) !important;
+  right: 82px !important;
+  bottom: 78px !important;
+  width: 82px !important;
+  height: 82px !important;
+  background-size: 200% 100% !important;
+  background-repeat: no-repeat !important;
+  transform: none !important;
   transform-origin: center !important;
+  filter: contrast(1.14) saturate(1.04) !important;
+  image-rendering: auto !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="2"] {
+  background-position: left center !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="4"] {
+  background-position: right center !important;
 }
 
 @media (max-width: 1450px) {
@@ -66,9 +78,9 @@ html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
-    right: 52px !important;
-    bottom: 78px !important;
-    width: 68px !important;
-    height: 68px !important;
+    right: 72px !important;
+    bottom: 76px !important;
+    width: 78px !important;
+    height: 78px !important;
   }
 }
