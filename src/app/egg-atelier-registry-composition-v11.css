@@ -1,20 +1,22 @@
 /* Egg Registry composition pass 11.
-   Surgical two-item alignment pass: center the live price copy in the dossier's
-   painted purchase-information box and center the trust stamps in their printed circles.
-   No other Registry layout is changed here. */
+   Surgical alignment pass for the offer dossier purchase zone.
+   Keep every other Registry layout decision unchanged. */
 
 /* ---------- Offer dossier price block ---------- */
+/* The painted price rectangle is the wide parchment box LEFT of the circular
+   trust-stamp target. Center the complete PRICE / Gold / requirement stack in
+   that rectangle, rather than centering it across the stamp side of the page. */
 html body .eggAtelierShell [data-registry-offer] div[class*="price"],
 html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
 html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
-  left: 46% !important;
-  right: 25% !important;
-  bottom: 72px !important;
+  left: 25% !important;
+  right: 34% !important;
+  bottom: 87px !important;
   width: auto !important;
   height: 58px !important;
   min-height: 58px !important;
   margin: 0 !important;
-  padding: 2px 0 1px !important;
+  padding: 0 !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
@@ -32,14 +34,17 @@ html body .eggAtelierShell [data-registry-offer] div[class*="price"] em {
   text-align: center !important;
 }
 
-/* Keep the currency icon visually separate from the centered text stack. */
+/* Keep the currency icon just left of the centered live copy without allowing
+   it to pull the text group toward the stamp circle. */
 html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
-  left: 3px !important;
+  left: 14px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
 }
 
 /* ---------- Trust stamp ---------- */
+/* Preserve the previously approved stamp placement while we tune price copy
+   one item at a time. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   left: auto !important;
   right: 46px !important;
@@ -54,8 +59,9 @@ html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   html body .eggAtelierShell [data-registry-offer] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
-    left: 45% !important;
-    right: 24% !important;
+    left: 24% !important;
+    right: 34% !important;
+    bottom: 84px !important;
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
