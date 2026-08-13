@@ -43,14 +43,15 @@ html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
 }
 
 /* ---------- Trust stamp ---------- */
-/* Preserve the previously approved stamp placement while we tune price copy
-   one item at a time. */
+/* Center the trust artwork inside the dossier's printed parchment seal target
+   and render it large enough for the tier artwork to remain readable. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   left: auto !important;
-  right: 46px !important;
-  bottom: 78px !important;
-  width: 56px !important;
-  height: 56px !important;
+  right: 58px !important;
+  bottom: 80px !important;
+  width: 72px !important;
+  height: 72px !important;
+  object-fit: contain !important;
   transform: rotate(-5deg) !important;
   transform-origin: center !important;
 }
@@ -65,6 +66,9 @@ html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
-    right: 40px !important;
+    right: 52px !important;
+    bottom: 78px !important;
+    width: 68px !important;
+    height: 68px !important;
   }
 }
