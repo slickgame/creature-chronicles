@@ -44,6 +44,24 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
   top: 107px !important;
 }
 
+/* Sidebar description micro-polish: keep the functional description, remove the
+   redundant italic quote, and optically center the remaining copy in its painted
+   record area. The existing cyan heart is pulled inward so it reads as part of
+   the description instead of floating against the left edge. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+  top: 169px !important;
+  left: 34px !important;
+  right: 50px !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar-quote="true"] {
+  display: none !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::before {
+  left: 8px !important;
+}
+
 @media (max-width: 1450px) {
   html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
   html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
@@ -53,5 +71,11 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
 
   html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
     top: 107px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+    top: 169px !important;
+    left: 34px !important;
+    right: 50px !important;
   }
 }
