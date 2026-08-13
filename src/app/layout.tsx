@@ -34,6 +34,7 @@ import "./egg-atelier-registry-composition-v6.css";
 import "./egg-atelier-registry-composition-v7.css";
 import "./egg-atelier-registry-composition-v8.css";
 import "./egg-atelier-registry-composition-v9.css";
+import "./egg-atelier-registry-composition-v10.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
