@@ -41,7 +41,7 @@ html body .eggAtelierShell [data-registry-active-list="true"] > button p[class*=
 
 /* Sit the live Registry title just above the decorative rule in the painted sidebar. */
 html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
-  top: 111px !important;
+  top: 107px !important;
 }
 
 @media (max-width: 1450px) {
@@ -52,6 +52,6 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
   }
 
   html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
-    top: 111px !important;
+    top: 107px !important;
   }
 }
