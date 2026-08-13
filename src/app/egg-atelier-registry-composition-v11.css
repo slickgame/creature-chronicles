@@ -48,10 +48,10 @@ html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
    lines, then place the seal at the visual center of the printed oval. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   left: auto !important;
-  right: 85px !important;
+  right: 78px !important;
   bottom: 77px !important;
-  width: 88px !important;
-  height: 88px !important;
+  width: 94px !important;
+  height: 94px !important;
   background-size: 200% 100% !important;
   background-repeat: no-repeat !important;
   transform: none !important;
@@ -82,13 +82,13 @@ html body .eggAtelierShell [data-registry-trust-stamp="true"]::after {
   z-index: 3 !important;
   left: 50% !important;
   top: 49% !important;
-  width: 84px !important;
+  width: 90px !important;
   padding: 4px 4px 3px !important;
   box-sizing: border-box !important;
   border: 2px solid currentColor !important;
   border-radius: 4px !important;
   font-family: Georgia, "Times New Roman", serif !important;
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
   letter-spacing: .09em !important;
@@ -131,14 +131,14 @@ html body .eggAtelierShell [data-registry-trust-level="4"]::after {
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
-    right: 75px !important;
+    right: 68px !important;
     bottom: 75px !important;
-    width: 84px !important;
-    height: 84px !important;
+    width: 90px !important;
+    height: 90px !important;
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"]::after {
-    width: 80px !important;
-    font-size: 10px !important;
+    width: 86px !important;
+    font-size: 11px !important;
   }
 }
