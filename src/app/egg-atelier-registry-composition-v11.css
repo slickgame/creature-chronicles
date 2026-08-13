@@ -48,16 +48,17 @@ html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
    lines, then place the seal at the visual center of the printed oval. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   left: auto !important;
-  right: 82px !important;
-  bottom: 78px !important;
+  right: 88px !important;
+  bottom: 80px !important;
   width: 82px !important;
   height: 82px !important;
   background-size: 200% 100% !important;
   background-repeat: no-repeat !important;
   transform: none !important;
   transform-origin: center !important;
-  filter: contrast(1.14) saturate(1.04) !important;
+  filter: contrast(1.12) saturate(1.03) !important;
   image-rendering: auto !important;
+  overflow: visible !important;
 }
 
 html body .eggAtelierShell [data-registry-trust-level="2"] {
@@ -66,6 +67,58 @@ html body .eggAtelierShell [data-registry-trust-level="2"] {
 
 html body .eggAtelierShell [data-registry-trust-level="4"] {
   background-position: right center !important;
+}
+
+/* The sprite artwork is intentionally ornate and becomes difficult to parse at
+   dossier scale. Keep it as the physical certification mark, but layer a live,
+   translucent stamped label across it—similar to an archival COMPLETED stamp. */
+html body .eggAtelierShell [data-registry-trust-stamp="true"] > span,
+html body .eggAtelierShell [data-registry-trust-stamp="true"] > strong {
+  opacity: 0 !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"]::after {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 76px !important;
+  padding: 3px 3px 2px !important;
+  box-sizing: border-box !important;
+  border: 2px solid currentColor !important;
+  border-radius: 4px !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: .085em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  transform: translate(-50%, -50%) rotate(-11deg) !important;
+  transform-origin: center !important;
+  opacity: .78 !important;
+  pointer-events: none !important;
+  background: rgba(247, 232, 190, .10) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07) !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="2"]::after {
+  content: "TRUST LV. 2" !important;
+  color: rgba(232, 246, 239, .92) !important;
+  text-shadow:
+    0 1px 1px rgba(10, 47, 63, .95),
+    1px 0 0 rgba(10, 47, 63, .72),
+    -1px 0 0 rgba(10, 47, 63, .72) !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="4"]::after {
+  content: "TRUST LV. 4" !important;
+  color: rgba(255, 234, 197, .92) !important;
+  text-shadow:
+    0 1px 1px rgba(70, 15, 46, .95),
+    1px 0 0 rgba(70, 15, 46, .72),
+    -1px 0 0 rgba(70, 15, 46, .72) !important;
 }
 
 @media (max-width: 1450px) {
@@ -78,9 +131,14 @@ html body .eggAtelierShell [data-registry-trust-level="4"] {
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
-    right: 72px !important;
-    bottom: 76px !important;
+    right: 78px !important;
+    bottom: 78px !important;
     width: 78px !important;
     height: 78px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-trust-stamp="true"]::after {
+    width: 72px !important;
+    font-size: 9px !important;
   }
 }
