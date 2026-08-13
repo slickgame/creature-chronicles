@@ -9,9 +9,9 @@
 html body .eggAtelierShell [data-registry-offer] div[class*="price"],
 html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
 html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
-  left: 25% !important;
-  right: 34% !important;
-  bottom: 87px !important;
+  left: 22% !important;
+  right: 37% !important;
+  bottom: 93px !important;
   width: auto !important;
   height: 58px !important;
   min-height: 58px !important;
@@ -59,9 +59,9 @@ html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   html body .eggAtelierShell [data-registry-offer] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
-    left: 24% !important;
-    right: 34% !important;
-    bottom: 84px !important;
+    left: 21% !important;
+    right: 37% !important;
+    bottom: 90px !important;
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
