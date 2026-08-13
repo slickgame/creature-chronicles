@@ -1,11 +1,3 @@
-/* Egg Registry composition pass 11.
-   Surgical alignment pass for the offer dossier purchase zone.
-   Keep every other Registry layout decision unchanged. */
-
-/* ---------- Offer dossier price block ---------- */
-/* The painted price rectangle is the wide parchment box LEFT of the circular
-   trust-stamp target. Center the complete PRICE / Gold / requirement stack in
-   that rectangle, rather than centering it across the stamp side of the page. */
 html body .eggAtelierShell [data-registry-offer] div[class*="price"],
 html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
 html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
@@ -34,22 +26,16 @@ html body .eggAtelierShell [data-registry-offer] div[class*="price"] em {
   text-align: center !important;
 }
 
-/* Keep the currency icon just left of the centered live copy without allowing
-   it to pull the text group toward the stamp circle. */
 html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
   left: 14px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
 }
 
-/* ---------- Trust stamp ---------- */
-/* The artwork is a 2-up sprite (Lv.2 | Lv.4). Render one exact half of the
-   source with no rotation so browser resampling does not soften the fine ink
-   lines, then place the seal at the visual center of the printed oval. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] {
   left: auto !important;
-  right: 78px !important;
-  bottom: 77px !important;
+  right: 68px !important;
+  bottom: 69px !important;
   width: 94px !important;
   height: 94px !important;
   background-size: 200% 100% !important;
@@ -69,9 +55,6 @@ html body .eggAtelierShell [data-registry-trust-level="4"] {
   background-position: right center !important;
 }
 
-/* The sprite artwork is intentionally ornate and becomes difficult to parse at
-   dossier scale. Keep it as the physical certification mark, but layer a live,
-   translucent stamped label across it—similar to an archival COMPLETED stamp. */
 html body .eggAtelierShell [data-registry-trust-stamp="true"] > span,
 html body .eggAtelierShell [data-registry-trust-stamp="true"] > strong {
   opacity: 0 !important;
@@ -131,8 +114,8 @@ html body .eggAtelierShell [data-registry-trust-level="4"]::after {
   }
 
   html body .eggAtelierShell [data-registry-trust-stamp="true"] {
-    right: 68px !important;
-    bottom: 75px !important;
+    right: 58px !important;
+    bottom: 67px !important;
     width: 90px !important;
     height: 90px !important;
   }
