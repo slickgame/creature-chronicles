@@ -124,8 +124,8 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard
 html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
 html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
   position: relative !important;
-  left: -3px !important;
-  transform: translateY(-64px) !important;
+  left: -7px !important;
+  transform: translateY(-70px) !important;
   text-align: center !important;
 }
 
@@ -157,7 +157,7 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard
   html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
   html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
   html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
-    left: -3px !important;
-    transform: translateY(-64px) !important;
+    left: -7px !important;
+    transform: translateY(-70px) !important;
   }
 }
