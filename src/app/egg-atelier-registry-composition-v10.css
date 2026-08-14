@@ -62,10 +62,25 @@ html body .eggAtelierShell [data-registry-sidebar-quote="true"] {
   display: none !important;
 }
 
-html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::before,
-html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::before {
   content: none !important;
   display: none !important;
+}
+
+/* Mask only the single thin painted rule immediately above the description.
+   The mask sits over the sidebar PNG, between the inner vertical rules, and
+   deliberately leaves the title's decorative line untouched. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  left: -12px !important;
+  right: -18px !important;
+  top: -5px !important;
+  height: 2px !important;
+  background: rgb(28, 21, 16) !important;
+  pointer-events: none !important;
 }
 
 @media (max-width: 1450px) {
