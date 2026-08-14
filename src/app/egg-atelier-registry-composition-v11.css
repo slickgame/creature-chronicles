@@ -118,6 +118,17 @@ html body .eggAtelierShell [data-registry-sidebar-crest="true"] {
   box-shadow: none !important;
 }
 
+/* Selected egg record: optically center the three live text lines inside the
+   painted leather inset by lifting the group and pulling it slightly left. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  position: relative !important;
+  left: -3px !important;
+  transform: translateY(-64px) !important;
+  text-align: center !important;
+}
+
 @media (max-width: 1450px) {
   html body .eggAtelierShell [data-registry-offer] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
@@ -141,5 +152,12 @@ html body .eggAtelierShell [data-registry-sidebar-crest="true"] {
 
   html body .eggAtelierShell [data-registry-sidebar-crest="true"] {
     top: 20px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+    left: -3px !important;
+    transform: translateY(-64px) !important;
   }
 }
