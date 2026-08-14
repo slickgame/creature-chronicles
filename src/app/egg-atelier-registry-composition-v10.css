@@ -44,6 +44,13 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
   top: 107px !important;
 }
 
+/* Remove the extra CSS divider beneath the Registry title so the description
+   sits directly in the painted sidebar record area. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > h2::after {
+  content: none !important;
+  display: none !important;
+}
+
 /* Sidebar description micro-polish: keep only the functional description,
    raise it within the painted record area, and remove the decorative cyan heart. */
 html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
