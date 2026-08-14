@@ -1,0 +1,6 @@
+/* Egg Registry composition pass 12.
+   Tiny optical nudge: lift the live Buy/Locked action row within each painted dossier button frame. */
+
+html body .eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  transform: translateY(-6px) !important;
+}
