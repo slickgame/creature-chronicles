@@ -44,11 +44,14 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > h2 {
   top: 107px !important;
 }
 
-/* Remove the extra CSS divider beneath the Registry title so the description
-   sits directly in the painted sidebar record area. */
+/* Restore the intended decorative divider beneath the Registry title. */
 html body .eggAtelierShell [data-registry-sidebar="true"] > h2::after {
-  content: none !important;
-  display: none !important;
+  content: "" !important;
+  display: block !important;
+  width: 72% !important;
+  height: 1px !important;
+  margin: 10px auto 0 !important;
+  background: linear-gradient(90deg, transparent, #c79338 28%, #e9c066 50%, #c79338 72%, transparent) !important;
 }
 
 /* Sidebar description micro-polish: keep only the functional description,
@@ -68,18 +71,17 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry
   display: none !important;
 }
 
-/* The remaining yellow-brown divider is painted into egg_registry_sidebar_frame.png.
-   Mask only that narrow strip with the surrounding espresso-leather tone. */
+/* The very thin rule directly above the description is baked into the sidebar
+   artwork. Cover only that 1px painted rule, leaving the restored title divider intact. */
 html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
   content: "" !important;
   position: absolute !important;
-  z-index: -1 !important;
-  left: -14px !important;
-  right: -14px !important;
-  top: -14px !important;
-  height: 5px !important;
-  background: linear-gradient(180deg, rgba(27,17,11,.98), rgba(22,13,9,.98)) !important;
-  box-shadow: 0 0 3px rgba(22,13,9,.92) !important;
+  z-index: 0 !important;
+  left: -10px !important;
+  right: -10px !important;
+  top: -24px !important;
+  height: 3px !important;
+  background: #1b110b !important;
   pointer-events: none !important;
 }
 
