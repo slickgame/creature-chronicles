@@ -192,6 +192,13 @@ html body .eggAtelierShell [data-registry-active-list="true"] > button > div[cla
   font-size: .62rem !important;
 }
 
+/* Offer dossier hero art: lift all three icons slightly within the painted
+   illustration wells while preserving their current size and horizontal center. */
+html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  position: relative !important;
+  top: -4px !important;
+}
+
 @media (max-width: 1450px) {
   html body .eggAtelierShell [data-registry-offer] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
