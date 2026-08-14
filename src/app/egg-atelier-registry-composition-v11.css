@@ -187,6 +187,8 @@ html body .eggAtelierShell [data-registry-active-list="true"] > button > div[cla
 /* Keep the compact registry metadata line understated inside the ruled header. */
 html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"] > span[class*="listingMeta"],
 html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] > span[class*="listingMeta"] {
+  position: relative !important;
+  left: 10px !important;
   font-size: .62rem !important;
 }
 
