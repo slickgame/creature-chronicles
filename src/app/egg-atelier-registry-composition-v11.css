@@ -170,6 +170,20 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2
   transform: translateY(-15px) !important;
 }
 
+/* Active egg record: shift the live copy slightly right and optically center
+   the portrait a touch higher/right in the generated oval mount. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  transform: translateX(8px) !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"] img,
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] img {
+  position: relative !important;
+  left: 3px !important;
+  top: -3px !important;
+}
+
 @media (max-width: 1450px) {
   html body .eggAtelierShell [data-registry-offer] div[class*="price"],
   html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
