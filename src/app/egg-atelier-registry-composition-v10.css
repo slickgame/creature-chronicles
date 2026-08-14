@@ -62,32 +62,10 @@ html body .eggAtelierShell [data-registry-sidebar-quote="true"] {
   display: none !important;
 }
 
-html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::before {
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::before,
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
   content: none !important;
   display: none !important;
-}
-
-/* The unwanted rule is painted into the generated sidebar art. The previous
-   mask sat a few pixels too high and created a second dark stripe. Align this
-   feathered leather patch directly over the painted rule instead. */
-html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
-  content: "" !important;
-  display: block !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  left: -12px !important;
-  right: -18px !important;
-  top: -2px !important;
-  height: 4px !important;
-  background: linear-gradient(
-    180deg,
-    rgba(29, 21, 15, .72) 0%,
-    rgb(29, 21, 15) 32%,
-    rgb(29, 21, 15) 72%,
-    rgba(29, 21, 15, .72) 100%
-  ) !important;
-  box-shadow: 0 -1px 1px rgba(29, 21, 15, .28), 0 1px 1px rgba(29, 21, 15, .28) !important;
-  pointer-events: none !important;
 }
 
 @media (max-width: 1450px) {
