@@ -67,9 +67,9 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry
   display: none !important;
 }
 
-/* Mask only the single thin painted rule immediately above the description.
-   The mask sits over the sidebar PNG, between the inner vertical rules, and
-   deliberately leaves the title's decorative line untouched. */
+/* The unwanted rule is painted into the generated sidebar art. The previous
+   mask sat a few pixels too high and created a second dark stripe. Align this
+   feathered leather patch directly over the painted rule instead. */
 html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
   content: "" !important;
   display: block !important;
@@ -77,9 +77,16 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry
   z-index: 0 !important;
   left: -12px !important;
   right: -18px !important;
-  top: -5px !important;
-  height: 2px !important;
-  background: rgb(28, 21, 16) !important;
+  top: -2px !important;
+  height: 4px !important;
+  background: linear-gradient(
+    180deg,
+    rgba(29, 21, 15, .72) 0%,
+    rgb(29, 21, 15) 32%,
+    rgb(29, 21, 15) 72%,
+    rgba(29, 21, 15, .72) 100%
+  ) !important;
+  box-shadow: 0 -1px 1px rgba(29, 21, 15, .28), 0 1px 1px rgba(29, 21, 15, .28) !important;
   pointer-events: none !important;
 }
 
