@@ -68,6 +68,21 @@ html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry
   display: none !important;
 }
 
+/* The remaining yellow-brown divider is painted into egg_registry_sidebar_frame.png.
+   Mask only that narrow strip with the surrounding espresso-leather tone. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote])::after {
+  content: "" !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  left: -14px !important;
+  right: -14px !important;
+  top: -14px !important;
+  height: 5px !important;
+  background: linear-gradient(180deg, rgba(27,17,11,.98), rgba(22,13,9,.98)) !important;
+  box-shadow: 0 0 3px rgba(22,13,9,.92) !important;
+  pointer-events: none !important;
+}
+
 @media (max-width: 1450px) {
   html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
   html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
