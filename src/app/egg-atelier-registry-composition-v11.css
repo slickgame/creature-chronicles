@@ -196,7 +196,7 @@ html body .eggAtelierShell [data-registry-active-list="true"] > button > div[cla
    illustration wells while preserving their current size and horizontal center. */
 html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
   position: relative !important;
-  top: -4px !important;
+  top: -8px !important;
 }
 
 @media (max-width: 1450px) {
