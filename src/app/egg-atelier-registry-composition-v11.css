@@ -181,7 +181,13 @@ html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*
 html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] img {
   position: relative !important;
   left: 3px !important;
-  top: -3px !important;
+  top: -5px !important;
+}
+
+/* Keep the compact registry metadata line understated inside the ruled header. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"] > span[class*="listingMeta"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] > span[class*="listingMeta"] {
+  font-size: .62rem !important;
 }
 
 @media (max-width: 1450px) {
