@@ -38,6 +38,7 @@ import "./egg-atelier-registry-composition-v10.css";
 import "./egg-atelier-registry-composition-v11.css";
 import "./egg-atelier-registry-composition-v12.css";
 import "./egg-atelier-services-backdrop-v5.css";
+import "./egg-atelier-services-backdrop-v6.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
