@@ -1,0 +1,80 @@
+/* Egg Services fullscreen v7
+   Fill wide desktop viewports without distorting the authored 16:9 stage.
+   The live stage keeps its native ratio so all percentage overlays remain aligned.
+   A darkened continuation of the same backdrop fills any side gutters. */
+
+.eggAtelierShell main[class*="screen"]:has(section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+  position: relative !important;
+  isolation: isolate !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: #090604 !important;
+}
+
+/* Full-viewport continuation behind the crisp authored stage. */
+.eggAtelierShell main[class*="screen"]:has(section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"])::before {
+  content: "";
+  position: fixed;
+  z-index: -2;
+  inset: -4vh -4vw;
+  background:
+    linear-gradient(rgba(6, 4, 3, .28), rgba(6, 4, 3, .42)),
+    url("/images/egg-atelier/egg-services/egg_services_window_backdrop.png") center / cover no-repeat;
+  filter: blur(14px) saturate(.82) brightness(.62);
+  transform: scale(1.045);
+  pointer-events: none;
+}
+
+/* Gentle edge vignette makes the crisp center stage blend into the continuation. */
+.eggAtelierShell main[class*="screen"]:has(section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"])::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3,2,1,.62) 0%, rgba(3,2,1,.12) 8%, transparent 16%, transparent 84%, rgba(3,2,1,.12) 92%, rgba(3,2,1,.62) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.15), transparent 12%, transparent 88%, rgba(0,0,0,.2));
+  pointer-events: none;
+}
+
+/* Use essentially the entire available height. This is the largest safe 16:9
+   stage that fits without cropping the header or Available Eggs drawer. */
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+  --egg-services-stage-width: min(100vw, 177.5862069vh);
+}
+
+.eggAtelierShell main[class*="screen"] > section[class*="frame"]:has(> section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+  width: var(--egg-services-stage-width) !important;
+  max-width: none !important;
+  height: calc(var(--egg-services-stage-width) * .5631067961) !important;
+  max-height: 100vh !important;
+  aspect-ratio: 1648 / 928 !important;
+  margin: auto !important;
+  box-shadow:
+    -18px 0 34px rgba(0,0,0,.24),
+    18px 0 34px rgba(0,0,0,.24),
+    0 0 72px rgba(0,0,0,.32) !important;
+}
+
+/* The shared Player Menu hit target must track the centered 16:9 stage rather
+   than the browser edge. Keep it invisible over the baked Menu circle. */
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) > button[class*="menuButton"] {
+  top: calc((100vh - (var(--egg-services-stage-width) * .5631067961)) / 2 + (var(--egg-services-stage-width) * .0185)) !important;
+  right: calc((100vw - var(--egg-services-stage-width)) / 2 + (var(--egg-services-stage-width) * .018)) !important;
+  width: calc(var(--egg-services-stage-width) * .041) !important;
+  height: calc(var(--egg-services-stage-width) * .041) !important;
+  max-width: 72px !important;
+  max-height: 72px !important;
+  opacity: 0 !important;
+}
+
+/* Standard 16:9 screens naturally become true edge-to-edge with no continuation visible. */
+@media (min-aspect-ratio: 16 / 9) {
+  .eggAtelierShell main[class*="screen"] > section[class*="frame"]:has(> section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+    height: 100vh !important;
+  }
+}
