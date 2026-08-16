@@ -1,0 +1,394 @@
+/* Egg Services isolation + true fullscreen v8
+   1) Services fills the viewport exactly.
+   2) Services menu hit target follows the baked Menu art.
+   3) Registry and Furniture data-marked layouts are explicitly insulated from
+      the generic service overlay selectors introduced by backdrop-v5.
+*/
+
+/* -------------------------------------------------------------------------- */
+/* Egg Services: true viewport fill                                            */
+/* -------------------------------------------------------------------------- */
+
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+  --egg-services-stage-width: 100vw;
+}
+
+.eggAtelierShell main[class*="screen"]:has(section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background: #080604 !important;
+}
+
+.eggAtelierShell main[class*="screen"] > section[class*="frame"]:has(> section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) {
+  position: relative !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-width: 100vw !important;
+  min-height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background-image: url("/images/egg-atelier/egg-services/egg_services_window_backdrop.png") !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  box-shadow: none !important;
+}
+
+/* No gutter continuation is needed when the authored stage itself fills viewport. */
+.eggAtelierShell main[class*="screen"]:has(section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"])::before,
+.eggAtelierShell main[class*="screen"]:has(section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"])::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Catch the shared Player Menu regardless of whether React flattens it as a
+   direct child. It becomes an invisible hit target over the baked circle. */
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) button[class*="menuButton"] {
+  position: fixed !important;
+  z-index: 500 !important;
+  top: 1.55vh !important;
+  right: 1.45vw !important;
+  left: auto !important;
+  width: clamp(56px, 4.35vw, 78px) !important;
+  height: clamp(56px, 4.35vw, 78px) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: transparent !important;
+  text-shadow: none !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  opacity: .001 !important;
+}
+
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) button[class*="menuButton"]::before,
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) button[class*="menuButton"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Registry: restore data-authored layout after generic service selectors      */
+/* -------------------------------------------------------------------------- */
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-main="true"] {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 4px 0 0 !important;
+  padding: 18px 20px 22px !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-section-heading] {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer-list="true"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-list="true"] {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer-list="true"] {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  grid-auto-columns: auto !important;
+  gap: 12px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-list="true"] {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-auto-flow: row !important;
+  gap: 9px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  width: auto !important;
+  height: 455px !important;
+  min-height: 455px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] > div[class*="listingArt"] {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 27px !important;
+  top: 144px !important;
+  width: 37% !important;
+  height: 145px !important;
+  min-height: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] > div[class*="listingBody"] {
+  position: absolute !important;
+  z-index: 4 !important;
+  inset: 0 !important;
+  display: block !important;
+  padding: 54px 26px 24px !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] span[class*="listingMeta"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] h3[class*="listingName"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] p[class*="listingDesc"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] p[class*="gradePreview"] {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] div[class*="price"] {
+  position: absolute !important;
+  z-index: 5 !important;
+  left: 26px !important;
+  right: 26px !important;
+  bottom: 76px !important;
+  top: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 66px !important;
+  display: block !important;
+  padding: 9px 12px 8px 34px !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] div[class*="actions"] {
+  position: absolute !important;
+  z-index: 6 !important;
+  inset: auto 26px 29px 26px !important;
+  display: flex !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-offer] div[class*="actions"] button {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  height: auto !important;
+  opacity: 1 !important;
+  color: #f2dfa8 !important;
+  font-size: .78rem !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] {
+  position: relative !important;
+  inset: auto !important;
+  display: grid !important;
+  grid-template-columns: 23% minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 170px !important;
+  margin: 0 !important;
+  padding: 20px 34px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] div[class*="listingArt"] {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 116px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] div[class*="listingBody"] {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  padding-right: 14% !important;
+}
+
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] span[class*="listingMeta"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] h3[class*="listingName"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] p[class*="listingDesc"],
+html body .eggAtelierShell [data-atelier-egg-registry="true"] [data-registry-active-record="true"] p[class*="gradePreview"] {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Furniture Catalog: restore illustrated book layout                         */
+/* -------------------------------------------------------------------------- */
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-book="true"] {
+  position: relative !important;
+  inset: auto !important;
+  display: block !important;
+  min-width: 0 !important;
+  min-height: 680px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-book="true"] > h2 {
+  display: none !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-book="true"] > div[class*="listings"] {
+  position: absolute !important;
+  z-index: 5 !important;
+  left: 7.2% !important;
+  right: 7.2% !important;
+  top: 16.3% !important;
+  bottom: 22.8% !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+  grid-template-rows: minmax(0,1fr) minmax(0,1fr) !important;
+  grid-auto-flow: row !important;
+  grid-auto-columns: auto !important;
+  column-gap: 7.5% !important;
+  row-gap: 2.5% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  transform: none !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] {
+  position: relative !important;
+  inset: auto !important;
+  display: grid !important;
+  grid-template-columns: 36% minmax(0,1fr) !important;
+  grid-template-rows: none !important;
+  gap: 8px !important;
+  align-items: center !important;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 4px 7px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] div[class*="listingArt"] {
+  position: static !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] div[class*="listingBody"] {
+  position: static !important;
+  inset: auto !important;
+  display: block !important;
+  min-width: 0 !important;
+  padding: 0 2px !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] span[class*="listingMeta"],
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] h3[class*="listingName"],
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] p[class*="listingDesc"],
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] p[class*="gradePreview"] {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] div[class*="price"] {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 19px minmax(0,1fr) !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 5px 7px !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] div[class*="actions"] {
+  position: static !important;
+  inset: auto !important;
+  display: flex !important;
+  margin: 5px 0 0 !important;
+  padding: 0 !important;
+  pointer-events: auto !important;
+}
+
+html body .eggAtelierShell [data-atelier-furniture-catalog="true"] [data-catalog-entry] div[class*="actions"] button {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 27px !important;
+  padding: 5px 15px !important;
+  opacity: 1 !important;
+  color: #f6e5b6 !important;
+  font-size: .67rem !important;
+  pointer-events: auto !important;
+}
