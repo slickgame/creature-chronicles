@@ -1,0 +1,185 @@
+/* Egg Services fit v4
+   Fixes selected-record visibility, tightens right-side service stack,
+   and pulls the Available Eggs tray fully into the desktop viewport.
+   Loaded after composition-v3. */
+
+/* -------------------------------------------------------------------------- */
+/* Selected Egg plaque: restore live record content                           */
+/* -------------------------------------------------------------------------- */
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"]::before {
+  top: 8px !important;
+  left: 12px !important;
+  width: 41% !important;
+  height: 150px !important;
+}
+
+/* Give the live fields a reliable containing block independent of listingBody. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+  isolation: isolate !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > span[class*="listingMeta"],
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > h3[class*="listingName"],
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="listingDesc"],
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:not(:has(+ div[class*="actions"])) {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: absolute !important;
+  z-index: 30 !important;
+  left: 52px !important;
+  right: auto !important;
+  width: 31.5% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  pointer-events: none;
+  text-align: left !important;
+  white-space: normal !important;
+  filter: none !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > span[class*="listingMeta"] {
+  top: 34px !important;
+  color: #e8c47b !important;
+  font-size: .55rem !important;
+  line-height: 1 !important;
+  letter-spacing: .11em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 2px 2px rgba(0,0,0,.9) !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > h3[class*="listingName"] {
+  top: 55px !important;
+  color: #fff1ce !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 1.13rem !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  text-shadow: 0 2px 3px rgba(0,0,0,.9) !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="listingDesc"] {
+  top: 82px !important;
+  color: #ead9b9 !important;
+  font-size: .67rem !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 2px rgba(0,0,0,.9) !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:not(:has(+ div[class*="actions"])) {
+  top: 108px !important;
+  color: #7fdbff !important;
+  font-size: .60rem !important;
+  line-height: 1.14 !important;
+  font-weight: 900 !important;
+  text-shadow: 0 2px 2px rgba(0,0,0,.9) !important;
+}
+
+/* Keep the workstation visually tucked beneath the restored record. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingArt"] {
+  margin-top: 48px !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Right-side service stack: compact spacing, banner + actions tucked upward  */
+/* -------------------------------------------------------------------------- */
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] {
+  gap: 6px 9px !important;
+  padding-top: 0 !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) {
+  min-height: 126px !important;
+  padding-top: 18px !important;
+  padding-bottom: 13px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(n+5),
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:has(+ div[class*="actions"]) {
+  min-height: 66px !important;
+  margin-top: -1px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > div[class*="actions"] {
+  margin-top: -3px !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Available Eggs tray: pull the full physical drawer into view               */
+/* -------------------------------------------------------------------------- */
+
+/* Reduce the flow footprint of the upper article without changing its artwork. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+  min-height: 424px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > h2:nth-of-type(2) {
+  position: relative !important;
+  z-index: 20 !important;
+  margin: -34px 14px -8px !important;
+  color: #fff0c9 !important;
+  font-size: 1.23rem !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > div[class*="listings"] {
+  position: relative !important;
+  z-index: 15 !important;
+  min-height: 184px !important;
+  max-height: 184px !important;
+  margin-top: 0 !important;
+  padding: 55px 38px 31px 37px !important;
+  background-size: 100% 100% !important;
+  transform: translateY(-2px);
+}
+
+/* Fit the first active egg into slot one instead of floating over the tray edge. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child {
+  align-self: center !important;
+  height: 78px !important;
+  min-height: 78px !important;
+  margin: 0 4px 0 1px !important;
+  padding: 4px 7px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child > div[class*="listingArt"] {
+  height: 66px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child > div[class*="listingArt"] img {
+  width: 60px !important;
+  height: 60px !important;
+}
+
+@media (max-width: 1180px) {
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+    min-height: 438px !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > h2:nth-of-type(2) {
+    margin-top: -20px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Let the existing stacked mobile composition control flow. */
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+    min-height: 0 !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > h2:nth-of-type(2) {
+    margin-top: 12px !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > div[class*="listings"] {
+    min-height: 260px !important;
+    max-height: none !important;
+    transform: none !important;
+  }
+}
