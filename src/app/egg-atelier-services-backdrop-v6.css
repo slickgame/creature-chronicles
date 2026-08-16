@@ -1,0 +1,120 @@
+/* Egg Services backdrop v6
+   Small fit pass only:
+   1) align the shared live Player Menu button over the baked Menu art
+   2) enlarge and center the first Available Egg record inside slot #1
+*/
+
+/* -------------------------------------------------------------------------- */
+/* Shared Player Menu -> baked Menu hit area                                  */
+/* -------------------------------------------------------------------------- */
+
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) > button[class*="menuButton"] {
+  position: fixed !important;
+  z-index: 100 !important;
+  top: calc((100vh - (var(--egg-services-stage-width) * .5631068)) / 2 + 18px) !important;
+  right: calc((100vw - var(--egg-services-stage-width)) / 2 + 20px) !important;
+  width: clamp(52px, 3.8vw, 64px) !important;
+  height: clamp(52px, 3.8vw, 64px) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  opacity: .001 !important;
+  cursor: pointer !important;
+}
+
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) > button[class*="menuButton"]::before,
+.eggAtelierShell:has(main section[class*="frame"] > section[class*="grid"] > aside[class*="panel"] > div[class*="sideList"]) > button[class*="menuButton"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Available Eggs slot #1                                                     */
+/* -------------------------------------------------------------------------- */
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child {
+  display: grid !important;
+  grid-template-columns: 38% minmax(0, 1fr) !important;
+  align-items: center !important;
+  align-self: stretch !important;
+  justify-self: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  padding: .22cqw .42cqw !important;
+  gap: .32cqw !important;
+  overflow: hidden !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child > div[class*="listingArt"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child > div[class*="listingArt"] img {
+  width: 104% !important;
+  height: 104% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  transform: translateY(1%) scale(1.08) !important;
+  transform-origin: center !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child > div[class*="listingBody"] {
+  display: grid !important;
+  align-content: center !important;
+  gap: .12cqw !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  padding: .05cqw .05cqw 0 0 !important;
+  overflow: hidden !important;
+  text-align: left !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child span[class*="listingMeta"] {
+  margin: 0 !important;
+  color: #dcb96d !important;
+  font-size: clamp(7px, .47cqw, 9px) !important;
+  line-height: 1.04 !important;
+  letter-spacing: .05em !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child h3[class*="listingName"] {
+  margin: .12cqw 0 0 !important;
+  color: #f7e2b4 !important;
+  font-size: clamp(11px, .78cqw, 14px) !important;
+  line-height: 1.02 !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child p[class*="listingDesc"] {
+  margin: .12cqw 0 0 !important;
+  color: #ddccb0 !important;
+  font-size: clamp(7px, .46cqw, 9px) !important;
+  line-height: 1.05 !important;
+}
+
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child p[class*="gradePreview"] {
+  margin: .14cqw 0 0 !important;
+  color: #67d8ff !important;
+  font-size: clamp(7px, .46cqw, 9px) !important;
+  line-height: 1.05 !important;
+}
+
+/* Make the selected slot highlight follow the entire physical well. */
+.eggAtelierShell main section[class*="grid"] > section[class*="panel"] > div[class*="listings"] > button[class*="listing"]:first-child[class*="sold"] {
+  outline: 1px solid rgba(103, 215, 255, .58) !important;
+  outline-offset: -3px !important;
+  box-shadow: inset 0 0 20px rgba(72, 188, 231, .08) !important;
+}
