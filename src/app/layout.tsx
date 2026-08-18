@@ -18,6 +18,15 @@ import "./egg-atelier-landing-viewport-fit.css";
 import "./egg-atelier-landing-fidelity-v2.css";
 import "./egg-atelier-talk-fidelity.css";
 import "./egg-atelier-talk-composition-final.css";
+
+/* Egg Services uses some shared MarketScreen class names. Load its broad
+   overlay rules before the dedicated Registry/Furniture stacks so those
+   completed screens always win the cascade and retain their authored layouts. */
+import "./egg-atelier-services-backdrop-v5.css";
+import "./egg-atelier-services-backdrop-v6.css";
+import "./egg-atelier-services-fullscreen-v7.css";
+import "./egg-atelier-services-isolation-v8.css";
+
 import "./egg-atelier-furniture-catalog-fidelity.css";
 import "./egg-atelier-furniture-catalog-composition-v2.css";
 import "./egg-atelier-furniture-catalog-composition-v3.css";
@@ -37,10 +46,6 @@ import "./egg-atelier-registry-composition-v9.css";
 import "./egg-atelier-registry-composition-v10.css";
 import "./egg-atelier-registry-composition-v11.css";
 import "./egg-atelier-registry-composition-v12.css";
-import "./egg-atelier-services-backdrop-v5.css";
-import "./egg-atelier-services-backdrop-v6.css";
-import "./egg-atelier-services-fullscreen-v7.css";
-import "./egg-atelier-services-isolation-v8.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
