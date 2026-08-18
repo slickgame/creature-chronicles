@@ -1,0 +1,533 @@
+/* Bespoke Furniture Catalog presentation for the Egg Atelier.
+   The binary art is supplied locally under:
+   /public/images/egg-atelier/furniture-catalog/
+*/
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > div:first-child {
+  background-image: url("/images/buildings/egg-atelier/landing-concept-bg.png") !important;
+  background-position: center 48% !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  filter: saturate(.9) contrast(1.05) brightness(.64) blur(.3px) !important;
+  transform: scale(1.01) !important;
+}
+
+.eggAtelierShell[data-atelier-furniture-active="true"] main > section > div:nth-child(2) {
+  background:
+    linear-gradient(180deg, rgba(7, 4, 2, .08), rgba(7, 4, 2, .16) 56%, rgba(7, 4, 2, .34)),
+    radial-gradient(circle at 59% 48%, rgba(233, 176, 76, .08), transparent 46%) !important;
+}
+
+.eggAtelierShell [data-atelier-furniture-catalog="true"] {
+  position: relative !important;
+  z-index: 3 !important;
+  display: grid !important;
+  grid-template-columns: 286px minmax(0, 1fr) !important;
+  gap: 18px !important;
+  align-items: start !important;
+  min-height: calc(100vh - 166px) !important;
+  padding: 12px 24px 18px !important;
+  overflow: visible !important;
+}
+
+/* ---------- left catalog dossier ---------- */
+.eggAtelierShell [data-catalog-sidebar="true"] {
+  position: relative !important;
+  z-index: 6 !important;
+  min-width: 0 !important;
+  min-height: 355px !important;
+  margin: 5px 0 0 !important;
+  padding: 14px 16px 16px !important;
+  border: 1px solid #b47a2b !important;
+  border-radius: 5px !important;
+  color: #f6e8c1 !important;
+  background:
+    linear-gradient(180deg, rgba(31, 20, 12, .97), rgba(12, 9, 7, .985)),
+    radial-gradient(circle at 50% 0%, rgba(217, 164, 66, .12), transparent 48%) !important;
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.52),
+    inset 0 0 0 4px rgba(0,0,0,.48),
+    inset 0 0 0 5px rgba(210,154,54,.12) !important;
+  overflow: hidden !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"]::before,
+.eggAtelierShell [data-catalog-sidebar="true"]::after {
+  content: "✦";
+  position: absolute;
+  color: #d4a33d;
+  font-size: 17px;
+  line-height: 1;
+  opacity: .9;
+}
+.eggAtelierShell [data-catalog-sidebar="true"]::before { left: 10px; top: 9px; }
+.eggAtelierShell [data-catalog-sidebar="true"]::after { right: 10px; bottom: 9px; transform: rotate(180deg); }
+
+.eggAtelierShell [data-catalog-sidebar-crest="true"] {
+  display: block !important;
+  width: 84px !important;
+  height: 84px !important;
+  margin: 1px auto 3px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 7px 10px rgba(0,0,0,.42)) !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] > h2 {
+  margin: 0 !important;
+  text-align: center !important;
+  color: #fff0c8 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(1.55rem, 1.8vw, 2rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -.02em !important;
+  text-shadow: 0 2px 9px rgba(0,0,0,.75) !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] > h2::after {
+  content: "";
+  display: block;
+  width: 72%;
+  height: 1px;
+  margin: 10px auto 11px;
+  background: linear-gradient(90deg, transparent, #c98c31 24%, #f2ca69 50%, #c98c31 76%, transparent);
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] > p {
+  margin: 0 2px 13px !important;
+  color: #eadcbc !important;
+  font-size: .92rem !important;
+  line-height: 1.46 !important;
+  text-align: left !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] div[class*="infoCard"] {
+  margin: 0 0 12px !important;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(197, 138, 48, .58) !important;
+  border-radius: 2px !important;
+  background: rgba(5, 5, 4, .58) !important;
+  box-shadow: inset 0 0 18px rgba(0,0,0,.34) !important;
+}
+.eggAtelierShell [data-catalog-sidebar="true"] div[class*="infoCard"] span {
+  display: block !important;
+  color: #d8ad57 !important;
+  font-size: .68rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+.eggAtelierShell [data-catalog-sidebar="true"] div[class*="infoCard"] strong {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #fff6de !important;
+  font: 700 1.25rem/1 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-catalog-sidebar="true"] button[class*="backButton"] {
+  width: 100% !important;
+  min-height: 40px !important;
+  border: 1px solid #a96f27 !important;
+  border-radius: 2px !important;
+  color: #f9e3ad !important;
+  background: linear-gradient(180deg, rgba(62,39,21,.98), rgba(24,17,12,.98)) !important;
+  font: 700 .92rem/1 Georgia, "Times New Roman", serif !important;
+  box-shadow: inset 0 0 0 1px rgba(244,194,88,.08) !important;
+}
+.eggAtelierShell [data-catalog-sidebar="true"] button[class*="backButton"]::before {
+  content: "↩";
+  margin-right: 9px;
+  color: #e6b94f;
+}
+
+/* ---------- the illustrated book ---------- */
+.eggAtelierShell [data-catalog-book="true"] {
+  position: relative !important;
+  z-index: 4 !important;
+  min-width: 0 !important;
+  min-height: 680px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: url("/images/egg-atelier/furniture-catalog/egg_atelier_furniture_book_shell.png") center top / 100% 100% no-repeat !important;
+  box-shadow: 0 26px 55px rgba(0,0,0,.36) !important;
+  overflow: visible !important;
+  color: #4b321e !important;
+  backdrop-filter: none !important;
+}
+
+.eggAtelierShell [data-catalog-book="true"] > h2 {
+  display: none !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] {
+  position: absolute !important;
+  z-index: 8 !important;
+  top: 2px !important;
+  left: 50% !important;
+  width: min(56%, 620px) !important;
+  transform: translateX(-50%) !important;
+  display: grid !important;
+  justify-items: center !important;
+  text-align: center !important;
+  color: #4f3821 !important;
+  pointer-events: none !important;
+}
+
+.eggAtelierShell [data-catalog-book-heading="true"] > span {
+  min-width: 210px !important;
+  padding: 7px 18px 8px !important;
+  border: 1px solid #9c6a29 !important;
+  border-radius: 3px !important;
+  color: #f5dfa3 !important;
+  background: linear-gradient(180deg, #31574f, #1d3d38) !important;
+  box-shadow: 0 3px 9px rgba(0,0,0,.35), inset 0 0 0 2px rgba(234,190,92,.11) !important;
+  font: 700 .88rem/1 Georgia, "Times New Roman", serif !important;
+  letter-spacing: .05em !important;
+  text-transform: uppercase !important;
+}
+.eggAtelierShell [data-catalog-book-heading="true"] > strong {
+  display: block !important;
+  margin-top: 8px !important;
+  color: #5d4228 !important;
+  font: 700 1.12rem/1 Georgia, "Times New Roman", serif !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+.eggAtelierShell [data-catalog-book-heading="true"] > em {
+  display: block !important;
+  max-width: 340px !important;
+  margin-top: 3px !important;
+  color: #785f43 !important;
+  font: italic .71rem/1.15 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+  position: absolute !important;
+  z-index: 5 !important;
+  left: 7.2% !important;
+  right: 7.2% !important;
+  top: 16.3% !important;
+  bottom: 22.8% !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+  column-gap: 7.5% !important;
+  row-gap: 2.5% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-catalog-entry] {
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 4px 7px !important;
+  display: grid !important;
+  grid-template-columns: 36% minmax(0, 1fr) !important;
+  gap: 8px !important;
+  align-items: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #4d3521 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-catalog-entry="1"],
+.eggAtelierShell [data-catalog-entry="2"] {
+  border-bottom: 1px solid rgba(113, 80, 47, .22) !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="listingArt"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.eggAtelierShell [data-catalog-entry] img[data-catalog-hero-art="true"] {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 175px !important;
+  max-height: 174px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 8px 7px rgba(67, 38, 16, .24)) !important;
+}
+.eggAtelierShell [data-catalog-entry="3"] img[data-catalog-hero-art="true"] {
+  max-width: 200px !important;
+}
+.eggAtelierShell [data-catalog-entry="4"] img[data-catalog-hero-art="true"] {
+  max-height: 178px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="listingBody"] {
+  min-width: 0 !important;
+  padding: 0 2px !important;
+  color: #4b321f !important;
+}
+
+.eggAtelierShell [data-catalog-entry] span[class*="listingMeta"] {
+  display: block !important;
+  margin-bottom: 3px !important;
+  color: #80603d !important;
+  font-size: .59rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .1em !important;
+  text-transform: uppercase !important;
+}
+
+.eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+  margin: 0 0 4px !important;
+  color: #49311f !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(.98rem, 1.25vw, 1.28rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.01em !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+  margin: 0 0 4px !important;
+  color: #624c35 !important;
+  font-size: .69rem !important;
+  line-height: 1.24 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+  margin: 0 0 5px !important;
+  color: #0f76a1 !important;
+  font-size: .67rem !important;
+  line-height: 1.18 !important;
+  font-weight: 800 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] {
+  display: grid !important;
+  grid-template-columns: 19px minmax(0, 1fr) !important;
+  gap: 6px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 5px 7px !important;
+  border: 1px solid rgba(119, 82, 44, .27) !important;
+  background: rgba(255, 248, 221, .29) !important;
+  box-shadow: inset 0 0 12px rgba(96, 59, 24, .035) !important;
+}
+.eggAtelierShell [data-catalog-entry] div[class*="price"] > img {
+  width: 17px !important;
+  height: 17px !important;
+  object-fit: contain !important;
+}
+.eggAtelierShell [data-catalog-entry] div[class*="price"] span {
+  display: block !important;
+  color: #7a5d3b !important;
+  font-size: .5rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .11em !important;
+  text-transform: uppercase !important;
+}
+.eggAtelierShell [data-catalog-entry] div[class*="price"] strong {
+  display: block !important;
+  margin-top: 1px !important;
+  color: #49321f !important;
+  font: 700 .68rem/1.1 Georgia, "Times New Roman", serif !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="actions"] {
+  margin: 5px 0 0 !important;
+  display: flex !important;
+}
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"] {
+  min-width: 94px !important;
+  min-height: 27px !important;
+  padding: 5px 15px !important;
+  border: 1px solid #7d5423 !important;
+  border-radius: 2px !important;
+  color: #f6e5b6 !important;
+  background: linear-gradient(180deg, #3a2a19, #17120d) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,.24), inset 0 0 0 1px rgba(230,176,74,.08) !important;
+  font: 700 .67rem/1 Georgia, "Times New Roman", serif !important;
+}
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"]:not(:disabled):hover {
+  border-color: #d2a548 !important;
+  background: linear-gradient(180deg, #5b421f, #2b1d10) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Number plaques from the generated 1–4 sprite sheet. */
+.eggAtelierShell [data-catalog-entry-badge="true"] {
+  position: absolute !important;
+  z-index: 8 !important;
+  top: 3px !important;
+  left: 33.8% !important;
+  width: 28px !important;
+  height: 40px !important;
+  background-image: url("/images/egg-atelier/furniture-catalog/catalog_badges_1_4.png") !important;
+  background-repeat: no-repeat !important;
+  background-size: 400% 100% !important;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.18)) !important;
+  pointer-events: none !important;
+}
+.eggAtelierShell [data-catalog-index="1"] { background-position: 0% center !important; }
+.eggAtelierShell [data-catalog-index="2"] { background-position: 33.333% center !important; }
+.eggAtelierShell [data-catalog-index="3"] { background-position: 66.666% center !important; }
+.eggAtelierShell [data-catalog-index="4"] { background-position: 100% center !important; }
+
+/* ---------- illustrated bottom catalog tabs ---------- */
+.eggAtelierShell [data-catalog-tabs="true"] {
+  position: absolute !important;
+  z-index: 10 !important;
+  left: 7.8% !important;
+  right: 24.5% !important;
+  bottom: 1.4% !important;
+  height: 98px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  margin: 0 !important;
+}
+
+.eggAtelierShell [data-catalog-tab] {
+  position: relative !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 3px !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  filter: saturate(.9) brightness(.92) drop-shadow(0 4px 4px rgba(0,0,0,.24)) !important;
+  transition: transform .15s ease, filter .15s ease !important;
+}
+.eggAtelierShell [data-catalog-tab][data-active="true"] {
+  transform: translateY(-4px) !important;
+  filter: saturate(1.08) brightness(1.08) drop-shadow(0 6px 5px rgba(0,0,0,.28)) !important;
+}
+.eggAtelierShell [data-catalog-tab] img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill !important;
+}
+.eggAtelierShell [data-catalog-tab] span {
+  position: absolute !important;
+  z-index: 2 !important;
+  left: 8px !important;
+  right: 8px !important;
+  bottom: 8px !important;
+  color: #3e2b1c !important;
+  font: 700 .58rem/1 Georgia, "Times New Roman", serif !important;
+  text-align: center !important;
+  text-shadow: 0 1px rgba(255,255,255,.35) !important;
+  pointer-events: none !important;
+}
+
+.eggAtelierShell [data-catalog-notes="true"] {
+  position: absolute !important;
+  z-index: 10 !important;
+  right: 6.3% !important;
+  bottom: 1.4% !important;
+  width: 17.2% !important;
+  height: 98px !important;
+  pointer-events: none !important;
+}
+.eggAtelierShell [data-catalog-notes="true"] img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: fill !important;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,.25)) !important;
+}
+.eggAtelierShell [data-catalog-notes="true"] span {
+  position: absolute !important;
+  z-index: 2 !important;
+  left: 24% !important;
+  right: 18% !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #f0d792 !important;
+  font: 700 .73rem/1.15 Georgia, "Times New Roman", serif !important;
+  text-align: center !important;
+}
+
+.eggAtelierShell [data-catalog-quill="true"] {
+  position: absolute !important;
+  z-index: 2 !important;
+  left: 226px !important;
+  bottom: 8px !important;
+  width: 128px !important;
+  max-height: 220px !important;
+  object-fit: contain !important;
+  object-position: bottom !important;
+  filter: drop-shadow(0 10px 8px rgba(0,0,0,.42)) !important;
+  pointer-events: none !important;
+}
+
+@media (max-width: 1450px) {
+  .eggAtelierShell [data-atelier-furniture-catalog="true"] {
+    grid-template-columns: 250px minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .eggAtelierShell [data-catalog-sidebar="true"] > p { font-size: .82rem !important; }
+  .eggAtelierShell [data-catalog-book="true"] { min-height: 625px !important; }
+  .eggAtelierShell [data-catalog-entry] p[class*="listingDesc"],
+  .eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] { font-size: .6rem !important; }
+  .eggAtelierShell [data-catalog-entry] img[data-catalog-hero-art="true"] { max-height: 150px !important; }
+  .eggAtelierShell [data-catalog-tabs="true"],
+  .eggAtelierShell [data-catalog-notes="true"] { height: 88px !important; }
+  .eggAtelierShell [data-catalog-quill="true"] { left: 196px !important; width: 112px !important; }
+}
+
+@media (max-height: 820px) and (min-width: 1051px) {
+  .eggAtelierShell [data-atelier-furniture-catalog="true"] {
+    min-height: calc(100vh - 154px) !important;
+    padding-top: 7px !important;
+    padding-bottom: 8px !important;
+  }
+  .eggAtelierShell [data-catalog-sidebar="true"] {
+    min-height: 320px !important;
+    padding-top: 9px !important;
+  }
+  .eggAtelierShell [data-catalog-sidebar-crest="true"] { width: 66px !important; height: 66px !important; }
+  .eggAtelierShell [data-catalog-sidebar="true"] > p { font-size: .79rem !important; line-height: 1.35 !important; }
+  .eggAtelierShell [data-catalog-book="true"] { min-height: 590px !important; }
+  .eggAtelierShell [data-catalog-book-heading="true"] > strong { font-size: .98rem !important; }
+  .eggAtelierShell [data-catalog-book-heading="true"] > em { display: none !important; }
+  .eggAtelierShell [data-catalog-entry] img[data-catalog-hero-art="true"] { max-height: 136px !important; }
+  .eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] { font-size: .57rem !important; }
+  .eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] { font-size: .56rem !important; }
+  .eggAtelierShell [data-catalog-tabs="true"],
+  .eggAtelierShell [data-catalog-notes="true"] { height: 80px !important; }
+  .eggAtelierShell [data-catalog-quill="true"] { display: none !important; }
+}
+
+@media (max-width: 1050px) {
+  .eggAtelierShell [data-atelier-furniture-catalog="true"] {
+    grid-template-columns: 1fr !important;
+    overflow-x: auto !important;
+  }
+  .eggAtelierShell [data-catalog-sidebar="true"] {
+    width: min(100%, 620px) !important;
+    min-height: auto !important;
+    justify-self: center !important;
+  }
+  .eggAtelierShell [data-catalog-book="true"] {
+    min-width: 900px !important;
+  }
+  .eggAtelierShell [data-catalog-quill="true"] { display: none !important; }
+}

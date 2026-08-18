@@ -1,0 +1,191 @@
+/* Egg Registry composition pass 6.
+   Preserve the successful full-screen/dossier structure from v4/v5, then fix
+   the final physical-proportion issues visible in review: offer copy/art
+   separation, stamp placement, and the Active Egg record's native 1800x650
+   aspect ratio. */
+
+/* ---------- offer dossier readability ---------- */
+html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  left: 47% !important;
+  right: 28px !important;
+  max-height: 124px !important;
+  font-size: clamp(.74rem, .65vw, .85rem) !important;
+  line-height: 1.3 !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] {
+  left: 47% !important;
+}
+
+/* Restricted offers reserve the dossier's lower-right circular stamp zone. */
+html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+  right: 104px !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+  left: auto !important;
+  right: 28px !important;
+  bottom: 78px !important;
+  width: 64px !important;
+  height: 64px !important;
+  transform: rotate(-5deg) !important;
+  opacity: .9 !important;
+}
+
+/* Keep the hero well visually distinct from body copy. */
+html body .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+  left: 20px !important;
+  width: 31% !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  max-width: 150px !important;
+  max-height: 150px !important;
+}
+
+html body .eggAtelierShell [data-registry-offer="3"] img[data-registry-hero-art="true"] {
+  max-width: 142px !important;
+  max-height: 142px !important;
+}
+
+/* ---------- Active Eggs: preserve generated artwork proportions ---------- */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"],
+html body .eggAtelierShell [data-registry-active-list="true"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(520px, 620px)) !important;
+  justify-content: start !important;
+  align-items: start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  max-width: none !important;
+  padding: 10px 8px 4px !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button,
+html body .eggAtelierShell [data-registry-active-record="true"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button {
+  position: relative !important;
+  display: block !important;
+  justify-self: start !important;
+  width: min(620px, 100%) !important;
+  max-width: 620px !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  aspect-ratio: 1800 / 650 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: url("/images/egg-atelier/egg-registry/egg_registry_active_egg_frame.png") !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  box-shadow: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  overflow: hidden !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] {
+  position: absolute !important;
+  left: 4.8% !important;
+  top: 18% !important;
+  width: 24% !important;
+  height: 64% !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"] img,
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] img {
+  width: min(92px, 68%) !important;
+  height: min(92px, 68%) !important;
+  object-fit: contain !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  position: absolute !important;
+  left: 31% !important;
+  right: 18% !important;
+  top: 21% !important;
+  bottom: 15% !important;
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #49331f !important;
+  overflow: hidden !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button span[class*="listingMeta"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button span[class*="listingMeta"] {
+  margin: 0 0 5px !important;
+  color: #755334 !important;
+  font-size: .68rem !important;
+  line-height: 1.05 !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button h3[class*="listingName"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button h3[class*="listingName"] {
+  margin: 0 0 6px !important;
+  color: #382518 !important;
+  font: 700 1.18rem/1.05 Georgia, "Times New Roman", serif !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button p,
+html body .eggAtelierShell [data-registry-active-list="true"] > button p {
+  margin: 3px 0 !important;
+  color: #5b422b !important;
+  font-size: .72rem !important;
+  line-height: 1.18 !important;
+}
+
+/* Selected state remains a warm archival highlight, never a sold-state dim. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button[class*="sold"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button[class*="sold"] {
+  filter: none !important;
+  opacity: 1 !important;
+  box-shadow: 0 0 0 2px rgba(201,151,69,.24), 0 10px 24px rgba(0,0,0,.18) !important;
+}
+
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"],
+  html body .eggAtelierShell [data-registry-offer] div[class*="price"] {
+    left: 46% !important;
+  }
+
+  html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"],
+  html body .eggAtelierShell [data-registry-active-list="true"] {
+    grid-template-columns: repeat(auto-fit, minmax(500px, 580px)) !important;
+  }
+
+  html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button,
+  html body .eggAtelierShell [data-registry-active-record="true"],
+  html body .eggAtelierShell [data-registry-active-list="true"] > button {
+    width: min(580px, 100%) !important;
+    max-width: 580px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"],
+  html body .eggAtelierShell [data-registry-active-list="true"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button,
+  html body .eggAtelierShell [data-registry-active-record="true"],
+  html body .eggAtelierShell [data-registry-active-list="true"] > button {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}

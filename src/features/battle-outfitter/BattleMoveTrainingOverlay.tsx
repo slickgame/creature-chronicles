@@ -19,6 +19,7 @@ import {
 } from "@/data/battleLoadouts";
 import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
+import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { useGameContext } from "@/state/GameProvider";
 import type { BattleMoveId } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
@@ -56,7 +57,13 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
   const [message, setMessage] = useState("Choose a creature and configure its permanent move library.");
 
   const creatures = currentSave?.creatures ?? [];
-  const selectedCreature = creatures.find((creature) => creature.creatureId === selectedCreatureId) ?? creatures[0] ?? null;
+  const selectedCreature = creatures.find((creature) => creature.creatureId === selectedCreatureId)
+    ?? (currentSave ? creatures.find((creature) => !getTrainingUnavailableReason(currentSave, creature.creatureId)) : undefined)
+    ?? creatures[0]
+    ?? null;
+  const selectedUnavailableReason = currentSave && selectedCreature
+    ? getTrainingUnavailableReason(currentSave, selectedCreature.creatureId)
+    : null;
   const loadout = selectedCreature ? getCreatureBattleMoveLoadout(selectedCreature) : null;
   const options = useMemo(
     () => selectedCreature ? getBattleMoveTrainingOptions(selectedCreature) : [],
@@ -91,6 +98,10 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
 
   function teach(moveId: BattleMoveId, requiresReplacement: boolean) {
     if (!selectedCreature) return;
+    if (selectedUnavailableReason) {
+      setMessage(`${selectedCreature.nickname} is unavailable for move training. ${selectedUnavailableReason}`);
+      return;
+    }
     if (requiresReplacement && !replaceLearnedMoveId) {
       setMessage("The learned library is full. Choose one non-protected learned move to replace.");
       return;
@@ -107,6 +118,10 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
 
   function equip(moveId: BattleMoveId) {
     if (!selectedCreature || !loadout) return;
+    if (selectedUnavailableReason) {
+      setMessage(`${selectedCreature.nickname} is unavailable for move training. ${selectedUnavailableReason}`);
+      return;
+    }
     const full = loadout.equippedMoveIds.length >= MAX_EQUIPPED_BATTLE_MOVES;
     if (full && !replaceEquippedMoveId) {
       setMessage("The active loadout is full. Choose one equipped move to replace.");
@@ -124,6 +139,10 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
 
   function unequip(moveId: BattleMoveId) {
     if (!selectedCreature) return;
+    if (selectedUnavailableReason) {
+      setMessage(`${selectedCreature.nickname} is unavailable for move training. ${selectedUnavailableReason}`);
+      return;
+    }
     applyResult(unequipCreatureBattleMove(activeSave, selectedCreature.creatureId, moveId));
   }
 
@@ -150,7 +169,17 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
             const variant = getVariantDefinition(creature.variantId);
             const creatureLoadout = getCreatureBattleMoveLoadout(creature);
             const selected = creature.creatureId === selectedCreature?.creatureId;
-            return <button key={creature.creatureId} type="button" onClick={() => setSelectedCreatureId(creature.creatureId)} style={{ ...button, minWidth: 188, display: "grid", gridTemplateColumns: "48px minmax(0,1fr)", alignItems: "center", gap: 8, textAlign: "left", background: selected ? "linear-gradient(#ffe3a0,#ca8d32)" : "rgba(36,25,17,.95)", color: selected ? "#21130c" : "#fff7dd" }}><img src={creature.portraitPath || variant.portraitPath || FALLBACK_IMAGE} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} style={{ width: 48, height: 48, objectFit: "contain" }} /><span><strong style={{ display: "block" }}>{creature.nickname}</strong><small style={{ display: "block" }}>{creatureLoadout.learnedMoveIds.length}/{MAX_LEARNED_BATTLE_MOVES} learned · {creatureLoadout.equippedMoveIds.length}/{MAX_EQUIPPED_BATTLE_MOVES} equipped</small></span></button>;
+            const unavailableReason = getTrainingUnavailableReason(activeSave, creature.creatureId);
+            return <button
+              key={creature.creatureId}
+              type="button"
+              data-move-training-availability={unavailableReason ? "unavailable" : "available"}
+              onClick={() => setSelectedCreatureId(creature.creatureId)}
+              style={{ ...button, minWidth: 188, display: "grid", gridTemplateColumns: "48px minmax(0,1fr)", alignItems: "center", gap: 8, textAlign: "left", background: selected ? "linear-gradient(#ffe3a0,#ca8d32)" : "rgba(36,25,17,.95)", color: selected ? "#21130c" : "#fff7dd", opacity: unavailableReason ? .5 : 1, filter: unavailableReason ? "grayscale(.75)" : "none" }}
+            >
+              <img src={creature.portraitPath || variant.portraitPath || FALLBACK_IMAGE} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} style={{ width: 48, height: 48, objectFit: "contain" }} />
+              <span><strong style={{ display: "block" }}>{creature.nickname}</strong><small style={{ display: "block" }}>{unavailableReason ?? `${creatureLoadout.learnedMoveIds.length}/${MAX_LEARNED_BATTLE_MOVES} learned · ${creatureLoadout.equippedMoveIds.length}/${MAX_EQUIPPED_BATTLE_MOVES} equipped`}</small></span>
+            </button>;
           })}
         </div>
 
@@ -159,14 +188,15 @@ export function BattleMoveTrainingOverlay({ open, onClose }: { open: boolean; on
             <section style={{ ...panel, padding: 13, background: "rgba(48,32,20,.72)" }} data-ui-text-box="auto">
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(220px,300px) minmax(220px,300px)", gap: 12, alignItems: "end" }}>
                 <div><span style={{ color: "#eebd68", fontWeight: 900 }}>CURRENT CREATURE</span><h3 style={{ margin: "4px 0" }}>{selectedCreature.nickname}</h3><p style={{ margin: 0 }}>Focus Manuals owned: <strong>{manualStock}</strong></p></div>
-                <label><span style={{ display: "block", color: "#d8c39b", fontSize: 12, fontWeight: 900 }}>REPLACE EQUIPPED MOVE</span><select value={replaceEquippedMoveId} onChange={(event) => setReplaceEquippedMoveId(event.target.value as BattleMoveId | "")} style={{ width: "100%", minHeight: 38, borderRadius: 7, padding: 7, background: "#1b1511", color: "#fff7dd" }}><option value="">Choose active move</option>{loadout.equippedMoveIds.map((moveId) => <option key={moveId} value={moveId}>{getBattleMove(moveId).name}</option>)}</select></label>
-                <label><span style={{ display: "block", color: "#d8c39b", fontSize: 12, fontWeight: 900 }}>REPLACE LEARNED MOVE</span><select value={replaceLearnedMoveId} onChange={(event) => setReplaceLearnedMoveId(event.target.value as BattleMoveId | "")} style={{ width: "100%", minHeight: 38, borderRadius: 7, padding: 7, background: "#1b1511", color: "#fff7dd" }}><option value="">Choose learned move</option>{replaceableLearnedIds.map((moveId) => <option key={moveId} value={moveId}>{getBattleMove(moveId).name}</option>)}</select></label>
+                <label><span style={{ display: "block", color: "#d8c39b", fontSize: 12, fontWeight: 900 }}>REPLACE EQUIPPED MOVE</span><select disabled={Boolean(selectedUnavailableReason)} value={replaceEquippedMoveId} onChange={(event) => setReplaceEquippedMoveId(event.target.value as BattleMoveId | "")} style={{ width: "100%", minHeight: 38, borderRadius: 7, padding: 7, background: "#1b1511", color: "#fff7dd", opacity: selectedUnavailableReason ? .5 : 1 }}><option value="">Choose active move</option>{loadout.equippedMoveIds.map((moveId) => <option key={moveId} value={moveId}>{getBattleMove(moveId).name}</option>)}</select></label>
+                <label><span style={{ display: "block", color: "#d8c39b", fontSize: 12, fontWeight: 900 }}>REPLACE LEARNED MOVE</span><select disabled={Boolean(selectedUnavailableReason)} value={replaceLearnedMoveId} onChange={(event) => setReplaceLearnedMoveId(event.target.value as BattleMoveId | "")} style={{ width: "100%", minHeight: 38, borderRadius: 7, padding: 7, background: "#1b1511", color: "#fff7dd", opacity: selectedUnavailableReason ? .5 : 1 }}><option value="">Choose learned move</option>{replaceableLearnedIds.map((moveId) => <option key={moveId} value={moveId}>{getBattleMove(moveId).name}</option>)}</select></label>
               </div>
+              {selectedUnavailableReason ? <p data-selected-move-training-unavailable="true" style={{ margin: "10px 0 0", padding: 10, border: "1px solid rgba(255,174,133,.5)", borderRadius: 8, background: "rgba(110,42,27,.38)", color: "#ffd6c5", fontWeight: 800 }}>Unavailable — {selectedUnavailableReason}. Move learning and loadout editing are locked until this creature returns.</p> : null}
             </section>
 
-            <section><h3>Learned Library</h3><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(270px,1fr))", gap: 10 }}>{learned.map((option) => <article key={option.move.id} style={{ ...panel, padding: 12, background: option.equipped ? "rgba(45,91,56,.5)" : "rgba(0,0,0,.25)" }} data-ui-text-box="auto"><div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><strong>{option.move.name}</strong><span style={{ color: option.equipped ? "#9bf0a8" : "#d8c39b", fontWeight: 900 }}>{option.equipped ? "EQUIPPED" : "LEARNED"}</span></div><p style={{ margin: "7px 0" }}>{option.move.description}</p><small style={{ display: "block", color: "#9ed7ff", marginBottom: 9 }}>{moveNumbers(option.move.id)}</small><button type="button" style={button} onClick={() => option.equipped ? unequip(option.move.id) : equip(option.move.id)}>{option.equipped ? "Unequip" : loadout.equippedMoveIds.length >= MAX_EQUIPPED_BATTLE_MOVES ? "Replace Selected Active Move" : "Equip"}</button></article>)}</div></section>
+            <section><h3>Learned Library</h3><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(270px,1fr))", gap: 10 }}>{learned.map((option) => <article key={option.move.id} style={{ ...panel, padding: 12, background: option.equipped ? "rgba(45,91,56,.5)" : "rgba(0,0,0,.25)" }} data-ui-text-box="auto"><div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><strong>{option.move.name}</strong><span style={{ color: option.equipped ? "#9bf0a8" : "#d8c39b", fontWeight: 900 }}>{option.equipped ? "EQUIPPED" : "LEARNED"}</span></div><p style={{ margin: "7px 0" }}>{option.move.description}</p><small style={{ display: "block", color: "#9ed7ff", marginBottom: 9 }}>{moveNumbers(option.move.id)}</small><button type="button" style={{ ...button, opacity: selectedUnavailableReason ? .5 : 1 }} disabled={Boolean(selectedUnavailableReason)} onClick={() => option.equipped ? unequip(option.move.id) : equip(option.move.id)}>{option.equipped ? "Unequip" : loadout.equippedMoveIds.length >= MAX_EQUIPPED_BATTLE_MOVES ? "Replace Selected Active Move" : "Equip"}</button></article>)}</div></section>
 
-            <section><div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}><h3>Compatible Unlearned Techniques</h3><span style={{ color: "#eebd68", fontWeight: 900 }}>Library {loadout.learnedMoveIds.length}/{MAX_LEARNED_BATTLE_MOVES}</span></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(285px,1fr))", gap: 10 }}>{unlearned.map((option) => { const replacementMissing = option.requiresLibraryReplacement && !replaceLearnedMoveId; const disabled = manualStock <= 0 || Boolean(option.blockedReason) || !option.teachableByFocusManual || replacementMissing; return <article key={option.move.id} style={{ ...panel, padding: 12, background: "rgba(0,0,0,.25)" }} data-ui-text-box="auto"><div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><strong>{option.move.name}</strong><span style={{ color: "#d8c39b", fontWeight: 900 }}>{option.move.sourceType.toUpperCase()}</span></div><p style={{ margin: "7px 0" }}>{option.move.description}</p><small style={{ display: "block", color: "#9ed7ff", marginBottom: 6 }}>{moveNumbers(option.move.id)}</small>{option.blockedReason ? <small style={{ display: "block", color: "#ffb49e", marginBottom: 7 }}>{option.blockedReason}</small> : option.requiresLibraryReplacement ? <small style={{ display: "block", color: "#ffd58c", marginBottom: 7 }}>Choose a learned move to replace.</small> : null}<button type="button" style={{ ...button, opacity: disabled ? .5 : 1 }} disabled={disabled} onClick={() => teach(option.move.id, option.requiresLibraryReplacement)}>{option.requiresLibraryReplacement ? "Replace & Learn" : "Teach with Focus Manual"}</button></article>; })}</div></section>
+            <section><div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline", flexWrap: "wrap" }}><h3>Compatible Unlearned Techniques</h3><span style={{ color: "#eebd68", fontWeight: 900 }}>Library {loadout.learnedMoveIds.length}/{MAX_LEARNED_BATTLE_MOVES}</span></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(285px,1fr))", gap: 10 }}>{unlearned.map((option) => { const replacementMissing = option.requiresLibraryReplacement && !replaceLearnedMoveId; const disabled = Boolean(selectedUnavailableReason) || manualStock <= 0 || Boolean(option.blockedReason) || !option.teachableByFocusManual || replacementMissing; return <article key={option.move.id} style={{ ...panel, padding: 12, background: "rgba(0,0,0,.25)" }} data-ui-text-box="auto"><div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}><strong>{option.move.name}</strong><span style={{ color: "#d8c39b", fontWeight: 900 }}>{option.move.sourceType.toUpperCase()}</span></div><p style={{ margin: "7px 0" }}>{option.move.description}</p><small style={{ display: "block", color: "#9ed7ff", marginBottom: 6 }}>{moveNumbers(option.move.id)}</small>{option.blockedReason ? <small style={{ display: "block", color: "#ffb49e", marginBottom: 7 }}>{option.blockedReason}</small> : option.requiresLibraryReplacement ? <small style={{ display: "block", color: "#ffd58c", marginBottom: 7 }}>Choose a learned move to replace.</small> : null}<button type="button" style={{ ...button, opacity: disabled ? .5 : 1 }} disabled={disabled} onClick={() => teach(option.move.id, option.requiresLibraryReplacement)}>{option.requiresLibraryReplacement ? "Replace & Learn" : "Teach with Focus Manual"}</button></article>; })}</div></section>
           </div> : <p>No creature is available for move training.</p>}
         </main>
       </section>

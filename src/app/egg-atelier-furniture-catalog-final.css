@@ -1,0 +1,161 @@
+/* Furniture Catalog final single-spread polish.
+   The catalog currently contains one complete four-item spread, so the former
+   bottom navigation cards and Notes & Tips plaque are intentionally removed.
+   The generated book's own ribbons/bookmarks remain as physical decoration. */
+
+/* Remove controls that imply additional catalog pages. */
+.eggAtelierShell [data-catalog-tabs="true"],
+.eggAtelierShell [data-catalog-notes="true"] {
+  display: none !important;
+}
+
+/* Let the physical book become the visual endpoint of the screen now that there
+   is no secondary navigation row below it. */
+.eggAtelierShell [data-catalog-book="true"] {
+  height: clamp(700px, 76vh, 735px) !important;
+  min-height: 700px !important;
+  transform: translateY(7px) scale(1.018) !important;
+  transform-origin: top center !important;
+  filter: drop-shadow(0 24px 28px rgba(0, 0, 0, .30)) !important;
+}
+
+/* Preserve generous page margins while using a little of the vertical room that
+   had been reserved for the artificial tab row. */
+.eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+  top: 18.7% !important;
+  bottom: 14.0% !important;
+  left: 6.55% !important;
+  right: 6.55% !important;
+  row-gap: 2.2% !important;
+}
+
+.eggAtelierShell [data-catalog-entry] {
+  grid-template-columns: 31.5% minmax(0, 1fr) !important;
+  gap: 12px !important;
+  padding-top: 6px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Fine typography pass: slightly quieter body copy, clearer product hierarchy. */
+.eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+  color: #422b1a !important;
+  font-size: clamp(1.14rem, 1.19vw, 1.31rem) !important;
+  line-height: 1.03 !important;
+  text-shadow: 0 1px rgba(255, 250, 224, .35) !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+  color: #5d4934 !important;
+  font-size: .74rem !important;
+  line-height: 1.28 !important;
+  font-weight: 600 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+  color: #08759f !important;
+  font-size: .72rem !important;
+  line-height: 1.22 !important;
+  font-weight: 900 !important;
+}
+
+/* The generated price ornament should read as a tasteful engraved cost plaque,
+   not compete with the actual copy. */
+.eggAtelierShell [data-catalog-entry] div[class*="price"] {
+  min-height: 38px !important;
+  padding: 6px 11px !important;
+  background: rgba(251, 236, 199, .12) !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"]::before {
+  opacity: .28 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] strong {
+  color: #46301e !important;
+  font-size: .73rem !important;
+}
+
+/* Even unavailable installs should look like deliberate dark atelier controls,
+   rather than browser-grey disabled buttons. */
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"] {
+  min-width: 104px !important;
+  min-height: 31px !important;
+  border: 1px solid #8f682f !important;
+  border-radius: 2px !important;
+  color: #f2d99a !important;
+  background: linear-gradient(180deg, #44321d 0%, #1b140e 100%) !important;
+  box-shadow:
+    0 3px 7px rgba(0, 0, 0, .24),
+    inset 0 0 0 1px rgba(241, 198, 98, .09) !important;
+  font-size: .73rem !important;
+}
+
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"]:disabled {
+  opacity: .72 !important;
+  filter: none !important;
+  cursor: not-allowed !important;
+  color: #cdbb91 !important;
+  border-color: #725b39 !important;
+  background: linear-gradient(180deg, #30271d 0%, #18130f 100%) !important;
+  box-shadow: inset 0 0 0 1px rgba(239, 199, 112, .045) !important;
+}
+
+/* With the bottom nav gone, seat the quill beside the lower-left book corner so
+   it reads as a deliberate desk prop rather than an isolated corner ornament. */
+.eggAtelierShell [data-catalog-quill="true"] {
+  left: -18px !important;
+  bottom: 17px !important;
+  height: 215px !important;
+  max-height: 23vh !important;
+  transform: rotate(-8deg) !important;
+}
+
+/* Let the book and dossier sit a little lower together, matching the concept's
+   grounded desk composition. */
+.eggAtelierShell [data-catalog-sidebar="true"] {
+  margin-top: 21px !important;
+}
+
+@media (min-width: 1650px) and (max-height: 930px) {
+  .eggAtelierShell [data-catalog-book="true"] {
+    height: 690px !important;
+    min-height: 690px !important;
+    transform: translateY(5px) scale(1.012) !important;
+  }
+
+  .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+    top: 18.5% !important;
+    bottom: 13.5% !important;
+  }
+
+  .eggAtelierShell [data-catalog-quill="true"] {
+    height: 195px !important;
+  }
+}
+
+@media (max-width: 1450px) {
+  .eggAtelierShell [data-catalog-book="true"] {
+    height: 650px !important;
+    min-height: 650px !important;
+    transform: translateY(5px) scale(1.008) !important;
+  }
+
+  .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+    top: 18.4% !important;
+    bottom: 13.5% !important;
+  }
+
+  .eggAtelierShell [data-catalog-sidebar="true"] {
+    margin-top: 16px !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .eggAtelierShell [data-catalog-book="true"] {
+    transform: none !important;
+  }
+
+  .eggAtelierShell [data-catalog-quill="true"] {
+    display: none !important;
+  }
+}

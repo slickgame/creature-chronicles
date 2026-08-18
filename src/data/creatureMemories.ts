@@ -63,6 +63,13 @@ export type AddCreatureMemoryInput = Omit<
   createdAt?: string;
 };
 
+export type AddSharedCreatureMemoryInput = Omit<
+  AddCreatureMemoryInput,
+  "creatureId" | "relatedCreatureIds"
+> & {
+  creatureIds: CreatureId[];
+};
+
 function hashString(value: string): string {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {
@@ -78,6 +85,10 @@ function memoryIdFor(input: Pick<AddCreatureMemoryInput, "creatureId" | "sourceK
 
 function chronicleIdFor(memory: CreatureMemory): string {
   return `chronicle_${hashString(`${memory.memoryId}:${memory.sourceKey}`)}`;
+}
+
+function sharedChronicleIdFor(sourceKey: string): string {
+  return `chronicle_${hashString(`shared:${sourceKey}`)}`;
 }
 
 function sortEntries<T extends { dayNumber: number; createdAt: string }>(entries: T[]): T[] {
@@ -172,6 +183,75 @@ export function addCreatureMemory(
   };
 
   return updated;
+}
+
+/**
+ * Writes one mirrored Memory to every participating creature while creating a
+ * single Chronicle entry for the shared event. The shared source key makes the
+ * operation idempotent across autosaves, reloads, and daily processing retries.
+ */
+export function addSharedCreatureMemory(
+  save: GameSave,
+  input: AddSharedCreatureMemoryInput,
+): GameSave {
+  const creatureIds = Array.from(new Set(input.creatureIds.map((creatureId) => String(creatureId))))
+    .map((creatureId) => creatureId as CreatureId);
+  if (!creatureIds.length) return save;
+
+  const state = getCreatureMemoryState(save);
+  const createdAt = input.createdAt ?? new Date().toISOString();
+  const memoriesByCreatureId = { ...state.memoriesByCreatureId };
+
+  for (const creatureId of creatureIds) {
+    const key = String(creatureId);
+    const existing = memoriesByCreatureId[key] ?? [];
+    const memoryId = memoryIdFor({ creatureId, sourceKey: input.sourceKey });
+    if (existing.some((memory) => memory.memoryId === memoryId || memory.sourceKey === input.sourceKey)) {
+      continue;
+    }
+    const memory: CreatureMemory = {
+      memoryId,
+      version: CREATURE_MEMORY_VERSION,
+      creatureId,
+      category: input.category,
+      importance: input.importance,
+      title: input.title,
+      description: input.description,
+      dayNumber: input.dayNumber,
+      createdAt,
+      sourceKey: input.sourceKey,
+      relatedCreatureIds: creatureIds.filter((relatedId) => relatedId !== creatureId),
+      tags: input.tags,
+    };
+    memoriesByCreatureId[key] = sortEntries([...existing, memory]);
+  }
+
+  const chronicleEntry: ChronicleEntry = {
+    entryId: sharedChronicleIdFor(input.sourceKey),
+    version: CREATURE_MEMORY_VERSION,
+    category: input.category,
+    importance: input.importance,
+    title: input.title,
+    description: input.description,
+    dayNumber: input.dayNumber,
+    createdAt,
+    sourceKey: input.sourceKey,
+    creatureIds,
+    tags: input.tags,
+  };
+
+  return {
+    ...save,
+    creatureMemories: {
+      version: CREATURE_MEMORY_VERSION,
+      memoriesByCreatureId,
+      chronicle: state.chronicle.some(
+        (entry) => entry.entryId === chronicleEntry.entryId || entry.sourceKey === input.sourceKey,
+      )
+        ? state.chronicle
+        : sortEntries([...state.chronicle, chronicleEntry]),
+    },
+  };
 }
 
 function originMemoryFor(creature: CreatureRecord, dayNumber: number): AddCreatureMemoryInput {

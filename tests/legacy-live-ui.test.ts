@@ -1,0 +1,123 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { readFileSync } from "node:fs";
+
+const rootSource = readFileSync("src/features/root/GameRoot.tsx", "utf8");
+const chronicleSource = readFileSync("src/features/legacy/ChronicleScreen.tsx", "utf8");
+const overviewSource = readFileSync("src/features/legacy/LegacyOverviewPanel.tsx", "utf8");
+const prestigeSource = readFileSync("src/features/legacy/LegacyPrestigeBadge.tsx", "utf8");
+const recommendationSource = readFileSync("src/features/guild/GuildRecommendationPanel.tsx", "utf8");
+const advisorSource = readFileSync("src/features/guild/GuildAmbitionAdvisor.tsx", "utf8");
+const careerSource = readFileSync("src/features/legacy/CreatureCareerPanel.tsx", "utf8");
+const profileLauncherSource = readFileSync("src/features/legacy/LegacyCreatureProfileLauncher.tsx", "utf8");
+const retirementSource = readFileSync("src/features/legacy/CreatureRetirementPanel.tsx", "utf8");
+const heirloomEffectsSource = readFileSync("src/data/creatureHeirloomEffects.ts", "utf8");
+const legacyNotificationSource = readFileSync("src/data/creatureLegacyNotifications.ts", "utf8");
+const collectionSource = readFileSync("src/features/collection/CollectionScreenLedger.tsx", "utf8");
+const habitatSource = readFileSync("src/features/habitats/HabitatScreenManaged.tsx", "utf8");
+const ranchTutorialSource = readFileSync("src/features/ranch/RanchHubScreenTutorial.tsx", "utf8");
+const morningStorySource = readFileSync("src/features/legacy/MorningCreatureStoryNotice.tsx", "utf8");
+const playerMenuSource = readFileSync("src/features/inventory/PlayerInventoryMenu.tsx", "utf8");
+const guidedTutorialSource = readFileSync("src/features/tutorial/ChapterOneGuidedTutorial.tsx", "utf8");
+
+test("GameRoot routes live Ranch, Roster, and Habitat screens through Legacy-aware wrappers", () => {
+  assert.match(rootSource, /@\/features\/collection\/CollectionScreenLedger/);
+  assert.match(rootSource, /@\/features\/habitats\/HabitatScreenManaged/);
+  assert.match(rootSource, /@\/features\/ranch\/RanchHubScreenTutorial/);
+});
+
+test("the Ranch Hub exposes a live Chronicle launcher and Prestige badge", () => {
+  assert.match(rootSource, /useState\(false\)/);
+  assert.match(rootSource, /data-legacy-chronicle-launcher="true"/);
+  assert.match(rootSource, /<ChronicleScreen save=\{currentSave\}/);
+  assert.match(rootSource, /<LegacyPrestigeBadge save=\{currentSave\} compact/);
+});
+
+test("the Chronicle includes the Ranch Legacy overview before the event feed", () => {
+  const overviewIndex = chronicleSource.indexOf("<LegacyOverviewPanel");
+  const feedIndex = chronicleSource.indexOf("<ChronicleFeed");
+  assert.ok(overviewIndex >= 0);
+  assert.ok(feedIndex > overviewIndex);
+  assert.match(overviewSource, /Hall of Legends candidates/);
+  assert.match(overviewSource, /getRanchLegacySummary/);
+});
+
+test("the Chronicle owns a viewport-height vertical scroll region", () => {
+  assert.match(chronicleSource, /data-chronicle-scroll-region="true"/);
+  assert.match(chronicleSource, /height: "100dvh"/);
+  assert.match(chronicleSource, /overflowY: "auto"/);
+  assert.match(chronicleSource, /overflowX: "hidden"/);
+  assert.match(chronicleSource, /overscrollBehaviorY: "contain"/);
+});
+
+test("Legacy UI exposes Prestige, titles, Hall candidacy, and ambition rewards", () => {
+  assert.match(prestigeSource, /data-legacy-prestige="true"/);
+  assert.match(careerSource, /Legacy Score/);
+  assert.match(careerSource, /Hall candidate/);
+  const ambitionSource = readFileSync("src/features/legacy/CreatureAmbitionPanel.tsx", "utf8");
+  assert.match(ambitionSource, /data-legacy-ambition-reward="true"/);
+  assert.match(ambitionSource, /Ranch Legacy Prestige/);
+});
+
+test("Guild recommendations are explained and mounted inside the live Request Board", () => {
+  assert.match(recommendationSource, /getGuildCreatureRecommendations/);
+  assert.match(recommendationSource, /data-guild-recommendations="true"/);
+  assert.match(recommendationSource, /recommendation\.reasons/);
+  assert.match(recommendationSource, /onSelect\(recommendation\.creature\.creatureId\)/);
+  assert.match(advisorSource, /data-guild-ambition-advisor="true"/);
+  assert.match(advisorSource, /Recommended Assignments/);
+  assert.match(advisorSource, /createPortal/);
+  assert.match(advisorSource, /\[data-contract-board="list"\]/);
+  assert.match(rootSource, /appScreen === "guild-hall" \? <GuildAmbitionAdvisor save=\{currentSave\}/);
+});
+
+test("Collection and Habitat screens expose the full Legacy creature profile flow", () => {
+  assert.match(collectionSource, /<LegacyCreatureProfileLauncher/);
+  assert.match(collectionSource, /Ranch Roster Legacy Profiles/);
+  assert.match(habitatSource, /<LegacyCreatureProfileLauncher/);
+  assert.match(habitatSource, /Habitat Creature Legacy Profiles/);
+  assert.match(profileLauncherSource, /data-legacy-profile-launcher="true"/);
+  assert.match(profileLauncherSource, /data-legacy-profile-dialog="true"/);
+  assert.match(profileLauncherSource, /<CreatureDetailWithMemories/);
+  assert.match(profileLauncherSource, /<CreatureRetirementPanel/);
+  assert.match(profileLauncherSource, /getRetiredCreatureRecords/);
+  assert.match(profileLauncherSource, /compactRelationships/);
+});
+
+test("Legacy profiles provide confirmed retirement, Heirlooms, permanent Hall induction, and visible passives", () => {
+  assert.match(retirementSource, /data-legacy-panel="retirement"/);
+  assert.match(retirementSource, /window\.confirm/);
+  assert.match(retirementSource, /Retire &amp; Create Heirloom/);
+  assert.match(retirementSource, /Retire &amp; Induct into Hall/);
+  assert.match(retirementSource, /data-legacy-heirloom="true"/);
+  assert.match(retirementSource, /data-hall-of-legends-entry="true"/);
+  assert.match(retirementSource, /data-heirloom-passive="true"/);
+  assert.match(overviewSource, /data-hall-of-legends="true"/);
+  assert.match(overviewSource, /data-legacy-heirloom-collection="true"/);
+  assert.match(overviewSource, /getHeirloomPassiveDefinition/);
+  assert.match(heirloomEffectsSource, /Founder's Blessing/);
+  assert.match(heirloomEffectsSource, /applyHeirloomBattleEffect/);
+  assert.match(heirloomEffectsSource, /applyHeirloomRanchWorkEffect/);
+});
+
+test("the Morning Brief surfaces previous-day creature stories and Legacy lifecycle announcements", () => {
+  assert.match(ranchTutorialSource, /<MorningCreatureStoryNotice save=\{currentSave\}/);
+  assert.match(morningStorySource, /getMorningCreatureStory/);
+  assert.match(morningStorySource, /getMorningLegacyAnnouncement/);
+  assert.match(morningStorySource, /data-morning-creature-story/);
+  assert.match(morningStorySource, /data-morning-legacy-announcement/);
+  assert.match(morningStorySource, /Morning Brief · Creature Story/);
+  assert.match(morningStorySource, /Morning Brief · Hall of Legends/);
+  assert.match(legacyNotificationSource, /hall-induction:/);
+  assert.match(legacyNotificationSource, /retirement:/);
+});
+
+test("Guided Chapter 1 reopens from Menu Quests instead of a floating collapsed button", () => {
+  assert.match(playerMenuSource, /\{ id: "quests", label: "Quests" \}/);
+  assert.match(playerMenuSource, /data-player-menu-guided-chapter-one="true"/);
+  assert.match(playerMenuSource, /Open Guided Chapter 1/);
+  assert.match(playerMenuSource, /creature-chronicles:open-guided-chapter-one/);
+  assert.match(guidedTutorialSource, /CHAPTER_ONE_TUTORIAL_OPEN_EVENT/);
+  assert.match(guidedTutorialSource, /if \(collapsed\) return null/);
+  assert.doesNotMatch(guidedTutorialSource, /className=\{styles\.reopen\}/);
+});

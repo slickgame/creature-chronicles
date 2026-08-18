@@ -1,0 +1,63 @@
+.shopLayout {
+  min-height: 0;
+  align-items: start;
+}
+
+.shopSidebar,
+.shopMain {
+  align-self: start;
+  height: auto;
+}
+
+.ledgerLayout {
+  padding-right: 7px;
+  padding-bottom: 82px;
+  scrollbar-width: thin;
+  scrollbar-color: #bd8642 rgba(30, 13, 6, .72);
+}
+
+.ledgerLayout::-webkit-scrollbar {
+  width: 10px;
+}
+
+.ledgerLayout::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(30, 13, 6, .72);
+}
+
+.ledgerLayout::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(30, 13, 6, .72);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e6b866, #9d642f);
+}
+
+.ledgerLayout::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #f3cf82, #b8793a);
+}
+
+.ledgerActions {
+  position: sticky;
+  z-index: 6;
+  bottom: -1px;
+  margin: 0 -4px -6px;
+  padding: 11px 4px 6px;
+  border-top: 1px solid rgba(222, 174, 96, .28);
+  background: linear-gradient(180deg, rgba(35, 16, 8, 0), rgba(35, 16, 8, .96) 30%);
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 900px) {
+  .ledgerLayout {
+    padding-right: 0;
+    padding-bottom: 24px;
+  }
+
+  .ledgerActions {
+    position: static;
+    margin: 0;
+    padding: 8px 0 0;
+    border-top: 0;
+    background: transparent;
+    backdrop-filter: none;
+  }
+}

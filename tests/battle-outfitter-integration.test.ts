@@ -5,6 +5,13 @@ const {
   createBattleState,
 } = await import("@/data/battleEngine");
 const {
+  BATTLE_OUTFITTER_ITEMS,
+  assignBattleOutfitterEquipment,
+  getBattleOutfitterStock,
+  removeBattleOutfitterEquipment,
+  useBattleOutfitterManual,
+} = await import("@/data/battleOutfitter");
+const {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
   TEAM_TACTICS_KIT_ID,
@@ -14,6 +21,9 @@ const {
   useFieldTonic,
   useRevivalSalve,
 } = await import("@/data/battleOutfitterIntegration");
+const {
+  ensureCurrentGuildState,
+} = await import("@/data/guild");
 const {
   createNewGameSave,
 } = await import("@/lib/save/localSave");
@@ -36,6 +46,7 @@ function createFixture() {
     save: {
       ...save,
       creatures: [player, enemy],
+      creatureIds: [player.creatureId, enemy.creatureId],
     },
     player,
     enemy,
@@ -51,6 +62,35 @@ function createState(
     playerCreatures: [player],
     enemyCreatures: [enemy],
   });
+}
+
+function putCreatureOnGuildService() {
+  const fixture = createFixture();
+  const synced = ensureCurrentGuildState(fixture.save);
+  const guild = synced.guild;
+  const original = guild?.contracts[0];
+  assert.ok(guild && original);
+  const awaySave = {
+    ...synced,
+    guild: {
+      ...guild,
+      contracts: [
+        {
+          ...original,
+          type: "service_creature" as const,
+          status: "completed" as const,
+          title: "Outfitter Absence Test",
+          submittedCreatureId: fixture.player.creatureId,
+          submittedCreatureName: fixture.player.nickname,
+          completedAtDayNumber: synced.dayState.dayNumber,
+          serviceDurationDays: 2,
+          serviceReturnDayNumber: synced.dayState.dayNumber + 2,
+        },
+        ...guild.contracts.slice(1),
+      ],
+    },
+  };
+  return { ...fixture, save: awaySave };
 }
 
 test("assigned equipment and Focus training modify battle stats only for the ranch team", () => {
@@ -81,6 +121,45 @@ test("assigned equipment and Focus training modify battle stats only for the ran
   assert.equal(after.battleStats.statusResist, before.battleStats.statusResist + 3);
   assert.equal(after.battleStats.battleEnergy, before.battleStats.battleEnergy + 4);
   assert.deepEqual(integrated.combatants[enemyId], baseState.combatants[enemyId]);
+});
+
+test("Battle Outfitter refuses loadout and Focus changes while a creature is away on Guild service", () => {
+  const fixture = putCreatureOnGuildService();
+  const wraps = BATTLE_OUTFITTER_ITEMS.find((item) => item.itemId === "sparring_wraps");
+  const manual = BATTLE_OUTFITTER_ITEMS.find((item) => item.itemId === "focus_manual");
+  assert.ok(wraps && manual);
+  const stocked = {
+    ...fixture.save,
+    flags: {
+      ...fixture.save.flags,
+      [wraps.flagKey]: 1,
+      [manual.flagKey]: 1,
+    },
+  };
+
+  const assigned = assignBattleOutfitterEquipment(stocked, fixture.player.creatureId, "sparring_wraps");
+  assert.equal(assigned.ok, false);
+  assert.match(assigned.message, /Guild service:/i);
+  assert.equal(getBattleOutfitterStock(assigned.save, wraps), 1);
+
+  const equipped = {
+    ...stocked,
+    flags: {
+      ...stocked.flags,
+      [`battleLoadout_${fixture.player.creatureId}_offense`]: "sparring_wraps",
+      [wraps.flagKey]: 0,
+    },
+  };
+  const removed = removeBattleOutfitterEquipment(equipped, fixture.player.creatureId, "offense");
+  assert.equal(removed.ok, false);
+  assert.match(removed.message, /Guild service:/i);
+  assert.equal(removed.save.flags[`battleLoadout_${fixture.player.creatureId}_offense`], "sparring_wraps");
+  assert.equal(getBattleOutfitterStock(removed.save, wraps), 0);
+
+  const trained = useBattleOutfitterManual(stocked, fixture.player.creatureId);
+  assert.equal(trained.ok, false);
+  assert.match(trained.message, /Guild service:/i);
+  assert.equal(getBattleOutfitterStock(trained.save, manual), 1);
 });
 
 test("Team Tactics Kit consumes one stock and prepares every living ranch combatant", () => {

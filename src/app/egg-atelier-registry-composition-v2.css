@@ -1,0 +1,361 @@
+/* Egg Registry composition pass 2.
+   Rebalances the generated physical assets around the live HTML after the first
+   screenshot pass: wider viewport stage, shorter/wider dossiers, isolated hero
+   wells, non-overlapping trust stamps, and a compact active-egg section. */
+
+/* ---------- viewport composition ---------- */
+.eggAtelierShell [data-atelier-egg-registry="true"] {
+  width: min(1640px, calc(100vw - 34px)) !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  grid-template-columns: 300px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  padding: 4px 0 10px !important;
+  margin: 0 !important;
+  align-items: start !important;
+}
+
+.eggAtelierShell [data-registry-main="true"] {
+  min-width: 0 !important;
+  margin-top: 0 !important;
+  padding: 10px 14px 12px !important;
+  overflow: visible !important;
+}
+
+/* ---------- left physical Registry dossier ---------- */
+.eggAtelierShell [data-registry-sidebar="true"] {
+  width: 300px !important;
+  height: 618px !important;
+  min-height: 618px !important;
+  margin-top: 0 !important;
+}
+
+.eggAtelierShell [data-registry-sidebar-crest="true"] {
+  top: 22px !important;
+  width: 82px !important;
+  height: 82px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > h2 {
+  top: 104px !important;
+  left: 35px !important;
+  right: 35px !important;
+  font-size: 1.65rem !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+  top: 160px !important;
+  left: 43px !important;
+  right: 43px !important;
+  font-size: .77rem !important;
+  line-height: 1.34 !important;
+}
+
+.eggAtelierShell [data-registry-sidebar-quote="true"] {
+  top: 238px !important;
+  left: 48px !important;
+  right: 48px !important;
+  font-size: .76rem !important;
+  line-height: 1.28 !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] {
+  top: 286px !important;
+  left: 44px !important;
+  right: 44px !important;
+  height: 116px !important;
+  padding: 13px 13px 8px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong {
+  font-size: .95rem !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  font-size: .69rem !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(1) {
+  top: 133px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(2) {
+  top: 173px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(1) {
+  top: 501px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2) {
+  top: 543px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] button {
+  left: 47px !important;
+  right: 47px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  font-size: .78rem !important;
+}
+
+/* ---------- section headings ---------- */
+.eggAtelierShell [data-registry-section-heading] {
+  margin: 0 0 5px !important;
+  padding: 1px 16px 6px 42px !important;
+  font-size: 1.48rem !important;
+}
+
+.eggAtelierShell [data-registry-section-heading]::before {
+  top: -5px !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.eggAtelierShell [data-registry-section-heading]::after {
+  bottom: -6px !important;
+  height: 16px !important;
+  opacity: .32 !important;
+}
+
+.eggAtelierShell [data-registry-section-heading="active"] {
+  margin-top: 7px !important;
+}
+
+/* ---------- placement dossiers ---------- */
+.eggAtelierShell [data-registry-offer-list="true"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.eggAtelierShell [data-registry-offer] {
+  height: 388px !important;
+  min-height: 388px !important;
+  background-size: 100% 100% !important;
+}
+
+.eggAtelierShell [data-registry-offer] > div[class*="listingBody"] {
+  padding: 47px 22px 18px !important;
+}
+
+/* Classification art now reads like a real attached ribbon instead of a tiny label. */
+.eggAtelierShell [data-registry-classification] {
+  top: 17px !important;
+  left: 20px !important;
+  right: 20px !important;
+  height: 40px !important;
+  padding: 0 24px !important;
+  font-size: .58rem !important;
+  letter-spacing: .06em !important;
+  background-size: 300% auto !important;
+}
+
+.eggAtelierShell [data-registry-offer] h3[class*="listingName"] {
+  margin: 10px 0 7px !important;
+  font-size: clamp(1.06rem, 1.12vw, 1.28rem) !important;
+  line-height: 1.02 !important;
+  white-space: normal !important;
+}
+
+/* Give artwork a dedicated left well and keep prose out of it. */
+.eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+  left: 20px !important;
+  top: 108px !important;
+  width: 37% !important;
+  height: 138px !important;
+}
+
+.eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  max-width: 150px !important;
+  max-height: 150px !important;
+}
+
+.eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  margin: 0 0 0 40.5% !important;
+  min-height: 120px !important;
+  color: #57422e !important;
+  font-size: .69rem !important;
+  font-weight: 650 !important;
+  line-height: 1.31 !important;
+  text-shadow: none !important;
+}
+
+/* Price zone remains live HTML but reads as part of the parchment. */
+.eggAtelierShell [data-registry-offer] div[class*="price"] {
+  left: 22px !important;
+  right: 22px !important;
+  bottom: 62px !important;
+  min-height: 54px !important;
+  padding: 7px 10px 7px 32px !important;
+  background: rgba(246, 228, 191, .10) !important;
+  box-shadow: inset 0 0 0 1px rgba(117,78,37,.09) !important;
+}
+
+.eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+.eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+  right: 103px !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] > img {
+  left: 9px !important;
+  top: 10px !important;
+  width: 17px !important;
+  height: 17px !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] strong {
+  font-size: .9rem !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  margin-top: 3px !important;
+  font-size: .58rem !important;
+  line-height: 1.1 !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  left: 22px !important;
+  right: 22px !important;
+  bottom: 20px !important;
+}
+
+.eggAtelierShell [data-registry-offer] button[class*="buyButton"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 31px !important;
+  padding: 6px 12px !important;
+  font-size: .74rem !important;
+}
+
+/* Trust seals live in their reserved lower-right paper area instead of on top of prose. */
+.eggAtelierShell [data-registry-trust-stamp="true"] {
+  right: 22px !important;
+  bottom: 73px !important;
+  width: 74px !important;
+  height: 74px !important;
+  transform: rotate(-6deg) !important;
+}
+
+.eggAtelierShell [data-registry-trust-stamp="true"] span {
+  margin-top: 6px !important;
+  font-size: .34rem !important;
+}
+
+.eggAtelierShell [data-registry-trust-stamp="true"] strong {
+  font-size: .72rem !important;
+}
+
+/* ---------- Active eggs: keep the section in-frame ---------- */
+.eggAtelierShell [data-registry-active-list="true"] {
+  gap: 6px !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] {
+  min-height: 132px !important;
+  height: 132px !important;
+  padding: 13px 28px !important;
+  grid-template-columns: 19% minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] div[class*="listingArt"] {
+  height: 90px !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] div[class*="listingArt"] img {
+  max-width: 76px !important;
+  max-height: 76px !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] h3[class*="listingName"] {
+  margin: 2px 0 !important;
+  font-size: 1.08rem !important;
+}
+
+.eggAtelierShell [data-registry-active-record="true"] p {
+  font-size: .68rem !important;
+  line-height: 1.2 !important;
+}
+
+.eggAtelierShell [data-registry-empty-state="true"] {
+  min-height: 132px !important;
+  grid-template-columns: 180px minmax(0, 1fr) !important;
+  padding: 2px 70px !important;
+}
+
+.eggAtelierShell [data-registry-empty-state="true"] > img {
+  width: 170px !important;
+  height: 112px !important;
+}
+
+/* ---------- narrower desktop fallback ---------- */
+@media (max-width: 1360px) {
+  .eggAtelierShell [data-atelier-egg-registry="true"] {
+    width: min(1328px, calc(100vw - 24px)) !important;
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar="true"] {
+    width: 260px !important;
+    height: 590px !important;
+    min-height: 590px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] {
+    height: 366px !important;
+    min-height: 366px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+    top: 104px !important;
+    height: 128px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+    max-width: 136px !important;
+    max-height: 136px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+    font-size: .62rem !important;
+    min-height: 111px !important;
+  }
+
+  .eggAtelierShell [data-registry-classification] {
+    font-size: .51rem !important;
+  }
+
+  .eggAtelierShell [data-registry-active-record="true"] {
+    height: 122px !important;
+    min-height: 122px !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  .eggAtelierShell [data-atelier-egg-registry="true"] {
+    left: auto !important;
+    transform: none !important;
+    width: min(calc(100vw - 24px), 980px) !important;
+    grid-template-columns: 1fr !important;
+    margin: 0 auto !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar="true"] {
+    width: min(100%, 520px) !important;
+    justify-self: center !important;
+  }
+
+  .eggAtelierShell [data-registry-offer-list="true"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] {
+    width: min(100%, 520px) !important;
+    height: 500px !important;
+    min-height: 500px !important;
+    justify-self: center !important;
+  }
+}

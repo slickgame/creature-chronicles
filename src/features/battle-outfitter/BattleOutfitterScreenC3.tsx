@@ -20,6 +20,7 @@ import {
   type BattleOutfitterResult,
 } from "@/data/battleOutfitter";
 import { getVariantDefinition } from "@/data/creatures";
+import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { formatGold } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
@@ -64,7 +65,10 @@ export function BattleOutfitterScreenC3() {
 
   const save = currentSave;
   const creatures = save.creatures ?? [];
-  const selectedCreature = creatures.find((entry) => entry.creatureId === selectedCreatureId) ?? creatures[0] ?? null;
+  const selectedCreature = creatures.find((entry) => entry.creatureId === selectedCreatureId)
+    ?? creatures.find((entry) => !getTrainingUnavailableReason(save, entry.creatureId))
+    ?? creatures[0]
+    ?? null;
   const summary = getBattleOutfitterSummary(save);
   const materials = getBattleOutfitterMaterialStock(save);
 
@@ -139,13 +143,48 @@ export function BattleOutfitterScreenC3() {
 
 function LoadoutPanel({ save, creatures, selectedCreature, equipmentItems, onSelect, onAssign, onRemove, onManual }: { save: NonNullable<ReturnType<typeof useGameContext>["currentSave"]>; creatures: CreatureRecord[]; selectedCreature: CreatureRecord | null; equipmentItems: BattleOutfitterItem[]; onSelect: (id: CreatureId) => void; onAssign: (creatureId: CreatureId, itemId: BattleOutfitterItemId) => void; onRemove: (creatureId: CreatureId, slot: BattleLoadoutSlot) => void; onManual: (creatureId: CreatureId) => void }) {
   const loadout = selectedCreature ? getBattleLoadout(save, selectedCreature.creatureId) : null;
+  const selectedUnavailableReason = selectedCreature ? getTrainingUnavailableReason(save, selectedCreature.creatureId) : null;
   const focusManual = BATTLE_OUTFITTER_ITEMS.find((item) => item.itemId === "focus_manual");
   const manualStock = focusManual ? getBattleOutfitterStock(save, focusManual) : 0;
   const slotCurrent = (slot: BattleLoadoutSlot) => slot === "offense" ? loadout?.offenseItemId : slot === "defense" ? loadout?.defenseItemId : loadout?.utilityItemId;
   return (
     <section className={styles.grid} style={{ position: "relative", zIndex: 3, padding: 18 }}>
-      <aside className={styles.panel}><h2>Creature Loadouts</h2><div className={styles.sideList}>{creatures.map((creature) => <button key={creature.creatureId} type="button" className={styles.infoCard} onClick={() => onSelect(creature.creatureId)}><img src={getCreatureImage(creature)} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} /><span>Lv. {creature.level}</span><strong>{creature.nickname}</strong><small>{getBattleReadinessLabel(save, creature.creatureId)}</small></button>)}</div></aside>
-      <section className={styles.panel}>{selectedCreature && loadout ? <><h2>{selectedCreature.nickname}</h2><p className={styles.gradePreview}>{getBattleReadinessLabel(save, selectedCreature.creatureId)}</p><div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8, marginBottom: 12 }}>{(["offense", "defense", "utility"] as BattleLoadoutSlot[]).map((slot) => <div key={slot} className={styles.infoCard}><span>{slot[0].toUpperCase() + slot.slice(1)} Slot</span><strong>{itemName(slotCurrent(slot) ?? null)}</strong><button type="button" className={styles.backButton} disabled={!slotCurrent(slot)} onClick={() => onRemove(selectedCreature.creatureId, slot)}>Remove</button></div>)}</div><button type="button" className={styles.buyButton} disabled={manualStock <= 0 || loadout.manualRank >= 3} onClick={() => onManual(selectedCreature.creatureId)}>Use Focus Manual ({manualStock})</button><h2 style={{ marginTop: 18 }}>Assign Equipment</h2><div className={styles.listings}>{equipmentItems.map((item) => { const stock = getBattleOutfitterStock(save, item); const already = item.loadoutSlot ? slotCurrent(item.loadoutSlot) === item.itemId : false; return <article key={item.itemId} className={styles.listing}><div className={styles.listingArt}><img src={item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} /></div><div className={styles.listingBody}><span className={styles.listingMeta}>{item.coliseumExclusive ? `Marks · ${item.loadoutSlot}` : item.loadoutSlot}</span><h3 className={styles.listingName}>{item.name}</h3><p className={styles.listingDesc}>{item.effectLabel}</p><p>Stock: {stock}</p><button type="button" className={styles.buyButton} disabled={!item.loadoutSlot || stock <= 0 || already} onClick={() => onAssign(selectedCreature.creatureId, item.itemId)}>{already ? "Equipped" : "Assign"}</button></div></article>; })}</div></> : <p>No creatures available.</p>}</section>
+      <aside className={styles.panel}>
+        <h2>Creature Loadouts</h2>
+        <p>Creatures away on Guild service or at the Training Grounds remain visible for inspection, but their loadouts cannot be changed until they return.</p>
+        <div className={styles.sideList}>{creatures.map((creature) => {
+          const unavailableReason = getTrainingUnavailableReason(save, creature.creatureId);
+          return <button
+            key={creature.creatureId}
+            type="button"
+            className={styles.infoCard}
+            data-creature-outfitter-availability={unavailableReason ? "unavailable" : "available"}
+            onClick={() => onSelect(creature.creatureId)}
+            style={{ opacity: unavailableReason ? 0.52 : 1, filter: unavailableReason ? "grayscale(.7)" : "none" }}
+          >
+            <img src={getCreatureImage(creature)} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} />
+            <span>Lv. {creature.level}</span>
+            <strong>{creature.nickname}</strong>
+            <small>{unavailableReason ?? getBattleReadinessLabel(save, creature.creatureId)}</small>
+          </button>;
+        })}</div>
+      </aside>
+      <section className={styles.panel}>{selectedCreature && loadout ? <>
+        <h2>{selectedCreature.nickname}</h2>
+        <p className={styles.gradePreview}>{getBattleReadinessLabel(save, selectedCreature.creatureId)}</p>
+        {selectedUnavailableReason ? (
+          <div
+            data-selected-outfitter-unavailable="true"
+            style={{ marginBottom: 12, padding: 11, border: "1px solid rgba(255,174,133,.55)", borderRadius: 8, background: "rgba(110,42,27,.42)", color: "#ffd6c5", fontWeight: 800 }}
+          >
+            Unavailable — {selectedUnavailableReason}. Loadout and Focus Manual controls are locked until this creature returns.
+          </div>
+        ) : null}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8, marginBottom: 12 }}>{(["offense", "defense", "utility"] as BattleLoadoutSlot[]).map((slot) => <div key={slot} className={styles.infoCard}><span>{slot[0].toUpperCase() + slot.slice(1)} Slot</span><strong>{itemName(slotCurrent(slot) ?? null)}</strong><button type="button" className={styles.backButton} disabled={Boolean(selectedUnavailableReason) || !slotCurrent(slot)} onClick={() => onRemove(selectedCreature.creatureId, slot)}>Remove</button></div>)}</div>
+        <button type="button" className={styles.buyButton} disabled={Boolean(selectedUnavailableReason) || manualStock <= 0 || loadout.manualRank >= 3} onClick={() => onManual(selectedCreature.creatureId)}>Use Focus Manual ({manualStock})</button>
+        <h2 style={{ marginTop: 18 }}>Assign Equipment</h2>
+        <div className={styles.listings}>{equipmentItems.map((item) => { const stock = getBattleOutfitterStock(save, item); const already = item.loadoutSlot ? slotCurrent(item.loadoutSlot) === item.itemId : false; return <article key={item.itemId} className={styles.listing}><div className={styles.listingArt}><img src={item.iconPath} alt="" onError={(event) => { event.currentTarget.src = ICONS.fallback; }} /></div><div className={styles.listingBody}><span className={styles.listingMeta}>{item.coliseumExclusive ? `Marks · ${item.loadoutSlot}` : item.loadoutSlot}</span><h3 className={styles.listingName}>{item.name}</h3><p className={styles.listingDesc}>{item.effectLabel}</p><p>Stock: {stock}</p><button type="button" className={styles.buyButton} disabled={Boolean(selectedUnavailableReason) || !item.loadoutSlot || stock <= 0 || already} onClick={() => onAssign(selectedCreature.creatureId, item.itemId)}>{already ? "Equipped" : "Assign"}</button></div></article>; })}</div>
+      </> : <p>No creatures available.</p>}</section>
     </section>
   );
 }

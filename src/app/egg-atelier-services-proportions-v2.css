@@ -1,0 +1,138 @@
+/* Egg Services proportion pass v2
+   Second pixel-fitting pass after full physical asset integration.
+   Scope: Selected Egg plaque + four primary service cards only. */
+
+/* Give the upper composition enough height for the deeper physical assets. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+  min-height: 690px !important;
+  grid-template-columns: minmax(370px, 43%) minmax(0, 1fr) !important;
+  align-items: start !important;
+}
+
+/* Right-hand desk layout. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] {
+  gap: 12px !important;
+  padding: 16px 10px 0 16px !important;
+}
+
+/* Selected Egg physical plaque: preserve much more of the original plaque depth. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"]::before {
+  height: 236px !important;
+  background-size: 100% 100% !important;
+}
+
+/* Fit the live identity data into the plaque's large central leather field. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > span[class*="listingMeta"],
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > h3[class*="listingName"],
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="listingDesc"],
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:not(:has(+ div[class*="actions"])) {
+  margin-left: 44px !important;
+  margin-right: 48px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > span[class*="listingMeta"] {
+  margin-top: 27px !important;
+  font-size: .59rem !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > h3[class*="listingName"] {
+  margin-top: 4px !important;
+  font-size: 1.22rem !important;
+  line-height: 1.03 !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="listingDesc"] {
+  margin-top: 4px !important;
+  font-size: .71rem !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:not(:has(+ div[class*="actions"])) {
+  margin-top: 5px !important;
+  margin-bottom: 78px !important;
+  font-size: .66rem !important;
+}
+
+/* Four primary services: retain the generated wide-card depth instead of ribbon-like strips. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) {
+  min-height: 204px !important;
+  padding: 34px 20px 24px 31% !important;
+  background-size: 100% 100% !important;
+}
+
+/* Larger icon medallions inside the physical mount. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4)::before {
+  left: 7.5% !important;
+  width: 98px !important;
+  height: 98px !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) span {
+  font-size: .82rem !important;
+  line-height: 1.05 !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) strong {
+  margin-top: 7px !important;
+  font-size: .77rem !important;
+  line-height: 1.18 !important;
+}
+
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) em {
+  margin-top: 8px !important;
+  font-size: .65rem !important;
+  line-height: 1.25 !important;
+}
+
+/* Keep the Ledger banner/actions below the taller 2x2 service grid. */
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(n+5),
+.eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:has(+ div[class*="actions"]) {
+  margin-top: 5px !important;
+}
+
+@media (max-width: 1180px) {
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+    min-height: 650px !important;
+    grid-template-columns: minmax(320px, 40%) minmax(0, 1fr) !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"]::before {
+    height: 216px !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:not(:has(+ div[class*="actions"])) {
+    margin-bottom: 68px !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) {
+    min-height: 184px !important;
+    padding-left: 32% !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4)::before {
+    width: 88px !important;
+    height: 88px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] {
+    min-height: 0 !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"]::before {
+    height: 236px !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > p[class*="gradePreview"]:not(:has(+ div[class*="actions"])) {
+    margin-bottom: 78px !important;
+  }
+
+  .eggAtelierShell main section[class*="grid"]:has(> aside[class*="panel"] > div[class*="sideList"]) > section[class*="panel"] > article[class*="listing"] > div[class*="listingBody"] > section[class*="price"]:nth-of-type(-n+4) {
+    grid-column: 1 !important;
+    min-height: 204px !important;
+  }
+}

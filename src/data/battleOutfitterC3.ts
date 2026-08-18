@@ -1,4 +1,5 @@
 import * as active from "./battleOutfitterActive";
+import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
@@ -170,6 +171,21 @@ function getTier(score: number): BattleReadinessTier {
   return "Unprepared";
 }
 
+function getUnavailableOutfitterResult(
+  save: GameSave,
+  creatureId: CreatureId,
+  action: string,
+): BattleOutfitterResult | null {
+  const reason = getTrainingUnavailableReason(save, creatureId);
+  if (!reason) return null;
+  const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
+  return {
+    save,
+    ok: false,
+    message: `${creature?.nickname ?? "That creature"} is unavailable for ${action}. ${reason}`,
+  };
+}
+
 export function getBattleOutfitterMaterialStock(save: GameSave): number {
   return getFlagNumber(save.flags.ranchMaterialsStock);
 }
@@ -274,6 +290,8 @@ export function assignBattleOutfitterEquipment(
 ): BattleOutfitterResult {
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for loadout." };
+  const unavailable = getUnavailableOutfitterResult(save, creatureId, "loadout changes");
+  if (unavailable) return unavailable;
   const item = getItem(itemId);
   if (!item || item.category !== "Equipment" || !item.loadoutSlot) {
     return { save, ok: false, message: "Only equipment can be assigned to combat loadout slots." };
@@ -303,6 +321,8 @@ export function removeBattleOutfitterEquipment(
 ): BattleOutfitterResult {
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for loadout." };
+  const unavailable = getUnavailableOutfitterResult(save, creatureId, "loadout changes");
+  if (unavailable) return unavailable;
   const slotFlag = getSlotFlag(creatureId, slot);
   const previousItem = getItem(getFlagString(save.flags[slotFlag]));
   if (!previousItem) return { save, ok: false, message: `${creature.nickname} has no ${slot} equipment assigned.` };
@@ -324,5 +344,7 @@ export function removeBattleOutfitterEquipment(
 }
 
 export function useBattleOutfitterManual(save: GameSave, creatureId: CreatureId): BattleOutfitterResult {
+  const unavailable = getUnavailableOutfitterResult(save, creatureId, "Focus Manual training");
+  if (unavailable) return unavailable;
   return active.useBattleOutfitterManual(save, creatureId);
 }

@@ -4,6 +4,7 @@ import type {
   BattleMoveLoadout,
 } from "./battle";
 import type { BreedingState } from "./breeding";
+import type { CreatureCareerSaveState } from "./career";
 import type {
   CreatureAbility,
   CreatureFamily,
@@ -14,6 +15,7 @@ import type {
   HabitatRecord,
   StatGrades,
 } from "./creature";
+import type { CreatureMemorySaveState } from "@/data/creatureMemories";
 import type { GuildState } from "./guild";
 import type {
   BreedingAttemptId,
@@ -27,11 +29,15 @@ import type {
   VariantId,
 } from "./ids";
 import type { ItemUseRecord } from "./items";
+import type { CreatureLegacyState } from "./legacy";
 import type { MarketState } from "./market";
+import type { CreaturePersonalitySaveState } from "./personality";
 import type { RanchDayState } from "./ranchDay";
 import type { RanchJobsState } from "./ranchJobs";
 import type { RanchUpgradeState } from "./ranchUpgrades";
+import type { CreatureRelationshipSaveState } from "./relationships";
 import type { TownNpcTrustState } from "./townNpc";
+import type { TutorialLifecycleState } from "./tutorial";
 import type { TownUpgradeState } from "./upgrades";
 
 export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
@@ -217,6 +223,12 @@ export type GameSave = {
   ranchUpgrades?: RanchUpgradeState;
   ranchJobs?: RanchJobsState;
   ranchDay?: RanchDayState;
+  creatureMemories?: CreatureMemorySaveState;
+  creatureCareers?: CreatureCareerSaveState;
+  creaturePersonalities?: CreaturePersonalitySaveState;
+  creatureRelationships?: CreatureRelationshipSaveState;
+  creatureLegacy?: CreatureLegacyState;
+  tutorials?: TutorialLifecycleState;
   saveReliability?: SaveReliabilityState;
   flags: Record<string, boolean | number | string>;
 };

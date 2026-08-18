@@ -1,10 +1,15 @@
-import * as core from "./localSave";
+import * as core from "./localSaveCore";
 import { normalizeBattleMoveInheritanceSave } from "@/data/battleMoveInheritanceMigration";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
 import { normalizeCreatureBattleMoveLoadoutRecord } from "@/data/battleLoadouts";
+import { normalizeChapterOneTutorialLifecycle } from "../../data/chapterOneGuidedTutorialBattle";
+import { normalizeCreatureCareerSave } from "@/data/creatureCareerRecords";
 import { normalizeCreatureChoreSkills } from "@/data/choreSkills";
+import { normalizeCreatureLegacySave } from "@/data/creatureRetirement";
 import { normalizeCreatureManagementMetadata } from "@/data/creatureManagement";
 import { normalizeCreatureMemorySave } from "@/data/creatureMemories";
+import { normalizeCreaturePersonalitySave } from "@/data/creaturePersonalities";
+import { normalizeCreatureRelationshipSave } from "@/data/creatureRelationships";
 import { normalizeTrackedCreatureGenerations } from "@/data/generationMigration";
 import { normalizeRanchDaySave } from "@/data/ranch-day/ranchDayState";
 import {
@@ -17,7 +22,7 @@ import {
 import type { RanchDayPhase } from "@/types/ranchDay";
 import type { GameSave } from "@/types/save";
 
-export * from "./localSave";
+export * from "./localSaveCore";
 export {
   getPortableSaveFilename,
   inspectPortableSave,
@@ -60,19 +65,32 @@ function normalizeCreatureCapabilityRecords(save: GameSave): GameSave {
   };
 }
 
-function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): GameSave {
-  return normalizeCreatureMemorySave(
-    normalizeRanchDaySave(
-      normalizeBattleMoveInheritanceSave(
-        normalizeCreatureCapabilityRecords(
-          normalizeBreedingRecords(
-            normalizeCreatureManagementMetadata(
-              normalizeTrackedCreatureGenerations(save),
+export function normalizeGameSave(
+  save: GameSave,
+  missingPhase: RanchDayPhase = "active",
+): GameSave {
+  return normalizeChapterOneTutorialLifecycle(
+    normalizeCreatureLegacySave(
+      normalizeCreatureRelationshipSave(
+        normalizeCreaturePersonalitySave(
+          normalizeCreatureCareerSave(
+            normalizeCreatureMemorySave(
+              normalizeRanchDaySave(
+                normalizeBattleMoveInheritanceSave(
+                  normalizeCreatureCapabilityRecords(
+                    normalizeBreedingRecords(
+                      normalizeCreatureManagementMetadata(
+                        normalizeTrackedCreatureGenerations(save),
+                      ),
+                    ),
+                  ),
+                ),
+                missingPhase,
+              ),
             ),
           ),
         ),
       ),
-      missingPhase,
     ),
   );
 }
@@ -81,26 +99,26 @@ export function createNewGameSave(
   playerName: string,
   slotIndex: number,
 ): GameSave {
-  return normalizeSave(core.createNewGameSave(playerName, slotIndex), "morning");
+  return normalizeGameSave(core.createNewGameSave(playerName, slotIndex), "morning");
 }
 
 export function saveGameToSlot(save: GameSave): GameSave {
-  return core.saveGameToSlot(normalizeSave(save, save.ranchDay?.phase ?? "active"));
+  return core.saveGameToSlot(normalizeGameSave(save, save.ranchDay?.phase ?? "active"));
 }
 
 export function loadSaveFromSlot(slotIndex: number): GameSave | null {
   const save = core.loadSaveFromSlot(slotIndex);
-  return save ? normalizeSave(save, save.ranchDay?.phase ?? "active") : null;
+  return save ? normalizeGameSave(save, save.ranchDay?.phase ?? "active") : null;
 }
 
 export function loadAllSaves(): Array<GameSave | null> {
   return core.loadAllSaves().map((save) =>
-    save ? normalizeSave(save, save.ranchDay?.phase ?? "active") : null,
+    save ? normalizeGameSave(save, save.ranchDay?.phase ?? "active") : null,
   );
 }
 
 export function exportPortableSave(save: GameSave): string {
-  return serializePortableSave(normalizeSave(save, save.ranchDay?.phase ?? "active"));
+  return serializePortableSave(normalizeGameSave(save, save.ranchDay?.phase ?? "active"));
 }
 
 export function importPortableSaveToSlot(rawText: string, targetSlotIndex: number): PortableSaveImportResult {
@@ -114,7 +132,7 @@ export function importPortableSaveToSlot(rawText: string, targetSlotIndex: numbe
     };
   }
 
-  const normalized = normalizeSave(prepared.save, prepared.save.ranchDay?.phase ?? "active");
+  const normalized = normalizeGameSave(prepared.save, prepared.save.ranchDay?.phase ?? "active");
   const saved = core.saveGameToSlot(normalized);
   return {
     ok: true,

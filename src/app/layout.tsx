@@ -8,6 +8,44 @@ import "./night-mode.css";
 import "./content-sizing.css";
 import "./breeding-focused-polish.css";
 import "./mobile-install.css";
+import "./battle-overlay-safe-area.css";
+import "./tutorial-dock.css";
+import "./adoption-hearth-hub.css";
+import "./egg-atelier-tutorial-cleanup.css";
+import "./egg-atelier-landing-concept.css";
+import "./egg-atelier-background-art.css";
+import "./egg-atelier-landing-viewport-fit.css";
+import "./egg-atelier-landing-fidelity-v2.css";
+import "./egg-atelier-talk-fidelity.css";
+import "./egg-atelier-talk-composition-final.css";
+
+/* Egg Services remains live, but EggAtelierUiBridge now prevents the completed
+   Furniture Catalog and Egg Registry modes from matching its structural
+   `sideList` detector. This lets their original pre-services styles render
+   without temporary restore overrides. */
+import "./egg-atelier-services-backdrop-v5.css";
+import "./egg-atelier-services-backdrop-v6.css";
+import "./egg-atelier-services-fullscreen-v7.css";
+
+import "./egg-atelier-furniture-catalog-fidelity.css";
+import "./egg-atelier-furniture-catalog-composition-v2.css";
+import "./egg-atelier-furniture-catalog-composition-v3.css";
+import "./egg-atelier-furniture-catalog-composition-v4.css";
+import "./egg-atelier-furniture-catalog-final.css";
+import "./egg-atelier-furniture-catalog-heading-final.css";
+import "./egg-atelier-furniture-catalog-readability.css";
+import "./egg-atelier-registry-fidelity.css";
+import "./egg-atelier-registry-composition-v2.css";
+import "./egg-atelier-registry-composition-v3.css";
+import "./egg-atelier-registry-composition-v4.css";
+import "./egg-atelier-registry-composition-v5.css";
+import "./egg-atelier-registry-composition-v6.css";
+import "./egg-atelier-registry-composition-v7.css";
+import "./egg-atelier-registry-composition-v8.css";
+import "./egg-atelier-registry-composition-v9.css";
+import "./egg-atelier-registry-composition-v10.css";
+import "./egg-atelier-registry-composition-v11.css";
+import "./egg-atelier-registry-composition-v12.css";
 import { GameProvider } from "@/state/GameProvider";
 
 export const metadata: Metadata = {
@@ -31,7 +69,6 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#10151b",
 };
 
 export default function RootLayout({

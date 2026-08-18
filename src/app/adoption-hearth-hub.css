@@ -1,0 +1,15 @@
+/* Vale's Adoption Hearth character-hub room stage.
+   The Tamsin overlay replaces the legacy landing DOM, so it must own the
+   same proven room background that the original MarketScreen used. */
+[data-adoption-character-hub="tamsin"] {
+  background:
+    linear-gradient(90deg, rgba(20, 11, 7, .30), rgba(20, 11, 7, .08) 44%, rgba(20, 11, 7, .22)),
+    linear-gradient(180deg, rgba(0, 0, 0, .12), rgba(0, 0, 0, .34)),
+    url("/images/backgrounds/market/market_road_interior.png") center / cover no-repeat !important;
+}
+
+@media (max-width: 760px) {
+  [data-adoption-character-hub="tamsin"] {
+    background-position: center top !important;
+  }
+}

@@ -1,0 +1,640 @@
+import { rebalanceExistingCreatureAbilities } from "@/data/abilityBalance";
+import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
+import { createDefaultBreedingState, getPlayerMaxEnergyFromStats } from "@/data/breeding";
+import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
+import { normalizeGrowthProgress, getProjectedMaxEnergyForCreature } from "@/data/levelGrowth";
+import { createDefaultMarketState, ensureCurrentMarketState } from "@/data/market";
+import { sanitizeImmediatePregnancyEggs } from "@/data/nurseryLifecycle";
+import { createDefaultRanchJobsState, getRanchJobs } from "@/data/ranchJobs";
+import {
+  applyRanchUpgradeEffectsToHabitats,
+  getDefaultRanchUpgrades,
+  getRanchUpgrades,
+} from "@/data/ranchUpgrades";
+import { getDefaultTownUpgrades, getTownUpgrades } from "@/data/upgrades";
+import {
+  DEFAULT_STAT_GRADES,
+  buildStats,
+  createStarterCreatures,
+  createStarterHabitats,
+  getBaseMaxHearts,
+  getSpeciesDefinition,
+  getVariantDefinition,
+  normalizeVariantId,
+  rollCreatureAbilities,
+  rollStatGrades,
+} from "@/data/creatures";
+import { formatGameDate } from "@/lib/formatters";
+import {
+  CURRENT_SAVE_SCHEMA_VERSION,
+  SAVE_SLOT_COUNT,
+  clearReliabilityStorageForSlot,
+  completeSaveTransaction,
+  createSaveBackup,
+  getSaveBackup,
+  migrateUnknownSave,
+  recoverInterruptedTransaction,
+  repairLoadedSave,
+} from "@/lib/save/saveReliability";
+import type {
+  CreatureOrigin,
+  CreatureRecord,
+  CreatureStats,
+  HabitatRecord,
+  StatGrades,
+} from "@/types/creature";
+import type { CreatureId, SaveId, VariantId } from "@/types/ids";
+import type {
+  EggRecord,
+  GameSave,
+  PregnancyRecord,
+  SaveSlotSummary,
+  SettingsState,
+} from "@/types/save";
+
+const SAVE_PREFIX = "creature_chronicles_save_slot_";
+const ACTIVE_SAVE_KEY = "creature_chronicles_active_save_id";
+const DEFAULT_PLAYER_STATS: CreatureStats = { STR: 5, DEX: 5, STA: 5, CHA: 5, WIL: 5, FER: 5 };
+const DEFAULT_PLAYER_STAT_GRADES: StatGrades = DEFAULT_STAT_GRADES;
+
+export { SAVE_SLOT_COUNT };
+
+function getSlotKey(slotIndex: number): string {
+  return `${SAVE_PREFIX}${slotIndex}`;
+}
+
+function canUseStorage(): boolean {
+  return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
+function getCreatureXpToNext(level: number): number {
+  return 45 + level * 30;
+}
+
+function getBreederXpToNext(level: number): number {
+  return 70 + level * 45;
+}
+
+export function createDefaultSettings(): SettingsState {
+  return { musicVolume: 70, sfxVolume: 80, textSpeed: "normal", devMode: true };
+}
+
+function inferCreatureOrigin(creature: CreatureRecord): { origin: CreatureOrigin; originLabel: string } {
+  if (creature.origin && creature.origin !== "unknown") {
+    return { origin: creature.origin, originLabel: creature.originLabel || creature.origin };
+  }
+  if (creature.creatureId.includes("starter")) return { origin: "starter", originLabel: "Starter Ranch Crew" };
+  if (creature.creatureId.includes("market")) return { origin: "market", originLabel: "Market Purchase" };
+  if (creature.creatureId.includes("hatched")) return { origin: "hatched", originLabel: "Hatched Egg" };
+  return { origin: "unknown", originLabel: "Unknown Origin" };
+}
+
+function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
+  const level = creature.level ?? 1;
+  const variant = getVariantDefinition(creature.variantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+  const statGrades = creature.statGrades ?? rollStatGrades(
+    `${creature.ownerSaveId}_${creature.creatureId}_migration`,
+    variant.rarity,
+  );
+  const stats = creature.stats ?? buildStats(species.baseStats, variant.statAdjustments, statGrades);
+  const growthProgress = normalizeGrowthProgress(creature.growthProgress);
+  const maxEnergy = getProjectedMaxEnergyForCreature({ ...creature, level, stats, statGrades });
+  const maxHearts = Math.max(
+    creature.maxHearts ?? 0,
+    getBaseMaxHearts(species.speciesId, variant.variantId),
+  );
+  const origin = inferCreatureOrigin(creature);
+  const seed = `${creature.ownerSaveId}_${creature.creatureId}_${origin.origin}_ability_balance`;
+  const fallbackAbilities = creature.abilities?.length
+    ? creature.abilities
+    : rollCreatureAbilities(
+        `${creature.ownerSaveId}_${creature.creatureId}_migration`,
+        species.speciesId,
+        variant.variantId,
+      );
+  const abilities = rebalanceExistingCreatureAbilities(
+    { ...creature, origin: origin.origin, originLabel: origin.originLabel, abilities: fallbackAbilities },
+    seed,
+    species.speciesId,
+    variant.variantId,
+  );
+
+  return {
+    ...creature,
+    speciesId: species.speciesId,
+    variantId: variant.variantId,
+    level,
+    xp: creature.xp ?? 0,
+    xpToNext: creature.xpToNext ?? getCreatureXpToNext(level),
+    stats,
+    statGrades,
+    growthProgress,
+    abilities,
+    maxEnergy,
+    energy: Math.min(creature.energy ?? maxEnergy, maxEnergy),
+    hearts: Math.min(creature.hearts ?? maxHearts, maxHearts),
+    maxHearts,
+    origin: origin.origin,
+    originLabel: origin.originLabel,
+    lineage: creature.lineage,
+    isLocked: creature.isLocked ?? false,
+  };
+}
+
+function createCreatureFromStarterTemplate(ownerSaveId: SaveId, starter: CreatureRecord): CreatureRecord {
+  return ensureCreatureProgression({ ...starter, ownerSaveId });
+}
+
+function addMissingStarterCrew(ownerSaveId: SaveId, creatures: CreatureRecord[]): CreatureRecord[] {
+  const existingIds = new Set(creatures.map((creature) => creature.creatureId));
+  const missingStarters = createStarterCreatures(ownerSaveId)
+    .filter((starter) => !existingIds.has(starter.creatureId))
+    .map((starter) => createCreatureFromStarterTemplate(ownerSaveId, starter));
+  return [...creatures, ...missingStarters];
+}
+
+function migrateCreatureRecord(creature: CreatureRecord, ownerSaveId: SaveId): CreatureRecord {
+  if (creature.creatureId === ("creature_starter_sphinx" as CreatureId)) {
+    const starter = createStarterCreatures(ownerSaveId).find(
+      (item) => item.creatureId === ("creature_starter_feline" as CreatureId),
+    );
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureProgression(creature);
+  }
+  if (creature.creatureId === ("creature_starter_hellhound" as CreatureId)) {
+    const starter = createStarterCreatures(ownerSaveId).find(
+      (item) => item.creatureId === ("creature_starter_canine" as CreatureId),
+    );
+    return starter ? createCreatureFromStarterTemplate(ownerSaveId, starter) : ensureCreatureProgression(creature);
+  }
+
+  const normalizedVariantId = normalizeVariantId(creature.variantId as VariantId);
+  const variant = getVariantDefinition(normalizedVariantId);
+  const species = getSpeciesDefinition(variant.speciesId);
+  return ensureCreatureProgression({
+    ...creature,
+    ownerSaveId,
+    speciesId: species.speciesId,
+    variantId: normalizedVariantId,
+  });
+}
+
+function migrateEggsForCurrentBuild(save: GameSave): GameSave["eggs"] {
+  const starterHabitats = createStarterHabitats();
+  return (save.eggs ?? []).map((egg) => {
+    const family = getVariantDefinition(egg.variantId).family;
+    const fallbackHabitatId = starterHabitats.find((habitat) => habitat.family === family)?.habitatId
+      ?? starterHabitats[0].habitatId;
+    return {
+      ...egg,
+      habitatId: egg.habitatId ?? fallbackHabitatId,
+      projectedStatGrades: egg.projectedStatGrades ?? DEFAULT_STAT_GRADES,
+    };
+  });
+}
+
+function mergeHabitats(
+  existingHabitats: HabitatRecord[] | undefined,
+  migratedCreatures: CreatureRecord[],
+): HabitatRecord[] {
+  const starterHabitats = createStarterHabitats();
+  const habitatMap = new Map<string, HabitatRecord>();
+  for (const habitat of starterHabitats) habitatMap.set(habitat.habitatId, { ...habitat, creatureIds: [] });
+  for (const habitat of existingHabitats ?? []) habitatMap.set(habitat.habitatId, { ...habitat, creatureIds: [] });
+
+  return Array.from(habitatMap.values()).map((habitat) => {
+    const creatureIds = migratedCreatures
+      .filter((creature) => getVariantDefinition(creature.variantId).family === habitat.family)
+      .map((creature) => creature.creatureId);
+    return {
+      ...habitat,
+      creatureIds,
+      capacity: Math.max(habitat.capacity ?? 6, creatureIds.length),
+      unlocked: habitat.unlocked ?? true,
+    };
+  });
+}
+
+function eggMatchesPregnancyReceiver(egg: EggRecord, pregnancy: PregnancyRecord): boolean {
+  const eggReceiver = egg.parents?.receiver;
+  if (!eggReceiver) return false;
+  if (eggReceiver.participantId === pregnancy.receiver.participantId) return true;
+  return eggReceiver.displayName === pregnancy.receiver.displayName;
+}
+
+function isConceptionTimeEggAtSaveBoundary(
+  egg: EggRecord,
+  pregnancy: PregnancyRecord,
+  deliveredPregnancyIds: Set<string>,
+): boolean {
+  if (egg.status === "hatched") return false;
+  const eggId = String(egg.eggId);
+  if ([...deliveredPregnancyIds].some((pregnancyId) => eggId.includes(pregnancyId))) return false;
+  if (eggId.includes(String(pregnancy.pregnancyId))) return true;
+  if (!eggMatchesPregnancyReceiver(egg, pregnancy)) return false;
+  if (egg.createdAtDayNumber !== pregnancy.createdAtDayNumber) return false;
+  const scheduledDeliveryDay = pregnancy.createdAtDayNumber + Math.max(1, pregnancy.totalDays || 1);
+  return egg.createdAtDayNumber < scheduledDeliveryDay;
+}
+
+function enforcePregnancyEggSaveBoundary(previousSave: GameSave | null, incomingSave: GameSave): GameSave {
+  const pregnancies = incomingSave.pregnancies ?? [];
+  const activePregnancies = pregnancies.filter((pregnancy) => pregnancy.status === "pregnant");
+  const deliveredPregnancyIds = new Set(
+    pregnancies
+      .filter((pregnancy) => pregnancy.status === "delivered")
+      .map((pregnancy) => String(pregnancy.pregnancyId)),
+  );
+  let eggs = incomingSave.eggs ?? [];
+  let removedCount = 0;
+
+  if (previousSave && previousSave.dayState.dayNumber === incomingSave.dayState.dayNumber) {
+    const previousPregnancyIds = new Set(
+      (previousSave.pregnancies ?? [])
+        .filter((pregnancy) => pregnancy.status === "pregnant")
+        .map((pregnancy) => String(pregnancy.pregnancyId)),
+    );
+    const newPregnancyCreated = activePregnancies.some(
+      (pregnancy) => !previousPregnancyIds.has(String(pregnancy.pregnancyId)),
+    );
+    if (newPregnancyCreated) {
+      const previousEggIds = new Set((previousSave.eggs ?? []).map((egg) => String(egg.eggId)));
+      const preservedEggs = eggs.filter((egg) => previousEggIds.has(String(egg.eggId)));
+      removedCount += eggs.length - preservedEggs.length;
+      eggs = preservedEggs;
+    }
+  }
+
+  if (activePregnancies.length && eggs.length) {
+    const cleanedEggs = eggs.filter(
+      (egg) => !activePregnancies.some(
+        (pregnancy) => isConceptionTimeEggAtSaveBoundary(egg, pregnancy, deliveredPregnancyIds),
+      ),
+    );
+    removedCount += eggs.length - cleanedEggs.length;
+    eggs = cleanedEggs;
+  }
+
+  if (removedCount <= 0 && eggs.length === (incomingSave.eggs ?? []).length) return incomingSave;
+  const previousRemoved = Number(incomingSave.flags.pregnancyEggBoundaryRemovedCount ?? 0);
+  return {
+    ...incomingSave,
+    eggs,
+    eggIds: eggs.map((egg) => egg.eggId),
+    flags: {
+      ...incomingSave.flags,
+      pregnancyEggBoundaryApplied: true,
+      pregnancyEggBoundaryRemovedCount: (Number.isFinite(previousRemoved) ? previousRemoved : 0) + removedCount,
+      lastPregnancyEggBoundaryDay: incomingSave.dayState.dayNumber,
+    },
+  };
+}
+
+function migrateSaveForCurrentBuild(save: GameSave): GameSave {
+  const existingCreatureSource = save.creatures ?? createStarterCreatures(save.saveId);
+  const sourceCreatures = save.flags.m18StarterCrewExpanded
+    ? existingCreatureSource
+    : addMissingStarterCrew(save.saveId, existingCreatureSource);
+  const migratedCreatures = sourceCreatures.map((creature) => migrateCreatureRecord(creature, save.saveId));
+  const creatureIds = migratedCreatures.map((creature) => creature.creatureId);
+  const habitats = mergeHabitats(save.habitats, migratedCreatures);
+  const eggs = migrateEggsForCurrentBuild(save) ?? [];
+  const breederRank = save.player.breederRank ?? 1;
+  const playerStats = save.player.stats ?? DEFAULT_PLAYER_STATS;
+  const playerStatGrades = save.player.statGrades ?? DEFAULT_PLAYER_STAT_GRADES;
+  const playerMaxEnergy = getPlayerMaxEnergyFromStats(playerStats);
+
+  const migratedSave: GameSave = {
+    ...save,
+    version: MVP_VERSION,
+    schemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+    player: {
+      ...save.player,
+      breederRank,
+      breederXp: save.player.breederXp ?? 0,
+      breederXpToNext: save.player.breederXpToNext ?? getBreederXpToNext(breederRank),
+      stats: playerStats,
+      statGrades: playerStatGrades,
+      hearts: save.player.hearts ?? 4,
+      maxHearts: save.player.maxHearts ?? 4,
+    },
+    currencies: {
+      ...save.currencies,
+      maxEnergy: playerMaxEnergy,
+      energy: Math.min(save.currencies.energy, playerMaxEnergy),
+    },
+    creatureIds,
+    eggIds: eggs.map((egg) => egg.eggId),
+    habitatIds: habitats.map((habitat) => habitat.habitatId),
+    creatures: migratedCreatures,
+    habitats,
+    breeding: save.breeding ?? createDefaultBreedingState(),
+    pregnancies: save.pregnancies ?? [],
+    eggs,
+    birthHistory: save.birthHistory ?? [],
+    itemUseHistory: save.itemUseHistory ?? [],
+    market: save.market,
+    guild: save.guild,
+    townUpgrades: getTownUpgrades(save),
+    ranchUpgrades: getRanchUpgrades(save),
+    ranchJobs: getRanchJobs(save),
+    flags: {
+      ...save.flags,
+      m3StarterCreaturesCreated: true,
+      m3BaseStartersMigrated: true,
+      m4BreedingStateCreated: true,
+      m4ParticipantHeartsMigrated: true,
+      m5NurseryStateCreated: true,
+      m6MarketStateCreated: true,
+      m7GuildStateCreated: true,
+      m8BreedingProgression: true,
+      m8PlayerStatsCreated: true,
+      m8EnergyFromStamina: true,
+      m85StatGrades: true,
+      m85PlayerGradesCreated: true,
+      m9CreatureMetadataMigrated: true,
+      m10TownUpgradesCreated: true,
+      m11RanchUpgradesCreated: true,
+      m13CreatureContentPack: true,
+      m14RanchJobsCreated: true,
+      m18ScarceAbilityBalance: true,
+      m18StarterCrewExpanded: true,
+      m19GrowthProgressBars: true,
+      m58SaveReliability: true,
+      ranchOfficeUnlocked: true,
+      felineHabitatUnlocked: true,
+      canineHabitatUnlocked: true,
+      bovineHabitatUnlocked: true,
+      lapineHabitatUnlocked: true,
+      equineHabitatUnlocked: true,
+      breedingUnlocked: true,
+      nurseryUnlocked: true,
+      townUnlocked: true,
+      marketUnlocked: true,
+      guildUnlocked: true,
+    },
+  };
+
+  const finalizedSave = ensureCurrentGuildState(
+    ensureCurrentMarketState(applyRanchUpgradeEffectsToHabitats(migratedSave)),
+  );
+  const boundarySafeSave = enforcePregnancyEggSaveBoundary(null, finalizedSave);
+  return sanitizeImmediatePregnancyEggs(boundarySafeSave).save;
+}
+
+export function createNewGameSave(playerName: string, slotIndex: number): GameSave {
+  const now = new Date().toISOString();
+  const cleanName = playerName.trim() || "New Breeder";
+  const saveId = `save_${slotIndex}_${Date.now()}`;
+  const creatures = createStarterCreatures(saveId).map(ensureCreatureProgression);
+  const habitats = mergeHabitats(createStarterHabitats(), creatures);
+  const playerMaxEnergy = getPlayerMaxEnergyFromStats(DEFAULT_PLAYER_STATS);
+  const baseSave: GameSave = {
+    version: MVP_VERSION,
+    schemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+    saveId,
+    slotIndex,
+    createdAt: now,
+    updatedAt: now,
+    player: {
+      playerId: `player_${Date.now()}`,
+      name: cleanName,
+      ranchName: `${cleanName}'s Ranch`,
+      breederRank: 1,
+      breederXp: 0,
+      breederXpToNext: getBreederXpToNext(1),
+      ranchRank: 1,
+      stats: DEFAULT_PLAYER_STATS,
+      statGrades: DEFAULT_PLAYER_STAT_GRADES,
+      hearts: 4,
+      maxHearts: 4,
+    },
+    currencies: {
+      gold: STARTING_PLAYER_STATE.gold,
+      guildPoints: STARTING_PLAYER_STATE.guildPoints,
+      energy: Math.min(STARTING_PLAYER_STATE.energy, playerMaxEnergy),
+      maxEnergy: playerMaxEnergy,
+    },
+    dayState: {
+      dayNumber: STARTING_PLAYER_STATE.dayNumber,
+      weekday: STARTING_PLAYER_STATE.weekday,
+      month: STARTING_PLAYER_STATE.month,
+      dayOfMonth: STARTING_PLAYER_STATE.dayOfMonth,
+      weekNumber: STARTING_PLAYER_STATE.weekNumber,
+    },
+    settings: createDefaultSettings(),
+    creatureIds: creatures.map((creature) => creature.creatureId),
+    eggIds: [],
+    habitatIds: habitats.map((habitat) => habitat.habitatId),
+    creatures,
+    habitats,
+    breeding: createDefaultBreedingState(),
+    pregnancies: [],
+    eggs: [],
+    birthHistory: [],
+    itemUseHistory: [],
+    townUpgrades: getDefaultTownUpgrades(),
+    ranchUpgrades: getDefaultRanchUpgrades(),
+    ranchJobs: createDefaultRanchJobsState(),
+    saveReliability: {
+      lastValidatedAt: now,
+      lastValidationIssues: [],
+      lastAutosaveAt: now,
+      lastAutosaveReason: "new-game",
+      recoveredInterruptedTransactions: 0,
+      preventedDuplicateOutcomes: 0,
+      repairedCollectionEntries: 0,
+    },
+    flags: {
+      m1SaveCreated: true,
+      m3StarterCreaturesCreated: true,
+      m3BaseStartersMigrated: true,
+      m4BreedingStateCreated: true,
+      m4ParticipantHeartsMigrated: true,
+      m5NurseryStateCreated: true,
+      m6MarketStateCreated: true,
+      m7GuildStateCreated: true,
+      m8BreedingProgression: true,
+      m8PlayerStatsCreated: true,
+      m8EnergyFromStamina: true,
+      m85StatGrades: true,
+      m85PlayerGradesCreated: true,
+      m9CreatureManagement: true,
+      m10TownUpgradesCreated: true,
+      m11RanchUpgradesCreated: true,
+      m13CreatureContentPack: true,
+      m14RanchJobsCreated: true,
+      m18ScarceAbilityBalance: true,
+      m18StarterCrewExpanded: true,
+      m19GrowthProgressBars: true,
+      m58SaveReliability: true,
+      saveReliabilityEnabled: true,
+      saveSchemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+      ranchUnlocked: true,
+      ranchOfficeUnlocked: true,
+      townUnlocked: true,
+      felineHabitatUnlocked: true,
+      canineHabitatUnlocked: true,
+      bovineHabitatUnlocked: true,
+      lapineHabitatUnlocked: true,
+      equineHabitatUnlocked: true,
+      breedingUnlocked: true,
+      nurseryUnlocked: true,
+      marketUnlocked: true,
+      guildUnlocked: true,
+    },
+  };
+  const upgradedBaseSave = applyRanchUpgradeEffectsToHabitats(baseSave);
+  return {
+    ...upgradedBaseSave,
+    market: createDefaultMarketState(upgradedBaseSave),
+    guild: createDefaultGuildState(upgradedBaseSave),
+  };
+}
+
+export function saveGameToSlot(save: GameSave): GameSave {
+  const now = new Date().toISOString();
+  const previousRaw = canUseStorage() ? window.localStorage.getItem(getSlotKey(save.slotIndex)) : null;
+  let previousSave: GameSave | null = null;
+  if (previousRaw) {
+    try {
+      previousSave = JSON.parse(previousRaw) as GameSave;
+    } catch {
+      previousSave = null;
+    }
+  }
+
+  const repaired = repairLoadedSave({
+    ...save,
+    schemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+    saveReliability: {
+      ...(save.saveReliability ?? {}),
+      lastAutosaveAt: save.saveReliability?.lastAutosaveAt ?? now,
+      lastAutosaveReason: save.saveReliability?.lastAutosaveReason ?? "game-state-change",
+    },
+  }, save.slotIndex).save;
+  const transactionSafeSave = enforcePregnancyEggSaveBoundary(previousSave, repaired);
+  const lifecycleSafeSave = sanitizeImmediatePregnancyEggs(transactionSafeSave).save;
+  const updatedSave: GameSave = {
+    ...applyRanchUpgradeEffectsToHabitats(lifecycleSafeSave),
+    schemaVersion: CURRENT_SAVE_SCHEMA_VERSION,
+    updatedAt: now,
+  };
+
+  if (!canUseStorage()) return updatedSave;
+  window.localStorage.setItem(getSlotKey(save.slotIndex), JSON.stringify(updatedSave));
+  window.localStorage.setItem(ACTIVE_SAVE_KEY, String(updatedSave.saveId));
+  completeSaveTransaction(updatedSave);
+  return updatedSave;
+}
+
+function loadRawSaveOrBackup(slotIndex: number): { raw: string; usedBackup: boolean } | null {
+  if (!canUseStorage()) return null;
+  const raw = window.localStorage.getItem(getSlotKey(slotIndex));
+  if (!raw) return null;
+  try {
+    JSON.parse(raw);
+    return { raw, usedBackup: false };
+  } catch {
+    const backup = getSaveBackup(slotIndex);
+    if (!backup) return null;
+    createSaveBackup(slotIndex, raw, "damaged-save-recovery", 0);
+    window.localStorage.setItem(getSlotKey(slotIndex), backup.rawJson);
+    return { raw: backup.rawJson, usedBackup: true };
+  }
+}
+
+export function loadSaveFromSlot(slotIndex: number): GameSave | null {
+  const source = loadRawSaveOrBackup(slotIndex);
+  if (!source) return null;
+
+  try {
+    const parsed = JSON.parse(source.raw) as unknown;
+    const schemaMigration = migrateUnknownSave(parsed, slotIndex);
+    if (!schemaMigration.save) {
+      const backup = getSaveBackup(slotIndex);
+      if (!backup || backup.rawJson === source.raw) return null;
+      const backupMigration = migrateUnknownSave(JSON.parse(backup.rawJson), slotIndex);
+      if (!backupMigration.save) return null;
+      const currentBuildBackupSave = migrateSaveForCurrentBuild(backupMigration.save);
+      const repairedBackup = repairLoadedSave(currentBuildBackupSave, slotIndex).save;
+      return saveGameToSlot(repairedBackup);
+    }
+
+    const parsedRecord = parsed && typeof parsed === "object" ? parsed as { version?: unknown } : {};
+    const buildMigrationNeeded = parsedRecord.version !== MVP_VERSION;
+    if ((schemaMigration.changed || buildMigrationNeeded) && !source.usedBackup) {
+      createSaveBackup(
+        slotIndex,
+        source.raw,
+        "before-migration",
+        schemaMigration.sourceSchemaVersion,
+      );
+    }
+
+    const currentBuildSave = migrateSaveForCurrentBuild(schemaMigration.save);
+    const repaired = repairLoadedSave(currentBuildSave, slotIndex);
+    const recovery = recoverInterruptedTransaction(repaired.save);
+    const finalSave = recovery.save;
+    const changed = schemaMigration.changed
+      || buildMigrationNeeded
+      || repaired.changed
+      || recovery.recovered
+      || source.usedBackup
+      || JSON.stringify(finalSave) !== source.raw;
+
+    return changed ? saveGameToSlot(finalSave) : finalSave;
+  } catch {
+    return null;
+  }
+}
+
+export function loadAllSaves(): Array<GameSave | null> {
+  return Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => loadSaveFromSlot(index));
+}
+
+export function deleteSaveSlot(slotIndex: number): void {
+  if (!canUseStorage()) return;
+  const existing = loadSaveFromSlot(slotIndex);
+  window.localStorage.removeItem(getSlotKey(slotIndex));
+  clearReliabilityStorageForSlot(slotIndex);
+  if (existing) {
+    const activeSaveId = window.localStorage.getItem(ACTIVE_SAVE_KEY);
+    if (activeSaveId === existing.saveId) window.localStorage.removeItem(ACTIVE_SAVE_KEY);
+  }
+}
+
+export function getActiveSaveId(): string | null {
+  if (!canUseStorage()) return null;
+  return window.localStorage.getItem(ACTIVE_SAVE_KEY);
+}
+
+export function setActiveSaveId(saveId: string): void {
+  if (!canUseStorage()) return;
+  if (saveId) window.localStorage.setItem(ACTIVE_SAVE_KEY, saveId);
+  else window.localStorage.removeItem(ACTIVE_SAVE_KEY);
+}
+
+export function summarizeSave(save: GameSave): SaveSlotSummary {
+  return {
+    saveId: save.saveId,
+    slotIndex: save.slotIndex,
+    playerName: save.player.name,
+    ranchName: save.player.ranchName,
+    dayNumber: save.dayState.dayNumber,
+    dateLabel: formatGameDate(save.dayState.weekday, save.dayState.month, save.dayState.dayOfMonth),
+    gold: save.currencies.gold,
+    guildPoints: save.currencies.guildPoints,
+    energy: save.currencies.energy,
+    maxEnergy: save.currencies.maxEnergy,
+    creatureCount: save.creatureIds.length,
+    eggCount: save.eggIds.length,
+    updatedAt: save.updatedAt,
+  };
+}
+
+export function findFirstEmptySlot(): number | null {
+  const saves = loadAllSaves();
+  const emptyIndex = saves.findIndex((save) => save === null);
+  return emptyIndex >= 0 ? emptyIndex : null;
+}

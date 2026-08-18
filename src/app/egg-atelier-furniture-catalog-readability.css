@@ -1,0 +1,190 @@
+/* Furniture Catalog readability / usability pass.
+   Preserve the illustrated book composition while making the four live furnishing
+   entries scan like printed catalog content rather than floating UI cards. */
+
+/* Keep the live field high enough that the bottom row, prices, and Install buttons
+   stay on the flat parchment instead of drifting into the heavy page edge. */
+.eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+  top: 17.4% !important;
+  bottom: 17.1% !important;
+  row-gap: .55% !important;
+}
+
+/* Give copy more horizontal room. The art stays substantial, but the text column
+   now has enough width to avoid unnecessary wrapping. */
+.eggAtelierShell [data-catalog-entry] {
+  grid-template-columns: 27.5% minmax(0, 1fr) !important;
+  gap: 13px !important;
+  padding: 1px 8px 4px !important;
+  align-items: start !important;
+}
+
+/* Print the live copy directly onto the parchment. */
+.eggAtelierShell [data-catalog-entry] div[class*="listingBody"] {
+  position: relative !important;
+  z-index: 3 !important;
+  min-width: 0 !important;
+  padding: 0 3px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  transform: translateY(-6px) !important;
+  text-shadow: 0 1px rgba(255, 249, 226, .36) !important;
+}
+
+/* Pull the lower row a little farther upward so its cost strip and button remain
+   comfortably above the book's curved lower page edge. */
+.eggAtelierShell [data-catalog-entry="3"] div[class*="listingBody"],
+.eggAtelierShell [data-catalog-entry="4"] div[class*="listingBody"] {
+  transform: translateY(-14px) !important;
+}
+
+/* Product names stay prominent without feeling like oversized UI labels. */
+.eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+  margin: 0 0 6px !important;
+  color: #352114 !important;
+  font-size: clamp(1.16rem, 1.18vw, 1.34rem) !important;
+  line-height: 1.04 !important;
+  font-weight: 760 !important;
+  letter-spacing: -.012em !important;
+  text-shadow: 0 1px rgba(255, 247, 219, .52) !important;
+}
+
+/* Body copy should feel printed, not bolded UI copy. */
+.eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+  margin: 0 0 6px !important;
+  color: #493621 !important;
+  font-size: clamp(.75rem, .67vw, .82rem) !important;
+  line-height: 1.31 !important;
+  font-weight: 520 !important;
+}
+
+/* Mechanical benefit remains the quick-scan accent line. */
+.eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+  margin: 0 0 8px !important;
+  color: #066f98 !important;
+  font-size: clamp(.73rem, .65vw, .80rem) !important;
+  line-height: 1.25 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px rgba(255, 250, 229, .42) !important;
+}
+
+/* Seat the badges in the art/text gutter, with enough breathing room around titles. */
+.eggAtelierShell [data-catalog-entry-badge="true"] {
+  top: -2px !important;
+  left: calc(27.5% - 44px) !important;
+  width: 38px !important;
+  height: 53px !important;
+  transform: none !important;
+  filter: drop-shadow(0 3px 3px rgba(54, 31, 15, .30)) !important;
+  z-index: 8 !important;
+}
+
+/* Cost plaque stays decorative and light, like a printed ruled field on the page. */
+.eggAtelierShell [data-catalog-entry] div[class*="price"] {
+  min-height: 32px !important;
+  margin-top: 2px !important;
+  padding: 3px 9px 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"]::before {
+  opacity: .13 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] span {
+  color: #795936 !important;
+  font-size: .50rem !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+  letter-spacing: .03em !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="price"] strong {
+  color: #382619 !important;
+  font-size: .78rem !important;
+  line-height: 1.06 !important;
+  font-weight: 740 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] div[class*="actions"] {
+  margin-top: 5px !important;
+}
+
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"] {
+  min-width: 104px !important;
+  min-height: 30px !important;
+  padding: 5px 14px !important;
+  font-size: .75rem !important;
+  font-weight: 800 !important;
+}
+
+.eggAtelierShell [data-catalog-entry] button[class*="buyButton"]:disabled {
+  opacity: .92 !important;
+  color: #ead4a2 !important;
+  border-color: #86683f !important;
+  background: linear-gradient(180deg, #3b2d1e 0%, #1c1510 100%) !important;
+}
+
+/* Keep hero illustrations substantial, with the bottom-row pieces lifted just enough
+   to remain visually centered against their tightened copy. */
+.eggAtelierShell [data-catalog-entry] img[data-catalog-hero-art="true"] {
+  transform: translateY(-4px) !important;
+}
+
+.eggAtelierShell [data-catalog-entry="3"] img[data-catalog-hero-art="true"],
+.eggAtelierShell [data-catalog-entry="4"] img[data-catalog-hero-art="true"] {
+  transform: translateY(-10px) !important;
+}
+
+@media (min-width: 1650px) and (max-height: 930px) {
+  .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+    top: 17.3% !important;
+    bottom: 17.4% !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+    font-size: 1.17rem !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+    font-size: .72rem !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+    font-size: .71rem !important;
+  }
+}
+
+@media (max-width: 1450px) {
+  .eggAtelierShell [data-catalog-book="true"] > div[class*="listings"] {
+    top: 17.3% !important;
+    bottom: 17.1% !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] {
+    grid-template-columns: 26.5% minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry-badge="true"] {
+    left: calc(26.5% - 38px) !important;
+    width: 34px !important;
+    height: 47px !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] h3[class*="listingName"] {
+    font-size: 1.04rem !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] p[class*="listingDesc"] {
+    font-size: .67rem !important;
+  }
+
+  .eggAtelierShell [data-catalog-entry] p[class*="gradePreview"] {
+    font-size: .66rem !important;
+  }
+}

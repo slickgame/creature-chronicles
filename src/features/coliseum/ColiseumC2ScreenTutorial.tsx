@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  TUTORIAL_IDS,
   getChapterOneTutorialProgress,
   isChapterOneGuidedTutorialActive,
 } from "@/data/chapterOneGuidedTutorial";
+import { isTutorialReplayActive, shouldShowTutorial } from "@/data/tutorialLifecycle";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
+import { useTutorialViewportDock } from "@/features/tutorial/useTutorialViewportDock";
 import { useGameContext } from "@/state/GameProvider";
 import styles from "./ColiseumC2ScreenTutorial.module.css";
 
@@ -143,11 +146,16 @@ function inferCoachState(): CoachState {
 export function ColiseumC2Screen() {
   const { currentSave } = useGameContext();
   const [coach, setCoach] = useState<CoachState | null>(null);
+  const coachRef = useRef<HTMLElement | null>(null);
   const active = useMemo(() => {
     if (!currentSave || !isChapterOneGuidedTutorialActive(currentSave)) return false;
+    if (!shouldShowTutorial(currentSave, TUTORIAL_IDS.chapterOneFirstBattle)) return false;
     const progress = getChapterOneTutorialProgress(currentSave);
-    return progress.battleOutfitterOpened && !progress.firstBattleWon;
+    const replaying = isTutorialReplayActive(currentSave, TUTORIAL_IDS.chapterOneFirstBattle);
+    return progress.battleOutfitterOpened && (!progress.firstBattleWon || replaying);
   }, [currentSave]);
+
+  useTutorialViewportDock("chapter-one-first-battle-coach", coachRef, Boolean(active && coach));
 
   useEffect(() => {
     if (!active) {
@@ -211,7 +219,12 @@ export function ColiseumC2Screen() {
     <>
       <BaseColiseumC2Screen />
       {active && coach ? (
-        <aside className={styles.coach} aria-label="First battle coach">
+        <aside
+          ref={coachRef}
+          className={styles.coach}
+          data-tutorial-dock-card="true"
+          aria-label="First battle coach"
+        >
           <header>
             <img src={RANCH_ADVISOR.portraitPath} alt="" />
             <div><span>Day 5 · Battle Lesson</span><strong>{RANCH_ADVISOR.name}</strong></div>

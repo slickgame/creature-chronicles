@@ -1,6 +1,8 @@
 "use client";
 
-import { ChronicleFeed } from "./ChronicleFeed";
+import { ChronicleFeed } from "@/features/chronicle/ChronicleFeed";
+import { LegacyOverviewPanel } from "./LegacyOverviewPanel";
+import { RanchSocialRoster } from "./RanchSocialRoster";
 import type { GameSave } from "@/types/save";
 
 type ChronicleScreenProps = {
@@ -11,15 +13,22 @@ type ChronicleScreenProps = {
 export function ChronicleScreen({ save, onBack }: ChronicleScreenProps) {
   return (
     <main
+      data-chronicle-scroll-region="true"
       style={{
+        height: "100dvh",
         minHeight: "100vh",
+        overflowY: "auto",
+        overflowX: "hidden",
+        overscrollBehaviorY: "contain",
+        boxSizing: "border-box",
+        scrollbarGutter: "stable",
         padding: "clamp(18px,3vw,36px)",
         background:
           "radial-gradient(circle at top,rgba(245,201,128,.14),transparent 36%),linear-gradient(145deg,#281714,#111415)",
         color: "#fff7dd",
       }}
     >
-      <section style={{ width: "min(100%,1100px)", margin: "0 auto", display: "grid", gap: 16 }}>
+      <section style={{ width: "min(100%,1100px)", margin: "0 auto", display: "grid", gap: 16, minWidth: 0 }}>
         <header
           style={{
             display: "flex",
@@ -58,6 +67,8 @@ export function ChronicleScreen({ save, onBack }: ChronicleScreenProps) {
           </button>
         </header>
 
+        <LegacyOverviewPanel save={save} />
+        <RanchSocialRoster save={save} />
         <ChronicleFeed save={save} limit={100} />
       </section>
     </main>

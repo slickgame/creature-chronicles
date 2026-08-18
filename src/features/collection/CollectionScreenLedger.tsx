@@ -1,12 +1,13 @@
 "use client";
 
 import { CollectionScreen as PolishedCollectionScreen } from "./CollectionScreenPolished";
+import { LegacyCreatureProfileLauncher } from "@/features/legacy/LegacyCreatureProfileLauncher";
 import { useGameContext } from "@/state/GameProvider";
 
 const OPEN_LEDGER_KEY = "creature_chronicles_open_breeding_ledger";
 
 export function CollectionScreen() {
-  const { goToBreeding } = useGameContext();
+  const { currentSave, goToBreeding } = useGameContext();
 
   function openLedger() {
     window.sessionStorage.setItem(OPEN_LEDGER_KEY, "1");
@@ -36,6 +37,15 @@ export function CollectionScreen() {
       >
         Breeding Ledger
       </button>
+      {currentSave ? (
+        <LegacyCreatureProfileLauncher
+          save={currentSave}
+          creatures={currentSave.creatures ?? []}
+          label="Legacy Profiles"
+          title="Ranch Roster Legacy Profiles"
+          position="right"
+        />
+      ) : null}
     </>
   );
 }

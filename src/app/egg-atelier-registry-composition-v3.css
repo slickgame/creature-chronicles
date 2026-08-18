@@ -1,0 +1,348 @@
+/* Egg Registry composition pass 3.
+   Screenshot-driven readability pass: use the full viewport, give each placement
+   dossier a true art/text split, deconflict trust seals, and force active egg
+   records into the generated full-width archival frame instead of the inherited
+   market listing grid. */
+
+/* ---------- use the available desktop canvas ---------- */
+.eggAtelierShell [data-atelier-egg-registry="true"] {
+  width: calc(100vw - 64px) !important;
+  max-width: none !important;
+  grid-template-columns: clamp(320px, 18vw, 370px) minmax(0, 1fr) !important;
+  gap: clamp(14px, 1vw, 22px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.eggAtelierShell [data-registry-main="true"] {
+  width: 100% !important;
+  padding: 10px 16px 14px !important;
+}
+
+/* ---------- sidebar breathing room ---------- */
+.eggAtelierShell [data-registry-sidebar="true"] {
+  width: 100% !important;
+  height: 640px !important;
+  min-height: 640px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar-crest="true"] {
+  top: 22px !important;
+  width: 86px !important;
+  height: 86px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > h2 {
+  top: 108px !important;
+  font-size: 1.72rem !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > p:not([data-registry-sidebar-quote]) {
+  top: 164px !important;
+  left: 48px !important;
+  right: 48px !important;
+  font-size: .78rem !important;
+  line-height: 1.34 !important;
+}
+
+.eggAtelierShell [data-registry-sidebar-quote="true"] {
+  top: 230px !important;
+  left: 54px !important;
+  right: 54px !important;
+  font-size: .76rem !important;
+  line-height: 1.22 !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] {
+  top: 288px !important;
+  left: 48px !important;
+  right: 48px !important;
+  height: 120px !important;
+  padding: 14px 14px 8px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(1) {
+  top: 137px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] button:nth-of-type(2) {
+  top: 178px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(1) {
+  top: 517px !important;
+}
+
+.eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2) {
+  top: 560px !important;
+}
+
+/* ---------- offer row ---------- */
+.eggAtelierShell [data-registry-offer-list="true"] {
+  width: 100% !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: clamp(12px, .9vw, 20px) !important;
+}
+
+.eggAtelierShell [data-registry-offer] {
+  width: 100% !important;
+  height: 430px !important;
+  min-height: 430px !important;
+}
+
+.eggAtelierShell [data-registry-offer] > div[class*="listingBody"] {
+  padding: 48px 24px 18px !important;
+}
+
+/* The classification label remains physical art, but its copy gets more room. */
+.eggAtelierShell [data-registry-classification] {
+  top: 17px !important;
+  left: 22px !important;
+  right: 22px !important;
+  height: 42px !important;
+  padding: 0 26px !important;
+  font-size: .62rem !important;
+  letter-spacing: .055em !important;
+}
+
+.eggAtelierShell [data-registry-offer] h3[class*="listingName"] {
+  margin: 10px 0 10px !important;
+  color: #3b2819 !important;
+  font-size: clamp(1.22rem, 1.22vw, 1.48rem) !important;
+  line-height: 1.02 !important;
+  text-align: center !important;
+}
+
+/* Hero art owns the left third. Copy owns the remaining two thirds. */
+.eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+  left: 22px !important;
+  top: 116px !important;
+  width: 34% !important;
+  height: 164px !important;
+}
+
+.eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  max-width: 170px !important;
+  max-height: 170px !important;
+}
+
+.eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  margin: 0 0 0 39% !important;
+  min-height: 138px !important;
+  padding-right: 2px !important;
+  color: #4e3927 !important;
+  font-size: clamp(.72rem, .67vw, .82rem) !important;
+  font-weight: 650 !important;
+  line-height: 1.34 !important;
+  text-shadow: none !important;
+}
+
+/* Keep purchase information visually on the parchment and away from hero art. */
+.eggAtelierShell [data-registry-offer] div[class*="price"] {
+  left: 39% !important;
+  right: 24px !important;
+  bottom: 68px !important;
+  min-height: 58px !important;
+  padding: 8px 10px 7px 33px !important;
+  background: rgba(246, 228, 191, .08) !important;
+  box-shadow: inset 0 0 0 1px rgba(117,78,37,.08) !important;
+}
+
+.eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+.eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+  right: 100px !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] span {
+  font-size: .56rem !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] strong {
+  font-size: 1rem !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  margin-top: 3px !important;
+  color: #5c442d !important;
+  font-size: .64rem !important;
+  line-height: 1.12 !important;
+}
+
+.eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  left: 39% !important;
+  right: 24px !important;
+  bottom: 24px !important;
+}
+
+.eggAtelierShell [data-registry-offer] button[class*="buyButton"] {
+  min-height: 34px !important;
+  font-size: .79rem !important;
+}
+
+/* Trust seals use the dossier's reserved lower-right paper instead of body copy. */
+.eggAtelierShell [data-registry-trust-stamp="true"] {
+  right: 18px !important;
+  bottom: 82px !important;
+  width: 76px !important;
+  height: 76px !important;
+  opacity: .94 !important;
+}
+
+.eggAtelierShell [data-registry-trust-stamp="true"] span {
+  margin-top: 5px !important;
+  font-size: .34rem !important;
+}
+
+.eggAtelierShell [data-registry-trust-stamp="true"] strong {
+  font-size: .72rem !important;
+}
+
+/* ---------- active eggs ---------- */
+.eggAtelierShell [data-registry-section-heading="active"] {
+  margin-top: 9px !important;
+}
+
+/* Explicitly kill MarketScreen's inherited two-column grid. */
+.eggAtelierShell [data-registry-active-list="true"] {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 7px !important;
+  max-height: none !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+/* Target both the bridge marker and the direct child so the physical frame wins
+   even if MutationObserver decoration lands a frame later. */
+.eggAtelierShell [data-registry-active-record="true"],
+.eggAtelierShell [data-registry-active-list="true"] > button {
+  position: relative !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 146px !important;
+  min-height: 146px !important;
+  padding: 14px 34px !important;
+  display: grid !important;
+  grid-template-columns: 22% minmax(0, 1fr) !important;
+  gap: 18px !important;
+  align-items: center !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: url("/images/egg-atelier/egg-registry/egg_registry_active_egg_frame.png") !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  box-shadow: none !important;
+  color: #49331f !important;
+  text-align: left !important;
+  overflow: visible !important;
+}
+
+.eggAtelierShell [data-registry-active-list="true"] > button div[class*="listingArt"] {
+  width: 100% !important;
+  height: 104px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.eggAtelierShell [data-registry-active-list="true"] > button div[class*="listingArt"] img {
+  width: 88px !important;
+  height: 88px !important;
+  object-fit: contain !important;
+}
+
+.eggAtelierShell [data-registry-active-list="true"] > button div[class*="listingBody"] {
+  min-width: 0 !important;
+  padding: 0 15% 0 0 !important;
+  color: #49331f !important;
+}
+
+.eggAtelierShell [data-registry-active-list="true"] > button span[class*="listingMeta"] {
+  color: #725432 !important;
+  font-size: .64rem !important;
+  text-shadow: none !important;
+}
+
+.eggAtelierShell [data-registry-active-list="true"] > button h3[class*="listingName"] {
+  margin: 3px 0 !important;
+  color: #3b2819 !important;
+  font: 700 1.18rem/1.05 Georgia, "Times New Roman", serif !important;
+  text-shadow: none !important;
+}
+
+.eggAtelierShell [data-registry-active-list="true"] > button p {
+  margin: 2px 0 !important;
+  color: #56402c !important;
+  font-size: .72rem !important;
+  line-height: 1.22 !important;
+  text-shadow: none !important;
+}
+
+/* ---------- desktop safety ---------- */
+@media (max-width: 1500px) {
+  .eggAtelierShell [data-atelier-egg-registry="true"] {
+    width: calc(100vw - 36px) !important;
+    grid-template-columns: 285px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar="true"] {
+    height: 610px !important;
+    min-height: 610px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] {
+    height: 405px !important;
+    min-height: 405px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] > div[class*="listingArt"] {
+    top: 111px !important;
+    height: 145px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+    max-width: 150px !important;
+    max-height: 150px !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+    min-height: 127px !important;
+    font-size: .68rem !important;
+  }
+
+  .eggAtelierShell [data-registry-active-list="true"] > button {
+    height: 132px !important;
+    min-height: 132px !important;
+  }
+}
+
+@media (max-width: 1080px) {
+  .eggAtelierShell [data-atelier-egg-registry="true"] {
+    left: auto !important;
+    transform: none !important;
+    width: min(calc(100vw - 24px), 980px) !important;
+    grid-template-columns: 1fr !important;
+    margin: 0 auto !important;
+  }
+
+  .eggAtelierShell [data-registry-sidebar="true"] {
+    width: min(100%, 520px) !important;
+    justify-self: center !important;
+  }
+
+  .eggAtelierShell [data-registry-offer-list="true"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .eggAtelierShell [data-registry-offer] {
+    width: min(100%, 560px) !important;
+    height: 500px !important;
+    min-height: 500px !important;
+    justify-self: center !important;
+  }
+}

@@ -1,0 +1,246 @@
+html body .eggAtelierShell [data-registry-offer] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+  left: 22% !important;
+  right: 37% !important;
+  bottom: 93px !important;
+  width: auto !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] span,
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] strong,
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] em {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  text-align: center !important;
+}
+
+html body .eggAtelierShell [data-registry-offer] div[class*="price"] > img {
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+  left: auto !important;
+  right: 68px !important;
+  bottom: 69px !important;
+  width: 94px !important;
+  height: 94px !important;
+  background-size: 200% 100% !important;
+  background-repeat: no-repeat !important;
+  transform: none !important;
+  transform-origin: center !important;
+  filter: contrast(1.12) saturate(1.03) !important;
+  image-rendering: auto !important;
+  overflow: visible !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="2"] {
+  background-position: left center !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="4"] {
+  background-position: right center !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"] > span,
+html body .eggAtelierShell [data-registry-trust-stamp="true"] > strong {
+  opacity: 0 !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-stamp="true"]::after {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: 50% !important;
+  top: 49% !important;
+  width: 90px !important;
+  padding: 4px 4px 3px !important;
+  box-sizing: border-box !important;
+  border: 2px solid currentColor !important;
+  border-radius: 4px !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: .09em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  transform: translate(-50%, -50%) rotate(-10deg) !important;
+  transform-origin: center !important;
+  opacity: .86 !important;
+  pointer-events: none !important;
+  background: rgba(70, 42, 18, .18) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08) !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="2"]::after,
+html body .eggAtelierShell [data-registry-trust-level="4"]::after {
+  color: rgba(255, 226, 151, .96) !important;
+  text-shadow:
+    0 1px 1px rgba(52, 29, 12, .98),
+    1px 0 0 rgba(52, 29, 12, .9),
+    -1px 0 0 rgba(52, 29, 12, .9),
+    0 -1px 0 rgba(52, 29, 12, .7) !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="2"]::after {
+  content: "TRUST LV. 2" !important;
+}
+
+html body .eggAtelierShell [data-registry-trust-level="4"]::after {
+  content: "TRUST LV. 4" !important;
+}
+
+/* Sidebar crest: let the generated heraldic crest sit directly on the painted
+   circular mount instead of inside a second CSS card, and lift it slightly so
+   its egg is optically centered in the parchment/metal medallion behind it. */
+html body .eggAtelierShell [data-registry-sidebar-crest="true"] {
+  top: 20px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Selected egg record: optically center the three live text lines inside the
+   painted leather inset by lifting the group and pulling it slightly left. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+  position: relative !important;
+  left: -7px !important;
+  transform: translateY(-70px) !important;
+  text-align: center !important;
+}
+
+/* The sidebar asset already contains the four ornate action frames. Keep the
+   real buttons as invisible hit areas so only the painted frames are visible. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > button,
+html body .eggAtelierShell [data-registry-sidebar="true"] > button {
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  line-height: 1 !important;
+}
+
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > button:hover:not(:disabled),
+html body .eggAtelierShell [data-registry-sidebar="true"] > button:hover:not(:disabled) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #fff4ce !important;
+  text-shadow: 0 0 7px rgba(232,190,99,.35), 0 2px 2px rgba(0,0,0,.85) !important;
+}
+
+/* Optical centering inside the four painted slots. */
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > button:nth-of-type(1) {
+  transform: translateY(-59px) !important;
+}
+html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > button:nth-of-type(2) {
+  transform: translateY(-56px) !important;
+}
+html body .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(1) {
+  transform: translateY(-18px) !important;
+}
+html body .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2) {
+  transform: translateY(-15px) !important;
+}
+
+/* Active egg record: shift the live copy slightly right and optically center
+   the portrait a touch higher/right in the generated oval mount. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] {
+  transform: translateX(8px) !important;
+}
+
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingArt"] img,
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingArt"] img {
+  position: relative !important;
+  left: 3px !important;
+  top: -5px !important;
+}
+
+/* Keep the compact registry metadata line understated inside the ruled header. */
+html body .eggAtelierShell [data-registry-section-heading="active"] + div[class*="listings"] > button > div[class*="listingBody"] > span[class*="listingMeta"],
+html body .eggAtelierShell [data-registry-active-list="true"] > button > div[class*="listingBody"] > span[class*="listingMeta"] {
+  position: relative !important;
+  left: 10px !important;
+  font-size: .62rem !important;
+}
+
+/* Offer dossier hero art: lift all three icons slightly within the painted
+   illustration wells while preserving their current size and horizontal center. */
+html body .eggAtelierShell [data-registry-offer] img[data-registry-hero-art="true"] {
+  position: relative !important;
+  top: -8px !important;
+}
+
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-offer] div[class*="price"],
+  html body .eggAtelierShell [data-registry-offer="2"] div[class*="price"],
+  html body .eggAtelierShell [data-registry-offer="3"] div[class*="price"] {
+    left: 21% !important;
+    right: 37% !important;
+    bottom: 90px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-trust-stamp="true"] {
+    right: 58px !important;
+    bottom: 67px !important;
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-trust-stamp="true"]::after {
+    width: 86px !important;
+    font-size: 11px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-sidebar-crest="true"] {
+    top: 20px !important;
+  }
+
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > span,
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > strong,
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > p {
+    left: -7px !important;
+    transform: translateY(-70px) !important;
+  }
+
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > button:nth-of-type(1) {
+    transform: translateY(-59px) !important;
+  }
+  html body .eggAtelierShell [data-registry-sidebar="true"] > div[class*="infoCard"] > button:nth-of-type(2) {
+    transform: translateY(-56px) !important;
+  }
+  html body .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(1) {
+    transform: translateY(-18px) !important;
+  }
+  html body .eggAtelierShell [data-registry-sidebar="true"] > button:nth-of-type(2) {
+    transform: translateY(-15px) !important;
+  }
+}

@@ -1,0 +1,511 @@
+/* Egg Atelier landing concept pass.
+   This file intentionally scopes the immersive treatment to the Egg Atelier shell
+   and its landing interior so the other town screens keep their existing styling. */
+
+.eggAtelierShell {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  background: #090603;
+}
+
+.eggAtelierShell main {
+  min-height: 100dvh !important;
+  display: block !important;
+  padding: 0 !important;
+  background: #090603 !important;
+}
+
+.eggAtelierShell main > section {
+  position: relative !important;
+  width: 100vw !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  min-height: 720px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: #0a0704 !important;
+  box-shadow: none !important;
+}
+
+/* Use one clear room image instead of the former double-exposure treatment. */
+.eggAtelierShell main > section > div:first-child {
+  inset: 0 !important;
+  background-image: url("/images/backgrounds/nursery/egg_nursery_interior.png") !important;
+  background-position: center 48% !important;
+  background-size: cover !important;
+  opacity: 1 !important;
+  filter: saturate(1.16) contrast(1.08) brightness(0.92) !important;
+  transform: scale(1.012);
+}
+
+.eggAtelierShell main > section > div:nth-child(2) {
+  background:
+    radial-gradient(circle at 51% 38%, rgba(238, 174, 77, 0.14), transparent 30%),
+    linear-gradient(90deg, rgba(8, 4, 2, 0.36) 0%, rgba(8, 4, 2, 0.04) 28%, rgba(8, 4, 2, 0.02) 68%, rgba(8, 4, 2, 0.25) 100%),
+    linear-gradient(180deg, rgba(5, 3, 2, 0.10), rgba(5, 3, 2, 0.18) 58%, rgba(5, 3, 2, 0.34)) !important;
+}
+
+/* Header — heavier black-and-gold location banner, matching the concept hierarchy. */
+.eggAtelierShell main > section > header {
+  position: relative !important;
+  z-index: 30 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 390px !important;
+  gap: 24px !important;
+  align-items: start !important;
+  margin: 7px 7px 0 !important;
+  padding: 14px 92px 15px 106px !important;
+  min-height: 150px !important;
+  border: 1px solid rgba(220, 170, 78, 0.82) !important;
+  border-radius: 7px 7px 0 0 !important;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(116, 67, 25, 0.16), transparent 42%),
+    linear-gradient(90deg, rgba(8, 6, 4, 0.96), rgba(18, 10, 6, 0.91) 62%, rgba(6, 5, 4, 0.97)) !important;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 1px rgba(255, 232, 165, 0.035) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.eggAtelierShell main > section > header::before {
+  content: "";
+  position: absolute;
+  left: 28px;
+  top: 28px;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(225, 177, 84, 0.82);
+  border-radius: 50%;
+  background:
+    url("/images/ui/icons/icon_egg.png") center / 44px 44px no-repeat,
+    radial-gradient(circle, rgba(193, 131, 43, 0.24), rgba(10, 7, 4, 0.94));
+  box-shadow:
+    0 0 0 5px rgba(7, 4, 2, 0.56),
+    0 0 18px rgba(223, 170, 75, 0.18);
+}
+
+.eggAtelierShell main > section > header::after {
+  content: "◆";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  color: #d6a84e;
+  font-size: 12px;
+  text-shadow: 0 0 7px #000;
+}
+
+.eggAtelierShell main > section > header > div:first-child > p:first-child {
+  margin-bottom: 5px !important;
+  color: #e9c878 !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.13em !important;
+}
+
+.eggAtelierShell main > section > header h1 {
+  margin: 0 !important;
+  color: #fff4d7 !important;
+  font-size: clamp(2.6rem, 3.7vw, 4rem) !important;
+  line-height: 0.96 !important;
+  letter-spacing: -0.035em !important;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.72) !important;
+}
+
+.eggAtelierShell main > section > header > div:first-child > p:not(:first-child) {
+  max-width: 920px;
+  margin: 8px 0 0 !important;
+  color: #eee0be !important;
+  font-size: 0.9rem !important;
+  line-height: 1.35 !important;
+}
+
+.eggAtelierShell main > section > header > div:first-child > p:last-child {
+  color: #72dbff !important;
+  font-weight: 900 !important;
+  font-style: italic;
+}
+
+.eggAtelierShell main > section > header > div:last-child {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.eggAtelierShell main > section > header > div:last-child > div {
+  min-height: 52px !important;
+  padding: 8px 12px !important;
+  border: 1px solid rgba(226, 177, 84, 0.6) !important;
+  border-radius: 3px !important;
+  background: linear-gradient(180deg, rgba(18, 12, 8, 0.9), rgba(4, 4, 3, 0.93)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 234, 177, 0.04) !important;
+}
+
+.eggAtelierShell main > section > header > div:last-child > button {
+  min-height: 40px !important;
+  border: 1px solid rgba(226, 177, 84, 0.72) !important;
+  border-radius: 3px !important;
+  background: linear-gradient(180deg, rgba(39, 27, 16, 0.96), rgba(12, 9, 6, 0.98)) !important;
+  color: #f4d994 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 231, 168, 0.04), 0 4px 8px rgba(0, 0, 0, 0.22) !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-weight: 800 !important;
+}
+
+/* The shared Player Menu is the one and only Menu launcher in this branch. */
+.eggAtelierShell button[data-atelier-shared-menu-launcher="true"] {
+  position: fixed !important;
+  z-index: 140 !important;
+  top: 20px !important;
+  right: 22px !important;
+  left: auto !important;
+  bottom: auto !important;
+  width: 72px !important;
+  min-width: 72px !important;
+  height: 78px !important;
+  min-height: 78px !important;
+  padding: 34px 8px 7px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(231, 185, 96, 0.92) !important;
+  border-radius: 50% !important;
+  background:
+    linear-gradient(180deg, rgba(22, 16, 10, 0.98), rgba(5, 5, 4, 0.98)) !important;
+  color: #f5dda0 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 0.78rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.46),
+    inset 0 0 0 2px rgba(255, 225, 150, 0.03) !important;
+}
+
+.eggAtelierShell button[data-atelier-shared-menu-launcher="true"]::before {
+  content: "☰";
+  position: absolute;
+  top: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #e3b960;
+  font-family: system-ui, sans-serif;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.eggAtelierShell button[data-atelier-shared-menu-launcher="true"]:hover {
+  transform: translateY(-2px) !important;
+  border-color: #f2c96d !important;
+  filter: brightness(1.08) !important;
+}
+
+/* Landing interior — remove the duplicate faded room layer and let the environment breathe. */
+.eggAtelierShell section[aria-label="Egg Atelier interior"] {
+  position: relative !important;
+  z-index: 3 !important;
+  min-height: calc(100dvh - 157px) !important;
+  padding: 18px 26px 22px !important;
+  overflow: hidden !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:first-child {
+  opacity: 0 !important;
+  background: none !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) {
+  position: relative !important;
+  z-index: 3 !important;
+  display: grid !important;
+  grid-template-columns: 338px minmax(0, 1fr) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+  min-height: calc(100dvh - 198px) !important;
+}
+
+/* Selene signature panel. */
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside {
+  position: relative !important;
+  align-self: stretch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  padding: 18px 18px 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(224, 174, 80, 0.82) !important;
+  border-radius: 8px !important;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(155, 96, 34, 0.16), transparent 33%),
+    linear-gradient(180deg, rgba(19, 13, 9, 0.96), rgba(7, 6, 5, 0.97)) !important;
+  color: #f8e8bd !important;
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.48),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 5px rgba(227, 175, 78, 0.11) !important;
+  backdrop-filter: blur(3px) !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside::before,
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside::after {
+  position: absolute;
+  color: rgba(230, 181, 86, 0.82);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside::before {
+  content: "❦";
+  left: 10px;
+  top: 9px;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside::after {
+  content: "❦";
+  right: 10px;
+  bottom: 9px;
+  transform: rotate(180deg);
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:first-child {
+  display: block !important;
+  text-align: center !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:first-child > img {
+  width: 178px !important;
+  height: 178px !important;
+  display: block !important;
+  margin: 2px auto 12px !important;
+  padding: 6px !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+  border: 2px solid #bd8742 !important;
+  border-radius: 50% !important;
+  background: #15100b !important;
+  box-shadow:
+    0 0 0 4px rgba(8, 5, 3, 0.78),
+    0 0 0 6px rgba(203, 145, 58, 0.34),
+    0 13px 26px rgba(0, 0, 0, 0.45) !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:first-child > div {
+  text-align: center !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside h2 {
+  margin: 4px 0 4px !important;
+  color: #fff0c7 !important;
+  font-size: 1.75rem !important;
+  line-height: 1 !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside > p {
+  margin: 13px 0 15px !important;
+  color: #ead9b7 !important;
+  font-size: 0.88rem !important;
+  line-height: 1.48 !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside > div:last-child {
+  display: grid !important;
+  gap: 6px !important;
+  margin-top: auto !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside button {
+  min-height: 38px !important;
+  padding: 7px 12px !important;
+  border: 1px solid rgba(223, 174, 78, 0.72) !important;
+  border-radius: 5px !important;
+  background:
+    linear-gradient(180deg, rgba(43, 29, 17, 0.96), rgba(14, 10, 7, 0.98)) !important;
+  color: #f1d38d !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 230, 164, 0.03),
+    0 3px 6px rgba(0, 0, 0, 0.25) !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 800 !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] aside button:hover {
+  transform: translateY(-1px) !important;
+  border-color: #f0c262 !important;
+  background: linear-gradient(180deg, rgba(67, 43, 22, 0.98), rgba(22, 14, 8, 0.99)) !important;
+}
+
+/* Interactive room placards — object-forward and much closer to the concept composition. */
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child {
+  position: relative !important;
+  min-height: 520px !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button {
+  position: absolute !important;
+  width: 230px !important;
+  min-width: 230px !important;
+  min-height: 150px !important;
+  padding: 88px 15px 14px !important;
+  overflow: visible !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: end !important;
+  gap: 3px !important;
+  border: 1px solid rgba(234, 183, 83, 0.9) !important;
+  border-radius: 15px 15px 10px 10px !important;
+  background:
+    radial-gradient(circle at 50% 5%, rgba(215, 153, 56, 0.18), transparent 52%),
+    linear-gradient(180deg, rgba(19, 13, 9, 0.93), rgba(5, 5, 4, 0.97)) !important;
+  color: #f8dfa0 !important;
+  box-shadow:
+    0 0 0 3px rgba(10, 6, 3, 0.56),
+    0 14px 32px rgba(0, 0, 0, 0.48),
+    0 0 20px rgba(231, 175, 73, 0.12) !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 77px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(228, 178, 80, 0.54), transparent);
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button::after {
+  content: "◆";
+  position: absolute;
+  left: 50%;
+  bottom: -15px;
+  transform: translateX(-50%);
+  color: #e6b34e;
+  font-size: 13px;
+  text-shadow: 0 0 8px #000;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button img {
+  position: absolute !important;
+  left: 50% !important;
+  top: -35px !important;
+  transform: translateX(-50%) !important;
+  width: 126px !important;
+  height: 118px !important;
+  object-fit: contain !important;
+  filter:
+    drop-shadow(0 10px 9px rgba(0, 0, 0, 0.62))
+    drop-shadow(0 0 10px rgba(232, 179, 76, 0.18)) !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button strong {
+  color: #f7dfa0 !important;
+  font-size: 1.12rem !important;
+  line-height: 1.05 !important;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.84) !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button span {
+  color: #70d9ff !important;
+  font-family: system-ui, sans-serif !important;
+  font-size: 0.78rem !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button:nth-of-type(1) {
+  left: 27% !important;
+  top: 38% !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button:nth-of-type(2) {
+  left: auto !important;
+  right: 8% !important;
+  top: 32% !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button:nth-of-type(3) {
+  left: auto !important;
+  right: 27% !important;
+  top: auto !important;
+  bottom: 10% !important;
+}
+
+.eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button:hover {
+  transform: translateY(-4px) scale(1.025) !important;
+  border-color: #f5c86b !important;
+  filter: brightness(1.08) !important;
+  box-shadow:
+    0 0 0 3px rgba(10, 6, 3, 0.56),
+    0 20px 36px rgba(0, 0, 0, 0.54),
+    0 0 28px rgba(235, 180, 74, 0.2) !important;
+}
+
+@media (max-width: 1180px) {
+  .eggAtelierShell main > section > header {
+    grid-template-columns: minmax(0, 1fr) 330px !important;
+    padding-left: 94px !important;
+    padding-right: 88px !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) {
+    grid-template-columns: 300px minmax(0, 1fr) !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child > button {
+    width: 205px !important;
+    min-width: 205px !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .eggAtelierShell {
+    overflow: auto;
+  }
+
+  .eggAtelierShell main,
+  .eggAtelierShell main > section {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+  }
+
+  .eggAtelierShell main > section > header {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+    padding: 14px 84px 14px 80px !important;
+  }
+
+  .eggAtelierShell main > section > header::before {
+    left: 17px;
+    top: 20px;
+    width: 48px;
+    height: 48px;
+    background-size: 36px 36px, auto;
+  }
+
+  .eggAtelierShell main > section > header > div:last-child {
+    max-width: 420px !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] aside {
+    min-height: 0 !important;
+  }
+
+  .eggAtelierShell section[aria-label="Egg Atelier interior"] > div:nth-child(2) > div:last-child {
+    min-height: 560px !important;
+  }
+}

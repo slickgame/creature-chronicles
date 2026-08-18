@@ -1,0 +1,20 @@
+/*
+ * Battle controls may wrap when space is tight, but tutorial cards no longer
+ * reserve battle-specific padding here. The shared tutorial dock now reserves
+ * viewport space for every fixed tutorial card across the application.
+ */
+
+[class*="actionFooter"]:has([class*="confirmButton"]) {
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+[class*="actionFooter"]:has([class*="confirmButton"]) [class*="confirmButton"] {
+  margin-left: auto;
+}
+
+@media (max-width: 800px) {
+  [class*="actionFooter"]:has([class*="confirmButton"]) [class*="confirmButton"] {
+    margin-left: 0;
+  }
+}

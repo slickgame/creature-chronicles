@@ -1,0 +1,92 @@
+:global([data-guild-character-hub="mara"]) > header button:last-child {
+  display: none;
+}
+
+.maraFigure {
+  left: 43%;
+  bottom: -2%;
+  width: clamp(430px, 32vw, 580px);
+  height: 88%;
+}
+
+.maraFigure::before {
+  inset: 12% -7% 1%;
+  background: radial-gradient(circle, rgba(245, 201, 128, 0.22), rgba(245, 201, 128, 0) 70%);
+}
+
+.maraFigure img {
+  transform: scale(1.04);
+  transform-origin: center bottom;
+}
+
+.dialoguePanel {
+  left: 2.6%;
+  bottom: 4%;
+  width: min(600px, 38%);
+  max-height: calc(100% - 112px);
+}
+
+.physicalBoardHotspot {
+  top: 23%;
+  right: 3.8%;
+  width: 27.5%;
+  height: 39%;
+}
+
+.hotspotLabel {
+  opacity: 0.72;
+  transform: translateY(2px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.physicalBoardHotspot:hover .hotspotLabel,
+.physicalBoardHotspot:focus-visible .hotspotLabel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 1100px) {
+  .dialoguePanel {
+    left: 2%;
+    width: 50%;
+    bottom: 2.5%;
+  }
+
+  .maraFigure {
+    left: 45%;
+    width: 43%;
+    height: 76%;
+  }
+
+  .physicalBoardHotspot {
+    right: 1.5%;
+    width: 28%;
+  }
+}
+
+@media (max-width: 760px) {
+  .maraFigure {
+    left: auto;
+    right: 1%;
+    top: 142px;
+    bottom: auto;
+    width: 52%;
+    height: 42%;
+  }
+
+  .dialoguePanel {
+    left: 10px;
+    right: 10px;
+    bottom: 12px;
+    width: auto;
+    max-height: 56%;
+  }
+
+  .physicalBoardHotspot {
+    top: 158px;
+    left: 2%;
+    right: auto;
+    width: 47%;
+    height: 31%;
+  }
+}

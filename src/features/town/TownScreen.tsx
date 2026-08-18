@@ -1,7 +1,6 @@
 "use client";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
-import { BUILDER_PROJECT_ASSETS } from "@/data/builderProjects";
 import { getColiseumC2HighestDivision, getColiseumC2Progress } from "@/data/coliseumC2";
 import { getTotalTownUpgradeTiers } from "@/data/upgrades";
 import { BuilderYardPanel } from "@/features/builder/BuilderYardPanel";
@@ -45,13 +44,13 @@ const TOWN_ICONS = {
   gp: "/images/ui/icons/icon_guild_points.png",
   adoption: "/images/buildings/town/market_stall.png",
   supplyDepot: "/images/buildings/town/supply_depot.png",
-  builder: BUILDER_PROJECT_ASSETS.yard,
+  builder: "/images/buildings/town/builders_yard.png",
   eggAtelier: "/images/buildings/town/egg_atelier.png",
   guild: "/images/buildings/town/guild_hall.png",
   ranch: "/images/buildings/town/ranch_gate.png",
   training: "/images/buildings/town/training_grounds.png",
   battleOutfitter: "/images/buildings/town/battle_outfitter.png",
-  coliseum: "/images/ui/icons/icon_ability_trigger.png",
+  coliseum: "/images/buildings/town/coliseum.png",
   menu: "/images/ui/icons/icon_collection_book.png",
 } as const;
 

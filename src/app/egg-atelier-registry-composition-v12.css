@@ -1,0 +1,27 @@
+/* Egg Registry composition pass 12.
+   Tiny optical nudges for the final dossier layout. */
+
+/* Lift the live Buy/Locked action row within each painted dossier button frame. */
+html body .eggAtelierShell [data-registry-offer] div[class*="actions"] {
+  transform: translateY(-6px) !important;
+}
+
+/* Keep the offer description copy comfortably inside the ruled parchment area:
+   slightly smaller, shifted left, and wrapped before the right-hand border. */
+html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+  left: 49.5% !important;
+  right: 38px !important;
+  width: auto !important;
+  font-size: .80rem !important;
+  line-height: 1.18 !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+}
+
+@media (max-width: 1450px) {
+  html body .eggAtelierShell [data-registry-offer] p[class*="listingDesc"] {
+    left: 49% !important;
+    right: 34px !important;
+    font-size: .77rem !important;
+  }
+}

@@ -1,0 +1,16 @@
+/* Egg Atelier control cleanup.
+   This branch does not render a local Atelier Menu button, so the shared Player
+   Menu launcher remains visible and is styled into the Atelier header area. */
+
+.eggAtelierShell [data-player-menu-root="true"] > button[data-atelier-shared-menu-launcher="true"],
+.eggAtelierShell button[data-atelier-shared-menu-launcher="true"] {
+  display: grid !important;
+}
+
+/* Quickhatch is intentionally surfaced only by relevant inventory/breeding/nursery
+   flows. It should never float over or appear inside Egg Atelier screens. */
+.eggAtelierShell [data-tutorial-id="quickhatch-catalyst"],
+.eggAtelierShell [data-atelier-quickhatch-hidden="true"],
+.eggAtelierShell main [class*="inventoryChip"] {
+  display: none !important;
+}
