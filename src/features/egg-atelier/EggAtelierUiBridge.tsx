@@ -21,6 +21,34 @@ function normalizeText(element: Element): string {
   return (element.textContent ?? "").replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+/* Egg Services was added later using a structural CSS detector that looks for
+   `aside.panel > div.sideList`. Furniture Catalog and Egg Registry predate that
+   detector and also use the shared MarketScreen `sideList` class, so the service
+   stylesheet can accidentally claim those modes. Strip only that detector class
+   while those completed modes are active and reproduce the tiny base sideList
+   layout inline. Their original dedicated catalog/registry CSS then renders
+   exactly as it did before Egg Services was introduced. */
+function isolateSidebarFromEggServices(sidebar: HTMLElement): void {
+  const sideList = Array.from(sidebar.children).find(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement &&
+      child.className
+        .split(/\s+/)
+        .some((className) => className.toLowerCase().includes("sidelist")),
+  );
+  if (!sideList || sideList.dataset.atelierServiceDetectorIsolated === "true") return;
+
+  sideList.dataset.atelierServiceDetectorIsolated = "true";
+  sideList.dataset.atelierOriginalClassName = sideList.className;
+  sideList.className = sideList.className
+    .split(/\s+/)
+    .filter((className) => !className.toLowerCase().includes("sidelist"))
+    .join(" ");
+  sideList.style.setProperty("display", "grid");
+  sideList.style.setProperty("gap", "10px");
+  sideList.style.setProperty("margin-top", "12px");
+}
+
 function exposeSharedPlayerMenu(): void {
   const shell = document.querySelector<HTMLElement>(".eggAtelierShell");
   if (!shell) return;
@@ -118,6 +146,7 @@ function decorateEggRegistry(): void {
   mainPanel.dataset.registryMain = "true";
   offersHeading.dataset.registrySectionHeading = "offers";
   activeHeading.dataset.registrySectionHeading = "active";
+  isolateSidebarFromEggServices(sidebar);
 
   if (!sidebar.querySelector('[data-registry-sidebar-crest="true"]')) {
     const crest = document.createElement("img");
@@ -229,6 +258,7 @@ function decorateFurnitureCatalog(): void {
   root.dataset.atelierFurnitureCatalog = "true";
   sidebar.dataset.catalogSidebar = "true";
   mainPanel.dataset.catalogBook = "true";
+  isolateSidebarFromEggServices(sidebar);
 
   mainPanel
     .querySelectorAll<HTMLElement>(
@@ -347,6 +377,19 @@ export function EggAtelierUiBridge() {
           element.style.removeProperty("display");
           delete element.dataset.atelierSharedMenuLauncher;
           delete element.dataset.atelierQuickhatchHidden;
+        });
+
+      document
+        .querySelectorAll<HTMLElement>('[data-atelier-service-detector-isolated="true"]')
+        .forEach((element) => {
+          if (element.dataset.atelierOriginalClassName !== undefined) {
+            element.className = element.dataset.atelierOriginalClassName;
+          }
+          element.style.removeProperty("display");
+          element.style.removeProperty("gap");
+          element.style.removeProperty("margin-top");
+          delete element.dataset.atelierServiceDetectorIsolated;
+          delete element.dataset.atelierOriginalClassName;
         });
 
       document
