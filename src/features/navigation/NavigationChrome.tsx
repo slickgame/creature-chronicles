@@ -162,6 +162,9 @@ export function NavigationChrome() {
             ))}
           </div>
           <div className={styles.actions}>
+            <button type="button" onClick={() => open("guide")}>
+              Chapter 1 Guide
+            </button>
             <button type="button" onClick={() => open("advisor")}>
               Ask Veyra
             </button>

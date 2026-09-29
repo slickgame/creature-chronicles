@@ -9,6 +9,7 @@ export type NavigationView =
   | "journal"
   | "travel"
   | "advisor"
+  | "guide"
   | null;
 const Context = createContext<{
   view: NavigationView;
