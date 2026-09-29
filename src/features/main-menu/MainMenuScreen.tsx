@@ -10,6 +10,7 @@ import {
   formatGuildPoints,
 } from "@/lib/formatters";
 import { SAVE_SLOT_COUNT, summarizeSave } from "@/lib/save/localSave";
+import { GameDialog } from "@/features/ui/GameDialog";
 import { useGameContext } from "@/state/GameProvider";
 import type { GameSave } from "@/types/save";
 import { SaveTransferPanel } from "./SaveTransferPanel";
@@ -115,13 +116,14 @@ export function MainMenuScreen() {
   const [playerName, setPlayerName] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(0);
   const [message, setMessage] = useState("Ranch systems ready.");
-  const [confirmDeleteSlot, setConfirmDeleteSlot] = useState<number | null>(null);
+  const [pendingSaveAction, setPendingSaveAction] = useState<{kind:"replace"|"delete";slot:number}|null>(null);
 
   const activeSummary = useMemo(() => {
     return currentSave ? summarizeSave(currentSave) : null;
   }, [currentSave]);
 
   function handleCreateGame() {
+    if(saveSlots[selectedSlot]) {setPendingSaveAction({kind:"replace",slot:selectedSlot});return;}
     createNewGame(playerName, selectedSlot);
     setPlayerName("");
   }
@@ -137,16 +139,13 @@ export function MainMenuScreen() {
     setMessage(`Loaded ${save.player.name}'s save.`);
   }
 
-  function handleDelete(slotIndex: number) {
-    if (confirmDeleteSlot !== slotIndex) {
-      setConfirmDeleteSlot(slotIndex);
-      setMessage(`Click Delete again to erase File ${slotIndex + 1}.`);
-      return;
-    }
-
-    deleteGame(slotIndex);
-    setConfirmDeleteSlot(null);
-    setMessage(`Deleted File ${slotIndex + 1}.`);
+  function handleDelete(slotIndex:number) {setPendingSaveAction({kind:"delete",slot:slotIndex});}
+  function confirmSaveAction() {
+    if(!pendingSaveAction)return;
+    const {kind,slot}=pendingSaveAction;
+    setPendingSaveAction(null);
+    if(kind==="delete") {deleteGame(slot);setMessage(`Deleted File ${slot+1}.`);}
+    else {createNewGame(playerName,slot);setPlayerName("");}
   }
 
   function handleExitGame() {
@@ -235,7 +234,7 @@ export function MainMenuScreen() {
                 type="button"
                 className={styles.imageButton}
                 style={{ backgroundImage: `url(${IMAGE_PATHS.newGameButton})` }}
-                onClick={() => setMode("new-game")}
+                onClick={() => {setSelectedSlot(Math.max(0,Array.from({length:SAVE_SLOT_COUNT},(_,i)=>i).find(i=>!saveSlots[i]) ?? 0));setMode("new-game");}}
               >
                 New Game
               </button>
@@ -348,28 +347,9 @@ export function MainMenuScreen() {
                 </button>
               </div>
 
-              <div className={styles.optionRows}>
-                <div>
-                  <span>Music Volume</span>
-                  <strong>70%</strong>
-                </div>
-                <div>
-                  <span>SFX Volume</span>
-                  <strong>80%</strong>
-                </div>
-                <div>
-                  <span>Text Speed</span>
-                  <strong>Normal</strong>
-                </div>
-                <div>
-                  <span>Dev Mode</span>
-                  <strong>Enabled</strong>
-                </div>
-              </div>
-
-              <p className={styles.panelHint}>
-                These are display-only for now. Full settings editing comes later.
-              </p>
+              <p className={styles.panelHint}>Audio volume and text speed controls are not available in this build yet.</p>
+              <div className={styles.optionRows}><div><span>Developer tools</span><strong>{currentSave?.settings.devMode ? "Enabled for this save" : "Disabled"}</strong></div></div>
+              <p className={styles.panelHint}>Progress is saved locally in this browser. Use Transfer Save to export a backup or move to another device.</p>
             </section>
           ) : null}
         </section>
@@ -396,6 +376,11 @@ export function MainMenuScreen() {
           />
         </div>
       ) : null}
+      {pendingSaveAction && <GameDialog title={`${pendingSaveAction.kind==="delete"?"Delete":"Replace"} File ${pendingSaveAction.slot+1}?`} onClose={()=>setPendingSaveAction(null)}>
+        <p><strong>{saveSlots[pendingSaveAction.slot]?.player.name}</strong> · {saveSlots[pendingSaveAction.slot]?.player.ranchName} · Day {saveSlots[pendingSaveAction.slot]?.dayState.dayNumber}</p>
+        <p>{pendingSaveAction.kind==="delete"?"This removes the selected save file.":"Creating this new game replaces the selected save file."} Export a backup with Transfer Save first if you want to keep it.</p>
+        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}><button type="button" data-initial-focus onClick={()=>setPendingSaveAction(null)}>Keep Existing Save</button><button type="button" onClick={confirmSaveAction}>{pendingSaveAction.kind==="delete"?"Delete Save":"Replace & Start New Game"}</button></div>
+      </GameDialog>}
     </main>
   );
 }

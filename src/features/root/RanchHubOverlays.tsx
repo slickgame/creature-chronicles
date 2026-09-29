@@ -1,19 +1,19 @@
 "use client";
 
 import { SharedInfoOverlay } from "@/features/breeding/SharedInfoOverlay";
-import { BeginnerMilestonesPanel } from "@/features/ranch/BeginnerMilestonesPanel";
-import { DailyReportOverlayCards } from "@/features/ranch/DailyReportOverlayCards";
-import { RanchAdvisorOverlay } from "@/features/ranch/RanchAdvisorOverlay";
 import { ChapterOneStoryOverlay } from "@/features/story/ChapterOneStoryOverlay";
 import { StoryImageAdminOverlay } from "@/features/story/StoryImageAdminOverlay";
 import { StoryLogOverlay } from "@/features/story/StoryLogOverlay";
+import { useNavigation } from "@/features/navigation/NavigationContext";
+import { getPendingPredatorEvent } from "@/data/predatorEvents";
 import { useGameContext } from "@/state/GameProvider";
 
 export function RanchHubOverlays() {
   const { appScreen, currentSave } = useGameContext();
-  if (!currentSave) return null;
+  const { view } = useNavigation();
+  if (!currentSave || view || currentSave.flags.badEnding || getPendingPredatorEvent(currentSave)) return null;
   if (appScreen === "breeding") return <SharedInfoOverlay />;
   if (appScreen === "ranch-office") return <><StoryLogOverlay /><StoryImageAdminOverlay /></>;
   if (appScreen !== "ranch-hub") return null;
-  return <><RanchAdvisorOverlay /><BeginnerMilestonesPanel /><DailyReportOverlayCards /><ChapterOneStoryOverlay /></>;
+  return <ChapterOneStoryOverlay />;
 }

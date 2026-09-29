@@ -56,6 +56,19 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
   );
 
   try {
+    const bundle = projectRanchDay(normalized);
+    if (!bundle) { abortSaveTransaction(transaction); return null; }
+    return { ...bundle, save: tagSaveTransaction(bundle.save, transaction, `ranch-day-${normalized.dayState.dayNumber}`) };
+  } catch (error) {
+    abortSaveTransaction(transaction);
+    throw error;
+  }
+}
+
+/** Detached, read-only overnight projection. No save transactions or storage writes. */
+export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
+  const normalized = normalizeRanchDaySave(structuredClone(save));
+  if (!normalized.ranchDay || normalized.ranchDay.phase !== "evening") return null;
     const previousSave = updateDailyGoalsAndRewards(normalized);
     const previousDateLabel = formatGameDate(previousSave.dayState.weekday, previousSave.dayState.month, previousSave.dayState.dayOfMonth);
     const nextState = nextDayState(previousSave.dayState);
@@ -168,11 +181,7 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     };
 
     return {
-      save: tagSaveTransaction(finalSave, transaction, `ranch-day-${previousSave.dayState.dayNumber}`),
+      save: finalSave,
       result: { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results },
     };
-  } catch (error) {
-    abortSaveTransaction(transaction);
-    throw error;
-  }
 }

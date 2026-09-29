@@ -237,7 +237,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       dayLabel: "Day 1 — Keep the Ranch Standing",
       title: "Read the Morning Brief",
       body: "Start each day by checking resources, warnings, creature moods, and the ranch's most urgent need.",
-      hint: phase === "morning" ? "Review the cards, then begin the ranch day." : "Open Morning Brief from the Ranch Day bar.",
+      hint: phase === "morning" ? "Review the cards, then begin the ranch day." : "Open Today, then expand Morning Brief & Daily Records.",
       action: "ranch",
       actionLabel: "Show Morning Brief",
       targetId: phase === "morning" ? "ranch-begin-day" : "ranch-morning-brief",

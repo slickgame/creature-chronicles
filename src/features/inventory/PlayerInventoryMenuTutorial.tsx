@@ -6,6 +6,7 @@ import {
   QUICKHATCH_CATALYST,
   useTutorialQuickhatchCatalyst,
 } from "@/data/tutorialQuickhatch";
+import { GameDialog } from "@/features/ui/GameDialog";
 import { useGameContext } from "@/state/GameProvider";
 import type { EggId } from "@/types/ids";
 import { PlayerInventoryMenu as ManagedInventoryMenu } from "./PlayerInventoryMenuManaged";
@@ -14,7 +15,7 @@ import styles from "./PlayerInventoryMenuTutorial.module.css";
 const OPEN_EVENT = "creature-chronicles:open-tutorial-inventory";
 const QUICKHATCH_SHORTCUT_SCREENS = new Set(["breeding", "nursery"]);
 
-export function PlayerInventoryMenu() {
+export function PlayerInventoryMenu(props: { controlledOpen?: boolean; onClose?: () => void } = {}) {
   const { appScreen, currentSave, saveCurrentGame } = useGameContext();
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -64,7 +65,7 @@ export function PlayerInventoryMenu() {
     };
   }, []);
 
-  if (!currentSave || appScreen === "main-menu") return <ManagedInventoryMenu />;
+  if (!currentSave || appScreen === "main-menu") return <ManagedInventoryMenu {...props} />;
 
   function executeUse() {
     if (!currentSave || !selectedEgg) return;
@@ -77,7 +78,7 @@ export function PlayerInventoryMenu() {
 
   return (
     <>
-      <ManagedInventoryMenu />
+      <ManagedInventoryMenu {...props} />
       {showQuickhatchShortcut ? (
         <button
           type="button"
@@ -92,7 +93,7 @@ export function PlayerInventoryMenu() {
       ) : null}
 
       {open ? (
-        <div className={styles.backdrop} role="presentation" onClick={() => setOpen(false)}>
+        <GameDialog title="Tutorial inventory item" onClose={() => setOpen(false)}>
           <section className={styles.panel} role="dialog" aria-modal="true" aria-label="Tutorial inventory item" onClick={(event) => event.stopPropagation()}>
             <header>
               <div>
@@ -140,11 +141,11 @@ export function PlayerInventoryMenu() {
               </button>
             </footer>
           </section>
-        </div>
+        </GameDialog>
       ) : null}
 
       {confirming ? (
-        <div className={styles.confirmBackdrop} role="presentation" onClick={() => setConfirming(false)}>
+        <GameDialog title="Confirm Quickhatch Catalyst" onClose={() => setConfirming(false)}>
           <section className={styles.confirm} role="dialog" aria-modal="true" aria-label="Confirm Quickhatch Catalyst" onClick={(event) => event.stopPropagation()}>
             <p>Rare Item Confirmation</p>
             <h2>Consume {QUICKHATCH_CATALYST.name}?</h2>
@@ -154,7 +155,7 @@ export function PlayerInventoryMenu() {
               <button type="button" className={styles.primary} onClick={executeUse}>Confirm Use</button>
             </div>
           </section>
-        </div>
+        </GameDialog>
       ) : null}
     </>
   );

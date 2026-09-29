@@ -1,4 +1,5 @@
 "use client";
+import { useNavigation } from "@/features/navigation/NavigationContext";
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { BUILDER_PROJECT_ASSETS } from "@/data/builderProjects";
@@ -153,6 +154,7 @@ function getLocationStyle(location: TownLocation): CSSProperties {
 }
 
 export function TownScreen() {
+  const { open } = useNavigation();
   const {
     currentSave,
     goToBattleDebug,
@@ -266,7 +268,7 @@ export function TownScreen() {
             <div><img src={TOWN_ICONS.coliseum} alt="" /><span>Coliseum</span><strong>{coliseumProgress?.completedEncounterIds.length ?? 0}/12 Clears</strong></div>
           </section>
           <nav className={styles.headerActions} aria-label="Town navigation">
-            <button type="button" onClick={() => setModalMode("nav-menu")}><img src={TOWN_ICONS.menu} alt="" /> Menu</button>
+            <button type="button" data-navigation-launcher onClick={() => open("menu")}><img src={TOWN_ICONS.menu} alt="" /> Menu</button>
           </nav>
         </header>
 

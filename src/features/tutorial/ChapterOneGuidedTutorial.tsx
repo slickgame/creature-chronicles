@@ -115,6 +115,8 @@ export function ChapterOneGuidedTutorial() {
       if (!clicked || clicked.closest('[data-tutorial-card="true"]')) return;
       const target = document.querySelector(selector);
       if (!target || target.contains(clicked)) return;
+      const modal = clicked.closest("dialog[open]");
+      if (modal && !modal.contains(target)) return;
       event.preventDefault();
       event.stopPropagation();
       setHelpPulse((value) => value + 1);

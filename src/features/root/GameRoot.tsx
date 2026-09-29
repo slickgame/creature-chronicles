@@ -7,16 +7,14 @@ import { ColiseumC2Screen } from "@/features/coliseum/ColiseumC2Screen";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
-import { EggAtelierUiBridge } from "@/features/egg-atelier/EggAtelierUiBridge";
 import { GuildHallScreen } from "@/features/guild/GuildHallScreen";
 import { HabitatScreen } from "@/features/habitats/HabitatScreen";
-import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
+import { NavigationChrome } from "@/features/navigation/NavigationChrome";
 import { MainMenuScreen } from "@/features/main-menu/MainMenuScreen";
 import { MarketScreen } from "@/features/market/MarketScreen";
 import { NurseryScreen } from "@/features/nursery/NurseryScreen";
 import { PredatorDefenseScreen } from "@/features/predators/PredatorDefenseScreen";
-import { RanchHubScreen } from "@/features/ranch/RanchHubScreen";
-import { RanchPlotNavigator } from "@/features/ranch/RanchPlotNavigator";
+import { ScenicRanchScreen } from "@/features/ranch/ScenicRanchScreen";
 import { RanchJobsScreen } from "@/features/ranch-jobs/RanchJobsScreen";
 import { RanchOfficeScreen } from "@/features/ranch-office/RanchOfficeScreen";
 import { SupplyDepotScreen } from "@/features/supply-depot/SupplyDepotScreen";
@@ -52,7 +50,7 @@ export function GameRoot() {
   }
 
   let screen = <MainMenuScreen />;
-  if (appScreen === "ranch-hub") screen = <><RanchHubScreen /><RanchPlotNavigator /></>;
+  if (appScreen === "ranch-hub") screen = <ScenicRanchScreen />;
   else if (appScreen === "habitat") screen = <HabitatScreen />;
   else if (appScreen === "breeding") screen = <BreedingFocusedScreen />;
   else if (appScreen === "nursery") screen = <NurseryScreen />;
@@ -77,8 +75,7 @@ export function GameRoot() {
     return (
       <div className="eggAtelierShell">
         {screen}
-        {showPlayerMenu ? <PlayerInventoryMenu /> : null}
-        <EggAtelierUiBridge />
+        {showPlayerMenu ? <NavigationChrome /> : null}
       </div>
     );
   }
@@ -86,7 +83,7 @@ export function GameRoot() {
   return (
     <>
       {screen}
-      {showPlayerMenu ? <PlayerInventoryMenu /> : null}
+      {showPlayerMenu ? <NavigationChrome /> : null}
     </>
   );
 }

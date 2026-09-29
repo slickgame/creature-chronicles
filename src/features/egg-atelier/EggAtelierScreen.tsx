@@ -1,4 +1,5 @@
 "use client";
+import { useNavigation } from "@/features/navigation/NavigationContext";
 
 import { useMemo, useState } from "react";
 import {
@@ -141,7 +142,7 @@ function AtelierHeader({
           <span>Nursery Kits</span>
           <strong>{kitCount}</strong>
         </div>
-        <button type="button" className={styles.menuButton} onClick={onMenu}>
+        <button type="button" className={styles.menuButton} data-navigation-launcher onClick={onMenu}>
           <span className={styles.menuGlyph}>☰</span>
           Menu
         </button>
@@ -199,6 +200,7 @@ function QuickhatchChip({ save }: { save: GameSave }) {
 }
 
 export function EggAtelierScreen() {
+  const { open } = useNavigation();
   const {
     currentSave,
     goToTown,
@@ -320,7 +322,7 @@ export function EggAtelierScreen() {
           message={message}
           onTown={goToTown}
           onRanch={goToRanch}
-          onMenu={goToMainMenu}
+          onMenu={() => open("menu")}
         />
 
         <div className={styles.body}>

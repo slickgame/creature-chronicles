@@ -17,7 +17,7 @@ function findButtonByText(text: string, root: ParentNode = document): HTMLButton
   );
 }
 
-export function PlayerInventoryMenu() {
+export function PlayerInventoryMenu(props: { controlledOpen?: boolean; onClose?: () => void } = {}) {
   const { appScreen, currentSave } = useGameContext();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -84,7 +84,7 @@ export function PlayerInventoryMenu() {
       data-player-menu-launcher-hidden={appScreen === "egg-atelier" ? "true" : "false"}
       style={{ display: "contents" }}
     >
-      <CorePlayerInventoryMenu />
+      <CorePlayerInventoryMenu {...props} />
     </div>
   );
 }
