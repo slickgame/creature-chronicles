@@ -12,6 +12,7 @@ import {
   cancelEveningReview,
   enterEveningReview,
 } from "@/data/ranch-day/ranchDayState";
+import { LedgerPanel } from "./LedgerPanel";
 import { RanchLedger } from "./RanchLedger";
 import { NavigationIcon } from "./NavigationIcon";
 import styles from "./Navigation.module.css";
@@ -184,9 +185,7 @@ export function NavigationChrome() {
         onClose={() => open(null)}
       />
       {view === "ledger" && (
-        <GameDialog title="Today at the Ranch" onClose={() => open(null)} side>
-          <RanchLedger />
-        </GameDialog>
+        <LedgerPanel />
       )}
       {view === "end-day" && (
         <GameDialog title="End Day?" onClose={closeReview}>

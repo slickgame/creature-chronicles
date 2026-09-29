@@ -1,17 +1,17 @@
 # Approved ranch UI implementation — 29 September 2026
 
-Implements the approved A/B/D direction: A is the scenic ranch home, and clicking its compact Today card opens B as an expanded ledger. D supplies the shared menu and End Day review. The separate roster redesign (C) is outside this change.
+The initial functional implementation followed the approved A/B/D direction; its visual mismatch was corrected in the [visual fidelity pass](UI_VISUAL_FIDELITY_2026-09-29.md). A is the scenic ranch home, and clicking its compact Today card opens B as an expanded ledger. D supplies the shared menu and End Day review. The separate roster redesign (C) is outside this change.
 
 ## Player-facing changes
 
-- Scenic ranch with existing building art, a compact resource header, Today priorities, and Ranch / Creatures / Nursery / Town / Inventory shortcuts.
-- All four ranch plots remain available, including expansion prerequisites, building status and upgrade routes. Phone layouts use two columns with scrolling; desktop keeps the illustrated setting.
+- Scenic ranch with new concept-derived scene art, a compact resource header, Today priorities, and Ranch / Creatures / Nursery / Town / Inventory shortcuts.
+- All four ranch plots remain available, including expansion prerequisites, building status and upgrade routes. Phone layouts use a horizontally pannable ranch; desktop keeps the illustrated setting.
 - Today expands into a parchment ledger with feed projections, ready eggs, eligible unassigned helpers, tax timing, ranch condition and training returns. Each row links to its relevant screen.
 - Morning Brief & Daily Records keeps the existing daily event choices, goals, activities and creature moods. The guided tutorial's morning and evening targets remain connected.
 - One shared menu exposes Inventory, Creatures, Ranch Status, Journal, Travel and Save & Options. Town and Egg Atelier open it directly. Inventory retains expanded items, item history, creature targeting and tutorial catalyst actions.
 - End Day reviews current obligations before sleeping, supports cancellation, preserves the existing evening-phase transaction and duplicate-day protection, and presents the morning report.
 - Save replacement/deletion names the file and player, starts with the safe cancellation action focused, and supports Escape. New Game selects the first empty slot when available. Options no longer presents placeholder volume/speed values as working settings.
-- Native dialogs provide focus containment, Escape, inert backgrounds, scrolling and focus restoration. Browser pinch zoom is enabled.
+- Native modal dialogs provide focus containment, Escape, inert backgrounds, scrolling and focus restoration. The expanded ledger is a non-modal side panel with Escape and focus restoration. Browser pinch zoom is enabled.
 
 ## Implementation notes
 
