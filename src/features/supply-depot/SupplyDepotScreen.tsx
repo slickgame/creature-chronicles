@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { SUPPLY_DEPOT_ITEMS, getSupplyDepotPrice, getSupplyDepotUsageRows, getSupplyDepotCount, getSupplyDepotSupplyCounts } from "@/data/supplyDepot";
+import { PELLA_MOSSWICK, SUPPLY_DEPOT_ITEMS, getSupplyDepotPrice, getSupplyDepotUsageRows, getSupplyDepotCount, getSupplyDepotSupplyCounts } from "@/data/supplyDepot";
 import { getNpcNextUnlock, getNpcTrustRecord, getNpcTrustSummary } from "@/data/townNpcs";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { GameDialog } from "@/features/ui/GameDialog";
@@ -11,7 +11,7 @@ import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./PellasCounter.module.css";
 
 type Shelf = "all" | "ranch" | "special";
-type Popup = "talk" | "ledger" | "usage" | "purchase" | "result" | null;
+type Popup = "profile" | "talk" | "ledger" | "usage" | "purchase" | "result" | null;
 
 export function SupplyDepotScreen() {
   const { currentSave: save, buySupplyDepotItem, goToTown } = useGameContext();
@@ -68,7 +68,7 @@ export function SupplyDepotScreen() {
       <div className={styles.workspace}>
         <aside className={`${ui.paper} ${styles.shelves}`} aria-label="Shop shelves">
           <h2>Shelves</h2><nav aria-label="Supply categories">{([['all', 'All Stock'], ['ranch', 'Ranch'], ['special', 'Special']] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={shelf === id} onClick={() => chooseShelf(id)}>{label}</button>)}</nav>
-          <div className={styles.keeper}><RanchIcon name="bag" /><h2>Pella Mosswick</h2><p>Supply Depot Keeper</p><strong>Trust Level {trust.level}</strong></div>
+          <div className={styles.keeper}><img src={PELLA_MOSSWICK.iconPath} alt="Pella Mosswick" /><h2>Pella Mosswick</h2><p>Supply Depot Keeper</p><strong>Trust Level {trust.level}</strong></div>
           <div className={styles.keeperActions}><button type="button" onClick={() => setPopup("talk")}>Talk</button><button type="button" onClick={() => setPopup("ledger")}>Supply Ledger</button></div>
         </aside>
         <section className={styles.preview} aria-label="Selected supply artwork"><h2>{selected.name}</h2><div className={styles.itemStage}><img data-supply-art src={selected.iconPath} alt={selected.name} /></div></section>
@@ -89,7 +89,8 @@ export function SupplyDepotScreen() {
     {popup === "usage" ? <GameDialog title={`${selected.name} · Usage`} onClose={() => setPopup(null)}><p>{selected.description}</p><h3>Effect</h3><p>{selected.exactEffect}</p><h3>Storage & use</h3><p>{selected.storageLabel}. {selected.usageLabel}</p><p>Buying adds stock. It does not use or arm a support item.</p></GameDialog> : null}
     {popup === "purchase" ? <GameDialog title="Confirm Purchase" onClose={() => setPopup(null)}><h3>{selected.name}</h3><p>{selected.purchaseLabel} for <strong>{price} Gold</strong>.</p><p>{selected.storageLabel}: {owned} → {owned + amount}</p><p>Balance after: {(save.currencies.gold - price).toLocaleString()} Gold.</p><p>Buying adds stock; support items are used separately.</p>{!quoteValid ? <p>The price changed. Close this window and review again.</p> : shortage ? <p>Need {shortage} more Gold.</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={shortage > 0 || !quoteValid} onClick={purchase}>Confirm Purchase</button></div></GameDialog> : null}
     {popup === "result" ? <GameDialog title="Supply Receipt" onClose={() => setPopup(null)}><p role="status">{message}</p><p>Current balance: {save.currencies.gold.toLocaleString()} Gold.</p><div className={ui.actionRow}><button type="button" onClick={() => setPopup(null)}>Back to Counter</button></div></GameDialog> : null}
-    {popup === "talk" ? <GameDialog title="Pella Mosswick" onClose={() => setPopup(null)}><p>{trust.level >= 4 ? "You have earned a place on my better customer list. I warn you before shortages and keep the stranger supplies off the open shelf until you ask." : trust.level >= 2 ? "You buy regularly and you do not haggle like a raccoon in a grain bin. I can shave a little off the price and still sleep at night." : "Buy feed before you run out, buy repair kits before a wall breaks, and never trust a rancher who says they only need one crate of rope."}</p><p>{getNpcTrustSummary(save, "pella_mosswick")}</p></GameDialog> : null}
+    {popup === "talk" ? <GameDialog title="Pella Mosswick" onClose={() => setPopup(null)}><div className={styles.conversation}><img src={PELLA_MOSSWICK.portraitPath} alt="Pella Mosswick portrait" /><div><p>{trust.level >= 4 ? "You have earned a place on my better customer list. I warn you before shortages and keep the stranger supplies off the open shelf until you ask." : trust.level >= 2 ? "You buy regularly and you do not haggle like a raccoon in a grain bin. I can shave a little off the price and still sleep at night." : "Buy feed before you run out, buy repair kits before a wall breaks, and never trust a rancher who says they only need one crate of rope."}</p><p>{getNpcTrustSummary(save, "pella_mosswick")}</p><div className={ui.actionRow}><button type="button" onClick={() => setPopup("profile")}>View Full Profile</button></div></div></div></GameDialog> : null}
+    {popup === "profile" ? <GameDialog title="Pella Mosswick · Full Profile" onClose={() => setPopup("talk")} wide><div className={styles.npcProfile}><img src={PELLA_MOSSWICK.profilePath} alt="Pella Mosswick full body" /><div><h3>{PELLA_MOSSWICK.title}</h3><p>{PELLA_MOSSWICK.intro}</p><p>{getNpcTrustSummary(save, "pella_mosswick")}</p><p>Next reward: {getNpcNextUnlock(save, "pella_mosswick")}</p><div className={ui.actionRow}><button type="button" onClick={() => setPopup("talk")}>Back to Conversation</button></div></div></div></GameDialog> : null}
     {popup === "ledger" ? <GameDialog title="Supply Ledger" onClose={() => setPopup(null)} wide><p>{getNpcTrustSummary(save, "pella_mosswick")}</p><p>Next reward: {getNpcNextUnlock(save, "pella_mosswick")}</p><p>Every purchase earns Trust: 3 for Breeding, Pregnancy or Nursery supplies; 2 for other supplies. Prices already include your Trust discount.</p><div className={styles.ledger}>{getSupplyDepotUsageRows(save).map(row => <section key={row.item.itemId}><h3>{row.item.name} · {row.countLabel}{row.activeLabel ? ` · ${row.activeLabel}` : ""}</h3><p>{row.storageLabel}</p><p>{row.usageLabel}</p></section>)}</div></GameDialog> : null}
   </main>;
 }

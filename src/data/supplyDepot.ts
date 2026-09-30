@@ -74,8 +74,9 @@ export const PELLA_MOSSWICK = {
   npcId: "pella_mosswick",
   name: "Pella Mosswick",
   title: "Supply Depot Keeper",
-  portraitPath: "/images/npcs/town/pella_mosswick_portrait.png",
-  profilePath: "/images/backgrounds/market/market_road_interior.png",
+  iconPath: "/images/npcs/town/pella_mosswick_icon_v2.webp",
+  portraitPath: "/images/npcs/town/pella_mosswick_portrait_v2.webp",
+  profilePath: "/images/npcs/town/pella_mosswick_profile_v2.webp",
   intro: "Pella Mosswick runs the Supply Depot, a crowded little shop stacked with feed sacks, repair kits, tools, gossip, and emergency bundles for ranchers who should have planned better.",
 } as const;
 

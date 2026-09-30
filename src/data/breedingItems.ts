@@ -71,7 +71,7 @@ export const BREEDING_SUPPORT_ITEMS: readonly BreedingSupportItemDefinition[] = 
     exactEffect: `Restores exactly ${ENERGY_MEAL_RESTORE} Energy to the player or one creature, up to the target's maximum.`,
     target: "player-or-creature",
     stockFlag: "energyMealStock",
-    iconPath: "/images/items/supply_depot/energy_snack.png",
+    iconPath: "/images/items/supply_depot/energy_meal.webp",
     confirmationRequired: false,
   },
   {
@@ -96,7 +96,7 @@ export const BREEDING_SUPPORT_ITEMS: readonly BreedingSupportItemDefinition[] = 
     exactEffect: `Adds exactly ${AFFECTION_TREAT_GAIN} Affection to one creature, up to 100.`,
     target: "creature",
     stockFlag: "affectionTreatStock",
-    iconPath: "/images/items/supply_depot/feed_bundle.png",
+    iconPath: "/images/items/supply_depot/affection_treat.webp",
     confirmationRequired: false,
   },
   {
@@ -108,7 +108,7 @@ export const BREEDING_SUPPORT_ITEMS: readonly BreedingSupportItemDefinition[] = 
     exactEffect: `Restores ${RECOVERY_BALM_HEART_GAIN} Heart and shortens an active injury by ${GESTATION_TONIC_DAY_REDUCTION} in-game day. At least one of those effects must apply.`,
     target: "creature",
     stockFlag: "recoveryBalmStock",
-    iconPath: "/images/items/supply_depot/nursery_supply_kit.png",
+    iconPath: "/images/items/supply_depot/recovery_balm.webp",
     confirmationRequired: false,
   },
   {
@@ -121,7 +121,7 @@ export const BREEDING_SUPPORT_ITEMS: readonly BreedingSupportItemDefinition[] = 
     target: "breeding-pair",
     stockFlag: "traitStabilizerStock",
     activeFlag: "traitStabilizerArmed",
-    iconPath: "/images/items/supply_depot/fertility_tonic.png",
+    iconPath: "/images/items/supply_depot/trait_stabilizer.webp",
     confirmationRequired: true,
   },
   {
@@ -134,7 +134,7 @@ export const BREEDING_SUPPORT_ITEMS: readonly BreedingSupportItemDefinition[] = 
     target: "breeding-pair",
     stockFlag: "mutationCatalystStock",
     activeFlag: "mutationCatalystArmed",
-    iconPath: "/images/items/supply_depot/fertility_tonic.png",
+    iconPath: "/images/items/supply_depot/mutation_catalyst.webp",
     confirmationRequired: true,
   },
   {
@@ -146,7 +146,7 @@ export const BREEDING_SUPPORT_ITEMS: readonly BreedingSupportItemDefinition[] = 
     exactEffect: `Reduces one active pregnancy's remaining duration by exactly ${GESTATION_TONIC_DAY_REDUCTION} in-game day, but never below 1 day remaining.`,
     target: "pregnancy",
     stockFlag: "gestationTonicStock",
-    iconPath: "/images/items/supply_depot/nursery_supply_kit.png",
+    iconPath: "/images/items/supply_depot/gestation_tonic.webp",
     confirmationRequired: true,
   },
 ] as const;
