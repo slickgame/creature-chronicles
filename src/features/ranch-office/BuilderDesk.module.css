@@ -197,3 +197,4 @@
  .tierPath li {width:28px;height:28px;font-size:15px;}
  .cost>strong {font-size:18px;}
 }
+@media(max-width:600px){.office .resources>div{grid-template-columns:17px 1fr;column-gap:3px;}.office .resources>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.office .resources>div>strong{grid-column:2;font-size:14px;}.office .resources button>[aria-hidden]{display:block;width:17px;height:17px;}}

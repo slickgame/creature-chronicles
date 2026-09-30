@@ -177,3 +177,17 @@
  .preview {position:relative;}
  .preview img {position:absolute;inset:0;width:100%;height:100%;}
 }
+.hearth .steward{align-self:stretch;gap:8px;min-height:0;}
+.keeperPortrait{width:100%;height:0;min-height:65px;max-height:200px;flex:1;object-fit:contain;object-position:bottom;}
+.hearth .steward h2{font-size:23px;}.steward .motto{font-size:13px;}
+.talkPortrait{display:block;width:100%;height:260px;object-fit:contain;margin-bottom:15px;}
+.hearth .preview h2{width:100%;max-width:450px;border:0;border-image:none;background:url('/images/ui/atelier-v1/sign.webp') center/100% 100% no-repeat;padding:25px 40px 17px;}
+.preview img{flex:1;height:0;}
+.fee>strong{display:flex;align-items:center;gap:5px;}.fee>strong>[aria-hidden]{width:24px;height:24px;flex:none;}
+.hearth .arrivals button[aria-pressed=true]{position:relative;padding-right:18px;}.arrivals button[aria-pressed=true]:after{content:'✓';position:absolute;top:2px;right:3px;font-size:13px;color:#405e30;}
+@media(min-width:901px) and (min-height:651px){.fee>strong{justify-content:center;padding:14px 30px;background:url('/images/ui/atelier-v1/ribbon.webp') center/100% 100% no-repeat;}}
+@media(max-width:900px),(max-height:650px){.hearth .steward{gap:7px;}.keeperPortrait{width:34px;height:34px;min-height:0;flex:none;}.steward>[role=img]{display:none;}.hearth .steward h2{font-size:17px;}.hearth .preview h2{padding:18px 30px 12px;font-size:20px;}}
+@media(max-width:600px){.hearth .steward h2{font-size:13px;}.keeperPortrait{width:27px;height:30px;}.hearth .steward button{padding:4px;gap:3px;font-size:11px;}.stewardActions{gap:4px;}.hearth .resources>div{grid-template-columns:17px 1fr;column-gap:3px;}.hearth .resources>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.hearth .resources strong{grid-column:2;font-size:14px;}.hearth .preview img{height:100%;}.fee>strong>[aria-hidden]{width:18px;height:18px;}}
+@media(min-width:601px) and (max-height:650px){.keeperPortrait{width:25px;height:25px;}.hearth .preview h2{padding:10px 28px 7px;font-size:16px;}}
+@media(max-width:600px){.hearth .resources{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.8fr) minmax(0,1fr) auto;gap:5px;}.hearth .resources strong{font-size:13px;}.hearth .resources>div{grid-template-columns:14px 1fr;gap:0 2px;}.hearth .resources>div>[aria-hidden]{width:14px;height:14px;}.hearth .resources button{font-size:11px;max-width:110px;}.hearth .resources span{font-size:10px;}}
+@media(min-width:901px) and (min-height:651px) and (max-height:800px){.hearth .details{gap:6px 10px;}.hearth .fee>strong{font-size:18px;padding:7px 16px;gap:3px;white-space:nowrap;}.hearth .fee>strong>[aria-hidden]{width:18px;height:18px;}.hearth .placement strong,.hearth .placement p,.hearth .fee p{font-size:12px;}.hearth .identity h2{font-size:23px;}}

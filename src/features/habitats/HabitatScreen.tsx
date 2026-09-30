@@ -9,6 +9,7 @@ import { getBestStatLabels } from "@/data/collection";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { IllustratedIcon } from "@/features/ui/IllustratedIcon";
 import { RanchIcon } from "@/features/ui/RanchIcon";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
@@ -114,8 +115,8 @@ export function HabitatScreen() {
       </header>
       <section className={`${ui.summary} ${styles.occupancy}`} aria-label="Habitat occupancy">
         <div><RanchIcon name="paw" /><span>Residents</span><strong>{creatures.length} / {habitat.capacity}</strong></div>
-        <div><RanchIcon name="house" /><span>Open spaces</span><strong>{Math.max(0, habitat.capacity - creatures.length)}</strong></div>
-        <div><RanchIcon name="leaf" /><span>Needs care</span><strong>{[...statuses.values()].filter(item => item.needsAttention).length}</strong></div>
+        <div><IllustratedIcon name="capacity" /><span>Open spaces</span><strong>{Math.max(0, habitat.capacity - creatures.length)}</strong></div>
+        <div><IllustratedIcon name="comfort" /><span>Needs care</span><strong>{[...statuses.values()].filter(item => item.needsAttention).length}</strong></div>
         <button type="button" onClick={goToRanchOffice}><RanchIcon name="house" /><span>Ranch Office</span></button>
       </section>
       <div className={styles.stage}>
@@ -128,12 +129,12 @@ export function HabitatScreen() {
           <dl className={styles.stats}>
             <div><dt><RanchIcon name="energy" />Energy</dt><dd>{selected.energy} / {selected.maxEnergy}</dd></div>
             <div><dt><span className={styles.heart} aria-hidden="true">♥</span>Hearts</dt><dd>{selected.hearts} / {selected.maxHearts}</dd></div>
-            <div><dt><RanchIcon name="paw" />Affection</dt><dd>{selected.affection} / 100</dd><meter min={0} max={100} value={selected.affection} aria-label="Affection" /></div>
+            <div><dt><IllustratedIcon name="comfort" />Affection</dt><dd>{selected.affection} / 100</dd><meter min={0} max={100} value={selected.affection} aria-label="Affection" /></div>
           </dl>
           <div className={styles.careButtons}>
-            <button type="button" className={`${ui.primary} ${styles.feed}`} onClick={feed} disabled={feedDisabled} title={status.isTraining ? "Unavailable during training" : feedDisabled ? "Energy and affection are full" : "Restore up to 10 energy and 5 affection"}><RanchIcon name="feed" />{status.isTraining ? "In training" : feedDisabled ? "Fully cared for" : "Feed"}</button>
-            <button type="button" onClick={() => setPopup("profile")}>Full Profile</button><button type="button" onClick={manage}><RanchIcon name="gear" />Manage</button>
-            <button type="button" onClick={goToRanchJobs}><RanchIcon name="chores" />Chores</button><button type="button" onClick={goToBreeding}><RanchIcon name="paw" />Breeding</button>
+            <button type="button" className={`${ui.primary} ${styles.feed}`} onClick={feed} disabled={feedDisabled} title={status.isTraining ? "Unavailable during training" : feedDisabled ? "Energy and affection are full" : "Restore up to 10 energy and 5 affection"}><IllustratedIcon name="feed" />{status.isTraining ? "In training" : feedDisabled ? "Fully cared for" : "Feed"}</button>
+            <button type="button" onClick={() => setPopup("profile")}><IllustratedIcon name="ledger" />Full Profile</button><button type="button" onClick={manage}><RanchIcon name="gear" />Manage</button>
+            <button type="button" onClick={goToRanchJobs}><RanchIcon name="chores" />Chores</button><button type="button" onClick={goToBreeding}><IllustratedIcon name="breeding" />Breeding</button>
           </div>
         </aside> : null}
       </div>

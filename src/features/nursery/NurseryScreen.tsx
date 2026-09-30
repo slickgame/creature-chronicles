@@ -22,6 +22,7 @@ import type {
   PregnancyRecord,
 } from "@/types/save";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { IllustratedIcon } from "@/features/ui/IllustratedIcon";
 import { RanchIcon } from "@/features/ui/RanchIcon";
 import { PagedItems } from "@/features/ui/PagedItems";
 import ui from "@/features/ui/InteriorShell.module.css";
@@ -148,7 +149,7 @@ export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
         <div className={styles.workspace} data-detail={showEggDetail && Boolean(selectedEgg)}>
           <aside className={`${ui.paper} ${styles.eggList}`}><h2>Eggs in your care</h2>
-            {activeEggs.length ? <PagedItems label="Eggs" rowHeight={114} items={activeEggs.map(egg => <button type="button" key={egg.eggId} className={`${styles.eggListCard} ${selectedEgg?.eggId === egg.eggId ? styles.selectedEgg : ""}`} aria-pressed={selectedEgg?.eggId === egg.eggId} onClick={() => {setSelectedEggId(egg.eggId);setHatchName("");setShowEggDetail(true);}}><img src={egg.status === "ready" ? NURSERY_ASSETS.hatch : NURSERY_ASSETS.egg} alt="" /><span><strong>{egg.suggestedName || suggestHatchlingName(egg)}</strong><span>{egg.rarity} · {getSpeciesDefinition(egg.speciesId).name}</span><em>{egg.status === "ready" ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</em></span></button>)} /> : <p className={styles.emptyText}>No eggs in the nursery yet.</p>}
+            {activeEggs.length ? <PagedItems label="Eggs" rowHeight={114} items={activeEggs.map(egg => <button type="button" key={egg.eggId} className={`${styles.eggListCard} ${selectedEgg?.eggId === egg.eggId ? styles.selectedEgg : ""}`} aria-pressed={selectedEgg?.eggId === egg.eggId} onClick={() => {setSelectedEggId(egg.eggId);setHatchName("");setShowEggDetail(true);}}><img src="/images/ui/atelier-v1/egg.webp" alt="" /><span><strong>{egg.suggestedName || suggestHatchlingName(egg)}</strong><span>{egg.rarity} · {getSpeciesDefinition(egg.speciesId).name}</span><em>{egg.status === "ready" ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</em></span></button>)} /> : <p className={styles.emptyText}>No eggs in the nursery yet.</p>}
           </aside>
           <section className={`${ui.paper} ${styles.selectedPanel}`} aria-label="Selected egg">
             {selectedEgg ? <button type="button" className={styles.mobileBack} onClick={() => setShowEggDetail(false)}>← All Eggs ({activeEggs.length})</button> : null}
@@ -280,7 +281,7 @@ function EggDetail({
   const suggestedName = egg.suggestedName || suggestHatchlingName(egg);
 
   return <article className={styles.eggDetail}>
-    <div className={styles.eggHero}><div className={styles.eggArtPanel}><RanchIcon name="nest" className={styles.nestIcon} /></div><div><p className={ui.eyebrow}>{egg.rarity} Egg · {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}</p><h2>{suggestedName}</h2><p>{variant.name} {species.name}</p><strong className={isReady ? styles.ready : styles.timer}>{isReady ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</strong></div></div>
+    <div className={styles.eggHero}><div className={styles.eggArtPanel}><img src="/images/ui/interiors-v1/atelier-egg.webp" alt="Egg in its incubation cradle" /></div><div><p className={ui.eyebrow}>{egg.rarity} Egg · {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}</p><h2>{suggestedName}</h2><p>{variant.name} {species.name}</p><strong className={`${styles.eggStatus} ${isReady ? styles.ready : styles.timer}`}><IllustratedIcon name={isReady ? "leaf" : "timer"} />{isReady ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</strong></div></div>
     {!isReady ? <progress className={styles.incubationProgress} max={Math.max(1,egg.totalDays)} value={Math.max(0,egg.totalDays-egg.daysRemaining)} aria-label="Incubation progress" /> : null}
     {isReady ? <div className={styles.hatchControls}><label htmlFor="hatch-name">Hatchling name<input id="hatch-name" value={hatchName} onChange={event => onHatchNameChange(event.target.value)} placeholder={suggestedName} disabled={!isReady} maxLength={24} /></label><button className={ui.primary} type="button" disabled={!isReady} onClick={() => onHatch(egg)}>Hatch</button></div> : <div className={styles.incubatingNote}><button type="button" disabled>Hatch</button><span>Incubation advances when you sleep.</span></div>}
 

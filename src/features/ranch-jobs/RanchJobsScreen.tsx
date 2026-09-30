@@ -22,12 +22,12 @@ import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobDefinition, RanchJobId } from "@/types/ranchJobs";
-import { RanchIcon, type RanchIconName } from "@/features/ui/RanchIcon";
+import { IllustratedIcon, type IllustratedIconName } from "@/features/ui/IllustratedIcon";
 import { GameDialog } from "@/features/ui/GameDialog";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./RanchJobsScreen.module.css";
 
-const CHORE_ICONS: Record<RanchJobId, RanchIconName> = {security_patrol:"paw", comfort_care:"leaf", stable_production:"feed", garden_tending:"leaf", field_hauling:"tools"};
+const CHORE_ICONS: Record<RanchJobId, IllustratedIconName> = {security_patrol:"patrol", comfort_care:"comfort", stable_production:"feed", garden_tending:"garden", field_hauling:"materials"};
 const MAX_CREATURES_PER_CHORE = 3;
 const EMPTY_ASSIGNMENTS: Record<RanchJobId, CreatureId[]> = {
   security_patrol: [],
@@ -499,11 +499,11 @@ export function RanchJobsScreen() {
         </section>
         <div className={styles.workspace}>
           <aside className={`${ui.paper} ${styles.tasks}`} aria-label="Choose a chore"><h2>Today's Chores</h2>
-            {RANCH_JOB_DEFINITIONS.map(job => <button key={job.jobId} type="button" className={`${styles.task} ${activeJobId === job.jobId ? styles.selected : ""}`} aria-pressed={activeJobId === job.jobId} onClick={() => setActiveJobId(job.jobId)}><RanchIcon name={CHORE_ICONS[job.jobId]} className={styles.choreIcon} /><span><strong>{job.name}</strong><small>{getAssignedCreatures(job.jobId).length}/{MAX_CREATURES_PER_CHORE} helpers · {job.energyCost} Energy</small></span></button>)}
+            {RANCH_JOB_DEFINITIONS.map(job => <button key={job.jobId} type="button" className={`${styles.task} ${activeJobId === job.jobId ? styles.selected : ""}`} aria-pressed={activeJobId === job.jobId} onClick={() => setActiveJobId(job.jobId)}><IllustratedIcon name={CHORE_ICONS[job.jobId]} className={styles.choreIcon} /><span><strong>{job.name}</strong><small>{getAssignedCreatures(job.jobId).length}/{MAX_CREATURES_PER_CHORE} helpers · {job.energyCost} Energy</small></span></button>)}
           </aside>
           {activeJob ? <section className={`${ui.paper} ${styles.crew}`} aria-label="Chore details">
             <label className={styles.taskPicker}>Chore<select value={activeJobId} onChange={event => setActiveJobId(event.target.value as RanchJobId)}>{RANCH_JOB_DEFINITIONS.map(job => <option key={job.jobId} value={job.jobId}>{job.name}</option>)}</select></label>
-            <div className={styles.taskHeading}><RanchIcon name={CHORE_ICONS[activeJob.jobId]} className={styles.choreIcon} /><div><h2>{activeJob.name}</h2><p>{activeJob.rewardLabel}</p><span>{activeJob.energyCost} Energy per helper</span></div></div>
+            <div className={styles.taskHeading}><IllustratedIcon name={CHORE_ICONS[activeJob.jobId]} className={styles.choreIcon} /><div><h2>{activeJob.name}</h2><p>{activeJob.rewardLabel}</p><span>{activeJob.energyCost} Energy per helper</span></div></div>
             {recommended && !full ? <section className={styles.recommendation}><img src={getCreaturePortraitPath(recommended)} alt="" /><div><p className={ui.eyebrow}>Veyra recommends</p><strong>{recommended.nickname}</strong><small>{getProjectedContributionLabel(recommended, activeJob.jobId)}</small></div><button className={ui.primary} type="button" onClick={() => handleAssign(activeJob.jobId, recommended.creatureId)}>Assign {recommended.nickname}</button></section> : <p>{full ? "Your crew is full." : "No rested, unassigned helpers available."}</p>}
             <div className={styles.crewSummary}><h3>Assigned Helpers · {activeAssigned.length}/{MAX_CREATURES_PER_CHORE}</h3><p>{activeAssigned.length ? activeAssigned.map(c => c.nickname).join(" · ") : "No helpers assigned"}</p><strong>{getJobProjectionLabel(activeAssigned, activeJob.jobId)}</strong></div>
             <div className={`${ui.actionRow} ${styles.crewActions}`}><button className={ui.primary} type="button" onClick={() => setPopup("helpers")}>Manage Helpers</button><button type="button" onClick={() => setPopup("plans")}>Crew Plans</button><button type="button" aria-label="About Chores" onClick={() => setPopup("about")}>About</button></div>

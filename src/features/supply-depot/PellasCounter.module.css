@@ -55,3 +55,23 @@
 .npcProfile {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:center;}
 .npcProfile>img {width:100%;height:min(65dvh,640px);object-fit:contain;}
 @media(max-width:500px) {.conversation,.npcProfile{grid-template-columns:1fr;gap:10px;}.conversation>img{height:230px;}.npcProfile>img{height:420px;max-height:65dvh;}}
+/* Approved consistency B: illustrated keeper, sign, ribbons and selection. */
+.depot .shelves{gap:8px;}.depot .shelves>h2{margin-bottom:3px;}
+.keeper{min-height:0;flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;margin:0;gap:3px;}
+.keeper>img{width:100%;height:0;min-height:65px;max-height:185px;flex:1;object-fit:contain;object-position:bottom;}.depot .keeper h2{margin:0;font-size:19px;}.keeper p{margin:2px 0;font-size:12px;}.keeper strong{font-size:14px;}
+.depot .preview{padding-top:0;}.depot .preview h2{width:100%;max-width:470px;background:transparent url('/images/ui/atelier-v1/sign.webp') center/100% 100% no-repeat;border:0;box-shadow:none;border-radius:0;padding:28px 48px 20px;margin:0;font-size:24px;}
+.depot .purchaseHeading{font-size:25px;}.purchaseHeading:after{content:'';display:inline-block;width:23px;height:23px;margin-left:7px;background:url('/images/ui/atelier-v1/leaf.webp') center/contain no-repeat;}
+.quantity{background:#c5ac7230;border:1px solid #c1a675;padding:12px;border-radius:8px;}
+.price>strong{display:flex;align-items:center;justify-content:center;gap:6px;background:url('/images/ui/atelier-v1/ribbon.webp') center/100% 100% no-repeat;padding:18px 35px;font-size:24px;}.price>strong>[aria-hidden]{width:26px;height:26px;flex:none;}
+.depot .items button[aria-pressed=true]{position:relative;padding-right:17px;}.items button[aria-pressed=true]:after{content:'✓';position:absolute;right:3px;top:2px;font-size:13px;color:#fff7d5;}
+@media(max-width:1100px){.depot .shelves button{padding:5px;}.depot .preview h2{font-size:19px;padding:24px 30px 16px;}.price>strong{font-size:20px;padding:15px 28px;}}
+@media(max-width:700px){
+ .depot .shelves{gap:4px;padding:5px;grid-template-columns:1fr auto;}.depot .shelves button{font-size:11px;padding:4px 3px;gap:2px;}.depot .shelves button>[data-illustrated-icon]{width:15px;height:17px;}.depot .keeper{display:none;}.keeperActions button:last-child{max-width:64px;}.depot .preview h2{font-size:15px;padding:22px 15px 14px;}.depot .purchaseHeading{font-size:17px;}.purchaseHeading:after{width:15px;height:15px;margin-left:3px;}.quantity{padding:6px;}.price>strong{font-size:18px;padding:13px 20px;gap:2px;}.price>strong>[aria-hidden]{width:18px;height:18px;}
+}
+@media(min-width:701px) and (max-height:780px){.depot .shelves{gap:5px;padding:10px;}.shelves nav,.keeperActions{gap:4px;}.keeper>img{min-height:40px;max-height:110px;}.depot .keeper h2{font-size:16px;}.keeper p{font-size:10px;}.keeper strong{font-size:12px;}.keeper>[role=img] img{width:17px;height:17px;}}
+@media(min-width:701px) and (max-height:600px){.depot .keeper{display:none;}.depot .shelves{padding:6px;}.depot .shelves button{font-size:11px;gap:3px;}.shelves button>[data-illustrated-icon]{width:16px;height:16px;}.depot .preview h2{font-size:16px;padding:13px 25px 8px;}.depot .purchaseHeading{font-size:16px;}.purchaseHeading:after{width:15px;height:15px;}.quantity{padding:3px;}.price>strong{padding:8px 24px;font-size:17px;}.price>strong>[aria-hidden]{width:18px;height:18px;}}
+.depot .details,.depot .shelves{min-height:0;}.depot .keeperActions button{font-size:14px;padding:6px;}
+@media(min-width:701px) and (max-height:780px){.depot .quantity{padding:7px;}.depot .shelves nav button,.depot .keeperActions button{min-height:33px;font-size:13px;padding:4px;}.depot .details{gap:8px;}.depot .price>strong{padding:12px 30px;font-size:21px;}}
+@media(max-width:700px){.depot .keeperActions button{font-size:11px;padding:3px;}}
+@media(min-width:701px) and (max-height:600px){.depot .quantity{padding:3px;}.depot .shelves nav button,.depot .keeperActions button{font-size:11px;min-height:30px;}.depot .details{gap:5px;}.depot .price>strong{padding:6px 22px;font-size:17px;}}
+@media(min-width:701px) and (max-height:600px){.depot .purchaseHeading{font-size:14px;}.purchaseHeading:after{display:none;}.depot .price>strong{font-size:15px;padding:6px 16px;white-space:nowrap;}.price>strong>[aria-hidden]{width:15px;height:15px;}.depot .details>div>p{font-size:10px;}.depot .details button{font-size:11px;min-height:30px;}}

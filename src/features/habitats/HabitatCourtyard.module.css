@@ -127,3 +127,6 @@
 .stats meter::-webkit-meter-bar {background:#b4a482;border:0;border-radius:6px;}
 .stats meter::-webkit-meter-optimum-value {background:linear-gradient(#789650,#46682f);border-radius:6px;}
 .stats meter::-moz-meter-bar {background:linear-gradient(#789650,#46682f);border-radius:6px;}
+.courtyard .occupancy [data-illustrated-icon]{width:28px;height:28px;object-fit:contain;}
+.resident[aria-pressed=true]{position:relative;padding-right:17px!important;}.resident[aria-pressed=true]:after{content:'✓';position:absolute;top:2px;right:3px;color:#3c5c2d;font-size:13px;}
+@media(max-width:600px){.courtyard .occupancy>div{display:grid;grid-template-columns:17px 1fr;gap:0 3px;}.courtyard .occupancy>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.courtyard .occupancy>div>strong{grid-column:2;}}

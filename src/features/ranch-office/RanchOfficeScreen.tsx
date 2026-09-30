@@ -6,6 +6,7 @@ import { getStarterGoals } from "@/data/starterGoals";
 import { getVariantDefinition } from "@/data/creatures";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { IllustratedIcon } from "@/features/ui/IllustratedIcon";
 import { RanchIcon, type RanchIconName } from "@/features/ui/RanchIcon";
 import { StoryLogOverlay } from "@/features/story/StoryLogOverlay";
 import { StoryImageAdminOverlay } from "@/features/story/StoryImageAdminOverlay";
@@ -116,7 +117,7 @@ export function RanchOfficeScreen() {
       <section className={`${ui.summary} ${styles.resources}`} aria-label="Ranch resources">
         <div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div>
         <div><RanchIcon name="tax" /><span>Guild Points</span><strong>{save.currencies.guildPoints.toLocaleString()}</strong></div>
-        <div><RanchIcon name="tools" /><span>Materials</span><strong>{materials.toLocaleString()}</strong></div>
+        <div><IllustratedIcon name="materials" /><span>Materials</span><strong>{materials.toLocaleString()}</strong></div>
         <button type="button" onClick={() => setPopup("condition")}><RanchIcon name="house" /><span>Condition: <strong>{condition}</strong></span></button>
       </section>
       <div className={styles.workspace}>
