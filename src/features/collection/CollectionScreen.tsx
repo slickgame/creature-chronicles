@@ -26,6 +26,7 @@ import { useGameContext } from "@/state/GameProvider";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { PagedItems } from "@/features/ui/PagedItems";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./CollectionScreen.module.css";
 
@@ -94,6 +95,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     saveCurrentGame,
     toggleCreatureLock,
   } = useGameContext();
+  const [showFilters, setShowFilters] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [showDossier, setShowDossier] = useState(false);
   const [filters, setFilters] = useState<CreatureManagementFilters>(
     DEFAULT_CREATURE_MANAGEMENT_FILTERS,
@@ -296,6 +299,99 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     setSelectedCreatureId(null);
   }
 
+  function renderCreatureCard(creature: CreatureRecord, detailed = false) {
+                  const status = getCreatureManagementStatus(activeSave, creature);
+                  const variant = getVariantDefinition(creature.variantId);
+                  const species = getSpeciesDefinition(creature.speciesId);
+                  const isSelected = selectedCreature?.creatureId === creature.creatureId;
+                  const isCompared = compareIds.includes(creature.creatureId);
+                  return (
+                    <article
+                      key={creature.creatureId}
+                      className={`${styles.creatureCard} ${
+                        detailed ? styles.detailedCard : ""
+                      } ${isSelected ? styles.selectedCard : ""} ${
+                        status.needsAttention ? styles.attentionCard : ""
+                      } ${creature.shiny ? styles.shinyCard : ""}`}
+                    >
+                      {compareMode && detailed ? (
+                        <label className={styles.compareCheck}>
+                          <input
+                            type="checkbox"
+                            checked={isCompared}
+                            onChange={() => toggleCompareSelection(creature)}
+                          />
+                          Compare
+                        </label>
+                      ) : null}
+                      <button
+                        type="button"
+                        aria-pressed={compareMode && detailed ? isCompared : isSelected}
+                        className={styles.cardMain}
+                        onClick={() =>
+                          compareMode && detailed
+                            ? toggleCompareSelection(creature)
+                            : (selectCreature(creature), setShowDossier(true), setViewMode("compact"))
+                        }
+                      >
+                        <img
+                          src={variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
+                          alt=""
+                          onError={(event) => {
+                            event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
+                          }}
+                        />
+                        <div className={styles.cardText}>
+                          <strong>
+                            {creature.nickname} {creature.shiny ? "✦" : ""}
+                          </strong>
+                          <span>
+                            {variant.name} {species.name} · Lv {creature.level} · {displaySex(status.sex)}
+                          </span>
+                          <em>{status.primaryStatus}</em>
+                          <span className={styles.energyLabel}>Energy {creature.energy}/{creature.maxEnergy}</span><span className={styles.energyTrack}><span style={{width: `${status.energyPercent}%`}} /></span>
+                          {detailed ? <><div className={styles.cardMetrics}>
+                            <b>Energy {status.energyPercent}%</b>
+                            <b>Aff {creature.affection}</b>
+                            <b>FER {creature.stats.FER}/{creature.statGrades.FER}</b>
+                          </div>
+                          <div className={styles.roleBadges}>
+                            <i className={status.giverEligible ? styles.readyBadge : styles.blockedBadge}>
+                              Giver {roleLabel(status.giverEligible, status.giverBlockedReason)}
+                            </i>
+                            <i className={status.receiverEligible ? styles.readyBadge : styles.blockedBadge}>
+                              Receiver {roleLabel(status.receiverEligible, status.receiverBlockedReason)}
+                            </i>
+                          </div>
+                          </> : null}
+                          {detailed ? (
+                            <small>{formatLastBred(status.daysSinceBred)} · {status.rarity} · Gen {creature.generation}</small>
+                          ) : null}
+                        </div>
+                      </button>
+                      <div className={styles.cardIcons}>
+                        <button
+                          type="button"
+                          aria-label={creature.isFavorite ? "Remove favorite" : "Add favorite"}
+                          title={creature.isFavorite ? "Remove favorite" : "Add favorite"}
+                          onClick={() => toggleFavorite(creature)}
+                        >
+                          {creature.isFavorite ? "★" : "☆"}
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={creature.isLocked ? "Unlock creature" : "Lock creature"}
+                          title={creature.isLocked ? "Unlock creature" : "Lock creature"}
+                          onClick={() => toggleCreatureLock(creature.creatureId)}
+                        >
+                          {creature.isLocked ? "🔒" : "🔓"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+
+  }
+
   return (
     <main className={`${ui.interior} ${styles.interior}`} data-profile-open={showDossier}>
       <section className={`${ui.page} ${styles.rosterPage}`}>
@@ -310,6 +406,81 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
           </div>
         </header>
 
+        <div className={styles.searchRow}><input type="search" aria-label="Search creatures" placeholder="Search creatures…" value={filters.search} onChange={event => patchFilters({search:event.target.value})} /><button type="button" onClick={() => setShowFilters(true)}>Filters & Sort{activeFilterCount ? ` (${activeFilterCount})` : ""}</button><span>{visibleCreatures.length}/{summary.total} creatures</span></div>
+        <section className={styles.contentGrid} data-detail={showDossier}>
+          <aside className={`${ui.paper} ${styles.listPanel}`}>
+            <div className={styles.listHeader}>
+              <h2>Creatures</h2>
+
+            </div>
+            <div className={styles.viewButtons}>
+              <button
+                type="button"
+                className={viewMode === "compact" ? styles.activeButton : ""}
+                onClick={() => setViewMode("compact")}
+              >
+                Compact
+              </button>
+              <button
+                type="button"
+                className={viewMode === "cards" ? styles.activeButton : ""}
+                onClick={() => {setCompareMode(false);setViewMode("cards");}}
+              >
+                Cards
+              </button>
+              <button
+                type="button"
+                className={compareMode ? styles.activeButton : ""}
+                onClick={() => {
+                  setCompareMode(true);
+                  setCompareIds([]);
+                  setViewMode("cards");
+                }}
+              >
+                Compare
+              </button>
+            </div>
+            {visibleCreatures.length ? <PagedItems key={JSON.stringify([filters,sortMode,sortDirection,viewMode])} label="Creatures" rowHeight={154} items={visibleCreatures.map(creature => renderCreatureCard(creature))} /> : <div className={styles.noResults}><strong>No creatures match.</strong><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
+          </aside>
+
+          <section className={`${ui.paper} ${styles.detailPanel}`}>
+            {selectedCreature ? (
+              <>
+                <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
+                <div className={styles.identity}>
+                  <img src={getVariantDefinition(selectedCreature.variantId).profilePath || getVariantDefinition(selectedCreature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
+                  <div><p className={ui.eyebrow}>{getVariantDefinition(selectedCreature.variantId).rarity} · Level {selectedCreature.level}</p><h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2><p>{getVariantDefinition(selectedCreature.variantId).name} {getSpeciesDefinition(selectedCreature.speciesId).name}</p>
+                    <span className={styles.status}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</span>
+                    <div className={styles.resources}><div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div><div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div></div>
+                  </div>
+                    <div className={styles.coreStats}>{STAT_KEYS.map(stat => <div key={stat}><span>{SHARED_STAT_LABELS[stat]}</span><strong>{selectedCreature.stats[stat]} <small>{selectedCreature.statGrades[stat]}</small></strong></div>)}</div>
+                </div>
+                <div className={styles.quickActions}>
+                  <button type="button" className={ui.primary} onClick={() => setShowProfile(true)}>Profile & Care</button>
+                  <button type="button" onClick={() => openBreedingForCreature(selectedCreature)}>
+                    Breeding
+                  </button>
+                  <button type="button" onClick={() => openHabitat(selectedCreature)}>
+                    Habitat
+                  </button>
+                  <button type="button" onClick={() => openInventory(selectedCreature)}>
+                    Inventory
+                  </button>
+                  <button type="button" onClick={() => {beginCompareWith(selectedCreature);setShowDossier(false);setViewMode("cards");}}>
+                    Compare
+                  </button>
+                </div>
+
+              </>
+            ) : (
+              <div className={styles.noSelection}>No creature selected.</div>
+            )}
+          </section>
+        </section>
+      </section>
+
+      {viewMode === "cards" ? <GameDialog title={compareMode ? "Choose Creatures to Compare" : "Creature Cards"} onClose={() => {setViewMode("compact");setCompareMode(false);}} wide>{compareMode ? <p>{compareIds.length}/2 selected</p> : null}<div className={styles.cardGallery}>{visibleCreatures.map(creature => renderCreatureCard(creature,true))}</div>{compareMode ? <button type="button" disabled={compareIds.length !== 2} onClick={() => {setViewMode("compact");setCompareTab("overview");setShowCompare(true);}}>Compare Creatures</button> : null}</GameDialog> : null}
+      {showFilters ? <GameDialog title="Roster Filters & Sort" onClose={() => setShowFilters(false)} wide>
         <section className={styles.summaryStrip}>
           <SummaryPill label="Total" value={summary.total} />
           <SummaryPill label="Breeding Ready" value={summary.ready} />
@@ -485,172 +656,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
           </section>
         ) : null}
 
-        {compareMode ? (
-          <section className={styles.compareBar}>
-            <strong>
-              {compareIds.length ? compareCreatures.map((creature) => creature.nickname).join(" · ") : "Choose two creatures to compare"}
-            </strong>
-            <span>{compareIds.length}/2 selected</span>
-            <button type="button" onClick={() => setCompareIds([])}>Clear</button>
-            <button
-              type="button"
-              disabled={compareIds.length !== 2}
-              onClick={() => {
-                setCompareTab("overview");
-                setShowCompare(true);
-              }}
-            >
-              Compare Creatures
-            </button>
-          </section>
-        ) : null}
-
-        <section className={styles.contentGrid} data-detail={showDossier}>
-          <aside className={`${ui.paper} ${styles.listPanel}`}>
-            <div className={styles.listHeader}>
-              <h2>Creatures</h2>
-
-            </div>
-            <div className={styles.viewButtons}>
-              <button
-                type="button"
-                className={viewMode === "compact" ? styles.activeButton : ""}
-                onClick={() => setViewMode("compact")}
-              >
-                Compact
-              </button>
-              <button
-                type="button"
-                className={viewMode === "cards" ? styles.activeButton : ""}
-                onClick={() => setViewMode("cards")}
-              >
-                Cards
-              </button>
-              <button
-                type="button"
-                className={compareMode ? styles.activeButton : ""}
-                onClick={() => {
-                  setCompareMode((current) => !current);
-                  setCompareIds([]);
-                }}
-              >
-                Compare
-              </button>
-            </div>
-            <div className={`${styles.creatureList} ${viewMode === "cards" ? styles.cardView : ""}`}>
-              {visibleCreatures.length ? (
-                visibleCreatures.map((creature) => {
-                  const status = getCreatureManagementStatus(activeSave, creature);
-                  const variant = getVariantDefinition(creature.variantId);
-                  const species = getSpeciesDefinition(creature.speciesId);
-                  const isSelected = selectedCreature?.creatureId === creature.creatureId;
-                  const isCompared = compareIds.includes(creature.creatureId);
-                  return (
-                    <article
-                      key={creature.creatureId}
-                      className={`${styles.creatureCard} ${
-                        viewMode === "cards" ? styles.detailedCard : ""
-                      } ${isSelected ? styles.selectedCard : ""} ${
-                        status.needsAttention ? styles.attentionCard : ""
-                      } ${creature.shiny ? styles.shinyCard : ""}`}
-                    >
-                      {compareMode ? (
-                        <label className={styles.compareCheck}>
-                          <input
-                            type="checkbox"
-                            checked={isCompared}
-                            onChange={() => toggleCompareSelection(creature)}
-                          />
-                          Compare
-                        </label>
-                      ) : null}
-                      <button
-                        type="button"
-                        aria-pressed={compareMode ? isCompared : isSelected}
-                        className={styles.cardMain}
-                        onClick={() =>
-                          compareMode
-                            ? toggleCompareSelection(creature)
-                            : (selectCreature(creature), setShowDossier(true))
-                        }
-                      >
-                        <img
-                          src={variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
-                          alt=""
-                          onError={(event) => {
-                            event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-                          }}
-                        />
-                        <div className={styles.cardText}>
-                          <strong>
-                            {creature.nickname} {creature.shiny ? "✦" : ""}
-                          </strong>
-                          <span>
-                            {variant.name} {species.name} · Lv {creature.level} · {displaySex(status.sex)}
-                          </span>
-                          <em>{status.primaryStatus}</em>
-                          <span className={styles.energyLabel}>Energy {creature.energy}/{creature.maxEnergy}</span><span className={styles.energyTrack}><span style={{width: `${status.energyPercent}%`}} /></span>
-                          {viewMode === "cards" ? <><div className={styles.cardMetrics}>
-                            <b>Energy {status.energyPercent}%</b>
-                            <b>Aff {creature.affection}</b>
-                            <b>FER {creature.stats.FER}/{creature.statGrades.FER}</b>
-                          </div>
-                          <div className={styles.roleBadges}>
-                            <i className={status.giverEligible ? styles.readyBadge : styles.blockedBadge}>
-                              Giver {roleLabel(status.giverEligible, status.giverBlockedReason)}
-                            </i>
-                            <i className={status.receiverEligible ? styles.readyBadge : styles.blockedBadge}>
-                              Receiver {roleLabel(status.receiverEligible, status.receiverBlockedReason)}
-                            </i>
-                          </div>
-                          </> : null}
-                          {viewMode === "cards" ? (
-                            <small>{formatLastBred(status.daysSinceBred)} · {status.rarity} · Gen {creature.generation}</small>
-                          ) : null}
-                        </div>
-                      </button>
-                      <div className={styles.cardIcons}>
-                        <button
-                          type="button"
-                          aria-label={creature.isFavorite ? "Remove favorite" : "Add favorite"}
-                          title={creature.isFavorite ? "Remove favorite" : "Add favorite"}
-                          onClick={() => toggleFavorite(creature)}
-                        >
-                          {creature.isFavorite ? "★" : "☆"}
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={creature.isLocked ? "Unlock creature" : "Lock creature"}
-                          title={creature.isLocked ? "Unlock creature" : "Lock creature"}
-                          onClick={() => toggleCreatureLock(creature.creatureId)}
-                        >
-                          {creature.isLocked ? "🔒" : "🔓"}
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })
-              ) : (
-                <div className={styles.noResults}>
-                  <strong>No creatures match these filters.</strong>
-                  <button type="button" onClick={clearFilters}>Clear Filters</button>
-                </div>
-              )}
-            </div>
-          </aside>
-
-          <section className={`${ui.paper} ${styles.detailPanel}`}>
-            {selectedCreature ? (
-              <>
-                <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
-                <div className={styles.identity}>
-                  <img src={getVariantDefinition(selectedCreature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${selectedCreature.nickname} portrait`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
-                  <div><p className={ui.eyebrow}>{getVariantDefinition(selectedCreature.variantId).rarity} · Level {selectedCreature.level}</p><h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2><p>{getVariantDefinition(selectedCreature.variantId).name} {getSpeciesDefinition(selectedCreature.speciesId).name}</p>
-                    <span className={styles.status}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</span>
-                    <div className={styles.resources}><div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div><div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div></div>
-                  </div>
-                    <div className={styles.coreStats}>{STAT_KEYS.map(stat => <div key={stat}><span>{SHARED_STAT_LABELS[stat]}</span><strong>{selectedCreature.stats[stat]} <small>{selectedCreature.statGrades[stat]}</small></strong></div>)}</div>
-                </div>
+      </GameDialog> : null}
+      {showProfile && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} · Profile & Care`} onClose={() => setShowProfile(false)} wide>
                 <SharedCreatureDetail
                   creature={selectedCreature}
                   dayNumber={activeSave.dayState.dayNumber}
@@ -664,29 +671,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                   statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
                   dossier
                 />
-                <div className={styles.quickActions}>
-                  <button type="button" onClick={() => openBreedingForCreature(selectedCreature)}>
-                    Breeding
-                  </button>
-                  <button type="button" onClick={() => openHabitat(selectedCreature)}>
-                    Habitat
-                  </button>
-                  <button type="button" onClick={() => openInventory(selectedCreature)}>
-                    Inventory
-                  </button>
-                  <button type="button" onClick={() => {beginCompareWith(selectedCreature);setShowDossier(false);}}>
-                    Compare
-                  </button>
-                </div>
-                <p className={styles.feedback} role="status">{message}</p>
-              </>
-            ) : (
-              <div className={styles.noSelection}>No creature selected.</div>
-            )}
-          </section>
-        </section>
-      </section>
-
+        <p role="status">{message}</p>
+      </GameDialog> : null}
       {showCompare && compareCreatures.length === 2 ? (
         <CompareOverlay
           save={activeSave}

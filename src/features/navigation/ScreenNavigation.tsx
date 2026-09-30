@@ -1,20 +1,22 @@
 "use client";
 
 import { useGameContext } from "@/state/GameProvider";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigation } from "./NavigationContext";
+import { GameDialog } from "@/features/ui/GameDialog";
 import styles from "./ScreenNavigation.module.css";
 
 /** In-flow navigation reserves its own space alongside each interior's controls. */
 export function ScreenNavigation({ children }: { children?: ReactNode }) {
   const { goToRanch } = useGameContext();
   const { open } = useNavigation();
+  const [more, setMore] = useState(false);
 
   return (
     <nav className={styles.actions} aria-label="Screen navigation">
-      {children ? <div className={styles.related}>{children}</div> : null}
-      <button type="button" className={styles.back} onClick={goToRanch}>
-        <span aria-hidden="true">←</span> Back to Ranch
+      {children ? <><div className={styles.related}>{children}</div><button className={styles.more} type="button" onClick={() => setMore(true)}>More</button></> : null}
+      <button type="button" className={styles.back} onClick={goToRanch} aria-label="Back to Ranch">
+        <span aria-hidden="true">←</span> <span className={styles.backPrefix}>Back to </span>Ranch
       </button>
       <button
         type="button"
@@ -25,6 +27,7 @@ export function ScreenNavigation({ children }: { children?: ReactNode }) {
       >
         <span aria-hidden="true">☰</span> Menu
       </button>
+      {more ? <GameDialog title="Related Screens" onClose={() => setMore(false)}><div className={styles.moreLinks}>{children}</div></GameDialog> : null}
     </nav>
   );
 }

@@ -41,6 +41,13 @@ export function GameDialog({
       ref={ref}
       className={`${styles.dialog} ${wide ? styles.wide : ""} ${side ? styles.side : ""}`}
       aria-labelledby={titleId}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          onClose();
+        }
+      }}
       onCancel={(event) => {
         event.preventDefault();
         onClose();

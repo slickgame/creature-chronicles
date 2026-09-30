@@ -818,3 +818,37 @@ button:disabled {
 .identity>.coreStats {grid-column:2;}
 @media(max-width:900px) {.interior[data-profile-open=true] :is(.toolbar,.advancedFilters,.summaryStrip){display:none;}}
 @media(max-width:560px) {.identity>img{grid-row:1;}.identity>.coreStats{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));}.resources{margin-bottom:0;}}
+/* Fixed viewport roster; pages hold rows and native dialogs hold long details. */
+.interior>.rosterPage {display:flex;}
+.interior .searchRow {display:flex;gap:8px;align-items:center;flex:none;}
+.searchRow>input {flex:1;}
+.searchRow>button {min-height:40px;padding:6px 12px;background:#eddfb7;border:1px solid #997847;border-radius:4px;color:#49341d;}
+.searchRow>span {color:#fff2cc;font-size:13px;text-shadow:0 1px #231709;}
+.interior .contentGrid {flex:1;min-height:0;align-items:stretch;grid-template-columns:minmax(270px,.7fr) minmax(0,1.5fr);gap:12px;}
+.interior .listPanel {display:flex;flex-direction:column;gap:8px;min-height:0;}
+.interior .listHeader h2 {font-size:20px;}
+.interior .viewButtons button {min-height:34px;padding:5px 10px;font-size:13px;}
+.interior .creatureCard {flex:none;}
+.interior .cardMain {padding:8px;grid-template-columns:52px 1fr;gap:9px;}
+.interior .cardMain>img {width:52px;height:66px;}
+.interior .cardText strong {font-size:16px;}
+.interior .cardText span,.interior .cardText small {font-size:12px;}
+.interior .cardText em {font-size:12px;}
+.interior .cardIcons {padding:0 8px 4px;}
+.interior .cardIcons button {min-height:24px;height:24px;}
+.interior .detailPanel {display:flex;flex-direction:column;gap:10px;min-height:0;}
+.interior .identity {flex:1;min-height:0;grid-template-columns:minmax(120px,1fr) minmax(180px,1fr);grid-template-rows:auto 1fr;gap:12px 20px;}
+.interior .identity>img {grid-row:1/3;height:100%;min-height:0;width:100%;object-fit:contain;object-position:center;border-width:2px;box-shadow:none;background:#dbc89733;}
+.interior .identity>div:not(.coreStats) {align-self:center;}
+.interior .identity>.coreStats {grid-column:2;align-self:start;grid-template-columns:repeat(3,minmax(0,1fr));}
+.interior .identity h2 {font-size:28px;}
+.interior .identity p {font-size:13px;}
+.interior .resources {margin:12px 0 0;}
+.interior .quickActions {flex:none;gap:6px;margin:0;padding-top:8px;}
+.interior .quickActions button {font-size:13px;min-height:36px;padding:5px 10px;}
+.interior .compareBar {flex:none;padding:6px 10px;gap:6px;font-size:13px;}
+.interior .compareBar strong {display:none;}
+.interior .compareBar button {min-height:34px;}
+@media(max-width:900px) {.interior .contentGrid{grid-template-columns:1fr;}.searchRow>span{display:none;}.interior[data-profile-open=true] .searchRow{display:none;}.interior .identity{grid-template-columns:minmax(105px,.85fr) minmax(140px,1fr);gap:8px 12px;}.interior .identity h2{font-size:24px;}.interior .identity>.coreStats{grid-column:2;grid-template-columns:repeat(2,minmax(0,1fr));}.interior .identity>img{grid-row:1/3;}.interior .coreStats>div{padding:4px 6px;}.interior .coreStats span{font-size:11px;}.interior .resources{gap:8px;}.interior .mobileBack{min-height:34px;padding:4px 8px;font-size:13px;}}
+@media(max-height:600px) and (min-width:700px) {.interior .contentGrid{grid-template-columns:minmax(220px,.6fr) minmax(0,1.4fr);}.contentGrid[data-detail=true]>.listPanel,.contentGrid[data-detail=false]>.detailPanel{display:flex;}.detailPanel>.mobileBack{display:none;}.interior .identity{grid-template-columns:minmax(90px,.6fr) minmax(250px,1.4fr);grid-template-rows:auto;gap:6px 12px;}.interior .identity>img{grid-row:1;}.interior .identity>.coreStats{display:none;}.interior .resources{grid-template-columns:1fr 1fr;margin:4px 0;}.interior .identity h2{font-size:21px;}.interior .identity p{margin:2px 0;font-size:12px;}.interior .listHeader{display:none;}.interior .searchRow input{min-height:34px;}.interior .cardIcons{display:none;}}
+.cardGallery {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;}

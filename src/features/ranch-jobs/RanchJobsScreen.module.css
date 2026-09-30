@@ -41,3 +41,23 @@
 .crew>.mobileBack {display:none;}
 @media(max-width:850px) {.workspace[data-detail=true]>.tasks,.workspace[data-detail=false]>.crew {display:none;}.crew>.mobileBack {display:block;justify-self:start;}}
 .plans>div {right:0;}
+.interior .workspace {flex:1;min-height:0;grid-template-columns:minmax(250px,.8fr) minmax(0,1.6fr);align-items:stretch;}
+.interior .tasks {display:flex;flex-direction:column;gap:6px;min-height:0;}
+.interior .tasks .task {margin:0;min-height:0;flex:1;padding:8px;}
+.interior .task strong {font-size:16px;}
+.interior .crew {display:flex;flex-direction:column;gap:14px;min-height:0;justify-content:center;}
+.interior .taskHeading {padding:0;border:0;}
+.interior .recommendation {padding:12px;grid-template-columns:64px 1fr auto;}
+.recommendation small {display:block;}
+.crewSummary p {margin:4px 0!important;}
+.crewSummary h3 {font-size:17px;}
+.crewSummary strong {font-size:14px;color:#755c3c;}
+.taskPicker {display:none;}
+.savedNotice {font-size:12px!important;align-self:start;background:none!important;border:0!important;box-shadow:none!important;padding:0!important;}
+.planList {display:grid;gap:10px;}
+.planList button {display:grid;gap:6px;text-align:left;}
+.planList span {font-size:14px;font-weight:400;}
+@media(max-width:850px),(max-height:600px) {.interior .workspace{grid-template-columns:1fr;}.interior .tasks{display:none;}.taskPicker{display:flex;align-items:center;gap:10px;font-size:13px;}.taskPicker select{flex:1;}.interior .crew{justify-content:space-evenly;gap:10px;}.interior .recommendation{grid-template-columns:52px 1fr;gap:8px;}.recommendation>button{grid-column:1/-1;}.recommendation>img{width:52px;height:64px;}.interior .taskHeading p{font-size:13px;}.interior .taskHeading h2{font-size:21px;}.interior .crew .actionRow{gap:6px;}.interior .crew button{font-size:14px;}}
+@media(max-height:600px) and (min-width:700px) {.interior .crew{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;align-content:center;}.taskPicker{grid-column:1;}.taskHeading{grid-column:1;}.recommendation{grid-column:2;grid-row:1/3;}.crewSummary{grid-column:1;}.sleepNote,.savedNotice{display:none!important;}.interior .summary{padding:4px 10px;}}
+
+@media(max-width:850px){.interior .crewActions{gap:6px;}.interior .crewActions button{padding:7px 9px;font-size:13px;}}

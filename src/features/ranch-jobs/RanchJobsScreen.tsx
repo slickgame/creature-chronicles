@@ -23,6 +23,7 @@ import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobDefinition, RanchJobId } from "@/types/ranchJobs";
 import { RanchIcon, type RanchIconName } from "@/features/ui/RanchIcon";
+import { GameDialog } from "@/features/ui/GameDialog";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./RanchJobsScreen.module.css";
 
@@ -224,11 +225,11 @@ function getUnavailableReason(
 }
 
 export function RanchJobsScreen() {
-  const { currentSave, goToMainMenu, saveCurrentGame, version } = useGameContext();
+  const { currentSave, goToMainMenu, saveCurrentGame } = useGameContext();
   const [message, setMessage] = useState(
     "",
   );
-  const [showCrew, setShowCrew] = useState(false);
+  const [popup, setPopup] = useState<"helpers" | "plans" | "report" | "about" | null>(null);
   const [activeJobId, setActiveJobId] = useState<RanchJobId>("security_patrol");
   const jobs = useMemo(() => (currentSave ? getRanchJobs(currentSave) : null), [currentSave]);
 
@@ -489,46 +490,38 @@ export function RanchJobsScreen() {
   return (
     <main className={`${ui.interior} ${styles.interior}`}>
       <div className={ui.page}>
-        <header className={ui.heading}><div><p className={ui.eyebrow}>The daily work of the ranch</p><h1>Ranch Chores</h1></div><ScreenNavigation /></header>
+        <header className={ui.heading}><h1>Ranch Chores</h1><ScreenNavigation /></header>
         <section className={ui.summary} aria-label="Overnight projections">
-          <div><span>Assigned</span><strong>{assignedCreatures.length}/{activeSave.creatures?.length ?? 0}</strong></div>
-          <div><span>Feed available / needed</span><strong>{projectedAvailableFeed} / {dailyFeedNeed}</strong></div>
+          <div><span>Helpers</span><strong>{assignedCreatures.length}/{activeSave.creatures?.length ?? 0}</strong></div>
+          <div><span>Feed / needed</span><strong>{projectedAvailableFeed}/{dailyFeedNeed}</strong></div>
           <div><span>Danger</span><strong>{projectedSecurity ? getProjectedDangerChance(projectedSecurity) : PROJECTED_BASE_DANGER_CHANCE}%</strong></div>
-          <div><span>Comfort</span><strong>{projectedComfort ? `+${Math.min(25, projectedComfort * 2)}% breed` : "None"}</strong></div>
-          <div><span>Materials</span><strong>{materialsStock} + {projectedMaterials}</strong></div>
-          <div><span>Upkeep repair</span><strong>{projectedUpkeep ? `${projectedUpkeep} damage` : "Daily wear"}</strong></div>
+          <button type="button" onClick={() => setPopup("report")}>{projectedFoodStatus === "Fed" ? "Tonight's Report" : "Food shortage · Details"}</button>
         </section>
-        <details className={ui.notice}><summary>{projectedRecoveryLabel} {projectedSecurity ? "Patrol assigned." : "No patrol assigned."}</summary><p>{riskWarning}</p></details>
-        <div className={styles.workspace} data-detail={showCrew}>
-          <aside className={`${ui.paper} ${styles.tasks}`} aria-label="Choose a chore"><h2>Today's Chores</h2><p>Choose a task to plan its crew.</p>
-            {RANCH_JOB_DEFINITIONS.map((job) => {
-              const assigned = getAssignedCreatures(job.jobId);
-              return <button key={job.jobId} type="button" className={`${styles.task} ${activeJobId === job.jobId ? styles.selected : ""}`} aria-pressed={activeJobId === job.jobId} onClick={() => {setActiveJobId(job.jobId);setShowCrew(true);}}>
-                <RanchIcon name={CHORE_ICONS[job.jobId]} className={styles.choreIcon} /><span><strong>{job.name}</strong><small>{job.energyCost} Energy per helper · {assigned.length}/{MAX_CREATURES_PER_CHORE} assigned</small><span>{getJobProjectionLabel(assigned, job.jobId)}</span></span>
-              </button>;
-            })}
-            <details className={styles.about}><summary>About ranch chores</summary><p>Assignments repeat each night. Every species can learn every chore. Best Fit considers stats, talents, affection, and chore skills. Helpers need enough energy and cannot be in training or injured.</p></details>
+        <div className={styles.workspace}>
+          <aside className={`${ui.paper} ${styles.tasks}`} aria-label="Choose a chore"><h2>Today's Chores</h2>
+            {RANCH_JOB_DEFINITIONS.map(job => <button key={job.jobId} type="button" className={`${styles.task} ${activeJobId === job.jobId ? styles.selected : ""}`} aria-pressed={activeJobId === job.jobId} onClick={() => setActiveJobId(job.jobId)}><RanchIcon name={CHORE_ICONS[job.jobId]} className={styles.choreIcon} /><span><strong>{job.name}</strong><small>{getAssignedCreatures(job.jobId).length}/{MAX_CREATURES_PER_CHORE} helpers · {job.energyCost} Energy</small></span></button>)}
           </aside>
           {activeJob ? <section className={`${ui.paper} ${styles.crew}`} aria-label="Chore details">
-            <button type="button" className={styles.mobileBack} onClick={() => setShowCrew(false)}>← All Chores</button>
-            <div className={ui.actionRow}>
-              <button className={ui.primary} type="button" onClick={() => applyChorePlan(CHORE_PLANS[0])}>Balanced Plan</button>
-              <details className={styles.plans}><summary>Other Plans</summary><div>{CHORE_PLANS.slice(1).map(plan => <button key={plan.id} type="button" title={plan.description} onClick={() => applyChorePlan(plan)}>{plan.label}</button>)}</div></details>
-              <button type="button" onClick={handleClearAll}>Clear All</button>
-            </div>
-            <div className={styles.taskHeading}><RanchIcon name={CHORE_ICONS[activeJob.jobId]} className={styles.choreIcon} /><div><h2>{activeJob.name}</h2><p>{activeJob.rewardLabel}</p><span>{activeJob.energyCost} Energy per helper · {activeAssigned.length}/{MAX_CREATURES_PER_CHORE} assigned</span></div></div>
-            {message ? <p className={ui.feedback} role="status">{message}</p> : null}
-            {recommended && !full ? <section className={styles.recommendation}><img src={getCreaturePortraitPath(recommended)} alt="" /><div><p className={ui.eyebrow}>Veyra recommends</p><strong>{recommended.nickname}</strong><p>Best available fit for {getRelevantStatKeys(activeJob.jobId).join(" / ")}, talents and chore skills.</p><small>{getProjectedContributionLabel(recommended, activeJob.jobId)}</small></div><button className={ui.primary} type="button" onClick={() => handleAssign(activeJob.jobId, recommended.creatureId)}>Assign {recommended.nickname}</button></section> : null}
-            <div className={styles.sectionHeading}><h3>Assigned Helpers</h3><span>{activeAssigned.length}/{MAX_CREATURES_PER_CHORE}</span>{activeAssigned.length ? <button type="button" onClick={() => handleClear(activeJob.jobId)}>Clear Chore</button> : <button type="button" onClick={() => handleBestFit(activeJob.jobId)}>Best Fit</button>}</div>
-            {activeAssigned.length ? activeAssigned.map(creature => helperRow(creature, true)) : <p>No helpers assigned yet. Choose a helper below.</p>}
-            <div className={styles.sectionHeading}><h3>Available Helpers</h3><span>{full ? "Crew is full" : `${activeAvailable.length} ready`}</span></div>
-            {activeAvailable.length ? activeAvailable.map(creature => helperRow(creature, false)) : <p>No ready helpers. Check energy, injuries, training and other assignments.</p>}
-            {activeUnavailable.length ? <details className={styles.unavailable}><summary>Unavailable Creatures ({activeUnavailable.length})</summary>{activeUnavailable.map(({creature, reason}) => <div key={creature.creatureId}><strong>{creature.nickname}</strong><p>{reason}</p></div>)}</details> : null}
-            <p className={styles.sleepNote}>Chores take effect when you sleep. Helpers use energy and gain chore skill experience.</p>
+            <label className={styles.taskPicker}>Chore<select value={activeJobId} onChange={event => setActiveJobId(event.target.value as RanchJobId)}>{RANCH_JOB_DEFINITIONS.map(job => <option key={job.jobId} value={job.jobId}>{job.name}</option>)}</select></label>
+            <div className={styles.taskHeading}><RanchIcon name={CHORE_ICONS[activeJob.jobId]} className={styles.choreIcon} /><div><h2>{activeJob.name}</h2><p>{activeJob.rewardLabel}</p><span>{activeJob.energyCost} Energy per helper</span></div></div>
+            {recommended && !full ? <section className={styles.recommendation}><img src={getCreaturePortraitPath(recommended)} alt="" /><div><p className={ui.eyebrow}>Veyra recommends</p><strong>{recommended.nickname}</strong><small>{getProjectedContributionLabel(recommended, activeJob.jobId)}</small></div><button className={ui.primary} type="button" onClick={() => handleAssign(activeJob.jobId, recommended.creatureId)}>Assign {recommended.nickname}</button></section> : <p>{full ? "Your crew is full." : "No rested, unassigned helpers available."}</p>}
+            <div className={styles.crewSummary}><h3>Assigned Helpers · {activeAssigned.length}/{MAX_CREATURES_PER_CHORE}</h3><p>{activeAssigned.length ? activeAssigned.map(c => c.nickname).join(" · ") : "No helpers assigned"}</p><strong>{getJobProjectionLabel(activeAssigned, activeJob.jobId)}</strong></div>
+            <div className={`${ui.actionRow} ${styles.crewActions}`}><button className={ui.primary} type="button" onClick={() => setPopup("helpers")}>Manage Helpers</button><button type="button" onClick={() => setPopup("plans")}>Crew Plans</button><button type="button" aria-label="About Chores" onClick={() => setPopup("about")}>About</button></div>
+            {message ? <button className={styles.savedNotice} type="button" onClick={() => setPopup("report")}><span role="status">Assignments updated</span> · View details</button> : <p className={styles.sleepNote}>Assignments take effect when you sleep.</p>}
           </section> : null}
         </div>
-        <footer className={ui.footer}>{version}</footer>
       </div>
+      {popup === "helpers" && activeJob ? <GameDialog title={`${activeJob.name} · Helpers`} onClose={() => setPopup(null)} wide>
+        <p>{activeAssigned.length}/{MAX_CREATURES_PER_CHORE} assigned · {activeJob.energyCost} Energy per helper</p>
+        {message ? <p role="status">{message}</p> : null}
+        <div className={ui.actionRow}><button type="button" onClick={() => handleBestFit(activeJob.jobId)}>Best Fit</button><button type="button" onClick={() => handleClear(activeJob.jobId)}>Clear Chore</button></div>
+        <h3>Assigned Helpers</h3>{activeAssigned.length ? activeAssigned.map(c => helperRow(c,true)) : <p>No assigned helpers.</p>}
+        <h3>Available Helpers {full ? "— Crew is full" : `(${activeAvailable.length})`}</h3>{activeAvailable.map(c => helperRow(c,false))}
+        {activeUnavailable.length ? <details className={styles.unavailable}><summary>Unavailable Creatures ({activeUnavailable.length})</summary>{activeUnavailable.map(({creature,reason}) => <div key={creature.creatureId}><strong>{creature.nickname}</strong><p>{reason}</p></div>)}</details> : null}
+      </GameDialog> : null}
+      {popup === "plans" ? <GameDialog title="Crew Plans" onClose={() => setPopup(null)}><p>Choose a plan to replace the current assignments.</p><div className={styles.planList}>{CHORE_PLANS.map(plan => <button type="button" key={plan.id} onClick={() => {applyChorePlan(plan);setPopup(null);}}><strong>{plan.label}</strong><span>{plan.description}</span></button>)}<button type="button" onClick={() => {handleClearAll();setPopup(null);}}>Clear All</button></div></GameDialog> : null}
+      {popup === "report" ? <GameDialog title="Tonight's Report" onClose={() => setPopup(null)}><p>{projectedRecoveryLabel}</p><p>{riskWarning}</p><p>Feed: {projectedAvailableFeed}/{dailyFeedNeed}. Comfort: {projectedComfort ? `+${Math.min(25,projectedComfort*2)}% breed` : "None"}. Materials: {materialsStock} + {projectedMaterials}. Upkeep repair: {projectedUpkeep}.</p>{message ? <p role="status">{message}</p> : null}</GameDialog> : null}
+      {popup === "about" ? <GameDialog title="About Ranch Chores" onClose={() => setPopup(null)}><p>Assignments repeat each night. Every species can learn every chore. Best Fit considers stats, talents, affection, and chore skills. Helpers need enough energy and cannot be in training or injured.</p><p>Manage Helpers shows full stat fit, skill progress, expected contribution, and why a helper is unavailable.</p></GameDialog> : null}
     </main>
   );
 }

@@ -108,3 +108,19 @@ Exact clean-plate prompt template (Chores / Nursery substitutions):
 Production Next.js build and TypeScript pass. All 141 regression tests pass. Targeted ESLint has no errors; existing raw-image, effect/state and memoization warnings remain. Production Chromium checks cover 1440×960, 768×960, 390×844 and 360×844, with no horizontal control overflow or browser exceptions. Checks exercise three-helper capacity, remove/reassign and Balanced Plan; search, advanced filters, comparison, detail tabs and cancellation of creature removal; ready/incubating eggs, pregnancy timers, cancellation of egg removal, exactly one hatch and a permanent birth record. Menu/Escape/focus return and Back to Ranch work from all three screens. The empty Nursery route was also checked. Synthetic review saves are used only in the browser harness, not shipped in the game.
 
 Screenshots of the running screens are saved beside the approved concepts in the UI review folder. The preview remains a draft branch deployment; no merge or production deployment.
+
+
+## User correction — fixed screens and full-body selection
+
+The user accepted the interior visual direction, but rejected page scrolling and requested full-body selected-creature images. This supersedes the earlier page-scrolling decision above.
+
+- Main Chores, roster and Nursery use viewport-height layouts. Growing creature/egg lists use Previous/Next pages, sized for the available panel height. Hidden panels do not reset pagination capacity.
+- Chores keeps the active task, recommendation, assigned summary and primary actions in view. Manage Helpers, Crew Plans, overnight projections and About open native pop-ups. Full helper text and all unavailable reasons remain available there.
+- The roster keeps its portrait thumbnails and uses the existing full-body `profilePath` for the selected creature, fitted without cropping. Filters/sorting, expanded cards, comparison selection and Profile & Care use pop-ups. Every existing profile tab and management action remains available.
+- Nursery keeps ready/incubating state and Hatch on screen. Stats/abilities, lineage, secondary actions, pregnancy records and birth history open pop-ups. Egg lists paginate, and the Eggs button also opens a picker for short screens. Hatch reveals use full-body artwork.
+- Related-screen links move under More on narrow/short screens; Back and Menu stay in the header. Escape closes a native pop-up without clearing a focused search field's value.
+- Existing full-body assets are reused without image modification. No new balance values or save formats are introduced. Other older game screens are outside this correction; new main-screen work must follow the updated no-scroll rule.
+
+### Correction validation
+
+Production build and TypeScript pass; 141 regression tests pass. Targeted ESLint has zero errors (15 existing-style warnings). Production Chromium verifies viewport fit and wheel-disabled main screens at 1440×900, 1280×720, 768×900, 390×844, 360×740 and 844×390. Checks cover all five creatures across paginated rows, uncropped full-body art, scrolling expanded-card pop-ups, comparison selection and stats, search preserved on Escape, profile tabs, helper assignment and focus restoration, ready/incubating eggs, pregnancy records, short-screen egg selection, and exactly one hatch with its birth record. Empty Nursery fits both phone orientations and its Breeding action remains reachable. Short-screen spacing was also visually inspected. Review fixtures and browser harnesses remain local and are not shipped.

@@ -51,3 +51,9 @@
 @media (max-width: 700px) {
   .actions { justify-content: flex-start; }
 }
+
+.actions .more {display:none;background:#ebddb5;color:#49341d;text-shadow:none;border:1px solid #a98a52;}
+.moreLinks {display:flex;flex-wrap:wrap;gap:10px;}
+@media(max-width:900px),(max-height:600px) {.actions .related {display:none;}.actions .more{display:inline-flex;}.actions{gap:6px;}.actions button{font-size:14px;min-height:38px;padding:4px 8px;border-width:4px;}.actions .back,.actions .menu{border-image-width:4px;}}
+
+@media(max-width:460px){.backPrefix{display:none;}}
