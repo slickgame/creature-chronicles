@@ -27,7 +27,7 @@ export function ScreenNavigation({ children }: { children?: ReactNode }) {
       >
         <span aria-hidden="true">☰</span> Menu
       </button>
-      {more ? <GameDialog title="Related Screens" onClose={() => setMore(false)}><div className={styles.moreLinks}>{children}</div></GameDialog> : null}
+      {more ? <GameDialog title="Related Screens" onClose={() => setMore(false)}><div className={styles.moreLinks} onClick={() => setMore(false)}>{children}</div></GameDialog> : null}
     </nav>
   );
 }

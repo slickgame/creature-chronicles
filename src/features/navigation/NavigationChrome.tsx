@@ -90,7 +90,7 @@ export function NavigationChrome() {
       sleeping.current = false;
     }
   }
-  const localLauncher = ["ranch-hub", "town", "egg-atelier", "collection", "ranch-jobs", "nursery"].includes(
+  const localLauncher = ["ranch-hub", "town", "egg-atelier", "collection", "ranch-jobs", "nursery", "breeding"].includes(
     game.appScreen,
   );
   const destinations = [
