@@ -2,40 +2,19 @@
 
 import { useMemo, useState } from "react";
 import { GAME_TITLE } from "@/data/gameConstants";
-import {
-  formatDateTime,
-  formatEnergy,
-  formatGameDate,
-  formatGold,
-  formatGuildPoints,
-} from "@/lib/formatters";
+import { formatDateTime, formatEnergy, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { SAVE_SLOT_COUNT, summarizeSave } from "@/lib/save/localSave";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { RanchIcon } from "@/features/ui/RanchIcon";
 import { useGameContext } from "@/state/GameProvider";
 import type { GameSave } from "@/types/save";
 import { SaveTransferPanel } from "./SaveTransferPanel";
 import styles from "./MainMenuScreen.module.css";
 
 type MenuMode = "main" | "new-game" | "load-game" | "save-transfer" | "options";
+const PANEL_TITLES = { "new-game": "New Game", "load-game": "Load Game", "save-transfer": "Import / Export Save", options: "Settings" };
 
-const IMAGE_PATHS = {
-  logo: "/images/ui/logo/creature_chronicles_logo.png",
-  newGameButton: "/images/ui/buttons/button_new_game.png",
-  loadGameButton: "/images/ui/buttons/button_load_game.png",
-  transferSaveButton: "/images/ui/buttons/button_transfer_save.svg",
-  settingsButton: "/images/ui/buttons/button_settings.png",
-  exitButton: "/images/ui/buttons/button_exit_game.png",
-  crestIcon: "/images/ui/icons/icon_paw_crest.png",
-} as const;
-
-function SaveSlotCard({
-  save,
-  slotIndex,
-  selected,
-  onSelect,
-  onLoad,
-  onDelete,
-}: {
+function SaveSlotCard({ save, slotIndex, selected, onSelect, onLoad, onDelete }: {
   save: GameSave | null;
   slotIndex: number;
   selected?: boolean;
@@ -44,342 +23,110 @@ function SaveSlotCard({
   onDelete?: () => void;
 }) {
   const summary = save ? summarizeSave(save) : null;
-
   return (
-    <article className={`${styles.slotCard} ${selected ? styles.slotCardSelected : ""}`}>
-      <div className={styles.slotHeader}>
-        <h3>File {slotIndex + 1}</h3>
-        <span>{save ? "Saved" : "Empty"}</span>
-      </div>
-
-      {summary ? (
-        <div className={styles.slotBody}>
-          <p className={styles.slotName}>{summary.playerName}</p>
-          <p>{summary.ranchName}</p>
-          <p>
-            Day {summary.dayNumber} • {summary.dateLabel}
-          </p>
-          <p>
-            {formatGold(summary.gold)} • {formatGuildPoints(summary.guildPoints)}
-          </p>
-          <p>Energy {formatEnergy(summary.energy, summary.maxEnergy)}</p>
-          <p>
-            Creatures {summary.creatureCount} • Eggs {summary.eggCount}
-          </p>
-          <p className={styles.slotDate}>Updated {formatDateTime(summary.updatedAt)}</p>
-        </div>
-      ) : (
-        <div className={styles.emptySlot}>
-          <p>No save data.</p>
-          <p>This slot can be used for a new game.</p>
-        </div>
-      )}
-
+    <article className={`${styles.slotCard} ${selected ? styles.slotCardSelected : ""}`} data-ui-text-box="auto">
+      <header className={styles.slotHeader}><h3>File {slotIndex + 1}</h3><span>{selected ? "Selected" : save ? "Saved" : "Empty"}</span></header>
+      {summary ? <div className={styles.slotBody}>
+        <p className={styles.slotName}>{summary.ranchName}</p>
+        <p>{summary.playerName} · Day {summary.dayNumber} · {summary.dateLabel}</p>
+        <p>{summary.creatureCount} creatures · {summary.eggCount} eggs</p>
+        <p>{formatGold(summary.gold)} · {formatGuildPoints(summary.guildPoints)} · Energy {formatEnergy(summary.energy, summary.maxEnergy)}</p>
+        <p className={styles.slotDate}>Saved {formatDateTime(summary.updatedAt)}</p>
+      </div> : <div className={styles.emptySlot}><p>A fresh start for a new ranch.</p></div>}
       <div className={styles.slotActions}>
-        {onSelect ? (
-          <button type="button" onClick={onSelect}>
-            Select Slot
-          </button>
-        ) : null}
-
-        {save && onLoad ? (
-          <button type="button" onClick={onLoad}>
-            Load
-          </button>
-        ) : null}
-
-        {save && onDelete ? (
-          <button type="button" className={styles.dangerButton} onClick={onDelete}>
-            Delete
-          </button>
-        ) : null}
+        {onSelect && <button type="button" onClick={onSelect} aria-pressed={selected}>Select Slot</button>}
+        {save && onLoad && <button type="button" className={styles.primary} onClick={onLoad}>Load</button>}
+        {save && onDelete && <button type="button" className={styles.dangerButton} onClick={onDelete}>Delete</button>}
       </div>
     </article>
   );
 }
 
 export function MainMenuScreen() {
-  const {
-    buildPhase,
-    createNewGame,
-    currentSave,
-    deleteGame,
-    goToRanch,
-    isHydrated,
-    loadGame,
-    refreshSaveSlots,
-    saveSlots,
-    version,
-  } = useGameContext();
-
+  const { createNewGame, currentSave, deleteGame, goToRanch, isHydrated, loadGame, refreshSaveSlots, saveSlots, version } = useGameContext();
   const [mode, setMode] = useState<MenuMode>("main");
   const [playerName, setPlayerName] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(0);
-  const [message, setMessage] = useState("Ranch systems ready.");
-  const [pendingSaveAction, setPendingSaveAction] = useState<{kind:"replace"|"delete";slot:number}|null>(null);
+  const [message, setMessage] = useState("");
+  const [logoFailed, setLogoFailed] = useState(false);
+  const [pendingSaveAction, setPendingSaveAction] = useState<{ kind: "replace" | "delete"; slot: number } | null>(null);
+  const activeSummary = useMemo(() => currentSave ? summarizeSave(currentSave) : null, [currentSave]);
 
-  const activeSummary = useMemo(() => {
-    return currentSave ? summarizeSave(currentSave) : null;
-  }, [currentSave]);
-
+  function startNewGame() {
+    setSelectedSlot(Math.max(0, Array.from({ length: SAVE_SLOT_COUNT }, (_, i) => i).find(i => !saveSlots[i]) ?? 0));
+    setMessage("");
+    setMode("new-game");
+  }
   function handleCreateGame() {
-    if(saveSlots[selectedSlot]) {setPendingSaveAction({kind:"replace",slot:selectedSlot});return;}
+    if (saveSlots[selectedSlot]) { setPendingSaveAction({ kind: "replace", slot: selectedSlot }); return; }
     createNewGame(playerName, selectedSlot);
     setPlayerName("");
   }
-
   function handleLoad(slotIndex: number) {
     const save = loadGame(slotIndex);
-
-    if (!save) {
-      setMessage(`File ${slotIndex + 1} is empty.`);
-      return;
-    }
-
-    setMessage(`Loaded ${save.player.name}'s save.`);
+    if (!save) { setMessage(`File ${slotIndex + 1} is empty.`); return; }
+    setMessage(`Loaded ${save.player.name}’s save.`);
+    setMode("main");
   }
-
-  function handleDelete(slotIndex:number) {setPendingSaveAction({kind:"delete",slot:slotIndex});}
   function confirmSaveAction() {
-    if(!pendingSaveAction)return;
-    const {kind,slot}=pendingSaveAction;
+    if (!pendingSaveAction) return;
+    const { kind, slot } = pendingSaveAction;
     setPendingSaveAction(null);
-    if(kind==="delete") {deleteGame(slot);setMessage(`Deleted File ${slot+1}.`);}
-    else {createNewGame(playerName,slot);setPlayerName("");}
+    if (kind === "delete") { deleteGame(slot); setMessage(`Deleted File ${slot + 1}.`); }
+    else { createNewGame(playerName, slot); setPlayerName(""); }
   }
-
-  function handleExitGame() {
-    setMessage("Exit requested. If the browser blocks closing this tab, close it manually.");
-
-    if (typeof window !== "undefined") {
-      window.close();
-    }
-  }
+  function closePanel() { setMode("main"); setMessage(""); }
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.heroPanel} aria-labelledby="game-title">
-        <div className={styles.backgroundArt} aria-hidden="true" />
-
-        <div className={styles.versionBadge}>{version}</div>
-
-        <section className={styles.leftColumn}>
-          <div className={styles.logoBox}>
-            <p className={styles.smallLabel}>Planning Rebuild</p>
-            <img
-              src={IMAGE_PATHS.logo}
-              alt={GAME_TITLE}
-              className={styles.logoImage}
-              onError={(event) => {
-                event.currentTarget.style.display = "none";
-              }}
-            />
-            <h1 id="game-title" className={styles.title}>
-              {GAME_TITLE}
-            </h1>
-            <p className={styles.subtitle}>Ranch • Breeding • Contracts • Collection</p>
-          </div>
-
-          <div className={styles.statusCard}>
-            <div className={styles.statusTitleRow}>
-              <img src={IMAGE_PATHS.crestIcon} alt="" />
-              <h2>{buildPhase}</h2>
-            </div>
-
-            {!isHydrated ? (
-              <p>Loading local saves...</p>
-            ) : activeSummary ? (
-              <dl className={styles.previewStats}>
-                <div>
-                  <dt>Current Save</dt>
-                  <dd>{activeSummary.playerName}</dd>
-                </div>
-                <div>
-                  <dt>Date</dt>
-                  <dd>
-                    {formatGameDate(
-                      currentSave?.dayState.weekday ?? "Mon",
-                      currentSave?.dayState.month ?? 1,
-                      currentSave?.dayState.dayOfMonth ?? 1,
-                    )}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Energy</dt>
-                  <dd>{formatEnergy(activeSummary.energy, activeSummary.maxEnergy)}</dd>
-                </div>
-                <div>
-                  <dt>Gold</dt>
-                  <dd>{formatGold(activeSummary.gold)}</dd>
-                </div>
-              </dl>
-            ) : (
-              <p>No active save yet. Start a new game, load a file, or import a travel save.</p>
-            )}
-
-            {currentSave ? (
-              <button type="button" className={styles.continueButton} onClick={goToRanch}>
-                Continue to Ranch
-              </button>
-            ) : null}
-
-            <p className={styles.messageText}>{message}</p>
-          </div>
-        </section>
-
-        <section className={styles.rightColumn}>
-          {mode === "main" ? (
-            <nav className={styles.menu} aria-label="Main menu">
-              <button
-                type="button"
-                className={styles.imageButton}
-                style={{ backgroundImage: `url(${IMAGE_PATHS.newGameButton})` }}
-                onClick={() => {setSelectedSlot(Math.max(0,Array.from({length:SAVE_SLOT_COUNT},(_,i)=>i).find(i=>!saveSlots[i]) ?? 0));setMode("new-game");}}
-              >
-                New Game
-              </button>
-              <button
-                type="button"
-                className={styles.imageButton}
-                style={{ backgroundImage: `url(${IMAGE_PATHS.loadGameButton})` }}
-                onClick={() => setMode("load-game")}
-              >
-                Load Game
-              </button>
-              <button
-                type="button"
-                className={styles.imageButton}
-                style={{ backgroundImage: `url(${IMAGE_PATHS.transferSaveButton})` }}
-                onClick={() => setMode("save-transfer")}
-              >
-                Transfer Save
-              </button>
-              <button
-                type="button"
-                className={styles.imageButton}
-                style={{ backgroundImage: `url(${IMAGE_PATHS.settingsButton})` }}
-                onClick={() => setMode("options")}
-              >
-                Options
-              </button>
-              <button
-                type="button"
-                className={styles.imageButton}
-                style={{ backgroundImage: `url(${IMAGE_PATHS.exitButton})` }}
-                onClick={handleExitGame}
-              >
-                Exit Game
-              </button>
-            </nav>
-          ) : null}
-
-          {mode === "new-game" ? (
-            <section className={styles.menuPanel}>
-              <div className={styles.panelHeader}>
-                <h2>New Game</h2>
-                <button type="button" onClick={() => setMode("main")}>
-                  Back
-                </button>
-              </div>
-
-              <label className={styles.inputLabel}>
-                Player Name
-                <input
-                  value={playerName}
-                  maxLength={24}
-                  placeholder="Enter name"
-                  onChange={(event) => setPlayerName(event.target.value)}
-                />
-              </label>
-
-              <p className={styles.panelHint}>
-                Choose a save file. Creating a new game in an occupied slot will overwrite
-                that file.
-              </p>
-
-              <div className={styles.slotGrid}>
-                {Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => (
-                  <SaveSlotCard
-                    key={`new-slot-${index}`}
-                    save={saveSlots[index] ?? null}
-                    slotIndex={index}
-                    selected={selectedSlot === index}
-                    onSelect={() => setSelectedSlot(index)}
-                  />
-                ))}
-              </div>
-
-              <button type="button" className={styles.confirmButton} onClick={handleCreateGame}>
-                Create Save
-              </button>
+    <main className={styles.titleScreen} aria-labelledby="game-title">
+      <div className={styles.backgroundArt} aria-hidden="true" />
+      <section className={styles.welcome}>
+        <h1 id="game-title" className={`${styles.brand} ${logoFailed ? styles.brandFallback : ""}`}>
+          {logoFailed ? GAME_TITLE : <img src="/images/ui/logo/creature_chronicles_logo.png" alt={GAME_TITLE} width={714} height={343} fetchPriority="high" onError={() => setLogoFailed(true)} />}
+        </h1>
+        <nav className={styles.menu} aria-label="Main menu">
+          {!isHydrated ? <p className={styles.loading} role="status">Loading your ranch…</p> : <div className={styles.continueRow}>
+            <button type="button" className={`${styles.menuButton} ${styles.continueButton}`} onClick={currentSave ? goToRanch : startNewGame} aria-describedby="active-ranch-summary">
+              <RanchIcon name="leaf" /><span>{currentSave ? "Continue" : "New Game"}</span><RanchIcon name="leaf" />
+            </button>
+            <section id="active-ranch-summary" className={styles.saveSummary} aria-label={activeSummary ? "Current save" : "Welcome"} data-ui-text-box="auto">
+              <RanchIcon name="house" />
+              <div>{activeSummary ? <><h2>{activeSummary.ranchName}</h2><p>{activeSummary.playerName} · Day {activeSummary.dayNumber}</p><p>{activeSummary.creatureCount} creatures · {activeSummary.eggCount} eggs</p></> : <><h2>Your ranch awaits</h2><p>Start your own story.</p></>}</div>
             </section>
-          ) : null}
-
-          {mode === "load-game" ? (
-            <section className={styles.menuPanel}>
-              <div className={styles.panelHeader}>
-                <h2>Load Game</h2>
-                <button type="button" onClick={() => setMode("main")}>
-                  Back
-                </button>
-              </div>
-
-              <div className={styles.slotGrid}>
-                {Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => (
-                  <SaveSlotCard
-                    key={`load-slot-${index}`}
-                    save={saveSlots[index] ?? null}
-                    slotIndex={index}
-                    onLoad={() => handleLoad(index)}
-                    onDelete={() => handleDelete(index)}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          {mode === "options" ? (
-            <section className={styles.menuPanel}>
-              <div className={styles.panelHeader}>
-                <h2>Options</h2>
-                <button type="button" onClick={() => setMode("main")}>
-                  Back
-                </button>
-              </div>
-
-              <p className={styles.panelHint}>Audio volume and text speed controls are not available in this build yet.</p>
-              <div className={styles.optionRows}><div><span>Developer tools</span><strong>{currentSave?.settings.devMode ? "Enabled for this save" : "Disabled"}</strong></div></div>
-              <p className={styles.panelHint}>Progress is saved locally in this browser. Use Transfer Save to export a backup or move to another device.</p>
-            </section>
-          ) : null}
-        </section>
+          </div>}
+          {currentSave && <button type="button" className={styles.menuButton} disabled={!isHydrated} onClick={startNewGame}><RanchIcon name="leaf" /><span>New Game</span></button>}
+          <button type="button" className={styles.menuButton} disabled={!isHydrated} onClick={() => { setMessage(""); setMode("load-game"); }}><RanchIcon name="chores" /><span>Load Game</span></button>
+          <button type="button" className={styles.menuButton} onClick={() => setMode("options")}><RanchIcon name="gear" /><span>Settings</span></button>
+          <button type="button" className={styles.transferLink} disabled={!isHydrated} onClick={() => setMode("save-transfer")}><span aria-hidden="true">⇄</span> Import / Export Save</button>
+        </nav>
+        {message && mode === "main" && <p className={styles.messageText} role="status">{message}</p>}
       </section>
+      <footer className={styles.versionBadge}>{version}</footer>
 
-      {mode === "save-transfer" ? (
-        <div
-          role="presentation"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 300,
-            display: "grid",
-            placeItems: "center",
-            padding: "max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left))",
-            background: "rgba(0, 0, 0, 0.78)",
-            backdropFilter: "blur(7px)",
-          }}
-        >
-          <SaveTransferPanel
-            saveSlots={saveSlots}
-            refreshSaveSlots={refreshSaveSlots}
-            onBack={() => setMode("main")}
-          />
-        </div>
-      ) : null}
-      {pendingSaveAction && <GameDialog title={`${pendingSaveAction.kind==="delete"?"Delete":"Replace"} File ${pendingSaveAction.slot+1}?`} onClose={()=>setPendingSaveAction(null)}>
+      {mode !== "main" && <GameDialog title={PANEL_TITLES[mode]} onClose={closePanel} wide={mode !== "options"}>
+        {mode === "new-game" && <section className={styles.menuPanel}>
+          <label className={styles.inputLabel}>Player Name<input value={playerName} maxLength={24} placeholder="Enter name" onChange={event => setPlayerName(event.target.value)} /></label>
+          <p className={styles.panelHint}>Choose a file for your new ranch. Occupied files require confirmation before replacement.</p>
+          <div className={styles.slotGrid}>{Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => <SaveSlotCard key={index} save={saveSlots[index] ?? null} slotIndex={index} selected={selectedSlot === index} onSelect={() => setSelectedSlot(index)} />)}</div>
+          <button type="button" className={`${styles.confirmButton} ${styles.primary}`} onClick={handleCreateGame}>Create Save</button>
+        </section>}
+        {mode === "load-game" && <section className={styles.menuPanel}>
+          {message && <p role="status">{message}</p>}
+          <div className={styles.slotGrid}>{Array.from({ length: SAVE_SLOT_COUNT }, (_, index) => <SaveSlotCard key={index} save={saveSlots[index] ?? null} slotIndex={index} onLoad={() => handleLoad(index)} onDelete={() => setPendingSaveAction({ kind: "delete", slot: index })} />)}</div>
+        </section>}
+        {mode === "options" && <section className={styles.menuPanel}>
+          <p>Progress is saved locally in this browser. Export a backup to keep a copy or move to another device.</p>
+          <button type="button" className={styles.primary} onClick={() => setMode("save-transfer")}>Import / Export Save</button>
+          {currentSave?.settings.devMode && <p className={styles.panelHint}>Developer tools are enabled for this save.</p>}
+          <p className={styles.panelHint}>Audio volume and text-speed settings are not available yet.</p>
+          <p className={styles.panelHint}>To exit the game, close this browser tab.</p>
+        </section>}
+        {mode === "save-transfer" && <SaveTransferPanel saveSlots={saveSlots} refreshSaveSlots={refreshSaveSlots} onBack={closePanel} />}
+      </GameDialog>}
+      {pendingSaveAction && <GameDialog title={`${pendingSaveAction.kind === "delete" ? "Delete" : "Replace"} File ${pendingSaveAction.slot + 1}?`} onClose={() => setPendingSaveAction(null)}>
         <p><strong>{saveSlots[pendingSaveAction.slot]?.player.name}</strong> · {saveSlots[pendingSaveAction.slot]?.player.ranchName} · Day {saveSlots[pendingSaveAction.slot]?.dayState.dayNumber}</p>
-        <p>{pendingSaveAction.kind==="delete"?"This removes the selected save file.":"Creating this new game replaces the selected save file."} Export a backup with Transfer Save first if you want to keep it.</p>
-        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}><button type="button" data-initial-focus onClick={()=>setPendingSaveAction(null)}>Keep Existing Save</button><button type="button" onClick={confirmSaveAction}>{pendingSaveAction.kind==="delete"?"Delete Save":"Replace & Start New Game"}</button></div>
+        <p>{pendingSaveAction.kind === "delete" ? "This removes the selected save file." : "Creating this new game replaces the selected save file."} Export a backup first if you want to keep it.</p>
+        <div className={styles.slotActions}><button type="button" data-initial-focus onClick={() => setPendingSaveAction(null)}>Keep Existing Save</button><button type="button" onClick={confirmSaveAction}>{pendingSaveAction.kind === "delete" ? "Delete Save" : "Replace & Start New Game"}</button></div>
       </GameDialog>}
     </main>
   );

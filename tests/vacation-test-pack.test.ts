@@ -115,7 +115,7 @@ test("main menu, dev tools, and town expose the vacation test features", async (
   const town = await source("src/features/town/TownScreenC4.tsx");
   const lantern = await source("src/features/town/RoseLanternScreen.tsx");
 
-  assert.match(menu, /Transfer Save/);
+  assert.match(menu, /Import \/ Export Save/);
   assert.match(transfer, /Download \.ccsave/);
   assert.match(transfer, /navigator\.share/);
   assert.match(dev, /Create Incident Now/);

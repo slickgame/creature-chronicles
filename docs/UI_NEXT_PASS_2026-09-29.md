@@ -13,16 +13,16 @@ The user approved the scenic ranch visual pass and requested moving the annoying
 
 Validation: production build and TypeScript passed; 141 regression tests passed. Chromium checks at 1440 and 390 px verified no floating card, unrestricted navigation, menu access, cross-screen Morning Brief routing, recorded progress, next lesson routing, and the guide remaining hidden after reload. No browser exceptions.
 
-## Home screen: concepts awaiting approval
+## Home screen: A approved and implemented
 
-Working interpretation: “home screen” means the title/Continue screen, since the user just approved the in-game ranch. If they mean the ranch, confirm that interpretation before implementing the title redesign.
+The user selected A — Scenic Welcome for the title/Continue screen. The implementation uses the original logo, an art-only background derived from A, live text buttons and current save data. Continue remains visible on desktop and phone; new players see New Game as the primary action. The save summary stacks below the primary action on phones.
 
 Observed title-screen issues: logo plus duplicate giant title, development-facing “Planning Rebuild” and build-phase text, mismatched buttons, heavy dark overlays, and Continue below the initial 1440×900 viewport. The existing save safeguards must remain intact.
 
 - [A — Scenic Welcome](https://drive.google.com/file/d/1NAyJPlcOvqBOj9bYRYiD-05kjIJiMNLo/view): recommended. Existing logo, prominent Continue plus compact save summary, smaller New Game / Load Game / Settings and quiet Import / Export Save; most scenery remains visible.
 - [B — Ranch Journal](https://drive.google.com/file/d/1De-WsXAr9R4Ov6qV4BkDXm7PXudIPn3P/view): a larger parchment folio contains save details and actions.
 
-These are concept images, not implemented screens. Example save values and version labels are illustrative; implementation must use actual data. Retain the actual existing logo. No selected option yet.
+The linked images are concepts. A is now implemented; B remains an alternative reference. The implementation uses actual save values and version, retains the existing logo, and places New Game, Load Game and Settings in the shared parchment dialogs. Delete/replace confirmations and import/export behavior remain intact. See `UI_TITLE_A_IMPLEMENTATION_2026-09-29.md` for asset provenance and validation.
 
 ## Proposed order after title approval
 
