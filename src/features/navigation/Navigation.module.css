@@ -64,3 +64,12 @@
 :where(.ledgerPanel) button { min-height: 44px; cursor: pointer; }
 .ledgerPanel .story button { min-height: 44px; padding: 8px 12px; border: 1px solid #ac8d53; background: #efe1bb; color: #49341d; border-radius: 3px; }
 .ledgerPanel .story button:disabled { opacity: .55; cursor: not-allowed; }
+
+@media(max-width:1000px),(max-height:800px) {
+ .compact {padding:0 6px;border-width:8px;border-image-width:8px;gap:0;}
+ .compact .priorityRows,.compact .expandLink {display:none;}
+ .compact .todayHeading {min-height:36px;}
+ .compact .todayHeading>span:first-child {width:25px;height:25px;}
+ .compact .todayHeading>span:nth-child(2) {font-size:18px;}
+ .compact .todayHeading small {display:inline;margin-left:8px;font-size:11px;}
+}
