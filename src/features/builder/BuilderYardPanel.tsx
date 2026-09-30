@@ -20,7 +20,7 @@ const CATEGORY_LABELS: Record<BuilderProjectCategory, string> = {
   security: "Ranch Security",
 };
 
-export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
+export function BuilderYardPanel({ onClose, embedded = false }: { onClose: () => void; embedded?: boolean }) {
   const { currentSave, saveCurrentGame } = useGameContext();
   const [message, setMessage] = useState("Petra can expand the ranch, reserve future habitats, and strengthen the perimeter.");
   const [selectedProjectId, setSelectedProjectId] = useState<BuilderProjectId | null>(null);
@@ -42,7 +42,7 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <section className={styles.panel} role="dialog" aria-modal="true" aria-labelledby="builder-yard-title">
+    <section className={`${styles.panel} ${embedded ? styles.embedded : ""}`} role={embedded ? undefined : "dialog"} aria-modal={embedded ? undefined : true} aria-labelledby="builder-yard-title">
       <header className={styles.header}>
         <div className={styles.npcIdentity}>
           <img src={BUILDER_PROJECT_ASSETS.builder} alt="Petra Hale, the town builder" />

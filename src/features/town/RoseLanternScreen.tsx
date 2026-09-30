@@ -17,7 +17,7 @@ import styles from "./RoseLanternScreen.module.css";
 const BUILDING_ART = "/images/buildings/town/rose_lantern.svg";
 const HOSTESS_ART = "/images/characters/town/rose_lantern_hostess.svg";
 
-export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
+export function RoseLanternScreen({ onClose, embedded = false }: { onClose: () => void; embedded?: boolean }) {
   const { currentSave, saveCurrentGame } = useGameContext();
   const [message, setMessage] = useState("Madam Selene welcomes adult guests, workers, and information brokers under the same house rules.");
   const access = useMemo(() => currentSave ? getRoseLanternAccess(currentSave) : null, [currentSave]);
@@ -45,11 +45,11 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className={styles.backdrop}
+      className={embedded ? styles.embedded : styles.backdrop}
       role="presentation"
       onMouseDown={(event) => { if (event.currentTarget === event.target) onClose(); }}
     >
-      <section className={styles.screen} role="dialog" aria-modal="true" aria-labelledby="rose-lantern-title">
+      <section className={styles.screen} role={embedded ? undefined : "dialog"} aria-modal={embedded ? undefined : true} aria-labelledby="rose-lantern-title">
         <header className={styles.header}>
           <div>
             <p>Adults-Only Social House</p>
@@ -72,7 +72,7 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
             </div>
           </aside>
 
-          <main className={styles.content}>
+          <div className={styles.content}>
             <p className={styles.message} role="status">{message}</p>
 
             {!access.unlocked ? (
@@ -173,7 +173,7 @@ export function RoseLanternScreen({ onClose }: { onClose: () => void }) {
                 ) : null}
               </>
             )}
-          </main>
+          </div>
         </div>
       </section>
     </div>
