@@ -1,0 +1,53 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 7px solid transparent;
+  border-radius: 0;
+  color: #fff3d2;
+  font: 700 1rem/1.25 Georgia, serif;
+  text-shadow: 0 1px 2px #24170e;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.actions .back {
+  border-image: url('/images/ui/ranch-v2/wood.webp') 110 fill / 7px stretch;
+  background: #4b301d;
+  color: #fff3d2;
+}
+
+.related { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.related button {
+  border: 1px solid #aa8c52;
+  border-radius: 3px;
+  background: #f0e1bb;
+  color: #49341d;
+  text-shadow: none;
+  font-size: .85rem;
+}
+
+.actions .menu {
+  border-image: url('/images/ui/ranch-v2/wood.webp') 110 / 7px stretch;
+  background: #334f32;
+  color: #fff3d2;
+}
+
+.actions button:hover { filter: brightness(1.12); }
+.actions button:focus-visible { outline: 3px solid #fff0a8; outline-offset: 3px; }
+
+@media (max-width: 700px) {
+  .actions { justify-content: flex-start; }
+}

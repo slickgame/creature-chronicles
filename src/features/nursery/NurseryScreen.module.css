@@ -491,3 +491,16 @@
     grid-template-columns: 1fr;
   }
 }
+.headerStats > nav { grid-column: 1 / -1; }
+
+/* On narrow screens the page, not individual empty states, supplies scrolling. */
+@media (max-width: 1100px) {
+  .screen { display: block; height: 100dvh; overflow-y: auto; }
+  .screen > .frame { height: auto !important; min-height: 100dvh !important; overflow: visible; }
+  .contentGrid { align-items: start; }
+  .sidePanel, .centerPanel, .eggDetail { overflow: visible; }
+  .centerPanel { grid-template-rows: auto auto; }
+  .emptyChamber { min-height: min-content; }
+  .emptyChamber img { width: 100px; max-height: 120px; }
+  .recordList { max-height: none !important; }
+}

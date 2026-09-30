@@ -8,7 +8,7 @@ import {
   getCreatureChoreSkillProgress,
   getJobChoreSkillId,
 } from "@/data/choreSkills";
-import { getVariantDefinition } from "@/data/creatures";
+import { CREATURE_PLACEHOLDER_IMAGE, getVariantDefinition } from "@/data/creatures";
 import {
   calculateCreatureChoreScore,
   getCreatureDisplayName,
@@ -18,6 +18,7 @@ import {
 } from "@/data/ranchJobs";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { useGameContext } from "@/state/GameProvider";
+import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { RanchJobDefinition, RanchJobId } from "@/types/ranchJobs";
@@ -113,8 +114,9 @@ function getCreatureSummary(creature: CreatureRecord): string {
   return `${variant.family} • Lv ${creature.level} • Energy ${creature.energy}/${creature.maxEnergy} • Affection ${creature.affection}`;
 }
 
-function getCreatureProfilePath(creature: CreatureRecord): string {
-  return getVariantDefinition(creature.variantId).profilePath;
+function getCreaturePortraitPath(creature: CreatureRecord): string {
+  const variant = getVariantDefinition(creature.variantId);
+  return variant.portraitPath || variant.profilePath || CREATURE_PLACEHOLDER_IMAGE;
 }
 
 function getRelevantStatKeys(jobId: RanchJobId): Array<keyof CreatureRecord["stats"]> {
@@ -219,7 +221,7 @@ function getUnavailableReason(
 }
 
 export function RanchJobsScreen() {
-  const { currentSave, goToMainMenu, goToRanch, saveCurrentGame, version } = useGameContext();
+  const { currentSave, goToMainMenu, saveCurrentGame, version } = useGameContext();
   const [message, setMessage] = useState(
     "Every species can learn every chore. Best Fit now compares stats, talents, affection, and persistent chore-skill levels.",
   );
@@ -460,7 +462,7 @@ export function RanchJobsScreen() {
 
   return (
     <main className={styles.screen}>
-      <section className={styles.frame}>
+      <section className={styles.choreFrame}>
         <header className={styles.header}>
           <div>
             <div className={styles.titleRow}>
@@ -484,8 +486,7 @@ export function RanchJobsScreen() {
           <div className={styles.headerActions}>
             <button type="button" onClick={() => applyChorePlan(CHORE_PLANS[0])}>Auto-Assign Best Crew</button>
             <button type="button" onClick={handleClearAll}>Clear All</button>
-            <button type="button" onClick={goToRanch}>Back to Ranch</button>
-            <button type="button" onClick={goToMainMenu}>Main Menu</button>
+            <ScreenNavigation />
           </div>
         </header>
 
@@ -513,7 +514,7 @@ export function RanchJobsScreen() {
               const primaryCreature = assigned[0] ?? recommendation.creature;
               const projectionLabel = getJobProjectionLabel(assigned, job.jobId);
               return (
-                <article key={job.jobId} className={styles.jobCard}>
+                <article key={job.jobId} className={styles.jobCard} data-ui-text-box="auto">
                   <div className={styles.jobHeader}>
                     <img className={styles.jobIcon} src={job.iconPath} alt="" />
                     <div className={styles.jobTitleArea}>
@@ -530,7 +531,7 @@ export function RanchJobsScreen() {
                   <div className={styles.assignmentBox}>
                     <div className={`${styles.assignedLine} ${primaryCreature ? styles.assignedLineWithPortrait : ""}`}>
                       {primaryCreature
-                        ? <img className={styles.assignedPortrait} src={getCreatureProfilePath(primaryCreature)} alt="" />
+                        ? <img className={styles.assignedPortrait} src={getCreaturePortraitPath(primaryCreature)} alt="" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
                         : <span className={styles.unassignedDot} />}
                       <div className={styles.assignedText}>
                         <strong>{assigned.length

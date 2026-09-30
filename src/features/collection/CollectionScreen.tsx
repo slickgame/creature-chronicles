@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   DEFAULT_CREATURE_MANAGEMENT_FILTERS,
   filterAndSortManagedCreatures,
@@ -23,6 +23,7 @@ import {
 } from "@/data/creatures";
 import { SharedCreatureDetail, SHARED_STAT_LABELS } from "@/features/creatures/CreatureDetailPanels";
 import { useGameContext } from "@/state/GameProvider";
+import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
 import styles from "./CollectionScreen.module.css";
 
@@ -79,7 +80,7 @@ function roleLabel(ready: boolean, reason: string | null): string {
   return reason?.split(".")[0] ?? "Unavailable";
 }
 
-export function CollectionScreen() {
+export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const {
     currentSave,
     donateCreature,
@@ -328,7 +329,7 @@ export function CollectionScreen() {
                 Compare
               </button>
             </div>
-            <button type="button" onClick={goToRanch}>Back to Ranch</button>
+            <ScreenNavigation>{headerLinks}</ScreenNavigation>
           </div>
         </header>
 

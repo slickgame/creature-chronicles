@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useMemo, useState } from "react";
+import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
 import {
   NURSERY_ASSETS,
   getEstimatedDeliveryDateLabel,
@@ -12,6 +12,7 @@ import { getNurseryCapacity } from "@/data/ranchUpgrades";
 import { getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { useGameContext } from "@/state/GameProvider";
+import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
 import type { EggId } from "@/types/ids";
 import type {
@@ -72,7 +73,7 @@ const sectionDividerStyle: CSSProperties = {
   borderTop: "1px solid rgba(245,201,128,.34)",
 };
 
-export function NurseryScreen() {
+export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const {
     currentSave,
     goToRanch,
@@ -195,9 +196,7 @@ export function NurseryScreen() {
               <span>Births</span>
               <strong>{birthHistory.length || legacyHatchedEggs.length}</strong>
             </div>
-            <button type="button" onClick={goToRanch}>
-              Back to Ranch
-            </button>
+            <ScreenNavigation>{headerLinks}</ScreenNavigation>
           </div>
         </header>
 

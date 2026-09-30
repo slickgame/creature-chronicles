@@ -738,3 +738,8 @@ button:disabled {
     grid-template-columns: minmax(100px, 1fr) repeat(2, minmax(70px, 0.75fr));
   }
 }
+.headerActions { flex-wrap: wrap; }
+
+@media (max-width: 1180px) {
+  .screen { display: block; height: 100dvh; overflow-y: auto; }
+}
