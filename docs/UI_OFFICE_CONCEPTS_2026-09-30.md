@@ -2,7 +2,7 @@
 
 ## Status
 
-The user approved proceeding with the ranch overlap fix and two Ranch Office concepts. The Office concepts are awaiting selection; this commit does not implement either Office layout.
+The user selected and approved **B — Builder’s Desk**. Implementation and validation are recorded in [UI_OFFICE_B_2026-09-30.md](UI_OFFICE_B_2026-09-30.md). The earlier ranch overlap fix is retained.
 
 ## Current Office review
 
