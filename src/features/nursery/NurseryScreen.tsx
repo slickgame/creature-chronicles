@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import {
   NURSERY_ASSETS,
   getEstimatedDeliveryDateLabel,
@@ -9,7 +9,7 @@ import {
   suggestHatchlingName,
 } from "@/data/nursery";
 import { getNurseryCapacity } from "@/data/ranchUpgrades";
-import { getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
+import { CREATURE_PLACEHOLDER_IMAGE, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { useGameContext } from "@/state/GameProvider";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
@@ -21,6 +21,9 @@ import type {
   EggRecord,
   PregnancyRecord,
 } from "@/types/save";
+import { GameDialog } from "@/features/ui/GameDialog";
+import { RanchIcon } from "@/features/ui/RanchIcon";
+import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./NurseryScreen.module.css";
 
 const STAT_LABELS = {
@@ -34,49 +37,11 @@ const STAT_LABELS = {
 
 type HatchResult = { egg: EggRecord; creature: CreatureRecord };
 
-const modalBackdropStyle: CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  zIndex: 80,
-  display: "grid",
-  placeItems: "center",
-  padding: 24,
-  background: "rgba(0,0,0,.72)",
-  backdropFilter: "blur(4px)",
-};
-
-const modalPanelStyle: CSSProperties = {
-  width: "min(100%, 1100px)",
-  maxHeight: "90vh",
-  overflow: "auto",
-  display: "grid",
-  gap: 14,
-  padding: 24,
-  border: "3px solid rgba(245,201,128,.9)",
-  borderRadius: 22,
-  background:
-    "linear-gradient(rgba(70,34,24,.98),rgba(18,10,8,.98)), radial-gradient(circle at top left, rgba(127,219,255,.16), transparent 46%)",
-  color: "#fff7dd",
-  boxShadow: "0 26px 60px rgba(0,0,0,.66)",
-};
-
-const revealActionsStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: 10,
-  flexWrap: "wrap",
-};
-
-const sectionDividerStyle: CSSProperties = {
-  margin: "14px 0 8px",
-  paddingTop: 12,
-  borderTop: "1px solid rgba(245,201,128,.34)",
-};
-
 export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const {
     currentSave,
     goToRanch,
+    goToBreeding,
     hatchReadyEgg,
     removeNurseryEgg,
     renameCreature,
@@ -89,18 +54,21 @@ export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const activePregnancies = pregnancies.filter(
     (pregnancy) => pregnancy.status === "pregnant",
   );
-  const activeEggs = eggs.filter((egg) => egg.status !== "hatched");
+  const activeEggs = eggs.filter((egg) => egg.status !== "hatched").sort((a, b) => Number(b.status === "ready") - Number(a.status === "ready") || a.daysRemaining - b.daysRemaining);
   const legacyHatchedEggs = eggs.filter((egg) => egg.status === "hatched");
   const readyEggs = activeEggs.filter((egg) => egg.status === "ready");
 
   const [selectedEggId, setSelectedEggId] = useState<EggId | null>(
     readyEggs[0]?.eggId ?? activeEggs[0]?.eggId ?? null,
   );
+  const [showEggDetail, setShowEggDetail] = useState(true);
+  const [activeTab, setActiveTab] = useState<"eggs" | "pregnancies" | "history">("eggs");
+  const [pendingRemoval, setPendingRemoval] = useState<{egg: EggRecord; mode: "release" | "donate"} | null>(null);
   const [hatchName, setHatchName] = useState("");
   const [hatchResult, setHatchResult] = useState<HatchResult | null>(null);
   const [revealName, setRevealName] = useState("");
   const [message, setMessage] = useState(
-    "Pregnancies advance after sleep, produce eggs at delivery, and eggs hatch when their timer reaches zero.",
+    "",
   );
 
   const selectedEgg = useMemo(
@@ -165,170 +133,32 @@ export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   }
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <div className={styles.backgroundArt} aria-hidden="true" />
-        <div className={styles.shade} aria-hidden="true" />
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>Pregnancy-to-Offspring Loop</p>
-            <h1>Egg Nursery</h1>
-            <p>
-              Track delivery dates, egg timers, inherited traits, lineage risk,
-              hatch results, and permanent birth records.
-            </p>
-          </div>
-          <div
-            className={styles.headerStats}
-            style={{ gridTemplateColumns: "repeat(3,minmax(84px,1fr))" }}
-          >
-            <div>
-              <span>Pregnancies</span>
-              <strong>{activePregnancies.length}</strong>
-            </div>
-            <div>
-              <span>Eggs</span>
-              <strong>
-                {activeEggs.length} / {nurseryCapacity}
-              </strong>
-            </div>
-            <div>
-              <span>Births</span>
-              <strong>{birthHistory.length || legacyHatchedEggs.length}</strong>
-            </div>
-            <ScreenNavigation>{headerLinks}</ScreenNavigation>
-          </div>
-        </header>
-
-        <section className={styles.contentGrid}>
-          <aside className={styles.sidePanel}>
-            <h2>Pending Births</h2>
-            {activePregnancies.length ? (
-              <div className={styles.recordList}>
-                {activePregnancies.map((pregnancy) => (
-                  <PregnancyCard
-                    key={pregnancy.pregnancyId}
-                    pregnancy={pregnancy}
-                    dayState={currentSave.dayState}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className={styles.emptyText}>
-                No active pregnancies. Successful creature-receiver breeding
-                attempts create one.
-              </p>
-            )}
+    <main className={`${ui.interior} ${styles.interior}`}>
+      <div className={ui.page}>
+        <header className={ui.heading}><div><p className={ui.eyebrow}>A little care. A new beginning.</p><h1>Egg Nursery</h1></div><ScreenNavigation>{headerLinks}</ScreenNavigation></header>
+        <section className={ui.summary} aria-label="Nursery status"><div><span>Ready to hatch</span><strong>{readyEggs.length}</strong></div><div><span>Incubating</span><strong>{activeEggs.length - readyEggs.length}</strong></div><div><span>Pregnancies</span><strong>{activePregnancies.length}</strong></div><div><span>Nursery spaces</span><strong>{activeEggs.length}/{nurseryCapacity}</strong></div></section>
+        <nav className={`${ui.paper} ${styles.tabs}`} aria-label="Nursery sections">
+          <button type="button" aria-pressed={activeTab === "eggs"} onClick={() => setActiveTab("eggs")}>Eggs ({activeEggs.length})</button>
+          <button type="button" aria-pressed={activeTab === "pregnancies"} onClick={() => setActiveTab("pregnancies")}>Pregnancies ({activePregnancies.length})</button>
+          <button type="button" aria-pressed={activeTab === "history"} onClick={() => setActiveTab("history")}>Birth History ({birthHistory.length || legacyHatchedEggs.length})</button>
+        </nav>
+        {message ? <p className={`${ui.paper} ${ui.feedback}`} role="status">{message}</p> : null}
+        {activeTab === "eggs" ? <div className={styles.workspace} data-detail={showEggDetail && Boolean(selectedEgg)}>
+          <aside className={`${ui.paper} ${styles.eggList}`}><h2>Eggs in your care</h2><p>Ready eggs appear first.</p>
+            {activeEggs.length ? activeEggs.map(egg => <button type="button" key={egg.eggId} className={`${styles.eggListCard} ${selectedEgg?.eggId === egg.eggId ? styles.selectedEgg : ""}`} aria-pressed={selectedEgg?.eggId === egg.eggId} onClick={() => {setSelectedEggId(egg.eggId);setHatchName("");setShowEggDetail(true);}}><img src={egg.status === "ready" ? NURSERY_ASSETS.hatch : NURSERY_ASSETS.egg} alt="" /><span><strong>{egg.suggestedName || suggestHatchlingName(egg)}</strong><span>{egg.rarity} · {getSpeciesDefinition(egg.speciesId).name}</span><em>{egg.status === "ready" ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</em></span></button>) : <p className={styles.emptyText}>No eggs in the nursery yet.</p>}
+            <div className={styles.pendingSummary}><h3>Pending Births</h3><p>{activePregnancies.length ? `${activePregnancies.length} active pregnanc${activePregnancies.length === 1 ? "y" : "ies"}. Next delivery in ${Math.min(...activePregnancies.map(p => p.daysRemaining))} days.` : "No active pregnancies."}</p>{activePregnancies.length ? <button type="button" onClick={() => setActiveTab("pregnancies")}>View Pregnancies</button> : null}</div>
+            <p className={styles.sleepNote}>Pregnancies and incubation advance when you sleep.</p>
           </aside>
-
-          <section className={styles.centerPanel}>
-            <div className={styles.centerHeader}>
-              <div>
-                <h2>Egg Chamber</h2>
-                <p>{message}</p>
-              </div>
-              <img
-                src={
-                  selectedEgg?.status === "ready"
-                    ? NURSERY_ASSETS.hatch
-                    : NURSERY_ASSETS.egg
-                }
-                alt=""
-              />
-            </div>
-
-            {selectedEgg ? (
-              <EggDetail
-                egg={selectedEgg}
-                hatchName={hatchName}
-                onHatchNameChange={setHatchName}
-                onHatch={handleHatch}
-                onRemove={handleRemoveEgg}
-              />
-            ) : (
-              <div className={styles.emptyChamber}>
-                <img src={NURSERY_ASSETS.egg} alt="" />
-                <h3>No Active Eggs</h3>
-                <p>
-                  Breed a successful creature receiver, sleep until delivery,
-                  then continue sleeping until the egg is ready to hatch.
-                </p>
-              </div>
-            )}
+          <section className={`${ui.paper} ${styles.selectedPanel}`} aria-label="Selected egg">
+            {selectedEgg ? <button type="button" className={styles.mobileBack} onClick={() => setShowEggDetail(false)}>← All Eggs ({activeEggs.length})</button> : null}
+            {selectedEgg ? <EggDetail egg={selectedEgg} hatchName={hatchName} onHatchNameChange={setHatchName} onHatch={handleHatch} onRemove={(egg,mode) => setPendingRemoval({egg,mode})} /> : <div className={styles.emptyChamber}><RanchIcon name="nest" className={styles.emptyNest} /><h2>A new beginning awaits</h2><p>Successful creature-receiver breeding starts a pregnancy. Sleep until delivery, then care for the egg until it is ready.</p><button className={ui.primary} type="button" onClick={goToBreeding}>Visit Breeding</button></div>}
           </section>
-
-          <aside className={styles.sidePanel}>
-            <h2>Eggs</h2>
-            {activeEggs.length ? (
-              <div className={styles.recordList} style={{ maxHeight: "42%" }}>
-                {activeEggs.map((egg) => (
-                  <button
-                    type="button"
-                    key={egg.eggId}
-                    className={`${styles.eggListCard} ${
-                      selectedEgg?.eggId === egg.eggId
-                        ? styles.selectedEgg
-                        : ""
-                    }`}
-                    onClick={() => setSelectedEggId(egg.eggId)}
-                  >
-                    <img
-                      src={
-                        egg.status === "ready"
-                          ? NURSERY_ASSETS.hatch
-                          : NURSERY_ASSETS.egg
-                      }
-                      alt=""
-                    />
-                    <div>
-                      <strong>
-                        {egg.suggestedName || suggestHatchlingName(egg)}
-                      </strong>
-                      <span>
-                        {egg.rarity} • {egg.status === "ready" ? "Ready" : `${egg.daysRemaining}d left`}
-                      </span>
-                      <em>
-                        {egg.lineageRiskLabel ??
-                          getLineageRiskLabel(egg.lineageRisk)}
-                      </em>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className={styles.emptyText}>No active eggs.</p>
-            )}
-
-            <div style={sectionDividerStyle}>
-              <h2>Birth History</h2>
-            </div>
-            <div className={styles.recordList} style={{ maxHeight: "42%" }}>
-              {birthHistory.length ? (
-                birthHistory.map((birth) => (
-                  <BirthHistoryCard key={birth.birthId} birth={birth} />
-                ))
-              ) : legacyHatchedEggs.length ? (
-                legacyHatchedEggs.map((egg) => (
-                  <LegacyBirthCard key={egg.eggId} egg={egg} />
-                ))
-              ) : (
-                <p className={styles.emptyText}>
-                  Hatched offspring will be recorded here permanently.
-                </p>
-              )}
-            </div>
-          </aside>
-        </section>
-      </section>
-
-      {hatchResult ? (
-        <HatchRevealModal
-          result={hatchResult}
-          renameValue={revealName}
-          onRenameValueChange={setRevealName}
-          onConfirm={handleConfirmReveal}
-        />
-      ) : null}
+        </div> : null}
+        {activeTab === "pregnancies" ? <section className={`${ui.paper} ${styles.records}`}><h2>Pending Births</h2>{activePregnancies.length ? activePregnancies.map(pregnancy => <PregnancyCard key={pregnancy.pregnancyId} pregnancy={pregnancy} dayState={currentSave.dayState} />) : <p>No active pregnancies. Successful creature-receiver breeding attempts create one.</p>}<p className={styles.sleepNote}>Delivery timers advance when you sleep.</p></section> : null}
+        {activeTab === "history" ? <section className={`${ui.paper} ${styles.records}`}><h2>Birth History</h2>{birthHistory.length ? birthHistory.map(birth => <BirthHistoryCard key={birth.birthId} birth={birth} />) : legacyHatchedEggs.length ? legacyHatchedEggs.map(egg => <LegacyBirthCard key={egg.eggId} egg={egg} />) : <p>Hatched offspring will be recorded here permanently.</p>}</section> : null}
+      </div>
+      {pendingRemoval ? <GameDialog title={pendingRemoval.mode === "donate" ? "Donate Egg?" : "Release Egg?"} onClose={() => setPendingRemoval(null)}><p>This removes {pendingRemoval.egg.suggestedName || suggestHatchlingName(pendingRemoval.egg)} from your nursery.{pendingRemoval.mode === "donate" ? " You will receive 75 Gold and 1 GP." : " This cannot be undone."}</p><div className={ui.actionRow}><button type="button" onClick={() => setPendingRemoval(null)}>Cancel</button><button type="button" onClick={() => {handleRemoveEgg(pendingRemoval.egg,pendingRemoval.mode);setHatchName("");setPendingRemoval(null);}}>{pendingRemoval.mode === "donate" ? "Donate Egg" : "Release Egg"}</button></div></GameDialog> : null}
+      {hatchResult ? <HatchRevealModal result={hatchResult} renameValue={revealName} onRenameValueChange={setRevealName} onConfirm={handleConfirmReveal} /> : null}
     </main>
   );
 }
@@ -445,122 +275,16 @@ function EggDetail({
     .map(([statKey]) => STAT_LABELS[statKey as keyof typeof STAT_LABELS]);
   const suggestedName = egg.suggestedName || suggestHatchlingName(egg);
 
-  return (
-    <article className={styles.eggDetail}>
-      <div className={styles.eggArtPanel}>
-        <img src={isReady ? NURSERY_ASSETS.hatch : NURSERY_ASSETS.egg} alt="" />
-        <p>{isReady ? "Ready to Hatch" : `${egg.daysRemaining} day(s) remaining`}</p>
-      </div>
-      <div className={styles.eggInfoPanel}>
-        <p className={styles.kicker}>
-          {egg.rarity} Egg • {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}
-        </p>
-        <h2>{suggestedName}</h2>
-        <p>
-          {variant.name} {species.name} • Parents: {egg.parents.giver.displayName} × {egg.parents.receiver.displayName}
-        </p>
-
-        <section className={styles.parentComparePanel}>
-          <img src={NURSERY_ASSETS.parentCompare} alt="" />
-          <div>
-            <strong>Parent Comparison</strong>
-            <span>
-              Giver: {egg.parents.giver.displayName} ({egg.parents.giver.familyLabel})
-            </span>
-            <span>
-              Receiver: {egg.parents.receiver.displayName} ({egg.parents.receiver.familyLabel})
-            </span>
-          </div>
-        </section>
-
-        <section className={styles.variantRollPanel}>
-          <img src={NURSERY_ASSETS.originHatched} alt="" />
-          <div>
-            <strong>Variant + Lineage Roll</strong>
-            <span>
-              {variant.rarity} {variant.name} {species.name}
-            </span>
-            <em>Strongest projected stat: {statHighlights.join(", ")}</em>
-          </div>
-        </section>
-
-        <div className={styles.statGrid}>
-          {Object.entries(egg.projectedStats).map(([statKey, value]) => {
-            const grade = egg.projectedStatGrades[statKey as keyof typeof STAT_LABELS];
-            return (
-              <div key={statKey}>
-                <span>{STAT_LABELS[statKey as keyof typeof STAT_LABELS]}</span>
-                <strong className={styles.statValueRow}>
-                  {value}
-                  <b>Grade {grade}</b>
-                </strong>
-              </div>
-            );
-          })}
-        </div>
-
-        <section className={styles.notesPanel}>
-          <h3>Lineage Notes</h3>
-          <ul>
-            {[
-              ...(egg.lineageNotes ?? []),
-              ...(egg.lineageTraits ?? []).map((trait) => `Trait marker: ${trait}`),
-            ].map((note, index) => (
-              <li key={`${index}-${note}`}>{note}</li>
-            ))}
-          </ul>
-        </section>
-
-        <section className={styles.notesPanel}>
-          <h3>Inheritance Notes</h3>
-          <ul>
-            {[...egg.statRollNotes, ...egg.abilityRollNotes].map((note, index) => (
-              <li key={`${index}-${note}`}>{note}</li>
-            ))}
-          </ul>
-        </section>
-
-        <section className={styles.abilitiesPanel}>
-          <h3>Projected / Inherited Abilities</h3>
-          {egg.projectedAbilities.length ? (
-            egg.projectedAbilities.map((ability) => (
-              <div key={ability.id}>
-                <strong>{ability.name}</strong>
-                <span>
-                  Grade {ability.grade} • {ability.source}
-                </span>
-                <p>{ability.description}</p>
-              </div>
-            ))
-          ) : (
-            <p>
-              No ability projected. Hatchling abilities mostly come from parents;
-              new ability mutations are extremely rare.
-            </p>
-          )}
-        </section>
-
-        <div className={styles.hatchControls}>
-          <input
-            value={hatchName}
-            onChange={(event) => onHatchNameChange(event.target.value)}
-            placeholder={suggestedName}
-            disabled={!isReady}
-            maxLength={24}
-          />
-          <button type="button" disabled={!isReady} onClick={() => onHatch(egg)}>
-            Hatch
-          </button>
-          <button type="button" onClick={() => onRemove(egg, "release")}>
-            Release
-          </button>
-          <button type="button" onClick={() => onRemove(egg, "donate")}>
-            Donate
-          </button>
-        </div>
-      </div>
-    </article>
-  );
+  return <article className={styles.eggDetail}>
+    <div className={styles.eggHero}><div className={styles.eggArtPanel}><RanchIcon name="nest" className={styles.nestIcon} /></div><div><p className={ui.eyebrow}>{egg.rarity} Egg · {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}</p><h2>{suggestedName}</h2><p>{variant.name} {species.name}</p><strong className={isReady ? styles.ready : styles.timer}>{isReady ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</strong></div></div>
+    {!isReady ? <progress className={styles.incubationProgress} max={Math.max(1,egg.totalDays)} value={Math.max(0,egg.totalDays-egg.daysRemaining)} aria-label="Incubation progress" /> : null}
+    <div className={styles.hatchControls}><label htmlFor="hatch-name">Hatchling name<input id="hatch-name" value={hatchName} onChange={event => onHatchNameChange(event.target.value)} placeholder={suggestedName} disabled={!isReady} maxLength={24} /></label><button className={ui.primary} type="button" disabled={!isReady} onClick={() => onHatch(egg)}>Hatch</button></div>
+    {!isReady ? <p className={styles.sleepNote}>Sleep to advance incubation. You can name and hatch this egg when it is ready.</p> : null}
+    <div className={styles.parents}><span>Parents</span><strong>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName}</strong><small>{egg.parents.giver.familyLabel} · {egg.parents.receiver.familyLabel}</small></div>
+    <details className={styles.disclosure}><summary>Projected Stats & Abilities</summary><p>Strongest projected stat: {statHighlights.join(", ")}</p><div className={styles.statGrid}>{Object.entries(egg.projectedStats).map(([key,value]) => <div key={key}><span>{STAT_LABELS[key as keyof typeof STAT_LABELS]}</span><strong>{value} <small>Grade {egg.projectedStatGrades[key as keyof typeof STAT_LABELS]}</small></strong></div>)}</div>{egg.projectedAbilities.length ? egg.projectedAbilities.map(ability => <div key={ability.id}><h3>{ability.name}</h3><p>Grade {ability.grade} · {ability.source}</p><p>{ability.description}</p></div>) : <p>No ability projected. Abilities mostly come from parents; new mutations are extremely rare.</p>}</details>
+    <details className={styles.disclosure}><summary>Lineage & Inheritance</summary><p>{variant.rarity} {variant.name} {species.name} · {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}</p><ul>{[...(egg.lineageNotes ?? []),...(egg.lineageTraits ?? []).map(trait => `Trait marker: ${trait}`),...egg.statRollNotes,...egg.abilityRollNotes].map((note,index) => <li key={`${index}-${note}`}>{note}</li>)}</ul></details>
+    <details className={styles.disclosure}><summary>Other Actions</summary><p>Remove this egg from your nursery.</p><div className={ui.actionRow}><button type="button" onClick={() => onRemove(egg,"release")}>Release</button><button type="button" onClick={() => onRemove(egg,"donate")}>Donate</button></div></details>
+  </article>;
 }
 
 function HatchRevealModal({
@@ -585,64 +309,11 @@ function HatchRevealModal({
     ...(egg.abilityRollNotes ?? []),
   ].slice(0, 12);
 
-  return (
-    <div style={modalBackdropStyle} role="presentation">
-      <section
-        style={modalPanelStyle}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="hatch-reveal-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div>
-          <p className={styles.kicker}>Hatch Result + Birth Record</p>
-          <h2
-            id="hatch-reveal-title"
-            style={{
-              margin: 0,
-              color: "#fff7dd",
-              fontSize: "clamp(2rem,4vw,3.5rem)",
-              lineHeight: 0.95,
-            }}
-          >
-            {creature.nickname}
-          </h2>
-          <p>
-            {egg.parents.giver.displayName} × {egg.parents.receiver.displayName} • {lineageLabel}
-          </p>
-        </div>
-        <SharedCreatureDetail creature={creature} mode="full" showActions={false} />
-        <section className={styles.notesPanel}>
-          <h3>Roll Notes</h3>
-          <ul>
-            {notes.length ? (
-              notes.map((note, index) => <li key={`${index}-${note}`}>{note}</li>)
-            ) : (
-              <li>No additional roll notes recorded.</li>
-            )}
-          </ul>
-        </section>
-        <div
-          className={styles.hatchControls}
-          style={{ gridTemplateColumns: "minmax(220px,1fr) auto" }}
-        >
-          <input
-            value={renameValue}
-            onChange={(event) => onRenameValueChange(event.target.value)}
-            maxLength={24}
-            placeholder={creature.nickname}
-            aria-label="Rename hatchling before confirming"
-          />
-          <button type="button" onClick={onConfirm}>
-            Confirm Hatchling
-          </button>
-        </div>
-        <div style={revealActionsStyle}>
-          <button type="button" onClick={onConfirm}>
-            Confirm
-          </button>
-        </div>
-      </section>
+  return <GameDialog title={`${creature.nickname} hatched!`} onClose={onConfirm} wide>
+    <div className={styles.reveal}><img className={styles.hatchPortrait} src={getVariantDefinition(creature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${creature.nickname} portrait`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /><p>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName} · {lineageLabel}</p>
+      <SharedCreatureDetail creature={creature} mode="full" showActions={false} dossier />
+      <details><summary>Roll Notes</summary><ul>{notes.length ? notes.map((note,index) => <li key={`${index}-${note}`}>{note}</li>) : <li>No additional roll notes recorded.</li>}</ul></details>
+      <div className={styles.hatchControls}><label>Hatchling name<input value={renameValue} onChange={event => onRenameValueChange(event.target.value)} maxLength={24} placeholder={creature.nickname} /></label><button type="button" onClick={onConfirm}>Confirm Hatchling</button></div>
     </div>
-  );
+  </GameDialog>;
 }

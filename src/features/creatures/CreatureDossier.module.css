@@ -1,0 +1,12 @@
+.dossier {overflow:visible!important;}
+.dossier :is(p,h2,h3,h4,strong,span,small,label,li,b,em) {color:#49341d!important;text-shadow:none!important;overflow-wrap:anywhere;}
+.dossier :is(p,li,label) {font-size:.88rem!important;line-height:1.5!important;font-weight:400!important;}
+.dossier :is(section,article,nav) {background:#e6d7ad44!important;border-color:#a78a5655!important;border-radius:4px!important;}
+.dossier section {overflow:visible!important;}
+.dossier nav {gap:4px!important;padding:6px!important;}
+.dossier nav button {border:1px solid #a78a56!important;border-radius:3px!important;background:#ecdfbb!important;color:#49341d!important;min-height:44px;font:700 .85rem Georgia,serif!important;}
+.dossier nav button[aria-pressed=true] {background:#526b3d!important;color:#fff2cc!important;}
+.dossier [style*="minmax(280px"] {grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))!important;}
+.dossier [style*="grid-template-columns: repeat(2"] {grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important;}
+.dossier svg text {fill:#49341d;}
+.dossier svg line,.dossier svg polygon[fill=none] {stroke:#9a814d77;}

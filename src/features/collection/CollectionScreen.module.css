@@ -743,3 +743,78 @@ button:disabled {
 @media (max-width: 1180px) {
   .screen { display: block; height: 100dvh; overflow-y: auto; }
 }
+/* Approved portrait-and-dossier interior. Core owns the layout and scroll surface. */
+.interior {background-image:linear-gradient(#3a2c131a,#3a2c1333),url('/images/ui/ranch-v2/homestead.webp');}
+.rosterPage {display:grid;gap:12px;}
+.interior .summaryStrip {display:flex;flex-wrap:wrap;gap:18px;padding:12px 20px;background:#eddfb7 url('/images/ui/ranch-v2/parchment.webp') center/100% 100%;border:1px solid #987647;border-radius:4px;}
+.interior .summaryPill {display:flex;gap:9px;align-items:center;border:0;background:none;padding:0;color:#49341d;}
+.interior .summaryPill span,.interior .summaryPill strong,.interior .resultCount {color:#49341d;font-size:.88rem;}
+.interior .toolbar {display:flex;flex-wrap:wrap;gap:8px;padding:12px;}
+.interior .toolbar input {flex:2 1 220px;}
+.interior .toolbar select {flex:1 1 125px;}
+.interior .advancedFilters {background:#e9dab7;border:1px solid #99784b;color:#49341d;}
+.interior .advancedFilters span {color:#49341d;}
+.interior .contentGrid {display:grid;grid-template-columns:minmax(280px,.8fr) minmax(0,1.7fr);gap:18px;min-height:0;overflow:visible;align-items:start;}
+.interior .listPanel,.interior .detailPanel {height:auto;min-height:0;overflow:visible;display:grid;gap:14px;}
+.interior .listHeader {padding:0;border:0;}
+.interior .listHeader h2 {color:#49341d;text-shadow:none;}
+.interior .viewButtons {flex-wrap:wrap;gap:6px;}
+.interior .viewButtons button {min-height:44px;font-size:.85rem;}
+.interior .creatureList {display:grid;gap:8px;overflow:visible;max-height:none;padding:0;}
+.interior .creatureCard {display:block;position:relative;background:#f7eccb66;border:1px solid #ab8e5c66;border-radius:4px;overflow:visible;box-shadow:none;}
+.interior .selectedCard {border:2px solid #566f3b;box-shadow:inset 4px 0 #566f3b;background:#d6d9b366;}
+.interior .cardMain {display:grid;grid-template-columns:70px minmax(0,1fr);gap:12px;width:100%;text-align:left;padding:12px 10px;background:none;border:0;border-radius:0;box-shadow:none;}
+.interior .cardMain>img {width:70px;height:90px;object-fit:cover;object-position:top;border:1px solid #a48651;border-radius:4px;background:#d9c794;}
+.interior .cardText {display:grid;gap:3px;align-content:start;color:#49341d;white-space:normal;overflow:visible;}
+.interior .cardText strong {font:700 1.1rem Georgia,serif;color:#49341d;text-shadow:none;}
+.interior .cardText span,.interior .cardText small {color:#755c3c;font-size:.78rem;line-height:1.4;font-weight:400;}
+.interior .cardText em {color:#4b6838;background:none;border:0;padding:0;font-size:.8rem;font-style:normal;}
+.interior .cardText .energyTrack {height:6px;background:#c9b887;border-radius:5px;display:block;overflow:hidden;}
+.energyTrack>span {height:100%;display:block;background:#657d42;}
+.interior .cardMetrics,.interior .roleBadges {display:flex;flex-wrap:wrap;}
+.interior .cardMetrics b,.interior .roleBadges i {background:#e3d5b0;color:#594322;border-color:#ab8e5c66;font-size:.7rem;}
+.interior .cardIcons {display:flex;justify-content:flex-end;padding:0 8px 6px;gap:3px;}
+.interior .cardIcons button {min-height:28px;width:28px;background:none;border:0;box-shadow:none;}
+.interior .compareCheck {position:static;display:flex;background:#d6d9b3;color:#49341d;border-radius:0;padding:6px 12px;font-size:.85rem;}
+.interior .compareCheck input {min-height:20px;}
+.interior .compareCheck+.cardMain {padding-top:12px;}
+.interior .identity {display:grid;grid-template-columns:minmax(150px,.75fr) minmax(0,1fr);gap:22px;}
+.identity>img {width:100%;height:310px;object-fit:cover;object-position:top;border:5px solid #b38e53;border-radius:6px;box-shadow:0 3px 9px #58412444;}
+.identity h2 {font-size:2rem;margin:3px 0;}
+.identity p {margin:4px 0 12px;font-size:.88rem;}
+.status {display:inline-block;padding:3px 10px;background:#d3d9b1;border:1px solid #8f9c6c;border-radius:3px;font-size:.85rem;}
+.resources {display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0;}
+.resources>div {display:grid;gap:2px;}
+.resources span,.coreStats span {font-size:.76rem;color:#755c3c;}
+.resources strong {font-size:.9rem;}
+.resources progress {width:100%;height:8px;accent-color:#657d42;}
+.coreStats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.coreStats>div {display:grid;padding:6px 8px;border:1px solid #ab8e5c55;background:#ead9aa66;border-radius:3px;}
+.coreStats strong {font-size:1.12rem;}
+.coreStats small {font-size:.7rem;font-weight:400;}
+.interior .quickActions {border-top:1px solid #ab8e5c66;padding-top:12px;}
+.interior .quickActions button {min-width:0;}
+.interior .feedback {font-size:.82rem;color:#755c3c;margin:0;}
+.interior .noResults,.interior .noSelection {min-height:120px;color:#49341d;}
+.interior .compareBar {background:#e3d7b0;border:1px solid #8b9761;color:#49341d;}
+.interior button.activeButton {border-color:#4b6134!important;background:#566e40!important;color:#fff2cf!important;}
+.interior .compareModal {overflow:auto;color:#fff7dd;}
+.interior .compareModal h2,.interior .compareModal h3 {color:#fff2cf;}
+@media(max-width:900px) {.interior .contentGrid {grid-template-columns:1fr;} .interior .creatureList {grid-template-columns:repeat(2,minmax(0,1fr));} .identity>img{height:280px;}}
+@media(max-width:560px) {.interior .creatureList {grid-template-columns:1fr;} .interior .identity {grid-template-columns:100px minmax(0,1fr);gap:12px;} .identity>img{height:150px;} .identity h2 {font-size:1.65rem;} .resources {grid-template-columns:1fr;gap:6px;} .coreStats{grid-template-columns:repeat(2,minmax(0,1fr));} .interior .summaryStrip {gap:8px 16px;} .interior .toolbar select {flex-basis:40%;} .compareColumns{grid-template-columns:1fr;} .compareStats>div:not(.talentCompare){grid-template-columns:minmax(70px,1fr) repeat(2,minmax(60px,1fr));} }
+.interior .summaryStrip {background-size:150% 150%;}
+.interior .listPanel {grid-template-rows:auto auto auto;}
+.interior .detailPanel {grid-template-rows:none;}
+.interior .toolbar button,.interior .quickActions button {background:linear-gradient(#f7edcf,#ddc493);border:1px solid #997847;border-radius:4px;box-shadow:none;min-height:44px;}
+.interior .toolbar input,.interior .toolbar select {border:1px solid #aa8c5e;border-radius:4px;font-weight:400;}
+.interior .cardText * {text-shadow:none;}
+.detailPanel>.mobileBack {display:none;}
+.comparison :is(h2,h3,p,span,strong,dt,dd) {color:#49341d!important;text-shadow:none;}
+.comparison :is(article,.compareIdentity,.roleSummary,.pairSummary) {background:#e4d2a344;border:1px solid #ac905955;border-radius:4px;}
+.comparison .compareIdentity>img {height:200px;object-fit:contain;background:#dac69755;}
+.comparison .higherValue {color:#446333!important;}
+@media(max-width:900px) {.contentGrid[data-detail=true]>.listPanel,.contentGrid[data-detail=false]>.detailPanel {display:none;}.detailPanel>.mobileBack{display:block;justify-self:start;}}
+.identity>img {grid-row:1/3;}
+.identity>.coreStats {grid-column:2;}
+@media(max-width:900px) {.interior[data-profile-open=true] :is(.toolbar,.advancedFilters,.summaryStrip){display:none;}}
+@media(max-width:560px) {.identity>img{grid-row:1;}.identity>.coreStats{grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr));}.resources{margin-bottom:0;}}

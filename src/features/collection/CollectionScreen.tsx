@@ -25,6 +25,8 @@ import { SharedCreatureDetail, SHARED_STAT_LABELS } from "@/features/creatures/C
 import { useGameContext } from "@/state/GameProvider";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
+import { GameDialog } from "@/features/ui/GameDialog";
+import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./CollectionScreen.module.css";
 
 const FAMILY_OPTIONS = [
@@ -92,6 +94,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     saveCurrentGame,
     toggleCreatureLock,
   } = useGameContext();
+  const [showDossier, setShowDossier] = useState(false);
   const [filters, setFilters] = useState<CreatureManagementFilters>(
     DEFAULT_CREATURE_MANAGEMENT_FILTERS,
   );
@@ -294,41 +297,15 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   }
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <header className={styles.header}>
+    <main className={`${ui.interior} ${styles.interior}`} data-profile-open={showDossier}>
+      <section className={`${ui.page} ${styles.rosterPage}`}>
+        <header className={ui.heading}>
           <div>
             <p className={styles.kicker}>Creature Management</p>
             <h1>Ranch Roster</h1>
-            <p>{message}</p>
+
           </div>
           <div className={styles.headerActions}>
-            <div className={styles.viewButtons}>
-              <button
-                type="button"
-                className={viewMode === "compact" ? styles.activeButton : ""}
-                onClick={() => setViewMode("compact")}
-              >
-                Compact
-              </button>
-              <button
-                type="button"
-                className={viewMode === "cards" ? styles.activeButton : ""}
-                onClick={() => setViewMode("cards")}
-              >
-                Cards
-              </button>
-              <button
-                type="button"
-                className={compareMode ? styles.activeButton : ""}
-                onClick={() => {
-                  setCompareMode((current) => !current);
-                  setCompareIds([]);
-                }}
-              >
-                Compare
-              </button>
-            </div>
             <ScreenNavigation>{headerLinks}</ScreenNavigation>
           </div>
         </header>
@@ -344,14 +321,16 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
           </span>
         </section>
 
-        <section className={styles.toolbar}>
+        <section className={`${ui.paper} ${styles.toolbar}`}>
           <input
+            aria-label="Search creatures"
             type="search"
             value={filters.search}
             placeholder="Search name, species, or variant..."
             onChange={(event) => patchFilters({ search: event.target.value })}
           />
           <select
+            aria-label="Family filter"
             value={filters.family}
             onChange={(event) =>
               patchFilters({
@@ -365,6 +344,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             ))}
           </select>
           <select
+            aria-label="Status filter"
             value={filters.status}
             onChange={(event) =>
               patchFilters({
@@ -377,6 +357,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             ))}
           </select>
           <select
+            aria-label="Sort creatures"
             value={sortMode}
             onChange={(event) => setSortMode(event.target.value as CreatureSortMode)}
           >
@@ -504,10 +485,10 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
           </section>
         ) : null}
 
-        {compareMode && compareIds.length ? (
+        {compareMode ? (
           <section className={styles.compareBar}>
             <strong>
-              {compareCreatures.map((creature) => creature.nickname).join(" · ")}
+              {compareIds.length ? compareCreatures.map((creature) => creature.nickname).join(" · ") : "Choose two creatures to compare"}
             </strong>
             <span>{compareIds.length}/2 selected</span>
             <button type="button" onClick={() => setCompareIds([])}>Clear</button>
@@ -524,11 +505,37 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
           </section>
         ) : null}
 
-        <section className={styles.contentGrid}>
-          <aside className={styles.listPanel}>
+        <section className={styles.contentGrid} data-detail={showDossier}>
+          <aside className={`${ui.paper} ${styles.listPanel}`}>
             <div className={styles.listHeader}>
               <h2>Creatures</h2>
-              <img src={COLLECTION_ASSETS.sortFilter} alt="" />
+
+            </div>
+            <div className={styles.viewButtons}>
+              <button
+                type="button"
+                className={viewMode === "compact" ? styles.activeButton : ""}
+                onClick={() => setViewMode("compact")}
+              >
+                Compact
+              </button>
+              <button
+                type="button"
+                className={viewMode === "cards" ? styles.activeButton : ""}
+                onClick={() => setViewMode("cards")}
+              >
+                Cards
+              </button>
+              <button
+                type="button"
+                className={compareMode ? styles.activeButton : ""}
+                onClick={() => {
+                  setCompareMode((current) => !current);
+                  setCompareIds([]);
+                }}
+              >
+                Compare
+              </button>
             </div>
             <div className={`${styles.creatureList} ${viewMode === "cards" ? styles.cardView : ""}`}>
               {visibleCreatures.length ? (
@@ -559,11 +566,12 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                       ) : null}
                       <button
                         type="button"
+                        aria-pressed={compareMode ? isCompared : isSelected}
                         className={styles.cardMain}
                         onClick={() =>
                           compareMode
                             ? toggleCompareSelection(creature)
-                            : selectCreature(creature)
+                            : (selectCreature(creature), setShowDossier(true))
                         }
                       >
                         <img
@@ -581,7 +589,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                             {variant.name} {species.name} · Lv {creature.level} · {displaySex(status.sex)}
                           </span>
                           <em>{status.primaryStatus}</em>
-                          <div className={styles.cardMetrics}>
+                          <span className={styles.energyLabel}>Energy {creature.energy}/{creature.maxEnergy}</span><span className={styles.energyTrack}><span style={{width: `${status.energyPercent}%`}} /></span>
+                          {viewMode === "cards" ? <><div className={styles.cardMetrics}>
                             <b>Energy {status.energyPercent}%</b>
                             <b>Aff {creature.affection}</b>
                             <b>FER {creature.stats.FER}/{creature.statGrades.FER}</b>
@@ -594,6 +603,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                               Receiver {roleLabel(status.receiverEligible, status.receiverBlockedReason)}
                             </i>
                           </div>
+                          </> : null}
                           {viewMode === "cards" ? (
                             <small>{formatLastBred(status.daysSinceBred)} · {status.rarity} · Gen {creature.generation}</small>
                           ) : null}
@@ -629,22 +639,17 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             </div>
           </aside>
 
-          <section className={styles.detailPanel}>
+          <section className={`${ui.paper} ${styles.detailPanel}`}>
             {selectedCreature ? (
               <>
-                <div className={styles.quickActions}>
-                  <button type="button" onClick={() => openBreedingForCreature(selectedCreature)}>
-                    Breeding
-                  </button>
-                  <button type="button" onClick={() => openHabitat(selectedCreature)}>
-                    Habitat
-                  </button>
-                  <button type="button" onClick={() => openInventory(selectedCreature)}>
-                    Inventory
-                  </button>
-                  <button type="button" onClick={() => beginCompareWith(selectedCreature)}>
-                    Compare
-                  </button>
+                <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
+                <div className={styles.identity}>
+                  <img src={getVariantDefinition(selectedCreature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${selectedCreature.nickname} portrait`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
+                  <div><p className={ui.eyebrow}>{getVariantDefinition(selectedCreature.variantId).rarity} · Level {selectedCreature.level}</p><h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2><p>{getVariantDefinition(selectedCreature.variantId).name} {getSpeciesDefinition(selectedCreature.speciesId).name}</p>
+                    <span className={styles.status}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</span>
+                    <div className={styles.resources}><div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div><div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div></div>
+                  </div>
+                    <div className={styles.coreStats}>{STAT_KEYS.map(stat => <div key={stat}><span>{SHARED_STAT_LABELS[stat]}</span><strong>{selectedCreature.stats[stat]} <small>{selectedCreature.statGrades[stat]}</small></strong></div>)}</div>
                 </div>
                 <SharedCreatureDetail
                   creature={selectedCreature}
@@ -657,8 +662,23 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                   onDonate={() => setConfirmMode("donate")}
                   bestStatLabels={getBestStatLabels(selectedCreature)}
                   statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
-                  fitViewport
+                  dossier
                 />
+                <div className={styles.quickActions}>
+                  <button type="button" onClick={() => openBreedingForCreature(selectedCreature)}>
+                    Breeding
+                  </button>
+                  <button type="button" onClick={() => openHabitat(selectedCreature)}>
+                    Habitat
+                  </button>
+                  <button type="button" onClick={() => openInventory(selectedCreature)}>
+                    Inventory
+                  </button>
+                  <button type="button" onClick={() => {beginCompareWith(selectedCreature);setShowDossier(false);}}>
+                    Compare
+                  </button>
+                </div>
+                <p className={styles.feedback} role="status">{message}</p>
               </>
             ) : (
               <div className={styles.noSelection}>No creature selected.</div>
@@ -679,24 +699,10 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       ) : null}
 
       {confirmMode && selectedCreature ? (
-        <div className={styles.modalBackdrop} role="presentation" onClick={() => setConfirmMode(null)}>
-          <section className={styles.confirmModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className={styles.closeButton} onClick={() => setConfirmMode(null)}>×</button>
-            <img src={confirmMode === "donate" ? COLLECTION_ASSETS.donate : COLLECTION_ASSETS.release} alt="" />
-            <h2>{confirmMode === "donate" ? "Donate Creature?" : "Release Creature?"}</h2>
-            <p>
-              {selectedCreature.isLocked
-                ? `${selectedCreature.nickname} is locked. Unlock them first.`
-                : `This will remove ${selectedCreature.nickname} from your ranch.`}
-            </p>
-            <div className={styles.modalActions}>
-              <button type="button" onClick={() => setConfirmMode(null)}>Cancel</button>
-              <button type="button" disabled={selectedCreature.isLocked} onClick={handleConfirmedAction}>
-                {confirmMode === "donate" ? "Donate" : "Release"}
-              </button>
-            </div>
-          </section>
-        </div>
+        <GameDialog title={confirmMode === "donate" ? "Donate Creature?" : "Release Creature?"} onClose={() => setConfirmMode(null)}>
+          <p>{selectedCreature.isLocked ? `${selectedCreature.nickname} is locked. Unlock them first.` : `This will permanently remove ${selectedCreature.nickname} from your ranch.`}</p>
+          <div className={ui.actionRow}><button type="button" onClick={() => setConfirmMode(null)}>Cancel</button><button type="button" disabled={selectedCreature.isLocked} onClick={handleConfirmedAction}>{confirmMode === "donate" ? "Donate" : "Release"}</button></div>
+        </GameDialog>
       ) : null}
     </main>
   );
@@ -776,13 +782,8 @@ function CompareOverlay({
   const pair = getPairManagementSummary(save, a, b);
 
   return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
-      <section className={styles.compareModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-        <button type="button" className={styles.closeButton} onClick={onClose}>×</button>
-        <header>
-          <p className={styles.kicker}>Creature Comparison</p>
-          <h2>{a.nickname} × {b.nickname}</h2>
-        </header>
+    <GameDialog title={`${a.nickname} × ${b.nickname}`} onClose={onClose} wide>
+      <div className={styles.comparison}>
         <nav className={styles.compareTabs}>
           {(["overview", "stats", "breeding"] as CompareTab[]).map((tab) => (
             <button
@@ -790,6 +791,7 @@ function CompareOverlay({
               type="button"
               className={activeTab === tab ? styles.activeButton : ""}
               onClick={() => onTabChange(tab)}
+              aria-pressed={activeTab === tab}
             >
               {tab === "stats" ? "Stats & Talents" : tab[0].toUpperCase() + tab.slice(1)}
             </button>
@@ -841,8 +843,8 @@ function CompareOverlay({
             </div>
           </div>
         ) : null}
-      </section>
-    </div>
+      </div>
+    </GameDialog>
   );
 }
 

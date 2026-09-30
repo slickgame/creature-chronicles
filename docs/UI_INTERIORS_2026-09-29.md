@@ -2,7 +2,7 @@
 
 ## User request and approval state
 
-The user requested work on overlapping Menu/Back controls, clipped Chores helper details and competing warnings, roster portrait/stat hierarchy, Nursery empty space/timers/actions, and a consistent parchment/wood/icon style. Continue the user's established concept-first workflow: concrete overlap and clipping fixes are implemented now; the broader visual concepts below require selection/approval before implementation. Keep PR #21 draft and unmerged.
+The user requested work on overlapping Menu/Back controls, clipped Chores helper details and competing warnings, roster portrait/stat hierarchy, Nursery empty space/timers/actions, and a consistent parchment/wood/icon style. The user approved the recommended Chores B ledger, portrait-and-dossier roster, and readiness-first Nursery. These are now implemented, following the earlier navigation repairs. Keep PR #21 draft and unmerged.
 
 ## Implemented layout repairs
 
@@ -12,7 +12,7 @@ The user requested work on overlapping Menu/Back controls, clipped Chores helper
 - Helper thumbnails now use existing portraits, with an image fallback. Text sits beside a bounded portrait and wraps fully; helper-selection rows also wrap on phones. No chore calculations, assignments or save format changed.
 - Roster and Nursery own page scrolling on narrow screens. Nursery empty-state content retains its intrinsic height rather than collapsing under the global full-height frame rule.
 
-## Proposed visual pass
+## Approved visual pass
 
 | Concept | Direction | Assessment |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ The user requested work on overlapping Menu/Back controls, clipped Chores helper
 | [Roster — Portrait & Dossier](https://drive.google.com/file/d/1_dzhtmY_1jQvbgN0KGc3F4IfrRRIVfgO/view?usp=drivesdk) | Portrait/name/status list and larger selected profile; core stats first, existing deeper tabs retained. | Removes duplicated badges and makes comparison an explicit mode. |
 | [Nursery — Readiness First](https://drive.google.com/file/d/1WEmPy6wicZCNNLpPrB3F3e8p9ddjL6vs/view?usp=drivesdk) | Ready/incubating/pregnancy summaries, compact egg list, Hatch near the top, history and inheritance secondary. | Removes oversized empty columns and surfaces the next useful action. |
 
-All concepts share warm parchment, dark readable text, walnut/brass frames, green primary controls and the approved icon style. Generate clean backgrounds only after selection; keep all controls, labels, portraits and live values in code. Do not implement the concept images as static screens.
+All concepts share warm parchment, dark readable text, walnut/brass frames, green primary controls and the approved icon style. Clean background plates were generated after approval. All controls, labels, portraits and live values remain in code; concept images are not used as static screens.
 
 ## Data and behavior rules for implementation
 
@@ -84,3 +84,27 @@ Use case: ui-mockup. Asset type: high-fidelity proposed Creature Chronicles inte
 ```text
 Use case: precise-object-edit. Edit image 1, the Creature Chronicles Nursery UI concept. Preserve the entire layout, painted nursery, parchment/wood style, egg artwork, panels, sizes and all other content exactly. Correct ONLY the two parent portrait thumbnails in the Parents row: replace the bird on the left labelled Rook with the exact cropped canine portrait from image 2; replace the bird on the right labelled Mira with the exact cropped black feline portrait from image 3. These are existing game characters; do not redesign them or add bodies. Also collapse the two Release Egg and Donate Egg buttons into one discreet wood button reading 'Other Actions ▾', positioned at the lower right where those two buttons were. Remove the now-duplicate Other Actions text on the lower left, retaining that lower row's breathing room. Hatch remains the prominent primary action. Do not change any egg, title, timer, readiness label, parent name, tab or background. No new text or characters.
 ```
+
+
+## Approved implementation — 30 September 2026
+
+- Shared `InteriorShell` provides wood headers, parchment surfaces, green actions, readable brown text and page scrolling. Its background samples the center of the existing parchment asset so decorative frame edges cannot cover text. Chores and Nursery use new clean room plates; the roster uses the existing ranch scenery.
+- Chores B separates the five-task list from the active crew workspace. It preserves all five plans, actual energy costs, projections and three-helper capacity. Assigned helpers can be removed; recommendations and available helpers have explicit Assign actions, full skill text and expandable stat fit. All unavailable helpers and reasons remain accessible. A capacity guard prevents a fourth assignment from silently removing another assignment. The Assigned denominator is the actual creature count. About now explains chores, and the overnight warning has a separate disclosure.
+- The roster keeps all filters, sorting, Compact/Cards modes, favorites, locks, breeding/habitat/inventory routes and comparison features. The selected profile has a prominent existing portrait, energy/affection bars, six core stats and existing detail tabs. Compact rows omit repeated role badges. Comparison and destructive confirmations use the shared native dialog with Escape and focus handling. The obsolete polished wrapper no longer overrides the core layout.
+- Nursery sorts ready eggs first, shows real capacity/readiness counts, and moves name/Hatch above parent information and disclosures. Pregnancies and Birth History have explicit sections. Projected stats, abilities, lineage and inheritance remain accessible. Incubation progress uses the existing day timer; text explains that sleeping advances timers. Release/donate require confirmation. Empty Nursery has a compact explanation and working Breeding route. Hatch results retain the offspring portrait, tabs, renaming and birth record.
+- Phone layouts use list/detail navigation with All Chores, All Creatures and All Eggs. The roster hides list filters while viewing a dossier; its six stats use the full panel width. Ready eggs open directly to their action panel. Desktop retains simultaneous list and detail panels.
+- Shared creature details receive an opt-in dossier presentation; unrelated consumers retain their existing layout. No gameplay balance, save schema, progression, tutorial or sleep behavior changes are introduced.
+
+### Background provenance
+
+The approved Chores B and corrected Nursery concepts were edited into clean timber-room plates with every UI panel, label, control and character removed. Generated sources: `exec-38b6adba-1119-438e-bc00-0463b17b22b4.png` (Chores), `exec-dc6bc254-66ba-4f3c-83a0-15dd1a326023.png` (Nursery). Runtime assets: `public/images/ui/interiors-v1/chores.webp` (286,484 bytes) and `nursery.webp` (373,572 bytes), both 1672×941. They are decorative scenery; real counters and portraits are rendered separately. Existing creature portraits are reused without alteration.
+
+Exact clean-plate prompt template (Chores / Nursery substitutions):
+
+> Create a clean game background plate from this approved [ranch chores workroom / nursery] concept. Keep the same painterly cozy fantasy timber interior, warm honey brown wood, soft daylight, botanical accents and perspective. REMOVE EVERY UI element: all panels, parchment sheets, titles, text, buttons, counters, portraits, icons, overlays, borders. Reconstruct the room behind them naturally. No people, no creatures, no lettering, no symbols, no UI. Wide landscape 16:9, richly detailed at edges, subdued quiet center suitable for UI overlay. [Ranch workroom with wooden shelves, tools, sacks, baskets and leafy window views at edges. / Nursery with wooden shelving, folded blankets and modest straw nests at edges, gentle window light.]
+
+### Approved-pass validation
+
+Production Next.js build and TypeScript pass. All 141 regression tests pass. Targeted ESLint has no errors; existing raw-image, effect/state and memoization warnings remain. Production Chromium checks cover 1440×960, 768×960, 390×844 and 360×844, with no horizontal control overflow or browser exceptions. Checks exercise three-helper capacity, remove/reassign and Balanced Plan; search, advanced filters, comparison, detail tabs and cancellation of creature removal; ready/incubating eggs, pregnancy timers, cancellation of egg removal, exactly one hatch and a permanent birth record. Menu/Escape/focus return and Back to Ranch work from all three screens. The empty Nursery route was also checked. Synthetic review saves are used only in the browser harness, not shipped in the game.
+
+Screenshots of the running screens are saved beside the approved concepts in the UI review folder. The preview remains a draft branch deployment; no merge or production deployment.
