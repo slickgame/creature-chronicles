@@ -1,1364 +1,160 @@
 "use client";
-import { useNavigation } from "@/features/navigation/NavigationContext";
 
-import { useMemo, useState } from "react";
-import {
-  EGG_ATELIER_EGG_OFFERS,
-  EGG_ATELIER_UPGRADES,
-  SELENE_VIRELL,
-  applyAbilityPolish,
-  applyAcceleratedIncubation,
-  applyStatConditioning,
-  buyEggFromSelene,
-  canBuyEggOffer,
-  donateEggToResearch,
-  getEggAtelierAbilityPolishChance,
-  getEggAtelierEggLabel,
-  getEggAtelierServiceCost,
-  getEggAtelierStatConditioningChance,
-  getEggAtelierUpgradeEffects,
-  getEggSaleValue,
-  getNurserySupplyKitCount,
-  hasEggAtelierServiceUsed,
-  hasEggAtelierUpgrade,
-  purchaseEggAtelierUpgrade,
-  sellEggToSelene,
-} from "@/data/eggAtelier";
-import { NURSERY_ASSETS, getLineageRiskLabel } from "@/data/nursery";
-import {
-  getNpcNextUnlock,
-  getNpcTrustRecord,
-  getNpcTrustSummary,
-} from "@/data/townNpcs";
-import { getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
-import {
-  QUICKHATCH_CATALYST,
-  getQuickhatchCatalystCount,
-} from "@/data/tutorialQuickhatch";
-import { formatGold } from "@/lib/formatters";
+import { useEffect, useRef, useState } from "react";
+import { SELENE_VIRELL, EGG_ATELIER_EGG_OFFERS, EGG_ATELIER_UPGRADES, applyAcceleratedIncubation, applyAbilityPolish, applyStatConditioning, buyEggFromSelene, purchaseEggAtelierUpgrade, sellEggToSelene, donateEggToResearch, getNurserySupplyKitCount, getEggAtelierServiceCost, getEggAtelierAbilityPolishChance, getEggAtelierStatConditioningChance, getEggAtelierUpgradeEffects, getEggSaleValue, canBuyEggOffer, hasEggAtelierUpgrade, hasEggAtelierServiceUsed } from "@/data/eggAtelier";
+import type { EggAtelierServiceId, EggAtelierEggOfferId, EggAtelierUpgradeId } from "@/data/eggAtelier";
+import { getNpcTrustRecord, getNpcTrustSummary, getNpcNextUnlock } from "@/data/townNpcs";
+import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
+import { getQuickhatchCatalystCount } from "@/data/tutorialQuickhatch";
+import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { GameDialog } from "@/features/ui/GameDialog";
+import { RanchIcon } from "@/features/ui/RanchIcon";
 import { useGameContext } from "@/state/GameProvider";
 import type { EggId } from "@/types/ids";
-import type { EggRecord, GameSave } from "@/types/save";
-import styles from "./EggAtelierScreen.module.css";
+import type { EggRecord } from "@/types/save";
+import ui from "@/features/ui/InteriorShell.module.css";
+import styles from "./SunlitIncubator.module.css";
 
-const ICONS = {
-  clinic: "/images/ui/icons/icon_egg.png",
-  egg: NURSERY_ASSETS.egg,
-  hatch: NURSERY_ASSETS.hatch,
-  price: "/images/ui/icons/icon_price_tag.png",
-  kit: "/images/ui/icons/icon_nursery_upgrade.png",
-  selene: SELENE_VIRELL.portraitPath,
-  furniture: "/images/ui/icons/icon_sleep_recovery.png",
-  incubatorTable: "/images/props/town/egg_atelier_incubator_table.png",
-  furnitureCatalog: "/images/props/town/egg_atelier_furniture_catalog.png",
-  eggRegistry: "/images/props/town/egg_atelier_egg_registry.png",
-  ledger: "/images/ui/icons/icon_parent_compare.png",
-  timer: "/images/ui/icons/icon_timer_hourglass.png",
-  polish: "/images/ui/icons/icon_quality_screening.png",
-  stat: "/images/ui/icons/icon_stat_growth.png",
-  care: "/images/ui/icons/icon_hatch.png",
-} as const;
-
-const SELENE_GREETING =
-  "Welcome in. Set the egg gently on the padded table, not the counter. I can appraise, condition, polish, register, or sell you a carefully documented placement egg.";
-
-type AtelierMode =
-  | "interior"
-  | "services"
-  | "eggs"
-  | "furniture"
-  | "talk"
-  | "trust";
-
-function getEggSubtitle(egg: EggRecord): string {
-  const variant = getVariantDefinition(egg.variantId);
-  const species = getSpeciesDefinition(egg.speciesId);
-  return `${variant.name} ${species.name} • ${
-    egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)
-  }`;
+type Mode = "care" | "offers" | "upgrades";
+type Popup = "talk" | "trust" | "appraisal" | "more" | "review" | "result" | null;
+type Action = { kind: "service"; id: EggAtelierServiceId; eggId: EggId } | { kind: "offer"; id: EggAtelierEggOfferId } | { kind: "upgrade"; id: EggAtelierUpgradeId } | { kind: "sell"; eggId: EggId } | { kind: "donate"; eggId: EggId };
+const EGG_ART = "/images/ui/interiors-v1/atelier-egg.webp";
+const SERVICES: { id: EggAtelierServiceId; name: string; short: string; icon: string }[] = [
+  { id: "accelerated_incubation", name: "Accelerated Incubation", short: "Reduce timer by 1 day", icon: "/images/ui/icons/icon_timer_hourglass.png" },
+  { id: "ability_polish", name: "Ability Polish", short: "Once per egg", icon: "/images/ui/icons/icon_quality_screening.png" },
+  { id: "stat_conditioning", name: "Stat Conditioning", short: "Once per egg", icon: "/images/ui/icons/icon_stat_growth.png" },
+];
+function serviceStatus(block: string | undefined, fallback: string) {
+  if (!block) return fallback;
+  if (block.startsWith("Need ")) return "Insufficient supplies";
+  if (block.startsWith("Requires ")) return "Cradle required";
+  if (block.startsWith("Already ready")) return "Ready to hatch";
+  if (block.startsWith("Already used")) return "Already used";
+  if (block.startsWith("No projected")) return "No ability to polish";
+  if (block.includes("already")) return "Maximum grade";
+  return block;
 }
-
-function getBestStatLabel(egg: EggRecord): string {
-  const entries = Object.entries(egg.projectedStatGrades);
-  const order = ["F", "D", "C", "B", "A", "S"];
-  const best = entries.sort(
-    (a, b) => order.indexOf(b[1]) - order.indexOf(a[1]),
-  )[0];
-  return best ? `${best[0]} Grade ${best[1]}` : "No projected grade";
-}
-
-function getStatLine(egg: EggRecord): string {
-  return Object.entries(egg.projectedStatGrades)
-    .map(([key, grade]) => `${key} ${grade}`)
-    .join(" • ");
-}
-
-function getAbilityLine(egg: EggRecord): string {
-  return egg.projectedAbilities.length
-    ? egg.projectedAbilities
-        .map((ability) => `${ability.name} ${ability.grade}`)
-        .join(" • ")
-    : "No projected inherited ability";
-}
-
-function AtelierHeader({
-  save,
-  kitCount,
-  message,
-  onTown,
-  onRanch,
-  onMenu,
-}: {
-  save: GameSave;
-  kitCount: number;
-  message: string;
-  onTown: () => void;
-  onRanch: () => void;
-  onMenu: () => void;
-}) {
-  return (
-    <header className={styles.header}>
-      <div className={styles.headerTitleRow}>
-        <div className={styles.locationCrest} aria-hidden="true">
-          <img src={ICONS.egg} alt="" />
-        </div>
-        <div>
-          <p className={styles.kicker}>M44 Egg Atelier Interior</p>
-          <h1>The Egg Atelier</h1>
-          <p className={styles.headerDescription}>
-            {SELENE_VIRELL.name}, {SELENE_VIRELL.title}, offers specialist egg
-            care without replacing the ranch nursery.
-          </p>
-          <p className={styles.message}>{message}</p>
-        </div>
-      </div>
-
-      <div className={styles.headerActions}>
-        <div className={styles.statBox}>
-          <span>Gold</span>
-          <strong>{save.currencies.gold.toLocaleString()}</strong>
-        </div>
-        <div className={styles.statBox}>
-          <span>Nursery Kits</span>
-          <strong>{kitCount}</strong>
-        </div>
-        <button type="button" className={styles.menuButton} data-navigation-launcher onClick={onMenu}>
-          <span className={styles.menuGlyph}>☰</span>
-          Menu
-        </button>
-        <button type="button" className={styles.headerButton} onClick={onTown}>
-          Back to Town
-        </button>
-        <button type="button" className={styles.headerButton} onClick={onRanch}>
-          Ranch Nursery
-        </button>
-      </div>
-    </header>
-  );
-}
-
-function SelenePortrait({ compact = false }: { compact?: boolean }) {
-  if (compact) {
-    return (
-      <div className={styles.sidePortrait}>
-        <img
-          src={ICONS.selene}
-          alt="Dr. Selene Virell"
-          onError={(event) => {
-            event.currentTarget.src = ICONS.clinic;
-          }}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.portraitMedallion}>
-      <img
-        src={ICONS.selene}
-        alt="Dr. Selene Virell"
-        onError={(event) => {
-          event.currentTarget.src = ICONS.clinic;
-        }}
-      />
-    </div>
-  );
-}
-
-function QuickhatchChip({ save }: { save: GameSave }) {
-  const count = getQuickhatchCatalystCount(save);
-  if (count <= 0) return null;
-
-  return (
-    <div className={styles.inventoryChip}>
-      <img src={QUICKHATCH_CATALYST.iconPath} alt="" />
-      <span>
-        {QUICKHATCH_CATALYST.name} ×{count}
-      </span>
-    </div>
-  );
-}
+const eggName = (egg: EggRecord) => egg.suggestedName || `${getVariantDefinition(egg.variantId).name} Egg`;
+const eggStatus = (egg: EggRecord) => egg.status === "ready" ? "Ready to hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`;
 
 export function EggAtelierScreen() {
-  const { open } = useNavigation();
-  const {
-    currentSave,
-    goToTown,
-    goToRanch,
-    goToMainMenu,
-    saveCurrentGame,
-  } = useGameContext();
-  const [selectedEggId, setSelectedEggId] = useState<EggId | null>(null);
-  const [message, setMessage] = useState(SELENE_GREETING);
-  const [atelierMode, setAtelierMode] = useState<AtelierMode>("interior");
+  const { currentSave: save, saveCurrentGame, goToTown, goToNursery } = useGameContext();
+  const [mode, setMode] = useState<Mode>("care");
+  const [eggId, setEggId] = useState<EggId | null>(null);
+  const [offerId, setOfferId] = useState<EggAtelierEggOfferId>("common_mystery_egg");
+  const [upgradeId, setUpgradeId] = useState<EggAtelierUpgradeId>("soft_bedding");
+  const [popup, setPopup] = useState<Popup>(null);
+  const [pending, setPending] = useState<{ action: Action; signature: string } | null>(null);
+  const [message, setMessage] = useState("");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const sizeRef = useRef(1);
+  const lock = useRef(false);
+  const hasSave = Boolean(save);
+  useEffect(() => {
+    if (!dockRef.current) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const size = Math.max(1, Math.min(4, Math.floor((entry.contentRect.width + 8) / 210)));
+      if (size !== sizeRef.current) { sizeRef.current = size; setPageSize(size); setPage(0); }
+    });
+    observer.observe(dockRef.current);
+    return () => observer.disconnect();
+  }, [hasSave]);
+  if (!save) return <main className={ui.interior}><h1>No active save</h1></main>;
+  const activeSave = save;
+  const eggs = (save.eggs ?? []).filter(egg => egg.status !== "hatched").sort((a, b) => Number(b.status === "ready") - Number(a.status === "ready") || a.daysRemaining - b.daysRemaining);
+  const egg = eggs.find(item => item.eggId === eggId) ?? eggs[0];
+  const offer = EGG_ATELIER_EGG_OFFERS.find(item => item.offerId === offerId)!;
+  const upgrade = EGG_ATELIER_UPGRADES.find(item => item.upgradeId === upgradeId)!;
+  const kits = getNurserySupplyKitCount(save);
+  const effects = getEggAtelierUpgradeEffects(save);
+  const trust = getNpcTrustRecord(save, "selene_virell");
+  const ready = eggs.filter(item => item.status === "ready").length;
+  const choices = mode === "care" ? eggs.map(item => ({ id: item.eggId, name: eggName(item), detail: eggStatus(item), icon: EGG_ART })) : mode === "offers" ? EGG_ATELIER_EGG_OFFERS.map(item => ({ id: item.offerId, name: item.name, detail: `${item.price} Gold · Trust ${item.trustRequired}`, icon: item.iconPath })) : EGG_ATELIER_UPGRADES.map(item => ({ id: item.upgradeId, name: item.name, detail: hasEggAtelierUpgrade(save, item.upgradeId) ? "Installed" : `${item.costGold} Gold · ${item.costNurseryKits} Kits`, icon: item.iconPath }));
+  const selectedId = mode === "care" ? egg?.eggId : mode === "offers" ? offerId : upgradeId;
+  const pages = Math.max(1, Math.ceil(choices.length / pageSize));
+  const currentPage = Math.min(page, pages - 1);
+  const title = mode === "care" ? egg ? eggName(egg) : "Your next arrival" : mode === "offers" ? offer.name : upgrade.name;
+  const art = mode === "care" ? egg ? EGG_ART : null : mode === "offers" ? offer.iconPath : upgrade.iconPath;
+  const subtitle = mode === "care" ? egg ? eggStatus(egg) : "No active eggs" : mode === "offers" ? `${offer.price} Gold` : hasEggAtelierUpgrade(save, upgradeId) ? "Installed" : `${upgrade.costGold} Gold · ${upgrade.costNurseryKits} Kits`;
 
-  const activeEggs = useMemo(
-    () => (currentSave?.eggs ?? []).filter((egg) => egg.status !== "hatched"),
-    [currentSave],
-  );
-  const selectedEgg = useMemo(
-    () =>
-      activeEggs.find((egg) => egg.eggId === selectedEggId) ??
-      activeEggs[0] ??
-      null,
-    [activeEggs, selectedEggId],
-  );
-
-  if (!currentSave) {
-    return (
-      <main className={styles.emptyScreen}>
-        <section className={styles.emptyPanel}>
-          <h1>No active save</h1>
-          <p>Load or create a save before visiting the Egg Atelier.</p>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={goToMainMenu}
-          >
-            Return to Main Menu
-          </button>
-        </section>
-      </main>
-    );
+  function reviewInfo(action: Action) {
+    let title = "", description = "", gold = 0, nurseryKits = 0, chance: number | null = null, block = "", target: EggRecord | undefined;
+    if ("eggId" in action) target = activeSave.eggs?.find(item => item.eggId === action.eggId && item.status !== "hatched");
+    if (action.kind === "service") {
+      title = SERVICES.find(item => item.id === action.id)!.name;
+      ({ gold, nurseryKits } = getEggAtelierServiceCost(action.id, activeSave));
+      if (!target) block = "Select an active egg.";
+      if (action.id === "accelerated_incubation") {
+        description = "Reduces this egg’s remaining incubation by exactly 1 day. Hatch ready eggs in the Nursery.";
+        if (target && (target.status === "ready" || target.daysRemaining <= 0)) block = "Already ready to hatch.";
+      } else if (action.id === "ability_polish") {
+        chance = getEggAtelierAbilityPolishChance(activeSave);
+        description = "Attempts to raise the first projected inherited ability by one grade. Payment and the once-per-egg use are consumed even if no improvement occurs.";
+        if (target && !target.projectedAbilities.length) block = "No projected ability to polish.";
+        else if (target?.projectedAbilities[0]?.grade === "S") block = "The first projected ability is already grade S.";
+        if (target && hasEggAtelierServiceUsed(activeSave, target.eggId, action.id)) block = "Already used on this egg.";
+      } else {
+        chance = getEggAtelierStatConditioningChance(activeSave);
+        description = "Attempts to raise the lowest projected stat grade by one rank and add 1 to that stat. Payment and the once-per-egg use are consumed even if no improvement occurs.";
+        if (!effects.statConditioningUnlocked) block = "Requires Incubator Cradle.";
+        else if (target && Object.values(target.projectedStatGrades).every(grade => grade === "S")) block = "All projected stat grades are already S.";
+        if (target && hasEggAtelierServiceUsed(activeSave, target.eggId, action.id)) block = "Already used on this egg.";
+      }
+    } else if (action.kind === "offer") {
+      const item = EGG_ATELIER_EGG_OFFERS.find(item => item.offerId === action.id)!;
+      title = item.name; description = `${item.description} The egg is placed in your Nursery.`; gold = item.price;
+      block = canBuyEggOffer(activeSave, item) ?? "";
+    } else if (action.kind === "upgrade") {
+      const item = EGG_ATELIER_UPGRADES.find(item => item.upgradeId === action.id)!;
+      title = item.name; description = `${item.description} ${item.effectLabel}`; gold = item.costGold; nurseryKits = item.costNurseryKits;
+      if (hasEggAtelierUpgrade(activeSave, item.upgradeId)) block = "Already installed.";
+    } else {
+      title = action.kind === "sell" ? "Sell Egg" : "Donate to Research";
+      description = action.kind === "sell" ? "Permanently remove this egg in exchange for Gold and 2 Selene Trust." : "Permanently remove this egg for a smaller Gold payment and 6 Selene Trust.";
+      if (!target) block = "This egg is no longer available.";
+      else gold = -(action.kind === "sell" ? getEggSaleValue(target) : Math.max(25, Math.round(getEggSaleValue(target) * 0.35 / 5) * 5));
+    }
+    const shortages = [activeSave.currencies.gold < gold ? `${gold - activeSave.currencies.gold} more Gold` : "", kits < nurseryKits ? `${nurseryKits - kits} more Nursery Kit${nurseryKits - kits === 1 ? "" : "s"}` : ""].filter(Boolean);
+    if (!block && shortages.length) block = `Need ${shortages.join(" and ")}.`;
+    return { title, description, gold, nurseryKits, chance, block, target, signature: JSON.stringify({ action, gold, nurseryKits, chance, target, block }) };
   }
-
-  const activeSave = currentSave;
-
-  function runService(service: "accelerated" | "polish" | "stat") {
-    if (!selectedEgg) return;
-    const result =
-      service === "accelerated"
-        ? applyAcceleratedIncubation(activeSave, selectedEgg.eggId)
-        : service === "stat"
-          ? applyStatConditioning(activeSave, selectedEgg.eggId)
-          : applyAbilityPolish(activeSave, selectedEgg.eggId);
-    if (result.ok) saveCurrentGame(result.save);
-    setMessage(result.message);
-    setAtelierMode("services");
-  }
-
-  function buyUpgrade(upgradeId: string) {
-    const result = purchaseEggAtelierUpgrade(activeSave, upgradeId as never);
-    if (result.ok) saveCurrentGame(result.save);
-    setMessage(result.message);
-    setAtelierMode("furniture");
-  }
-
-  function buyEggOffer(offerId: string) {
-    const result = buyEggFromSelene(activeSave, offerId as never);
-    if (result.ok) saveCurrentGame(result.save);
-    setMessage(result.message);
-    setAtelierMode("eggs");
-  }
-
-  function sellSelectedEgg(mode: "sell" | "donate") {
-    if (!selectedEgg) return;
-    const result =
-      mode === "sell"
-        ? sellEggToSelene(activeSave, selectedEgg.eggId)
-        : donateEggToResearch(activeSave, selectedEgg.eggId);
+  function review(action: Action) { lock.current = false; setPending({ action, signature: reviewInfo(action).signature }); setPopup("review"); }
+  const reviewed = pending ? reviewInfo(pending.action) : null;
+  const quoteValid = pending?.signature === reviewed?.signature;
+  function confirm() {
+    if (!pending || !reviewed || reviewed.block || !quoteValid || lock.current) return;
+    lock.current = true;
+    const action = pending.action;
+    const result = action.kind === "offer" ? buyEggFromSelene(activeSave, action.id) : action.kind === "upgrade" ? purchaseEggAtelierUpgrade(activeSave, action.id) : action.kind === "sell" ? sellEggToSelene(activeSave, action.eggId) : action.kind === "donate" ? donateEggToResearch(activeSave, action.eggId) : action.id === "accelerated_incubation" ? applyAcceleratedIncubation(activeSave, action.eggId) : action.id === "ability_polish" ? applyAbilityPolish(activeSave, action.eggId) : applyStatConditioning(activeSave, action.eggId);
     if (result.ok) {
       saveCurrentGame(result.save);
-      setSelectedEggId(null);
+      if (action.kind === "sell" || action.kind === "donate") setEggId(null);
+      if (action.kind === "offer") { const bought = result.save.eggs?.find(item => !activeSave.eggIds.includes(item.eggId)); if (bought) setEggId(bought.eggId); }
     }
-    setMessage(result.message);
-    setAtelierMode("eggs");
+    setMessage(result.message); setPopup("result");
   }
-
-  function openTalk() {
-    const trust = getNpcTrustRecord(activeSave, "selene_virell");
-    setMessage(
-      trust.level >= 3
-        ? "Selene adjusts her spectacles. 'Your records are becoming consistent enough that I can attempt more delicate conditioning without guessing.'"
-        : "Selene taps her ledger. 'Egg care is not luck. It is observation, restraint, and clean notes.'",
-    );
-    setAtelierMode("talk");
-  }
-
-  function openTrust() {
-    setMessage(
-      "Selene opens the atelier records and reviews your care history, furniture, and trust progress.",
-    );
-    setAtelierMode("trust");
-  }
-
-  const accelerateCost = getEggAtelierServiceCost(
-    "accelerated_incubation",
-    activeSave,
-  );
-  const polishCost = getEggAtelierServiceCost("ability_polish", activeSave);
-  const statCost = getEggAtelierServiceCost("stat_conditioning", activeSave);
-  const kitCount = getNurserySupplyKitCount(activeSave);
-  const polishChance = getEggAtelierAbilityPolishChance(activeSave);
-  const statChance = getEggAtelierStatConditioningChance(activeSave);
-  const upgradeEffects = getEggAtelierUpgradeEffects(activeSave);
-
-  return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <AtelierHeader
-          save={activeSave}
-          kitCount={kitCount}
-          message={message}
-          onTown={goToTown}
-          onRanch={goToRanch}
-          onMenu={() => open("menu")}
-        />
-
-        <div className={styles.body}>
-          {atelierMode === "interior" ? (
-            <AtelierInterior
-              save={activeSave}
-              activeEggCount={activeEggs.length}
-              onTalk={openTalk}
-              onTrust={openTrust}
-              onServices={() => setAtelierMode("services")}
-              onEggs={() => setAtelierMode("eggs")}
-              onFurniture={() => setAtelierMode("furniture")}
-            />
-          ) : null}
-
-          {atelierMode === "talk" ? (
-            <SeleneTalkPanel
-              save={activeSave}
-              onBack={() => setAtelierMode("interior")}
-              onTrust={openTrust}
-              onServices={() => setAtelierMode("services")}
-            />
-          ) : null}
-
-          {atelierMode === "trust" ? (
-            <SeleneTrustPanel
-              save={activeSave}
-              activeEggs={activeEggs}
-              upgradeEffects={upgradeEffects}
-              polishChance={polishChance}
-              statChance={statChance}
-              onBack={() => setAtelierMode("interior")}
-              onServices={() => setAtelierMode("services")}
-              onFurniture={() => setAtelierMode("furniture")}
-            />
-          ) : null}
-
-          {atelierMode === "services" ? (
-            <EggServicesPanel
-              save={activeSave}
-              activeEggs={activeEggs}
-              selectedEgg={selectedEgg}
-              setSelectedEggId={setSelectedEggId}
-              accelerateCost={accelerateCost.label}
-              polishCost={polishCost.label}
-              statCost={statCost.label}
-              polishChance={polishChance}
-              statChance={statChance}
-              onAccelerate={() => runService("accelerated")}
-              onPolish={() => runService("polish")}
-              onStat={() => runService("stat")}
-              onSell={() => sellSelectedEgg("sell")}
-              onDonate={() => sellSelectedEgg("donate")}
-              onBack={() => setAtelierMode("interior")}
-            />
-          ) : null}
-
-          {atelierMode === "eggs" ? (
-            <EggRegistryPanel
-              save={activeSave}
-              activeEggs={activeEggs}
-              selectedEgg={selectedEgg}
-              setSelectedEggId={setSelectedEggId}
-              onBuyEgg={buyEggOffer}
-              onSell={() => sellSelectedEgg("sell")}
-              onDonate={() => sellSelectedEgg("donate")}
-              onServices={() => setAtelierMode("services")}
-              onBack={() => setAtelierMode("interior")}
-            />
-          ) : null}
-
-          {atelierMode === "furniture" ? (
-            <FurniturePanel
-              save={activeSave}
-              kitCount={kitCount}
-              onBuyUpgrade={buyUpgrade}
-              onBack={() => setAtelierMode("interior")}
-            />
-          ) : null}
-        </div>
-      </section>
-    </main>
-  );
-}
-
-function AtelierInterior({
-  save,
-  activeEggCount,
-  onTalk,
-  onTrust,
-  onServices,
-  onEggs,
-  onFurniture,
-}: {
-  save: GameSave;
-  activeEggCount: number;
-  onTalk: () => void;
-  onTrust: () => void;
-  onServices: () => void;
-  onEggs: () => void;
-  onFurniture: () => void;
-}) {
-  return (
-    <section className={styles.interior} aria-label="Egg Atelier interior">
-      <div className={styles.interiorBackdrop} aria-hidden="true" />
-      <div className={styles.interiorGrid}>
-        <aside className={`${styles.seleneCard} ${styles.ornatePanel}`}>
-          <SelenePortrait />
-          <p className={styles.cardEyebrow}>Lineage Specialist</p>
-          <h2 className={styles.seleneName}>Dr. Selene Virell</h2>
-          <p className={styles.trustLine}>
-            {getNpcTrustSummary(save, "selene_virell")}
-          </p>
-          <div className={styles.goldDivider} />
-          <p className={styles.seleneIntro}>{SELENE_GREETING}</p>
-          <div className={styles.verticalActions}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onTalk}
-            >
-              Talk to Selene
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onServices}
-            >
-              Egg Services
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onEggs}
-            >
-              Egg Registry
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onFurniture}
-            >
-              Furniture Catalog
-            </button>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onTrust}
-            >
-              Trust / Care Records
-            </button>
-          </div>
-        </aside>
-
-        <div className={styles.stage}>
-          <button
-            type="button"
-            className={`${styles.hotspot} ${styles.hotspotIncubator}`}
-            onClick={onServices}
-          >
-            <img src={ICONS.incubatorTable} alt="" />
-            <strong>Incubator Table</strong>
-            <span>{activeEggCount} active eggs</span>
-          </button>
-
-          <button
-            type="button"
-            className={`${styles.hotspot} ${styles.hotspotRegistry}`}
-            onClick={onEggs}
-          >
-            <img
-              src={ICONS.eggRegistry}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = ICONS.ledger;
-              }}
-            />
-            <strong>Egg Registry</strong>
-            <span>Placement • Purchase • Notes</span>
-          </button>
-
-          <button
-            type="button"
-            className={`${styles.hotspot} ${styles.hotspotFurniture}`}
-            onClick={onFurniture}
-          >
-            <img src={ICONS.furnitureCatalog} alt="" />
-            <strong>Furniture Catalog</strong>
-            <span>Bedding • Cradles • Ledger</span>
-          </button>
-        </div>
+  function changeMode(next: Mode) { setMode(next); setPage(0); }
+  return <main className={`${ui.interior} ${styles.atelier}`} data-sunlit-incubator>
+    <section className={ui.page}>
+      <header className={ui.heading}><h1>The Egg Atelier</h1><ScreenNavigation onBack={goToTown} backLabel="Town" /></header>
+      <section className={`${ui.summary} ${styles.resources}`} aria-label="Atelier resources"><div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div><div><RanchIcon name="bag" /><span>Nursery Kits</span><strong>{kits}</strong></div><div><RanchIcon name="egg" /><span>Ready</span><strong>{ready}</strong></div><button type="button" onClick={goToNursery}>Visit Nursery</button></section>
+      <nav className={`${ui.paper} ${styles.tabs}`} aria-label="Atelier sections">{([['care', 'Egg Care'], ['offers', 'Egg Offers'], ['upgrades', 'Upgrades']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={mode === id} onClick={() => changeMode(id)}>{label}</button>)}<div className={styles.compactSteward}><button type="button" onClick={() => setPopup("talk")}>Talk</button><button type="button" onClick={() => setPopup("trust")}>Trust</button></div></nav>
+      <div className={styles.workspace}>
+        <aside className={`${ui.paper} ${styles.steward}`}><img src={SELENE_VIRELL.portraitPath} alt="Dr. Selene Virell" /><h2>Dr. Selene Virell</h2><p>Egg Care Specialist</p><strong>Trust Level {trust.level}</strong><button type="button" onClick={() => setPopup("talk")}>Talk</button><button type="button" onClick={() => setPopup("trust")}>Trust Ledger</button></aside>
+        <section className={styles.preview} aria-label="Selected atelier artwork"><h2>{title}</h2><div className={styles.stage}>{art ? <img data-atelier-art src={art} alt={title} /> : <div className={`${ui.paper} ${styles.empty}`}><p>No eggs yet. Browse Selene’s offers to find your next arrival.</p><button type="button" onClick={() => changeMode("offers")}>Browse Eggs</button></div>}</div><p className={`${styles.status} ${egg?.status === "ready" && mode === "care" ? styles.ready : ""}`}>{subtitle}</p></section>
+        <section className={`${ui.paper} ${styles.details} ${mode !== "care" ? styles.catalog : ""}`} aria-label="Atelier actions">
+          {mode === "care" ? <><h2>Care Services</h2><div className={styles.services}>{SERVICES.map(service => { const info = egg ? reviewInfo({ kind: "service", id: service.id, eggId: egg.eggId }) : null; return <article key={service.id}><img src={service.icon} alt="" /><div><h3>{service.name}</h3><p>{serviceStatus(info?.block, service.short)}</p><button type="button" className={info && !info.block ? ui.primary : ""} disabled={!egg} onClick={() => egg && review({ kind: "service", id: service.id, eggId: egg.eggId })} aria-label={`Review ${service.name}`}>Review Service</button></div></article>; })}</div><div className={styles.detailActions}><button type="button" disabled={!egg} onClick={() => setPopup("appraisal")}>Full Appraisal</button><button type="button" disabled={!egg} onClick={() => setPopup("more")}>More Actions</button></div></> : mode === "offers" ? <><h2>{offer.name}</h2><p className={styles.emphasis}>{offer.label}</p><p>Requires Trust Level {offer.trustRequired}</p><strong>{offer.price} Gold</strong><p>{canBuyEggOffer(save, offer) || `Balance after: ${(save.currencies.gold - offer.price).toLocaleString()} Gold`}</p><button type="button" className={ui.primary} onClick={() => review({ kind: "offer", id: offerId })}>Review Egg Purchase</button></> : <><h2>{upgrade.name}</h2><p>{upgrade.effectLabel}</p><strong>{upgrade.costGold} Gold + {upgrade.costNurseryKits} Kits</strong><p>{reviewInfo({ kind: "upgrade", id: upgradeId }).block || "Available to install"}</p><button type="button" className={ui.primary} disabled={hasEggAtelierUpgrade(save, upgradeId)} onClick={() => review({ kind: "upgrade", id: upgradeId })}>{hasEggAtelierUpgrade(save, upgradeId) ? "Installed" : "Review Upgrade"}</button></>}
+        </section>
       </div>
+      <section className={`${ui.paper} ${styles.dock}`} aria-label="Atelier choices"><button type="button" aria-label="Previous choices" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>‹</button><div ref={dockRef} className={styles.choices}>{choices.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map(item => <button type="button" key={item.id} aria-pressed={item.id === selectedId} onClick={() => mode === "care" ? setEggId(item.id as EggId) : mode === "offers" ? setOfferId(item.id as EggAtelierEggOfferId) : setUpgradeId(item.id as EggAtelierUpgradeId)}><img src={item.icon} alt="" /><span><strong>{item.name}</strong><small>{item.detail}</small></span></button>)}{!choices.length ? <span>No active eggs · choose Egg Offers to browse</span> : null}</div><span className={styles.pageNumber} aria-live="polite">{currentPage + 1} / {pages}</span><button type="button" aria-label="Next choices" disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>›</button></section>
     </section>
-  );
-}
-
-function SeleneTalkPanel({
-  save,
-  onBack,
-  onTrust,
-  onServices,
-}: {
-  save: GameSave;
-  onBack: () => void;
-  onTrust: () => void;
-  onServices: () => void;
-}) {
-  const trust = getNpcTrustRecord(save, "selene_virell");
-  const line =
-    trust.level >= 4
-      ? "Your records are precise enough for advanced work. I will not promise miracles, but I can improve the odds when the egg gives us something stable to guide."
-      : trust.level >= 2
-        ? "We are past guesswork now. With better notes, I can explain what an egg is likely to become before it hatches."
-        : "Do not rush the shell. A small improvement made carefully is better than a dramatic promise made blindly.";
-
-  return (
-    <section className={styles.talkLayout}>
-      <aside className={styles.talkPortrait}>
-        <img
-          src={ICONS.selene}
-          alt="Dr. Selene Virell"
-          onError={(event) => {
-            event.currentTarget.src = ICONS.clinic;
-          }}
-        />
-        <div className={styles.talkPortraitMeta}>
-          <h2>Dr. Selene Virell</h2>
-          <p>Lineage Specialist</p>
-          <p className={styles.trustLine}>
-            {getNpcTrustSummary(save, "selene_virell")}
-          </p>
-        </div>
-      </aside>
-
-      <section className={`${styles.conversationPanel} ${styles.ornatePanel}`}>
-        <p className={styles.kicker}>Conversation</p>
-        <h2>Careful Odds</h2>
-        <p className={styles.conversationQuote}>{line}</p>
-        <div className={styles.goldDivider} />
-        <p className={styles.conversationBody}>
-          Selene explains that the Egg Atelier improves control, records, and
-          small outcome chances. It does not replace the ranch nursery; it
-          specializes in appraisals, conditioning, registry work, and furniture
-          planning.
-        </p>
-        <div className={styles.inlineActions}>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onServices}
-          >
-            Open Services
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onTrust}
-          >
-            Care Records
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onBack}
-          >
-            Back to Atelier
-          </button>
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function SeleneTrustPanel({
-  save,
-  activeEggs,
-  upgradeEffects,
-  polishChance,
-  statChance,
-  onBack,
-  onServices,
-  onFurniture,
-}: {
-  save: GameSave;
-  activeEggs: EggRecord[];
-  upgradeEffects: ReturnType<typeof getEggAtelierUpgradeEffects>;
-  polishChance: number;
-  statChance: number;
-  onBack: () => void;
-  onServices: () => void;
-  onFurniture: () => void;
-}) {
-  return (
-    <section className={styles.modeLayout}>
-      <aside className={`${styles.sidePanel} ${styles.ornatePanel}`}>
-        <SelenePortrait compact />
-        <p className={styles.cardEyebrow}>Care Records</p>
-        <h2>Dr. Selene Virell</h2>
-        <p className={styles.trustLine}>
-          {getNpcTrustSummary(save, "selene_virell")}
-        </p>
-        <div className={styles.goldDivider} />
-        <p>
-          <strong>Next:</strong> {getNpcNextUnlock(save, "selene_virell")}
-        </p>
-        <p>{SELENE_VIRELL.intro}</p>
-        <QuickhatchChip save={save} />
-      </aside>
-
-      <section className={styles.ledgerMain}>
-        <p className={styles.kicker}>Atelier Status</p>
-        <h2>Current Benefits</h2>
-
-        <div className={styles.benefitGrid}>
-          <BenefitRow
-            icon={ICONS.egg}
-            label="Active eggs"
-            value={String(activeEggs.length)}
-          />
-          <BenefitRow
-            icon={ICONS.polish}
-            label="Ability Polish chance"
-            value={`${polishChance}%`}
-          />
-          <BenefitRow
-            icon={ICONS.care}
-            label="Stat Conditioning"
-            value={
-              upgradeEffects.statConditioningUnlocked
-                ? `${statChance}% chance`
-                : "Requires Incubator Cradle"
-            }
-          />
-          <BenefitRow
-            icon={ICONS.ledger}
-            label="Appraisal detail"
-            value={upgradeEffects.appraisalLevel >= 2 ? "Expanded" : "Basic"}
-          />
-          <BenefitRow
-            icon={ICONS.stat}
-            label="Service success bonus"
-            value={`+${upgradeEffects.careSuccessBonus}%`}
-          />
-        </div>
-
-        <p className={styles.installHeading}>Atelier Installs</p>
-        <div className={styles.installRow}>
-          {EGG_ATELIER_UPGRADES.map((upgrade) => {
-            const owned = hasEggAtelierUpgrade(save, upgrade.upgradeId);
-            return (
-              <div key={upgrade.upgradeId} className={styles.installBadge}>
-                <img src={upgrade.iconPath} alt="" />
-                <strong>{upgrade.name}</strong>
-                <span
-                  className={`${styles.installState} ${
-                    owned ? styles.installStateOwned : ""
-                  }`}
-                >
-                  {owned ? "Installed" : "Uninstalled"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className={styles.ledgerActions}>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onServices}
-          >
-            Open Services
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onFurniture}
-          >
-            Furniture Catalog
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onBack}
-          >
-            Back to Atelier
-          </button>
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function BenefitRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className={styles.benefitRow}>
-      <div className={styles.benefitIcon}>
-        <img src={icon} alt="" />
-      </div>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function EggServicesPanel({
-  save,
-  activeEggs,
-  selectedEgg,
-  setSelectedEggId,
-  accelerateCost,
-  polishCost,
-  statCost,
-  polishChance,
-  statChance,
-  onAccelerate,
-  onPolish,
-  onStat,
-  onSell,
-  onDonate,
-  onBack,
-}: {
-  save: GameSave;
-  activeEggs: EggRecord[];
-  selectedEgg: EggRecord | null;
-  setSelectedEggId: (id: EggId) => void;
-  accelerateCost: string;
-  polishCost: string;
-  statCost: string;
-  polishChance: number;
-  statChance: number;
-  onAccelerate: () => void;
-  onPolish: () => void;
-  onStat: () => void;
-  onSell: () => void;
-  onDonate: () => void;
-  onBack: () => void;
-}) {
-  const effects = getEggAtelierUpgradeEffects(save);
-
-  return (
-    <section className={styles.modeLayout}>
-      <aside className={`${styles.sidePanel} ${styles.ornatePanel}`}>
-        <SelenePortrait compact />
-        <p className={styles.cardEyebrow}>Lineage Specialist</p>
-        <h2>Dr. Selene Virell</h2>
-        <p className={styles.trustLine}>
-          {getNpcTrustSummary(save, "selene_virell")}
-        </p>
-        <div className={styles.goldDivider} />
-        <div className={styles.sideMetric}>
-          <span>Next Unlock</span>
-          <strong>{getNpcNextUnlock(save, "selene_virell")}</strong>
-        </div>
-        <div className={styles.sideMetric}>
-          <span>Ability Polish Chance</span>
-          <strong>{polishChance}%</strong>
-        </div>
-        <div className={styles.sideMetric}>
-          <span>Active Eggs</span>
-          <strong>{activeEggs.length}</strong>
-        </div>
-        <QuickhatchChip save={save} />
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={onBack}
-        >
-          Back to Atelier
-        </button>
-      </aside>
-
-      <section className={styles.servicesShell}>
-        {selectedEgg ? (
-          <SelectedEggWorkbench
-            save={save}
-            egg={selectedEgg}
-            accelerateCost={accelerateCost}
-            polishCost={polishCost}
-            statCost={statCost}
-            polishChance={polishChance}
-            statChance={statChance}
-            onAccelerate={onAccelerate}
-            onPolish={onPolish}
-            onStat={onStat}
-            onSell={onSell}
-            onDonate={onDonate}
-          />
-        ) : (
-          <div className={styles.emptyState}>
-            <div>
-              <h2>Incubator Table / Egg Services</h2>
-              <p>No active eggs. Buy an egg or deliver one from the ranch nursery.</p>
-            </div>
-          </div>
-        )}
-
-        <div className={styles.eggDrawer}>
-          <h3 className={styles.drawerTitle}>Available Eggs</h3>
-          {activeEggs.length ? (
-            <div className={styles.eggDrawerList}>
-              {activeEggs.map((egg) => (
-                <button
-                  key={egg.eggId}
-                  type="button"
-                  className={`${styles.eggDrawerButton} ${
-                    selectedEgg?.eggId === egg.eggId
-                      ? styles.eggDrawerButtonSelected
-                      : ""
-                  }`}
-                  onClick={() => setSelectedEggId(egg.eggId)}
-                >
-                  <img
-                    src={egg.status === "ready" ? ICONS.hatch : ICONS.egg}
-                    alt=""
-                  />
-                  <div>
-                    <strong>{egg.suggestedName || "Unnamed Egg"}</strong>
-                    <span>
-                      {getBestStatLabel(egg)} • {getEggAtelierEggLabel(egg)}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p>No active eggs are currently registered.</p>
-          )}
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function SelectedEggWorkbench({
-  save,
-  egg,
-  accelerateCost,
-  polishCost,
-  statCost,
-  polishChance,
-  statChance,
-  onAccelerate,
-  onPolish,
-  onStat,
-  onSell,
-  onDonate,
-}: {
-  save: GameSave;
-  egg: EggRecord;
-  accelerateCost: string;
-  polishCost: string;
-  statCost: string;
-  polishChance: number;
-  statChance: number;
-  onAccelerate: () => void;
-  onPolish: () => void;
-  onStat: () => void;
-  onSell: () => void;
-  onDonate: () => void;
-}) {
-  const effects = getEggAtelierUpgradeEffects(save);
-  const abilityPolishUsed = hasEggAtelierServiceUsed(
-    save,
-    egg.eggId,
-    "ability_polish",
-  );
-  const statConditioningUsed = hasEggAtelierServiceUsed(
-    save,
-    egg.eggId,
-    "stat_conditioning",
-  );
-  const canAccelerate =
-    egg.status !== "ready" &&
-    getNurserySupplyKitCount(save) > 0 &&
-    save.currencies.gold >=
-      getEggAtelierServiceCost("accelerated_incubation", save).gold;
-  const canPolish =
-    !abilityPolishUsed &&
-    egg.projectedAbilities.length > 0 &&
-    getNurserySupplyKitCount(save) > 0 &&
-    save.currencies.gold >= getEggAtelierServiceCost("ability_polish", save).gold;
-  const canStat =
-    !statConditioningUsed &&
-    effects.statConditioningUnlocked &&
-    getNurserySupplyKitCount(save) > 0 &&
-    save.currencies.gold >=
-      getEggAtelierServiceCost("stat_conditioning", save).gold;
-  const detailLines = [
-    ...(egg.statRollNotes ?? []).slice(-3),
-    ...(egg.abilityRollNotes ?? []).slice(-3),
-    ...(egg.lineageNotes ?? []).slice(-2),
-  ];
-  const sellValue = getEggSaleValue(egg);
-  const researchValue = Math.max(25, Math.round((sellValue * 0.35) / 5) * 5);
-
-  return (
-    <>
-      <div className={styles.workbenchArt} aria-hidden="true" />
-      <div className={styles.selectedEggInfo}>
-        <p className={styles.kicker}>Selected Egg</p>
-        <p>
-          {egg.rarity} • {egg.status === "ready" ? "Ready" : `${egg.daysRemaining} day(s) left`}
-        </p>
-        <h3>{egg.suggestedName || "Selected Egg"}</h3>
-        <p>{getEggSubtitle(egg)}</p>
-        <p className={styles.accentText}>
-          Best grade: {getBestStatLabel(egg)} • Ability polish chance: {polishChance}% •
-          Sell value: {formatGold(sellValue)}
-        </p>
-      </div>
-
-      <img
-        className={styles.heroEgg}
-        src={egg.status === "ready" ? ICONS.hatch : ICONS.egg}
-        alt={egg.suggestedName || "Selected egg"}
-      />
-
-      <div className={styles.serviceGrid}>
-        <ServiceCard
-          icon={ICONS.timer}
-          title="Accelerated Incubation"
-          cost={accelerateCost}
-          description="Reduces this egg timer by 1 day. Warming Lamp lowers this service cost."
-        >
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onAccelerate}
-            disabled={!canAccelerate}
-          >
-            Accelerate
-          </button>
-        </ServiceCard>
-
-        <ServiceCard
-          icon={ICONS.polish}
-          title="Ability Polish"
-          cost={abilityPolishUsed ? "Already used on this egg" : polishCost}
-          description="Attempts to improve one projected inherited ability by one grade. Limit: once per egg."
-        >
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onPolish}
-            disabled={!canPolish}
-          >
-            {abilityPolishUsed ? "Polished" : "Ability Polish"}
-          </button>
-        </ServiceCard>
-
-        <ServiceCard
-          icon={ICONS.care}
-          title="Stat Conditioning"
-          cost={
-            statConditioningUsed
-              ? "Already used on this egg"
-              : effects.statConditioningUnlocked
-                ? `${statCost} • ${statChance}%`
-                : "Requires Incubator Cradle"
-          }
-          description="Attempts to improve the lowest projected stat grade by one rank. Limit: once per egg."
-        >
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onStat}
-            disabled={!canStat}
-          >
-            {statConditioningUsed ? "Conditioned" : "Stat Condition"}
-          </button>
-        </ServiceCard>
-
-        <ServiceCard
-          icon={ICONS.price}
-          title="Egg Economy"
-          cost={`Sell ${formatGold(sellValue)} • Research ${formatGold(
-            researchValue,
-          )}`}
-          description="Selling gives more Gold. Research gives less Gold but stronger Selene Trust."
-        >
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onSell}
-          >
-            Sell Egg
-          </button>
-          <button
-            type="button"
-            className={styles.dangerButton}
-            onClick={onDonate}
-          >
-            Research Donate
-          </button>
-        </ServiceCard>
-
-        <div className={styles.appraisalNotice}>
-          {effects.appraisalLevel >= 2 ? (
-            <>
-              <strong>Expanded Appraisal:</strong> {getStatLine(egg)} • {getAbilityLine(egg)}
-              {detailLines.length ? ` • ${detailLines.join(" | ")}` : ""}
-            </>
-          ) : (
-            <>
-              <strong>Install the Lineage Ledger Desk</strong> for expanded projected stat,
-              ability, and lineage notes.
-            </>
-          )}
-        </div>
-      </div>
-    </>
-  );
-}
-
-function ServiceCard({
-  icon,
-  title,
-  cost,
-  description,
-  children,
-}: {
-  icon: string;
-  title: string;
-  cost: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <article className={styles.serviceCard}>
-      <div className={styles.serviceIcon}>
-        <img src={icon} alt="" />
-      </div>
-      <div>
-        <h3>{title}</h3>
-        <strong>{cost}</strong>
-        <p>{description}</p>
-        <div className={styles.serviceCardActions}>{children}</div>
-      </div>
-    </article>
-  );
-}
-
-function EggRegistryPanel({
-  save,
-  activeEggs,
-  selectedEgg,
-  setSelectedEggId,
-  onBuyEgg,
-  onSell,
-  onDonate,
-  onServices,
-  onBack,
-}: {
-  save: GameSave;
-  activeEggs: EggRecord[];
-  selectedEgg: EggRecord | null;
-  setSelectedEggId: (id: EggId) => void;
-  onBuyEgg: (offerId: string) => void;
-  onSell: () => void;
-  onDonate: () => void;
-  onServices: () => void;
-  onBack: () => void;
-}) {
-  return (
-    <section className={styles.modeLayout}>
-      <aside className={`${styles.sidePanel} ${styles.ornatePanel}`}>
-        <p className={styles.cardEyebrow}>Placement Ledger</p>
-        <h2>Egg Registry</h2>
-        <p>
-          Buy documented eggs, sell active eggs, or donate an egg to Selene&apos;s
-          research files.
-        </p>
-        <p className={styles.accentText}>
-          Every egg is a placement. Every note is a legacy.
-        </p>
-        <div className={styles.goldDivider} />
-
-        {selectedEgg ? (
-          <div className={styles.sideMetric}>
-            <span>Selected Egg</span>
-            <strong>{selectedEgg.suggestedName || selectedEgg.eggId}</strong>
-            <p>Sell {formatGold(getEggSaleValue(selectedEgg))}</p>
-          </div>
-        ) : null}
-
-        {selectedEgg ? (
-          <div className={styles.verticalActions}>
-            <button
-              type="button"
-              className={styles.secondaryButton}
-              onClick={onSell}
-            >
-              Sell Egg
-            </button>
-            <button
-              type="button"
-              className={styles.dangerButton}
-              onClick={onDonate}
-            >
-              Research Donate
-            </button>
-          </div>
-        ) : null}
-
-        <div className={styles.verticalActions} style={{ marginTop: 12 }}>
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={onServices}
-          >
-            Egg Services
-          </button>
-          <button
-            type="button"
-            className={styles.secondaryButton}
-            onClick={onBack}
-          >
-            Back to Atelier
-          </button>
-        </div>
-      </aside>
-
-      <section className={styles.registryMain}>
-        <h2 className={styles.mainTitle}>Egg Offers</h2>
-        <div className={styles.registryOffers}>
-          {EGG_ATELIER_EGG_OFFERS.map((offer) => {
-            const block = canBuyEggOffer(save, offer);
-            return (
-              <article key={offer.offerId} className={styles.dossier}>
-                <span className={styles.dossierLabel}>{offer.label}</span>
-                <h3>{offer.name}</h3>
-                <div className={styles.dossierBody}>
-                  <div className={styles.dossierArt}>
-                    <img
-                      src={offer.iconPath}
-                      alt=""
-                      onError={(event) => {
-                        event.currentTarget.src = ICONS.egg;
-                      }}
-                    />
-                  </div>
-                  <p>{offer.description}</p>
-                </div>
-                <div className={styles.dossierPrice}>
-                  <span>Price</span>
-                  <strong>{formatGold(offer.price)}</strong>
-                  <p>
-                    {block
-                      ? block
-                      : "Placed directly into your ranch nursery."}
-                  </p>
-                </div>
-                {offer.trustRequired > 1 ? (
-                  <div className={styles.trustStamp}>
-                    Selene Trust
-                    <br />
-                    Lv. {offer.trustRequired}
-                  </div>
-                ) : null}
-                <div className={styles.dossierAction}>
-                  <button
-                    type="button"
-                    className={block ? styles.secondaryButton : styles.primaryButton}
-                    onClick={() => onBuyEgg(offer.offerId)}
-                    disabled={Boolean(block)}
-                    style={{ width: "100%" }}
-                  >
-                    {block ? "Locked" : "Buy Egg"}
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className={styles.activeEggSection}>
-          <h2 className={styles.mainTitle}>Your Active Eggs</h2>
-          {activeEggs.length ? (
-            <div className={styles.activeEggGrid}>
-              {activeEggs.map((egg) => (
-                <button
-                  key={egg.eggId}
-                  type="button"
-                  className={`${styles.eggDrawerButton} ${
-                    selectedEgg?.eggId === egg.eggId
-                      ? styles.eggDrawerButtonSelected
-                      : ""
-                  }`}
-                  onClick={() => setSelectedEggId(egg.eggId)}
-                >
-                  <img
-                    src={egg.status === "ready" ? ICONS.hatch : ICONS.egg}
-                    alt=""
-                  />
-                  <div>
-                    <strong>{egg.suggestedName || "Unnamed Egg"}</strong>
-                    <span>
-                      {getEggAtelierEggLabel(egg)} • Sell {formatGold(getEggSaleValue(egg))}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.emptyState}>
-              <div>
-                <strong>You have no active eggs.</strong>
-                <p>Purchase or place an egg to see it here.</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-    </section>
-  );
-}
-
-function FurniturePanel({
-  save,
-  kitCount,
-  onBuyUpgrade,
-  onBack,
-}: {
-  save: GameSave;
-  kitCount: number;
-  onBuyUpgrade: (upgradeId: string) => void;
-  onBack: () => void;
-}) {
-  return (
-    <section className={styles.modeLayout}>
-      <aside className={`${styles.sidePanel} ${styles.ornatePanel}`}>
-        <p className={styles.cardEyebrow}>Nursery Furnishings</p>
-        <h2>Furniture Catalog</h2>
-        <p>
-          Install upgrades in your ranch egg nursery. Selene&apos;s furniture
-          improves service odds, appraisals, hatch affection, and stat support.
-        </p>
-        <div className={styles.sideMetric}>
-          <span>Nursery Kits</span>
-          <strong>{kitCount}</strong>
-        </div>
-        <button
-          type="button"
-          className={styles.secondaryButton}
-          onClick={onBack}
-        >
-          Back to Atelier
-        </button>
-      </aside>
-
-      <section className={styles.catalogMain}>
-        <div className={styles.catalogHeading}>
-          <p className={styles.kicker}>Essential Upgrades</p>
-          <h2>Curated comforts and tools for better care</h2>
-          <p>Stronger records, steadier outcomes, and brighter hatches.</p>
-        </div>
-
-        <div className={styles.catalogGrid}>
-          {EGG_ATELIER_UPGRADES.map((upgrade, index) => {
-            const owned = hasEggAtelierUpgrade(save, upgrade.upgradeId);
-            const canAfford =
-              save.currencies.gold >= upgrade.costGold &&
-              kitCount >= upgrade.costNurseryKits &&
-              !owned;
-
-            return (
-              <article key={upgrade.upgradeId} className={styles.catalogEntry}>
-                <div className={styles.catalogArt}>
-                  <img
-                    src={upgrade.iconPath}
-                    alt=""
-                    onError={(event) => {
-                      event.currentTarget.src = ICONS.clinic;
-                    }}
-                  />
-                </div>
-                <div>
-                  <p className={styles.kicker}>Entry {index + 1}</p>
-                  <h3>{upgrade.name}</h3>
-                  <p>{upgrade.description}</p>
-                  <p className={styles.catalogEffect}>{upgrade.effectLabel}</p>
-                  <div className={styles.catalogCost}>
-                    <span>
-                      <strong>Install Cost:</strong> {formatGold(upgrade.costGold)}
-                    </span>
-                    <span>
-                      <strong>Requires:</strong> {upgrade.costNurseryKits} Kit(s)
-                    </span>
-                  </div>
-                  {owned ? (
-                    <span className={styles.installedSeal}>Installed</span>
-                  ) : (
-                    <button
-                      type="button"
-                      className={styles.primaryButton}
-                      onClick={() => onBuyUpgrade(upgrade.upgradeId)}
-                      disabled={!canAfford}
-                      style={{ marginTop: 8 }}
-                    >
-                      Install
-                    </button>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className={styles.catalogTabs}>
-          {EGG_ATELIER_UPGRADES.map((upgrade, index) => {
-            const owned = hasEggAtelierUpgrade(save, upgrade.upgradeId);
-            return (
-              <div
-                key={upgrade.upgradeId}
-                className={`${styles.catalogTab} ${
-                  owned ? styles.catalogTabInstalled : ""
-                }`}
-              >
-                <img src={upgrade.iconPath} alt="" />
-                <span>
-                  {index + 1}. {upgrade.name}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-    </section>
-  );
+    {popup === "review" && reviewed ? <GameDialog title={`Review · ${reviewed.title}`} onClose={() => setPopup(null)}>{reviewed.target ? <h3>{eggName(reviewed.target)}</h3> : null}<p>{reviewed.description}</p>{reviewed.chance !== null ? <p>Success chance: <strong>{reviewed.chance}%</strong>. Improvement is not guaranteed.</p> : null}<p>{reviewed.gold < 0 ? "Receive" : "Cost"}: <strong>{Math.abs(reviewed.gold)} Gold{reviewed.nurseryKits ? ` + ${reviewed.nurseryKits} Nursery Kit` : ""}</strong></p><p>{reviewed.block ? `Available: ${save.currencies.gold.toLocaleString()} Gold · ${kits} Kits` : `After: ${(save.currencies.gold - reviewed.gold).toLocaleString()} Gold · ${kits - reviewed.nurseryKits} Kits`}</p>{pending?.action.kind === "service" && pending.action.id === "accelerated_incubation" && reviewed.target ? <p>Timer: {reviewed.target.daysRemaining} → {Math.max(0, reviewed.target.daysRemaining - 1)} days</p> : null}{reviewed.block ? <p role="status">{reviewed.block}</p> : null}{!quoteValid ? <p>The egg or terms changed. Close this window and review again.</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={Boolean(reviewed.block) || !quoteValid} onClick={confirm}>Confirm {pending?.action.kind === "sell" ? "Sale" : pending?.action.kind === "donate" ? "Donation" : pending?.action.kind === "offer" ? "Purchase" : pending?.action.kind === "upgrade" ? "Upgrade" : "Service"}</button></div></GameDialog> : null}
+    {popup === "result" ? <GameDialog title="Atelier Receipt" onClose={() => setPopup(null)}><p role="status">{message}</p><p>Current balance: {save.currencies.gold.toLocaleString()} Gold · {kits} Nursery Kits</p><div className={ui.actionRow}><button type="button" onClick={() => setPopup(null)}>Back to Atelier</button><button type="button" onClick={goToNursery}>Visit Nursery</button></div></GameDialog> : null}
+    {popup === "more" && egg ? <GameDialog title="Egg Actions" onClose={() => setPopup(null)}><h3>{eggName(egg)}</h3><p>Selling or donating permanently removes this egg. Review the payment before confirming.</p><div className={ui.actionRow}><button type="button" onClick={() => review({ kind: "sell", eggId: egg.eggId })}>Review Sale · {getEggSaleValue(egg)} Gold</button><button type="button" onClick={() => review({ kind: "donate", eggId: egg.eggId })}>Review Research Donation</button></div></GameDialog> : null}
+    {popup === "appraisal" && egg ? <GameDialog title="Egg Appraisal" onClose={() => setPopup(null)} wide><h3>{eggName(egg)}</h3><p>{egg.rarity} · {eggStatus(egg)} · Sell value {getEggSaleValue(egg)} Gold</p><p>{getVariantDefinition(egg.variantId).name} · {egg.lineageRiskLabel || "No known lineage risk"}</p>{effects.appraisalLevel >= 2 ? <><h3>Projected stats & grades</h3><dl className={styles.stats}>{STAT_KEYS.map(key => <div key={key}><dt>{key}</dt><dd>{egg.projectedStats[key]} · {egg.projectedStatGrades[key]}</dd></div>)}</dl><h3>Projected abilities</h3>{egg.projectedAbilities.length ? egg.projectedAbilities.map((ability, index) => <p key={index}><strong>{ability.name} · {ability.grade}</strong> — {ability.description}</p>) : <p>No projected inherited abilities.</p>}<h3>Lineage & care notes</h3><p>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName}</p>{[...(egg.statRollNotes ?? []), ...(egg.abilityRollNotes ?? []), ...(egg.lineageNotes ?? [])].map((note, index) => <p key={index}>{note}</p>)}</> : <p>Install the Lineage Ledger Desk for expanded projected stats, ability details and lineage notes.</p>}</GameDialog> : null}
+    {popup === "talk" ? <GameDialog title="Dr. Selene Virell" onClose={() => setPopup(null)}><div className={styles.conversation}><img src={SELENE_VIRELL.portraitPath} alt="Dr. Selene Virell portrait" /><div><p>{trust.level >= 3 ? "Your records are becoming consistent enough that I can attempt more delicate conditioning without guessing." : "Egg care is not luck. It is observation, restraint, and clean notes."}</p><p>{getNpcTrustSummary(save, "selene_virell")}</p></div></div></GameDialog> : null}
+    {popup === "trust" ? <GameDialog title="Atelier Trust Ledger" onClose={() => setPopup(null)}><p>{getNpcTrustSummary(save, "selene_virell")}</p><p>Next reward: {getNpcNextUnlock(save, "selene_virell")}</p><p>Ability Polish: {getEggAtelierAbilityPolishChance(save)}% · Stat Conditioning: {getEggAtelierStatConditioningChance(save)}%</p><p>Appraisal: {effects.appraisalLevel >= 2 ? "Expanded" : "Basic"} · Quickhatch Catalysts: {getQuickhatchCatalystCount(save)}</p>{EGG_ATELIER_UPGRADES.map(item => <p key={item.upgradeId}><strong>{item.name}: {hasEggAtelierUpgrade(save, item.upgradeId) ? "Installed" : "Not installed"}</strong><br />{item.effectLabel}</p>)}</GameDialog> : null}
+  </main>;
 }
