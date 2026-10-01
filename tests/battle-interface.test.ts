@@ -54,3 +54,59 @@ test("order preview matches engine weighted speed and seeded ties without exposi
   state.combatants[ids[2]].isFainted=true;
   assert(!getBattleOrderPreview(state,queue).some(p=>p.actorId===ids[2]));
 });
+
+test("playback snapshots show each hit separately and use IDs with duplicate names", async()=>{
+  const { buildBattlePlaybackEvents }=await import("@/data/battlePresentation");
+  const state=fixture(),target=state.teams.enemy.combatantIds[0];
+  for(const c of Object.values(state.combatants)) {
+    c.name="Same name";c.currentHp=c.maxHp=2000;c.currentBattleEnergy=c.maxBattleEnergy;
+    c.battleStats.accuracy=1000;c.battleStats.evasion=0;c.battleStats.speed=c.sideId==="player"?100:1;
+  }
+  const before=structuredClone(state);
+  const actions=Object.values(state.combatants).map(c=>({actorId:c.battleCombatantId,moveId:c.sideId==="player"?"strike":"defend",targetIds:[c.sideId==="player"?target:c.battleCombatantId]}));
+  const resolved=resolveBattleRound(state,actions);
+  const events=buildBattlePlaybackEvents(resolved.frames);
+  assert.equal(events[0].kind,"attack");
+  assert.equal(events[0].state!.combatants[target].currentHp,2000);
+  const hits=events.filter(e=>e.kind==="damage"&&e.targetIds[0]===target);
+  assert.equal(hits.length,3);
+  assert(hits[0].state!.combatants[target].currentHp>hits[1].state!.combatants[target].currentHp);
+  assert(hits[1].state!.combatants[target].currentHp>hits[2].state!.combatants[target].currentHp);
+  assert.deepEqual(events.at(-1)!.state!.combatants,resolved.state.combatants);
+  assert.deepEqual(state,before,"resolution and playback do not mutate input");
+});
+
+test("target preview matches damage after guard modifiers and healing caps without mutation",async()=>{
+  const { previewBattleAction }=await import("@/data/battleEngine");
+  const state=fixture(),actor=state.teams.player.combatantIds[0],target=state.teams.enemy.combatantIds[0];
+  state.combatants[actor].battleStats.speed=1000;state.combatants[actor].battleStats.accuracy=1000;
+  state.combatants[target].statuses=[{status:"guarded",duration:2,amount:25}];
+  state.combatants[target].battleStats.evasion=0;
+  const action={actorId:actor,moveId:"strike",targetIds:[target]};
+  const before=structuredClone(state),projection=previewBattleAction(state,action)[0];
+  const result=resolveBattleRound(state,[action]);
+  const impact=result.frames.find(f=>f.kind==="damage"&&f.actorId===actor)!;
+  assert(projection.description.includes(`→ ${impact.state.combatants[target].currentHp}`));
+  assert.equal(projection.hitChance,100);
+  assert.deepEqual(state,before);
+  state.combatants[actor].currentHp=state.combatants[actor].maxHp-3;
+  assert.match(previewBattleAction(state,{actorId:actor,moveId:"first_aid",targetIds:[actor]})[0].description,/Restore 3 HP/);
+  state.combatants[actor].currentBattleEnergy=state.combatants[actor].maxBattleEnergy;
+  const recovery=previewBattleAction(state,{actorId:actor,moveId:"evasive_step",targetIds:[actor]}).find(p=>p.description.includes('BE'))!;
+  assert.match(recovery.description,/Restore 4 BE/,'recovery preview accounts for the move cost first');
+});
+
+test("playback separates bleed, recovery and KO, and skipped actors do not spend energy",()=>{
+  const state=fixture(),id=state.teams.player.combatantIds[0];
+  for(const c of Object.values(state.combatants)) {c.currentHp=c.maxHp=1000;c.currentBattleEnergy=10;}
+  state.combatants[id].currentHp=2;
+  state.combatants[id].statuses=[{status:"bleed",duration:2,amount:5},{status:"stun",duration:2}];
+  const actions=Object.values(state.combatants).map(c=>({actorId:c.battleCombatantId,moveId:"defend",targetIds:[c.battleCombatantId]}));
+  const result=resolveBattleRound(state,actions);
+  const skip=result.frames.find(f=>f.actorId===id)!;
+  assert.match(skip.label,/stunned/);assert.equal(skip.state.combatants[id].currentBattleEnergy,10);
+  const bleed=result.frames.find(f=>!f.actorId&&f.kind==="damage"&&f.targetIds[0]===id)!;
+  assert.equal(bleed.state.combatants[id].currentHp,0);
+  assert(result.frames.some(f=>f.kind==="knockout"&&f.targetIds[0]===id));
+  assert(result.frames.some(f=>!f.actorId&&f.kind==="energy"));
+});

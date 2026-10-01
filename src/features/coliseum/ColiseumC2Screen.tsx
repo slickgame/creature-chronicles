@@ -10,7 +10,7 @@ import {
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
 import { createBattleState, resolveBattleRound } from "@/data/battleEngine";
-import { buildBattlePresentationEvents } from "@/data/battlePresentation";
+import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -358,7 +358,7 @@ export function ColiseumBattle({
     const aiPlan = buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty);
     const stateWithAiPlan: BattleState = { ...battleState, log: [...battleState.log, ...aiPlan.decisions.map(formatBattleAiDecision)] };
     const resolved = resolveBattleRound(stateWithAiPlan, [...Array.from(queuedActions.values()), ...aiPlan.actions]);
-    presentation.play(buildBattlePresentationEvents(battleState, resolved.state, resolved.result), resolved.result.actions.map(action => action.actorId));
+    presentation.play(buildBattlePlaybackEvents(resolved.frames), resolved.result.actions.map(action => action.actorId));
     const nextPerformance = accumulateColiseumRoundPerformance(performance, battleState, resolved.result);
     const nextQueue = new Map<BattleCombatantId, BattleAction>();
     setPerformance(nextPerformance);

@@ -9,8 +9,10 @@ const SPEED_KEY = "creature-chronicles:battle-presentation-speed";
 const REDUCED_MOTION_KEY = "creature-chronicles:battle-reduced-motion";
 
 export function useBattlePresentationController() {
+  const [paused, setPaused] = useState(false);
   const [actionOrder, setActionOrder] = useState<string[]>([]);
   const [events, setEvents] = useState<BattlePresentationEvent[]>([]);
+  const step = useCallback(() => setEvents(queue => queue.slice(1)), []);
   const [speed, setSpeedState] = useState<BattlePresentationSpeed>(1);
   const [reducedMotion, setReducedMotionState] = useState(false);
 
@@ -26,14 +28,15 @@ export function useBattlePresentationController() {
   }, []);
 
   useEffect(() => {
-    if (!events.length) return;
+    if (!events.length || paused) return;
     const current = events[0];
-    const duration = reducedMotion ? 40 : Math.max(80, Math.round(current.durationMs / speed));
+    const duration = reducedMotion ? 300 : Math.max(80, Math.round(current.durationMs / speed));
     const timer = window.setTimeout(() => setEvents((queue) => queue.slice(1)), duration);
     return () => window.clearTimeout(timer);
-  }, [events, reducedMotion, speed]);
+  }, [events, reducedMotion, speed, paused]);
 
   const play = useCallback((nextEvents: BattlePresentationEvent[], resolvedActorIds?: readonly string[]) => {
+    setPaused(false);
     setActionOrder([...new Set(resolvedActorIds ?? nextEvents.flatMap(event => event.actorId ? [event.actorId] : []))]);
     setEvents(nextEvents);
   }, []);
@@ -52,6 +55,8 @@ export function useBattlePresentationController() {
 
   return useMemo(() => ({
     activeEvent: events[0] ?? null,
+    displayState: events[0]?.state ?? null,
+    paused, setPaused, step,
     actionOrder,
     queuedEventCount: events.length,
     isPlaying: events.length > 0,
@@ -61,5 +66,5 @@ export function useBattlePresentationController() {
     clear,
     setSpeed,
     setReducedMotion,
-  }), [events, actionOrder, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
+  }), [events, actionOrder, paused, step, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
 }
