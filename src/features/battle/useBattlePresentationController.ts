@@ -9,6 +9,7 @@ const SPEED_KEY = "creature-chronicles:battle-presentation-speed";
 const REDUCED_MOTION_KEY = "creature-chronicles:battle-reduced-motion";
 
 export function useBattlePresentationController() {
+  const [actionOrder, setActionOrder] = useState<string[]>([]);
   const [events, setEvents] = useState<BattlePresentationEvent[]>([]);
   const [speed, setSpeedState] = useState<BattlePresentationSpeed>(1);
   const [reducedMotion, setReducedMotionState] = useState(false);
@@ -32,7 +33,8 @@ export function useBattlePresentationController() {
     return () => window.clearTimeout(timer);
   }, [events, reducedMotion, speed]);
 
-  const play = useCallback((nextEvents: BattlePresentationEvent[]) => {
+  const play = useCallback((nextEvents: BattlePresentationEvent[], resolvedActorIds?: readonly string[]) => {
+    setActionOrder([...new Set(resolvedActorIds ?? nextEvents.flatMap(event => event.actorId ? [event.actorId] : []))]);
     setEvents(nextEvents);
   }, []);
 
@@ -50,6 +52,7 @@ export function useBattlePresentationController() {
 
   return useMemo(() => ({
     activeEvent: events[0] ?? null,
+    actionOrder,
     queuedEventCount: events.length,
     isPlaying: events.length > 0,
     speed,
@@ -58,5 +61,5 @@ export function useBattlePresentationController() {
     clear,
     setSpeed,
     setReducedMotion,
-  }), [events, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
+  }), [events, actionOrder, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
 }

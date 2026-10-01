@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useNavigation } from "@/features/navigation/NavigationContext";
+import { BattleArenaB } from "@/features/battle/BattleArenaB";
 import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
 import {
   buildBattleAiPlan,
@@ -9,9 +9,8 @@ import {
   getBattleAiDifficultyDescription,
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
-import { createBattleState, getEffectiveBattleStats, resolveBattleRound } from "@/data/battleEngine";
+import { createBattleState, resolveBattleRound } from "@/data/battleEngine";
 import { buildBattlePresentationEvents } from "@/data/battlePresentation";
-import { getBattleMove } from "@/data/battleMoves";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -19,13 +18,11 @@ import {
   applyBattleOutfitterLoadouts,
   applyTeamTacticsKit,
   getBattleOutfitterCombatStock,
-  useFieldTonic,
-  useRevivalSalve,
+  useFieldTonic as applyFieldTonic,
+  useRevivalSalve as applyRevivalSalve,
 } from "@/data/battleOutfitterIntegration";
-import { getBattleReadinessLabel } from "@/data/battleOutfitter";
 import {
   buildBattleUiAction,
-  getBattleUiMoveOptions,
   getNextUnqueuedPlayerActorId,
   type BattleUiTarget,
 } from "@/data/battleUi";
@@ -51,26 +48,20 @@ import {
   type ColiseumC2EncounterDefinition,
   type ColiseumCombatPerformanceMap,
 } from "@/data/coliseumC2";
-import { getVariantDefinition } from "@/data/creatures";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type {
   BattleAction,
-  BattleCombatant,
   BattleCombatantId,
   BattleOutcome,
   BattleState,
 } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
-import battleStyles from "@/features/battle/BattleArenaScreen.module.css";
-import { BattleLogButton, BattleMoveGrid } from "@/features/battle/BattleCommandDialogs";
-import { BattlePortraitStage } from "@/features/battle/BattlePortraitStage";
 import { useBattlePresentationController } from "@/features/battle/useBattlePresentationController";
 import styles from "./ColiseumProgressionScreen.module.css";
 
-const FALLBACK_PORTRAIT = "/images/ui/icons/icon_paw_crest.png";
 const COLISEUM_ICON = "/images/ui/icons/icon_ability_trigger.png";
 
 type ColiseumMode = "hub" | "battle";
@@ -102,107 +93,6 @@ function getUnavailableReason(
     return `Injured until Ranch Day ${creature.injuredUntilDayNumber}.`;
   }
   return null;
-}
-
-function statusLabel(combatant: BattleCombatant): string {
-  if (!combatant.statuses.length) return "No status effects";
-  return combatant.statuses
-    .map((status) => `${status.status}${(status.stacks ?? 1) > 1 ? ` ×${status.stacks}` : ""} · ${status.duration}r`)
-    .join(" • ");
-}
-
-function creaturePortrait(creature?: CreatureRecord): string {
-  if (!creature) return FALLBACK_PORTRAIT;
-  return getVariantDefinition(creature.variantId).portraitPath || FALLBACK_PORTRAIT;
-}
-
-function Meter({ value, max, label, tone }: { value: number; max: number; label: string; tone: "hp" | "energy" }) {
-  const percent = max > 0 ? Math.max(0, Math.min(100, Math.round((value / max) * 100))) : 0;
-  return (
-    <div className={battleStyles.meterBlock}>
-      <div><span>{label}</span><strong>{value}/{max}</strong></div>
-      <div className={battleStyles.meterTrack}>
-        <span className={tone === "hp" ? battleStyles.hpFill : battleStyles.energyFill} style={{ width: `${percent}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function CombatantCard({
-  combatant,
-  portraitPath,
-  selectedTarget,
-  activeActorId,
-  queuedAction,
-  onTarget,
-  onPlan,
-}: {
-  combatant: BattleCombatant;
-  portraitPath?: string;
-  selectedTarget: BattleUiTarget | null;
-  activeActorId: BattleCombatantId | null;
-  queuedAction?: BattleAction;
-  onTarget: () => void;
-  onPlan?: () => void;
-}) {
-  const selected = selectedTarget?.kind === "combatant" && selectedTarget.combatantId === combatant.battleCombatantId;
-  const active = activeActorId === combatant.battleCombatantId;
-  const effective = getEffectiveBattleStats(combatant);
-  const canSelect = !combatant.isFainted || combatant.sideId === "player";
-  return (
-    <article className={`${battleStyles.combatantCard} ${combatant.sideId === "enemy" ? battleStyles.enemyCard : battleStyles.playerCard} ${selected ? battleStyles.selectedTarget : ""} ${active ? battleStyles.activeActor : ""} ${combatant.isFainted ? battleStyles.fainted : ""}`}>
-      <div className={battleStyles.combatantTop}>
-        <div className={battleStyles.portraitFrame} data-ui-fixed-size="true">
-          <img src={portraitPath || FALLBACK_PORTRAIT} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_PORTRAIT; }} />
-        </div>
-        <div className={battleStyles.combatantIdentity}>
-          <span>{combatant.sideId === "enemy" ? "Authored Opponent" : `Team Slot ${combatant.slotIndex + 1}`}</span>
-          <strong>{combatant.name}</strong>
-          <em>Lv. {combatant.level} · SPD {effective.speed}</em>
-        </div>
-      </div>
-      <Meter value={combatant.currentHp} max={combatant.maxHp} label="HP" tone="hp" />
-      <Meter value={combatant.currentBattleEnergy} max={combatant.maxBattleEnergy} label="BE" tone="energy" />
-      <p className={battleStyles.statusLine}>{statusLabel(combatant)}</p>
-      {queuedAction ? <p className={battleStyles.queuedLine}>Queued: {getBattleMove(queuedAction.moveId).name}</p> : null}
-      <div className={battleStyles.cardActions}>
-        <button type="button" onClick={onTarget} disabled={!canSelect}>
-          {selected ? "Target Selected" : combatant.isFainted ? "Select for Revival" : "Select Target"}
-        </button>
-        {onPlan ? <button type="button" className={battleStyles.secondaryButton} onClick={onPlan} disabled={combatant.isFainted}>{active ? "Planning" : queuedAction ? "Edit Action" : "Plan Action"}</button> : null}
-      </div>
-    </article>
-  );
-}
-
-function TeamSelectionCard({
-  creature,
-  selected,
-  unavailableReason,
-  readinessLabel,
-  recordLabel,
-  onToggle,
-}: {
-  creature: CreatureRecord;
-  selected: boolean;
-  unavailableReason: string | null;
-  readinessLabel: string;
-  recordLabel: string;
-  onToggle: () => void;
-}) {
-  const variant = getVariantDefinition(creature.variantId);
-  return (
-    <button type="button" className={`${battleStyles.rosterCard} ${selected ? battleStyles.rosterSelected : ""}`} onClick={onToggle} disabled={Boolean(unavailableReason)}>
-      <span className={battleStyles.rosterPortrait} data-ui-fixed-size="true"><img src={variant.portraitPath || FALLBACK_PORTRAIT} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_PORTRAIT; }} /></span>
-      <span className={battleStyles.rosterInfo}>
-        <strong>{creature.nickname}</strong>
-        <em>Lv. {creature.level} · {variant.name} · {creature.xp}/{creature.xpToNext} XP</em>
-        <small>{unavailableReason ?? (selected ? "Selected for this bracket" : "Available")}</small>
-        <small>{readinessLabel} · {recordLabel}</small>
-      </span>
-      <span className={battleStyles.selectionMark}>{selected ? "✓" : "+"}</span>
-    </button>
-  );
 }
 
 export function ColiseumC2Screen() {
@@ -352,8 +242,7 @@ export function ColiseumBattle({
   onComplete: (outcome: BattleOutcome, rounds: number, teamCreatureIds: CreatureId[], performance: ColiseumCombatPerformanceMap, resultId: string) => void;
   onReturn: () => void;
 }) {
-  const { currentSave, goToBattleOutfitter, saveCurrentGame } = useGameContext();
-  const { open } = useNavigation();
+  const { currentSave, saveCurrentGame } = useGameContext();
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
   const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[] | null>(null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
@@ -383,18 +272,7 @@ export function ColiseumBattle({
   const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
-  const activeActor = battleState && activeActorId ? battleState.combatants[activeActorId] : null;
-  const moveOptions = battleState && activeActorId ? getBattleUiMoveOptions(battleState, activeActorId, selectedTarget) : [];
-  const compatibleMoves = moveOptions.filter((option) => option.compatible);
   const allPlayerActionsQueued = Boolean(battleState) && livingPlayerIds.length > 0 && livingPlayerIds.every((id) => queuedActions.has(id));
-
-  function toggleCreature(creature: CreatureRecord) {
-    const unavailableReason = getUnavailableReason(save, creature);
-    if (unavailableReason) { setMessage(unavailableReason); return; }
-    if (effectiveSelection.includes(creature.creatureId)) { setSelectedCreatureIds(effectiveSelection.filter((id) => id !== creature.creatureId)); return; }
-    if (effectiveSelection.length >= 3) { setMessage("A Coliseum team contains exactly three creatures. Remove one first."); return; }
-    setSelectedCreatureIds([...effectiveSelection, creature.creatureId]);
-  }
 
   function startBattle() {
     const team = effectiveSelection.map((id) => roster.find((creature) => creature.creatureId === id)).filter((creature): creature is CreatureRecord => Boolean(creature));
@@ -457,10 +335,10 @@ export function ColiseumBattle({
     setMessage(`Planning ${battleState.combatants[actorId].name}'s action. Select a target first.`);
   }
 
-  function useSupportItem(item: "tonic" | "revival") {
+  function handleSupportItem(item: "tonic" | "revival") {
     if (presentation.isPlaying) return;
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
-    const result = item === "tonic" ? useFieldTonic(save, battleState, selectedTarget.combatantId) : useRevivalSalve(save, battleState, selectedTarget.combatantId);
+    const result = item === "tonic" ? applyFieldTonic(save, battleState, selectedTarget.combatantId) : applyRevivalSalve(save, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
     saveCurrentGame(result.save);
     setBattleState(result.state);
@@ -480,7 +358,7 @@ export function ColiseumBattle({
     const aiPlan = buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty);
     const stateWithAiPlan: BattleState = { ...battleState, log: [...battleState.log, ...aiPlan.decisions.map(formatBattleAiDecision)] };
     const resolved = resolveBattleRound(stateWithAiPlan, [...Array.from(queuedActions.values()), ...aiPlan.actions]);
-    presentation.play(buildBattlePresentationEvents(battleState, resolved.state, resolved.result));
+    presentation.play(buildBattlePresentationEvents(battleState, resolved.state, resolved.result), resolved.result.actions.map(action => action.actorId));
     const nextPerformance = accumulateColiseumRoundPerformance(performance, battleState, resolved.result);
     const nextQueue = new Map<BattleCombatantId, BattleAction>();
     setPerformance(nextPerformance);
@@ -500,7 +378,7 @@ export function ColiseumBattle({
   }
 
   function finalize(outcome?: BattleOutcome) {
-    if (recording || !battleState) return;
+    if (recording || presentation.isPlaying || !battleState) return;
     setRecording(true);
     const finalOutcome = outcome ?? battleState.outcome ?? "enemy_won";
     const rounds = completedRounds || Math.max(1, battleState.roundNumber - 1);
@@ -513,71 +391,6 @@ export function ColiseumBattle({
 
   if (!battleState) return null;
   const xpPreview = phase === "result" ? previewColiseumCombatXp(save, encounter, battleState.outcome, playerSources.map((creature) => creature.creatureId), performance) : [];
-  const progress = getColiseumC2Progress(save);
-  const firstClearAvailable = !progress.claimedFirstClearEncounterIds.includes(encounter.encounterId);
-
-  return (
-    <main className={battleStyles.screen}>
-      <section className={battleStyles.frame}>
-        <header className={`${battleStyles.header} ${battleStyles.battleHeader}`}>
-          <div><p className={battleStyles.kicker}>{getColiseumC2Division(encounter.divisionId).name} · {getBattleAiDifficultyLabel(encounter.aiDifficulty)} AI</p><h1>{phase === "result" ? "Match Complete" : `Round ${battleState.roundNumber}`}</h1><p title={message}>{message}</p></div>
-          <div className={battleStyles.headerActions}><button onClick={()=>open("menu")} data-navigation-launcher>Menu</button><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
-        </header>
-
-        <BattlePortraitStage
-          battleState={battleState}
-          sourceById={sourceById}
-          selectedTarget={selectedTarget}
-          activeActorId={activeActorId}
-          queuedActions={queuedActions}
-          activeEvent={presentation.activeEvent}
-          isResolving={presentation.isPlaying}
-          queuedEventCount={presentation.queuedEventCount}
-          speed={presentation.speed}
-          reducedMotion={presentation.reducedMotion}
-          onSpeedChange={presentation.setSpeed}
-          onReducedMotionChange={presentation.setReducedMotion}
-          onTarget={(combatantId) => setSelectedTarget({ kind: "combatant", combatantId })}
-          onPlan={planFor}
-          onFieldTarget={() => setSelectedTarget({ kind: "field" })}
-        />
-
-        <section className={battleStyles.commandDeck}>
-          <div className={battleStyles.actionPanel}>
-            <div className={battleStyles.panelHeading}><div><span>Current Actor</span><strong>{activeActor?.name ?? (phase === "result" ? "Battle Complete" : "All Actions Queued")}</strong></div><div><span>Selected Target</span><strong>{selectedTarget?.kind === "field" ? "Battlefield" : selectedTarget?.kind === "combatant" ? battleState.combatants[selectedTarget.combatantId]?.name ?? "Unknown" : "Choose a target"}</strong></div></div>
-            {phase === "result" ? (
-              <div className={battleStyles.resultPanel}>
-                <h2>{outcomeLabel(battleState.outcome)}</h2>
-                <p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A deterministic reward will be selected from this encounter's repeat purse." : "Defeats and draws grant no purse but still grant reduced combat XP."}</p>
-                <div style={{ ...darkPanel, padding: 10, margin: "8px 0" }}>{xpPreview.map((entry) => <p key={entry.creatureId} style={{ margin: "3px 0" }}><strong>{entry.name}</strong> +{entry.xp} combat XP</p>)}</div>
-                {battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock > 0 ? <p>Select a fainted ranch creature and use a Revival Salve to resume before recording.</p> : null}
-                <button type="button" onClick={() => finalize()} disabled={recording}>{recording ? "Recording…" : "Record Result, XP & Purse"}</button>
-              </div>
-            ) : selectedTarget && activeActor ? (
-              compatibleMoves.length ? <BattleMoveGrid options={compatibleMoves} actor={activeActor} onChooseMove={chooseMove} /> : <div className={battleStyles.emptyMoveState}><strong>No compatible equipped moves</strong><p>Select a different target pattern.</p></div>
-            ) : <div className={battleStyles.emptyMoveState}><strong>Target first</strong><p>Select a creature or the battlefield, then choose one of the active creature's moves.</p></div>}
-
-            <footer className={battleStyles.actionFooter}>
-              <div className={battleStyles.queueSummary} title={`Enemy actions remain hidden until resolution. ${getBattleAiDifficultyDescription(encounter.aiDifficulty)}`}>
-                <span>Ranch Actions</span>
-                <strong>{queuedActions.size} / {livingPlayerIds.length} planned</strong>
-                <small>Click a green portrait above to plan or edit.</small>
-              </div>
-
-              <details className={battleStyles.supportDrawer}>
-                <summary>Support Items</summary>
-                <div>
-                  <p className={battleStyles.statusLine}>Each item type may be used once. Select a ranch creature before using an item.</p>
-                  <div className={battleStyles.cardActions}><button type="button" onClick={() => useSupportItem("tonic")} disabled={usedItems.fieldTonic || tonicStock <= 0 || phase === "result"}>Field Tonic ({tonicStock})</button><button type="button" onClick={() => useSupportItem("revival")} disabled={usedItems.revivalSalve || revivalStock <= 0}>Revival Salve ({revivalStock})</button></div>
-                </div>
-              </details>
-
-              <BattleLogButton entries={battleState.log} />
-              {phase !== "result" ? <button type="button" className={battleStyles.confirmButton} onClick={resolveRound} disabled={presentation.isPlaying || !allPlayerActionsQueued}>Confirm Round</button> : null}
-            </footer>
-          </div>
-        </section>
-      </section>
-    </main>
-  );
+  const firstClearAvailable = !getColiseumC2Progress(save).claimedFirstClearEncounterIds.includes(encounter.encounterId);
+  return <BattleArenaB title={encounter.name} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedActions={queuedActions} presentation={presentation} onTarget={setSelectedTarget} onPlan={planFor} onQueue={chooseMove} onConfirm={resolveRound} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
 }
