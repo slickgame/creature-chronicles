@@ -48,3 +48,9 @@ Subjects:
 - Browser flows: all four moves reachable by paging; target-incompatible support remains inspectable but cannot queue; explicit move review/queue for all three allies; real round resolution and return to planning; once-per-battle tonic stock consumption; cancel/confirm leave; C4 kit consumption, item popup, cancel/confirm forfeit and one saved result. A boosted local QA save also verifies a completed Circuit victory, responsive result review, one recorded win and Combat XP. Circuit/C4 have no browser page errors.
 
 PR21 remains draft and unmerged. This publishes the branch preview only.
+
+## Character scale correction
+
+The user requested larger battle characters. Replace the three-row formation with two staggered rows, reserving the left half for allies and the right half for enemies. At 1440×900, full-body render height grows from approximately 139px to 238px (about 71%). Phone portrait uses three enemies above three allies, increasing image width and height while keeping every creature visible. Short landscape keeps its existing single-row formation. Images remain contained and uncropped; no asset or combat changes.
+
+Production build/TypeScript pass. Browser checks cover all seven previous viewport sizes with no main scrolling, clipped or blocked controls, missing images or page errors. Existing commands and nested dialogs remain reachable. Desktop screenshot visually reviewed. The compact QA checks ran separately after the screenshot capture process ended early at the tablet viewport.
