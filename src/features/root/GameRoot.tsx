@@ -3,7 +3,7 @@
 import { getPendingPredatorEvent } from "@/data/predatorEvents";
 import { BattleOutfitterScreenActive } from "@/features/battle-outfitter/BattleOutfitterScreenActive";
 import { BreedingFocusedScreen } from "@/features/breeding/BreedingFocusedScreen";
-import { ColiseumC2Screen } from "@/features/coliseum/ColiseumC2Screen";
+import { ColiseumProgressionScreen as ColiseumC2Screen } from "@/features/coliseum/ColiseumProgressionShellC4Active";
 import { CollectionScreen } from "@/features/collection/CollectionScreen";
 import { DevToolsScreen } from "@/features/dev-tools/DevToolsScreenReliable";
 import { EggAtelierScreen } from "@/features/egg-atelier/EggAtelierScreen";
@@ -68,7 +68,7 @@ export function GameRoot() {
   else if (appScreen === "dev-tools") screen = <DevToolsScreen />;
 
   const showPlayerMenu = Boolean(
-    currentSave && appScreen !== "main-menu" && appScreen !== "battle-debug",
+    currentSave && appScreen !== "main-menu",
   );
 
   if (appScreen === "egg-atelier") {

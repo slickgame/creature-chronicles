@@ -90,7 +90,7 @@ export function NavigationChrome() {
       sleeping.current = false;
     }
   }
-  const localLauncher = ["ranch-hub", "town", "guild-hall", "training-grounds", "battle-outfitter", "egg-atelier", "collection", "ranch-jobs", "nursery", "breeding", "habitat", "ranch-office", "market", "supply-depot"].includes(
+  const localLauncher = ["battle-debug", "ranch-hub", "town", "guild-hall", "training-grounds", "battle-outfitter", "egg-atelier", "collection", "ranch-jobs", "nursery", "breeding", "habitat", "ranch-office", "market", "supply-depot"].includes(
     game.appScreen,
   );
   const destinations = [

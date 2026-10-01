@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useNavigation } from "@/features/navigation/NavigationContext";
+import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
 import {
   buildBattleAiPlan,
   formatBattleAiDecision,
@@ -213,8 +215,9 @@ export function ColiseumC2Screen() {
     return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load a save before entering the Coliseum.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
   }
 
+  const save = currentSave;
   function openEncounter(encounter: ColiseumC2EncounterDefinition) {
-    const access = getColiseumC2Access(currentSave, encounter);
+    const access = getColiseumC2Access(save, encounter);
     if (!access.unlocked) {
       setMessage(access.reason);
       return;
@@ -231,7 +234,7 @@ export function ColiseumC2Screen() {
     resultId: string,
   ) {
     if (!selectedEncounter) return;
-    const result = recordColiseumC2BattleResult(currentSave, selectedEncounter.encounterId, outcome, rounds, teamCreatureIds, performance, resultId);
+    const result = recordColiseumC2BattleResult(save, selectedEncounter.encounterId, outcome, rounds, teamCreatureIds, performance, resultId);
     if (!result.duplicate) saveCurrentGame(result.save);
     setMessage(result.message);
     setSelectedEncounter(null);
@@ -248,12 +251,12 @@ export function ColiseumC2Screen() {
     );
   }
 
-  const progress = getColiseumC2Progress(currentSave);
-  const nextEncounter = getColiseumC2NextEncounter(currentSave);
-  const highestDivision = getColiseumC2HighestDivision(currentSave);
-  const availableCreatures = (currentSave.creatures ?? []).filter((creature) => !getUnavailableReason(currentSave, creature));
-  const rankedCreatures = [...(currentSave.creatures ?? [])]
-    .map((creature) => ({ creature, record: getColiseumCreatureBattleRecord(currentSave, creature.creatureId) }))
+  const progress = getColiseumC2Progress(save);
+  const nextEncounter = getColiseumC2NextEncounter(save);
+  const highestDivision = getColiseumC2HighestDivision(save);
+  const availableCreatures = (save.creatures ?? []).filter((creature) => !getUnavailableReason(save, creature));
+  const rankedCreatures = [...(save.creatures ?? [])]
+    .map((creature) => ({ creature, record: getColiseumCreatureBattleRecord(save, creature.creatureId) }))
     .filter((entry) => entry.record.battles > 0)
     .sort((left, right) => right.record.wins - left.record.wins || right.record.totalCombatXp - left.record.totalCombatXp)
     .slice(0, 6);
@@ -267,8 +270,8 @@ export function ColiseumC2Screen() {
             <div><p className={styles.kicker}>Coliseum C2</p><h1>Authored PvE Circuit</h1><p>{message}</p></div>
           </div>
           <div className={styles.headerActions}>
-            <div className={styles.resource}><span>Gold</span><strong>{formatGold(currentSave.currencies.gold)}</strong></div>
-            <div className={styles.resource}><span>Guild Points</span><strong>{formatGuildPoints(currentSave.currencies.guildPoints)}</strong></div>
+            <div className={styles.resource}><span>Gold</span><strong>{formatGold(save.currencies.gold)}</strong></div>
+            <div className={styles.resource}><span>Guild Points</span><strong>{formatGuildPoints(save.currencies.guildPoints)}</strong></div>
             <button type="button" onClick={goToBattleOutfitter}>Battle Outfitter</button>
             <button type="button" onClick={goToTown}>Town</button>
           </div>
@@ -294,8 +297,8 @@ export function ColiseumC2Screen() {
                 <p className={styles.description}>{division.description}</p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(285px,1fr))", gap: 12 }}>
                   {encounters.map((encounter) => {
-                    const access = getColiseumC2Access(currentSave, encounter);
-                    const record = getColiseumC2EncounterRecord(currentSave, encounter.encounterId);
+                    const access = getColiseumC2Access(save, encounter);
+                    const record = getColiseumC2EncounterRecord(save, encounter.encounterId);
                     const cleared = progress.completedEncounterIds.includes(encounter.encounterId);
                     const enemyLevels = encounter.enemyTeam.map((entry) => entry.level);
                     return (
@@ -340,7 +343,7 @@ export function ColiseumC2Screen() {
   );
 }
 
-function ColiseumBattle({
+export function ColiseumBattle({
   encounter,
   onComplete,
   onReturn,
@@ -350,8 +353,9 @@ function ColiseumBattle({
   onReturn: () => void;
 }) {
   const { currentSave, goToBattleOutfitter, saveCurrentGame } = useGameContext();
+  const { open } = useNavigation();
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
-  const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[]>([]);
+  const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[] | null>(null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
@@ -368,14 +372,15 @@ function ColiseumBattle({
 
   const roster = currentSave?.creatures ?? [];
   const availableRoster = useMemo(() => currentSave ? roster.filter((creature) => !getUnavailableReason(currentSave, creature)) : [], [currentSave, roster]);
-  const effectiveSelection = selectedCreatureIds.length ? selectedCreatureIds : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
+  const effectiveSelection = selectedCreatureIds !== null ? selectedCreatureIds : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
   const enemyPreview = useMemo(() => getColiseumEnemyPreview(encounter), [encounter]);
 
   if (!currentSave) return null;
 
-  const tacticsStock = getBattleOutfitterCombatStock(currentSave, TEAM_TACTICS_KIT_ID);
-  const tonicStock = getBattleOutfitterCombatStock(currentSave, FIELD_TONIC_ID);
-  const revivalStock = getBattleOutfitterCombatStock(currentSave, REVIVAL_SALVE_ID);
+  const save = currentSave;
+  const tacticsStock = getBattleOutfitterCombatStock(save, TEAM_TACTICS_KIT_ID);
+  const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
+  const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
   const activeActor = battleState && activeActorId ? battleState.combatants[activeActorId] : null;
@@ -384,7 +389,7 @@ function ColiseumBattle({
   const allPlayerActionsQueued = Boolean(battleState) && livingPlayerIds.length > 0 && livingPlayerIds.every((id) => queuedActions.has(id));
 
   function toggleCreature(creature: CreatureRecord) {
-    const unavailableReason = getUnavailableReason(currentSave, creature);
+    const unavailableReason = getUnavailableReason(save, creature);
     if (unavailableReason) { setMessage(unavailableReason); return; }
     if (effectiveSelection.includes(creature.creatureId)) { setSelectedCreatureIds(effectiveSelection.filter((id) => id !== creature.creatureId)); return; }
     if (effectiveSelection.length >= 3) { setMessage("A Coliseum team contains exactly three creatures. Remove one first."); return; }
@@ -394,16 +399,17 @@ function ColiseumBattle({
   function startBattle() {
     const team = effectiveSelection.map((id) => roster.find((creature) => creature.creatureId === id)).filter((creature): creature is CreatureRecord => Boolean(creature));
     if (team.length !== 3) { setMessage("Select exactly three available creatures before entering the bracket."); return; }
+    if (team.some(creature => getUnavailableReason(save, creature))) { setMessage("A selected creature is no longer available for battle."); return; }
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
-    const enemies = buildAuthoredColiseumEnemyTeam(currentSave.saveId, encounter);
+    const enemies = buildAuthoredColiseumEnemyTeam(save.saveId, encounter);
     let state = applyAuthoredColiseumEquipment(
       applyBattleOutfitterLoadouts(
-        currentSave,
+        save,
         createBattleState({
-          battleId: `coliseum_c2_${encounter.encounterId}_${currentSave.saveId}_${currentSave.dayState.dayNumber}_${Date.now()}`,
+          battleId: `coliseum_c2_${encounter.encounterId}_${save.saveId}_${save.dayState.dayNumber}_${Date.now()}`,
           playerCreatures: team,
           enemyCreatures: enemies,
-          playerTeamName: `${currentSave.player.name}'s Ranch Team`,
+          playerTeamName: `${save.player.name}'s Ranch Team`,
           enemyTeamName: encounter.opponentName,
         }),
       ),
@@ -411,7 +417,7 @@ function ColiseumBattle({
     );
     let tacticsUsed = false;
     if (armTacticsKit) {
-      const result = applyTeamTacticsKit(currentSave, state);
+      const result = applyTeamTacticsKit(save, state);
       if (!result.ok) { setMessage(result.message); return; }
       saveCurrentGame(result.save);
       state = result.state;
@@ -454,7 +460,7 @@ function ColiseumBattle({
   function useSupportItem(item: "tonic" | "revival") {
     if (presentation.isPlaying) return;
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
-    const result = item === "tonic" ? useFieldTonic(currentSave, battleState, selectedTarget.combatantId) : useRevivalSalve(currentSave, battleState, selectedTarget.combatantId);
+    const result = item === "tonic" ? useFieldTonic(save, battleState, selectedTarget.combatantId) : useRevivalSalve(save, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
     saveCurrentGame(result.save);
     setBattleState(result.state);
@@ -502,37 +508,12 @@ function ColiseumBattle({
   }
 
   if (phase === "team-selection") {
-    return (
-      <main className={battleStyles.screen}>
-        <section className={battleStyles.frame}>
-          <header className={battleStyles.header}>
-            <div><p className={battleStyles.kicker}>{getColiseumC2Division(encounter.divisionId).name}</p><h1>{encounter.name}</h1><p>{message}</p></div>
-            <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={goToBattleOutfitter}>Battle Outfitter</button><button type="button" onClick={onReturn}>Back to Coliseum</button></div>
-          </header>
-          <section className={battleStyles.selectionSummary} data-ui-text-box="auto">
-            <div><span>Selected</span><strong>{effectiveSelection.length} / 3</strong></div>
-            <div><span>Opponent</span><strong>{encounter.opponentName}</strong><small>{encounter.strategyLabel}</small></div>
-            <div><span>AI</span><strong>{getBattleAiDifficultyLabel(encounter.aiDifficulty)}</strong><small>{getBattleAiDifficultyDescription(encounter.aiDifficulty)}</small></div>
-            <div><span>Team Prep</span><button type="button" className={armTacticsKit ? battleStyles.confirmButton : battleStyles.secondaryButton} onClick={() => setArmTacticsKit((value) => !value)} disabled={tacticsStock <= 0}>{armTacticsKit ? "Tactics Kit Armed" : `Use Tactics Kit (${tacticsStock})`}</button><small>Consumed when the match starts.</small></div>
-          </section>
-
-          <section style={{ ...darkPanel, margin: "12px 0", padding: 13 }} data-ui-text-box="auto">
-            <div className={battleStyles.panelHeading}><div><span>Authored Opponent Preview</span><strong>Fixed Team</strong></div></div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 10 }}>
-              {enemyPreview.map((enemy) => <article key={enemy.name} style={{ ...darkPanel, padding: 11, background: "rgba(32,18,16,.78)" }}><strong>{enemy.name}</strong><span style={{ display: "block", color: "#eebd68" }}>Lv. {enemy.level} {enemy.variantName} · {enemy.role}</span><small style={{ display: "block", margin: "5px 0" }}>{enemy.equipment}</small><small>{enemy.moves.join(" · ")}</small></article>)}
-            </div>
-          </section>
-
-          <section className={battleStyles.rosterGrid}>{roster.map((creature) => { const record = getColiseumCreatureBattleRecord(currentSave, creature.creatureId); return <TeamSelectionCard key={creature.creatureId} creature={creature} selected={effectiveSelection.includes(creature.creatureId)} unavailableReason={getUnavailableReason(currentSave, creature)} readinessLabel={getBattleReadinessLabel(currentSave, creature.creatureId)} recordLabel={`${record.wins}W · ${record.totalCombatXp} combat XP`} onToggle={() => toggleCreature(creature)} />; })}</section>
-          <footer className={battleStyles.selectionFooter}><p>All three participants gain combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter {encounter.name}</button></footer>
-        </section>
-      </main>
-    );
+    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
   }
 
   if (!battleState) return null;
-  const xpPreview = phase === "result" ? previewColiseumCombatXp(currentSave, encounter, battleState.outcome, playerSources.map((creature) => creature.creatureId), performance) : [];
-  const progress = getColiseumC2Progress(currentSave);
+  const xpPreview = phase === "result" ? previewColiseumCombatXp(save, encounter, battleState.outcome, playerSources.map((creature) => creature.creatureId), performance) : [];
+  const progress = getColiseumC2Progress(save);
   const firstClearAvailable = !progress.claimedFirstClearEncounterIds.includes(encounter.encounterId);
 
   return (
@@ -540,7 +521,7 @@ function ColiseumBattle({
       <section className={battleStyles.frame}>
         <header className={`${battleStyles.header} ${battleStyles.battleHeader}`}>
           <div><p className={battleStyles.kicker}>{getColiseumC2Division(encounter.divisionId).name} · {getBattleAiDifficultyLabel(encounter.aiDifficulty)} AI</p><h1>{phase === "result" ? "Match Complete" : `Round ${battleState.roundNumber}`}</h1><p title={message}>{message}</p></div>
-          <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
+          <div className={battleStyles.headerActions}><button onClick={()=>open("menu")} data-navigation-launcher>Menu</button><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
         </header>
 
         <BattlePortraitStage

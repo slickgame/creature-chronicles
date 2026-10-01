@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useNavigation } from "@/features/navigation/NavigationContext";
+import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
 import {
   buildBattleAiPlan,
   formatBattleAiDecision,
@@ -244,8 +246,9 @@ export function ColiseumC4Battle({
   onReturn,
 }: ColiseumC4BattleProps) {
   const { currentSave, goToBattleOutfitter, saveCurrentGame } = useGameContext();
+  const { open } = useNavigation();
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
-  const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[]>(lockedTeamCreatureIds ?? []);
+  const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[] | null>(lockedTeamCreatureIds ?? null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
@@ -267,7 +270,7 @@ export function ColiseumC4Battle({
   const visibleRoster = locked ? lockedRoster : roster;
   const effectiveSelection = locked
     ? lockedRoster.map((creature) => creature.creatureId)
-    : selectedCreatureIds.length
+    : selectedCreatureIds !== null
       ? selectedCreatureIds
       : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
   const enemyPreview = useMemo(() => getColiseumEnemyPreview(encounter), [encounter]);
@@ -434,48 +437,7 @@ export function ColiseumC4Battle({
   }
 
   if (phase === "team-selection") {
-    return (
-      <main className={battleStyles.screen}>
-        <section className={battleStyles.frame}>
-          <header className={battleStyles.header}>
-            <div><p className={battleStyles.kicker}>Coliseum C4 · {challenge.mode.toUpperCase()} · Stage {stageIndex + 1}/{challenge.encounterIds.length}</p><h1>{challenge.name}</h1><p>{message}</p></div>
-            <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={goToBattleOutfitter}>Battle Outfitter</button><button type="button" onClick={onReturn}>Back to C4 Hub</button></div>
-          </header>
-
-          <section className={styles.modifierStrip} data-ui-text-box="auto">
-            {challenge.modifierIds.map((id) => { const modifier = getColiseumC4Modifier(id); return <article key={id} data-tone={modifier.tone}><strong>{modifier.name}</strong><span>{modifier.description}</span><small>{modifier.rewardBonusPercent >= 0 ? "+" : ""}{modifier.rewardBonusPercent}% reward weight</small></article>; })}
-          </section>
-
-          <section className={battleStyles.selectionSummary} data-ui-text-box="auto">
-            <div><span>Selected</span><strong>{effectiveSelection.length} / 3</strong><small>{locked ? "Roster locked for the current gauntlet" : "Choose any three available creatures"}</small></div>
-            <div><span>Opponent</span><strong>{encounter.opponentName}</strong><small>{encounter.strategyLabel}</small></div>
-            <div><span>AI</span><strong>{getBattleAiDifficultyLabel(encounter.aiDifficulty)}</strong><small>{getBattleAiDifficultyDescription(encounter.aiDifficulty)}</small></div>
-            <div><span>Team Prep</span><button type="button" className={armTacticsKit ? battleStyles.confirmButton : battleStyles.secondaryButton} onClick={() => setArmTacticsKit((value) => !value)} disabled={tacticsStock <= 0}>{armTacticsKit ? "Tactics Kit Armed" : `Use Tactics Kit (${tacticsStock})`}</button><small>Consumed when this stage starts.</small></div>
-          </section>
-
-          <section className={styles.previewPanel} data-ui-text-box="auto">
-            <header><div><span>Authored Opponent Preview</span><strong>Fixed Stage Team</strong></div><small>{getColiseumC2Division(encounter.divisionId).name} source formation · +{challenge.levelBonus} challenge levels</small></header>
-            <div className={styles.previewGrid}>
-              {enemyPreview.map((enemy) => <article key={enemy.name}><strong>{enemy.name}</strong><span>Lv. {enemy.level} {enemy.variantName} · {enemy.role}</span><small>{enemy.equipment}</small><small>{enemy.moves.join(" · ")}</small></article>)}
-            </div>
-          </section>
-
-          <section className={battleStyles.rosterGrid}>
-            {visibleRoster.map((creature) => <TeamSelectionCard
-              key={creature.creatureId}
-              creature={creature}
-              selected={effectiveSelection.includes(creature.creatureId)}
-              unavailableReason={getUnavailableReason(save, creature)}
-              locked={locked}
-              readinessLabel={getBattleReadinessLabel(save, creature.creatureId)}
-              carryover={carryover?.[String(creature.creatureId)]}
-              onToggle={() => toggleCreature(creature)}
-            />)}
-          </section>
-          <footer className={battleStyles.selectionFooter}><p>{challenge.mode === "gauntlet" ? "Victories preserve the same roster. Between stages, living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP." : "Every participant earns ordinary creature XP after the result is recorded, including fainted creatures."}</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter Stage {stageIndex + 1}</button></footer>
-        </section>
-      </main>
-    );
+    return <ColiseumTeamStaging title={`${challenge.name} · Stage ${stageIndex + 1}/${challenge.encounterIds.length}`} roster={visibleRoster} selected={effectiveSelection} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c => getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} locked={locked} carryover={carryover} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<>{challenge.modifierIds.map(id=>{const m=getColiseumC4Modifier(id);return <section key={id}><h3>{m.name}</h3><p>{m.description}</p></section>;})}<p>{challenge.mode === "gauntlet" ? "The same roster continues between stages. Living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP. Statuses and cooldowns clear. Defeat or a draw ends the run." : "Every participant earns Combat XP after the result is recorded."}</p></>} />;
   }
 
   if (!battleState) return null;
@@ -489,7 +451,7 @@ export function ColiseumC4Battle({
       <section className={battleStyles.frame}>
         <header className={battleStyles.header}>
           <div><p className={battleStyles.kicker}>C4 {challenge.mode.toUpperCase()} · Stage {stageIndex + 1}/{challenge.encounterIds.length} · {getBattleAiDifficultyLabel(encounter.aiDifficulty)} AI</p><h1>{phase === "result" ? "Challenge Stage Complete" : `Round ${battleState.roundNumber}`}</h1><p>{message}</p></div>
-          <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
+          <div className={battleStyles.headerActions}><button onClick={()=>open("menu")} data-navigation-launcher>Menu</button><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
         </header>
 
         <section className={styles.compactModifiers}>{challenge.modifierIds.map((id) => <span key={id}>{getColiseumC4Modifier(id).name}</span>)}</section>
