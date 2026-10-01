@@ -16,18 +16,18 @@ import styles from "./TownScreen.module.css";
 
 const AUTO_OPEN = "creature-chronicles-open-builder-yard";
 const ART = "/images/ui/town-v1/";
-const BUILDINGS = "/images/buildings/town/";
+const ART_V2 = "/images/ui/town-v2/";
 const NPCS = "/images/npcs/town/";
 const LOCATIONS = [
-  { id: "adoption", title: "Vale's Adoption Hearth", short: "Adoption Hearth", host: "Tamsin Vale", description: "Meet your next companion. Review new arrivals and adoption fees.", image: BUILDINGS + "market_stall.png", portrait: NPCS + "tamsin_vale_portrait.png" },
-  { id: "supply", title: "The Supply Depot", short: "Supply Depot", host: "Pella Mosswick", description: "Feed, materials & ranch supplies.", image: BUILDINGS + "supply_depot.png", portrait: NPCS + "pella_mosswick_portrait_v2.webp" },
-  { id: "builder", title: "Builder's Yard", short: "Builder's Yard", host: "Petra Hale", description: "Expand your ranch and strengthen its defenses.", image: ART + "builder.webp", portrait: null },
-  { id: "eggs", title: "The Egg Atelier", short: "Egg Atelier", host: "Dr. Selene Virell", description: "Egg appraisal, incubation care & hatch improvements.", image: BUILDINGS + "egg_atelier.png", portrait: NPCS + "selene_virell_portrait.png" },
-  { id: "guild", title: "Guild Hall", short: "Guild Hall", host: "Contracts & town upgrades", description: "Fulfill requests, earn Guild Points and improve town services.", image: BUILDINGS + "guild_hall.png", portrait: null },
-  { id: "training", title: "Training Grounds", short: "Training Grounds", host: "Rhea Flint", description: "Timed XP drills, stat coaching & trainer upgrades.", image: BUILDINGS + "training_grounds.png", portrait: NPCS + "rhea_flint_portrait.png" },
-  { id: "outfitter", title: "Battle Outfitter", short: "Battle Outfitter", host: "Daria Voss", description: "Equipment, move training & combat supplies.", image: BUILDINGS + "battle_outfitter.png", portrait: NPCS + "daria_voss_portrait.png" },
-  { id: "coliseum", title: "Coliseum", short: "Coliseum", host: "Battles & challenges", description: "Challenge the circuit and take on rotating trials.", image: ART + "coliseum.webp", portrait: null },
-  { id: "rose", title: "The Rose Lantern", short: "Rose Lantern", host: "Adults-only social house", description: "Optional social visits, hospitality work & town intelligence.", image: ART + "rose.webp", portrait: null },
+  { id: "adoption", scene: ART_V2 + "scene-adoption.webp", title: "Vale's Adoption Hearth", short: "Adoption Hearth", host: "Tamsin Vale", description: "Meet your next companion. Review new arrivals and adoption fees.", image: ART_V2 + "icon-adoption.webp", portrait: NPCS + "tamsin_vale_portrait.png" },
+  { id: "supply", scene: ART + "background.webp", title: "The Supply Depot", short: "Supply Depot", host: "Pella Mosswick", description: "Feed, materials & ranch supplies.", image: ART_V2 + "icon-supply.webp", portrait: NPCS + "pella_mosswick_portrait_v2.webp" },
+  { id: "builder", scene: ART_V2 + "scene-builder.webp", title: "Builder's Yard", short: "Builder's Yard", host: "Petra Hale", description: "Expand your ranch and strengthen its defenses.", image: ART + "builder.webp", portrait: null },
+  { id: "eggs", scene: ART_V2 + "scene-eggs.webp", title: "The Egg Atelier", short: "Egg Atelier", host: "Dr. Selene Virell", description: "Egg appraisal, incubation care & hatch improvements.", image: ART_V2 + "icon-eggs.webp", portrait: NPCS + "selene_virell_portrait.png" },
+  { id: "guild", scene: ART_V2 + "scene-guild.webp", title: "Guild Hall", short: "Guild Hall", host: "Contracts & town upgrades", description: "Fulfill requests, earn Guild Points and improve town services.", image: ART_V2 + "icon-guild.webp", portrait: null },
+  { id: "training", scene: ART_V2 + "scene-training.webp", title: "Training Grounds", short: "Training Grounds", host: "Rhea Flint", description: "Timed XP drills, stat coaching & trainer upgrades.", image: ART_V2 + "icon-training.webp", portrait: NPCS + "rhea_flint_portrait.png" },
+  { id: "outfitter", scene: ART_V2 + "scene-outfitter.webp", title: "Battle Outfitter", short: "Battle Outfitter", host: "Daria Voss", description: "Equipment, move training & combat supplies.", image: ART_V2 + "icon-outfitter.webp", portrait: NPCS + "daria_voss_portrait.png" },
+  { id: "coliseum", scene: ART_V2 + "scene-coliseum.webp", title: "Coliseum", short: "Coliseum", host: "Battles & challenges", description: "Challenge the circuit and take on rotating trials.", image: ART + "coliseum.webp", portrait: null },
+  { id: "rose", scene: ART_V2 + "scene-rose.webp", title: "The Rose Lantern", short: "Rose Lantern", host: "Adults-only social house", description: "Optional social visits, hospitality work & town intelligence.", image: ART + "rose.webp", portrait: null },
 ] as const;
 type LocationId = typeof LOCATIONS[number]["id"];
 type Modal = "builder" | "rose" | "details" | null;
@@ -44,6 +44,14 @@ export function TownScreen() {
     setSelectedId("builder");
     setModal("builder");
   }, []);
+  useEffect(() => {
+    // Warm the visible page and its neighbor so selecting a service is responsive.
+    const start = page * 3;
+    for (const location of LOCATIONS.slice(start, Math.min(start + 6, LOCATIONS.length))) {
+      const image = new Image();
+      image.src = location.scene;
+    }
+  }, [page]);
   if (!save) return <main className={styles.emptyScreen}><h1>No active save</h1><p>Load or create a save before entering town.</p><button onClick={goToMainMenu}>Return to Main Menu</button></main>;
   const selected = LOCATIONS.find(location => location.id === selectedId)!;
   const progress = getColiseumC2Progress(save);
@@ -74,7 +82,7 @@ export function TownScreen() {
     setPage(next);
     setSelectedId(LOCATIONS[next * 3].id);
   }
-  return <main className={styles.town}>
+  return <main className={styles.town} style={{ backgroundImage: `url("${selected.scene}")` }} data-town-location={selectedId}>
     <header className={styles.header}>
       <h1>Town Square</h1>
       <nav aria-label="Town navigation"><button onClick={goToRanch}>← Ranch</button><button data-navigation-launcher onClick={() => open("menu")}>☰ Menu</button></nav>
