@@ -32,3 +32,12 @@ The selected move previews target-specific damage conditional on hitting, actual
 - Browser flow: queue three attacks through the modal target picker; verify damage previews; confirm/pause on the first action with original HP intact; step through a real round and observe six distinct HP changes; return to planning. C4 layout, item access, exact kit consumption, cancel/confirm forfeit and one recorded loss pass. A completed Circuit victory also passes the revised playback, desktop/phone result review and one recorded win with Combat XP.
 
 PR21 remains draft and unmerged; publish only the existing branch preview.
+
+
+## Approved expandable dock — 2026-10-02
+
+Moves now expands the bottom parchment dock inline and shifts the battlefield upward. The ally planning rail stays above categorized moves and target projections. Battlefield targets remain clickable. Queue Move and Confirm Round collapse the dock; Collapse leaves plans unchanged. Phones use Choose move / Preview & queue tabs. Move lists and multi-effect projections paginate; Full details remains a scrolling native dialog with every effect. Existing canonical art and battle rules are unchanged.
+
+Removed the arena background desaturation and locally overrode the global disabled-button grayscale/opacity for battlefield creatures and playback ally tabs. Disabled semantics remain intact during resolution. Fainted creatures retain their separate KO treatment.
+
+Validation: production Next build/TypeScript passed; scoped ESLint zero errors (9 image warnings); 10 focused interface/HUD tests passed. Production Chromium checked collapsed and expanded states, move pagination, selected-target previews and nested details at 1920×1080, 1440×900, 1280×720, 768×900, 390×844, 360×740 and 844×390. No main scrolling, missing visible art, out-of-viewport controls or blocked controls. Queue/target/pause/step checks passed, including six separate HP changes and computed no-grayscale/full-opacity battlefield buttons during playback. Full regression suite was not rerun for this presentation-only change; prior two unrelated retired-Town source failures remain documented above.
