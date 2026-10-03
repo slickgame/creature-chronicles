@@ -15,6 +15,7 @@ import {
 } from "@/data/breedingRecords";
 import { useGameContext } from "@/state/GameProvider";
 import type { BreedingAttemptRecord } from "@/types/breeding";
+import { GameDialog } from "@/features/ui/GameDialog";
 import styles from "./BreedingRecordsScreen.module.css";
 
 const BREEDING_HANDOFF_KEY = "creature_chronicles_breeding_focus";
@@ -23,6 +24,7 @@ type LedgerTab = "overview" | "attempts" | "pairs" | "creatures" | "tree";
 
 type Props = {
   onClose: () => void;
+  embedded?: boolean;
 };
 
 function formatTimestamp(value: string | null | undefined): string {
@@ -90,8 +92,9 @@ function TreeNodeCard({
   );
 }
 
-export function BreedingRecordsScreen({ onClose }: Props) {
+export function BreedingRecordsScreen({ onClose, embedded = false }: Props) {
   const { currentSave } = useGameContext();
+  const Root = embedded ? "div" : "main";
   const [tab, setTab] = useState<LedgerTab>("overview");
   const [query, setQuery] = useState("");
   const [outcome, setOutcome] = useState<BreedingRecordOutcomeFilter>("all");
@@ -152,12 +155,12 @@ export function BreedingRecordsScreen({ onClose }: Props) {
 
   if (!currentSave || !overview) {
     return (
-      <main className={styles.screen}>
+      <Root className={embedded ? styles.embedded : styles.screen}>
         <section className={styles.emptyPanel}>
           <h1>No active breeding ledger</h1>
           <button type="button" onClick={onClose}>Return</button>
         </section>
-      </main>
+      </Root>
     );
   }
 
@@ -183,7 +186,7 @@ export function BreedingRecordsScreen({ onClose }: Props) {
   }
 
   return (
-    <main className={styles.screen}>
+    <Root className={embedded ? styles.embedded : styles.screen}>
       <section className={styles.frame}>
         <header className={styles.header}>
           <div>
@@ -371,8 +374,7 @@ export function BreedingRecordsScreen({ onClose }: Props) {
       </section>
 
       {detailAttempt ? (
-        <div className={styles.modalBackdrop} role="presentation" onClick={() => setDetailAttempt(null)}>
-          <section className={styles.detailModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+        <GameDialog title="Complete Attempt Record" onClose={() => setDetailAttempt(null)} wide><div>
             <header><div><p className={styles.kicker}>Complete Attempt Record</p><h2>{detailAttempt.giverName} × {detailAttempt.receiverName}</h2><p>Ranch Day {detailAttempt.dayNumber} · {formatTimestamp(detailAttempt.createdAt)}</p></div><button type="button" onClick={() => setDetailAttempt(null)}>Close</button></header>
             <div className={styles.detailImages}><img src={detailAttempt.pairingImagePath} alt="Pairing scene record" /><img src={detailAttempt.outcomeImagePath} alt="Outcome record" /></div>
             <div className={styles.detailStats}>
@@ -386,9 +388,8 @@ export function BreedingRecordsScreen({ onClose }: Props) {
             <article data-ui-text-box="auto"><h3>Result</h3><p>{detailAttempt.resultText}</p><p>{detailAttempt.outcomeFlavorText}</p></article>
             <article data-ui-text-box="auto"><h3>Progression</h3>{detailAttempt.progressionEvents.length ? detailAttempt.progressionEvents.map((event) => <p key={`${event.participantId}-${event.displayName}`}>{event.displayName}: +{event.xpAfter - event.xpBefore} XP{event.levelUps ? ` · ${event.levelUps} level up` : ""}{event.abilityTriggers.length ? ` · ${event.abilityTriggers.join(" ")}` : ""}</p>) : <p>No progression events recorded.</p>}</article>
             <article data-ui-text-box="auto"><h3>Offspring</h3>{getAttemptOffspring(currentSave, detailAttempt).length ? getAttemptOffspring(currentSave, detailAttempt).map((birth) => <p key={birth.birthId}>{birth.nickname} · Hatched Day {birth.hatchedAtDayNumber} · {formatTimestamp(birth.hatchedAt)}</p>) : <p>No hatched offspring linked to this attempt.</p>}</article>
-          </section>
-        </div>
+          </div></GameDialog>
       ) : null}
-    </main>
+    </Root>
   );
 }

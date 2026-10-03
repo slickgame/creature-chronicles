@@ -1,6 +1,7 @@
 import { getBattleMove } from "@/data/battleMoves";
 import type {
   BattleCombatantId,
+  BattlePlaybackFrame,
   BattleMove,
   BattleMoveCategory,
   BattleRoundResult,
@@ -27,6 +28,7 @@ export type BattlePresentationEventKind =
   | "knockout";
 
 export type BattlePresentationEvent = {
+  state?: BattleState;
   eventId: string;
   kind: BattlePresentationEventKind;
   actorId?: BattleCombatantId;
@@ -285,4 +287,8 @@ export function buildBattlePresentationEvents(
   });
 
   return events;
+}
+
+export function buildBattlePlaybackEvents(frames: BattlePlaybackFrame[]): BattlePresentationEvent[] {
+  return frames.map((frame,index)=>({...frame,eventId:`frame-${index}`,moveName:frame.moveId?getBattleMove(frame.moveId).name:undefined,preset:frame.moveId?getBattleMoveEffectPreset(getBattleMove(frame.moveId)):"status",durationMs:frame.kind==="attack"?600:frame.kind==="status"?650:800}));
 }

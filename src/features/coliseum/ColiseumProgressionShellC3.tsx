@@ -37,9 +37,9 @@ function titleCase(value: string): string {
   return value.split(/[_-]/g).map((part) => part ? part[0].toUpperCase() + part.slice(1) : part).join(" ");
 }
 
-export function ColiseumProgressionScreen() {
+export function ColiseumProgressionScreen({ initialMode = "arena", embedded = false }: { initialMode?: C3Mode; embedded?: boolean } = {}) {
   const { currentSave, goToBattleOutfitter, goToMainMenu, goToTown, saveCurrentGame } = useGameContext();
-  const [mode, setMode] = useState<C3Mode>("arena");
+  const [mode, setMode] = useState<C3Mode>(initialMode);
   const [category, setCategory] = useState<ColiseumC3RewardKind | "all">("all");
   const [selectedCreatureId, setSelectedCreatureId] = useState<CreatureId | null>(null);
   const [replacementByMove, setReplacementByMove] = useState<Record<string, string>>({});
@@ -58,7 +58,7 @@ export function ColiseumProgressionScreen() {
   }, [currentSave?.saveId, c2ProgressKey, c3StateKey, saveCurrentGame]);
 
   if (!currentSave) {
-    return <main className={styles.shell}><section className={styles.exchange}><div className={styles.empty}><h1>No active save</h1><button type="button" className={styles.primaryButton} onClick={goToMainMenu}>Main Menu</button></div></section></main>;
+    return <main className={`${styles.shell} ${embedded ? styles.embedded : ""}`}><section className={styles.exchange}><div className={styles.empty}><h1>No active save</h1><button type="button" className={styles.primaryButton} onClick={goToMainMenu}>Main Menu</button></div></section></main>;
   }
 
   const save = currentSave;
@@ -76,7 +76,7 @@ export function ColiseumProgressionScreen() {
   const toolbar = (
     <nav className={styles.toolbar} aria-label="Coliseum C3 navigation">
       <div className={styles.markPill}><span>Coliseum Marks</span><strong>{state.marks}</strong></div>
-      <button type="button" data-active={mode === "arena"} onClick={() => setMode("arena")}>Arena</button>
+      {!embedded && <button type="button" data-active={mode === "arena"} onClick={() => setMode("arena")}>Arena</button>}
       <button type="button" data-active={mode === "exchange"} onClick={() => setMode("exchange")}>Marks Exchange</button>
       <button type="button" data-active={mode === "techniques"} onClick={() => setMode("techniques")}>Technique Desk</button>
       <button type="button" data-active={mode === "contracts"} onClick={() => setMode("contracts")}>Recruitment Hold</button>
@@ -89,11 +89,11 @@ export function ColiseumProgressionScreen() {
   if (mode === "arena") return <div className={styles.shell}>{toolbar}<ColiseumProgressionScreenC2 /></div>;
 
   return (
-    <main className={styles.shell}>
+    <main className={`${styles.shell} ${embedded ? styles.embedded : ""}`}>
       {toolbar}
       <section className={styles.exchange}>
         <header className={styles.header}>
-          <div><p className={styles.kicker}>Coliseum C3</p><h1>Marks, Loot & Reward Progression</h1><p>{message}</p></div>
+          <div><p className={styles.kicker}>Coliseum</p><h1>Marks, Loot & Reward Progression</h1><p>{message}</p></div>
           <section className={styles.summaryGrid}>
             <article><span>Marks</span><strong>{summary.marks}</strong></article>
             <article><span>Combat Clears</span><strong>{summary.completedEncounters}/{summary.totalEncounters}</strong></article>

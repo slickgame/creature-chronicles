@@ -330,3 +330,5 @@
     max-height: 320px;
   }
 }
+
+.embedded .screen {width:100%;max-height:none;overflow:visible;}

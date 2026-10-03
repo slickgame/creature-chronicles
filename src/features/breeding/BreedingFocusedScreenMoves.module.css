@@ -143,3 +143,5 @@
   color: #aaa79f !important;
   font-size: 0.67rem !important;
 }
+/* Inheritance details use the shared parchment dialog. */
+.body{padding:0;gap:14px;}.body p,.body h3,.childLabel span,.childLabel strong,.list strong,.list span,.list b,.list .combination b{color:#49341d;font-size:14px;line-height:1.5;}.body h3{font-size:17px;text-transform:none;letter-spacing:0;}.childLabel,.list article,.list .combination{background:#b09b6422;border-color:#9c804255;border-radius:4px;padding:12px;}.list strong{font-size:16px;}.list span{color:#755c3c;}.nativeNote{color:#446538!important;}.disclosure{font-size:13px!important;color:#755c3c!important;border-color:#9c804255;}

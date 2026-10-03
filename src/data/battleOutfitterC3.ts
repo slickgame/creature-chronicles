@@ -1,8 +1,10 @@
+import { SHOP_EQUIPMENT, type ShopEquipmentId } from "./equipmentCatalogue";
+import type { BattleStats } from "@/types/battle";
 import * as active from "./battleOutfitterActive";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
-export type BattleOutfitterItemId =
+export type BattleOutfitterItemId = ShopEquipmentId
   | "sparring_wraps"
   | "guard_charm"
   | "focus_manual"
@@ -16,7 +18,14 @@ export type BattleOutfitterItemId =
   | "champion_harness";
 
 export type BattleOutfitterCategory = "Equipment" | "Manual" | "Consumable" | "Team Prep";
-export type BattleLoadoutSlot = "offense" | "defense" | "utility";
+export const EQUIPMENT_SLOTS = ["weapon", "armor", "head", "handsFeet", "accessory"] as const;
+export type EquipmentSlot = typeof EQUIPMENT_SLOTS[number];
+export type BattleLoadoutSlot = "offense" | "defense" | "utility" | EquipmentSlot;
+export const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = { weapon: "Weapon", armor: "Armor", head: "Head", handsFeet: "Hands / Feet", accessory: "Accessory" };
+const ITEM_SLOTS: Partial<Record<BattleOutfitterItemId, EquipmentSlot>> = {
+  sparring_wraps: "handsFeet", arena_blade_wraps: "weapon", focus_prism: "weapon",
+  guard_charm: "accessory", bastion_badge: "armor", tactician_emblem: "accessory", champion_harness: "armor",
+};
 export type BattleReadinessTier = "Unprepared" | "Prepared" | "Ready" | "Elite";
 
 export type BattleOutfitterItem = {
@@ -31,11 +40,16 @@ export type BattleOutfitterItem = {
   flagKey: string;
   maxStock?: number;
   loadoutSlot?: BattleLoadoutSlot;
+  equipmentSlot?: EquipmentSlot;
   readinessValue?: number;
   coliseumExclusive?: boolean;
+  quality?: "Common" | "Fine" | "Superior" | "Masterwork" | "Relic";
+  equipmentGrade?: "D" | "C" | "B" | "A" | "S";
+  statBonuses?: Partial<BattleStats>;
 };
 
 export type BattleLoadout = {
+  equipment: Record<EquipmentSlot, BattleOutfitterItemId | null>;
   offenseItemId: BattleOutfitterItemId | null;
   defenseItemId: BattleOutfitterItemId | null;
   utilityItemId: BattleOutfitterItemId | null;
@@ -140,7 +154,12 @@ const COLISEUM_ITEMS: BattleOutfitterItem[] = [
 export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
   ...(active.BATTLE_OUTFITTER_ITEMS as BattleOutfitterItem[]),
   ...COLISEUM_ITEMS,
-];
+].map(item => ({ ...item, equipmentSlot: ITEM_SLOTS[item.itemId], ...(item.category === "Equipment" ? { quality: item.itemId === "champion_harness" ? "Relic" as const : item.coliseumExclusive ? "Masterwork" as const : "Fine" as const, equipmentGrade: item.itemId === "champion_harness" ? "S" as const : item.coliseumExclusive ? "A" as const : "C" as const } : {}), iconPath: `/images/ui/outfitter-v1/${item.itemId}.webp` }));
+BATTLE_OUTFITTER_ITEMS.push(...SHOP_EQUIPMENT);
+
+export function equipmentQualityLabel(item: BattleOutfitterItem): string {
+  return item.equipmentGrade ? `${item.quality} · Gear Grade ${item.equipmentGrade}` : item.category;
+}
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
   const parsed = typeof value === "number" ? value : Number(value ?? fallback);
@@ -157,6 +176,55 @@ function getItem(itemId: string): BattleOutfitterItem | null {
 
 function getSlotFlag(creatureId: CreatureId, slot: BattleLoadoutSlot): string {
   return `battleLoadout_${creatureId}_${slot}`;
+}
+
+/** Read-time migration is pure; the next successful transaction persists it once.
+ * A collision returns the displaced piece to stock, preserving every owned copy. */
+export function normalizeBattleEquipment(save: GameSave): GameSave {
+  let changed = false;
+  const flags = { ...save.flags };
+  for (const creature of save.creatures ?? []) {
+    const id = creature.creatureId;
+    const marker = `battleEquipmentV1_${id}`;
+    if (flags[marker] === true) continue;
+    changed = true;
+    for (const legacy of ["offense", "defense", "utility"] as const) {
+      const oldKey = getSlotFlag(id, legacy);
+      const item = getItem(getFlagString(flags[oldKey]));
+      if (item?.equipmentSlot) {
+        const key = equipmentFlag(id, item.equipmentSlot);
+        if (!flags[key]) flags[key] = item.itemId;
+        else flags[item.flagKey] = getFlagNumber(flags[item.flagKey]) + 1;
+      }
+      flags[oldKey] = "";
+    }
+    flags[marker] = true;
+  }
+  return changed ? { ...save, flags } : save;
+}
+
+function equipmentFlag(id: CreatureId, slot: EquipmentSlot): string {
+  return `battleEquipment_${id}_${slot}`;
+}
+
+export function getEquipmentSlots(save: GameSave, id: CreatureId): Record<EquipmentSlot, BattleOutfitterItemId | null> {
+  const normalized = normalizeBattleEquipment(save);
+  return Object.fromEntries(EQUIPMENT_SLOTS.map(slot => {
+    const item = getItem(getFlagString(normalized.flags[equipmentFlag(id, slot)]));
+    return [slot, item?.equipmentSlot === slot ? item.itemId : null];
+  })) as Record<EquipmentSlot, BattleOutfitterItemId | null>;
+}
+
+function resolveSlot(save: GameSave, id: CreatureId, slot: BattleLoadoutSlot): EquipmentSlot | undefined {
+  if ((EQUIPMENT_SLOTS as readonly string[]).includes(slot)) return slot as EquipmentSlot;
+  return EQUIPMENT_SLOTS.find(key => getItem(getEquipmentSlots(save, id)[key] ?? "")?.loadoutSlot === slot);
+}
+
+/** Hypothetical replacement for comparisons; never spends stock or mutates a save. */
+export function previewEquipmentSave(save: GameSave, id: CreatureId, item: BattleOutfitterItem): GameSave {
+  const normalized = normalizeBattleEquipment(save);
+  if (!item.equipmentSlot) return normalized;
+  return { ...normalized, flags: { ...normalized.flags, [equipmentFlag(id, item.equipmentSlot)]: item.itemId } };
 }
 
 function getManualFlag(creatureId: CreatureId): string {
@@ -183,29 +251,18 @@ export function getBattleOutfitterCostLabel(item: BattleOutfitterItem): string {
 }
 
 export function getBattleLoadout(save: GameSave, creatureId: CreatureId): BattleLoadout {
-  const offenseItem = getItem(getFlagString(save.flags[getSlotFlag(creatureId, "offense")]));
-  const defenseItem = getItem(getFlagString(save.flags[getSlotFlag(creatureId, "defense")]));
-  const utilityItem = getItem(getFlagString(save.flags[getSlotFlag(creatureId, "utility")]));
+  const equipment = getEquipmentSlots(save, creatureId);
+  const items = Object.values(equipment).map(id => getItem(id ?? "")).filter((item): item is BattleOutfitterItem => Boolean(item));
   const manualRank = Math.min(3, getFlagNumber(save.flags[getManualFlag(creatureId)]));
-  const readinessScore =
-    (offenseItem?.readinessValue ?? 0) +
-    (defenseItem?.readinessValue ?? 0) +
-    (utilityItem?.readinessValue ?? 0) +
-    manualRank;
-  const labels = [
-    offenseItem?.name,
-    defenseItem?.name,
-    utilityItem?.name,
-    manualRank > 0 ? `Focus Training ${manualRank}` : null,
-  ].filter((label): label is string => Boolean(label));
+  const readinessScore = items.reduce((sum, item) => sum + (item.readinessValue ?? 0), manualRank);
   return {
-    offenseItemId: offenseItem?.itemId ?? null,
-    defenseItemId: defenseItem?.itemId ?? null,
-    utilityItemId: utilityItem?.itemId ?? null,
-    manualRank,
-    readinessScore,
-    readinessTier: getTier(readinessScore),
-    labels,
+    equipment,
+    // Legacy projections are retained for older read-only consumers.
+    offenseItemId: items.find(item => item.loadoutSlot === "offense")?.itemId ?? null,
+    defenseItemId: items.find(item => item.loadoutSlot === "defense")?.itemId ?? null,
+    utilityItemId: items.find(item => item.loadoutSlot === "utility")?.itemId ?? null,
+    manualRank, readinessScore, readinessTier: getTier(readinessScore),
+    labels: [...items.map(item => item.name), ...(manualRank ? [`Focus Training ${manualRank}`] : [])],
   };
 }
 
@@ -215,6 +272,7 @@ export function getBattleReadinessLabel(save: GameSave, creatureId: CreatureId):
 }
 
 export function getBattleOutfitterSummary(save: GameSave): BattleOutfitterSummary {
+  save = normalizeBattleEquipment(save);
   const stockSummary = BATTLE_OUTFITTER_ITEMS.reduce(
     (summary, item) => {
       const stock = getBattleOutfitterStock(save, item);
@@ -242,7 +300,7 @@ export function getBattleOutfitterSummary(save: GameSave): BattleOutfitterSummar
   const creatures = save.creatures ?? [];
   for (const creature of creatures) {
     const loadout = getBattleLoadout(save, creature.creatureId);
-    stockSummary.assignedEquipment += Number(Boolean(loadout.offenseItemId)) + Number(Boolean(loadout.defenseItemId)) + Number(Boolean(loadout.utilityItemId));
+    stockSummary.assignedEquipment += Object.values(loadout.equipment).filter(Boolean).length;
     stockSummary.manualRanks += loadout.manualRank;
     stockSummary.readyCreatures += loadout.readinessScore >= 6 ? 1 : 0;
     stockSummary.eliteCreatures += loadout.readinessScore >= 10 ? 1 : 0;
@@ -255,7 +313,7 @@ export function getBattleOutfitterSummary(save: GameSave): BattleOutfitterSummar
 export function getBattleOutfitterDailySummaryItems(save: GameSave): string[] {
   const summary = getBattleOutfitterSummary(save);
   if (summary.assignedEquipment <= 0 && summary.manualRanks <= 0) return [];
-  return [`Battle prep: ${summary.assignedEquipment} equipment pieces assigned across offense, defense, and utility slots; ${summary.manualRanks} Focus Training ranks learned.`];
+  return [`Battle prep: ${summary.assignedEquipment} equipment pieces assigned across five equipment slots; ${summary.manualRanks} Focus Training ranks learned.`];
 }
 
 export function purchaseBattleOutfitterItem(save: GameSave, itemId: string): BattleOutfitterResult {
@@ -264,7 +322,12 @@ export function purchaseBattleOutfitterItem(save: GameSave, itemId: string): Bat
   if (item.coliseumExclusive) {
     return { save, ok: false, message: `${item.name} is exclusive to the Coliseum Marks Exchange.` };
   }
-  return active.purchaseBattleOutfitterItem(save, itemId);
+  if (!item.statBonuses) return active.purchaseBattleOutfitterItem(normalizeBattleEquipment(save), itemId);
+  const stock = getBattleOutfitterStock(save, item), materials = getBattleOutfitterMaterialStock(save);
+  if (item.maxStock && stock >= item.maxStock) return { save, ok: false, message: `${item.name} stock is full.` };
+  if (save.currencies.gold < item.costGold || materials < item.materialCost) return { save, ok: false, message: `Need ${getBattleOutfitterCostLabel(item)}. Available: ${save.currencies.gold} Gold + ${materials} Materials.` };
+  const normalized = normalizeBattleEquipment(save);
+  return { ok: true, save: { ...normalized, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: save.currencies.gold - item.costGold }, flags: { ...normalized.flags, m51BattleOutfitter: true, m53CombatReadiness: true, m54BattleOutfitterEconomy: true, ranchMaterialsStock: materials - item.materialCost, [item.flagKey]: stock + 1 } }, message: `${item.name} purchased for ${getBattleOutfitterCostLabel(item)}. In inventory; choose Equip to use it.` };
 }
 
 export function assignBattleOutfitterEquipment(
@@ -272,15 +335,16 @@ export function assignBattleOutfitterEquipment(
   creatureId: CreatureId,
   itemId: BattleOutfitterItemId,
 ): BattleOutfitterResult {
+  save = normalizeBattleEquipment(save);
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for loadout." };
   const item = getItem(itemId);
-  if (!item || item.category !== "Equipment" || !item.loadoutSlot) {
+  if (!item || item.category !== "Equipment" || !item.equipmentSlot) {
     return { save, ok: false, message: "Only equipment can be assigned to combat loadout slots." };
   }
   const stock = getBattleOutfitterStock(save, item);
   if (stock <= 0) return { save, ok: false, message: `No ${item.name} in stock.` };
-  const slotFlag = getSlotFlag(creatureId, item.loadoutSlot);
+  const slotFlag = equipmentFlag(creatureId, item.equipmentSlot);
   const previousItem = getItem(getFlagString(save.flags[slotFlag]));
   if (previousItem?.itemId === item.itemId) return { save, ok: false, message: `${creature.nickname} already has ${item.name} assigned.` };
   const nextFlags = {
@@ -293,7 +357,7 @@ export function assignBattleOutfitterEquipment(
     [slotFlag]: item.itemId,
   };
   const nextSave = { ...save, updatedAt: new Date().toISOString(), flags: nextFlags };
-  return { save: nextSave, ok: true, message: `${item.name} assigned to ${creature.nickname}'s ${item.loadoutSlot} slot. ${getBattleReadinessLabel(nextSave, creatureId)}` };
+  return { save: nextSave, ok: true, message: `${item.name} assigned to ${creature.nickname}'s ${EQUIPMENT_SLOT_LABELS[item.equipmentSlot]} slot. ${getBattleReadinessLabel(nextSave, creatureId)}` };
 }
 
 export function removeBattleOutfitterEquipment(
@@ -301,9 +365,12 @@ export function removeBattleOutfitterEquipment(
   creatureId: CreatureId,
   slot: BattleLoadoutSlot,
 ): BattleOutfitterResult {
+  save = normalizeBattleEquipment(save);
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found for loadout." };
-  const slotFlag = getSlotFlag(creatureId, slot);
+  const resolved = resolveSlot(save, creatureId, slot);
+  if (!resolved) return { save, ok: false, message: "No equipment in that slot." };
+  const slotFlag = equipmentFlag(creatureId, resolved);
   const previousItem = getItem(getFlagString(save.flags[slotFlag]));
   if (!previousItem) return { save, ok: false, message: `${creature.nickname} has no ${slot} equipment assigned.` };
   return {
@@ -324,5 +391,7 @@ export function removeBattleOutfitterEquipment(
 }
 
 export function useBattleOutfitterManual(save: GameSave, creatureId: CreatureId): BattleOutfitterResult {
-  return active.useBattleOutfitterManual(save, creatureId);
+  const result = active.useBattleOutfitterManual(normalizeBattleEquipment(save), creatureId);
+  if (!result.ok) return result;
+  return { ...result, message: `Focus Manual studied. ${getBattleReadinessLabel(result.save, creatureId)}. This rank adds +2 Accuracy, +2 Status Power and +2 maximum Battle Energy. Innate grades are unchanged.` };
 }

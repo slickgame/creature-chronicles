@@ -1,65 +1,137 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { ensureCurrentMarketState, getMarketListingDescription, getMarketListingImage, getMarketListingPreview, getMarketListingPrice, getMarketRerollCost } from "@/data/market";
-import { getVariantDefinition } from "@/data/creatures";
-import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
-import { getNpcNextUnlock, getNpcTrustRecord, getNpcTrustSummary } from "@/data/townNpcs";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ensureCurrentMarketState, getMarketListingPreview, getMarketListingPrice, getMarketListingProfileImage, getMarketListingImage, getMarketRerollCost } from "@/data/market";
+import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
+import { getNpcNextUnlock, getNpcTrustRecord, getNpcTrustSummary, getTamsinSpecialPlacementBonus, getTamsinAdoptionFeeMultiplier } from "@/data/townNpcs";
 import { getTotalTownUpgradeTiers, getTownUpgradeEffects } from "@/data/upgrades";
-import { formatGold, formatGuildPoints } from "@/lib/formatters";
+import { SharedCreatureDetail, SHARED_STAT_LABELS } from "@/features/creatures/CreatureDetailPanels";
+import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { GameDialog } from "@/features/ui/GameDialog";
+import { IllustratedIcon, TrustLeaves } from "@/features/ui/IllustratedIcon";
+import { RanchIcon } from "@/features/ui/RanchIcon";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId, HabitatId } from "@/types/ids";
 import type { MarketListing } from "@/types/market";
 import type { GameSave } from "@/types/save";
-import styles from "./MarketScreen.module.css";
+import ui from "@/features/ui/InteriorShell.module.css";
+import styles from "./Hearthside.module.css";
 
-const ICONS = { shop: "/images/ui/icons/icon_shop_bag.png", reroll: "/images/ui/icons/icon_reroll.png", price: "/images/ui/icons/icon_price_tag.png", sold: "/images/ui/icons/icon_sold.png", gold: "/images/ui/currency/icon_currency_gold.png", tamsin: "/images/npcs/town/tamsin_vale_portrait.png", board: "/images/buildings/town/market_stall.png", hearth: "/images/buildings/town/adoption_hearth_interior.png" } as const;
-const TAMSIN_INTRO = "Tamsin Vale runs Vale's Adoption Hearth, matching creatures with safe homes and responsible keepers. She believes every placement should protect the creature first, even when coin is tight.";
-const TAMSIN_GREETING = "Welcome back. I have reviewed this week's placements carefully. Some creatures need quiet homes, some need useful work, and a few just need someone patient enough to earn their trust.";
-type HearthMode = "interior" | "listings" | "talk" | "trust";
-
+type Popup = "talk" | "trust" | "profile" | "adopt" | "refresh" | "result" | null;
+type Quote = { listingId: string; price: number } | null;
 function createMarketPreviewCreature(save: GameSave, listing: MarketListing): CreatureRecord {
   const variant = getVariantDefinition(listing.variantId);
   const preview = getMarketListingPreview(save, listing);
   return { creatureId: `preview_${listing.listingId}` as CreatureId, ownerSaveId: save.saveId, speciesId: listing.speciesId, variantId: listing.variantId, habitatId: `habitat_${listing.family}` as HabitatId, nickname: listing.displayName, level: 1, xp: 0, xpToNext: 75, stats: preview.stats, statGrades: preview.statGrades, abilities: preview.abilities, energy: preview.maxEnergy, maxEnergy: preview.maxEnergy, hearts: preview.maxHearts, maxHearts: preview.maxHearts, affection: 35, generation: 1, shiny: false, cosmeticVariant: null, origin: "market", originLabel: `Adoption Preview · Week ${listing.weekNumber}`, isLocked: false, createdAt: listing.createdAt, notes: variant.description };
 }
 
-function getInteriorButtonStyle(active = false) { return { display: "grid", gap: 4, justifyItems: "center", minWidth: 220, padding: "18px 20px", border: `2px solid ${active ? "rgba(127,219,255,.95)" : "rgba(245,201,128,.72)"}`, borderRadius: 4, background: active ? "rgba(56, 141, 172, .26)" : "rgba(0,0,0,.42)", color: "#fff7dd", boxShadow: "0 14px 28px rgba(0,0,0,.35)", cursor: "pointer" } as const; }
-function getPanelStyle() { return { position: "relative", zIndex: 3, padding: 18, border: "1px solid rgba(245,201,128,.55)", borderRadius: 4, background: "rgba(21, 10, 5, .72)", color: "#fff0c9", boxShadow: "0 14px 34px rgba(0,0,0,.42)", backdropFilter: "blur(2px)" } as const; }
-
 export function MarketScreen() {
-  const { buyMarketCreature, currentSave, goToMainMenu, goToTown, rerollMarket, saveCurrentGame } = useGameContext();
-  const [message, setMessage] = useState(TAMSIN_GREETING);
-  const [activeListing, setActiveListing] = useState<MarketListing | null>(null);
-  const [hearthMode, setHearthMode] = useState<HearthMode>("interior");
+  const { currentSave, saveCurrentGame, buyMarketCreature, rerollMarket, goToTown } = useGameContext();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [popup, setPopup] = useState<Popup>(null);
+  const [quote, setQuote] = useState<Quote>(null);
+  const [refreshQuote, setRefreshQuote] = useState({ cost: 0, week: 0, count: 0 });
+  const [message, setMessage] = useState("");
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(1);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const sizeRef = useRef(1);
+  const actionLock = useRef(false);
+  const save = useMemo(() => currentSave ? ensureCurrentMarketState(currentSave) : null, [currentSave]);
 
-  useEffect(() => { if (!currentSave) return; const synced = ensureCurrentMarketState(currentSave); if (synced !== currentSave) saveCurrentGame(synced); }, [currentSave, saveCurrentGame]);
+  const hasSave = Boolean(save);
 
-  const syncedSave = useMemo(() => (currentSave ? ensureCurrentMarketState(currentSave) : null), [currentSave]);
-  const market = syncedSave?.market;
-  const rerollCost = syncedSave ? getMarketRerollCost(syncedSave) : 0;
-  const adoptionLevel = syncedSave ? getTotalTownUpgradeTiers(syncedSave, "market") + 1 : 1;
-  const marketEffects = syncedSave ? getTownUpgradeEffects(syncedSave) : null;
+  useEffect(() => { if (save && save !== currentSave) saveCurrentGame(save); }, [save, currentSave, saveCurrentGame]);
+  useEffect(() => {
+    const dock = dockRef.current;
+    if (!dock) return;
+    const observer = new ResizeObserver(([entry]) => {
+      const size = Math.max(1, Math.min(4, Math.floor((entry.contentRect.width + 8) / 220)));
+      if (size !== sizeRef.current) { sizeRef.current = size; setPageSize(size); setPage(0); }
+    });
+    observer.observe(dock);
+    return () => observer.disconnect();
+  }, [hasSave]);
 
-  if (!currentSave || !syncedSave || !market || !marketEffects) return <main className={styles.emptyScreen}><section className={styles.emptyPanel}><h1>No active save</h1><p>Load or create a save before entering Vale&apos;s Adoption Hearth.</p><button type="button" onClick={goToMainMenu}>Return to Main Menu</button></section></main>;
+  if (!save || !save.market) return <main className={ui.interior}><h1>No active save</h1></main>;
+  const market = save.market;
+  const selected = market.listings.find(item => item.listingId === selectedId) ?? market.listings.find(item => item.status === "available") ?? market.listings[0];
+  const preview = selected ? getMarketListingPreview(save, selected) : null;
+  const price = selected ? getMarketListingPrice(save, selected) : 0;
+  const habitat = selected ? save.habitats?.find(item => item.family === selected.family) : null;
+  const full = Boolean(habitat && habitat.creatureIds.length >= habitat.capacity);
+  const sold = selected?.status === "sold";
+  const shortage = Math.max(0, price - save.currencies.gold);
+  const canAdopt = Boolean(selected && !sold && habitat && !full && !shortage);
+  const available = market.listings.filter(item => item.status === "available").length;
+  const pages = Math.max(1, Math.ceil(market.listings.length / pageSize));
+  const currentPage = Math.min(page, pages - 1);
+  const trust = getNpcTrustRecord(save, "tamsin_vale");
+  const effects = getTownUpgradeEffects(save);
+  const rerollCost = getMarketRerollCost(save);
+  const quoteValid = Boolean(selected && quote?.listingId === selected.listingId && quote.price === price);
+  const refreshValid = refreshQuote.cost === rerollCost && refreshQuote.week === market.weekNumber && refreshQuote.count === market.rerollCount;
 
-  const activeSave = currentSave;
-  const activeSyncedSave = syncedSave;
-  const activeMarket = market;
-  const activeMarketEffects = marketEffects;
+  function reviewAdoption() {
+    if (!selected || !canAdopt) return;
+    actionLock.current = false; setQuote({ listingId: selected.listingId, price }); setPopup("adopt");
+  }
+  function reviewRefresh() {
+    actionLock.current = false;
+    setRefreshQuote({ cost: rerollCost, week: market.weekNumber, count: market.rerollCount }); setPopup("refresh");
+  }
+  function adopt() {
+    if (actionLock.current || !selected || !canAdopt || !quoteValid) return;
+    actionLock.current = true; setSelectedId(selected.listingId); setMessage(buyMarketCreature(selected.listingId)); setPopup("result");
+  }
+  function refresh() {
+    if (actionLock.current || !refreshValid || !save || save.currencies.gold < rerollCost) return;
+    actionLock.current = true; setMessage(rerollMarket()); setSelectedId(null); setPage(0); setPopup("result");
+  }
+  const status = sold ? "Already adopted" : !habitat ? "No matching habitat" : full ? "Habitat full" : "Space available";
+  const stats = preview ? <dl className={styles.stats} aria-label="Stats and grades">{STAT_KEYS.map(key => <div key={key} aria-label={`${SHARED_STAT_LABELS[key]} ${preview.stats[key]}, grade ${preview.statGrades[key]}`}><dt title={SHARED_STAT_LABELS[key]}>{key}</dt><dd><strong>{preview.stats[key]}</strong><span aria-label={`Grade ${preview.statGrades[key]}`}>{preview.statGrades[key]}</span></dd></div>)}</dl> : null;
 
-  function handleBuy(listing: MarketListing) { const resultMessage = buyMarketCreature(listing.listingId); setMessage(resultMessage); setActiveListing(null); setHearthMode("listings"); }
-  function handleReroll() { const resultMessage = rerollMarket(); setMessage(resultMessage); setActiveListing(null); setHearthMode("listings"); }
-  function openListings() { setMessage("Tamsin steps aside and lets you review the current placement board."); setHearthMode("listings"); }
-  function openTalk() { const trust = getNpcTrustRecord(activeSave, "tamsin_vale"); setMessage(trust.level >= 3 ? "Tamsin lowers her voice. 'You have been careful with your placements. I can start sending you notice when a special case needs a steady keeper.'" : "Tamsin nods toward the board. 'Every adoption here is a promise. I care less about speed than whether the creature lands somewhere safe.'"); setHearthMode("talk"); }
-  function openTrust() { setMessage("Tamsin opens her placement ledger and reviews your standing with the adoption network."); setHearthMode("trust"); }
-
-  return <main className={styles.screen}><section className={styles.frame}><div className={styles.backgroundArt} aria-hidden="true" /><div className={styles.shade} aria-hidden="true" /><header className={styles.header}><div><p className={styles.kicker}>M42 Adoption Hearth Interior</p><h1>Vale&apos;s Adoption Hearth Lv. {adoptionLevel}</h1><p>Visit Tamsin, review the placement board, or refresh new arrivals.</p><p className={styles.message}>{message}</p></div><div className={styles.headerActions}><div className={styles.statBox}><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div><div className={styles.statBox}><span>GP</span><strong>{formatGuildPoints(activeSave.currencies.guildPoints)}</strong></div><button type="button" className={styles.backButton} onClick={goToTown}>Back to Town</button><button type="button" className={styles.backButton} onClick={goToMainMenu}>Main Menu</button></div></header>{hearthMode === "interior" ? <HearthInterior save={activeSave} marketCount={activeMarket.listings.length} marketCapacity={activeMarketEffects.marketListingCount} rerollCost={rerollCost} onTalk={openTalk} onListings={openListings} onTrust={openTrust} onReroll={handleReroll} canReroll={activeSave.currencies.gold >= rerollCost} /> : null}{hearthMode === "talk" ? <TamsinTalkPanel save={activeSave} onBack={() => setHearthMode("interior")} onListings={openListings} onTrust={openTrust} /> : null}{hearthMode === "trust" ? <TamsinTrustPanel save={activeSave} marketEffects={activeMarketEffects} rerollCost={rerollCost} onBack={() => setHearthMode("interior")} onListings={openListings} onReroll={handleReroll} canReroll={activeSave.currencies.gold >= rerollCost} /> : null}{hearthMode === "listings" ? <AdoptionListingsPanel save={activeSave} syncedSave={activeSyncedSave} market={activeMarket} marketEffects={activeMarketEffects} rerollCost={rerollCost} onBack={() => setHearthMode("interior")} onReroll={handleReroll} onBuy={handleBuy} onInspect={setActiveListing} /> : null}</section>{activeListing ? <MarketListingModal save={activeSyncedSave} listing={activeListing} canAfford={activeSave.currencies.gold >= getMarketListingPrice(activeSyncedSave, activeListing)} onBuy={handleBuy} onClose={() => setActiveListing(null)} /> : null}</main>;
+  return <main className={`${ui.interior} ${styles.hearth}`} data-hearthside>
+    <section className={`${ui.page} ${styles.layout}`}>
+      <header className={ui.heading}><h1>Vale&apos;s Adoption Hearth</h1><ScreenNavigation onBack={goToTown} backLabel="Town" /></header>
+      <section className={`${ui.summary} ${styles.resources}`} aria-label="Hearth resources">
+        <div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div>
+        <div><RanchIcon name="sun" /><span>Week</span><strong>{market.weekNumber}</strong></div>
+        <div><RanchIcon name="paw" /><strong>{available}</strong><span>available</span></div>
+        <button type="button" onClick={reviewRefresh}><span className={styles.refreshLong}>Refresh Arrivals</span><span className={styles.refreshShort}>Refresh</span> · {rerollCost} Gold</button>
+      </section>
+      <div className={styles.workspace}>
+        <aside className={`${ui.paper} ${styles.steward}`} aria-label="Adoption steward">
+          <img className={styles.keeperPortrait} src="/images/npcs/town/tamsin_vale_portrait.png" alt="Tamsin Vale" /><h2>Tamsin Vale</h2><p className={styles.stewardTitle}>Adoption Steward</p><strong>Trust Level {trust.level}</strong><TrustLeaves level={trust.level} />
+          <div className={styles.stewardActions}><button type="button" onClick={() => setPopup("talk")}><IllustratedIcon name="talk" />Talk</button><button type="button" onClick={() => setPopup("trust")}><IllustratedIcon name="ledger" />Trust Ledger</button></div>
+          <p className={styles.motto}>A safe home for every arrival.</p>
+        </aside>
+        <section className={styles.preview} aria-label="Selected creature artwork">
+          {selected ? <><h2>{selected.displayName}</h2><img data-market-fullbody src={getMarketListingProfileImage(selected)} alt={`${selected.displayName} full-body`} /></> : <h2>No arrivals</h2>}
+        </section>
+        <section className={`${ui.paper} ${styles.details}`} aria-label="Adoption details">
+          {selected && preview ? <>
+            <div className={styles.identity}><h2>{selected.displayName}</h2><p>{selected.rarity} · {selected.family}</p></div>
+            {stats}
+            <button type="button" onClick={() => setPopup("profile")}><IllustratedIcon name="ledger" />Full Profile</button>
+            <div className={styles.placement}><strong>{habitat ? `${habitat.name}: ${habitat.creatureIds.length} / ${habitat.capacity}` : "No matching habitat"}</strong><p className={full || !habitat ? styles.warning : styles.ready}>{status}</p></div>
+            <div className={styles.fee}><span>Adoption fee</span><strong><RanchIcon name="gold" />{price.toLocaleString()} Gold</strong>{price < selected.price ? <small>Trust discount from {selected.price.toLocaleString()} Gold</small> : null}<p className={shortage ? styles.warning : ""}>{shortage ? `Need ${shortage.toLocaleString()} more Gold` : `Balance after fee: ${(save.currencies.gold - price).toLocaleString()} Gold`}</p></div>
+            <button type="button" className={ui.primary} disabled={!canAdopt} onClick={reviewAdoption}>{sold ? "Adopted" : "Review Adoption"}</button>
+          </> : <><h2>No arrivals yet</h2><p>Refresh arrivals or return next week.</p><button type="button" onClick={reviewRefresh}>Review Refresh</button></>}
+        </section>
+      </div>
+      <section className={`${ui.paper} ${styles.dock}`} aria-label="Arrival choices">
+        <button type="button" aria-label="Previous arrivals" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>‹</button>
+        <div ref={dockRef} className={styles.arrivals}>{market.listings.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map(item => <button key={item.listingId} type="button" aria-pressed={item.listingId === selected?.listingId} onClick={() => setSelectedId(item.listingId)}><img src={getMarketListingImage(item)} alt="" /><span><strong>{item.displayName}</strong><small>{item.status === "sold" ? "Adopted" : `${getMarketListingPrice(save, item).toLocaleString()} Gold`}</small></span></button>)}</div>
+        <span className={styles.pageNumber} aria-live="polite">{currentPage + 1} / {pages}</span><button type="button" aria-label="Next arrivals" disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>›</button>
+      </section>
+    </section>
+    {popup === "adopt" && selected ? <GameDialog title="Confirm Adoption" onClose={() => setPopup(null)}><h3>{selected.displayName}</h3><p>Adoption fee: <strong><RanchIcon name="gold" />{price.toLocaleString()} Gold</strong></p><p>{habitat?.name}: {habitat?.creatureIds.length} → {(habitat?.creatureIds.length ?? 0) + 1} / {habitat?.capacity}</p><p>Balance after fee: {(save.currencies.gold - price).toLocaleString()} Gold.</p>{!quoteValid ? <p>The listing or fee changed. Close this window and review it again.</p> : !canAdopt ? <p>{shortage ? `Need ${shortage} more Gold. ` : ""}{status}</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!canAdopt || !quoteValid} onClick={adopt}>Confirm Adoption</button></div></GameDialog> : null}
+    {popup === "refresh" ? <GameDialog title="Refresh Arrivals" onClose={() => setPopup(null)}><p>Replace the current placement board with new arrivals for <strong>{rerollCost} Gold</strong>. The current listings will be replaced; creatures already adopted stay on your ranch.</p><p>Arrivals also restock automatically each week.</p><p>{save.currencies.gold < rerollCost ? `Need ${rerollCost - save.currencies.gold} more Gold.` : `Balance after fee: ${(save.currencies.gold - rerollCost).toLocaleString()} Gold.`}</p>{!refreshValid ? <p>The board or cost changed. Close this window and review the refresh again.</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!refreshValid || save.currencies.gold < rerollCost} onClick={refresh}>Confirm Refresh</button></div></GameDialog> : null}
+    {popup === "result" ? <GameDialog title="Hearth Update" onClose={() => setPopup(null)}><p role="status">{message}</p><p>Current Gold: <strong>{save.currencies.gold.toLocaleString()}</strong></p><button type="button" onClick={() => setPopup(null)}>Continue</button></GameDialog> : null}
+    {popup === "profile" && selected ? <GameDialog title={`${selected.displayName} · Full Profile`} wide onClose={() => setPopup(null)}><div className={styles.profile}><SharedCreatureDetail creature={createMarketPreviewCreature(save, selected)} mode="full" showActions={false} dossier /></div></GameDialog> : null}
+    {popup === "talk" ? <GameDialog title="Talk to Tamsin" onClose={() => setPopup(null)}><img className={styles.talkPortrait} src="/images/npcs/town/tamsin_vale_portrait.png" alt="Tamsin Vale" /><h3>Placement Philosophy</h3><p>{trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."}</p><p>Each listing represents a creature whose needs were screened, documented, and matched to a ranch that can support its family and temperament.</p><button type="button" onClick={() => setPopup("trust")}>Open Trust Ledger</button></GameDialog> : null}
+    {popup === "trust" ? <GameDialog title="Trust & Welfare Ledger" onClose={() => setPopup(null)}><TrustLeaves level={trust.level} /><h3>{getNpcTrustSummary(save, "tamsin_vale")}</h3><p>Next: {getNpcNextUnlock(save, "tamsin_vale")}</p><dl className={styles.report}><div><dt>Hearth level</dt><dd>{getTotalTownUpgradeTiers(save, "market") + 1}</dd></div><div><dt>Board slots</dt><dd>{effects.marketListingCount}</dd></div><div><dt>Adoption discount</dt><dd>{Math.round((1 - getTamsinAdoptionFeeMultiplier(save)) * 100)}%</dd></div><div><dt>Special placement chance</dt><dd>{((effects.marketVariantChance + getTamsinSpecialPlacementBonus(save)) * 100).toFixed(2)}%</dd></div><div><dt>Refresh cost</dt><dd>{rerollCost} Gold</dd></div></dl><p>Successful adoptions grant 5 Trust; refreshing arrivals grants 1. Trust and town upgrades can improve fees, refresh costs and special placement chances.</p><p>Stat numbers and their letter grades are shown together. Full Profile contains the expanded stats, abilities and care details.</p></GameDialog> : null}
+  </main>;
 }
-
-function HearthInterior({ save, marketCount, marketCapacity, rerollCost, onTalk, onListings, onTrust, onReroll, canReroll }: { save: GameSave; marketCount: number; marketCapacity: number; rerollCost: number; onTalk: () => void; onListings: () => void; onTrust: () => void; onReroll: () => void; canReroll: boolean }) { return <section aria-label="Vale's Adoption Hearth interior" style={{ position: "relative", zIndex: 2, minHeight: "calc(100vh - 230px)", padding: "28px 34px 34px", overflow: "hidden" }}><div aria-hidden="true" style={{ position: "absolute", inset: 0, background: `linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.56)), url(${ICONS.hearth}) center/cover`, opacity: .42 }} /><div style={{ position: "relative", zIndex: 3, display: "grid", gridTemplateColumns: "minmax(260px, 360px) minmax(0, 1fr)", gap: 26, alignItems: "end", minHeight: "58vh" }}><aside style={getPanelStyle()}><div style={{ display: "grid", gridTemplateColumns: "76px minmax(0,1fr)", gap: 12, alignItems: "center" }}><img src={ICONS.tamsin} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} style={{ width: 76, height: 76, objectFit: "cover", borderRadius: 999, border: "1px solid rgba(245,201,128,.55)" }} /><div><p className={styles.kicker}>Adoption Steward</p><h2 style={{ margin: 0 }}>Tamsin Vale</h2><p style={{ margin: "6px 0 0" }}>{getNpcTrustSummary(save, "tamsin_vale")}</p></div></div><p style={{ marginTop: 16, lineHeight: 1.55 }}>{TAMSIN_GREETING}</p><div style={{ display: "grid", gap: 8 }}><button type="button" className={styles.buyButton} onClick={onTalk}>Talk to Tamsin</button><button type="button" className={styles.buyButton} onClick={onListings}>View Adoption Listings</button><button type="button" className={styles.buyButton} onClick={onTrust}>Trust / Welfare Ledger</button><button type="button" className={styles.buyButton} onClick={onReroll} disabled={!canReroll}>Refresh Arrivals · {formatGold(rerollCost)}</button></div></aside><div style={{ position: "relative", minHeight: 430 }}><button type="button" style={{ ...getInteriorButtonStyle(), position: "absolute", left: "12%", top: "42%" }} onClick={onListings}><img src={ICONS.board} alt="" style={{ width: 58, height: 58, objectFit: "cover", borderRadius: 999 }} /><strong>Adoption Board</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>{marketCount} / {marketCapacity} listings ready</span></button><button type="button" style={{ ...getInteriorButtonStyle(), position: "absolute", right: "7%", top: "34%" }} onClick={onTalk}><img src={ICONS.tamsin} alt="" style={{ width: 66, height: 66, objectFit: "cover", borderRadius: 999 }} /><strong>Tamsin Vale</strong><span style={{ color: "#7fdbff", fontWeight: 900 }}>Talk • Trust • Welfare</span></button></div></div></section>; }
-function TamsinTalkPanel({ save, onBack, onListings, onTrust }: { save: GameSave; onBack: () => void; onListings: () => void; onTrust: () => void }) { const trust = getNpcTrustRecord(save, "tamsin_vale"); const line = trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."; return <section style={{ position: "relative", zIndex: 3, padding: 24, display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 18 }}><aside style={getPanelStyle()}><img src={ICONS.tamsin} alt="" style={{ width: "100%", maxHeight: 280, objectFit: "cover", borderRadius: 8, border: "1px solid rgba(245,201,128,.45)" }} /><h2>Tamsin Vale</h2><p>{getNpcTrustSummary(save, "tamsin_vale")}</p></aside><section style={getPanelStyle()}><p className={styles.kicker}>Conversation</p><h2>Placement Philosophy</h2><p style={{ fontSize: "1.05rem", lineHeight: 1.65 }}>{line}</p><p style={{ lineHeight: 1.6 }}>Tamsin explains that Vale&apos;s Adoption Hearth is not a normal shop. Each listing represents a creature whose needs were screened, documented, and matched to a ranch that can support its family and temperament.</p><div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}><button type="button" className={styles.buyButton} onClick={onListings}>Review Listings</button><button type="button" className={styles.buyButton} onClick={onTrust}>Open Trust Ledger</button><button type="button" className={styles.backButton} onClick={onBack}>Back to Hearth</button></div></section></section>; }
-function TamsinTrustPanel({ save, marketEffects, rerollCost, onBack, onListings, onReroll, canReroll }: { save: GameSave; marketEffects: ReturnType<typeof getTownUpgradeEffects>; rerollCost: number; onBack: () => void; onListings: () => void; onReroll: () => void; canReroll: boolean }) { return <section style={{ position: "relative", zIndex: 3, padding: 24, display: "grid", gridTemplateColumns: "320px minmax(0, 1fr)", gap: 18 }}><aside style={getPanelStyle()}><h2>Welfare Ledger</h2><p>{getNpcTrustSummary(save, "tamsin_vale")}</p><p><strong>Next:</strong> {getNpcNextUnlock(save, "tamsin_vale")}</p><p>{TAMSIN_INTRO}</p></aside><section style={getPanelStyle()}><p className={styles.kicker}>Adoption Network</p><h2>Current Benefits</h2><div className={styles.listings}>{["Trust discounts can reduce adoption fees.", "Higher trust improves arrival refresh value.", "Later trust unlocks special placement notices.", `Base special chance: ${(marketEffects.marketVariantChance * 100).toFixed(2)}%.`, `Refresh arrivals cost: ${formatGold(rerollCost)}.`].map((item) => <article key={item} className={styles.infoCard}><strong>{item}</strong></article>)}</div><div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}><button type="button" className={styles.buyButton} onClick={onListings}>Review Listings</button><button type="button" className={styles.buyButton} onClick={onReroll} disabled={!canReroll}>Refresh Arrivals</button><button type="button" className={styles.backButton} onClick={onBack}>Back to Hearth</button></div></section></section>; }
-function AdoptionListingsPanel({ save, syncedSave, market, marketEffects, rerollCost, onBack, onReroll, onBuy, onInspect }: { save: GameSave; syncedSave: GameSave; market: NonNullable<GameSave["market"]>; marketEffects: ReturnType<typeof getTownUpgradeEffects>; rerollCost: number; onBack: () => void; onReroll: () => void; onBuy: (listing: MarketListing) => void; onInspect: (listing: MarketListing) => void }) { return <section className={styles.grid} style={{ position: "relative", zIndex: 3, padding: "14px 18px 24px" }}><aside className={styles.panel}><h2>Tamsin Vale</h2><div className={styles.sideList}><div className={styles.infoCard}><img src={ICONS.tamsin} alt="" onError={(event) => { event.currentTarget.src = ICONS.shop; }} /><span>Adoption Steward</span><strong>Tamsin Vale</strong></div><div className={styles.infoCard}><span>Trust</span><strong>{getNpcTrustSummary(save, "tamsin_vale")}</strong></div><div className={styles.infoCard}><span>Next Unlock</span><strong>{getNpcNextUnlock(save, "tamsin_vale")}</strong></div><div className={styles.infoCard}><span>Restock Week</span><strong>Week {market.weekNumber}</strong></div><div className={styles.infoCard}><img src={ICONS.shop} alt="" /><span>Adoption Listings</span><strong>{market.listings.length} / {marketEffects.marketListingCount}</strong></div><div className={styles.infoCard}><img src={ICONS.reroll} alt="" /><span>New Arrivals Cost</span><strong>{formatGold(rerollCost)}</strong></div><div className={styles.infoCard}><span>Adoption Network</span><strong>{(marketEffects.marketVariantChance * 100).toFixed(2)}% base special chance • {Math.round(marketEffects.marketRerollDiscount * 100)}% arrival discount</strong></div><button type="button" className={styles.rerollButton} onClick={onReroll} disabled={save.currencies.gold < rerollCost}>Refresh Arrivals</button><button type="button" className={styles.backButton} onClick={onBack}>Back to Hearth</button></div></aside><section className={styles.panel} aria-label="Adoption listings"><h2>Adoption Listings</h2><div className={styles.listings}>{market.listings.map((listing) => { const variant = getVariantDefinition(listing.variantId); const isSold = listing.status === "sold"; const listingPrice = getMarketListingPrice(syncedSave, listing); const canAfford = save.currencies.gold >= listingPrice; const preview = getMarketListingPreview(syncedSave, listing); const bestGrades = Object.values(preview.statGrades).filter((grade) => grade === "A" || grade === "S").length; return <article key={listing.listingId} className={`${styles.listing} ${isSold ? styles.sold : ""}`}><div className={styles.listingArt}><img src={getMarketListingImage(listing)} alt="" /></div><div className={styles.listingBody}><div className={styles.listingHeaderRow}><div><span className={styles.listingMeta}>{variant.rarity} • {variant.family}</span><h3 className={styles.listingName}>{variant.name}</h3></div><button type="button" className={styles.infoButton} onClick={() => onInspect(listing)} aria-label={`View ${variant.name} details`}>i</button></div><p className={styles.listingDesc}>{getMarketListingDescription(listing)}</p><p className={styles.gradePreview}>{bestGrades > 0 ? `${bestGrades} premium stat grade${bestGrades === 1 ? "" : "s"}` : "Standard stat grade spread"}</p><div className={styles.price}><img src={ICONS.price} alt="" /><div><span>Adoption Fee</span><strong>{formatGold(listingPrice)}</strong>{listingPrice < listing.price ? <em>Trust discount from {formatGold(listing.price)}</em> : null}</div></div><div className={styles.actions}>{isSold ? <span className={styles.soldBadge}><img src={ICONS.sold} alt="" /> Adopted</span> : <button type="button" className={styles.buyButton} onClick={() => onBuy(listing)} disabled={!canAfford}>Adopt</button>}</div></div></article>; })}</div></section></section>; }
-function MarketListingModal({ save, listing, canAfford, onBuy, onClose }: { save: GameSave; listing: MarketListing; canAfford: boolean; onBuy: (listing: MarketListing) => void; onClose: () => void }) { const previewCreature = createMarketPreviewCreature(save, listing); const isSold = listing.status === "sold"; const listingPrice = getMarketListingPrice(save, listing); return <div className={styles.modalBackdrop} role="presentation" onClick={onClose}><section className={styles.infoModal} role="dialog" aria-modal="true" aria-labelledby="market-listing-title" onClick={(event) => event.stopPropagation()}><button type="button" className={styles.closeModalButton} onClick={onClose} aria-label="Close listing details">×</button><div style={{ display: "grid", gap: 12 }}><div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", paddingRight: 44 }}><div><p className={styles.kicker}>Adoption Preview</p><h2 id="market-listing-title">{listing.displayName}</h2><p className={styles.modalSubtitle}>{formatGold(listingPrice)} adoption fee • habitat capacity checked before placement</p></div>{isSold ? <span className={styles.soldBadge}><img src={ICONS.sold} alt="" /> Adopted</span> : <button type="button" className={styles.buyButton} disabled={!canAfford} onClick={() => onBuy(listing)}>Adopt</button>}</div><SharedCreatureDetail creature={previewCreature} mode="full" showActions={false} /></div></section></div>; }

@@ -107,3 +107,16 @@ test("actor planning advances to the next living unqueued creature", () => {
   queue.set(third, { actorId: third, moveId: "strike", targetIds: [state.teams.enemy.combatantIds[0]] });
   assert.equal(getNextUnqueuedPlayerActorId(state, queue, third), null);
 });
+
+test("taunted single-target previews reject an enemy the move would redirect away from", () => {
+  const state = createUiBattle();
+  const actorId = state.teams.player.combatantIds[0];
+  const [taunter, other] = state.teams.enemy.combatantIds;
+  state.combatants[actorId].statuses = [{status:"taunted",duration:2,sourceCombatantId:taunter}];
+  const blocked = getBattleUiMoveAvailability(state,actorId,"strike",{kind:"combatant",combatantId:other});
+  assert.equal(blocked.compatible,false);
+  assert.equal(blocked.usable,false);
+  assert.equal(buildBattleUiAction(state,actorId,"strike",{kind:"combatant",combatantId:other}),null);
+  assert.deepEqual(buildBattleUiAction(state,actorId,"strike",{kind:"combatant",combatantId:taunter})?.targetIds,[taunter]);
+  assert.deepEqual(buildBattleUiAction(state,actorId,"resonant_bark",{kind:"combatant",combatantId:other})?.targetIds,state.teams.enemy.combatantIds);
+});

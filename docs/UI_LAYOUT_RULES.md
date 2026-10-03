@@ -11,7 +11,8 @@ Required behavior:
 - Allow headings and body text to wrap naturally.
 - Do not clip, hide, or ellipsize variable gameplay text.
 - Keep modest bottom padding so boxes do not look cramped.
-- Use scrolling on the surrounding list or page region, not inside ordinary text cards.
+- Main screens must fit the viewport without scrolling. Use Previous/Next pages for growing collections and pop-ups for long details.
+- Scrolling is permitted only inside pop-ups. Do not conceal overflow with clipping or ellipsis; move that content into a reachable page or pop-up.
 
 For new components, apply either:
 
@@ -48,3 +49,7 @@ or:
 ```
 
 Fixed sizing and truncation should be exceptions, not the default for gameplay information.
+
+## Selected creature artwork
+
+Use existing `profilePath` full-body artwork for the selected creature and hatch reveal, with `object-fit: contain` so heads and feet are not cropped. Portrait thumbnails remain appropriate for list rows. The user's no-scroll and full-body requirements supersede the earlier page-scrolling/portrait-dossier implementation notes.
