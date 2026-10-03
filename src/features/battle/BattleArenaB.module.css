@@ -107,3 +107,6 @@
 .arena{grid-template-rows:68px minmax(0,1fr) 112px}.arena[data-moves-open=true]{grid-template-rows:58px minmax(0,1fr) 94px 148px}
 .arena .queue,.arena[data-moves-open=true] .queue{padding:3px 8px;gap:10px}.planLedger{grid-template-rows:12px repeat(3,minmax(0,1fr)) 14px}.planHead{font-size:9px}.arena .planRow{font-size:10px;padding:0 5px}.planCreature img{display:none}.planCreature strong{font-size:10px}.arena .planNotice{font-size:9px;padding:0 5px}.planControls{gap:3px;padding-left:8px}.arena .planControls .confirm{gap:2px}.arena .planControls .dockTools button{min-height:24px;font-size:10px;padding:3px}
 }
+
+/* Face the opposing formation; restart impact feedback for every recorded hit. */
+.figure[data-side=enemy][data-event=attack] .art img{animation:enemyAct .6s ease-in-out}.figure[data-event=miss] .art img{animation:dodge .5s ease-out}.figure[data-event=energy] .art{filter:drop-shadow(0 0 8px #6eaeca)}.effect[data-kind=miss]{color:#fff4c4}.effect[data-kind=knockout]{color:#ffd4a8;font-size:clamp(16px,2vw,28px)}@keyframes enemyAct{50%{translate:-12px -6px;filter:drop-shadow(0 0 12px #ffe19a)}}@keyframes dodge{45%{translate:0 -10px}}@media(prefers-reduced-motion:reduce){.figure .art img,.effect{animation:none!important}.meter i{transition:none}}

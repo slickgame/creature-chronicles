@@ -14,3 +14,9 @@
 @media(max-width:600px){.courtyard dialog>header h2{font-size:21px}.courtyard dialog>header{padding:8px 4px 12px}}
 .panel .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
 @media(max-height:560px) and (min-width:761px){.panel{padding:4px;gap:4px}.choices{gap:3px}.choice{min-height:36px!important}.panel .actions button{font-size:11px;padding:4px}}
+
+/* Team staging: one formation, clear numbered positions and quiet nameplates. */
+.team{grid-template-columns:180px minmax(0,1fr) 235px;gap:14px}.stage{gap:14px;padding:8px 0 4px}.team .plinth{border-radius:8px;background:linear-gradient(#f5e9cdee,#ddc79bee);box-shadow:0 3px 8px #39271540;border:1px solid #ae8c52;padding:10px 5px}.slotNumber{display:block;font:700 10px/1.3 system-ui;letter-spacing:2px;color:#76603c;margin-bottom:4px}.team .slotActions button{flex:1;max-width:125px}.team .body{position:relative}.team .body:after{content:"";position:absolute;bottom:0;width:85%;height:15px;border-radius:50%;background:#49382225;z-index:0}.team .body img{position:relative;z-index:1}.team .panel{border-image:none;border:1px solid #b59a66;border-radius:8px;background:#f0e1bfed;padding:16px;gap:10px}
+@media(max-width:1050px){.team{grid-template-columns:minmax(0,1fr) 225px}.stage{gap:8px}.team .panel{padding:12px}}
+@media(max-width:760px){.stage{padding:0;gap:6px}.team .plinth{padding:8px 3px}.slotNumber{font-size:9px;letter-spacing:1px}.team .slotActions{flex-wrap:nowrap}.team .slotActions button{font-size:10px;padding:5px 2px}.team .body img{max-height:100%}}
+@media(max-height:560px) and (min-width:761px){.team{grid-template-columns:minmax(0,1fr) 210px}.team .panel{gap:4px;padding:7px}.team .panel>.muted{display:none}.team .plinth{padding:4px}.slotNumber{display:none}.stage{padding:0;gap:8px}}

@@ -1,8 +1,10 @@
+import { SHOP_EQUIPMENT, type ShopEquipmentId } from "./equipmentCatalogue";
+import type { BattleStats } from "@/types/battle";
 import * as active from "./battleOutfitterActive";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
-export type BattleOutfitterItemId =
+export type BattleOutfitterItemId = ShopEquipmentId
   | "sparring_wraps"
   | "guard_charm"
   | "focus_manual"
@@ -41,6 +43,9 @@ export type BattleOutfitterItem = {
   equipmentSlot?: EquipmentSlot;
   readinessValue?: number;
   coliseumExclusive?: boolean;
+  quality?: "Common" | "Fine" | "Superior" | "Masterwork" | "Relic";
+  equipmentGrade?: "D" | "C" | "B" | "A" | "S";
+  statBonuses?: Partial<BattleStats>;
 };
 
 export type BattleLoadout = {
@@ -149,7 +154,12 @@ const COLISEUM_ITEMS: BattleOutfitterItem[] = [
 export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
   ...(active.BATTLE_OUTFITTER_ITEMS as BattleOutfitterItem[]),
   ...COLISEUM_ITEMS,
-].map(item => ({ ...item, equipmentSlot: ITEM_SLOTS[item.itemId], iconPath: `/images/ui/outfitter-v1/${item.itemId}.webp` }));
+].map(item => ({ ...item, equipmentSlot: ITEM_SLOTS[item.itemId], ...(item.category === "Equipment" ? { quality: item.itemId === "champion_harness" ? "Relic" as const : item.coliseumExclusive ? "Masterwork" as const : "Fine" as const, equipmentGrade: item.itemId === "champion_harness" ? "S" as const : item.coliseumExclusive ? "A" as const : "C" as const } : {}), iconPath: `/images/ui/outfitter-v1/${item.itemId}.webp` }));
+BATTLE_OUTFITTER_ITEMS.push(...SHOP_EQUIPMENT);
+
+export function equipmentQualityLabel(item: BattleOutfitterItem): string {
+  return item.equipmentGrade ? `${item.quality} · Gear Grade ${item.equipmentGrade}` : item.category;
+}
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
   const parsed = typeof value === "number" ? value : Number(value ?? fallback);
@@ -312,7 +322,12 @@ export function purchaseBattleOutfitterItem(save: GameSave, itemId: string): Bat
   if (item.coliseumExclusive) {
     return { save, ok: false, message: `${item.name} is exclusive to the Coliseum Marks Exchange.` };
   }
-  return active.purchaseBattleOutfitterItem(normalizeBattleEquipment(save), itemId);
+  if (!item.statBonuses) return active.purchaseBattleOutfitterItem(normalizeBattleEquipment(save), itemId);
+  const stock = getBattleOutfitterStock(save, item), materials = getBattleOutfitterMaterialStock(save);
+  if (item.maxStock && stock >= item.maxStock) return { save, ok: false, message: `${item.name} stock is full.` };
+  if (save.currencies.gold < item.costGold || materials < item.materialCost) return { save, ok: false, message: `Need ${getBattleOutfitterCostLabel(item)}. Available: ${save.currencies.gold} Gold + ${materials} Materials.` };
+  const normalized = normalizeBattleEquipment(save);
+  return { ok: true, save: { ...normalized, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: save.currencies.gold - item.costGold }, flags: { ...normalized.flags, m51BattleOutfitter: true, m53CombatReadiness: true, m54BattleOutfitterEconomy: true, ranchMaterialsStock: materials - item.materialCost, [item.flagKey]: stock + 1 } }, message: `${item.name} purchased for ${getBattleOutfitterCostLabel(item)}. In inventory; choose Equip to use it.` };
 }
 
 export function assignBattleOutfitterEquipment(

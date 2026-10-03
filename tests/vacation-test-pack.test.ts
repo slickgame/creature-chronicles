@@ -112,7 +112,9 @@ test("main menu, dev tools, and town expose the vacation test features", async (
   const menu = await source("src/features/main-menu/MainMenuScreen.tsx");
   const transfer = await source("src/features/main-menu/SaveTransferPanel.tsx");
   const dev = await source("src/features/dev-tools/PredatorTestPanel.tsx");
-  const town = await source("src/features/town/TownScreenC4.tsx");
+  const townEntry = await source("src/features/town/TownScreenC4.tsx");
+  assert.match(townEntry, /export \{ TownScreen \} from "\.\/TownScreen"/);
+  const town = await source("src/features/town/TownScreen.tsx");
   const lantern = await source("src/features/town/RoseLanternScreen.tsx");
 
   assert.match(menu, /Import \/ Export Save/);

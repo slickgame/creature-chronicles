@@ -40,11 +40,14 @@ test("the application exposes iPhone standalone metadata and safe-area styles", 
 });
 
 test("town opens the functional Rose Lantern adult social-house foundation", async () => {
-  const town = await source("src/features/town/TownScreenC4.tsx");
+  const townEntry = await source("src/features/town/TownScreenC4.tsx");
+  assert.match(townEntry, /export \{ TownScreen \} from "\.\/TownScreen"/);
+  const town = await source("src/features/town/TownScreen.tsx");
   const lantern = await source("src/features/town/RoseLanternScreen.tsx");
   assert.match(town, /<RoseLanternScreen/);
   assert.match(town, /The Rose Lantern/);
-  assert.match(town, />OPEN</);
+  assert.match(town, /rose\.unlocked \? "Open"/);
+  assert.match(town, /case "rose": return setModal\("rose"\)/);
   assert.match(lantern, /Adults-Only Social House/);
   assert.match(lantern, /Acknowledge House Rules/);
   assert.match(lantern, /Hospitality Shift/);

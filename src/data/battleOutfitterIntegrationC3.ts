@@ -58,7 +58,19 @@ export function getBattleOutfitterCreatureEffectSummary(
   if (loadout.manualRank > 0) summary.labels.push(`Focus Training ${loadout.manualRank}`);
 
   for (const itemId of itemIds) {
-    if (itemId === "sparring_wraps") {
+    const bonuses = getItem(itemId)?.statBonuses;
+    if (bonuses) {
+      summary.maxHpBonus += bonuses.maxHp ?? 0;
+      summary.physicalPowerBonus += bonuses.physicalPower ?? 0;
+      summary.specialPowerBonus += bonuses.specialPower ?? 0;
+      summary.defenseBonus += bonuses.defense ?? 0;
+      summary.resistanceBonus += bonuses.resistance ?? 0;
+      summary.speedBonus += bonuses.speed ?? 0;
+      summary.accuracyBonus += bonuses.accuracy ?? 0;
+      summary.statusPowerBonus += bonuses.statusPower ?? 0;
+      summary.statusResistBonus += bonuses.statusResist ?? 0;
+      summary.battleEnergyBonus += bonuses.battleEnergy ?? 0;
+    } else if (itemId === "sparring_wraps") {
       summary.physicalPowerBonus += 6;
       summary.specialPowerBonus += 4;
       summary.accuracyBonus += 3;

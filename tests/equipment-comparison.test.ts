@@ -75,3 +75,28 @@ test("purchase and Focus Manual keep grades unchanged and preserve existing rest
   assert.deepEqual(studied.save.creatures![0].statGrades,before);
   assert.deepEqual(studied.save.creatures![0].stats,creature.stats);
 });
+
+test("new shop catalogue covers every slot at three grades and purchases exactly one copy", () => {
+  const entries=BATTLE_OUTFITTER_ITEMS.filter(i=>i.statBonuses);
+  assert.equal(entries.length,15);
+  assert.equal(new Set(BATTLE_OUTFITTER_ITEMS.map(i=>i.itemId)).size,BATTLE_OUTFITTER_ITEMS.length);
+  for(const slot of EQUIPMENT_SLOTS) assert.deepEqual(entries.filter(i=>i.equipmentSlot===slot).map(i=>i.equipmentGrade),["D","C","B"]);
+  for(const entry of entries){
+    const save=fixture(), creature=save.creatures![0];
+    save.flags[entry.flagKey]=0;
+    const snapshot=JSON.stringify(save);
+    const bought=purchaseBattleOutfitterItem(save,entry.itemId);
+    assert.equal(bought.ok,true);
+    assert.equal(bought.save.currencies.gold,save.currencies.gold-entry.costGold);
+    assert.equal(Number(bought.save.flags.ranchMaterialsStock),100-entry.materialCost);
+    assert.equal(getBattleOutfitterStock(bought.save,entry),1);
+    assert.equal(getEquipmentSlots(bought.save,creature.creatureId)[entry.equipmentSlot!],null,"buying must not equip");
+    assert.equal(JSON.stringify(save),snapshot);
+    const equipped=assignBattleOutfitterEquipment(bought.save,creature.creatureId,entry.itemId);
+    assert.equal(equipped.ok,true);assert.equal(getBattleOutfitterStock(equipped.save,entry),0);
+    const blocked={...save,currencies:{...save.currencies,gold:0}};
+    assert.equal(purchaseBattleOutfitterItem(blocked,entry.itemId).ok,false);
+    assert.deepEqual(purchaseBattleOutfitterItem(blocked,entry.itemId).save,blocked);
+    if(entry.materialCost){const missing={...save,flags:{...save.flags,ranchMaterialsStock:0}};assert.equal(purchaseBattleOutfitterItem(missing,entry.itemId).ok,false);}
+  }
+});
