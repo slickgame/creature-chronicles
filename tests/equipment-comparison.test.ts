@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
-import { BATTLE_OUTFITTER_ITEMS, EQUIPMENT_SLOTS, normalizeBattleEquipment, getEquipmentSlots, getBattleOutfitterStock, assignBattleOutfitterEquipment, removeBattleOutfitterEquipment, purchaseBattleOutfitterItem, useBattleOutfitterManual } from "@/data/battleOutfitter";
+import { BATTLE_OUTFITTER_ITEMS, EQUIPMENT_SLOTS, getEquipmentOwnership, normalizeBattleEquipment, getEquipmentSlots, getBattleOutfitterStock, assignBattleOutfitterEquipment, removeBattleOutfitterEquipment, purchaseBattleOutfitterItem, useBattleOutfitterManual } from "@/data/battleOutfitter";
 import { compareEquipment } from "@/data/equipmentComparison";
 import { applyBattleOutfitterLoadouts } from "@/data/battleOutfitterIntegration";
 import { createBattleState } from "@/data/battleEngine";
@@ -99,4 +99,21 @@ test("new shop catalogue covers every slot at three grades and purchases exactly
     assert.deepEqual(purchaseBattleOutfitterItem(blocked,entry.itemId).save,blocked);
     if(entry.materialCost){const missing={...save,flags:{...save.flags,ranchMaterialsStock:0}};assert.equal(purchaseBattleOutfitterItem(missing,entry.itemId).ok,false);}
   }
+});
+
+
+test("ownership distinguishes selected loadout, inventory and equipment on another creature", () => {
+  let save=fixture();const [a,b]=save.creatures!;const gear=item("training_grips");
+  save.flags[gear.flagKey]=0;
+  assert.equal(getEquipmentOwnership(save,a.creatureId,gear),"Not Owned");
+  save=purchaseBattleOutfitterItem(save,gear.itemId).save;
+  assert.equal(getEquipmentOwnership(save,a.creatureId,gear),"Owned");
+  save=assignBattleOutfitterEquipment(save,a.creatureId,gear.itemId).save;
+  assert.equal(getEquipmentOwnership(save,a.creatureId,gear),"Equipped");
+  assert.equal(getEquipmentOwnership(save,b.creatureId,gear),"Owned");
+  assert.equal(getBattleOutfitterStock(save,gear),0);
+  assert.equal(gear.name,"Training Blade");
+  assert.equal(item("channeling_prism").name,"Channeling Staff");
+  assert.equal(item("duelist_grips").name,"Duelist Saber");
+  assert.equal(new Set(BATTLE_OUTFITTER_ITEMS.filter(i=>i.statBonuses).map(i=>i.iconPath)).size,15);
 });

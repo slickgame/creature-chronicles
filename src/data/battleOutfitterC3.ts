@@ -395,3 +395,10 @@ export function useBattleOutfitterManual(save: GameSave, creatureId: CreatureId)
   if (!result.ok) return result;
   return { ...result, message: `Focus Manual studied. ${getBattleReadinessLabel(result.save, creatureId)}. This rank adds +2 Accuracy, +2 Status Power and +2 maximum Battle Energy. Innate grades are unchanged.` };
 }
+
+/** Ownership includes copies worn by other creatures, not only available stock. */
+export function getEquipmentOwnership(save: GameSave, creatureId: CreatureId | null, item: BattleOutfitterItem): "Equipped" | "Owned" | "Not Owned" {
+  if (creatureId && Object.values(getEquipmentSlots(save, creatureId)).includes(item.itemId)) return "Equipped";
+  if (getBattleOutfitterStock(save, item) > 0 || (save.creatures ?? []).some(c => Object.values(getEquipmentSlots(save, c.creatureId)).includes(item.itemId))) return "Owned";
+  return "Not Owned";
+}
