@@ -76,3 +76,34 @@
 @media(max-width:1100px){.arena .order{width:80%;max-width:680px;align-self:end}.tokens [data-rank='0'] img,.tokens [data-rank='1'] img{width:34px;height:34px}.tokens img{width:29px;height:29px}.tokens strong{font-size:10px}}
 @media(max-width:600px){.arena .order{width:100%;padding:4px 7px}.tokens{gap:4px}.arena .tokens button{max-width:28px;gap:3px}.arena .tokens button[data-rank='0'],.arena .tokens button[data-rank='1']{flex:2.3}.tokens [data-rank='0'] img,.tokens [data-rank='1'] img{width:27px;height:27px}.tokens img{width:24px;height:24px}.tokens strong{font-size:9px}.tokens small{font-size:6px}.tokens em{font-size:7px;max-width:63px}.figure{width:32%;height:44%;grid-template-rows:minmax(0,1fr) 24px}.figure[data-side=enemy][data-slot='0'],.arena[data-moves-open=true] .figure[data-side=enemy][data-slot='0']{left:0;top:6%;height:44%}.figure[data-side=enemy][data-slot='1'],.arena[data-moves-open=true] .figure[data-side=enemy][data-slot='1']{left:34%;top:6%;height:44%}.figure[data-side=enemy][data-slot='2'],.arena[data-moves-open=true] .figure[data-side=enemy][data-slot='2']{left:68%;top:6%;height:44%}.figure[data-side=player][data-slot='0'],.arena[data-moves-open=true] .figure[data-side=player][data-slot='0']{left:0;top:56%;height:44%}.figure[data-side=player][data-slot='1'],.arena[data-moves-open=true] .figure[data-side=player][data-slot='1']{left:34%;top:56%;height:44%}.figure[data-side=player][data-slot='2'],.arena[data-moves-open=true] .figure[data-side=player][data-slot='2']{left:68%;top:56%;height:44%}.arena .figureButton,.arena[data-moves-open=true] .figureButton{grid-template-rows:minmax(0,1fr) 38px}.statusIcon{width:26px;height:26px}.arena .statusBadges button{min-height:24px;height:24px;min-width:27px}.statusBadges b{font-size:8px}.effect{font-size:24px}.teamLabel{font-size:8px}.arena[data-moves-open=true]{grid-template-rows:110px minmax(0,1fr) 92px 244px}.arena[data-moves-open=true] .queue{grid-template-rows:36px 36px}.arena[data-moves-open=true] .queue>button,.arena[data-moves-open=true] .dockTools button{height:36px;min-height:36px}.expandedDock .moveSummary{gap:2px}.expandedDock .moveSummary p{font-size:11px}}
 @media(max-height:560px) and (min-width:601px){.arena .order{width:49%;align-self:start;padding:3px 7px}.tokens [data-rank='0'] img,.tokens [data-rank='1'] img{width:26px;height:26px}.tokens img{width:23px;height:23px}.tokens strong{font-size:9px}.tokens small{font-size:6px}.tokens em{font-size:7px}.figure{grid-template-rows:minmax(0,1fr) 22px}.arena .figureButton,.arena[data-moves-open=true] .figureButton{grid-template-rows:minmax(0,1fr) 33px}.statusIcon{width:24px;height:24px}.arena .statusBadges button{height:22px;min-height:22px;min-width:25px}.statusBadges b{font-size:8px}.effect{font-size:24px}.arena[data-moves-open=true]{grid-template-rows:58px minmax(0,1fr) 48px 148px}.expandedDock .moveSummary{gap:1px}.expandedDock .projections small:last-child{display:none}}
+
+/* Approved round ledger: aligned plans and a single confirmation area. */
+.arena{grid-template-rows:104px minmax(0,1fr) 174px}
+.arena[data-moves-open=true]{grid-template-rows:90px minmax(0,1fr) 150px 270px}
+.arena .queue{grid-template-columns:minmax(0,1fr) minmax(180px,24%);grid-template-rows:1fr;gap:18px;padding:10px 16px;align-items:stretch}
+.planLedger{display:grid;grid-template-rows:18px repeat(3,minmax(0,1fr)) 22px;min-height:0}
+.planHead,.arena .planRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) 66px 22px;gap:8px;align-items:center;text-align:left}
+.planHead{padding:0 8px;color:#75603d;font:11px/1 system-ui}
+.arena .planRow{border:0;border-bottom:1px solid #c7af825e;border-radius:3px;background:transparent;min-height:0;padding:2px 8px;font-size:13px;filter:none}
+.arena .planRow:disabled{opacity:.75;filter:none}
+.arena .planRow[aria-pressed=true]{background:#e2e6cbbb;box-shadow:inset 3px 0 #65834d}
+.planRow>span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arena .planCreature{display:flex;align-items:center;gap:8px}
+.planCreature img{width:27px;height:27px;border-radius:50%;background:#caba96}
+.planCreature strong{font-size:13px;overflow:hidden;text-overflow:ellipsis}
+.arena .planNotice{min-height:0;padding:2px 8px;background:none;border:0;text-align:left;font-size:11px;color:#795627;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.planControls{display:flex;flex-direction:column;justify-content:center;gap:12px;border-left:1px solid #c4af87;padding-left:18px}
+.arena .planControls .confirm{grid-column:auto;grid-row:auto;gap:8px}
+.arena .planControls .dockTools{grid-column:auto;grid-row:auto;border:0;padding:0;gap:5px}
+.arena .planControls .dockTools button{display:block;min-height:32px;height:auto;padding:5px;font-size:12px;flex:1}
+@media(max-width:1100px){.arena{grid-template-rows:140px minmax(0,1fr) 162px}.arena[data-moves-open=true]{grid-template-rows:130px minmax(0,1fr) 142px 270px}}
+@media(max-width:600px){
+.arena{grid-template-rows:120px minmax(0,1fr) 180px}.arena[data-moves-open=true]{grid-template-rows:110px minmax(0,1fr) 152px 244px}
+.arena .queue,.arena[data-moves-open=true] .queue{grid-template-columns:minmax(0,1fr) 94px;grid-template-rows:1fr;padding:5px;gap:5px}
+.planHead,.arena .planRow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) 30px 10px;gap:3px;padding-left:3px;padding-right:3px;font-size:9px}
+.planHead{font-size:8px}.planCreature img{display:none}.planCreature strong{font-size:10px}.planControls{padding-left:5px;gap:6px}.arena .planControls .dockTools{display:grid;grid-template-columns:1fr 1fr}.arena .planControls .dockTools button{font-size:10px;padding:3px;min-height:27px}.planControls .dockTools button:first-child{grid-column:1/-1}.arena .planNotice{font-size:9px;padding:2px}.arena .planControls .confirm button{min-height:40px;padding:4px;font-size:11px}.planLedger{grid-template-rows:16px repeat(3,minmax(0,1fr)) 20px}
+}
+@media(max-height:560px) and (min-width:601px){
+.arena{grid-template-rows:68px minmax(0,1fr) 112px}.arena[data-moves-open=true]{grid-template-rows:58px minmax(0,1fr) 94px 148px}
+.arena .queue,.arena[data-moves-open=true] .queue{padding:3px 8px;gap:10px}.planLedger{grid-template-rows:12px repeat(3,minmax(0,1fr)) 14px}.planHead{font-size:9px}.arena .planRow{font-size:10px;padding:0 5px}.planCreature img{display:none}.planCreature strong{font-size:10px}.arena .planNotice{font-size:9px;padding:0 5px}.planControls{gap:3px;padding-left:8px}.arena .planControls .confirm{gap:2px}.arena .planControls .dockTools button{min-height:24px;font-size:10px;padding:3px}
+}
