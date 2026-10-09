@@ -1,3 +1,4 @@
+import { getVariantDefinition } from "@/data/creatures";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
 import { TAX_COLLECTOR } from "@/data/taxCollector";
 import { getStarterGoals, type StarterGoal } from "@/data/starterGoals";
@@ -73,24 +74,27 @@ function buildScene(args: Omit<StoryScene, "speaker" | "portraitPath" | "imageId
 
 export function getChapterOneIntroScene(save: GameSave): StoryScene | null {
   if (save.flags.m24IntroSeen === true) return null;
-  return buildChapterOneIntroScene();
+  return buildChapterOneIntroScene(save);
 }
 
-export function buildChapterOneIntroScene(): StoryScene {
+export function buildChapterOneIntroScene(save?: GameSave): StoryScene {
+  const starter = save?.creatures?.find((creature) => creature.origin === "starter") ?? save?.creatures?.[0];
   return buildScene({
     id: "chapter-one-intro",
     title: "The Deed at Bramble Farm",
     flag: "m24IntroSeen",
     kind: "intro",
-    actionLabel: "Begin Chapter 1",
+    actionLabel: "Begin the First Morning",
     pages: buildPages([
-      { speaker: "narrator", imageId: "chapter1_intro_deed", caption: "Placeholder: Bramble Farm gate / inherited deed", text: "The letter arrived folded inside the old deed: Bramble Farm was yours now, whether you felt ready for it or not." },
-      { speaker: "narrator", imageId: "chapter1_intro_arrival", caption: "Placeholder: overgrown fields and watching creatures", text: "By the time you reached the gate, the fields were overgrown, the fences leaned, and the creatures were watching from the edges of the property." },
-      { speaker: "veyra", imageId: "chapter1_intro_veyra", caption: "Placeholder: Veyra waiting on the porch", text: "Veyra Bramble was waiting on the porch. She works here, lives here, and knows exactly which parts of the farm are still alive enough to save." },
-      { speaker: "veyra", imageId: "chapter1_intro_priorities", caption: "Placeholder: ranch priority board", text: "Every day begins with priorities. Security, feed, materials, comfort, eggs, taxes. Ignore one long enough and it becomes the whole story." },
-      { speaker: "vesper", imageId: "chapter1_intro_tax_notice", caption: "Placeholder: Lady Vesper's posted notice", text: `${TAX_COLLECTOR.name}, the Royal Tax Collector, has already posted the first warning in the town ledger. The Crown will recognize your claim only if the monthly bill is paid.` },
-      { speaker: "town", imageId: "chapter1_intro_town", caption: "Placeholder: town road, market, guild hall, and office", text: "The nearby town can help: the Market sells creatures, the Guild posts contracts, and the Ranch Office tracks repairs and upgrades. But the farm has to stand on its own first." },
-    ]),
+      { speaker: "narrator", imageId: "chapter1_intro_deed", text: "The letter was brief. The deed was not. Bramble Farm—and everything left in its care—was yours now." },
+      { speaker: "narrator", imageId: "chapter1_intro_journey", text: "You followed the lane until the town fell quiet behind you. Beyond the last bend stood the farm." },
+      { speaker: "narrator", imageId: "chapter1_intro_arrival", text: "You paused at the gate, the deed still in your hand. Then you stepped inside." },
+      { speaker: "veyra", imageId: "chapter1_intro_veyra", text: "You must be the new owner. I’m Veyra. I’ve kept things going as best I could. Come in—we can start with what still works." },
+      { speaker: "veyra", imageId: "chapter1_intro_starter", text: starter ? `This is ${starter.nickname}. Take some time to get acquainted. You can check each creature’s strengths, energy, and talents in the roster before choosing their chores.` : "We’ll check the roster together in the morning. Each creature has different strengths, energy, and talents to consider before choosing their chores." },
+      { speaker: "veyra", imageId: "chapter1_intro_priorities", text: "We’ll start with the morning rounds. Check the creatures, see what needs doing, and decide who can help. You don’t have to fix everything tomorrow." },
+    ]).map((page) => page.imageId === "chapter1_intro_starter" && starter
+      ? { ...page, imagePath: starter.profilePath || getVariantDefinition(starter.variantId).profilePath || getVariantDefinition(starter.variantId).portraitPath, caption: starter.nickname }
+      : page),
   });
 }
 
@@ -151,7 +155,7 @@ export function getChapterOneStoryLog(save: GameSave): StoryLogEntry[] {
     if (!scene) return null;
     return { ...scene, seen: save.flags[scene.flag] === true, lockedReason: goal.complete ? undefined : goal.hint };
   }).filter(Boolean) as StoryLogEntry[];
-  const intro = buildChapterOneIntroScene();
+  const intro = buildChapterOneIntroScene(save);
   const completion = buildChapterOneCompletionScene();
   return [
     { ...intro, seen: save.flags[intro.flag] === true, lockedReason: "Start a new save and enter the ranch." },
