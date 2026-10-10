@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { getTitleScene } from "@/data/titleScenes";
 import { GAME_TITLE } from "@/data/gameConstants";
 import { formatDateTime, formatEnergy, formatGold, formatGuildPoints } from "@/lib/formatters";
 import { SAVE_SLOT_COUNT, summarizeSave } from "@/lib/save/localSave";
@@ -48,8 +49,8 @@ export function MainMenuScreen() {
   const [playerName, setPlayerName] = useState("");
   const [selectedSlot, setSelectedSlot] = useState(0);
   const [message, setMessage] = useState("");
-  const [logoFailed, setLogoFailed] = useState(false);
   const [pendingSaveAction, setPendingSaveAction] = useState<{ kind: "replace" | "delete"; slot: number } | null>(null);
+  const titleScene = getTitleScene(isHydrated ? currentSave : null);
   const activeSummary = useMemo(() => currentSave ? summarizeSave(currentSave) : null, [currentSave]);
 
   function startNewGame() {
@@ -78,11 +79,11 @@ export function MainMenuScreen() {
   function closePanel() { setMode("main"); setMessage(""); }
 
   return (
-    <main className={styles.titleScreen} aria-labelledby="game-title">
-      <div className={styles.backgroundArt} aria-hidden="true" />
+    <main className={styles.titleScreen} aria-labelledby="game-title" data-title-scene={titleScene.id}>
+      <div className={styles.backgroundArt} aria-hidden="true" style={{ backgroundImage: `url("${titleScene.imagePath}")` }} />
       <section className={styles.welcome}>
-        <h1 id="game-title" className={`${styles.brand} ${logoFailed ? styles.brandFallback : ""}`}>
-          {logoFailed ? GAME_TITLE : <img src="/images/ui/logo/creature_chronicles_logo.png" alt={GAME_TITLE} width={714} height={343} fetchPriority="high" onError={() => setLogoFailed(true)} />}
+        <h1 id="game-title" className={styles.storyBrand} aria-label={GAME_TITLE}>
+          <span>Creature</span><span>Chronicles</span>
         </h1>
         <nav className={styles.menu} aria-label="Main menu">
           {!isHydrated ? <p className={styles.loading} role="status">Loading your ranch…</p> : <div className={styles.continueRow}>
@@ -101,7 +102,7 @@ export function MainMenuScreen() {
         </nav>
         {message && mode === "main" && <p className={styles.messageText} role="status">{message}</p>}
       </section>
-      <footer className={styles.versionBadge}>{version}</footer>
+      <footer className={styles.versionBadge}><span>{titleScene.label}</span> · {version}</footer>
 
       {mode !== "main" && <GameDialog title={PANEL_TITLES[mode]} onClose={closePanel} wide={mode !== "options"}>
         {mode === "new-game" && <section className={styles.menuPanel}>
@@ -131,3 +132,4 @@ export function MainMenuScreen() {
     </main>
   );
 }
+

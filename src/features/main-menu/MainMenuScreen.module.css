@@ -86,3 +86,62 @@
  .saveSummary { padding-block: 0; width: 240px; }
  .transferLink { margin-top: 4px; min-height: 44px; }
 }
+
+
+/* All story scenes share the same menu geometry. Only the scenic layer changes. */
+.titleScreen { height: 100dvh; min-height: 0; overflow: hidden; }
+.backgroundArt { background-color: #283523; }
+.backgroundArt::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #111a14b8 0%, #111a144d 37%, transparent 65%); }
+.welcome { padding: clamp(18px, 3vh, 34px) clamp(24px, 4vw, 72px) 38px; }
+.brand { width: clamp(300px, 29vw, 450px); margin-bottom: 12px; }
+.brand img { max-height: 21dvh; object-fit: contain; object-position: left center; }
+.brandFallback { padding-block: 12px; font-size: clamp(2rem, 4.5vw, 4rem); }
+.menu { gap: clamp(6px, 1.2vh, 12px); }
+.menuButton { min-height: clamp(48px, 7.5vh, 76px); }
+.continueButton { min-height: clamp(64px, 9vh, 96px); }
+.saveSummary { background: #f7e8cce8; }
+.transferLink { margin-top: 4px; }
+@media (max-width: 600px) {
+ .backgroundArt { background-position: 72% center; }
+ .backgroundArt::after { background: linear-gradient(90deg,#111a1477,#111a141a), linear-gradient(0deg,#111a14bb,transparent 85%); }
+ .welcome { padding: max(12px,env(safe-area-inset-top)) 20px 34px; }
+ .brand { width: min(100%, 320px); margin: 0 auto 10px; }
+ .brand img { max-height: 18dvh; object-position: center; }
+ .menu { gap: 7px; }
+ .menuButton { min-height: 52px; }
+ .continueButton { min-height: 62px; }
+ .saveSummary { min-height: 68px; }
+}
+@media (max-height: 520px) and (min-width: 601px) {
+ .welcome { display: grid; grid-template-columns: minmax(160px, 220px) 300px; gap: 24px; padding: 16px 24px 28px; }
+ .brand { width: 100%; max-width: 220px; margin: 0; align-self: start; }
+ .brand img { max-height: 140px; }
+ .titleScreen { --button-width: 100%; }
+ .menu { width: 300px; gap: 5px; }
+ .continueRow { width: 100%; }
+ .continueButton { min-height: 48px; font-size: 1.3rem; }
+ .menuButton { min-height: 42px; font-size: 1.1rem; border-width: 6px; border-image-width: 6px; }
+ .saveSummary { width: 150px; padding: 3px 6px; border: 0; }
+ .saveSummary > span { display: none; }
+ .saveSummary h2 { font-size: .8rem; }
+ .saveSummary p { font-size: .7rem; }
+ .transferLink { min-height: 36px; font-size: .85rem; }
+}
+.storyBrand { display: flex; flex-direction: column; width: min(420px, 100%); margin: 0 0 22px; color: #ffe7a7; font: 500 clamp(2.8rem, 4.7vw, 4.6rem)/.94 Georgia,serif; letter-spacing: -.04em; text-shadow: 0 3px 2px #23190c, 0 5px 16px #14190ee6; }
+.menuButton { border: 2px solid #ae813a; border-image: none; border-radius: 8px; background: linear-gradient(110deg,#f3dfb2,#fff0cb 50%,#e9cc92); color: #482d17; text-shadow: 0 1px #fff6db; box-shadow: inset 0 0 0 3px #f9e7bd, inset 0 0 0 4px #bf9652, 0 4px 10px #1119; justify-content: center; }
+.menuButton > span:first-child, .continueButton > span:last-child { display: none; }
+.menuButton > span:last-child { padding-right: 0; }
+.continueButton > span:nth-child(2) { display: block; }
+.continueButton { background: linear-gradient(110deg,#f6dea5,#fff2ce 50%,#e8c77b); }
+.saveSummary { border-image: none; border: 1px solid #c4a264; border-radius: 0 7px 7px 0; }
+.saveSummary > span { display: none; }
+@media (max-width:600px) {
+ .storyBrand { width: min(100%,350px); margin: 0 auto 18px; font-size: clamp(2.5rem, 11vw, 3.6rem); }
+ .saveSummary { border-radius: 0 0 7px 7px; }
+ .menuButton { border-width: 2px; }
+}
+@media (max-height:520px) and (min-width:601px) {
+ .storyBrand { font-size: 2.5rem; margin: 0; }
+ .menuButton { border-width: 2px; }
+ .saveSummary { min-width: 120px; width: 120px; }
+}
