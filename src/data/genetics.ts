@@ -528,6 +528,21 @@ function weightedAbilityPick(
   return { ability: fallback.ability, parentName: fallback.parentName };
 }
 
+function getTalentMutationChance(tier: number, streak: number): number {
+  return clamp(1 + tier + Math.floor(streak / 4), 1, 8);
+}
+
+/** Check probabilities, not per-talent odds or a prediction of the seeded result. */
+export function getTalentInheritanceOdds(save: GameSave, giver: BreedingParticipant, receiver: BreedingParticipant) {
+  const context = buildContext(save, giver, receiver);
+  const ids = new Set([...(giver.abilities ?? []), ...(receiver.abilities ?? [])].map(t => t.id));
+  return {
+    first: ids.size ? context.abilityInheritanceChance : 0,
+    second: ids.size > 1 ? context.secondAbilityChance : 0,
+    mutation: getTalentMutationChance(context.breedingTier, context.pairStreak),
+  };
+}
+
 function buildInheritedAbilities(
   seed: string,
   giver: BreedingParticipant,
@@ -561,7 +576,7 @@ function buildInheritedAbilities(
   ) {
     const first = weightedAbilityPick(`${seed}_ability_first_pick`, entries);
     if (first) {
-      inherited.push(first.ability);
+      inherited.push({ ...first.ability, inheritanceOrigin: { kind: "parent", parentName: first.parentName } });
       notes.push(
         `${first.ability.name} (${first.ability.grade}) was inherited from ${first.parentName}.`,
       );
@@ -582,7 +597,7 @@ function buildInheritedAbilities(
       remainingEntries,
     );
     if (second) {
-      inherited.push(second.ability);
+      inherited.push({ ...second.ability, inheritanceOrigin: { kind: "parent", parentName: second.parentName } });
       notes.push(
         `${second.ability.name} also carried through from ${second.parentName}.`,
       );
@@ -592,11 +607,7 @@ function buildInheritedAbilities(
   const mutationPool = GENERAL_ABILITY_POOL.filter(
     (ability) => !inherited.some((inheritedAbility) => inheritedAbility.id === ability.id),
   );
-  const abilityMutationChance = clamp(
-    1 + context.breedingTier + Math.floor(context.pairStreak / 4),
-    1,
-    8,
-  );
+  const abilityMutationChance = getTalentMutationChance(context.breedingTier, context.pairStreak);
 
   if (
     mutationPool.length &&
@@ -608,7 +619,7 @@ function buildInheritedAbilities(
       mutationPool[
         deterministicRoll(`${seed}_ability_mutation_pick`, mutationPool.length)
       ];
-    inherited.push({ ...mutation, source: "general" });
+    inherited.push({ ...mutation, source: "general", inheritanceOrigin: { kind: "mutation" } });
     notes.push(
       `${mutation.name} appeared as a rare new ability mutation rather than direct inheritance.`,
     );

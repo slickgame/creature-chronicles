@@ -1,0 +1,10 @@
+.panel { display: grid; gap: 12px; color: #49341b; background: #f7edcf; padding: 14px; border-radius: 8px; }
+.panel p { margin: 0; line-height: 1.5; }
+.panel h3 { margin: 0 0 8px; }
+.parents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.parents article { padding: 14px; border: 1px solid #a88951; border-radius: 8px; background: #f2e3bf; min-width: 0; }
+.talent + .talent { margin-top: 12px; }
+.odds { margin: 0; display: grid; gap: 8px; }
+.odds div { display: flex; justify-content: space-between; gap: 16px; padding: 8px; background: #f2e3bf; }
+.odds dd { margin: 0; font-weight: bold; flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 520px) { .parents { grid-template-columns: 1fr; } }

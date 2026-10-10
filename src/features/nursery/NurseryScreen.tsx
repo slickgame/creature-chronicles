@@ -1,4 +1,5 @@
 "use client";
+import { TalentOutcome } from "@/features/creatures/TalentOutcome";
 
 import { type ReactNode, useMemo, useState } from "react";
 import {
@@ -232,6 +233,7 @@ function BirthHistoryCard({ birth }: { birth: BirthRecord }) {
         <em>
           {birth.parents.giver.displayName} × {birth.parents.receiver.displayName}
         </em>
+        <TalentOutcome talents={birth.inheritedAbilities} />
       </div>
     </article>
   );
@@ -317,9 +319,11 @@ function HatchRevealModal({
 
   return <GameDialog title={`${creature.nickname} hatched!`} onClose={onConfirm} wide>
     <div className={styles.reveal}><img className={styles.hatchPortrait} src={getVariantDefinition(creature.variantId).profilePath || getVariantDefinition(creature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${creature.nickname} full body`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /><p>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName} · {lineageLabel}</p>
+      <TalentOutcome talents={creature.abilities} notes={egg.abilityRollNotes} />
       <SharedCreatureDetail creature={creature} mode="full" showActions={false} dossier />
       <details><summary>Roll Notes</summary><ul>{notes.length ? notes.map((note,index) => <li key={`${index}-${note}`}>{note}</li>) : <li>No additional roll notes recorded.</li>}</ul></details>
       <div className={styles.hatchControls}><label>Hatchling name<input value={renameValue} onChange={event => onRenameValueChange(event.target.value)} maxLength={24} placeholder={creature.nickname} /></label><button type="button" onClick={onConfirm}>Confirm Hatchling</button></div>
     </div>
   </GameDialog>;
 }
+

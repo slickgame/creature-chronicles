@@ -33,6 +33,7 @@ export type CreatureTalent = {
   category?: TalentCategory;
   tags?: string[];
   definitionVersion?: number;
+  inheritanceOrigin?: { kind: "parent" | "mutation"; parentName?: string };
 };
 export type CreatureAbility = CreatureTalent;
 
@@ -87,3 +88,4 @@ export type CreatureRecord = {
 };
 
 export type HabitatRecord = { habitatId: HabitatId; family: CreatureFamily; name: string; level: number; capacity: number; creatureIds: CreatureId[]; unlocked: boolean };
+

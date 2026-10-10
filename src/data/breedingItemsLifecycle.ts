@@ -196,7 +196,7 @@ function addAbilityInheritanceChance(
   }
   return {
     ...inheritance,
-    projectedAbilities: [{ ...ability }],
+    projectedAbilities: [{ ...ability, inheritanceOrigin: { kind: "parent", parentName: [giver, receiver].find(parent => parent.abilities?.includes(ability))?.displayName } }],
     abilityRollNotes: [
       ...inheritance.abilityRollNotes,
       `${ability.name} (${ability.grade}) was inherited through Trait Stabilizer's bonus check.`,
@@ -273,7 +273,7 @@ function applyMutationCatalyst(
       deterministicRoll(`${seed}_catalyst_ability_pick`, pool.length)
     ];
     if (ability) {
-      const mutatedAbility: CreatureAbility = { ...ability, source: "general" };
+      const mutatedAbility: CreatureAbility = { ...ability, source: "general", inheritanceOrigin: { kind: "mutation" } };
       next = {
         ...next,
         projectedAbilities: [...next.projectedAbilities, mutatedAbility].slice(0, 2),

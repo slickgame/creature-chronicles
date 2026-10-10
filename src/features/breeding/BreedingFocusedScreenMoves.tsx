@@ -8,6 +8,7 @@ import { getSpeciesDefinition } from "@/data/creatures";
 import { useGameContext } from "@/state/GameProvider";
 import { BreedingFocusedScreen as ItemsBreedingScreen } from "./BreedingFocusedScreenItems";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { TalentInheritancePanel } from "./TalentInheritancePanel";
 import styles from "./BreedingFocusedScreenMoves.module.css";
 
 type PairMemory = { giverId: string | null; receiverId: string | null };
@@ -32,6 +33,7 @@ function readPair(saveId: string): PairMemory {
 
 export function BreedingFocusedScreen() {
   const [showMoves,setShowMoves]=useState(false);
+  const [inheritanceTab, setInheritanceTab] = useState<"talents" | "moves">("talents");
   const { currentSave } = useGameContext();
   const [host, setHost] = useState<HTMLElement | null>(null);
   const [pair, setPair] = useState<PairMemory>({ giverId: "player", receiverId: null });
@@ -81,7 +83,7 @@ export function BreedingFocusedScreen() {
   );
 
   const panel = preview ? (
-    <><button type="button" style={{order:-1}} onClick={() => setShowMoves(true)}><img src="/images/ui/icons/icon_collection_book.png" alt="" />Inheritance</button>{showMoves ? <GameDialog title="Move Lineage" onClose={() => setShowMoves(false)}><p>{preview.canProduceOffspring ? `+${preview.contextBonus}% pair bonus` : "Select two creatures"}</p>
+    <><button type="button" style={{order:-1}} onClick={() => setShowMoves(true)}><img src="/images/ui/icons/icon_collection_book.png" alt="" />Inheritance</button>{showMoves ? <GameDialog title="Inheritance" onClose={() => setShowMoves(false)}><nav aria-label="Inheritance views" style={{display:"flex",gap:8,marginBottom:16}}><button type="button" aria-pressed={inheritanceTab === "talents"} onClick={() => setInheritanceTab("talents")}>Talents</button><button type="button" aria-pressed={inheritanceTab === "moves"} onClick={() => setInheritanceTab("moves")}>Moves</button></nav>{inheritanceTab === "talents" && currentSave ? <TalentInheritancePanel save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} /> : <><p>{preview.canProduceOffspring ? `+${preview.contextBonus}% pair bonus` : "Select two creatures"}</p>
       <div className={styles.body}>
         <p>{preview.reason}</p>
         {preview.childSpeciesId ? (
@@ -130,7 +132,7 @@ export function BreedingFocusedScreen() {
         ) : null}
         <p className={styles.disclosure}>Chances are visible before breeding. Exact rolls and the final inherited loadout are locked only after successful conception.</p>
       </div>
-    </GameDialog> : null}</>
+    </>}</GameDialog> : null}</>
   ) : null;
 
   return (
@@ -140,3 +142,4 @@ export function BreedingFocusedScreen() {
     </>
   );
 }
+
