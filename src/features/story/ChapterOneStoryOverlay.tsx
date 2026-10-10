@@ -2,6 +2,7 @@
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { getNextChapterOneStoryScene, type StoryScene } from "@/data/chapterOneStory";
+import styles from "./OpeningStory.module.css";
 import { STORY_IMAGE_FALLBACK_PATH } from "@/data/storyImages";
 import { useGameContext } from "@/state/GameProvider";
 
@@ -128,7 +129,8 @@ export function ChapterOneStoryOverlay() {
   const [pageIndex, setPageIndex] = useState(0);
 
   useEffect(() => {
-    setPageIndex(0);
+    const savedPage = Number(currentSave?.flags.chapterOneOpeningPage ?? 0);
+    setPageIndex(scene?.kind === "intro" && Number.isFinite(savedPage) ? Math.max(0, Math.min(5, savedPage)) : 0);
   }, [scene?.id]);
 
   if (!currentSave || appScreen !== "ranch-hub" || !scene) return null;
@@ -145,6 +147,13 @@ export function ChapterOneStoryOverlay() {
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   const isFirst = pageIndex <= 0;
   const isLast = pageIndex >= pages.length - 1;
+
+  function turnPage(next: number) {
+    setPageIndex(next);
+    if (scene?.kind === "intro" && currentSave) saveCurrentGame({
+      ...currentSave, flags: { ...currentSave.flags, chapterOneOpeningPage: next },
+    });
+  }
 
   function closeScene(nextAction?: "chores" | "town") {
     if (!currentSave || !scene) return;
@@ -172,6 +181,7 @@ export function ChapterOneStoryOverlay() {
     >
       <section
         data-chapter-one-story-panel="true"
+        className={scene.kind === "intro" ? styles.opening : undefined}
         style={panelStyle}
         role="dialog"
         aria-modal="true"
@@ -215,6 +225,7 @@ export function ChapterOneStoryOverlay() {
                 padding: "clamp(10px, 3vw, 18px)",
               }}
               onError={(event) => {
+                event.currentTarget.onerror = null;
                 event.currentTarget.src = STORY_IMAGE_FALLBACK_PATH;
               }}
             />
@@ -299,7 +310,7 @@ export function ChapterOneStoryOverlay() {
               type="button"
               style={secondaryButtonStyle}
               disabled={isFirst}
-              onClick={() => setPageIndex((value) => Math.max(0, value - 1))}
+              onClick={() => turnPage(Math.max(0, pageIndex - 1))}
             >
               Back
             </button>
@@ -308,20 +319,14 @@ export function ChapterOneStoryOverlay() {
                 type="button"
                 style={buttonStyle}
                 onClick={() =>
-                  setPageIndex((value) => Math.min(pages.length - 1, value + 1))
+                  turnPage(Math.min(pages.length - 1, pageIndex + 1))
                 }
               >
                 Next
               </button>
             ) : null}
-            {isLast && scene.kind === "intro" ? (
-              <button
-                type="button"
-                style={buttonStyle}
-                onClick={() => closeScene("chores")}
-              >
-                Open Chore Board
-              </button>
+            {!isLast && scene.kind === "intro" ? (
+              <button type="button" style={secondaryButtonStyle} onClick={() => closeScene()}>Skip Opening</button>
             ) : null}
             {isLast && scene.kind === "completion" ? (
               <button
@@ -352,7 +357,7 @@ function getSceneKicker(scene: StoryScene): string {
 
 function getFooterHint(scene: StoryScene): string {
   if (scene.kind === "intro") {
-    return "Story art uses the image manifest and placeholder art until final files are added.";
+    return "Your first morning begins after this scene. Skipping the opening keeps the tutorial enabled.";
   }
   if (scene.kind === "completion") return "Chapter 1 onboarding is complete.";
   return "Goal dialogue appears once per completed tutorial goal.";

@@ -5,7 +5,7 @@ import {
   getBattleOutfitterStock,
   type BattleOutfitterItemId,
 } from "@/data/battleOutfitter";
-import type { BattleCombatant, BattleState } from "@/types/battle";
+import type { BattleCombatant, BattleState, BattleStats } from "@/types/battle";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
@@ -40,7 +40,7 @@ export function getBattleOutfitterCreatureEffectSummary(
   creatureId: CreatureId,
 ): BattleOutfitterCreatureEffectSummaryC3 {
   const loadout = getBattleLoadout(save, creatureId);
-  const itemIds = [loadout.offenseItemId, loadout.defenseItemId, loadout.utilityItemId].filter((id): id is BattleOutfitterItemId => Boolean(id));
+  const itemIds = Object.values(loadout.equipment).filter((id): id is BattleOutfitterItemId => Boolean(id));
   const summary: BattleOutfitterCreatureEffectSummaryC3 = {
     creatureId,
     labels: itemIds.map((id) => getItem(id)?.name ?? id),
@@ -58,7 +58,19 @@ export function getBattleOutfitterCreatureEffectSummary(
   if (loadout.manualRank > 0) summary.labels.push(`Focus Training ${loadout.manualRank}`);
 
   for (const itemId of itemIds) {
-    if (itemId === "sparring_wraps") {
+    const bonuses = getItem(itemId)?.statBonuses;
+    if (bonuses) {
+      summary.maxHpBonus += bonuses.maxHp ?? 0;
+      summary.physicalPowerBonus += bonuses.physicalPower ?? 0;
+      summary.specialPowerBonus += bonuses.specialPower ?? 0;
+      summary.defenseBonus += bonuses.defense ?? 0;
+      summary.resistanceBonus += bonuses.resistance ?? 0;
+      summary.speedBonus += bonuses.speed ?? 0;
+      summary.accuracyBonus += bonuses.accuracy ?? 0;
+      summary.statusPowerBonus += bonuses.statusPower ?? 0;
+      summary.statusResistBonus += bonuses.statusResist ?? 0;
+      summary.battleEnergyBonus += bonuses.battleEnergy ?? 0;
+    } else if (itemId === "sparring_wraps") {
       summary.physicalPowerBonus += 6;
       summary.specialPowerBonus += 4;
       summary.accuracyBonus += 3;
@@ -98,23 +110,27 @@ export function getBattleOutfitterCreatureEffectSummary(
   return summary;
 }
 
-function applySummaryToCombatant(
+export function applyOutfitterStatBonuses(stats: BattleStats, summary: BattleOutfitterCreatureEffectSummaryC3): BattleStats {
+  return {
+    ...stats,
+    maxHp: stats.maxHp + summary.maxHpBonus,
+    physicalPower: stats.physicalPower + summary.physicalPowerBonus,
+    specialPower: stats.specialPower + summary.specialPowerBonus,
+    defense: stats.defense + summary.defenseBonus,
+    resistance: stats.resistance + summary.resistanceBonus,
+    speed: stats.speed + summary.speedBonus,
+    accuracy: stats.accuracy + summary.accuracyBonus,
+    statusPower: stats.statusPower + summary.statusPowerBonus,
+    statusResist: stats.statusResist + summary.statusResistBonus,
+    battleEnergy: stats.battleEnergy + summary.battleEnergyBonus,
+  };
+}
+
+export function applySummaryToCombatant(
   combatant: BattleCombatant,
   summary: BattleOutfitterCreatureEffectSummaryC3,
 ): BattleCombatant {
-  const battleStats = {
-    ...combatant.battleStats,
-    maxHp: combatant.battleStats.maxHp + summary.maxHpBonus,
-    physicalPower: combatant.battleStats.physicalPower + summary.physicalPowerBonus,
-    specialPower: combatant.battleStats.specialPower + summary.specialPowerBonus,
-    defense: combatant.battleStats.defense + summary.defenseBonus,
-    resistance: combatant.battleStats.resistance + summary.resistanceBonus,
-    speed: combatant.battleStats.speed + summary.speedBonus,
-    accuracy: combatant.battleStats.accuracy + summary.accuracyBonus,
-    statusPower: combatant.battleStats.statusPower + summary.statusPowerBonus,
-    statusResist: combatant.battleStats.statusResist + summary.statusResistBonus,
-    battleEnergy: combatant.battleStats.battleEnergy + summary.battleEnergyBonus,
-  };
+  const battleStats = applyOutfitterStatBonuses(combatant.battleStats, summary);
   return {
     ...combatant,
     battleStats,

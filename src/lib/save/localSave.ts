@@ -105,8 +105,7 @@ function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
     getBaseMaxHearts(species.speciesId, variant.variantId),
   );
   const origin = inferCreatureOrigin(creature);
-  const seed = `${creature.ownerSaveId}_${creature.creatureId}_${origin.origin}_ability_balance`;
-  const fallbackAbilities = creature.abilities?.length
+  const fallbackAbilities = Array.isArray(creature.abilities)
     ? creature.abilities
     : rollCreatureAbilities(
         `${creature.ownerSaveId}_${creature.creatureId}_migration`,
@@ -115,9 +114,6 @@ function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
       );
   const abilities = rebalanceExistingCreatureAbilities(
     { ...creature, origin: origin.origin, originLabel: origin.originLabel, abilities: fallbackAbilities },
-    seed,
-    species.speciesId,
-    variant.variantId,
   );
 
   return {
@@ -638,3 +634,4 @@ export function findFirstEmptySlot(): number | null {
   const emptyIndex = saves.findIndex((save) => save === null);
   return emptyIndex >= 0 ? emptyIndex : null;
 }
+

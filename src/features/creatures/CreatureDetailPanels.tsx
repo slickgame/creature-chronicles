@@ -16,6 +16,7 @@ import {
 import { getCreatureRoleTags } from "@/data/talents/creatureRoleTags";
 import { formatEnergy } from "@/lib/formatters";
 import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
+import dossierStyles from "./CreatureDossier.module.css";
 import { CreatureSkillRadar } from "./CreatureSkillRadar";
 
 export const SHARED_STAT_LABELS: Record<CreatureStatKey, string> = {
@@ -43,6 +44,7 @@ type SharedCreatureDetailProps = {
   onDonate?: () => void;
   showActions?: boolean;
   fitViewport?: boolean;
+  dossier?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
 };
@@ -190,6 +192,7 @@ export function SharedCreatureDetail({
   onDonate,
   showActions = true,
   fitViewport = false,
+  dossier = false,
   statusNote,
   bestStatLabels = [],
 }: SharedCreatureDetailProps) {
@@ -219,7 +222,7 @@ export function SharedCreatureDetail({
     height: fitViewport ? "100%" : "auto",
     minHeight: 0,
     display: "grid",
-    gridTemplateColumns: "minmax(300px,.92fr) minmax(430px,1.3fr)",
+    gridTemplateColumns: dossier ? "minmax(0,1fr)" : "minmax(300px,.92fr) minmax(430px,1.3fr)",
     gap: 12,
     alignItems: fitViewport ? "stretch" : "start",
     overflow: "hidden",
@@ -257,8 +260,8 @@ export function SharedCreatureDetail({
   };
 
   return (
-    <div style={shellStyle} data-creature-detail-layout={fitViewport ? "viewport" : "standard"}>
-      <section style={portraitCardStyle}>
+    <div className={dossier ? dossierStyles.dossier : undefined} style={shellStyle} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
+      {!dossier ? <section style={portraitCardStyle}>
         <p style={kickerStyle}>{variant.rarity} Variant</p>
         <h2 style={{ margin: "3px 0", color: "#fff7dd", fontSize: "1.42rem", lineHeight: 1 }}>
           {creature.nickname}
@@ -308,7 +311,7 @@ export function SharedCreatureDetail({
             }}
           />
         </div>
-      </section>
+      </section> : null}
 
       <section
         style={{
@@ -339,6 +342,7 @@ export function SharedCreatureDetail({
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
+                aria-pressed={activeTab === tab}
                 style={activeTab === tab
                   ? {
                       ...tabButtonStyle,
@@ -365,6 +369,7 @@ export function SharedCreatureDetail({
               variantName={variant.name}
               speciesName={species.name}
               statusNote={statusNote}
+              concise={dossier}
             />
           ) : null}
           {activeTab === "stats" ? (
@@ -434,6 +439,7 @@ function OverviewTab({
   variantName,
   speciesName,
   statusNote,
+  concise = false,
 }: {
   creature: CreatureRecord;
   injury: boolean;
@@ -441,7 +447,9 @@ function OverviewTab({
   variantName: string;
   speciesName: string;
   statusNote?: string;
+  concise?: boolean;
 }) {
+  if (concise) return <section style={cardStyle}><p style={kickerStyle}>At a glance</p><h3>{creature.originLabel}</h3><RoleTagChips creature={creature} /><p style={smallText}>Generation {creature.generation} · {creature.xp}/{creature.xpToNext} XP · {creature.hearts}/{creature.maxHearts} Hearts</p><p style={smallText}>Lineage: {lineageLabel}. {injury ? creature.injuryLabel ?? "Injured" : statusNote ?? "Available"}.</p></section>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
       <p style={kickerStyle}>Creature Profile</p>

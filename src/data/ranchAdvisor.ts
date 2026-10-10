@@ -14,7 +14,7 @@ export const RANCH_ADVISOR = {
   name: "Veyra Bramble",
   title: "Ranch Advisor",
   identity: "Adult story advisor",
-  portraitPath: "/images/ui/icons/icon_breeder_level.png",
+  portraitPath: "/images/npcs/veyra/veyra-approved.webp",
   storyHook: "Veyra keeps the early ranch running and becomes story-relevant later.",
   voiceLine: "Let me turn the ranch noise into a short list. We handle risk first, then food, materials, eggs, and growth.",
 } as const;

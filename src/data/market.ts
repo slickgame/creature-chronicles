@@ -1,3 +1,4 @@
+import { normalizeTalentInstances } from "./talents/talentDefinitions";
 import { rollMarketListingAbilities } from "@/data/abilityBalance";
 import { getStoreBattleMoveLoadout } from "@/data/battleLoadouts";
 import { buildStats, getAllCreatureVariants, getBaseMaxHearts, getCreatureMaxEnergyFromStats, getSpeciesDefinition, getVariantDefinition, rollStatGrades, shiftStatGrade, STAT_KEYS } from "@/data/creatures";
@@ -39,7 +40,12 @@ function improveAbilitiesForMarket(abilities: CreatureAbility[], save: GameSave,
   const qualityTier = getTownUpgradeEffects(save).marketQualityTier;
   if (qualityTier <= 0) return abilities;
   const gradeBoostChance = [0, 0.04, 0.08, 0.13, 0.18][qualityTier] ?? 0;
-  return abilities.map((ability, index) => { const roll = seededNumber(save.dayState.weekNumber * 307 + listing.slotIndex * 41 + index * 13); if (roll >= gradeBoostChance) return ability; if (ability.grade === "D") return { ...ability, grade: "C" as const, description: `${ability.description} Adoption screening improved this ability's reliability.` }; if (ability.grade === "C") return { ...ability, grade: "B" as const, description: `${ability.description} Adoption screening improved this ability's reliability.` }; if (ability.grade === "B") return { ...ability, grade: "A" as const, description: `${ability.description} Adoption screening improved this ability's reliability.` }; return ability; });
+  return normalizeTalentInstances(abilities.map((ability, index) => {
+    const roll = seededNumber(save.dayState.weekNumber * 307 + listing.slotIndex * 41 + index * 13);
+    if (roll >= gradeBoostChance) return ability;
+    const nextGrade = ({ D: "C", C: "B", B: "A" } as const)[ability.grade as "D" | "C" | "B"];
+    return nextGrade ? { ...ability, grade: nextGrade } : ability;
+  }));
 }
 
 export function getMarketListingPrice(save: GameSave, listing: MarketListing): number {
@@ -75,3 +81,4 @@ export function getMarketListingImage(listing: MarketListing): string { return g
 export function getMarketListingProfileImage(listing: MarketListing): string { return getVariantDefinition(listing.variantId).profilePath; }
 export function getMarketListingDescription(listing: MarketListing): string { return getVariantDefinition(listing.variantId).description; }
 export function getMarketVariantsForPreview() { return getAllCreatureVariants(); }
+

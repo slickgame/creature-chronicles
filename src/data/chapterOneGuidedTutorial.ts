@@ -1,12 +1,15 @@
 import { getColiseumProgress } from "@/data/coliseum";
 import type { GameSave } from "@/types/save";
 
-export const CHAPTER_ONE_GUIDED_VERSION = 1;
+export const CHAPTER_ONE_GUIDED_VERSION = 2;
 export const QUICKHATCH_CATALYST_STOCK_FLAG = "chapterOneQuickhatchCatalystStock";
 
 export type ChapterOneTutorialSignal =
   | "morning-opened"
   | "day-two-brief-opened"
+  | "town-opened"
+  | "market-opened"
+  | "office-opened"
   | "inventory-opened"
   | "battle-outfitter-opened";
 
@@ -15,6 +18,8 @@ export type ChapterOneTutorialAction =
   | "ranch"
   | "chores"
   | "town"
+  | "market"
+  | "office"
   | "guild"
   | "breeding"
   | "inventory"
@@ -39,6 +44,7 @@ export type ChapterOneTutorialProgress = {
   firstNightResolved: boolean;
   resourceProblemSolved: boolean;
   guildRequestCompleted: boolean;
+  townNavigationComplete: boolean;
   breedingAttempted: boolean;
   pregnancyCreated: boolean;
   eggAvailable: boolean;
@@ -110,6 +116,10 @@ export function getChapterOneTutorialProgress(save: GameSave): ChapterOneTutoria
   const firstNightResolved = hasResolvedFirstNight(save);
   const resourceProblemSolved = hasSolvedResourceProblem(save);
   const guildRequestCompleted = hasCompletedGuildRequest(save);
+  const legacyTownComplete = flagNumber(save.flags.chapterOneGuidedVersion) < 2 && guildRequestCompleted;
+  const townNavigationComplete = legacyTownComplete || Boolean(
+    save.flags.chapterOneGuidedTownOpened && save.flags.chapterOneGuidedMarketOpened && save.flags.chapterOneGuidedOfficeOpened,
+  );
   const breedingAttempted = hasBreedingAttempt(save);
   const pregnancyCreated = hasPregnancy(save);
   const eggAvailable = hasEgg(save);
@@ -121,6 +131,7 @@ export function getChapterOneTutorialProgress(save: GameSave): ChapterOneTutoria
     firstNightResolved &&
     resourceProblemSolved &&
     guildRequestCompleted &&
+    townNavigationComplete &&
     breedingAttempted &&
     pregnancyCreated &&
     eggAvailable &&
@@ -133,6 +144,7 @@ export function getChapterOneTutorialProgress(save: GameSave): ChapterOneTutoria
     firstNightResolved,
     resourceProblemSolved,
     guildRequestCompleted,
+    townNavigationComplete,
     breedingAttempted,
     pregnancyCreated,
     eggAvailable,
@@ -164,6 +176,11 @@ export function prepareChapterOneGuidedTutorialSave(save: GameSave): GameSave {
     flags: {
       ...save.flags,
       chapterOneGuidedVersion: CHAPTER_ONE_GUIDED_VERSION,
+      ...(versionMissing && hasCompletedGuildRequest(save) ? {
+        chapterOneGuidedTownOpened: true,
+        chapterOneGuidedMarketOpened: true,
+        chapterOneGuidedOfficeOpened: true,
+      } : {}),
       ...(shouldGrantCatalyst ? {
         [QUICKHATCH_CATALYST_STOCK_FLAG]: 1,
         chapterOneQuickhatchCatalystGranted: true,
@@ -179,9 +196,13 @@ export function prepareChapterOneGuidedTutorialSave(save: GameSave): GameSave {
 }
 
 export function markChapterOneTutorialSignal(save: GameSave, signal: ChapterOneTutorialSignal): GameSave {
+  save = prepareChapterOneGuidedTutorialSave(save);
   const flagBySignal: Record<ChapterOneTutorialSignal, string> = {
     "morning-opened": "chapterOneGuidedMorningOpened",
     "day-two-brief-opened": "chapterOneGuidedDayTwoBriefOpened",
+    "town-opened": "chapterOneGuidedTownOpened",
+    "market-opened": "chapterOneGuidedMarketOpened",
+    "office-opened": "chapterOneGuidedOfficeOpened",
     "inventory-opened": "chapterOneGuidedInventoryOpened",
     "battle-outfitter-opened": "chapterOneGuidedBattleOutfitterOpened",
   };
@@ -234,10 +255,10 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (save.flags.chapterOneGuidedMorningOpened !== true) {
     return {
       id: "read-morning-brief",
-      dayLabel: "Day 1 — Keep the Ranch Standing",
+      dayLabel: "Ranch — Morning Rounds",
       title: "Read the Morning Brief",
       body: "Start each day by checking resources, warnings, creature moods, and the ranch's most urgent need.",
-      hint: phase === "morning" ? "Review the cards, then begin the ranch day." : "Open Morning Brief from the Ranch Day bar.",
+      hint: phase === "morning" ? "Review the cards, then begin the ranch day." : "Open Today, then expand Morning Brief & Daily Records.",
       action: "ranch",
       actionLabel: "Show Morning Brief",
       targetId: phase === "morning" ? "ranch-begin-day" : "ranch-morning-brief",
@@ -248,7 +269,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.choresAssigned) {
     return {
       id: "assign-security",
-      dayLabel: "Day 1 — Keep the Ranch Standing",
+      dayLabel: "Ranch — Morning Rounds",
       title: "Post a Guard",
       body: "Open Security Patrol and assign a suitable helper. Strong Security reduces the chance that overnight danger damages the ranch.",
       hint: "Use Best Fit for a recommendation, or open the chore and choose a creature yourself.",
@@ -262,7 +283,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.secondChoreAssigned) {
     return {
       id: "assign-second-chore",
-      dayLabel: "Day 1 — Keep the Ranch Standing",
+      dayLabel: "Ranch — Morning Rounds",
       title: "Choose a Second Priority",
       body: "Now make one decision yourself. Add Feed production, Comfort Care, Garden Tending, or Field Hauling based on what your ranch needs.",
       hint: "The projected output on each chore card shows what tomorrow may look like.",
@@ -275,7 +296,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.firstNightResolved) {
     return {
       id: "resolve-first-night",
-      dayLabel: "Day 1 — Keep the Ranch Standing",
+      dayLabel: "Ranch — Morning Rounds",
       title: phase === "evening" ? "End the First Day" : "Review the Day",
       body: "Sleeping resolves assignments, feeding, recovery, danger, pregnancy timers, taxes, and tomorrow's Morning Brief exactly once.",
       hint: phase === "evening" ? "Confirm End Day when you are ready." : "Review the projections before committing to the night.",
@@ -289,10 +310,10 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (save.flags.chapterOneGuidedDayTwoBriefOpened !== true) {
     return {
       id: "read-results",
-      dayLabel: "Day 2 — Read the Results",
+      dayLabel: "Ranch — Overnight Results",
       title: "See What Changed Overnight",
       body: "Compare yesterday's choices with today's Feed, Materials, condition, mood, and warning cards. The ranch is a loop, not a set of isolated menus.",
-      hint: phase === "morning" ? "Read the overnight highlights before beginning Day 2." : "Open Morning Brief and review the resource changes.",
+      hint: phase === "morning" ? "Read the overnight highlights before beginning the next day." : "Open Morning Brief and review the resource changes.",
       action: "ranch",
       actionLabel: "Review Morning Results",
       targetId: phase === "morning" ? "ranch-begin-day" : "ranch-morning-brief",
@@ -302,7 +323,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.resourceProblemSolved) {
     return {
       id: "solve-resource-problem",
-      dayLabel: "Day 2 — Make a Choice",
+      dayLabel: "Ranch — Your Next Priority",
       title: "Create Some Breathing Room",
       body: "Produce Feed, gather Materials, or repair ranch damage. Choose the problem that matters most to your current ranch.",
       hint: "Ranch Chores shows projected Feed, Materials, Security, Comfort, and upkeep before the night resolves.",
@@ -312,10 +333,30 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
     };
   }
 
+  if (!progress.townNavigationComplete && save.flags.chapterOneGuidedTownOpened !== true) {
+    return {
+      id: "visit-town", dayLabel: "Town — Finding Your Way",
+      title: "Find Your Way Around Town",
+      body: "Visit the town square and explore its service cards. The Adoption Hearth offers creatures, the Guild offers requests, and the Battle Outfitter prepares your team.",
+      hint: "Choose a service card to see what it offers. Browsing costs nothing.",
+      action: "town", actionLabel: "Visit Town",
+    };
+  }
+
+  if (!progress.townNavigationComplete && save.flags.chapterOneGuidedMarketOpened !== true) {
+    return {
+      id: "browse-market", dayLabel: "Town — Finding Your Way",
+      title: "Browse the Adoption Hearth",
+      body: "Inspect the available creatures and their costs. Compare their strengths with your ranch crew before deciding whether you need another helper.",
+      hint: "You do not need to buy a creature to finish this lesson.",
+      action: "market", actionLabel: "Browse Adoption Hearth",
+    };
+  }
+
   if (!progress.guildRequestCompleted) {
     return {
       id: "first-guild-request",
-      dayLabel: "Day 3 — Town and Progression",
+      dayLabel: "Town — Helping the Guild",
       title: "Complete a Beginner Guild Request",
       body: "The Guild connects ranch production to town progression. Accept and finish one request using a system you have already learned.",
       hint: "Beginner requests should reinforce Feed, Materials, care, or ranch work rather than introduce a new rule set.",
@@ -325,10 +366,46 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
     };
   }
 
+  if (!progress.townNavigationComplete && save.flags.chapterOneGuidedOfficeOpened !== true) {
+    return {
+      id: "return-to-office", dayLabel: "Town — Finding Your Way",
+      title: "Return to the Ranch Office",
+      body: "Back at the farm, the Ranch Office keeps your records and story log together. Check where to find them before heading out again.",
+      hint: "Use the navigation menu to return to the ranch whenever you need to manage your crew.",
+      action: "office", actionLabel: "Open Ranch Office",
+    };
+  }
+
+  if (!progress.battleOutfitterOpened) {
+    return {
+      id: "prepare-first-team",
+      dayLabel: "Battle — Your First Exhibition",
+      title: "Prepare a Three-Creature Team",
+      body: "Visit the Battle Outfitter to inspect equipped moves, roles, and basic equipment before entering your first exhibition.",
+      hint: "You only need a functional beginner team; advanced manuals and optimization can wait.",
+      action: "battle-outfitter",
+      actionLabel: "Open Battle Outfitter",
+      targetId: "tutorial-battle-outfitter",
+    };
+  }
+
+  if (!progress.firstBattleWon) {
+    return {
+      id: "win-first-battle",
+      dayLabel: "Battle — Your First Exhibition",
+      title: "Win the Novice Echo Trial",
+      body: "Target an enemy first, choose one move for each active creature, and resolve the round. The Novice trial is the guided entry point to combat.",
+      hint: "Every creature has at least one usable basic move. Focus attacks on one vulnerable enemy at a time.",
+      action: "coliseum",
+      actionLabel: "Enter the Coliseum",
+      targetId: "tutorial-first-battle",
+    };
+  }
+
   if (!progress.breedingAttempted) {
     return {
       id: "first-pairing",
-      dayLabel: "Day 4 — Breeding and Nursery",
+      dayLabel: "Breeding — Growing Your Ranch",
       title: "Inspect a Valid Pair",
       body: "Choose two creatures, compare compatibility, stamina, projected inheritance, and move lineage, then begin the guided pairing.",
       hint: "Your first valid creature-to-creature tutorial pairing is guaranteed to create a safe one-day pregnancy.",
@@ -342,7 +419,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.eggAvailable) {
     return {
       id: "wait-for-first-egg",
-      dayLabel: "Day 4 — Breeding and Nursery",
+      dayLabel: "Breeding — Growing Your Ranch",
       title: "Let the Nursery Do Its Work",
       body: progress.pregnancyCreated
         ? "The guided pregnancy is safe and lasts one day. End the day once your ranch is prepared, then check the Nursery."
@@ -357,10 +434,10 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.quickhatchUsed) {
     return {
       id: "use-quickhatch",
-      dayLabel: "Day 4 — Breeding and Nursery",
-      title: "Use the Quickhatch Catalyst",
-      body: "Veyra has provided one tutorial-only Epic catalyst. Consume it from Inventory to finish this egg immediately and learn how targeted items work.",
-      hint: "The catalyst cannot be purchased and is granted only once. A confirmation protects it from accidental use.",
+      dayLabel: "Breeding — Growing Your Ranch",
+      title: "Hatch Your First Egg",
+      body: "Let the egg hatch naturally as days pass, or use Veyra’s one-time Quickhatch Catalyst from Inventory to hatch it immediately.",
+      hint: "Both paths complete this lesson. The catalyst is granted only once and asks for confirmation before use.",
       action: "inventory",
       actionLabel: "Open Inventory",
       targetId: "quickhatch-catalyst",
@@ -368,39 +445,14 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
     };
   }
 
-  if (!progress.battleOutfitterOpened) {
-    return {
-      id: "prepare-first-team",
-      dayLabel: "Day 5 — First Battle",
-      title: "Prepare a Three-Creature Team",
-      body: "Visit the Battle Outfitter to inspect equipped moves, roles, and basic equipment before entering your first exhibition.",
-      hint: "You only need a functional beginner team; advanced manuals and optimization can wait.",
-      action: "battle-outfitter",
-      actionLabel: "Open Battle Outfitter",
-      targetId: "tutorial-battle-outfitter",
-    };
-  }
-
-  if (!progress.firstBattleWon) {
-    return {
-      id: "win-first-battle",
-      dayLabel: "Day 5 — First Battle",
-      title: "Win the Novice Echo Trial",
-      body: "Target an enemy first, choose one move for each active creature, and resolve the round. The Novice trial is the guided entry point to combat.",
-      hint: "Every creature has at least one usable basic move. Focus attacks on one vulnerable enemy at a time.",
-      action: "coliseum",
-      actionLabel: "Enter the Coliseum",
-      targetId: "tutorial-first-battle",
-    };
-  }
-
   return {
     id: "chapter-one-complete",
     dayLabel: "Chapter 1 Complete",
     title: "Bramble Farm Is Running",
-    body: "You have completed the ranch loop, solved a resource problem, worked with the Guild, bred and hatched a creature, used an item, and won a battle.",
+    body: "You have completed the ranch loop, solved a resource problem, worked with the Guild, won a battle, and bred and hatched a creature.",
     hint: "The Ranch Handbook still contains optional beginner milestones and rewards, but they no longer block the story.",
     action: "none",
     actionLabel: "Continue",
   };
 }
+

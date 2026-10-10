@@ -12,6 +12,7 @@ import {
   getSupplyDepotSupplyCounts,
   getSupplyDepotUsageRows,
 } from "@/data/supplyDepot";
+import { GameDialog } from "@/features/ui/GameDialog";
 import { useGameContext } from "@/state/GameProvider";
 import type { BreedingSupportItemId } from "@/types/items";
 import styles from "./PlayerInventoryMenu.module.css";
@@ -95,7 +96,7 @@ function localTimestamp(value: string): string {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString("en-US");
 }
 
-export function PlayerInventoryMenu() {
+export function PlayerInventoryMenu({ controlledOpen, onClose }: { controlledOpen?: boolean; onClose?: () => void } = {}) {
   const {
     appScreen,
     currentSave,
@@ -105,7 +106,9 @@ export function PlayerInventoryMenu() {
     goToRanchOffice,
     saveCurrentGame,
   } = useGameContext();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen ?? internalOpen;
+  function setIsOpen(value: boolean) { if (!value && onClose) onClose(); else setInternalOpen(value); }
   const [activeMenuTab, setActiveMenuTab] = useState<PlayerMenuTab>("inventory");
   const [activeCategory, setActiveCategory] = useState<InventoryCategory>("all");
   const [selectedItemId, setSelectedItemId] = useState<string | null>("energy_snack");
@@ -465,11 +468,11 @@ export function PlayerInventoryMenu() {
 
   return (
     <>
-      <button type="button" className={styles.menuButton} onClick={() => setIsOpen(true)}>Menu</button>
+      {controlledOpen === undefined && <button type="button" className={styles.menuButton} onClick={() => setIsOpen(true)}>Menu</button>}
 
       {isOpen ? (
-        <div className={styles.backdrop} role="presentation" onClick={() => setIsOpen(false)}>
-          <section className={styles.panel} role="dialog" aria-modal="true" aria-labelledby="player-menu-title" onClick={(event) => event.stopPropagation()}>
+        <GameDialog title="Inventory" onClose={() => setIsOpen(false)} wide>
+          <section className={styles.panel} style={{width:"100%",maxHeight:"none",overflow:"visible"}}>
             <header className={styles.header}>
               <div>
                 <p className={styles.kicker}>Player Menu</p>
@@ -480,7 +483,7 @@ export function PlayerInventoryMenu() {
             </header>
 
             <nav className={styles.menuTabs} aria-label="Player menu tabs">
-              {MENU_TABS.map((tab) => (
+              {MENU_TABS.filter(tab => !tab.disabled).map((tab) => (
                 <button key={tab.id} type="button" className={activeMenuTab === tab.id ? styles.activeMenuTab : ""} disabled={tab.disabled} onClick={() => setActiveMenuTab(tab.id)}>
                   {tab.label}
                 </button>
@@ -508,11 +511,11 @@ export function PlayerInventoryMenu() {
             {activeMenuTab === "creatures" ? renderCreaturesTab() : null}
             {activeMenuTab === "history" ? renderHistoryTab() : null}
           </section>
-        </div>
+        </GameDialog>
       ) : null}
 
       {pendingUse ? (
-        <div className={extra.confirmationBackdrop} role="presentation" onClick={() => setPendingUse(null)}>
+        <GameDialog title="Confirm rare item use" onClose={() => setPendingUse(null)}>
           <section className={extra.confirmation} role="dialog" aria-modal="true" aria-label="Confirm rare item use" onClick={(event) => event.stopPropagation()}>
             <p className={styles.kicker}>Rare Item Confirmation</p>
             <h3>Use {getBreedingSupportItem(pendingUse.itemId)?.name}?</h3>
@@ -523,7 +526,7 @@ export function PlayerInventoryMenu() {
               <button type="button" className={styles.actionButton} onClick={() => executeUse(pendingUse.itemId, pendingUse.targetId)}>Confirm Use</button>
             </div>
           </section>
-        </div>
+        </GameDialog>
       ) : null}
     </>
   );

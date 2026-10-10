@@ -1,7 +1,7 @@
+import { GENERAL_ABILITY_POOL } from "./talents/generalTalents";
 import * as recordsLifecycle from "./breedingRecordsLifecycle";
 import {
   STAT_KEYS,
-  getSpeciesDefinition,
   getVariantDefinition,
   getVariantsForFamily,
 } from "./creatures";
@@ -209,10 +209,8 @@ function addAbilityInheritanceChance(
 }
 
 function mutationAbilityPool(inheritance: InheritancePreview): CreatureAbility[] {
-  const variant = getVariantDefinition(inheritance.projectedVariantId);
-  const species = getSpeciesDefinition(variant.speciesId);
   const existing = new Set(inheritance.projectedAbilities.map((ability) => ability.id));
-  return [...species.exclusiveAbilityPool, ...variant.exclusiveAbilityPool].filter(
+  return GENERAL_ABILITY_POOL.filter(
     (ability) => !existing.has(ability.id),
   );
 }
@@ -275,7 +273,7 @@ function applyMutationCatalyst(
       deterministicRoll(`${seed}_catalyst_ability_pick`, pool.length)
     ];
     if (ability) {
-      const mutatedAbility: CreatureAbility = { ...ability, source: "future" };
+      const mutatedAbility: CreatureAbility = { ...ability, source: "general" };
       next = {
         ...next,
         projectedAbilities: [...next.projectedAbilities, mutatedAbility].slice(0, 2),
@@ -403,3 +401,4 @@ export function performBreedingAttempt(
     save: replaceAttempt(nextSave, attempt),
   };
 }
+

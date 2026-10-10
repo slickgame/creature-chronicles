@@ -13,6 +13,9 @@ import type {
 } from "@/types/creature";
 import type { CreatureId, HabitatId, SaveId, SpeciesId, VariantId } from "@/types/ids";
 
+import { GENERAL_ABILITY_POOL, createGeneralTalent } from "./talents/generalTalents";
+export { GENERAL_ABILITY_POOL } from "./talents/generalTalents";
+
 export const CREATURE_PLACEHOLDER_IMAGE = "/images/ui/icons/icon_paw_crest.png";
 
 export const STAT_KEYS: CreatureStatKey[] = ["STR", "DEX", "STA", "CHA", "WIL", "FER"];
@@ -35,7 +38,7 @@ function getCreatureXpToNext(level: number): number { return 45 + level * 30; }
 function deterministicRoll(seed: string, modulo = 100): number { let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) % 1000003; return Math.abs(hash) % modulo; }
 function ability(id: string, name: string, grade: CreatureAbility["grade"], source: CreatureAbility["source"], description: string): CreatureAbility { return { id, name, grade, source, description }; }
 
-export const GENERAL_ABILITY_POOL: CreatureAbility[] = [
+export const LEGACY_GENERAL_ABILITY_POOL: CreatureAbility[] = [
   ability("quick_learner", "Quick Learner", "C", "general", "Gains +10% creature XP from breeding attempts."),
   ability("hardy_body", "Hardy Body", "C", "general", "Reduces breeding energy cost by 2 and slightly favors Stamina growth on level-up."),
   ability("warm_temper", "Warm Temper", "C", "general", "Gains +1 extra affection after breeding attempts."),
@@ -88,8 +91,20 @@ export function buildStats(baseStats: CreatureStats, adjustments: Partial<Creatu
 export function getBaseMaxHearts(speciesId: SpeciesId, variantId: VariantId): number { const species = getSpeciesDefinition(speciesId); const variant = getVariantDefinition(variantId); return species.baseMaxHearts + variant.maxHeartsBonus; }
 export function getVariantMaxEnergyBonus(variantId: VariantId): number { return getVariantDefinition(variantId).maxEnergyBonus; }
 export function getCreatureMaxEnergyFromStats(stats: CreatureStats, variantId?: VariantId): number { return 80 + stats.STA * 4 + (variantId ? getVariantMaxEnergyBonus(variantId) : 0); }
-export function rollCreatureAbilities(seed: string, speciesId: SpeciesId, variantId: VariantId, forceStarter = false): CreatureAbility[] { const species = getSpeciesDefinition(speciesId); const variant = getVariantDefinition(variantId); const speciesAbility = species.exclusiveAbilityPool[deterministicRoll(`${seed}_species_ability`, species.exclusiveAbilityPool.length)]; const variantAbility = variant.exclusiveAbilityPool[deterministicRoll(`${seed}_variant_ability`, variant.exclusiveAbilityPool.length)]; const abilities = [speciesAbility, variantAbility].filter(Boolean); const generalChance = forceStarter ? 100 : variant.rarity === "Rare" ? 42 : variant.rarity === "Epic" ? 65 : 24; if (deterministicRoll(`${seed}_general_ability`) < generalChance) { const generalAbility = GENERAL_ABILITY_POOL[deterministicRoll(`${seed}_general_pick`, GENERAL_ABILITY_POOL.length)]; if (!abilities.some((abilityItem) => abilityItem.id === generalAbility.id)) abilities.push(generalAbility); } return abilities.slice(0, 3); }
+export function rollCreatureAbilities(seed: string, speciesId: SpeciesId, variantId: VariantId, forceStarter = false): CreatureAbility[] {
+  getSpeciesDefinition(speciesId);
+  const variant = getVariantDefinition(variantId);
+  const first = deterministicRoll(`${seed}_talent`, GENERAL_ABILITY_POOL.length);
+  const grade = forceStarter ? "C" : rollStatGrade(`${seed}_talent_grade`, variant.rarity);
+  const talents = [createGeneralTalent(GENERAL_ABILITY_POOL[first].id, grade)];
+  if (!forceStarter && deterministicRoll(`${seed}_second_talent`) < 20) {
+    const offset = 1 + deterministicRoll(`${seed}_second_pick`, GENERAL_ABILITY_POOL.length - 1);
+    talents.push(createGeneralTalent(GENERAL_ABILITY_POOL[(first + offset) % GENERAL_ABILITY_POOL.length].id, "D"));
+  }
+  return talents;
+}
 
-function createStarterCreature(ownerSaveId: SaveId, creatureId: CreatureId, variantId: VariantId, habitatId: HabitatId, nickname: string): CreatureRecord { const variant = getVariantDefinition(variantId); const species = getSpeciesDefinition(variant.speciesId); const now = new Date().toISOString(); const level = 1; const statGrades = rollStatGrades(`${ownerSaveId}_${creatureId}_starter`, variant.rarity); const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades); const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId); const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId); return { creatureId, ownerSaveId, speciesId: species.speciesId, variantId: variant.variantId, habitatId, nickname, level, xp: 0, xpToNext: getCreatureXpToNext(level), stats, statGrades, abilities: [], energy: maxEnergy, maxEnergy, hearts: maxHearts, maxHearts, affection: 50, generation: 1, shiny: false, cosmeticVariant: null, origin: "starter", originLabel: "Starter Ranch Crew", isLocked: false, createdAt: now, notes: "Starter ranch crew creature generated to keep early chores manageable." }; }
+function createStarterCreature(ownerSaveId: SaveId, creatureId: CreatureId, variantId: VariantId, habitatId: HabitatId, nickname: string): CreatureRecord { const variant = getVariantDefinition(variantId); const species = getSpeciesDefinition(variant.speciesId); const now = new Date().toISOString(); const level = 1; const statGrades = rollStatGrades(`${ownerSaveId}_${creatureId}_starter`, variant.rarity); const stats = buildStats(species.baseStats, variant.statAdjustments, statGrades); const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId); const maxEnergy = getCreatureMaxEnergyFromStats(stats, variant.variantId); return { creatureId, ownerSaveId, speciesId: species.speciesId, variantId: variant.variantId, habitatId, nickname, level, xp: 0, xpToNext: getCreatureXpToNext(level), stats, statGrades, abilities: [createGeneralTalent(({ feline: "eager_learner", canine: "sure_strike", bovine: "diligent", lapine: "hot_blooded", equine: "sound_sleeper" } as const)[species.family], "C")], energy: maxEnergy, maxEnergy, hearts: maxHearts, maxHearts, affection: 50, generation: 1, shiny: false, cosmeticVariant: null, origin: "starter", originLabel: "Starter Ranch Crew", isLocked: false, createdAt: now, notes: "Starter ranch crew creature generated to keep early chores manageable." }; }
 export function createStarterCreatures(ownerSaveId: SaveId): CreatureRecord[] { return [createStarterCreature(ownerSaveId, "creature_starter_feline" as CreatureId, "variant_base_feline" as VariantId, HABITAT_IDS.feline, "Mira"), createStarterCreature(ownerSaveId, "creature_starter_canine" as CreatureId, "variant_base_canine" as VariantId, HABITAT_IDS.canine, "Rook"), createStarterCreature(ownerSaveId, "creature_starter_bovine" as CreatureId, "variant_cow" as VariantId, HABITAT_IDS.bovine, "Bruna"), createStarterCreature(ownerSaveId, "creature_starter_lapine" as CreatureId, "variant_bunny" as VariantId, HABITAT_IDS.lapine, "Pip"), createStarterCreature(ownerSaveId, "creature_starter_equine" as CreatureId, "variant_horse" as VariantId, HABITAT_IDS.equine, "Marlow")]; }
 export function createStarterHabitats(): HabitatRecord[] { const starterIds: Partial<Record<CreatureFamily, CreatureId>> = { feline: "creature_starter_feline" as CreatureId, canine: "creature_starter_canine" as CreatureId, bovine: "creature_starter_bovine" as CreatureId, lapine: "creature_starter_lapine" as CreatureId, equine: "creature_starter_equine" as CreatureId }; return CREATURE_FAMILIES.map((family) => ({ habitatId: HABITAT_IDS[family], family, name: getHabitatNameForFamily(family), level: 1, capacity: 6, creatureIds: starterIds[family] ? [starterIds[family] as CreatureId] : [], unlocked: true })); }
+

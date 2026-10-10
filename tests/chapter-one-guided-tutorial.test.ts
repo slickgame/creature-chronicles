@@ -194,3 +194,54 @@ test("guided Chapter 1 completion no longer requires all sixteen optional starte
   assert.ok(optional.completed < optional.total, "optional handbook milestones should remain incomplete");
   assert.ok(getChapterOneCompletionScene(save), "guided completion should unlock the Chapter 1 ending");
 });
+
+
+test("new walkthrough teaches town navigation and combat before breeding", () => {
+  const ready = readyForBattleSave();
+  let save = {
+    ...ready,
+    flags: {
+      ...ready.flags,
+      chapterOneGuidedVersion: 2,
+      m7GuildContractCompleted: false,
+      m4BreedingAttempted: false,
+      m5PregnancyCreated: false,
+      m9TotalHatched: 0,
+      chapterOneQuickhatchCatalystUsed: false,
+      chapterOneGuidedBattleOutfitterOpened: false,
+    },
+  };
+  const advance = (flag: string) => {
+    save = { ...save, flags: { ...save.flags, [flag]: true } };
+    return getChapterOneGuidedTutorialStep(save)?.id;
+  };
+  assert.equal(getChapterOneGuidedTutorialStep(save)?.id, "visit-town");
+  assert.equal(advance("chapterOneGuidedTownOpened"), "browse-market");
+  assert.equal(advance("chapterOneGuidedMarketOpened"), "first-guild-request");
+  assert.equal(advance("m7GuildContractCompleted"), "return-to-office");
+  assert.equal(advance("chapterOneGuidedOfficeOpened"), "prepare-first-team");
+  assert.equal(advance("chapterOneGuidedBattleOutfitterOpened"), "win-first-battle");
+  assert.equal(advance("chapterOneFirstBattleWon"), "first-pairing");
+  assert.equal(getChapterOneTutorialProgress(save).complete, false);
+});
+
+test("version two migration preserves completed town work and is idempotent", () => {
+  const original = readyForBattleSave();
+  const migrated = prepareChapterOneGuidedTutorialSave(original);
+  assert.equal(migrated.flags.chapterOneGuidedVersion, 2);
+  assert.equal(getChapterOneTutorialProgress(migrated).townNavigationComplete, true);
+  assert.equal(getChapterOneGuidedTutorialStep(migrated)?.id, "win-first-battle");
+  assert.deepEqual(migrated.creatures, original.creatures);
+  assert.deepEqual(migrated.dayState, original.dayState);
+  assert.equal(migrated.flags.chapterOneQuickhatchCatalystGranted, original.flags.chapterOneQuickhatchCatalystGranted);
+  assert.equal(prepareChapterOneGuidedTutorialSave(migrated), migrated);
+});
+
+test("unfinished legacy town work receives the new navigation lesson", () => {
+  const ready = readyForBattleSave();
+  const migrated = prepareChapterOneGuidedTutorialSave({
+    ...ready, flags: { ...ready.flags, m7GuildContractCompleted: false },
+  });
+  assert.equal(getChapterOneGuidedTutorialStep(migrated)?.id, "visit-town");
+  assert.equal(getChapterOneTutorialProgress(migrated).townNavigationComplete, false);
+});

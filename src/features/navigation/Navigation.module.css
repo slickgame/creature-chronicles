@@ -1,0 +1,75 @@
+.launcher { position: fixed; top: max(12px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 110; min-height: 48px; padding: 10px 20px; border: 8px solid transparent; border-image: url('/images/ui/ranch-v2/wood.webp') 110 / 8px; background: #334f32; color: #fff5d9; font-weight: 700; box-shadow: 0 5px 16px #0005; }
+.menuGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.destination { display: flex; align-items: center; gap: 14px; text-align: left; padding: 20px 16px !important; background: #e2d1a67a !important; }
+.destination > span:first-child { width: 64px; height: 64px; }
+.destination span, .destination small { min-width: 0; }
+.destination small { display: block; margin-top: 6px; line-height: 1.4; color: #685439; }
+.destination strong { font: 700 1.2rem Georgia,serif; }
+.actions { display: flex; gap: 12px; justify-content: flex-end; align-items: center; flex-wrap: wrap; margin-top: 20px; }
+.actions details { margin-right: auto; }
+.primary { background: linear-gradient(#527344,#2e492d) !important; color: #fff8dc !important; border: 7px solid transparent !important; border-image: url('/images/ui/ranch-v2/wood.webp') 110 / 7px !important; font: 700 1.05rem Georgia,serif; text-shadow: 0 1px 2px #14210e; }
+.ledger { display: grid; gap: 14px; color: #44351e; }
+.intro { margin: 0 0 4px; line-height: 1.5; }
+.priorityRows { display: grid; }
+.ledgerRow { display: grid; grid-template-columns: 62px minmax(0,1fr); align-items: center; gap: 8px 14px; padding: 12px 0; border-bottom: 1px solid #ac8e4f66; min-width: 0; }
+.ledgerRow > span:first-child { width: 62px; height: 62px; }
+.ledgerRow > div { min-width: 0; }
+.ledgerRow h3 { margin: 0 0 5px; font: 700 1.25rem Georgia,serif; color: #493119; }
+.ledgerRow p { margin: 6px 0 0; font-size: .86rem; line-height: 1.5; color: #766044; }
+.ledgerRow button { grid-column: 2; justify-self: start; display: flex; justify-content: space-between; gap: 18px; min-height: 44px; padding: 3px 12px; border: 6px solid transparent; border-image: url('/images/ui/ranch-v2/wood.webp') 110 / 6px; background: linear-gradient(#506c3c,#344c2a); color: #fff2c9; font: 700 .9rem Georgia,serif; cursor: pointer; }
+.status, .warning { font: 600 .83rem/1.4 system-ui,sans-serif; color: #51613a; }
+.warning { color: #906020; }
+.note { color: #705e45; font-size: .75rem; line-height: 1.5; margin: 0; }
+.todayHeading { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; border: 0; background: none; padding: 0; color: #49341d; cursor: pointer; }
+.todayHeading > span:first-child { width: 35px; height: 35px; }
+.todayHeading > span:nth-child(2) { font: 700 1.6rem Georgia,serif; }
+.todayHeading small { display: block; margin-top: 3px; color: #796140; font: .69rem/1.3 system-ui,sans-serif; }
+.todayHeading b { font-size: 0; margin-left: auto; }
+.todayHeading b::after { content: '›'; font: 2rem Georgia,serif; }
+.compact { border: 18px solid transparent; border-image: url('/images/ui/ranch-v2/parchment.webp') 160 fill / 18px stretch; padding: 6px 10px; filter: drop-shadow(0 5px 5px #24311d77); gap: 8px; }
+.compact .ledgerRow { grid-template-columns: 38px minmax(0,1fr); gap: 9px; padding: 11px 0; }
+.compact .ledgerRow > span:first-child { width: 38px; height: 38px; }
+.compact .ledgerRow h3 { font-size: 1rem; margin-bottom: 2px; }
+.compact .status, .compact .warning { font-size: .72rem; }
+.expandLink { border: 0; background: none; min-height: 32px; padding: 0; color: #57683c; font: 700 .79rem Georgia,serif; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.expandLink > span { font-size: 1.5rem; }
+.story { border-bottom: 1px solid #ac8e4f66; padding: 10px 0; }
+.story summary { cursor: pointer; min-height: 32px; font: 700 .9rem/1.5 Georgia,serif; }
+.story[open] { padding-bottom: 16px; }
+.reportList { display: grid; gap: 12px; padding-left: 22px; line-height: 1.5; }
+.ledgerPanel { position: fixed; z-index: 100; right: 18px; top: 110px; bottom: 18px; width: 440px; display: flex; flex-direction: column; border: 23px solid transparent; border-image: url('/images/ui/ranch-v2/parchment.webp') 160 fill / 23px stretch; padding: 4px 9px 9px; color: #49341d; filter: drop-shadow(-7px 5px 12px #20341c77); animation: openLedger .22s ease-out; }
+.ledgerHeader { display: flex; align-items: center; gap: 8px; padding: 0 0 14px; border-bottom: 1px solid #9b7a4866; }
+.ledgerHeader > span:first-child { width: 36px; height: 36px; }
+.ledgerHeader h2 { font: 700 1.3rem/1.2 Georgia,serif; margin: 0; }
+.ledgerHeader p { font: .75rem system-ui,sans-serif; margin: 5px 0 0; color: #8b7047; }
+.ledgerHeader button { margin-left: auto; align-self: start; min-width: 40px; min-height: 44px; border: 0; background: none; color: #715233; font: 1.8rem Georgia,serif; cursor: pointer; }
+.ledgerScroll { overflow-y: auto; overscroll-behavior: contain; min-height: 0; padding-right: 4px; scrollbar-width: thin; scrollbar-color: #ab8d53 transparent; }
+.ledgerPanel button:focus-visible { outline: 3px solid #376b65; outline-offset: 2px; }
+.endDay { display: flex; justify-content: center; align-items: center; gap: 12px; padding: 5px 10px; cursor: pointer; min-height: 56px; }
+.endDay > span:first-child { width: 35px; height: 35px; }
+@keyframes openLedger { from { opacity: .5; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+@media (max-width: 800px) {
+ .ledgerPanel { top: 12px; right: 8px; bottom: 95px; width: min(420px,calc(100vw - 16px)); padding: 3px; border-width: 18px; border-image-width: 18px; }
+ .compact { padding: 0 8px; border-width: 13px; border-image-width: 13px; gap: 0; }
+ .compact .priorityRows, .compact .expandLink { display: none; }
+ .todayHeading { min-height: 40px; } .todayHeading > span:nth-child(2) { font-size: 1.2rem; }
+ .todayHeading small { display: inline; margin-left: 10px; }
+ .ledgerHeader h2 { font-size: 1.25rem; }
+}
+@media (max-width: 600px) { .menuGrid { grid-template-columns: 1fr; } .destination { padding: 12px !important; } .destination > span:first-child { width: 48px; height: 48px; } .actions { justify-content: stretch; } .actions button { flex: 1; } .ledgerRow { grid-template-columns: 48px minmax(0,1fr); gap: 7px 10px; padding: 14px 0; } .ledgerRow > span:first-child { width: 48px; height: 48px; } }
+@media (prefers-reduced-motion: reduce) { .ledgerPanel { animation: none; } }
+
+.ledgerPanel > .endDay { flex-shrink: 0; margin-top: 10px; }
+.ledgerPanel .ledgerScroll { flex: 1; }
+:where(.ledgerPanel) button { min-height: 44px; cursor: pointer; }
+.ledgerPanel .story button { min-height: 44px; padding: 8px 12px; border: 1px solid #ac8d53; background: #efe1bb; color: #49341d; border-radius: 3px; }
+.ledgerPanel .story button:disabled { opacity: .55; cursor: not-allowed; }
+
+@media(max-width:1000px),(max-height:800px) {
+ .compact {padding:0 6px;border-width:8px;border-image-width:8px;gap:0;}
+ .compact .priorityRows,.compact .expandLink {display:none;}
+ .compact .todayHeading {min-height:36px;}
+ .compact .todayHeading>span:first-child {width:25px;height:25px;}
+ .compact .todayHeading>span:nth-child(2) {font-size:18px;}
+ .compact .todayHeading small {display:inline;margin-left:8px;font-size:11px;}
+}

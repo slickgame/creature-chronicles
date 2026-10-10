@@ -181,3 +181,5 @@
   .detailPanel { grid-template-columns: 1fr; }
   .detailPanel > img { width: 100%; height: 180px; }
 }
+
+.embedded {width:100%;max-height:none;overflow:visible;}
