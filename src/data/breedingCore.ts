@@ -1,3 +1,4 @@
+import { getBreedingTalentSummary } from "./talents/talentEngine";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
   DEFAULT_STAT_GRADES,
@@ -167,88 +168,14 @@ function getActivePregnancyForParticipant(
   );
 }
 
-function gradeMultiplier(grade: CreatureAbility["grade"]): number {
-  if (grade === "S") return 1.6;
-  if (grade === "A") return 1.35;
-  if (grade === "B") return 1.15;
-  if (grade === "C") return 1;
-  if (grade === "D") return 0.8;
-  return 0.65;
-}
-
-function getAbilityEffect(ability: CreatureAbility) {
-  const multiplier = gradeMultiplier(ability.grade);
-  const lowerName = ability.id.toLowerCase();
-  return {
-    pregnancyChance:
-      lowerName.includes("fert") ||
-      lowerName.includes("bond") ||
-      lowerName.includes("grace") ||
-      lowerName.includes("lucky")
-        ? Math.round(3 * multiplier)
-        : Math.round(1 * multiplier),
-    xpGain:
-      lowerName.includes("learn") ||
-      lowerName.includes("growth") ||
-      lowerName.includes("vigor") ||
-      lowerName.includes("spark")
-        ? Math.round(4 * multiplier)
-        : Math.round(1 * multiplier),
-    breederXpGain:
-      lowerName.includes("loyal") ||
-      lowerName.includes("guard") ||
-      lowerName.includes("poise")
-        ? Math.round(4 * multiplier)
-        : 0,
-    energyDiscount:
-      lowerName.includes("steady") ||
-      lowerName.includes("efficient") ||
-      lowerName.includes("hardy")
-        ? Math.round(3 * multiplier)
-        : 0,
-    affectionGain:
-      lowerName.includes("gentle") ||
-      lowerName.includes("warm") ||
-      lowerName.includes("purr")
-        ? 1
-        : 0,
-    statGrowthBias: lowerName.includes("fert")
-      ? ("FER" as CreatureStatKey)
-      : lowerName.includes("guard")
-        ? ("WIL" as CreatureStatKey)
-        : lowerName.includes("vigor")
-          ? ("STA" as CreatureStatKey)
-          : undefined,
-    label: `${ability.name} (${ability.grade}): improves this breeding session.`,
-  };
-}
-
 function summarizeAbilityEffects(abilities: CreatureAbility[] | undefined) {
-  const summary = {
-    pregnancyChance: 0,
-    xpGain: 0,
-    xpMultiplier: 1,
-    breederXpGain: 0,
-    energyDiscount: 0,
-    affectionGain: 0,
-    statGrowthBiases: [] as CreatureStatKey[],
-    triggers: [] as string[],
+  const effects = getBreedingTalentSummary(abilities);
+  return {
+    ...effects,
+    xpGain: effects.creatureXpFlat,
+    xpMultiplier: 1 + effects.creatureXpPercent / 100,
+    breederXpGain: effects.breederXpFlat,
   };
-
-  for (const ability of abilities ?? []) {
-    const effect = getAbilityEffect(ability);
-    summary.pregnancyChance += effect.pregnancyChance;
-    summary.xpGain += effect.xpGain;
-    summary.breederXpGain += effect.breederXpGain;
-    summary.energyDiscount += effect.energyDiscount;
-    summary.affectionGain += effect.affectionGain;
-    if (effect.statGrowthBias) {
-      summary.statGrowthBiases.push(effect.statGrowthBias);
-    }
-    summary.triggers.push(effect.label);
-  }
-
-  return summary;
 }
 
 function getStatValue(
@@ -256,7 +183,8 @@ function getStatValue(
   statKey: keyof CreatureStats,
   fallback = 5,
 ): number {
-  return participant?.stats?.[statKey] ?? fallback;
+  const base = participant?.stats?.[statKey] ?? fallback;
+  return base + (statKey === "FER" ? getBreedingTalentSummary(participant?.abilities).fertility : 0);
 }
 
 function getFlagNumber(
@@ -501,6 +429,11 @@ export function getBreedingPreview(
     ...giverEffects.triggers,
     ...receiverEffects.triggers,
   ];
+
+  for (const participant of [giver, receiver]) {
+    const bonus = getBreedingTalentSummary(participant.abilities).fertility;
+    if (bonus > 0) abilityTriggers.push(`${participant.displayName}: Fertility ${participant.stats?.FER ?? 5} + ${bonus} talent = ${getStatValue(participant, "FER")} for this session.`);
+  }
 
   if (ranchEffects.breedingPregnancyBonus > 0) {
     abilityTriggers.push(
@@ -917,3 +850,4 @@ export function performBreedingAttempt(
     },
   };
 }
+

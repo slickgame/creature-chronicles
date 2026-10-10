@@ -52,6 +52,7 @@ export type TalentStackingRule =
   | "unique";
 
 export type TalentEffectType =
+  | "breeding-fertility-flat"
   | "breeding-pregnancy-chance"
   | "breeding-energy-discount"
   | "breeding-creature-xp-flat"
@@ -133,3 +134,4 @@ export type TalentAuditRecord = {
   definitionVersion: number;
   warnings: string[];
 };
+

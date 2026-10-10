@@ -1,5 +1,6 @@
 import {
   GENERAL_ABILITY_POOL,
+  LEGACY_GENERAL_ABILITY_POOL,
   SPECIES_DEFINITIONS,
   VARIANT_DEFINITIONS,
 } from "@/data/creatures";
@@ -20,7 +21,9 @@ import type {
 import type { BattleStatKey } from "@/types/battle";
 import type { RanchJobId } from "@/types/ranchJobs";
 
-export const TALENT_DEFINITION_VERSION = 1;
+import { getGeneralTalentEffect } from "./generalTalents";
+
+export const TALENT_DEFINITION_VERSION = 2;
 
 const GRADES: AbilityGrade[] = ["F", "D", "C", "B", "A", "S"];
 const LEGACY_GRADE_MULTIPLIER: Record<AbilityGrade, number> = {
@@ -72,6 +75,7 @@ for (const variant of VARIANT_DEFINITIONS) {
 const SOURCE_TALENTS = [
   ...BASIC_D_TALENTS,
   ...GENERAL_ABILITY_POOL,
+  ...LEGACY_GENERAL_ABILITY_POOL,
   ...SPECIES_DEFINITIONS.flatMap((species) => species.exclusiveAbilityPool),
   ...VARIANT_DEFINITIONS.flatMap((variant) => variant.exclusiveAbilityPool),
 ].filter((talent, index, pool) => pool.findIndex((entry) => entry.id === talent.id) === index);
@@ -263,8 +267,9 @@ function battleStatLabel(stat?: BattleStatKey): string {
 }
 
 export function describeTalentEffect(effect: TalentEffect): string {
+  if (effect.type === "breeding-fertility-flat") return `${signed(effect.value)} Fertility during breeding`;
   if (effect.type === "breeding-pregnancy-chance") return `${signed(effect.value, "%")} pregnancy chance`;
-  if (effect.type === "breeding-energy-discount") return `${effect.value} less Breeding Energy cost`;
+  if (effect.type === "breeding-energy-discount") return `${effect.value} less Breeding Energy cost for the pair`;
   if (effect.type === "breeding-creature-xp-flat") return `${signed(effect.value)} creature XP per breeding session`;
   if (effect.type === "breeding-creature-xp-percent") return `${signed(effect.value, "%")} creature XP from breeding`;
   if (effect.type === "breeding-breeder-xp-flat") return `${signed(effect.value)} Breeder XP when the player participates`;
@@ -281,7 +286,7 @@ export function describeTalentEffect(effect: TalentEffect): string {
   if (effect.type === "battle-damage-percent") return `${signed(effect.value, "%")} battle damage`;
   if (effect.type === "battle-healing-percent") return `${signed(effect.value, "%")} healing`;
   if (effect.type === "battle-start-status") return `starts battle with ${effect.statusId ?? "a status"}`;
-  if (effect.type === "recovery-energy-percent") return `${signed(effect.value, "%")} daily Energy recovery`;
+  if (effect.type === "recovery-energy-percent") return `recover an extra ${effect.value}% of maximum Energy each day`;
   if (effect.type === "recovery-affection") return `${signed(effect.value)} Affection during daily recovery`;
   if (effect.type === "role-tag") return `role identity: ${effect.roleTag ?? "Specialist"}`;
   return effect.note ?? effect.type;
@@ -327,10 +332,11 @@ function triggersFromSystems(systems: TalentSystem[]): TalentTrigger[] {
 
 function buildDefinition(talent: CreatureAbility): TalentDefinition {
   const category = inferCategory(talent);
-  const tags = inferTags(talent);
+  const simple = getGeneralTalentEffect(talent.id, talent.grade);
+  const tags = simple ? [simple.type.split("-")[0]] : inferTags(talent);
   const gradeEffects = GRADES.reduce((record, grade) => ({
     ...record,
-    [grade]: buildEffects(talent, grade, tags),
+    [grade]: simple ? [getGeneralTalentEffect(talent.id, grade)!] : buildEffects(talent, grade, tags),
   }), {} as Record<AbilityGrade, TalentEffect[]>);
   const systems = systemsFromEffects(gradeEffects[talent.grade] ?? gradeEffects.C);
   return {
@@ -397,3 +403,4 @@ export function normalizeTalentInstances(talents: CreatureAbility[] | undefined)
     .map(normalizeTalentInstance)
     .filter((talent, index, pool) => pool.findIndex((entry) => entry.id === talent.id) === index);
 }
+

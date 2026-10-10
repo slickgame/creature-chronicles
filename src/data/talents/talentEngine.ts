@@ -17,6 +17,7 @@ import type {
 } from "@/types/talent";
 
 export type BreedingTalentSummary = {
+  fertility: number;
   pregnancyChance: number;
   creatureXpFlat: number;
   creatureXpPercent: number;
@@ -95,6 +96,7 @@ export function getBreedingTalentSummary(
   talents: CreatureAbility[] | undefined,
 ): BreedingTalentSummary {
   const summary: BreedingTalentSummary = {
+    fertility: 0,
     pregnancyChance: 0,
     creatureXpFlat: 0,
     creatureXpPercent: 0,
@@ -106,7 +108,10 @@ export function getBreedingTalentSummary(
   };
 
   for (const effect of resolveTalentEffects(talents, "breeding")) {
-    if (effect.type === "breeding-pregnancy-chance") {
+    if (effect.type === "breeding-fertility-flat") {
+      summary.fertility += effect.value;
+      summary.triggers.push(label(effect, `+${effect.value} Fertility during breeding.`));
+    } else if (effect.type === "breeding-pregnancy-chance") {
       summary.pregnancyChance += effect.value;
       summary.triggers.push(label(effect, `+${effect.value}% pregnancy chance.`));
     } else if (effect.type === "breeding-creature-xp-flat") {
@@ -266,3 +271,4 @@ export function getTalentRoleTags(
 export function getCreatureTalentRoleTags(creature: CreatureRecord): string[] {
   return getTalentRoleTags(creature.abilities);
 }
+

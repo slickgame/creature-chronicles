@@ -1,3 +1,4 @@
+import { GENERAL_ABILITY_POOL } from "./talents/generalTalents";
 import {
   STAT_KEYS,
   applyStatGrades,
@@ -588,12 +589,7 @@ function buildInheritedAbilities(
     }
   }
 
-  const variant = getVariantDefinition(variantId);
-  const species = getSpeciesDefinition(variant.speciesId);
-  const mutationPool = [
-    ...species.exclusiveAbilityPool,
-    ...variant.exclusiveAbilityPool,
-  ].filter(
+  const mutationPool = GENERAL_ABILITY_POOL.filter(
     (ability) => !inherited.some((inheritedAbility) => inheritedAbility.id === ability.id),
   );
   const abilityMutationChance = clamp(
@@ -612,7 +608,7 @@ function buildInheritedAbilities(
       mutationPool[
         deterministicRoll(`${seed}_ability_mutation_pick`, mutationPool.length)
       ];
-    inherited.push({ ...mutation, source: "future" });
+    inherited.push({ ...mutation, source: "general" });
     notes.push(
       `${mutation.name} appeared as a rare new ability mutation rather than direct inheritance.`,
     );
@@ -841,3 +837,4 @@ export function formatStrategicGeneticsSummary(
 
   return `Possible offspring (${preview.family}): ${ranges}. ${preview.stabilityLabel} inheritance; grade upgrade ${preview.gradeUpgradeChance}%, ability inheritance ${preview.abilityInheritanceChance}%, rare variant ${preview.rareVariantChance}%, mutation ${preview.mutationChance}%, shiny ${preview.shinyChance}%. Outcomes are not guaranteed.`;
 }
+

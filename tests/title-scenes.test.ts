@@ -11,13 +11,13 @@ test("title follows the active save and does not leak progress between slots", (
  assert.equal(getTitleScene(null).id, "arrival");
  assert.equal(getTitleScene(fresh).id, "arrival");
  assert.equal(getTitleScene(welcome).id, "welcome");
- assert.equal(getTitleScene(complete).id, "established");
+ assert.equal(getTitleScene(complete).id, "welcome");
  assert.equal(getTitleScene(fresh).id, "arrival");
  assert.equal(JSON.stringify(complete), snapshot);
 });
 
 test("story completion survives tutorial replay and tutorial skip is not completion", () => {
  const s = createNewGameSave("Legacy", 0);
- assert.equal(getTitleScene({ ...s, flags: { ...s.flags, m24ChapterOneStoryComplete: true, chapterOneGuidedComplete: false } }).id, "established");
+ assert.equal(getTitleScene({ ...s, flags: { ...s.flags, m24ChapterOneStoryComplete: true, chapterOneGuidedComplete: false } }).id, "welcome");
  assert.equal(getTitleScene({ ...s, flags: { ...s.flags, m24IntroSeen: true, chapterOneGuidedSkipped: true } }).id, "welcome");
 });

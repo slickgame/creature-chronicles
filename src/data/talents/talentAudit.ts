@@ -146,7 +146,7 @@ export function auditTalentDefinitions(save?: GameSave | null): TalentAuditSumma
   if (records.some((record) => record.systems.includes("inheritance"))) {
     globalWarnings.push("Inheritance talent effects are defined and visible in the audit, but their final genetics-roll hook remains scheduled for the genetics follow-up patch.");
   }
-  globalWarnings.push("Breeding definitions intentionally preserve the current live Breeding Pen calculations while the private legacy adapter is retired incrementally.");
+  globalWarnings.push("New talent rolls use the general pool. Species and special talents remain deferred; legacy definitions are retained for existing saves.");
 
   return {
     definitionCount: definitions.length,
@@ -179,3 +179,4 @@ export function auditCreatureTalents(creature: CreatureRecord): CreatureTalentAu
     warnings,
   };
 }
+
