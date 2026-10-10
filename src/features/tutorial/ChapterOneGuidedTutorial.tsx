@@ -23,7 +23,7 @@ type TutorialSignalEvent = CustomEvent<{ signal: ChapterOneTutorialSignal }>;
 export function ChapterOneGuidedTutorial() {
   const {
     appScreen, currentSave, goToBattleDebug, goToBattleOutfitter,
-    goToBreeding, goToGuildHall, goToRanch, goToRanchJobs, goToTown,
+    goToBreeding, goToGuildHall, goToMarket, goToRanchOffice, goToRanch, goToRanchJobs, goToTown,
     saveCurrentGame,
   } = useGameContext();
   const { view, open } = useNavigation();
@@ -41,8 +41,15 @@ export function ChapterOneGuidedTutorial() {
   }, [currentSave, saveCurrentGame]);
 
   useEffect(() => {
-    if (!currentSave || appScreen !== "battle-outfitter" || currentSave.flags.chapterOneGuidedBattleOutfitterOpened === true) return;
-    saveCurrentGame(markChapterOneTutorialSignal(currentSave, "battle-outfitter-opened"));
+    if (!currentSave) return;
+    const signals: Partial<Record<typeof appScreen, ChapterOneTutorialSignal>> = {
+      town: "town-opened", market: "market-opened", "ranch-office": "office-opened",
+      "battle-outfitter": "battle-outfitter-opened",
+    };
+    const signal = signals[appScreen];
+    if (!signal) return;
+    const updated = markChapterOneTutorialSignal(currentSave, signal);
+    if (updated !== currentSave) saveCurrentGame(updated);
   }, [appScreen, currentSave, saveCurrentGame]);
 
   useEffect(() => {
@@ -82,6 +89,8 @@ export function ChapterOneGuidedTutorial() {
       goToRanch();
     } else if (action === "chores") goToRanchJobs();
     else if (action === "town") goToTown();
+    else if (action === "market") goToMarket();
+    else if (action === "office") goToRanchOffice();
     else if (action === "guild") goToGuildHall();
     else if (action === "breeding") goToBreeding();
     else if (action === "battle-outfitter") {
@@ -129,3 +138,4 @@ export function ChapterOneGuidedTutorial() {
 
 export const CHAPTER_ONE_TUTORIAL_SIGNAL_EVENT = SIGNAL_EVENT;
 export const CHAPTER_ONE_TUTORIAL_INVENTORY_EVENT = INVENTORY_EVENT;
+
