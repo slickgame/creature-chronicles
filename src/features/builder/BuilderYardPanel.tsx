@@ -1,5 +1,6 @@
 "use client";
 
+import { BuilderWelcome } from "./BuilderWelcome";
 import { useState } from "react";
 import { BUILDER_PROJECTS, commissionBuilderProject, getBuilderProject, getBuilderProjectBenefit, getBuilderProjectProgress, getBuilderWorkOrder, type BuilderProjectId } from "@/data/builderProjects";
 import { getPredatorThreatAssessment } from "@/data/predatorThreat";
@@ -15,6 +16,7 @@ const LABELS = { built: "Complete", building: "Under construction", planned: "Fu
 export function BuilderYardPanel({ onClose }: { onClose: () => void; embedded?: boolean }) {
   const { currentSave: save, saveCurrentGame, goToSupplyDepot } = useGameContext();
   const { open } = useNavigation();
+  const [view, setView] = useState<"welcome" | "plans">("welcome");
   const [category, setCategory] = useState<Category>("Land");
   const [selectedId, setSelectedId] = useState<BuilderProjectId>("north_pasture_land");
   const [page, setPage] = useState(0);
@@ -44,11 +46,12 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void; embedded?: 
     {!project.planned && <><dl className={styles.costs}><div><dt>Gold</dt><dd>{project.costGold}</dd></div><div><dt>Materials</dt><dd>{project.costMaterials}</dd></div><div><dt>Build time</dt><dd>{project.durationDays ?? 1} ranch day{(project.durationDays ?? 1) > 1 ? "s" : ""}</dd></div></dl>{!!project.predatorPressure && <p>Once complete: +{project.predatorPressure} predator pressure from expanded land.</p>}</>}
     <p>{reason}</p>
   </>;
+  if (view === "welcome") return <BuilderWelcome onClose={onClose} onPlans={() => setView("plans")} />;
   return <main className={styles.yard} data-builder-yard>
-    <header className={styles.header}><button onClick={onClose}>‹ Town</button><div><small>Petra Hale · Master Builder</small><h1>Builder’s Yard</h1></div><button data-navigation-launcher onClick={() => open("menu")}>Menu</button></header>
+    <header className={styles.header}><button onClick={() => setView("welcome")}>‹ Petra</button><div><small>Petra Hale · Master Builder</small><h1>Builder’s Yard</h1></div><button data-navigation-launcher onClick={() => open("menu")}>Menu</button></header>
     <div className={styles.resources}><span>{save.currencies.gold} Gold</span><span>{materials} Materials</span><span>{completed.length} completed</span></div>
     <section className={styles.workspace}>
-      <div className={styles.scene}><div className={styles.sign}>Petra’s workshop</div><div className={styles.workOrder}>
+      <div className={styles.scene}><div className={styles.builderFigure}><img src="/images/ui/locations-v2/petra.webp" alt="Petra Hale" /></div><div className={styles.workOrder}>
         <small>PETRA’S CREW</small><h2>{order ? getBuilderProject(order.projectId).title : "Ready for the next project"}</h2>
         {order ? <><p>Completes on Ranch Day {order.readyDay} · {Math.max(0,order.readyDay-save.dayState.dayNumber)} day(s) remaining</p><progress aria-label="Construction progress" max={order.readyDay-order.startedDay} value={Math.max(0,Math.min(order.readyDay-order.startedDay,save.dayState.dayNumber-order.startedDay))}/><p>Construction advances when you finish a ranch day.</p></> : <p>Choose a blueprint. We’ll review the costs and benefits together.</p>}
         <div className={styles.actions}><button onClick={() => setPopup("security")}>Ranch security · {threat.tier}</button><button onClick={() => setPopup("ledger")}>Work ledger</button></div>

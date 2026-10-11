@@ -50,7 +50,7 @@ export type BuilderProjectResult = {
 
 export const BUILDER_PROJECT_ASSETS = {
   yard: "/images/buildings/town/builders_yard.svg",
-  builder: "/images/npcs/petra_hale_builder.svg",
+  builder: "/images/ui/locations-v2/petra.webp",
   northPasture: "/images/buildings/ranch/future/north_pasture.svg",
   woodlineAcre: "/images/buildings/ranch/future/woodline_acre.svg",
   chickenCoop: "/images/buildings/ranch/future/chicken_coop.svg",

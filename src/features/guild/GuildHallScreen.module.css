@@ -28,3 +28,5 @@
 @media(max-width:600px) { .missionProgress { grid-template-columns: 1fr; } .missionProgress span { text-align: left; } }
 
 .guild :global(dialog) .commissionDetails { background: #f4e7c6; color: #49341b; padding: 14px; border-radius: 6px; }
+
+.dialogHost{display:contents}

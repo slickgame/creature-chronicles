@@ -1,0 +1,50 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { createNewGameSave } from "@/lib/save/localSave";
+import { actOnPetraRequest, chatWithLocationHost, getLocationTrust, getPetraRequests, hasChattedToday, getPetraAdvice } from "@/data/locationInteractions";
+import { commissionBuilderProject, processBuilderConstruction, getBuilderWorkOrder } from "@/data/builderProjects";
+const fresh = () => { const s = createNewGameSave("Location test",0); return {...s,currencies:{...s.currencies,gold:10000},flags:{...s.flags,ranchMaterialsStock:100}}; };
+for (const host of ["petra", "mara"] as const) test(`${host} conversation grants exactly two Trust per day and persists`,()=>{
+  const save=fresh(); const result=chatWithLocationHost(save,host);
+  assert.equal(result.ok,true);assert.equal(getLocationTrust(result.save,host),getLocationTrust(save,host)+2);
+  assert.deepEqual(result.save.currencies,save.currencies);
+  const reload=JSON.parse(JSON.stringify(result.save));assert.equal(hasChattedToday(reload,host),true);
+  const repeated=chatWithLocationHost(reload,host);assert.equal(repeated.ok,false);assert.equal(repeated.save,reload);
+  const tomorrow={...reload,dayState:{...reload.dayState,dayNumber:reload.dayState.dayNumber+1}};
+  assert.equal(getLocationTrust(chatWithLocationHost(tomorrow,host).save,host),getLocationTrust(save,host)+4);
+});
+test("Petra reserve requires acceptance and current stock; claims consume no materials",()=>{
+  const save=fresh();assert.equal(actOnPetraRequest(save,0,true).ok,false);assert.equal(actOnPetraRequest(save,1,false).ok,false);
+  const accepted=actOnPetraRequest(save,0,false).save;
+  const short={...accepted,flags:{...accepted.flags,ranchMaterialsStock:7}};
+  assert.equal(actOnPetraRequest(short,0,true).ok,false);
+  const reward=actOnPetraRequest(accepted,0,true);
+  assert.equal(reward.ok,true);assert.equal(reward.save.flags.ranchMaterialsStock,100);
+  assert.equal(reward.save.currencies.gold,save.currencies.gold+50);assert.equal(reward.save.currencies.guildPoints,save.currencies.guildPoints+4);
+  assert.equal(actOnPetraRequest(reward.save,0,true).save,reward.save);
+});
+test("construction requests count actual completion, including existing work, but not a paid order",()=>{
+  let save=actOnPetraRequest(actOnPetraRequest(fresh(),0,false).save,0,true).save;
+  save=actOnPetraRequest(save,1,false).save;
+  save=commissionBuilderProject(save,"north_pasture_land").save;
+  assert.equal(getPetraRequests(save)[1].ready,false);
+  assert.match(getPetraAdvice(save),/already paid/);
+  const order=getBuilderWorkOrder(save)!;
+  save=processBuilderConstruction({...save,dayState:{...save.dayState,dayNumber:order.readyDay}}).save;
+  assert.equal(getPetraRequests(save)[1].ready,true);
+  save=actOnPetraRequest(save,1,true).save;
+  save=commissionBuilderProject(save,"nursery_extension").save;
+  const next=getBuilderWorkOrder(save)!;
+  save=processBuilderConstruction({...save,dayState:{...save.dayState,dayNumber:next.readyDay}}).save;
+  save=actOnPetraRequest(save,2,false).save;
+  assert.equal(getPetraRequests(save)[2].ready,true);
+  const before=save;save=actOnPetraRequest(save,2,true).save;
+  assert.equal(save.currencies.gold,before.currencies.gold+150);assert.equal(save.currencies.guildPoints,before.currencies.guildPoints+10);
+  assert.equal(save.flags.ranchMaterialsStock,Number(before.flags.ranchMaterialsStock)+5);
+  assert.equal(actOnPetraRequest(save,2,true).save,save);
+});
+test("future habitat flags do not qualify as current construction, and malformed trust is safe",()=>{
+  const s=fresh();const save={...s,flags:{...s.flags,petraTrust:NaN,builderProject_chicken_coop_built:true}};
+  assert.equal(getPetraRequests(save)[1].current,0);assert.equal(getLocationTrust(save,"petra"),0);
+  assert.equal(actOnPetraRequest(save,99,false).ok,false);
+});
