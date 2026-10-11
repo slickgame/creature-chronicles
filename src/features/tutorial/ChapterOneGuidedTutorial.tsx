@@ -9,6 +9,7 @@ import {
   type ChapterOneTutorialAction,
   type ChapterOneTutorialSignal,
 } from "@/data/chapterOneGuidedTutorial";
+import { getChapterOneFirstWeekLessons } from "@/data/chapterOneFirstWeek";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
@@ -23,10 +24,12 @@ type TutorialSignalEvent = CustomEvent<{ signal: ChapterOneTutorialSignal }>;
 export function ChapterOneGuidedTutorial() {
   const {
     appScreen, currentSave, goToBattleDebug, goToBattleOutfitter,
-    goToBreeding, goToGuildHall, goToMarket, goToRanchOffice, goToRanch, goToRanchJobs, goToTown,
+    goToBreeding, goToNursery, goToGuildHall, goToMarket, goToRanchOffice, goToRanch, goToRanchJobs, goToTown,
     saveCurrentGame,
   } = useGameContext();
   const { view, open } = useNavigation();
+  const [tab, setTab] = useState<"next" | "week">("next");
+  const [lessonId, setLessonId] = useState("chores");
   const [confirmSkip, setConfirmSkip] = useState(false);
   const [requestedReview, setRequestedReview] = useState<"ledger" | "end-day" | null>(null);
   const step = useMemo(
@@ -76,16 +79,18 @@ export function ChapterOneGuidedTutorial() {
 
   if (!currentSave || view !== "guide") return null;
   const save = currentSave;
+  const lessons = getChapterOneFirstWeekLessons(save);
+  const lesson = lessons.find((entry) => entry.id === lessonId) ?? lessons[0];
 
   function close() {
     setConfirmSkip(false);
     open(null);
   }
 
-  function route(action: ChapterOneTutorialAction) {
+  function route(action: ChapterOneTutorialAction, targetId?: string) {
     close();
     if (action === "ranch") {
-      setRequestedReview(step?.targetId === "ranch-end-day" || step?.targetId === "ranch-review-day" ? "end-day" : "ledger");
+      setRequestedReview(targetId === "ranch-end-day" || targetId === "ranch-review-day" ? "end-day" : "ledger");
       goToRanch();
     } else if (action === "chores") goToRanchJobs();
     else if (action === "town") goToTown();
@@ -93,6 +98,7 @@ export function ChapterOneGuidedTutorial() {
     else if (action === "office") goToRanchOffice();
     else if (action === "guild") goToGuildHall();
     else if (action === "breeding") goToBreeding();
+    else if (action === "nursery") goToNursery();
     else if (action === "battle-outfitter") {
       saveCurrentGame(markChapterOneTutorialSignal(save, "battle-outfitter-opened"));
       goToBattleOutfitter();
@@ -110,14 +116,32 @@ export function ChapterOneGuidedTutorial() {
           <img src={RANCH_ADVISOR.portraitPath} alt="" />
           <div><strong>{RANCH_ADVISOR.name}’s field notes</strong><p>Open these lessons whenever you need a hand.</p></div>
         </header>
-        {step ? <>
+        <div className={styles.tabs} aria-label="Guide views">
+          <button type="button" aria-pressed={tab === "next"} onClick={() => setTab("next")}>Next lesson</button>
+          <button type="button" aria-pressed={tab === "week"} onClick={() => setTab("week")}>First week</button>
+        </div>
+        {tab === "week" ? <>
+          <p className={styles.hint}>Suggested days, not deadlines. Explore at your own pace; checkmarks reflect what you have actually done.</p>
+          <div className={styles.lessons} aria-label="First-week lessons">
+            {lessons.map((entry) => <button key={entry.id} type="button" aria-pressed={entry.id === lesson.id} onClick={() => setLessonId(entry.id)}>
+              <span>{entry.days}</span><strong>{entry.title}</strong>
+              <span>{entry.checks.filter((check) => check.complete).length}/{entry.checks.length} milestones</span>
+            </button>)}
+          </div>
+          <section aria-label={lesson.title}>
+            <p className={styles.kicker}>{lesson.days}</p><h3>{lesson.title}</h3><p>{lesson.summary}</p>
+            <ul className={styles.checks}>{lesson.checks.map((check) => <li key={check.label} data-complete={check.complete}><span aria-label={check.complete ? "Complete" : "Remaining"}>{check.complete ? "✓" : "○"}</span>{check.label}</li>)}</ul>
+            <h4>Field tips</h4><ul className={styles.tips}>{lesson.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul>
+            <div className={styles.actions}>{lesson.destinations.map((destination) => <button key={destination.action} type="button" onClick={() => route(destination.action)}>{destination.label}</button>)}</div>
+          </section>
+        </> : step ? <>
           <p className={styles.kicker}>{step.dayLabel}</p>
           <h3>{step.title}</h3>
           <p>{step.body}</p>
           <div className={styles.hint}>{step.hint}</div>
           <div className={styles.actions}>
             <button type="button" onClick={close}>Keep Exploring</button>
-            {step.action !== "none" && <button type="button" className={styles.primary} onClick={() => route(step.action)}>{step.actionLabel}</button>}
+            {step.action !== "none" && <button type="button" className={styles.primary} onClick={() => route(step.action, step.targetId)}>{step.actionLabel}</button>}
           </div>
           {confirmSkip ? <section className={styles.confirm} aria-label="Skip walkthrough confirmation">
             <p>Skip the walkthrough? Story scenes and beginner milestones will remain available.</p>

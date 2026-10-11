@@ -1,4 +1,4 @@
-.guide { color: #49341d; min-width: 0; }
+.guide { color: #49341d; min-width: 0; padding: 20px; background: #f5ecd6; border: 1px solid #bda674; border-radius: 12px; line-height: 1.5; }
 .header { display: flex; align-items: center; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid #bda674; }
 .header img { width: 64px; height: 64px; object-fit: cover; border: 2px solid #ad8c4b; border-radius: 50%; }
 .header strong { font: 700 1.2rem Georgia, serif; }
@@ -13,3 +13,18 @@
 @media(max-width: 600px) { .actions { flex-direction: column; } .header { gap: 12px; } }
 .header img { flex-shrink: 0; }
 .header > div { min-width: 0; }
+
+
+.tabs { display: flex; gap: 8px; margin: 18px 0; }
+.tabs button[aria-pressed="true"], .lessons button[aria-pressed="true"] { background: #3c5732; color: #fff3d5; border-color: #3c5732; }
+.lessons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.lessons button { text-align: left; display: flex; flex-direction: column; gap: 4px; padding: 12px; white-space: normal; }
+.lessons span { font-size: .78rem; }
+.checks { list-style: none; padding: 0; display: grid; gap: 8px; }
+.checks li { display: flex; gap: 10px; padding: 8px 10px; background: #e9dfc9; border-radius: 6px; }
+.checks li[data-complete="true"] { background: #dce4cc; color: #354b29; }
+.checks span { flex-shrink: 0; font-weight: 700; }
+.tips { padding-left: 22px; }
+.tips li { margin: 10px 0; }
+.guide button { max-width: 100%; overflow-wrap: anywhere; }
+@media(max-width: 420px) { .guide { padding: 12px; } .lessons { grid-template-columns: 1fr; } .tabs button { flex: 1; } }
