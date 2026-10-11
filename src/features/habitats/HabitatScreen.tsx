@@ -15,6 +15,7 @@ import {
 } from "@/data/nursery";
 import { getBestStatLabels } from "@/data/collection";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
+import { isNylaBaseFeline } from "@/data/nylaGameplayArt";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import type { PregnancyRecord } from "@/types/save";
@@ -210,6 +211,7 @@ export function HabitatScreen() {
                   >
                     <img
                       src={getNylaGameplayCardSprite(creature, getImagePath(variant.portraitPath))}
+                      data-nyla-card={isNylaBaseFeline(creature) ? "true" : undefined}
                       alt=""
                       onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }}
                     />

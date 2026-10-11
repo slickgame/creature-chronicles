@@ -200,6 +200,11 @@
   background: rgba(255, 247, 221, 0.08);
 }
 
+/* A centered square crop would clip the tips of Nyla's ears in PNG 02. */
+.creatureCard img[data-nyla-card="true"] {
+  object-position: center top;
+}
+
 .creatureCard strong,
 .creatureCard span,
 .creatureCard em {

@@ -18,9 +18,18 @@ const tiger = { variantId: "variant_tiger" } as const;
 const idle = { fainted: false, actor: false, target: false, specialAttack: false };
 
 test("every transferred approved Nyla gameplay image exists in public assets", async () => {
-  for (const path of Object.values(NYLA_GAMEPLAY_ART)) {
+  for (const [role, path] of Object.entries(NYLA_GAMEPLAY_ART)) {
     assert.match(path, /^\/images\/creatures\/feline\/nyla\/nyla_\d{2}_/);
-    await access(new URL("public" + path, ROOT));
+    const fileUrl = new URL("public" + path, ROOT);
+    await access(fileUrl);
+    const header = (await readFile(fileUrl)).subarray(0, 26);
+    assert.equal(header.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
+    assert.equal(header.toString("ascii", 12, 16), "IHDR");
+    assert.equal(header.readUInt8(25), 6, role + " must retain RGBA transparency");
+    const width = header.readUInt32BE(16);
+    const height = header.readUInt32BE(20);
+    if (role === "sleeping") assert.ok(width > height, "Sleeping pose uses landscape canvas");
+    else assert.ok(height > width, role + " uses portrait canvas");
   }
   assert.equal(isNylaBaseFeline(baseFeline as never), true);
   assert.equal(isNylaBaseFeline(sphinx as never), false);
@@ -86,4 +95,36 @@ test("ranch work and rest remain mapped to approved sprites", async () => {
 test("breeding scene manifest does not reference Nyla gameplay images", async () => {
   const manifest = await readFile(new URL("src/data/breedingSceneImages.ts", ROOT), "utf8");
   assert.doesNotMatch(manifest, /nyla_0\d_/);
+});
+
+
+test("Nyla-only battle KO ground contact and tiny-card framing are responsive", async () => {
+  const stage = await readFile(new URL("src/features/battle/BattlePortraitStage.tsx", ROOT), "utf8");
+  const battleCss = await readFile(new URL("src/features/battle/BattlePortraitStage.module.css", ROOT), "utf8");
+  const polishCss = await readFile(new URL("src/features/battle/BattlePortraitStagePolish.module.css", ROOT), "utf8");
+  const habitat = await readFile(new URL("src/features/habitats/HabitatScreen.tsx", ROOT), "utf8");
+  const habitatCss = await readFile(new URL("src/features/habitats/HabitatScreen.module.css", ROOT), "utf8");
+
+  assert.match(stage, /data-nyla-pose=\{nylaSprite === NYLA_GAMEPLAY_ART\.combatKO/);
+  assert.match(stage, /data-nyla-card=\{isNylaBaseFeline\(source\)/);
+  assert.match(habitat, /data-nyla-card=\{isNylaBaseFeline\(creature\)/);
+  assert.match(polishCss, /\.combatant\[data-nyla-pose="ko"\]\[data-side\]\[data-slot\]/);
+  assert.match(polishCss, /--portrait-offset-y:\s*12% !important/);
+  assert.match(polishCss, /@media \(max-width: 850px\)[\s\S]*--portrait-offset-y:\s*10% !important/);
+  assert.match(battleCss, /\.orderToken img\[data-nyla-card="true"\]\s*\{\s*object-position: center top/);
+  assert.match(habitatCss, /\.creatureCard img\[data-nyla-card="true"\]\s*\{\s*object-position: center top/);
+  assert.match(battleCss, /\.stage\[data-reduced-motion="true"\] \*/);
+});
+
+test("breeding participants and scene imagery still use the original shared paths", async () => {
+  const breedingCore = await readFile(new URL("src/data/breedingCore.ts", ROOT), "utf8");
+  const breedingScreen = await readFile(new URL("src/features/breeding/BreedingFocusedScreen.tsx", ROOT), "utf8");
+  const breedingOverlay = await readFile(new URL("src/features/breeding/SharedInfoOverlay.tsx", ROOT), "utf8");
+  const sharedDetail = await readFile(new URL("src/features/creatures/CreatureDetailPanels.tsx", ROOT), "utf8");
+
+  assert.match(breedingCore, /portraitPath: variant\.portraitPath/);
+  assert.match(breedingCore, /variant\.profilePath/);
+  assert.doesNotMatch(breedingScreen, /useGameplayArt/);
+  assert.doesNotMatch(breedingOverlay, /useGameplayArt/);
+  assert.match(sharedDetail, /useGameplayArt = false/);
 });

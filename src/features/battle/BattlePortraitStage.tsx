@@ -6,7 +6,7 @@ import { getBattlePortraitConfig, type BattlePresentationEvent } from "@/data/ba
 import { getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
-import { getNylaCombatSprite, getNylaGameplayCardSprite } from "@/data/nylaGameplayArt";
+import { NYLA_GAMEPLAY_ART, getNylaCombatSprite, getNylaGameplayCardSprite, isNylaBaseFeline } from "@/data/nylaGameplayArt";
 import type { BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -146,7 +146,14 @@ function CombatantFigure({
   ].join("\n");
 
   return (
-    <article className={classNames} style={profileStyle} data-side={combatant.sideId} data-slot={combatant.slotIndex} title={detailTitle}>
+    <article
+      className={classNames}
+      style={profileStyle}
+      data-side={combatant.sideId}
+      data-slot={combatant.slotIndex}
+      data-nyla-pose={nylaSprite === NYLA_GAMEPLAY_ART.combatKO ? "ko" : undefined}
+      title={detailTitle}
+    >
       <button
         type="button"
         className={`${styles.figureButton} ${polishStyles.figureButton}`}
@@ -274,7 +281,12 @@ export function BattlePortraitStage({
                   title={title}
                   aria-label={title}
                 >
-                  <img src={creaturePortrait(source)} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} />
+                  <img
+                    src={creaturePortrait(source)}
+                    data-nyla-card={isNylaBaseFeline(source) ? "true" : undefined}
+                    alt=""
+                    onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }}
+                  />
                   <small>{index + 1}</small>
                   {action ? <em>✓</em> : null}
                 </button>
