@@ -808,6 +808,7 @@ export function performBreedingAttempt(
   const nextFlags: GameSave["flags"] = {
     ...save.flags,
     m4BreedingAttempted: true,
+    seleneBreedingSessions: (Number.isFinite(Number(save.flags.seleneBreedingSessions)) ? Math.max(0, Math.floor(Number(save.flags.seleneBreedingSessions))) : 0) + 1,
     m7BreedingProgression: true,
     m29BreedingFeedbackUpgrade: true,
     m36SupplyDepotFertilityTonic: usedFertilityTonic
