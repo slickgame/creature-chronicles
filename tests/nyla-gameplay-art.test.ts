@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { access, readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { getBattleMove } from "@/data/battleMoves";
 import {
   NYLA_GAMEPLAY_ART,
@@ -67,12 +68,12 @@ test("collection and habitats explicitly opt in to Nyla gameplay art", async () 
   assert.match(habitat, /useGameplayArt/);
 });
 
-test("Nyla battle poses handle idle, basic, signature, guard, hit fallback and KO", async () => {
+test("Nyla battle poses handle idle, basic, signature, guard, approved damage and KO", async () => {
   assert.equal(getNylaCombatSprite(baseFeline as never, idle), NYLA_GAMEPLAY_ART.combatIdle);
   assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, actor: true, eventKind: "attack" }), NYLA_GAMEPLAY_ART.combatBasic);
   assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, actor: true, eventKind: "attack", specialAttack: true }), NYLA_GAMEPLAY_ART.combatSpecial);
   assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, actor: true, eventKind: "attack", effectPreset: "shield" }), NYLA_GAMEPLAY_ART.combatGuard);
-  assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, target: true, eventKind: "damage" }), NYLA_GAMEPLAY_ART.combatGuard);
+  assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, target: true, eventKind: "damage" }), NYLA_GAMEPLAY_ART.combatHit);
   assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, fainted: true }), NYLA_GAMEPLAY_ART.combatKO);
   assert.equal(getNylaCombatSprite(baseFeline as never, { ...idle, target: true, eventKind: "knockout" }), NYLA_GAMEPLAY_ART.combatKO);
   assert.equal(getNylaCombatSprite(sphinx as never, idle), null);
@@ -81,6 +82,14 @@ test("Nyla battle poses handle idle, basic, signature, guard, hit fallback and K
   assert.equal(getBattleMove("pounce").category, "physical");
   const stage = await readFile(new URL("src/features/battle/BattlePortraitStage.tsx", ROOT), "utf8");
   assert.match(stage, /actingMove\.rarity === "signature"/);
+});
+
+test("approved user-supplied damage PNG is preserved byte for byte", async () => {
+  const uploaded = await readFile(new URL("public" + NYLA_GAMEPLAY_ART.combatHit, ROOT));
+  assert.equal(
+    createHash("sha256").update(uploaded).digest("hex"),
+    "43c0d4386dacc8d45b2adcd2965ac30e09e16f29b2470274fe96e556999e5563",
+  );
 });
 
 test("ranch work and rest remain mapped to approved sprites", async () => {

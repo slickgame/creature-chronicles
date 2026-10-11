@@ -9,6 +9,7 @@ export const NYLA_GAMEPLAY_ART = {
   combatBasic: "/images/creatures/feline/nyla/nyla_04_basic_attack.png",
   combatSpecial: "/images/creatures/feline/nyla/nyla_05_special_attack.png",
   combatGuard: "/images/creatures/feline/nyla/nyla_06_defend_guard.png",
+  combatHit: "/images/creatures/feline/nyla/nyla_07_taking_damage.png",
   combatKO: "/images/creatures/feline/nyla/nyla_08_defeated_ko.png",
   ranchWork: "/images/creatures/feline/nyla/nyla_09_ranch_work.png",
   sleeping: "/images/creatures/feline/nyla/nyla_10_resting_sleeping.png",
@@ -52,13 +53,12 @@ export function getNylaCombatSprite(
 ): string | null {
   if (!isNylaBaseFeline(creature)) return null;
 
-  // Image 07 (Taking Damage) is approved but its original PNG has not been transferred.
-  // Use the approved guard art as a safe hit-reaction fallback until the original is available.
+  // Nyla poses are gameplay-only; existing breeding art and image mappings stay unchanged.
   if (context.fainted || (context.target && context.eventKind === "knockout")) {
     return NYLA_GAMEPLAY_ART.combatKO;
   }
   if (context.target && context.eventKind === "damage") {
-    return NYLA_GAMEPLAY_ART.combatGuard;
+    return NYLA_GAMEPLAY_ART.combatHit;
   }
   if (context.actor && context.effectPreset === "shield") {
     return NYLA_GAMEPLAY_ART.combatGuard;
