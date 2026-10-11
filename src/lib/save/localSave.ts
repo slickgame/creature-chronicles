@@ -1,5 +1,5 @@
 import { rebalanceExistingCreatureAbilities } from "@/data/abilityBalance";
-import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
+import { MVP_VERSION, STARTING_PLAYER_STATE, STARTING_RANCH_SUPPLIES } from "@/data/gameConstants";
 import { createDefaultBreedingState, getPlayerMaxEnergyFromStats } from "@/data/breeding";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { normalizeGrowthProgress, getProjectedMaxEnergyForCreature } from "@/data/levelGrowth";
@@ -442,6 +442,9 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       repairedCollectionEntries: 0,
     },
     flags: {
+      ranchFeedStock: STARTING_RANCH_SUPPLIES.feed,
+      ranchMaterialsStock: STARTING_RANCH_SUPPLIES.materials,
+      firstWeekEconomyVersion: 1,
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,

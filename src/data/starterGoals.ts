@@ -19,22 +19,22 @@ export type StarterGoal = {
 };
 
 const STARTER_GOAL_REWARDS: Record<string, StarterGoalReward> = {
-  "assign-chores": { gold: 75, feed: 2 },
-  "assign-security": { gold: 75, materials: 1 },
-  "assign-comfort": { gold: 75 },
-  "assign-feed": { gold: 100, feed: 3 },
-  "assign-garden": { gold: 100, feed: 4 },
-  "assign-hauling": { gold: 100, materials: 4 },
-  "resolve-chores": { gold: 150, feed: 2, materials: 2 },
-  "produce-feed": { gold: 75, guildPoints: 1, feed: 4 },
-  "gather-materials": { gold: 75, guildPoints: 1, materials: 5 },
-  "repair-ranch": { gold: 200, materials: 3 },
-  "ranch-upgrade": { gold: 250, guildPoints: 2 },
-  breed: { gold: 250, guildPoints: 3 },
-  egg: { gold: 300, guildPoints: 4 },
-  market: { gold: 200, guildPoints: 2 },
-  tax: { gold: 300, guildPoints: 3 },
-  guild: { gold: 500, guildPoints: 5 },
+  "assign-chores": { gold: 25, feed: 2 },
+  "assign-security": { gold: 25, materials: 1 },
+  "assign-comfort": { gold: 25 },
+  "assign-feed": { gold: 35, feed: 3 },
+  "assign-garden": { gold: 35, feed: 4 },
+  "assign-hauling": { gold: 35, materials: 4 },
+  "resolve-chores": { gold: 75, feed: 2, materials: 2 },
+  "produce-feed": { gold: 35, guildPoints: 1, feed: 4 },
+  "gather-materials": { gold: 35, guildPoints: 1, materials: 5 },
+  "repair-ranch": { gold: 75, materials: 3 },
+  "ranch-upgrade": { gold: 125, guildPoints: 2 },
+  breed: { gold: 100, guildPoints: 3 },
+  egg: { gold: 125, guildPoints: 4 },
+  market: { gold: 50, guildPoints: 2 },
+  tax: { gold: 75, guildPoints: 3 },
+  guild: { gold: 150, guildPoints: 5 },
 };
 
 function getFlagNumber(value: boolean | number | string | undefined): number {
@@ -154,3 +154,4 @@ export function getStarterGoalProgress(save: GameSave): { completed: number; tot
   const claimed = goals.filter((goal) => goal.rewardClaimed).length;
   return { completed, total: goals.length, nextGoal: goals.find((goal) => !goal.complete) ?? null, claimable, claimed };
 }
+

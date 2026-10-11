@@ -62,7 +62,8 @@ test("condition-gated predator pressure stays disabled before story and attracto
   assert.equal(assessment.eligible, false);
   assert.equal(assessment.eventChance, 0);
   assert.ok(assessment.blockers.some((item) => item.includes("Chapter 1")));
-  assert.ok(assessment.blockers.some((item) => item.includes("livestock")));
+  const emptyStores = getPredatorThreatAssessment({ ...save, flags: { ...save.flags, ranchFeedStock: 0 } });
+  assert.ok(emptyStores.blockers.some((item) => item.includes("livestock")));
 });
 
 test("future livestock and stored feed can expose a low-security ranch", () => {
