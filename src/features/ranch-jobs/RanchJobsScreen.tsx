@@ -9,6 +9,7 @@ import {
   getJobChoreSkillId,
 } from "@/data/choreSkills";
 import { getVariantDefinition } from "@/data/creatures";
+import { getNylaRanchJobSprite } from "@/data/nylaGameplayArt";
 import {
   calculateCreatureChoreScore,
   getCreatureDisplayName,
@@ -113,8 +114,8 @@ function getCreatureSummary(creature: CreatureRecord): string {
   return `${variant.family} • Lv ${creature.level} • Energy ${creature.energy}/${creature.maxEnergy} • Affection ${creature.affection}`;
 }
 
-function getCreatureProfilePath(creature: CreatureRecord): string {
-  return getVariantDefinition(creature.variantId).profilePath;
+function getCreatureProfilePath(creature: CreatureRecord, jobId: RanchJobId): string {
+  return getNylaRanchJobSprite(creature, jobId, getVariantDefinition(creature.variantId).profilePath);
 }
 
 function getRelevantStatKeys(jobId: RanchJobId): Array<keyof CreatureRecord["stats"]> {
@@ -530,7 +531,7 @@ export function RanchJobsScreen() {
                   <div className={styles.assignmentBox}>
                     <div className={`${styles.assignedLine} ${primaryCreature ? styles.assignedLineWithPortrait : ""}`}>
                       {primaryCreature
-                        ? <img className={styles.assignedPortrait} src={getCreatureProfilePath(primaryCreature)} alt="" />
+                        ? <img className={styles.assignedPortrait} src={getCreatureProfilePath(primaryCreature, job.jobId)} alt="" />
                         : <span className={styles.unassignedDot} />}
                       <div className={styles.assignedText}>
                         <strong>{assigned.length

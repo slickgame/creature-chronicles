@@ -6,6 +6,7 @@ import { getBattlePortraitConfig, type BattlePresentationEvent } from "@/data/ba
 import { getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
+import { getNylaCombatSprite } from "@/data/nylaGameplayArt";
 import type { BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -98,6 +99,19 @@ function CombatantFigure({
   const isActor = activeEvent?.actorId === combatant.battleCombatantId;
   const isEventTarget = activeEvent?.targetIds.includes(combatant.battleCombatantId) ?? false;
   const eventKind = isEventTarget ? activeEvent?.kind : isActor ? activeEvent?.kind : null;
+  const nylaSprite = getNylaCombatSprite(source, {
+    fainted: combatant.isFainted,
+    actor: isActor,
+    target: isEventTarget,
+    eventKind: activeEvent?.kind,
+    effectPreset: activeEvent?.preset,
+    specialAttack: Boolean(
+      isActor &&
+      activeEvent?.kind === "attack" &&
+      activeEvent.moveId &&
+      getBattleMove(activeEvent.moveId).category === "special"
+    ),
+  });
   const canTarget = !combatant.isFainted || combatant.sideId === "player";
   const profileStyle: PortraitStyle = {
     "--portrait-scale": Math.min(1.02, Math.max(0.56, portrait.scale * 0.78)),
@@ -145,7 +159,7 @@ function CombatantFigure({
         <span className={styles.selectionRing} aria-hidden="true" />
         <span className={`${styles.portraitWindow} ${polishStyles.portraitWindow}`} data-ui-fixed-size="true">
           <img
-            src={creatureProfile(source)}
+            src={nylaSprite ?? creatureProfile(source)}
             alt=""
             onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }}
           />
