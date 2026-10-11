@@ -10,6 +10,7 @@ import {
 } from "@/data/choreSkills";
 import { getVariantDefinition } from "@/data/creatures";
 import { getNylaRanchJobSprite } from "@/data/nylaGameplayArt";
+import { getEquineRanchJobSprite } from "@/data/equineGameplayArt";
 import {
   calculateCreatureChoreScore,
   getCreatureDisplayName,
@@ -115,7 +116,7 @@ function getCreatureSummary(creature: CreatureRecord): string {
 }
 
 function getCreatureProfilePath(creature: CreatureRecord, jobId: RanchJobId): string {
-  return getNylaRanchJobSprite(creature, jobId, getVariantDefinition(creature.variantId).profilePath);
+  return getEquineRanchJobSprite(creature, getNylaRanchJobSprite(creature, jobId, getVariantDefinition(creature.variantId).profilePath));
 }
 
 function getRelevantStatKeys(jobId: RanchJobId): Array<keyof CreatureRecord["stats"]> {
