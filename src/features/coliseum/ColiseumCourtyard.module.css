@@ -20,3 +20,6 @@
 @media(max-width:1050px){.team{grid-template-columns:minmax(0,1fr) 225px}.stage{gap:8px}.team .panel{padding:12px}}
 @media(max-width:760px){.stage{padding:0;gap:6px}.team .plinth{padding:8px 3px}.slotNumber{font-size:9px;letter-spacing:1px}.team .slotActions{flex-wrap:nowrap}.team .slotActions button{font-size:10px;padding:5px 2px}.team .body img{max-height:100%}}
 @media(max-height:560px) and (min-width:761px){.team{grid-template-columns:minmax(0,1fr) 210px}.team .panel{gap:4px;padding:7px}.team .panel>.muted{display:none}.team .plinth{padding:4px}.slotNumber{display:none}.stage{padding:0;gap:8px}}
+
+
+.scouting{background:#f5ead3;color:#342818;padding:18px;border:1px solid #b89a65;border-radius:10px;line-height:1.6;overflow-wrap:anywhere}.scouting h3{margin:18px 0 6px;color:#62471f}.scouting p{margin:6px 0}.scouting ul{padding-left:22px}.scouting li+li{margin-top:8px}.scoutCard{margin:8px 0;padding:10px 12px;background:#e9d9b8;border-left:3px solid #927042;border-radius:4px}.scoutCard p{font-size:13px}.scouting>button{margin-top:14px}

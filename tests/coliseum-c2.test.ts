@@ -54,8 +54,8 @@ function teamIds(team: ReturnType<typeof createFixture>["team"]) {
   return team.map((creature) => creature.creatureId);
 }
 
-test("C2 defines three authored opponents in each of twelve encounters", () => {
-  assert.equal(COLISEUM_C2_ENCOUNTERS.length, 12);
+test("C2 defines three authored opponents in twelve circuit bouts and three optional exhibitions", () => {
+  assert.equal(COLISEUM_C2_ENCOUNTERS.length, 15);
   const counts = new Map<string, number>();
   const opponentIds = new Set<string>();
 
@@ -78,7 +78,7 @@ test("C2 defines three authored opponents in each of twelve encounters", () => {
     });
   }
 
-  assert.deepEqual(Object.fromEntries(counts), { novice: 3, bronze: 3, silver: 3, crown: 3 });
+  assert.deepEqual(Object.fromEntries(counts), { novice: 3, bronze: 4, silver: 4, crown: 4 });
 });
 
 test("authored teams are fixed and do not mirror the selected ranch species", () => {
@@ -251,3 +251,4 @@ test("round performance and per-creature records persist combat contributions", 
   assert.equal(record.statusesApplied, 2);
   assert.equal(record.alliesProtected, 1);
 });
+
