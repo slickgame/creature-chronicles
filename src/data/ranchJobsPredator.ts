@@ -1,3 +1,4 @@
+import { recordGuildChoreWork } from "./guildCommissions";
 import {
   gainCreatureChoreSkillXp,
   getChoreSkillAptitudeLabel,
@@ -286,7 +287,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       currencies: { ...workingSave.currencies, energy: Math.floor(workingSave.currencies.maxEnergy * playerEnergyRatio) },
       ranchJobs: { ...jobs, assignments, lastProcessedDayNumber: workingSave.dayState.dayNumber, lifetimeCompletions: jobs.lifetimeCompletions + completions },
       flags: {
-        ...workingSave.flags,
+        ...recordGuildChoreWork(workingSave, results),
         m14RanchJobsCreated: true,
         m14RanchJobsProcessed: completions > 0 || workingSave.flags.m14RanchJobsProcessed === true,
         m14SecurityEventsEnabled: true,
@@ -341,3 +342,4 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     results,
   };
 }
+

@@ -1,3 +1,4 @@
+import { createWeeklyCommissions, getGuildObjectiveCount } from "./guildCommissions";
 import { getVariantDefinition } from "@/data/creatures";
 import { getTownUpgradeEffects } from "@/data/upgrades";
 import type { CreatureRecord } from "@/types/creature";
@@ -169,7 +170,10 @@ function getWeeklyTemplates(save: GameSave): ContractTemplate[] {
 }
 
 function createWeeklyContracts(save: GameSave): GuildContract[] {
-  return getWeeklyTemplates(save).map((template, index) => createContract(save, index, template));
+  const old = getWeeklyTemplates(save);
+  const service = getBaseTemplates().find(t => t.title === "Field Hauling Day Shift")!;
+  const remaining = old.filter(t => t.title !== service.title).slice(0, Math.max(0, getTownUpgradeEffects(save).guildContractCount - 4));
+  return [...createWeeklyCommissions(save), createContract(save, 0, service), ...remaining.map((template, index) => createContract(save, index + 1, template))];
 }
 
 export function createDefaultGuildState(save: GameSave): GuildState {
@@ -181,6 +185,10 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
   if (!save.guild) return { ...save, guild: createDefaultGuildState(save), flags: { ...save.flags, m15GuildWeeklyRefresh: true } };
 
   const normalizedContracts = save.guild.contracts.map(normalizeContract);
+  // Existing requests stay intact. Add the new categories once to this week's board.
+  for (const commission of createWeeklyCommissions(save)) {
+    if (!normalizedContracts.some(c => c.contractId === commission.contractId)) normalizedContracts.push(commission);
+  }
   const normalizedGuild = { ...save.guild, contracts: normalizedContracts };
   const normalizedSave = { ...save, guild: normalizedGuild };
   const weekChanged = normalizedGuild.weekNumber !== save.dayState.weekNumber;
@@ -216,6 +224,7 @@ export function getCreatureRarityRank(rarity: string): number {
 
 export function doesCreatureMatchContract(creature: CreatureRecord, rawContract: GuildContract): boolean {
   const contract = normalizeContract(rawContract);
+  if (contract.objective) return false;
   const variant = getVariantDefinition(creature.variantId);
   const requirement = contract.requirement;
   if (contract.status === "completed" || contract.status === "expired") return false;
@@ -285,7 +294,7 @@ export function acceptGuildContract(save: GameSave, contractId: string): GuildAc
   const contract = guild.contracts.find((item) => item.contractId === contractId);
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
   if (contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract is not available to accept." };
-  return { save: { ...syncedSave, guild: { ...guild, contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "accepted", acceptedAtDayNumber: syncedSave.dayState.dayNumber } : item) }, flags: { ...syncedSave.flags, m7GuildContractAccepted: true } }, ok: true, message: `${contract.title} accepted.` };
+  return { save: { ...syncedSave, guild: { ...guild, contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "accepted", acceptedAtDayNumber: syncedSave.dayState.dayNumber, objectiveBaseline: item.objective ? getGuildObjectiveCount(syncedSave, item.objective) : undefined } : item) }, flags: { ...syncedSave.flags, m7GuildContractAccepted: true } }, ok: true, message: `${contract.title} accepted.` };
 }
 
 export function donateCreatureToGuildContract(save: GameSave, contractId: string, creatureId: string): GuildActionResult {
@@ -295,6 +304,7 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   const contract = rawContract ? normalizeContract(rawContract) : null;
   const creature = (syncedSave.creatures ?? []).find((item) => item.creatureId === creatureId);
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
+  if (contract.objective) return { save: syncedSave, ok: false, message: "Use the commission claim action for this request." };
   if (!creature) return { save: syncedSave, ok: false, message: "That creature is no longer available." };
   if (creature.isLocked && contract.type === "donate_creature") return { save: syncedSave, ok: false, message: `${creature.nickname} is locked. Unlock them before donating.` };
   if (contract.status !== "accepted" && contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract cannot receive submissions." };
@@ -343,3 +353,4 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
     message: `${creature.nickname} was ${actionVerb} ${contract.title}. Earned ${goldReward} Gold and ${guildPointReward} GP.${serviceText}${bonusText}${firstBonusText}`,
   };
 }
+

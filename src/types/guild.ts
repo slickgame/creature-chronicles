@@ -3,10 +3,11 @@ import type { CreatureFamily, CreatureStatKey } from "./creature";
 
 export type GuildContractTier = "bronze" | "silver" | "gold";
 export type GuildContractStatus = "available" | "accepted" | "completed" | "expired";
-export type GuildContractType = "donate_creature" | "service_creature";
+export type GuildContractType = "donate_creature" | "service_creature" | "delivery" | "chore_commission" | "battle_bounty";
+export type GuildObjective = { kind: "delivery"; resource: "feed" | "materials"; amount: number } | { kind: "chore"; jobId: import("./ranchJobs").RanchJobId; amount: number } | { kind: "battle"; amount: number };
 export type GuildContractCategory = "general" | "service" | "registry" | "lineage" | "restoration" | "security";
-export type GuildContractFilter = "all" | "donation" | "service" | GuildContractCategory | GuildContractTier | "accepted" | "completed";
-export type GuildContractRequirementKind = "any_creature" | "family" | "variant" | "rarity" | "stat_minimum";
+export type GuildContractFilter = "all" | "donation" | "service" | GuildContractCategory | GuildContractTier | "accepted" | "completed" | "delivery" | "chore_commission" | "battle_bounty";
+export type GuildContractRequirementKind = "any_creature" | "family" | "variant" | "rarity" | "stat_minimum" | "objective";
 
 export type GuildContractRequirement = {
   kind: GuildContractRequirementKind;
@@ -45,6 +46,9 @@ export type GuildContract = {
   donatedCreatureName?: string;
   submittedCreatureId?: CreatureId;
   submittedCreatureName?: string;
+  objective?: GuildObjective;
+  objectiveBaseline?: number;
+  objectiveCompletedCount?: number;
   qualityBonusGold?: number;
   qualityBonusGp?: number;
   qualityBonusReasons?: string[];
@@ -64,3 +68,4 @@ export type GuildActionResult = {
   ok: boolean;
   message: string;
 };
+

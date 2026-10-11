@@ -1126,6 +1126,7 @@ export function recordColiseumC2BattleResult(
     flags: {
       ...rewarded.flags,
       [COLISEUM_C2_PROGRESS_FLAG]: JSON.stringify(nextProgress),
+      guildBattleWins: finiteCount(rewarded.flags.guildBattleWins) + (win ? 1 : 0),
       coliseumProgressionStarted: true,
       coliseumCombatProgressionStarted: true,
       ...(firstClear ? { coliseumFirstClearEarned: true } : {}),
@@ -1144,3 +1145,4 @@ export function recordColiseumC2BattleResult(
     duplicate: false,
   };
 }
+
