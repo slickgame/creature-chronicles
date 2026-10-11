@@ -1,5 +1,7 @@
 "use client";
 
+import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
+
 import { useMemo, useState } from "react";
 import {
   DEFAULT_CREATURE_MANAGEMENT_FILTERS,
@@ -566,7 +568,7 @@ export function CollectionScreen() {
                         }
                       >
                         <img
-                          src={variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
+                          src={getNylaGameplayCardSprite(creature, variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)}
                           alt=""
                           onError={(event) => {
                             event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
@@ -647,6 +649,7 @@ export function CollectionScreen() {
                 </div>
                 <SharedCreatureDetail
                   creature={selectedCreature}
+                  useGameplayArt
                   dayNumber={activeSave.dayState.dayNumber}
                   renameValue={renameValue || selectedCreature.nickname}
                   onRenameValueChange={setRenameValue}
@@ -856,7 +859,7 @@ function CompareIdentity({
   const species = getSpeciesDefinition(creature.speciesId);
   return (
     <article className={styles.compareIdentity}>
-      <img src={variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt="" />
+      <img src={getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)} alt="" />
       <h3>{creature.nickname} {creature.shiny ? "✦" : ""}</h3>
       <p>{variant.name} {species.name}</p>
       <dl>

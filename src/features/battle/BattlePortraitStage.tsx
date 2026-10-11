@@ -6,7 +6,7 @@ import { getBattlePortraitConfig, type BattlePresentationEvent } from "@/data/ba
 import { getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
-import { getNylaCombatSprite } from "@/data/nylaGameplayArt";
+import { getNylaCombatSprite, getNylaGameplayCardSprite } from "@/data/nylaGameplayArt";
 import type { BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -49,7 +49,7 @@ function creatureProfile(source?: CreatureRecord): string {
 function creaturePortrait(source?: CreatureRecord): string {
   if (!source) return FALLBACK_IMAGE;
   const variant = getVariantDefinition(source.variantId);
-  return source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE;
+  return getNylaGameplayCardSprite(source, source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE);
 }
 
 function compactStatus(combatant: BattleCombatant): string[] {
@@ -99,18 +99,17 @@ function CombatantFigure({
   const isActor = activeEvent?.actorId === combatant.battleCombatantId;
   const isEventTarget = activeEvent?.targetIds.includes(combatant.battleCombatantId) ?? false;
   const eventKind = isEventTarget ? activeEvent?.kind : isActor ? activeEvent?.kind : null;
+  const actingMove = isActor && activeEvent?.kind === "attack" && activeEvent.moveId
+    ? getBattleMove(activeEvent.moveId)
+    : null;
   const nylaSprite = getNylaCombatSprite(source, {
     fainted: combatant.isFainted,
     actor: isActor,
     target: isEventTarget,
     eventKind: activeEvent?.kind,
     effectPreset: activeEvent?.preset,
-    specialAttack: Boolean(
-      isActor &&
-      activeEvent?.kind === "attack" &&
-      activeEvent.moveId &&
-      getBattleMove(activeEvent.moveId).category === "special"
-    ),
+    // Pounce is physical by category but is Feline's signature attack.
+    specialAttack: Boolean(actingMove && (actingMove.category === "special" || actingMove.rarity === "signature")),
   });
   const canTarget = !combatant.isFainted || combatant.sideId === "player";
   const profileStyle: PortraitStyle = {

@@ -9,6 +9,7 @@ export const NYLA_GAMEPLAY_ART = {
   combatBasic: "/images/creatures/feline/nyla/nyla_04_basic_attack.png",
   combatSpecial: "/images/creatures/feline/nyla/nyla_05_special_attack.png",
   combatGuard: "/images/creatures/feline/nyla/nyla_06_defend_guard.png",
+  combatKO: "/images/creatures/feline/nyla/nyla_08_defeated_ko.png",
   ranchWork: "/images/creatures/feline/nyla/nyla_09_ranch_work.png",
   sleeping: "/images/creatures/feline/nyla/nyla_10_resting_sleeping.png",
 } as const;
@@ -17,6 +18,14 @@ type FelineIdentity = Pick<CreatureRecord, "variantId"> | null | undefined;
 
 export function isNylaBaseFeline(creature: FelineIdentity): boolean {
   return creature?.variantId === "variant_base_feline";
+}
+
+export function getNylaGameplayCardSprite(creature: FelineIdentity, fallback: string): string {
+  return isNylaBaseFeline(creature) ? NYLA_GAMEPLAY_ART.card : fallback;
+}
+
+export function getNylaGameplayProfileSprite(creature: FelineIdentity, fallback: string): string {
+  return isNylaBaseFeline(creature) ? NYLA_GAMEPLAY_ART.profile : fallback;
 }
 
 export function getNylaRanchJobSprite(
@@ -43,10 +52,10 @@ export function getNylaCombatSprite(
 ): string | null {
   if (!isNylaBaseFeline(creature)) return null;
 
-  // Approved 07 (hit) and 08 (KO) files are still unavailable in the GitHub repo.
-  // Keep existing valid artwork until those two approved files can be transferred.
+  // Image 07 (Taking Damage) is approved but its original PNG has not been transferred.
+  // Use the approved guard art as a safe hit-reaction fallback until the original is available.
   if (context.fainted || (context.target && context.eventKind === "knockout")) {
-    return NYLA_GAMEPLAY_ART.sleeping;
+    return NYLA_GAMEPLAY_ART.combatKO;
   }
   if (context.target && context.eventKind === "damage") {
     return NYLA_GAMEPLAY_ART.combatGuard;

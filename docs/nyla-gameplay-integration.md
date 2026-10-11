@@ -1,30 +1,41 @@
 # Nyla Base Feline — gameplay art integration
 
-The approved Nyla art has been wired to the game's existing **Base Feline** variant. This is a presentation-only change; it does not alter saves, stats, gameplay outcomes, naming, breeding rules, or scenes.
+Nyla is the **art identity** of the Base Feline, not a replacement for player-assigned creature names. The starter creature remains Mira. The patch is presentation-only: no saves, battle formulas, economy, mechanics or breeding scenes were changed.
 
-## Visible in game
+## Approved gameplay art now used
 
-- Base Feline **card/roster image** → Nyla 02 (bust portrait).
-- Base Feline **profile/full-body** → Nyla 01. Existing screens that resolve images from the variant registry pick these up automatically.
-- Shared **battle stage** → Nyla 03 (idle), 04 (basic attack), 05 (special attack), 06 (guard). This stage is used by Coliseum and other combat flows; effects, move logic, and turn mechanics are unchanged.
-- **Garden Tending** assignment card → Nyla 09 harvesting image; other jobs show Nyla 01.
-- **Ranch House sleep confirmation** → Nyla 10 if the ranch currently owns any Base Feline. The sleep mechanic and recovery results are unchanged.
-- Base Feline starter is still named **Mira** in the existing game. Nyla identifies the approved artwork, not a forced rename.
+- Collection roster/cards: **02 Bust Portrait**; selected creature details and comparisons: **01 Full Body**.
+- Feline Habitat creature cards: **02 Bust Portrait**; selected profile: **01 Full Body**.
+- Shared creature-detail component: **01 Full Body only where a non-breeding caller opts into useGameplayArt**.
+- Battle portrait stage: **03 Combat Idle**, **04 Basic Attack**, **05 Special Attack** for the Feline signature Pounce or special-category moves, **06 Guard**, and **08 Defeated / KO**. Image 07 remains unavailable; damage temporarily uses 06 with the existing hit feedback.
+- Battle projected turn order: **02 Bust Portrait**.
+- Ranch Chores: **09 Ranch Work** for Garden Tending; **01 Full Body** for other Nyla assignments.
+- Ranch house day-advance / sleeping UI: **10 Resting / Sleeping** when the ranch has a Base Feline.
+- Ranch hub creature reports: **01 Full Body**.
 
-## Asset transfer status
+## Strict breeding isolation
 
-Approved 01, 02, 03, 04, 05, 06, 09 and 10 were transferred from Google Drive into `public/images/creatures/feline/nyla/` as transparent PNGs.
+The src/data/creatures.ts shared registry retains the pre-integration Base Feline portrait/profile paths:
 
-Approved **07 Taking Damage** and **08 Defeated/KO** could not be transferred through the connected tools. The battle screen temporarily uses Nyla 06 (plus existing hit shake) for damage and Nyla 10 for KO. This avoids broken URLs while those two approved PNGs are pending. Their image files still need proper transfer to the repository and corresponding selector updates in `src/data/nylaGameplayArt.ts`.
+- /images/creatures/feline/base_feline_portrait.png
+- /images/creatures/feline/base_feline_profile.png
 
-## Breeding scene protection
+Breeding participant images derive from this shared registry. Keeping it unchanged avoids an indirect breeding UI change. Nyla helpers are invoked explicitly only by non-breeding screens, and the shared creature-detail view defaults to useGameplayArt = false because it is reused by breeding screens.
 
-No files in `public/images/breeding/`, `src/features/breeding/`, `src/data/breedingSceneImages.ts`, or scene-manifest generation scripts have been edited. The existing breeding-scene images and behaviors remain untouched. The shared creature portrait used by normal selection UI can display the newly approved art wherever that generic variant image is used.
+No breeding UI, scene art, animations, scene manifests, generation scripts, logic, or saves were modified. Sphinx and Tiger artwork is unchanged.
+
+## File inventory and known limitation
+
+Approved original 01–06 and 08–10 are available in public/images/creatures/feline/nyla/ as separate PNGs.
+
+**07 Taking Damage** was approved but has not been found in Google Drive or local attachments. Do not regenerate it. Continue using guard + hit feedback until the original approved 07 is uploaded and verified.
+
+**08 Defeated / KO** was retrieved from its approved Google Drive file and integrated as nyla_08_defeated_ko.png.
 
 ## Validation
 
-`npm run test:regression` includes `tests/nyla-gameplay-art.test.ts`, which checks asset existence, the Base Feline mapping, battle poses, ranch work, sleep and the separate breeding-scene manifest.
+Run npm test and npm run build. The existing GitHub Actions build workflow runs regression tests and a production build; separately verify live Vercel deployment.
 
-Check visually on desktop/mobile: Collection card + detail, Feline Habitat, Coliseum normal/special/guard/hit/KO, Garden Tending assignment and Ranch House sleep. Complete `npm test` and `npm run build` before considering the work playtested.
+In-game checks on desktop and phone: Collection card/details/compare, Feline Habitat and profile, battle Strike vs. Pounce vs. Defend, damage fallback, KO, Ranch Jobs Garden Tending, Ranch House sleep. Compare breeding participant cards and detail modals to the previous build; all breeding scene imagery and mechanics must be identical. Confirm rare Sphinx/Tiger variants, player nicknames, and reduced motion.
 
-After placing 07/08 in the folder, replace the two documented temporary fallbacks and review all paws against the five-digits-per-paw art standard.
+Automated checks cannot substitute for real desktop/mobile visual inspection.

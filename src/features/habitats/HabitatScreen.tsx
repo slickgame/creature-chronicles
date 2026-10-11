@@ -1,5 +1,7 @@
 "use client";
 
+import { getNylaGameplayCardSprite } from "@/data/nylaGameplayArt";
+
 import { useMemo, useState } from "react";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
@@ -207,7 +209,7 @@ export function HabitatScreen() {
                     onClick={() => handleSelectCreature(creature)}
                   >
                     <img
-                      src={getImagePath(variant.portraitPath)}
+                      src={getNylaGameplayCardSprite(creature, getImagePath(variant.portraitPath))}
                       alt=""
                       onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }}
                     />
@@ -293,6 +295,7 @@ function CreatureProfile({
     <div className={`${styles.sharedHabitatProfile} ${viewportStyles.sharedHabitatProfile}`}>
       <SharedCreatureDetail
         creature={creature}
+        useGameplayArt
         dayNumber={dayNumber}
         renameValue={renameValue}
         onRenameValueChange={setRenameValue}

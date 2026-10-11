@@ -1,5 +1,7 @@
 "use client";
 
+import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
+
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
 import {
@@ -45,6 +47,8 @@ type SharedCreatureDetailProps = {
   fitViewport?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
+  // Opt-in only: this shared detail panel is also used in breeding screens.
+  useGameplayArt?: boolean;
 };
 
 const cardStyle: CSSProperties = {
@@ -192,6 +196,7 @@ export function SharedCreatureDetail({
   fitViewport = false,
   statusNote,
   bestStatLabels = [],
+  useGameplayArt = false,
 }: SharedCreatureDetailProps) {
   const variant = getVariantDefinition(creature.variantId);
   const species = getSpeciesDefinition(creature.speciesId);
@@ -289,7 +294,9 @@ export function SharedCreatureDetail({
             </span>
           ) : null}
           <img
-            src={variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
+            src={useGameplayArt
+              ? getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)
+              : variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
             alt=""
             style={{
               display: "block",

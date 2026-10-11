@@ -2,7 +2,7 @@
 
 import { type CSSProperties, useMemo, useState } from "react";
 import { getVariantDefinition } from "@/data/creatures";
-import { isNylaBaseFeline, NYLA_GAMEPLAY_ART } from "@/data/nylaGameplayArt";
+import { getNylaGameplayProfileSprite, isNylaBaseFeline, NYLA_GAMEPLAY_ART } from "@/data/nylaGameplayArt";
 import { RANCH_JOB_DEFINITIONS } from "@/data/ranchJobs";
 import { RANCH_UPGRADE_ASSETS } from "@/data/ranchUpgrades";
 import { getStarterGoalProgress, getStarterGoals } from "@/data/starterGoals";
@@ -38,7 +38,7 @@ const BUILDINGS: Building[] = [
 ];
 
 function getBuildingStyle(building: Building): CSSProperties { return { left: `${building.x}%`, top: `${building.y}%`, width: `${building.width}%` }; }
-function getCreatureProfilePath(creature: CreatureRecord): string { return getVariantDefinition(creature.variantId).profilePath; }
+function getCreatureProfilePath(creature: CreatureRecord): string { return getNylaGameplayProfileSprite(creature, getVariantDefinition(creature.variantId).profilePath); }
 function isAvailableBuilding(id: BuildingId): boolean { return id === "house" || id === "office" || id === "jobs" || id === "feline" || id === "canine" || id === "bovine" || id === "lapine" || id === "equine" || id === "breeding" || id === "nursery" || id === "town"; }
 function getFlagNumber(value: boolean | number | string | undefined): number { const parsed = typeof value === "number" ? value : Number(value ?? 0); return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0; }
 function getFeedFromMessage(message: string): number { const match = message.match(/\+(\d+)\s*Feed/i); return match ? Number(match[1]) : 0; }
