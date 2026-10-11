@@ -1,3 +1,4 @@
+import { getFarmState } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -119,7 +120,7 @@ test("daily goal rewards can only be claimed once", () => {
   const first = updateDailyGoalsAndRewards(custom);
   const second = updateDailyGoalsAndRewards(first);
   assert.equal(first.currencies.gold, custom.currencies.gold + 100, "goal reward plus all-goals bonus adds 100 Gold");
-  assert.equal(Number(first.flags.ranchFeedStock), Number(custom.flags.ranchFeedStock) + 1, "all-goals bonus adds 1 Feed");
+  assert.equal(getFarmState(first).stock.rations, (getFarmState(custom).stock.rations ?? 0) + 1, "all-goals bonus adds 1 ration");
   assert.equal(second.currencies.gold, first.currencies.gold);
   assert.equal(second.flags.ranchFeedStock, first.flags.ranchFeedStock);
 });

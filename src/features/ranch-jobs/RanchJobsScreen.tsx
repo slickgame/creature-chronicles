@@ -1,4 +1,5 @@
 "use client";
+import { getFarmState } from "@/data/farmResources";
 import { FarmResourcesButton } from "@/features/resources/FarmResourcesPanel";
 
 import { useMemo, useState } from "react";
@@ -11,6 +12,7 @@ import {
 } from "@/data/choreSkills";
 import { CREATURE_PLACEHOLDER_IMAGE, getVariantDefinition } from "@/data/creatures";
 import {
+  processRanchJobsForNewDay,
   calculateCreatureChoreScore,
   getCreatureDisplayName,
   getRanchJobs,
@@ -103,12 +105,6 @@ function getFlagNumber(value: boolean | number | string | undefined): number {
   return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
 }
 
-function getDailyFeedCost(creature: CreatureRecord): number {
-  const variant = getVariantDefinition(creature.variantId);
-  return (variant.family === "bovine" || variant.family === "equine" ? 2 : 1) +
-    (variant.rarity === "Rare" || variant.rarity === "Epic" ? 1 : 0);
-}
-
 function isCreatureInjured(creature: CreatureRecord, dayNumber: number): boolean {
   return typeof creature.injuredUntilDayNumber === "number" &&
     creature.injuredUntilDayNumber >= dayNumber;
@@ -162,14 +158,14 @@ function getProjectedFeedForAssignment(creatures: CreatureRecord[], jobId: Ranch
     const score = getProjectedCreatureScore(creature, jobId);
     return total + (jobId === "stable_production"
       ? Math.max(1, Math.floor(5 + score))
-      : Math.max(1, Math.floor(2 + score)));
+      : Math.max(1, Math.floor(2 + score * 0.3)));
   }, 0);
 }
 
 function getProjectedMaterialsForAssignment(creatures: CreatureRecord[], jobId: RanchJobId): number {
   if (jobId !== "field_hauling") return 0;
   return creatures.reduce(
-    (total, creature) => total + Math.max(1, Math.floor(1 + getProjectedCreatureScore(creature, jobId) * 0.65)),
+    (total, creature) => total + Math.max(1, Math.floor(1 + getProjectedCreatureScore(creature, jobId) * 0.25)),
     0,
   );
 }
@@ -189,11 +185,11 @@ function getProjectedDangerChance(securityScore: number): number {
 
 function getProjectedContributionLabel(creature: CreatureRecord, jobId: RanchJobId): string {
   const score = getProjectedCreatureScore(creature, jobId);
-  if (jobId === "stable_production") return `Projected +${Math.max(1, Math.floor(5 + score))} Feed`;
-  if (jobId === "garden_tending") return `Projected +${Math.max(1, Math.floor(2 + score))} Feed`;
+  if (jobId === "stable_production") return `Projected +${Math.max(1, Math.floor(5 + score))} Balanced rations`;
+  if (jobId === "garden_tending") return `Projected +${Math.max(1, Math.floor(2 + score * 0.3))} Vegetables`;
   if (jobId === "security_patrol") return `Security +${Math.round(score)} • danger ${getProjectedDangerChance(Math.round(score))}%`;
   if (jobId === "comfort_care") return `Comfort +${Math.round(score)} • next-day +${Math.min(25, Math.round(score * 2))}%`;
-  return `Materials +${Math.max(1, Math.floor(1 + score * 0.65))} • repair -${Math.round(score)}`;
+  return `Wood +${Math.max(1, Math.floor(1 + score * 0.25))} • repair -${Math.round(score)}`;
 }
 
 function getJobProjectionLabel(creatures: CreatureRecord[], jobId: RanchJobId): string {
@@ -206,9 +202,9 @@ function getJobProjectionLabel(creatures: CreatureRecord[], jobId: RanchJobId): 
   if (jobId === "security_patrol") return `Security +${score} • danger ${getProjectedDangerChance(score)}%`;
   if (jobId === "comfort_care") return `Comfort +${score} • +${Math.min(25, score * 2)}%`;
   if (jobId === "stable_production" || jobId === "garden_tending") {
-    return `Feed +${getProjectedFeedForAssignment(creatures, jobId)}`;
+    return `${jobId === "stable_production" ? "Balanced rations" : "Vegetables"} +${getProjectedFeedForAssignment(creatures, jobId)}`;
   }
-  return `Materials +${getProjectedMaterialsForAssignment(creatures, jobId)} • repair -${score}`;
+  return `Wood +${getProjectedMaterialsForAssignment(creatures, jobId)} • repair -${score}`;
 }
 
 function getUnavailableReason(
@@ -417,21 +413,15 @@ export function RanchJobsScreen() {
   }
 
   const assignedCreatures = RANCH_JOB_IDS.flatMap((jobId) => getAssignedCreatures(jobId));
-  const feedStock = getFlagNumber(activeSave.flags.ranchFeedStock);
-  const materialsStock = getFlagNumber(activeSave.flags.ranchMaterialsStock);
-  const dailyFeedNeed = (activeSave.creatures ?? []).reduce(
-    (total, creature) => total + getDailyFeedCost(creature),
-    0,
-  );
-  const projectedFeed = RANCH_JOB_IDS.reduce(
-    (total, jobId) => total + getProjectedFeedForAssignment(getAssignedCreatures(jobId), jobId),
-    0,
-  );
+  // Run the same pure overnight resolver used by sleep; preview changes are never saved.
+  const forecast = processRanchJobsForNewDay({ ...activeSave, dayState: { ...activeSave.dayState, dayNumber: activeSave.dayState.dayNumber + 1 }, creatures: activeSave.creatures?.map(c => ({...c,energy:c.maxEnergy})) }).save;
+  const materialsStock = getFarmState(activeSave).stock.wood ?? 0;
+  const dailyFeedNeed = getFlagNumber(forecast.flags.ranchFeedRequiredToday);
   const projectedSecurity = getProjectedScoreTotal(getAssignedCreatures("security_patrol"), "security_patrol");
   const projectedComfort = getProjectedScoreTotal(getAssignedCreatures("comfort_care"), "comfort_care");
-  const projectedMaterials = getProjectedMaterialsForAssignment(getAssignedCreatures("field_hauling"), "field_hauling");
+  const projectedMaterials = getFlagNumber(forecast.flags.ranchMaterialsProducedToday);
   const projectedUpkeep = getProjectedScoreTotal(getAssignedCreatures("field_hauling"), "field_hauling");
-  const projectedAvailableFeed = feedStock + projectedFeed;
+  const projectedAvailableFeed = getFlagNumber(forecast.flags.ranchFeedConsumedToday);
   const projectedFoodStatus = projectedAvailableFeed >= dailyFeedNeed
     ? "Fed"
     : projectedAvailableFeed > 0
@@ -494,13 +484,13 @@ export function RanchJobsScreen() {
         <header className={ui.heading}><h1>Ranch Chores</h1><ScreenNavigation /></header>
         <section className={ui.summary} aria-label="Overnight projections">
           <div><span>Helpers</span><strong>{assignedCreatures.length}/{activeSave.creatures?.length ?? 0}</strong></div>
-          <div><span>Feed / needed</span><strong>{projectedAvailableFeed}/{dailyFeedNeed}</strong></div>
+          <div><span>Food covered / needed</span><strong>{projectedAvailableFeed}/{dailyFeedNeed}</strong></div>
           <div><span>Danger</span><strong>{projectedSecurity ? getProjectedDangerChance(projectedSecurity) : PROJECTED_BASE_DANGER_CHANCE}%</strong></div>
           <button type="button" onClick={() => setPopup("report")}>{projectedFoodStatus === "Fed" ? "Tonight's Report" : "Food shortage · Details"}</button>
         </section>
         <div className={styles.workspace}>
           <aside className={`${ui.paper} ${styles.tasks}`} aria-label="Choose a chore"><h2>Today's Chores</h2>
-            {RANCH_JOB_DEFINITIONS.map(job => <button key={job.jobId} type="button" className={`${styles.task} ${activeJobId === job.jobId ? styles.selected : ""}`} aria-pressed={activeJobId === job.jobId} onClick={() => setActiveJobId(job.jobId)}><IllustratedIcon name={CHORE_ICONS[job.jobId]} className={styles.choreIcon} /><span><strong>{job.name}</strong><small>{getAssignedCreatures(job.jobId).length}/{MAX_CREATURES_PER_CHORE} helpers · {job.energyCost} Energy</small></span></button>)}
+            {RANCH_JOB_DEFINITIONS.map(job => <button key={job.jobId} type="button" className={`${styles.task} ${activeJobId === job.jobId ? styles.selected : ""}`} aria-pressed={activeJobId === job.jobId} onClick={() => setActiveJobId(job.jobId)}>{["stable_production","garden_tending","field_hauling"].includes(job.jobId) ? <img src={`/images/ui/resources-v2/${job.jobId==="stable_production"?"rations":job.jobId==="garden_tending"?"vegetables":"wood"}.webp`} alt="" className={styles.choreIcon}/> : <IllustratedIcon name={CHORE_ICONS[job.jobId]} className={styles.choreIcon} />}<span><strong>{job.name}</strong><small>{getAssignedCreatures(job.jobId).length}/{MAX_CREATURES_PER_CHORE} helpers · {job.energyCost} Energy</small></span></button>)}
           </aside>
           {activeJob ? <section className={`${ui.paper} ${styles.crew}`} aria-label="Chore details">
             <label className={styles.taskPicker}>Chore<select value={activeJobId} onChange={event => setActiveJobId(event.target.value as RanchJobId)}>{RANCH_JOB_DEFINITIONS.map(job => <option key={job.jobId} value={job.jobId}>{job.name}</option>)}</select></label>
@@ -521,7 +511,7 @@ export function RanchJobsScreen() {
         {activeUnavailable.length ? <details className={styles.unavailable}><summary>Unavailable Creatures ({activeUnavailable.length})</summary>{activeUnavailable.map(({creature,reason}) => <div key={creature.creatureId}><strong>{creature.nickname}</strong><p>{reason}</p></div>)}</details> : null}
       </GameDialog> : null}
       {popup === "plans" ? <GameDialog title="Crew Plans" onClose={() => setPopup(null)}><p>Choose a plan to replace the current assignments.</p><div className={styles.planList}>{CHORE_PLANS.map(plan => <button type="button" key={plan.id} onClick={() => {applyChorePlan(plan);setPopup(null);}}><strong>{plan.label}</strong><span>{plan.description}</span></button>)}<button type="button" onClick={() => {handleClearAll();setPopup(null);}}>Clear All</button></div></GameDialog> : null}
-      {popup === "report" ? <GameDialog title="Tonight's Report" onClose={() => setPopup(null)}><p>{projectedRecoveryLabel}</p><p>{riskWarning}</p><p>Feed: {projectedAvailableFeed}/{dailyFeedNeed}. Comfort: {projectedComfort ? `+${Math.min(25,projectedComfort*2)}% breed` : "None"}. Materials: {materialsStock} + {projectedMaterials}. Upkeep repair: {projectedUpkeep}.</p>{message ? <p role="status">{message}</p> : null}</GameDialog> : null}
+      {popup === "report" ? <GameDialog title="Tonight's Report" onClose={() => setPopup(null)}><p>{projectedRecoveryLabel}</p><p>{riskWarning}</p><p>Food units covered: {projectedAvailableFeed}/{dailyFeedNeed}. Comfort: {projectedComfort ? `+${Math.min(25,projectedComfort*2)}% breed` : "None"}. Wood: {materialsStock} + {projectedMaterials}. Upkeep repair: {projectedUpkeep}.</p>{message ? <p role="status">{message}</p> : null}</GameDialog> : null}
       {popup === "about" ? <GameDialog title="About Ranch Chores" onClose={() => setPopup(null)}><p>Assignments repeat each night. Every species can learn every chore. Best Fit considers stats, talents, affection, and chore skills. Helpers need enough energy and cannot be in training or injured.</p><p>Manage Helpers shows full stat fit, skill progress, expected contribution, and why a helper is unavailable.</p></GameDialog> : null}
     </main>
   );

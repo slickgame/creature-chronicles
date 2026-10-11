@@ -5,7 +5,7 @@ import { getFarmState, foodChoices, setIngredientFeeding, planIngredientFeeding,
 import { createWeeklyCommissions, completeGuildCommission } from "@/data/guildCommissions";
 import { ensureCurrentGuildState, acceptGuildContract } from "@/data/guild";
 import { processRanchJobsForNewDay } from "@/data/ranchJobs";
-function fresh() { const s=createNewGameSave("Resources",0);s.flags.farmResourcesV1=JSON.stringify({version:1,stock:Object.fromEntries(RESOURCE_IDS.map(id=>[id,100]))});return s; }
+function fresh() { const s=createNewGameSave("Resources",0);s.flags.farmResourcesV1=JSON.stringify({version:1,stock:Object.fromEntries(RESOURCE_IDS.map(id=>[id,id==="rations"?0:100]))});return s; }
 test("feeding is opt-in, diet-aware, protects reserves and leaves meals alone",()=>{
  let s=fresh();const c=s.creatures![0], food=foodChoices(c)[0];
  const needs=[{creature:c,amount:3}];assert.equal(planIngredientFeeding(s,needs).covered,0);

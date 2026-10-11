@@ -4,6 +4,7 @@ import { getVariantDefinition } from "@/data/creatures";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 
 export const RESOURCES = {
+  rations: { name: "Balanced rations", category: "Food", price: 8 },
   wheat: { name: "Wheat", category: "Food", price: 8 }, vegetables: { name: "Vegetables", category: "Food", price: 8 },
   milk: { name: "Milk", category: "Food", price: 12 }, eggs: { name: "Food eggs", category: "Food", price: 12 }, meat: { name: "Meat", category: "Food", price: 14 },
   wood: { name: "Wood", category: "Materials", price: 8 }, stone: { name: "Stone", category: "Materials", price: 8 }, iron_ore: { name: "Iron ore", category: "Materials", price: 12 },
@@ -34,6 +35,7 @@ export const SITES = {
 } satisfies Record<string, { name: string; resource: ResourceId; amount: number; description: string }>;
 export type SiteId = keyof typeof SITES;
 export const RECIPES: { id: ResourceId; inputs: Stock; output: number; facility?: FacilityId; effect: string }[] = [
+  { id: "rations", inputs: { wheat: 2, vegetables: 1 }, output: 4, effect: "Four food units for any creature; consumed nightly unless reserved." },
   { id: "porridge", inputs: { wheat: 1, vegetables: 1 }, output: 1, effect: "Restore 8 creature Energy; once per day." },
   { id: "breakfast", inputs: { wheat: 1, eggs: 1, milk: 1 }, output: 1, effect: "Restore 15 creature Energy; once per day." },
   { id: "breeders_bowl", inputs: { eggs: 1, milk: 1, vegetables: 1 }, output: 1, effect: "+10 percentage points to pregnancy chance today; existing 90% cap applies." },
@@ -107,6 +109,7 @@ export function processResourceDay(save: GameSave): GameSave {
   if (state.lastDay >= save.dayState.dayNumber) return save;
   state.report = [];
   // Overnight receives the new date. Meals from the previous day apply to this work.
+  let gatheredWood = 0;
   const creatures = (save.creatures ?? []).map(c => ({ ...c }));
   for (const site of Object.keys(SITES) as SiteId[]) {
     for (const id of (state.assignments[site] ?? []).slice(0, siteSlots(state, site))) {
@@ -115,6 +118,7 @@ export function processResourceDay(save: GameSave): GameSave {
       const reason = workerBlocker(save, c, site, true);
       if (reason) { state.report.push(`${c.nickname}: ${reason}`); continue; }
       const amount = siteYield(state, site), resource = SITES[site].resource;
+      if (resource === "wood") gatheredWood += amount;
       c.energy -= overnightChoreCost(save, id, 20);
       state.stock[resource] = (state.stock[resource] ?? 0) + amount;
       state.report.push(`${c.nickname}: +${amount} ${RESOURCES[resource].name}.`);
@@ -126,7 +130,7 @@ export function processResourceDay(save: GameSave): GameSave {
     delete state.project;
   }
   state.lastDay = save.dayState.dayNumber;
-  return write({ ...save, creatures }, state);
+  return write({ ...save, creatures, flags: { ...save.flags, productionWoodGathered: Number(save.flags.productionWoodGathered ?? 0) + gatheredWood } }, state);
 }
 export function craftResource(save: GameSave, id: ResourceId, quantity = 1): FarmResult {
   const recipe = RECIPES.find(r => r.id === id), state = getFarmState(save);
@@ -137,6 +141,7 @@ export function craftResource(save: GameSave, id: ResourceId, quantity = 1): Far
   spend(state, cost);
   const output = quantity * recipe.output * (id === "planks" && state.facilities.sawmill ? 2 : 1);
   state.stock[id] = (state.stock[id] ?? 0) + output;
+  if (id === "planks") save = { ...save, flags: { ...save.flags, productionPlanksCrafted: Number(save.flags.productionPlanksCrafted ?? 0) + output } };
   return done(save, state, `Made ${output} ${RESOURCES[id].name}. Used ${resourceList(cost)}.`);
 }
 export function serveMeal(save: GameSave, id: ResourceId, creatureId: string): FarmResult {
@@ -171,7 +176,9 @@ export function tradeResource(save: GameSave, id: ResourceId, quantity: number, 
 export function reserveResource(save: GameSave, id: ResourceId, quantity: number): FarmResult {
   const state = getFarmState(save);
   if (!RESOURCES[id] || !Number.isInteger(quantity) || quantity < 0 || quantity > 9999) return fail(save, "Choose a reserve from 0 to 9999.");
-  state.reserves[id] = quantity; return done(save, state, `${RESOURCES[id].name}: protecting ${quantity} units from recipes, feeding, sales, construction and deliveries.`);
+  state.reserves[id] = quantity;
+  if (id === "wood" && quantity >= 2) save = { ...save, flags: { ...save.flags, productionReserveSet: true } };
+  return done(save, state, `${RESOURCES[id].name}: protecting ${quantity} units from recipes, feeding, sales, construction and deliveries.`);
 }
 export function actSupplyOrder(save: GameSave, id: string): FarmResult {
   const state = getFarmState(save), order = SUPPLY_ORDERS.find(o => o.id === id);
@@ -194,7 +201,7 @@ export function foodChoices(creature: CreatureRecord): ResourceId[] {
 }
 export function setIngredientFeeding(save: GameSave, enabled: boolean): FarmResult {
   const state = getFarmState(save); state.ingredientFeeding = enabled;
-  return done(save, state, enabled ? "Unreserved ingredients will cover food needs before Feed tonight." : "Ingredients saved for recipes. Tonight uses Feed only.");
+  return done(save, state, enabled ? "Balanced rations come first; unreserved raw ingredients cover remaining needs before legacy Feed." : "Raw ingredients saved for recipes. Tonight uses Balanced rations and existing Feed.");
 }
 export function consumeFarmResources(save: GameSave, cost: Stock): FarmResult {
   const state = getFarmState(save);
@@ -204,9 +211,10 @@ export function consumeFarmResources(save: GameSave, cost: Stock): FarmResult {
 export function planIngredientFeeding(save: GameSave, needs: { creature: CreatureRecord; amount: number }[]) {
   const state = getFarmState(save), used: Stock = {};
   let covered = 0;
-  if (state.ingredientFeeding) for (const { creature, amount } of needs) {
+  for (const { creature, amount } of needs) {
     let remaining = amount;
-    for (const id of foodChoices(creature)) {
+    const choices: ResourceId[] = ["rations", ...(state.ingredientFeeding ? foodChoices(creature) : [])];
+    for (const id of choices) {
       const count = Math.min(remaining, Math.max(0, (state.stock[id] ?? 0) - (state.reserves[id] ?? 0)));
       if (!count) continue;
       state.stock[id] = (state.stock[id] ?? 0) - count;
@@ -229,4 +237,18 @@ export function grantFarmResources(save: GameSave, rewards: Stock): GameSave {
   const state = getFarmState(save);
   for (const [id, n] of Object.entries(rewards) as [ResourceId, number][]) state.stock[id] = (state.stock[id] ?? 0) + n;
   return write(save, state);
+}
+
+export function getProductionGuide(save: GameSave) {
+  const state = getFarmState(save);
+  return [
+    { title: "Gather your first timber", tab: "Gathering" as const, done: Number(save.flags.productionWoodGathered ?? 0) >= 4, text: "Assign a helper to the inherited woodlot or Field Hauling, then sleep. Gather at least 4 Wood. A woodlot helper brings 4 per night." },
+    { title: "Keep a repair reserve", tab: "Storage" as const, done: save.flags.productionReserveSet === true, text: "Set the Wood reserve to 2. Reserved supplies are protected from crafting, feeding, selling and construction." },
+    { title: "Craft your first planks", tab: "Workbench" as const, done: Number(save.flags.productionPlanksCrafted ?? 0) >= 1, text: "Make Planks at the basic workbench: 2 unreserved Wood makes 1 Plank. A Sawmill later doubles that output." },
+    { title: "Finish a production site", tab: "Construction" as const, done: Object.values(state.facilities).some(Boolean), text: "Visit Petra’s Builder’s Yard → Production sites & upgrades. A Quarry costs 180 Gold + 6 Wood and finishes after one night. For this whole lesson, gather 10 Wood: 2 reserved, 2 for planks and 6 for the Quarry." },
+  ];
+}
+export function claimProductionGuide(save: GameSave): FarmResult {
+  if (save.flags.productionGuideClaimed || !getProductionGuide(save).every(step => step.done)) return fail(save, "Complete all four steps before claiming this one-time reward.");
+  return {ok:true,message:"Farm foundations complete! Earned 75 Gold and 5 GP.",save:{...save,flags:{...save.flags,productionGuideClaimed:true},currencies:{...save.currencies,gold:save.currencies.gold+75,guildPoints:save.currencies.guildPoints+5}}};
 }

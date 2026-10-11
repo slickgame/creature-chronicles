@@ -1,3 +1,4 @@
+import { getFarmState } from "./farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import { getRanchJobs, RANCH_JOB_IDS } from "@/data/ranchJobs";
 import type { CreatureFamily, CreatureRecord } from "@/types/creature";
@@ -38,9 +39,10 @@ function pushPriority(priorities: RanchAdvisorPriority[], priority: RanchAdvisor
 export function getRanchAdvisorPlan(save: GameSave): RanchAdvisorPlan {
   const priorities: RanchAdvisorPriority[] = [];
   const assignedIds = getAssignedIds(save);
-  const feedStock = getFlagNumber(save.flags.ranchFeedStock);
+  const farm = getFarmState(save);
+  const feedStock = getFlagNumber(save.flags.ranchFeedStock) + Math.max(0,(farm.stock.rations ?? 0)-(farm.reserves.rations ?? 0));
   const feedRequired = (save.creatures ?? []).reduce((total, creature) => total + getDailyFeedCost(creature), 0);
-  const materialsStock = getFlagNumber(save.flags.ranchMaterialsStock);
+  const materialsStock = Math.max(0,(farm.stock.wood ?? 0)-(farm.reserves.wood ?? 0));
   const ranchDamage = getFlagNumber(save.flags.ranchDamage);
   const taxDue = getFlagNumber(save.flags.taxCurrentMonthDue);
   const taxDaysUntilDue = getFlagNumber(save.flags.taxDaysUntilDue, 30);
@@ -57,9 +59,9 @@ export function getRanchAdvisorPlan(save: GameSave): RanchAdvisorPlan {
   const equine = findFamilyHelper(save, "equine", assignedIds);
 
   if (!isJobAssigned(save, "security_patrol")) pushPriority(priorities, { id: "security", severity: "urgent", title: "Assign Security Patrol", body: canine ? `${canine.nickname} is your cleanest early security pick. An empty patrol leaves the ranch exposed to danger events.` : "Security Patrol is empty. Find or free up a canine-style guard before sleeping.", action: "chores", actionLabel: "Open Chores", jobId: "security_patrol", helperName: canine?.nickname });
-  if (feedStock < Math.max(feedRequired * 2, 10) || !isJobAssigned(save, "stable_production")) pushPriority(priorities, { id: "feed", severity: feedStock < feedRequired ? "urgent" : "warning", title: "Stabilize Feed", body: bovine ? `${bovine.nickname} should help Stable Production. Feed stock is ${feedStock}, and the ranch needs about ${feedRequired} per day.` : `Feed stock is ${feedStock}. Stable Production should be staffed soon.`, action: "chores", actionLabel: "Open Chores", jobId: "stable_production", helperName: bovine?.nickname });
+  if (feedStock < Math.max(feedRequired * 2, 10) || !isJobAssigned(save, "stable_production")) pushPriority(priorities, { id: "feed", severity: feedStock < feedRequired ? "urgent" : "warning", title: "Prepare nightly rations", body: bovine ? `${bovine.nickname} should help Stable Production. Usable rations/Feed total ${feedStock}, and the ranch needs about ${feedRequired} per day.` : `Usable rations/Feed total ${feedStock}. Stable Production should be staffed soon.`, action: "chores", actionLabel: "Open Chores", jobId: "stable_production", helperName: bovine?.nickname });
   if (!isJobAssigned(save, "garden_tending")) pushPriority(priorities, { id: "garden", severity: "suggestion", title: "Use the Bunny for Garden Support", body: lapine ? `${lapine.nickname} can cover Garden Tending while your production line grows. This teaches the bunny's early role without forcing deeper systems yet.` : "Garden Tending is empty. A lapine helper gives early support and keeps the starter crew relevant.", action: "chores", actionLabel: "Open Chores", jobId: "garden_tending", helperName: lapine?.nickname });
-  if (ranchDamage >= 20 || materialsStock < 3 || !isJobAssigned(save, "field_hauling")) pushPriority(priorities, { id: "hauling", severity: ranchDamage >= 50 ? "urgent" : "warning", title: "Protect Ranch Condition", body: equine ? `${equine.nickname} should handle Field Hauling. Materials are ${materialsStock}, and ranch damage is ${ranchDamage}/100.` : `Materials are ${materialsStock}, and ranch damage is ${ranchDamage}/100. Field Hauling needs attention.`, action: "chores", actionLabel: "Open Chores", jobId: "field_hauling", helperName: equine?.nickname });
+  if (ranchDamage >= 20 || materialsStock < 3 || !isJobAssigned(save, "field_hauling")) pushPriority(priorities, { id: "hauling", severity: ranchDamage >= 50 ? "urgent" : "warning", title: "Protect Ranch Condition", body: equine ? `${equine.nickname} should handle Field Hauling. Usable Wood is ${materialsStock}, and ranch damage is ${ranchDamage}/100.` : `Usable Wood is ${materialsStock}, and ranch damage is ${ranchDamage}/100. Field Hauling needs attention.`, action: "chores", actionLabel: "Open Chores", jobId: "field_hauling", helperName: equine?.nickname });
   if (!isJobAssigned(save, "comfort_care")) pushPriority(priorities, { id: "comfort", severity: "suggestion", title: "Set Up Comfort Care", body: feline ? `${feline.nickname} fits Comfort Care. This can create tomorrow's comfort bonus before serious pairing decisions.` : "Comfort Care is empty. A calming creature can improve tomorrow's setup.", action: "chores", actionLabel: "Open Chores", jobId: "comfort_care", helperName: feline?.nickname });
   if (readyEggCount > 0) pushPriority(priorities, { id: "ready-eggs", severity: "urgent", title: "Hatch Ready Egg", body: `${readyEggCount} egg${readyEggCount === 1 ? " is" : "s are"} ready. Hatch before adding more nursery pressure.`, action: "nursery", actionLabel: "Open Nursery" });
   else if (incubatingEggCount > 0) pushPriority(priorities, { id: "incubating-eggs", severity: "info", title: "Nursery Timer Running", body: `${incubatingEggCount} egg${incubatingEggCount === 1 ? " is" : "s are"} incubating. Security and ranch condition still matter because danger can disturb eggs.`, action: "nursery", actionLabel: "Check Nursery" });

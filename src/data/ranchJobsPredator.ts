@@ -1,4 +1,4 @@
-import { processResourceDay, overnightChoreCost, planIngredientFeeding, resourceList } from "./farmResources";
+import { processResourceDay, overnightChoreCost, planIngredientFeeding, resourceList, grantFarmResources, getFarmState, type Stock } from "./farmResources";
 import { recordGuildChoreWork } from "./guildCommissions";
 import {
   gainCreatureChoreSkillXp,
@@ -75,12 +75,12 @@ function calculateChoreScore(creature: CreatureRecord, job: RanchJobDefinition):
 
 function getJobProvisionOutput(jobId: RanchJobId, score: number): number {
   if (jobId === "stable_production") return Math.max(1, Math.floor(5 + score));
-  if (jobId === "garden_tending") return Math.max(1, Math.floor(2 + score));
+  if (jobId === "garden_tending") return Math.max(1, Math.floor(2 + score * 0.3));
   return 0;
 }
 
 function getJobMaterialOutput(jobId: RanchJobId, score: number): number {
-  return jobId === "field_hauling" ? Math.max(1, Math.floor(1 + score * 0.65)) : 0;
+  return jobId === "field_hauling" ? Math.max(1, Math.floor(1 + score * 0.25)) : 0;
 }
 
 function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number, materialOutput: number, score: number, talentTriggers: string[], skillSummary = ""): string {
@@ -88,9 +88,9 @@ function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionO
   const progressionText = skillSummary ? ` ${skillSummary}` : "";
   if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security score +${Math.round(score)}.${progressionText}${talentText}`;
   if (jobId === "comfort_care") return `${creatureName} kept the ranch calm. Breeding Comfort score +${Math.round(score)}.${progressionText}${talentText}`;
-  if (jobId === "stable_production") return `${creatureName} stocked the feed shed: +${provisionOutput} Feed.${progressionText}${talentText}`;
-  if (jobId === "garden_tending") return `${creatureName} harvested garden produce: +${provisionOutput} Feed.${progressionText}${talentText}`;
-  if (jobId === "field_hauling") return `${creatureName} moved supplies: +${materialOutput} Materials. Upkeep score +${Math.round(score)}.${progressionText}${talentText}`;
+  if (jobId === "stable_production") return `${creatureName} stocked the feed shed: +${provisionOutput} Balanced rations.${progressionText}${talentText}`;
+  if (jobId === "garden_tending") return `${creatureName} harvested garden produce: +${provisionOutput} Vegetables.${progressionText}${talentText}`;
+  if (jobId === "field_hauling") return `${creatureName} moved supplies: +${materialOutput} Wood. Upkeep score +${Math.round(score)}.${progressionText}${talentText}`;
   return `${creatureName} completed ${getRanchJobDefinition(jobId).name}.${progressionText}${talentText}`;
 }
 
@@ -150,6 +150,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const choreEnergyDiscount = ranchEffects.ranchChoreEnergyDiscount;
   const choreScoreBonus = ranchEffects.ranchChoreScoreBonus;
   let completions = 0;
+  const producedResources: Stock = {};
   let producedFeed = 0;
   let producedMaterials = 0;
   let securityScore = 0;
@@ -186,6 +187,9 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       const materialOutput = getJobMaterialOutput(jobId, choreScore);
       producedFeed += provisionOutput;
       producedMaterials += materialOutput;
+      const resource = jobId === "stable_production" ? "rations" : jobId === "garden_tending" ? "vegetables" : "wood";
+      const amount = provisionOutput + materialOutput;
+      if (amount) producedResources[resource] = (producedResources[resource] ?? 0) + amount;
       if (jobId === "security_patrol") securityScore += choreScore;
       if (jobId === "comfort_care") comfortScore += choreScore;
       if (jobId === "field_hauling") upkeepScore += choreScore;
@@ -212,6 +216,8 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     }
   }
 
+  save = grantFarmResources(save, producedResources);
+  save = {...save,flags:{...save.flags,productionWoodGathered:Number(save.flags.productionWoodGathered??0)+(producedResources.wood??0)}};
   const predatorCheck = resolvePredatorNightCheck(save, securityScore);
   const ingredientFeeding = planIngredientFeeding(predatorCheck.save, nextCreatures
     .filter(c => !isCreatureAwayForTraining(predatorCheck.save, c.creatureId))
@@ -232,10 +238,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const finalDamage = Math.max(0, damageBeforeRepair - repairedDamage);
   const conditionLabel = getRanchConditionLabel(finalDamage);
   const conditionPenalty = getConditionRecoveryPenalty(finalDamage);
-  const feedAvailable = startingFeed + producedFeed;
+  const feedAvailable = startingFeed;
   const feedConsumed = Math.min(feedAvailable, Math.max(0, feedRequired - ingredientFeeding.covered));
   const remainingFeed = Math.max(0, feedAvailable - feedConsumed);
-  const remainingMaterials = startingMaterials + producedMaterials;
+  const remainingMaterials = startingMaterials;
   const fedRatio = feedRequired > 0 ? (feedConsumed + ingredientFeeding.covered) / feedRequired : 1;
   const basePlayerEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
   const baseCreatureEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
@@ -251,7 +257,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       : foodStatus === "Short"
         ? `Food shortage: ${feedConsumed + ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
         : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`);
-  const haulingSummary = producedMaterials > 0 ? `Field Hauling added ${producedMaterials} Materials. Ranch material stock is now ${remainingMaterials}.` : "No new ranch materials were hauled today.";
+  const haulingSummary = producedMaterials > 0 ? `Field Hauling added ${producedMaterials} Wood. Wood stock is now ${getFarmState(workingSave).stock.wood ?? 0}.` : "No new Wood was hauled today.";
   const damageSourceSummary = totalDamageAdded > 0 ? `Routine wear added ${totalDamageAdded} ranch damage.` : "No routine wear damage was added today.";
   const upkeepSummary = repairedDamage > 0
     ? `${damageSourceSummary} Field Hauling repaired ${repairedDamage} ranch damage. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).`
@@ -314,7 +320,8 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         ranchFeedStock: remainingFeed,
         ranchFeedProducedToday: producedFeed,
         ranchFeedRequiredToday: feedRequired,
-        ranchFeedConsumedToday: feedConsumed,
+        ranchFeedConsumedToday: feedConsumed + ingredientFeeding.covered,
+        ranchLegacyFeedConsumedToday: feedConsumed,
         ranchFoodStatus: foodStatus,
         ranchFeedingSummary: feedingSummary,
         ranchMaterialsStock: remainingMaterials,

@@ -1,3 +1,4 @@
+import { getFarmState } from "./farmResources";
 import type { RanchJobResult } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
 
@@ -21,9 +22,9 @@ export function buildDailyReportBundle(save: GameSave, jobResults: RanchJobResul
   const feedProduced = readNumber(save.flags.ranchFeedProducedToday);
   const feedRequired = readNumber(save.flags.ranchFeedRequiredToday);
   const feedConsumed = readNumber(save.flags.ranchFeedConsumedToday);
-  const feedStock = readNumber(save.flags.ranchFeedStock);
+  const feedStock = readNumber(save.flags.ranchFeedStock) + (getFarmState(save).stock.rations ?? 0);
   const materialsProduced = readNumber(save.flags.ranchMaterialsProducedToday);
-  const materialsStock = readNumber(save.flags.ranchMaterialsStock);
+  const materialsStock = getFarmState(save).stock.wood ?? 0;
   const damage = readNumber(save.flags.ranchDamage);
   const damageAdded = readNumber(save.flags.ranchDamageAddedToday);
   const damageRepaired = readNumber(save.flags.ranchDamageRepairedToday);
@@ -43,15 +44,15 @@ export function buildDailyReportBundle(save: GameSave, jobResults: RanchJobResul
   const warnings: string[] = [];
   const nextSteps: string[] = [];
 
-  highlights.push(`Chores completed: ${jobResults.length}. Feed +${feedProduced}, Materials +${materialsProduced}.`);
+  highlights.push(`Chores completed: ${jobResults.length}. Food units +${feedProduced}, Wood +${materialsProduced}.`);
   highlights.push(`Ranch condition: ${condition} (${damage}/100 damage). Damage +${damageAdded}, repairs -${damageRepaired}.`);
   if (securityScore > 0) highlights.push(`Security Patrol scored ${securityScore}, leaving danger around ${dangerChance}%.`);
   if (comfortBonus > 0) highlights.push(`Comfort Care created a +${comfortBonus}% breeding comfort bonus for today.`);
-  if (upkeepScore > 0) highlights.push(`Field Hauling created ${upkeepScore} upkeep score and ${materialsStock} total Materials.`);
+  if (upkeepScore > 0) highlights.push(`Field Hauling created ${upkeepScore} upkeep score and ${materialsStock} total Wood.`);
   if (readyEggs > 0) highlights.push(`${readyEggs} egg${readyEggs === 1 ? " is" : "s are"} ready to hatch.`);
   else if (incubatingEggs > 0) highlights.push(`${incubatingEggs} egg${incubatingEggs === 1 ? " is" : "s are"} still incubating.`);
 
-  if (foodStatus !== "Fed") warnings.push(`Food status is ${foodStatus}: ${feedConsumed}/${feedRequired} Feed consumed, ${feedStock} left.`);
+  if (foodStatus !== "Fed") warnings.push(`Food status is ${foodStatus}: ${feedConsumed}/${feedRequired} food units covered, ${feedStock} rations/Feed left.`);
   if (securityScore <= 0) warnings.push("No Security Patrol resolved overnight. Danger remains high until a guard is assigned.");
   if (upkeepScore <= 0) warnings.push("No Field Hauling resolved overnight. Routine ranch wear can build up without upkeep.");
   if (damage >= 50) warnings.push(`Ranch damage is ${damage}/100. Repair or assign hauling before condition penalties get worse.`);
@@ -60,7 +61,7 @@ export function buildDailyReportBundle(save: GameSave, jobResults: RanchJobResul
   if (taxDue > 0 && taxDays <= 7) warnings.push(`Tax pressure: ${taxDue} Gold due in ${taxDays} day${taxDays === 1 ? "" : "s"}.`);
 
   if (readyEggs > 0) nextSteps.push("Open the Nursery and hatch ready eggs before starting more incubation pressure.");
-  if (feedStock < Math.max(10, feedRequired)) nextSteps.push("Run Stable Production or Garden Tending today to rebuild Feed stock.");
+  if (feedStock < Math.max(10, feedRequired)) nextSteps.push("Run Stable Production for balanced rations. Garden vegetables can be cooked or used with ingredient feeding enabled.");
   if (securityScore <= 0) nextSteps.push("Assign a canine or strong guard to Security Patrol before sleeping again.");
   if (damage >= 20 || upkeepScore <= 0) nextSteps.push("Assign an equine-style helper to Field Hauling or repair from the Ranch Office.");
   if (comfortBonus <= 0) nextSteps.push("Assign a feline-style helper to Comfort Care if breeding is part of today's plan.");

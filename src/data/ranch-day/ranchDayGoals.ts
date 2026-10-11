@@ -1,3 +1,4 @@
+import { grantFarmResources } from "@/data/farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import type { DailyGoalRecord, RanchDayActivity, RanchDayReward } from "@/types/ranchDay";
 import type { GameSave } from "@/types/save";
@@ -21,8 +22,8 @@ function stableHash(seed: string): number {
 function rewardLabel(reward: RanchDayReward): string {
   const parts = [
     reward.gold ? `${reward.gold} Gold` : "",
-    reward.feed ? `${reward.feed} Feed` : "",
-    reward.materials ? `${reward.materials} Materials` : "",
+    reward.feed ? `${reward.feed} Balanced rations` : "",
+    reward.materials ? `${reward.materials} Wood` : "",
     reward.affection ? `+${reward.affection} Affection` : "",
     reward.comfortBonus ? `+${reward.comfortBonus}% Comfort` : "",
   ].filter(Boolean);
@@ -134,9 +135,9 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
   },
   {
     id: "produce-feed",
-    label: "Produce at least 5 Feed",
+    label: "Produce at least 5 food units",
     description: "Assign Stable Production or Garden Tending before ending the day.",
-    progressLabel: "Feed produced",
+    progressLabel: "Food units produced",
     target: 5,
     reward: { gold: 40, feed: 1 },
     available: (save) => hasFamily(save, "bovine") || hasFamily(save, "lapine"),
@@ -144,9 +145,9 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
   },
   {
     id: "produce-materials",
-    label: "Produce at least 2 Materials",
+    label: "Produce at least 2 Wood",
     description: "Assign Field Hauling before ending the day.",
-    progressLabel: "Materials produced",
+    progressLabel: "Wood produced",
     target: 2,
     reward: { gold: 40, materials: 1 },
     available: (save) => hasFamily(save, "equine"),
@@ -205,8 +206,7 @@ export function generateDailyGoals(save: GameSave): DailyGoalRecord[] {
 }
 
 function applyReward(save: GameSave, reward: RanchDayReward): GameSave {
-  const feed = readFlagNumber(save.flags.ranchFeedStock) + (reward.feed ?? 0);
-  const materials = readFlagNumber(save.flags.ranchMaterialsStock) + (reward.materials ?? 0);
+  save = grantFarmResources(save, { rations: reward.feed ?? 0, wood: reward.materials ?? 0 });
   const affectionGain = reward.affection ?? 0;
   return {
     ...save,
@@ -219,8 +219,6 @@ function applyReward(save: GameSave, reward: RanchDayReward): GameSave {
       : save.creatures,
     flags: {
       ...save.flags,
-      ranchFeedStock: feed,
-      ranchMaterialsStock: materials,
       ranchBreedingComfortBonusToday: Math.min(25, readFlagNumber(save.flags.ranchBreedingComfortBonusToday) + (reward.comfortBonus ?? 0)),
     },
   };
@@ -245,6 +243,9 @@ export function updateDailyGoalsAndRewards(save: GameSave): GameSave {
     }
     return {
       ...record,
+      label: template?.label ?? record.label,
+      progressLabel: template?.progressLabel ?? record.progressLabel,
+      rewardLabel: record.rewardClaimed ? record.rewardLabel : rewardLabel(record.reward),
       progress,
       complete,
       rewardClaimed,
@@ -260,7 +261,7 @@ export function updateDailyGoalsAndRewards(save: GameSave): GameSave {
 
   const changed = claimedCount > 0
     || allComplete !== Boolean(save.flags[`ranchDayAllGoalsReward_${ranchDay.dayNumber}`])
-    || goals.some((goal, index) => goal.progress !== ranchDay.goals[index]?.progress || goal.complete !== ranchDay.goals[index]?.complete);
+    || goals.some((goal, index) => goal.rewardLabel !== ranchDay.goals[index]?.rewardLabel || goal.label !== ranchDay.goals[index]?.label || goal.progress !== ranchDay.goals[index]?.progress || goal.complete !== ranchDay.goals[index]?.complete);
   if (!changed) return save;
 
   return {

@@ -1,3 +1,4 @@
+import { grantFarmResources, getFarmState } from "./farmResources";
 import type { GameSave } from "@/types/save";
 
 export type StarterGoalReward = {
@@ -54,8 +55,8 @@ function getRewardLabel(reward: StarterGoalReward): string {
   const parts = [
     reward.gold ? `${reward.gold} Gold` : "",
     reward.guildPoints ? `${reward.guildPoints} GP` : "",
-    reward.feed ? `${reward.feed} Feed` : "",
-    reward.materials ? `${reward.materials} Materials` : "",
+    reward.feed ? `${reward.feed} Balanced rations` : "",
+    reward.materials ? `${reward.materials} Wood` : "",
   ].filter(Boolean);
   return parts.length ? parts.join(" + ") : "No reward";
 }
@@ -81,8 +82,8 @@ export function getStarterGoals(save: GameSave): StarterGoal[] {
   const gardenAssigned = hasJobAssignment(save, "garden_tending") || getFlagNumber(save.flags.ranchFeedProducedToday) >= 8;
   const haulingAssigned = hasJobAssignment(save, "field_hauling") || getFlagNumber(save.flags.ranchMaterialsProducedToday) > 0 || getFlagNumber(save.flags.ranchUpkeepScoreToday) > 0;
   const choresResolved = Boolean(save.flags.m14RanchJobsProcessed) || getFlagNumber(save.flags.ranchFeedProducedToday) > 0 || getFlagNumber(save.flags.ranchSecurityScoreToday) > 0 || getFlagNumber(save.flags.ranchBreedingComfortBonusToday) > 0 || getFlagNumber(save.flags.ranchUpkeepScoreToday) > 0;
-  const feedProduced = getFlagNumber(save.flags.ranchFeedProducedToday) >= 5 || getFlagNumber(save.flags.ranchFeedStock) >= 5;
-  const materialsProduced = Boolean(save.flags.m14FieldHaulingMaterials) || getFlagNumber(save.flags.ranchMaterialsProducedToday) > 0 || getFlagNumber(save.flags.ranchMaterialsStock) > 0;
+  const feedProduced = getFlagNumber(save.flags.ranchFeedProducedToday) >= 5 || (getFarmState(save).stock.rations ?? 0) >= 5;
+  const materialsProduced = Boolean(save.flags.m14FieldHaulingMaterials) || getFlagNumber(save.flags.ranchMaterialsProducedToday) > 0 || (getFarmState(save).stock.wood ?? 0) > 0;
   const ranchRepaired = Boolean(save.flags.ranchManualRepairUsed) || getFlagNumber(save.flags.ranchDamageRepairedToday) > 0;
   const ranchUpgraded = Boolean(save.flags.m11RanchUpgradePurchased) || Object.values(save.ranchUpgrades ?? {}).some((tier) => Number(tier) > 0);
   const breedingAttempted = Boolean(save.flags.m4BreedingAttempted) || (save.breeding?.attempts.length ?? 0) > 0;
@@ -96,13 +97,13 @@ export function getStarterGoals(save: GameSave): StarterGoal[] {
     buildGoal(save, { id: "assign-security", label: "Post a guard", description: "Assign a canine or sturdy creature to Security Patrol so danger events are less likely.", complete: securityAssigned, hint: "Ranch Chores → Security Patrol or Security Focus" }),
     buildGoal(save, { id: "assign-comfort", label: "Create comfort", description: "Assign a feline-style helper to Comfort Care to learn how daily comfort supports future breeding.", complete: comfortAssigned, hint: "Ranch Chores → Comfort Care or Comfort Focus" }),
     buildGoal(save, { id: "assign-feed", label: "Stock the stable", description: "Assign a cow or bovine helper to Stable Production to build the ranch food loop.", complete: feedAssigned, hint: "Ranch Chores → Stable Production or Food Focus" }),
-    buildGoal(save, { id: "assign-garden", label: "Tend the garden", description: "Assign a bunny or lapine helper to Garden Tending to support extra feed and nursery-style care.", complete: gardenAssigned, hint: "Ranch Chores → Garden Tending or Balanced Plan" }),
+    buildGoal(save, { id: "assign-garden", label: "Tend the garden", description: "Assign a bunny or lapine helper to Garden Tending to harvest Vegetables for recipes and optional ingredient feeding.", complete: gardenAssigned, hint: "Ranch Chores → Garden Tending or Balanced Plan" }),
     buildGoal(save, { id: "assign-hauling", label: "Send out a hauler", description: "Assign a horse or equine helper to Field Hauling for materials and ranch upkeep.", complete: haulingAssigned, hint: "Ranch Chores → Field Hauling or Repair Focus" }),
     buildGoal(save, { id: "resolve-chores", label: "Complete the first work night", description: "Sleep after assigning chores so the ranch can process feed, security, comfort, materials, and upkeep.", complete: choresResolved, hint: "Ranch House → Sleep" }),
-    buildGoal(save, { id: "produce-feed", label: "Stock 5 Feed", description: "Produce or store at least 5 Feed so creature recovery is less punishing.", complete: feedProduced, hint: "Ranch Chores → Food Focus or Production/Garden" }),
-    buildGoal(save, { id: "gather-materials", label: "Gather Ranch Materials", description: "Use Field Hauling to produce Materials for future upgrades and repairs.", complete: materialsProduced, hint: "Ranch Chores → Repair Focus or Field Hauling" }),
+    buildGoal(save, { id: "produce-feed", label: "Stock 5 food units", description: "Produce at least 5 food units or store 5 Balanced rations so creature recovery is less punishing.", complete: feedProduced, hint: "Ranch Chores → Food Focus or Production/Garden" }),
+    buildGoal(save, { id: "gather-materials", label: "Gather Wood", description: "Use Field Hauling to produce Wood for crafting and repairs.", complete: materialsProduced, hint: "Ranch Chores → Repair Focus or Field Hauling" }),
     buildGoal(save, { id: "repair-ranch", label: "Repair ranch damage", description: "Repair damage with Field Hauling upkeep or Manual Repair once the ranch has damage.", complete: ranchRepaired, hint: "Field Hauling overnight or Ranch Office → Repair Ranch" }),
-    buildGoal(save, { id: "ranch-upgrade", label: "Buy a ranch upgrade", description: "Purchase any Ranch Office infrastructure upgrade. Tier 1 upgrades only need Gold.", complete: ranchUpgraded, hint: "Ranch Office" }),
+    buildGoal(save, { id: "ranch-upgrade", label: "Buy a ranch upgrade", description: "Purchase any Ranch Office infrastructure upgrade. Check the exact Gold and component cost before confirming.", complete: ranchUpgraded, hint: "Ranch Office" }),
     buildGoal(save, { id: "breed", label: "Try breeding", description: "Attempt one breeding pairing and start working toward eggs and inheritance.", complete: breedingAttempted, hint: "Breeding Pen" }),
     buildGoal(save, { id: "egg", label: "Create or hatch an egg", description: "Create a pregnancy, incubate an egg, or hatch one ready egg in the Nursery.", complete: eggCreatedOrHatched, hint: "Breeding Pen → Nursery" }),
     buildGoal(save, { id: "market", label: "Inspect the market", description: "Buy one creature from the Town Market to expand chore and breeding options.", complete: marketPurchased, hint: "Town Road → Market Stall" }),
@@ -118,8 +119,8 @@ export function applyStarterGoalRewards(save: GameSave): GameSave {
 
   let nextGold = save.currencies.gold;
   let nextGuildPoints = save.currencies.guildPoints;
-  let nextFeed = getFlagNumber(save.flags.ranchFeedStock);
-  let nextMaterials = getFlagNumber(save.flags.ranchMaterialsStock);
+  let nextFeed = 0;
+  let nextMaterials = 0;
   const nextFlags: GameSave["flags"] = { ...save.flags, m15StarterGoalRewards: true, m22ChapterOneTutorial: true, m31PersistentStarterGoals: true, m34StarterGoalRewardRebalance: true };
   const claimedLabels: string[] = [];
 
@@ -134,13 +135,13 @@ export function applyStarterGoalRewards(save: GameSave): GameSave {
 
   if (claimableGoals.some((goal) => goal.id === "guild")) nextFlags.m15ChapterOneOnboardingComplete = true;
 
+  const paidSave = grantFarmResources(save, { rations: nextFeed, wood: nextMaterials });
   return {
-    ...save,
+    ...paidSave,
     currencies: { ...save.currencies, gold: nextGold, guildPoints: nextGuildPoints },
     flags: {
       ...nextFlags,
-      ranchFeedStock: nextFeed,
-      ranchMaterialsStock: nextMaterials,
+      farmResourcesV1: paidSave.flags.farmResourcesV1,
       starterGoalRewardsLastClaimed: claimedLabels.join(" | "),
       starterGoalRewardsClaimedCount: getFlagNumber(save.flags.starterGoalRewardsClaimedCount) + claimableGoals.length,
     },
