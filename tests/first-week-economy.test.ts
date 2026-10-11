@@ -1,3 +1,4 @@
+import { tradeResource, getFarmState } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
@@ -30,11 +31,11 @@ test("a balanced starter crew supports first construction and shopping without G
   totals.push(s.currencies.gold);
   assert.ok(s.currencies.gold<2300,"passive chores should not recreate the old starting windfall");
   const feed=purchaseSupplyDepotItem(s,"feed_bundle");assert.equal(feed.ok,true);s=feed.save;
-  const supplies=purchaseSupplyDepotItem(s,"material_crate");assert.equal(supplies.ok,true);s=supplies.save;
+  for(const [id,n] of [["wood",10],["stone",5]] as const){const supplies=tradeResource(s,id,n);assert.equal(supplies.ok,true);s=supplies.save;}
   const order=commissionBuilderProject(s,"north_pasture_land");assert.equal(order.ok,true);s=order.save;
   for (const item of ["training_grips", "padded_harness"]) { const gear=purchaseBattleOutfitterItem(s,item);assert.equal(gear.ok,true);s=gear.save; }
   assert.ok(s.currencies.gold>=250,"leave enough for starter gear and a reserve");
-  assert.ok(Number(s.flags.ranchMaterialsStock)>=4,"retain repair materials");
+  assert.ok((getFarmState(s).stock.wood??0)>=2 && (getFarmState(s).stock.stone??0)>=1,"retain exact repair supplies");
  }
  console.log('12 fresh first-week chore budgets:',Math.min(...totals),'to',Math.max(...totals),'Gold');
 });

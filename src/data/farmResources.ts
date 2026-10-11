@@ -217,3 +217,16 @@ export function planIngredientFeeding(save: GameSave, needs: { creature: Creatur
   }
   return { save: write(save, state), covered, used };
 }
+
+export function resourceShortages(state: FarmState, cost: Stock): string[] {
+  return (Object.entries(cost) as [ResourceId, number][]).flatMap(([id, n]) => {
+    const missing = Math.max(0, n - Math.max(0, (state.stock[id] ?? 0) - (state.reserves[id] ?? 0)));
+    return missing ? [`${missing} ${RESOURCES[id].name}`] : [];
+  });
+}
+
+export function grantFarmResources(save: GameSave, rewards: Stock): GameSave {
+  const state = getFarmState(save);
+  for (const [id, n] of Object.entries(rewards) as [ResourceId, number][]) state.stock[id] = (state.stock[id] ?? 0) + n;
+  return write(save, state);
+}

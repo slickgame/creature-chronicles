@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
-import { getFarmState, assignResourceWorker, processResourceDay, tradeResource, craftResource, commissionFacility, reserveResource, serveMeal, mealBonus, overnightChoreCost, actSupplyOrder, type ResourceId, type FarmResult } from "@/data/farmResources";
+import { grantFarmResources, getFarmState, assignResourceWorker, processResourceDay, tradeResource, craftResource, commissionFacility, reserveResource, serveMeal, mealBonus, overnightChoreCost, actSupplyOrder, type ResourceId, type FarmResult } from "@/data/farmResources";
 import { assignCreatureToRanchJob, processRanchJobsForNewDay } from "@/data/ranchJobs";
 import { commissionBuilderProject } from "@/data/builderProjects";
 import { projectRanchDay } from "@/data/ranch-day/ranchDayLifecycle";
@@ -40,8 +40,8 @@ test("full wood-to-iron-to-nails chain and shared construction crew",()=>{
  s=ok(commissionFacility(s,"furnace"));s=processResourceDay(next(s));s=ok(craftResource(s,"iron",4));
  s=ok(commissionFacility(s,"forge"));s=processResourceDay(next(s));s=ok(craftResource(s,"nails",2));assert.equal(getFarmState(s).stock.nails,8);
  assert.equal(craftResource(s,"iron",1).ok,false);
- const old=commissionBuilderProject(fresh(),"north_pasture_land"); // needs legacy Materials
- let funded={...fresh(),flags:{...fresh().flags,ranchMaterialsStock:100}};funded=commissionBuilderProject(funded,"north_pasture_land").save;
+ const old=commissionBuilderProject(fresh(),"north_pasture_land"); // needs specific building supplies
+ let funded=grantFarmResources(fresh(),{wood:8,stone:4});funded=commissionBuilderProject(funded,"north_pasture_land").save;
  assert.equal(commissionFacility(funded,"quarry").ok,false);assert.equal(old.ok,false);
 });
 test("reserve controls block sales, recipes, construction, and deliveries without charging",()=>{

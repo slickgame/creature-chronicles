@@ -1,5 +1,7 @@
 "use client";
 
+import { resourceList } from "@/data/farmResources";
+
 import { useState, type CSSProperties } from "react";
 import {
   BUILDING_SHORTCUTS,
@@ -135,7 +137,7 @@ export function ScenicRanchScreen() {
                   <div>
                     <p>
                       <b>{p.status}</b> · {p.definition.costGold} Gold +{" "}
-                      {p.definition.costMaterials} Materials
+                      {resourceList(p.definition.costResources)}
                     </p>
                     {p.missingPrerequisites.length > 0 && (
                       <p>
@@ -170,7 +172,7 @@ export function ScenicRanchScreen() {
                     <p>
                       <b>Next: </b>
                       {next
-                        ? `${next.effectLabel} · ${next.costGold} Gold${next.costGp ? ` + ${next.costGp} GP` : ""}${next.costMaterials ? ` + ${next.costMaterials} Materials` : ""}`
+                        ? `${next.effectLabel} · ${next.costGold} Gold${next.costGp ? ` + ${next.costGp} GP` : ""}${next.costResources ? ` + ${resourceList(next.costResources)}` : ""}`
                         : "Fully upgraded"}
                     </p>
                   </article>

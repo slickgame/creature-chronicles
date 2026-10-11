@@ -1,3 +1,4 @@
+import { grantFarmResources, getFarmState } from "@/data/farmResources";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -14,7 +15,7 @@ import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
 
 function fundedSave(): GameSave {
-  const save = createNewGameSave("Builder Test", 0);
+  const save = grantFarmResources(createNewGameSave("Builder Test", 0), {wood:200,stone:200,planks:200,nails:200});
   return {
     ...save,
     currencies: { ...save.currencies, gold: 20000 },
@@ -51,7 +52,9 @@ test("commissioning deducts exact resources and starts construction without earl
   const result = commissionBuilderProject(save, "north_pasture_land");
   assert.equal(result.ok, true);
   assert.equal(result.save.currencies.gold, save.currencies.gold - 850);
-  assert.equal(Number(result.save.flags.ranchMaterialsStock), Number(save.flags.ranchMaterialsStock) - 12);
+  assert.equal(result.save.flags.ranchMaterialsStock, save.flags.ranchMaterialsStock);
+  assert.equal(getFarmState(result.save).stock.wood,192);
+  assert.equal(getFarmState(result.save).stock.stone,196);
   assert.equal(isBuilderProjectBuilt(result.save, "north_pasture_land"), false);
   assert.equal(getBuilderProjectProgress(result.save, "north_pasture_land").status, "building");
 });

@@ -1,3 +1,4 @@
+import { getFarmState, canSpend, consumeFarmResources, resourceList, type Stock } from "./farmResources";
 import { isBuilderProjectBuilt } from "./builderProjects";
 import type { GameSave } from "@/types/save";
 import type { HabitatRecord } from "@/types/creature";
@@ -17,7 +18,8 @@ export const BASE_EQUINE_CAPACITY = 4;
 export const BASE_NURSERY_EGG_CAPACITY = 2;
 export const BASE_PREGNANCY_DAYS = 3;
 export const BASE_EGG_INCUBATION_DAYS = 6;
-export const RANCH_REPAIR_MATERIAL_COST = 5;
+export const RANCH_REPAIR_MATERIAL_COST = 5; // Legacy export for old reports.
+export const RANCH_REPAIR_RESOURCES: Stock = { wood: 2, stone: 1 };
 export const RANCH_REPAIR_DAMAGE_AMOUNT = 20;
 
 export const DEFAULT_RANCH_UPGRADES: RanchUpgradeState = {
@@ -54,9 +56,9 @@ export const RANCH_UPGRADE_ASSETS = {
 
 const habitatTiers = [
   { tier: 1, costGold: 350, effectLabel: "+1 capacity" },
-  { tier: 2, costGold: 750, costGp: 8, costMaterials: 3, effectLabel: "+2 total capacity" },
-  { tier: 3, costGold: 1300, costGp: 20, costMaterials: 6, effectLabel: "+4 total capacity" },
-  { tier: 4, costGold: 2200, costGp: 45, costMaterials: 10, effectLabel: "+6 total capacity" },
+  { tier: 2, costGold: 750, costGp: 8, costResources: { planks: 2, stone: 1 }, effectLabel: "+2 total capacity" },
+  { tier: 3, costGold: 1300, costGp: 20, costResources: { planks: 3, stone: 2, nails: 3 }, effectLabel: "+4 total capacity" },
+  { tier: 4, costGold: 2200, costGp: 45, costResources: { planks: 5, stone: 3, nails: 5 }, effectLabel: "+6 total capacity" },
 ] as const;
 
 export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
@@ -114,9 +116,9 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     maxTier: 4,
     tiers: [
       { tier: 1, costGold: 450, effectLabel: "+1 egg slot" },
-      { tier: 2, costGold: 900, costGp: 12, costMaterials: 4, effectLabel: "+2 total egg slots" },
-      { tier: 3, costGold: 1600, costGp: 28, costMaterials: 7, effectLabel: "+4 total egg slots" },
-      { tier: 4, costGold: 2800, costGp: 60, costMaterials: 12, effectLabel: "+6 total egg slots" },
+      { tier: 2, costGold: 900, costGp: 12, costResources: { planks: 2, stone: 1 }, effectLabel: "+2 total egg slots" },
+      { tier: 3, costGold: 1600, costGp: 28, costResources: { planks: 4, stone: 2, nails: 3 }, effectLabel: "+4 total egg slots" },
+      { tier: 4, costGold: 2800, costGp: 60, costResources: { planks: 6, stone: 4, nails: 6 }, effectLabel: "+6 total egg slots" },
     ],
   },
   {
@@ -127,10 +129,10 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     iconPath: RANCH_UPGRADE_ASSETS.nurseryUpgrade,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 600, costMaterials: 3, effectLabel: "Egg incubation reduced to 5 days" },
-      { tier: 2, costGold: 1150, costGp: 12, costMaterials: 6, effectLabel: "Pregnancy 2 days, egg incubation 4 days" },
-      { tier: 3, costGold: 1900, costGp: 32, costMaterials: 10, effectLabel: "Pregnancy 2 days, egg incubation 3 days" },
-      { tier: 4, costGold: 3200, costGp: 75, costMaterials: 16, effectLabel: "Pregnancy 1 day, egg incubation 2 days" },
+      { tier: 1, costGold: 600, costResources: { planks: 2, stone: 1 }, effectLabel: "Egg incubation reduced to 5 days" },
+      { tier: 2, costGold: 1150, costGp: 12, costResources: { planks: 3, stone: 2, nails: 3 }, effectLabel: "Pregnancy 2 days, egg incubation 4 days" },
+      { tier: 3, costGold: 1900, costGp: 32, costResources: { planks: 5, stone: 3, nails: 5 }, effectLabel: "Pregnancy 2 days, egg incubation 3 days" },
+      { tier: 4, costGold: 3200, costGp: 75, costResources: { planks: 8, stone: 5, nails: 8 }, effectLabel: "Pregnancy 1 day, egg incubation 2 days" },
     ],
   },
   {
@@ -142,9 +144,9 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     maxTier: 4,
     tiers: [
       { tier: 1, costGold: 650, effectLabel: "+5% pregnancy chance, +2 XP, -4 energy cost" },
-      { tier: 2, costGold: 1100, costGp: 18, costMaterials: 5, effectLabel: "+10% pregnancy chance, +4 XP, -8 energy cost" },
-      { tier: 3, costGold: 1800, costGp: 38, costMaterials: 8, effectLabel: "+16% pregnancy chance, +6 XP, -14 energy cost" },
-      { tier: 4, costGold: 3100, costGp: 80, costMaterials: 14, effectLabel: "+25% pregnancy chance, +10 XP, -22 energy cost" },
+      { tier: 2, costGold: 1100, costGp: 18, costResources: { planks: 3, stone: 1 }, effectLabel: "+10% pregnancy chance, +4 XP, -8 energy cost" },
+      { tier: 3, costGold: 1800, costGp: 38, costResources: { planks: 4, stone: 2, nails: 4 }, effectLabel: "+16% pregnancy chance, +6 XP, -14 energy cost" },
+      { tier: 4, costGold: 3100, costGp: 80, costResources: { planks: 7, stone: 4, nails: 7 }, effectLabel: "+25% pregnancy chance, +10 XP, -22 energy cost" },
     ],
   },
   {
@@ -155,10 +157,10 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     iconPath: RANCH_UPGRADE_ASSETS.choresBoard,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 500, costMaterials: 3, effectLabel: "-2 chore energy cost, +1 chore score" },
-      { tier: 2, costGold: 950, costGp: 10, costMaterials: 6, effectLabel: "-4 chore energy cost, +2 chore score" },
-      { tier: 3, costGold: 1700, costGp: 26, costMaterials: 9, effectLabel: "-7 chore energy cost, +3 chore score" },
-      { tier: 4, costGold: 2900, costGp: 55, costMaterials: 14, effectLabel: "-10 chore energy cost, +4 chore score" },
+      { tier: 1, costGold: 500, costResources: { planks: 2, stone: 1 }, effectLabel: "-2 chore energy cost, +1 chore score" },
+      { tier: 2, costGold: 950, costGp: 10, costResources: { planks: 3, stone: 2, nails: 3 }, effectLabel: "-4 chore energy cost, +2 chore score" },
+      { tier: 3, costGold: 1700, costGp: 26, costResources: { planks: 5, stone: 3, nails: 4 }, effectLabel: "-7 chore energy cost, +3 chore score" },
+      { tier: 4, costGold: 2900, costGp: 55, costResources: { planks: 7, stone: 4, nails: 7 }, effectLabel: "-10 chore energy cost, +4 chore score" },
     ],
   },
   {
@@ -170,9 +172,9 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
     maxTier: 4,
     tiers: [
       { tier: 1, costGold: 300, effectLabel: "+5 bonus creature energy after sleep" },
-      { tier: 2, costGold: 750, costMaterials: 3, effectLabel: "+10 bonus creature energy after sleep" },
-      { tier: 3, costGold: 1400, costGp: 24, costMaterials: 6, effectLabel: "+10 energy and +1 affection after sleep" },
-      { tier: 4, costGold: 2400, costGp: 50, costMaterials: 10, effectLabel: "+15 energy and +2 affection after sleep" },
+      { tier: 2, costGold: 750, costResources: { planks: 2, stone: 1 }, effectLabel: "+10 bonus creature energy after sleep" },
+      { tier: 3, costGold: 1400, costGp: 24, costResources: { planks: 3, stone: 2, nails: 3 }, effectLabel: "+10 energy and +1 affection after sleep" },
+      { tier: 4, costGold: 2400, costGp: 50, costResources: { planks: 5, stone: 3, nails: 5 }, effectLabel: "+15 energy and +2 affection after sleep" },
     ],
   },
 ];
@@ -290,7 +292,6 @@ export function getNurseryCapacity(save: GameSave): number {
 
 export function repairRanchDamage(save: GameSave): RanchUpgradePurchaseResult {
   const currentDamage = Math.min(100, getFlagNumber(save.flags.ranchDamage));
-  const materialsStock = getFlagNumber(save.flags.ranchMaterialsStock);
   const repairKitStock = getFlagNumber(save.flags.ranchRepairKits);
   const usesRepairKit = repairKitStock > 0;
 
@@ -298,35 +299,34 @@ export function repairRanchDamage(save: GameSave): RanchUpgradePurchaseResult {
     return { save, ok: false, message: "The ranch is already in good condition. No repairs needed." };
   }
 
-  if (!usesRepairKit && materialsStock < RANCH_REPAIR_MATERIAL_COST) {
+  if (!usesRepairKit && !canSpend(getFarmState(save), RANCH_REPAIR_RESOURCES)) {
     return {
       save,
       ok: false,
-      message: `Not enough repair supplies. Need 1 Repair Kit or ${RANCH_REPAIR_MATERIAL_COST} Materials; you have ${repairKitStock} Repair Kits and ${materialsStock} Materials.`,
+      message: `Not enough repair supplies. Need 1 Repair Kit or ${resourceList(RANCH_REPAIR_RESOURCES)} in unreserved stock.`,
     };
   }
 
   const repairedDamage = Math.min(currentDamage, RANCH_REPAIR_DAMAGE_AMOUNT);
   const nextDamage = Math.max(0, currentDamage - repairedDamage);
-  const remainingMaterials = usesRepairKit ? materialsStock : materialsStock - RANCH_REPAIR_MATERIAL_COST;
+  const paidSave = usesRepairKit ? save : consumeFarmResources(save, RANCH_REPAIR_RESOURCES).save;
   const remainingRepairKits = usesRepairKit ? repairKitStock - 1 : repairKitStock;
   const conditionLabel = getRanchConditionLabelFromDamage(nextDamage);
-  const costLabel = usesRepairKit ? "1 Repair Kit" : `${RANCH_REPAIR_MATERIAL_COST} Materials`;
+  const costLabel = usesRepairKit ? "1 Repair Kit" : resourceList(RANCH_REPAIR_RESOURCES);
   const logEntry = `Day ${save.dayState.dayNumber}: Manual repair fixed ${repairedDamage} ranch damage for ${costLabel}. Condition is ${conditionLabel}.`;
 
   return {
     save: {
-      ...save,
+      ...paidSave,
       updatedAt: new Date().toISOString(),
       flags: {
-        ...save.flags,
+        ...paidSave.flags,
         ranchDamage: nextDamage,
         ranchConditionToday: conditionLabel,
-        ranchMaterialsStock: remainingMaterials,
         ranchRepairKits: remainingRepairKits,
         ranchManualRepairUsed: true,
         ranchManualRepairAmountLast: repairedDamage,
-        ranchManualRepairCostLast: usesRepairKit ? 0 : RANCH_REPAIR_MATERIAL_COST,
+        ranchManualRepairCostLast: 0,
         ranchManualRepairKitUsedLast: usesRepairKit,
         ranchManualRepairResourceLast: costLabel,
         ranchEventLog: appendRanchEventLog(save, logEntry),
@@ -346,8 +346,7 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
   if (!nextTier) return { save, ok: false, message: `${definition.name} is already maxed.` };
 
   const costGp = nextTier.costGp ?? 0;
-  const costMaterials = nextTier.costMaterials ?? 0;
-  const materialsStock = getFlagNumber(save.flags.ranchMaterialsStock);
+  const costResources = nextTier.costResources ?? {};
 
   if (save.currencies.gold < nextTier.costGold) {
     return { save, ok: false, message: `Not enough Gold for ${definition.name} Tier ${nextTier.tier}. Need ${nextTier.costGold} Gold; you have ${save.currencies.gold}.` };
@@ -357,26 +356,25 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
     return { save, ok: false, message: `Not enough GP for ${definition.name} Tier ${nextTier.tier}. Need ${costGp} GP; you have ${save.currencies.guildPoints}.` };
   }
 
-  if (materialsStock < costMaterials) {
-    return { save, ok: false, message: `Not enough Materials for ${definition.name} Tier ${nextTier.tier}. Need ${costMaterials} Materials; you have ${materialsStock}. Assign Field Hauling to gather more.` };
+  if (!canSpend(getFarmState(save), costResources)) {
+    return { save, ok: false, message: `Not enough unreserved supplies for ${definition.name} Tier ${nextTier.tier}. Need ${resourceList(costResources)}. Gather resources, craft at the workbench, or buy from Pella.` };
   }
 
   const remainingGold = save.currencies.gold - nextTier.costGold;
   const remainingGp = save.currencies.guildPoints - costGp;
-  const remainingMaterials = materialsStock - costMaterials;
+  const paidSave = consumeFarmResources(save, costResources).save;
   const nextSave = applyRanchUpgradeEffectsToHabitats({
-    ...save,
+    ...paidSave,
     updatedAt: new Date().toISOString(),
     currencies: { ...save.currencies, gold: remainingGold, guildPoints: remainingGp },
     ranchUpgrades: { ...upgrades, [upgradeId]: nextTier.tier },
     flags: {
-      ...save.flags,
-      ranchMaterialsStock: remainingMaterials,
+      ...paidSave.flags,
       m11RanchOfficeUsed: true,
       m11RanchUpgradePurchased: true,
       m125BalancePass: true,
       m135M13HabitatUpgradePurchased: definition.category === "habitats" || save.flags.m135M13HabitatUpgradePurchased === true,
-      m14MaterialsSpentOnUpgrade: costMaterials > 0 || save.flags.m14MaterialsSpentOnUpgrade === true,
+      m14MaterialsSpentOnUpgrade: Object.keys(costResources).length > 0 || save.flags.m14MaterialsSpentOnUpgrade === true,
       m16RanchConstruction: true,
       m16RanchUpgradePurchased: true,
     },
@@ -395,10 +393,9 @@ export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId):
       effectLabel: nextTier.effectLabel,
       costGold: nextTier.costGold,
       costGp,
-      costMaterials,
+      costResources,
       remainingGold,
       remainingGp,
-      remainingMaterials,
       immediateEffectLabel: "Ranch effects applied immediately.",
     },
   };

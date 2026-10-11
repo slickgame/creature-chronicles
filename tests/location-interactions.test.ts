@@ -1,9 +1,10 @@
+import { grantFarmResources, getFarmState } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
 import { actOnPetraRequest, chatWithLocationHost, getLocationTrust, getPetraRequests, hasChattedToday, getPetraAdvice } from "@/data/locationInteractions";
 import { commissionBuilderProject, processBuilderConstruction, getBuilderWorkOrder } from "@/data/builderProjects";
-const fresh = () => { const s = createNewGameSave("Location test",0); return {...s,currencies:{...s.currencies,gold:10000},flags:{...s.flags,ranchMaterialsStock:100}}; };
+const fresh = () => { const s = grantFarmResources(createNewGameSave("Location test",0),{wood:100,stone:100,planks:100,nails:100}); return {...s,currencies:{...s.currencies,gold:10000},flags:{...s.flags,ranchMaterialsStock:100}}; };
 for (const host of ["petra", "mara"] as const) test(`${host} conversation grants exactly two Trust per day and persists`,()=>{
   const save=fresh(); const result=chatWithLocationHost(save,host);
   assert.equal(result.ok,true);assert.equal(getLocationTrust(result.save,host),getLocationTrust(save,host)+2);
@@ -16,7 +17,7 @@ for (const host of ["petra", "mara"] as const) test(`${host} conversation grants
 test("Petra reserve requires acceptance and current stock; claims consume no materials",()=>{
   const save=fresh();assert.equal(actOnPetraRequest(save,0,true).ok,false);assert.equal(actOnPetraRequest(save,1,false).ok,false);
   const accepted=actOnPetraRequest(save,0,false).save;
-  const short={...accepted,flags:{...accepted.flags,ranchMaterialsStock:7}};
+  const short={...accepted,flags:{...accepted.flags,farmResourcesV1:JSON.stringify({...getFarmState(accepted),stock:{...getFarmState(accepted).stock,wood:7}})}};
   assert.equal(actOnPetraRequest(short,0,true).ok,false);
   const reward=actOnPetraRequest(accepted,0,true);
   assert.equal(reward.ok,true);assert.equal(reward.save.flags.ranchMaterialsStock,100);
@@ -40,7 +41,7 @@ test("construction requests count actual completion, including existing work, bu
   assert.equal(getPetraRequests(save)[2].ready,true);
   const before=save;save=actOnPetraRequest(save,2,true).save;
   assert.equal(save.currencies.gold,before.currencies.gold+150);assert.equal(save.currencies.guildPoints,before.currencies.guildPoints+10);
-  assert.equal(save.flags.ranchMaterialsStock,Number(before.flags.ranchMaterialsStock)+5);
+  assert.equal(getFarmState(save).stock.planks,(getFarmState(before).stock.planks??0)+4);
   assert.equal(actOnPetraRequest(save,2,true).save,save);
 });
 test("future habitat flags do not qualify as current construction, and malformed trust is safe",()=>{
