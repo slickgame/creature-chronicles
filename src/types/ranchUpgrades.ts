@@ -20,7 +20,7 @@ export type RanchUpgradeTier = {
   tier: number;
   costGold: number;
   costGp?: number;
-  costMaterials?: number;
+  costResources?: import("@/data/farmResources").Stock;
   effectLabel: string;
 };
 
@@ -61,10 +61,9 @@ export type RanchUpgradePurchaseSummary = {
   effectLabel: string;
   costGold: number;
   costGp: number;
-  costMaterials: number;
+  costResources: import("@/data/farmResources").Stock;
   remainingGold: number;
   remainingGp: number;
-  remainingMaterials: number;
   immediateEffectLabel: string;
 };
 

@@ -1,3 +1,5 @@
+import { processResourceDay, overnightChoreCost, planIngredientFeeding, resourceList } from "./farmResources";
+import { recordGuildChoreWork } from "./guildCommissions";
 import {
   gainCreatureChoreSkillXp,
   getChoreSkillAptitudeLabel,
@@ -143,6 +145,7 @@ function dayLog(save: GameSave, message: string): string {
 export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; results: RanchJobResult[] } {
   const jobs = getRanchJobs(save);
   if (jobs.lastProcessedDayNumber >= save.dayState.dayNumber) return { save, results: [] };
+  save = processResourceDay(save);
   const ranchEffects = getRanchUpgradeEffects(save);
   const choreEnergyDiscount = ranchEffects.ranchChoreEnergyDiscount;
   const choreScoreBonus = ranchEffects.ranchChoreScoreBonus;
@@ -173,7 +176,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         continue;
       }
       const talentSummary = getChoreTalentSummary(creature.abilities, jobId);
-      const effectiveEnergyCost = Math.max(8, job.energyCost - choreEnergyDiscount - talentSummary.energyDiscount);
+      const effectiveEnergyCost = overnightChoreCost(save, creature.creatureId, Math.max(8, job.energyCost - choreEnergyDiscount - talentSummary.energyDiscount));
       if (creature.energy < effectiveEnergyCost) {
         results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} was too tired for ${job.name}. Needed ${effectiveEnergyCost} energy.` });
         continue;
@@ -210,7 +213,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   }
 
   const predatorCheck = resolvePredatorNightCheck(save, securityScore);
-  const workingSave = predatorCheck.save;
+  const ingredientFeeding = planIngredientFeeding(predatorCheck.save, nextCreatures
+    .filter(c => !isCreatureAwayForTraining(predatorCheck.save, c.creatureId))
+    .map(creature => ({ creature, amount: getDailyFeedCost(creature) })));
+  const workingSave = ingredientFeeding.save;
   const pendingEvent = predatorCheck.event;
   const feedRequired = nextCreatures
     .filter((creature) => !isCreatureAwayForTraining(workingSave, creature.creatureId))
@@ -227,10 +233,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const conditionLabel = getRanchConditionLabel(finalDamage);
   const conditionPenalty = getConditionRecoveryPenalty(finalDamage);
   const feedAvailable = startingFeed + producedFeed;
-  const feedConsumed = Math.min(feedAvailable, feedRequired);
+  const feedConsumed = Math.min(feedAvailable, Math.max(0, feedRequired - ingredientFeeding.covered));
   const remainingFeed = Math.max(0, feedAvailable - feedConsumed);
   const remainingMaterials = startingMaterials + producedMaterials;
-  const fedRatio = feedRequired > 0 ? feedConsumed / feedRequired : 1;
+  const fedRatio = feedRequired > 0 ? (feedConsumed + ingredientFeeding.covered) / feedRequired : 1;
   const basePlayerEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
   const baseCreatureEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
   const baseAffectionDelta = fedRatio >= 1 ? 0 : fedRatio > 0 ? -1 : -3;
@@ -238,13 +244,13 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const creatureEnergyRatio = Math.max(0.05, baseCreatureEnergyRatio - conditionPenalty.energyPenalty);
   const affectionDelta = baseAffectionDelta + conditionPenalty.affectionPenalty;
   const foodStatus = fedRatio >= 1 ? "Fed" : fedRatio > 0 ? "Short" : "Empty";
-  const feedingSummary = feedRequired <= 0
+  const feedingSummary = (ingredientFeeding.covered ? `Ingredients used: ${resourceList(ingredientFeeding.used)} (${ingredientFeeding.covered} food units). ` : "") + (feedRequired <= 0
     ? "No creatures needed feed today."
     : foodStatus === "Fed"
-      ? `Ranch provisions covered daily feed: ${feedConsumed}/${feedRequired} Feed consumed.`
+      ? `Ranch provisions covered daily feed: ${feedConsumed + ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} Feed consumed.`
       : foodStatus === "Short"
-        ? `Food shortage: ${feedConsumed}/${feedRequired} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
-        : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`;
+        ? `Food shortage: ${feedConsumed + ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
+        : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`);
   const haulingSummary = producedMaterials > 0 ? `Field Hauling added ${producedMaterials} Materials. Ranch material stock is now ${remainingMaterials}.` : "No new ranch materials were hauled today.";
   const damageSourceSummary = totalDamageAdded > 0 ? `Routine wear added ${totalDamageAdded} ranch damage.` : "No routine wear damage was added today.";
   const upkeepSummary = repairedDamage > 0
@@ -286,7 +292,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       currencies: { ...workingSave.currencies, energy: Math.floor(workingSave.currencies.maxEnergy * playerEnergyRatio) },
       ranchJobs: { ...jobs, assignments, lastProcessedDayNumber: workingSave.dayState.dayNumber, lifetimeCompletions: jobs.lifetimeCompletions + completions },
       flags: {
-        ...workingSave.flags,
+        ...recordGuildChoreWork(workingSave, results),
         m14RanchJobsCreated: true,
         m14RanchJobsProcessed: completions > 0 || workingSave.flags.m14RanchJobsProcessed === true,
         m14SecurityEventsEnabled: true,
@@ -341,3 +347,4 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     results,
   };
 }
+

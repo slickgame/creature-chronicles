@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -29,6 +28,11 @@ import type {
 } from "@/types/breeding";
 import type { CreatureRecord } from "@/types/creature";
 import styles from "./BreedingFocusedScreenQoL.module.css";
+import scenic from "./BreedingScenic.module.css";
+import ui from "@/features/ui/InteriorShell.module.css";
+import { GameDialog } from "@/features/ui/GameDialog";
+import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { RanchIcon } from "@/features/ui/RanchIcon";
 
 type SelectorRole = "giver" | "receiver";
 type SortMode = "name" | "level" | "energy" | "affection" | "fertility";
@@ -219,7 +223,8 @@ export function BreedingFocusedScreen() {
   const [message, setMessage] = useState("Choose a giver and receiver, then review the chance and resource costs.");
   const [isAttempting, setIsAttempting] = useState(false);
   const [warningItems, setWarningItems] = useState<ResourceWarning[]>([]);
-  const [showChanceBreakdown, setShowChanceBreakdown] = useState(true);
+  const [showChanceBreakdown, setShowChanceBreakdown] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
   const [sceneMode, setSceneMode] = useState<SceneMode>("full");
   const restoredSaveRef = useRef<string | null>(null);
   const attemptLockRef = useRef(false);
@@ -326,24 +331,6 @@ export function BreedingFocusedScreen() {
     preload(getBreedingSceneImagePath(giver.sceneFamily, receiver.sceneFamily, "outcome", "failed", `${seed}_failed`));
     preload(getBreedingSceneImagePath(giver.sceneFamily, receiver.sceneFamily, "outcome", "blocked", `${seed}_blocked`));
   }, [currentSave?.dayState.dayNumber, giver, preview, receiver]);
-
-  const closeTopLayer = useCallback(() => {
-    if (warningItems.length) setWarningItems([]);
-    else if (result) setResult(null);
-    else if (selectorRole) setSelectorRole(null);
-    else if (infoParticipant) setInfoParticipant(null);
-  }, [infoParticipant, result, selectorRole, warningItems.length]);
-
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      if (!warningItems.length && !result && !selectorRole && !infoParticipant) return;
-      event.preventDefault();
-      closeTopLayer();
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeTopLayer, infoParticipant, result, selectorRole, warningItems.length]);
 
   if (!currentSave) {
     return (
@@ -463,118 +450,26 @@ export function BreedingFocusedScreen() {
   const canSwap = Boolean(giver && receiver && giver.roleTags.includes("receiver") && receiver.roleTags.includes("giver"));
 
   return (
-    <main className={styles.screen}>
-      <section className={styles.frame}>
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>Breeding Pen</p>
-            <h1>Pairing & Pregnancy</h1>
+    <main className={`${ui.interior} ${scenic.interior}`}>
+      <div className={`${ui.page} ${scenic.page}`}>
+        <header className={ui.heading}><h1>Breeding Pen</h1><ScreenNavigation><button type="button" onClick={() => window.dispatchEvent(new Event("creature-chronicles:open-breeding-ledger"))}>Breeding Ledger</button><button type="button" onClick={goToNursery}>Nursery</button></ScreenNavigation></header>
+        <section data-scenic className={scenic.workspace} aria-label="Focused breeding pair preview">
+          <div className={scenic.pairGrid}>
+            <FocusedPairCard role="Giver" participant={giver} disabled={isAttempting} onChoose={() => setSelectorRole("giver")} onInfo={setInfoParticipant} />
+            <FocusedPairCard role="Receiver" participant={receiver} disabled={isAttempting} onChoose={() => setSelectorRole("receiver")} onInfo={setInfoParticipant} />
           </div>
-          <div className={styles.toolbar}>
-            <button type="button" disabled={!canSwap || isAttempting} onClick={swapRoles}>Swap Roles</button>
-            <button type="button" disabled={isAttempting} onClick={randomPair}>Random Pair</button>
-            <button type="button" disabled={isAttempting || (!giverId && !receiverId)} onClick={clearPair}>Clear Pair</button>
-            <label>
-              <span>Scene Mode</span>
-              <select
-                value={sceneMode}
-                onChange={(event) => {
-                  const mode = event.target.value as SceneMode;
-                  setSceneMode(mode);
-                  window.localStorage.setItem(SCENE_MODE_KEY, mode);
-                }}
-              >
-                <option value="full">Full Scenes</option>
-                <option value="quick">Quick Results</option>
-              </select>
-            </label>
-            <button type="button" onClick={goToRanch}>Back to Ranch</button>
-          </div>
-        </header>
-
-        <section className={styles.preview} aria-label="Focused breeding pair preview">
-          <div className={styles.pairGrid}>
-            <FocusedPairCard
-              role="Giver"
-              participant={giver}
-              disabled={isAttempting}
-              onChoose={() => setSelectorRole("giver")}
-              onInfo={setInfoParticipant}
-            />
-            <FocusedPairCard
-              role="Receiver"
-              participant={receiver}
-              disabled={isAttempting}
-              onChoose={() => setSelectorRole("receiver")}
-              onInfo={setInfoParticipant}
-            />
-          </div>
-
-          <aside className={styles.breakdownColumn} aria-label="Breeding preview details">
-            <section className={styles.chanceCard}>
-              <span>Pregnancy Chance</span>
-              <strong>{preview ? `${preview.pregnancyChance}%` : "—"}</strong>
-              <button type="button" onClick={() => setShowChanceBreakdown((current) => !current)}>
-                {showChanceBreakdown ? "Hide Breakdown" : "Show Breakdown"}
-              </button>
-              {showChanceBreakdown && chanceRows.length ? (
-                <div className={styles.chanceRows}>
-                  {chanceRows.map(([label, amount]) => (
-                    <div key={label}>
-                      <span>{label}</span>
-                      <b>{amount === 0 ? "0%" : `${amount > 0 ? "+" : ""}${amount}%`}</b>
-                    </div>
-                  ))}
-                  <div className={styles.finalRow}>
-                    <span>Final chance</span>
-                    <b>{preview?.pregnancyChance ?? 0}%</b>
-                  </div>
-                </div>
-              ) : null}
-              {preview?.receiverPregnant ? <p>Receiver is already pregnant, so this session cannot create another pregnancy.</p> : null}
-            </section>
-
-            <section className={styles.costCard}>
-              <span>Resource Cost</span>
-              {giver && preview ? <CostRow participant={giver} preview={preview} /> : null}
-              {receiver && preview ? <CostRow participant={receiver} preview={preview} /> : null}
-              {preview ? <small>Energy discount: {preview.energyDiscount}. Heart cost: {preview.heartCost} each.</small> : <small>Select a complete pair.</small>}
-            </section>
-
-            <section className={styles.progressCard}>
-              <MiniStat label="Creature XP" value={preview ? `+${preview.xpGain}` : "—"} />
-              <MiniStat label="Breeder XP" value={preview ? `+${preview.breederXpGain}` : "—"} />
-              <MiniStat label="Pair Streak" value={String(preview?.streakCount ?? "—")} />
-            </section>
+          <aside className={scenic.secondary} aria-label="Breeding preview details">
+            <button type="button" onClick={() => setShowOptions(true)}><RanchIcon name="gear" />Pair Options</button>
           </aside>
-
-          <section className={`${styles.statusPanel} ${blockedReasons.length ? styles.blockedPanel : ""}`} data-ui-text-box="auto">
-            <div>
-              <p className={styles.kicker}>{blockedReasons.length ? "Pair Blocked" : "Preview"}</p>
-              <p>{message}</p>
-              {blockedReasons.length ? (
-                <ul>{blockedReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
-              ) : (
-                <p className={styles.readyText}>{statusText}</p>
-              )}
-              {preview?.readinessNotes?.length ? (
-                <details>
-                  <summary>Readiness and genetics notes</summary>
-                  <ul>{preview.readinessNotes.map((note) => <li key={note}>{note}</li>)}</ul>
-                </details>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className={styles.attemptButton}
-              disabled={!preview?.canAttempt || isAttempting}
-              onClick={requestAttempt}
-            >
-              {isAttempting ? "Processing..." : blockedReasons.length ? "Attempt Blocked" : "Attempt Breeding"}
-            </button>
+          <section className={`${ui.paper} ${scenic.ledger}`} aria-label="Attempt review">
+            <div className={scenic.chance}><strong>{preview ? `${preview.pregnancyChance}%` : "—"}</strong><span>Pregnancy chance</span><button type="button" onClick={() => setShowChanceBreakdown(true)}>Details</button></div>
+            <div className={scenic.costs}><h2>After attempt</h2><table><thead><tr><th scope="col">Participant</th><th scope="col">Energy</th><th scope="col">Hearts</th></tr></thead><tbody>{[giver,receiver].filter((p): p is BreedingParticipant => Boolean(p)).map(p => <tr key={p.participantId}><th scope="row">{p.displayName}</th><td>{p.energy} → {preview ? Math.max(0,p.energy-preview.energyCost) : "—"}</td><td>{p.hearts} → {preview ? Math.max(0,p.hearts-preview.heartCost) : "—"}</td></tr>)}</tbody></table><p>{preview ? `Cost each: ${preview.energyCost} Energy · ${preview.heartCost} Heart${preview.heartCost === 1 ? "" : "s"}` : "Select a complete pair."}</p></div>
+            <div className={scenic.attempt}><button type="button" className={scenic.readiness} onClick={() => setShowChanceBreakdown(true)}>{blockedReasons.length || preview?.pregnancyBlockedReason ? "Review readiness" : preview ? "✓ Pair is ready" : "Choose a pair"}</button><button type="button" className={ui.primary} disabled={!preview?.canAttempt || isAttempting} onClick={requestAttempt}>{isAttempting ? "Processing..." : blockedReasons.length ? "Attempt Blocked" : "Attempt Breeding"}</button></div>
           </section>
         </section>
-      </section>
+      </div>
+      {showOptions ? <GameDialog title="Pair Options" onClose={() => setShowOptions(false)}><div className={scenic.options}><button type="button" disabled={!canSwap || isAttempting} onClick={() => {swapRoles();setShowOptions(false);}}>Swap Roles</button><button type="button" disabled={isAttempting} onClick={() => {randomPair();setShowOptions(false);}}>Random Pair</button><button type="button" disabled={isAttempting || (!giverId && !receiverId)} onClick={() => {clearPair();setShowOptions(false);}}>Clear Pair</button><label>Scene Mode<select value={sceneMode} onChange={event => {const mode=event.target.value as SceneMode;setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode);}}><option value="full">Full Scenes</option><option value="quick">Quick Results</option></select></label></div></GameDialog> : null}
+      {showChanceBreakdown ? <GameDialog title="Chance & Readiness" onClose={() => setShowChanceBreakdown(false)}><div className={scenic.modal}><h3>Pregnancy chance: {preview ? `${preview.pregnancyChance}%` : "—"}</h3>{chanceRows.map(([label,amount]) => <div className={scenic.breakdownRow} key={label}><span>{label}</span><strong>{amount > 0 ? "+" : ""}{amount}%</strong></div>)}<p>{statusText}</p>{blockedReasons.length ? <ul>{blockedReasons.map(reason => <li key={reason}>{reason}</li>)}</ul> : null}<p>{message}</p>{preview?.readinessNotes?.length ? <><h3>Readiness and genetics notes</h3><ul>{preview.readinessNotes.map(note => <li key={note}>{note}</li>)}</ul></> : null}<h3>Resource cost</h3>{giver && preview ? <CostRow participant={giver} preview={preview} /> : null}{receiver && preview ? <CostRow participant={receiver} preview={preview} /> : null}<p>Energy discount: {preview?.energyDiscount ?? "—"}. Heart cost: {preview?.heartCost ?? "—"} each.</p><div className={scenic.progress}><MiniStat label="Creature XP" value={preview ? `+${preview.xpGain}` : "—"} /><MiniStat label="Breeder XP" value={preview ? `+${preview.breederXpGain}` : "—"} /><MiniStat label="Pair Streak" value={String(preview?.streakCount ?? "—")} /></div></div></GameDialog> : null}
 
       {selectorRole ? (
         <ParticipantSelectorModal
@@ -642,30 +537,12 @@ function FocusedPairCard({
   onChoose: () => void;
   onInfo: (participant: BreedingParticipant) => void;
 }) {
-  return (
-    <article className={styles.pairCard}>
-      {participant ? (
-        <button type="button" className={styles.infoButton} disabled={disabled} onClick={() => onInfo(participant)} aria-label={`Inspect ${participant.displayName}`}>i</button>
-      ) : null}
-      <button type="button" className={styles.chooseOverlay} disabled={disabled} onClick={onChoose} aria-label={`Choose ${role}`} />
-      <div className={styles.pairTitle}>
-        <p className={styles.kicker}>{role}</p>
-        <strong>{participant?.displayName ?? `Choose ${role}`}</strong>
-      </div>
-      {participant ? (
-        <div className={styles.artWrap}>
-          <img src={getParticipantImage(participant)} alt="" onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
-        </div>
-      ) : (
-        <div className={styles.emptyArt}>Click to select</div>
-      )}
-      <div className={styles.pairReadouts}>
-        <MiniStat label="Energy" value={participant ? formatEnergy(participant.energy, participant.maxEnergy) : "—"} />
-        <MiniStat label="Hearts" value={participant ? `${participant.hearts}/${participant.maxHearts}` : "—"} />
-        <MiniStat label="Status" value={participantStatus(participant)} />
-      </div>
-    </article>
-  );
+  const [showArtwork,setShowArtwork] = useState(false);
+  return <article className={scenic.pairCard}>
+    {participant ? <button type="button" className={scenic.art} onClick={() => setShowArtwork(true)} aria-label={`View full image of ${participant.displayName}`}><img src={getParticipantImage(participant)} alt={`${participant.displayName} full body`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /></button> : <div className={scenic.emptyArt}>Choose {role}</div>}
+    <div className={`${ui.paper} ${scenic.pairInfo}`}><h2>{participant?.displayName ?? `Choose ${role}`}</h2><span className={scenic.role}>{role}</span><div className={scenic.readouts}><MiniStat label="Energy" value={participant ? formatEnergy(participant.energy,participant.maxEnergy) : "—"}/><MiniStat label="Hearts" value={participant ? `${participant.hearts}/${participant.maxHearts}` : "—"}/><MiniStat label="Status" value={participantStatus(participant)}/></div><div className={scenic.pairActions}><button type="button" disabled={disabled} onClick={onChoose} aria-label={`Choose ${role}`}>Change</button><button type="button" disabled={disabled || !participant} onClick={() => participant && onInfo(participant)} aria-label={participant ? `Inspect ${participant.displayName}` : `Inspect ${role}`}>Inspect</button></div></div>
+    {showArtwork && participant ? <GameDialog title={participant.displayName} onClose={() => setShowArtwork(false)}><img className={scenic.fullArt} src={getParticipantImage(participant)} alt={`${participant.displayName} full body`} /></GameDialog> : null}
+  </article>;
 }
 
 function MiniStat({ label, value }: { label: string; value: string }) {
@@ -707,15 +584,9 @@ function ParticipantSelectorModal({
   onInfo: (participant: BreedingParticipant) => void;
   onClose: () => void;
 }) {
-  const modalRef = useRef<HTMLElement>(null);
-  useEffect(() => modalRef.current?.focus(), []);
   return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
-      <section ref={modalRef} tabIndex={-1} className={styles.selectorModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-        <header className={styles.modalHeader}>
-          <div><p className={styles.kicker}>Select {role}</p><h2>{role === "giver" ? "Choose Giver" : "Choose Receiver"}</h2></div>
-          <button type="button" onClick={onClose}>Close</button>
-        </header>
+    <GameDialog title={role === "giver" ? "Choose Giver" : "Choose Receiver"} onClose={onClose} wide><div className={scenic.modal}>
+
         <div className={styles.selectorToolbar}>
           <label>Sort<select value={sortMode} onChange={(event) => onSortChange(event.target.value as SortMode)}><option value="name">Name</option><option value="level">Level</option><option value="energy">Energy</option><option value="affection">Affection</option><option value="fertility">Fertility</option></select></label>
           <label>Filter<select value={filterMode} onChange={(event) => onFilterChange(event.target.value as FilterMode)}><option value="all">All Participants</option><option value="available">Only Available</option><option value="nonPregnant">Non-Pregnant</option><option value="creatures">Creatures Only</option><option value="player">Player</option><option value="feline">Feline</option><option value="canine">Canine</option><option value="bovine">Bovine</option><option value="lapine">Lapine</option><option value="equine">Equine</option></select></label>
@@ -734,36 +605,30 @@ function ParticipantSelectorModal({
             );
           })}
         </div>
-      </section>
-    </div>
+      </div>
+    </GameDialog>
   );
 }
 
 function ParticipantInfoModal({ participant, creature, dayNumber, onClose }: { participant: BreedingParticipant; creature: CreatureRecord | null; dayNumber: number; onClose: () => void }) {
-  const modalRef = useRef<HTMLElement>(null);
-  useEffect(() => modalRef.current?.focus(), []);
   return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
-      <section ref={modalRef} tabIndex={-1} className={styles.infoModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-        <header className={styles.modalHeader}><div><p className={styles.kicker}>Breeding Inspect</p><h2>{participant.displayName}</h2><p>{participantStatus(participant)}</p></div><button type="button" onClick={onClose}>Close</button></header>
-        {creature ? <SharedCreatureDetail creature={creature} dayNumber={dayNumber} showActions={false} /> : <div className={styles.playerInfo}><img src={getParticipantImage(participant)} alt="" /><p>{participant.description}</p><div className={styles.progressCard}><MiniStat label="Energy" value={formatEnergy(participant.energy, participant.maxEnergy)} /><MiniStat label="Hearts" value={`${participant.hearts}/${participant.maxHearts}`} /><MiniStat label="Affection" value={String(participant.affection)} /></div></div>}
-      </section>
-    </div>
+    <GameDialog title={participant.displayName} onClose={onClose} wide><div className={scenic.modal}>
+
+        {creature ? <SharedCreatureDetail dossier creature={creature} dayNumber={dayNumber} showActions={false} /> : <div className={styles.playerInfo}><img src={getParticipantImage(participant)} alt="" /><p>{participant.description}</p><div className={styles.progressCard}><MiniStat label="Energy" value={formatEnergy(participant.energy, participant.maxEnergy)} /><MiniStat label="Hearts" value={`${participant.hearts}/${participant.maxHearts}`} /><MiniStat label="Affection" value={String(participant.affection)} /></div></div>}
+      </div>
+    </GameDialog>
   );
 }
 
 function WarningModal({ warnings, onCancel, onConfirm }: { warnings: ResourceWarning[]; onCancel: () => void; onConfirm: () => void }) {
-  const modalRef = useRef<HTMLElement>(null);
-  useEffect(() => modalRef.current?.focus(), []);
   return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onCancel}>
-      <section ref={modalRef} tabIndex={-1} className={styles.warningModal} role="alertdialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+    <GameDialog title={"Continue with this attempt?"} onClose={onCancel} wide><div className={scenic.modal}>
         <p className={styles.kicker}>Resource Warning</p>
         <h2>Continue with this attempt?</h2>
         <div className={styles.warningList}>{warnings.map((warning, index) => <article key={`${warning.participantName}-${warning.resource}-${index}`} data-ui-text-box="auto"><strong>{warning.participantName} — {warning.resource}</strong><span>{warning.before} → {warning.after} (cost {warning.cost})</span><p>{warning.consequence}</p></article>)}</div>
         <div className={styles.modalActions}><button type="button" onClick={onCancel}>Cancel</button><button type="button" className={styles.dangerButton} onClick={onConfirm}>Continue Anyway</button></div>
-      </section>
-    </div>
+      </div>
+    </GameDialog>
   );
 }
 
@@ -790,26 +655,23 @@ function BreedingResultModal({
 }) {
   const [page, setPage] = useState<ResultPage>(sceneMode === "quick" ? "outcome" : "process");
   const [imageLoaded, setImageLoaded] = useState(false);
-  const modalRef = useRef<HTMLElement>(null);
   const success = result.outcome === "pregnancy";
   const blocked = Boolean(result.pregnancyBlockedReason);
   const imagePath = page === "process" ? result.pairingImagePath : result.outcomeImagePath;
   const fallback = page === "process" ? BREEDING_SCENE_FALLBACK_PATH : success ? BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH : BREEDING_OUTCOME_FAILURE_FALLBACK_PATH;
 
-  useEffect(() => modalRef.current?.focus(), []);
   useEffect(() => setImageLoaded(false), [imagePath]);
 
   return (
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
-      <section ref={modalRef} tabIndex={-1} className={styles.resultModal} role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
-        <header className={styles.modalHeader}><div><p className={styles.kicker}>{page === "process" ? "Pairing Scene" : "Outcome"}</p><h2>{page === "process" ? `${result.giverName} × ${result.receiverName}` : success ? "Pregnancy Signs" : blocked ? "Pregnancy Blocked" : "No Pregnancy"}</h2></div><button type="button" onClick={onClose}>Close</button></header>
+    <GameDialog title={page === "process" ? `${result.giverName} × ${result.receiverName}` : success ? "Pregnancy Signs" : blocked ? "Pregnancy Blocked" : "No Pregnancy"} onClose={onClose} wide><div className={scenic.modal}>
+
         <div className={styles.resultImageWrap}>{!imageLoaded ? <span>Preparing scene...</span> : null}<img src={imagePath} alt="" className={imageLoaded ? styles.loadedImage : ""} onLoad={() => setImageLoaded(true)} onError={(event) => { if (event.currentTarget.src.endsWith(fallback)) { setImageLoaded(true); return; } event.currentTarget.src = fallback; }} /></div>
         {page === "process" ? (
           <><p>{result.processText}</p><div className={styles.resultStats}><MiniStat label="Chance" value={`${result.pregnancyChance}%`} /><MiniStat label="Energy Cost" value={String(result.energyCost)} /><MiniStat label="Heart Cost" value={String(result.heartCost)} /><MiniStat label="Creature XP" value={`+${result.xpGain}`} /><MiniStat label="Breeder XP" value={`+${result.breederXpGain}`} /></div><div className={styles.modalActions}><button type="button" className={styles.primaryButton} onClick={() => setPage("outcome")}>Next: Outcome</button></div></>
         ) : (
           <><p>{result.resultText}</p><p>{result.outcomeFlavorText}</p><div className={styles.resultStats}><MiniStat label="Receiver" value={success ? "Pregnant" : "Not pregnant"} /><MiniStat label="Chance Used" value={`${result.pregnancyChance}%`} /><MiniStat label="Pair Streak" value={String(result.streakAfter)} /><MiniStat label="Outcome" value={blocked ? "Blocked" : result.outcome} /></div>{!canBreedAgain && breedAgainReason ? <p className={styles.blockReason}>Breed again unavailable: {breedAgainReason}</p> : null}<div className={styles.modalActions}>{success ? <><button type="button" onClick={onKeepGiverChooseReceiver}>Keep Giver, Choose New Receiver</button><button type="button" onClick={onViewPregnancy}>View Pregnancy</button></> : <button type="button" disabled={!canBreedAgain} onClick={onBreedAgain}>Breed Again</button>}<button type="button" onClick={onChangePair}>Change Pair</button><button type="button" className={styles.primaryButton} onClick={onClose}>Close</button></div></>
         )}
-      </section>
-    </div>
+      </div>
+    </GameDialog>
   );
 }

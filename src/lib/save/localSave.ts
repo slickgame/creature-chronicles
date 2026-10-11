@@ -1,5 +1,5 @@
 import { rebalanceExistingCreatureAbilities } from "@/data/abilityBalance";
-import { MVP_VERSION, STARTING_PLAYER_STATE } from "@/data/gameConstants";
+import { MVP_VERSION, STARTING_PLAYER_STATE, STARTING_RANCH_SUPPLIES } from "@/data/gameConstants";
 import { createDefaultBreedingState, getPlayerMaxEnergyFromStats } from "@/data/breeding";
 import { createDefaultGuildState, ensureCurrentGuildState } from "@/data/guild";
 import { normalizeGrowthProgress, getProjectedMaxEnergyForCreature } from "@/data/levelGrowth";
@@ -105,8 +105,7 @@ function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
     getBaseMaxHearts(species.speciesId, variant.variantId),
   );
   const origin = inferCreatureOrigin(creature);
-  const seed = `${creature.ownerSaveId}_${creature.creatureId}_${origin.origin}_ability_balance`;
-  const fallbackAbilities = creature.abilities?.length
+  const fallbackAbilities = Array.isArray(creature.abilities)
     ? creature.abilities
     : rollCreatureAbilities(
         `${creature.ownerSaveId}_${creature.creatureId}_migration`,
@@ -115,9 +114,6 @@ function ensureCreatureProgression(creature: CreatureRecord): CreatureRecord {
       );
   const abilities = rebalanceExistingCreatureAbilities(
     { ...creature, origin: origin.origin, originLabel: origin.originLabel, abilities: fallbackAbilities },
-    seed,
-    species.speciesId,
-    variant.variantId,
   );
 
   return {
@@ -446,6 +442,9 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       repairedCollectionEntries: 0,
     },
     flags: {
+      ranchFeedStock: STARTING_RANCH_SUPPLIES.feed,
+      ranchMaterialsStock: STARTING_RANCH_SUPPLIES.materials,
+      firstWeekEconomyVersion: 1,
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
@@ -638,3 +637,4 @@ export function findFirstEmptySlot(): number | null {
   const emptyIndex = saves.findIndex((save) => save === null);
   return emptyIndex >= 0 ? emptyIndex : null;
 }
+

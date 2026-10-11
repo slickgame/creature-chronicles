@@ -1,5 +1,7 @@
 "use client";
 
+import { getFarmState, resourceList, canSpend } from "@/data/farmResources";
+
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { getBuilderProjectProgress, type BuilderProjectId } from "@/data/builderProjects";
 import { getNextRanchUpgradeTier, getRanchUpgradeDefinition, getRanchUpgrades } from "@/data/ranchUpgrades";
@@ -92,7 +94,7 @@ function getPrimaryUpgradeId(shortcut: BuildingShortcut): RanchUpgradeId | null 
 function formatUpgradeCost(tier: RanchUpgradeTier): string {
   const parts = [formatGold(tier.costGold)];
   if (tier.costGp) parts.push(formatGuildPoints(tier.costGp));
-  if (tier.costMaterials) parts.push(`${tier.costMaterials} Materials`);
+  if (tier.costResources) parts.push(resourceList(tier.costResources));
   return parts.join(" + ");
 }
 function getHighestLevel(upgradeIds: RanchUpgradeId[], upgrades: Record<RanchUpgradeId, number>): number | null {
@@ -100,8 +102,7 @@ function getHighestLevel(upgradeIds: RanchUpgradeId[], upgrades: Record<RanchUpg
   return Math.max(...upgradeIds.map((upgradeId) => upgrades[upgradeId] ?? 0));
 }
 function canAffordTier(currentSave: NonNullable<ReturnType<typeof useGameContext>["currentSave"]>, tier: RanchUpgradeTier): boolean {
-  const materials = Number(currentSave.flags.ranchMaterialsStock ?? 0);
-  return currentSave.currencies.gold >= tier.costGold && currentSave.currencies.guildPoints >= (tier.costGp ?? 0) && materials >= (tier.costMaterials ?? 0);
+  return currentSave.currencies.gold >= tier.costGold && currentSave.currencies.guildPoints >= (tier.costGp ?? 0) && canSpend(getFarmState(currentSave), tier.costResources ?? {});
 }
 function setOfficeShortcut(upgradeId: RanchUpgradeId | null) {
   if (!upgradeId || typeof window === "undefined") return;
@@ -211,7 +212,7 @@ export function RanchPlotNavigator() {
                   <strong>{progress.definition.title}</strong>
                   <p>{progress.definition.flavor}</p>
                   <div><em>Status</em><b>{progress.status}</b></div>
-                  <div><em>Cost</em><b>{progress.definition.costGold} Gold + {progress.definition.costMaterials} Materials</b></div>
+                  <div><em>Cost</em><b>{progress.definition.costGold} Gold + {resourceList(progress.definition.costResources)}</b></div>
                   {progress.missingPrerequisites.length ? <small>Requires: {progress.missingPrerequisites.map((item) => item.title).join(", ")}</small> : null}
                   {progress.built && progress.definition.category === "habitat" ? <small>The structure is complete. Its future creature family is not active yet.</small> : null}
                 </article>

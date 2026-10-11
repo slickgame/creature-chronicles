@@ -2,6 +2,8 @@ import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
 import { TAX_COLLECTOR } from "@/data/taxCollector";
 
 export type StoryImageId =
+  | "chapter1_intro_journey"
+  | "chapter1_intro_starter"
   | "chapter1_intro_deed"
   | "chapter1_intro_arrival"
   | "chapter1_intro_veyra"
@@ -49,57 +51,71 @@ const STORY_IMAGE_BASE = "/images/story";
 export const STORY_IMAGE_FALLBACK_PATH = "/images/ui/icons/icon_paw_crest.png";
 
 export const STORY_IMAGE_MANIFEST: Record<StoryImageId, StoryImageManifestEntry> = {
+  chapter1_intro_journey: {
+    id: "chapter1_intro_journey", filename: "journey.webp", path: "/images/story/opening/journey-approved.webp",
+    title: "The Journey", chapter: "chapter1", sceneId: "chapter-one-intro",
+    description: "Approved journey along the lane to Bramble Farm.",
+    promptNotes: "Reuse existing approved artwork.", placeholderPath: STORY_IMAGE_FALLBACK_PATH,
+    status: "final", recommendedAspectRatio: "16:9",
+  },
+  chapter1_intro_starter: {
+    id: "chapter1_intro_starter", filename: "starter.webp", path: "/images/ui/icons/icon_paw_crest.png",
+    title: "Meet Your Starter", chapter: "chapter1", sceneId: "chapter-one-intro",
+    description: "Uses the actual generated starter and existing species art.",
+    promptNotes: "Reuse existing approved artwork.", placeholderPath: STORY_IMAGE_FALLBACK_PATH,
+    status: "final", recommendedAspectRatio: "16:9",
+  },
   chapter1_intro_deed: {
     id: "chapter1_intro_deed",
     filename: "chapter1_intro_deed.png",
-    path: `${STORY_IMAGE_BASE}/chapter1_intro_deed.png`,
+    path: "/images/story/opening/inheritance-letter-approved.webp",
     title: "Chapter 1 Intro — Inherited Deed",
     chapter: "chapter1",
     sceneId: "chapter-one-intro",
     description: "Opening image showing the inherited deed and the player's first connection to Bramble Farm.",
     promptNotes: "Old farm deed or letter being opened; rustic fantasy-ranch tone; moody but hopeful; no modern objects.",
     placeholderPath: "/images/ui/logo/creature_chronicles_logo.png",
-    status: "placeholder",
-    recommendedAspectRatio: "4:3",
+    status: "final",
+    recommendedAspectRatio: "16:9",
   },
   chapter1_intro_arrival: {
     id: "chapter1_intro_arrival",
     filename: "chapter1_intro_arrival.png",
-    path: `${STORY_IMAGE_BASE}/chapter1_intro_arrival.png`,
+    path: "/images/title/bramble-farm-at-the-gate-approved.webp",
     title: "Chapter 1 Intro — Arrival at Bramble Farm",
     chapter: "chapter1",
     sceneId: "chapter-one-intro",
     description: "The player arrives at an overgrown farm with damaged fences and creatures watching from the property edges.",
     promptNotes: "Wide establishing shot of neglected ranch entrance, overgrown grass, leaning fences, distant watching creatures; slightly ominous but inviting.",
     placeholderPath: "/images/ui/logo/creature_chronicles_logo.png",
-    status: "placeholder",
+    status: "final",
     recommendedAspectRatio: "16:9",
   },
   chapter1_intro_veyra: {
     id: "chapter1_intro_veyra",
     filename: "chapter1_intro_veyra.png",
-    path: `${STORY_IMAGE_BASE}/chapter1_intro_veyra.png`,
+    path: "/images/story/opening/porch-welcome-approved.webp",
     title: "Chapter 1 Intro — Meeting Veyra",
     chapter: "chapter1",
     sceneId: "chapter-one-intro",
     description: "Veyra Bramble waiting on the porch, introducing herself as the one who works and lives on the farm.",
     promptNotes: "Veyra on the ranch porch; warm but confident; farm background; practical advisor energy; story illustration framing.",
     placeholderPath: RANCH_ADVISOR.portraitPath,
-    status: "placeholder",
-    recommendedAspectRatio: "4:3",
+    status: "final",
+    recommendedAspectRatio: "16:9",
   },
   chapter1_intro_priorities: {
     id: "chapter1_intro_priorities",
     filename: "chapter1_intro_priorities.png",
-    path: `${STORY_IMAGE_BASE}/chapter1_intro_priorities.png`,
+    path: "/images/story/opening/evening-ledger-approved.webp",
     title: "Chapter 1 Intro — Ranch Priorities",
     chapter: "chapter1",
     sceneId: "chapter-one-intro",
     description: "The ranch priority loop: security, feed, materials, comfort, eggs, and taxes.",
     promptNotes: "Stylized chore board or ledger with symbols for security, feed, materials, comfort, eggs, taxes; useful tutorial composition.",
     placeholderPath: "/images/ui/icons/icon_ranch_chores_board.png",
-    status: "placeholder",
-    recommendedAspectRatio: "4:3",
+    status: "final",
+    recommendedAspectRatio: "16:9",
   },
   chapter1_intro_tax_notice: {
     id: "chapter1_intro_tax_notice",

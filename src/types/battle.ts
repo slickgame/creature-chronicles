@@ -344,3 +344,13 @@ export type BattleState = {
   combatants: Record<BattleCombatantId, BattleCombatant>;
   log: string[];
 };
+
+/** Immutable, ID-addressed display state after one resolved effect. Never stored in saves. */
+export type BattlePlaybackFrame = {
+  state: BattleState;
+  kind: "attack" | "damage" | "heal" | "energy" | "status" | "miss" | "knockout";
+  actorId?: BattleCombatantId;
+  targetIds: BattleCombatantId[];
+  moveId?: BattleMoveId;
+  label: string;
+};

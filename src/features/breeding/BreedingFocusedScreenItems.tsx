@@ -13,6 +13,8 @@ import { useGameContext } from "@/state/GameProvider";
 import type { BreedingParticipant } from "@/types/breeding";
 import type { BreedingSupportItemId } from "@/types/items";
 import { BreedingFocusedScreen as LedgerBreedingScreen } from "./BreedingFocusedScreenLedger";
+import { GameDialog } from "@/features/ui/GameDialog";
+import { RanchIcon } from "@/features/ui/RanchIcon";
 import styles from "./BreedingFocusedScreenItems.module.css";
 
 type PairMemory = { giverId: string | null; receiverId: string | null };
@@ -50,6 +52,7 @@ function targetCanReceiveEnergy(participant: BreedingParticipant | null): boolea
 }
 
 export function BreedingFocusedScreen() {
+  const [showItems,setShowItems]=useState(false);
   const { currentSave, saveCurrentGame } = useGameContext();
   const [shelfHost, setShelfHost] = useState<HTMLElement | null>(null);
   const [pair, setPair] = useState<PairMemory>({ giverId: PLAYER_PARTICIPANT_ID, receiverId: null });
@@ -96,17 +99,6 @@ export function BreedingFocusedScreen() {
     };
   }, [currentSave]);
 
-  useEffect(() => {
-    function onEscape(event: KeyboardEvent) {
-      if (event.key !== "Escape" || !pendingUse) return;
-      event.preventDefault();
-      event.stopPropagation();
-      setPendingUse(null);
-    }
-    window.addEventListener("keydown", onEscape, true);
-    return () => window.removeEventListener("keydown", onEscape, true);
-  }, [pendingUse]);
-
   function executeUse(itemId: BreedingSupportItemId, selectedTargetId?: string) {
     if (!currentSave) return;
     const result = useBreedingSupportItem(currentSave, itemId, {
@@ -140,11 +132,7 @@ export function BreedingFocusedScreen() {
   const armedShelfItems = PAIR_ITEM_IDS.filter((itemId) => armed(itemId)).length;
 
   const shelf = currentSave ? (
-    <details className={styles.shelf} data-ui-text-box="auto" aria-label="Breeding support items">
-      <summary>
-        <span>Support Items</span>
-        <span className={styles.summaryCount}>{ownedShelfItems} owned{armedShelfItems ? ` · ${armedShelfItems} armed` : ""}</span>
-      </summary>
+    <><button type="button" style={{order:-2}} onClick={() => setShowItems(true)}><RanchIcon name="bag" />Support Items{armedShelfItems ? ` (${armedShelfItems} armed)` : ""}</button>{showItems ? <GameDialog title="Support Items" onClose={() => setShowItems(false)}><p>{ownedShelfItems} owned · {armedShelfItems} armed</p>
       <div className={styles.shelfBody}>
         {ENERGY_ITEM_IDS.map((itemId) => {
           const item = getBreedingSupportItem(itemId)!;
@@ -201,7 +189,7 @@ export function BreedingFocusedScreen() {
 
         <p className={styles.message}>{message}</p>
       </div>
-    </details>
+    </GameDialog> : null}</>
   ) : null;
 
   return (
@@ -210,8 +198,7 @@ export function BreedingFocusedScreen() {
       {shelfHost && shelf ? createPortal(shelf, shelfHost) : null}
 
       {pendingUse ? (
-        <div className={styles.backdrop} role="presentation" onClick={() => setPendingUse(null)}>
-          <section className={styles.confirm} role="dialog" aria-modal="true" aria-label="Confirm rare breeding item" onClick={(event) => event.stopPropagation()}>
+        <GameDialog title="Confirm rare breeding item" onClose={() => setPendingUse(null)}><div>
             <p>Rare Item Confirmation</p>
             <h2>Arm {getBreedingSupportItem(pendingUse.itemId)?.name}?</h2>
             <p>{getBreedingSupportItem(pendingUse.itemId)?.exactEffect}</p>
@@ -220,8 +207,7 @@ export function BreedingFocusedScreen() {
               <button type="button" onClick={() => setPendingUse(null)}>Cancel</button>
               <button type="button" onClick={() => executeUse(pendingUse.itemId, pendingUse.targetId)}>Confirm Use</button>
             </div>
-          </section>
-        </div>
+          </div></GameDialog>
       ) : null}
     </>
   );

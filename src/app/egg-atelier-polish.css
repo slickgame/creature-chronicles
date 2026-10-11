@@ -9,62 +9,6 @@
   isolation: isolate;
 }
 
-/* The Atelier-local Menu button used to exit directly to the main menu.
-   Hide it and move the existing global Player Menu launcher into the same header slot. */
-.eggAtelierShell main button[class*="menuButton"] {
-  display: none !important;
-}
-
-.eggAtelierShell main [class*="headerActions"] {
-  grid-template-columns: repeat(2, minmax(128px, 1fr)) !important;
-  width: min(100%, 300px) !important;
-  margin-right: 76px !important;
-}
-
-.eggAtelierShell > button[class*="menuButton"] {
-  position: fixed !important;
-  z-index: 130 !important;
-  top: 17px !important;
-  right: 16px !important;
-  left: auto !important;
-  bottom: auto !important;
-  width: 64px !important;
-  min-width: 64px !important;
-  height: 58px !important;
-  min-height: 58px !important;
-  padding: 5px 8px !important;
-  display: grid !important;
-  place-items: center !important;
-  border: 1px solid rgba(236, 190, 99, 0.95) !important;
-  border-radius: 18px !important;
-  background:
-    linear-gradient(180deg, #fff0bd 0%, #e7bb66 58%, #c98a31 100%) !important;
-  color: #2b190e !important;
-  font-family: Georgia, "Times New Roman", serif !important;
-  font-size: 0.86rem !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.02em !important;
-  text-transform: uppercase !important;
-  box-shadow:
-    0 5px 0 rgba(57, 31, 11, 0.72),
-    0 10px 24px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72) !important;
-}
-
-.eggAtelierShell > button[class*="menuButton"]::before {
-  content: "☰";
-  display: block;
-  margin-bottom: -3px;
-  font-family: system-ui, sans-serif;
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.eggAtelierShell > button[class*="menuButton"]:hover {
-  transform: translateY(-1px) !important;
-  filter: brightness(1.05) !important;
-}
-
 /* Quickhatch belongs to inventory/tutorial flow, not to every Atelier panel. */
 .eggAtelierShell main [class*="inventoryChip"] {
   display: none !important;

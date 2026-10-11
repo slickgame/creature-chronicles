@@ -8,6 +8,7 @@ const projectRoot = resolvePath(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = resolvePath(projectRoot, "src");
 const supportedExtensions = [".ts", ".tsx", ".js", ".mjs", ".json"];
 const exactAliases = new Map([
+  ["@/data/ranchJobs", "data/ranchJobsPredator"],
   ["@/data/balance/breedingBalancePresets", "data/balance/breedingBalancePresetsLive"],
   ["@/data/balance/breedingEconomySimulation", "data/balance/breedingEconomySimulationNormalized"],
   ["@/data/battleEngine", "data/battleEnginePersistent"],

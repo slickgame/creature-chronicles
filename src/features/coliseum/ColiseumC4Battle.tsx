@@ -1,20 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { BattleArenaB } from "@/features/battle/BattleArenaB";
+import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
 import {
   buildBattleAiPlan,
   formatBattleAiDecision,
-  getBattleAiDifficultyDescription,
-  getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
 import {
   createBattleState,
-  getEffectiveBattleStats,
   resolveBattleRound,
 } from "@/data/battleEngine";
-import { buildBattlePresentationEvents } from "@/data/battlePresentation";
-import { getBattleMove } from "@/data/battleMoves";
-import { getBattleReadinessLabel } from "@/data/battleOutfitter";
+import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -22,13 +19,11 @@ import {
   applyBattleOutfitterLoadouts,
   applyTeamTacticsKit,
   getBattleOutfitterCombatStock,
-  useFieldTonic,
-  useRevivalSalve,
+  useFieldTonic as applyFieldTonic,
+  useRevivalSalve as applyRevivalSalve,
 } from "@/data/battleOutfitterIntegration";
 import {
   buildBattleUiAction,
-  getBattleTargetTypeLabel,
-  getBattleUiMoveOptions,
   getNextUnqueuedPlayerActorId,
   type BattleUiTarget,
 } from "@/data/battleUi";
@@ -37,12 +32,12 @@ import {
   applyAuthoredColiseumEquipment,
   buildAuthoredColiseumEnemyTeam,
   createColiseumPerformance,
-  getColiseumC2Division,
   getColiseumEnemyPreview,
   type ColiseumC2EncounterDefinition,
   type ColiseumCombatPerformanceMap,
 } from "@/data/coliseumC2";
 import {
+  recordColiseumC4BattleResult,
   applyColiseumC4Carryover,
   applyColiseumC4Modifiers,
   getColiseumC4Modifier,
@@ -50,25 +45,18 @@ import {
   type ColiseumC4CarryoverMap,
   type ColiseumC4ChallengeDefinition,
 } from "@/data/coliseumC4";
-import { getVariantDefinition } from "@/data/creatures";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { useGameContext } from "@/state/GameProvider";
 import type {
   BattleAction,
-  BattleCombatant,
   BattleCombatantId,
-  BattleMove,
   BattleOutcome,
   BattleState,
 } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
-import battleStyles from "@/features/battle/BattleArenaScreen.module.css";
-import { BattlePortraitStage } from "@/features/battle/BattlePortraitStage";
 import { useBattlePresentationController } from "@/features/battle/useBattlePresentationController";
-import styles from "./ColiseumC4.module.css";
 
-const FALLBACK_PORTRAIT = "/images/ui/icons/icon_paw_crest.png";
 
 type BattlePhase = "team-selection" | "battle" | "result";
 type UsedCombatItems = { tacticsKit: boolean; fieldTonic: boolean; revivalSalve: boolean };
@@ -110,130 +98,6 @@ function getUnavailableReason(
   return null;
 }
 
-function statusLabel(combatant: BattleCombatant): string {
-  if (!combatant.statuses.length) return "No status effects";
-  return combatant.statuses
-    .map((status) => `${status.status}${(status.stacks ?? 1) > 1 ? ` ×${status.stacks}` : ""} · ${status.duration}r`)
-    .join(" • ");
-}
-
-function moveEffectLabel(move: BattleMove): string {
-  return move.effects
-    .map((effect) => {
-      const amount = effect.amount ?? (effect.type === "damage" || effect.type === "heal" ? move.power : undefined);
-      const pieces = [effect.type.replaceAll("_", " ")];
-      if (amount !== undefined) pieces.push(String(amount));
-      if (effect.status) pieces.push(effect.status);
-      if (effect.stat) pieces.push(effect.stat);
-      if (effect.chance !== undefined && effect.chance < 100) pieces.push(`${effect.chance}%`);
-      if (effect.duration) pieces.push(`${effect.duration}r`);
-      return pieces.join(" ");
-    })
-    .join(" • ");
-}
-
-function creaturePortrait(creature?: CreatureRecord): string {
-  if (!creature) return FALLBACK_PORTRAIT;
-  return creature.portraitPath || getVariantDefinition(creature.variantId).portraitPath || FALLBACK_PORTRAIT;
-}
-
-function Meter({ value, max, label, tone }: { value: number; max: number; label: string; tone: "hp" | "energy" }) {
-  const percent = max > 0 ? Math.max(0, Math.min(100, Math.round((value / max) * 100))) : 0;
-  return (
-    <div className={battleStyles.meterBlock}>
-      <div><span>{label}</span><strong>{value}/{max}</strong></div>
-      <div className={battleStyles.meterTrack}>
-        <span className={tone === "hp" ? battleStyles.hpFill : battleStyles.energyFill} style={{ width: `${percent}%` }} />
-      </div>
-    </div>
-  );
-}
-
-function CombatantCard({
-  combatant,
-  portraitPath,
-  selectedTarget,
-  activeActorId,
-  queuedAction,
-  onTarget,
-  onPlan,
-}: {
-  combatant: BattleCombatant;
-  portraitPath?: string;
-  selectedTarget: BattleUiTarget | null;
-  activeActorId: BattleCombatantId | null;
-  queuedAction?: BattleAction;
-  onTarget: () => void;
-  onPlan?: () => void;
-}) {
-  const selected = selectedTarget?.kind === "combatant" && selectedTarget.combatantId === combatant.battleCombatantId;
-  const active = activeActorId === combatant.battleCombatantId;
-  const effective = getEffectiveBattleStats(combatant);
-  const canSelect = !combatant.isFainted || combatant.sideId === "player";
-  return (
-    <article className={`${battleStyles.combatantCard} ${combatant.sideId === "enemy" ? battleStyles.enemyCard : battleStyles.playerCard} ${selected ? battleStyles.selectedTarget : ""} ${active ? battleStyles.activeActor : ""} ${combatant.isFainted ? battleStyles.fainted : ""}`}>
-      <div className={battleStyles.combatantTop}>
-        <div className={battleStyles.portraitFrame} data-ui-fixed-size="true">
-          <img src={portraitPath || FALLBACK_PORTRAIT} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_PORTRAIT; }} />
-        </div>
-        <div className={battleStyles.combatantIdentity}>
-          <span>{combatant.sideId === "enemy" ? "Challenge Opponent" : `Team Slot ${combatant.slotIndex + 1}`}</span>
-          <strong>{combatant.name}</strong>
-          <em>Lv. {combatant.level} · SPD {effective.speed}</em>
-        </div>
-      </div>
-      <Meter value={combatant.currentHp} max={combatant.maxHp} label="HP" tone="hp" />
-      <Meter value={combatant.currentBattleEnergy} max={combatant.maxBattleEnergy} label="BE" tone="energy" />
-      <p className={battleStyles.statusLine}>{statusLabel(combatant)}</p>
-      {queuedAction ? <p className={battleStyles.queuedLine}>Queued: {getBattleMove(queuedAction.moveId).name}</p> : null}
-      <div className={battleStyles.cardActions}>
-        <button type="button" onClick={onTarget} disabled={!canSelect}>
-          {selected ? "Target Selected" : combatant.isFainted ? "Select for Revival" : "Select Target"}
-        </button>
-        {onPlan ? <button type="button" className={battleStyles.secondaryButton} onClick={onPlan} disabled={combatant.isFainted}>{active ? "Planning" : queuedAction ? "Edit Action" : "Plan Action"}</button> : null}
-      </div>
-    </article>
-  );
-}
-
-function TeamSelectionCard({
-  creature,
-  selected,
-  unavailableReason,
-  locked,
-  readinessLabel,
-  carryover,
-  onToggle,
-}: {
-  creature: CreatureRecord;
-  selected: boolean;
-  unavailableReason: string | null;
-  locked: boolean;
-  readinessLabel: string;
-  carryover?: { hpRatio: number; battleEnergyRatio: number };
-  onToggle: () => void;
-}) {
-  const variant = getVariantDefinition(creature.variantId);
-  return (
-    <button
-      type="button"
-      className={`${battleStyles.rosterCard} ${selected ? battleStyles.rosterSelected : ""}`}
-      onClick={onToggle}
-      disabled={Boolean(unavailableReason) || locked}
-    >
-      <span className={battleStyles.rosterPortrait} data-ui-fixed-size="true"><img src={creaturePortrait(creature)} alt="" onError={(event) => { event.currentTarget.src = FALLBACK_PORTRAIT; }} /></span>
-      <span className={battleStyles.rosterInfo}>
-        <strong>{creature.nickname}</strong>
-        <em>Lv. {creature.level} · {variant.name}</em>
-        <small>{unavailableReason ?? (locked ? "Locked for this gauntlet" : selected ? "Selected" : "Available")}</small>
-        <small>{readinessLabel}</small>
-        {carryover ? <small>Next stage: {Math.round(carryover.hpRatio * 100)}% HP · {Math.round(carryover.battleEnergyRatio * 100)}% BE</small> : null}
-      </span>
-      <span className={battleStyles.selectionMark}>{locked ? "🔒" : selected ? "✓" : "+"}</span>
-    </button>
-  );
-}
-
 export function ColiseumC4Battle({
   challenge,
   stageIndex,
@@ -243,9 +107,9 @@ export function ColiseumC4Battle({
   onComplete,
   onReturn,
 }: ColiseumC4BattleProps) {
-  const { currentSave, goToBattleOutfitter, saveCurrentGame } = useGameContext();
+  const { currentSave, saveCurrentGame } = useGameContext();
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
-  const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[]>(lockedTeamCreatureIds ?? []);
+  const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[] | null>(lockedTeamCreatureIds ?? null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
@@ -267,7 +131,7 @@ export function ColiseumC4Battle({
   const visibleRoster = locked ? lockedRoster : roster;
   const effectiveSelection = locked
     ? lockedRoster.map((creature) => creature.creatureId)
-    : selectedCreatureIds.length
+    : selectedCreatureIds !== null
       ? selectedCreatureIds
       : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
   const enemyPreview = useMemo(() => getColiseumEnemyPreview(encounter), [encounter]);
@@ -281,25 +145,7 @@ export function ColiseumC4Battle({
   const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
-  const activeActor = battleState && activeActorId ? battleState.combatants[activeActorId] : null;
-  const moveOptions = battleState && activeActorId ? getBattleUiMoveOptions(battleState, activeActorId, selectedTarget) : [];
-  const compatibleMoves = moveOptions.filter((option) => option.compatible);
   const allPlayerActionsQueued = Boolean(battleState) && livingPlayerIds.length > 0 && livingPlayerIds.every((id) => queuedActions.has(id));
-
-  function toggleCreature(creature: CreatureRecord) {
-    if (locked) return;
-    const unavailableReason = getUnavailableReason(save, creature);
-    if (unavailableReason) { setMessage(unavailableReason); return; }
-    if (effectiveSelection.includes(creature.creatureId)) {
-      setSelectedCreatureIds(effectiveSelection.filter((id) => id !== creature.creatureId));
-      return;
-    }
-    if (effectiveSelection.length >= 3) {
-      setMessage("A Coliseum challenge team contains exactly three creatures. Remove one first.");
-      return;
-    }
-    setSelectedCreatureIds([...effectiveSelection, creature.creatureId]);
-  }
 
   function startBattle() {
     const team = effectiveSelection
@@ -371,22 +217,13 @@ export function ColiseumC4Battle({
     setMessage(`Planning ${battleState.combatants[actorId].name}'s action. Select a target first.`);
   }
 
-  function clearQueuedAction(actorId: BattleCombatantId) {
-    if (presentation.isPlaying || !battleState) return;
-    const nextQueue = new Map(queuedActions);
-    nextQueue.delete(actorId);
-    setQueuedActions(nextQueue);
-    setActiveActorId(actorId);
-    setSelectedTarget(null);
-  }
-
-  function useSupportItem(item: "tonic" | "revival") {
+  function handleSupportItem(item: "tonic" | "revival") {
     if (presentation.isPlaying) return;
     if (aidRestricted) { setMessage("Restricted Aid prevents Field Tonics and Revival Salves in this challenge."); return; }
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
     const result = item === "tonic"
-      ? useFieldTonic(save, battleState, selectedTarget.combatantId)
-      : useRevivalSalve(save, battleState, selectedTarget.combatantId);
+      ? applyFieldTonic(save, battleState, selectedTarget.combatantId)
+      : applyRevivalSalve(save, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
     saveCurrentGame(result.save);
     setBattleState(result.state);
@@ -406,7 +243,7 @@ export function ColiseumC4Battle({
     const aiPlan = buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty);
     const stateWithAiPlan: BattleState = { ...battleState, log: [...battleState.log, ...aiPlan.decisions.map(formatBattleAiDecision)] };
     const resolved = resolveBattleRound(stateWithAiPlan, [...Array.from(queuedActions.values()), ...aiPlan.actions]);
-    presentation.play(buildBattlePresentationEvents(battleState, resolved.state, resolved.result));
+    presentation.play(buildBattlePlaybackEvents(resolved.frames), resolved.result.actions.map(action => action.actorId));
     const nextPerformance = accumulateColiseumRoundPerformance(performance, battleState, resolved.result);
     const nextQueue = new Map<BattleCombatantId, BattleAction>();
     setPerformance(nextPerformance);
@@ -426,7 +263,7 @@ export function ColiseumC4Battle({
   }
 
   function finalize(outcome?: BattleOutcome) {
-    if (recording || !battleState) return;
+    if (recording || presentation.isPlaying || !battleState) return;
     setRecording(true);
     const finalOutcome = outcome ?? battleState.outcome ?? "enemy_won";
     const rounds = completedRounds || Math.max(1, battleState.roundNumber - 1);
@@ -434,115 +271,11 @@ export function ColiseumC4Battle({
   }
 
   if (phase === "team-selection") {
-    return (
-      <main className={battleStyles.screen}>
-        <section className={battleStyles.frame}>
-          <header className={battleStyles.header}>
-            <div><p className={battleStyles.kicker}>Coliseum C4 · {challenge.mode.toUpperCase()} · Stage {stageIndex + 1}/{challenge.encounterIds.length}</p><h1>{challenge.name}</h1><p>{message}</p></div>
-            <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={goToBattleOutfitter}>Battle Outfitter</button><button type="button" onClick={onReturn}>Back to C4 Hub</button></div>
-          </header>
-
-          <section className={styles.modifierStrip} data-ui-text-box="auto">
-            {challenge.modifierIds.map((id) => { const modifier = getColiseumC4Modifier(id); return <article key={id} data-tone={modifier.tone}><strong>{modifier.name}</strong><span>{modifier.description}</span><small>{modifier.rewardBonusPercent >= 0 ? "+" : ""}{modifier.rewardBonusPercent}% reward weight</small></article>; })}
-          </section>
-
-          <section className={battleStyles.selectionSummary} data-ui-text-box="auto">
-            <div><span>Selected</span><strong>{effectiveSelection.length} / 3</strong><small>{locked ? "Roster locked for the current gauntlet" : "Choose any three available creatures"}</small></div>
-            <div><span>Opponent</span><strong>{encounter.opponentName}</strong><small>{encounter.strategyLabel}</small></div>
-            <div><span>AI</span><strong>{getBattleAiDifficultyLabel(encounter.aiDifficulty)}</strong><small>{getBattleAiDifficultyDescription(encounter.aiDifficulty)}</small></div>
-            <div><span>Team Prep</span><button type="button" className={armTacticsKit ? battleStyles.confirmButton : battleStyles.secondaryButton} onClick={() => setArmTacticsKit((value) => !value)} disabled={tacticsStock <= 0}>{armTacticsKit ? "Tactics Kit Armed" : `Use Tactics Kit (${tacticsStock})`}</button><small>Consumed when this stage starts.</small></div>
-          </section>
-
-          <section className={styles.previewPanel} data-ui-text-box="auto">
-            <header><div><span>Authored Opponent Preview</span><strong>Fixed Stage Team</strong></div><small>{getColiseumC2Division(encounter.divisionId).name} source formation · +{challenge.levelBonus} challenge levels</small></header>
-            <div className={styles.previewGrid}>
-              {enemyPreview.map((enemy) => <article key={enemy.name}><strong>{enemy.name}</strong><span>Lv. {enemy.level} {enemy.variantName} · {enemy.role}</span><small>{enemy.equipment}</small><small>{enemy.moves.join(" · ")}</small></article>)}
-            </div>
-          </section>
-
-          <section className={battleStyles.rosterGrid}>
-            {visibleRoster.map((creature) => <TeamSelectionCard
-              key={creature.creatureId}
-              creature={creature}
-              selected={effectiveSelection.includes(creature.creatureId)}
-              unavailableReason={getUnavailableReason(save, creature)}
-              locked={locked}
-              readinessLabel={getBattleReadinessLabel(save, creature.creatureId)}
-              carryover={carryover?.[String(creature.creatureId)]}
-              onToggle={() => toggleCreature(creature)}
-            />)}
-          </section>
-          <footer className={battleStyles.selectionFooter}><p>{challenge.mode === "gauntlet" ? "Victories preserve the same roster. Between stages, living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP." : "Every participant earns ordinary creature XP after the result is recorded, including fainted creatures."}</p><button type="button" onClick={startBattle} disabled={effectiveSelection.length !== 3}>Enter Stage {stageIndex + 1}</button></footer>
-        </section>
-      </main>
-    );
+    return <ColiseumTeamStaging title={`${challenge.name} · Stage ${stageIndex + 1}/${challenge.encounterIds.length}`} roster={visibleRoster} selected={effectiveSelection} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c => getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} locked={locked} carryover={carryover} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<>{challenge.modifierIds.map(id=>{const m=getColiseumC4Modifier(id);return <section key={id}><h3>{m.name}</h3><p>{m.description}</p></section>;})}<p>{challenge.mode === "gauntlet" ? "The same roster continues between stages. Living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP. Statuses and cooldowns clear. Defeat or a draw ends the run." : "Every participant earns Combat XP after the result is recorded."}</p></>} />;
   }
 
   if (!battleState) return null;
-  const combatants = Object.values(battleState.combatants).sort((left, right) => left.sideId.localeCompare(right.sideId) || left.slotIndex - right.slotIndex);
-  const enemies = combatants.filter((combatant) => combatant.sideId === "enemy");
-  const players = combatants.filter((combatant) => combatant.sideId === "player");
-  const recentLog = battleState.log.slice(-24);
-
-  return (
-    <main className={battleStyles.screen}>
-      <section className={battleStyles.frame}>
-        <header className={battleStyles.header}>
-          <div><p className={battleStyles.kicker}>C4 {challenge.mode.toUpperCase()} · Stage {stageIndex + 1}/{challenge.encounterIds.length} · {getBattleAiDifficultyLabel(encounter.aiDifficulty)} AI</p><h1>{phase === "result" ? "Challenge Stage Complete" : `Round ${battleState.roundNumber}`}</h1><p>{message}</p></div>
-          <div className={battleStyles.headerActions}><button type="button" className={battleStyles.secondaryButton} onClick={() => finalize("enemy_won")} disabled={recording}>Forfeit & Record Loss</button><button type="button" onClick={onReturn}>Leave Without Record</button></div>
-        </header>
-
-        <section className={styles.compactModifiers}>{challenge.modifierIds.map((id) => <span key={id}>{getColiseumC4Modifier(id).name}</span>)}</section>
-
-      <BattlePortraitStage
-        battleState={battleState}
-        sourceById={sourceById}
-        selectedTarget={selectedTarget}
-        activeActorId={activeActorId}
-        queuedActions={queuedActions}
-        activeEvent={presentation.activeEvent}
-        isResolving={presentation.isPlaying}
-        queuedEventCount={presentation.queuedEventCount}
-        speed={presentation.speed}
-        reducedMotion={presentation.reducedMotion}
-        onSpeedChange={presentation.setSpeed}
-        onReducedMotionChange={presentation.setReducedMotion}
-        onTarget={(combatantId) => setSelectedTarget({ kind: "combatant", combatantId })}
-        onPlan={planFor}
-        onFieldTarget={() => setSelectedTarget({ kind: "field" })}
-      />
-
-        <section className={battleStyles.commandDeck}>
-          <div className={battleStyles.actionPanel}>
-            <div className={battleStyles.panelHeading}><div><span>Current Actor</span><strong>{activeActor?.name ?? (phase === "result" ? "Battle Complete" : "All Actions Queued")}</strong></div><div><span>Selected Target</span><strong>{selectedTarget?.kind === "field" ? "Battlefield" : selectedTarget?.kind === "combatant" ? battleState.combatants[selectedTarget.combatantId]?.name ?? "Unknown" : "Choose a target"}</strong></div></div>
-            {phase === "result" ? (
-              <div className={battleStyles.resultPanel}>
-                <h2>{outcomeLabel(battleState.outcome)}</h2>
-                <p>{challenge.mode === "gauntlet" && battleState.outcome === "player_won" && stageIndex + 1 < challenge.encounterIds.length ? "Recording this win locks the same team into the next stage and applies partial recovery." : "Recording finalizes challenge XP, records, score, and any eligible C4 reward."}</p>
-                {battleState.outcome === "enemy_won" && !aidRestricted && !usedItems.revivalSalve && revivalStock > 0 ? <p>Select a fainted ranch creature and use a Revival Salve to resume before recording.</p> : null}
-                <button type="button" onClick={() => finalize()} disabled={recording}>{recording ? "Recording…" : "Record C4 Result"}</button>
-              </div>
-            ) : selectedTarget && activeActor ? (
-              <div className={battleStyles.moveGrid}>{compatibleMoves.length ? compatibleMoves.map((option) => <button key={option.move.id} type="button" className={`${battleStyles.moveButton} ${battleStyles[`category_${option.move.category}`]}`} onClick={() => chooseMove(option.move.id)} disabled={!option.usable}><span className={battleStyles.moveTitle}><strong>{option.move.name}</strong><em>{option.move.category}</em></span><span className={battleStyles.moveNumbers}>PWR {option.move.power} · ACC {option.move.accuracy}% · BE {option.move.battleEnergyCost} · CD {activeActor.cooldowns[option.move.id] ?? 0}/{option.move.cooldown}</span><span>{getBattleTargetTypeLabel(option.move.targetType)} · {moveEffectLabel(option.move)}</span>{option.reason ? <small>{option.reason}</small> : <small>Ready</small>}</button>) : <div className={battleStyles.emptyMoveState}><strong>No compatible equipped moves</strong><p>Select a different target pattern.</p></div>}</div>
-            ) : <div className={battleStyles.emptyMoveState}><strong>Target first</strong><p>Select a living enemy, ally, the active creature, a fainted ranch creature for Revival, or the battlefield.</p></div>}
-
-            <section className={styles.supportPanel} data-ui-text-box="auto">
-              <div className={battleStyles.panelHeading}><div><span>Battle Outfitter</span><strong>Support Items</strong></div></div>
-              <p className={battleStyles.statusLine}>{aidRestricted ? "Restricted Aid is active. Field Tonics and Revival Salves are disabled." : "Each item type may be used once during this stage."}</p>
-              <div className={battleStyles.cardActions}><button type="button" onClick={() => useSupportItem("tonic")} disabled={aidRestricted || usedItems.fieldTonic || tonicStock <= 0 || phase === "result"}>Field Tonic ({tonicStock})</button><button type="button" onClick={() => useSupportItem("revival")} disabled={aidRestricted || usedItems.revivalSalve || revivalStock <= 0}>Revival Salve ({revivalStock})</button></div>
-            </section>
-          </div>
-
-          <aside className={battleStyles.queuePanel}>
-            <div className={battleStyles.panelHeading}><div><span>Round Queue</span><strong>{queuedActions.size} / {livingPlayerIds.length}</strong></div></div>
-            <div className={battleStyles.queueList}>{players.filter((combatant) => !combatant.isFainted).map((combatant) => { const action = queuedActions.get(combatant.battleCombatantId); return <div key={combatant.battleCombatantId} className={battleStyles.queueEntry}><div><strong>{combatant.name}</strong><span>{action ? `${getBattleMove(action.moveId).name} → ${action.targetIds.length ? action.targetIds.map((id) => battleState.combatants[id]?.name ?? "Unknown").join(", ") : "Field"}` : "Action not queued"}</span></div>{action ? <button type="button" onClick={() => clearQueuedAction(combatant.battleCombatantId)}>Edit</button> : <button type="button" onClick={() => planFor(combatant.battleCombatantId)}>Plan</button>}</div>; })}</div>
-            <p className={battleStyles.statusLine}>Enemy actions remain hidden until resolution. {getBattleAiDifficultyDescription(encounter.aiDifficulty)}</p>
-            <button type="button" className={battleStyles.confirmButton} onClick={resolveRound} disabled={presentation.isPlaying || !allPlayerActionsQueued || phase === "result"}>Confirm Round</button>
-          </aside>
-
-          <aside className={battleStyles.logPanel}><div className={battleStyles.panelHeading}><div><span>Battle Log</span><strong>Latest Events</strong></div></div><div className={battleStyles.logList}>{recentLog.map((entry, index) => <p key={`${index}-${entry}`}>{entry}</p>)}</div></aside>
-        </section>
-      </section>
-    </main>
-  );
+  const receipt = phase === "result" ? recordColiseumC4BattleResult(save,challenge,stageIndex,battleState.outcome,completedRounds||1,playerSources.map(c=>c.creatureId),performance,battleState.battleId,battleState) : null;
+  const reward = receipt?.historyEntry;
+  return <BattleArenaB resultLedger={receipt?{rewardIcon:"/images/ui/coliseum-v1/exchange.webp",rewards:reward?`+${reward.marks} Marks · +${reward.materials} Materials${reward.itemLabel?` · ${reward.itemLabel}`:""}`:"No purse",summaries:receipt.xpSummaries.map(e=>{const before=save.creatures!.find(c=>c.creatureId===e.creatureId)!,after=receipt.save.creatures!.find(c=>c.creatureId===e.creatureId)!;return {...e,xpBefore:before.xp,xpAfter:after.xp,xpToNextAfter:after.xpToNext,statGrowth:Object.fromEntries(Object.entries(after.stats).map(([key,value])=>[key,value-before.stats[key as keyof typeof before.stats]]).filter(([,gain])=>gain!==0)),notes:[]};}),performance,onRecord:()=>finalize(),recordLabel:"Record Challenge Result",continuation:receipt.state.activeRun?"Next stage unlocks after recording · Recover 30% HP and 25% Battle Energy.":undefined}:undefined} title={`${challenge.name} · Stage ${stageIndex+1}/${challenge.encounterIds.length}`} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId} queuedActions={queuedActions} presentation={presentation} onTarget={setSelectedTarget} onPlan={planFor} onQueue={chooseMove} onConfirm={resolveRound} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} aidRestricted={aidRestricted} rules={<>{challenge.modifierIds.map(id=>{const m=getColiseumC4Modifier(id);return <p key={id}><strong>{m.name}</strong>: {m.description}</p>;})}</>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{challenge.mode === "gauntlet" && battleState.outcome === "player_won" && stageIndex+1<challenge.encounterIds.length ? "Record this win to lock the same team into the next stage and apply partial recovery." : "Recording saves Combat XP, records, score and eligible challenge rewards."}</p>{battleState.outcome === "enemy_won" && !aidRestricted && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Challenge Result"}</button></>}/>;
 }

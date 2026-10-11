@@ -1,6 +1,9 @@
+import { getFarmState, canSpend, consumeFarmResources, resourceList, type Stock } from "./farmResources";
 import type { GameSave } from "@/types/save";
 
 export type BuilderProjectId =
+  | "pasture_annex"
+  | "nursery_extension"
   | "north_pasture_land"
   | "woodline_acre_land"
   | "chicken_coop"
@@ -20,13 +23,16 @@ export type BuilderProjectDefinition = {
   flavor: string;
   iconPath: string;
   costGold: number;
-  costMaterials: number;
+  costResources: Stock;
   prerequisiteIds: BuilderProjectId[];
   securityBonus?: number;
   predatorPressure?: number;
+  planned?: boolean;
+  durationDays?: number;
+  benefit?: string;
 };
 
-export type BuilderProjectStatus = "locked" | "available" | "built";
+export type BuilderProjectStatus = "locked" | "available" | "built" | "building" | "planned";
 
 export type BuilderProjectProgress = {
   definition: BuilderProjectDefinition;
@@ -45,7 +51,7 @@ export type BuilderProjectResult = {
 
 export const BUILDER_PROJECT_ASSETS = {
   yard: "/images/buildings/town/builders_yard.svg",
-  builder: "/images/npcs/petra_hale_builder.svg",
+  builder: "/images/ui/locations-v2/petra.webp",
   northPasture: "/images/buildings/ranch/future/north_pasture.svg",
   woodlineAcre: "/images/buildings/ranch/future/woodline_acre.svg",
   chickenCoop: "/images/buildings/ranch/future/chicken_coop.svg",
@@ -58,74 +64,97 @@ export const BUILDER_PROJECT_ASSETS = {
 
 export const BUILDER_PROJECTS: BuilderProjectDefinition[] = [
   {
+    id: "pasture_annex", title: "Habitat Annexes", category: "habitat",
+    description: "Add a sheltered annex to each of the ranch's five existing family habitats.",
+    flavor: "Five small additions give every family room to grow.",
+    benefit: "+1 capacity in each existing family habitat; stacks with Ranch Office upgrades.",
+    iconPath: "/images/ui/icons/icon_habitat_capacity.png",
+    costGold: 1200, costResources: { planks: 10, stone: 6, nails: 8 }, durationDays: 2,
+    prerequisiteIds: ["north_pasture_land"],
+  },
+  {
+    id: "nursery_extension", title: "Nursery Extension", category: "habitat",
+    description: "Build two extra egg cradles into a sheltered nursery wing.",
+    flavor: "Petra leaves space around each cradle for the next generation.",
+    benefit: "+2 egg capacity; stacks with Ranch Office nursery upgrades.",
+    iconPath: "/images/ui/icons/icon_nursery_upgrade.png",
+    costGold: 1000, costResources: { planks: 8, stone: 4, nails: 6 }, durationDays: 2,
+    prerequisiteIds: ["north_pasture_land"],
+  },
+  {
     id: "north_pasture_land",
     title: "North Pasture Deed",
     category: "land",
-    description: "Clear and survey the north field so livestock habitats can be commissioned there.",
+    description: "Survey the north field to unlock habitat annexes, a nursery extension, and the Woodline Acre deed.",
     flavor: "Petra marks a broad pasture with stone posts and a proper service trail.",
     iconPath: BUILDER_PROJECT_ASSETS.northPasture,
     costGold: 850,
-    costMaterials: 12,
+    costResources: { wood: 8, stone: 4 },
     prerequisiteIds: [],
     predatorPressure: 6,
   },
   {
     id: "woodline_acre_land",
+    durationDays: 2,
     title: "Woodline Acre Deed",
     category: "land",
     description: "Secure the wooded edge of the ranch for future specialty habitats and defensive construction.",
     flavor: "The new acre is beautiful, useful, and close enough to the trees to attract unwanted attention.",
     iconPath: BUILDER_PROJECT_ASSETS.woodlineAcre,
     costGold: 1100,
-    costMaterials: 18,
+    costResources: { wood: 10, stone: 6 },
     prerequisiteIds: ["north_pasture_land"],
     predatorPressure: 12,
   },
   {
     id: "chicken_coop",
+    planned: true,
     title: "Chicken Coop",
     category: "habitat",
     description: "Build a secure coop reserved for a future avian livestock family.",
     flavor: "Raised roosts, nesting boxes, and buried wire make this more than a decorative shed.",
     iconPath: BUILDER_PROJECT_ASSETS.chickenCoop,
     costGold: 650,
-    costMaterials: 10,
+    costResources: { planks: 4, nails: 4 },
     prerequisiteIds: ["north_pasture_land"],
     predatorPressure: 18,
   },
   {
     id: "sheep_fold",
+    planned: true,
     title: "Sheep Fold",
     category: "habitat",
     description: "Build a sheltered pasture habitat reserved for a future ovine family.",
     flavor: "A dry shelter and broad grazing lane make room for a future wool-producing herd.",
     iconPath: BUILDER_PROJECT_ASSETS.sheepFold,
     costGold: 900,
-    costMaterials: 15,
+    costResources: { planks: 6, stone: 4 },
     prerequisiteIds: ["north_pasture_land"],
     predatorPressure: 16,
   },
   {
     id: "goat_paddock",
+    planned: true,
     title: "Goat Paddock",
     category: "habitat",
     description: "Prepare a climbing-friendly enclosure reserved for a future caprine family.",
     flavor: "Petra adds reinforced rails after correctly assuming ordinary fencing will not be enough.",
     iconPath: BUILDER_PROJECT_ASSETS.goatPaddock,
     costGold: 1050,
-    costMaterials: 17,
+    costResources: { planks: 6, nails: 6 },
     prerequisiteIds: ["woodline_acre_land"],
     predatorPressure: 14,
   },
   {
     id: "aviary_roost",
+    planned: true,
     title: "Aviary Roost",
     category: "habitat",
     description: "Raise a protected roost reserved for future flying and tree-dwelling creatures.",
     flavor: "A high timber frame turns the woodline into a controlled habitat instead of an open invitation.",
     iconPath: BUILDER_PROJECT_ASSETS.aviaryRoost,
     costGold: 1250,
-    costMaterials: 20,
+    costResources: { planks: 8, nails: 8 },
     prerequisiteIds: ["woodline_acre_land"],
     predatorPressure: 12,
   },
@@ -137,7 +166,7 @@ export const BUILDER_PROJECTS: BuilderProjectDefinition[] = [
     flavor: "Deep posts and braced gates turn the perimeter into a real obstacle.",
     iconPath: BUILDER_PROJECT_ASSETS.reinforcedFence,
     costGold: 700,
-    costMaterials: 12,
+    costResources: { planks: 6, stone: 4 },
     prerequisiteIds: [],
     securityBonus: 18,
   },
@@ -149,7 +178,7 @@ export const BUILDER_PROJECTS: BuilderProjectDefinition[] = [
     flavor: "From the tower, movement along the tree line is visible before it reaches the pastures.",
     iconPath: BUILDER_PROJECT_ASSETS.watchtower,
     costGold: 950,
-    costMaterials: 16,
+    costResources: { planks: 8, stone: 6, nails: 8 },
     prerequisiteIds: ["woodline_acre_land", "reinforced_fence"],
     securityBonus: 24,
   },
@@ -180,55 +209,67 @@ export function getBuilderProjectProgress(save: GameSave, projectId: BuilderProj
   const missingPrerequisites = definition.prerequisiteIds
     .filter((id) => !isBuilderProjectBuilt(save, id))
     .map(getBuilderProject);
-  const materials = numberFlag(save.flags.ranchMaterialsStock);
   return {
     definition,
-    status: built ? "built" : missingPrerequisites.length ? "locked" : "available",
+    status: built ? "built" : getBuilderWorkOrder(save)?.projectId === projectId ? "building" : definition.planned ? "planned" : missingPrerequisites.length ? "locked" : "available",
     built,
     missingPrerequisites,
-    affordable: !built && !missingPrerequisites.length && save.currencies.gold >= definition.costGold && materials >= definition.costMaterials,
+    affordable: !built && !definition.planned && !getBuilderWorkOrder(save) && !getFarmState(save).project && !missingPrerequisites.length && save.currencies.gold >= definition.costGold && canSpend(getFarmState(save), definition.costResources),
   };
+}
+
+export type BuilderWorkOrder = { projectId: BuilderProjectId; startedDay: number; readyDay: number; paidGold: number; paidMaterials: number; paidResources?: Stock };
+const WORK_ORDER_FLAG = "builderWorkOrderV1";
+
+export function getBuilderWorkOrder(save: GameSave): BuilderWorkOrder | null {
+  try {
+    const value = JSON.parse(String(save.flags[WORK_ORDER_FLAG] ?? "null")) as BuilderWorkOrder | null;
+    if (!value || !PROJECTS_BY_ID[value.projectId] || isBuilderProjectBuilt(save, value.projectId)) return null;
+    if (![value.startedDay, value.readyDay, value.paidGold, value.paidMaterials].every(n => Number.isSafeInteger(n) && n >= 0) || value.readyDay <= value.startedDay) return null;
+    return value;
+  } catch { return null; }
+}
+
+export function getBuilderProjectBenefit(project: BuilderProjectDefinition): string {
+  if (project.benefit) return project.benefit;
+  if (project.planned) return "Future species housing. Not available to commission yet.";
+  if (project.securityBonus) return `+${project.securityBonus} permanent ranch Security.`;
+  const unlocks = BUILDER_PROJECTS.filter(p => !p.planned && p.prerequisiteIds.includes(project.id)).map(p => p.title);
+  return `Unlocks project access: ${unlocks.join(", ")}. Other prerequisites still apply.`;
 }
 
 export function commissionBuilderProject(save: GameSave, projectId: BuilderProjectId): BuilderProjectResult {
   const progress = getBuilderProjectProgress(save, projectId);
   const project = progress.definition;
   if (progress.built) return { save, ok: false, projectId, message: `${project.title} is already complete.` };
-  if (progress.missingPrerequisites.length) {
-    return {
-      save,
-      ok: false,
-      projectId,
-      message: `Build ${progress.missingPrerequisites.map((item) => item.title).join(" and ")} first.`,
-    };
-  }
-  const materials = numberFlag(save.flags.ranchMaterialsStock);
-  if (save.currencies.gold < project.costGold || materials < project.costMaterials) {
-    return {
-      save,
-      ok: false,
-      projectId,
-      message: `Petra needs ${project.costGold} Gold and ${project.costMaterials} Materials for ${project.title}.`,
-    };
-  }
+  if (project.planned) return { save, ok: false, projectId, message: "This habitat is a future plan and cannot be commissioned yet." };
+  if (getFarmState(save).project || getBuilderWorkOrder(save)) return { save, ok: false, projectId, message: "Petra's crew already has a project underway." };
+  if (progress.missingPrerequisites.length) return { save, ok: false, projectId, message: `Build ${progress.missingPrerequisites.map(p => p.title).join(" and ")} first.` };
+  if (!progress.affordable) return { save, ok: false, projectId, message: `Petra needs ${project.costGold} Gold and ${resourceList(project.costResources)} for ${project.title}.` };
+  const order: BuilderWorkOrder = { projectId, startedDay: save.dayState.dayNumber, readyDay: save.dayState.dayNumber + (project.durationDays ?? 1), paidGold: project.costGold, paidMaterials: 0, paidResources: project.costResources };
+  const paidSave = consumeFarmResources(save, project.costResources).save;
   const nextSave: GameSave = {
-    ...save,
-    updatedAt: new Date().toISOString(),
+    ...paidSave, updatedAt: new Date().toISOString(),
     currencies: { ...save.currencies, gold: save.currencies.gold - project.costGold },
-    flags: {
-      ...save.flags,
-      ranchMaterialsStock: materials - project.costMaterials,
-      [builtFlag(projectId)]: true,
-      builderProjectsCompleted: numberFlag(save.flags.builderProjectsCompleted) + 1,
-      builderLastCompletedProjectId: projectId,
-      builderMetPetraHale: true,
-      m63BuilderYardUsed: true,
-      ...(project.category === "land" ? { m63RanchLandExpanded: true } : {}),
-      ...(project.category === "habitat" ? { m63FutureHabitatBuilt: true } : {}),
-      ...(project.category === "security" ? { m63PermanentSecurityBuilt: true } : {}),
-    },
+    flags: { ...paidSave.flags, [WORK_ORDER_FLAG]: JSON.stringify(order), builderMetPetraHale: true, m63BuilderYardUsed: true },
   };
-  return { save: nextSave, ok: true, projectId, message: `${project.title} completed. ${project.description}` };
+  return { save: nextSave, ok: true, projectId, message: `${project.title} commissioned. Completes on Ranch Day ${order.readyDay}.` };
+}
+
+/** Called at the new-day boundary. A completed order cannot grant benefits twice. */
+export function processBuilderConstruction(save: GameSave): { save: GameSave; summaryItems: string[] } {
+  const order = getBuilderWorkOrder(save);
+  if (!order || save.dayState.dayNumber < order.readyDay) return { save, summaryItems: [] };
+  const project = getBuilderProject(order.projectId);
+  const nextSave: GameSave = { ...save, flags: {
+    ...save.flags, [WORK_ORDER_FLAG]: "", [builtFlag(project.id)]: true,
+    builderProjectsCompleted: numberFlag(save.flags.builderProjectsCompleted) + 1,
+    builderLastCompletedProjectId: project.id,
+    builderLastCompletionDay: save.dayState.dayNumber,
+    ...(project.category === "land" ? { m63RanchLandExpanded: true } : {}),
+    ...(project.category === "security" ? { m63PermanentSecurityBuilt: true } : {}),
+  } };
+  return { save: nextSave, summaryItems: [`${project.title} completed. ${getBuilderProjectBenefit(project)}`] };
 }
 
 export function getBuilderSecurityBonus(save: GameSave): number {
@@ -245,6 +286,7 @@ export function getBuilderPredatorPressure(save: GameSave): number {
 
 export function getBuiltFutureHabitatIds(save: GameSave): BuilderProjectId[] {
   return BUILDER_PROJECTS
-    .filter((project) => project.category === "habitat" && isBuilderProjectBuilt(save, project.id))
+    .filter((project) => project.planned && project.category === "habitat" && isBuilderProjectBuilt(save, project.id))
     .map((project) => project.id);
 }
+

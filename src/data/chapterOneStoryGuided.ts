@@ -43,7 +43,8 @@ export function getChapterOneStoryLog(save: GameSave): base.StoryLogEntry[] {
       ...entry,
       lockedReason: progress.complete
         ? undefined
-        : "Complete the guided ranch loop, first Guild request, first hatch, item lesson, and first battle.",
+        : "Complete the guided ranch loop, town visits, first Guild request, first battle, and first hatch.",
     };
   });
 }
+

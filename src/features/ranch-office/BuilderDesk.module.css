@@ -1,0 +1,200 @@
+.office {background-image:url('/images/ui/interiors-v1/office.webp');background-position:center;}
+.office>.layout {width:100%;max-width:1680px;padding:14px 22px;gap:10px;}
+.office .resources {align-items:center;min-height:58px;}
+.office .resources>div {display:flex;align-items:center;gap:12px;flex:1 1 0;}
+.office .resources span {font-size:16px;}
+.office .resources strong {font-size:20px;white-space:nowrap;}
+.resources [aria-hidden] {width:30px;height:30px;flex:none;}
+.office .resources button {display:flex;align-items:center;gap:8px;background:transparent;}
+.workspace {display:grid;grid-template-columns:175px minmax(0,1fr) minmax(370px,35%);gap:16px;min-height:0;flex:1;}
+.office .categories {display:grid;grid-template-rows:repeat(6,minmax(44px,1fr));padding:8px;gap:6px;align-self:stretch;}
+.office .categories button {display:flex;gap:10px;align-items:center;padding:8px 10px;text-align:left;background:transparent;border-color:transparent;border-bottom-color:#ad89533b;}
+.categories [aria-hidden] {width:30px;height:30px;flex:none;}
+.office .categories button[aria-pressed=true] {background:linear-gradient(#61794b,#3e5933);color:#fff2cd;border:1px solid #38512a;}
+.model {display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:0;gap:10px;}
+.office .layout .model h2 {max-width:100%;flex:none;margin:0;padding:8px 22px;border:8px solid transparent;border-image:url('/images/ui/ranch-v2/wood.webp') 110 fill / 8px stretch;color:#fff0cc;text-shadow:0 2px 2px #261603;font-size:26px;text-align:center;}
+.model img {width:100%;height:calc(100% - 65px);max-height:520px;min-height:0;object-fit:contain;object-position:center 65%;filter:drop-shadow(0 14px 12px #21100666);}
+.office .details {display:flex;flex-direction:column;justify-content:center;padding:24px;gap:18px;min-height:0;box-shadow:0 4px 16px #27170677,inset 0 0 0 4px #bc986355;}
+.details>* {flex-shrink:0;}
+.office .layout .title h2 {font-size:clamp(25px,2.2vw,36px);margin:0;}
+.title p {margin:6px 0 0;font-size:15px;}
+.comparison {border:1px solid #b99967;background:#ecdeb54a;border-radius:4px;padding:12px;display:grid;gap:10px;}
+.tierLabel {display:flex;gap:20px;justify-content:center;align-items:center;font-size:22px;padding-bottom:8px;border-bottom:1px solid #ad89533b;}
+.effectRow {display:grid;grid-template-columns:minmax(0,1fr) auto 16px auto;align-items:center;gap:8px;font-size:15px;}
+.effectRow strong {color:#3f602e;}
+.effectRow>span:first-child {font-size:14px;}
+.tierPath {display:flex;align-items:center;justify-content:space-between;margin:0;padding:10px 0;list-style:none;border-block:1px solid #ad895344;}
+.tierPath li {display:grid;place-items:center;width:34px;height:34px;border:1px solid #9b7b4e;border-radius:50%;font-size:18px;background:#f4e7c5;}
+.tierPath .completed {background:#4a6737;color:#fff2cd;}
+.tierPath [aria-current] {outline:2px solid #8b9b5c;outline-offset:2px;}
+.cost {display:grid;gap:5px;}
+.cost>span {font-size:13px;}
+.cost>strong {font-size:21px;}
+.cost p,.repairInfo p {margin:0;line-height:1.35;font-size:14px;}
+.ready {color:#3e602e;}
+.shortage {color:#963d26;}
+.actions {display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;}
+.office .actions button {min-height:44px;padding:8px 12px;}
+.office .actions button:first-child {font-size:18px;}
+.condition {display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+.condition>strong {font-size:26px;color:#52673a;}
+.condition meter {grid-column:1/-1;width:100%;height:16px;}
+.condition p {grid-column:1/-1;margin:0;font-size:15px;}
+.repairInfo {display:grid;gap:8px;border-block:1px solid #ad895344;padding:12px 0;}
+.repairInfo>strong {font-size:22px;}
+.office .dock {flex:none;display:grid;grid-template-columns:auto 42px minmax(0,1fr) 54px 42px;align-items:center;gap:12px;padding:10px 16px;}
+.office .layout .dock h2 {font-size:21px;margin:0;}
+.office .dock>button {font-size:28px;padding:0;min-height:44px;}
+.upgrades {display:flex;gap:8px;min-height:74px;}
+.office .upgrades button {display:flex;align-items:center;flex:1 1 0;gap:9px;text-align:left;padding:5px 8px;background:#f5e8c399;}
+.office .upgrades button[aria-pressed=true] {background:#91a95942;border:2px solid #466633;box-shadow:inset 0 0 0 2px #f8efc7;}
+.upgrades img {width:64px;height:64px;object-fit:contain;flex:none;}
+.upgrades span {display:grid;gap:4px;}
+.upgrades strong {font-size:18px;line-height:1.15;}
+.upgrades small {font-size:13px;}
+.pageNumber {white-space:nowrap;text-align:center;}
+.office .overviewDock {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:none;padding:12px 18px;}
+.overviewDock button {display:flex;align-items:center;justify-content:center;gap:8px;}
+.overviewDock [aria-hidden] {width:32px;height:32px;flex:none;}
+.report {display:grid;gap:12px;margin:12px 0 24px;}
+.report>div {display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #a78a5644;padding:7px 0;}
+.report dd {margin:0;text-align:right;font-weight:bold;}
+.tierCards {display:grid;gap:12px;}
+.tierCards article {border:1px solid #ad895366;border-radius:4px;padding:12px;background:#ecdeb544;}
+.tierCards p {margin:6px 0;}
+.history {padding-left:22px;display:grid;gap:12px;}
+.archive * {min-width:0;overflow-wrap:anywhere;}
+.archive :is(section,article,header,div) {background:transparent!important;box-shadow:none!important;border-color:#ad895344!important;border-radius:4px!important;}
+.archive :is(p,h2,h3,strong,span,small,label,code) {color:#49341d!important;text-shadow:none!important;}
+.archive :is(article,section) {max-height:none!important;overflow:visible!important;}
+.archive button,.archive select,.archive textarea {background:#f4e8ca!important;color:#49341d!important;border-color:#ad8953!important;border-radius:3px!important;}
+.archive [style*="grid-template-columns: repeat(auto-fit"] {grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))!important;}
+@media(max-width:1100px) {
+ .office>.layout {padding:8px;gap:8px;}
+ .workspace {grid-template-columns:135px minmax(0,1fr) 350px;gap:10px;}
+ .office .details {padding:14px;gap:12px;}
+ .office .categories button {font-size:14px;gap:6px;padding:6px;}
+ .categories [aria-hidden] {width:24px;height:24px;}
+ .office .resources span {font-size:13px;}
+ .office .resources strong {font-size:17px;}
+ .office .resources>div {gap:7px;}
+ .resources [aria-hidden] {width:24px;height:24px;}
+ .office .layout .model h2 {font-size:20px;padding:5px 12px;}
+ .office .dock {gap:8px;padding:8px;}
+ .office .layout .dock h2 {font-size:17px;}
+}
+@media(max-width:900px),(max-height:650px) {
+ .workspace {grid-template-columns:minmax(0,1fr) minmax(320px,45%);grid-template-rows:auto minmax(0,1fr);gap:8px;}
+ .office .categories {grid-column:1/-1;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:auto;padding:4px;gap:4px;}
+ .office .categories button {justify-content:center;padding:4px 2px;font-size:13px;min-height:34px;}
+ .categories [aria-hidden] {width:20px;height:20px;}
+ .office .layout .dock h2 {display:none;}
+ .office .dock {grid-template-columns:36px minmax(0,1fr) 42px 36px;}
+}
+@media(max-width:600px) {
+ .office .resources {padding:6px;gap:5px;min-height:52px;}
+ .office .resources>div {display:grid;gap:0;border:0;}
+ .resources>div>[aria-hidden],.resources button>[aria-hidden] {display:none;}
+ .office .resources span {font-size:11px;}
+ .office .resources strong {font-size:16px;}
+ .office .resources button {padding:3px;min-height:32px;}
+ .office .resources button span {display:flex;flex-direction:column;}
+ .workspace {grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:6px;}
+ .office .categories {grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;}
+ .office .categories button {min-height:30px;font-size:12px;gap:4px;}
+ .model {gap:0;position:relative;}
+ .office .layout .model h2 {display:none;}
+ .model img {height:100%;max-height:none;object-position:center;}
+ .office .details {padding:10px 12px;gap:8px;}
+ .office .layout .title h2 {font-size:23px;}
+ .title p {display:none;}
+ .comparison {padding:8px;gap:7px;}
+ .tierLabel {font-size:18px;padding-bottom:5px;gap:20px;}
+ .effectRow {gap:6px;font-size:13px;}
+ .effectRow>span:first-child {font-size:12px;}
+ .tierPath {padding:5px 0;}
+ .tierPath li {height:25px;width:25px;font-size:14px;}
+ .cost {gap:3px;}
+ .cost>span {display:none;}
+ .cost>strong {font-size:17px;}
+ .cost p {font-size:12px;}
+ .office .actions button {min-height:38px;padding:6px 8px;font-size:13px;}
+ .office .actions button:first-child {font-size:16px;}
+ .office .dock {gap:5px;padding:5px;}
+ .upgrades {min-height:62px;}
+ .upgrades img {width:46px;height:46px;}
+ .upgrades strong {font-size:15px;}
+ .upgrades small {font-size:11px;}
+ .office .upgrades button {padding:4px;gap:5px;}
+ .pageNumber {font-size:12px;}
+ .office .overviewDock {padding:6px;gap:5px;}
+ .office .overviewDock button {font-size:12px;flex-direction:column;gap:2px;padding:5px 2px;min-height:50px;}
+ .overviewDock [aria-hidden] {width:23px;height:23px;}
+ .condition>strong {font-size:22px;}
+ .condition p {font-size:13px;}
+ .repairInfo {padding:8px 0;gap:5px;}
+ .repairInfo>strong {font-size:18px;}
+ .repairInfo p {font-size:12px;}
+ .archive header,.archive article section {grid-template-columns:1fr!important;}
+}
+@media(max-height:650px) and (min-width:601px) {
+ .office>.layout {padding:5px 8px;gap:5px;}
+ .office .resources {min-height:34px;padding:3px 10px;}
+ .office .resources button {min-height:26px;padding:2px 5px;}
+ .workspace {gap:5px;grid-template-columns:minmax(0,1fr) 380px;}
+ .office .categories button {min-height:28px;font-size:12px;}
+ .office .categories {padding:3px;}
+ .office .details {padding:8px 10px;gap:5px;}
+ .office .layout .title h2 {font-size:20px;}
+ .title p {display:none;}
+ .comparison {padding:5px 7px;gap:3px;}
+ .tierLabel {font-size:15px;padding-bottom:3px;}
+ .effectRow {font-size:12px;gap:5px;}
+ .effectRow>span:first-child {font-size:12px;}
+ .tierPath {padding:2px 0;}
+ .tierPath li {width:20px;height:20px;font-size:12px;}
+ .cost {gap:2px;}
+ .cost>span {display:none;}
+ .cost>strong {font-size:15px;}
+ .cost p {font-size:11px;}
+ .office .actions button {min-height:30px;font-size:12px;padding:3px 6px;}
+ .office .actions button:first-child {font-size:14px;}
+ .office .layout .model h2 {font-size:17px;padding:3px 12px;}
+ .model {gap:0;}
+ .model img {height:calc(100% - 40px);}
+ .upgrades {min-height:44px;}
+ .upgrades img {width:36px;height:36px;}
+ .upgrades strong {font-size:14px;}
+ .upgrades small {font-size:11px;}
+ .office .dock {padding:4px 8px;}
+ .office .upgrades button {padding:3px 6px;}
+ .office .overviewDock {padding:4px 8px;}
+ .office .overviewDock button {min-height:38px;padding:3px 6px;font-size:14px;}
+ .overviewDock [aria-hidden] {width:24px;height:24px;}
+ .condition {gap:3px;}
+ .condition>strong {font-size:20px;}
+ .condition p,.repairInfo p {font-size:12px;}
+ .condition meter {height:10px;}
+ .repairInfo {padding:5px 0;gap:3px;}
+ .repairInfo>strong {font-size:17px;}
+ .repairInfo>span {font-size:13px;}
+}
+@media(max-height:450px) and (min-width:601px) {
+ .office .details {justify-content:center;padding:5px 8px;gap:4px;}
+ .details .title,.tierPath {display:none;}
+ .comparison {gap:2px;padding:4px 6px;}
+ .tierLabel {padding-bottom:2px;line-height:18px;}
+ .effectRow {line-height:16px;}
+ .cost p {line-height:1.2;}
+}
+@media(min-width:901px) and (min-height:651px) and (max-height:800px) {
+ .office .details {padding:12px;gap:8px;}
+ .office .layout .title h2 {font-size:26px;}
+ .title p {display:none;}
+ .comparison {padding:8px;gap:6px;}
+ .tierLabel {font-size:18px;padding-bottom:5px;}
+ .tierPath {padding:5px 0;}
+ .tierPath li {width:28px;height:28px;font-size:15px;}
+ .cost>strong {font-size:18px;}
+}
+@media(max-width:600px){.office .resources>div{grid-template-columns:17px 1fr;column-gap:3px;}.office .resources>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.office .resources>div>strong{grid-column:2;font-size:14px;}.office .resources button>[aria-hidden]{display:block;width:17px;height:17px;}}

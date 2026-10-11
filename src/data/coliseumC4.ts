@@ -852,7 +852,7 @@ export function recordColiseumC4BattleResult(
       }
     : weeklyPrevious;
 
-  let flags = { ...save.flags };
+  let flags: GameSave["flags"] = { ...save.flags, guildBattleWins: finiteCount(save.flags.guildBattleWins) + (win ? 1 : 0) };
   if (materials > 0) flags.ranchMaterialsStock = finiteCount(flags.ranchMaterialsStock) + materials;
   const itemResult: { flags: GameSave["flags"]; label?: string } = rewardTier === "full"
     ? addItemReward(save, flags, challenge.reward)
@@ -939,3 +939,4 @@ export function getColiseumC4Summary(save: GameSave) {
     totalC4Clears: state.modeRecords.daily.clears + state.modeRecords.gauntlet.clears + state.modeRecords.boss.clears,
   };
 }
+

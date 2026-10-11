@@ -31,8 +31,9 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): base.ChapterOne
   return {
     ...baseStep,
     title: "Win the Opening Scrimmage",
-    body: "Enter the first authored Coliseum match. A battle coach will guide team confirmation, target-first selection, move choice, and the first round.",
-    hint: "After the coached round, finish the match and record the result. A recorded victory completes the combat lesson.",
+    body: "Choose the Opening Scrimmage on the first Circuit page. Select three available creatures, then queue one move and a legal target for each living teammate. Confirm Round when all are ready.",
+    hint: "Focus attacks on one enemy, use support when needed, and watch HP and Battle Energy. After winning, confirm the result ledger: only a recorded victory completes the lesson.",
     targetId: "tutorial-first-battle",
   };
 }
+

@@ -9,42 +9,29 @@ import {
   type ChapterOneTutorialAction,
   type ChapterOneTutorialSignal,
 } from "@/data/chapterOneGuidedTutorial";
+import { getChapterOneFirstWeekLessons } from "@/data/chapterOneFirstWeek";
 import { RANCH_ADVISOR } from "@/data/ranchAdvisor";
+import { useNavigation } from "@/features/navigation/NavigationContext";
+import { GameDialog } from "@/features/ui/GameDialog";
 import { useGameContext } from "@/state/GameProvider";
 import styles from "./ChapterOneGuidedTutorial.module.css";
 
 const SIGNAL_EVENT = "creature-chronicles:tutorial-signal";
 const INVENTORY_EVENT = "creature-chronicles:open-tutorial-inventory";
-
 type TutorialSignalEvent = CustomEvent<{ signal: ChapterOneTutorialSignal }>;
 
-type TargetBox = {
-  top: number;
-  left: number;
-  width: number;
-  height: number;
-};
-
-function targetSelector(targetId?: string): string | null {
-  return targetId ? `[data-tutorial-id="${targetId}"]` : null;
-}
-
+/** Progress tracking stays mounted; lessons appear only when opened from Menu. */
 export function ChapterOneGuidedTutorial() {
   const {
-    appScreen,
-    currentSave,
-    goToBattleDebug,
-    goToBattleOutfitter,
-    goToBreeding,
-    goToGuildHall,
-    goToRanch,
-    goToRanchJobs,
-    goToTown,
+    appScreen, currentSave, goToBattleDebug, goToBattleOutfitter,
+    goToBreeding, goToNursery, goToGuildHall, goToMarket, goToRanchOffice, goToRanch, goToRanchJobs, goToTown,
     saveCurrentGame,
   } = useGameContext();
-  const [targetBox, setTargetBox] = useState<TargetBox | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
-  const [helpPulse, setHelpPulse] = useState(0);
+  const { view, open } = useNavigation();
+  const [tab, setTab] = useState<"next" | "week">("next");
+  const [lessonId, setLessonId] = useState("chores");
+  const [confirmSkip, setConfirmSkip] = useState(false);
+  const [requestedReview, setRequestedReview] = useState<"ledger" | "end-day" | null>(null);
   const step = useMemo(
     () => currentSave ? getChapterOneGuidedTutorialStep(currentSave) : null,
     [currentSave],
@@ -57,8 +44,15 @@ export function ChapterOneGuidedTutorial() {
   }, [currentSave, saveCurrentGame]);
 
   useEffect(() => {
-    if (!currentSave || appScreen !== "battle-outfitter" || currentSave.flags.chapterOneGuidedBattleOutfitterOpened === true) return;
-    saveCurrentGame(markChapterOneTutorialSignal(currentSave, "battle-outfitter-opened"));
+    if (!currentSave) return;
+    const signals: Partial<Record<typeof appScreen, ChapterOneTutorialSignal>> = {
+      town: "town-opened", market: "market-opened", "ranch-office": "office-opened",
+      "battle-outfitter": "battle-outfitter-opened",
+    };
+    const signal = signals[appScreen];
+    if (!signal) return;
+    const updated = markChapterOneTutorialSignal(currentSave, signal);
+    if (updated !== currentSave) saveCurrentGame(updated);
   }, [appScreen, currentSave, saveCurrentGame]);
 
   useEffect(() => {
@@ -73,148 +67,99 @@ export function ChapterOneGuidedTutorial() {
   }, [currentSave, saveCurrentGame]);
 
   useEffect(() => {
-    const selector = targetSelector(step?.targetId);
-    if (!selector) {
-      setTargetBox(null);
-      return;
+    if (!requestedReview || appScreen !== "ranch-hub") return;
+    open(requestedReview);
+    setRequestedReview(null);
+    if (requestedReview === "ledger" && currentSave?.ranchDay?.phase !== "morning") {
+      window.dispatchEvent(new CustomEvent(SIGNAL_EVENT, { detail: {
+        signal: (currentSave?.dayState.dayNumber ?? 1) > 1 ? "day-two-brief-opened" : "morning-opened",
+      } }));
     }
-    let frame = 0;
-    const sync = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const element = document.querySelector<HTMLElement>(selector);
-        if (!element) {
-          setTargetBox(null);
-          return;
-        }
-        const rect = element.getBoundingClientRect();
-        setTargetBox({ top: rect.top, left: rect.left, width: rect.width, height: rect.height });
-        element.classList.add(styles.target);
-      });
-    };
-    sync();
-    const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-    window.addEventListener("resize", sync);
-    window.addEventListener("scroll", sync, true);
-    return () => {
-      const element = document.querySelector<HTMLElement>(selector);
-      element?.classList.remove(styles.target);
-      observer.disconnect();
-      window.removeEventListener("resize", sync);
-      window.removeEventListener("scroll", sync, true);
-      window.cancelAnimationFrame(frame);
-    };
-  }, [step?.targetId, appScreen, helpPulse]);
+  }, [requestedReview, appScreen, currentSave, open]);
 
-  useEffect(() => {
-    if (!step?.lockToTarget || !step.targetId) return;
-    const selector = targetSelector(step.targetId)!;
-    function enforceTarget(event: MouseEvent) {
-      const clicked = event.target as Element | null;
-      if (!clicked || clicked.closest('[data-tutorial-card="true"]')) return;
-      const target = document.querySelector(selector);
-      if (!target || target.contains(clicked)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      setHelpPulse((value) => value + 1);
-      target.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-    }
-    document.addEventListener("click", enforceTarget, true);
-    return () => document.removeEventListener("click", enforceTarget, true);
-  }, [step?.id, step?.lockToTarget, step?.targetId]);
+  if (!currentSave || view !== "guide") return null;
+  const save = currentSave;
+  const lessons = getChapterOneFirstWeekLessons(save);
+  const lesson = lessons.find((entry) => entry.id === lessonId) ?? lessons[0];
 
-  if (!currentSave || !step) return null;
-  const activeSave = currentSave;
-  const activeStep = step;
-
-  function persistSignal(signal: ChapterOneTutorialSignal) {
-    if (!activeSave) return;
-    saveCurrentGame(markChapterOneTutorialSignal(activeSave, signal));
+  function close() {
+    setConfirmSkip(false);
+    open(null);
   }
 
-  function route(action: ChapterOneTutorialAction) {
-    if (action === "ranch") goToRanch();
-    else if (action === "chores") goToRanchJobs();
+  function route(action: ChapterOneTutorialAction, targetId?: string) {
+    close();
+    if (action === "ranch") {
+      setRequestedReview(targetId === "ranch-end-day" || targetId === "ranch-review-day" ? "end-day" : "ledger");
+      goToRanch();
+    } else if (action === "chores") goToRanchJobs();
     else if (action === "town") goToTown();
+    else if (action === "market") goToMarket();
+    else if (action === "office") goToRanchOffice();
     else if (action === "guild") goToGuildHall();
     else if (action === "breeding") goToBreeding();
+    else if (action === "nursery") goToNursery();
     else if (action === "battle-outfitter") {
-      persistSignal("battle-outfitter-opened");
+      saveCurrentGame(markChapterOneTutorialSignal(save, "battle-outfitter-opened"));
       goToBattleOutfitter();
     } else if (action === "coliseum") goToBattleDebug();
     else if (action === "inventory") {
-      persistSignal("inventory-opened");
+      saveCurrentGame(markChapterOneTutorialSignal(save, "inventory-opened"));
       window.dispatchEvent(new CustomEvent(INVENTORY_EVENT));
     }
-    window.setTimeout(() => setHelpPulse((value) => value + 1), 60);
-  }
-
-  function showTarget() {
-    const selector = targetSelector(activeStep.targetId);
-    const element = selector ? document.querySelector<HTMLElement>(selector) : null;
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
-      setHelpPulse((value) => value + 1);
-      return;
-    }
-    route(activeStep.action);
-  }
-
-  function handleSkip() {
-    if (!window.confirm("Skip the guided Chapter 1 walkthrough? Beginner Milestones and story scenes will remain available.")) return;
-    saveCurrentGame(skipChapterOneGuidedTutorial(activeSave));
   }
 
   return (
-    <>
-      {targetBox ? (
-        <div
-          className={styles.spotlight}
-          style={{
-            top: Math.max(4, targetBox.top - 7),
-            left: Math.max(4, targetBox.left - 7),
-            width: targetBox.width + 14,
-            height: targetBox.height + 14,
-          }}
-          aria-hidden="true"
-        />
-      ) : null}
-      <aside className={`${styles.card} ${collapsed ? styles.collapsed : ""}`} data-tutorial-card="true" aria-label="Guided Chapter 1 tutorial">
-        {collapsed ? (
-          <button type="button" className={styles.reopen} onClick={() => setCollapsed(false)}>
-            <img src={RANCH_ADVISOR.portraitPath} alt="" />
-            <span>Guided Chapter 1</span>
-          </button>
-        ) : (
-          <>
-            <header className={styles.header}>
-              <img src={RANCH_ADVISOR.portraitPath} alt="" />
-              <div>
-                <span>{activeStep.dayLabel}</span>
-                <strong>{RANCH_ADVISOR.name}</strong>
-              </div>
-              <button type="button" onClick={() => setCollapsed(true)} aria-label="Collapse tutorial">−</button>
-            </header>
-            <section className={styles.body}>
-              <p className={styles.kicker}>Current Lesson</p>
-              <h2>{activeStep.title}</h2>
-              <p>{activeStep.body}</p>
-              <div className={styles.hint}>{activeStep.hint}</div>
-            </section>
-            <footer className={styles.actions}>
-              <button type="button" className={styles.secondary} onClick={handleSkip}>Skip</button>
-              <button type="button" className={styles.secondary} onClick={showTarget}>Help</button>
-              {activeStep.action !== "none" ? (
-                <button type="button" className={styles.primary} onClick={() => route(activeStep.action)}>{activeStep.actionLabel}</button>
-              ) : null}
-            </footer>
-          </>
-        )}
-      </aside>
-    </>
+    <GameDialog title="Chapter 1 Guide" onClose={close}>
+      <section className={styles.guide} data-tutorial-card="true" aria-label="Chapter 1 lessons">
+        <header className={styles.header}>
+          <img src={RANCH_ADVISOR.portraitPath} alt="" />
+          <div><strong>{RANCH_ADVISOR.name}’s field notes</strong><p>Open these lessons whenever you need a hand.</p></div>
+        </header>
+        <div className={styles.tabs} aria-label="Guide views">
+          <button type="button" aria-pressed={tab === "next"} onClick={() => setTab("next")}>Next lesson</button>
+          <button type="button" aria-pressed={tab === "week"} onClick={() => setTab("week")}>First week</button>
+        </div>
+        {tab === "week" ? <>
+          <p className={styles.hint}>Suggested days, not deadlines. Explore at your own pace; checkmarks reflect what you have actually done.</p>
+          <div className={styles.lessons} aria-label="First-week lessons">
+            {lessons.map((entry) => <button key={entry.id} type="button" aria-pressed={entry.id === lesson.id} onClick={() => setLessonId(entry.id)}>
+              <span>{entry.days}</span><strong>{entry.title}</strong>
+              <span>{entry.checks.filter((check) => check.complete).length}/{entry.checks.length} milestones</span>
+            </button>)}
+          </div>
+          <section aria-label={lesson.title}>
+            <p className={styles.kicker}>{lesson.days}</p><h3>{lesson.title}</h3><p>{lesson.summary}</p>
+            <ul className={styles.checks}>{lesson.checks.map((check) => <li key={check.label} data-complete={check.complete}><span aria-label={check.complete ? "Complete" : "Remaining"}>{check.complete ? "✓" : "○"}</span>{check.label}</li>)}</ul>
+            <h4>Field tips</h4><ul className={styles.tips}>{lesson.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul>
+            <div className={styles.actions}>{lesson.destinations.map((destination) => <button key={destination.action} type="button" onClick={() => route(destination.action)}>{destination.label}</button>)}</div>
+          </section>
+        </> : step ? <>
+          <p className={styles.kicker}>{step.dayLabel}</p>
+          <h3>{step.title}</h3>
+          <p>{step.body}</p>
+          <div className={styles.hint}>{step.hint}</div>
+          <div className={styles.actions}>
+            <button type="button" onClick={close}>Keep Exploring</button>
+            {step.action !== "none" && <button type="button" className={styles.primary} onClick={() => route(step.action, step.targetId)}>{step.actionLabel}</button>}
+          </div>
+          {confirmSkip ? <section className={styles.confirm} aria-label="Skip walkthrough confirmation">
+            <p>Skip the walkthrough? Story scenes and beginner milestones will remain available.</p>
+            <div className={styles.actions}>
+              <button type="button" onClick={() => setConfirmSkip(false)}>Keep Walkthrough</button>
+              <button type="button" onClick={() => { saveCurrentGame(skipChapterOneGuidedTutorial(save)); setConfirmSkip(false); }}>Skip Walkthrough</button>
+            </div>
+          </section> : <button type="button" className={styles.skip} onClick={() => setConfirmSkip(true)}>Skip walkthrough…</button>}
+        </> : <>
+          <h3>{save.flags.chapterOneGuidedSkipped ? "Walkthrough skipped" : save.flags.m24IntroSeen !== true ? "Your guide will be ready soon" : "You’re free to explore"}</h3>
+          <p>{save.flags.m24IntroSeen !== true ? "Meet Veyra at the ranch to begin Chapter 1." : "You can still find goals and story records in the Journal, or ask Veyra for advice from the menu."}</p>
+        </>}
+        <button type="button" onClick={() => { setConfirmSkip(false); open("menu"); }}>Back to Menu</button>
+      </section>
+    </GameDialog>
   );
 }
 
 export const CHAPTER_ONE_TUTORIAL_SIGNAL_EVENT = SIGNAL_EVENT;
 export const CHAPTER_ONE_TUTORIAL_INVENTORY_EVENT = INVENTORY_EVENT;
+

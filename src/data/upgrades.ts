@@ -18,7 +18,7 @@ export const DEFAULT_TOWN_UPGRADES: TownUpgradeState = {
 };
 
 export const UPGRADE_ASSETS = {
-  quartermasterProfile: "/images/npcs/guild/mara_vell_profile.png",
+  quartermasterProfile: "/images/ui/locations-v2/mara-approved.webp",
   quartermasterPortrait: "/images/npcs/guild/mara_vell_portrait.png",
   servicePermit: "/images/ui/icons/icon_service_permit.png",
   upgradeArrow: "/images/ui/icons/icon_upgrade_arrow.png",
@@ -105,3 +105,4 @@ export function grantDevGuildPoints(save: GameSave, amount = 25): TownUpgradePur
 
 export function getUpgradeCategoryLabel(category: "market" | "guild") { return category === "market" ? "Vale's Adoption Hearth" : "Request Board"; }
 export function getUpgradeCategoryIcon(category: "market" | "guild") { return category === "market" ? UPGRADE_ASSETS.upgradeMarket : UPGRADE_ASSETS.upgradeRequestBoard; }
+

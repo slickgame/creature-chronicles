@@ -212,6 +212,7 @@ test("daily victory grants C3 Marks once, ordinary creature XP, and blocks dupli
   const result = recordColiseumC4BattleResult(cleared, daily, 0, "player_won", 4, teamIds, performance, "c4_daily_once", finalState);
   assert.equal(result.ok, true);
   assert.equal(result.historyEntry?.rewardTier, "full");
+  assert.equal(result.save.flags.guildBattleWins, Number(cleared.flags.guildBattleWins ?? 0) + 1);
   assert.ok(getColiseumC3State(result.save).marks >= daily.reward.marks);
   assert.ok(getColiseumC4State(result.save).dailyClaimKeys.includes(daily.claimKey));
   const updated = result.save.creatures!.find((creature) => creature.creatureId === teamIds[0])!;
@@ -219,6 +220,7 @@ test("daily victory grants C3 Marks once, ordinary creature XP, and blocks dupli
 
   const duplicate = recordColiseumC4BattleResult(result.save, daily, 0, "player_won", 4, teamIds, performance, "c4_daily_once", finalState);
   assert.equal(duplicate.duplicate, true);
+  assert.equal(duplicate.save.flags.guildBattleWins, result.save.flags.guildBattleWins);
   assert.equal(duplicate.changed, false);
   assert.equal(getColiseumC3State(duplicate.save).marks, getColiseumC3State(result.save).marks);
 
@@ -226,6 +228,7 @@ test("daily victory grants C3 Marks once, ordinary creature XP, and blocks dupli
   const practice = recordColiseumC4BattleResult(result.save, daily, 0, "player_won", 4, teamIds, performance, "c4_daily_practice", practiceState);
   assert.equal(practice.historyEntry?.rewardTier, "none");
   assert.equal(practice.historyEntry?.marks, 0);
+  assert.equal(practice.save.flags.guildBattleWins, Number(result.save.flags.guildBattleWins) + 1);
 });
 
 test("gauntlet stages persist a locked team, carryover, and grant the clear reward only at stage three", () => {
@@ -304,3 +307,4 @@ test("malformed C4 save state normalizes safely", () => {
   const summary = getColiseumC4Summary(corrupted);
   assert.equal(summary.totalC4Battles, 0);
 });
+

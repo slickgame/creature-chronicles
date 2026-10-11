@@ -194,3 +194,100 @@ test("guided Chapter 1 completion no longer requires all sixteen optional starte
   assert.ok(optional.completed < optional.total, "optional handbook milestones should remain incomplete");
   assert.ok(getChapterOneCompletionScene(save), "guided completion should unlock the Chapter 1 ending");
 });
+
+
+test("new walkthrough teaches town, breeding, then combat without date gates", () => {
+  const ready = readyForBattleSave();
+  let save = {
+    ...ready,
+    flags: {
+      ...ready.flags,
+      chapterOneGuidedVersion: 2,
+      m7GuildContractCompleted: false,
+      m4BreedingAttempted: false,
+      m5PregnancyCreated: false,
+      m9TotalHatched: 0,
+      chapterOneQuickhatchCatalystUsed: false,
+      chapterOneGuidedBattleOutfitterOpened: false,
+    },
+  };
+  const advance = (flag: string) => {
+    save = { ...save, flags: { ...save.flags, [flag]: true } };
+    return getChapterOneGuidedTutorialStep(save)?.id;
+  };
+  assert.equal(getChapterOneGuidedTutorialStep(save)?.id, "visit-town");
+  assert.equal(advance("chapterOneGuidedTownOpened"), "browse-market");
+  assert.equal(advance("chapterOneGuidedMarketOpened"), "first-guild-request");
+  assert.equal(advance("m7GuildContractCompleted"), "return-to-office");
+  assert.equal(advance("chapterOneGuidedOfficeOpened"), "first-pairing");
+  assert.equal(advance("m4BreedingAttempted"), "wait-for-first-egg");
+  assert.equal(advance("m5PregnancyCreated"), "wait-for-first-egg");
+  save = { ...save, flags: { ...save.flags, m9TotalHatched: 1 } };
+  assert.equal(getChapterOneGuidedTutorialStep(save)?.id, "prepare-first-team");
+  assert.equal(advance("chapterOneGuidedBattleOutfitterOpened"), "win-first-battle");
+  advance("chapterOneFirstBattleWon");
+  assert.equal(getChapterOneTutorialProgress(save).complete, true);
+});
+
+test("version three migration preserves completed town work and is idempotent", () => {
+  const original = readyForBattleSave();
+  const migrated = prepareChapterOneGuidedTutorialSave(original);
+  assert.equal(migrated.flags.chapterOneGuidedVersion, 3);
+  assert.equal(getChapterOneTutorialProgress(migrated).townNavigationComplete, true);
+  assert.equal(getChapterOneGuidedTutorialStep(migrated)?.id, "win-first-battle");
+  assert.deepEqual(migrated.creatures, original.creatures);
+  assert.deepEqual(migrated.dayState, original.dayState);
+  assert.equal(migrated.flags.chapterOneQuickhatchCatalystGranted, original.flags.chapterOneQuickhatchCatalystGranted);
+  assert.equal(prepareChapterOneGuidedTutorialSave(migrated), migrated);
+});
+
+test("unfinished legacy town work receives the new navigation lesson", () => {
+  const ready = readyForBattleSave();
+  const migrated = prepareChapterOneGuidedTutorialSave({
+    ...ready, flags: { ...ready.flags, m7GuildContractCompleted: false },
+  });
+  assert.equal(getChapterOneGuidedTutorialStep(migrated)?.id, "visit-town");
+  assert.equal(getChapterOneTutorialProgress(migrated).townNavigationComplete, false);
+});
+
+
+test("version two saves do not receive unearned town visits during migration", () => {
+  const base = readyForBattleSave();
+  const migrated = prepareChapterOneGuidedTutorialSave({ ...base, flags: { ...base.flags, chapterOneGuidedVersion: 2 } });
+  assert.equal(getChapterOneTutorialProgress(migrated).townNavigationComplete, false);
+});
+
+test("earned chore and resource milestones survive reassignment and daily rollover", () => {
+  const earned = prepareChapterOneGuidedTutorialSave(readyForBattleSave());
+  const later = { ...earned, ranchJobs: { ...earned.ranchJobs!, assignments: {} }, flags: { ...earned.flags, ranchFeedProducedToday: 0, ranchMaterialsProducedToday: 0, ranchSecurityScoreToday: 0 } };
+  const progress = getChapterOneTutorialProgress(later);
+  assert.equal(progress.choresAssigned, true);
+  assert.equal(progress.secondChoreAssigned, true);
+  assert.equal(progress.resourceProblemSolved, true);
+  assert.equal(prepareChapterOneGuidedTutorialSave(later), later);
+});
+
+
+test("actual C2 victory completes the guide, while a loss leaves it open", async () => {
+  const { recordColiseumC2BattleResult, createColiseumPerformance } = await import("../src/data/coliseumC2.ts");
+  const save = readyForBattleSave();
+  const ids = save.creatures!.slice(0, 3).map((creature) => creature.creatureId);
+  const performance = createColiseumPerformance(ids);
+  const loss = recordColiseumC2BattleResult(save, "novice_opening_scrimmage", "enemy_won", 3, ids, performance, "guide-loss");
+  assert.equal(getChapterOneTutorialProgress(loss.save).complete, false);
+  const win = recordColiseumC2BattleResult(save, "novice_opening_scrimmage", "player_won", 3, ids, performance, "guide-win");
+  assert.equal(getChapterOneTutorialProgress(win.save).complete, true);
+  assert.equal(prepareChapterOneGuidedTutorialSave(win.save).flags.chapterOneGuidedComplete, true);
+});
+
+test("first-week overview is read-only and remains useful after skipping", async () => {
+  const { getChapterOneFirstWeekLessons } = await import("../src/data/chapterOneFirstWeek.ts");
+  const save = guidedSave();
+  save.flags.chapterOneGuidedSkipped = true;
+  const before = JSON.stringify(save);
+  const lessons = getChapterOneFirstWeekLessons(save);
+  assert.equal(lessons.length, 4);
+  assert.ok(lessons.find((lesson) => lesson.id === "breeding")?.destinations.some((destination) => destination.action === "nursery"));
+  assert.equal(lessons.find((lesson) => lesson.id === "battle")?.checks[1].complete, false);
+  assert.equal(JSON.stringify(save), before);
+});

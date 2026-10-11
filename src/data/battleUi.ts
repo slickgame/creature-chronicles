@@ -75,12 +75,14 @@ export function getBattleUiMoveAvailability(
   if (!actor || actor.isFainted) {
     return { move, compatible: false, usable: false, reason: "This creature cannot act.", normalizedTargetIds: [] };
   }
-  const compatible = targetMatchesMove(state, actor, move, target);
+  const matches = targetMatchesMove(state, actor, move, target);
+  const compatible = matches && (target.kind === "field" || getLegalBattleTargetIds(state, actor, move).includes(target.combatantId));
   const cooldown = actor.cooldowns[move.id] ?? 0;
   const equipped = actor.loadout.equippedMoveIds.includes(move.id);
   const enoughEnergy = actor.currentBattleEnergy >= move.battleEnergyCost;
   let reason: string | null = null;
-  if (!compatible) reason = `Select a ${getBattleTargetTypeLabel(move.targetType).toLowerCase()} target.`;
+  if (matches && !compatible) reason = `Taunted: select ${getLegalBattleTargetIds(state,actor,move).map(id=>state.combatants[id].name).join(", ")}.`;
+  else if (!compatible) reason = `Select a ${getBattleTargetTypeLabel(move.targetType).toLowerCase()} target.`;
   else if (!equipped) reason = "This move is not equipped.";
   else if (cooldown > 0) reason = `${cooldown} round${cooldown === 1 ? "" : "s"} of cooldown remaining.`;
   else if (!enoughEnergy) reason = `Need ${move.battleEnergyCost} Battle Energy.`;

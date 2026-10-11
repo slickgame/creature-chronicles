@@ -1,0 +1,132 @@
+.courtyard {background-image:url('/images/ui/interiors-v1/habitat.webp');background-position:center;}
+.courtyard>.layout {width:100%;max-width:1680px;padding:14px 24px;gap:10px;}
+.courtyard .occupancy {align-items:center;min-height:58px;}
+.courtyard .occupancy>div {display:flex;align-items:center;gap:12px;flex:1 1 0;}
+.courtyard .occupancy span {font-size:16px;}
+.courtyard .occupancy strong {font-size:22px;white-space:nowrap;}
+.courtyard .occupancy button {display:flex;gap:8px;align-items:center;background:linear-gradient(#61794b,#3e5933);color:#fff2cd;}
+.occupancy [aria-hidden] {width:30px;height:30px;flex:none;}
+.stage {flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,30%);gap:24px;}
+.residentView {position:relative;min-height:0;display:grid;place-items:center;}
+.residentView>img {width:100%;height:100%;min-height:0;max-height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 12px 12px #27190866);}
+.courtyard .care {display:flex;flex-direction:column;justify-content:center;min-height:0;padding:clamp(14px,2vw,30px);gap:clamp(10px,1.4vh,18px);box-shadow:0 4px 16px #27170677,inset 0 0 0 4px #bc986355;}
+.identity {border-bottom:1px solid #a7855255;padding-bottom:10px;}
+.courtyard .layout .identity h2 {font-size:clamp(26px,2.8vw,42px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.identity p {margin:0;font-size:16px;}
+.courtyard .care .readiness {background:#648f3229;border:0;color:#305626;display:flex;align-items:center;justify-content:space-between;text-align:left;font-weight:bold;padding:7px 10px;line-height:1.2;min-height:38px;}
+.courtyard .care .attention {color:#8b3521;background:#bf713426;}
+.stats {margin:0;display:grid;gap:12px;}
+.stats>div {display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;}
+.stats dt {display:flex;gap:10px;align-items:center;}
+.stats dd {margin:0;font-weight:bold;white-space:nowrap;}
+.stats dt [aria-hidden] {width:32px;height:32px;flex:none;}
+.heart {font-size:30px;line-height:32px;color:#ba4940;text-align:center;text-shadow:0 1px 1px #4c281b;}
+.stats meter {grid-column:1 / -1;width:100%;height:12px;accent-color:#56743b;}
+.careButtons {display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.courtyard .careButtons button {display:flex;justify-content:center;align-items:center;gap:7px;padding:9px 6px;min-height:44px;white-space:nowrap;}
+.careButtons [aria-hidden] {width:24px;height:24px;flex:none;}
+.careButtons .feed {grid-column:1 / -1;}
+.courtyard .careButtons .feed {font-size:22px;min-height:48px;}
+.courtyard .dock {flex:none;display:grid;grid-template-columns:auto 44px minmax(0,1fr) 60px 44px;gap:14px;align-items:center;padding:12px 18px;}
+.courtyard .layout .dock h2 {margin:0;font-size:23px;}
+.courtyard .dock>button {font-size:30px;padding:0;min-height:44px;}
+.residents {display:flex;gap:10px;min-height:78px;align-items:stretch;}
+.courtyard .dock .resident {display:flex;flex:1 1 0;min-width:0;align-items:center;gap:12px;padding:5px 9px;text-align:left;border-color:#b18a50;background:#f4e5c388;}
+.resident img {width:64px;height:64px;object-fit:cover;flex:none;border:1px solid #957043;border-radius:3px;}
+.resident>span {min-width:0;display:grid;gap:4px;}
+.resident strong {font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.resident small {font-size:14px;line-height:1.2;color:#395b2c;}
+.resident small.warningText {color:#943a25;}
+.courtyard .dock .selected {background:#91a95942;border:2px solid #466633;box-shadow:inset 0 0 0 2px #f8efc7;}
+.pageNumber {text-align:center;white-space:nowrap;font-size:16px;}
+.courtyard .feedback {flex:none;border:1px solid #9d8454;background:#f4e5c3;color:#49341d;padding:7px 12px;display:flex;gap:16px;text-align:left;min-height:36px;border-radius:4px;}
+.feedback>span:first-child {white-space:nowrap;text-overflow:ellipsis;overflow:hidden;flex:1;}
+.feedback>span:last-child {text-decoration:underline;}
+.empty {width:min(420px,95%);align-self:center;}
+.management form {display:grid;gap:10px;}
+.management button {min-height:44px;padding:8px 12px;border:1px solid #997847;border-radius:4px;background:linear-gradient(#f7edcf,#ddc493);color:#49341d;}
+@media(max-width:1000px) {
+ .courtyard>.layout {padding:8px;gap:8px;}
+ .stage {grid-template-columns:minmax(0,1fr) 310px;gap:12px;}
+ .courtyard .occupancy span {font-size:13px;}
+ .courtyard .occupancy strong {font-size:18px;}
+ .courtyard .occupancy>div {gap:8px;}
+ .occupancy [aria-hidden] {width:24px;height:24px;}
+ .courtyard .dock {gap:8px;padding:8px;}
+ .courtyard .layout .dock h2 {font-size:18px;}
+}
+@media(max-width:600px) and (min-height:601px) {
+ .stage {grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:6px;}
+ .courtyard .care {padding:10px 12px;gap:8px;display:grid;grid-template-columns:minmax(0,1fr);}
+ .identity {padding:0;border:0;}
+ .courtyard .layout .identity h2 {font-size:25px;margin:0;}
+ .identity p {font-size:13px;}
+ .courtyard .care .readiness {min-height:30px;padding:5px 8px;font-size:14px;}
+ .stats {grid-template-columns:1fr 1fr 1.1fr;gap:6px;}
+ .stats>div {display:flex;flex-direction:column;gap:0;align-items:flex-start;}
+ .stats dt {gap:4px;font-size:13px;}
+ .stats dt [aria-hidden] {width:20px;height:20px;font-size:20px;line-height:20px;}
+ .stats dd {font-size:15px;}
+ .stats meter {height:7px;}
+ .careButtons {gap:6px;grid-template-columns:1fr 1fr 1fr;}
+ .careButtons .feed {grid-column:auto;grid-row:span 2;}
+ .courtyard .careButtons button {font-size:13px;padding:5px 3px;min-height:38px;gap:3px;}
+ .courtyard .careButtons .feed {font-size:17px;flex-direction:column;}
+ .careButtons [aria-hidden] {width:18px;height:18px;}
+ .courtyard .dock {grid-template-columns:38px minmax(0,1fr) 38px;gap:5px;padding:6px;position:relative;}
+ .courtyard .dock>h2 {display:none;}
+ .pageNumber {position:absolute;right:10px;bottom:5px;font-size:11px;pointer-events:none;}
+ .courtyard .dock>button {padding:0;min-height:54px;}
+ .residents {min-height:65px;}
+ .resident img {width:48px;height:48px;}
+ .resident strong {font-size:18px;}
+ .resident small {font-size:12px;}
+ .courtyard .dock .resident {gap:8px;padding:4px;}
+}
+@media(max-width:600px) {
+ .courtyard .occupancy {gap:4px;min-height:56px;padding:6px;}
+ .courtyard .occupancy>div {display:grid;gap:0;flex:1 1 0;}
+ .occupancy>div>[aria-hidden] {display:none;}
+ .courtyard .occupancy span {font-size:11px;white-space:nowrap;}
+ .courtyard .occupancy strong {font-size:17px;}
+ .courtyard .occupancy button {gap:2px;padding:4px;flex-direction:column;}
+ .occupancy button [aria-hidden] {width:18px;height:18px;}
+}
+@media(max-height:600px) {
+ .courtyard>.layout {padding:5px 8px;gap:5px;}
+ .courtyard .occupancy {min-height:36px;padding:3px 10px;}
+ .courtyard .occupancy button {min-height:28px;padding:2px 8px;}
+ .stage {grid-template-columns:minmax(0,1fr) 340px;gap:10px;}
+ .courtyard .care {padding:8px 10px;gap:5px;justify-content:center;}
+ .identity {padding:0;border:0;display:flex;gap:10px;align-items:baseline;}
+ .courtyard .layout .identity h2 {font-size:22px;margin:0;}
+ .identity p {font-size:11px;white-space:nowrap;}
+ .courtyard .care .readiness {min-height:26px;padding:3px 6px;font-size:13px;}
+ .stats {grid-template-columns:1fr 1fr 1fr;gap:7px;}
+ .stats>div {display:flex;flex-direction:column;gap:0;align-items:flex-start;}
+ .stats dt {gap:3px;font-size:12px;}
+ .stats dt [aria-hidden] {width:18px;height:18px;font-size:18px;line-height:18px;}
+ .stats dd {font-size:13px;}
+ .stats meter {height:6px;}
+ .careButtons {grid-template-columns:1fr 1fr 1fr;gap:5px;}
+ .careButtons .feed {grid-column:auto;grid-row:span 2;}
+ .courtyard .careButtons button {min-height:30px;font-size:12px;padding:3px;gap:3px;}
+ .courtyard .careButtons .feed {font-size:17px;flex-direction:column;}
+ .careButtons [aria-hidden] {width:18px;height:18px;}
+ .courtyard .dock {padding:4px 10px;gap:8px;grid-template-columns:auto 36px minmax(0,1fr) 40px 36px;}
+ .courtyard .layout .dock h2 {font-size:17px;}
+ .residents {min-height:49px;}
+ .resident img {width:40px;height:40px;}
+ .resident strong {font-size:16px;}
+ .resident small {font-size:12px;}
+ .courtyard .dock .resident {padding:3px 6px;gap:6px;}
+ .courtyard .feedback {min-height:26px;padding:3px 10px;font-size:12px;}
+}
+.courtyard .occupancy button span {color:#fff2cd;}
+.readiness small {font-size:11px;font-weight:400;text-decoration:underline;}
+.stats meter::-webkit-meter-bar {background:#b4a482;border:0;border-radius:6px;}
+.stats meter::-webkit-meter-optimum-value {background:linear-gradient(#789650,#46682f);border-radius:6px;}
+.stats meter::-moz-meter-bar {background:linear-gradient(#789650,#46682f);border-radius:6px;}
+.courtyard .occupancy [data-illustrated-icon]{width:28px;height:28px;object-fit:contain;}
+.resident[aria-pressed=true]{position:relative;padding-right:17px!important;}.resident[aria-pressed=true]:after{content:'✓';position:absolute;top:2px;right:3px;color:#3c5c2d;font-size:13px;}
+@media(max-width:600px){.courtyard .occupancy>div{display:grid;grid-template-columns:17px 1fr;gap:0 3px;}.courtyard .occupancy>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.courtyard .occupancy>div>strong{grid-column:2;}}

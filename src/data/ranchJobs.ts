@@ -1,3 +1,5 @@
+import { resourceAssignment } from "./farmResources";
+import { recordGuildChoreWork } from "./guildCommissions";
 import {
   gainCreatureChoreSkillXp,
   getChoreSkillAptitudeLabel,
@@ -279,6 +281,7 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   }
   const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found." };
+  if (resourceAssignment(save, creatureId)) return { save, ok: false, message: "Remove this helper from resource gathering first." };
   const trainingReason = getTrainingUnavailableReason(save, creatureId);
   if (trainingReason) return { save, ok: false, message: `${creature.nickname} is away at the Training Grounds: ${trainingReason}.` };
   if (isCreatureInjured(creature, save.dayState.dayNumber)) return { save, ok: false, message: `${creature.nickname} is ${creature.injuryLabel ?? "injured"} and cannot be assigned until they recover.` };
@@ -450,7 +453,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       currencies: { ...save.currencies, energy: Math.floor(save.currencies.maxEnergy * playerEnergyRatio) },
       ranchJobs: { ...jobs, assignments, lastProcessedDayNumber: save.dayState.dayNumber, lifetimeCompletions: jobs.lifetimeCompletions + completions },
       flags: {
-        ...save.flags,
+        ...recordGuildChoreWork(save, results),
         m14RanchJobsCreated: true,
         m14RanchJobsProcessed: completions > 0 || save.flags.m14RanchJobsProcessed === true,
         m14SecurityEventsEnabled: true,

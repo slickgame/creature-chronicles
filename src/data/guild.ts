@@ -1,3 +1,5 @@
+import { guildRandom, guildRoll } from "./guildRandom";
+import { createWeeklyCommissions, getGuildObjectiveCount } from "./guildCommissions";
 import { getVariantDefinition } from "@/data/creatures";
 import { getTownUpgradeEffects } from "@/data/upgrades";
 import type { CreatureRecord } from "@/types/creature";
@@ -27,17 +29,12 @@ type ContractTemplate = {
   serviceAffectionReward?: number;
 };
 
-function seededNumber(seed: number): number {
-  const value = Math.sin(seed) * 10000;
-  return value - Math.floor(value);
-}
-
 function makeContractId(weekNumber: number, slot: number): ContractId {
   return `guild_contract_${weekNumber}_${slot}` as ContractId;
 }
 
 function getTierReward(save: GameSave, tier: GuildContractTier, slot: number, type: GuildContractType) {
-  const roll = seededNumber(save.dayState.weekNumber * 71 + slot * 13);
+  const roll = guildRandom(save, `reward:${slot}`);
   const effects = getTownUpgradeEffects(save);
   let goldReward = 0;
   let guildPointReward = 0;
@@ -62,7 +59,7 @@ function getTierReward(save: GameSave, tier: GuildContractTier, slot: number, ty
 function createContract(save: GameSave, slot: number, template: ContractTemplate): GuildContract {
   const rewards = getTierReward(save, template.tier, slot, template.type);
   return {
-    contractId: makeContractId(save.dayState.weekNumber, slot),
+    contractId: `${makeContractId(save.dayState.weekNumber, slot)}${guildRoll(save) ? `_r${guildRoll(save)}` : ""}` as ContractId,
     weekNumber: save.dayState.weekNumber,
     tier: template.tier,
     type: template.type,
@@ -152,7 +149,7 @@ function applyContractQuality(save: GameSave, templates: ContractTemplate[]) {
   const qualityTier = getTownUpgradeEffects(save).guildContractQualityTier;
   if (qualityTier <= 0) return templates;
   return templates.map((template, index) => {
-    const roll = seededNumber(save.dayState.weekNumber * 157 + index * 29);
+    const roll = guildRandom(save, `quality:${index}`);
     const silverChance = [0, 0.18, 0.26, 0.34, 0.42][qualityTier] ?? 0;
     const goldChance = [0, 0.03, 0.07, 0.12, 0.18][qualityTier] ?? 0;
     if (template.tier === "bronze" && roll < silverChance) return { ...template, tier: "silver" as const };
@@ -162,18 +159,19 @@ function applyContractQuality(save: GameSave, templates: ContractTemplate[]) {
 }
 
 function getWeeklyTemplates(save: GameSave): ContractTemplate[] {
-  const effects = getTownUpgradeEffects(save);
   const templates = applyContractQuality(save, getBaseTemplates());
-  const rotatedTemplates = [...templates].sort((a, b) => seededNumber(save.dayState.weekNumber * 97 + a.title.length * 11) - seededNumber(save.dayState.weekNumber * 97 + b.title.length * 11));
-  return rotatedTemplates.slice(0, effects.guildContractCount);
+  return [...templates].sort((a, b) => guildRandom(save, a.title) - guildRandom(save, b.title));
 }
 
 function createWeeklyContracts(save: GameSave): GuildContract[] {
-  return getWeeklyTemplates(save).map((template, index) => createContract(save, index, template));
+  const old = getWeeklyTemplates(save);
+  const service = getBaseTemplates().find(t => t.title === "Field Hauling Day Shift")!;
+  const remaining = old.filter(t => t.title !== service.title).slice(0, Math.max(0, getTownUpgradeEffects(save).guildContractCount - 4));
+  return [...createWeeklyCommissions(save), createContract(save, 0, service), ...remaining.map((template, index) => createContract(save, index + 1, template))];
 }
 
 export function createDefaultGuildState(save: GameSave): GuildState {
-  return { weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: createWeeklyContracts(save), completedCount: 0, donatedCreatureCount: 0, guildRank: 1 };
+  return { boardVersion: 3, rerollCount: 0, weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: createWeeklyContracts(save), completedCount: 0, donatedCreatureCount: 0, guildRank: 1 };
 }
 
 export function ensureCurrentGuildState(save: GameSave): GameSave {
@@ -181,7 +179,16 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
   if (!save.guild) return { ...save, guild: createDefaultGuildState(save), flags: { ...save.flags, m15GuildWeeklyRefresh: true } };
 
   const normalizedContracts = save.guild.contracts.map(normalizeContract);
-  const normalizedGuild = { ...save.guild, contracts: normalizedContracts };
+  // Existing requests stay intact. Add the new categories once to this week's board.
+  for (const commission of (save.guild.boardVersion ?? 0) >= 2 ? [] : createWeeklyCommissions(save)) {
+    if (!normalizedContracts.some(c => c.contractId === commission.contractId)) normalizedContracts.push(commission);
+  }
+  if ((save.guild.boardVersion ?? 0) < 3 && save.guild.weekNumber === save.dayState.weekNumber) {
+    const delivery = createWeeklyCommissions(save).find(c => c.type === "delivery");
+    const index = normalizedContracts.findIndex(c => c.type === "delivery" && c.status === "available");
+    if (delivery && index >= 0) normalizedContracts[index] = delivery;
+  }
+  const normalizedGuild = { ...save.guild, boardVersion: 3, rerollCount: guildRoll(save), contracts: normalizedContracts };
   const normalizedSave = { ...save, guild: normalizedGuild };
   const weekChanged = normalizedGuild.weekNumber !== save.dayState.weekNumber;
   const currentWeekContracts = normalizedContracts.filter((contract) => contract.weekNumber === save.dayState.weekNumber && contract.status !== "expired");
@@ -196,7 +203,7 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
 
   return {
     ...normalizedSave,
-    guild: { ...normalizedGuild, weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: [...retainedContracts, ...newContracts] },
+    guild: { ...normalizedGuild, rerollCount: weekChanged ? 0 : normalizedGuild.rerollCount, weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: [...retainedContracts, ...newContracts] },
     flags: { ...save.flags, m15GuildWeeklyRefresh: true, guildBoardLastRefreshWeek: save.dayState.weekNumber, m34ContractCategories: true },
   };
 }
@@ -216,6 +223,7 @@ export function getCreatureRarityRank(rarity: string): number {
 
 export function doesCreatureMatchContract(creature: CreatureRecord, rawContract: GuildContract): boolean {
   const contract = normalizeContract(rawContract);
+  if (contract.objective) return false;
   const variant = getVariantDefinition(creature.variantId);
   const requirement = contract.requirement;
   if (contract.status === "completed" || contract.status === "expired") return false;
@@ -285,7 +293,7 @@ export function acceptGuildContract(save: GameSave, contractId: string): GuildAc
   const contract = guild.contracts.find((item) => item.contractId === contractId);
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
   if (contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract is not available to accept." };
-  return { save: { ...syncedSave, guild: { ...guild, contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "accepted", acceptedAtDayNumber: syncedSave.dayState.dayNumber } : item) }, flags: { ...syncedSave.flags, m7GuildContractAccepted: true } }, ok: true, message: `${contract.title} accepted.` };
+  return { save: { ...syncedSave, guild: { ...guild, contracts: guild.contracts.map((item) => item.contractId === contractId ? { ...item, status: "accepted", acceptedAtDayNumber: syncedSave.dayState.dayNumber, objectiveBaseline: item.objective ? getGuildObjectiveCount(syncedSave, item.objective) : undefined } : item) }, flags: { ...syncedSave.flags, m7GuildContractAccepted: true } }, ok: true, message: `${contract.title} accepted.` };
 }
 
 export function donateCreatureToGuildContract(save: GameSave, contractId: string, creatureId: string): GuildActionResult {
@@ -295,6 +303,7 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   const contract = rawContract ? normalizeContract(rawContract) : null;
   const creature = (syncedSave.creatures ?? []).find((item) => item.creatureId === creatureId);
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
+  if (contract.objective) return { save: syncedSave, ok: false, message: "Use the commission claim action for this request." };
   if (!creature) return { save: syncedSave, ok: false, message: "That creature is no longer available." };
   if (creature.isLocked && contract.type === "donate_creature") return { save: syncedSave, ok: false, message: `${creature.nickname} is locked. Unlock them before donating.` };
   if (contract.status !== "accepted" && contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract cannot receive submissions." };
@@ -342,4 +351,36 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
     ok: true,
     message: `${creature.nickname} was ${actionVerb} ${contract.title}. Earned ${goldReward} Gold and ${guildPointReward} GP.${serviceText}${bonusText}${firstBonusText}`,
   };
+}
+
+
+
+export function getGuildRerollQuote(save: GameSave) {
+  const synced = ensureCurrentGuildState(save);
+  const count = guildRoll(synced);
+  const discount = synced.flags.npcQuest_mara_vell_2_claimed === true ? 0.9 : 1;
+  const cost = Math.ceil(50 * (count + 1) * discount);
+  const available = synced.guild!.contracts.filter(c => c.status === "available").length;
+  return { count, cost, available, discount, week: synced.dayState.weekNumber };
+}
+
+/** Replaces only unaccepted slots; accepted progress and completed rewards are immutable. */
+export function rerollGuildBoard(save: GameSave, expectedCount: number, expectedWeek: number): GuildActionResult {
+  const synced = ensureCurrentGuildState(save);
+  const quote = getGuildRerollQuote(synced);
+  if (quote.count !== expectedCount || quote.week !== expectedWeek) return { save: synced, ok: false, message: "The board changed. Review the new reroll price." };
+  if (!quote.available) return { save: synced, ok: false, message: "No unaccepted requests remain to reroll." };
+  if (synced.currencies.gold < quote.cost) return { save: synced, ok: false, message: `Need ${quote.cost - synced.currencies.gold} more Gold to reroll.` };
+  const next: GameSave = { ...synced, guild: { ...synced.guild!, rerollCount: quote.count + 1 } };
+  const pool = [...createWeeklyCommissions(next), ...getWeeklyTemplates(next).map((template, i) => createContract(next, i + 3, template))];
+  const used = new Set(synced.guild!.contracts.filter(c => c.status !== "available").map(c => c.title));
+  const oldTitles = new Set(synced.guild!.contracts.map(c => c.title));
+  const contracts = synced.guild!.contracts.map((old, index) => {
+    if (old.status !== "available") return old;
+    const sameType = pool.filter(c => c.type === old.type && !used.has(c.title));
+    const candidate = sameType.find(c => !oldTitles.has(c.title)) ?? sameType.find(c => c.title !== old.title) ?? sameType[0] ?? pool.find(c => !used.has(c.title))!;
+    used.add(candidate.title);
+    return { ...candidate, contractId: `guild_reroll_${quote.week}_${quote.count + 1}_${index}` as ContractId };
+  });
+  return { ok: true, message: `Replaced ${quote.available} unaccepted requests for ${quote.cost} Gold. Accepted and completed requests were kept.`, save: { ...next, currencies: { ...next.currencies, gold: next.currencies.gold - quote.cost }, guild: { ...next.guild!, contracts } } };
 }

@@ -1,0 +1,4 @@
+.icon{display:inline-block;width:24px;height:24px;object-fit:contain;flex:none;vertical-align:middle;}
+.trust{display:flex;align-items:center;justify-content:center;gap:4px;}
+.trust>span{display:inline-flex;}.trust [data-earned=false]{filter:grayscale(1);opacity:.3;}
+.trust .icon{width:22px;height:22px;}

@@ -1,10 +1,12 @@
+import { getFarmState } from "@/data/farmResources";
+import { processBuilderConstruction } from "@/data/builderProjects";
 import { getBattleOutfitterDailySummaryItems } from "@/data/battleOutfitter";
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
 import { ensureCurrentGuildState } from "@/data/guild";
 import { ensureCurrentMarketState } from "@/data/market";
 import { advanceNurseryDay } from "@/data/nursery";
 import { processRanchJobsForNewDay } from "@/data/ranchJobs";
-import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
+import { applyRanchUpgradeEffectsToHabitats, getRanchUpgradeEffects } from "@/data/ranchUpgrades";
 import { applyStarterGoalRewards } from "@/data/starterGoals";
 import { processMonthlyTaxes } from "@/data/taxes";
 import { getTrainingReturnSummaryItems, getTrainingUnavailableReason } from "@/data/trainingGrounds";
@@ -56,6 +58,19 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
   );
 
   try {
+    const bundle = projectRanchDay(normalized);
+    if (!bundle) { abortSaveTransaction(transaction); return null; }
+    return { ...bundle, save: tagSaveTransaction(bundle.save, transaction, `ranch-day-${normalized.dayState.dayNumber}`) };
+  } catch (error) {
+    abortSaveTransaction(transaction);
+    throw error;
+  }
+}
+
+/** Detached, read-only overnight projection. No save transactions or storage writes. */
+export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
+  const normalized = normalizeRanchDaySave(structuredClone(save));
+  if (!normalized.ranchDay || normalized.ranchDay.phase !== "evening") return null;
     const previousSave = updateDailyGoalsAndRewards(normalized);
     const previousDateLabel = formatGameDate(previousSave.dayState.weekday, previousSave.dayState.month, previousSave.dayState.dayOfMonth);
     const nextState = nextDayState(previousSave.dayState);
@@ -84,7 +99,8 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
       },
     };
 
-    const nurseryResult = advanceNurseryDay(restoredSave);
+    const construction = processBuilderConstruction(restoredSave);
+    const nurseryResult = advanceNurseryDay(applyRanchUpgradeEffectsToHabitats(construction.save));
     const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save);
     const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave);
     const jobResult = processRanchJobsForNewDay(guildSyncedSave);
@@ -117,12 +133,14 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     };
 
     const summaryItems = [
+      ...getFarmState(reportSave).report,
       `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
       `Energy recovery processed for Ranch Day ${nextState.dayNumber}.`,
       "Player Hearts restored to full.",
       recovery.sleepCreatureEnergyBonus || recovery.sleepAffectionBonus
         ? `Ranch recovery bonus applied: +${recovery.sleepCreatureEnergyBonus} creature Energy buffer, +${recovery.sleepAffectionBonus} Affection.`
         : "Creature Energy and Hearts recovery processed.",
+      ...construction.summaryItems,
       ...trainingReturnItems,
       ...battleReadinessItems,
       ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]),
@@ -135,7 +153,7 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     const completedSummary = buildCompletedDaySummary(
       completedGoalSource,
       reportSave,
-      dailyReport.highlights,
+      [...construction.summaryItems, ...dailyReport.highlights],
       dailyReport.warnings,
     );
     const nextDayShell = createRanchDayState(reportSave, "morning");
@@ -168,11 +186,8 @@ export function advanceRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     };
 
     return {
-      save: tagSaveTransaction(finalSave, transaction, `ranch-day-${previousSave.dayState.dayNumber}`),
+      save: finalSave,
       result: { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results },
     };
-  } catch (error) {
-    abortSaveTransaction(transaction);
-    throw error;
-  }
 }
+

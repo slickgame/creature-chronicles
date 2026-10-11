@@ -95,13 +95,9 @@ export function NurseryScreen() {
 
   return (
     <>
-      <LedgerNurseryScreen />
-      {currentSave ? (
-        <button type="button" className={styles.launchButton} onClick={() => setOpen(true)}>
-          Move Lineage {records.length ? `(${records.length})` : ""}
-        </button>
-      ) : null}
-
+      <LedgerNurseryScreen headerLinks={currentSave ? (
+        <button type="button" onClick={() => setOpen(true)}>Move Lineage {records.length ? `(${records.length})` : ""}</button>
+      ) : null} />
       {open ? (
         <div className={styles.backdrop} role="presentation" onMouseDown={() => setOpen(false)}>
           <section className={styles.modal} role="dialog" aria-modal="true" aria-label="Nursery move lineage" onMouseDown={(event) => event.stopPropagation()}>

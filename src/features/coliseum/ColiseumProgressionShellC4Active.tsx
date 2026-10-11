@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { syncColiseumC3Rewards } from "@/data/coliseumC3";
 import { useGameContext } from "@/state/GameProvider";
-import { ColiseumProgressionScreen as ColiseumProgressionScreenC4 } from "./ColiseumProgressionShellC4";
+import { ColiseumCourtyard as ColiseumProgressionScreenC4 } from "./ColiseumCourtyard";
 
 export function ColiseumProgressionScreen() {
   const { currentSave, saveCurrentGame } = useGameContext();

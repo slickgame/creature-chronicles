@@ -30,20 +30,19 @@ test("portrait battlefield uses horizontal formations and projected order contro
   assert.match(polish, /lapine[\s\S]*--portrait-scale:\s*0\.88/);
 });
 
-test("C2 battle HUD exposes compact move details and modal battle log", async () => {
-  const c2 = await source("src/features/coliseum/ColiseumC2Screen.tsx");
-  const dialogs = await source("src/features/battle/BattleCommandDialogs.tsx");
-
-  assert.match(c2, /<BattleMoveGrid/);
-  assert.match(c2, /<BattleLogButton entries=\{battleState\.log\}/);
-  assert.match(c2, /className=\{battleStyles\.actionFooter\}/);
-  assert.doesNotMatch(c2, /className=\{battleStyles\.queuePanel\}/);
-  assert.doesNotMatch(c2, /className=\{battleStyles\.logPanel\}/);
-  assert.match(dialogs, /More information about/);
-  assert.match(dialogs, /Turn-by-turn record/);
-  assert.match(dialogs, /Gameplay Terms/);
-  assert.match(dialogs, /Hover or focus an underlined term/);
-  assert.match(dialogs, /getBattleStatusGlossary/);
+test("both active battle modes share categorized commands and actual resolution order", async () => {
+  for (const path of ["src/features/coliseum/ColiseumC2Screen.tsx", "src/features/coliseum/ColiseumC4Battle.tsx"]) {
+    const screen = await source(path);
+    assert.match(screen, /<BattleArenaB/);
+    assert.match(screen, /resolved.result.actions.map\(action => action.actorId\)/);
+  }
+  const arena = await source("src/features/battle/BattleArenaB.tsx");
+  assert.match(arena, /BATTLE_MENU_CATEGORIES.map/);
+  assert.match(arena, /Queue Move/);
+  assert.match(arena, /Confirm Round/);
+  assert.match(arena, /presentation.actionOrder/);
+  assert.match(arena, /title="Battle Log"/);
+  assert.match(arena, /full body/);
 });
 
 test("battle glossary documents every live status with mechanical values", async () => {

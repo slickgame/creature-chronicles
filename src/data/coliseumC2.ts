@@ -57,7 +57,10 @@ export type ColiseumC2EncounterId =
   | "silver_guard_circuit"
   | "crown_opening_assault"
   | "crown_control_matrix"
-  | "crown_tactical_finale";
+  | "crown_tactical_finale"
+  | "bronze_redfang_exhibition"
+  | "silver_bastion_exhibition"
+  | "crown_relay_exhibition";
 
 export type ColiseumC2Reward = {
   gold: number;
@@ -106,6 +109,8 @@ export type ColiseumC2EncounterDefinition = {
   opponentName: string;
   description: string;
   strategyLabel: string;
+  optional?: boolean;
+  scoutingNotes?: readonly string[];
   aiDifficulty: BattleAiDifficulty;
   recommendedLevel: number;
   prerequisiteEncounterIds: ColiseumC2EncounterId[];
@@ -528,6 +533,48 @@ export const COLISEUM_C2_ENCOUNTERS: readonly ColiseumC2EncounterDefinition[] = 
       slot("crown_final_tank", "Aurelia", "variant_minotaur", 12, grades("S", "C", "S", "C", "S", "D"), [{ talentId: "labyrinth_guard", grade: "S" }, { talentId: "iron_shoulders", grade: "S" }], ["strike", "stubborn_guard", "heavy_shove", "taunt", "guard_break", "unyielding_aura"], ["stubborn_guard", "heavy_shove", "taunt", "guard_break"], "Champion Tank", CHAMPION_HARNESS),
       slot("crown_final_damage", "Noctis", "variant_nightmare", 12, grades("S", "S", "A", "D", "S", "D"), [{ talentId: "dark_gallop", grade: "S" }, { talentId: "fearless_bloodline", grade: "S" }], ["strike", "hoof_strike", "field_charge", "thunder_tread", "suppress", "guard_break"], ["hoof_strike", "field_charge", "thunder_tread", "suppress"], "Champion Striker", CHAMPION_HARNESS),
       slot("crown_final_support", "Eidra", "variant_dream_lop", 12, grades("D", "S", "A", "S", "S", "S"), [{ talentId: "soft_lullaby", grade: "S" }, { talentId: "dream_nest", grade: "S" }], ["strike", "soothing_pulse", "mend_wounds", "energy_link", "restorative_rhythm", "nesting_comfort"], ["soothing_pulse", "mend_wounds", "energy_link", "restorative_rhythm"], "Champion Healer", CHAMPION_HARNESS),
+    ],
+  },
+  {
+    encounterId: "bronze_redfang_exhibition", divisionId: "bronze", name: "Redfang Exhibition",
+    opponentName: "The Redfang Runners", description: "A fast hunting team pressures marked targets while Bleed wears down a defensive roster.",
+    strategyLabel: "Bleed and pursuit", optional: true,
+    scoutingNotes: ["Clear Head removes Bleed and Marked; heal after cleansing to avoid losing the recovery to ongoing damage.", "Cover the ally under pressure, then focus the pursuer. Checking Blow helps slow the runners."],
+    aiDifficulty: "tactical", recommendedLevel: 5, prerequisiteEncounterIds: ["novice_echo_trial"],
+    firstClearReward: { gold: 230, guildPoints: 8, itemId: "focus_manual", itemQuantity: 1 },
+    repeatRewardPool: rewardPool(55, 1, 2), baseCombatXp: 38,
+    enemyTeam: [
+      slot("redfang", "Rake", "variant_tiger", 5, grades("B", "B", "B", "B", "B", "B"), [], ["strike", "razor_swipe", "shadow_feint", "predator_pursuit"], ["strike", "razor_swipe", "shadow_feint", "predator_pursuit"], "Pursuer", OFFENSE_WRAP),
+      slot("redhound", "Flint", "variant_hellhound", 5, grades("B", "B", "B", "B", "B", "B"), [], ["strike", "bite_down", "chase", "checking_blow"], ["strike", "bite_down", "chase", "checking_blow"], "Disruptor", OFFENSE_WRAP),
+      slot("redmedic", "Clover", "variant_bunny", 5, grades("B", "B", "B", "B", "B", "B"), [], ["strike", "first_aid", "clear_head", "covering_guard"], ["strike", "first_aid", "clear_head", "covering_guard"], "Field Medic", MEDIC_SATCHEL),
+    ],
+  },
+  {
+    encounterId: "silver_bastion_exhibition", divisionId: "silver", name: "Bastion Exhibition",
+    opponentName: "The Stone Chorus", description: "A protected spellcaster fights behind a sturdy guardian and a dedicated medic.",
+    strategyLabel: "Guard and special pressure", optional: true,
+    scoutingNotes: ["Piercing Echo breaks Guarded and attacks Resistance. Physical guard breakers remain useful against the guardian.", "Pressure the medic to stop recovery, or remove the spellcaster before its special attacks accumulate."],
+    aiDifficulty: "tactical", recommendedLevel: 8, prerequisiteEncounterIds: ["bronze_pack_clash"],
+    firstClearReward: { gold: 400, guildPoints: 14, itemId: "focus_manual", itemQuantity: 1 },
+    repeatRewardPool: rewardPool(96, 2, 2), baseCombatXp: 56,
+    enemyTeam: [
+      slot("bastion", "Quarry", "variant_minotaur", 8, grades("A", "A", "A", "A", "A", "A"), [], ["strike", "covering_guard", "taunt", "checking_blow"], ["strike", "covering_guard", "taunt", "checking_blow"], "Guardian", GUARD_COLLAR),
+      slot("echo", "Prism", "variant_sphinx", 8, grades("A", "A", "A", "A", "A", "A"), [], ["strike", "will_bolt", "piercing_echo", "suppress"], ["strike", "will_bolt", "piercing_echo", "suppress"], "Spellcaster", FOCUS_LENS),
+      slot("bastionmedic", "Fern", "variant_unicorn", 8, grades("A", "A", "A", "A", "A", "A"), [], ["strike", "mend_wounds", "clear_head", "energy_link"], ["strike", "mend_wounds", "clear_head", "energy_link"], "Medic", MEDIC_SATCHEL),
+    ],
+  },
+  {
+    encounterId: "crown_relay_exhibition", divisionId: "crown", name: "Relay Exhibition",
+    opponentName: "The Lantern Relay", description: "A support relay fuels a special attacker while a controller slows your response.",
+    strategyLabel: "Energy supply and tempo", optional: true,
+    scoutingNotes: ["The Dream Lop supplies Energy and cleansing. Concentrate attacks to outpace its support.", "Checking Blow lowers enemy tempo; keep enough Energy for recovery instead of spending it all on opening attacks."],
+    aiDifficulty: "champion", recommendedLevel: 11, prerequisiteEncounterIds: ["silver_guard_circuit"],
+    firstClearReward: { gold: 650, guildPoints: 24, itemId: "focus_manual", itemQuantity: 1 },
+    repeatRewardPool: rewardPool(156, 4, 2), baseCombatXp: 74,
+    enemyTeam: [
+      slot("relaybattery", "Wick", "variant_dream_lop", 11, grades("A", "A", "A", "A", "A", "A"), [], ["strike", "energy_link", "clear_head", "soothing_pulse"], ["strike", "energy_link", "clear_head", "soothing_pulse"], "Energy Support", MEDIC_SATCHEL),
+      slot("relaystriker", "Ember", "variant_nightmare", 11, grades("A", "A", "A", "A", "A", "A"), [], ["strike", "piercing_echo", "thunder_tread", "hoof_strike"], ["strike", "piercing_echo", "thunder_tread", "hoof_strike"], "Special Striker", FOCUS_LENS),
+      slot("relaycontrol", "Chime", "variant_sphinx", 11, grades("A", "A", "A", "A", "A", "A"), [], ["strike", "suppress", "checking_blow", "covering_guard"], ["strike", "suppress", "checking_blow", "covering_guard"], "Controller", FOCUS_LENS),
     ],
   },
 ] as const;
@@ -1126,6 +1173,7 @@ export function recordColiseumC2BattleResult(
     flags: {
       ...rewarded.flags,
       [COLISEUM_C2_PROGRESS_FLAG]: JSON.stringify(nextProgress),
+      guildBattleWins: finiteCount(rewarded.flags.guildBattleWins) + (win ? 1 : 0),
       coliseumProgressionStarted: true,
       coliseumCombatProgressionStarted: true,
       ...(firstClear ? { coliseumFirstClearEarned: true } : {}),
@@ -1144,3 +1192,4 @@ export function recordColiseumC2BattleResult(
     duplicate: false,
   };
 }
+

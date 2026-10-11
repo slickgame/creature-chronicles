@@ -64,7 +64,7 @@ test("normalization attaches definition metadata and exact grade text", () => {
   const normalized = normalizeTalentInstance(talent("quick_learner", "Quick Learner", "C"));
   assert.equal(normalized.category, "general");
   assert.ok(normalized.tags?.includes("learner"));
-  assert.equal(normalized.definitionVersion, 1);
+  assert.equal(normalized.definitionVersion, 2);
   assert.equal(normalized.description, getTalentDescription("quick_learner", "C"));
 });
 
@@ -135,3 +135,4 @@ test("talent audit recognizes every current saved talent instance", () => {
   assert.equal(audit.gradeCoverageCount, audit.gradeCoverageExpected);
   assert.ok(audit.records.some((record) => record.talentId === "quick_learner" && record.ownedCount >= 1));
 });
+

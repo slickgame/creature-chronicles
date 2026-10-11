@@ -9,7 +9,7 @@ export const FILE_SIZE_RULE = {
 } as const;
 
 export const STARTING_PLAYER_STATE = {
-  gold: 2000,
+  gold: 1200,
   guildPoints: 0,
   energy: 500,
   maxEnergy: 500,
@@ -19,3 +19,7 @@ export const STARTING_PLAYER_STATE = {
   dayOfMonth: 1,
   weekNumber: 1,
 } as const;
+
+
+/** Two nights of provisions for the five-creature starter ranch; new saves only. */
+export const STARTING_RANCH_SUPPLIES = { feed: 14, materials: 4 } as const;
