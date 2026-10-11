@@ -1,3 +1,4 @@
+import { isBuilderProjectBuilt } from "./builderProjects";
 import type { GameSave } from "@/types/save";
 import type { HabitatRecord } from "@/types/creature";
 import type {
@@ -250,12 +251,12 @@ export function getRanchUpgradeEffects(save: GameSave): RanchUpgradeEffects {
   const sleepTier = upgrades.sleep_recovery;
 
   return {
-    felineCapacity: getHabitatCapacity(BASE_FELINE_CAPACITY, upgrades.feline_habitat_capacity),
-    canineCapacity: getHabitatCapacity(BASE_CANINE_CAPACITY, upgrades.canine_habitat_capacity),
-    bovineCapacity: getHabitatCapacity(BASE_BOVINE_CAPACITY, upgrades.bovine_habitat_capacity),
-    lapineCapacity: getHabitatCapacity(BASE_LAPINE_CAPACITY, upgrades.lapine_habitat_capacity),
-    equineCapacity: getHabitatCapacity(BASE_EQUINE_CAPACITY, upgrades.equine_habitat_capacity),
-    nurseryEggCapacity: BASE_NURSERY_EGG_CAPACITY + (nurseryCapacityBonusByTier[nurseryTier] ?? 0),
+    felineCapacity: getHabitatCapacity(BASE_FELINE_CAPACITY, upgrades.feline_habitat_capacity) + (isBuilderProjectBuilt(save, "pasture_annex") ? 1 : 0),
+    canineCapacity: getHabitatCapacity(BASE_CANINE_CAPACITY, upgrades.canine_habitat_capacity) + (isBuilderProjectBuilt(save, "pasture_annex") ? 1 : 0),
+    bovineCapacity: getHabitatCapacity(BASE_BOVINE_CAPACITY, upgrades.bovine_habitat_capacity) + (isBuilderProjectBuilt(save, "pasture_annex") ? 1 : 0),
+    lapineCapacity: getHabitatCapacity(BASE_LAPINE_CAPACITY, upgrades.lapine_habitat_capacity) + (isBuilderProjectBuilt(save, "pasture_annex") ? 1 : 0),
+    equineCapacity: getHabitatCapacity(BASE_EQUINE_CAPACITY, upgrades.equine_habitat_capacity) + (isBuilderProjectBuilt(save, "pasture_annex") ? 1 : 0),
+    nurseryEggCapacity: BASE_NURSERY_EGG_CAPACITY + (nurseryCapacityBonusByTier[nurseryTier] ?? 0) + (isBuilderProjectBuilt(save, "nursery_extension") ? 2 : 0),
     nurseryPregnancyDays: nurseryPregnancyDaysByTier[incubationTier] ?? BASE_PREGNANCY_DAYS,
     nurseryEggDays: nurseryEggDaysByTier[incubationTier] ?? BASE_EGG_INCUBATION_DAYS,
     breedingPregnancyBonus: breedingChanceBonusByTier[breedingTier] ?? -8,
@@ -411,3 +412,4 @@ export function getRanchUpgradeCategoryLabel(category: RanchUpgradeDefinition["c
   if (category === "recovery") return "Sleep Recovery";
   return "Ranch Ledger";
 }
+

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigation } from "@/features/navigation/NavigationContext";
-import { getColiseumC2HighestDivision, getColiseumC2Progress } from "@/data/coliseumC2";
+import { COLISEUM_C2_ENCOUNTERS, getColiseumC2HighestDivision, getColiseumC2Progress } from "@/data/coliseumC2";
 import { getColiseumC3Summary } from "@/data/coliseumC3";
 import { getColiseumC4Summary, getColiseumC4WeeklyBoss } from "@/data/coliseumC4";
 import { getRoseLanternAccess } from "@/data/roseLantern";
@@ -63,7 +63,7 @@ export function TownScreen() {
   const status = selectedId === "adoption" ? `Network Lv. ${getTotalTownUpgradeTiers(save, "market") + 1}`
     : selectedId === "guild" ? `Board Lv. ${getTotalTownUpgradeTiers(save, "guild") + 1}`
     : selectedId === "builder" ? `${Number(save.flags.builderProjectsCompleted ?? 0)} projects completed`
-    : selectedId === "coliseum" ? `${division.name.replace(" Division", "")} · ${progress.totalWins} wins · ${progress.completedEncounterIds.length}/12 clears`
+    : selectedId === "coliseum" ? `${division.name.replace(" Division", "")} · ${progress.totalWins} wins · ${progress.completedEncounterIds.filter(id => COLISEUM_C2_ENCOUNTERS.some(e => e.encounterId === id && !e.optional)).length}/12 circuit clears`
     : selectedId === "rose" ? (rose.unlocked ? "Open" : "Opens after Chapter 1 or on Ranch Day 4") : null;
   function visit() {
     switch (selectedId) {
@@ -82,6 +82,7 @@ export function TownScreen() {
     setPage(next);
     setSelectedId(LOCATIONS[next * 3].id);
   }
+  if (modal === "builder") return <BuilderYardPanel onClose={() => setModal(null)} />;
   return <main className={styles.town} style={{ backgroundImage: `url("${selected.scene}")` }} data-town-location={selectedId}>
     <header className={styles.header}>
       <h1>Town Square</h1>
@@ -107,7 +108,7 @@ export function TownScreen() {
       <div className={styles.paging}><span aria-live="polite">{page + 1} / 3</span><button className={styles.arrow} aria-label="Next destinations" disabled={page === 2} onClick={() => changePage(page + 1)}>›</button></div>
     </nav>
     {modal === "details" && <GameDialog title={selected.title} onClose={() => setModal(null)}><div className={styles.dialogCopy}><h3>{selected.host}</h3><p>{selected.description}</p>{status && <p>{status}</p>}{selectedId === "rose" && <p>{rose.reason}</p>}{selectedId === "coliseum" && <><p>{c3.marks} Marks · {c4.weeklyScore} Weekly Score</p><p>{c4.activeRun ? `Gauntlet stage ${c4.activeRun.stageIndex + 1} waiting` : `${boss.name} · ${c4.bossClaimed ? "reward claimed" : "reward available"}`}</p></>}</div></GameDialog>}
-    {modal === "builder" && <GameDialog title="Builder's Yard" onClose={() => setModal(null)} wide><BuilderYardPanel embedded onClose={() => setModal(null)} /></GameDialog>}
     {modal === "rose" && <GameDialog title="The Rose Lantern" onClose={() => setModal(null)} wide><RoseLanternScreen embedded onClose={() => setModal(null)} /></GameDialog>}
   </main>;
 }
+

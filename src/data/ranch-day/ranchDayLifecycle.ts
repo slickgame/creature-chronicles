@@ -1,10 +1,11 @@
+import { processBuilderConstruction } from "@/data/builderProjects";
 import { getBattleOutfitterDailySummaryItems } from "@/data/battleOutfitter";
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
 import { ensureCurrentGuildState } from "@/data/guild";
 import { ensureCurrentMarketState } from "@/data/market";
 import { advanceNurseryDay } from "@/data/nursery";
 import { processRanchJobsForNewDay } from "@/data/ranchJobs";
-import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
+import { applyRanchUpgradeEffectsToHabitats, getRanchUpgradeEffects } from "@/data/ranchUpgrades";
 import { applyStarterGoalRewards } from "@/data/starterGoals";
 import { processMonthlyTaxes } from "@/data/taxes";
 import { getTrainingReturnSummaryItems, getTrainingUnavailableReason } from "@/data/trainingGrounds";
@@ -97,7 +98,8 @@ export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
       },
     };
 
-    const nurseryResult = advanceNurseryDay(restoredSave);
+    const construction = processBuilderConstruction(restoredSave);
+    const nurseryResult = advanceNurseryDay(applyRanchUpgradeEffectsToHabitats(construction.save));
     const marketSyncedSave = ensureCurrentMarketState(nurseryResult.save);
     const guildSyncedSave = ensureCurrentGuildState(marketSyncedSave);
     const jobResult = processRanchJobsForNewDay(guildSyncedSave);
@@ -136,6 +138,7 @@ export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
       recovery.sleepCreatureEnergyBonus || recovery.sleepAffectionBonus
         ? `Ranch recovery bonus applied: +${recovery.sleepCreatureEnergyBonus} creature Energy buffer, +${recovery.sleepAffectionBonus} Affection.`
         : "Creature Energy and Hearts recovery processed.",
+      ...construction.summaryItems,
       ...trainingReturnItems,
       ...battleReadinessItems,
       ...(nurseryResult.summaryItems.length ? nurseryResult.summaryItems : ["No active pregnancy or egg timers advanced today."]),
@@ -148,7 +151,7 @@ export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     const completedSummary = buildCompletedDaySummary(
       completedGoalSource,
       reportSave,
-      dailyReport.highlights,
+      [...construction.summaryItems, ...dailyReport.highlights],
       dailyReport.warnings,
     );
     const nextDayShell = createRanchDayState(reportSave, "morning");
@@ -185,3 +188,4 @@ export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
       result: { previousDateLabel, nextDateLabel, summaryItems, ranchJobResults: jobResult.results },
     };
 }
+

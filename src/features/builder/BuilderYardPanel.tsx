@@ -1,145 +1,64 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  BUILDER_PROJECT_ASSETS,
-  BUILDER_PROJECTS,
-  commissionBuilderProject,
-  getBuilderProjectProgress,
-  type BuilderProjectCategory,
-  type BuilderProjectId,
-} from "@/data/builderProjects";
-import { getPredatorFailurePenaltyPreview, getPredatorThreatAssessment } from "@/data/predatorThreat";
-import { formatGold } from "@/lib/formatters";
+import { useState } from "react";
+import { BUILDER_PROJECTS, commissionBuilderProject, getBuilderProject, getBuilderProjectBenefit, getBuilderProjectProgress, getBuilderWorkOrder, type BuilderProjectId } from "@/data/builderProjects";
+import { getPredatorThreatAssessment } from "@/data/predatorThreat";
 import { useGameContext } from "@/state/GameProvider";
+import { useNavigation } from "@/features/navigation/NavigationContext";
+import { GameDialog } from "@/features/ui/GameDialog";
 import styles from "./BuilderYardPanel.module.css";
 
-const CATEGORY_LABELS: Record<BuilderProjectCategory, string> = {
-  land: "Land Deeds",
-  habitat: "Future Habitats",
-  security: "Ranch Security",
-};
+const CATEGORIES = ["Land", "Habitats", "Security", "Future Plans"] as const;
+type Category = typeof CATEGORIES[number];
+const LABELS = { built: "Complete", building: "Under construction", planned: "Future plan", locked: "Requires another project", available: "Ready to plan" };
 
-export function BuilderYardPanel({ onClose, embedded = false }: { onClose: () => void; embedded?: boolean }) {
-  const { currentSave, saveCurrentGame } = useGameContext();
-  const [message, setMessage] = useState("Petra can expand the ranch, reserve future habitats, and strengthen the perimeter.");
-  const [selectedProjectId, setSelectedProjectId] = useState<BuilderProjectId | null>(null);
-  const threat = useMemo(() => currentSave ? getPredatorThreatAssessment(currentSave) : null, [currentSave]);
-
-  if (!currentSave) return null;
-  const activeSave = currentSave;
-
-  const selected = selectedProjectId ? getBuilderProjectProgress(activeSave, selectedProjectId) : null;
-  const materials = Number(activeSave.flags.ranchMaterialsStock ?? 0);
-
-  function build(projectId: BuilderProjectId) {
-    const result = commissionBuilderProject(activeSave, projectId);
-    setMessage(result.message);
-    if (result.ok) {
-      saveCurrentGame(result.save);
-      setSelectedProjectId(null);
-    }
+export function BuilderYardPanel({ onClose }: { onClose: () => void; embedded?: boolean }) {
+  const { currentSave: save, saveCurrentGame, goToSupplyDepot } = useGameContext();
+  const { open } = useNavigation();
+  const [category, setCategory] = useState<Category>("Land");
+  const [selectedId, setSelectedId] = useState<BuilderProjectId>("north_pasture_land");
+  const [page, setPage] = useState(0);
+  const [popup, setPopup] = useState<"review" | "security" | "ledger" | "report" | null>(null);
+  const [message, setMessage] = useState("");
+  if (!save) return null;
+  const activeSave = save;
+  const order = getBuilderWorkOrder(save);
+  const threat = getPredatorThreatAssessment(save);
+  const materials = Math.max(0, Number(save.flags.ranchMaterialsStock) || 0);
+  const projects = BUILDER_PROJECTS.filter(p => category === "Future Plans" ? p.planned : !p.planned && p.category === ({ Land: "land", Habitats: "habitat", Security: "security" } as const)[category]);
+  const project = projects.find(p => p.id === selectedId) ?? projects[0];
+  const progress = getBuilderProjectProgress(save, project.id);
+  const completed = BUILDER_PROJECTS.filter(p => getBuilderProjectProgress(save,p.id).built);
+  const goldShort = Math.max(0, project.costGold - save.currencies.gold);
+  const materialShort = Math.max(0, project.costMaterials - materials);
+  const reason = progress.built ? "This project is complete." : project.planned ? "These species are not available yet. Keep this blueprint for a later chapter." : order ? `${getBuilderProject(order.projectId).title} is underway. One crew works on one project at a time.` : progress.missingPrerequisites.length ? `Complete ${progress.missingPrerequisites.map(p => p.title).join(" and ")} first.` : goldShort || materialShort ? `Still needed: ${goldShort} Gold · ${materialShort} Materials.` : "Resources ready. Review the work order before paying.";
+  function chooseCategory(next: Category) { setCategory(next); setPage(0); }
+  function commission() {
+    const result = commissionBuilderProject(activeSave, project.id);
+    if (result.ok) saveCurrentGame(result.save);
+    setMessage(result.message); setPopup("report");
   }
-
-  return (
-    <section className={`${styles.panel} ${embedded ? styles.embedded : ""}`} role={embedded ? undefined : "dialog"} aria-modal={embedded ? undefined : true} aria-labelledby="builder-yard-title">
-      <header className={styles.header}>
-        <div className={styles.npcIdentity}>
-          <img src={BUILDER_PROJECT_ASSETS.builder} alt="Petra Hale, the town builder" />
-          <div>
-            <span>Master Builder</span>
-            <h2 id="builder-yard-title">Petra Hale's Builder's Yard</h2>
-            <p>“Give me solid materials, a clear plan, and enough Gold to keep my crew fed.”</p>
-          </div>
-        </div>
-        <button type="button" onClick={onClose}>Return to Town</button>
-      </header>
-
-      <div className={styles.resourceStrip}>
-        <div><span>Gold</span><strong>{formatGold(activeSave.currencies.gold)}</strong></div>
-        <div><span>Materials</span><strong>{materials}</strong></div>
-        <div><span>Completed Projects</span><strong>{Number(activeSave.flags.builderProjectsCompleted ?? 0)}</strong></div>
-        <div data-tier={threat?.tier ?? "none"}><span>Predator Threat</span><strong>{threat?.tier ?? "none"}</strong></div>
-      </div>
-
-      <p className={styles.message} aria-live="polite">{message}</p>
-
-      <div className={styles.contentGrid}>
-        <div className={styles.catalog}>
-          {(Object.keys(CATEGORY_LABELS) as BuilderProjectCategory[]).map((category) => (
-            <section key={category} className={styles.categorySection}>
-              <div className={styles.categoryHeading}>
-                <span>{CATEGORY_LABELS[category]}</span>
-                <small>{category === "habitat" ? "Structures are usable reservations until those species are implemented." : category === "security" ? "Permanent bonuses support future nightly predator checks." : "Land deeds unlock connected projects."}</small>
-              </div>
-              <div className={styles.projectGrid}>
-                {BUILDER_PROJECTS.filter((project) => project.category === category).map((project) => {
-                  const progress = getBuilderProjectProgress(activeSave, project.id);
-                  return (
-                    <button
-                      key={project.id}
-                      type="button"
-                      className={styles.projectCard}
-                      data-status={progress.status}
-                      onClick={() => setSelectedProjectId(project.id)}
-                    >
-                      <img src={project.iconPath} alt="" />
-                      <span>{progress.status === "built" ? "Built" : progress.status === "locked" ? "Locked" : "Available"}</span>
-                      <strong>{project.title}</strong>
-                      <p>{project.description}</p>
-                      <small>{project.costGold} Gold · {project.costMaterials} Materials</small>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
-        </div>
-
-        <aside className={styles.threatPanel}>
-          <span>Future Predator System</span>
-          <h3>Condition-Gated Night Threats</h3>
-          <p>Predators will only become possible after the story gate and when livestock, stored feed, damage, or expansion habitats create enough pressure.</p>
-          <dl>
-            <div><dt>Current Pressure</dt><dd>{threat?.pressure ?? 0}</dd></div>
-            <div><dt>Current Security</dt><dd>{threat?.security ?? 0}</dd></div>
-            <div><dt>Required Security</dt><dd>{threat?.requiredSecurity ?? 18}</dd></div>
-            <div><dt>Event Chance</dt><dd>{threat?.eventChance ?? 0}%</dd></div>
-          </dl>
-          <h4>{threat?.eligible ? "Why the ranch is exposed" : "Current safeguards"}</h4>
-          <ul>
-            {(threat?.eligible ? threat.reasons : threat?.blockers)?.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-          <h4>Failure penalties at this tier</h4>
-          <ul>{getPredatorFailurePenaltyPreview(threat ?? { eligible: false, tier: "none", eventChance: 0, pressure: 0, security: 0, requiredSecurity: 18, reasons: [], blockers: [], likelyPredator: "foxes" }).map((item) => <li key={item}>{item}</li>)}</ul>
-        </aside>
-      </div>
-
-      {selected ? (
-        <div className={styles.detailBackdrop} role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target) setSelectedProjectId(null); }}>
-          <section className={styles.detailPanel} role="dialog" aria-modal="true" aria-labelledby="builder-project-title">
-            <img src={selected.definition.iconPath} alt="" />
-            <div>
-              <span>{CATEGORY_LABELS[selected.definition.category]}</span>
-              <h3 id="builder-project-title">{selected.definition.title}</h3>
-              <p>{selected.definition.flavor}</p>
-              <dl>
-                <div><dt>Gold</dt><dd>{selected.definition.costGold}</dd></div>
-                <div><dt>Materials</dt><dd>{selected.definition.costMaterials}</dd></div>
-                {selected.definition.securityBonus ? <div><dt>Security</dt><dd>+{selected.definition.securityBonus}</dd></div> : null}
-                {selected.definition.predatorPressure ? <div><dt>Pressure</dt><dd>+{selected.definition.predatorPressure}</dd></div> : null}
-              </dl>
-              {selected.missingPrerequisites.length ? <p className={styles.lockReason}>Requires: {selected.missingPrerequisites.map((item) => item.title).join(", ")}</p> : null}
-              <div className={styles.detailActions}>
-                <button type="button" onClick={() => setSelectedProjectId(null)}>Cancel</button>
-                <button type="button" className={styles.primaryAction} disabled={!selected.affordable || selected.built} onClick={() => build(selected.definition.id)}>
-                  {selected.built ? "Already Built" : selected.status === "locked" ? "Locked" : selected.affordable ? "Commission Project" : "Cannot Afford"}
-                </button>
-              </div>
-            </div>
-          </section>
-        </div>
-      ) : null}
+  const details = <>
+    <p className={styles.eyebrow}>{LABELS[progress.status]}</p><h2>{project.title}</h2>
+    <p>{project.description}</p><div className={styles.benefit}>{getBuilderProjectBenefit(project)}</div>
+    {!project.planned && <><dl className={styles.costs}><div><dt>Gold</dt><dd>{project.costGold}</dd></div><div><dt>Materials</dt><dd>{project.costMaterials}</dd></div><div><dt>Build time</dt><dd>{project.durationDays ?? 1} ranch day{(project.durationDays ?? 1) > 1 ? "s" : ""}</dd></div></dl>{!!project.predatorPressure && <p>Once complete: +{project.predatorPressure} predator pressure from expanded land.</p>}</>}
+    <p>{reason}</p>
+  </>;
+  return <main className={styles.yard} data-builder-yard>
+    <header className={styles.header}><button onClick={onClose}>‹ Town</button><div><small>Petra Hale · Master Builder</small><h1>Builder’s Yard</h1></div><button data-navigation-launcher onClick={() => open("menu")}>Menu</button></header>
+    <div className={styles.resources}><span>{save.currencies.gold} Gold</span><span>{materials} Materials</span><span>{completed.length} completed</span></div>
+    <section className={styles.workspace}>
+      <div className={styles.scene}><div className={styles.sign}>Petra’s workshop</div><div className={styles.workOrder}>
+        <small>PETRA’S CREW</small><h2>{order ? getBuilderProject(order.projectId).title : "Ready for the next project"}</h2>
+        {order ? <><p>Completes on Ranch Day {order.readyDay} · {Math.max(0,order.readyDay-save.dayState.dayNumber)} day(s) remaining</p><progress aria-label="Construction progress" max={order.readyDay-order.startedDay} value={Math.max(0,Math.min(order.readyDay-order.startedDay,save.dayState.dayNumber-order.startedDay))}/><p>Construction advances when you finish a ranch day.</p></> : <p>Choose a blueprint. We’ll review the costs and benefits together.</p>}
+        <div className={styles.actions}><button onClick={() => setPopup("security")}>Ranch security · {threat.tier}</button><button onClick={() => setPopup("ledger")}>Work ledger</button></div>
+      </div></div>
+      <aside className={styles.blueprint}><div className={styles.desktopDetails}>{details}</div><div className={styles.compactDetails}><small>{LABELS[progress.status]}</small><h2>{project.title}</h2><p>{getBuilderProjectBenefit(project)}</p></div><button className={styles.primary} onClick={() => setPopup("review")}>{progress.built ? "View completed project" : project.planned ? "View future plan" : "Review work order"}</button><button onClick={goToSupplyDepot}>Buy materials</button></aside>
     </section>
-  );
+    <section className={styles.catalog} aria-label="Project catalogue"><nav aria-label="Project categories">{CATEGORIES.map(c => <button key={c} aria-pressed={category === c} onClick={() => chooseCategory(c)}>{c}</button>)}</nav><div className={styles.projectRow}><button aria-label="Previous projects" disabled={page === 0} onClick={() => {setPage(page-1);setSelectedId(projects[(page-1)*2].id);}}>‹</button><div className={styles.cards}>{projects.slice(page*2,page*2+2).map(p => <button key={p.id} aria-pressed={p.id===project.id} onClick={() => setSelectedId(p.id)}><img src={p.iconPath} alt=""/><span><strong>{p.title}</strong><small>{LABELS[getBuilderProjectProgress(save,p.id).status]}</small></span></button>)}</div><button aria-label="Next projects" disabled={(page+1)*2>=projects.length} onClick={() => {setPage(page+1);setSelectedId(projects[(page+1)*2].id);}}>›</button></div></section>
+    {popup === "review" && <GameDialog title={project.title} onClose={() => setPopup(null)}><div className={styles.paper}>{details}{progress.affordable && <p>Pay now: {project.costGold} Gold and {project.costMaterials} Materials. Remaining: {save.currencies.gold-project.costGold} Gold and {materials-project.costMaterials} Materials. Completion: Ranch Day {save.dayState.dayNumber+(project.durationDays??1)}. Benefits begin on completion.</p>}<div className={styles.actions}><button onClick={() => setPopup(null)}>Back to blueprints</button>{!project.planned&&!progress.built&&<button disabled={!progress.affordable} onClick={commission}>Confirm commission</button>}</div></div></GameDialog>}
+    {popup === "ledger" && <GameDialog title="Petra’s Work Ledger" onClose={() => setPopup(null)}><div className={styles.paper}><h3>Active work order</h3>{order ? <p>{getBuilderProject(order.projectId).title} · Started Day {order.startedDay} · Completes Day {order.readyDay}<br/>Paid {order.paidGold} Gold and {order.paidMaterials} Materials.</p> : <p>No construction underway.</p>}<h3>Completed projects</h3>{completed.length ? completed.map(p => <section key={p.id}><h4>{p.title}</h4><p>{getBuilderProjectBenefit(p)}</p></section>) : <p>Your first project starts here.</p>}<p>Capacity additions stack with Ranch Office upgrades. Planned future habitats do not grant current creature capacity.</p></div></GameDialog>}
+    {popup === "security" && <GameDialog title="Ranch Security Survey" onClose={() => setPopup(null)}><div className={styles.paper}><h3>Current ranch assessment</h3><dl className={styles.costs}><div><dt>Pressure</dt><dd>{threat.pressure}</dd></div><div><dt>Security</dt><dd>{threat.security}</dd></div><div><dt>Required</dt><dd>{threat.requiredSecurity}</dd></div></dl><p>Current incident chance: {threat.eventChance}%. Patrols and completed security projects protect the ranch.</p>{[...threat.reasons,...threat.blockers].map(t => <p key={t}>{t}</p>)}<button onClick={() => {chooseCategory("Security");setPopup(null);}}>View security blueprints</button></div></GameDialog>}
+    {popup === "report" && <GameDialog title="Work Order Receipt" onClose={() => setPopup(null)}><div className={styles.paper}><p role="status">{message}</p><p>Current balance: {save.currencies.gold} Gold · {materials} Materials.</p><button onClick={() => setPopup(null)}>Return to yard</button></div></GameDialog>}
+  </main>;
 }
