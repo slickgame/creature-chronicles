@@ -55,6 +55,8 @@ export type GuildContract = {
 };
 
 export type GuildState = {
+  boardVersion?: number;
+  rerollCount?: number;
   weekNumber: number;
   lastGeneratedDayNumber: number;
   contracts: GuildContract[];

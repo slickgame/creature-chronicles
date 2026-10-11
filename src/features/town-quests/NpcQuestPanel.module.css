@@ -1,0 +1,4 @@
+.panel{padding:16px;background:#f4e7c6;color:#49341b;border-radius:8px;overflow-wrap:anywhere}
+.panel header{display:flex;gap:14px;align-items:center}.panel header img{width:74px;height:100px;object-fit:contain}.panel h3,.panel h4{margin:0 0 8px}.panel p{line-height:1.45}
+.panel article{border-top:1px solid #ad8c56;padding:16px 0}.panel article[data-locked=true]{color:#705d42}.panel progress{width:min(70%,300px);accent-color:#426b42}.panel .perk,.receipt{background:#dfd8af;border:1px solid #a99b63;padding:12px;border-radius:6px}.panel button{min-height:44px}
+@media(max-width:500px){.panel{padding:12px}.panel header{align-items:start}.panel header img{width:52px;height:74px}}

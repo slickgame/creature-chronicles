@@ -1,3 +1,4 @@
+import { guildRandom, guildRoll } from "./guildRandom";
 import { getTownUpgradeEffects } from "./upgrades";
 import type { GameSave } from "@/types/save";
 import type { GuildContract, GuildObjective, GuildActionResult } from "@/types/guild";
@@ -45,16 +46,17 @@ export function createWeeklyCommissions(save: GameSave): GuildContract[] {
     { title: "Workshop Supply Run", resource: "materials" as const, amount: 6, gold: 120, gp: 16 },
   ];
   const chores = ["garden_tending", "security_patrol", "field_hauling", "comfort_care", "stable_production"] as const;
-  const delivery = deliveryOptions[(week - 1) % deliveryOptions.length];
-  const jobId = chores[(week - 1) % chores.length];
+  const delivery = deliveryOptions[(Math.floor(guildRandom(save, "delivery", false) * deliveryOptions.length) + guildRoll(save)) % deliveryOptions.length];
+  const jobId = chores[(Math.floor(guildRandom(save, "chore", false) * chores.length) + guildRoll(save)) % chores.length];
   const effects = getTownUpgradeEffects(save);
+  const battleWins = (advanced ? 2 : 1) + ((Math.floor(guildRandom(save, "bounty-target", false) * 2) + guildRoll(save)) % 2);
   const entries: Array<{ title: string; description: string; objective: GuildObjective; type: GuildContract["type"]; gold: number; gp: number; requester: string }> = [
     { title: delivery.title, description: "The town needs a small supply delivery. Check what your own ranch will need overnight before committing its stock.", objective: {kind:"delivery", resource:delivery.resource, amount:delivery.amount}, type:"delivery", gold:delivery.gold, gp:delivery.gp, requester:"Pella Mosswick" },
     { title: `${JOB_NAMES[jobId]} Commission`, description: "Mara is rewarding reliable ranch work. Accept first, assign helpers at the chore board, then return after their shifts are recorded.", objective: {kind:"chore", jobId, amount:advanced ? 4 : 2}, type:"chore_commission", gold:advanced ? 125 : 75, gp:advanced ? 18 : 12, requester:"Mara Vell" },
-    { title: advanced ? "Three Victories for the Guild" : "First Steps in the Arena", description: "The Guild sponsors ranch teams willing to test their training. These victories need not be consecutive, and no creature is handed over.", objective: {kind:"battle", amount:advanced ? 3 : 1}, type:"battle_bounty", gold:advanced ? 180 : 85, gp:advanced ? 24 : 12, requester:"Ranger Captain" },
+    { title: battleWins === 1 ? "First Steps in the Arena" : battleWins === 2 ? "Two Victories for the Guild" : "Three Victories for the Guild", description: "The Guild sponsors ranch teams willing to test their training. These victories need not be consecutive, and no creature is handed over.", objective: {kind:"battle", amount:battleWins}, type:"battle_bounty", gold:60 + battleWins * 35, gp:6 + battleWins * 6, requester:"Ranger Captain" },
   ];
   return entries.map((entry, index) => ({
-    contractId:`guild_commission_${week}_${index}` as ContractId,weekNumber:week,tier:advanced ? "silver" : "bronze",type:entry.type,category:entry.type === "battle_bounty" ? "security" : "restoration",requesterId:entry.type === "delivery" ? "pella_mosswick" : entry.type === "chore_commission" ? "mara_vell" : "ranger_captain",requesterName:entry.requester,trustTarget:"Guild",status:"available",title:entry.title,description:entry.description,
+    contractId:`guild_commission_${week}_${index}${guildRoll(save) ? `_r${guildRoll(save)}` : ""}` as ContractId,weekNumber:week,tier:advanced ? "silver" : "bronze",type:entry.type,category:entry.type === "battle_bounty" ? "security" : "restoration",requesterId:entry.type === "delivery" ? "pella_mosswick" : entry.type === "chore_commission" ? "mara_vell" : "ranger_captain",requesterName:entry.requester,trustTarget:"Guild",status:"available",title:entry.title,description:entry.description,
     requirement:{kind:"objective",label:entry.objective.kind === "delivery" ? `${entry.objective.amount} ${entry.objective.resource === "feed" ? "Feed" : "Materials"}` : entry.objective.kind === "chore" ? `${entry.objective.amount} ${JOB_NAMES[entry.objective.jobId]} shifts` : `${entry.objective.amount} Coliseum ${entry.objective.amount === 1 ? "win" : "wins"}`},objective:entry.objective,
     goldReward:Math.round(entry.gold * effects.guildGoldRewardMultiplier / 5) * 5,guildPointReward:entry.gp + effects.guildBonusGp,createdAtDayNumber:save.dayState.dayNumber,expiresAtWeekNumber:week+1,
   }));
@@ -66,6 +68,7 @@ export function completeGuildCommission(save: GameSave, contractId: string): Gui
   const progress = getGuildCommissionProgress(save,contract)!;
   if (!progress.ready) return {save,ok:false,message:progress.status === "In progress" ? `Still need ${progress.remaining} ${progress.unit}.` : progress.status === "Completed" ? "This reward has already been claimed." : progress.status === "Expired" ? "This request has expired." : "Accept this request before completing it."};
   const flags: GameSave["flags"] = {...save.flags,m7GuildContractCompleted:true};
+  if (contract.objective.kind === "delivery") flags.guildDeliveriesCompleted = safeMissionCount(flags.guildDeliveriesCompleted) + 1;
   if (contract.objective.kind === "delivery") {
     const key = contract.objective.resource === "feed" ? "ranchFeedStock" : "ranchMaterialsStock";
     flags[key] = getGuildObjectiveCount(save,contract.objective) - contract.objective.amount;

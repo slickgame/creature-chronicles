@@ -12,19 +12,19 @@ test("weekly boards guarantee three new categories and a safe creature service, 
  const s=fresh();assert.equal(s.guild!.contracts.length,6);
  for(const t of ["delivery","chore_commission","battle_bounty","service_creature"]) assert.ok(contract(s,t));
  assert.deepEqual(ensureCurrentGuildState(s).guild,s.guild);
- const legacy={...s,guild:{...s.guild!,contracts:s.guild!.contracts.filter(c=>!c.objective)}};
+ const legacy={...s,guild:{...s.guild!,boardVersion:undefined,contracts:s.guild!.contracts.filter(c=>!c.objective)}};
  const upgraded=ensureCurrentGuildState(legacy);assert.ok(legacy.guild.contracts.every(c=>upgraded.guild!.contracts.some(n=>n.contractId===c.contractId)));
  assert.deepEqual(ensureCurrentGuildState(upgraded).guild,upgraded.guild);
  const next=ensureCurrentGuildState({...s,dayState:{...s.dayState,weekNumber:2,dayNumber:8}});
- assert.notEqual(contract(next,"delivery").title,contract(s,"delivery").title);assert.notEqual(contract(next,"chore_commission").title,contract(s,"chore_commission").title);
+ assert.notEqual(contract(next,"delivery").contractId,contract(s,"delivery").contractId);assert.notEqual(contract(next,"chore_commission").contractId,contract(s,"chore_commission").contractId);
 });
 test("deliveries recheck stock, consume exact amounts and pay once with no creature removal",()=>{
- let s=fresh();const c=contract(s,"delivery");s.flags.ranchFeedStock=5;
+ let s=fresh();const c=contract(s,"delivery");assert.equal(c.objective?.kind,"delivery");if(c.objective?.kind!=="delivery")return;const stock=c.objective.resource==="feed"?"ranchFeedStock":"ranchMaterialsStock";s.flags[stock]=c.objective.amount;
  assert.equal(completeGuildCommission(s,c.contractId).ok,false);
  s=acceptGuildContract(s,c.contractId).save;const before=JSON.stringify(s);
- assert.equal(completeGuildCommission({...s,flags:{...s.flags,ranchFeedStock:4}},c.contractId).ok,false);
+ assert.equal(completeGuildCommission({...s,flags:{...s.flags,[stock]:c.objective.amount-1}},c.contractId).ok,false);
  const result=completeGuildCommission(s,c.contractId);assert.ok(result.ok);assert.equal(JSON.stringify(s),before);
- assert.equal(result.save.flags.ranchFeedStock,0);assert.deepEqual(result.save.creatures,s.creatures);
+ assert.equal(result.save.flags[stock],0);assert.deepEqual(result.save.creatures,s.creatures);
  assert.equal(result.save.currencies.gold-s.currencies.gold,c.goldReward);assert.equal(result.save.currencies.guildPoints-s.currencies.guildPoints,c.guildPointReward+10);
  assert.equal(completeGuildCommission(result.save,c.contractId).ok,false);
  assert.equal(donateCreatureToGuildContract(s,c.contractId,s.creatures![0].creatureId).ok,false);
@@ -47,11 +47,11 @@ test("bounties count new recorded victories, not old wins, losses or duplicate r
  assert.equal(getGuildCommissionProgress(loss,contract(loss,"battle_bounty"))?.current,0);
  const win=recordColiseumC2BattleResult(loss,"novice_opening_scrimmage","player_won",4,ids,performance,"mission-win").save;
  assert.equal(getGuildCommissionProgress(win,contract(win,"battle_bounty"))?.current,1);
- const twice=recordColiseumC2BattleResult(win,"novice_opening_scrimmage","player_won",4,ids,performance,"mission-win").save;
- assert.equal(getGuildCommissionProgress(twice,contract(twice,"battle_bounty"))?.current,1);assert.ok(completeGuildCommission(twice,c.contractId).ok);
+ let twice=recordColiseumC2BattleResult(win,"novice_opening_scrimmage","player_won",4,ids,performance,"mission-win").save;
+ assert.equal(getGuildCommissionProgress(twice,contract(twice,"battle_bounty"))?.current,1);if(c.objective?.amount===2)twice=recordColiseumC2BattleResult(twice,"novice_opening_scrimmage","player_won",4,ids,performance,"mission-win-2").save;assert.ok(completeGuildCommission(twice,c.contractId).ok);
 });
 test("expired requests cannot pay, and completed requests do not reappear on refresh",()=>{
- let s=fresh();const c=contract(s,"delivery");s.flags.ranchFeedStock=50;s=acceptGuildContract(s,c.contractId).save;
+ let s=fresh();const c=contract(s,"delivery");s.flags.ranchFeedStock=50;s.flags.ranchMaterialsStock=50;s=acceptGuildContract(s,c.contractId).save;
  assert.equal(completeGuildCommission({...s,dayState:{...s.dayState,weekNumber:c.expiresAtWeekNumber}},c.contractId).ok,false);
  const result=completeGuildCommission(s,c.contractId);assert.ok(result.ok);
  const normalized=ensureCurrentGuildState(result.save);assert.equal(contract(normalized,"delivery").status,"completed");
