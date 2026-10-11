@@ -50,7 +50,7 @@ export const SUPPLY_ORDERS: { id: string; name: string; inputs: Stock; gold: num
   { id: "nails", name: "Fasteners for the town", inputs: { nails: 8 }, gold: 160, gp: 6, prerequisite: "forge" },
 ];
 export type FarmState = {
-  version: 1; stock: Stock; reserves: Stock; assignments: Partial<Record<SiteId, string[]>>;
+  version: 1; ingredientFeeding?: boolean; stock: Stock; reserves: Stock; assignments: Partial<Record<SiteId, string[]>>;
   facilities: Partial<Record<FacilityId, boolean>>; lastDay: number;
   project?: { id: FacilityId; readyDay: number };
   meals: Record<string, { id: ResourceId; day: number }>;
@@ -171,7 +171,7 @@ export function tradeResource(save: GameSave, id: ResourceId, quantity: number, 
 export function reserveResource(save: GameSave, id: ResourceId, quantity: number): FarmResult {
   const state = getFarmState(save);
   if (!RESOURCES[id] || !Number.isInteger(quantity) || quantity < 0 || quantity > 9999) return fail(save, "Choose a reserve from 0 to 9999.");
-  state.reserves[id] = quantity; return done(save, state, `${RESOURCES[id].name}: protecting ${quantity} units from recipes, sales, construction and deliveries.`);
+  state.reserves[id] = quantity; return done(save, state, `${RESOURCES[id].name}: protecting ${quantity} units from recipes, feeding, sales, construction and deliveries.`);
 }
 export function actSupplyOrder(save: GameSave, id: string): FarmResult {
   const state = getFarmState(save), order = SUPPLY_ORDERS.find(o => o.id === id);
@@ -184,3 +184,36 @@ export function actSupplyOrder(save: GameSave, id: string): FarmResult {
 }
 
 export function overnightChoreCost(save: GameSave, id: string, base: number): number { const meal = getFarmState(save).meals[id]; return meal?.id === "stew" && meal.day === save.dayState.dayNumber - 1 ? Math.ceil(base * 0.85) : base; }
+
+/** Only free stock is eligible; prepared meals are always served deliberately. */
+export function foodChoices(creature: CreatureRecord): ResourceId[] {
+  const family = getVariantDefinition(creature.variantId).family;
+  if (family === "feline") return ["meat", "eggs", "milk"];
+  if (family === "canine") return ["meat", "eggs", "vegetables", "wheat", "milk"];
+  return ["vegetables", "wheat"];
+}
+export function setIngredientFeeding(save: GameSave, enabled: boolean): FarmResult {
+  const state = getFarmState(save); state.ingredientFeeding = enabled;
+  return done(save, state, enabled ? "Unreserved ingredients will cover food needs before Feed tonight." : "Ingredients saved for recipes. Tonight uses Feed only.");
+}
+export function consumeFarmResources(save: GameSave, cost: Stock): FarmResult {
+  const state = getFarmState(save);
+  if (!canSpend(state, cost)) return fail(save, "Not enough unreserved supplies.");
+  spend(state, cost); return done(save, state, `Used ${resourceList(cost)}.`);
+}
+export function planIngredientFeeding(save: GameSave, needs: { creature: CreatureRecord; amount: number }[]) {
+  const state = getFarmState(save), used: Stock = {};
+  let covered = 0;
+  if (state.ingredientFeeding) for (const { creature, amount } of needs) {
+    let remaining = amount;
+    for (const id of foodChoices(creature)) {
+      const count = Math.min(remaining, Math.max(0, (state.stock[id] ?? 0) - (state.reserves[id] ?? 0)));
+      if (!count) continue;
+      state.stock[id] = (state.stock[id] ?? 0) - count;
+      used[id] = (used[id] ?? 0) + count;
+      covered += count; remaining -= count;
+      if (!remaining) break;
+    }
+  }
+  return { save: write(save, state), covered, used };
+}

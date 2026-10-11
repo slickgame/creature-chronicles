@@ -171,7 +171,7 @@ function createWeeklyContracts(save: GameSave): GuildContract[] {
 }
 
 export function createDefaultGuildState(save: GameSave): GuildState {
-  return { boardVersion: 2, rerollCount: 0, weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: createWeeklyContracts(save), completedCount: 0, donatedCreatureCount: 0, guildRank: 1 };
+  return { boardVersion: 3, rerollCount: 0, weekNumber: save.dayState.weekNumber, lastGeneratedDayNumber: save.dayState.dayNumber, contracts: createWeeklyContracts(save), completedCount: 0, donatedCreatureCount: 0, guildRank: 1 };
 }
 
 export function ensureCurrentGuildState(save: GameSave): GameSave {
@@ -180,10 +180,15 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
 
   const normalizedContracts = save.guild.contracts.map(normalizeContract);
   // Existing requests stay intact. Add the new categories once to this week's board.
-  for (const commission of save.guild.boardVersion === 2 ? [] : createWeeklyCommissions(save)) {
+  for (const commission of (save.guild.boardVersion ?? 0) >= 2 ? [] : createWeeklyCommissions(save)) {
     if (!normalizedContracts.some(c => c.contractId === commission.contractId)) normalizedContracts.push(commission);
   }
-  const normalizedGuild = { ...save.guild, boardVersion: 2, rerollCount: guildRoll(save), contracts: normalizedContracts };
+  if ((save.guild.boardVersion ?? 0) < 3 && save.guild.weekNumber === save.dayState.weekNumber) {
+    const delivery = createWeeklyCommissions(save).find(c => c.type === "delivery");
+    const index = normalizedContracts.findIndex(c => c.type === "delivery" && c.status === "available");
+    if (delivery && index >= 0) normalizedContracts[index] = delivery;
+  }
+  const normalizedGuild = { ...save.guild, boardVersion: 3, rerollCount: guildRoll(save), contracts: normalizedContracts };
   const normalizedSave = { ...save, guild: normalizedGuild };
   const weekChanged = normalizedGuild.weekNumber !== save.dayState.weekNumber;
   const currentWeekContracts = normalizedContracts.filter((contract) => contract.weekNumber === save.dayState.weekNumber && contract.status !== "expired");

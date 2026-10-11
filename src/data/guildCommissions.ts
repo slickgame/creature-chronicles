@@ -1,3 +1,4 @@
+import { RESOURCES, getFarmState, consumeFarmResources, type ResourceId } from "./farmResources";
 import { guildRandom, guildRoll } from "./guildRandom";
 import { getTownUpgradeEffects } from "./upgrades";
 import type { GameSave } from "@/types/save";
@@ -17,8 +18,13 @@ export function recordGuildChoreWork(save: GameSave, results: RanchJobResult[]):
   }
   return flags;
 }
+function deliveryName(resource: "feed" | "materials" | ResourceId) { return resource === "feed" ? "Feed" : resource === "materials" ? "Materials" : RESOURCES[resource].name; }
 export function getGuildObjectiveCount(save: GameSave, objective: GuildObjective): number {
-  if (objective.kind === "delivery") return safeMissionCount(save.flags[objective.resource === "feed" ? "ranchFeedStock" : "ranchMaterialsStock"]);
+  if (objective.kind === "delivery") {
+    if (objective.resource === "feed" || objective.resource === "materials") return safeMissionCount(save.flags[objective.resource === "feed" ? "ranchFeedStock" : "ranchMaterialsStock"]);
+    const state = getFarmState(save);
+    return Math.max(0, (state.stock[objective.resource] ?? 0) - (state.reserves[objective.resource] ?? 0));
+  }
   return safeMissionCount(save.flags[objective.kind === "battle" ? "guildBattleWins" : `guildChoreCompletions_${objective.jobId}`]);
 }
 export function getGuildCommissionProgress(save: GameSave, contract: GuildContract) {
@@ -30,8 +36,8 @@ export function getGuildCommissionProgress(save: GameSave, contract: GuildContra
   const accepted = contract.status === "accepted";
   const current = completed ? target : objective.kind === "delivery" ? getGuildObjectiveCount(save, objective) : accepted ? Math.max(0, getGuildObjectiveCount(save, objective) - (contract.objectiveBaseline ?? getGuildObjectiveCount(save, objective))) : 0;
   const ready = accepted && !expired && current >= target;
-  const unit = objective.kind === "delivery" ? objective.resource === "feed" ? "Feed" : "Materials" : objective.kind === "battle" ? "recorded victories" : "completed helper shifts";
-  const instruction = objective.kind === "delivery" ? `Hand over ${target} ${unit}. Stock is deducted only when you confirm delivery.` : objective.kind === "battle" ? `Record ${target} Coliseum ${target === 1 ? "victory" : "victories"} after accepting. Circuit and challenge wins count; losses and draws do not.` : `Complete ${target} helper ${target === 1 ? "shift" : "shifts"} on ${JOB_NAMES[objective.jobId]} after accepting. Each rested helper who finishes the chore during overnight processing counts once.`;
+  const unit = objective.kind === "delivery" ? deliveryName(objective.resource) : objective.kind === "battle" ? "recorded victories" : "completed helper shifts";
+  const instruction = objective.kind === "delivery" ? `Hand over ${target} ${unit}. Only unreserved stock counts. Stock is deducted when you confirm delivery.` : objective.kind === "battle" ? `Record ${target} Coliseum ${target === 1 ? "victory" : "victories"} after accepting. Circuit and challenge wins count; losses and draws do not.` : `Complete ${target} helper ${target === 1 ? "shift" : "shifts"} on ${JOB_NAMES[objective.jobId]} after accepting. Each rested helper who finishes the chore during overnight processing counts once.`;
   return { current, target, unit, ready, instruction, status: completed ? "Completed" : expired ? "Expired" : !accepted ? "Accept to begin" : ready ? "Ready to claim" : "In progress", remaining: Math.max(0, target - current) };
 }
 
@@ -39,11 +45,14 @@ export function getGuildCommissionProgress(save: GameSave, contract: GuildContra
 export function createWeeklyCommissions(save: GameSave): GuildContract[] {
   const week = save.dayState.weekNumber;
   const advanced = week >= 3;
-  const deliveryOptions = [
-    { title: "Feed for the Waystation", resource: "feed" as const, amount: 5, gold: 60, gp: 10 },
-    { title: "Timber for the Footbridge", resource: "materials" as const, amount: 4, gold: 85, gp: 12 },
-    { title: "Nursery Pantry Restock", resource: "feed" as const, amount: 8, gold: 90, gp: 14 },
-    { title: "Workshop Supply Run", resource: "materials" as const, amount: 6, gold: 120, gp: 16 },
+  const facilities = getFarmState(save).facilities;
+  const deliveryOptions: {title:string;resource:ResourceId;amount:number;gold:number;gp:number}[] = [
+    { title: "Wheat for the Waystation", resource: "wheat", amount: 6, gold: 70, gp: 10 },
+    { title: "Timber for the Footbridge", resource: "wood", amount: 8, gold: 95, gp: 12 },
+    { title: "Vegetables for the Nursery", resource: "vegetables", amount: 6, gold: 75, gp: 10 },
+    { title: "Breakfast for the Guild", resource: "breakfast", amount: 2, gold: 95, gp: 14 },
+    ...(facilities.sawmill ? [{title:"Planks for the Workshop",resource:"planks" as const,amount:6,gold:150,gp:16}] : []),
+    ...(facilities.forge ? [{title:"Nails for Town Repairs",resource:"nails" as const,amount:8,gold:125,gp:18}] : []),
   ];
   const chores = ["garden_tending", "security_patrol", "field_hauling", "comfort_care", "stable_production"] as const;
   const delivery = deliveryOptions[(Math.floor(guildRandom(save, "delivery", false) * deliveryOptions.length) + guildRoll(save)) % deliveryOptions.length];
@@ -57,7 +66,7 @@ export function createWeeklyCommissions(save: GameSave): GuildContract[] {
   ];
   return entries.map((entry, index) => ({
     contractId:`guild_commission_${week}_${index}${guildRoll(save) ? `_r${guildRoll(save)}` : ""}` as ContractId,weekNumber:week,tier:advanced ? "silver" : "bronze",type:entry.type,category:entry.type === "battle_bounty" ? "security" : "restoration",requesterId:entry.type === "delivery" ? "pella_mosswick" : entry.type === "chore_commission" ? "mara_vell" : "ranger_captain",requesterName:entry.requester,trustTarget:"Guild",status:"available",title:entry.title,description:entry.description,
-    requirement:{kind:"objective",label:entry.objective.kind === "delivery" ? `${entry.objective.amount} ${entry.objective.resource === "feed" ? "Feed" : "Materials"}` : entry.objective.kind === "chore" ? `${entry.objective.amount} ${JOB_NAMES[entry.objective.jobId]} shifts` : `${entry.objective.amount} Coliseum ${entry.objective.amount === 1 ? "win" : "wins"}`},objective:entry.objective,
+    requirement:{kind:"objective",label:entry.objective.kind === "delivery" ? `${entry.objective.amount} ${deliveryName(entry.objective.resource)}` : entry.objective.kind === "chore" ? `${entry.objective.amount} ${JOB_NAMES[entry.objective.jobId]} shifts` : `${entry.objective.amount} Coliseum ${entry.objective.amount === 1 ? "win" : "wins"}`},objective:entry.objective,
     goldReward:Math.round(entry.gold * effects.guildGoldRewardMultiplier / 5) * 5,guildPointReward:entry.gp + effects.guildBonusGp,createdAtDayNumber:save.dayState.dayNumber,expiresAtWeekNumber:week+1,
   }));
 }
@@ -67,9 +76,14 @@ export function completeGuildCommission(save: GameSave, contractId: string): Gui
   if (!guild || !contract?.objective) return {save,ok:false,message:"That commission is no longer on the board."};
   const progress = getGuildCommissionProgress(save,contract)!;
   if (!progress.ready) return {save,ok:false,message:progress.status === "In progress" ? `Still need ${progress.remaining} ${progress.unit}.` : progress.status === "Completed" ? "This reward has already been claimed." : progress.status === "Expired" ? "This request has expired." : "Accept this request before completing it."};
+  if (contract.objective.kind === "delivery" && contract.objective.resource !== "feed" && contract.objective.resource !== "materials") {
+    const result = consumeFarmResources(save, { [contract.objective.resource]: contract.objective.amount });
+    if (!result.ok) return result;
+    save = result.save;
+  }
   const flags: GameSave["flags"] = {...save.flags,m7GuildContractCompleted:true};
   if (contract.objective.kind === "delivery") flags.guildDeliveriesCompleted = safeMissionCount(flags.guildDeliveriesCompleted) + 1;
-  if (contract.objective.kind === "delivery") {
+  if (contract.objective.kind === "delivery" && (contract.objective.resource === "feed" || contract.objective.resource === "materials")) {
     const key = contract.objective.resource === "feed" ? "ranchFeedStock" : "ranchMaterialsStock";
     flags[key] = getGuildObjectiveCount(save,contract.objective) - contract.objective.amount;
   }

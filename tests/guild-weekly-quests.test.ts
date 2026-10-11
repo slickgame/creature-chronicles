@@ -1,3 +1,4 @@
+import { RESOURCE_IDS } from "../src/data/farmResources.ts";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave, saveGameToSlot } from "../src/lib/save/localSave.ts";
@@ -7,7 +8,7 @@ import { acceptNpcQuest, claimNpcQuest, getNpcQuestChain } from "../src/data/npc
 import { getPellaSupplyPriceMultiplier, getNpcTrustRecord } from "../src/data/townNpcs.ts";
 import { enterEveningReview, normalizeRanchDaySave } from "../src/data/ranch-day/ranchDayState.ts";
 import { projectRanchDay } from "../src/data/ranch-day/ranchDayLifecycle.ts";
-function fresh() { const s=createNewGameSave("Weekly",0);s.currencies.gold=3000;s.flags.ranchFeedStock=100;s.flags.ranchMaterialsStock=100;return {...s,guild:createDefaultGuildState(s)}; }
+function fresh() { const s=createNewGameSave("Weekly",0);s.currencies.gold=3000;s.flags.farmResourcesV1=JSON.stringify({version:1,stock:Object.fromEntries(RESOURCE_IDS.map(id=>[id,100]))});s.flags.ranchFeedStock=100;s.flags.ranchMaterialsStock=100;return {...s,guild:createDefaultGuildState(s)}; }
 
 test("boards are save-specific, deterministic and remain stable through saves",()=>{
  const a=fresh();const b={...a,saveId:"other-ranch" as typeof a.saveId,guild:undefined};

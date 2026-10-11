@@ -51,7 +51,7 @@ function requirementLabel(contract: GuildContract) {
   return requirement.label;
 }
 function requestArt(contract: GuildContract) {
-  if (contract.objective?.kind === "delivery") return `/images/items/supply_depot/${contract.objective.resource === "feed" ? "feed_bundle.png" : "material_crate.png"}`;
+  if (contract.objective?.kind === "delivery") return `/images/items/supply_depot/${["feed", "wheat", "vegetables", "milk", "eggs", "meat", "breakfast", "porridge", "stew", "breeders_bowl"].includes(contract.objective.resource) ? "feed_bundle.png" : "material_crate.png"}`;
   if (contract.objective?.kind === "battle") return "/images/ui/town-v1/coliseum.webp";
   if (contract.objective?.kind === "chore") return ({garden_tending:"/images/ui/atelier-v1/garden.webp", security_patrol:"/images/ui/atelier-v1/patrol.webp", comfort_care:"/images/ui/atelier-v1/comfort.webp", stable_production:"/images/items/supply_depot/feed_bundle.png", field_hauling:"/images/items/supply_depot/material_crate.png"})[contract.objective.jobId];
   if (contract.requirement.variantId) return getVariantDefinition(contract.requirement.variantId).profilePath;

@@ -5,7 +5,7 @@ import { acceptGuildContract, ensureCurrentGuildState, donateCreatureToGuildCont
 import { completeGuildCommission, getGuildCommissionProgress } from "../src/data/guildCommissions.ts";
 import { processRanchJobsForNewDay } from "../src/data/ranchJobsPredator.ts";
 import { recordColiseumC2BattleResult, createColiseumPerformance } from "../src/data/coliseumC2.ts";
-function fresh() { return ensureCurrentGuildState(createNewGameSave("Missions", 0)); }
+function fresh() { const s=ensureCurrentGuildState(createNewGameSave("Missions", 0)); const c=s.guild!.contracts.find(c=>c.type==="delivery")!; c.objective={kind:"delivery",resource:"feed",amount:5};return s; }
 function contract(save:ReturnType<typeof fresh>, type:string) { const c=save.guild!.contracts.find(c=>c.type===type);assert.ok(c);return c; }
 
 test("weekly boards guarantee three new categories and a safe creature service, without reshuffling saves",()=>{
