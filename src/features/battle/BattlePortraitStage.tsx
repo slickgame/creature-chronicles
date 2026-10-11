@@ -7,6 +7,7 @@ import { getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
 import { NYLA_GAMEPLAY_ART, getNylaCombatSprite, getNylaGameplayCardSprite, isNylaBaseFeline } from "@/data/nylaGameplayArt";
+import { getEquineCombatSprite, getEquineGameplayCardSprite } from "@/data/equineGameplayArt";
 import type { BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -49,7 +50,7 @@ function creatureProfile(source?: CreatureRecord): string {
 function creaturePortrait(source?: CreatureRecord): string {
   if (!source) return FALLBACK_IMAGE;
   const variant = getVariantDefinition(source.variantId);
-  return getNylaGameplayCardSprite(source, source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE);
+  return getEquineGameplayCardSprite(source, getNylaGameplayCardSprite(source, source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE));
 }
 
 function compactStatus(combatant: BattleCombatant): string[] {
@@ -111,6 +112,14 @@ function CombatantFigure({
     // Pounce is physical by category but is Feline's signature attack.
     specialAttack: Boolean(actingMove && (actingMove.category === "special" || actingMove.rarity === "signature")),
   });
+  const equineSprite = getEquineCombatSprite(source, {
+    fainted: combatant.isFainted,
+    actor: isActor,
+    target: isEventTarget,
+    eventKind: activeEvent?.kind,
+    effectPreset: activeEvent?.preset,
+    specialAttack: Boolean(actingMove && (actingMove.category === "special" || actingMove.rarity === "signature")),
+  });
   const canTarget = !combatant.isFainted || combatant.sideId === "player";
   const profileStyle: PortraitStyle = {
     "--portrait-scale": Math.min(1.02, Math.max(0.56, portrait.scale * 0.78)),
@@ -165,7 +174,7 @@ function CombatantFigure({
         <span className={styles.selectionRing} aria-hidden="true" />
         <span className={`${styles.portraitWindow} ${polishStyles.portraitWindow}`} data-ui-fixed-size="true">
           <img
-            src={nylaSprite ?? creatureProfile(source)}
+            src={equineSprite ?? nylaSprite ?? creatureProfile(source)}
             alt=""
             onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }}
           />
