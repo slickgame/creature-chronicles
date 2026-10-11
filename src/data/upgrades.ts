@@ -18,7 +18,7 @@ export const DEFAULT_TOWN_UPGRADES: TownUpgradeState = {
 };
 
 export const UPGRADE_ASSETS = {
-  quartermasterProfile: "/images/ui/locations-v2/mara.webp",
+  quartermasterProfile: "/images/ui/locations-v2/mara-approved.webp",
   quartermasterPortrait: "/images/npcs/guild/mara_vell_portrait.png",
   servicePermit: "/images/ui/icons/icon_service_permit.png",
   upgradeArrow: "/images/ui/icons/icon_upgrade_arrow.png",

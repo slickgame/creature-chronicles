@@ -39,3 +39,8 @@ Optimized production build and TypeScript pass. All 29 targeted tests pass: 5 lo
 
 Next: early-game income, supply/construction costs, breeding pace, and first-battle balance. PR remains draft and unmerged.
 
+
+
+## Approved artwork lock
+
+User approved Petra, the workshop, and Guild interior unchanged. On October 11 the user approved the revised Mara with stronger painterly rendering and fuller bust while retaining her outfit and pose. The final production sprite is `public/images/ui/locations-v2/mara-approved.webp`; the previous sprite remains for provenance. Guild entrance, Mara’s desk, and shared NPC profile now reference the approved version. Generated with the built-in image tool using Petra as the rendering reference and Mara as the edit target. No gameplay changes in this artwork follow-up.

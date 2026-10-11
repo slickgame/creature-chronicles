@@ -12,11 +12,11 @@ export function GuildWelcome({ area, onArea, onDesk, onRequests }: { area: "entr
   if(!save)return null;
   const available=save.guild?.contracts.filter(q=>q.status==="available").length??0;
   const accepted=save.guild?.contracts.filter(q=>q.status==="accepted").length??0;
-  return <><LocationScene title="Guild Hall" subtitle={area==="entrance"?"The town’s gathering place":"Mara’s quartermaster desk"} background="/images/ui/locations-v2/guild-hall.webp" portrait="/images/ui/locations-v2/mara.webp" name="Mara Vell · Quartermaster" resources={`${save.currencies.gold} Gold · ${save.currencies.guildPoints} GP · ${accepted} accepted requests`} onBack={area==="entrance"?goToTown:()=>onArea("entrance")} backLabel={area==="entrance"?"Town":"Guild Hall"}>
+  return <><LocationScene title="Guild Hall" subtitle={area==="entrance"?"The town’s gathering place":"Mara’s quartermaster desk"} background="/images/ui/locations-v2/guild-hall.webp" portrait="/images/ui/locations-v2/mara-approved.webp" name="Mara Vell · Quartermaster" resources={`${save.currencies.gold} Gold · ${save.currencies.guildPoints} GP · ${accepted} accepted requests`} onBack={area==="entrance"?goToTown:()=>onArea("entrance")} backLabel={area==="entrance"?"Town":"Guild Hall"}>
     <span className={s.eyebrow}>{area==="entrance"?"Promises become progress":"A familiar face behind the ledger"}</span><h2>{area==="entrance"?"Welcome to the Guild.":"“What can I help you with?”"}</h2>
     <p>{area==="entrance"?"Visit Mara for conversation, personal requests, grants and upgrades—or head straight to the mission board.":getNpcTrustSummary(save,"mara_vell")}</p>
     <div className={s.choices}>{area==="entrance"?<>
-      <button onClick={()=>onArea("mara")}><img src="/images/ui/locations-v2/mara.webp" alt=""/><span><strong>Meet Mara</strong><small>Quartermaster · Requests, Trust & town improvements</small></span></button>
+      <button onClick={()=>onArea("mara")}><img src="/images/ui/locations-v2/mara-approved.webp" alt=""/><span><strong>Meet Mara</strong><small>Quartermaster · Requests, Trust & town improvements</small></span></button>
       <button className={s.primary} onClick={()=>onArea("board")}><img src="/images/ui/guild-v1/quill.webp" alt=""/><span><strong>Mission board →</strong><small>{available} available · {accepted} accepted · Weekly Gold & GP rewards</small></span></button>
     </>:<>
       <button onClick={()=>{setMessage("");setTalk(true);}}><span><strong>Talk to Mara</strong><small>Conversation & guidance</small></span></button>
