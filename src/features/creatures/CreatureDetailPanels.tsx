@@ -1,6 +1,7 @@
 "use client";
 
 import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
+import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
@@ -295,7 +296,7 @@ export function SharedCreatureDetail({
           ) : null}
           <img
             src={useGameplayArt
-              ? getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)
+              ? getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))
               : variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
             alt=""
             style={{
