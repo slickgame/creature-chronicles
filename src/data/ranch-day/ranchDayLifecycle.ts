@@ -1,3 +1,4 @@
+import { getFarmState } from "@/data/farmResources";
 import { processBuilderConstruction } from "@/data/builderProjects";
 import { getBattleOutfitterDailySummaryItems } from "@/data/battleOutfitter";
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
@@ -132,6 +133,7 @@ export function projectRanchDay(save: GameSave): RanchDayAdvanceBundle | null {
     };
 
     const summaryItems = [
+      ...getFarmState(reportSave).report,
       `Advanced from ${previousDateLabel} to ${nextDateLabel}.`,
       `Energy recovery processed for Ranch Day ${nextState.dayNumber}.`,
       "Player Hearts restored to full.",

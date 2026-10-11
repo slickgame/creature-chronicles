@@ -1,3 +1,4 @@
+import { FACILITIES, getFarmState } from "./farmResources";
 import type { GameSave } from "@/types/save";
 import { BUILDER_PROJECTS, getBuilderProjectProgress, getBuilderWorkOrder, getBuilderProject } from "./builderProjects";
 import { grantNpcTrust, getNpcTrustRecord } from "./townNpcs";
@@ -18,6 +19,8 @@ export function chatWithLocationHost(save: GameSave, host: LocationHost) {
   return { save: next, ok: true, message: `“${lines[(Math.max(1, save.dayState.dayNumber) - 1) % lines.length]}” +2 Trust.` };
 }
 export function getPetraAdvice(save: GameSave) {
+  const production = getFarmState(save).project;
+  if (production) return `${FACILITIES[production.id].name} is under construction. The crew finishes on Ranch Day ${production.readyDay}.`;
   const order = getBuilderWorkOrder(save);
   if (order) return `The crew is building ${getBuilderProject(order.projectId).title}. It will finish on Ranch Day ${order.readyDay}. You’ve already paid; the benefits begin when construction completes.`;
   if (count(save.flags.ranchMaterialsStock) < 12) return "Keep a repair reserve before expanding. Field Hauling produces Materials overnight, and Pella sells them at the Supply Depot. Browsing my plans costs nothing.";
@@ -30,7 +33,7 @@ const PETRA_REQUESTS = [
   { title: "Room to Grow", dialogue: "Two finished projects make a good foundation. I’ll set aside a small repair cache for your next step.", requirement: "Complete 2 available Builder’s Yard projects in total. Existing work counts. Final reward includes 5 Materials.", gold: 150, gp: 10, trust: 20 },
 ];
 export function getPetraRequests(save: GameSave) {
-  const built = BUILDER_PROJECTS.filter(p => !p.planned && getBuilderProjectProgress(save, p.id).built).length;
+  const built = BUILDER_PROJECTS.filter(p => !p.planned && getBuilderProjectProgress(save, p.id).built).length + Object.values(getFarmState(save).facilities).filter(Boolean).length;
   return PETRA_REQUESTS.map((q, index) => {
     const claimed = save.flags[`petraRequest${index}Claimed`] === true;
     const accepted = save.flags[`petraRequest${index}Accepted`] === true;

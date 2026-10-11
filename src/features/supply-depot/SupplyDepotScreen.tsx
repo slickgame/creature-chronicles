@@ -1,4 +1,5 @@
 "use client";
+import { FarmResourcesButton } from "@/features/resources/FarmResourcesPanel";
 
 import { useEffect, useRef, useState } from "react";
 import { PELLA_MOSSWICK, SUPPLY_DEPOT_ITEMS, getSupplyDepotPrice, getSupplyDepotUsageRows, getSupplyDepotCount, getSupplyDepotSupplyCounts } from "@/data/supplyDepot";
@@ -71,7 +72,7 @@ export function SupplyDepotScreen() {
         <aside className={`${ui.paper} ${styles.shelves}`} aria-label="Shop shelves">
           <h2>Shelves</h2><nav aria-label="Supply categories">{([['all', 'All Stock'], ['ranch', 'Ranch'], ['special', 'Special']] as const).map(([id, label]) => <button type="button" key={id} aria-pressed={shelf === id} onClick={() => chooseShelf(id)}><IllustratedIcon name={id === "all" ? "supplies" : id === "ranch" ? "feed" : "special"} />{label}</button>)}</nav>
           <div className={styles.keeper}><img src={PELLA_MOSSWICK.portraitPath} alt="Pella Mosswick" /><h2>Pella Mosswick</h2><p>Supply Depot Keeper</p><strong>Trust Level {trust.level}</strong><TrustLeaves level={trust.level} /></div>
-          <div className={styles.keeperActions}><button type="button" onClick={() => setPopup("talk")}><IllustratedIcon name="talk" />Talk</button><button type="button" onClick={() => setPopup("ledger")}><IllustratedIcon name="ledger" />Supply Ledger</button></div>
+          <div className={styles.keeperActions}><FarmResourcesButton mode="market" label="Ingredients & materials"/><button type="button" onClick={() => setPopup("talk")}><IllustratedIcon name="talk" />Talk</button><button type="button" onClick={() => setPopup("ledger")}><IllustratedIcon name="ledger" />Supply Ledger</button></div>
         </aside>
         <section className={styles.preview} aria-label="Selected supply artwork"><h2>{selected.name}</h2><div className={styles.itemStage}><img data-supply-art src={selected.iconPath} alt={selected.name} /></div></section>
         <section className={`${ui.paper} ${styles.details}`} aria-label="Purchase details">

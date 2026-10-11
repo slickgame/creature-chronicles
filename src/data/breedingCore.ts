@@ -1,3 +1,4 @@
+import { mealBonus } from "./farmResources";
 import { getBreedingTalentSummary } from "./talents/talentEngine";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
@@ -378,7 +379,8 @@ export function getBreedingPreview(
     receiverEffects.pregnancyChance +
     ranchEffects.breedingPregnancyBonus +
     dailyComfortBonus +
-    fertilityTonicBonus;
+    fertilityTonicBonus +
+    (mealBonus(save, giverId, "breeders_bowl") || mealBonus(save, receiverId, "breeders_bowl") ? 10 : 0);
   const calculatedChance = Math.min(
     90,
     baseChance +

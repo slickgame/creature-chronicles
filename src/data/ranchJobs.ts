@@ -1,3 +1,4 @@
+import { resourceAssignment } from "./farmResources";
 import { recordGuildChoreWork } from "./guildCommissions";
 import {
   gainCreatureChoreSkillXp,
@@ -280,6 +281,7 @@ export function assignCreatureToRanchJob(save: GameSave, jobId: RanchJobId, crea
   }
   const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId);
   if (!creature) return { save, ok: false, message: "Creature not found." };
+  if (resourceAssignment(save, creatureId)) return { save, ok: false, message: "Remove this helper from resource gathering first." };
   const trainingReason = getTrainingUnavailableReason(save, creatureId);
   if (trainingReason) return { save, ok: false, message: `${creature.nickname} is away at the Training Grounds: ${trainingReason}.` };
   if (isCreatureInjured(creature, save.dayState.dayNumber)) return { save, ok: false, message: `${creature.nickname} is ${creature.injuryLabel ?? "injured"} and cannot be assigned until they recover.` };

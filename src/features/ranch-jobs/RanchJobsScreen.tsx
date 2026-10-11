@@ -1,4 +1,5 @@
 "use client";
+import { FarmResourcesButton } from "@/features/resources/FarmResourcesPanel";
 
 import { useMemo, useState } from "react";
 import {
@@ -506,7 +507,7 @@ export function RanchJobsScreen() {
             <div className={styles.taskHeading}><IllustratedIcon name={CHORE_ICONS[activeJob.jobId]} className={styles.choreIcon} /><div><h2>{activeJob.name}</h2><p>{activeJob.rewardLabel}</p><span>{activeJob.energyCost} Energy per helper</span></div></div>
             {recommended && !full ? <section className={styles.recommendation}><img src={getCreaturePortraitPath(recommended)} alt="" /><div><p className={ui.eyebrow}>Veyra recommends</p><strong>{recommended.nickname}</strong><small>{getProjectedContributionLabel(recommended, activeJob.jobId)}</small></div><button className={ui.primary} type="button" onClick={() => handleAssign(activeJob.jobId, recommended.creatureId)}>Assign {recommended.nickname}</button></section> : <p>{full ? "Your crew is full." : "No rested, unassigned helpers available."}</p>}
             <div className={styles.crewSummary}><h3>Assigned Helpers · {activeAssigned.length}/{MAX_CREATURES_PER_CHORE}</h3><p>{activeAssigned.length ? activeAssigned.map(c => c.nickname).join(" · ") : "No helpers assigned"}</p><strong>{getJobProjectionLabel(activeAssigned, activeJob.jobId)}</strong></div>
-            <div className={`${ui.actionRow} ${styles.crewActions}`}><button className={ui.primary} type="button" onClick={() => setPopup("helpers")}>Manage Helpers</button><button type="button" onClick={() => setPopup("plans")}>Crew Plans</button><button type="button" aria-label="About Chores" onClick={() => setPopup("about")}>About</button></div>
+            <div className={`${ui.actionRow} ${styles.crewActions}`}><button className={ui.primary} type="button" onClick={() => setPopup("helpers")}>Manage Helpers</button><button type="button" onClick={() => setPopup("plans")}>Crew Plans</button><FarmResourcesButton /><button type="button" aria-label="About Chores" onClick={() => setPopup("about")}>About</button></div>
             {message ? <button className={styles.savedNotice} type="button" onClick={() => setPopup("report")}><span role="status">Assignments updated</span> · View details</button> : <p className={styles.sleepNote}>Assignments take effect when you sleep.</p>}
           </section> : null}
         </div>

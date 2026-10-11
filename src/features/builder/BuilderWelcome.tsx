@@ -1,4 +1,6 @@
 "use client";
+import { FarmResourcesButton } from "@/features/resources/FarmResourcesPanel";
+import { FACILITIES, getFarmState } from "@/data/farmResources";
 import { useState } from "react";
 import { getPetraAdvice, getPetraRequests, actOnPetraRequest, chatWithLocationHost, getLocationTrust, hasChattedToday } from "@/data/locationInteractions";
 import { getBuilderWorkOrder, getBuilderProject } from "@/data/builderProjects";
@@ -11,12 +13,13 @@ export function BuilderWelcome({ onClose, onPlans }: { onClose: () => void; onPl
   const [message, setMessage] = useState("");
   if (!save) return null;
   const order = getBuilderWorkOrder(save);
+  const production = getFarmState(save).project;
   const quests = getPetraRequests(save);
   return <><LocationScene title="Builder’s Yard" subtitle="Petra’s workshop" background="/images/ui/locations-v2/builder-yard.webp" portrait="/images/ui/locations-v2/petra.webp" name="Petra Hale · Master Builder" resources={`${save.currencies.gold} Gold · ${Number(save.flags.ranchMaterialsStock) || 0} Materials · ${getLocationTrust(save,"petra")} Trust`} onBack={onClose}>
     <span className={s.eyebrow}>Timber, stone & a steady hand</span><h2>Let’s build something that lasts.</h2>
-    <p>{order ? `Your ${getBuilderProject(order.projectId).title} is underway. The crew finishes on Ranch Day ${order.readyDay}.` : "“Come in. We’ll find the right next step for your ranch before you spend a single coin.”"}</p>
+    <p>{production ? `${FACILITIES[production.id].name} is underway. The crew finishes on Ranch Day ${production.readyDay}.` : order ? `Your ${getBuilderProject(order.projectId).title} is underway. The crew finishes on Ranch Day ${order.readyDay}.` : "“Come in. We’ll find the right next step for your ranch before you spend a single coin.”"}</p>
     <p className={s.secondaryCopy}>Talk through your plans with Petra, check on the crew, or browse the project catalogue.</p>
-    <div className={s.choices}>
+    <div className={s.choices}><FarmResourcesButton mode="builder" label="Production sites & upgrades"/>
       <button onClick={() => {setMessage("");setPopup("talk");}}><span><strong>Talk to Petra</strong><small>Conversation, advice & her approach to building</small></span></button>
       <button onClick={() => {setMessage("");setPopup("requests");}}><span><strong>Petra’s requests</strong><small>{quests.filter(q=>q.claimed).length}/3 completed · Gold, GP & Trust</small></span></button>
       <button className={s.primary} onClick={onPlans}><span><strong>Blueprints & work orders →</strong><small>Land, habitat capacity, security & crew progress</small></span></button>

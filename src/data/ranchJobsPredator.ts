@@ -1,3 +1,4 @@
+import { processResourceDay, overnightChoreCost } from "./farmResources";
 import { recordGuildChoreWork } from "./guildCommissions";
 import {
   gainCreatureChoreSkillXp,
@@ -144,6 +145,7 @@ function dayLog(save: GameSave, message: string): string {
 export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; results: RanchJobResult[] } {
   const jobs = getRanchJobs(save);
   if (jobs.lastProcessedDayNumber >= save.dayState.dayNumber) return { save, results: [] };
+  save = processResourceDay(save);
   const ranchEffects = getRanchUpgradeEffects(save);
   const choreEnergyDiscount = ranchEffects.ranchChoreEnergyDiscount;
   const choreScoreBonus = ranchEffects.ranchChoreScoreBonus;
@@ -174,7 +176,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         continue;
       }
       const talentSummary = getChoreTalentSummary(creature.abilities, jobId);
-      const effectiveEnergyCost = Math.max(8, job.energyCost - choreEnergyDiscount - talentSummary.energyDiscount);
+      const effectiveEnergyCost = overnightChoreCost(save, creature.creatureId, Math.max(8, job.energyCost - choreEnergyDiscount - talentSummary.energyDiscount));
       if (creature.energy < effectiveEnergyCost) {
         results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} was too tired for ${job.name}. Needed ${effectiveEnergyCost} energy.` });
         continue;

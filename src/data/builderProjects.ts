@@ -1,3 +1,4 @@
+import { getFarmState } from "./farmResources";
 import type { GameSave } from "@/types/save";
 
 export type BuilderProjectId =
@@ -243,7 +244,7 @@ export function commissionBuilderProject(save: GameSave, projectId: BuilderProje
   const project = progress.definition;
   if (progress.built) return { save, ok: false, projectId, message: `${project.title} is already complete.` };
   if (project.planned) return { save, ok: false, projectId, message: "This habitat is a future plan and cannot be commissioned yet." };
-  if (getBuilderWorkOrder(save)) return { save, ok: false, projectId, message: "Petra's crew already has a project underway." };
+  if (getFarmState(save).project || getBuilderWorkOrder(save)) return { save, ok: false, projectId, message: "Petra's crew already has a project underway." };
   if (progress.missingPrerequisites.length) return { save, ok: false, projectId, message: `Build ${progress.missingPrerequisites.map(p => p.title).join(" and ")} first.` };
   const materials = numberFlag(save.flags.ranchMaterialsStock);
   if (!progress.affordable) return { save, ok: false, projectId, message: `Petra needs ${project.costGold} Gold and ${project.costMaterials} Materials for ${project.title}.` };
