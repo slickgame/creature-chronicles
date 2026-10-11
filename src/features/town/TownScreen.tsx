@@ -82,6 +82,7 @@ export function TownScreen() {
     setPage(next);
     setSelectedId(LOCATIONS[next * 3].id);
   }
+  if (modal === "rose") return <RoseLanternScreen onClose={() => setModal(null)} />;
   if (modal === "builder") return <BuilderYardPanel onClose={() => setModal(null)} />;
   return <main className={styles.town} style={{ backgroundImage: `url("${selected.scene}")` }} data-town-location={selectedId}>
     <header className={styles.header}>
@@ -108,7 +109,6 @@ export function TownScreen() {
       <div className={styles.paging}><span aria-live="polite">{page + 1} / 3</span><button className={styles.arrow} aria-label="Next destinations" disabled={page === 2} onClick={() => changePage(page + 1)}>›</button></div>
     </nav>
     {modal === "details" && <GameDialog title={selected.title} onClose={() => setModal(null)}><div className={styles.dialogCopy}><h3>{selected.host}</h3><p>{selected.description}</p>{status && <p>{status}</p>}{selectedId === "rose" && <p>{rose.reason}</p>}{selectedId === "coliseum" && <><p>{c3.marks} Marks · {c4.weeklyScore} Weekly Score</p><p>{c4.activeRun ? `Gauntlet stage ${c4.activeRun.stageIndex + 1} waiting` : `${boss.name} · ${c4.bossClaimed ? "reward claimed" : "reward available"}`}</p></>}</div></GameDialog>}
-    {modal === "rose" && <GameDialog title="The Rose Lantern" onClose={() => setModal(null)} wide><RoseLanternScreen embedded onClose={() => setModal(null)} /></GameDialog>}
   </main>;
 }
 

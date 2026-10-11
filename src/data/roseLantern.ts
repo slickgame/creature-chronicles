@@ -1,3 +1,4 @@
+import { getBuilderWorkOrder, getBuilderProject } from "./builderProjects";
 import { getPredatorThreatAssessment } from "@/data/predatorThreat";
 import type { GameSave } from "@/types/save";
 
@@ -8,6 +9,13 @@ export type RoseLanternState = {
   version: number;
   houseRulesAccepted: boolean;
   visits: number;
+  shifts: number;
+  rumorsHeard: number;
+  topicDays: Partial<Record<RoseRumorTopic, number>>;
+  lastFavorWeek: number;
+  requestStage: number;
+  requestAccepted: boolean;
+  requestBaseline: { visits: number; shifts: number; rumors: number };
   trust: number;
   rumorTokens: number;
   lastVisitDayNumber: number;
@@ -32,7 +40,7 @@ export type RoseLanternActionResult = {
 const DEFAULT_STATE: RoseLanternState = {
   version: ROSE_LANTERN_VERSION,
   houseRulesAccepted: false,
-  visits: 0,
+  visits: 0, shifts: 0, rumorsHeard: 0, topicDays: {}, lastFavorWeek: -1, requestStage: 0, requestAccepted: false, requestBaseline: { visits: 0, shifts: 0, rumors: 0 },
   trust: 0,
   rumorTokens: 0,
   lastVisitDayNumber: 0,
@@ -63,6 +71,11 @@ function parseState(value: boolean | number | string | undefined): RoseLanternSt
       version: ROSE_LANTERN_VERSION,
       houseRulesAccepted: parsed.houseRulesAccepted === true,
       visits: finiteCount(parsed.visits),
+      shifts: finiteCount(parsed.shifts), rumorsHeard: finiteCount(parsed.rumorsHeard),
+      topicDays: Object.fromEntries(ROSE_RUMOR_TOPICS.filter(t => Number.isSafeInteger(parsed.topicDays?.[t.id]) && Number(parsed.topicDays?.[t.id]) >= 0).map(t => [t.id, parsed.topicDays![t.id]])),
+      lastFavorWeek: typeof parsed.lastFavorWeek === "number" && Number.isSafeInteger(parsed.lastFavorWeek) ? Math.max(-1, parsed.lastFavorWeek) : -1,
+      requestStage: finiteCount(parsed.requestStage, 3), requestAccepted: parsed.requestAccepted === true,
+      requestBaseline: { visits: finiteCount(parsed.requestBaseline?.visits), shifts: finiteCount(parsed.requestBaseline?.shifts), rumors: finiteCount(parsed.requestBaseline?.rumors) },
       trust: finiteCount(parsed.trust, 100),
       rumorTokens: finiteCount(parsed.rumorTokens),
       lastVisitDayNumber: finiteCount(parsed.lastVisitDayNumber),
@@ -138,12 +151,13 @@ export function workRoseLanternHospitalityShift(save: GameSave): RoseLanternActi
   if (current.lastShiftDayNumber === save.dayState.dayNumber) return { save, state: current, ok: false, message: "You already completed a Rose Lantern shift today." };
   if (save.currencies.energy < 15) return { save, state: current, ok: false, message: "A hospitality shift requires 15 Energy." };
 
-  const goldReward = 32 + Math.min(18, Math.floor(current.trust / 10) * 2);
+  const goldReward = getRoseLanternShiftReward(save);
   const state = appendHistory({
     ...current,
     trust: Math.min(100, current.trust + 3),
     rumorTokens: current.rumorTokens + 1,
     lastShiftDayNumber: save.dayState.dayNumber,
+    shifts: current.shifts + 1,
   }, `Day ${save.dayState.dayNumber}: Hospitality shift completed; +${goldReward} Gold, +3 House Trust, +1 Rumor Token.`);
   const nextSave = withState({
     ...save,
@@ -156,34 +170,93 @@ export function workRoseLanternHospitalityShift(save: GameSave): RoseLanternActi
   return { save: nextSave, state, ok: true, message: `Hospitality shift complete: +${goldReward} Gold, +3 House Trust, and +1 Rumor Token.` };
 }
 
-function buildRumors(save: GameSave): string[] {
-  const threat = getPredatorThreatAssessment(save);
-  const predatorRumor = threat.eligible
-    ? `A woodcutter reports fresh ${threat.likelyPredator.replace(/_/g, " ")} tracks. Predator Pressure is ${threat.pressure}; Security needs ${threat.requiredSecurity} to fully discourage an attack.`
-    : threat.blockers[0] ?? "The roads around the ranch are unusually quiet tonight.";
-  const marketRumor = `Merchants expect the next weekly refresh on Ranch Day ${save.dayState.dayNumber + Math.max(1, 7 - ((save.dayState.dayNumber - 1) % 7))}. Holding extra Gold may open better choices.`;
-  const builderRumor = finiteCount(save.flags.ranchMaterialsStock) < 10
-    ? "Petra's crews are short on Materials. Field Hauling is the fastest reliable way to restock construction supplies."
-    : "Petra has enough nearby material traffic to keep expansion work moving; land deeds remain the key prerequisite for new habitats.";
-  const guildRumor = finiteCount(save.currencies.guildPoints) < 5
-    ? "The Guild is quietly favoring ranchers who complete contracts and defensive work. A few more Guild Points could unlock better standing."
-    : "Guild officers have noticed your standing. Higher-risk contracts may begin appearing as the ranch grows.";
-  return [predatorRumor, marketRumor, builderRumor, guildRumor];
+export type RoseRumorTopic = "ranch" | "builder" | "guild";
+export const ROSE_RUMOR_TOPICS: readonly { id: RoseRumorTopic; name: string }[] = [
+  { id: "ranch", name: "Ranch safety" }, { id: "builder", name: "Construction news" }, { id: "guild", name: "Guild & market" },
+];
+
+export function getRoseLanternShiftReward(save: GameSave): number {
+  const state = getRoseLanternState(save);
+  return 32 + Math.min(18, Math.floor(state.trust / 10) * 2) + (state.requestStage >= 3 ? 10 : 0);
 }
 
-export function spendRoseLanternRumorToken(save: GameSave): RoseLanternActionResult {
+export function getRoseLanternWeek(save: GameSave): number {
+  const weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(save.dayState.weekday);
+  return save.dayState.dayNumber - Math.max(0, weekday);
+}
+
+export function getRoseLanternActivityBlocker(save: GameSave, action: "visit" | "shift" | "rumor" | "favor", topic: RoseRumorTopic = "ranch"): string | null {
+  const access = getRoseLanternAccess(save), current = getRoseLanternState(save);
+  if (!access.unlocked) return access.reason;
+  if (!current.houseRulesAccepted) return "Acknowledge the house rules first.";
+  if (action === "visit") return current.lastVisitDayNumber === save.dayState.dayNumber ? "Salon visit complete today." : save.currencies.gold < 10 ? "Needs 10 Gold." : null;
+  if (action === "shift") return current.lastShiftDayNumber === save.dayState.dayNumber ? "Shift complete today." : save.currencies.energy < 15 ? "Needs 15 Energy." : null;
+  if (action === "favor") return current.trust < 15 ? "Requires 15 House Trust." : current.lastFavorWeek === getRoseLanternWeek(save) ? "Supply favor collected this week. Resets Monday." : current.rumorTokens < 2 ? "Needs 2 Rumor Tokens." : null;
+  if (!ROSE_RUMOR_TOPICS.some(t => t.id === topic)) return "Choose an available rumor topic.";
+  return current.topicDays[topic] === save.dayState.dayNumber ? "Already heard today. Your note is saved in the ledger." : current.rumorTokens < 1 ? "Needs 1 Rumor Token." : null;
+}
+
+function buildRumor(save: GameSave, topic: RoseRumorTopic): string {
+  if (topic === "ranch") {
+    const threat = getPredatorThreatAssessment(save);
+    return `Ranch survey: Pressure ${threat.pressure}, Security ${threat.security}, current incident chance ${threat.eventChance}%. ${threat.eligible ? `Tracks of ${threat.likelyPredator.replace(/_/g, " ")} have been reported. Security ${threat.requiredSecurity} would meet the current requirement; assign a patrol or build permanent defenses.` : threat.blockers.join(" ") || "No incident conditions are currently met."}`;
+  }
+  if (topic === "builder") {
+    const order = getBuilderWorkOrder(save);
+    return order ? `Petra is building ${getBuilderProject(order.projectId).title}. Completion is Ranch Day ${order.readyDay}; finish ranch days to advance the work. Your Materials stock is ${finiteCount(save.flags.ranchMaterialsStock)}.` : `Petra's crew is free. You have ${finiteCount(save.flags.ranchMaterialsStock)} Materials. The Yard lists exact project requirements; the Supply Depot sells Materials and Field Hauling earns them through chores.`;
+  }
+  const nextMonday = getRoseLanternWeek(save) + 7;
+  return `The Guild board and adoption listings refresh on Monday, Ranch Day ${nextMonday}. Accepted and completed requests stay on the board. Board reroll costs also reset then. You have ${finiteCount(save.currencies.guildPoints)} GP; check the Guild for requests and exact rewards.`;
+}
+
+export function spendRoseLanternRumorToken(save: GameSave, topic?: RoseRumorTopic): RoseLanternActionResult {
   const current = getRoseLanternState(save);
-  if (!current.houseRulesAccepted) return { save, state: current, ok: false, message: "Acknowledge the house rules before using the rumor network." };
-  if (current.rumorTokens < 1) return { save, state: current, ok: false, message: "No Rumor Tokens are available. Salon visits and hospitality shifts provide them." };
-  const rumors = buildRumors(save);
-  const rumor = rumors[deterministicRoll(`${save.saveId}:rose-lantern-rumor:${save.dayState.dayNumber}:${current.visits}:${current.rumorTokens}`, rumors.length)];
-  const state = appendHistory({
-    ...current,
-    rumorTokens: current.rumorTokens - 1,
-    lastRumorDayNumber: save.dayState.dayNumber,
-    lastRumor: rumor,
-  }, `Day ${save.dayState.dayNumber}: Rumor network consulted.`);
+  const available = ROSE_RUMOR_TOPICS.filter(t => current.topicDays[t.id] !== save.dayState.dayNumber);
+  const chosen = topic ?? available[deterministicRoll(`${save.saveId}:rose:${save.dayState.dayNumber}`, Math.max(1, available.length))]?.id ?? "ranch";
+  const blocker = getRoseLanternActivityBlocker(save, "rumor", chosen);
+  if (blocker) return { save, state: current, ok: false, message: blocker };
+  const rumor = buildRumor(save, chosen);
+  const state = appendHistory({ ...current, rumorTokens: current.rumorTokens - 1, rumorsHeard: current.rumorsHeard + 1, topicDays: { ...current.topicDays, [chosen]: save.dayState.dayNumber }, lastRumorDayNumber: save.dayState.dayNumber, lastRumor: rumor }, `Day ${save.dayState.dayNumber}: ${rumor}`);
   return { save: withState(save, state), state, ok: true, message: rumor };
+}
+
+export function collectRoseLanternSupplyFavor(save: GameSave): RoseLanternActionResult {
+  const current = getRoseLanternState(save), blocker = getRoseLanternActivityBlocker(save, "favor");
+  if (blocker) return { save, state: current, ok: false, message: blocker };
+  const state = appendHistory({ ...current, rumorTokens: current.rumorTokens - 2, lastFavorWeek: getRoseLanternWeek(save) }, `Day ${save.dayState.dayNumber}: Supply favor collected: +3 Feed, +2 Materials.`);
+  const next = { ...save, flags: { ...save.flags, ranchFeedStock: finiteCount(save.flags.ranchFeedStock) + 3, ranchMaterialsStock: finiteCount(save.flags.ranchMaterialsStock) + 2 } };
+  return { save: withState(next, state), state, ok: true, message: "Supply favor collected: +3 Feed and +2 Materials for 2 Rumor Tokens. Available again Monday." };
+}
+
+export const ROSE_HOUSE_REQUESTS = [
+  { title: "A Familiar Face", description: "Get to know the public salon and help the front-of-house crew.", visits: 2, shifts: 1, rumors: 0, trust: 0, gold: 70, gp: 3, trustReward: 3 },
+  { title: "A Useful Connection", description: "Listen to local news and lend a hand on two shifts.", visits: 0, shifts: 2, rumors: 2, trust: 0, gold: 120, gp: 5, trustReward: 4 },
+  { title: "One of the Regulars", description: "Build a lasting place in the house through regular visits and reliable work.", visits: 3, shifts: 3, rumors: 0, trust: 35, gold: 200, gp: 8, trustReward: 5 },
+] as const;
+
+export function getRoseLanternRequest(save: GameSave) {
+  const state = getRoseLanternState(save), definition = ROSE_HOUSE_REQUESTS[state.requestStage];
+  if (!definition) return null;
+  const progress = { visits: Math.max(0, state.visits - state.requestBaseline.visits), shifts: Math.max(0, state.shifts - state.requestBaseline.shifts), rumors: Math.max(0, state.rumorsHeard - state.requestBaseline.rumors), trust: state.trust };
+  const ready = state.requestAccepted && progress.visits >= definition.visits && progress.shifts >= definition.shifts && progress.rumors >= definition.rumors && progress.trust >= definition.trust;
+  return { definition, progress, accepted: state.requestAccepted, ready, stage: state.requestStage };
+}
+
+export function acceptRoseLanternRequest(save: GameSave): RoseLanternActionResult {
+  const current = getRoseLanternState(save), request = getRoseLanternRequest(save);
+  if (!getRoseLanternAccess(save).unlocked || !current.houseRulesAccepted) return { save, state: current, ok: false, message: "Enter the house and acknowledge its rules first." };
+  if (!request || request.accepted) return { save, state: current, ok: false, message: "No new house request is available." };
+  const state = appendHistory({ ...current, requestAccepted: true, requestBaseline: { visits: current.visits, shifts: current.shifts, rumors: current.rumorsHeard } }, `Day ${save.dayState.dayNumber}: Accepted ${request.definition.title}.`);
+  return { save: withState(save,state), state, ok: true, message: `${request.definition.title} accepted. Activities count from now; current Trust counts toward the requirement.` };
+}
+
+export function claimRoseLanternRequest(save: GameSave): RoseLanternActionResult {
+  const current = getRoseLanternState(save), request = getRoseLanternRequest(save);
+  if (!getRoseLanternAccess(save).unlocked || !current.houseRulesAccepted || !request?.ready) return { save, state: current, ok: false, message: "The house request is not ready to claim." };
+  const reward = request.definition;
+  const state = appendHistory({ ...current, requestStage: current.requestStage + 1, requestAccepted: false, trust: Math.min(100,current.trust + reward.trustReward) }, `Day ${save.dayState.dayNumber}: ${reward.title} completed; +${reward.gold} Gold, +${reward.gp} GP, +${reward.trustReward} Trust.`);
+  const next = { ...save, currencies: { ...save.currencies, gold: save.currencies.gold + reward.gold, guildPoints: save.currencies.guildPoints + reward.gp } };
+  return { save: withState(next,state), state, ok: true, message: `Request complete: +${reward.gold} Gold, +${reward.gp} GP and +${reward.trustReward} Trust.${state.requestStage >= 3 ? " House partnership unlocked: +10 Gold on each future hospitality shift." : " The next request is now available."}` };
 }
 
 export function getRoseLanternTrustRank(trust: number): { label: string; nextAt: number | null } {
@@ -192,3 +265,4 @@ export function getRoseLanternTrustRank(trust: number): { label: string; nextAt:
   if (trust >= 15) return { label: "Known Guest", nextAt: 35 };
   return { label: "New Arrival", nextAt: 15 };
 }
+
