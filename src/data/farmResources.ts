@@ -161,13 +161,14 @@ export function craftResource(save: GameSave, id: ResourceId, quantity = 1): Far
   if (id === "planks") save = { ...save, flags: { ...save.flags, productionPlanksCrafted: Number(save.flags.productionPlanksCrafted ?? 0) + output } };
   return done(save, state, `Made ${output} ${RESOURCES[id].name}. Used ${resourceList(cost)}.`);
 }
+export function mealEnergyRestoration(id: ResourceId): number { return id === "breakfast" ? 15 : id === "porridge" ? 8 : 0; }
 export function serveMeal(save: GameSave, id: ResourceId, creatureId: string): FarmResult {
   const state = getFarmState(save), c = save.creatures?.find(c => c.creatureId === creatureId);
   if (!c || RESOURCES[id]?.category !== "Meals") return fail(save, "Choose a creature and a prepared meal.");
   if (getTrainingUnavailableReason(save, c.creatureId)) return fail(save, "This creature is away at training.");
   if (state.meals[creatureId]?.day === save.dayState.dayNumber) return fail(save, "This creature has already eaten a bonus meal today.");
   if (!canSpend(state, { [id]: 1 })) return fail(save, "No unreserved meal available.");
-  const energy = id === "breakfast" ? 15 : id === "porridge" ? 8 : 0;
+  const energy = mealEnergyRestoration(id);
   if (energy && c.energy >= c.maxEnergy) return fail(save, "Energy is already full.");
   spend(state, { [id]: 1 }); state.meals[creatureId] = { id, day: save.dayState.dayNumber };
   return done({ ...save, creatures: save.creatures?.map(x => x.creatureId === creatureId ? { ...x, energy: Math.min(x.maxEnergy, x.energy + energy) } : x) }, state, `${c.nickname} ate ${RESOURCES[id].name}. ${energy ? `Recovered up to ${energy} Energy.` : "Bonus lasts through tonight."}`);

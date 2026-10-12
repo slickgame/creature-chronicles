@@ -16,3 +16,4 @@
 .ingredientName{display:flex;align-items:center;gap:6px}.ingredientName img{width:28px;height:28px;object-fit:contain;flex-shrink:0}
 
 .panel .budget h3{color:#39291b!important;text-shadow:none!important}
+.panel .ingredientName{color:#39291b!important;text-shadow:none!important}

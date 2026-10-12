@@ -4,7 +4,7 @@ import { EquipmentUpgrades } from "@/features/equipment/EquipmentUpgrades";
 import { EquipmentStats } from "@/features/equipment/EquipmentStats";
 import { useRef, useState } from 'react';
 import { BLACKSMITH, BLACKSMITH_RECIPES, getBlacksmithQuote, craftBlacksmithEquipment } from '@/data/blacksmith';
-import { getFarmState, RESOURCES, type ResourceId } from '@/data/farmResources';
+import { getFarmState, resourceList, RESOURCES, type ResourceId } from '@/data/farmResources';
 import { getResourceArt } from '@/data/resourceArt';
 import { compareEquipment } from '@/data/equipmentComparison';
 import { getBattleOutfitterStock } from '@/data/battleOutfitter';
@@ -56,6 +56,7 @@ export function BlacksmithWorkshop({ onBack }: { onBack: () => void }) {
           <div className={s.item}><img src={item.iconPath} alt={item.name}/><div><small>ONE FINISHED ITEM</small><h2>{item.name}</h2><strong>{item.quality} / Grade {item.equipmentGrade}</strong><p>{item.effectLabel}</p><small>{getBattleOutfitterStock(save,item)} unequipped copies owned</small></div></div>
           <div className={s.costStrip}>{inputs.map(([id,n])=><span key={id}>{getResourceArt(id)&&<img src={getResourceArt(id)} alt=""/>}{n} {RESOURCES[id].name}</span>)}<span>+ {recipe.laborGold} Gold labor</span></div>
           {cost}
+          <section aria-label="Craft or buy"><h3>Craft or buy?</h3><table className={s.table}><thead><tr><th>Route</th><th>Gold needed</th></tr></thead><tbody><tr><th>Ready-made at Outfitter</th><td>{item.costGold}</td></tr><tr><th>Buy missing materials + Iona’s labor</th><td>{quote.procurementGold}</td></tr></tbody></table><p>{quote.restockGold ? `Buy ${resourceList(quote.missingInputs)} at Trade for ${quote.restockGold} Gold, then pay ${recipe.laborGold} Gold labor.` : `Your unreserved materials cover this recipe. Pay ${recipe.laborGold} Gold labor.`}</p><p className={s.note}>This route uses your existing unreserved materials first. Purchases are separate; Iona never buys missing supplies automatically. Both routes produce the same +0 equipment.</p><h3>Make your own ingots</h3><p>At the farm Workbench: 2 Wood → 2 Charcoal; 2 Iron ore + 1 Charcoal → 1 Iron ingot. Build Quarry → Charcoal kiln → Iron furnace to produce the metal yourself.</p><p className={s.note}>Iona uses her own town forge. The farm’s Small forge is for Nails and is not required to craft equipment with her. Production facilities are a long-term investment, not a prerequisite for buying ingots or visiting Iona.</p></section>
           {creature && <label className={s.selectLabel}>Compare equipment for <select value={creature.creatureId} onChange={e=>setCreatureId(e.target.value)}>{save.creatures?.map(c=><option key={c.creatureId} value={c.creatureId}>{c.nickname}</option>)}</select></label>}
           {stats}
         </div>

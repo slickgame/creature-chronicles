@@ -23,8 +23,11 @@ export function getBlacksmithQuote(save: GameSave, recipeId: string) {
   const goldShort = Math.max(0, recipe.laborGold - save.currencies.gold);
   const stockFull = Boolean(item.maxStock && getBattleOutfitterStock(save, item) >= item.maxStock);
   const materialValue = (Object.entries(recipe.inputs) as [ResourceId, number][]).reduce((sum,[id,n]) => sum + RESOURCES[id].price * n, 0);
+  const missingInputs = Object.fromEntries((Object.entries(recipe.inputs) as [ResourceId, number][]).map(([id, n]) => [id, Math.max(0, n - Math.max(0, (state.stock[id] ?? 0) - (state.reserves[id] ?? 0))) ]).filter(([, n]) => Number(n) > 0)) as Stock;
+  const restockGold = (Object.entries(missingInputs) as [ResourceId, number][]).reduce((sum, [id, n]) => sum + RESOURCES[id].price * n, 0);
+  const procurementGold = restockGold + recipe.laborGold;
   const reason = stockFull ? 'Equipment stock is full.' : [...missing, ...(goldShort ? [`${goldShort} Gold for labor`] : [])].join(' · ');
-  return { recipe, item, revision: getCraftRevision(save), materialValue, totalValue: materialValue + recipe.laborGold, canCraft: !stockFull && !missing.length && !goldShort, reason };
+  return { recipe, item, revision: getCraftRevision(save), missingInputs, restockGold, procurementGold, materialValue, totalValue: materialValue + recipe.laborGold, canCraft: !stockFull && !missing.length && !goldShort, reason };
 }
 /** One confirmed quote produces one copy. A persisted sequence rejects stale/replayed confirmations. */
 export function craftBlacksmithEquipment(save: GameSave, recipeId: string, expectedRevision: number) {
