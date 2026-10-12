@@ -152,15 +152,15 @@ export const RANCH_UPGRADE_DEFINITIONS: RanchUpgradeDefinition[] = [
   {
     upgradeId: "ranch_chores_board",
     category: "chores",
-    name: "Ranch Chores Board",
-    description: "Upgrades tools, route planning, and chore organization. Base chores are tiring; the board makes daily work cheaper and more productive.",
+    name: "Farm Tools",
+    description: "Better tools reduce Energy costs and add resources to every instant work action.",
     iconPath: RANCH_UPGRADE_ASSETS.choresBoard,
     maxTier: 4,
     tiers: [
-      { tier: 1, costGold: 500, costResources: { planks: 2, stone: 1 }, effectLabel: "-2 chore energy cost, +1 chore score" },
-      { tier: 2, costGold: 950, costGp: 10, costResources: { planks: 3, stone: 2, nails: 3 }, effectLabel: "-4 chore energy cost, +2 chore score" },
-      { tier: 3, costGold: 1700, costGp: 26, costResources: { planks: 5, stone: 3, nails: 4 }, effectLabel: "-7 chore energy cost, +3 chore score" },
-      { tier: 4, costGold: 2900, costGp: 55, costResources: { planks: 7, stone: 4, nails: 7 }, effectLabel: "-10 chore energy cost, +4 chore score" },
+      { tier: 1, costGold: 500, costResources: { planks: 2, stone: 1 }, effectLabel: "-2 work Energy cost, +1 resources per work action" },
+      { tier: 2, costGold: 950, costGp: 10, costResources: { planks: 3, stone: 2, nails: 3 }, effectLabel: "-4 work Energy cost, +2 resources per work action" },
+      { tier: 3, costGold: 1700, costGp: 26, costResources: { planks: 5, stone: 3, nails: 4 }, effectLabel: "-7 work Energy cost, +3 resources per work action" },
+      { tier: 4, costGold: 2900, costGp: 55, costResources: { planks: 7, stone: 4, nails: 7 }, effectLabel: "-10 work Energy cost, +4 resources per work action" },
     ],
   },
   {
@@ -405,7 +405,7 @@ export function getRanchUpgradeCategoryLabel(category: RanchUpgradeDefinition["c
   if (category === "habitats") return "Habitat Upgrades";
   if (category === "nursery") return "Nursery Upgrades";
   if (category === "breeding") return "Breeding Pen";
-  if (category === "chores") return "Chores Board";
+  if (category === "chores") return "Farm Tools";
   if (category === "recovery") return "Sleep Recovery";
   return "Ranch Ledger";
 }

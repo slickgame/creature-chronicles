@@ -21,6 +21,7 @@ import type {
 import type { BattleStatKey } from "@/types/battle";
 import type { RanchJobId } from "@/types/ranchJobs";
 
+import { createGuardDog, GUARD_DOG_VALUES } from "./guardDog";
 import { getGeneralTalentEffect } from "./generalTalents";
 
 export const TALENT_DEFINITION_VERSION = 2;
@@ -51,7 +52,7 @@ const BASIC_D_TALENTS: CreatureAbility[] = [
   { id: "faint_spark", name: "Faint Spark", grade: "D", source: "general", description: "A barely awakened talent." },
 ];
 
-const sourceRestrictions = new Map<string, TalentSourceRestriction[]>();
+const sourceRestrictions = new Map<string, TalentSourceRestriction[]>([["guard_dog", [{ family: "canine" }]]]);
 
 function addRestriction(id: string, restriction: TalentSourceRestriction) {
   const existing = sourceRestrictions.get(id) ?? [];
@@ -73,6 +74,7 @@ for (const variant of VARIANT_DEFINITIONS) {
 }
 
 const SOURCE_TALENTS = [
+  createGuardDog(),
   ...BASIC_D_TALENTS,
   ...GENERAL_ABILITY_POOL,
   ...LEGACY_GENERAL_ABILITY_POOL,
@@ -258,7 +260,7 @@ function jobLabel(jobId?: RanchJobId): string {
   if (jobId === "stable_production") return "Stable Production";
   if (jobId === "garden_tending") return "Garden Tending";
   if (jobId === "field_hauling") return "Field Hauling";
-  return "all chores";
+  return "all work actions";
 }
 
 function battleStatLabel(stat?: BattleStatKey): string {
@@ -278,9 +280,9 @@ export function describeTalentEffect(effect: TalentEffect): string {
   if (effect.type === "inheritance-stability") return `${signed(effect.value)} inheritance stability`;
   if (effect.type === "inheritance-ability-chance") return `${signed(effect.value, "%")} talent inheritance chance`;
   if (effect.type === "inheritance-mutation-chance") return `${signed(effect.value, "%")} beneficial mutation chance`;
-  if (effect.type === "chore-score") return `${signed(effect.value)} ${jobLabel(effect.jobId)} score`;
+  if (effect.type === "chore-score") return `${signed(Math.floor(effect.value))} resources per matching work action`;
   if (effect.type === "chore-energy-discount") return `${effect.value} less Energy for ${jobLabel(effect.jobId)}`;
-  if (effect.type === "chore-xp-percent") return `${signed(effect.value, "%")} chore-skill XP`;
+  if (effect.type === "chore-xp-percent") return `${signed(effect.value, "%")} work-skill XP`;
   if (effect.type === "battle-stat-flat") return `${signed(effect.value)} ${battleStatLabel(effect.battleStatKey)}`;
   if (effect.type === "battle-stat-percent") return `${signed(effect.value, "%")} ${battleStatLabel(effect.battleStatKey)}`;
   if (effect.type === "battle-damage-percent") return `${signed(effect.value, "%")} battle damage`;
@@ -331,6 +333,7 @@ function triggersFromSystems(systems: TalentSystem[]): TalentTrigger[] {
 }
 
 function buildDefinition(talent: CreatureAbility): TalentDefinition {
+  if (talent.id === "guard_dog") return { id: talent.id, name: "Guard Dog", category: "species", source: "species", tags: ["canine", "security"], systems: ["farm-security"], triggers: ["passive"], stackingRule: "highest-only", sourceRestrictions: [{ family: "canine" }], gradeEffects: Object.fromEntries(GRADES.map(g => [g, [{type: "farm-security-flat", value: GUARD_DOG_VALUES[g]}]])) as Record<AbilityGrade,TalentEffect[]>, exactDescriptionByGrade: Object.fromEntries(GRADES.map(g => [g,createGuardDog(g).description])) as Record<AbilityGrade,string>, definitionVersion: 3 };
   const category = inferCategory(talent);
   const simple = getGeneralTalentEffect(talent.id, talent.grade);
   const tags = simple ? [simple.type.split("-")[0]] : inferTags(talent);

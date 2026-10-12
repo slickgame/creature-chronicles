@@ -58,6 +58,7 @@ export type InheritanceTalentSummary = {
 };
 
 function effectAppliesToSystem(effectType: TalentEffectType, system: TalentSystem): boolean {
+  if (system === "farm-security") return effectType === "farm-security-flat";
   if (system === "breeding") return effectType.startsWith("breeding-");
   if (system === "growth") return effectType === "growth-stat-bias";
   if (system === "inheritance") return effectType.startsWith("inheritance-");

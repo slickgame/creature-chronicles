@@ -480,3 +480,13 @@
     height: 56px;
   }
 }
+
+/* Only the ordinary Ranch House sleep confirmation shows this PNG. */
+.nylaSleepArt {
+  display: block;
+  width: min(100%, 300px);
+  height: clamp(92px, 15vh, 140px);
+  margin: 0 auto 10px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+}

@@ -1,3 +1,4 @@
+import { createGuardDog } from "./talents/guardDog";
 import { GENERAL_ABILITY_POOL, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { normalizeTalentInstances } from "@/data/talents/talentDefinitions";
 import { getTownUpgradeEffects } from "@/data/upgrades";
@@ -19,7 +20,7 @@ const GRADE_WEIGHTS_BY_TIER: Array<Record<CreatureAbility["grade"], number>> = [
 ];
 
 function deterministicRoll(seed: string, modulo = 100): number { let hash = 0; for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) % 1000003; return Math.abs(hash) % modulo; }
-function getAbilityPool(speciesId: SpeciesId, variantId: VariantId): CreatureAbility[] { getSpeciesDefinition(speciesId); getVariantDefinition(variantId); return GENERAL_ABILITY_POOL; }
+function getAbilityPool(speciesId: SpeciesId, variantId: VariantId): CreatureAbility[] { getSpeciesDefinition(speciesId); const variant = getVariantDefinition(variantId); return variant.family === "canine" ? [...GENERAL_ABILITY_POOL, createGuardDog()] : GENERAL_ABILITY_POOL; }
 function pickGrade(seed: string, tier: number): CreatureAbility["grade"] { const weights = GRADE_WEIGHTS_BY_TIER[Math.max(0, Math.min(4, tier))] ?? GRADE_WEIGHTS_BY_TIER[0]; const roll = deterministicRoll(seed, 100); let cursor = 0; for (const grade of GRADE_ORDER) { cursor += weights[grade] ?? 0; if (roll < cursor) return grade; } return "D"; }
 function pickAbility(seed: string, pool: CreatureAbility[], tier: number, existing: CreatureAbility[] = []): CreatureAbility | null {
   const available = pool.filter(ability => !existing.some(item => item.id === ability.id));

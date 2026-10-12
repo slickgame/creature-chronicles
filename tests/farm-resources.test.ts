@@ -13,13 +13,10 @@ function buy(s:GameSave,id:ResourceId,n:number){return ok(tradeResource(s,id,n))
 function next(s:GameSave){return {...s,dayState:{...s.dayState,dayNumber:s.dayState.dayNumber+1}};}
 function night(s:GameSave){s=normalizeRanchDaySave(s,"active"); const r=projectRanchDay(enterEveningReview({...s,ranchDay:{...s.ranchDay!,phase:"active"}}));assert.ok(r);return r.save;}
 
-test("gathering survives serialization, resolves once, and conflicts with chores in both directions",()=>{
- let s=fresh();const id=s.creatures![0].creatureId;
- s=ok(assignResourceWorker(s,"woodlot",id));assert.equal(assignCreatureToRanchJob(s,"field_hauling",id).ok,false);
- s=JSON.parse(JSON.stringify(s));s=processResourceDay(next(s));assert.equal(getFarmState(s).stock.wood,4);
- assert.deepEqual(processResourceDay(s),s);
- s=ok(assignResourceWorker(s,"woodlot",id));s=assignCreatureToRanchJob(s,"field_hauling",id).save;
- assert.equal(assignResourceWorker(s,"woodlot",id).ok,false);
+test("gathering is instant, serialized, and overnight cannot repeat it",()=>{
+ let s=fresh();const id=s.creatures![0].creatureId;s=ok(assignResourceWorker(s,"woodlot",id));assert.equal(getFarmState(s).stock.wood,4);
+ s=JSON.parse(JSON.stringify(s));s=processResourceDay(next(s));assert.equal(getFarmState(s).stock.wood,4);assert.deepEqual(processResourceDay(s),s);
+ assert.equal(assignCreatureToRanchJob(s,"field_hauling",id).ok,false);
 });
 test("actual overnight production commits once without minting generic Materials",()=>{
  let s=fresh();s=ok(assignResourceWorker(s,"iron_deposit",s.creatures![0].creatureId));

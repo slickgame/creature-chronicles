@@ -174,7 +174,7 @@ export const BUILDER_PROJECTS: BuilderProjectDefinition[] = [
     id: "watchtower",
     title: "Woodline Watchtower",
     category: "security",
-    description: "Build an elevated watch post that adds permanent support to nightly patrols.",
+    description: "Build an elevated watch post that adds passive protection to the farm.",
     flavor: "From the tower, movement along the tree line is visible before it reaches the pastures.",
     iconPath: BUILDER_PROJECT_ASSETS.watchtower,
     costGold: 950,
@@ -233,7 +233,7 @@ export function getBuilderWorkOrder(save: GameSave): BuilderWorkOrder | null {
 export function getBuilderProjectBenefit(project: BuilderProjectDefinition): string {
   if (project.benefit) return project.benefit;
   if (project.planned) return "Future species housing. Not available to commission yet.";
-  if (project.securityBonus) return `+${project.securityBonus} permanent ranch Security.`;
+  if (project.securityBonus) return `+${project.securityBonus} Security at full condition.`;
   const unlocks = BUILDER_PROJECTS.filter(p => !p.planned && p.prerequisiteIds.includes(project.id)).map(p => p.title);
   return `Unlocks project access: ${unlocks.join(", ")}. Other prerequisites still apply.`;
 }

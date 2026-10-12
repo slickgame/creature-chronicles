@@ -1,3 +1,4 @@
+import { workResourceSite } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave, saveGameToSlot } from "../src/lib/save/localSave.ts";
@@ -29,12 +30,11 @@ test("deliveries recheck stock, consume exact amounts and pay once with no creat
  assert.equal(completeGuildCommission(result.save,c.contractId).ok,false);
  assert.equal(donateCreatureToGuildContract(s,c.contractId,s.creatures![0].creatureId).ok,false);
 });
-test("only completed matching chore shifts after acceptance count, and a repeated day cannot add progress",()=>{
+test("only completed matching work actions after acceptance count, and a repeated day cannot add progress",()=>{
  let s=fresh();const c=contract(s,"chore_commission");assert.equal(c.objective?.kind,"chore");if(c.objective?.kind!=="chore")return;
  const job=c.objective.jobId;s.flags[`guildChoreCompletions_${job}`]=20;s=acceptGuildContract(s,c.contractId).save;
- const ids=s.creatures!.slice(0,3).map(c=>c.creatureId);s.creatures=s.creatures!.map((c,i)=>({...c,energy:i===2?0:c.maxEnergy}));
- s.ranchJobs={...s.ranchJobs!,lastProcessedDayNumber:0,assignments:{security_patrol:[],comfort_care:[],stable_production:[],garden_tending:[],field_hauling:[],[job]:ids}};
- s.flags.ranchFeedStock=100;
+ const site=job==='field_hauling'?'woodlot':job==='garden_tending'?'garden':'hunting';
+ for(let i=0;i<2;i++)s=workResourceSite(s,site,s.creatures![0].creatureId).save;
  const done=processRanchJobsForNewDay(s).save;assert.equal(getGuildCommissionProgress(done,contract(done,"chore_commission"))?.current,2);
  const repeated=processRanchJobsForNewDay(done).save;assert.equal(getGuildCommissionProgress(repeated,contract(repeated,"chore_commission"))?.current,2);
  const reward=completeGuildCommission(done,c.contractId);assert.ok(reward.ok);

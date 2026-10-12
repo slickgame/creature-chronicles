@@ -109,15 +109,9 @@ export function recordRanchDayTransition(previous: GameSave | null, incoming: Ga
     ));
   }
 
-  const previousAssignments = assignmentSignature(previous);
-  const nextAssignments = assignmentSignature(next);
-  if (previousAssignments !== nextAssignments) {
-    addIfNew(additions, existingIds, activity(
-      next,
-      `chores:${next.dayState.dayNumber}:${stableHash(nextAssignments)}`,
-      "chore-assignment",
-      "Adjusted Ranch Chore assignments for tonight's work cycle.",
-    ));
+  const workCount = Number(next.flags.farmWorkActions ?? 0);
+  if (workCount > Number(previous.flags.farmWorkActions ?? 0)) {
+    addIfNew(additions, existingIds, activity(next, `work:${workCount}`, "chore-assignment", "Completed instant farm work; supplies collected and creature Energy spent."));
   }
 
   for (const creature of next.creatures ?? []) {

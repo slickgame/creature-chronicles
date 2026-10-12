@@ -19,7 +19,7 @@ export function GuildCommissionDetails({ save, contract, image, onAccept, onClai
   const rewardGp = rewarded ? rewarded.currencies.guildPoints - save.currencies.guildPoints : contract.guildPointReward;
   const expired = progress.status === "Expired";
   const complete = contract.status === "completed";
-  const destination = contract.type === "delivery" ? "Supply Depot" : contract.type === "chore_commission" ? "Ranch Chores" : "Coliseum";
+  const destination = contract.type === "delivery" ? "Supply Depot" : contract.type === "chore_commission" ? "Farm Management" : "Coliseum";
   return <div className={`${styles.detailContent} ${styles.commissionDetails}`}>
     <div className={styles.detailHeading}><h2>{contract.title}</h2><p className={styles.meta}>{contract.tier} · {GUILD_REQUEST_LABELS[contract.type]}</p></div>
     <div className={styles.requester}><img src={image} alt="" /><div><strong>{contract.requesterName}</strong><p>{contract.description}</p></div></div>

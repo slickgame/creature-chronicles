@@ -82,7 +82,7 @@ function hasResolvedFirstNight(save: GameSave): boolean {
 }
 
 function hasSolvedResourceProblem(save: GameSave): boolean {
-  return Boolean(save.flags.chapterOneGuidedResourceDecisionMade) ||
+  return flagNumber(save.flags.farmWorkActions) > 0 || Boolean(save.flags.chapterOneGuidedResourceDecisionMade) ||
     flagNumber(save.flags.ranchFeedProducedToday) > 0 ||
     flagNumber(save.flags.ranchMaterialsProducedToday) > 0 ||
     Boolean(save.flags.m14FieldHaulingMaterials) ||
@@ -264,7 +264,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (save.flags.chapterOneGuidedMorningOpened !== true) {
     return {
       id: "read-morning-brief",
-      dayLabel: "Day 1 · Chores & Care",
+      dayLabel: "Day 1 · Farm Work",
       title: "Read the Morning Brief",
       body: "Start each day by checking resources, warnings, creature moods, and the ranch's most urgent need.",
       hint: phase === "morning" ? "Review the cards, then begin the ranch day." : "Open Today, then expand Morning Brief & Daily Records.",
@@ -278,13 +278,13 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.choresAssigned) {
     return {
       id: "assign-security",
-      dayLabel: "Day 1 · Chores & Care",
-      title: "Post a Guard",
-      body: "Open Security Patrol and assign a suitable helper. Strong Security reduces the chance that overnight danger damages the ranch.",
-      hint: "Use Best Fit for a recommendation, or open the chore and choose a creature yourself.",
+      dayLabel: "Day 1 · Farm Work",
+      title: "Gather Your First Supplies",
+      body: "Open Farm Management, choose a worker at the Woodlot, and press Work. Resources arrive immediately and only that creature spends Energy.",
+      hint: "Review the exact output and Energy cost before working. No Gold is charged.",
       action: "chores",
-      actionLabel: "Open Ranch Chores",
-      targetId: "chore-security",
+      actionLabel: "Open Farm Management",
+      targetId: "farm-work-locations",
       lockToTarget: true,
     };
   }
@@ -292,22 +292,22 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
   if (!progress.secondChoreAssigned) {
     return {
       id: "assign-second-chore",
-      dayLabel: "Day 1 · Chores & Care",
-      title: "Choose a Second Priority",
-      body: "Now make one decision yourself. Add Feed production, Comfort Care, Garden Tending, or Field Hauling based on what your ranch needs.",
-      hint: "The projected output on each chore card shows what tomorrow may look like.",
+      dayLabel: "Day 1 · Farm Work",
+      title: "Work at Another Location",
+      body: "Perform another work action. The garden and wheat patch provide ingredients for cooking Balanced rations.",
+      hint: "Work resolves now. Use the Kitchen to combine ingredients into rations or bonus meals.",
       action: "chores",
-      actionLabel: "Choose Another Chore",
-      targetId: "chore-second-priority",
+      actionLabel: "Choose More Work",
+      targetId: "farm-work-locations",
     };
   }
 
   if (!progress.firstNightResolved) {
     return {
       id: "resolve-first-night",
-      dayLabel: "Day 1 · Chores & Care",
+      dayLabel: "Day 1 · Farm Work",
       title: phase === "evening" ? "End the First Day" : "Review the Day",
-      body: "Check your projected Feed and Materials, then end the day. Assigned chores resolve overnight; Energy recovers and pregnancy, egg, and construction timers advance.",
+      body: "Review supplies already produced, food needs, and Security, then end the day. Energy recovers and pregnancy, egg, and construction timers advance. Work does not repeat overnight.",
       hint: phase === "evening" ? "Confirm End Day when you are ready." : "Review the projections before committing to the night.",
       action: "ranch",
       actionLabel: phase === "evening" ? "End Day" : "Review Day",
@@ -321,7 +321,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       id: "read-results",
       dayLabel: "Day 2 · Morning Results",
       title: "See What Changed Overnight",
-      body: "Compare yesterday's choices with today's Feed, Materials, condition, mood, and warning cards. The ranch is a loop, not a set of isolated menus.",
+      body: "Review food consumed, recovery, building progress, and any overnight incidents. Your work supplies were already collected when you pressed Work.",
       hint: phase === "morning" ? "Read the overnight highlights before beginning the next day." : "Open Morning Brief and review the resource changes.",
       action: "ranch",
       actionLabel: "Review Morning Results",
@@ -334,11 +334,11 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       id: "solve-resource-problem",
       dayLabel: "Day 2 · Resources",
       title: "Create Some Breathing Room",
-      body: "Produce Feed, gather Materials, or repair ranch damage. Choose the problem that matters most to your current ranch.",
-      hint: "Ranch Chores shows projected Feed, Materials, Security, Comfort, and upkeep before the night resolves.",
+      body: "Gather food ingredients, collect Wood, or repair fortifications. Choose the problem that matters most to your farm.",
+      hint: "Farm Management shows work output, Energy costs, and passive Security. Fortifications and the strongest Guard Dog protect the farm.",
       action: "chores",
       actionLabel: "Plan Ranch Work",
-      targetId: "chore-second-priority",
+      targetId: "farm-work-locations",
     };
   }
 
@@ -368,7 +368,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       dayLabel: "Days 2–3 · Requests",
       title: "Complete a Beginner Guild Request",
       body: "The Guild connects ranch production to town progression. Accept and finish one request using a system you have already learned.",
-      hint: "Choose a delivery, care, or chore request you can fulfill. Review the exact Gold/GP reward and any resource or creature cost before confirming.",
+      hint: "Choose a delivery, care, or work request you can fulfill. Review the exact Gold/GP reward and any resource or creature cost before confirming.",
       action: "guild",
       actionLabel: "Open Guild Hall",
       targetId: "tutorial-guild-request",
@@ -390,7 +390,7 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       id: "first-pairing",
       dayLabel: "Days 3–4 · Breeding & Nursery",
       title: "Inspect a Valid Pair",
-      body: "Choose two available creatures. Open Inheritance → Talents to compare their grades and bonuses, then choose a useful talent you would like the offspring to inherit. Hot-Blooded improves Fertility; Diligent helps chores.",
+      body: "Choose two available creatures. Open Inheritance → Talents to compare their grades and bonuses, then choose a useful talent you would like the offspring to inherit. Hot-Blooded improves Fertility; Diligent increases work output.",
       hint: "The first valid creature pairing guarantees a safe one-day pregnancy, not a specific talent. Talent inheritance is a separate roll; moves are under Inheritance → Moves.",
       action: "breeding",
       actionLabel: "Open Breeding Pen",

@@ -14,10 +14,10 @@ export function getChapterOneFirstWeekLessons(save: GameSave): FirstWeekLesson[]
   return [
     {
       id: "chores", title: "Care for the ranch", days: "Day 1",
-      summary: "Learn the daily loop: read the brief, assign helpers, then review what happened overnight.",
-      checks: [{ label: "Assign Security Patrol", complete: p.choresAssigned }, { label: "Choose a second chore", complete: p.secondChoreAssigned }, { label: "Resolve the first night", complete: p.firstNightResolved }, { label: "Produce Feed or Materials, or repair damage", complete: p.resourceProblemSolved }],
-      tips: ["Keep a two-night Feed reserve before expanding. Chores provide supplies; Guild requests and battles provide repeatable Gold. New ranches start with 1,200 Gold, 14 Feed, and 4 Materials.", "Chores resolve when you finish the day. Their previews show expected output and resource needs.", "Read each helper’s availability and Energy. Keep enough Feed for the creatures living on your ranch.", "Open Today to review the Morning Brief and overnight results. Daily goals are extra opportunities, not mandatory lessons."],
-      destinations: [{ label: "Open Ranch Chores", action: "chores" }, { label: "Review Today", action: "ranch" }],
+      summary: "Learn the daily loop: read the brief, work at your farm locations, then review feeding and recovery overnight.",
+      checks: [{ label: "Complete a work action", complete: p.choresAssigned }, { label: "Complete another work action", complete: p.secondChoreAssigned }, { label: "Resolve the first night", complete: p.firstNightResolved }, { label: "Gather supplies or repair damage", complete: p.resourceProblemSolved }],
+      tips: ["Keep a food reserve before expanding. Farm work provides specific supplies; Guild requests and battles provide repeatable Gold.", "Work resolves instantly and costs creature Energy only. Preview output before confirming.", "Read each worker’s availability and Energy. Cook Balanced rations or enable unreserved ingredients for nightly feeding.", "Open Today to review the Morning Brief and overnight results. Daily goals are extra opportunities, not mandatory lessons."],
+      destinations: [{ label: "Open Farm Management", action: "chores" }, { label: "Review Today", action: "ranch" }],
     },
     {
       id: "town", title: "Find your way around town", days: "Days 2–3",

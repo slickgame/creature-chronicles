@@ -1,5 +1,7 @@
 "use client";
 
+import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
+import { isNylaBaseFeline, getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CREATURE_PLACEHOLDER_IMAGE, FAMILY_LABELS, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
 import { getActivePregnancyForCreature, getEstimatedDeliveryDateLabel } from "@/data/nursery";
@@ -121,7 +123,7 @@ export function HabitatScreen() {
       </section>
       <div className={styles.stage}>
         <section className={styles.residentView} aria-label="Selected creature">
-          {selected && variant ? <img data-habitat-fullbody src={variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${selected.nickname}, full body`} onError={event => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} /> : <div className={`${ui.paper} ${styles.empty}`}><h2>Room to grow</h2><p>This habitat has {habitat.capacity} open spaces. New {FAMILY_LABELS[activeHabitatFamily].toLowerCase()} creatures live here automatically.</p><button type="button" className={ui.primary} onClick={goToBreeding}>Visit Breeding Pen</button></div>}
+          {selected && variant ? <img data-habitat-fullbody src={getEquineGameplayProfileSprite(selected, getNylaGameplayProfileSprite(selected, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selected.nickname}, full body`} onError={event => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} /> : <div className={`${ui.paper} ${styles.empty}`}><h2>Room to grow</h2><p>This habitat has {habitat.capacity} open spaces. New {FAMILY_LABELS[activeHabitatFamily].toLowerCase()} creatures live here automatically.</p><button type="button" className={ui.primary} onClick={goToBreeding}>Visit Breeding Pen</button></div>}
         </section>
         {selected && variant && status ? <aside className={`${ui.paper} ${styles.care}`} aria-label="Resident care">
           <div className={styles.identity}><h2 data-ui-text="single-line" title={selected.nickname}>{selected.nickname}{selected.shiny ? " ✦" : ""}{selected.isLocked ? " · Protected" : ""}</h2><p>{variant.rarity} {getSpeciesDefinition(selected.speciesId).name} · Level {selected.level}</p></div>
@@ -144,7 +146,7 @@ export function HabitatScreen() {
         <button type="button" aria-label="Previous residents" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>‹</button>
         <div ref={stripRef} className={styles.residents}>
           {creatures.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map(creature => <button type="button" key={creature.creatureId} className={`${styles.resident} ${selected?.creatureId === creature.creatureId ? styles.selected : ""}`} aria-pressed={selected?.creatureId === creature.creatureId} onClick={() => select(creature)}>
-            <img src={getVariantDefinition(creature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt="" onError={event => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
+            <img data-nyla-card={isNylaBaseFeline(creature) ? "true" : undefined} src={getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, getVariantDefinition(creature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE))} alt="" onError={event => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
             <span><strong data-ui-text="single-line" title={creature.nickname}>{creature.nickname}{creature.shiny ? " ✦" : ""}</strong><small className={statuses.get(creature.creatureId)?.needsAttention ? styles.warningText : ""}>{statusLabel(creature)}</small></span>
           </button>)}
           {!creatures.length ? <p>No residents yet</p> : null}
@@ -154,7 +156,7 @@ export function HabitatScreen() {
       </section>
     </section>
     {popup === "profile" && selected ? <GameDialog title={`${selected.nickname} · Full Profile`} wide onClose={() => setPopup(null)}>
-      <SharedCreatureDetail creature={selected} dayNumber={day} dossier statusNote={statusNote} bestStatLabels={getBestStatLabels(selected)} showActions={false} />
+      <SharedCreatureDetail useGameplayArt creature={selected} dayNumber={day} dossier statusNote={statusNote} bestStatLabels={getBestStatLabels(selected)} showActions={false} />
       <div className={ui.actionRow}><button type="button" onClick={manage}>Manage {selected.nickname}</button></div>
     </GameDialog> : null}
     {popup === "manage" && selected ? <GameDialog title={`Manage ${selected.nickname}`} onClose={() => setPopup(null)}><div className={styles.management}>

@@ -1,3 +1,6 @@
+import { getFarmState, planIngredientFeeding, workerBlocker } from "./farmResources";
+import { getVariantDefinition } from "./creatures";
+import { isCreatureAwayForTraining } from "./trainingGrounds";
 import { updateDailyGoalsAndRewards } from "@/data/ranch-day/ranchDayGoals";
 import { projectRanchDay } from "@/data/ranch-day/ranchDayLifecycle";
 import { enterEveningReview } from "@/data/ranch-day/ranchDayState";
@@ -31,25 +34,15 @@ export function getRanchPlanner(save: GameSave) {
   const projected = projectRanchDay(
     enterEveningReview(structuredClone(save)),
   )!.save;
+  const farm = getFarmState(save);
   const stock = numberFlag(save.flags.ranchFeedStock);
-  const produced = numberFlag(projected.flags.ranchFeedProducedToday);
+  const produced = 0; // Instant work is already in stock; never add it twice.
   const required = numberFlag(projected.flags.ranchFeedRequiredToday);
-  const rewardFeed = Math.max(
-    0,
-    numberFlag(
-      updateDailyGoalsAndRewards(structuredClone(save)).flags.ranchFeedStock,
-    ) - stock,
-  );
-  const available = stock + rewardFeed + produced;
-  const shortage = Math.max(0, required - available);
-  const jobs = getRanchJobs(save);
-  const assigned = new Set(RANCH_JOB_IDS.flatMap((id) => jobs.assignments[id]));
-  const eligible = new Set(
-    RANCH_JOB_IDS.filter((id) => jobs.assignments[id].length < 3).flatMap(
-      (id) => getEligibleCreaturesForJob(save, id).map((c) => c.creatureId),
-    ),
-  );
-  const unassigned = [...eligible].filter((id) => !assigned.has(id)).length;
+  const rewardFeed = 0;
+  const covered = numberFlag(projected.flags.ranchFeedConsumedToday);
+  const available = covered;
+  const shortage = Math.max(0, required - covered);
+  const unassigned = (save.creatures ?? []).filter(c=>!workerBlocker(save,c,"woodlot")).length;
   const readyEggs = (save.eggs ?? []).filter(
     (egg) => egg.status === "ready",
   ).length;
@@ -63,14 +56,14 @@ export function getRanchPlanner(save: GameSave) {
   const rows: PlannerRow[] = [
     {
       id: "feed",
-      title: "Feed tonight",
-      detail: `${stock} in storage + ${produced} from chores${rewardFeed ? ` + ${rewardFeed} earned rewards` : ""} · ${required} projected need`,
+      title: "Food tonight",
+      detail: `${covered}/${required} food units covered by available rations, enabled ingredients, and legacy Feed.`,
       status: shortage
         ? `Short by ${shortage}`
-        : `${available - required} left after feeding`,
+        : "Food needs covered",
       attention: shortage > 0,
-      action: "Buy Feed",
-      destination: "supplies",
+      action: "Manage food",
+      destination: "chores",
     },
     {
       id: "nursery",
@@ -85,13 +78,11 @@ export function getRanchPlanner(save: GameSave) {
     },
     {
       id: "chores",
-      title: "Ranch Chores",
-      detail: unassigned
-        ? `${unassigned} eligible helper${unassigned === 1 ? " has" : "s have"} no assignment.`
-        : "No eligible unassigned helpers for open chore slots.",
-      status: `${assigned.size} assigned`,
-      attention: unassigned > 0,
-      action: "Open Chores",
+      title: "Farm work",
+      detail: `${unassigned} creatures have Energy available. Work is optional and resolves immediately.`,
+      status: `${farm.workDay === save.dayState.dayNumber ? farm.workCount ?? 0 : 0} actions today`,
+      attention: false,
+      action: "Manage farm",
       destination: "chores",
     },
     {
@@ -106,7 +97,7 @@ export function getRanchPlanner(save: GameSave) {
     {
       id: "condition",
       title: "Ranch condition",
-      detail: `${damage}/100 damage. Repairs and upkeep improve overnight recovery.`,
+      detail: `${damage}/100 damage. Repairs restore protection and overnight recovery.`,
       status:
         damage >= 80
           ? "Critical"

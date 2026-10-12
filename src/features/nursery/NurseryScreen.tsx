@@ -1,4 +1,5 @@
 "use client";
+import { gameplayArt } from "@/data/creatureGameplayArt";
 import { TalentOutcome } from "@/features/creatures/TalentOutcome";
 
 import { type ReactNode, useMemo, useState } from "react";
@@ -318,7 +319,7 @@ function HatchRevealModal({
   ].slice(0, 12);
 
   return <GameDialog title={`${creature.nickname} hatched!`} onClose={onConfirm} wide>
-    <div className={styles.reveal}><img className={styles.hatchPortrait} src={getVariantDefinition(creature.variantId).profilePath || getVariantDefinition(creature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${creature.nickname} full body`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /><p>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName} · {lineageLabel}</p>
+    <div className={styles.reveal}><img className={styles.hatchPortrait} src={gameplayArt(creature)} alt={`${creature.nickname} full body`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /><p>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName} · {lineageLabel}</p>
       <TalentOutcome talents={creature.abilities} notes={egg.abilityRollNotes} />
       <SharedCreatureDetail creature={creature} mode="full" showActions={false} dossier />
       <details><summary>Roll Notes</summary><ul>{notes.length ? notes.map((note,index) => <li key={`${index}-${note}`}>{note}</li>) : <li>No additional roll notes recorded.</li>}</ul></details>

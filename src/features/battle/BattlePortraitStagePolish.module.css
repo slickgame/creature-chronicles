@@ -129,3 +129,15 @@
   .combatant:has(.portraitWindow img[src*="cow"]),
   .combatant:has(.portraitWindow img[src*="bull"]) { --portrait-scale: 0.92 !important; }
 }
+
+/* Approved Nyla 08 has ~15% transparent space below its substantial KO silhouette.
+   Ground only this pose; keep the species scale and all other variants intact. */
+.combatant[data-nyla-pose="ko"][data-side][data-slot] {
+  --portrait-offset-y: 12% !important;
+}
+
+@media (max-width: 850px) {
+  .combatant[data-nyla-pose="ko"][data-side][data-slot] {
+    --portrait-offset-y: 10% !important;
+  }
+}

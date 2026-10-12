@@ -6,8 +6,8 @@ import type { GuildContract, GuildObjective, GuildActionResult } from "@/types/g
 import type { ContractId } from "@/types/ids";
 import type { RanchJobResult } from "@/types/ranchJobs";
 
-export const GUILD_REQUEST_LABELS = { delivery: "Delivery", chore_commission: "Chore Commission", battle_bounty: "Battle Bounty", service_creature: "Creature Service", donate_creature: "Permanent Placement" } as const;
-const JOB_NAMES = { security_patrol: "Security Patrol", comfort_care: "Comfort Care", stable_production: "Stable Production", garden_tending: "Garden Tending", field_hauling: "Field Hauling" };
+export const GUILD_REQUEST_LABELS = { delivery: "Delivery", chore_commission: "Work Commission", battle_bounty: "Battle Bounty", service_creature: "Creature Service", donate_creature: "Permanent Placement" } as const;
+const JOB_NAMES = { security_patrol: "Farm Work", comfort_care: "Farm Work", stable_production: "Food Gathering", garden_tending: "Garden Work", field_hauling: "Material Gathering" };
 export function safeMissionCount(value: unknown): number { const n = Number(value); return Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0; }
 export function recordGuildChoreWork(save: GameSave, results: RanchJobResult[]): GameSave["flags"] {
   const flags = { ...save.flags };
@@ -25,6 +25,7 @@ export function getGuildObjectiveCount(save: GameSave, objective: GuildObjective
     const state = getFarmState(save);
     return Math.max(0, (state.stock[objective.resource] ?? 0) - (state.reserves[objective.resource] ?? 0));
   }
+  if (objective.kind === "chore" && ["security_patrol","comfort_care"].includes(objective.jobId)) return safeMissionCount(save.flags[`guildChoreCompletions_${objective.jobId}`]) + safeMissionCount(save.flags.farmWorkActions);
   return safeMissionCount(save.flags[objective.kind === "battle" ? "guildBattleWins" : `guildChoreCompletions_${objective.jobId}`]);
 }
 export function getGuildCommissionProgress(save: GameSave, contract: GuildContract) {
@@ -36,8 +37,8 @@ export function getGuildCommissionProgress(save: GameSave, contract: GuildContra
   const accepted = contract.status === "accepted";
   const current = completed ? target : objective.kind === "delivery" ? getGuildObjectiveCount(save, objective) : accepted ? Math.max(0, getGuildObjectiveCount(save, objective) - (contract.objectiveBaseline ?? getGuildObjectiveCount(save, objective))) : 0;
   const ready = accepted && !expired && current >= target;
-  const unit = objective.kind === "delivery" ? deliveryName(objective.resource) : objective.kind === "battle" ? "recorded victories" : "completed helper shifts";
-  const instruction = objective.kind === "delivery" ? `Hand over ${target} ${unit}. Only unreserved stock counts. Stock is deducted when you confirm delivery.` : objective.kind === "battle" ? `Record ${target} Coliseum ${target === 1 ? "victory" : "victories"} after accepting. Circuit and challenge wins count; losses and draws do not.` : `Complete ${target} helper ${target === 1 ? "shift" : "shifts"} on ${JOB_NAMES[objective.jobId]} after accepting. Each rested helper who finishes the chore during overnight processing counts once.`;
+  const unit = objective.kind === "delivery" ? deliveryName(objective.resource) : objective.kind === "battle" ? "recorded victories" : "completed work actions";
+  const instruction = objective.kind === "delivery" ? `Hand over ${target} ${unit}. Only unreserved stock counts. Stock is deducted when you confirm delivery.` : objective.kind === "battle" ? `Record ${target} Coliseum ${target === 1 ? "victory" : "victories"} after accepting. Circuit and challenge wins count; losses and draws do not.` : `Complete ${target} work ${target === 1 ? "action" : "actions"} on ${JOB_NAMES[objective.jobId]} after accepting. Each instant work action at a matching farm location counts once.`;
   return { current, target, unit, ready, instruction, status: completed ? "Completed" : expired ? "Expired" : !accepted ? "Accept to begin" : ready ? "Ready to claim" : "In progress", remaining: Math.max(0, target - current) };
 }
 
@@ -54,19 +55,19 @@ export function createWeeklyCommissions(save: GameSave): GuildContract[] {
     ...(facilities.sawmill ? [{title:"Planks for the Workshop",resource:"planks" as const,amount:6,gold:150,gp:16}] : []),
     ...(facilities.forge ? [{title:"Nails for Town Repairs",resource:"nails" as const,amount:8,gold:125,gp:18}] : []),
   ];
-  const chores = ["garden_tending", "security_patrol", "field_hauling", "comfort_care", "stable_production"] as const;
+  const chores = ["garden_tending", "field_hauling", "stable_production"] as const;
   const delivery = deliveryOptions[(Math.floor(guildRandom(save, "delivery", false) * deliveryOptions.length) + guildRoll(save)) % deliveryOptions.length];
   const jobId = chores[(Math.floor(guildRandom(save, "chore", false) * chores.length) + guildRoll(save)) % chores.length];
   const effects = getTownUpgradeEffects(save);
   const battleWins = (advanced ? 2 : 1) + ((Math.floor(guildRandom(save, "bounty-target", false) * 2) + guildRoll(save)) % 2);
   const entries: Array<{ title: string; description: string; objective: GuildObjective; type: GuildContract["type"]; gold: number; gp: number; requester: string }> = [
     { title: delivery.title, description: "The town needs a small supply delivery. Check what your own ranch will need overnight before committing its stock.", objective: {kind:"delivery", resource:delivery.resource, amount:delivery.amount}, type:"delivery", gold:delivery.gold, gp:delivery.gp, requester:"Pella Mosswick" },
-    { title: `${JOB_NAMES[jobId]} Commission`, description: "Mara is rewarding reliable ranch work. Accept first, assign helpers at the chore board, then return after their shifts are recorded.", objective: {kind:"chore", jobId, amount:advanced ? 4 : 2}, type:"chore_commission", gold:advanced ? 125 : 75, gp:advanced ? 18 : 12, requester:"Mara Vell" },
+    { title: `${JOB_NAMES[jobId]} Commission`, description: "Mara is rewarding reliable ranch work. Accept first, complete instant work actions at matching farm locations, then return for payment.", objective: {kind:"chore", jobId, amount:advanced ? 4 : 2}, type:"chore_commission", gold:advanced ? 125 : 75, gp:advanced ? 18 : 12, requester:"Mara Vell" },
     { title: battleWins === 1 ? "First Steps in the Arena" : battleWins === 2 ? "Two Victories for the Guild" : "Three Victories for the Guild", description: "The Guild sponsors ranch teams willing to test their training. These victories need not be consecutive, and no creature is handed over.", objective: {kind:"battle", amount:battleWins}, type:"battle_bounty", gold:60 + battleWins * 35, gp:6 + battleWins * 6, requester:"Ranger Captain" },
   ];
   return entries.map((entry, index) => ({
     contractId:`guild_commission_${week}_${index}${guildRoll(save) ? `_r${guildRoll(save)}` : ""}` as ContractId,weekNumber:week,tier:advanced ? "silver" : "bronze",type:entry.type,category:entry.type === "battle_bounty" ? "security" : "restoration",requesterId:entry.type === "delivery" ? "pella_mosswick" : entry.type === "chore_commission" ? "mara_vell" : "ranger_captain",requesterName:entry.requester,trustTarget:"Guild",status:"available",title:entry.title,description:entry.description,
-    requirement:{kind:"objective",label:entry.objective.kind === "delivery" ? `${entry.objective.amount} ${deliveryName(entry.objective.resource)}` : entry.objective.kind === "chore" ? `${entry.objective.amount} ${JOB_NAMES[entry.objective.jobId]} shifts` : `${entry.objective.amount} Coliseum ${entry.objective.amount === 1 ? "win" : "wins"}`},objective:entry.objective,
+    requirement:{kind:"objective",label:entry.objective.kind === "delivery" ? `${entry.objective.amount} ${deliveryName(entry.objective.resource)}` : entry.objective.kind === "chore" ? `${entry.objective.amount} ${JOB_NAMES[entry.objective.jobId]} actions` : `${entry.objective.amount} Coliseum ${entry.objective.amount === 1 ? "win" : "wins"}`},objective:entry.objective,
     goldReward:Math.round(entry.gold * effects.guildGoldRewardMultiplier / 5) * 5,guildPointReward:entry.gp + effects.guildBonusGp,createdAtDayNumber:save.dayState.dayNumber,expiresAtWeekNumber:week+1,
   }));
 }

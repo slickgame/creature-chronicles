@@ -51,7 +51,7 @@ test("Hot-Blooded increases actual breeding fertility without changing innate st
 
 test("general talents reach chore, recovery and battle calculations", () => {
   for (const job of ["security_patrol", "field_hauling"] as const) {
-    assert.equal(getChoreTalentSummary([createGeneralTalent("diligent", "S")], job).scoreBonus, 2);
+    assert.equal(getChoreTalentSummary([createGeneralTalent("diligent", "S")], job).scoreBonus, 6);
     assert.equal(getChoreTalentSummary([createGeneralTalent("eager_learner", "C")], job).xpPercent, 10);
   }
   assert.equal(getRecoveryTalentSummary([createGeneralTalent("sound_sleeper", "A")]).energyPercent, 20);
@@ -69,7 +69,7 @@ test("all species can roll the same market talents with real grade variety", () 
     const ids = new Set<string>(); const grades = new Set<string>();
     for (let n = 0; n < 300; n++) {
       const talents = rollMarketAbilitiesForTier(`market-${n}`, creature.speciesId, creature.variantId, 4);
-      for (const talent of talents) { assert.ok(allowed.has(talent.id)); assert.equal(talent.source, "general"); ids.add(talent.id); grades.add(talent.grade); }
+      for (const talent of talents) { if(talent.id === "guard_dog") { assert.equal(creature.speciesId,"species_canine"); continue; } assert.ok(allowed.has(talent.id)); assert.equal(talent.source, "general"); ids.add(talent.id); grades.add(talent.grade); }
     }
     assert.equal(ids.size, allowed.size);
     assert.ok(grades.size >= 4);
@@ -99,7 +99,7 @@ test("starter talents and legitimately talentless creatures survive save reload"
   Object.defineProperty(globalThis, "window", { value: { localStorage: storage }, configurable: true });
   try {
     const save = createNewGameSave("Persistence", 0);
-    assert.ok(save.creatures!.every(c => c.abilities.length === 1 && allowed.has(c.abilities[0].id)));
+    assert.ok(save.creatures!.every(c => c.abilities.some(a=>allowed.has(a.id)) && c.abilities.every(a=>allowed.has(a.id)||(c.speciesId==="species_canine"&&a.id==="guard_dog"))));
     save.creatures![0].abilities = [createGeneralTalent("hot_blooded", "S")];
     save.creatures![1].abilities = [];
     const expected = save.creatures!.map(c => c.abilities.map(t => [t.id,t.grade]));

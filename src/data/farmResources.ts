@@ -1,3 +1,7 @@
+import { getRanchUpgradeEffects } from "./ranchUpgrades";
+import { getChoreTalentSummary } from "./talents/talentEngine";
+import { gainCreatureChoreSkillXp, getChoreSkillXpGain, getCreatureChoreSkillLevelForJob } from "./choreSkills";
+import type { RanchJobId } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
 import type { CreatureRecord } from "@/types/creature";
 import { getVariantDefinition } from "@/data/creatures";
@@ -15,13 +19,13 @@ export type ResourceId = keyof typeof RESOURCES;
 export type Stock = Partial<Record<ResourceId, number>>;
 export const RESOURCE_IDS = Object.keys(RESOURCES) as ResourceId[];
 export const FACILITIES = {
-  quarry: { name: "Quarry", gold: 180, inputs: { wood: 6 }, prerequisite: "", description: "Unlock stone gathering; one helper." },
+  quarry: { name: "Quarry", gold: 180, inputs: { wood: 6 }, prerequisite: "", description: "Unlock stone gathering; instant work." },
   sawmill: { name: "Sawmill", gold: 240, inputs: { wood: 8, stone: 4 }, prerequisite: "", description: "Double plank output from each recipe." },
   kiln: { name: "Charcoal kiln", gold: 160, inputs: { wood: 4, stone: 6 }, prerequisite: "quarry", description: "Unlock charcoal production." },
   furnace: { name: "Iron furnace", gold: 280, inputs: { stone: 10, planks: 4 }, prerequisite: "kiln", description: "Smelt iron ore using charcoal." },
   forge: { name: "Small forge", gold: 320, inputs: { stone: 8, iron: 2 }, prerequisite: "furnace", description: "Make nails from iron ingots." },
-  woodlot_upgrade: { name: "Managed woodlot", gold: 220, inputs: { planks: 4, stone: 4 }, prerequisite: "", description: "+2 Wood per helper; two worker slots." },
-  mine_upgrade: { name: "Supported iron mine", gold: 300, inputs: { planks: 6, nails: 4 }, prerequisite: "forge", description: "+1 Iron ore per helper; two worker slots." },
+  woodlot_upgrade: { name: "Managed woodlot", gold: 220, inputs: { planks: 4, stone: 4 }, prerequisite: "", description: "+2 Wood per work action." },
+  mine_upgrade: { name: "Supported iron mine", gold: 300, inputs: { planks: 6, nails: 4 }, prerequisite: "forge", description: "+1 Iron ore per work action." },
 } satisfies Record<string, { name: string; gold: number; inputs: Stock; prerequisite: string; description: string }>;
 export type FacilityId = keyof typeof FACILITIES;
 export const SITES = {
@@ -39,7 +43,7 @@ export const RECIPES: { id: ResourceId; inputs: Stock; output: number; facility?
   { id: "porridge", inputs: { wheat: 1, vegetables: 1 }, output: 1, effect: "Restore 8 creature Energy; once per day." },
   { id: "breakfast", inputs: { wheat: 1, eggs: 1, milk: 1 }, output: 1, effect: "Restore 15 creature Energy; once per day." },
   { id: "breeders_bowl", inputs: { eggs: 1, milk: 1, vegetables: 1 }, output: 1, effect: "+10 percentage points to pregnancy chance today; existing 90% cap applies." },
-  { id: "stew", inputs: { meat: 1, vegetables: 2 }, output: 1, effect: "15% lower chore and gathering Energy cost tonight." },
+  { id: "stew", inputs: { meat: 1, vegetables: 2 }, output: 1, effect: "15% lower work Energy cost for the rest of today." },
   { id: "planks", inputs: { wood: 2 }, output: 1, effect: "Workbench recipe; Sawmill doubles output." },
   { id: "charcoal", inputs: { wood: 2 }, output: 2, facility: "kiln", effect: "Fuel for smelting." },
   { id: "iron", inputs: { iron_ore: 2, charcoal: 1 }, output: 1, facility: "furnace", effect: "Refined metal for construction and crafting." },
@@ -52,7 +56,7 @@ export const SUPPLY_ORDERS: { id: string; name: string; inputs: Stock; gold: num
   { id: "nails", name: "Fasteners for the town", inputs: { nails: 8 }, gold: 160, gp: 6, prerequisite: "forge" },
 ];
 export type FarmState = {
-  version: 1; ingredientFeeding?: boolean; stock: Stock; reserves: Stock; assignments: Partial<Record<SiteId, string[]>>;
+  workDay?: number; workOutput?: Stock; workCount?: number; workLog?: string[]; version: 1; ingredientFeeding?: boolean; stock: Stock; reserves: Stock; assignments: Partial<Record<SiteId, string[]>>;
   facilities: Partial<Record<FacilityId, boolean>>; lastDay: number;
   project?: { id: FacilityId; readyDay: number };
   meals: Record<string, { id: ResourceId; day: number }>;
@@ -75,30 +79,56 @@ function done(save: GameSave, state: FarmState, message: string): FarmResult { r
 export function resourceList(stock: Stock): string { return (Object.entries(stock) as [ResourceId, number][]).map(([id, n]) => `${n} ${RESOURCES[id].name}`).join(" + "); }
 export function canSpend(state: FarmState, cost: Stock): boolean { return (Object.entries(cost) as [ResourceId, number][]).every(([id, n]) => (state.stock[id] ?? 0) - (state.reserves[id] ?? 0) >= n); }
 function spend(state: FarmState, cost: Stock) { for (const [id, n] of Object.entries(cost) as [ResourceId, number][]) state.stock[id] = (state.stock[id] ?? 0) - n; }
-export function resourceAssignment(save: GameSave, id: string): SiteId | undefined { return (Object.keys(SITES) as SiteId[]).find(site => getFarmState(save).assignments[site]?.includes(id)); }
-export function workerBlocker(save: GameSave, c: CreatureRecord, site: SiteId, overnight = false): string | null {
+export function resourceAssignment(_save: GameSave, _id: string): SiteId | undefined { return undefined; }
+export function workerBlocker(save: GameSave, c: CreatureRecord, site: SiteId, _overnight = false): string | null {
   const state = getFarmState(save);
   if (site === "quarry" && !state.facilities.quarry) return "Build the Quarry first.";
   if (site === "dairy" && (getVariantDefinition(c.variantId).family !== "bovine" || c.sex !== "female")) return "Milk production requires a female bovine.";
   if (getTrainingUnavailableReason(save, c.creatureId)) return "Away at training.";
   if ((c.injuredUntilDayNumber ?? -1) >= save.dayState.dayNumber) return "Recovering from injury.";
-  if (Object.values(save.ranchJobs?.assignments ?? {}).some(ids => ids.includes(c.creatureId))) return "Already assigned to a ranch chore.";
-  const assignment = resourceAssignment(save, c.creatureId);
-  if (assignment && assignment !== site) return `Already assigned to ${SITES[assignment].name}.`;
-  if (c.energy < (overnight ? overnightChoreCost(save, c.creatureId, 20) : gatheringCost(save, c.creatureId))) return "Not enough Energy for gathering.";
+
+  if (c.energy < workPreview(save, site, c).energy) return "Not enough Energy for gathering.";
   return null;
 }
-export function assignResourceWorker(save: GameSave, site: SiteId, id: string): FarmResult {
-  if (!SITES[site]) return fail(save, "Unknown gathering site.");
-  const state = getFarmState(save), crew = state.assignments[site] ?? [];
-  if (crew.includes(id)) { state.assignments[site] = crew.filter(x => x !== id); return done(save, state, "Helper removed."); }
+/** Compatibility entrypoint: an explicit click now performs one instant work action. */
+export const assignResourceWorker = workResourceSite;
+export function siteJob(site: SiteId): RanchJobId { return ["woodlot", "iron_deposit", "quarry"].includes(site) ? "field_hauling" : site === "dairy" || site === "hunting" ? "stable_production" : "garden_tending"; }
+export function workPreview(save: GameSave, site: SiteId, creature: CreatureRecord) {
+  const talent = getChoreTalentSummary(creature.abilities, siteJob(site));
+  const upgrades = getRanchUpgradeEffects(save);
+  const skillBonus = Math.floor((getCreatureChoreSkillLevelForJob(creature, siteJob(site)) - 1) / 5);
+  const amount = skillBonus + siteYield(getFarmState(save), site) + Math.floor(Math.max(0, talent.scoreBonus)) + upgrades.ranchChoreScoreBonus;
+  return { amount, energy: Math.max(8, gatheringCost(save, creature.creatureId) - talent.energyDiscount - upgrades.ranchChoreEnergyDiscount), xp: getChoreSkillXpGain(amount, talent.xpPercent) };
+}
+export function workResourceSite(save: GameSave, site: SiteId, id: string): FarmResult {
+  if (!SITES[site]) return fail(save, "Unknown work location.");
   const c = save.creatures?.find(c => c.creatureId === id);
   if (!c) return fail(save, "Creature not found.");
   const reason = workerBlocker(save, c, site);
   if (reason) return fail(save, reason);
-  if (crew.length >= siteSlots(state, site)) return fail(save, "All worker slots are filled.");
-  state.assignments[site] = [...crew, id];
-  return done(save, state, `${c.nickname} assigned. Production resolves when you sleep.`);
+  const state = getFarmState(save), preview = workPreview(save, site, c), resource = SITES[site].resource;
+  if (c.energy < preview.energy) return fail(save, "Not enough Energy for work.");
+  const job = siteJob(site);
+  const progressed = gainCreatureChoreSkillXp({ ...c, energy: c.energy - preview.energy }, job, preview.xp).creature;
+  if (state.workDay !== save.dayState.dayNumber) { state.workDay = save.dayState.dayNumber; state.workOutput = {}; state.workCount = 0; state.workLog = []; }
+  state.assignments = {};
+  state.stock[resource] = (state.stock[resource] ?? 0) + preview.amount;
+  state.workOutput = { ...state.workOutput, [resource]: (state.workOutput?.[resource] ?? 0) + preview.amount };
+  state.workCount = (state.workCount ?? 0) + 1;
+  const message = `${c.nickname}: +${preview.amount} ${RESOURCES[resource].name}, −${preview.energy} Energy. No Gold charged.`;
+  state.workLog = [...(state.workLog ?? []), message].slice(-30);
+  const food = RESOURCES[resource].category === "Food";
+  const flags = { ...save.flags,
+    farmWorkActions: Number(save.flags.farmWorkActions ?? 0) + 1,
+    [`farmWork_${site}`]: Number(save.flags[`farmWork_${site}`] ?? 0) + 1,
+    [`guildChoreCompletions_${job}`]: Number(save.flags[`guildChoreCompletions_${job}`] ?? 0) + 1,
+    productionWoodGathered: Number(save.flags.productionWoodGathered ?? 0) + (resource === "wood" ? preview.amount : 0),
+    farmFoodProduced: Number(save.flags.farmFoodProduced ?? 0) + (food ? preview.amount : 0),
+    chapterOneGuidedChoresAssigned: true,
+    chapterOneGuidedSecondChoreAssigned: Number(save.flags.farmWorkActions ?? 0) >= 1,
+    m14RanchJobAssigned: true,
+  };
+  return done({ ...save, flags, creatures: save.creatures?.map(x => x.creatureId === id ? progressed : x) }, state, message);
 }
 export function siteSlots(state: FarmState, site: SiteId) { return (site === "woodlot" && state.facilities.woodlot_upgrade) || (site === "iron_deposit" && state.facilities.mine_upgrade) ? 2 : 1; }
 export function siteYield(state: FarmState, site: SiteId) { return SITES[site].amount + (site === "woodlot" && state.facilities.woodlot_upgrade ? 2 : site === "iron_deposit" && state.facilities.mine_upgrade ? 1 : 0); }
@@ -108,29 +138,16 @@ export function processResourceDay(save: GameSave): GameSave {
   const state = getFarmState(save);
   if (state.lastDay >= save.dayState.dayNumber) return save;
   state.report = [];
-  // Overnight receives the new date. Meals from the previous day apply to this work.
-  let gatheredWood = 0;
-  const creatures = (save.creatures ?? []).map(c => ({ ...c }));
-  for (const site of Object.keys(SITES) as SiteId[]) {
-    for (const id of (state.assignments[site] ?? []).slice(0, siteSlots(state, site))) {
-      const c = creatures.find(c => c.creatureId === id);
-      if (!c) continue;
-      const reason = workerBlocker(save, c, site, true);
-      if (reason) { state.report.push(`${c.nickname}: ${reason}`); continue; }
-      const amount = siteYield(state, site), resource = SITES[site].resource;
-      if (resource === "wood") gatheredWood += amount;
-      c.energy -= overnightChoreCost(save, id, 20);
-      state.stock[resource] = (state.stock[resource] ?? 0) + amount;
-      state.report.push(`${c.nickname}: +${amount} ${RESOURCES[resource].name}.`);
-    }
-  }
+  // Work has already resolved. Never replay legacy assignments at night.
+  state.assignments = {};
+  if (state.workDay === save.dayState.dayNumber - 1) state.report = [...(state.workLog ?? [])];
   if (state.project && state.project.readyDay <= save.dayState.dayNumber) {
     state.facilities[state.project.id] = true;
     state.report.push(`${FACILITIES[state.project.id].name} completed and ready to use.`);
     delete state.project;
   }
   state.lastDay = save.dayState.dayNumber;
-  return write({ ...save, creatures, flags: { ...save.flags, productionWoodGathered: Number(save.flags.productionWoodGathered ?? 0) + gatheredWood } }, state);
+  return write(save, state);
 }
 export function craftResource(save: GameSave, id: ResourceId, quantity = 1): FarmResult {
   const recipe = RECIPES.find(r => r.id === id), state = getFarmState(save);
@@ -242,7 +259,7 @@ export function grantFarmResources(save: GameSave, rewards: Stock): GameSave {
 export function getProductionGuide(save: GameSave) {
   const state = getFarmState(save);
   return [
-    { title: "Gather your first timber", tab: "Gathering" as const, done: Number(save.flags.productionWoodGathered ?? 0) >= 4, text: "Assign a helper to the inherited woodlot or Field Hauling, then sleep. Gather at least 4 Wood. A woodlot helper brings 4 per night." },
+    { title: "Gather your first timber", tab: "Gathering" as const, done: Number(save.flags.productionWoodGathered ?? 0) >= 4, text: "Choose a creature at the inherited Woodlot and press Work. Collect at least 4 Wood instantly; only creature Energy is spent." },
     { title: "Keep a repair reserve", tab: "Storage" as const, done: save.flags.productionReserveSet === true, text: "Set the Wood reserve to 2. Reserved supplies are protected from crafting, feeding, selling and construction." },
     { title: "Craft your first planks", tab: "Workbench" as const, done: Number(save.flags.productionPlanksCrafted ?? 0) >= 1, text: "Make Planks at the basic workbench: 2 unreserved Wood makes 1 Plank. A Sawmill later doubles that output." },
     { title: "Finish a production site", tab: "Construction" as const, done: Object.values(state.facilities).some(Boolean), text: "Visit Petra’s Builder’s Yard → Production sites & upgrades. A Quarry costs 180 Gold + 6 Wood and finishes after one night. For this whole lesson, gather 10 Wood: 2 reserved, 2 for planks and 6 for the Quarry." },

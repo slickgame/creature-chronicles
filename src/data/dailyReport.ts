@@ -1,4 +1,5 @@
-import { getFarmState } from "./farmResources";
+import { getFarmSecurity } from "./farmSecurity";
+import { getFarmState, resourceList } from "./farmResources";
 import type { RanchJobResult } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
 
@@ -44,27 +45,23 @@ export function buildDailyReportBundle(save: GameSave, jobResults: RanchJobResul
   const warnings: string[] = [];
   const nextSteps: string[] = [];
 
-  highlights.push(`Chores completed: ${jobResults.length}. Food units +${feedProduced}, Wood +${materialsProduced}.`);
+  const work = getFarmState(save);
+  highlights.push(`Produced through instant work: ${work.workDay === save.dayState.dayNumber - 1 ? resourceList(work.workOutput ?? {}) || "none" : "none"}.`);
+  highlights.push(`Feeding: ${feedConsumed}/${feedRequired} food units covered.`);
   highlights.push(`Ranch condition: ${condition} (${damage}/100 damage). Damage +${damageAdded}, repairs -${damageRepaired}.`);
-  if (securityScore > 0) highlights.push(`Security Patrol scored ${securityScore}, leaving danger around ${dangerChance}%.`);
-  if (comfortBonus > 0) highlights.push(`Comfort Care created a +${comfortBonus}% breeding comfort bonus for today.`);
-  if (upkeepScore > 0) highlights.push(`Field Hauling created ${upkeepScore} upkeep score and ${materialsStock} total Wood.`);
+  highlights.push(`Farm Security: ${getFarmSecurity(save).total}. Overnight incident chance: ${dangerChance}%.`);
   if (readyEggs > 0) highlights.push(`${readyEggs} egg${readyEggs === 1 ? " is" : "s are"} ready to hatch.`);
   else if (incubatingEggs > 0) highlights.push(`${incubatingEggs} egg${incubatingEggs === 1 ? " is" : "s are"} still incubating.`);
 
   if (foodStatus !== "Fed") warnings.push(`Food status is ${foodStatus}: ${feedConsumed}/${feedRequired} food units covered, ${feedStock} rations/Feed left.`);
-  if (securityScore <= 0) warnings.push("No Security Patrol resolved overnight. Danger remains high until a guard is assigned.");
-  if (upkeepScore <= 0) warnings.push("No Field Hauling resolved overnight. Routine ranch wear can build up without upkeep.");
-  if (damage >= 50) warnings.push(`Ranch damage is ${damage}/100. Repair or assign hauling before condition penalties get worse.`);
+  if (damage >= 50) warnings.push(`Ranch damage is ${damage}/100. Repair fortifications before condition penalties get worse.`);
   if (injuredCreatures.length) warnings.push(`${injuredCreatures.length} creature${injuredCreatures.length === 1 ? " is" : "s are"} injured and unavailable for some work.`);
   if (tiredCreatures.length) warnings.push(`${tiredCreatures.length} creature${tiredCreatures.length === 1 ? " is" : "s are"} very tired after recovery.`);
   if (taxDue > 0 && taxDays <= 7) warnings.push(`Tax pressure: ${taxDue} Gold due in ${taxDays} day${taxDays === 1 ? "" : "s"}.`);
 
   if (readyEggs > 0) nextSteps.push("Open the Nursery and hatch ready eggs before starting more incubation pressure.");
-  if (feedStock < Math.max(10, feedRequired)) nextSteps.push("Run Stable Production for balanced rations. Garden vegetables can be cooked or used with ingredient feeding enabled.");
-  if (securityScore <= 0) nextSteps.push("Assign a canine or strong guard to Security Patrol before sleeping again.");
-  if (damage >= 20 || upkeepScore <= 0) nextSteps.push("Assign an equine-style helper to Field Hauling or repair from the Ranch Office.");
-  if (comfortBonus <= 0) nextSteps.push("Assign a feline-style helper to Comfort Care if breeding is part of today's plan.");
+  if (feedStock < Math.max(10, feedRequired)) nextSteps.push("Gather vegetables and wheat, then cook Balanced rations. Ingredient feeding can cover shortages.");
+  if (damage >= 20) nextSteps.push("Repair fortifications in Farm Management → Security.");
   if (!nextSteps.length) nextSteps.push("Ranch pressure is stable. Use the day for breeding, market scouting, upgrades, or collection planning.");
 
   const summaryItems = [

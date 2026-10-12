@@ -37,7 +37,7 @@ export function RanchLedger({ compact = false, endDay = false, panel = false, mi
       <details className={styles.story} open={endDay || undefined}><summary>Ranch condition & training</summary>{planner.rows.filter(row => ["condition","training"].includes(row.id)).map(rowCard)}</details>
       {!endDay && game.currentSave?.ranchDay?.phase !== "morning" && <details className={styles.story}><summary>Morning Brief & Daily Records</summary><RanchDayDetails /></details>}
       {!endDay && !panel && <button data-tutorial-id="ranch-review-day" className={`${styles.primary} ${styles.endDay}`} type="button" onClick={() => open("end-day")}><RanchIcon name="moon" />Review & End Day <span aria-hidden="true">›</span></button>}
-      <p className={styles.note}>Feed includes projected overnight production. Eggs and training advance when you sleep; security events can affect the final report.</p>
+      <p className={styles.note}>Work supplies are already collected. Food is consumed and Energy recovers overnight; eggs, training and construction advance.</p>
     </>}
   </section>;
 }

@@ -1,21 +1,12 @@
-import { processResourceDay, overnightChoreCost, planIngredientFeeding, resourceList, grantFarmResources, getFarmState, type Stock } from "./farmResources";
-import { recordGuildChoreWork } from "./guildCommissions";
-import {
-  gainCreatureChoreSkillXp,
-  getChoreSkillAptitudeLabel,
-  getChoreSkillDefinition,
-  getChoreSkillXpGain,
-  getCreatureChoreSkillLevelForJob,
-  getJobChoreSkillId,
-} from "@/data/choreSkills";
+import { processResourceDay, planIngredientFeeding, resourceList, getFarmState } from "./farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import { resolvePredatorNightCheck } from "@/data/predatorEvents";
 import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
-import { getChoreTalentSummary, getRecoveryTalentSummary } from "@/data/talents/talentEngine";
-import { getTrainingUnavailableReason, isCreatureAwayForTraining } from "@/data/trainingGrounds";
-import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
+import { getRecoveryTalentSummary } from "@/data/talents/talentEngine";
+import { isCreatureAwayForTraining } from "@/data/trainingGrounds";
+import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
-import type { RanchJobAssignmentResult, RanchJobDefinition, RanchJobId, RanchJobResult, RanchJobsState } from "@/types/ranchJobs";
+import type { RanchJobAssignmentResult, RanchJobId, RanchJobResult } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
 import * as Base from "./ranchJobs";
 
@@ -23,17 +14,15 @@ export const RANCH_JOB_ASSETS = Base.RANCH_JOB_ASSETS;
 export const RANCH_JOB_IDS = Base.RANCH_JOB_IDS;
 export const RANCH_JOB_DEFINITIONS = Base.RANCH_JOB_DEFINITIONS;
 export const createDefaultRanchJobsState = Base.createDefaultRanchJobsState;
-export const getRanchJobs = Base.getRanchJobs;
+export function getRanchJobs(save: GameSave) { return { ...Base.getRanchJobs(save), assignments: createDefaultRanchJobsState().assignments }; }
 export const getRanchJobDefinition = Base.getRanchJobDefinition;
 export const getCreatureDisplayName = Base.getCreatureDisplayName;
 export const isCreatureEligibleForJob = Base.isCreatureEligibleForJob;
 export const getEligibleCreaturesForJob = Base.getEligibleCreaturesForJob;
 export const calculateCreatureChoreScore = Base.calculateCreatureChoreScore;
-export const assignCreatureToRanchJob = Base.assignCreatureToRanchJob;
+export function assignCreatureToRanchJob(save: GameSave, _jobId: RanchJobId, _creatureId: CreatureId | null): RanchJobAssignmentResult { return { save, ok: false, message: "Chores have been replaced. Open Farm Management and work at a location." }; }
 
 const MAX_RANCH_EVENT_LOG_ENTRIES = 50;
-const BASE_WEAR_CHANCE = 22;
-const HAULING_WEAR_CHANCE = 8;
 
 function isCreatureInjured(creature: CreatureRecord, dayNumber: number): boolean {
   return typeof creature.injuredUntilDayNumber === "number" && creature.injuredUntilDayNumber >= dayNumber;
@@ -57,43 +46,6 @@ function getDailyFeedCost(creature: CreatureRecord): number {
   return familyBaseCost + rareCost;
 }
 
-function getRelevantStats(jobId: RanchJobId): CreatureStatKey[] {
-  if (jobId === "security_patrol") return ["STR", "STA", "WIL", "FER"];
-  if (jobId === "comfort_care") return ["CHA", "WIL"];
-  if (jobId === "stable_production") return ["STR", "STA"];
-  if (jobId === "garden_tending") return ["DEX", "CHA"];
-  return ["STR", "STA", "DEX"];
-}
-
-function calculateChoreScore(creature: CreatureRecord, job: RanchJobDefinition): number {
-  const relevantStats = getRelevantStats(job.jobId);
-  const statAverage = relevantStats.reduce((total, stat) => total + (creature.stats[stat] ?? 0), 0) / relevantStats.length;
-  const talentBonus = getChoreTalentSummary(creature.abilities, job.jobId).scoreBonus;
-  const skillLevel = getCreatureChoreSkillLevelForJob(creature, job.jobId);
-  return Math.max(1, Math.round((statAverage / 6 + creature.level / 8 + creature.affection / 25 + talentBonus + Math.max(0, (skillLevel - 1) * 0.45)) * 10) / 10);
-}
-
-function getJobProvisionOutput(jobId: RanchJobId, score: number): number {
-  if (jobId === "stable_production") return Math.max(1, Math.floor(5 + score));
-  if (jobId === "garden_tending") return Math.max(1, Math.floor(2 + score * 0.3));
-  return 0;
-}
-
-function getJobMaterialOutput(jobId: RanchJobId, score: number): number {
-  return jobId === "field_hauling" ? Math.max(1, Math.floor(1 + score * 0.25)) : 0;
-}
-
-function getJobEffectMessage(jobId: RanchJobId, creatureName: string, provisionOutput: number, materialOutput: number, score: number, talentTriggers: string[], skillSummary = ""): string {
-  const talentText = talentTriggers.length ? ` Talent effects: ${talentTriggers.join(" ")}` : "";
-  const progressionText = skillSummary ? ` ${skillSummary}` : "";
-  if (jobId === "security_patrol") return `${creatureName} guarded the ranch. Security score +${Math.round(score)}.${progressionText}${talentText}`;
-  if (jobId === "comfort_care") return `${creatureName} kept the ranch calm. Breeding Comfort score +${Math.round(score)}.${progressionText}${talentText}`;
-  if (jobId === "stable_production") return `${creatureName} stocked the feed shed: +${provisionOutput} Balanced rations.${progressionText}${talentText}`;
-  if (jobId === "garden_tending") return `${creatureName} harvested garden produce: +${provisionOutput} Vegetables.${progressionText}${talentText}`;
-  if (jobId === "field_hauling") return `${creatureName} moved supplies: +${materialOutput} Wood. Upkeep score +${Math.round(score)}.${progressionText}${talentText}`;
-  return `${creatureName} completed ${getRanchJobDefinition(jobId).name}.${progressionText}${talentText}`;
-}
-
 function getRanchConditionLabel(damage: number): string {
   if (damage >= 80) return "Critical";
   if (damage >= 50) return "Damaged";
@@ -109,20 +61,10 @@ function getConditionRecoveryPenalty(damage: number): { energyPenalty: number; a
 }
 
 function resolveRanchWear(save: GameSave, upkeepScore: number, currentDamage: number): { damageAdded: number; summary: string; chance: number } {
-  const haulingActive = upkeepScore > 0;
-  const conditionChance = currentDamage >= 50 ? 8 : currentDamage >= 20 ? 5 : 0;
-  const chance = haulingActive ? Math.min(40, HAULING_WEAR_CHANCE + conditionChance) : 100;
-  const wearRoll = deterministicRoll(`${save.saveId}_wear_${save.dayState.dayNumber}`, 100);
-  if (haulingActive && wearRoll >= chance) return { damageAdded: 0, chance, summary: "No routine ranch wear occurred." };
-  const baseDamage = currentDamage >= 50 ? 3 : currentDamage >= 20 ? 2 : 1;
-  const damageAdded = haulingActive ? baseDamage : Math.min(4, baseDamage + (currentDamage >= 20 ? 1 : 0));
-  return {
-    damageAdded,
-    chance,
-    summary: haulingActive
-      ? `Routine ranch wear added ${damageAdded} damage despite active upkeep. Field Hauling can still repair damage overnight.`
-      : `Daily ranch wear added ${damageAdded} damage because no Field Hauling crew was assigned.`,
-  };
+  const chance = 12;
+  const storm = deterministicRoll(`${save.saveId}_wear_${save.dayState.dayNumber}`,100) < chance;
+  const damageAdded = storm ? 3 : 0;
+  return { damageAdded, chance, summary: storm ? "Weather damaged farm fortifications by 3 condition points." : "No fortification damage overnight." };
 }
 
 function readRanchEventLog(save: GameSave): string[] {
@@ -150,74 +92,21 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const choreEnergyDiscount = ranchEffects.ranchChoreEnergyDiscount;
   const choreScoreBonus = ranchEffects.ranchChoreScoreBonus;
   let completions = 0;
-  const producedResources: Stock = {};
   let producedFeed = 0;
   let producedMaterials = 0;
-  let securityScore = 0;
-  let comfortScore = 0;
-  let upkeepScore = 0;
+  const securityScore = 0;
+  const comfortScore = 0;
+  const upkeepScore = 0;
   const results: RanchJobResult[] = [];
-  const assignments = jobs.assignments;
+  const assignments = createDefaultRanchJobsState().assignments;
   const nextCreatures = (save.creatures ?? []).map((creature) => ({ ...creature }));
 
-  for (const jobId of RANCH_JOB_IDS) {
-    const creatureIds = assignments[jobId] ?? [];
-    if (!creatureIds.length) continue;
-    const job = getRanchJobDefinition(jobId);
-    for (const creatureId of creatureIds) {
-      const creature = nextCreatures.find((item) => item.creatureId === creatureId);
-      if (!creature) continue;
-      const trainingReason = getTrainingUnavailableReason(save, creature.creatureId);
-      if (trainingReason) {
-        results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} is away at the Training Grounds and could not complete ${job.name}.` });
-        continue;
-      }
-      if (isCreatureInjured(creature, save.dayState.dayNumber)) {
-        results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} is ${creature.injuryLabel ?? "injured"} and could not complete ${job.name}.` });
-        continue;
-      }
-      const talentSummary = getChoreTalentSummary(creature.abilities, jobId);
-      const effectiveEnergyCost = overnightChoreCost(save, creature.creatureId, Math.max(8, job.energyCost - choreEnergyDiscount - talentSummary.energyDiscount));
-      if (creature.energy < effectiveEnergyCost) {
-        results.push({ jobId, jobName: job.name, creatureId: creature.creatureId, creatureName: creature.nickname, goldReward: 0, guildPointReward: 0, affectionReward: 0, energyCost: 0, message: `${creature.nickname} was too tired for ${job.name}. Needed ${effectiveEnergyCost} energy.` });
-        continue;
-      }
-      const choreScore = calculateChoreScore(creature, job) + choreScoreBonus;
-      const provisionOutput = getJobProvisionOutput(jobId, choreScore);
-      const materialOutput = getJobMaterialOutput(jobId, choreScore);
-      producedFeed += provisionOutput;
-      producedMaterials += materialOutput;
-      const resource = jobId === "stable_production" ? "rations" : jobId === "garden_tending" ? "vegetables" : "wood";
-      const amount = provisionOutput + materialOutput;
-      if (amount) producedResources[resource] = (producedResources[resource] ?? 0) + amount;
-      if (jobId === "security_patrol") securityScore += choreScore;
-      if (jobId === "comfort_care") comfortScore += choreScore;
-      if (jobId === "field_hauling") upkeepScore += choreScore;
-      creature.energy = Math.max(0, creature.energy - effectiveEnergyCost);
-      const skillXp = getChoreSkillXpGain(choreScore, talentSummary.xpPercent);
-      const progressed = gainCreatureChoreSkillXp(creature, jobId, skillXp);
-      Object.assign(creature, progressed.creature);
-      completions += 1;
-      results.push({
-        jobId,
-        jobName: job.name,
-        creatureId: creature.creatureId,
-        creatureName: creature.nickname,
-        goldReward: 0,
-        guildPointReward: 0,
-        affectionReward: 0,
-        energyCost: effectiveEnergyCost,
-        skillId: progressed.gain.skillId,
-        skillXpGained: progressed.gain.xpGained,
-        skillLevelBefore: progressed.gain.levelBefore,
-        skillLevelAfter: progressed.gain.levelAfter,
-        message: getJobEffectMessage(jobId, creature.nickname, provisionOutput, materialOutput, choreScore, talentSummary.triggers, progressed.gain.summary),
-      });
-    }
+  const work = getFarmState(save);
+  if (work.workDay === save.dayState.dayNumber - 1) {
+    completions = work.workCount ?? 0;
+    producedFeed = Object.entries(work.workOutput ?? {}).reduce((n,[id,count]) => n + (["vegetables","wheat","milk","meat","eggs","rations"].includes(id) ? count ?? 0 : 0),0);
+    producedMaterials = work.workOutput?.wood ?? 0;
   }
-
-  save = grantFarmResources(save, producedResources);
-  save = {...save,flags:{...save.flags,productionWoodGathered:Number(save.flags.productionWoodGathered??0)+(producedResources.wood??0)}};
   const predatorCheck = resolvePredatorNightCheck(save, securityScore);
   const ingredientFeeding = planIngredientFeeding(predatorCheck.save, nextCreatures
     .filter(c => !isCreatureAwayForTraining(predatorCheck.save, c.creatureId))
@@ -257,8 +146,8 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       : foodStatus === "Short"
         ? `Food shortage: ${feedConsumed + ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
         : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`);
-  const haulingSummary = producedMaterials > 0 ? `Field Hauling added ${producedMaterials} Wood. Wood stock is now ${getFarmState(workingSave).stock.wood ?? 0}.` : "No new Wood was hauled today.";
-  const damageSourceSummary = totalDamageAdded > 0 ? `Routine wear added ${totalDamageAdded} ranch damage.` : "No routine wear damage was added today.";
+  const haulingSummary = producedMaterials > 0 ? `Work produced ${producedMaterials} Wood. Wood stock is now ${getFarmState(workingSave).stock.wood ?? 0}.` : "No Wood gathered today.";
+  const damageSourceSummary = totalDamageAdded > 0 ? `Weather added ${totalDamageAdded} ranch damage.` : "No weather damage was added today.";
   const upkeepSummary = repairedDamage > 0
     ? `${damageSourceSummary} Field Hauling repaired ${repairedDamage} ranch damage. Ranch condition is ${conditionLabel} (${finalDamage}/100 damage).`
     : totalDamageAdded > 0
@@ -298,7 +187,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
       currencies: { ...workingSave.currencies, energy: Math.floor(workingSave.currencies.maxEnergy * playerEnergyRatio) },
       ranchJobs: { ...jobs, assignments, lastProcessedDayNumber: workingSave.dayState.dayNumber, lifetimeCompletions: jobs.lifetimeCompletions + completions },
       flags: {
-        ...recordGuildChoreWork(workingSave, results),
+        ...workingSave.flags,
         m14RanchJobsCreated: true,
         m14RanchJobsProcessed: completions > 0 || workingSave.flags.m14RanchJobsProcessed === true,
         m14SecurityEventsEnabled: true,
@@ -307,7 +196,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         m14RanchEventLog: true,
         m15RanchDangerBalance: true,
         m15RanchWearEnabled: true,
-        m15GuaranteedWear: true,
+        m15GuaranteedWear: false,
         m16RanchChoreBoardEffects: choreEnergyDiscount > 0 || choreScoreBonus > 0 || workingSave.flags.m16RanchChoreBoardEffects === true,
         m47TrainingAvailability: true,
         m14RanchConditionPenalties: conditionPenalty.energyPenalty > 0 || conditionPenalty.affectionPenalty < 0 || workingSave.flags.m14RanchConditionPenalties === true,

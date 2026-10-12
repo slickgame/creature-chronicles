@@ -1,5 +1,8 @@
 "use client";
 
+import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
+import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
+
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
 import {
@@ -47,6 +50,8 @@ type SharedCreatureDetailProps = {
   dossier?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
+  // Opt-in only: this shared detail panel is also used in breeding screens.
+  useGameplayArt?: boolean;
 };
 
 const cardStyle: CSSProperties = {
@@ -195,6 +200,7 @@ export function SharedCreatureDetail({
   dossier = false,
   statusNote,
   bestStatLabels = [],
+  useGameplayArt = false,
 }: SharedCreatureDetailProps) {
   const variant = getVariantDefinition(creature.variantId);
   const species = getSpeciesDefinition(creature.speciesId);
@@ -292,7 +298,9 @@ export function SharedCreatureDetail({
             </span>
           ) : null}
           <img
-            src={variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
+            src={useGameplayArt
+              ? getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))
+              : variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
             alt=""
             style={{
               display: "block",
@@ -552,18 +560,18 @@ function WorkSkillsTab({ creature }: { creature: CreatureRecord }) {
       <p style={kickerStyle}>Role Identity & Proficiency</p>
       <h3 style={{ margin: "3px 0", color: "#fff7dd" }}>Work Skills</h3>
       <p style={{ ...smallText, margin: "4px 0 0" }}>
-        Species determines the starting baseline, but every creature can learn every chore. Completed work grants skill-specific XP, and skill level contributes directly to performance.
+        Species determines the starting baseline, but completed location work trains harvesting, production, or hauling. Every five levels above level 1 adds one resource per action.
       </p>
       <RoleTagChips creature={creature} limit={12} />
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: 10 }}>
         <CreatureSkillRadar
-          title="Domestic Chores"
+          title="Domestic Skills"
           subtitle="Cooking, cleaning, crafting, caregiving, and hospitality. These skills will support household work, production recipes, care systems, and town employment."
           skills={domestic}
         />
         <CreatureSkillRadar
-          title="Ranch Chores"
-          subtitle="Security, harvesting, production, hauling, and ranch care. These skills already affect the Ranch Chore board and improve through completed assignments."
+          title="Farm Skills"
+          subtitle="Harvesting, production, and hauling improve through instant work. Farm protection comes from fortifications and Guard Dog; security and ranch care skills are reserved for future systems."
           skills={ranch}
         />
       </div>

@@ -560,6 +560,7 @@ function buildInheritedAbilities(
 
   for (const participant of [giver, receiver]) {
     for (const ability of participant.abilities ?? []) {
+      if (ability.id === "guard_dog" && getVariantDefinition(variantId).family !== "canine") continue;
       const affectionWeight = 1 + Math.floor(participant.affection / 25);
       entries.push({
         ability,

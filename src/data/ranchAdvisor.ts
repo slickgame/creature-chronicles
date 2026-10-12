@@ -1,3 +1,5 @@
+import { getFarmSecurity } from "./farmSecurity";
+import { getPredatorThreatAssessment } from "./predatorThreat";
 import { getFarmState } from "./farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import { getRanchJobs, RANCH_JOB_IDS } from "@/data/ranchJobs";
@@ -21,11 +23,11 @@ export const RANCH_ADVISOR = {
 } as const;
 
 const CREW_LESSONS: Array<{ family: CreatureFamily; role: string; lesson: string }> = [
-  { family: "canine", role: "Security", lesson: "Canines are the safest early pick for Security Patrol because stamina and willpower lower danger pressure." },
-  { family: "feline", role: "Comfort", lesson: "Felines fit Comfort Care, which can create tomorrow's comfort bonus." },
-  { family: "bovine", role: "Production", lesson: "Cows and other bovines stabilize feed production so the ranch can recover properly after sleep." },
+  { family: "canine", role: "Security", lesson: "Canines can inherit Guard Dog. Only the strongest resident bonus applies, without Energy cost." },
+  { family: "feline", role: "Comfort", lesson: "Felines can gather ingredients and materials. Compare talents and Energy before working." },
+  { family: "bovine", role: "Production", lesson: "Female bovines can produce Milk at the dairy." },
   { family: "lapine", role: "Garden / Nursery", lesson: "Bunnies help with garden support and later become important for nursery and fertility-focused lines." },
-  { family: "equine", role: "Hauling", lesson: "Horses are built for Field Hauling, materials, and upkeep so ranch damage does not spiral." },
+  { family: "equine", role: "Hauling", lesson: "Equines can work the woodlot and mine. Repair fortifications with supplies when needed." },
 ];
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number { const parsed = typeof value === "number" ? value : Number(value ?? fallback); return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : fallback; }
@@ -58,17 +60,16 @@ export function getRanchAdvisorPlan(save: GameSave): RanchAdvisorPlan {
   const lapine = findFamilyHelper(save, "lapine", assignedIds);
   const equine = findFamilyHelper(save, "equine", assignedIds);
 
-  if (!isJobAssigned(save, "security_patrol")) pushPriority(priorities, { id: "security", severity: "urgent", title: "Assign Security Patrol", body: canine ? `${canine.nickname} is your cleanest early security pick. An empty patrol leaves the ranch exposed to danger events.` : "Security Patrol is empty. Find or free up a canine-style guard before sleeping.", action: "chores", actionLabel: "Open Chores", jobId: "security_patrol", helperName: canine?.nickname });
-  if (feedStock < Math.max(feedRequired * 2, 10) || !isJobAssigned(save, "stable_production")) pushPriority(priorities, { id: "feed", severity: feedStock < feedRequired ? "urgent" : "warning", title: "Prepare nightly rations", body: bovine ? `${bovine.nickname} should help Stable Production. Usable rations/Feed total ${feedStock}, and the ranch needs about ${feedRequired} per day.` : `Usable rations/Feed total ${feedStock}. Stable Production should be staffed soon.`, action: "chores", actionLabel: "Open Chores", jobId: "stable_production", helperName: bovine?.nickname });
-  if (!isJobAssigned(save, "garden_tending")) pushPriority(priorities, { id: "garden", severity: "suggestion", title: "Use the Bunny for Garden Support", body: lapine ? `${lapine.nickname} can cover Garden Tending while your production line grows. This teaches the bunny's early role without forcing deeper systems yet.` : "Garden Tending is empty. A lapine helper gives early support and keeps the starter crew relevant.", action: "chores", actionLabel: "Open Chores", jobId: "garden_tending", helperName: lapine?.nickname });
-  if (ranchDamage >= 20 || materialsStock < 3 || !isJobAssigned(save, "field_hauling")) pushPriority(priorities, { id: "hauling", severity: ranchDamage >= 50 ? "urgent" : "warning", title: "Protect Ranch Condition", body: equine ? `${equine.nickname} should handle Field Hauling. Usable Wood is ${materialsStock}, and ranch damage is ${ranchDamage}/100.` : `Usable Wood is ${materialsStock}, and ranch damage is ${ranchDamage}/100. Field Hauling needs attention.`, action: "chores", actionLabel: "Open Chores", jobId: "field_hauling", helperName: equine?.nickname });
-  if (!isJobAssigned(save, "comfort_care")) pushPriority(priorities, { id: "comfort", severity: "suggestion", title: "Set Up Comfort Care", body: feline ? `${feline.nickname} fits Comfort Care. This can create tomorrow's comfort bonus before serious pairing decisions.` : "Comfort Care is empty. A calming creature can improve tomorrow's setup.", action: "chores", actionLabel: "Open Chores", jobId: "comfort_care", helperName: feline?.nickname });
+  if (getPredatorThreatAssessment(save).eventChance > 0) pushPriority(priorities, { id: "security", severity: "warning", title: "Review farm protection", body: `Security is ${getFarmSecurity(save).total}. Fortifications and the strongest resident Guard Dog protect the farm.`, action: "chores", actionLabel: "Farm Security" });
+  if (feedStock < feedRequired * 2) pushPriority(priorities, { id: "feed", severity: feedStock < feedRequired ? "urgent" : "warning", title: "Prepare nightly food", body: `Usable rations/Feed: ${feedStock}; daily need: ${feedRequired}. Gather ingredients and cook rations, or enable ingredient feeding.`, action: "chores", actionLabel: "Farm Management" });
+  if (ranchDamage >= 20) pushPriority(priorities, { id: "repair", severity: "warning", title: "Repair fortifications", body: `Condition is ${100-ranchDamage}%. Use a repair kit or 2 Wood + 1 Stone to restore 20 condition.`, action: "chores", actionLabel: "Farm Security" });
+  if (materialsStock < 3) pushPriority(priorities, { id: "wood", severity: "suggestion", title: "Gather a timber reserve", body: "Work at the Woodlot for crafting and repair supplies. Only Energy is spent.", action: "chores", actionLabel: "Work locations" });
   if (readyEggCount > 0) pushPriority(priorities, { id: "ready-eggs", severity: "urgent", title: "Hatch Ready Egg", body: `${readyEggCount} egg${readyEggCount === 1 ? " is" : "s are"} ready. Hatch before adding more nursery pressure.`, action: "nursery", actionLabel: "Open Nursery" });
   else if (incubatingEggCount > 0) pushPriority(priorities, { id: "incubating-eggs", severity: "info", title: "Nursery Timer Running", body: `${incubatingEggCount} egg${incubatingEggCount === 1 ? " is" : "s are"} incubating. Security and ranch condition still matter because danger can disturb eggs.`, action: "nursery", actionLabel: "Check Nursery" });
   if (availableMarketListings > 0 || marketNeedsRefresh) pushPriority(priorities, { id: "market", severity: "info", title: "Inspect Market Listings", body: marketNeedsRefresh ? "The market should refresh for the current week. Check listings before spending upgrades." : `${availableMarketListings} market listing${availableMarketListings === 1 ? " is" : "s are"} available. Early abilities are rare, so look mostly for grades and family needs.`, action: "town", actionLabel: "Go to Town" });
   if ((taxDue > 0 && taxDaysUntilDue <= 7) || taxStatus === "warning") pushPriority(priorities, { id: "tax", severity: taxDaysUntilDue <= 3 || taxStatus === "warning" ? "urgent" : "warning", title: "Prepare for Tax Day", body: `Lady Vesper's posted tax is ${taxDue} Gold with ${taxDaysUntilDue} day${taxDaysUntilDue === 1 ? "" : "s"} left. Avoid spending into a default.`, action: "office", actionLabel: "Open Office" });
-  if (ranchDamage >= 50) pushPriority(priorities, { id: "repair", severity: "urgent", title: "Repair Damage Soon", body: `Ranch damage is ${ranchDamage}/100. Repairs or hauling should happen before the recovery penalty gets worse.`, action: "office", actionLabel: "Open Office" });
-  if (lowEnergyCreature) pushPriority(priorities, { id: "low-energy", severity: "warning", title: "Rest Tired Creatures", body: `${lowEnergyCreature.nickname} is low on energy (${lowEnergyCreature.energy}/${lowEnergyCreature.maxEnergy}). Avoid extra assignments until recovery improves.`, action: "collection", actionLabel: "Open Collection", helperName: lowEnergyCreature.nickname });
+  if (ranchDamage >= 50) pushPriority(priorities, { id: "repair", severity: "urgent", title: "Repair Damage Soon", body: `Ranch damage is ${ranchDamage}/100. Repairs should happen before the recovery penalty gets worse.`, action: "office", actionLabel: "Open Office" });
+  if (lowEnergyCreature) pushPriority(priorities, { id: "low-energy", severity: "warning", title: "Rest Tired Creatures", body: `${lowEnergyCreature.nickname} is low on energy (${lowEnergyCreature.energy}/${lowEnergyCreature.maxEnergy}). Avoid extra work until recovery improves.`, action: "collection", actionLabel: "Open Collection", helperName: lowEnergyCreature.nickname });
 
   const focus = priorities[0]?.title ?? "Ranch is stable today";
   const crewLessons = CREW_LESSONS.map((lesson) => ({ ...lesson, exampleName: findFamilyHelper(save, lesson.family, new Set())?.nickname }));

@@ -1,5 +1,7 @@
 "use client";
 
+import { NYLA_GAMEPLAY_ART, isNylaBaseFeline } from "@/data/nylaGameplayArt";
+import { EQUINE_GAMEPLAY_ART, isBaseEquine } from "@/data/equineGameplayArt";
 import { useEffect, useRef, useState } from "react";
 import { getChapterOneStoryLog } from "@/data/chapterOneStory";
 import { getStarterGoals } from "@/data/starterGoals";
@@ -192,7 +194,7 @@ export function NavigationChrome() {
       )}
       {view === "end-day" && (
         <GameDialog title="End Day?" onClose={closeReview}>
-          <RanchLedger endDay />
+          <div className={styles.restingCrew}>{save?.creatures?.some(isNylaBaseFeline) && <img src={NYLA_GAMEPLAY_ART.sleeping} alt="Feline resting"/>}{save?.creatures?.some(isBaseEquine) && <img src={EQUINE_GAMEPLAY_ART.sleeping} alt="Equine resting"/>}</div><RanchLedger endDay />
           <div className={styles.actions}>
             <button type="button" data-initial-focus onClick={closeReview}>
               Keep Playing
@@ -214,7 +216,7 @@ export function NavigationChrome() {
             {[
               ["Ranch", game.goToRanch],
               ["Town", game.goToTown],
-              ["Ranch Chores", game.goToRanchJobs],
+              ["Farm Management", game.goToRanchJobs],
               ["Ranch Office", game.goToRanchOffice],
               ["Nursery", game.goToNursery],
               ["Breeding Pen", game.goToBreeding],

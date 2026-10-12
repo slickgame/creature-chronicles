@@ -1,4 +1,4 @@
-import { tradeResource, getFarmState } from "@/data/farmResources";
+import { tradeResource, getFarmState, workResourceSite, craftResource } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
@@ -24,10 +24,10 @@ test("a balanced starter crew supports first construction and shopping without G
  const totals=[];
  for(let sample=0;sample<12;sample++){
   let s=createNewGameSave(`Week ${sample}`,0);
-  s=assignCreatureToRanchJob(s,"security_patrol",s.creatures![1].creatureId).save;
-  s=assignCreatureToRanchJob(s,"stable_production",s.creatures![2].creatureId).save;
-  s=assignCreatureToRanchJob(s,"field_hauling",s.creatures![4].creatureId).save;
-  for(let d=0;d<7;d++){s=night(s);assert.equal(s.flags.ranchFeedConsumedToday,s.flags.ranchFeedRequiredToday);}
+  for(let d=0;d<7;d++){
+   for(const site of ['garden','wheat_field'] as const) s=workResourceSite(s,site,s.creatures![0].creatureId).save;
+   s=craftResource(s,'rations',2).save;s=night(s);assert.equal(s.flags.ranchFeedConsumedToday,s.flags.ranchFeedRequiredToday);
+  }
   totals.push(s.currencies.gold);
   assert.ok(s.currencies.gold<2300,"passive chores should not recreate the old starting windfall");
   const feed=purchaseSupplyDepotItem(s,"feed_bundle");assert.equal(feed.ok,true);s=feed.save;

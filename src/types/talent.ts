@@ -15,6 +15,7 @@ export type TalentCategory =
   | "lineage";
 
 export type TalentSystem =
+  | "farm-security"
   | "breeding"
   | "growth"
   | "inheritance"
@@ -52,6 +53,7 @@ export type TalentStackingRule =
   | "unique";
 
 export type TalentEffectType =
+  | "farm-security-flat"
   | "breeding-fertility-flat"
   | "breeding-pregnancy-chance"
   | "breeding-energy-discount"

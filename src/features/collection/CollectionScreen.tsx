@@ -1,5 +1,7 @@
 "use client";
 
+import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
+import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   DEFAULT_CREATURE_MANAGEMENT_FILTERS,
@@ -335,7 +337,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                         }
                       >
                         <img
-                          src={variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
+                          src={getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))}
                           alt=""
                           onError={(event) => {
                             event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
@@ -448,7 +450,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
               <>
                 <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
                 <div className={styles.identity}>
-                  <img src={getVariantDefinition(selectedCreature.variantId).profilePath || getVariantDefinition(selectedCreature.variantId).portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
+                  <img src={getEquineGameplayProfileSprite(selectedCreature, getNylaGameplayProfileSprite(selectedCreature, getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
                   <div><p className={ui.eyebrow}>{getVariantDefinition(selectedCreature.variantId).rarity} · Level {selectedCreature.level}</p><h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2><p>{getVariantDefinition(selectedCreature.variantId).name} {getSpeciesDefinition(selectedCreature.speciesId).name}</p>
                     <span className={styles.status}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</span>
                     <div className={styles.resources}><div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div><div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div></div>
@@ -660,6 +662,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       {showProfile && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} · Profile & Care`} onClose={() => setShowProfile(false)} wide>
                 <SharedCreatureDetail
                   creature={selectedCreature}
+                  useGameplayArt
                   dayNumber={activeSave.dayState.dayNumber}
                   renameValue={renameValue || selectedCreature.nickname}
                   onRenameValueChange={setRenameValue}
@@ -845,7 +848,7 @@ function CompareIdentity({
   const species = getSpeciesDefinition(creature.speciesId);
   return (
     <article className={styles.compareIdentity}>
-      <img src={variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt="" />
+      <img src={getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))} alt="" />
       <h3>{creature.nickname} {creature.shiny ? "✦" : ""}</h3>
       <p>{variant.name} {species.name}</p>
       <dl>

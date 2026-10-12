@@ -401,7 +401,7 @@ export function PlayerInventoryMenu({ controlledOpen, onClose }: { controlledOpe
         </div>
         <div className={styles.quickActions}>
           <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToRanchOffice)}>Open Ranch Office</button>
-          <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToRanchJobs)}>Open Ranch Chores</button>
+          <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToRanchJobs)}>Open Farm Management</button>
           <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToEggAtelier)}>Open Egg Atelier</button>
           <button type="button" className={styles.secondaryButton} onClick={() => openRelatedSystem(goToBreeding)}>Open Breeding Pen</button>
         </div>

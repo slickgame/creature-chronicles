@@ -1,4 +1,4 @@
-import { grantFarmResources } from "@/data/farmResources";
+import { grantFarmResources, getFarmState } from "@/data/farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import type { DailyGoalRecord, RanchDayActivity, RanchDayReward } from "@/types/ranchDay";
 import type { GameSave } from "@/types/save";
@@ -66,13 +66,13 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
   },
   {
     id: "adjust-chores",
-    label: "Plan the ranch work",
-    description: "Assign, remove, or move at least one creature on the Ranch Chore board.",
-    progressLabel: "Chore changes",
+    label: "Work on the farm",
+    description: "Complete one instant work action at any farm location.",
+    progressLabel: "Work actions",
     target: 1,
     reward: { gold: 35, feed: 1 },
     available: (save) => (save.creatures?.length ?? 0) > 0,
-    progress: (_save, activities) => activityCount(activities, "chore-assignment"),
+    progress: (save) => getFarmState(save).workDay === save.dayState.dayNumber ? getFarmState(save).workCount ?? 0 : 0,
   },
   {
     id: "use-support-item",
@@ -126,7 +126,7 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
   {
     id: "repair-ranch",
     label: "Repair ranch damage",
-    description: "Use a repair action or complete enough Field Hauling to reduce ranch damage.",
+    description: "Repair damaged fortifications with a kit or named resources.",
     progressLabel: "Repair actions",
     target: 1,
     reward: { materials: 2 },
@@ -136,22 +136,22 @@ const GOAL_TEMPLATES: GoalTemplate[] = [
   {
     id: "produce-feed",
     label: "Produce at least 5 food units",
-    description: "Assign Stable Production or Garden Tending before ending the day.",
+    description: "Work at food locations to produce at least 5 ingredients today.",
     progressLabel: "Food units produced",
     target: 5,
     reward: { gold: 40, feed: 1 },
     available: (save) => hasFamily(save, "bovine") || hasFamily(save, "lapine"),
-    progress: (save) => overnightResolvedForGoalDay(save) ? readFlagNumber(save.flags.ranchFeedProducedToday) : 0,
+    progress: (save) => getFarmState(save).workDay === save.dayState.dayNumber ? Object.entries(getFarmState(save).workOutput ?? {}).reduce((n,[id,v])=>n+(["wheat","vegetables","milk","meat","eggs"].includes(id)?v??0:0),0) : 0,
   },
   {
     id: "produce-materials",
     label: "Produce at least 2 Wood",
-    description: "Assign Field Hauling before ending the day.",
+    description: "Gather Wood at the Woodlot today.",
     progressLabel: "Wood produced",
     target: 2,
     reward: { gold: 40, materials: 1 },
     available: (save) => hasFamily(save, "equine"),
-    progress: (save) => overnightResolvedForGoalDay(save) ? readFlagNumber(save.flags.ranchMaterialsProducedToday) : 0,
+    progress: (save) => getFarmState(save).workDay === save.dayState.dayNumber ? getFarmState(save).workOutput?.wood ?? 0 : 0,
   },
   {
     id: "finish-contract",

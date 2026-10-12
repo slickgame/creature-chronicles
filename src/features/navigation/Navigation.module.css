@@ -73,3 +73,5 @@
  .compact .todayHeading>span:nth-child(2) {font-size:18px;}
  .compact .todayHeading small {display:inline;margin-left:8px;font-size:11px;}
 }
+
+.restingCrew{display:flex;justify-content:center;gap:12px}.restingCrew img{width:45%;max-width:200px;height:100px;object-fit:contain}

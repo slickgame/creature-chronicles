@@ -58,7 +58,7 @@ export const RANCH_PLOTS: RanchPlot[] = [
     label: "Service Yard",
     shortLabel: "Services",
     description:
-      "Ranch office, chores board, guild board, house, and town road.",
+      "Ranch office, farm work locations, guild board, house, and town road.",
   },
   {
     id: "expansion",
@@ -163,8 +163,8 @@ export const BUILDING_SHORTCUTS: BuildingShortcut[] = [
   {
     id: "jobs",
     plotId: "services",
-    title: "Ranch Chores",
-    hint: "Chores Board upgrades reduce high base work costs and improve chore output.",
+    title: "Farm Management",
+    hint: "Work instantly for specific resources. Farm Tools reduce Energy costs and improve output.",
     x: 63,
     labelY: 52,
     upgradeIds: ["ranch_chores_board"],

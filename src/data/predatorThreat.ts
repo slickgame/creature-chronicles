@@ -1,3 +1,4 @@
+import { getFarmSecurity } from "./farmSecurity";
 import {
   getBuilderPredatorPressure,
   getBuilderSecurityBonus,
@@ -77,7 +78,7 @@ export function getPredatorThreatAssessment(save: GameSave): PredatorThreatAsses
     blockers.push(`Predator pressure ${pressure} is below the 18-point incident threshold.`);
   }
 
-  const security = 6 + patrolScore + permanentSecurity;
+  const security = getFarmSecurity(save).total;
   const requiredSecurity = Math.max(18, pressure + 6);
   const eligible = chapterGate && hasAttractor && pressure >= 18 && security < requiredSecurity;
   const eventChance = eligible ? clamp(12 + pressure - Math.floor(security * 0.65), 8, 72) : 0;

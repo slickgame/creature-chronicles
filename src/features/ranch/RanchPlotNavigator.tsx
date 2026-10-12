@@ -69,7 +69,7 @@ const BUILDING_SHORTCUTS: BuildingShortcut[] = [
   { id: "lapine", plotId: "habitats", title: "Lapine Habitat", hint: "Capacity upgrades support garden, nursery, and lapine breeding lines.", x: 58, labelY: 77, upgradeIds: ["lapine_habitat_capacity"] },
   { id: "equine", plotId: "habitats", title: "Equine Habitat", hint: "Capacity upgrades support hauling, upkeep, and field work lines.", x: 81, labelY: 77, upgradeIds: ["equine_habitat_capacity"] },
   { id: "office", plotId: "services", title: "Ranch Office", hint: "Open the construction ledger, repairs, history, and ranch-wide effects.", x: 39, labelY: 61, upgradeIds: [] },
-  { id: "jobs", plotId: "services", title: "Ranch Chores", hint: "Chores Board upgrades reduce high base work costs and improve chore output.", x: 63, labelY: 52, upgradeIds: ["ranch_chores_board"] },
+  { id: "jobs", plotId: "services", title: "Farm Management", hint: "Farm Tools reduce Energy costs and increase instant work output.", x: 63, labelY: 52, upgradeIds: ["ranch_chores_board"] },
   { id: "guild", plotId: "services", title: "Guild Board", hint: "Guild contracts are handled in town.", x: 80, labelY: 81, upgradeIds: [] },
   { id: "town", plotId: "services", title: "Town Road", hint: "Travel to town for market, guild, construction, and other services.", x: 51, labelY: 81, upgradeIds: [] },
   { id: "house", plotId: "services", title: "Ranch House", hint: "Sleep recovery upgrades make the ranch more restful overnight.", x: 23, labelY: 73, upgradeIds: ["sleep_recovery"] },

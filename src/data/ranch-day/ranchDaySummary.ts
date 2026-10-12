@@ -1,3 +1,6 @@
+import { getFarmState, planIngredientFeeding } from "@/data/farmResources";
+import { getPredatorThreatAssessment } from "@/data/predatorThreat";
+import { isCreatureAwayForTraining } from "@/data/trainingGrounds";
 import { getVariantDefinition } from "@/data/creatures";
 import type {
   RanchDaySummary,
@@ -27,7 +30,7 @@ export function buildResourceFlow(starting: RanchResourceSnapshot, ending: Ranch
 }
 
 function projectedFeedRequired(save: GameSave): number {
-  return (save.creatures ?? []).reduce((total, creature) => {
+  return (save.creatures ?? []).filter(c=>!isCreatureAwayForTraining(save,c.creatureId)).reduce((total, creature) => {
     const variant = getVariantDefinition(creature.variantId);
     const familyCost = variant.family === "bovine" || variant.family === "equine" ? 2 : 1;
     const rarityCost = variant.rarity === "Rare" || variant.rarity === "Epic" ? 1 : 0;
@@ -39,14 +42,14 @@ export function buildEveningPreview(save: GameSave): RanchEveningPreview {
   const day = save.ranchDay;
   const activities = day?.activities ?? [];
   const goals = day?.goals ?? [];
-  const currentFeed = readFlagNumber(save.flags.ranchFeedStock);
+  const currentFeed = readFlagNumber(save.flags.ranchFeedStock) + planIngredientFeeding(save,(save.creatures ?? []).filter(c=>!isCreatureAwayForTraining(save,c.creatureId)).map(creature=>({creature,amount:(getVariantDefinition(creature.variantId).family === "bovine" || getVariantDefinition(creature.variantId).family === "equine" ? 2 : 1) + (["Rare","Epic"].includes(getVariantDefinition(creature.variantId).rarity)?1:0)}))).covered;
   const feedRequired = projectedFeedRequired(save);
   const assignments = (save.ranchJobs?.assignments ?? {}) as Record<string, string[] | undefined>;
   const securityAssigned = (assignments.security_patrol ?? []).length > 0;
   const readyEggs = (save.eggs ?? []).filter((egg) => egg.status === "ready").length;
   const warnings: string[] = [];
-  if (!securityAssigned) warnings.push("No creature is assigned to Security Patrol.");
-  if (currentFeed < feedRequired) warnings.push(`Projected Feed shortage: ${currentFeed} available for about ${feedRequired} required.`);
+  if (getPredatorThreatAssessment(save).eventChance > 0) warnings.push(`Predator incident chance: ${getPredatorThreatAssessment(save).eventChance}%. Check Farm Management → Security.`);
+  if (currentFeed < feedRequired) warnings.push(`Projected food shortage: ${currentFeed} available for about ${feedRequired} required.`);
   if (readyEggs > 0) warnings.push(`${readyEggs} ready egg${readyEggs === 1 ? " remains" : "s remain"} unhatched.`);
   if (goals.some((goal) => !goal.complete)) warnings.push(`${goals.filter((goal) => !goal.complete).length} daily goal${goals.filter((goal) => !goal.complete).length === 1 ? " is" : "s are"} incomplete.`);
   const lowEnergy = (save.creatures ?? []).filter((creature) => creature.maxEnergy > 0 && creature.energy / creature.maxEnergy <= 0.2).length;
@@ -61,7 +64,7 @@ export function buildEveningPreview(save: GameSave): RanchEveningPreview {
     breedingAttempts: activities.filter((item) => item.type === "breeding").length,
     purchases: activities.filter((item) => item.type === "purchase").length,
     itemsUsed: activities.filter((item) => item.type === "item-use").length,
-    choreChanges: activities.filter((item) => item.type === "chore-assignment").length,
+    choreChanges: getFarmState(save).workDay === save.dayState.dayNumber ? getFarmState(save).workCount ?? 0 : 0,
     goldChange: save.currencies.gold - (day?.startingResources.gold ?? save.currencies.gold),
     projectedFeedRequired: feedRequired,
     currentFeed,
