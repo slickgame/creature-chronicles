@@ -1,0 +1,8 @@
+{
+  "tool": "image_gen.imagegen",
+  "transparent_background": true,
+  "reference": "public/images/ui/locations-v2/petra.webp",
+  "reference_role": "Rendering style only; preserve Petra unchanged",
+  "prompt": "Use case: stylized-concept. Production full-body game NPC sprite for Iona Flint, an adult female master blacksmith age about 40, for Creature Chronicles. The reference image is ONLY the established sharp anime-painterly rendering style, warm polished highlights and level of finish; do not copy Petra's identity, hair, clothes or pose. Iona is a distinct broad-shouldered muscular curvy woman with deep brown skin, warm brown eyes, strong cheekbones, silver-gray hair in a compact high braided bun with a few short curls. Confident calm friendly expression. She wears a fully buttoned slate-blue rolled-sleeve work shirt beneath a long dark charcoal leather forge apron, brass buckles, thick dark trousers, heavy black work boots. One gloved hand holds a short smithing hammer down at her side with a natural correct grip; her other hand loosely rests on the apron belt. Protective goggles resting above her forehead. Full body head to boots, front three-quarter stance, strong clear silhouette. Dimensional painted leather and cloth, crisp facial details, rich controlled color, golden rim lighting compatible with the reference. Isolated on genuinely transparent background, no forge or scenery, no floor shadow, no text, no watermark. Tasteful fully clothed. Keep hands and every boot fully within frame with generous transparent padding. Separate woman, not a second version of Petra.",
+  "output": "public/images/ui/blacksmith-v1/iona.webp"
+}

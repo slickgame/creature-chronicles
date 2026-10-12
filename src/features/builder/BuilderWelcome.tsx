@@ -7,7 +7,25 @@ import { getBuilderWorkOrder, getBuilderProject } from "@/data/builderProjects";
 import { useGameContext } from "@/state/GameProvider";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { LocationScene, locationStyles as s } from "@/features/locations/LocationScene";
+import { BlacksmithWorkshop } from './BlacksmithWorkshop';
+import { BLACKSMITH } from '@/data/blacksmith';
+import { useNavigation } from '@/features/navigation/NavigationContext';
+import yard from './YardCraftspeople.module.css';
+
 export function BuilderWelcome({ onClose, onPlans }: { onClose: () => void; onPlans: () => void }) {
+  const [host, setHost] = useState<'petra' | 'iona' | null>(null);
+  const { open } = useNavigation();
+  if (host === 'petra') return <PetraWelcome onClose={() => setHost(null)} onPlans={onPlans}/>;
+  if (host === 'iona') return <BlacksmithWorkshop onBack={() => setHost(null)}/>;
+  return <main className={yard.yard} data-builder-hosts>
+    <header className={yard.header}><button onClick={onClose}>‹ Town</button><div><small>Construction & equipment crafting</small><h1>Builder’s Yard</h1></div><button data-navigation-launcher onClick={() => open('menu')}>Menu</button></header>
+    <section className={yard.hosts} aria-label="Builder’s Yard craftspeople">
+      <article className={yard.host}><img src="/images/ui/locations-v2/petra.webp" alt="Petra Hale, female master builder"/><div><h2>Petra Hale</h2><strong>Master Builder</strong><p>Farm buildings, production sites, fortifications and work orders.</p><button onClick={() => setHost('petra')}>Visit Petra · Construction</button></div></article>
+      <article className={yard.host}><img src={BLACKSMITH.portrait} alt="Iona Flint, female master blacksmith"/><div><h2>{BLACKSMITH.name}</h2><strong>{BLACKSMITH.title}</strong><p>Fixed equipment recipes using named materials and a Gold labor fee.</p><button onClick={() => setHost('iona')}>Visit Iona · Blacksmith</button></div></article>
+    </section>
+  </main>;
+}
+function PetraWelcome({ onClose, onPlans }: { onClose: () => void; onPlans: () => void }) {
   const { currentSave: save, saveCurrentGame, goToSupplyDepot, goToRanchJobs } = useGameContext();
   const [popup, setPopup] = useState<"talk" | "requests" | null>(null);
   const [message, setMessage] = useState("");
@@ -15,7 +33,7 @@ export function BuilderWelcome({ onClose, onPlans }: { onClose: () => void; onPl
   const order = getBuilderWorkOrder(save);
   const production = getFarmState(save).project;
   const quests = getPetraRequests(save);
-  return <><LocationScene title="Builder’s Yard" subtitle="Petra’s workshop" background="/images/ui/locations-v2/builder-yard.webp" portrait="/images/ui/locations-v2/petra.webp" name="Petra Hale · Master Builder" resources={`${save.currencies.gold} Gold · ${getFarmState(save).stock.wood ?? 0} Wood · ${getLocationTrust(save,"petra")} Trust`} onBack={onClose}>
+  return <><LocationScene title="Builder’s Yard" subtitle="Petra’s workshop" background="/images/ui/locations-v2/builder-yard.webp" portrait="/images/ui/locations-v2/petra.webp" name="Petra Hale · Master Builder" backLabel="Builder’s Yard" resources={`${save.currencies.gold} Gold · ${getFarmState(save).stock.wood ?? 0} Wood · ${getLocationTrust(save,"petra")} Trust`} onBack={onClose}>
     <span className={s.eyebrow}>Timber, stone & a steady hand</span><h2>Let’s build something that lasts.</h2>
     <p>{production ? `${FACILITIES[production.id].name} is underway. The crew finishes on Ranch Day ${production.readyDay}.` : order ? `Your ${getBuilderProject(order.projectId).title} is underway. The crew finishes on Ranch Day ${order.readyDay}.` : "“Come in. We’ll find the right next step for your ranch before you spend a single coin.”"}</p>
     <p className={s.secondaryCopy}>Talk through your plans with Petra, check on the crew, or browse the project catalogue.</p>
