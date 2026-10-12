@@ -1,3 +1,4 @@
+import { normalizeApprovedCreaturePortraits } from "@/data/approvedCreaturePortraits";
 import * as core from "./localSave";
 import { normalizeBattleMoveInheritanceSave } from "@/data/battleMoveInheritanceMigration";
 import { normalizeBreedingRecords } from "@/data/breedingRecordsMigration";
@@ -34,6 +35,7 @@ export type PortableSaveImportResult = {
 };
 
 function normalizeCreatureCapabilityRecords(save: GameSave): GameSave {
+  save = normalizeApprovedCreaturePortraits(save);
   const creatures = (save.creatures ?? []).map((creature) =>
     normalizeCreatureBattleMoveLoadoutRecord({
       ...creature,

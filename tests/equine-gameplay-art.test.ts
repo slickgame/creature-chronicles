@@ -23,7 +23,7 @@ test("all ten approved Equine gameplay images exist", async () => {
   }
 });
 
-test("only the common Horse variant uses these images; breeding registry stays unchanged", async () => {
+test("common Horse cards use approved defaults; breeding scenes stay unchanged", async () => {
   assert.equal(isBaseEquine(horse), true);
   assert.equal(isBaseEquine(unicorn), false);
   assert.equal(isBaseEquine(nightmare), false);
@@ -36,8 +36,8 @@ test("only the common Horse variant uses these images; breeding registry stays u
   }
   const registry = await readFile(new URL("src/data/creatures.ts", ROOT), "utf8");
   const horseRow = registry.split("\n").find((line) => line.includes('variantId: "variant_horse"'));
-  assert.ok(horseRow?.includes("/images/creatures/equine/horse_portrait.png"));
-  assert.ok(horseRow?.includes("/images/creatures/equine/horse_profile.png"));
+  assert.ok(horseRow?.includes("/images/creatures/equine/gameplay/equine_02_bust_portrait.png"));
+  assert.ok(horseRow?.includes("/images/creatures/equine/gameplay/equine_01_full_body.png"));
   const details = await readFile(new URL("src/features/creatures/CreatureDetailPanels.tsx", ROOT), "utf8");
   assert.match(details, /useGameplayArt = false/);
   const breeding = await readFile(new URL("src/data/breedingSceneImages.ts", ROOT), "utf8");

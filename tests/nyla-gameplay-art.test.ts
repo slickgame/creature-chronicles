@@ -37,7 +37,7 @@ test("every transferred approved Nyla gameplay image exists in public assets", a
   assert.equal(isNylaBaseFeline(tiger as never), false);
 });
 
-test("gameplay art is opt-in and does not flow into the shared breeding registry", async () => {
+test("canonical portraits and profiles use approved art while rare variants retain their own art", async () => {
   assert.equal(getNylaGameplayCardSprite(baseFeline as never, "/old.png"), NYLA_GAMEPLAY_ART.card);
   assert.equal(getNylaGameplayProfileSprite(baseFeline as never, "/old.png"), NYLA_GAMEPLAY_ART.profile);
   for (const variant of [sphinx, tiger]) {
@@ -48,8 +48,8 @@ test("gameplay art is opt-in and does not flow into the shared breeding registry
   const baseRow = variants.split("\n").find((line) => line.includes('variantId: "variant_base_feline"'));
   const sphinxRow = variants.split("\n").find((line) => line.includes('variantId: "variant_sphinx"'));
   const tigerRow = variants.split("\n").find((line) => line.includes('variantId: "variant_tiger"'));
-  assert.ok(baseRow?.includes("/images/creatures/feline/base_feline_portrait.png"));
-  assert.ok(baseRow?.includes("/images/creatures/feline/base_feline_profile.png"));
+  assert.ok(baseRow?.includes("/images/creatures/feline/nyla/nyla_02_bust_portrait.png"));
+  assert.ok(baseRow?.includes("/images/creatures/feline/nyla/nyla_01_full_body.png"));
   assert.ok(sphinxRow?.includes("sphinx_portrait.png"));
   assert.ok(tigerRow?.includes("saberfang_portrait.png"));
   const sharedDetail = await readFile(new URL("src/features/creatures/CreatureDetailPanels.tsx", ROOT), "utf8");
@@ -125,7 +125,7 @@ test("Nyla-only battle KO ground contact and tiny-card framing are responsive", 
   assert.match(battleCss, /\.stage\[data-reduced-motion="true"\] \*/);
 });
 
-test("breeding participants and scene imagery still use the original shared paths", async () => {
+test("participant cards use shared definitions while scene imagery stays isolated", async () => {
   const breedingCore = await readFile(new URL("src/data/breedingCore.ts", ROOT), "utf8");
   const breedingScreen = await readFile(new URL("src/features/breeding/BreedingFocusedScreen.tsx", ROOT), "utf8");
   const breedingOverlay = await readFile(new URL("src/features/breeding/SharedInfoOverlay.tsx", ROOT), "utf8");
