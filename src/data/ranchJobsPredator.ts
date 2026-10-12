@@ -39,7 +39,7 @@ function deterministicRoll(seed: string, modulo = 100): number {
   return hash % Math.max(1, modulo);
 }
 
-function getDailyFeedCost(creature: CreatureRecord): number {
+export function getDailyFeedCost(creature: CreatureRecord): number {
   const variant = getVariantDefinition(creature.variantId);
   const familyBaseCost = variant.family === "bovine" || variant.family === "equine" ? 2 : 1;
   const rareCost = variant.rarity === "Rare" || variant.rarity === "Epic" ? 1 : 0;

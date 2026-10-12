@@ -6,3 +6,5 @@
 .screen .layout :is(h2,h3,p,strong,span,small,li,label){color:#39291b;text-shadow:none}.screen .layout .note{color:#655032}.screen .layout .footer button{color:#fff1ce}.screen .layout .footer button *{color:inherit}
 
 .screen .layout :is(h2,h3){color:#39291b!important;text-shadow:none!important}.screen .layout .paging{color:#39291b}
+
+.screen .layout .paging span{color:#39291b!important;text-shadow:none!important}
