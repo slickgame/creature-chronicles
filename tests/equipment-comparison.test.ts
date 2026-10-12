@@ -68,7 +68,7 @@ test("purchase and Focus Manual keep grades unchanged and preserve existing rest
   const save = fixture(), creature = save.creatures![0], before = structuredClone(creature.statGrades);
   const bought = purchaseBattleOutfitterItem(save,"sparring_wraps");
   assert.equal(bought.save.currencies.gold,save.currencies.gold-160);
-  assert.equal(bought.save.flags.ranchMaterialsStock,98);
+  assert.equal(bought.save.flags.ranchMaterialsStock,100);
   assert.equal(purchaseBattleOutfitterItem(save,"champion_harness").ok,false);
   const studied = useBattleOutfitterManual(bought.save,creature.creatureId);
   assert.equal(studied.ok,true);

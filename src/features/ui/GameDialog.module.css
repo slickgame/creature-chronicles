@@ -94,7 +94,7 @@
   }
 }
 /* Illustrated frames shared with the approved ranch HUD. */
-.dialog { border: 20px solid transparent; border-image: url('/images/ui/ranch-v2/parchment.webp') 160 fill / 20px stretch; border-radius: 0; background: transparent; }
+.dialog { border: 20px solid transparent; border-image: url('/images/ui/ranch-v2/parchment.webp') 160 fill / 20px stretch; border-radius: 0; background: #f7ecd2; }
 .heading { background: #eddfbd; padding: 12px 12px 18px; }
 .content { padding: 18px 14px; }
 :where(.dialog) button { border-radius: 3px; border-color: #af9153; background: #f4e8ca; }

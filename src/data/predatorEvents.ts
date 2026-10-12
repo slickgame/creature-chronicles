@@ -1,3 +1,4 @@
+import { grantFarmResources } from "./farmResources";
 import {
   buildAuthoredColiseumEnemyTeam,
   type ColiseumC2EncounterDefinition,
@@ -377,11 +378,11 @@ export function recordPredatorBattleOutcome(
       },
       flags: {
         ...nextSave.flags,
-        ranchMaterialsStock: numericFlag(nextSave.flags.ranchMaterialsStock) + amounts.materials,
         predatorVictories: numericFlag(nextSave.flags.predatorVictories) + 1,
       },
     };
-    resolutionSummary = `The ranch team drove off ${pending.predatorName.toLowerCase()} and recovered ${amounts.gold} Gold, ${amounts.guildPoints} Guild Points, and ${amounts.materials} Materials.`;
+    nextSave = grantFarmResources(nextSave, { wood: amounts.materials });
+    resolutionSummary = `The ranch team drove off ${pending.predatorName.toLowerCase()} and recovered ${amounts.gold} Gold, ${amounts.guildPoints} Guild Points, and ${amounts.materials} Wood.`;
   } else {
     const drawMultiplier = status === "draw" ? 0.5 : 1;
     const feedLoss = Math.min(numericFlag(nextSave.flags.ranchFeedStock), Math.max(1, Math.round(amounts.feedLoss * drawMultiplier)));

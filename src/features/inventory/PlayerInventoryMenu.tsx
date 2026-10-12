@@ -130,7 +130,7 @@ export function PlayerInventoryMenu() {
   const canUseSnackOnCreature = Boolean(selectedCreature) && creatureSnackDisabledReason.startsWith("Ready");
 
   const plannerItems = [
-    { label: "Feed Stock", value: `${feedStock} Feed`, state: feedStock <= 3 ? "warning" : "ok", detail: feedStock <= 3 ? "Low feed. Restock before sleeping if possible." : "Feed stock looks stable." },
+    { label: "Feed Stock", value: `${feedStock} Balanced rations`, state: feedStock <= 3 ? "warning" : "ok", detail: feedStock <= 3 ? "Low feed. Restock before sleeping if possible." : "Ration stock looks stable." },
     { label: "Ranch Condition", value: `${ranchCondition} (${ranchDamage}/100)`, state: ranchDamage >= 50 ? "warning" : "ok", detail: ranchDamage >= 50 ? `Repair recommended. ${repairReady}.` : "No major damage warning." },
     { label: "Creature Energy", value: `${lowEnergyCreatures.length} low`, state: lowEnergyCreatures.length ? "warning" : "ok", detail: lowEnergyCreatures.length ? `${lowEnergyCreatures.map((creature) => creature.nickname).slice(0, 3).join(", ")} need rest or snacks.` : "No creatures are critically low on energy." },
     { label: "Eggs", value: `${readyEggs} ready / ${activeEggs} active`, state: readyEggs ? "warning" : "ok", detail: readyEggs ? "Ready eggs can be handled in the Nursery." : "No ready eggs waiting." },
@@ -309,8 +309,8 @@ export function PlayerInventoryMenu() {
     return (
       <section className={styles.tabPanel} aria-label="Ranch status planner">
         <div className={styles.statusGrid}>
-          <div><span>Feed</span><strong>{feedStock}</strong></div>
-          <div><span>Materials</span><strong>{materialsStock}</strong></div>
+          <div><span>Rations</span><strong>{feedStock}</strong></div>
+          <div><span>Wood</span><strong>{materialsStock}</strong></div>
           <div><span>Repair Kits</span><strong>{repairKitStock}</strong></div>
           <div><span>Condition</span><strong>{ranchCondition} ({ranchDamage}/100)</strong></div>
           <div><span>Eggs</span><strong>{readyEggs} ready / {activeEggs} active</strong></div>

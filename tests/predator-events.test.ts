@@ -1,3 +1,4 @@
+import { getFarmState } from "@/data/farmResources";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createBattleState } from "@/data/battleEngine";
@@ -110,17 +111,17 @@ test("victory rewards and defeat penalties are each applied exactly once", () =>
   const victoryEvent = victoryCheck.event!;
   const teamIds = (victoryCheck.save.creatures ?? []).slice(0, 3).map((creature) => creature.creatureId);
   const goldBefore = victoryCheck.save.currencies.gold;
-  const materialsBefore = Number(victoryCheck.save.flags.ranchMaterialsStock ?? 0);
+  const materialsBefore = (getFarmState(victoryCheck.save).stock.wood ?? 0);
   const victory = recordPredatorBattleOutcome(victoryCheck.save, victoryEvent.eventId, "player_won", 3, teamIds);
   assert.equal(victory.duplicate, false);
   assert.ok(victory.save.currencies.gold > goldBefore);
-  assert.ok(Number(victory.save.flags.ranchMaterialsStock) > materialsBefore);
+  assert.ok((getFarmState(victory.save).stock.wood ?? 0) > materialsBefore);
   assert.equal(getPendingPredatorEvent(victory.save), null);
 
   const duplicateVictory = recordPredatorBattleOutcome(victory.save, victoryEvent.eventId, "player_won", 3, teamIds);
   assert.equal(duplicateVictory.duplicate, true);
   assert.equal(duplicateVictory.save.currencies.gold, victory.save.currencies.gold);
-  assert.equal(duplicateVictory.save.flags.ranchMaterialsStock, victory.save.flags.ranchMaterialsStock);
+  assert.equal(getFarmState(duplicateVictory.save).stock.wood, getFarmState(victory.save).stock.wood);
 
   const defeatCheck = resolvePredatorNightCheck({
     ...exposedSave(),

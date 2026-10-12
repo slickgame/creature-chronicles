@@ -1,3 +1,4 @@
+import { getFarmState } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -212,6 +213,8 @@ test("daily victory grants C3 Marks once, ordinary creature XP, and blocks dupli
   const result = recordColiseumC4BattleResult(cleared, daily, 0, "player_won", 4, teamIds, performance, "c4_daily_once", finalState);
   assert.equal(result.ok, true);
   assert.equal(result.historyEntry?.rewardTier, "full");
+  assert.equal(getFarmState(result.save).stock.iron_ore, (getFarmState(cleared).stock.iron_ore ?? 0) + daily.reward.materials);
+  assert.equal(result.save.flags.ranchMaterialsStock, cleared.flags.ranchMaterialsStock);
   assert.equal(result.save.flags.guildBattleWins, Number(cleared.flags.guildBattleWins ?? 0) + 1);
   assert.ok(getColiseumC3State(result.save).marks >= daily.reward.marks);
   assert.ok(getColiseumC4State(result.save).dailyClaimKeys.includes(daily.claimKey));
@@ -222,6 +225,7 @@ test("daily victory grants C3 Marks once, ordinary creature XP, and blocks dupli
   assert.equal(duplicate.duplicate, true);
   assert.equal(duplicate.save.flags.guildBattleWins, result.save.flags.guildBattleWins);
   assert.equal(duplicate.changed, false);
+  assert.deepEqual(getFarmState(duplicate.save).stock, getFarmState(result.save).stock);
   assert.equal(getColiseumC3State(duplicate.save).marks, getColiseumC3State(result.save).marks);
 
   const practiceState = buildFinalState(result.save, daily, 0, teamIds, "player_won");
@@ -261,6 +265,7 @@ test("gauntlet stages persist a locked team, carryover, and grant the clear rewa
     } else {
       assert.equal(state.activeRun, undefined);
       assert.equal(result.historyEntry?.rewardTier, "full");
+
       assert.ok(state.weeklyGauntletClaimKeys.includes(gauntlet.claimKey));
       assert.ok(result.historyEntry && result.historyEntry.marks > 0);
     }

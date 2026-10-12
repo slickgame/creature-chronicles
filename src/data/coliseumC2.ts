@@ -1,3 +1,4 @@
+import { grantFarmResources } from "./farmResources";
 import {
   BATTLE_OUTFITTER_ITEMS,
   getBattleOutfitterStock,
@@ -179,6 +180,7 @@ export type ColiseumCreatureXpSummary = {
 };
 
 export type ColiseumHistoryEntryV2 = {
+  resourceKind?: "iron_ore";
   resultId: string;
   encounterId: ColiseumC2EncounterId;
   encounterName: string;
@@ -948,9 +950,9 @@ function chooseRepeatReward(encounter: ColiseumC2EncounterDefinition, seed: stri
   return { ...encounter.repeatRewardPool[0].reward };
 }
 
-export function getColiseumC2RewardLabel(reward: ColiseumC2Reward): string {
+export function getColiseumC2RewardLabel(reward: ColiseumC2Reward, legacy = false): string {
   const parts = [`${reward.gold} Gold`, `${reward.guildPoints} GP`];
-  if (reward.materials) parts.push(`${reward.materials} Materials`);
+  if (reward.materials) parts.push(`${reward.materials} ${legacy ? "Materials (legacy)" : "Iron ore"}`);
   if (reward.itemId && reward.itemQuantity) {
     const item = BATTLE_OUTFITTER_ITEMS.find((entry) => entry.itemId === reward.itemId);
     parts.push(`${reward.itemQuantity} ${item?.name ?? reward.itemId}`);
@@ -964,7 +966,7 @@ export function getColiseumRepeatPoolLabel(encounter: ColiseumC2EncounterDefinit
 
 function applyReward(save: GameSave, reward: ColiseumC2Reward): GameSave {
   const flags = { ...save.flags };
-  if (reward.materials) flags.ranchMaterialsStock = finiteCount(flags.ranchMaterialsStock) + reward.materials;
+  if (reward.materials) Object.assign(flags, grantFarmResources({ ...save, flags }, { iron_ore: reward.materials }).flags);
   if (reward.itemId && reward.itemQuantity) {
     const item = BATTLE_OUTFITTER_ITEMS.find((entry) => entry.itemId === reward.itemId);
     if (item) flags[item.flagKey] = getBattleOutfitterStock(save, item) + reward.itemQuantity;
@@ -1140,6 +1142,7 @@ export function recordColiseumC2BattleResult(
   const completedEncounterIds = win && !progress.completedEncounterIds.includes(encounterId) ? [...progress.completedEncounterIds, encounterId] : [...progress.completedEncounterIds];
   const claimedFirstClearEncounterIds = firstClear ? [...progress.claimedFirstClearEncounterIds, encounterId] : [...progress.claimedFirstClearEncounterIds];
   const historyEntry: ColiseumHistoryEntryV2 = {
+    resourceKind: "iron_ore",
     resultId,
     encounterId,
     encounterName: encounter.name,

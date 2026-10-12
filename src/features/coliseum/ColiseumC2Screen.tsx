@@ -226,7 +226,7 @@ export function ColiseumC2Screen() {
 
         <section className={styles.historyPanel} style={{ marginTop: 18 }}>
           <header><div><p className={styles.kicker}>Permanent Records</p><h2>Recent Coliseum History</h2></div><span>Latest {Math.min(progress.history.length, 40)} results</span></header>
-          {progress.history.length ? <div className={styles.historyList}>{progress.history.map((entry) => <article key={entry.resultId}><div><strong>{entry.encounterName}</strong><span>{getColiseumC2Division(entry.divisionId).name} · Day {entry.completedAtDayNumber}</span></div><div><strong>{outcomeLabel(entry.outcome)}</strong><span>{entry.roundCount} rounds</span></div><div><strong>{getColiseumC2RewardLabel(entry.reward)}</strong><span>{entry.xpAwards.map((award) => `+${award.xp} XP`).join(" · ")}</span></div></article>)}</div> : <p className={styles.emptyHistory}>No permanent C2 matches recorded yet.</p>}
+          {progress.history.length ? <div className={styles.historyList}>{progress.history.map((entry) => <article key={entry.resultId}><div><strong>{entry.encounterName}</strong><span>{getColiseumC2Division(entry.divisionId).name} · Day {entry.completedAtDayNumber}</span></div><div><strong>{outcomeLabel(entry.outcome)}</strong><span>{entry.roundCount} rounds</span></div><div><strong>{getColiseumC2RewardLabel(entry.reward, entry.resourceKind !== "iron_ore")}</strong><span>{entry.xpAwards.map((award) => `+${award.xp} XP`).join(" · ")}</span></div></article>)}</div> : <p className={styles.emptyHistory}>No permanent C2 matches recorded yet.</p>}
         </section>
       </section>
     </main>

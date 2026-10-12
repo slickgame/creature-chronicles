@@ -1,3 +1,4 @@
+import { getFarmState, grantFarmResources, consumeFarmResources, canSpend } from "../farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import type { DailyRanchEventRecord, RanchDayActivity } from "@/types/ranchDay";
 import type { GameSave } from "@/types/save";
@@ -20,10 +21,10 @@ const EVENT_BUILDERS: Array<(save: GameSave) => DailyRanchEventRecord> = [
     eventId: `event_${save.dayState.dayNumber}_supplier`,
     dayNumber: save.dayState.dayNumber,
     eventType: "supplier",
-    title: "Traveling Feed Supplier",
-    description: "A traveling supplier offers a small Feed bundle below the normal depot price.",
+    title: "Traveling Ration Supplier",
+    description: "A traveling supplier offers a bundle of balanced rations for 35 Gold before any shop Trust discount.",
     choices: [
-      { choiceId: "buy-feed", label: "Buy 5 Feed for 35 Gold", description: "Pay 35 Gold and add exactly 5 Feed.", requirementLabel: "Requires 35 Gold" },
+      { choiceId: "buy-feed", label: "Buy 5 Balanced rations for 35 Gold", description: "Pay 35 Gold and add exactly 5 Balanced rations.", requirementLabel: "Requires 35 Gold" },
       { choiceId: "decline", label: "Decline", description: "Keep your Gold and continue the day." },
     ],
   }),
@@ -34,8 +35,8 @@ const EVENT_BUILDERS: Array<(save: GameSave) => DailyRanchEventRecord> = [
     title: "Loose Fence Section",
     description: "A loose section of fence can be handled before it becomes part of tonight's ranch wear.",
     choices: [
-      { choiceId: "spend-material", label: "Spend 1 Material", description: "Use 1 Material and remove 5 ranch damage.", requirementLabel: "Requires 1 Material" },
-      { choiceId: "temporary-labor", label: "Assign Temporary Labor", description: "Gain +2 upkeep score for tonight without changing chore assignments." },
+      { choiceId: "spend-material", label: "Spend 1 Wood", description: "Use 1 Wood and remove 5 ranch damage.", requirementLabel: "Requires 1 Wood" },
+      { choiceId: "temporary-labor", label: "Accept a quick repair", description: "A passing neighbor restores 2 fortification condition immediately." },
       { choiceId: "leave-fence", label: "Leave It", description: "Take no immediate action." },
     ],
   }),
@@ -68,10 +69,10 @@ const EVENT_BUILDERS: Array<(save: GameSave) => DailyRanchEventRecord> = [
     dayNumber: save.dayState.dayNumber,
     eventType: "forage",
     title: "Wild Forage Near the Ranch",
-    description: "Fresh growth and loose stone appeared along the outer path.",
+    description: "Fresh vegetables and fallen branches appeared along the outer path.",
     choices: [
-      { choiceId: "gather-feed", label: "Gather Feed", description: "Add exactly 3 Feed." },
-      { choiceId: "gather-material", label: "Gather Materials", description: "Add exactly 1 Material." },
+      { choiceId: "gather-feed", label: "Gather Vegetables", description: "Add exactly 3 Vegetables." },
+      { choiceId: "gather-material", label: "Gather Wood", description: "Add exactly 1 Wood." },
       { choiceId: "leave-forage", label: "Leave It Undisturbed", description: "Take no resources." },
     ],
   }),
@@ -124,7 +125,7 @@ export function canResolveDailyEventChoice(save: GameSave, choiceId: string): { 
   if (event.resolvedAt) return { ok: false, reason: "Today's Ranch Day event is already resolved." };
   if (!event.choices.some((choice) => choice.choiceId === choiceId)) return { ok: false, reason: "That event choice is unavailable." };
   if (choiceId === "buy-feed" && save.currencies.gold < 35) return { ok: false, reason: "You need 35 Gold." };
-  if (choiceId === "spend-material" && readFlagNumber(save.flags.ranchMaterialsStock) < 1) return { ok: false, reason: "You need 1 Material." };
+  if (choiceId === "spend-material" && !canSpend(getFarmState(save), { wood: 1 })) return { ok: false, reason: "You need 1 unreserved Wood." };
   if (choiceId === "warm-egg" && !(save.eggs ?? []).some((egg) => egg.status === "incubating" && egg.daysRemaining > 1)) return { ok: false, reason: "No incubating egg can benefit from extra warmth." };
   if (choiceId === "comfort-expecting" && !(save.pregnancies ?? []).some((pregnancy) => pregnancy.status === "pregnant")) return { ok: false, reason: "No active pregnancy is available for this choice." };
   if (choiceId === "spend-time" && !(save.creatures ?? []).length) return { ok: false, reason: "No ranch creature is available." };
@@ -145,26 +146,26 @@ export function resolveDailyRanchEventChoice(save: GameSave, choiceId: string): 
   if (choiceId === "buy-feed") {
     goldChange = -35;
     feedChange = 5;
-    message = "Purchased 5 Feed from the traveling supplier for 35 Gold.";
+    message = "Purchased 5 Balanced rations from the traveling supplier for 35 Gold.";
     nextSave = {
       ...nextSave,
       currencies: { ...nextSave.currencies, gold: nextSave.currencies.gold - 35 },
-      flags: { ...nextSave.flags, ranchFeedStock: readFlagNumber(nextSave.flags.ranchFeedStock) + 5 },
+      flags: grantFarmResources(nextSave, { rations: 5 }).flags,
     };
   } else if (choiceId === "spend-material") {
     materialChange = -1;
-    message = "Spent 1 Material and removed 5 ranch damage.";
+    message = "Spent 1 Wood and removed 5 ranch damage.";
     nextSave = {
       ...nextSave,
       flags: {
         ...nextSave.flags,
-        ranchMaterialsStock: readFlagNumber(nextSave.flags.ranchMaterialsStock) - 1,
+        ...consumeFarmResources(nextSave, { wood: 1 }).save.flags,
         ranchDamage: Math.max(0, readFlagNumber(nextSave.flags.ranchDamage) - 5),
       },
     };
   } else if (choiceId === "temporary-labor") {
-    message = "Temporary labor added +2 upkeep score for tonight.";
-    nextSave = { ...nextSave, flags: { ...nextSave.flags, ranchUpkeepScoreToday: readFlagNumber(nextSave.flags.ranchUpkeepScoreToday) + 2 } };
+    message = "A passing neighbor restored 2 fortification condition.";
+    nextSave = { ...nextSave, flags: { ...nextSave.flags, ranchDamage: Math.max(0, readFlagNumber(nextSave.flags.ranchDamage) - 2) } };
   } else if (choiceId === "warm-egg") {
     let changed = false;
     nextSave = {
@@ -193,12 +194,12 @@ export function resolveDailyRanchEventChoice(save: GameSave, choiceId: string): 
     nextSave = { ...nextSave, currencies: { ...nextSave.currencies, guildPoints: nextSave.currencies.guildPoints + 1 }, flags: { ...nextSave.flags, ranchDaySuggestedDestination: "guild-hall" } };
   } else if (choiceId === "gather-feed") {
     feedChange = 3;
-    message = "Gathered 3 Feed from the outer path.";
-    nextSave = { ...nextSave, flags: { ...nextSave.flags, ranchFeedStock: readFlagNumber(nextSave.flags.ranchFeedStock) + 3 } };
+    message = "Gathered 3 Vegetables from the outer path.";
+    nextSave = grantFarmResources(nextSave, { vegetables: 3 });
   } else if (choiceId === "gather-material") {
     materialChange = 1;
-    message = "Gathered 1 Material from the outer path.";
-    nextSave = { ...nextSave, flags: { ...nextSave.flags, ranchMaterialsStock: readFlagNumber(nextSave.flags.ranchMaterialsStock) + 1 } };
+    message = "Gathered 1 Wood from the outer path.";
+    nextSave = grantFarmResources(nextSave, { wood: 1 });
   } else if (choiceId === "spend-time") {
     const target = [...(nextSave.creatures ?? [])].sort((left, right) => left.affection - right.affection || left.nickname.localeCompare(right.nickname))[0];
     nextSave = { ...nextSave, creatures: (nextSave.creatures ?? []).map((creature) => creature.creatureId === target?.creatureId ? { ...creature, affection: Math.min(100, creature.affection + 5) } : creature) };

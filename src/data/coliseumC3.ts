@@ -1,3 +1,4 @@
+import { grantFarmResources } from "./farmResources";
 import {
   BATTLE_OUTFITTER_ITEMS,
   getBattleOutfitterStock,
@@ -286,8 +287,8 @@ function applyBattleLoot(save: GameSave, flags: GameSave["flags"], entry: Colise
   const labels: string[] = [];
   if (entry.firstClear) {
     const materials = division.order + 1;
-    nextFlags = { ...nextFlags, ranchMaterialsStock: nonNegativeInt(nextFlags.ranchMaterialsStock) + materials };
-    labels.push(`+${materials} Materials`);
+    nextFlags = grantFarmResources({ ...save, flags: nextFlags }, { iron_ore: materials }).flags;
+    labels.push(`+${materials} Iron ore`);
     if (CHAMPION_ENCOUNTERS.has(entry.encounterId)) {
       const championItem: BattleOutfitterItemId = division.order === 1 ? "field_tonic" : division.order === 2 ? "team_tactics_kit" : division.order === 3 ? "focus_manual" : "revival_salve";
       const itemResult = addItemToFlags(save, nextFlags, championItem, 1);
@@ -301,8 +302,8 @@ function applyBattleLoot(save: GameSave, flags: GameSave["flags"], entry: Colise
       nextFlags = itemResult.flags;
       if (itemResult.label) labels.push(itemResult.label);
     } else if (roll < 21) {
-      nextFlags = { ...nextFlags, ranchMaterialsStock: nonNegativeInt(nextFlags.ranchMaterialsStock) + 2 };
-      labels.push("+2 Materials");
+      nextFlags = grantFarmResources({ ...save, flags: nextFlags }, { iron_ore: 2 }).flags;
+      labels.push("+2 Iron ore");
     } else if (roll < 25) {
       const itemResult = addItemToFlags(save, nextFlags, "focus_manual", 1);
       nextFlags = itemResult.flags;

@@ -247,7 +247,7 @@ export function getBattleOutfitterStock(save: GameSave, item: BattleOutfitterIte
 }
 
 export function getBattleOutfitterCostLabel(item: BattleOutfitterItem): string {
-  return item.coliseumExclusive ? "Coliseum Marks Exchange" : `${item.costGold} Gold + ${item.materialCost} Materials`;
+  return item.coliseumExclusive ? "Coliseum Marks Exchange" : `${item.costGold} Gold`;
 }
 
 export function getBattleLoadout(save: GameSave, creatureId: CreatureId): BattleLoadout {

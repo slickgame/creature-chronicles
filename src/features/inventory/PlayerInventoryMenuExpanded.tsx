@@ -386,15 +386,15 @@ export function PlayerInventoryMenu({ controlledOpen, onClose }: { controlledOpe
     return (
       <section className={styles.tabPanel} aria-label="Ranch status planner">
         <div className={styles.statusGrid}>
-          <div><span>Feed</span><strong>{feedStock}</strong></div>
-          <div><span>Materials</span><strong>{materialsStock}</strong></div>
+          <div><span>Rations</span><strong>{feedStock}</strong></div>
+          <div><span>Wood</span><strong>{materialsStock}</strong></div>
           <div><span>Repair Kits</span><strong>{repairKitStock}</strong></div>
           <div><span>Condition</span><strong>{ranchCondition} ({ranchDamage}/100)</strong></div>
           <div><span>Eggs</span><strong>{readyEggs} ready / {activeEggs} active</strong></div>
           <div><span>Needs Attention</span><strong>{attentionCreatures.length} creatures</strong></div>
         </div>
         <div className={styles.plannerGrid}>
-          <article className={`${styles.plannerCard} ${feedStock <= 3 ? styles.warningPlannerCard : styles.okPlannerCard}`}><span>Feed Stock</span><strong>{feedStock} Feed</strong><p>{feedStock <= 3 ? "Low feed. Restock before sleeping." : "Feed stock looks stable."}</p></article>
+          <article className={`${styles.plannerCard} ${feedStock <= 3 ? styles.warningPlannerCard : styles.okPlannerCard}`}><span>Ration Stock</span><strong>{feedStock} Balanced rations</strong><p>{feedStock <= 3 ? "Low rations. Check Feeding before sleeping." : "Ration stock looks stable."}</p></article>
           <article className={`${styles.plannerCard} ${lowEnergyCreatures.length ? styles.warningPlannerCard : styles.okPlannerCard}`}><span>Creature Energy</span><strong>{lowEnergyCreatures.length} low</strong><p>{lowEnergyCreatures.length ? `${lowEnergyCreatures.slice(0, 3).map((creature) => creature.nickname).join(", ")} need rest or Energy items.` : "No creatures are critically low on Energy."}</p></article>
           <article className={styles.plannerCard}><span>Active Pregnancies</span><strong>{pregnancies.length}</strong><p>{pregnancies.length ? "Pregnancy-care items are available from Inventory." : "No active pregnancy targets."}</p></article>
           <article className={styles.plannerCard}><span>Energy Items</span><strong>{energySnackStock + energyMealStock}</strong><p>{energySnackStock} Snacks and {energyMealStock} Meals owned.</p></article>

@@ -12,3 +12,5 @@
 .panel :is(p,h4,label,small,b,strong,dt,dd,summary){color:#38291c;text-shadow:none}.panel .intro p{color:#fff5dd!important}.panel .shortage{color:#8d3825}.panel .summary :is(small,b){color:#38291c}.panel .receipt{color:#38291c}
 
 .panel h4{color:#38291c!important;text-shadow:none!important}
+
+.ingredientName{display:flex;align-items:center;gap:6px}.ingredientName img{width:28px;height:28px;object-fit:contain;flex-shrink:0}

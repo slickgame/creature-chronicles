@@ -1,3 +1,4 @@
+import { getFarmState } from "@/data/farmResources";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
@@ -45,7 +46,7 @@ test("rumors respect venue access even when an imported save acknowledged the ru
 
 test("weekly supply favors enforce Trust, token cost and Monday reset",()=>{
  const s=withState(fixture(),{rumorTokens:6,trust:14});assert.equal(collectRoseLanternSupplyFavor(s).ok,false);
- const ready=withState(s,{trust:15});const first=collectRoseLanternSupplyFavor(ready);assert(first.ok);assert.equal(first.state.rumorTokens,4);assert.equal(Number(first.save.flags.ranchFeedStock),Number(ready.flags.ranchFeedStock??0)+3);assert.equal(Number(first.save.flags.ranchMaterialsStock),Number(ready.flags.ranchMaterialsStock??0)+2);
+ const ready=withState(s,{trust:15});const first=collectRoseLanternSupplyFavor(ready);assert(first.ok);assert.equal(first.state.rumorTokens,4);assert.equal(getFarmState(first.save).stock.rations,(getFarmState(ready).stock.rations??0)+3);assert.equal(getFarmState(first.save).stock.wood,(getFarmState(ready).stock.wood??0)+2);
  assert.equal(collectRoseLanternSupplyFavor(first.save).ok,false);let next=first.save;for(let i=0;i<6;i++)next=tomorrow(next);assert.equal(collectRoseLanternSupplyFavor(next).ok,false);assert.equal(collectRoseLanternSupplyFavor(tomorrow(next)).ok,true);
 });
 

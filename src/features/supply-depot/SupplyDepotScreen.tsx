@@ -64,8 +64,8 @@ export function SupplyDepotScreen() {
       <header className={ui.heading}><h1>The Supply Depot</h1><ScreenNavigation onBack={goToTown} backLabel="Town" /></header>
       <section className={`${ui.summary} ${styles.resources}`} aria-label="Ranch supplies">
         <div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div>
-        <div><IllustratedIcon name="feed" /><span>Feed</span><strong>{counts.feed}</strong></div>
-        <div><IllustratedIcon name="materials" /><span>Materials</span><strong>{counts.materials}</strong></div>
+        <div><IllustratedIcon name="feed" /><span>Rations</span><strong>{counts.feed}</strong></div>
+        <div><IllustratedIcon name="materials" /><span>Wood</span><strong>{counts.materials}</strong></div>
         <div><IllustratedIcon name="repair" /><span>Repair kits</span><strong>{counts.repairKits}</strong></div>
       </section>
       <div className={styles.workspace}>

@@ -79,7 +79,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     category: "Equipment",
     description: "Basic combat wraps used in future battle loadouts.",
     costGold: 160,
-    materialCost: 2,
+    materialCost: 0,
     iconPath: "/images/ui/icons/icon_ability_trigger.png",
     effectLabel:
       "+1 Sparring Wraps stock. Can be assigned to a creature offense slot.",
@@ -93,7 +93,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     category: "Equipment",
     description: "A defensive charm for future protector builds.",
     costGold: 190,
-    materialCost: 3,
+    materialCost: 0,
     iconPath: "/images/ui/icons/icon_lock_favorite.png",
     effectLabel:
       "+1 Guard Charm stock. Can be assigned to a creature defense slot.",
@@ -108,7 +108,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     description:
       "A printed move-training reference for future skill and loadout changes.",
     costGold: 225,
-    materialCost: 4,
+    materialCost: 0,
     iconPath: "/images/ui/icons/icon_collection_book.png",
     effectLabel: "+1 Focus Manual stock. Can be used for +1 creature manual rank, max 3.",
     flagKey: "battleItem_focusManuals",
@@ -120,7 +120,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     category: "Team Prep",
     description: "A planning kit for future team-role setups.",
     costGold: 275,
-    materialCost: 5,
+    materialCost: 0,
     iconPath: "/images/ui/icons/icon_guild_points.png",
     effectLabel: "+1 Team Tactics Kit stock. Future formation/loadout support.",
     flagKey: "battleItem_tacticsKits",
@@ -132,7 +132,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     category: "Consumable",
     description: "A safe combat-prep tonic intended for future PvE challenge attempts.",
     costGold: 120,
-    materialCost: 1,
+    materialCost: 0,
     iconPath: "/images/ui/icons/icon_sleep_recovery.png",
     effectLabel: "+1 Field Tonic stock. Future battle consumable.",
     flagKey: "battleItem_fieldTonics",
@@ -145,7 +145,7 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
     category: "Consumable",
     description: "Emergency salve for future combat recovery rules.",
     costGold: 260,
-    materialCost: 6,
+    materialCost: 0,
     iconPath: "/images/ui/icons/icon_upgrade_arrow.png",
     effectLabel: "+1 Revival Salve stock. Future recovery consumable.",
     flagKey: "battleItem_revivalSalves",
@@ -197,7 +197,7 @@ export function getBattleOutfitterStock(
 }
 
 export function getBattleOutfitterCostLabel(item: BattleOutfitterItem): string {
-  return `${item.costGold} Gold + ${item.materialCost} Materials`;
+  return `${item.costGold} Gold`;
 }
 
 export function getBattleLoadout(

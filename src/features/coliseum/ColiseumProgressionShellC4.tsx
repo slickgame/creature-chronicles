@@ -40,7 +40,7 @@ function outcomeLabel(outcome: BattleOutcome): string {
 }
 
 function rewardLabel(challenge: ColiseumC4ChallengeDefinition): string {
-  const pieces = [`${challenge.reward.marks} Marks`, `${challenge.reward.materials} Materials`];
+  const pieces = [`${challenge.reward.marks} Marks`, `${challenge.reward.materials} Iron ore`];
   if (challenge.reward.itemId && challenge.reward.itemQuantity) pieces.push(`${challenge.reward.itemQuantity} ${titleCase(challenge.reward.itemId)}`);
   return pieces.join(" • ");
 }
@@ -278,7 +278,7 @@ export function ColiseumProgressionScreen() {
             </section>
             <section className={styles.panel}>
               <div className={styles.panelHeader}><div><p className={styles.kicker}>Persistent Challenge Ledger</p><h2>Recent C4 Results</h2></div></div>
-              <div className={styles.historyList}>{state.history.length ? state.history.map((entry) => <article key={entry.resultId} className={styles.historyEntry}><div><strong>{entry.challengeName}</strong><span>{titleCase(entry.mode)} · Stage {entry.stageNumber}/{entry.stageCount} · Day {entry.completedAtDayNumber}</span></div><div><strong className={entry.outcome === "player_won" ? styles.positive : styles.negative}>{outcomeLabel(entry.outcome)}</strong><small>{entry.rounds} rounds · {entry.totalRunRounds} run total</small></div><div><strong>{entry.score} score</strong><small>{titleCase(entry.rewardTier)} reward</small></div><div><strong>+{entry.marks} Marks</strong><small>+{entry.materials} Materials</small></div></article>) : <p className={styles.empty}>No C4 results have been recorded.</p>}</div>
+              <div className={styles.historyList}>{state.history.length ? state.history.map((entry) => <article key={entry.resultId} className={styles.historyEntry}><div><strong>{entry.challengeName}</strong><span>{titleCase(entry.mode)} · Stage {entry.stageNumber}/{entry.stageCount} · Day {entry.completedAtDayNumber}</span></div><div><strong className={entry.outcome === "player_won" ? styles.positive : styles.negative}>{outcomeLabel(entry.outcome)}</strong><small>{entry.rounds} rounds · {entry.totalRunRounds} run total</small></div><div><strong>{entry.score} score</strong><small>{titleCase(entry.rewardTier)} reward</small></div><div><strong>+{entry.marks} Marks</strong><small>+{entry.materials} {entry.resourceKind === "iron_ore" ? "Iron ore" : "Materials (legacy)"}</small></div></article>) : <p className={styles.empty}>No C4 results have been recorded.</p>}</div>
             </section>
           </>
         ) : null}

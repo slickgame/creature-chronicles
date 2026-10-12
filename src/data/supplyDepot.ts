@@ -1,3 +1,4 @@
+import { getFarmState, grantFarmResources } from "./farmResources";
 import {
   BREEDING_SUPPORT_ITEMS,
   ENERGY_SNACK_RESTORE,
@@ -83,33 +84,33 @@ export const PELLA_MOSSWICK = {
 const BASE_SUPPLIES: SupplyDepotItem[] = [
   {
     itemId: "feed_bundle",
-    name: "Feed Bundle",
+    name: "Ration Bundle",
     category: "Feed",
     rarity: "Common",
-    description: "A practical sack of ranch feed for overnight ranch care.",
-    exactEffect: "Adds exactly 5 Feed to Ranch Feed Stock.",
-    price: 50,
-    iconPath: "/images/items/supply_depot/feed_bundle.png",
-    purchaseLabel: "+5 Feed",
-    quantityLabel: "5 Feed",
-    storageLabel: "Ranch Feed Stock",
-    usageLabel: "Adds 5 Feed. Feed is consumed automatically during overnight ranch feeding.",
+    description: "Five balanced rations for overnight feeding.",
+    exactEffect: "Adds exactly 5 Balanced rations to farm storage.",
+    price: 35,
+    iconPath: "/images/ui/resources-v2/rations.webp",
+    purchaseLabel: "+5 Balanced rations",
+    quantityLabel: "5 Balanced rations",
+    storageLabel: "Farm ration stock",
+    usageLabel: "Adds 5 Balanced rations. Rations are consumed automatically during overnight ranch feeding.",
     stockFlag: SUPPLY_DEPOT_FLAGS.feed,
     confirmationRequired: false,
   },
   {
     itemId: "material_crate",
-    name: "Material Crate",
+    name: "Timber Bundle",
     category: "Materials",
     rarity: "Common",
-    description: "Boards, nails, rope, patch cloth, and other repair basics.",
-    exactEffect: "Adds exactly 5 Materials to Ranch Material Stock.",
-    price: 75,
-    iconPath: "/images/items/supply_depot/material_crate.png",
-    purchaseLabel: "+5 Materials",
-    quantityLabel: "5 Materials",
-    storageLabel: "Ranch Material Stock",
-    usageLabel: "Adds 5 Materials for Ranch Office construction, habitat upgrades, nursery upgrades, chores, and repairs.",
+    description: "Five pieces of Wood for recipes, construction and repairs.",
+    exactEffect: "Adds exactly 5 Wood to farm storage.",
+    price: 35,
+    iconPath: "/images/ui/resources-v2/wood.webp",
+    purchaseLabel: "+5 Wood",
+    quantityLabel: "5 Wood",
+    storageLabel: "Farm Wood stock",
+    usageLabel: "Adds 5 Wood for construction, planks and repairs.",
     stockFlag: SUPPLY_DEPOT_FLAGS.materials,
     confirmationRequired: false,
   },
@@ -119,13 +120,13 @@ const BASE_SUPPLIES: SupplyDepotItem[] = [
     category: "Repair",
     rarity: "Uncommon",
     description: "A bundled kit for ranch damage and emergency systems.",
-    exactEffect: "Provides one Repair Kit. Ranch Office repairs consume a kit before loose Materials.",
+    exactEffect: "Provides one Repair Kit. Ranch Office repairs consume a kit before 2 Wood + 1 Stone.",
     price: 120,
     iconPath: "/images/items/supply_depot/repair_kit.png",
     purchaseLabel: "+1 Repair Kit",
     quantityLabel: "1 Kit",
     storageLabel: "Ranch Repair Kit Stock",
-    usageLabel: "Consumed first by Ranch Office manual repairs. Repairs fall back to loose Materials when no kit is owned.",
+    usageLabel: "Consumed first by Ranch Office manual repairs. Repairs fall back to 2 Wood + 1 Stone when no kit is owned.",
     stockFlag: SUPPLY_DEPOT_FLAGS.repairKits,
     confirmationRequired: false,
   },
@@ -192,13 +193,15 @@ function getFlagNumber(value: boolean | number | string | undefined): number {
 }
 
 export function getSupplyDepotCount(save: GameSave, flagKey: string): number {
+  if (flagKey === SUPPLY_DEPOT_FLAGS.feed) return getFarmState(save).stock.rations ?? 0;
+  if (flagKey === SUPPLY_DEPOT_FLAGS.materials) return getFarmState(save).stock.wood ?? 0;
   return getFlagNumber(save.flags[flagKey]);
 }
 
 export function getSupplyDepotSupplyCounts(save: GameSave): SupplyDepotSupplyCounts {
   return {
-    feed: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.feed]),
-    materials: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.materials]),
+    feed: getSupplyDepotCount(save, SUPPLY_DEPOT_FLAGS.feed),
+    materials: getSupplyDepotCount(save, SUPPLY_DEPOT_FLAGS.materials),
     energySnacks: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energySnacks]),
     energyMeals: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energyMeals]),
     energySnacksUsed: getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.energySnacksUsed]),
@@ -223,20 +226,20 @@ export function getSupplyDepotPrice(save: GameSave, item: SupplyDepotItem): numb
 
 export function getSupplyDepotStockLabel(save: GameSave): string {
   const counts = getSupplyDepotSupplyCounts(save);
-  return `${counts.feed} Feed • ${counts.materials} Materials • ${counts.energySnacks + counts.energyMeals} Energy Items • ${counts.fertilityTonics + counts.traitStabilizers + counts.mutationCatalysts} Breeding Items • ${counts.gestationTonics} Pregnancy Items`;
+  return `${counts.feed} Balanced rations • ${counts.materials} Wood • ${counts.energySnacks + counts.energyMeals} Energy Items • ${counts.fertilityTonics + counts.traitStabilizers + counts.mutationCatalysts} Breeding Items • ${counts.gestationTonics} Pregnancy Items`;
 }
 
 function countForItem(save: GameSave, item: SupplyDepotItem): number {
-  if (item.itemId === "feed_bundle") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.feed]);
-  if (item.itemId === "material_crate") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.materials]);
+  if (item.itemId === "feed_bundle") return getSupplyDepotCount(save, SUPPLY_DEPOT_FLAGS.feed);
+  if (item.itemId === "material_crate") return getSupplyDepotCount(save, SUPPLY_DEPOT_FLAGS.materials);
   if (item.itemId === "repair_kit") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.repairKits]);
   if (item.itemId === "nursery_supply_kit") return getFlagNumber(save.flags[SUPPLY_DEPOT_FLAGS.nurserySupplyKits]);
   return getBreedingSupportItemCount(save, item.itemId);
 }
 
 function countLabel(item: SupplyDepotItem, count: number): string {
-  if (item.itemId === "feed_bundle") return `${count} Feed`;
-  if (item.itemId === "material_crate") return `${count} Materials`;
+  if (item.itemId === "feed_bundle") return `${count} Balanced rations`;
+  if (item.itemId === "material_crate") return `${count} Wood`;
   if (item.itemId === "repair_kit" || item.itemId === "nursery_supply_kit") return `${count} Kit(s)`;
   return `${count} Owned`;
 }
@@ -316,7 +319,7 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
   };
   let amount = 1;
   if (item.itemId === "feed_bundle" || item.itemId === "material_crate") amount = 5;
-  nextFlags[item.stockFlag] = getFlagNumber(save.flags[item.stockFlag]) + amount;
+  if (item.itemId !== "feed_bundle" && item.itemId !== "material_crate") nextFlags[item.stockFlag] = getFlagNumber(save.flags[item.stockFlag]) + amount;
 
   const purchasedSave: GameSave = {
     ...save,
@@ -325,7 +328,7 @@ export function purchaseSupplyDepotItem(save: GameSave, itemId: string): SupplyD
     flags: nextFlags,
   };
   const trustedSave = grantNpcTrust(
-    purchasedSave,
+    item.itemId === "feed_bundle" ? grantFarmResources(purchasedSave, { rations: 5 }) : item.itemId === "material_crate" ? grantFarmResources(purchasedSave, { wood: 5 }) : purchasedSave,
     "pella_mosswick",
     item.category === "Breeding" || item.category === "Pregnancy" || item.category === "Nursery" ? 3 : 2,
   );

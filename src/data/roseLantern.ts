@@ -1,3 +1,4 @@
+import { getFarmState, grantFarmResources } from "./farmResources";
 import { getBuilderWorkOrder, getBuilderProject } from "./builderProjects";
 import { getPredatorThreatAssessment } from "@/data/predatorThreat";
 import type { GameSave } from "@/types/save";
@@ -203,7 +204,7 @@ function buildRumor(save: GameSave, topic: RoseRumorTopic): string {
   }
   if (topic === "builder") {
     const order = getBuilderWorkOrder(save);
-    return order ? `Petra is building ${getBuilderProject(order.projectId).title}. Completion is Ranch Day ${order.readyDay}; finish ranch days to advance the work. Your Materials stock is ${finiteCount(save.flags.ranchMaterialsStock)}.` : `Petra's crew is free. You have ${finiteCount(save.flags.ranchMaterialsStock)} Materials. The Yard lists exact project requirements; the Supply Depot sells Materials and Field Hauling earns them through chores.`;
+    return order ? `Petra is building ${getBuilderProject(order.projectId).title}. Completion is Ranch Day ${order.readyDay}; finish ranch days to advance the work. Your Wood stock is ${(getFarmState(save).stock.wood ?? 0)}.` : `Petra's crew is free. You have ${(getFarmState(save).stock.wood ?? 0)} Wood. The Yard lists exact project requirements; work at the farm woodlot for Wood or buy supplies from Pella.`;
   }
   const nextMonday = getRoseLanternWeek(save) + 7;
   return `The Guild board and adoption listings refresh on Monday, Ranch Day ${nextMonday}. Accepted and completed requests stay on the board. Board reroll costs also reset then. You have ${finiteCount(save.currencies.guildPoints)} GP; check the Guild for requests and exact rewards.`;
@@ -223,9 +224,9 @@ export function spendRoseLanternRumorToken(save: GameSave, topic?: RoseRumorTopi
 export function collectRoseLanternSupplyFavor(save: GameSave): RoseLanternActionResult {
   const current = getRoseLanternState(save), blocker = getRoseLanternActivityBlocker(save, "favor");
   if (blocker) return { save, state: current, ok: false, message: blocker };
-  const state = appendHistory({ ...current, rumorTokens: current.rumorTokens - 2, lastFavorWeek: getRoseLanternWeek(save) }, `Day ${save.dayState.dayNumber}: Supply favor collected: +3 Feed, +2 Materials.`);
-  const next = { ...save, flags: { ...save.flags, ranchFeedStock: finiteCount(save.flags.ranchFeedStock) + 3, ranchMaterialsStock: finiteCount(save.flags.ranchMaterialsStock) + 2 } };
-  return { save: withState(next, state), state, ok: true, message: "Supply favor collected: +3 Feed and +2 Materials for 2 Rumor Tokens. Available again Monday." };
+  const state = appendHistory({ ...current, rumorTokens: current.rumorTokens - 2, lastFavorWeek: getRoseLanternWeek(save) }, `Day ${save.dayState.dayNumber}: Supply favor collected: +3 Balanced rations, +2 Wood.`);
+  const next = grantFarmResources(save, { rations: 3, wood: 2 });
+  return { save: withState(next, state), state, ok: true, message: "Supply favor collected: +3 Balanced rations and +2 Wood for 2 Rumor Tokens. Available again Monday." };
 }
 
 export const ROSE_HOUSE_REQUESTS = [

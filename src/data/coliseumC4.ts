@@ -1,3 +1,4 @@
+import { grantFarmResources } from "./farmResources";
 import {
   BATTLE_OUTFITTER_ITEMS,
   getBattleOutfitterStock,
@@ -135,6 +136,7 @@ export type ColiseumC4WeeklyScore = {
 };
 
 export type ColiseumC4HistoryEntry = {
+  resourceKind?: "iron_ore";
   resultId: string;
   challengeKey: string;
   challengeName: string;
@@ -853,14 +855,15 @@ export function recordColiseumC4BattleResult(
     : weeklyPrevious;
 
   let flags: GameSave["flags"] = { ...save.flags, guildBattleWins: finiteCount(save.flags.guildBattleWins) + (win ? 1 : 0) };
-  if (materials > 0) flags.ranchMaterialsStock = finiteCount(flags.ranchMaterialsStock) + materials;
+  if (materials > 0) flags = grantFarmResources({ ...save, flags }, { iron_ore: materials }).flags;
   const itemResult: { flags: GameSave["flags"]; label?: string } = rewardTier === "full"
     ? addItemReward(save, flags, challenge.reward)
     : { flags, label: undefined };
   flags = itemResult.flags;
-  const lootPieces = [`+${marks} Marks`, `+${materials} Materials`, itemResult.label].filter(Boolean).join(" • ");
+  const lootPieces = [`+${marks} Marks`, `+${materials} Iron ore`, itemResult.label].filter(Boolean).join(" • ");
 
   const historyEntry: ColiseumC4HistoryEntry = {
+    resourceKind: "iron_ore",
     resultId,
     challengeKey: challenge.challengeKey,
     challengeName: challenge.name,
