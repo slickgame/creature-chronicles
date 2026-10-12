@@ -1,3 +1,5 @@
+import { getEquippedCopy } from "./equipmentInstances";
+import { equipmentStats } from "./equipmentEnhancement";
 import * as active from "./battleOutfitterIntegrationActive";
 import {
   BATTLE_OUTFITTER_ITEMS,
@@ -58,7 +60,10 @@ export function getBattleOutfitterCreatureEffectSummary(
   if (loadout.manualRank > 0) summary.labels.push(`Focus Training ${loadout.manualRank}`);
 
   for (const itemId of itemIds) {
-    const bonuses = getItem(itemId)?.statBonuses;
+    const item = getItem(itemId);
+    const copy = getEquippedCopy(save, creatureId, itemId);
+    const bonuses = item ? equipmentStats(item, copy).bonuses : undefined;
+    if (copy?.level) summary.labels.push(`${item?.name} +${copy.level}`);
     if (bonuses) {
       summary.maxHpBonus += bonuses.maxHp ?? 0;
       summary.physicalPowerBonus += bonuses.physicalPower ?? 0;
@@ -70,41 +75,6 @@ export function getBattleOutfitterCreatureEffectSummary(
       summary.statusPowerBonus += bonuses.statusPower ?? 0;
       summary.statusResistBonus += bonuses.statusResist ?? 0;
       summary.battleEnergyBonus += bonuses.battleEnergy ?? 0;
-    } else if (itemId === "sparring_wraps") {
-      summary.physicalPowerBonus += 6;
-      summary.specialPowerBonus += 4;
-      summary.accuracyBonus += 3;
-    } else if (itemId === "guard_charm") {
-      summary.maxHpBonus += 12;
-      summary.defenseBonus += 5;
-      summary.resistanceBonus += 5;
-      summary.statusResistBonus += 3;
-    } else if (itemId === "arena_blade_wraps") {
-      summary.physicalPowerBonus += 8;
-      summary.speedBonus += 3;
-      summary.accuracyBonus += 3;
-    } else if (itemId === "focus_prism") {
-      summary.specialPowerBonus += 8;
-      summary.statusPowerBonus += 5;
-      summary.accuracyBonus += 3;
-    } else if (itemId === "bastion_badge") {
-      summary.maxHpBonus += 18;
-      summary.defenseBonus += 7;
-      summary.resistanceBonus += 5;
-      summary.statusResistBonus += 4;
-    } else if (itemId === "tactician_emblem") {
-      summary.speedBonus += 3;
-      summary.statusPowerBonus += 3;
-      summary.statusResistBonus += 2;
-      summary.battleEnergyBonus += 8;
-    } else if (itemId === "champion_harness") {
-      summary.maxHpBonus += 12;
-      summary.physicalPowerBonus += 4;
-      summary.specialPowerBonus += 4;
-      summary.defenseBonus += 4;
-      summary.resistanceBonus += 4;
-      summary.accuracyBonus += 2;
-      summary.battleEnergyBonus += 10;
     }
   }
   return summary;
@@ -153,7 +123,20 @@ export function applyBattleOutfitterLoadouts(save: GameSave, state: BattleState)
     if (summary.labels.length) logEntries.push(`${combatant.name} enters with ${summary.labels.join(", ")}.`);
     return next;
   }, {} as BattleState["combatants"]);
-  return { ...state, combatants, log: [...state.log, ...logEntries] };
+  return applyEquipmentOpeningPassives(save, { ...state, combatants, log: [...state.log, ...logEntries] });
+}
+
+/** Called at battle creation, after gauntlet carryover when applicable. Never reapplied per round. */
+export function applyEquipmentOpeningPassives(save: GameSave, state: BattleState): BattleState {
+  const log = [...state.log];
+  const combatants = Object.fromEntries(Object.entries(state.combatants).map(([id, combatant]) => {
+    if (combatant.sideId !== "player" || !Object.values(getBattleLoadout(save, combatant.sourceCreatureId).equipment).includes("champion_harness")) return [id, combatant];
+    const existing = combatant.statuses.find(s => s.status === "guarded");
+    const message = `${combatant.name}: Champion’s Resolve grants Guarded for the opening round.`;
+    if (!log.includes(message)) log.push(message);
+    return [id, { ...combatant, statuses: [...combatant.statuses.filter(s => s.status !== "guarded"), { ...existing, status: "guarded" as const, duration: Math.max(existing?.duration ?? 0, 1) }] }];
+  })) as BattleState["combatants"];
+  return { ...state, combatants, log };
 }
 
 export const TEAM_TACTICS_KIT_ID = active.TEAM_TACTICS_KIT_ID;

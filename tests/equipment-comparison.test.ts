@@ -15,6 +15,9 @@ function fixture() {
 }
 test("old three-slot saves migrate without loss or repeat refunds", () => {
   const save = fixture(), id = save.creatures![0].creatureId;
+  // Reconstruct a legacy save before load-time migration.
+  delete save.flags[`battleEquipmentV1_${id}`];
+  delete save.flags.equipmentCopiesV1;
   save.flags[`battleLoadout_${id}_offense`] = "sparring_wraps";
   save.flags[`battleLoadout_${id}_defense`] = "guard_charm";
   save.flags[`battleLoadout_${id}_utility`] = "tactician_emblem";

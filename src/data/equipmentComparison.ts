@@ -12,10 +12,10 @@ export const BATTLE_STAT_LABELS: Record<BattleStatKey, string> = {
 };
 
 /** Shares both the baseline and bonus application with battle creation. Grades are never written. */
-export function compareEquipment(save: GameSave, creature: CreatureRecord, item: BattleOutfitterItem) {
+export function compareEquipment(save: GameSave, creature: CreatureRecord, item: BattleOutfitterItem, copyId?: string | null) {
   const base = calculateBattleStats(creature);
   const current = applyOutfitterStatBonuses(base, getBattleOutfitterCreatureEffectSummary(save, creature.creatureId));
-  const after = applyOutfitterStatBonuses(base, getBattleOutfitterCreatureEffectSummary(previewEquipmentSave(save, creature.creatureId, item), creature.creatureId));
+  const after = applyOutfitterStatBonuses(base, getBattleOutfitterCreatureEffectSummary(previewEquipmentSave(save, creature.creatureId, item, copyId), creature.creatureId));
   const previousId = item.equipmentSlot ? getEquipmentSlots(save, creature.creatureId)[item.equipmentSlot] : null;
   return {
     previous: BATTLE_OUTFITTER_ITEMS.find(entry => entry.itemId === previousId) ?? null,

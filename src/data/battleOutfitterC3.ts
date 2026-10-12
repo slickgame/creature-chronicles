@@ -1,3 +1,4 @@
+import { getPreviewCopy, getEquipmentCopies, moveEquipmentCopy, releaseEquipmentCopy, withEquipmentPreview } from "./equipmentInstances";
 import { SHOP_EQUIPMENT, type ShopEquipmentId } from "./equipmentCatalogue";
 import type { BattleStats } from "@/types/battle";
 import * as active from "./battleOutfitterActive";
@@ -221,10 +222,11 @@ function resolveSlot(save: GameSave, id: CreatureId, slot: BattleLoadoutSlot): E
 }
 
 /** Hypothetical replacement for comparisons; never spends stock or mutates a save. */
-export function previewEquipmentSave(save: GameSave, id: CreatureId, item: BattleOutfitterItem): GameSave {
+export function previewEquipmentSave(save: GameSave, id: CreatureId, item: BattleOutfitterItem, copyId?: string | null): GameSave {
   const normalized = normalizeBattleEquipment(save);
   if (!item.equipmentSlot) return normalized;
-  return { ...normalized, flags: { ...normalized.flags, [equipmentFlag(id, item.equipmentSlot)]: item.itemId } };
+  const copy = getPreviewCopy(normalized, id, item, copyId);
+  return withEquipmentPreview({ ...normalized, flags: { ...normalized.flags, [equipmentFlag(id, item.equipmentSlot)]: item.itemId } }, id, item, copy);
 }
 
 function getManualFlag(creatureId: CreatureId): string {
@@ -334,6 +336,7 @@ export function assignBattleOutfitterEquipment(
   save: GameSave,
   creatureId: CreatureId,
   itemId: BattleOutfitterItemId,
+  copyId?: string,
 ): BattleOutfitterResult {
   save = normalizeBattleEquipment(save);
   const creature = (save.creatures ?? []).find((entry) => entry.creatureId === creatureId);
@@ -346,18 +349,20 @@ export function assignBattleOutfitterEquipment(
   if (stock <= 0) return { save, ok: false, message: `No ${item.name} in stock.` };
   const slotFlag = equipmentFlag(creatureId, item.equipmentSlot);
   const previousItem = getItem(getFlagString(save.flags[slotFlag]));
-  if (previousItem?.itemId === item.itemId) return { save, ok: false, message: `${creature.nickname} already has ${item.name} assigned.` };
+  if (previousItem?.itemId === item.itemId && !copyId) return { save, ok: false, message: `${creature.nickname} already has ${item.name} assigned. Choose a specific copy in Improve equipment to swap copies.` };
+  const copy = getEquipmentCopies(save, item.itemId).find(c => !c.owner && (!copyId || c.id === copyId));
+  if (!copy) return { save, ok: false, message: "That equipment copy is no longer available." };
   const nextFlags = {
     ...save.flags,
     m52BattleLoadouts: true,
     m53CombatReadiness: true,
     mColiseumC3Equipment: true,
-    [item.flagKey]: stock - 1,
-    ...(previousItem ? { [previousItem.flagKey]: getBattleOutfitterStock(save, previousItem) + 1 } : {}),
+    [item.flagKey]: stock - (previousItem?.itemId === item.itemId ? 0 : 1),
+    ...(previousItem && previousItem.itemId !== item.itemId ? { [previousItem.flagKey]: getBattleOutfitterStock(save, previousItem) + 1 } : {}),
     [slotFlag]: item.itemId,
   };
-  const nextSave = { ...save, updatedAt: new Date().toISOString(), flags: nextFlags };
-  return { save: nextSave, ok: true, message: `${item.name} assigned to ${creature.nickname}'s ${EQUIPMENT_SLOT_LABELS[item.equipmentSlot]} slot. ${getBattleReadinessLabel(nextSave, creatureId)}` };
+  const nextSave = moveEquipmentCopy(save, { ...save, updatedAt: new Date().toISOString(), flags: nextFlags }, creatureId, item, copy.id);
+  return { save: nextSave, ok: true, message: `${item.name} +${copy.level} assigned to ${creature.nickname}'s ${EQUIPMENT_SLOT_LABELS[item.equipmentSlot]} slot. ${getBattleReadinessLabel(nextSave, creatureId)}` };
 }
 
 export function removeBattleOutfitterEquipment(
@@ -374,7 +379,7 @@ export function removeBattleOutfitterEquipment(
   const previousItem = getItem(getFlagString(save.flags[slotFlag]));
   if (!previousItem) return { save, ok: false, message: `${creature.nickname} has no ${slot} equipment assigned.` };
   return {
-    save: {
+    save: releaseEquipmentCopy(save, {
       ...save,
       updatedAt: new Date().toISOString(),
       flags: {
@@ -384,7 +389,7 @@ export function removeBattleOutfitterEquipment(
         [previousItem.flagKey]: getBattleOutfitterStock(save, previousItem) + 1,
         [slotFlag]: "",
       },
-    },
+    }, creatureId, previousItem.itemId),
     ok: true,
     message: `${previousItem.name} removed from ${creature.nickname} and returned to stock.`,
   };

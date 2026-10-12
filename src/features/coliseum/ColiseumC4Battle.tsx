@@ -17,6 +17,7 @@ import {
   REVIVAL_SALVE_ID,
   TEAM_TACTICS_KIT_ID,
   applyBattleOutfitterLoadouts,
+  applyEquipmentOpeningPassives,
   applyTeamTacticsKit,
   getBattleOutfitterCombatStock,
   useFieldTonic as applyFieldTonic,
@@ -175,6 +176,7 @@ export function ColiseumC4Battle({
       ),
       carryover,
     );
+    state = applyEquipmentOpeningPassives(save, state);
     let tacticsUsed = false;
     if (armTacticsKit) {
       const result = applyTeamTacticsKit(save, state);

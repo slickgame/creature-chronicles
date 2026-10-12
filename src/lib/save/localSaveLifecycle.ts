@@ -1,3 +1,4 @@
+import { syncEquipmentCopies } from "@/data/equipmentInstances";
 import { normalizeApprovedCreaturePortraits } from "@/data/approvedCreaturePortraits";
 import * as core from "./localSave";
 import { normalizeBattleMoveInheritanceSave } from "@/data/battleMoveInheritanceMigration";
@@ -62,7 +63,7 @@ function normalizeCreatureCapabilityRecords(save: GameSave): GameSave {
 }
 
 function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): GameSave {
-  return normalizeRanchDaySave(
+  return syncEquipmentCopies(normalizeRanchDaySave(
     normalizeBattleMoveInheritanceSave(
       normalizeCreatureCapabilityRecords(
         normalizeBreedingRecords(
@@ -73,7 +74,7 @@ function normalizeSave(save: GameSave, missingPhase: RanchDayPhase = "active"): 
       ),
     ),
     missingPhase,
-  );
+  ));
 }
 
 export function createNewGameSave(
