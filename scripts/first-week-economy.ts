@@ -1,3 +1,4 @@
+import { createStarterCreatures } from '@/data/creatures';
 import { createNewGameSave } from '@/lib/save/localSave';
 import { actSupplyOrder, workResourceSite, craftResource, commissionFacility, getFarmState } from '@/data/farmResources';
 import { projectRanchDay } from '@/data/ranch-day/ranchDayLifecycle';
@@ -11,6 +12,7 @@ import type { GameSave } from '@/types/save';
 export function simulateFirstWeek() {
   let save = createNewGameSave('First-week economy', 0);
   save = { ...save, saveId: 'economy-first-week' as GameSave['saveId'] };
+  save.creatures = createStarterCreatures(save.saveId);
   const startGold = save.currencies.gold;
   const rows = [];
   function apply(result: {save:GameSave;ok:boolean;message:string}) {
