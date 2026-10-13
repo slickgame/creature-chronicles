@@ -21,6 +21,7 @@ import { formatEnergy } from "@/lib/formatters";
 import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
 import dossierStyles from "./CreatureDossier.module.css";
 import { CreatureInventoryTab, CreatureEquipmentTab } from "./CreatureInventoryTabs";
+import { CompactOverview, CompactStats } from "./CompactSummaryTabs";
 import { CompactWork, CompactTalents, CompactLineage, CompactCare } from "./CompactProfileTabs";
 import { CreatureSkillRadar } from "./CreatureSkillRadar";
 
@@ -496,18 +497,7 @@ function OverviewTab({
   concise?: boolean;
   ranchDossier?: boolean;
 }) {
-  if (ranchDossier) return <section className={dossierStyles.profilePage}>
-    <ProfileHeading icon="overview" eyebrow="Resident dossier" title="At a Glance" />
-    <div className={dossierStyles.identity}><h4>{creature.originLabel}</h4><p>{speciesName} · {variantName} · Generation {creature.generation}</p><RoleTagChips creature={creature} /></div>
-    <div className={dossierStyles.vitalGrid}>
-      <DossierMeter label="Energy" value={creature.energy} max={creature.maxEnergy} />
-      <DossierMeter label="Affection" value={creature.affection} max={100} />
-      <DossierMeter label="Hearts" value={creature.hearts} max={creature.maxHearts} />
-      <DossierMeter label={`Level ${creature.level} · Experience`} value={creature.xp} max={creature.xpToNext} />
-    </div>
-    <div className={dossierStyles.factGrid}><MiniStat label="Health" value={injury ? creature.injuryLabel ?? "Injured" : "Healthy"} /><MiniStat label="Protection" value={creature.isLocked ? "Protected" : "Unprotected"} /><MiniStat label="Lineage" value={lineageLabel} /><MiniStat label="Coloration" value={creature.shiny ? "Rare shiny" : "Standard"} /></div>
-    {statusNote ? <StatusCallout text={statusNote} /> : null}
-  </section>;
+  if (ranchDossier) return <CompactOverview {...{creature,injury,lineageLabel,variantName,speciesName,statusNote}}/>;
   if (concise) return <section style={cardStyle}><p style={kickerStyle}>At a glance</p><h3>{creature.originLabel}</h3><RoleTagChips creature={creature} /><p style={smallText}>Generation {creature.generation} · {creature.xp}/{creature.xpToNext} XP · {creature.hearts}/{creature.maxHearts} Hearts</p><p style={smallText}>Lineage: {lineageLabel}. {injury ? creature.injuryLabel ?? "Injured" : statusNote ?? "Available"}.</p></section>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
@@ -551,6 +541,7 @@ function StatsTab({
   acceleration: number;
   bestStatLabels: string[];
 }) {
+  if (ranchDossier) return <CompactStats {...{creature,growth,energyPreview,acceleration,bestStatLabels}}/>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "start" }}>
@@ -797,16 +788,4 @@ function MiniStat({ label, value }: { label: string; value: string }) {
       <strong style={{ display: "block", color: "#fff7dd", marginTop: 3, overflowWrap: "anywhere" }}>{value}</strong>
     </div>
   );
-}
-
-function ProfileHeading({icon, eyebrow, title}: {icon: string; eyebrow: string; title: string}) {
-  return <header className={dossierStyles.profileHeading}><span aria-hidden="true" style={{maskImage: `url(/images/ui/ranch-dossier-v1/icons/${icon}.svg)`}} /><div><p>{eyebrow}</p><h3>{title}</h3></div></header>;
-}
-
-function DossierMeter({label, value, max, compact = false}: {label: string; value: number; max: number; compact?: boolean}) {
-  const percent = max > 0 ? Math.max(0, Math.min(100, value / max * 100)) : 100;
-  return <div className={compact ? dossierStyles.compactMeter : dossierStyles.vitalCard}>
-    {!compact ? <span>{label}</span> : null}<strong>{max > 0 ? `${value} / ${max}` : "Mastered"}{compact && max > 0 ? " XP" : ""}</strong>
-    <div className={dossierStyles.meterTrack} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={max > 0 ? max : 1} aria-valuenow={max > 0 ? Math.max(0, Math.min(max, value)) : 1}><i style={{width: `${percent}%`}} /></div>
-  </div>;
 }

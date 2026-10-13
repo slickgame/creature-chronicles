@@ -7,7 +7,7 @@ import { GameDialog } from "@/features/ui/GameDialog";
 import { DetailButton } from "@/features/ui/DetailButton";
 import s from "./CompactProfileTabs.module.css";
 
-type Entry = { id: string; title: string; summary: string; icon: string; details: string[]; action?: () => void };
+export type Entry = { id: string; title: string; summary: string; icon: string; iconPath?: string; meter?: {value:number;max:number;label:string}; details: string[]; action?: () => void };
 function chunks(lines: string[]) {
   return lines.flatMap(line => {
     const words = line.split(/\s+/); const pages: string[] = []; let part = "";
@@ -20,14 +20,14 @@ function RecordDialog({ entry, onClose }: { entry: Entry; onClose: () => void })
   const pages = chunks(entry.details);
   return <GameDialog title={entry.title} onClose={onClose}><p className={s.detailText}>{pages[page] ?? entry.summary}</p>{pages.length > 1 ? <div className={s.pager} aria-label="Detail pages"><button disabled={page===0} onClick={()=>setPage(page-1)}>Previous detail</button><span aria-live="polite">{page+1} / {pages.length}</span><button disabled={page+1>=pages.length} onClick={()=>setPage(page+1)}>Next detail</button></div> : null}</GameDialog>;
 }
-function Records({ title, entries }: { title: string; entries: Entry[] }) {
+export function Records({ title, entries }: { title: string; entries: Entry[] }) {
   const [requestedPage,setPage]=useState(0);
   const ref=useRef<HTMLElement>(null);
   const [capacity,setCapacity]=useState(2);
   useEffect(()=>{const element=ref.current;if(!element)return;const observer=new ResizeObserver(([entry])=>setCapacity(entry.contentRect.height>=430?6:entry.contentRect.height>=285?4:2));observer.observe(element);return()=>observer.disconnect();},[]);
   const [selected,setSelected]=useState<Entry|null>(null);
   const pages=Math.max(1,Math.ceil(entries.length/capacity)),page=Math.min(requestedPage,pages-1);
-  return <section ref={ref} className={s.records} aria-label={title}><header className={s.heading}><h3>{title}</h3><small>{entries.length} records</small></header><div className={s.cards}>{entries.slice(page*capacity,page*capacity+capacity).map(entry=><DetailButton key={entry.id} className={s.card} data-caution={entry.id==="release"||entry.id==="donate"} hint={`${entry.title}. ${entry.summary}. ${entry.action?"Select to continue.":"Select for details."}`} onClick={()=>entry.action?entry.action():setSelected(entry)}><span aria-hidden="true" className={s.icon} style={{maskImage:`url(/images/ui/ranch-dossier-v1/icons/${entry.icon}.svg)`}}/><strong>{entry.title}</strong><small>{entry.summary}</small></DetailButton>)}{!entries.length?<p>No records yet.</p>:null}</div><div className={s.pager} aria-label={`${title} pages`}><button disabled={page===0} onClick={()=>setPage(page-1)}>Previous</button><span aria-live="polite">{page+1} / {pages}</span><button disabled={page+1>=pages} onClick={()=>setPage(page+1)}>Next</button></div>{selected?<RecordDialog key={selected.id} entry={selected} onClose={()=>setSelected(null)}/>:null}</section>;
+  return <section ref={ref} className={s.records} aria-label={title}><header className={s.heading}><h3>{title}</h3><small>{entries.length} records</small></header><div className={s.cards}>{entries.slice(page*capacity,page*capacity+capacity).map(entry=><DetailButton key={entry.id} className={s.card} data-caution={entry.id==="release"||entry.id==="donate"} hint={`${entry.title}. ${entry.summary}. ${entry.action?"Select to continue.":"Select for details."}`} onClick={()=>entry.action?entry.action():setSelected(entry)}><span aria-hidden="true" className={s.icon} style={{maskImage:`url(${entry.iconPath??`/images/ui/ranch-dossier-v1/icons/${entry.icon}.svg`})`}}/><strong>{entry.title}</strong><small>{entry.summary}</small>{entry.meter?<span className={s.meter} role="progressbar" aria-label={entry.meter.label} aria-valuemin={0} aria-valuemax={Math.max(1,entry.meter.max)} aria-valuenow={Math.max(0,Math.min(Math.max(1,entry.meter.max),entry.meter.value))}><i style={{width:`${Math.max(0,Math.min(100,entry.meter.max>0?entry.meter.value/entry.meter.max*100:100))}%`}}/></span>:null}</DetailButton>)}{!entries.length?<p>No records yet.</p>:null}</div><div className={s.pager} aria-label={`${title} pages`}><button disabled={page===0} onClick={()=>setPage(page-1)}>Previous</button><span aria-live="polite">{page+1} / {pages}</span><button disabled={page+1>=pages} onClick={()=>setPage(page+1)}>Next</button></div>{selected?<RecordDialog key={selected.id} entry={selected} onClose={()=>setSelected(null)}/>:null}</section>;
 }
 export function CompactWork({creature}:{creature:CreatureRecord}) {
   const [group,setGroup]=useState<"ranch"|"domestic">("ranch");

@@ -6,3 +6,5 @@
 @media(max-height:550px){.heading{display:none;}.records{grid-template-rows:minmax(0,1fr) auto;gap:4px;}.card{min-height:52px;padding:6px;gap:3px;}.card strong{font-size:.72rem;}.card small{font-size:.62rem;}.icon{width:20px;height:20px;}.pager button,.filters button{min-height:27px;padding:3px 8px;font-size:.68rem;}.detailText{font-size:13px;}}
 
 .card[data-caution=true]{border-color:#a67558;background:linear-gradient(135deg,#f9ead0,#e4c6a8);}
+.meter{grid-column:2;display:block;height:5px;border-radius:2px;background:#bda87555;overflow:hidden;}.meter i{display:block;height:100%;background:linear-gradient(90deg,#61783f,#a6b474);}.card:has(.meter){box-shadow:inset 0 0 0 3px #fff4d550;}
+@media(max-width:560px){.meter{grid-column:1;}}
