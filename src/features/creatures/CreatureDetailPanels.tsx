@@ -48,6 +48,7 @@ type SharedCreatureDetailProps = {
   showActions?: boolean;
   fitViewport?: boolean;
   dossier?: boolean;
+  ranchDossier?: boolean;
   showDossierPortrait?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
@@ -199,6 +200,7 @@ export function SharedCreatureDetail({
   showActions = true,
   fitViewport = false,
   dossier = false,
+  ranchDossier = false,
   showDossierPortrait = false,
   statusNote,
   bestStatLabels = [],
@@ -221,11 +223,11 @@ export function SharedCreatureDetail({
   );
   const tabId = useId();
   const tabs = getAvailableTabs(mode, hasCareActions);
-  const [activeTab, setActiveTab] = useState<CreatureDetailTab>(tabs[0]);
+  const [activeTab, setActiveTab] = useState<CreatureDetailTab>(ranchDossier ? "stats" : tabs[0]);
 
   useEffect(() => {
-    setActiveTab(getAvailableTabs(mode, hasCareActions)[0]);
-  }, [creature.creatureId, mode, hasCareActions]);
+    setActiveTab(current => ranchDossier && getAvailableTabs(mode, hasCareActions).includes(current) ? current : getAvailableTabs(mode, hasCareActions)[0]);
+  }, [creature.creatureId, mode, hasCareActions, ranchDossier]);
 
   const shellStyle: CSSProperties = {
     height: fitViewport ? "100%" : "auto",
@@ -269,7 +271,7 @@ export function SharedCreatureDetail({
   };
 
   return (
-    <div className={dossier ? `${dossierStyles.dossier} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
+    <div className={dossier ? `${dossierStyles.dossier} ${ranchDossier ? dossierStyles.ranch : ""} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
       {!dossier || showDossierPortrait ? <section className={dossier ? dossierStyles.portrait : undefined} style={portraitCardStyle}>
         <p style={kickerStyle}>{variant.rarity} Variant</p>
         <h2 style={{ margin: "3px 0", color: "#fff7dd", fontSize: "1.42rem", lineHeight: 1 }}>
@@ -402,6 +404,7 @@ export function SharedCreatureDetail({
           {activeTab === "stats" ? (
             <StatsTab
               creature={creature}
+              ranchDossier={ranchDossier}
               growth={growth}
               energyPreview={energyPreview}
               xpPercent={xpPercent}
@@ -504,6 +507,7 @@ function OverviewTab({
 
 function StatsTab({
   creature,
+  ranchDossier = false,
   growth,
   energyPreview,
   xpPercent,
@@ -511,6 +515,7 @@ function StatsTab({
   bestStatLabels,
 }: {
   creature: CreatureRecord;
+  ranchDossier?: boolean;
   growth: ReturnType<typeof getCreatureGrowthProjections>;
   energyPreview: ReturnType<typeof getProjectedEnergyGainNextLevel>;
   xpPercent: number;
@@ -525,7 +530,7 @@ function StatsTab({
           <h3 style={{ margin: "3px 0", color: "#fff7dd" }}>Next Level</h3>
         </div>
         <div style={{ textAlign: "right" }}>
-          <strong style={{ display: "block", color: "#7fdbff" }}>{xpPercent}% XP</strong>
+          <strong style={{ display: "block", color: "#7fdbff" }}>{ranchDossier ? `${creature.xp} / ${creature.xpToNext} XP` : `${xpPercent}% XP`}</strong>
           <span style={{ ...smallText, fontSize: ".69rem" }}>Young-growth ×{acceleration.toFixed(2)}</span>
         </div>
       </div>
@@ -548,9 +553,9 @@ function StatsTab({
                 background: projection.willIncreaseNextLevel ? "rgba(126,229,168,.08)" : "rgba(0,0,0,.18)",
               }}
             >
-              <span style={kickerStyle}><span className={dossierStyles.statIcon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${SHARED_STAT_LABELS[statKey].toLowerCase()}.svg)` }} />{SHARED_STAT_LABELS[statKey]}</span>
+              <span className={dossierStyles.statLabel} style={kickerStyle}><span className={dossierStyles.statIcon} aria-hidden="true" style={{ maskImage: `url(/images/ui/${ranchDossier ? "ranch-dossier-v2" : "ranch-dossier-v1"}/icons/${SHARED_STAT_LABELS[statKey].toLowerCase()}.svg)` }} />{SHARED_STAT_LABELS[statKey]}</span>
               <strong style={{ display: "block", color: "#fff7dd" }}>
-                {creature.stats[statKey]} <small style={{ color: "#f5c980" }}>Grade {creature.statGrades[statKey]}</small>
+                {creature.stats[statKey]} <small style={{ color: "#f5c980" }}>{ranchDossier ? "" : "Grade "}{creature.statGrades[statKey]}</small>
               </strong>
               {progressTrack(
                 <>
@@ -567,6 +572,13 @@ function StatsTab({
           );
         })}
       </div>
+      {ranchDossier ? <div className={dossierStyles.nextLevel}>
+        <span className={dossierStyles.growthIcon} aria-hidden="true" />
+        <div><h4>Next Level Gain</h4>
+          <strong>{STAT_KEYS.filter(key => growth[key].willIncreaseNextLevel).map(key => `${SHARED_STAT_LABELS[key]} +${growth[key].statGainNextLevel}`).join(" · ") || "Progress toward your next stat gains"}</strong>
+          <p>Energy {energyPreview.delta >= 0 ? "+" : ""}{energyPreview.delta} ({energyPreview.currentMaxEnergy} → {energyPreview.nextLevelMaxEnergy})</p>
+        </div>
+      </div> : null}
     </section>
   );
 }

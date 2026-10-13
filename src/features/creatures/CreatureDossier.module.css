@@ -34,3 +34,23 @@
 .dossier .statGrid article>strong {margin:6px 0 4px;}
 .dossier .statGrid article {padding:9px!important;}
 .dossier .statGrid article p {font-size:.76rem!important;line-height:1.3!important;}
+/* Reference-A layout: broad stat tiles, prominent silhouettes and explicit next gain. */
+.ranch {height:100%!important;grid-template-rows:minmax(0,1fr);}
+.ranch>section {display:flex!important;flex-direction:column;gap:18px!important;}
+.ranch nav {display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));padding:0!important;gap:4px!important;background:transparent!important;flex:none;}
+.ranch nav button {min-height:48px!important;padding:8px 5px!important;font-size:.82rem!important;line-height:1.2;}
+.ranch nav .icon{display:none;}
+.ranch .tabContent {padding:0;flex:1;}
+.ranch .tabContent>section {padding:14px 12px!important;border:0!important;background:transparent!important;}
+.ranch .statGrid {gap:12px!important;margin-top:22px;}
+.ranch .statGrid article {position:relative;min-height:146px;padding:16px 14px 12px!important;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(125deg,#fff7d866,#e4cd9222)!important;border:1px solid #b9975455!important;box-shadow:inset 0 1px #fff8;}
+.ranch .statGrid .statLabel {font-size:.94rem!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important;display:flex;align-items:center;gap:8px;}
+.ranch .statGrid .statIcon {width:34px;height:34px;margin:0;}
+.ranch .statGrid article>strong {font-size:2.05rem;margin:2px 0 10px;padding-left:42px;display:flex!important;justify-content:space-between;align-items:baseline;}
+.ranch .statGrid article>strong small {font-size:1rem;font-weight:400;padding-right:10px;}
+.ranch .statGrid article p {text-align:center;margin-top:7px!important;min-height:16px;}
+.nextLevel {display:flex;gap:16px;align-items:center;padding:20px;margin-top:20px;border:1px solid #b9975455;background:linear-gradient(110deg,#fff5d755,#ddd3a133);border-radius:4px;}
+.nextLevel h4{margin:0 0 6px;font-size:1.1rem;}.nextLevel p{margin:6px 0 0!important;}.growthIcon{display:block;width:38px;height:38px;flex:none;mask:url('/images/ui/ranch-dossier-v1/icons/growth.svg') center/contain no-repeat;background:#536832!important;}
+@media(max-width:1200px){.ranch nav{grid-template-columns:repeat(3,minmax(0,1fr));}.ranch .statGrid{gap:8px!important;}.ranch .statGrid article{padding:12px 8px!important;min-height:125px;}.ranch .statGrid .statLabel{font-size:.78rem!important;gap:5px;}.ranch .statGrid .statIcon{width:25px;height:25px;}.ranch .statGrid article>strong{font-size:1.8rem;padding-left:30px;}.nextLevel{padding:14px;}}
+@media(max-width:850px){.ranch{height:auto!important;}.ranch .tabContent{overflow:visible!important;}.ranch .statGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;}}
+@media(max-width:560px){.ranch nav button{font-size:.7rem!important;min-height:42px!important;}.ranch>section{gap:12px!important;}.ranch .tabContent>section{padding:8px 2px!important;}.ranch .statGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;margin-top:14px;}.ranch .statGrid article{padding:10px 6px!important;min-height:125px;}.ranch .statGrid .statLabel{display:block;text-align:center;font-size:.76rem!important;}.ranch .statGrid .statIcon{display:block;margin:0 auto 4px;width:27px;height:27px;}.ranch .statGrid article>strong{padding-left:10px;font-size:1.65rem;margin:5px 0 8px;}.ranch .statGrid article>strong small{font-size:.9rem;}.ranch .statGrid article p{font-size:.66rem!important;}.nextLevel{gap:10px;padding:12px 8px;}.nextLevel h4{font-size:1rem;}.nextLevel strong{font-size:.86rem;}.growthIcon{width:28px;height:28px;}}

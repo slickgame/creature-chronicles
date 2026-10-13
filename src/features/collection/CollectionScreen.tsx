@@ -30,6 +30,7 @@ import { GameDialog } from "@/features/ui/GameDialog";
 import { PagedItems } from "@/features/ui/PagedItems";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./CollectionScreen.module.css";
+import dossier from "./RanchDossier.module.css";
 
 const FAMILY_OPTIONS = [
   ["all", "All Families"],
@@ -328,6 +329,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                       <button
                         type="button"
                         aria-pressed={compareMode && detailed ? isCompared : isSelected}
+                        aria-label={`Select ${creature.nickname}`}
+                        data-creature-id={creature.creatureId}
                         className={styles.cardMain}
                         onClick={() =>
                           compareMode && detailed
@@ -395,9 +398,9 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   }
 
   return (
-    <main className={`${ui.interior} ${styles.interior}`} data-profile-open={showDossier}>
-      <section className={`${ui.page} ${styles.rosterPage}`}>
-        <header className={ui.heading}>
+    <main className={`${ui.interior} ${styles.interior} ${dossier.screen}`} data-profile-open={showDossier}>
+      <section className={`${ui.page} ${styles.rosterPage} ${dossier.page}`}>
+        <header className={`${ui.heading} ${dossier.heading}`}>
           <div>
             <p className={styles.kicker}>Creature Management</p>
             <h1>Ranch Roster</h1>
@@ -408,9 +411,10 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
           </div>
         </header>
 
-        <div className={styles.searchRow}><input type="search" aria-label="Search creatures" placeholder="Search creatures…" value={filters.search} onChange={event => patchFilters({search:event.target.value})} /><button type="button" onClick={() => setShowFilters(true)}>Filters & Sort{activeFilterCount ? ` (${activeFilterCount})` : ""}</button><span>{visibleCreatures.length}/{summary.total} creatures</span></div>
-        <section className={styles.contentGrid} data-detail={showDossier}>
-          <aside className={`${ui.paper} ${styles.listPanel}`}>
+
+        <section className={`${styles.contentGrid} ${dossier.layout}`} data-detail={showDossier}>
+          <aside className={`${ui.paper} ${styles.listPanel} ${dossier.selector}`} aria-label="Creature selector">
+<div className={styles.searchRow}><input type="search" aria-label="Search creatures" placeholder="Search creatures…" value={filters.search} onChange={event => patchFilters({search:event.target.value})} /><button type="button" onClick={() => setShowFilters(true)}>Filters & Sort{activeFilterCount ? ` (${activeFilterCount})` : ""}</button><span>{visibleCreatures.length}/{summary.total} creatures</span></div>
             <div className={styles.listHeader}>
               <h2>Creatures</h2>
 
@@ -442,24 +446,33 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                 Compare
               </button>
             </div>
-            {visibleCreatures.length ? <PagedItems key={JSON.stringify([filters,sortMode,sortDirection,viewMode])} label="Creatures" rowHeight={182} items={visibleCreatures.map(creature => renderCreatureCard(creature))} /> : <div className={styles.noResults}><strong>No creatures match.</strong><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
+            {visibleCreatures.length ? <PagedItems key={JSON.stringify([filters,sortMode,sortDirection,viewMode])} label="Creatures" rowHeight={170} items={visibleCreatures.map(creature => renderCreatureCard(creature))} /> : <div className={styles.noResults}><strong>No creatures match.</strong><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
           </aside>
 
-          <section className={`${ui.paper} ${styles.detailPanel}`}>
+          <section className={`${ui.paper} ${styles.detailPanel} ${dossier.detail}`}>
             {selectedCreature ? (
               <>
                 <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
-                <div className={styles.identity}>
-                  <img src={getEquineGameplayProfileSprite(selectedCreature, getNylaGameplayProfileSprite(selectedCreature, getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
-                  <div><p className={ui.eyebrow}>{getVariantDefinition(selectedCreature.variantId).rarity} · Level {selectedCreature.level}</p><h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2><p>{getVariantDefinition(selectedCreature.variantId).name} {getSpeciesDefinition(selectedCreature.speciesId).name}</p>
-                    <span className={styles.status}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</span>
-                    <div className={styles.resources}><div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div><div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div></div>
-                  </div>
-                    <div className={styles.inlineDossier}>
+                <div className={dossier.workspace}>
+                  <article className={dossier.heroCard} data-ui-fixed-size="true" aria-label={`${selectedCreature.nickname} selected creature`}>
+                    <div className={dossier.heroIdentity}>
+                      <h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2>
+                      <p>{getVariantDefinition(selectedCreature.variantId).name} · {displaySex(getCreatureManagementStatus(activeSave, selectedCreature).sex)}</p>
+                      <div className={dossier.badges}><span>{getVariantDefinition(selectedCreature.variantId).rarity}</span><span>Level {selectedCreature.level}</span></div>
+                      <strong className={dossier.ready}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</strong>
+                    </div>
+                    <img className={dossier.heroArt} src={getEquineGameplayProfileSprite(selectedCreature, getNylaGameplayProfileSprite(selectedCreature, getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
+                    <div className={dossier.heroMeters}>
+                      <div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div>
+                      <div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div>
+                    </div>
+                  </article>
+                  <div className={dossier.profileColumn}>
+                    <div className={dossier.tabsWorkspace}>
                       <SharedCreatureDetail
-                        key={selectedCreature.creatureId}
                         creature={selectedCreature}
                         dossier
+                        ranchDossier
                         useGameplayArt
                         dayNumber={activeSave.dayState.dayNumber}
                         renameValue={renameValue || selectedCreature.nickname}
@@ -472,21 +485,23 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                         statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
                       />
                     </div>
-                </div>
-                <div className={styles.quickActions}>
-                  <button type="button" className={ui.primary} onClick={() => setShowProfile(true)}>Profile & Care</button>
-                  <button type="button" onClick={() => openBreedingForCreature(selectedCreature)}>
-                    Breeding
-                  </button>
+                <div className={`${styles.quickActions} ${dossier.actions}`}>
+                  <button type="button" className={ui.primary} onClick={() => setShowProfile(true)}><span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/profile.svg)"}} />Profile & Care</button>
                   <button type="button" onClick={() => openHabitat(selectedCreature)}>
-                    Habitat
+                    <span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/habitat.svg)"}} />Habitat
                   </button>
                   <button type="button" onClick={() => openInventory(selectedCreature)}>
-                    Inventory
+                    <span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/inventory.svg)"}} />Inventory
                   </button>
-                  <button type="button" onClick={() => {beginCompareWith(selectedCreature);setShowDossier(false);setViewMode("cards");}}>
-                    Compare
-                  </button>
+                  <details className={dossier.moreActions}>
+                    <summary>More actions</summary>
+                    <div>
+                      <button type="button" onClick={() => openBreedingForCreature(selectedCreature)}>Breeding</button>
+                      <button type="button" onClick={() => {beginCompareWith(selectedCreature);setViewMode("cards");}}>Compare</button>
+                    </div>
+                  </details>
+                </div>
+                  </div>
                 </div>
 
               </>
@@ -689,6 +704,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                   bestStatLabels={getBestStatLabels(selectedCreature)}
                   statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
                   dossier
+                  ranchDossier
                   showDossierPortrait
                 />
         <p role="status">{message}</p>
