@@ -4,7 +4,7 @@ import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 
 import { type CSSProperties, type ReactNode, useEffect, useId, useState } from "react";
-import { getCreatureChoreSkillGroup, MAX_CHORE_SKILL_LEVEL, getChoreSkillAptitudeLabel } from "@/data/choreSkills";
+import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
   STAT_KEYS,
@@ -21,6 +21,7 @@ import { formatEnergy } from "@/lib/formatters";
 import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
 import dossierStyles from "./CreatureDossier.module.css";
 import { CreatureInventoryTab, CreatureEquipmentTab } from "./CreatureInventoryTabs";
+import { CompactWork, CompactTalents, CompactLineage, CompactCare } from "./CompactProfileTabs";
 import { CreatureSkillRadar } from "./CreatureSkillRadar";
 
 export const SHARED_STAT_LABELS: Record<CreatureStatKey, string> = {
@@ -424,12 +425,13 @@ export function SharedCreatureDetail({
             />
           ) : null}
           {activeTab === "work" ? <WorkSkillsTab creature={creature} ranchDossier={ranchDossier} /> : null}
-          {activeTab === "talents" ? <TalentsTab creature={creature} /> : null}
+          {activeTab === "talents" ? <TalentsTab creature={creature} ranchDossier={ranchDossier} /> : null}
           {activeTab === "lineage" ? <LineageTab creature={creature} ranchDossier={ranchDossier} /> : null}
           {activeTab === "inventory" ? <CreatureInventoryTab key={creature.creatureId} creature={creature} /> : null}
           {activeTab === "equipment" ? <CreatureEquipmentTab key={creature.creatureId} creature={creature} /> : null}
           {activeTab === "care" ? (
             <CareTab
+              ranchDossier={ranchDossier}
               creature={creature}
               injury={injury}
               statusNote={statusNote}
@@ -613,19 +615,7 @@ function StatsTab({
 function WorkSkillsTab({ creature, ranchDossier = false }: { creature: CreatureRecord; ranchDossier?: boolean }) {
   const domestic = getCreatureChoreSkillGroup(creature, "domestic");
   const ranch = getCreatureChoreSkillGroup(creature, "ranch");
-  if (ranchDossier) return <section className={dossierStyles.profilePage}>
-    <ProfileHeading icon="work" eyebrow="Practice & proficiency" title="Work Skills" />
-    <p className={dossierStyles.intro}>Work resolves instantly at owned locations. Harvesting, production and hauling improve with completed actions.</p>
-    <RoleTagChips creature={creature} limit={12} />
-    {[{title: "Farm proficiency", skills: ranch, note: "Every five levels above level 1 adds one resource per action. Security and Ranch Care are reserved for future systems."}, {title: "Domestic aptitude", skills: domestic, note: "These proficiencies are reserved for future household, recipe, care and town work systems."}].map(group => <div key={group.title} className={dossierStyles.skillGroup}>
-      <h4>{group.title}</h4><p>{group.note}</p>
-      {group.skills.map(({definition, progress, naturalBaselineLevel}) => <div className={dossierStyles.skillRow} key={definition.skillId}>
-        <div><strong>{definition.label}</strong><small>{getChoreSkillAptitudeLabel(progress.level)} · {progress.level > naturalBaselineLevel ? `+${progress.level - naturalBaselineLevel} trained` : "Natural baseline"}</small></div>
-        <div><strong>Lv {progress.level} <small>/ {MAX_CHORE_SKILL_LEVEL}</small></strong><DossierMeter label={`${definition.label} experience`} value={progress.xp} max={progress.xpToNext} compact /></div>
-      </div>)}
-    </div>)}
-    <StatusCallout text="Farm security comes from fortifications and the strongest resident Guard Dog bonus." />
-  </section>;
+  if (ranchDossier) return <CompactWork creature={creature}/>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
       <p style={kickerStyle}>Role Identity & Proficiency</p>
@@ -650,7 +640,7 @@ function WorkSkillsTab({ creature, ranchDossier = false }: { creature: CreatureR
   );
 }
 
-function TalentsTab({ creature }: { creature: CreatureRecord }) {
+function TalentsTab({ creature, ranchDossier = false }: { creature: CreatureRecord; ranchDossier?: boolean }) {
   const pageSize = 3;
   const pageCount = Math.max(1, Math.ceil(creature.abilities.length / pageSize));
   const [page, setPage] = useState(0);
@@ -659,6 +649,7 @@ function TalentsTab({ creature }: { creature: CreatureRecord }) {
     setPage(0);
   }, [creature.creatureId, creature.abilities.length]);
 
+  if (ranchDossier) return <CompactTalents creature={creature}/>;
   const visibleTalents = creature.abilities.slice(page * pageSize, page * pageSize + pageSize);
   return (
     <section className={dossierStyles.talentPage} style={{ ...cardStyle, minHeight: "100%", display: "grid", gridTemplateRows: "auto auto minmax(0,1fr) auto" }}>
@@ -693,17 +684,7 @@ function TalentsTab({ creature }: { creature: CreatureRecord }) {
 
 function LineageTab({ creature, ranchDossier = false }: { creature: CreatureRecord; ranchDossier?: boolean }) {
   const lineage = creature.lineage;
-  if (ranchDossier) return <section className={dossierStyles.profilePage}>
-    <ProfileHeading icon="lineage" eyebrow="Family register" title="Lineage & Genetics" />
-    <div className={dossierStyles.lineageRecord}>
-      <span className={dossierStyles.recordLabel}>Recorded parents</span>
-      <div className={dossierStyles.parentGrid}>{lineage?.parentNames?.length ? lineage.parentNames.map((name, index) => <div key={`${index}-${name}`}><small>Parent {index + 1}</small><strong>{name}</strong></div>) : <p>Parentage not recorded</p>}</div>
-      <div className={dossierStyles.descendant}><strong>{creature.nickname}</strong><span>Generation {creature.generation} · {creature.originLabel}</span></div>
-    </div>
-    <div className={dossierStyles.skillGroup}><h4>Lineage assessment · {lineage?.label ?? "No Risk"}</h4><p>{lineage?.notes?.length ? lineage.notes.join(" ") : "No close lineage risk detected, or this creature predates lineage tracking."}</p></div>
-    <div className={dossierStyles.skillGroup}><h4>Inherited markers</h4>{lineage?.traits?.length ? <div className={dossierStyles.factGrid}>{lineage.traits.map(trait => <MiniStat key={trait} label="Trait marker" value={trait} />)}</div> : <p>No trait markers recorded.</p>}</div>
-    {creature.notes ? <div className={dossierStyles.skillGroup}><h4>Ranch notes</h4><p>{creature.notes}</p></div> : null}
-  </section>;
+  if (ranchDossier) return <CompactLineage creature={creature}/>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
       <p style={kickerStyle}>Lineage & Genetics</p>
@@ -725,6 +706,7 @@ function LineageTab({ creature, ranchDossier = false }: { creature: CreatureReco
 }
 
 function CareTab({
+  ranchDossier = false,
   creature,
   injury,
   statusNote,
@@ -737,6 +719,7 @@ function CareTab({
   onRelease,
   onDonate,
 }: {
+  ranchDossier?: boolean;
   creature: CreatureRecord;
   injury: boolean;
   statusNote?: string;
@@ -749,6 +732,7 @@ function CareTab({
   onRelease?: () => void;
   onDonate?: () => void;
 }) {
+  if (ranchDossier) return <CompactCare {...{creature,injury,statusNote,bestStatLabels,renameValue,onRenameValueChange,onRename,onToggleLock,onFeed,onRelease,onDonate}}/>;
   return (
     <section className={dossierStyles.carePage} style={{ ...cardStyle, minHeight: "100%", display: "grid", alignContent: "start", gap: 9 }}>
       <div>
