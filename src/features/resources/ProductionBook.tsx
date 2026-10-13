@@ -11,9 +11,9 @@ import type { GameSave } from '@/types/save';
 import s from './ProductionBook.module.css';
 
 type Section = 'Gathering' | 'Kitchen' | 'Workbench';
-export function ProductionBook({ section, onSection, onBack }: { section: Section; onSection: (section: Section) => void; onBack: () => void }) {
+export function ProductionBook({ section, onSection, onBack, initialSelection = '' }: { initialSelection?: string; section: Section; onSection: (section: Section) => void; onBack: () => void }) {
   const { currentSave: save, saveCurrentGame } = useGameContext();
-  const [selection, setSelection] = useState('');
+  const [selection, setSelection] = useState(initialSelection);
   const [workerId, setWorkerId] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [popup, setPopup] = useState<'details' | 'review' | 'serve' | 'receipt' | null>(null);
