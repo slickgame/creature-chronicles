@@ -5,7 +5,7 @@ import { BLACKSMITH_RECIPES, getBlacksmithQuote, craftBlacksmithEquipment, getCr
 import { grantFarmResources, getFarmState, reserveResource } from '@/data/farmResources';
 import { getBattleOutfitterStock, assignBattleOutfitterEquipment, getEquipmentSlots, purchaseBattleOutfitterItem } from '@/data/battleOutfitter';
 import { compareEquipment } from '@/data/equipmentComparison';
-const fresh=()=>{const s=createNewGameSave('Blacksmith QA',0);s.currencies.gold=1000;return grantFarmResources(s,{iron:10,wood:20,iron_ore:20});};
+const fresh=()=>{const s=createNewGameSave('Blacksmith QA',0);s.currencies.gold=1000;return grantFarmResources(s,{iron:10,nails:10,wood:20,iron_ore:20});};
 
 test('each fixed recipe consumes the quoted supplies and labor and creates normal equippable shop gear',()=>{
  for(const recipe of BLACKSMITH_RECIPES){
@@ -14,7 +14,7 @@ test('each fixed recipe consumes the quoted supplies and labor and creates norma
   const before=structuredClone(s),r=craftBlacksmithEquipment(s,recipe.id,q.revision);
   assert.equal(r.ok,true);assert.deepEqual(s,before);assert.equal(r.save.currencies.gold,s.currencies.gold-recipe.laborGold);
   assert.equal(r.save.currencies.guildPoints,s.currencies.guildPoints);
-  assert.equal(getFarmState(r.save).stock.iron,10-recipe.inputs.iron);assert.equal(getFarmState(r.save).stock.iron_ore,20);assert.equal(getFarmState(r.save).stock.wood,20);
+  for (const [id,n] of Object.entries(recipe.inputs)) assert.equal(getFarmState(r.save).stock[id as keyof ReturnType<typeof getFarmState>['stock']],10-n);assert.equal(getFarmState(r.save).stock.iron_ore,20);assert.equal(getFarmState(r.save).stock.wood,20);
   assert.equal(getBattleOutfitterStock(r.save,q.item),getBattleOutfitterStock(s,q.item)+1);assert.deepEqual(r.save.creatures,s.creatures);
   const c=s.creatures![0],preview=compareEquipment(s,c,q.item);
   const equipped=assignBattleOutfitterEquipment(r.save,c.creatureId,q.item.itemId);assert.equal(equipped.ok,true);assert.equal(getEquipmentSlots(equipped.save,c.creatureId)[q.item.equipmentSlot!],q.item.itemId);
@@ -40,4 +40,12 @@ test('persisted confirmation revision rejects replay and stale reviews; delibera
 test('ready-made store gear remains Gold-only with no materials and no crafting prerequisite',()=>{
  const s=createNewGameSave('Shop',0);s.currencies.gold=1000;
  for(const r of BLACKSMITH_RECIPES){const q=getBlacksmithQuote(s,r.id)!;const bought=purchaseBattleOutfitterItem(s,q.item.itemId);assert.equal(bought.ok,true);assert.equal(bought.save.currencies.gold,1000-q.item.costGold);assert.deepEqual(getFarmState(bought.save).stock,getFarmState(s).stock);}
+});
+
+test('superior patterns preserve reserved fasteners and expose the exact buy-or-craft difference',()=>{
+ for(const id of ['duelist_saber','sentinel_helm','duelist_bracers']){
+ const s=fresh(),q=getBlacksmithQuote(s,id)!;assert.equal(q.item.equipmentGrade,'B');assert.ok(q.totalValue<q.item.costGold);
+ const protectedSave=reserveResource(s,'nails',10).save;const denied=craftBlacksmithEquipment(protectedSave,id,0);assert.equal(denied.ok,false);assert.equal(denied.save,protectedSave);
+ const poor={...s,currencies:{...s.currencies,gold:q.recipe.laborGold-1}};assert.equal(craftBlacksmithEquipment(poor,id,0).ok,false);
+ }
 });

@@ -7,6 +7,9 @@ export const BLACKSMITH_RECIPES = [
   { id: 'training_blade', itemId: 'training_grips', inputs: { iron: 1 }, laborGold: 10 },
   { id: 'focus_circlet', itemId: 'focus_circlet', inputs: { iron: 3 }, laborGold: 45 },
   { id: 'reserve_pendant', itemId: 'reserve_pendant', inputs: { iron: 3 }, laborGold: 60 },
+  { id: 'duelist_saber', itemId: 'duelist_grips', inputs: { iron: 8, nails: 2 }, laborGold: 100 },
+  { id: 'sentinel_helm', itemId: 'sentinel_helm', inputs: { iron: 7, nails: 4 }, laborGold: 100 },
+  { id: 'duelist_bracers', itemId: 'duelist_bracers', inputs: { iron: 7, nails: 4 }, laborGold: 110 },
 ] satisfies { id: string; itemId: string; inputs: Stock; laborGold: number }[];
 export type BlacksmithRecipeId = typeof BLACKSMITH_RECIPES[number]['id'];
 const REVISION = 'blacksmithCraftCount';
