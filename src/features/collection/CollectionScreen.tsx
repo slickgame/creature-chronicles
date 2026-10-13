@@ -98,6 +98,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     toggleCreatureLock,
   } = useGameContext();
   const [showFilters, setShowFilters] = useState(false);
+  const [inventoryRequest, setInventoryRequest] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
   const [showDossier, setShowDossier] = useState(false);
   const [filters, setFilters] = useState<CreatureManagementFilters>(
@@ -276,12 +277,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     goToHabitat(family);
   }
 
-  function openInventory(creature: CreatureRecord) {
-    window.dispatchEvent(
-      new CustomEvent("creature-chronicles:open-inventory-creature", {
-        detail: { creatureId: creature.creatureId },
-      }),
-    );
+  function openInventory() {
+    setInventoryRequest(value => value + 1);
   }
 
   function handleRename() {
@@ -470,6 +467,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                   <div className={dossier.profileColumn}>
                     <div className={dossier.tabsWorkspace}>
                       <SharedCreatureDetail
+                      inventoryRequest={inventoryRequest}
                         creature={selectedCreature}
                         dossier
                         ranchDossier
@@ -490,7 +488,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                   <button type="button" onClick={() => openHabitat(selectedCreature)}>
                     <span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/habitat.svg)"}} />Habitat
                   </button>
-                  <button type="button" onClick={() => openInventory(selectedCreature)}>
+                  <button type="button" onClick={openInventory}>
                     <span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/inventory.svg)"}} />Inventory
                   </button>
                   <details className={dossier.moreActions}>

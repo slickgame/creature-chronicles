@@ -20,6 +20,7 @@ import { getCreatureRoleTags } from "@/data/talents/creatureRoleTags";
 import { formatEnergy } from "@/lib/formatters";
 import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
 import dossierStyles from "./CreatureDossier.module.css";
+import { CreatureInventoryTab, CreatureEquipmentTab } from "./CreatureInventoryTabs";
 import { CreatureSkillRadar } from "./CreatureSkillRadar";
 
 export const SHARED_STAT_LABELS: Record<CreatureStatKey, string> = {
@@ -32,7 +33,7 @@ export const SHARED_STAT_LABELS: Record<CreatureStatKey, string> = {
 };
 
 type CreatureDetailMode = "full" | "compact" | "growth" | "lineage";
-type CreatureDetailTab = "overview" | "stats" | "work" | "talents" | "lineage" | "care";
+type CreatureDetailTab = "overview" | "stats" | "work" | "talents" | "lineage" | "care" | "inventory" | "equipment";
 
 type SharedCreatureDetailProps = {
   creature: CreatureRecord;
@@ -49,6 +50,7 @@ type SharedCreatureDetailProps = {
   fitViewport?: boolean;
   dossier?: boolean;
   ranchDossier?: boolean;
+  inventoryRequest?: number;
   showDossierPortrait?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
@@ -163,7 +165,7 @@ function progressTrack(children: ReactNode) {
   );
 }
 
-function getAvailableTabs(mode: CreatureDetailMode, hasCareActions: boolean): CreatureDetailTab[] {
+function getAvailableTabs(mode: CreatureDetailMode, hasCareActions: boolean, ranchDossier = false): CreatureDetailTab[] {
   if (mode === "growth") return ["stats"];
   if (mode === "lineage") return ["lineage"];
   if (mode === "compact") return ["overview", "talents"];
@@ -173,6 +175,7 @@ function getAvailableTabs(mode: CreatureDetailMode, hasCareActions: boolean): Cr
     "work",
     "talents",
     "lineage",
+    ...(ranchDossier ? (["inventory", "equipment"] as CreatureDetailTab[]) : []),
     ...(hasCareActions ? (["care"] as CreatureDetailTab[]) : []),
   ];
 }
@@ -182,6 +185,8 @@ function getTabLabel(tab: CreatureDetailTab): string {
   if (tab === "work") return "Work Skills";
   if (tab === "talents") return "Talents";
   if (tab === "lineage") return "Lineage";
+  if (tab === "inventory") return "Inventory";
+  if (tab === "equipment") return "Equipment";
   if (tab === "care") return "Care";
   return "Overview";
 }
@@ -201,6 +206,7 @@ export function SharedCreatureDetail({
   fitViewport = false,
   dossier = false,
   ranchDossier = false,
+  inventoryRequest = 0,
   showDossierPortrait = false,
   statusNote,
   bestStatLabels = [],
@@ -222,12 +228,16 @@ export function SharedCreatureDetail({
       (showActions && (onRelease || onDonate)),
   );
   const tabId = useId();
-  const tabs = getAvailableTabs(mode, hasCareActions);
+  const tabs = getAvailableTabs(mode, hasCareActions, ranchDossier);
   const [activeTab, setActiveTab] = useState<CreatureDetailTab>(ranchDossier ? "stats" : tabs[0]);
 
   useEffect(() => {
-    setActiveTab(current => ranchDossier && getAvailableTabs(mode, hasCareActions).includes(current) ? current : getAvailableTabs(mode, hasCareActions)[0]);
+    setActiveTab(current => ranchDossier && getAvailableTabs(mode, hasCareActions, ranchDossier).includes(current) ? current : getAvailableTabs(mode, hasCareActions, ranchDossier)[0]);
   }, [creature.creatureId, mode, hasCareActions, ranchDossier]);
+
+  useEffect(() => {
+    if (ranchDossier && inventoryRequest > 0) setActiveTab("inventory");
+  }, [inventoryRequest, ranchDossier]);
 
   const shellStyle: CSSProperties = {
     height: fitViewport ? "100%" : "auto",
@@ -382,14 +392,14 @@ export function SharedCreatureDetail({
                     }
                   : tabButtonStyle}
               >
-                {dossier ? <span className={dossierStyles.icon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${tab === "stats" ? "growth" : tab}.svg)` }} /> : null}
+                {dossier ? <span className={dossierStyles.icon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${tab === "stats" ? "growth" : tab === "equipment" ? "inventory" : tab}.svg)` }} /> : null}
                 {getTabLabel(tab)}
               </button>
             ))}
           </nav>
         ) : null}
 
-        <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={tabs.length > 1 ? `${tabId}-${activeTab}` : undefined} aria-label={tabs.length === 1 ? getTabLabel(activeTab) : undefined} tabIndex={0} className={dossier ? dossierStyles.tabContent : undefined} style={{ minHeight: 0, overflow: "auto" }}>
+        <div key={`${activeTab}-${creature.creatureId}-${inventoryRequest}`} role="tabpanel" id={`${tabId}-panel`} aria-labelledby={tabs.length > 1 ? `${tabId}-${activeTab}` : undefined} aria-label={tabs.length === 1 ? getTabLabel(activeTab) : undefined} tabIndex={0} className={dossier ? dossierStyles.tabContent : undefined} style={{ minHeight: 0, overflow: "auto" }}>
           {activeTab === "overview" ? (
             <OverviewTab
               creature={creature}
@@ -416,6 +426,8 @@ export function SharedCreatureDetail({
           {activeTab === "work" ? <WorkSkillsTab creature={creature} ranchDossier={ranchDossier} /> : null}
           {activeTab === "talents" ? <TalentsTab creature={creature} /> : null}
           {activeTab === "lineage" ? <LineageTab creature={creature} ranchDossier={ranchDossier} /> : null}
+          {activeTab === "inventory" ? <CreatureInventoryTab key={creature.creatureId} creature={creature} /> : null}
+          {activeTab === "equipment" ? <CreatureEquipmentTab key={creature.creatureId} creature={creature} /> : null}
           {activeTab === "care" ? (
             <CareTab
               creature={creature}
