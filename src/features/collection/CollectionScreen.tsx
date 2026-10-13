@@ -98,6 +98,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     toggleCreatureLock,
   } = useGameContext();
   const [showFilters, setShowFilters] = useState(false);
+  const [rosterCollapsed, setRosterCollapsed] = useState(false);
+  const [artCollapsed, setArtCollapsed] = useState(false);
   const [inventoryRequest, setInventoryRequest] = useState(0);
   const [showProfile, setShowProfile] = useState(false);
   const [showDossier, setShowDossier] = useState(false);
@@ -395,7 +397,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   }
 
   return (
-    <main className={`${ui.interior} ${styles.interior} ${dossier.screen}`} data-profile-open={showDossier}>
+    <main className={`${ui.interior} ${styles.interior} ${dossier.screen}`} data-profile-open={showDossier} data-roster-collapsed={rosterCollapsed} data-art-collapsed={artCollapsed}>
       <section className={`${ui.page} ${styles.rosterPage} ${dossier.page}`}>
         <header className={`${ui.heading} ${dossier.heading}`}>
           <div>
@@ -403,7 +405,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             <h1>Ranch Roster</h1>
 
           </div>
-          <div className={styles.headerActions}>
+          <div className={styles.headerActions}><button type="button" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}>{rosterCollapsed ? "Show creatures" : "Hide creatures"}</button><button type="button" className={dossier.layoutToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
             <ScreenNavigation>{headerLinks}</ScreenNavigation>
           </div>
         </header>

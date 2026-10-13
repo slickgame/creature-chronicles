@@ -77,3 +77,5 @@
 /* Eight dossier tabs keep comfortable targets without compressing labels. */
 .ranch nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
 @media(max-width:560px){.ranch nav{grid-template-columns:repeat(2,minmax(0,1fr))!important;}}
+@media(max-width:850px){.ranch{height:100%!important;align-items:stretch!important;}.ranch>section{height:100%!important;overflow:hidden!important;gap:8px!important;}.ranch .tabContent{min-height:0;overflow:auto!important;}.ranch nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;}.ranch nav button{min-height:36px!important;font-size:.66rem!important;}}
+@media(max-height:550px){.ranch .tabContent>section{padding:2px!important;}.ranch>section{gap:5px!important;}.ranch nav button{min-height:32px!important;}}
