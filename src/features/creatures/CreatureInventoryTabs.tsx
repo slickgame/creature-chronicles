@@ -8,10 +8,18 @@ import { BATTLE_STAT_LABELS, compareEquipment, getEquippedBattleStats } from "@/
 import { getColiseumC4State } from "@/data/coliseumC4";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { EquipmentStats } from "@/features/equipment/EquipmentStats";
+import { DetailButton } from "@/features/ui/DetailButton";
+import { equipmentStats, type EquipmentCopy } from "@/data/equipmentEnhancement";
+import type { BattleOutfitterItem } from "@/data/battleOutfitter";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import s from "./CreatureInventoryTabs.module.css";
+
+function gearHint(item: BattleOutfitterItem, copy: EquipmentCopy) {
+  const stats = equipmentStats(item, copy);
+  return `${item.name} +${stats.level} · Grade ${item.equipmentGrade}\nMain: ${BATTLE_STAT_LABELS[stats.main.key]} +${stats.main.value}\n${stats.substats.map(stat => `${BATTLE_STAT_LABELS[stat.key]} +${stat.value}`).join(" · ") || "No substats yet"}${stats.passive ? `\n${stats.passive}` : ""}\nSelect for full details and comparison.`;
+}
 
 function ItemArt({src, name}: {src:string; name:string}) {
   const [failed,setFailed]=useState(false);
@@ -53,7 +61,7 @@ export function CreatureInventoryTab({creature}: {creature:CreatureRecord}) {
     <Heading eyebrow="Shared ranch supplies" title={`Inventory · ${creature.nickname}`} />
     <p>Select an item to review its effect. Stock is shared across the ranch.</p>
     <div className={s.filters} aria-label="Item categories">{["All","Energy","Care"].map(c=><button key={c} aria-pressed={category===c} onClick={()=>{setCategory(c);setSelectedId("");setMessage("");}}>{c}</button>)}</div>
-    <div className={s.itemGrid}>{rows.map(i=><button key={i.itemId} className={s.itemCard} aria-pressed={item?.itemId===i.itemId} aria-label={`Select ${i.name}`} onClick={()=>{setSelectedId(i.itemId);setMessage("");setItemOpen(true);}}><ItemArt key={i.iconPath} src={i.iconPath} name={i.name}/><strong>{i.name}</strong><small>{i.category} · {i.rarity}</small><span className={s.stock}>{getBreedingSupportItemCount(save,i.itemId)} owned</span></button>)}</div>
+    <div className={s.itemGrid}>{rows.map(i=><DetailButton hint={`${i.name} · ${i.rarity}\n${i.exactEffect}\n${getBreedingSupportItemCount(save,i.itemId)} owned · Shared ranch stock. Select to review use.`} key={i.itemId} className={s.itemCard} aria-pressed={item?.itemId===i.itemId} aria-label={`Select ${i.name}`} onClick={()=>{setSelectedId(i.itemId);setMessage("");setItemOpen(true);}}><ItemArt key={i.iconPath} src={i.iconPath} name={i.name}/><strong>{i.name}</strong><small>{i.category} · {i.rarity}</small><span className={s.stock}>{getBreedingSupportItemCount(save,i.itemId)} owned</span></DetailButton>)}</div>
     {itemOpen&&item?<GameDialog title={item.name} onClose={()=>setItemOpen(false)}><article className={s.detail}><h4>{item.name}</h4><p>{item.exactEffect}</p>{changes}<p className={s.note}>{preview?.ok ? `Stock after use: ${stock} → ${stock-1}. No Gold charge.` : preview?.message}</p>{unavailable?<p role="status">Away at training: {unavailable}. Collect this creature before using care items here.</p>:null}<button className={s.primary} disabled={!preview?.ok||!!unavailable} onClick={()=>{busy.current=false;setReview(true);}}>Review use on {creature.nickname}</button></article></GameDialog>:null}
 
     {message?<GameDialog title="Receipt" onClose={()=>setMessage("")}><p role="status">{message}</p><button onClick={()=>setMessage("")}>Continue</button></GameDialog>:null}
@@ -98,10 +106,10 @@ export function CreatureEquipmentTab({creature}: {creature:CreatureRecord}) {
   return <section className={s.page}>
     <Heading eyebrow={`${equipped.length} / 5 slots filled`} title={`Equipment · ${creature.nickname}`} />
     <p>Select a slot to browse equipment. Each piece retains its upgrades.</p>
-    <div className={s.slots} aria-label="Creature equipment slots">{EQUIPMENT_SLOTS.map(key=>{const worn=equipped.find(c=>BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)?.equipmentSlot===key);const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===worn?.itemId);return <button key={key} aria-pressed={slot===key} aria-label={`Inspect ${EQUIPMENT_SLOT_LABELS[key]} slot`} onClick={()=>{setSlot(key);setSelectedId("");setMessage("");setGearPage(0);setGearOpen(true);}}><small>{EQUIPMENT_SLOT_LABELS[key]}</small>{gear?<ItemArt key={gear.iconPath} src={gear.iconPath} name={gear.name}/>:<span className={s.emptySlot} aria-hidden="true">+</span>}<strong>{gear?.name??"Empty"}</strong><small>{worn?`+${worn.level} · Grade ${gear?.equipmentGrade}`:"No bonus"}</small></button>;})}</div>
-    <button onClick={()=>setStatsOpen(true)}>Battle stats</button>
+    <div className={s.slots} aria-label="Creature equipment slots">{EQUIPMENT_SLOTS.map(key=>{const worn=equipped.find(c=>BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)?.equipmentSlot===key);const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===worn?.itemId);return <DetailButton hint={gear&&worn?gearHint(gear,worn):`${EQUIPMENT_SLOT_LABELS[key]} · Empty slot. Select to browse available equipment.`} key={key} aria-pressed={slot===key} aria-label={`Inspect ${EQUIPMENT_SLOT_LABELS[key]} slot`} onClick={()=>{setSlot(key);setSelectedId("");setMessage("");setGearPage(0);setGearOpen(true);}}><small>{EQUIPMENT_SLOT_LABELS[key]}</small>{gear?<ItemArt key={gear.iconPath} src={gear.iconPath} name={gear.name}/>:<span className={s.emptySlot} aria-hidden="true">+</span>}<strong>{gear?.name??"Empty"}</strong><small>{worn?`+${worn.level} · Grade ${gear?.equipmentGrade}`:"No bonus"}</small></DetailButton>;})}</div>
+    <DetailButton hint="Total battle stats include equipped gear. Select to inspect every stat. Improve equipment with Iona up to +15; active battles retain their starting loadout." onClick={()=>setStatsOpen(true)}>Battle stats</DetailButton>
     {gearOpen?<GameDialog title={categoryLabel} onClose={()=>setGearOpen(false)} wide><p>{choices.length} available · Gear worn by another creature must be removed first.</p>
-    <div className={s.copyList}>{choices.slice(gearCurrentPage*4,gearCurrentPage*4+4).map(c=>{const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)!;return <button key={c.id} aria-pressed={copy?.id===c.id} aria-label={`Select ${gear.name} +${c.level} item ${c.id}`} onClick={()=>{setSelectedId(c.id);setMessage("");setGearOpen(false);setDetailOpen(true);}}><ItemArt key={gear.iconPath} src={gear.iconPath} name={gear.name}/><span><strong>{gear.name} +{c.level}</strong><small>#{c.id.replace("gear_","")} · {c.owner?"Equipped":"In inventory"}</small></span></button>;})}</div>
+    <div className={s.copyList}>{choices.slice(gearCurrentPage*4,gearCurrentPage*4+4).map(c=>{const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)!;return <DetailButton hint={gearHint(gear,c)} key={c.id} aria-pressed={copy?.id===c.id} aria-label={`Select ${gear.name} +${c.level} item ${c.id}`} onClick={()=>{setSelectedId(c.id);setMessage("");setGearOpen(false);setDetailOpen(true);}}><ItemArt key={gear.iconPath} src={gear.iconPath} name={gear.name}/><span><strong>{gear.name} +{c.level}</strong><small>#{c.id.replace("gear_","")} · {c.owner?"Equipped":"In inventory"}</small></span></DetailButton>;})}</div>
     {!choices.length?<div className={s.detail}><h4>No available {EQUIPMENT_SLOT_LABELS[slot].toLowerCase()} gear</h4><p>Buy gear at the Outfitter or craft it with Iona in the Builder’s Yard. Gear worn by another creature must be removed there first.</p></div>:null}
     <div className={s.actions}><button disabled={gearCurrentPage===0} onClick={()=>setGearPage(gearCurrentPage-1)}>Previous</button><span>{gearCurrentPage+1} / {gearPages}</span><button disabled={gearCurrentPage+1>=gearPages} onClick={()=>setGearPage(gearCurrentPage+1)}>Next</button></div></GameDialog>:null}
     {detailOpen&&item&&copy?<GameDialog title={item.name} onClose={()=>setDetailOpen(false)} wide><article className={s.detail}><div className={s.featured}><ItemArt key={item.iconPath} src={item.iconPath} name={item.name}/><div><h4>{item.name} +{copy.level}</h4><p>{item.quality} · Grade {item.equipmentGrade} · #{copy.id.replace("gear_","")}</p></div></div><EquipmentStats item={item} copy={copy}/>

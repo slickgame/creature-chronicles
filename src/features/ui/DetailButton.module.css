@@ -1,0 +1,1 @@
+.tooltip{position:fixed;z-index:10000;box-sizing:border-box;width:280px;max-width:calc(100vw - 24px);padding:12px 14px;border:1px solid #a4884e;border-radius:5px;background:#fff4d7;color:#49341d;box-shadow:0 5px 22px #25180940;font:14px/1.5 Georgia,serif;white-space:pre-line;max-height:170px;overflow:auto;}
