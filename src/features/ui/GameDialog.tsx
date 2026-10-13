@@ -54,6 +54,7 @@ export function GameDialog({
       }}
       onCancel={(event) => {
         event.preventDefault();
+        event.stopPropagation();
         onClose();
       }}
     >

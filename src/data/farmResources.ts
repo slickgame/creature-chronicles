@@ -1,9 +1,9 @@
 import { getRanchUpgradeEffects } from "./ranchUpgrades";
 import { getChoreTalentSummary } from "./talents/talentEngine";
-import { gainCreatureChoreSkillXp, getChoreSkillXpGain, getCreatureChoreSkillLevelForJob } from "./choreSkills";
+import { getChoreSkillDefinition, getJobChoreSkillId, gainCreatureChoreSkillXp, getChoreSkillXpGain, getCreatureChoreSkillLevelForJob } from "./choreSkills";
 import type { RanchJobId } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
-import type { CreatureRecord } from "@/types/creature";
+import type { CreatureStatKey, CreatureRecord } from "@/types/creature";
 import { getVariantDefinition } from "@/data/creatures";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 
@@ -93,12 +93,39 @@ export function workerBlocker(save: GameSave, c: CreatureRecord, site: SiteId, _
 /** Compatibility entrypoint: an explicit click now performs one instant work action. */
 export const assignResourceWorker = workResourceSite;
 export function siteJob(site: SiteId): RanchJobId { return ["woodlot", "iron_deposit", "quarry"].includes(site) ? "field_hauling" : site === "dairy" || site === "hunting" ? "stable_production" : "garden_tending"; }
+/** Stats are innate/current creature stats; battle equipment does not improve farm work. */
+export const WORK_PROFILES: Record<SiteId, { stats: [CreatureStatKey, CreatureStatKey]; energy: number }> = {
+  garden: { stats: ['DEX', 'WIL'], energy: 18 },
+  wheat_field: { stats: ['DEX', 'WIL'], energy: 18 },
+  dairy: { stats: ['STA', 'FER'], energy: 16 },
+  hunting: { stats: ['DEX', 'STR'], energy: 24 },
+  woodlot: { stats: ['STR', 'STA'], energy: 22 },
+  iron_deposit: { stats: ['STR', 'STA'], energy: 26 },
+  quarry: { stats: ['STR', 'STA'], energy: 24 },
+};
 export function workPreview(save: GameSave, site: SiteId, creature: CreatureRecord) {
+  const profile = WORK_PROFILES[site];
   const talent = getChoreTalentSummary(creature.abilities, siteJob(site));
   const upgrades = getRanchUpgradeEffects(save);
-  const skillBonus = Math.floor((getCreatureChoreSkillLevelForJob(creature, siteJob(site)) - 1) / 5);
-  const amount = skillBonus + siteYield(getFarmState(save), site) + Math.floor(Math.max(0, talent.scoreBonus)) + upgrades.ranchChoreScoreBonus;
-  return { amount, energy: Math.max(8, gatheringCost(save, creature.creatureId) - talent.energyDiscount - upgrades.ranchChoreEnergyDiscount), xp: getChoreSkillXpGain(amount, talent.xpPercent) };
+  const level = getCreatureChoreSkillLevelForJob(creature, siteJob(site));
+  const skillBonus = Math.min(3, Math.floor((level - 1) / 5));
+  const stat = (key: CreatureStatKey) => Math.max(0, Number(creature.stats[key]) || 0);
+  const score = (stat(profile.stats[0]) * 2 + stat(profile.stats[1])) / 3;
+  const statBonus = Math.min(4, Math.floor(score / 12));
+  const staminaDiscount = Math.min(4, Math.floor((stat('STA') * 2 + stat('WIL')) / 30));
+  const talentBonus = Math.floor(Math.max(0, talent.scoreBonus));
+  const base = siteYield(getFarmState(save), site);
+  const amount = base + statBonus + skillBonus + talentBonus + upgrades.ranchChoreScoreBonus;
+  const beforeMeal = Math.max(8, profile.energy - staminaDiscount - skillBonus - talent.energyDiscount - upgrades.ranchChoreEnergyDiscount);
+  const energy = Math.max(8, mealBonus(save, creature.creatureId, 'stew') ? Math.ceil(beforeMeal * 0.85) : beforeMeal);
+  return { amount, energy, xp: getChoreSkillXpGain(amount, talent.xpPercent),
+    details: {
+      stats: profile.stats, score, statBonus, skillLevel: level, skillLabel: getChoreSkillDefinition(getJobChoreSkillId(siteJob(site))).label, skillBonus, base,
+      talentBonus, upgradeBonus: upgrades.ranchChoreScoreBonus, baseEnergy: profile.energy,
+      staminaDiscount, talentDiscount: talent.energyDiscount, upgradeDiscount: upgrades.ranchChoreEnergyDiscount,
+      mealDiscount: beforeMeal - energy,
+    },
+  };
 }
 export function workResourceSite(save: GameSave, site: SiteId, id: string): FarmResult {
   if (!SITES[site]) return fail(save, "Unknown work location.");
@@ -133,7 +160,6 @@ export function workResourceSite(save: GameSave, site: SiteId, id: string): Farm
 export function siteSlots(state: FarmState, site: SiteId) { return (site === "woodlot" && state.facilities.woodlot_upgrade) || (site === "iron_deposit" && state.facilities.mine_upgrade) ? 2 : 1; }
 export function siteYield(state: FarmState, site: SiteId) { return SITES[site].amount + (site === "woodlot" && state.facilities.woodlot_upgrade ? 2 : site === "iron_deposit" && state.facilities.mine_upgrade ? 1 : 0); }
 export function mealBonus(save: GameSave, id: string, meal: ResourceId): boolean { const m = getFarmState(save).meals[id]; return m?.day === save.dayState.dayNumber && m.id === meal; }
-export function gatheringCost(save: GameSave, id: string) { return mealBonus(save, id, "stew") ? 17 : 20; }
 export function processResourceDay(save: GameSave): GameSave {
   const state = getFarmState(save);
   if (state.lastDay >= save.dayState.dayNumber) return save;
