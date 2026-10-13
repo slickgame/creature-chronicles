@@ -4,7 +4,7 @@ import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 
 import { type CSSProperties, type ReactNode, useEffect, useId, useState } from "react";
-import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
+import { getCreatureChoreSkillGroup, MAX_CHORE_SKILL_LEVEL, getChoreSkillAptitudeLabel } from "@/data/choreSkills";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
   STAT_KEYS,
@@ -398,7 +398,8 @@ export function SharedCreatureDetail({
               variantName={variant.name}
               speciesName={species.name}
               statusNote={statusNote}
-              concise={dossier}
+              concise={dossier && !ranchDossier}
+              ranchDossier={ranchDossier}
             />
           ) : null}
           {activeTab === "stats" ? (
@@ -412,9 +413,9 @@ export function SharedCreatureDetail({
               bestStatLabels={bestStatLabels}
             />
           ) : null}
-          {activeTab === "work" ? <WorkSkillsTab creature={creature} /> : null}
+          {activeTab === "work" ? <WorkSkillsTab creature={creature} ranchDossier={ranchDossier} /> : null}
           {activeTab === "talents" ? <TalentsTab creature={creature} /> : null}
-          {activeTab === "lineage" ? <LineageTab creature={creature} /> : null}
+          {activeTab === "lineage" ? <LineageTab creature={creature} ranchDossier={ranchDossier} /> : null}
           {activeTab === "care" ? (
             <CareTab
               creature={creature}
@@ -470,6 +471,7 @@ function OverviewTab({
   speciesName,
   statusNote,
   concise = false,
+  ranchDossier = false,
 }: {
   creature: CreatureRecord;
   injury: boolean;
@@ -478,7 +480,20 @@ function OverviewTab({
   speciesName: string;
   statusNote?: string;
   concise?: boolean;
+  ranchDossier?: boolean;
 }) {
+  if (ranchDossier) return <section className={dossierStyles.profilePage}>
+    <ProfileHeading icon="overview" eyebrow="Resident dossier" title="At a Glance" />
+    <div className={dossierStyles.identity}><h4>{creature.originLabel}</h4><p>{speciesName} · {variantName} · Generation {creature.generation}</p><RoleTagChips creature={creature} /></div>
+    <div className={dossierStyles.vitalGrid}>
+      <DossierMeter label="Energy" value={creature.energy} max={creature.maxEnergy} />
+      <DossierMeter label="Affection" value={creature.affection} max={100} />
+      <DossierMeter label="Hearts" value={creature.hearts} max={creature.maxHearts} />
+      <DossierMeter label={`Level ${creature.level} · Experience`} value={creature.xp} max={creature.xpToNext} />
+    </div>
+    <div className={dossierStyles.factGrid}><MiniStat label="Health" value={injury ? creature.injuryLabel ?? "Injured" : "Healthy"} /><MiniStat label="Protection" value={creature.isLocked ? "Protected" : "Unprotected"} /><MiniStat label="Lineage" value={lineageLabel} /><MiniStat label="Coloration" value={creature.shiny ? "Rare shiny" : "Standard"} /></div>
+    {statusNote ? <StatusCallout text={statusNote} /> : null}
+  </section>;
   if (concise) return <section style={cardStyle}><p style={kickerStyle}>At a glance</p><h3>{creature.originLabel}</h3><RoleTagChips creature={creature} /><p style={smallText}>Generation {creature.generation} · {creature.xp}/{creature.xpToNext} XP · {creature.hearts}/{creature.maxHearts} Hearts</p><p style={smallText}>Lineage: {lineageLabel}. {injury ? creature.injuryLabel ?? "Injured" : statusNote ?? "Available"}.</p></section>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
@@ -583,9 +598,22 @@ function StatsTab({
   );
 }
 
-function WorkSkillsTab({ creature }: { creature: CreatureRecord }) {
+function WorkSkillsTab({ creature, ranchDossier = false }: { creature: CreatureRecord; ranchDossier?: boolean }) {
   const domestic = getCreatureChoreSkillGroup(creature, "domestic");
   const ranch = getCreatureChoreSkillGroup(creature, "ranch");
+  if (ranchDossier) return <section className={dossierStyles.profilePage}>
+    <ProfileHeading icon="work" eyebrow="Practice & proficiency" title="Work Skills" />
+    <p className={dossierStyles.intro}>Work resolves instantly at owned locations. Harvesting, production and hauling improve with completed actions.</p>
+    <RoleTagChips creature={creature} limit={12} />
+    {[{title: "Farm proficiency", skills: ranch, note: "Every five levels above level 1 adds one resource per action. Security and Ranch Care are reserved for future systems."}, {title: "Domestic aptitude", skills: domestic, note: "These proficiencies are reserved for future household, recipe, care and town work systems."}].map(group => <div key={group.title} className={dossierStyles.skillGroup}>
+      <h4>{group.title}</h4><p>{group.note}</p>
+      {group.skills.map(({definition, progress, naturalBaselineLevel}) => <div className={dossierStyles.skillRow} key={definition.skillId}>
+        <div><strong>{definition.label}</strong><small>{getChoreSkillAptitudeLabel(progress.level)} · {progress.level > naturalBaselineLevel ? `+${progress.level - naturalBaselineLevel} trained` : "Natural baseline"}</small></div>
+        <div><strong>Lv {progress.level} <small>/ {MAX_CHORE_SKILL_LEVEL}</small></strong><DossierMeter label={`${definition.label} experience`} value={progress.xp} max={progress.xpToNext} compact /></div>
+      </div>)}
+    </div>)}
+    <StatusCallout text="Farm security comes from fortifications and the strongest resident Guard Dog bonus." />
+  </section>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
       <p style={kickerStyle}>Role Identity & Proficiency</p>
@@ -621,14 +649,14 @@ function TalentsTab({ creature }: { creature: CreatureRecord }) {
 
   const visibleTalents = creature.abilities.slice(page * pageSize, page * pageSize + pageSize);
   return (
-    <section style={{ ...cardStyle, minHeight: "100%", display: "grid", gridTemplateRows: "auto auto minmax(0,1fr) auto" }}>
+    <section className={dossierStyles.talentPage} style={{ ...cardStyle, minHeight: "100%", display: "grid", gridTemplateRows: "auto auto minmax(0,1fr) auto" }}>
       <p style={kickerStyle}>Talents</p>
       <h3 style={{ margin: "3px 0 9px", color: "#fff7dd" }}>Inherited & Learned Talents</h3>
       {creature.abilities.length ? (
         <div style={{ display: "grid", alignContent: "start", gap: 8 }}>
           {visibleTalents.map((ability) => (
-            <article key={ability.id} data-ui-text-box="auto" style={{ border: "1px solid rgba(127,219,255,.24)", borderRadius: 10, padding: 10, background: "rgba(0,0,0,.18)" }}>
-              <strong style={{ color: "#fff7dd" }}>{ability.name}</strong>
+            <article className={dossierStyles.talentCard} key={ability.id} data-ui-text-box="auto" style={{ border: "1px solid rgba(127,219,255,.24)", borderRadius: 10, padding: 10, background: "rgba(0,0,0,.18)" }}>
+              <strong className={dossierStyles.talentName} style={{ color: "#fff7dd" }}><span className={dossierStyles.talentSeal} aria-hidden="true">✦</span>{ability.name}</strong>
               <span style={{ display: "block", color: "#7fdbff", fontSize: ".74rem", fontWeight: 900 }}>
                 Grade {ability.grade} • {ability.source}{ability.category ? ` • ${ability.category}` : ""}
               </span>
@@ -651,8 +679,19 @@ function TalentsTab({ creature }: { creature: CreatureRecord }) {
   );
 }
 
-function LineageTab({ creature }: { creature: CreatureRecord }) {
+function LineageTab({ creature, ranchDossier = false }: { creature: CreatureRecord; ranchDossier?: boolean }) {
   const lineage = creature.lineage;
+  if (ranchDossier) return <section className={dossierStyles.profilePage}>
+    <ProfileHeading icon="lineage" eyebrow="Family register" title="Lineage & Genetics" />
+    <div className={dossierStyles.lineageRecord}>
+      <span className={dossierStyles.recordLabel}>Recorded parents</span>
+      <div className={dossierStyles.parentGrid}>{lineage?.parentNames?.length ? lineage.parentNames.map((name, index) => <div key={`${index}-${name}`}><small>Parent {index + 1}</small><strong>{name}</strong></div>) : <p>Parentage not recorded</p>}</div>
+      <div className={dossierStyles.descendant}><strong>{creature.nickname}</strong><span>Generation {creature.generation} · {creature.originLabel}</span></div>
+    </div>
+    <div className={dossierStyles.skillGroup}><h4>Lineage assessment · {lineage?.label ?? "No Risk"}</h4><p>{lineage?.notes?.length ? lineage.notes.join(" ") : "No close lineage risk detected, or this creature predates lineage tracking."}</p></div>
+    <div className={dossierStyles.skillGroup}><h4>Inherited markers</h4>{lineage?.traits?.length ? <div className={dossierStyles.factGrid}>{lineage.traits.map(trait => <MiniStat key={trait} label="Trait marker" value={trait} />)}</div> : <p>No trait markers recorded.</p>}</div>
+    {creature.notes ? <div className={dossierStyles.skillGroup}><h4>Ranch notes</h4><p>{creature.notes}</p></div> : null}
+  </section>;
   return (
     <section style={{ ...cardStyle, minHeight: "100%" }}>
       <p style={kickerStyle}>Lineage & Genetics</p>
@@ -699,12 +738,12 @@ function CareTab({
   onDonate?: () => void;
 }) {
   return (
-    <section style={{ ...cardStyle, minHeight: "100%", display: "grid", alignContent: "start", gap: 9 }}>
+    <section className={dossierStyles.carePage} style={{ ...cardStyle, minHeight: "100%", display: "grid", alignContent: "start", gap: 9 }}>
       <div>
         <p style={kickerStyle}>Care & Management</p>
         <h3 style={{ margin: "3px 0", color: "#fff7dd" }}>{creature.nickname}</h3>
       </div>
-      <div style={resourceGridStyle}>
+      <div className={dossierStyles.factGrid} style={resourceGridStyle}>
         <MiniStat label="Origin" value={creature.originLabel} />
         <MiniStat label="Protection" value={creature.isLocked ? "Locked" : "Unlocked"} />
         <MiniStat label="Health" value={injury ? creature.injuryLabel ?? "Injured" : "Healthy"} />
@@ -713,8 +752,9 @@ function CareTab({
       {statusNote ? <StatusCallout text={statusNote} shiny={Boolean(creature.shiny)} /> : null}
       {onFeed ? <button type="button" style={buttonStyle} onClick={onFeed}>Feed Creature</button> : null}
       {renameValue !== undefined && onRenameValueChange && onRename ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+        <div className={dossierStyles.renameGroup}><label htmlFor={`rename-${creature.creatureId}`}>Creature name</label><div className={dossierStyles.renameRow}>
           <input
+            id={`rename-${creature.creatureId}`}
             aria-label="Creature name"
             value={renameValue}
             onChange={(event) => onRenameValueChange(event.target.value)}
@@ -722,14 +762,14 @@ function CareTab({
             style={{ minHeight: 38, borderRadius: 10, border: "1px solid rgba(245,201,128,.34)", background: "rgba(0,0,0,.28)", color: "#fff7dd", padding: "0 10px", fontWeight: 850 }}
           />
           <button type="button" style={buttonStyle} onClick={onRename}>Save Name</button>
-        </div>
+        </div></div>
       ) : null}
       {onToggleLock ? <button type="button" style={buttonStyle} onClick={onToggleLock}>{creature.isLocked ? "Unlock Creature" : "Lock / Protect Creature"}</button> : null}
       {onRelease || onDonate ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8 }}>
+        <div className={dossierStyles.removalGroup}><p>Transfer or release</p><small>Review the confirmation before removing a creature from your ranch.</small><div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 8 }}>
           {onRelease ? <button type="button" style={buttonStyle} onClick={onRelease}>Release</button> : null}
           {onDonate ? <button type="button" style={buttonStyle} onClick={onDonate}>Donate</button> : null}
-        </div>
+        </div></div>
       ) : null}
     </section>
   );
@@ -761,4 +801,16 @@ function MiniStat({ label, value }: { label: string; value: string }) {
       <strong style={{ display: "block", color: "#fff7dd", marginTop: 3, overflowWrap: "anywhere" }}>{value}</strong>
     </div>
   );
+}
+
+function ProfileHeading({icon, eyebrow, title}: {icon: string; eyebrow: string; title: string}) {
+  return <header className={dossierStyles.profileHeading}><span aria-hidden="true" style={{maskImage: `url(/images/ui/ranch-dossier-v1/icons/${icon}.svg)`}} /><div><p>{eyebrow}</p><h3>{title}</h3></div></header>;
+}
+
+function DossierMeter({label, value, max, compact = false}: {label: string; value: number; max: number; compact?: boolean}) {
+  const percent = max > 0 ? Math.max(0, Math.min(100, value / max * 100)) : 100;
+  return <div className={compact ? dossierStyles.compactMeter : dossierStyles.vitalCard}>
+    {!compact ? <span>{label}</span> : null}<strong>{max > 0 ? `${value} / ${max}` : "Mastered"}{compact && max > 0 ? " XP" : ""}</strong>
+    <div className={dossierStyles.meterTrack} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={max > 0 ? max : 1} aria-valuenow={max > 0 ? Math.max(0, Math.min(max, value)) : 1}><i style={{width: `${percent}%`}} /></div>
+  </div>;
 }
