@@ -99,3 +99,9 @@
 .content { padding: 18px 14px; }
 :where(.dialog) button { border-radius: 3px; border-color: #af9153; background: #f4e8ca; }
 @media (max-width:600px) { .dialog { border-width: 14px; border-image-width: 14px; } .heading { padding: 8px 6px 12px; } .content { padding: 12px 6px; } }
+
+.fullScreen{width:100vw;max-width:none;height:100dvh;max-height:none;border:0;border-radius:0;overflow:hidden;}.fullScreen[open]{display:grid;grid-template-rows:auto minmax(0,1fr);}.fullScreen>.heading{padding:6px 16px;}.fullScreen>.heading h2{font-size:1rem;}.fullScreen>.content{padding:0;min-height:0;overflow:hidden;}.fullScreen>.content>main{height:100%;}
+.fullScreen>.content>main{min-height:0!important;height:100%!important;box-sizing:border-box;}
+/* Destination screens already supply their own return control and heading. */
+.fullScreen>.heading{display:none;}
+.fullScreen[open]{grid-template-rows:minmax(0,1fr);}

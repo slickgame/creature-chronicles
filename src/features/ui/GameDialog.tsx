@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import styles from "./GameDialog.module.css";
 
 /** Native modal semantics provide focus containment, Escape and an inert background. */
@@ -10,12 +11,14 @@ export function GameDialog({
   children,
   wide = false,
   side = false,
+  fullScreen = false,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   wide?: boolean;
   side?: boolean;
+  fullScreen?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -25,6 +28,7 @@ export function GameDialog({
     if (!dialog) return;
     dialog.showModal();
     (
+      (fullScreen ? dialog.querySelector<HTMLElement>("main button") : null) ??
       dialog.querySelector<HTMLElement>("[data-initial-focus]") ??
       dialog.querySelector<HTMLElement>("button")
     )?.focus({ preventScroll: true });
@@ -34,12 +38,12 @@ export function GameDialog({
       if (previous?.isConnected) previous.focus();
       else document.querySelector<HTMLElement>("[data-navigation-launcher]")?.focus();
     };
-  }, []);
-  return (
+  }, [fullScreen]);
+  const dialog = (
     <dialog
       role="dialog"
       ref={ref}
-      className={`${styles.dialog} ${wide ? styles.wide : ""} ${side ? styles.side : ""}`}
+      className={`${styles.dialog} ${wide ? styles.wide : ""} ${side ? styles.side : ""} ${fullScreen ? styles.fullScreen : ""}`}
       aria-labelledby={titleId}
       onKeyDown={(event) => {
         if (event.key === "Escape") {
@@ -62,4 +66,5 @@ export function GameDialog({
       <div className={styles.content}>{children}</div>
     </dialog>
   );
+  return fullScreen && typeof document !== "undefined" ? createPortal(dialog, document.body) : dialog;
 }
