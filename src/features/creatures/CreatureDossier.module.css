@@ -10,3 +10,27 @@
 .dossier [style*="grid-template-columns: repeat(2"] {grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important;}
 .dossier svg text {fill:#49341d;}
 .dossier svg line,.dossier svg polygon[fill=none] {stroke:#9a814d77;}
+/* Approved A: parchment dossier, olive tabs and brass accents. */
+.dossier {position:relative;gap:14px!important;}
+.dossier section {background:transparent!important;}
+.dossier nav {background:#e9d8ab66!important;display:flex;gap:5px!important;}
+.dossier nav button {display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px!important;flex:1 1 auto;min-height:44px;}
+.dossier nav button[aria-selected=true] {background:#536832!important;color:#fff7df!important;box-shadow:inset 0 0 0 1px #c3b37d;}
+.dossier nav button[aria-selected=true] .icon {color:#fff7df!important;}
+.dossier :is(button,[role=tabpanel]):focus-visible {outline:3px solid #365d81;outline-offset:2px;}
+.icon,.statIcon {display:inline-block;width:19px;height:19px;flex-shrink:0;background:currentColor;mask-size:contain;mask-repeat:no-repeat;mask-position:center;vertical-align:middle;}
+.statIcon {display:none;}
+.dossier .statIcon {display:inline-block;width:24px;height:24px;margin-right:7px;}
+.dossier .statGrid {grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin-top:14px;}
+.dossier .statGrid article {padding:12px!important;background:#fff9e544!important;}
+.dossier .statGrid article>strong {font-size:1.5rem;margin:10px 0 6px;}
+.dossier .statGrid article>strong small {font-size:.75rem;}
+.dossier .tabContent {padding:2px;}
+.withPortrait {grid-template-columns:minmax(180px,.75fr) minmax(0,1.4fr)!important;}
+.dossier .portrait {background:url('/images/ui/ranch-dossier-v1/botanical-corner.webp') left bottom/65% auto no-repeat,#f4e6c2!important;border:1px solid #aa8142!important;position:sticky!important;top:0;}
+.dossier .portrait [data-ui-fixed-size] {height:clamp(220px,42vh,440px)!important;}
+@media(max-width:650px){.withPortrait{grid-template-columns:1fr!important;}.dossier .portrait{position:static!important;}.dossier .portrait [data-ui-fixed-size]{height:220px!important;}.dossier .statGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}.dossier nav button{font-size:.8rem!important;padding:8px!important;}.dossier nav .icon{display:none;}}
+@media(min-width:1250px){.dossier nav{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));}.dossier nav button{font-size:.76rem!important;padding:7px 4px!important;}.dossier nav .icon{display:none;}}
+.dossier .statGrid article>strong {margin:6px 0 4px;}
+.dossier .statGrid article {padding:9px!important;}
+.dossier .statGrid article p {font-size:.76rem!important;line-height:1.3!important;}

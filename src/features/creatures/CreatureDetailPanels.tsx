@@ -3,7 +3,7 @@
 import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 
-import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useId, useState } from "react";
 import { getCreatureChoreSkillGroup } from "@/data/choreSkills";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
@@ -48,6 +48,7 @@ type SharedCreatureDetailProps = {
   showActions?: boolean;
   fitViewport?: boolean;
   dossier?: boolean;
+  showDossierPortrait?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
   // Opt-in only: this shared detail panel is also used in breeding screens.
@@ -198,6 +199,7 @@ export function SharedCreatureDetail({
   showActions = true,
   fitViewport = false,
   dossier = false,
+  showDossierPortrait = false,
   statusNote,
   bestStatLabels = [],
   useGameplayArt = false,
@@ -217,6 +219,7 @@ export function SharedCreatureDetail({
       bestStatLabels.length ||
       (showActions && (onRelease || onDonate)),
   );
+  const tabId = useId();
   const tabs = getAvailableTabs(mode, hasCareActions);
   const [activeTab, setActiveTab] = useState<CreatureDetailTab>(tabs[0]);
 
@@ -266,8 +269,8 @@ export function SharedCreatureDetail({
   };
 
   return (
-    <div className={dossier ? dossierStyles.dossier : undefined} style={shellStyle} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
-      {!dossier ? <section style={portraitCardStyle}>
+    <div className={dossier ? `${dossierStyles.dossier} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
+      {!dossier || showDossierPortrait ? <section className={dossier ? dossierStyles.portrait : undefined} style={portraitCardStyle}>
         <p style={kickerStyle}>{variant.rarity} Variant</p>
         <h2 style={{ margin: "3px 0", color: "#fff7dd", fontSize: "1.42rem", lineHeight: 1 }}>
           {creature.nickname}
@@ -335,6 +338,17 @@ export function SharedCreatureDetail({
         {tabs.length > 1 ? (
           <nav
             aria-label="Creature detail tabs"
+            role="tablist"
+            onKeyDown={(event) => {
+              const index = tabs.indexOf(activeTab);
+              const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
+                : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length
+                : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
+              if (next < 0) return;
+              event.preventDefault();
+              setActiveTab(tabs[next]);
+              event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+            }}
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -350,7 +364,11 @@ export function SharedCreatureDetail({
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                aria-pressed={activeTab === tab}
+                role="tab"
+                id={`${tabId}-${tab}`}
+                aria-controls={`${tabId}-panel`}
+                aria-selected={activeTab === tab}
+                tabIndex={activeTab === tab ? 0 : -1}
                 style={activeTab === tab
                   ? {
                       ...tabButtonStyle,
@@ -362,13 +380,14 @@ export function SharedCreatureDetail({
                     }
                   : tabButtonStyle}
               >
+                {dossier ? <span className={dossierStyles.icon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${tab === "stats" ? "growth" : tab}.svg)` }} /> : null}
                 {getTabLabel(tab)}
               </button>
             ))}
           </nav>
         ) : null}
 
-        <div style={{ minHeight: 0, overflow: "auto" }}>
+        <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={tabs.length > 1 ? `${tabId}-${activeTab}` : undefined} aria-label={tabs.length === 1 ? getTabLabel(activeTab) : undefined} tabIndex={0} className={dossier ? dossierStyles.tabContent : undefined} style={{ minHeight: 0, overflow: "auto" }}>
           {activeTab === "overview" ? (
             <OverviewTab
               creature={creature}
@@ -516,7 +535,7 @@ function StatsTab({
         {bestStatLabels.length ? `Best: ${bestStatLabels.join(", ")}. ` : ""}
         Growth is fastest at low levels and gradually plateaus.
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 7 }}>
+      <div className={dossierStyles.statGrid} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(120px,1fr))", gap: 7 }}>
         {STAT_KEYS.map((statKey) => {
           const projection = growth[statKey];
           return (
@@ -529,7 +548,7 @@ function StatsTab({
                 background: projection.willIncreaseNextLevel ? "rgba(126,229,168,.08)" : "rgba(0,0,0,.18)",
               }}
             >
-              <span style={kickerStyle}>{SHARED_STAT_LABELS[statKey]}</span>
+              <span style={kickerStyle}><span className={dossierStyles.statIcon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${SHARED_STAT_LABELS[statKey].toLowerCase()}.svg)` }} />{SHARED_STAT_LABELS[statKey]}</span>
               <strong style={{ display: "block", color: "#fff7dd" }}>
                 {creature.stats[statKey]} <small style={{ color: "#f5c980" }}>Grade {creature.statGrades[statKey]}</small>
               </strong>
@@ -684,6 +703,7 @@ function CareTab({
       {renameValue !== undefined && onRenameValueChange && onRename ? (
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
           <input
+            aria-label="Creature name"
             value={renameValue}
             onChange={(event) => onRenameValueChange(event.target.value)}
             maxLength={24}

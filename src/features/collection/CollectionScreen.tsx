@@ -14,7 +14,6 @@ import {
   type SortDirection,
 } from "@/data/creatureManagement";
 import {
-  COLLECTION_ASSETS,
   getBestStatLabels,
 } from "@/data/collection";
 import {
@@ -340,6 +339,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                           src={getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))}
                           alt=""
                           onError={(event) => {
+                            event.currentTarget.onerror = null;
                             event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
                           }}
                         />
@@ -378,7 +378,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                           title={creature.isFavorite ? "Remove favorite" : "Add favorite"}
                           onClick={() => toggleFavorite(creature)}
                         >
-                          {creature.isFavorite ? "★" : "☆"}
+                          <span className={styles.actionIcon} aria-hidden="true" style={{ maskImage: "url(/images/ui/ranch-dossier-v1/icons/talents.svg)", opacity: creature.isFavorite ? 1 : .5 }} />
                         </button>
                         <button
                           type="button"
@@ -386,7 +386,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                           title={creature.isLocked ? "Unlock creature" : "Lock creature"}
                           onClick={() => toggleCreatureLock(creature.creatureId)}
                         >
-                          {creature.isLocked ? "🔒" : "🔓"}
+                          <span className={styles.actionIcon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${creature.isLocked ? "lock" : "unlock"}.svg)` }} />
                         </button>
                       </div>
                     </article>
@@ -442,7 +442,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                 Compare
               </button>
             </div>
-            {visibleCreatures.length ? <PagedItems key={JSON.stringify([filters,sortMode,sortDirection,viewMode])} label="Creatures" rowHeight={154} items={visibleCreatures.map(creature => renderCreatureCard(creature))} /> : <div className={styles.noResults}><strong>No creatures match.</strong><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
+            {visibleCreatures.length ? <PagedItems key={JSON.stringify([filters,sortMode,sortDirection,viewMode])} label="Creatures" rowHeight={182} items={visibleCreatures.map(creature => renderCreatureCard(creature))} /> : <div className={styles.noResults}><strong>No creatures match.</strong><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
           </aside>
 
           <section className={`${ui.paper} ${styles.detailPanel}`}>
@@ -455,7 +455,23 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                     <span className={styles.status}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</span>
                     <div className={styles.resources}><div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div><div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div></div>
                   </div>
-                    <div className={styles.coreStats}>{STAT_KEYS.map(stat => <div key={stat}><span>{SHARED_STAT_LABELS[stat]}</span><strong>{selectedCreature.stats[stat]} <small>{selectedCreature.statGrades[stat]}</small></strong></div>)}</div>
+                    <div className={styles.inlineDossier}>
+                      <SharedCreatureDetail
+                        key={selectedCreature.creatureId}
+                        creature={selectedCreature}
+                        dossier
+                        useGameplayArt
+                        dayNumber={activeSave.dayState.dayNumber}
+                        renameValue={renameValue || selectedCreature.nickname}
+                        onRenameValueChange={setRenameValue}
+                        onRename={handleRename}
+                        onToggleLock={() => toggleCreatureLock(selectedCreature.creatureId)}
+                        onRelease={() => setConfirmMode("release")}
+                        onDonate={() => setConfirmMode("donate")}
+                        bestStatLabels={getBestStatLabels(selectedCreature)}
+                        statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
+                      />
+                    </div>
                 </div>
                 <div className={styles.quickActions}>
                   <button type="button" className={ui.primary} onClick={() => setShowProfile(true)}>Profile & Care</button>
@@ -673,6 +689,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                   bestStatLabels={getBestStatLabels(selectedCreature)}
                   statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
                   dossier
+                  showDossierPortrait
                 />
         <p role="status">{message}</p>
       </GameDialog> : null}
