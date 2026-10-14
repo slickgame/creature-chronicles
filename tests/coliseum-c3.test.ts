@@ -42,7 +42,7 @@ const {
 } = await import("../src/data/coliseumC3.ts");
 const {
   createNewGameSave,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 const {
   getBattleSpeciesProfile,
 } = await import("@/data/battleProfiles");

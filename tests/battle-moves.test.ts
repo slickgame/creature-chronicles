@@ -30,7 +30,7 @@ const {
 const {
   createNewGameSave,
   saveGameToSlot,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 
 function firstCreature() {
   const save = createNewGameSave("Move Test", 0);

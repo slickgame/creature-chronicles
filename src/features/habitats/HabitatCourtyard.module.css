@@ -132,3 +132,10 @@
 @media(max-width:600px){.courtyard .occupancy>div{display:grid;grid-template-columns:17px 1fr;gap:0 3px;}.courtyard .occupancy>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.courtyard .occupancy>div>strong{grid-column:2;}}
 
 .courtyard img[data-nyla-card="true"]{object-position:center top}
+
+.compact{grid-template-columns:minmax(0,720px);justify-content:center}.compact .residentView{display:none}@media(max-width:600px){.compact{grid-template-rows:minmax(0,1fr)}.compact .care{align-self:center}}
+
+@media(max-width:600px){.courtyard .occupancy button{font-size:11px;max-width:84px}.courtyard .occupancy button span{font-size:10px}.courtyard .careButtons button{white-space:normal;line-height:1.15}}
+@media(max-height:600px){.identity{min-width:0}.identity h2{min-width:0;flex:1}.identity p{flex:none;font-size:10px}.courtyard .layout .identity h2{font-size:20px}}
+
+.profileFrame{box-sizing:border-box;height:100%;padding:16px;background:#efdfbc;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px}.profileFrame header{display:flex;align-items:center;justify-content:space-between;gap:10px}.profileFrame header h2{font:700 22px Georgia,serif;margin:0}.profileFrame header button{min-height:38px;padding:8px;border:1px solid #a48954;background:#f5e9ce;color:#49341d}@media(max-width:600px){.profileFrame{padding:8px;gap:6px}.profileFrame header h2{font-size:16px}.profileFrame header button{font-size:11px;padding:6px;min-height:32px}}@media(max-height:550px){.profileFrame{padding:6px;gap:4px}.profileFrame header h2{font-size:17px}.profileFrame header button{min-height:28px;padding:4px}}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-const { createNewGameSave } = await import("@/lib/save/localSave");
+const { createNewGameSave } = await import("./helpers/establishedSave.ts");
 const { TACTICAL_MANUAL_MOVES } = await import("@/data/battleMoves");
 const { BATTLE_OUTFITTER_ITEMS, getBattleOutfitterStock } = await import("@/data/battleOutfitter");
 const { getCreatureBattleMoveLoadout, canSpeciesLearnBattleMove } = await import("@/data/battleLoadouts");

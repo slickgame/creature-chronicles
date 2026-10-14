@@ -3,8 +3,7 @@
 import { NYLA_GAMEPLAY_ART, isNylaBaseFeline } from "@/data/nylaGameplayArt";
 import { EQUINE_GAMEPLAY_ART, isBaseEquine } from "@/data/equineGameplayArt";
 import { useEffect, useRef, useState } from "react";
-import { getChapterOneStoryLog } from "@/data/chapterOneStory";
-import { getStarterGoals } from "@/data/starterGoals";
+import { RanchJournal } from "@/features/ranch/RanchJournal";
 import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
 import { RanchAdvisorOverlay } from "@/features/ranch/RanchAdvisorOverlay";
 import { GameDialog } from "@/features/ui/GameDialog";
@@ -21,7 +20,7 @@ import styles from "./Navigation.module.css";
 
 export function NavigationChrome() {
   const game = useGameContext();
-  const { view, open } = useNavigation();
+  const { view, open, setRanchView, setRanchPlot } = useNavigation();
   const [report, setReport] = useState<DayAdvanceResult | null>(null);
   const sleeping = useRef(false);
   useEffect(() => {
@@ -216,8 +215,7 @@ export function NavigationChrome() {
             {[
               ["Ranch", game.goToRanch],
               ["Town", game.goToTown],
-              ["Farm Management", game.goToRanchJobs],
-              ["Ranch Office", game.goToRanchOffice],
+              ["Ranch House", ()=>{setRanchPlot(0);setRanchView("house");game.goToRanch();}],
               ["Nursery", game.goToNursery],
               ["Breeding Pen", game.goToBreeding],
             ].map(([label, action]) => (
@@ -236,45 +234,7 @@ export function NavigationChrome() {
           </p>
         </GameDialog>
       )}
-      {view === "journal" && (
-        <GameDialog title="Journal" onClose={() => open(null)} wide>
-          <h3>Goals</h3>
-          {getStarterGoals(save).map((goal) => (
-            <article key={goal.id} className={styles.ledgerRow}>
-              <div>
-                <h3>
-                  {goal.complete ? "✓ " : "○ "}
-                  {goal.label}
-                </h3>
-                <p>{goal.description}</p>
-                <small>{goal.hint}</small>
-              </div>
-            </article>
-          ))}
-          <h3>Story records</h3>
-          {getChapterOneStoryLog(save).map((entry) => (
-            <details key={entry.id} className={styles.story}>
-              <summary>
-                {entry.title} · {entry.seen ? "Unlocked" : "Locked"}
-              </summary>
-              {entry.seen ? (
-                entry.pages.map((page, index) => (
-                  <p key={index}>
-                    <strong>{page.speaker}</strong>
-                    <br />
-                    {page.text}
-                  </p>
-                ))
-              ) : (
-                <p>
-                  {entry.lockedReason ??
-                    "Continue the story to unlock this record."}
-                </p>
-              )}
-            </details>
-          ))}
-        </GameDialog>
-      )}
+      {view === "journal" && <RanchJournal onClose={()=>open(null)}/>}
       {view === "advisor" && (
         <GameDialog title="Veyra's Advice" onClose={() => open(null)}>
           <RanchAdvisorOverlay embedded />

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createNewGameSave, saveGameToSlot, loadSaveFromSlot } from "../src/lib/save/localSave.ts";
+import { createNewGameSave, saveGameToSlot, loadSaveFromSlot } from "./helpers/establishedSave.ts";
 import { GENERAL_ABILITY_POOL, GENERAL_TALENT_GRADES, createGeneralTalent } from "../src/data/talents/generalTalents.ts";
 import { getTalentDefinition, getTalentEffects, getTalentDescription } from "../src/data/talents/talentDefinitions.ts";
 import { getBreedingTalentSummary, getChoreTalentSummary, getRecoveryTalentSummary } from "../src/data/talents/talentEngine.ts";

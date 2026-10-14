@@ -16,7 +16,7 @@ const {
   getColiseumC4State,
   recordColiseumC4BattleResult,
 } = await import("@/data/coliseumC4");
-const { createNewGameSave } = await import("@/lib/save/localSave");
+const { createNewGameSave } = await import("./helpers/establishedSave.ts");
 
 type TestSave = ReturnType<typeof createNewGameSave>;
 type TestCreature = NonNullable<TestSave["creatures"]>[number];

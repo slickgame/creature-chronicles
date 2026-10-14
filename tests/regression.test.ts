@@ -36,7 +36,7 @@ const {
   createNewGameSave,
   loadSaveFromSlot,
   saveGameToSlot,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 const {
   getBreedingPreview,
   getPairKey,

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { getBattleOutfitterDailySummaryItems, purchaseBattleOutfitterItem } from "@/data/battleOutfitter";
 import { performBreedingAttempt } from "@/data/breeding";
 import { releaseOrDonateCreature } from "@/data/collection";
@@ -70,6 +70,7 @@ type GameContextValue = {
   goToMainMenu: () => void;
   exitRunToMainMenu: () => void;
   goToRanch: () => void;
+  goBack: () => void;
   goToHabitat: (family: CreatureFamily) => void;
   goToBreeding: () => void;
   goToNursery: () => void;
@@ -132,6 +133,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [appScreen, setAppScreen] = useState<AppScreen>("main-menu");
   const [activeHabitatFamily, setActiveHabitatFamily] = useState<CreatureFamily | null>(null);
+  const navigationHistory=useRef<Array<{screen:AppScreen;family:CreatureFamily|null}>>([]);
+  const navigate=useCallback((screen:AppScreen,family:CreatureFamily|null=null)=>{
+    if(screen!==appScreen||family!==activeHabitatFamily)navigationHistory.current.push({screen:appScreen,family:activeHabitatFamily});
+    if(navigationHistory.current.length>40)navigationHistory.current.shift();
+    setActiveHabitatFamily(family);setAppScreen(screen);
+  },[appScreen,activeHabitatFamily]);
+  const goBack=useCallback(()=>{const previous=navigationHistory.current.pop();setActiveHabitatFamily(previous?.family??null);setAppScreen(previous?.screen==='main-menu'?'ranch-hub':previous?.screen??'ranch-hub');},[]);
   const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]);
   const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
 
@@ -158,6 +166,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const createNewGame = useCallback((playerName: string, preferredSlot?: number) => {
+    navigationHistory.current=[];
     const slotIndex = preferredSlot ?? findFirstEmptySlot() ?? 0;
     const savedGame = saveCurrentGame(createNewGameSave(playerName, slotIndex));
     setActiveHabitatFamily(null);
@@ -166,6 +175,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [saveCurrentGame]);
 
   const loadGame = useCallback((slotIndex: number) => {
+    navigationHistory.current=[];
     const save = loadSaveFromSlot(slotIndex);
     if (!save) return null;
     setActiveSaveId(save.saveId);
@@ -181,41 +191,39 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     refreshSaveSlots();
   }, [refreshSaveSlots]);
 
-  const goToMainMenu = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("main-menu"); }, []);
-  const exitRunToMainMenu = useCallback(() => { setActiveSaveId(""); setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
-  const goToRanch = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-hub"); }, []);
-  const goToRanchOffice = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-office"); }, []);
-  const goToRanchJobs = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("ranch-jobs"); }, []);
-  const goToDevTools = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("dev-tools"); }, []);
-  const goToSupplyDepot = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("supply-depot"); }, []);
-  const goToEggAtelier = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("egg-atelier"); }, []);
-  const goToTrainingGrounds = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("training-grounds"); }, []);
-  const goToBattleOutfitter = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("battle-outfitter"); }, []);
-  const goToBattleDebug = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("battle-debug"); }, []);
-  const goToHabitat = useCallback((family: CreatureFamily) => { setActiveHabitatFamily(family); setAppScreen("habitat"); }, []);
-  const goToBreeding = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("breeding"); }, []);
-  const goToNursery = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("nursery"); }, []);
-  const goToCollection = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("collection"); }, []);
+  const goToMainMenu = useCallback(() => { navigationHistory.current=[]; setActiveHabitatFamily(null); setAppScreen("main-menu"); }, []);
+  const exitRunToMainMenu = useCallback(() => { navigationHistory.current=[]; setActiveSaveId(""); setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
+  const goToRanch = useCallback(() => navigate("ranch-hub"), [navigate]);
+  const goToRanchOffice = useCallback(() => navigate("ranch-office"), [navigate]);
+  const goToRanchJobs = useCallback(() => navigate("ranch-jobs"), [navigate]);
+  const goToDevTools = useCallback(() => navigate("dev-tools"), [navigate]);
+  const goToSupplyDepot = useCallback(() => navigate("supply-depot"), [navigate]);
+  const goToEggAtelier = useCallback(() => navigate("egg-atelier"), [navigate]);
+  const goToTrainingGrounds = useCallback(() => navigate("training-grounds"), [navigate]);
+  const goToBattleOutfitter = useCallback(() => navigate("battle-outfitter"), [navigate]);
+  const goToBattleDebug = useCallback(() => navigate("battle-debug"), [navigate]);
+  const goToHabitat = useCallback((family: CreatureFamily) => navigate("habitat",family), [navigate]);
+  const goToBreeding = useCallback(() => navigate("breeding"), [navigate]);
+  const goToNursery = useCallback(() => navigate("nursery"), [navigate]);
+  const goToCollection = useCallback(() => navigate("collection"), [navigate]);
 
   const goToMarket = useCallback(() => {
-    setActiveHabitatFamily(null);
     if (currentSave) {
       const syncedSave = ensureCurrentMarketState(currentSave);
       if (syncedSave !== currentSave) saveCurrentGame(syncedSave);
     }
-    setAppScreen("market");
-  }, [currentSave, saveCurrentGame]);
+    navigate("market");
+  }, [currentSave, saveCurrentGame, navigate]);
 
   const goToGuildHall = useCallback(() => {
-    setActiveHabitatFamily(null);
     if (currentSave) {
       const syncedSave = ensureCurrentGuildState(currentSave);
       if (syncedSave !== currentSave) saveCurrentGame(syncedSave);
     }
-    setAppScreen("guild-hall");
-  }, [currentSave, saveCurrentGame]);
+    navigate("guild-hall");
+  }, [currentSave, saveCurrentGame, navigate]);
 
-  const goToTown = useCallback(() => { setActiveHabitatFamily(null); setAppScreen("town"); }, []);
+  const goToTown = useCallback(() => navigate("town"), [navigate]);
 
   const renameCreature = useCallback((creatureId: CreatureId, nickname: string) => {
     if (!currentSave || !nickname.trim()) return;
@@ -464,6 +472,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     goToMainMenu,
     exitRunToMainMenu,
     goToRanch,
+    goBack,
     goToHabitat,
     goToBreeding,
     goToNursery,
@@ -518,6 +527,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     goToMainMenu,
     exitRunToMainMenu,
     goToRanch,
+    goBack,
     goToHabitat,
     goToBreeding,
     goToNursery,

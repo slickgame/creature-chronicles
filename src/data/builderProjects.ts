@@ -1,7 +1,11 @@
+import {HABITAT_PURCHASES,isHabitatUnlocked,unlockRanchHabitat} from "./ranchHabitats";
+import {FAMILY_LABELS} from "./creatures";
+import type {CreatureFamily} from "@/types/creature";
 import { getFarmState, canSpend, consumeFarmResources, resourceList, type Stock } from "./farmResources";
 import type { GameSave } from "@/types/save";
 
 export type BuilderProjectId =
+  | "unlock_feline_habitat" | "unlock_canine_habitat" | "unlock_bovine_habitat" | "unlock_lapine_habitat"
   | "pasture_annex"
   | "nursery_extension"
   | "north_pasture_land"
@@ -30,6 +34,7 @@ export type BuilderProjectDefinition = {
   planned?: boolean;
   durationDays?: number;
   benefit?: string;
+  unlockFamily?: CreatureFamily;
 };
 
 export type BuilderProjectStatus = "locked" | "available" | "built" | "building" | "planned";
@@ -63,6 +68,7 @@ export const BUILDER_PROJECT_ASSETS = {
 } as const;
 
 export const BUILDER_PROJECTS: BuilderProjectDefinition[] = [
+  ...Object.entries(HABITAT_PURCHASES).map(([family,p])=>({id:p.projectId,title:`${FAMILY_LABELS[family as CreatureFamily]} Habitat`,category:'habitat' as const,description:`Build a sheltered home for the ${family} family. Unlocks adoption and species-specific Guild requests for this family.`,flavor:'Petra prepares a fenced plot with shelter and room to grow.',iconPath:`/images/ui/ranch-v3/${family}.webp`,costGold:p.gold,costResources:{wood:p.wood},durationDays:1,prerequisiteIds:[],unlockFamily:family as CreatureFamily,benefit:'Unlocks this creature family’s habitat with four resident spaces.'})),
   {
     id: "pasture_annex", title: "Habitat Annexes", category: "habitat",
     description: "Add a sheltered annex to each of the ranch's five existing family habitats.",
@@ -200,7 +206,8 @@ export function getBuilderProject(projectId: BuilderProjectId): BuilderProjectDe
 }
 
 export function isBuilderProjectBuilt(save: GameSave, projectId: BuilderProjectId): boolean {
-  return save.flags[builtFlag(projectId)] === true;
+  const family=PROJECTS_BY_ID[projectId]?.unlockFamily;
+  return family?isHabitatUnlocked(save,family):save.flags[builtFlag(projectId)] === true;
 }
 
 export function getBuilderProjectProgress(save: GameSave, projectId: BuilderProjectId): BuilderProjectProgress {
@@ -269,7 +276,7 @@ export function processBuilderConstruction(save: GameSave): { save: GameSave; su
     ...(project.category === "land" ? { m63RanchLandExpanded: true } : {}),
     ...(project.category === "security" ? { m63PermanentSecurityBuilt: true } : {}),
   } };
-  return { save: nextSave, summaryItems: [`${project.title} completed. ${getBuilderProjectBenefit(project)}`] };
+  return { save: project.unlockFamily?unlockRanchHabitat(nextSave,project.unlockFamily):nextSave, summaryItems: [`${project.title} completed. ${getBuilderProjectBenefit(project)}`] };
 }
 
 export function getBuilderSecurityBonus(save: GameSave): number {

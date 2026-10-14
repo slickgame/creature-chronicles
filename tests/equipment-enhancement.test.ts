@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { createNewGameSave,saveGameToSlot } from '@/lib/save/localSave';
+import { createNewGameSave,saveGameToSlot } from "./helpers/establishedSave.ts";
 import { BATTLE_OUTFITTER_ITEMS, getBattleOutfitterStock, assignBattleOutfitterEquipment, removeBattleOutfitterEquipment, purchaseBattleOutfitterItem } from '@/data/battleOutfitter';
 import { getEquipmentCopies,getEnhancementQuote,enhanceEquipment,syncEquipmentCopies } from '@/data/equipmentInstances';
 import { equipmentStats,substatRollRange,rollEquipmentMilestone,LEGACY_EQUIPMENT_STATS } from '@/data/equipmentEnhancement';

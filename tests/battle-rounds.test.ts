@@ -23,7 +23,7 @@ const {
 } = await import("../src/data/battleStats.ts");
 const {
   createNewGameSave,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 
 function cloneCreature(source: ReturnType<typeof createNewGameSave>["creatures"][number], id: string, nickname: string) {
   return {

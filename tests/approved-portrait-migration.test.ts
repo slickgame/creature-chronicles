@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createNewGameSave } from '@/lib/save/localSave';
+import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { normalizeApprovedCreaturePortraits } from '@/data/approvedCreaturePortraits';
 import { getVariantDefinition } from '@/data/creatures';
 test('old saved card and profile URLs migrate without changing rare art or scene URLs',()=>{

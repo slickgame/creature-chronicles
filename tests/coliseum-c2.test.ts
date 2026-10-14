@@ -34,7 +34,7 @@ const {
 } = await import("../src/data/creatures.ts");
 const {
   createNewGameSave,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 
 function createFixture() {
   const save = createNewGameSave("C2 Tester", 0);

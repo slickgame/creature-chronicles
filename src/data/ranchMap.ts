@@ -1,6 +1,6 @@
 import type { BuilderProjectId } from "@/data/builderProjects";
 import type { RanchUpgradeId } from "@/types/ranchUpgrades";
-export type RanchPlotId = "homestead" | "habitats" | "services" | "expansion";
+export type RanchPlotId = "homestead" | "habitats" | "expansion";
 type BuildingShortcutId =
   | "house"
   | "breeding"
@@ -45,20 +45,13 @@ export const RANCH_PLOTS: RanchPlot[] = [
     id: "homestead",
     label: "Homestead Yard",
     shortLabel: "Homestead",
-    description: "House, breeding pen, egg nursery, and town road.",
+    description: "House, breeding pen and egg nursery. Management lives in the house.",
   },
   {
     id: "habitats",
     label: "Habitat Fields",
     shortLabel: "Habitats",
     description: "Feline, canine, bovine, lapine, and equine habitats.",
-  },
-  {
-    id: "services",
-    label: "Service Yard",
-    shortLabel: "Services",
-    description:
-      "Ranch office, farm work locations, guild board, house, and town road.",
   },
   {
     id: "expansion",
@@ -74,7 +67,7 @@ export const BUILDING_SHORTCUTS: BuildingShortcut[] = [
     id: "house",
     plotId: "homestead",
     title: "Ranch House",
-    hint: "Sleep recovery upgrades make the ranch more restful overnight.",
+    hint: "Manage farm work, resources, ranch improvements, records and rest.",
     x: 50,
     labelY: 48,
     upgradeIds: ["sleep_recovery"],
@@ -96,15 +89,6 @@ export const BUILDING_SHORTCUTS: BuildingShortcut[] = [
     x: 27,
     labelY: 79,
     upgradeIds: ["nursery_egg_capacity", "nursery_incubation_speed"],
-  },
-  {
-    id: "town",
-    plotId: "homestead",
-    title: "Town Road",
-    hint: "Travel to town for market, guild, construction, and other services.",
-    x: 73,
-    labelY: 81,
-    upgradeIds: [],
   },
   {
     id: "feline",
@@ -150,51 +134,6 @@ export const BUILDING_SHORTCUTS: BuildingShortcut[] = [
     x: 81,
     labelY: 77,
     upgradeIds: ["equine_habitat_capacity"],
-  },
-  {
-    id: "office",
-    plotId: "services",
-    title: "Ranch Office",
-    hint: "Open the construction ledger, repairs, history, and ranch-wide effects.",
-    x: 39,
-    labelY: 61,
-    upgradeIds: [],
-  },
-  {
-    id: "jobs",
-    plotId: "services",
-    title: "Farm Management",
-    hint: "Work instantly for specific resources. Farm Tools reduce Energy costs and improve output.",
-    x: 63,
-    labelY: 52,
-    upgradeIds: ["ranch_chores_board"],
-  },
-  {
-    id: "guild",
-    plotId: "services",
-    title: "Guild Board",
-    hint: "Guild contracts are handled in town.",
-    x: 80,
-    labelY: 81,
-    upgradeIds: [],
-  },
-  {
-    id: "town",
-    plotId: "services",
-    title: "Town Road",
-    hint: "Travel to town for market, guild, construction, and other services.",
-    x: 51,
-    labelY: 81,
-    upgradeIds: [],
-  },
-  {
-    id: "house",
-    plotId: "services",
-    title: "Ranch House",
-    hint: "Sleep recovery upgrades make the ranch more restful overnight.",
-    x: 23,
-    labelY: 73,
-    upgradeIds: ["sleep_recovery"],
   },
   {
     id: "north-pasture",

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createNewGameSave } from "../src/lib/save/localSave.ts";
+import { createNewGameSave } from "./helpers/establishedSave.ts";
 import {
   getBreedingParticipants,
   getBreedingPreview,

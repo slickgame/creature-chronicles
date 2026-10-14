@@ -15,7 +15,7 @@ const {
   getCreatureBattleMoveLoadout,
 } = await import("@/data/battleLoadouts");
 const { BATTLE_MOVES_BY_ID } = await import("@/data/battleMoves");
-const { createNewGameSave } = await import("@/lib/save/localSave");
+const { createNewGameSave } = await import("./helpers/establishedSave.ts");
 const { hatchEgg } = await import("@/data/nursery");
 
 function inheritanceFixture() {

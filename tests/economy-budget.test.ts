@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createNewGameSave } from '@/lib/save/localSave';
+import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { getFoodBudget, getUpgradeBudget } from '@/data/economyBudget';
 import { grantFarmResources, reserveResource, setIngredientFeeding } from '@/data/farmResources';
 import { BATTLE_OUTFITTER_ITEMS } from '@/data/battleOutfitter';

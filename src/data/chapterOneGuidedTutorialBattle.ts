@@ -27,11 +27,12 @@ export function prepareChapterOneGuidedTutorialSave(save: GameSave): GameSave {
 
 export function getChapterOneGuidedTutorialStep(save: GameSave): base.ChapterOneTutorialStep | null {
   const baseStep = base.getChapterOneGuidedTutorialStep(save);
+  if (baseStep?.id === "first-pairing" && (save.creatures?.length ?? 0) < 2) return {...baseStep,title:"Find an equine partner",body:"Your ranch begins with one equine companion. Adopt a horse from Tamsin’s Adoption Hearth before the two-creature pairing lesson. Earn Gold through instant farm work and Guild deliveries; Petra unlocks other family habitats.",hint:"The Adoption Hearth always offers a horse for new ranches. The equine habitat starts with four spaces.",action:"market",actionLabel:"Visit Adoption Hearth",lockToTarget:false,targetId:undefined};
   if (!baseStep || baseStep.id !== "win-first-battle") return baseStep;
   return {
     ...baseStep,
     title: "Win the Opening Scrimmage",
-    body: "Choose the Opening Scrimmage on the first Circuit page. Select three available creatures, then queue one move and a legal target for each living teammate. Confirm Round when all are ready.",
+    body: (save.creatures?.length ?? 0) < 3 ? "Grow your team to three creatures first: hatch equine offspring in the Nursery or adopt horses from Tamsin. Petra can unlock other family habitats. Then enter the Opening Scrimmage on the first Circuit page." : "Choose the Opening Scrimmage on the first Circuit page. Select three available creatures, then queue one move and a legal target for each living teammate. Confirm Round when all are ready.",
     hint: "Focus attacks on one enemy, use support when needed, and watch HP and Battle Energy. After winning, confirm the result ledger: only a recorded victory completes the lesson.",
     targetId: "tutorial-first-battle",
   };

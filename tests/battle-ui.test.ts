@@ -8,7 +8,7 @@ const {
   getNextUnqueuedPlayerActorId,
 } = await import("../src/data/battleUi.ts");
 const { createBattleState } = await import("@/data/battleEngine");
-const { createNewGameSave } = await import("@/lib/save/localSave");
+const { createNewGameSave } = await import("./helpers/establishedSave.ts");
 
 function createUiBattle() {
   const save = createNewGameSave("UI Tester", 0);

@@ -15,7 +15,7 @@ class MemoryStorage {
 const storage = new MemoryStorage();
 (globalThis as unknown as { window: { localStorage: MemoryStorage } }).window = { localStorage: storage };
 
-const { createNewGameSave, loadSaveFromSlot, saveGameToSlot } = await import("../src/lib/save/localSaveLifecycle.ts");
+const { createNewGameSave, loadSaveFromSlot, saveGameToSlot } = await import("./helpers/establishedSave.ts");
 const { CURRENT_SAVE_SCHEMA_VERSION } = await import("../src/lib/save/saveReliabilityRanchDay.ts");
 const { generateDailyRanchEvent, resolveDailyRanchEventChoice } = await import("../src/data/ranch-day/ranchDayEvents.ts");
 const { deriveCreatureMoods } = await import("../src/data/ranch-day/ranchDayMood.ts");

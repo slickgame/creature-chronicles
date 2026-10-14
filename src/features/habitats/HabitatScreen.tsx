@@ -10,6 +10,8 @@ import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { getBestStatLabels } from "@/data/collection";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { useNavigation } from "@/features/navigation/NavigationContext";
+import { RanchReview } from "@/features/ranch/RanchReview";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { IllustratedIcon } from "@/features/ui/IllustratedIcon";
 import { RanchIcon } from "@/features/ui/RanchIcon";
@@ -23,8 +25,11 @@ type Popup = "profile" | "manage" | "release" | "donate" | "feedback" | null;
 
 export function HabitatScreen() {
   const { activeHabitatFamily, currentSave, donateCreature, feedCreature, goToCollection,
-    goToRanch, goToRanchOffice, goToRanchJobs, goToBreeding, releaseCreature,
+    goToRanch, goBack, goToBreeding, releaseCreature,
     renameCreature, toggleCreatureLock } = useGameContext();
+  const {setRanchView}=useNavigation();
+  const [compact,setCompact]=useState(false);
+  function house(){setRanchView("house");goToRanch();}
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     typeof window === "undefined" ? null : window.sessionStorage.getItem(FOCUS_KEY));
   const [renameValue, setRenameValue] = useState("");
@@ -61,10 +66,10 @@ export function HabitatScreen() {
     return () => observer.disconnect();
   }, []);
 
-  if (!currentSave || !activeHabitatFamily || !habitat) return (
+  if (!currentSave || !activeHabitatFamily || !habitat?.unlocked) return (
     <main className={`${ui.interior} ${styles.courtyard}`}><section className={ui.paper}>
       <h1>Habitat unavailable</h1><p>Return to the ranch and select an unlocked habitat.</p>
-      <button type="button" onClick={goToRanch}>Back to Ranch</button>
+      <button type="button" onClick={goBack}>Previous screen</button>
     </section></main>
   );
 
@@ -109,24 +114,24 @@ export function HabitatScreen() {
     setPopup("feedback");
   }
 
-  return <main className={`${ui.interior} ${styles.courtyard}`} data-habitat-courtyard>
+  return <main className={`${ui.interior} ${styles.courtyard}`} data-habitat-courtyard style={{backgroundImage:`url(/images/ui/ranch-v3/${activeHabitatFamily}.webp)`}}>
     <section className={`${ui.page} ${styles.layout}`}>
       <header className={ui.heading}>
         <h1>{habitat.name || `${FAMILY_LABELS[activeHabitatFamily]} Habitat`}</h1>
-        <ScreenNavigation><button type="button" onClick={goToCollection}>Collection Tracker</button></ScreenNavigation>
+        <ScreenNavigation><button type="button" onClick={()=>setCompact(!compact)}>{compact?"Expand creature art":"Minimize creature art"}</button><button type="button" onClick={goToCollection}>Collection Tracker</button></ScreenNavigation>
       </header>
       <section className={`${ui.summary} ${styles.occupancy}`} aria-label="Habitat occupancy">
         <div><RanchIcon name="paw" /><span>Residents</span><strong>{creatures.length} / {habitat.capacity}</strong></div>
         <div><IllustratedIcon name="capacity" /><span>Open spaces</span><strong>{Math.max(0, habitat.capacity - creatures.length)}</strong></div>
         <div><IllustratedIcon name="comfort" /><span>Needs care</span><strong>{[...statuses.values()].filter(item => item.needsAttention).length}</strong></div>
-        <button type="button" onClick={goToRanchOffice}><RanchIcon name="house" /><span>Ranch Office</span></button>
+        <button type="button" onClick={house}><RanchIcon name="house" /><span>Ranch House</span></button>
       </section>
-      <div className={styles.stage}>
+      <div className={`${styles.stage} ${compact?styles.compact:""}`}>
         <section className={styles.residentView} aria-label="Selected creature">
           {selected && variant ? <img data-habitat-fullbody src={getEquineGameplayProfileSprite(selected, getNylaGameplayProfileSprite(selected, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selected.nickname}, full body`} onError={event => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} /> : <div className={`${ui.paper} ${styles.empty}`}><h2>Room to grow</h2><p>This habitat has {habitat.capacity} open spaces. New {FAMILY_LABELS[activeHabitatFamily].toLowerCase()} creatures live here automatically.</p><button type="button" className={ui.primary} onClick={goToBreeding}>Visit Breeding Pen</button></div>}
         </section>
         {selected && variant && status ? <aside className={`${ui.paper} ${styles.care}`} aria-label="Resident care">
-          <div className={styles.identity}><h2 data-ui-text="single-line" title={selected.nickname}>{selected.nickname}{selected.shiny ? " ✦" : ""}{selected.isLocked ? " · Protected" : ""}</h2><p>{variant.rarity} {getSpeciesDefinition(selected.speciesId).name} · Level {selected.level}</p></div>
+          <div className={styles.identity}><h2 data-ui-text="single-line" title={`${selected.nickname}${selected.isLocked?" · Protected":""}`}>{selected.nickname}{selected.shiny ? " ✦" : ""}{selected.isLocked ? " · Protected" : ""}</h2><p>{variant.rarity} {getSpeciesDefinition(selected.speciesId).name} · Level {selected.level}</p></div>
           <button type="button" className={`${styles.readiness} ${status.needsAttention ? styles.attention : ""}`} onClick={() => setPopup("profile")} title={statusNote}>{statusLabel(selected)} <small>Details</small></button>
           <dl className={styles.stats}>
             <div><dt><RanchIcon name="energy" />Energy</dt><dd>{selected.energy} / {selected.maxEnergy}</dd></div>
@@ -136,7 +141,7 @@ export function HabitatScreen() {
           <div className={styles.careButtons}>
             <button type="button" className={`${ui.primary} ${styles.feed}`} onClick={feed} disabled={feedDisabled} title={status.isTraining ? "Unavailable during training" : feedDisabled ? "Energy and affection are full" : "Restore up to 10 energy and 5 affection"}><IllustratedIcon name="feed" />{status.isTraining ? "In training" : feedDisabled ? "Fully cared for" : "Feed"}</button>
             <button type="button" onClick={() => setPopup("profile")}><IllustratedIcon name="ledger" />Full Profile</button><button type="button" onClick={manage}><RanchIcon name="gear" />Manage</button>
-            <button type="button" onClick={goToRanchJobs}><RanchIcon name="chores" />Chores</button><button type="button" onClick={goToBreeding}><IllustratedIcon name="breeding" />Breeding</button>
+            <button type="button" onClick={house}><RanchIcon name="house" />Management</button><button type="button" onClick={goToBreeding}><IllustratedIcon name="breeding" />Breeding</button>
           </div>
         </aside> : null}
       </div>
@@ -155,15 +160,12 @@ export function HabitatScreen() {
         <button type="button" aria-label="Next residents" disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>›</button>
       </section>
     </section>
-    {popup === "profile" && selected ? <GameDialog title={`${selected.nickname} · Full Profile`} wide onClose={() => setPopup(null)}>
-      <SharedCreatureDetail useGameplayArt creature={selected} dayNumber={day} dossier statusNote={statusNote} bestStatLabels={getBestStatLabels(selected)} showActions={false} />
-      <div className={ui.actionRow}><button type="button" onClick={manage}>Manage {selected.nickname}</button></div>
-    </GameDialog> : null}
-    {popup === "manage" && selected ? <GameDialog title={`Manage ${selected.nickname}`} onClose={() => setPopup(null)}><div className={styles.management}>
-      <form onSubmit={event => { event.preventDefault(); rename(); }}><label htmlFor="habitat-name">Creature name</label><input id="habitat-name" value={renameValue} onChange={event => setRenameValue(event.target.value)} /><button type="submit" disabled={!renameValue.trim()}>Save Name</button></form>
-      <p>Protect this creature against release or donation.</p><button type="button" onClick={() => { toggleCreatureLock(selected.creatureId); setMessage(selected.isLocked ? `${selected.nickname} is no longer protected.` : `${selected.nickname} is now protected.`); }}>{selected.isLocked ? "Remove protection" : "Protect creature"}</button>
-      <p>Release and donation permanently remove this creature from your ranch.</p><div className={ui.actionRow}><button type="button" disabled={selected.isLocked} onClick={() => setPopup("release")}>Release</button><button type="button" disabled={selected.isLocked} onClick={() => setPopup("donate")}>Donate</button></div>
-    </div></GameDialog> : null}
+    {popup === "profile" && selected ? <GameDialog title={`${selected.nickname} · Full Profile`} fullScreen onClose={()=>setPopup(null)}><main className={styles.profileFrame} data-habitat-profile><header><button onClick={()=>setPopup(null)}>‹ Habitat</button><h2>{selected.nickname} · Full Profile</h2><button onClick={manage}>Manage</button></header><SharedCreatureDetail useGameplayArt creature={selected} dayNumber={day} dossier ranchDossier fitViewport statusNote={statusNote} bestStatLabels={getBestStatLabels(selected)} showActions={false}/></main></GameDialog> : null}
+    {popup === "manage" && selected ? <RanchReview title={`Manage ${selected.nickname}`} onClose={()=>setPopup(null)} pages={[
+      {title:"Name",content:<form className={styles.management} onSubmit={event=>{event.preventDefault();rename();}}><label htmlFor="habitat-name">Creature name</label><input id="habitat-name" value={renameValue} onChange={event=>setRenameValue(event.target.value)}/><button type="submit" disabled={!renameValue.trim()}>Save Name</button></form>},
+      {title:"Protection",content:<><p>Protect this creature against release or donation.</p><button onClick={()=>{toggleCreatureLock(selected.creatureId);setMessage(selected.isLocked?"Protection removed.":"Creature protected.");}}>{selected.isLocked?"Remove protection":"Protect creature"}</button></>},
+      {title:"Release or donate",content:<><p>These actions permanently remove this creature from your ranch. Protected creatures cannot be removed.</p><div className={ui.actionRow}><button disabled={selected.isLocked} onClick={()=>setPopup("release")}>Release</button><button disabled={selected.isLocked} onClick={()=>setPopup("donate")}>Donate</button></div></>}
+    ]}/> : null}
     {(popup === "release" || popup === "donate") && selected ? <GameDialog title={`${popup === "release" ? "Release" : "Donate"} ${selected.nickname}?`} onClose={() => setPopup("manage")}><p>This permanently removes {selected.nickname} from your ranch. This cannot be undone.</p><div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup("manage")}>Cancel</button><button type="button" disabled={selected.isLocked} onClick={() => remove(popup)}>{popup === "release" ? "Confirm release" : "Confirm donation"}</button></div></GameDialog> : null}
     {popup === "feedback" ? <GameDialog title="Habitat update" onClose={() => setPopup(null)}><p>{message}</p></GameDialog> : null}
   </main>;

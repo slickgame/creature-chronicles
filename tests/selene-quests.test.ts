@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createNewGameSave, saveGameToSlot } from "../src/lib/save/localSave.ts";
+import { createNewGameSave, saveGameToSlot } from "./helpers/establishedSave.ts";
 import { acceptNpcQuest, claimNpcQuest, getNpcQuestChain, recordSeleneAppraisal } from "../src/data/npcQuests.ts";
 import { performBreedingAttempt } from "../src/data/breedingTutorial.ts";
 import { buyEggFromSelene, getEggAtelierServiceCost, applyAcceleratedIncubation, getEggAtelierAbilityPolishChance } from "../src/data/eggAtelier.ts";

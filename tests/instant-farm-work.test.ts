@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createNewGameSave, saveGameToSlot } from '@/lib/save/localSave';
+import { createNewGameSave, saveGameToSlot } from "./helpers/establishedSave.ts";
 import { workResourceSite, workPreview, getFarmState, processResourceDay, reserveResource, craftResource, commissionFacility, grantFarmResources, getProductionGuide, claimProductionGuide } from '@/data/farmResources';
 import { processRanchJobsForNewDay } from '@/data/ranchJobs';
 import { getFarmSecurity } from '@/data/farmSecurity';

@@ -64,7 +64,7 @@ export function MarketScreen() {
   const full = Boolean(habitat && habitat.creatureIds.length >= habitat.capacity);
   const sold = selected?.status === "sold";
   const shortage = Math.max(0, price - save.currencies.gold);
-  const canAdopt = Boolean(selected && !sold && habitat && !full && !shortage);
+  const canAdopt = Boolean(selected && !sold && habitat?.unlocked && !full && !shortage);
   const available = market.listings.filter(item => item.status === "available").length;
   const pages = Math.max(1, Math.ceil(market.listings.length / pageSize));
   const currentPage = Math.min(page, pages - 1);
@@ -90,7 +90,7 @@ export function MarketScreen() {
     if (actionLock.current || !refreshValid || !save || save.currencies.gold < rerollCost) return;
     actionLock.current = true; setMessage(rerollMarket()); setSelectedId(null); setPage(0); setPopup("result");
   }
-  const status = sold ? "Already adopted" : !habitat ? "No matching habitat" : full ? "Habitat full" : "Space available";
+  const status = sold ? "Already adopted" : !habitat?.unlocked ? "Unlock this habitat with Petra" : full ? "Habitat full" : "Space available";
   const stats = preview ? <dl className={styles.stats} aria-label="Stats and grades">{STAT_KEYS.map(key => <div key={key} aria-label={`${SHARED_STAT_LABELS[key]} ${preview.stats[key]}, grade ${preview.statGrades[key]}`}><dt title={SHARED_STAT_LABELS[key]}>{key}</dt><dd><strong>{preview.stats[key]}</strong><span aria-label={`Grade ${preview.statGrades[key]}`}>{preview.statGrades[key]}</span></dd></div>)}</dl> : null;
 
   return <main className={`${ui.interior} ${styles.hearth}`} data-hearthside>
@@ -118,7 +118,7 @@ export function MarketScreen() {
             <button type="button" onClick={() => setPopup("profile")}><IllustratedIcon name="ledger" />Full Profile</button>
             <div className={styles.placement}><strong>{habitat ? `${habitat.name}: ${habitat.creatureIds.length} / ${habitat.capacity}` : "No matching habitat"}</strong><p className={full || !habitat ? styles.warning : styles.ready}>{status}</p></div>
             <div className={styles.fee}><span>Adoption fee</span><strong><RanchIcon name="gold" />{price.toLocaleString()} Gold</strong>{price < selected.price ? <small>Trust discount from {selected.price.toLocaleString()} Gold</small> : null}<p className={shortage ? styles.warning : ""}>{shortage ? `Need ${shortage.toLocaleString()} more Gold` : `Balance after fee: ${(save.currencies.gold - price).toLocaleString()} Gold`}</p></div>
-            <button type="button" className={ui.primary} disabled={!canAdopt} onClick={reviewAdoption}>{sold ? "Adopted" : "Review Adoption"}</button>
+            <>{!habitat?.unlocked && selected && <button type="button" onClick={()=>{window.localStorage.setItem("creature-chronicles-builder-family-v1",selected.family);window.localStorage.setItem("creature-chronicles-open-builder-yard","1");goToTown();}}>Visit Petra · Habitat needed</button>}</><button type="button" className={ui.primary} disabled={!canAdopt} onClick={reviewAdoption}>{sold ? "Adopted" : "Review Adoption"}</button>
           </> : <><h2>No arrivals yet</h2><p>Refresh arrivals or return next week.</p><button type="button" onClick={reviewRefresh}>Review Refresh</button></>}
         </section>
       </div>

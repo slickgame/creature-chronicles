@@ -16,7 +16,7 @@ const {
 } = await import("@/data/battleOutfitterIntegration");
 const {
   createNewGameSave,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 
 function createFixture() {
   const save = createNewGameSave("Outfitter Tester", 0);

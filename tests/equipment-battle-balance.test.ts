@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { runEquipmentBattleBalance, equipmentAuditRandom } from '../scripts/equipment-battle-balance.ts';
-import { createNewGameSave } from '@/lib/save/localSave';
+import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { createBattleState } from '@/data/battleEngine';
 import { applyBattleOutfitterLoadouts } from '@/data/battleOutfitterIntegration';
 import { getEquippedBattleStats } from '@/data/equipmentComparison';

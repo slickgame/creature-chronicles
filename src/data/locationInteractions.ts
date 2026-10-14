@@ -23,9 +23,10 @@ export function getPetraAdvice(save: GameSave) {
   if (production) return `${FACILITIES[production.id].name} is under construction. The crew finishes on Ranch Day ${production.readyDay}.`;
   const order = getBuilderWorkOrder(save);
   if (order) return `The crew is building ${getBuilderProject(order.projectId).title}. It will finish on Ranch Day ${order.readyDay}. You’ve already paid; the benefits begin when construction completes.`;
+  if (save.flags.ranchStartVersion === 2 && (save.habitats ?? []).filter(h=>h.unlocked).length === 1) return "Your equine habitat is ready. Choose Habitats in my blueprints to add another family. Gather Wood, keep repair reserves, and review the Gold fee and completion day before commissioning.";
   if ((getFarmState(save).stock.wood ?? 0) < 8) return "Keep a repair reserve before expanding. A repair uses 2 Wood and 1 Stone. Gather at your woodlot and quarry, or buy supplies at the Supply Depot. Browsing my plans costs nothing.";
   if (!getBuilderProjectProgress(save, "north_pasture_land").built) return "The North Pasture survey opens the way to Habitat Annexes and a Nursery Extension. New land also brings predator pressure; compare patrol strength before committing.";
-  return "Choose capacity for the creatures you actually keep. Habitat Annexes add one place to each existing family habitat; the Nursery Extension adds two egg spaces. These stack with Ranch Office upgrades.";
+  return "Choose capacity for the creatures you actually keep. Habitat Annexes add one place to each existing family habitat; the Nursery Extension adds two egg spaces. These stack with Ranch House upgrades.";
 }
 const PETRA_REQUESTS = [
   { title: "A Repair Reserve", dialogue: "Show me eight Wood in your stores. A ranch needs enough on hand to fix a gate before it falls.", requirement: "Hold 8 Wood. Nothing is consumed.", gold: 50, gp: 4, trust: 8 },
@@ -33,7 +34,7 @@ const PETRA_REQUESTS = [
   { title: "Room to Grow", dialogue: "Two finished projects make a good foundation. I’ll set aside a small repair cache for your next step.", requirement: "Complete 2 available Builder’s Yard projects in total. Existing work counts. Final reward includes 4 Planks.", gold: 150, gp: 10, trust: 20 },
 ];
 export function getPetraRequests(save: GameSave) {
-  const built = BUILDER_PROJECTS.filter(p => !p.planned && getBuilderProjectProgress(save, p.id).built).length + Object.values(getFarmState(save).facilities).filter(Boolean).length;
+  const built = BUILDER_PROJECTS.filter(p => !p.planned && getBuilderProjectProgress(save, p.id).built && (!p.unlockFamily || save.flags[`builderProject_${p.id}_built`] === true)).length + Object.values(getFarmState(save).facilities).filter(Boolean).length;
   return PETRA_REQUESTS.map((q, index) => {
     const claimed = save.flags[`petraRequest${index}Claimed`] === true;
     const accepted = save.flags[`petraRequest${index}Accepted`] === true;

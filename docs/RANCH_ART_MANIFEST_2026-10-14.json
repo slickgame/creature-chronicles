@@ -1,0 +1,65 @@
+[
+  {
+    "path": "public/images/ui/ranch-v3/bovine.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 359378,
+    "sha256": "50483224665de4360ee25af430c9d67b56222f970e032c0fb16df947a184aa82"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/canine.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 356592,
+    "sha256": "53150ff259bd96fa557465a44e6c9c485500b1d7573c0cf3a379b30ee76353c4"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/equine.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 360112,
+    "sha256": "9cc38185698146656353eaaf0fd2709cc80690c61df942698e87657601cf8ecd"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/expansion.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 381476,
+    "sha256": "c3481b458d0e243100142d8a7151f672f665e347392bae7c5b947d0519c08dd3"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/feline.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 407672,
+    "sha256": "81e2df67dddd3b47929eacd2c397e930fc83ce7ace7fdda82d784ea0bcb8e596"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/habitats.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 411208,
+    "sha256": "24a6c7068563503758749a92b10d4d1dbbc45572b8220ab9562e4abb7fc40b5b"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/homestead.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 353470,
+    "sha256": "c86d4c0accce2fb08467f7a0607e698ac17ca0b8c50e45bd758cff6eeaab82bc"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/house.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 254488,
+    "sha256": "39b3cb9b62742535b3a872e074d89cb390b7ea220d68251886080ab25ffc5f66"
+  },
+  {
+    "path": "public/images/ui/ranch-v3/lapine.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 422136,
+    "sha256": "966b6497a992d4810b47ab4191acf572031f1d9bfd4af1598a068903b49ea3a0"
+  }
+]

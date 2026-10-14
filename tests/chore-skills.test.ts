@@ -24,10 +24,10 @@ const {
 } = await import("../src/data/creatures.ts");
 const {
   createNewGameSave,
-} = await import("../src/lib/save/localSave.ts");
+} = await import("./helpers/establishedSave.ts");
 const {
   createNewGameSave: createLifecycleSave,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 
 function starterByFamily(family: "feline" | "canine" | "bovine" | "lapine" | "equine") {
   const save = createNewGameSave(`Chore ${family}`, 0);

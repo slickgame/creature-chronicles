@@ -28,7 +28,7 @@ const {
 } = await import("../src/data/battleStats.ts");
 const {
   createNewGameSave,
-} = await import("../src/lib/save/localSave.ts");
+} = await import("./helpers/establishedSave.ts");
 
 const GRADES = ["F", "D", "C", "B", "A", "S"] as const;
 

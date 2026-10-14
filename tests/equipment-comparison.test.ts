@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createNewGameSave } from "@/lib/save/localSave";
+import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { BATTLE_OUTFITTER_ITEMS, EQUIPMENT_SLOTS, getEquipmentOwnership, normalizeBattleEquipment, getEquipmentSlots, getBattleOutfitterStock, assignBattleOutfitterEquipment, removeBattleOutfitterEquipment, purchaseBattleOutfitterItem, useBattleOutfitterManual } from "@/data/battleOutfitter";
 import { compareEquipment } from "@/data/equipmentComparison";
 import { applyBattleOutfitterLoadouts } from "@/data/battleOutfitterIntegration";

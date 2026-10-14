@@ -6,13 +6,12 @@ import { getFarmState, resourceList, resourceShortages, canSpend } from "@/data/
 import { useEffect, useRef, useState } from "react";
 import { RANCH_REPAIR_DAMAGE_AMOUNT, RANCH_REPAIR_RESOURCES, RANCH_UPGRADE_DEFINITIONS, getNextRanchUpgradeTier, getRanchConditionLabelFromDamage, getRanchUpgradeEffects, getRanchUpgrades, getTotalRanchUpgradeTiers } from "@/data/ranchUpgrades";
 import { getStarterGoals } from "@/data/starterGoals";
-import { getVariantDefinition } from "@/data/creatures";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { RanchReview } from "@/features/ranch/RanchReview";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { IllustratedIcon } from "@/features/ui/IllustratedIcon";
 import { RanchIcon, type RanchIconName } from "@/features/ui/RanchIcon";
-import { StoryLogOverlay } from "@/features/story/StoryLogOverlay";
-import { StoryImageAdminOverlay } from "@/features/story/StoryImageAdminOverlay";
+import { RanchJournal } from "@/features/ranch/RanchJournal";
 import { useGameContext } from "@/state/GameProvider";
 import type { RanchUpgradeCategory, RanchUpgradeId, RanchUpgradeTier, RanchUpgradePurchaseSummary } from "@/types/ranchUpgrades";
 import { CONDITION_RULES, OFFICE_BUILDINGS, officeEffectRows } from "./officePresentation";
@@ -27,7 +26,7 @@ const CATEGORIES: Array<{ id: RanchUpgradeCategory | "overview"; label: string; 
   { id: "chores", label: "Chores", icon: "chores" }, { id: "recovery", label: "Recovery", icon: "moon" },
 ];
 type Category = typeof CATEGORIES[number]["id"];
-type Popup = "history" | "help" | "records" | "story" | "art" | "tiers" | "confirm" | "repair" | "condition" | "capacity" | "effects" | "result" | null;
+type Popup = "history" | "help" | "records" | "story" | "tiers" | "confirm" | "repair" | "condition" | "capacity" | "effects" | "result" | null;
 function initialTarget(): { category: Category; id: RanchUpgradeId } {
   if (typeof window === "undefined") return { category: "overview", id: "feline_habitat_capacity" };
   const id = window.localStorage.getItem(UPGRADE_KEY);
@@ -52,7 +51,7 @@ export function RanchOfficeScreen() {
   const dockRef = useRef<HTMLDivElement>(null);
   const purchaseLock = useRef(false);
   const overview = target.category === "overview";
-  const definitions = RANCH_UPGRADE_DEFINITIONS.filter(item => item.category === target.category);
+  const definitions = RANCH_UPGRADE_DEFINITIONS.filter(item => item.category === target.category&&(!item.upgradeId.includes("_habitat_capacity")||currentSave?.habitats?.some(h=>h.unlocked&&item.upgradeId.startsWith(h.family+"_"))));
   const selected = definitions.find(item => item.upgradeId === target.id) ?? definitions[0] ?? RANCH_UPGRADE_DEFINITIONS[0];
   const pages = Math.max(1, Math.ceil(definitions.length / pageSize));
   const currentPage = Math.min(page ?? Math.floor(Math.max(0, definitions.indexOf(selected)) / pageSize), pages - 1);
@@ -87,7 +86,7 @@ export function RanchOfficeScreen() {
   const repairCost = kits > 0 ? "1 Repair Kit" : resourceList(RANCH_REPAIR_RESOURCES);
   const canRepair = damage > 0 && (kits > 0 || canSpend(getFarmState(save), RANCH_REPAIR_RESOURCES));
   const history = historyEntries(save.flags.ranchEventLog);
-  const building = overview ? { name: "Ranch Office", file: "ranch_office", note: "Care for your ranch and plan its next improvement." } : OFFICE_BUILDINGS[selected.upgradeId];
+  const building = overview ? { name: "Ranch House Ledger", file: "ranch_office", note: "Care for your ranch and plan its next improvement." } : OFFICE_BUILDINGS[selected.upgradeId];
 
   function selectCategory(category: Category) {
     const id = RANCH_UPGRADE_DEFINITIONS.find(item => item.category === category)?.upgradeId ?? "feline_habitat_capacity";
@@ -115,9 +114,9 @@ export function RanchOfficeScreen() {
   function breedingLedger() { window.sessionStorage.setItem("creature_chronicles_open_breeding_ledger", "1"); goToBreeding(); }
   const compare = <div className={styles.comparison} aria-label="Upgrade comparison"><div className={styles.tierLabel}><span>Tier {tier}</span><span aria-hidden="true">→</span><strong>{next ? `Tier ${next.tier}` : "Max Tier"}</strong></div>{before.map(([label, value], index) => <div className={styles.effectRow} key={label}><span>{label}</span><span>{value}</span><span aria-hidden="true">→</span><strong>{after[index][1]}</strong></div>)}</div>;
 
-  return <main className={`${ui.interior} ${styles.office}`} data-builder-desk>
+  return <main className={`${ui.interior} ${styles.office}`} data-builder-desk style={{backgroundImage:"url(/images/ui/ranch-v3/house.webp)"}}>
     <section className={`${ui.page} ${styles.layout}`}>
-      <header className={ui.heading}><h1>Ranch Office</h1><ScreenNavigation><button type="button" onClick={() => setPopup("history")}>History</button><button type="button" onClick={() => setPopup("records")}>Records</button><button type="button" onClick={() => setPopup("help")}>Help</button></ScreenNavigation></header>
+      <header className={ui.heading}><h1>Ranch House Ledger</h1><ScreenNavigation><button type="button" onClick={() => setPopup("history")}>History</button><button type="button" onClick={() => setPopup("records")}>Records</button><button type="button" onClick={() => setPopup("help")}>Help</button></ScreenNavigation></header>
       <section className={`${ui.summary} ${styles.resources}`} aria-label="Ranch resources">
         <div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div>
         <div><RanchIcon name="tax" /><span>Guild Points</span><strong>{save.currencies.guildPoints.toLocaleString()}</strong></div>
@@ -147,16 +146,28 @@ export function RanchOfficeScreen() {
         <span className={styles.pageNumber} aria-live="polite">{currentPage + 1} / {pages}</span><button type="button" aria-label="Next upgrades" disabled={currentPage === pages - 1} onClick={() => setPage(currentPage + 1)}>›</button>
       </section>}
     </section>
-    {popup === "confirm" && next ? <GameDialog title="Confirm Upgrade" onClose={() => setPopup(null)}><h3>{selected.name}</h3>{compare}<p><strong>{price(next)}</strong></p><p>{shortages.length ? `Need ${shortages.join(" · ")} more.` : "The new benefits apply immediately. Your existing creatures and eggs remain safe."}</p><div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!affordable} onClick={purchase}>Confirm Upgrade</button></div></GameDialog> : null}
-    {popup === "repair" ? <GameDialog title="Confirm Repair" onClose={() => setPopup(null)}><p>Repair {Math.min(damage, RANCH_REPAIR_DAMAGE_AMOUNT)} damage for <strong>{repairCost}</strong>.</p><p>Damage: {damage} → {Math.max(0, damage - RANCH_REPAIR_DAMAGE_AMOUNT)}. Repair Kits are used before materials.</p><div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" disabled={!canRepair} onClick={repair}>Confirm Repair</button></div></GameDialog> : null}
-    {popup === "result" ? <GameDialog title={receipt ? "Upgrade Complete" : "Ranch Update"} onClose={() => setPopup(null)}><p role="status">{message}</p>{receipt ? <dl className={styles.report}><div><dt>Tier</dt><dd>{receipt.oldTier} → {receipt.newTier}</dd></div><div><dt>Effect</dt><dd>{receipt.effectLabel}</dd></div><div><dt>Spent</dt><dd>{receipt.costGold} Gold · {receipt.costGp} GP · {resourceList(receipt.costResources) || "No supplies"}</dd></div><div><dt>Current balance</dt><dd>{save.currencies.gold} Gold · {save.currencies.guildPoints} GP · {stock.stock.wood ?? 0} Wood · {stock.stock.stone ?? 0} Stone</dd></div></dl> : null}{rewards.length ? <section><h3>Starter-goal rewards</h3><ul>{rewards.map(reward => <li key={reward}>{reward}</li>)}</ul></section> : null}<button type="button" onClick={() => setPopup(null)}>Continue</button></GameDialog> : null}
-    {popup === "tiers" ? <GameDialog title={`${building.name} · All Tiers`} onClose={() => setPopup(null)}><h3>{selected.name}</h3><p>{selected.description}</p><div className={styles.tierCards}><article><h3>Tier 0 · Base</h3>{officeEffectRows(selected.upgradeId, getRanchUpgradeEffects({ ...save, ranchUpgrades: { ...upgrades, [selected.upgradeId]: 0 } })).map(([label, value]) => <p key={label}>{label}: {value}</p>)}</article>{selected.tiers.map(item => <article key={item.tier}><h3>Tier {item.tier} {item.tier === tier ? "· Current" : item.tier < tier ? "· Completed" : ""}</h3><p>{item.effectLabel}</p><strong>{price(item)}</strong></article>)}</div></GameDialog> : null}
-    {popup === "history" ? <GameDialog title="Ranch History" onClose={() => setPopup(null)}><p>Chores, feeding, security, hauling, upkeep and repairs.</p>{history.length ? <ol className={styles.history}>{history.map((entry, index) => <li key={index}>{entry}</li>)}</ol> : <p>No ranch history yet. Assign chores or repair your ranch to start the log.</p>}</GameDialog> : null}
-    {popup === "condition" ? <GameDialog title="Ranch Condition" onClose={() => setPopup(null)}><p><strong>{condition} · {damage} / 100 damage</strong></p><p>{penalty}</p><div className={styles.tierCards}>{CONDITION_RULES.map(item => <article key={item.label}><h3>{item.label} · {item.range}</h3><p>{item.penalty}</p></article>)}</div><p>Repairs use 1 Repair Kit or {resourceList(RANCH_REPAIR_RESOURCES)} and remove up to {RANCH_REPAIR_DAMAGE_AMOUNT} damage.</p><FarmResourcesButton label="Supplies & workbench"/><p>In stock: {kits} Repair Kits · {stock.stock.wood ?? 0} Wood · {stock.stock.stone ?? 0} Stone.</p><button type="button" onClick={() => { selectCategory("overview"); setPopup(null); }}>View Repairs</button></GameDialog> : null}
-    {popup === "capacity" ? <GameDialog title="Capacity & Timers" onClose={() => setPopup(null)}><dl className={styles.report}>{(["feline", "canine", "bovine", "lapine", "equine"] as const).map(family => <div key={family}><dt>{family[0].toUpperCase() + family.slice(1)} Habitat</dt><dd>{(save.creatures ?? []).filter(item => getVariantDefinition(item.variantId).family === family).length} / {save.habitats?.find(item => item.family === family)?.capacity ?? effects[`${family}Capacity`]}</dd></div>)}<div><dt>Egg slots</dt><dd>{(save.eggs ?? []).filter(item => item.status !== "hatched").length} / {effects.nurseryEggCapacity}</dd></div><div><dt>Pregnancy</dt><dd>{effects.nurseryPregnancyDays} days</dd></div><div><dt>Egg incubation</dt><dd>{effects.nurseryEggDays} days</dd></div></dl></GameDialog> : null}
-    {popup === "effects" ? <GameDialog title="Ranch Effects" onClose={() => setPopup(null)}><p>{getTotalRanchUpgradeTiers(save)} upgrade tiers completed.</p>{(["breeding_pen_comfort", "ranch_chores_board", "sleep_recovery"] as const).map(id => <section key={id}><h3>{OFFICE_BUILDINGS[id].name}</h3><dl className={styles.report}>{officeEffectRows(id, effects).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>)}</GameDialog> : null}
-    {popup === "help" ? <GameDialog title="Ranch Office Help" onClose={() => setPopup(null)}><p>Choose a category, then an upgrade. Compare current and next benefits before reviewing its cost. Confirming applies the upgrade immediately.</p><p>Later tiers need Gold, Guild Points and specific components. Reserved stock is protected. The cost panel lists exactly what is missing.</p><p>Gather wood and stone, then craft planks and nails in Resources & recipes. Pella also sells construction supplies. Overview contains repairs; its reports show capacities, timers and ranch effects.</p><FarmResourcesButton label="Supplies & workbench"/><button type="button" onClick={goToRanchJobs}>Visit Chores</button></GameDialog> : null}
-    {popup === "records" ? <GameDialog title="Ranch Records" onClose={() => setPopup(null)}><div className={ui.actionRow}><button type="button" onClick={() => setPopup("story")}>Story Log</button><button type="button" onClick={breedingLedger}>Breeding Ledger</button><button type="button" onClick={() => setPopup("art")}>Story Images</button></div></GameDialog> : null}
-    {(popup === "story" || popup === "art") ? <GameDialog title={popup === "story" ? "Story Log" : "Story Images"} wide onClose={() => setPopup("records")}><div className={styles.archive}>{popup === "story" ? <StoryLogOverlay embedded onClose={() => setPopup("records")} /> : <StoryImageAdminOverlay embedded onClose={() => setPopup("records")} />}</div></GameDialog> : null}
+    {popup === "confirm" && next ? <RanchReview title="Confirm Upgrade" onClose={()=>setPopup(null)} pages={[{title:selected.name,content:<>{compare}<p>{price(next)}</p><p>{shortages.length?`Need ${shortages.join(" · ")} more.`:"Benefits apply immediately. Existing creatures and eggs remain safe; reserved supplies are protected."}</p></>}]} actions={<><button onClick={()=>setPopup(null)}>Cancel</button><button disabled={!affordable} onClick={purchase}>Confirm Upgrade</button></>}/> : null}
+    {popup === "repair" ? <RanchReview title="Confirm Repair" onClose={()=>setPopup(null)} pages={[{title:"Restore ranch condition",content:<><p>Repair {Math.min(damage,RANCH_REPAIR_DAMAGE_AMOUNT)} damage for {repairCost}.</p><p>Damage: {damage} → {Math.max(0,damage-RANCH_REPAIR_DAMAGE_AMOUNT)}. Repair Kits are used first. Reserved supplies are protected.</p></>}]} actions={<><button onClick={()=>setPopup(null)}>Cancel</button><button disabled={!canRepair} onClick={repair}>Confirm Repair</button></>}/> : null}
+    {popup === "result" ? <RanchReview title={receipt?"Upgrade Complete":"Ranch Update"} onClose={()=>setPopup(null)} pages={[
+      {title:"Result",content:<><p role="status">{message}</p>{receipt&&<><p>Tier {receipt.oldTier} → {receipt.newTier} · {receipt.effectLabel}</p><p>Spent: {receipt.costGold} Gold + {receipt.costGp} GP + {resourceList(receipt.costResources)||"no supplies"}.</p></>}<p>Balance: {save.currencies.gold} Gold · {save.currencies.guildPoints} GP.</p></>},
+      ...rewards.map(reward=>({title:"Starter-goal reward",content:<p>{reward}</p>}))
+    ]}/> : null}
+    {popup === "tiers" ? <RanchReview title={`${building.name} · All Tiers`} onClose={()=>setPopup(null)} pages={[0,...selected.tiers.map(t=>t.tier)].map(level=>({title:`Tier ${level}`,content:<><p>{selected.description}</p>{officeEffectRows(selected.upgradeId,getRanchUpgradeEffects({...save,ranchUpgrades:{...upgrades,[selected.upgradeId]:level}})).map(([label,value])=><p key={label}>{label}: {value}</p>)}{level>0&&<p>{price(selected.tiers.find(t=>t.tier===level)!)}</p>}</>}))}/> : null}
+    {popup === "history" ? <RanchReview title="Ranch History" onClose={()=>setPopup(null)} pages={history.length?history.map(entry=>({title:"Recorded event",content:<p>{entry}</p>})):[{title:"History",content:<p>No events recorded yet.</p>}]}/> : null}
+    {popup === "condition" ? <RanchReview title="Ranch Condition" onClose={()=>setPopup(null)} pages={[
+      {title:`${condition} · ${damage} / 100 damage`,content:<><p>{penalty}</p><p>Repairs use one Repair Kit or {resourceList(RANCH_REPAIR_RESOURCES)} and remove up to {RANCH_REPAIR_DAMAGE_AMOUNT} damage.</p><FarmResourcesButton label="Supplies & workbench"/><button onClick={()=>{selectCategory("overview");setPopup(null);}}>View Repairs</button></>},
+      ...CONDITION_RULES.map(item=>({title:`${item.label} · ${item.range}`,content:<p>{item.penalty}</p>}))
+    ]}/> : null}
+    {popup === "capacity" ? <RanchReview title="Capacity & Timers" onClose={()=>setPopup(null)} pages={[
+      ...(["feline","canine","bovine","lapine","equine"] as const).map(family=>{const h=save.habitats?.find(h=>h.family===family&&h.unlocked);return {title:`${family[0].toUpperCase()+family.slice(1)} Habitat`,content:<p>{h?`${h.creatureIds.length} residents / ${h.capacity} spaces`:"Locked. Petra builds this family’s habitat in Builder’s Yard."}</p>};}),
+      {title:"Nursery timers",content:<><p>Egg slots: {(save.eggs??[]).filter(e=>e.status!=="hatched").length} / {effects.nurseryEggCapacity}</p><p>Pregnancy: {effects.nurseryPregnancyDays} days · Incubation: {effects.nurseryEggDays} days</p></>}
+    ]}/> : null}
+    {popup === "effects" ? <RanchReview title="Ranch Effects" onClose={()=>setPopup(null)} pages={(["breeding_pen_comfort","ranch_chores_board","sleep_recovery"] as const).map(id=>({title:OFFICE_BUILDINGS[id].name,content:<>{officeEffectRows(id,effects).map(([label,value])=><p key={label}>{label}: {value}</p>)}<p>{getTotalRanchUpgradeTiers(save)} total upgrade tiers.</p></>}))}/> : null}
+    {popup === "help" ? <RanchReview title="Ranch House Ledger Help" onClose={()=>setPopup(null)} pages={[
+      {title:"Improvements",content:<p>Choose a category, then an upgrade. Compare current and next benefits before reviewing costs. Confirmation applies the upgrade immediately. Petra handles new habitat construction separately.</p>},
+      {title:"Supplies",content:<><p>Later tiers need Gold, GP and named components. Reserved supplies are protected. Gather Wood and Stone, then process Planks and Nails. Pella also sells building supplies.</p><FarmResourcesButton label="Supplies & workbench"/><button onClick={goToRanchJobs}>Farm work</button></>}
+    ]}/> : null}
+    {popup === "records" ? <GameDialog title="Ranch Records" onClose={() => setPopup(null)}><div className={ui.actionRow}><button type="button" onClick={() => setPopup("story")}>Story Log</button><button type="button" onClick={breedingLedger}>Breeding Ledger</button></div></GameDialog> : null}
+    {popup === "story" && <RanchJournal storyOnly onClose={()=>setPopup("records")}/>}
   </main>;
 }

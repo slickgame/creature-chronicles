@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-14",
+  "generator": "OpenAI image generation",
+  "referenceFiles": [
+    "Map.png",
+    "Map 2.png",
+    "Map 3.png",
+    "00000-1185664329(1).png",
+    "tamsin_base_visit.png"
+  ],
+  "productionDirectory": "public/images/ui/ranch-v3",
+  "processing": "Optimized to maximum 1664×936, WebP quality 86 method 6; no artistic post-edits.",
+  "prompts": [
+    {
+      "id": "homestead",
+      "prompt": "Use case: stylized-concept. Asset type: wide 16:9 production background for Creature Chronicles ranch navigation. Use the attached images ONLY as art-style references: warm golden-hour sunlight, crisp anime-painterly farm architecture, visible brushwork, natural golden grass, red clay tile roofs, cream plaster and dark timber, distant cultivated hills. New scene: an elevated oblique view of a small ranch homestead with a red-roof timber farmhouse at left around 25% width, a smaller nursery cottage at right around 75% width, and a sheltered open breeding pavilion with curtains and fenced private yard in the middle around 50% width, golden fields and simple paths joining them. Clear three-building composition, plenty of breathing room around each building for live game controls. Beautiful detailed scene matching the references, readable shapes and sophisticated lighting. NO characters, creatures, labels, signs with writing, menu panels, icons, text or watermarks. Do not include extra habitat buildings, separate ranch office, town road gateway or a service yard. Avoid chibi/cartoon toy buildings, plastic 3D, photorealism. Output one clean landscape scene."
+    },
+    {
+      "id": "habitats",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Habitat Fields navigation map: five modest red-roof timber and plaster shelters separated by low fences and golden grass, distinct paddocks linked by paths, distant hills. Elevated oblique farm map view. One equine stable prominently in foreground; four plots around it for future purchased habitats. No words or symbols. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "expansion",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Expansion Fields navigation map: wide golden pasture and wooded edge, low rustic fence, a simple timber lookout tower, modest marked-out empty plots without writing, a distant red-roof shed and peaceful rolling cultivated hills. Elevated oblique ranch view, no large town or castles. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "house",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Interior of the ranch farmhouse: warm sunlight through open timber windows, a small oak management desk with closed blank ledger books, rustic kitchen in background and tidy fireplace, wood beams, cream plaster, subtle red-roof countryside seen through windows. Wide view with empty central space for live game menus. No people. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "equine",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Equine habitat courtyard: ground-level view of a spacious golden-grass horse paddock, welcoming red-tile-roof half-timbered stable, clean open barn doors, wooden fences, hay bales and water trough. Open foreground for composited full-body creatures. No animals or people. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "feline",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Feline habitat courtyard: ground-level view of a cozy red-tile-roof half-timbered cottage shelter, sunny golden-grass courtyard, wooden climbing platforms and shaded resting nook, low fencing, orchard trees and distant cultivated hills. Open foreground for composited full-body creatures. No animals or people. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "canine",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Canine habitat courtyard: ground-level view of a sturdy red-tile-roof timber lodge, broad fenced golden-grass exercise paddock, shaded porch, simple water trough and distant hedgerows. Open foreground for composited full-body creatures. No animals or people. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "bovine",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Bovine habitat courtyard: ground-level view of a broad red-tile-roof half-timbered barn and generous fenced golden-grass pasture, shaded open feeding shelter, hay and water trough, distant farmland. Open foreground for composited full-body creatures. No animals or people. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    },
+    {
+      "id": "lapine",
+      "prompt": "Use case: stylized-concept. Asset type: 16:9 production game background for Creature Chronicles. Input references are art style only. Match the references' sophisticated sharp anime-painterly finish, detailed red clay tile roofs, dark timber and cream plaster, painterly golden grass, natural textures, warm late-afternoon light and readable silhouettes. Scene: Lapine habitat courtyard: ground-level view of a small red-tile-roof half-timbered garden cottage shelter, safe fenced golden-grass courtyard with raised vegetable beds and sheltered resting alcoves, orchard and distant hills. Open foreground for composited full-body creatures. No animals or people. Constraints: one finished clean landscape scene, no characters, creatures, text, labels, UI, icons, watermarks or parchment border. Avoid chibi, toy buildings, plastic 3D and photorealism."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createNewGameSave } from "../src/lib/save/localSave.ts";
+import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { getBreedingParticipants } from "../src/data/breedingTutorial.ts";
 import { createStrategicInheritancePreview, getStrategicGeneticsPreview, getTalentInheritanceOdds } from "../src/data/genetics.ts";
 import { createGeneralTalent } from "../src/data/talents/generalTalents.ts";

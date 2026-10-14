@@ -340,6 +340,8 @@ export function repairRanchDamage(save: GameSave): RanchUpgradePurchaseResult {
 export function purchaseRanchUpgrade(save: GameSave, upgradeId: RanchUpgradeId): RanchUpgradePurchaseResult {
   const upgrades = getRanchUpgrades(save);
   const definition = getRanchUpgradeDefinition(upgradeId);
+  const family=upgradeId.match(/^(feline|canine|bovine|lapine|equine)_habitat_capacity$/)?.[1];
+  if(family&&!save.habitats?.some(h=>h.family===family&&h.unlocked))return {save,ok:false,message:'Buy this family’s habitat from Petra before upgrading its capacity.'};
   const currentTier = upgrades[upgradeId] ?? 0;
   const nextTier = getNextRanchUpgradeTier(definition, currentTier);
 

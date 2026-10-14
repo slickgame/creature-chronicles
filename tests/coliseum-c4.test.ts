@@ -34,7 +34,7 @@ const {
 } = await import("../src/data/coliseumC4.ts");
 const {
   createNewGameSave,
-} = await import("@/lib/save/localSave");
+} = await import("./helpers/establishedSave.ts");
 
 function fixture() {
   const save = createNewGameSave("C4 Tester", 0);

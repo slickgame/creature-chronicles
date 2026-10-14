@@ -192,8 +192,9 @@ function migrateEggsForCurrentBuild(save: GameSave): GameSave["eggs"] {
 function mergeHabitats(
   existingHabitats: HabitatRecord[] | undefined,
   migratedCreatures: CreatureRecord[],
+  equineStart = false,
 ): HabitatRecord[] {
-  const starterHabitats = createStarterHabitats();
+  const starterHabitats = createStarterHabitats().filter(h=>!equineStart||h.family==='equine'||migratedCreatures.some(c=>getVariantDefinition(c.variantId).family===h.family));
   const habitatMap = new Map<string, HabitatRecord>();
   for (const habitat of starterHabitats) habitatMap.set(habitat.habitatId, { ...habitat, creatureIds: [] });
   for (const habitat of existingHabitats ?? []) habitatMap.set(habitat.habitatId, { ...habitat, creatureIds: [] });
@@ -206,7 +207,7 @@ function mergeHabitats(
       ...habitat,
       creatureIds,
       capacity: Math.max(habitat.capacity ?? 6, creatureIds.length),
-      unlocked: habitat.unlocked ?? true,
+      unlocked: creatureIds.length > 0 || (habitat.unlocked ?? true),
     };
   });
 }
@@ -288,12 +289,12 @@ function enforcePregnancyEggSaveBoundary(previousSave: GameSave | null, incoming
 
 function migrateSaveForCurrentBuild(save: GameSave): GameSave {
   const existingCreatureSource = save.creatures ?? createStarterCreatures(save.saveId);
-  const sourceCreatures = save.flags.m18StarterCrewExpanded
+  const sourceCreatures = save.flags.m18StarterCrewExpanded || save.flags.ranchStartVersion === 2
     ? existingCreatureSource
     : addMissingStarterCrew(save.saveId, existingCreatureSource);
   const migratedCreatures = sourceCreatures.map((creature) => migrateCreatureRecord(creature, save.saveId));
   const creatureIds = migratedCreatures.map((creature) => creature.creatureId);
-  const habitats = mergeHabitats(save.habitats, migratedCreatures);
+  const habitats = mergeHabitats(save.habitats, migratedCreatures, save.flags.ranchStartVersion === 2);
   const eggs = migrateEggsForCurrentBuild(save) ?? [];
   const breederRank = save.player.breederRank ?? 1;
   const playerStats = save.player.stats ?? DEFAULT_PLAYER_STATS;
@@ -358,11 +359,11 @@ function migrateSaveForCurrentBuild(save: GameSave): GameSave {
       m19GrowthProgressBars: true,
       m58SaveReliability: true,
       ranchOfficeUnlocked: true,
-      felineHabitatUnlocked: true,
-      canineHabitatUnlocked: true,
-      bovineHabitatUnlocked: true,
-      lapineHabitatUnlocked: true,
-      equineHabitatUnlocked: true,
+      felineHabitatUnlocked: habitats.some(h=>h.family==="feline"&&h.unlocked),
+      canineHabitatUnlocked: habitats.some(h=>h.family==="canine"&&h.unlocked),
+      bovineHabitatUnlocked: habitats.some(h=>h.family==="bovine"&&h.unlocked),
+      lapineHabitatUnlocked: habitats.some(h=>h.family==="lapine"&&h.unlocked),
+      equineHabitatUnlocked: habitats.some(h=>h.family==="equine"&&h.unlocked),
       breedingUnlocked: true,
       nurseryUnlocked: true,
       townUnlocked: true,
@@ -382,8 +383,8 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
   const now = new Date().toISOString();
   const cleanName = playerName.trim() || "New Breeder";
   const saveId = `save_${slotIndex}_${Date.now()}`;
-  const creatures = createStarterCreatures(saveId).map(ensureCreatureProgression);
-  const habitats = mergeHabitats(createStarterHabitats(), creatures);
+  const creatures = createStarterCreatures(saveId).filter(c=>getVariantDefinition(c.variantId).family==='equine').map(c=>ensureCreatureProgression({...c,isLocked:true,originLabel:'Starter Equine Companion'}));
+  const habitats = mergeHabitats(createStarterHabitats().filter(h=>h.family==='equine'), creatures, true);
   const playerMaxEnergy = getPlayerMaxEnergyFromStats(DEFAULT_PLAYER_STATS);
   const baseSave: GameSave = {
     version: MVP_VERSION,
@@ -445,6 +446,7 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       ranchFeedStock: STARTING_RANCH_SUPPLIES.feed,
       ranchMaterialsStock: STARTING_RANCH_SUPPLIES.materials,
       firstWeekEconomyVersion: 1,
+      ranchStartVersion: 2,
       m1SaveCreated: true,
       m3StarterCreaturesCreated: true,
       m3BaseStartersMigrated: true,
@@ -472,11 +474,11 @@ export function createNewGameSave(playerName: string, slotIndex: number): GameSa
       ranchUnlocked: true,
       ranchOfficeUnlocked: true,
       townUnlocked: true,
-      felineHabitatUnlocked: true,
-      canineHabitatUnlocked: true,
-      bovineHabitatUnlocked: true,
-      lapineHabitatUnlocked: true,
-      equineHabitatUnlocked: true,
+      felineHabitatUnlocked: habitats.some(h=>h.family==="feline"&&h.unlocked),
+      canineHabitatUnlocked: habitats.some(h=>h.family==="canine"&&h.unlocked),
+      bovineHabitatUnlocked: habitats.some(h=>h.family==="bovine"&&h.unlocked),
+      lapineHabitatUnlocked: habitats.some(h=>h.family==="lapine"&&h.unlocked),
+      equineHabitatUnlocked: habitats.some(h=>h.family==="equine"&&h.unlocked),
       breedingUnlocked: true,
       nurseryUnlocked: true,
       marketUnlocked: true,

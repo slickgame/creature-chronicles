@@ -1,3 +1,4 @@
+import {hasHousingForRequirement} from "./ranchHabitats";
 import { guildRandom, guildRoll } from "./guildRandom";
 import { createWeeklyCommissions, getGuildObjectiveCount } from "./guildCommissions";
 import { getVariantDefinition } from "@/data/creatures";
@@ -159,7 +160,7 @@ function applyContractQuality(save: GameSave, templates: ContractTemplate[]) {
 }
 
 function getWeeklyTemplates(save: GameSave): ContractTemplate[] {
-  const templates = applyContractQuality(save, getBaseTemplates());
+  const templates = applyContractQuality(save, getBaseTemplates().filter(t=>hasHousingForRequirement(save,t.requirement)));
   return [...templates].sort((a, b) => guildRandom(save, a.title) - guildRandom(save, b.title));
 }
 
@@ -178,7 +179,7 @@ export function ensureCurrentGuildState(save: GameSave): GameSave {
   const expectedContractCount = getTownUpgradeEffects(save).guildContractCount;
   if (!save.guild) return { ...save, guild: createDefaultGuildState(save), flags: { ...save.flags, m15GuildWeeklyRefresh: true } };
 
-  const normalizedContracts = save.guild.contracts.map(normalizeContract);
+  const normalizedContracts = save.guild.contracts.map(normalizeContract).filter(c=>c.status!=='available'||hasHousingForRequirement(save,c.requirement));
   // Existing requests stay intact. Add the new categories once to this week's board.
   for (const commission of (save.guild.boardVersion ?? 0) >= 2 ? [] : createWeeklyCommissions(save)) {
     if (!normalizedContracts.some(c => c.contractId === commission.contractId)) normalizedContracts.push(commission);

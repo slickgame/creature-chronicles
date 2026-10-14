@@ -2,7 +2,7 @@
 
 import { resourceList } from "@/data/farmResources";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   BUILDING_SHORTCUTS,
   RANCH_PLOTS,
@@ -17,27 +17,31 @@ import {
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { RanchLedger } from "@/features/navigation/RanchLedger";
 import { RanchIcon, type RanchIconName } from "@/features/ui/RanchIcon";
-import { GameDialog } from "@/features/ui/GameDialog";
+import { RanchReview } from "./RanchReview";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureFamily } from "@/types/creature";
 import styles from "./ScenicRanchScreen.module.css";
 
+import {RanchHouse} from "./RanchHouse";
+import {HABITAT_PURCHASES,isHabitatUnlocked} from "@/data/ranchHabitats";
+
 const LOCATIONS: Record<string, Record<string, [number, number]>> = {
-  homestead: { house: [21, 53], nursery: [48, 61], office: [20, 78], feline: [70, 49], canine: [79, 73], town: [50, 81] },
-  habitats: { feline: [24, 50], canine: [77, 51], bovine: [19, 78], lapine: [51, 79], equine: [83, 78] },
-  services: { office: [28, 50], breeding: [56, 63], house: [21, 79], jobs: [74, 70], guild: [90, 80], town: [50, 81] },
+  homestead: { house: [25, 54], breeding: [50, 68], nursery: [75, 54] },
+  habitats: { feline: [20, 40], canine: [53, 37], bovine: [84, 49], lapine: [20, 69], equine: [61, 73] },
   expansion: { "north-pasture": [25, 43], "woodline-acre": [74, 43], chicken: [17, 62], sheep: [40, 62], goat: [64, 62], aviary: [86, 62], fence: [26, 80], watchtower: [79, 80] },
 };
 const ICONS: Record<string, RanchIconName> = { house: "house", nursery: "egg", breeding: "nest", office: "chores", town: "town", jobs: "tools", guild: "tax" };
 
 export function ScenicRanchScreen() {
   const game = useGameContext();
-  const { open, view } = useNavigation();
-  const [plot, setPlot] = useState(0);
+  const nav=useNavigation();
+  const {open,view,ranchPlot:plot,setRanchPlot:setPlot,ranchView,setRanchView,ranchSaveId,setRanchSaveId,setRanchHousePage}=nav;
   const [selected, setSelected] = useState<BuildingShortcut | null>(null);
+  const saveId=game.currentSave?.saveId;
+  useEffect(()=>{if(saveId&&ranchSaveId!==saveId){setRanchSaveId(saveId);setPlot(0);setRanchView('map');setRanchHousePage(0);}},[saveId,ranchSaveId,setRanchSaveId,setPlot,setRanchView,setRanchHousePage]);
   if (!game.currentSave) return null;
   const save = game.currentSave;
-  const currentPlot = RANCH_PLOTS[plot];
+  const currentPlot = RANCH_PLOTS[Math.min(plot,RANCH_PLOTS.length-1)];
   const buildings = Object.keys(LOCATIONS[currentPlot.id]).map((id) => BUILDING_SHORTCUTS.find((item) => item.id === id)!);
   const upgrades = getRanchUpgrades(save);
   function travel(building: BuildingShortcut) {
@@ -48,7 +52,7 @@ export function ScenicRanchScreen() {
       return;
     }
     if (building.id === "house") {
-      open("end-day");
+      setRanchView("house");
       return;
     }
     if (building.id === "breeding") {
@@ -71,7 +75,9 @@ export function ScenicRanchScreen() {
       game.goToTown();
       return;
     }
-    game.goToHabitat(building.id as CreatureFamily);
+    const family=building.id as CreatureFamily;
+    if(!isHabitatUnlocked(save,family)){const purchase=HABITAT_PURCHASES[family as keyof typeof HABITAT_PURCHASES];if(purchase){window.localStorage.setItem('creature-chronicles-builder-family-v1',family);window.localStorage.setItem('creature-chronicles-open-builder-yard','1');game.goToTown();}return;}
+    game.goToHabitat(family);
   }
   function upgrade(building: BuildingShortcut) {
     const id = building.upgradeIds[0];
@@ -85,6 +91,7 @@ export function ScenicRanchScreen() {
       getRanchUpgradeDefinition(id).category,
     );
     setSelected(null);
+    setRanchView("house");
     game.goToRanchOffice();
   }
   return (
@@ -99,21 +106,23 @@ export function ScenicRanchScreen() {
         <button type="button" className={styles.menu} onClick={() => open("menu")} data-navigation-launcher aria-haspopup="dialog"><RanchIcon name="gear" /><span>Menu</span></button>
       </header>
       <div className={styles.worldScroll}>
-        <section className={styles.map} data-plot={currentPlot.id} aria-label="Ranch locations" style={{ backgroundImage: `url(/images/ui/ranch-v2/${currentPlot.id}.webp)` }}>
+        <section className={styles.map} data-plot={currentPlot.id} aria-label="Ranch locations" style={{ backgroundImage: `url(/images/ui/ranch-v3/${currentPlot.id}.webp)` }}>
           {buildings.map((building) => {
             const project = building.projectId ? getBuilderProjectProgress(save, building.projectId) : null;
+            const family=['feline','canine','bovine','lapine','equine'].includes(building.id)?building.id as CreatureFamily:null;
+            const owned=family?isHabitatUnlocked(save,family):true;
             const ready = building.id === "nursery" ? (save.eggs ?? []).filter(egg => egg.status === "ready").length : 0;
             const [x, y] = LOCATIONS[currentPlot.id][building.id];
-            return <button type="button" key={`${currentPlot.id}-${building.id}`} className={styles.building} style={{ "--x": `${x}%`, "--y": `${y}%` } as CSSProperties} onClick={() => setSelected(building)} aria-label={`Open ${building.title}`}>
+            return <button type="button" key={`${currentPlot.id}-${building.id}`} data-owned={owned} className={styles.building} style={{ "--x": `${x}%`, "--y": `${y}%` } as CSSProperties} onClick={() => building.id==='house'?travel(building):setSelected(building)} aria-label={`Open ${building.title}`}>
               <RanchIcon name={ICONS[building.id] ?? (project ? "tools" : "paw")} />
-              <span>{building.title}{(ready > 0 || project) && <small>{ready ? `${ready} ready` : project?.status}</small>}</span>
+              <span>{building.title}{family&&<small>{owned?`${save.habitats?.find(h=>h.family===family)?.creatureIds.length??0} residents`:'Locked · Petra builds this'}</small>}{(ready > 0 || project) && <small>{ready ? `${ready} ready` : project?.status}</small>}</span>
             </button>;
           })}
         </section>
       </div>
       <nav className={styles.plotNav} aria-label="Ranch plots">
         <button type="button" aria-label="Previous ranch plot" onClick={() => setPlot((plot + RANCH_PLOTS.length - 1) % RANCH_PLOTS.length)}>‹</button>
-        <span>{currentPlot.shortLabel}<small>{plot + 1} / {RANCH_PLOTS.length}<span className={styles.swipeHint}> · Swipe to explore</span></small></span>
+        <span>{currentPlot.shortLabel}<small>{plot + 1} / {RANCH_PLOTS.length}<span className={styles.swipeHint}> · Use arrows to explore</span></small></span>
         <button type="button" aria-label="Next ranch plot" onClick={() => setPlot((plot + 1) % RANCH_PLOTS.length)}>›</button>
       </nav>
       {view !== "ledger" && <aside className={styles.today}><RanchLedger compact minimal={plot !== 0} /></aside>}
@@ -127,73 +136,11 @@ export function ScenicRanchScreen() {
         </nav>
         <div className={styles.dayAction}><button type="button" data-tutorial-id="ranch-review-day" onClick={() => open("end-day")}><RanchIcon name="moon" />End Day</button><small>Local save · File {save.slotIndex + 1}</small></div>
       </footer>
-      {selected && (
-        <GameDialog title={selected.title} onClose={() => setSelected(null)}>
-          <p>{selected.hint}</p>
-          {selected.projectId
-            ? (() => {
-                const p = getBuilderProjectProgress(save, selected.projectId!);
-                return (
-                  <div>
-                    <p>
-                      <b>{p.status}</b> · {p.definition.costGold} Gold +{" "}
-                      {resourceList(p.definition.costResources)}
-                    </p>
-                    {p.missingPrerequisites.length > 0 && (
-                      <p>
-                        Requires:{" "}
-                        {p.missingPrerequisites.map((p) => p.title).join(", ")}
-                      </p>
-                    )}
-                    {p.built && p.definition.category === "habitat" && (
-                      <p>
-                        This structure is complete. Its future creature family
-                        is not active yet.
-                      </p>
-                    )}
-                  </div>
-                );
-              })()
-            : selected.upgradeIds.map((id) => {
-                const definition = getRanchUpgradeDefinition(id),
-                  tier = upgrades[id] ?? 0,
-                  next = getNextRanchUpgradeTier(definition, tier);
-                return (
-                  <article key={id} className={styles.upgrade}>
-                    <h3>
-                      {definition.name} · Tier {tier}
-                    </h3>
-                    <p>
-                      {tier
-                        ? definition.tiers.find((item) => item.tier === tier)
-                            ?.effectLabel
-                        : "Base ranch service"}
-                    </p>
-                    <p>
-                      <b>Next: </b>
-                      {next
-                        ? `${next.effectLabel} · ${next.costGold} Gold${next.costGp ? ` + ${next.costGp} GP` : ""}${next.costResources ? ` + ${resourceList(next.costResources)}` : ""}`
-                        : "Fully upgraded"}
-                    </p>
-                  </article>
-                );
-              })}
-          <div className={styles.dialogActions}>
-            <button type="button" onClick={() => travel(selected)}>
-              {selected.projectId
-                ? "Visit Builder's Yard"
-                : selected.id === "house"
-                  ? "Review & End Day"
-                  : "Enter Building"}
-            </button>
-            {selected.upgradeIds.length > 0 && (
-              <button type="button" onClick={() => upgrade(selected)}>
-                Upgrade in Office
-              </button>
-            )}
-          </div>
-        </GameDialog>
-      )}
+      {ranchView==='house'&&<RanchHouse/>}
+      {selected && <RanchReview key={selected.id} title={selected.title} onClose={()=>setSelected(null)} pages={[
+        {title:"Location",content:<><p>{selected.hint}</p>{["feline","canine","bovine","lapine"].includes(selected.id)&&!isHabitatUnlocked(save,selected.id as CreatureFamily)&&<p>Petra builds this habitat for {HABITAT_PURCHASES[selected.id as keyof typeof HABITAT_PURCHASES].gold} Gold + {HABITAT_PURCHASES[selected.id as keyof typeof HABITAT_PURCHASES].wood} Wood. One ranch day · four resident spaces.</p>}{selected.projectId&&<p>{getBuilderProjectProgress(save,selected.projectId).status} · {getBuilderProjectProgress(save,selected.projectId).definition.costGold} Gold + {resourceList(getBuilderProjectProgress(save,selected.projectId).definition.costResources)}</p>}</>},
+        ...selected.upgradeIds.filter(()=>!['feline','canine','bovine','lapine'].includes(selected.id)||isHabitatUnlocked(save,selected.id as CreatureFamily)).map(id=>{const definition=getRanchUpgradeDefinition(id),tier=upgrades[id]??0,next=getNextRanchUpgradeTier(definition,tier);return {title:definition.name,content:<><p>Tier {tier}: {tier?definition.tiers.find(t=>t.tier===tier)?.effectLabel:"Base ranch service"}</p><p>{next?`Next: ${next.effectLabel} · ${next.costGold} Gold${next.costGp?` + ${next.costGp} GP`:''}${next.costResources?` + ${resourceList(next.costResources)}`:''}`:'Fully upgraded'}</p></>};})
+      ]} actions={<><button onClick={()=>travel(selected)}>{selected.projectId?"Visit Builder’s Yard":['feline','canine','bovine','lapine'].includes(selected.id)&&!isHabitatUnlocked(save,selected.id as CreatureFamily)?"Visit Petra · Unlock habitat":"Enter Building"}</button>{selected.upgradeIds.length>0&&(!['feline','canine','bovine','lapine'].includes(selected.id)||isHabitatUnlocked(save,selected.id as CreatureFamily))&&<button onClick={()=>upgrade(selected)}>Manage in Ranch House</button>}</>}/>}
     </main>
   );
 }

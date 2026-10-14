@@ -104,7 +104,7 @@ export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       hatchName.trim() || egg.suggestedName || suggestHatchlingName(egg);
     const creature = hatchReadyEgg(egg.eggId, finalName);
     if (!creature) {
-      setMessage("This egg is not ready or the target habitat is full.");setShowMessage(true);
+      setMessage("This egg needs a ready incubation timer and an owned habitat with an open space. Petra builds missing habitats in Builder’s Yard.");setShowMessage(true);
       return;
     }
     setHatchName("");
