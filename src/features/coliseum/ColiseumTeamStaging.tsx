@@ -1,24 +1,21 @@
 "use client";
-import { getEquippedCopy } from '@/data/equipmentInstances';
-import { BATTLE_STAT_LABELS, getEquippedBattleStats } from '@/data/equipmentComparison';
-import type { BattleStatKey } from '@/types/battle';
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import { useState, type ReactNode } from "react";
 import { useGameContext } from "@/state/GameProvider";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
-import { BATTLE_OUTFITTER_ITEMS, EQUIPMENT_SLOTS, EQUIPMENT_SLOT_LABELS, getEquipmentSlots, getBattleReadinessLabel } from "@/data/battleOutfitter";
+import { getEquipmentSlots, getBattleReadinessLabel } from "@/data/battleOutfitter";
 import type { ColiseumC4CarryoverMap } from "@/data/coliseumC4";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
-import { TeamLoadoutPanel } from "@/features/battle-outfitter/TeamLoadoutPanel";
+import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
 type Enemy = { name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
 export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message}: {
  title:string; roster:CreatureRecord[];selected:CreatureId[];onChange:(ids:CreatureId[])=>void;onReturn:()=>void;onStart:()=>void;unavailable:(creature:CreatureRecord)=>string|null;enemyPreview:Enemy[];opponent:string;strategy:string;locked?:boolean;carryover?:ColiseumC4CarryoverMap;tacticsStock:number;armed:boolean;onArm:()=>void;rules:ReactNode;message:string;
 }){
- const {currentSave:save,goToBattleOutfitter}=useGameContext();const {open}=useNavigation();
+ const {currentSave:save}=useGameContext();const {open}=useNavigation();
  const [popup,setPopup]=useState<"roster"|"opponent"|"rules"|"prep"|"profile"|"gear"|null>(null);
  const [slot,setSlot]=useState(0),[page,setPage]=useState(0),[profileId,setProfileId]=useState<CreatureId|null>(null);
  if(!save)return null;
@@ -34,8 +31,7 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
  {popup==="roster"&&<GameDialog title={`Choose creature · Slot ${slot+1}`} onClose={()=>setPopup(null)} wide><p>Choosing a teammate already selected swaps their position.</p><div className={s.dialogGrid}>{roster.map(c=><article key={c.creatureId}><img src={gameplayArt(c,true)} alt=""/><h3>{c.nickname} · Level {c.level}</h3><p>{unavailable(c)||getBattleReadinessLabel(save,c.creatureId)}</p><button disabled={locked||!!unavailable(c)} onClick={()=>choose(c)}>Choose {c.nickname}</button></article>)}</div>{selected[slot]&&<button onClick={()=>{onChange(selected.filter((_,ix)=>ix!==slot));setPopup(null);}}>Clear Slot {slot+1}</button>}</GameDialog>}
  {popup==="opponent"&&<GameDialog title="Opponent & Rules" onClose={()=>setPopup(null)} wide><h3>{opponent}</h3><p>{strategy}</p><div className={s.dialogGrid}>{enemyPreview.map(e=><article key={e.name}><h3>{e.name}</h3><p>Level {e.level} · {e.variantName} · {e.role}</p><p>{e.equipment}</p><p>{e.moves.join(" · ")}</p></article>)}</div>{rules}</GameDialog>}
  {popup==="rules"&&<GameDialog title="Battle Rules" onClose={()=>setPopup(null)}>{rules}</GameDialog>}
- {popup==="prep"&&<GameDialog title="Team Preparation" onClose={()=>setPopup(null)} wide><p role="status">{message}</p><p>Compare your actual equipped battle stats below. Equipment enhancements are included; encounter modifiers, temporary buffs and Tactics Kits are applied when battle starts.</p>{team.map(c=><section key={c.creatureId}><h3>{c.nickname}</h3><p>{unavailable(c)||`${gearCount(c)}/5 equipment slots filled · Gear is optional`}</p><button onClick={()=>{setProfileId(c.creatureId);setPopup("gear");}}>Manage {c.nickname}’s gear</button><dl>{EQUIPMENT_SLOTS.map(key=>{const id=getEquipmentSlots(save,c.creatureId)[key];return <div key={key}><dt>{EQUIPMENT_SLOT_LABELS[key]}</dt><dd>{id?`${BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===id)?.name??id} +${getEquippedCopy(save,c.creatureId,id)?.level??0}`:"Empty"}</dd></div>;})}</dl><h4>Equipped battle stats</h4><dl className={s.stats}>{(Object.entries(getEquippedBattleStats(save,c)) as [BattleStatKey,number][]).map(([key,value])=><div key={key}><dt>{BATTLE_STAT_LABELS[key]}</dt><dd>{value}</dd></div>)}</dl></section>)}<p>Equipment changes numeric battle stats only. Innate grades remain unchanged.</p><button onClick={goToBattleOutfitter}>Visit Outfitter</button><p>Returning from the Outfitter starts a new team selection. Active gauntlet teams remain locked.</p><button aria-pressed={armed} disabled={tacticsStock===0&&!armed} onClick={onArm}>Tactics Kit · {armed?"On":"Off"} ({tacticsStock})</button><p>Consumed only when battle starts. Gives the team Inspired for one round and +10 current and maximum Battle Energy.</p>{rules}<button disabled={!canStart} onClick={onStart}>Enter Battle</button></GameDialog>}
- {popup==="gear"&&profile&&<GameDialog title={`${profile.nickname} · Loadout`} onClose={()=>setPopup(null)} wide><TeamLoadoutPanel key={profile.creatureId} creature={profile} blocked={locked?"Equipment is locked for this gauntlet run.":unavailable(profile)}/></GameDialog>}
+ {(popup==="prep"||popup==="gear")&&<TeamPreparation selected={selected} initialCreatureId={popup==="gear"?profileId:null} locked={locked} unavailable={unavailable} message={message} tacticsStock={tacticsStock} armed={armed} onArm={onArm} onClose={()=>setPopup(null)}/>}
  {popup==="profile"&&profile&&<GameDialog title={`${profile.nickname} · Profile`} onClose={()=>setPopup(null)}><p>{getVariantDefinition(profile.variantId).name} · Level {profile.level}</p><p>{unavailable(profile)||getBattleReadinessLabel(save,profile.creatureId)}</p><p>Base numbers · Innate grades</p><dl className={s.stats}>{STAT_KEYS.map(key=><div key={key}><dt>{key}</dt><dd>{profile.stats[key]}<b>{profile.statGrades[key]}</b></dd></div>)}</dl>{carryover?.[profile.creatureId]&&<p>Saved gauntlet condition: HP {Math.round(carryover[profile.creatureId].hpRatio*100)}% · Battle Energy {Math.round(carryover[profile.creatureId].battleEnergyRatio*100)}%.</p>}<button onClick={()=>setPopup("prep")}>Team loadouts</button>{!locked&&<div className={s.actions}>{[0,1,2].map(ix=><button key={ix} disabled={!!unavailable(profile)||ix>selected.length} onClick={()=>choose(profile,ix)}>Choose for slot {ix+1}</button>)}</div>}</GameDialog>}
  </main>;
 }
