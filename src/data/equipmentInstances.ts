@@ -1,5 +1,5 @@
 import { BATTLE_OUTFITTER_ITEMS, getEquipmentSlots, normalizeBattleEquipment, type BattleOutfitterItem } from '@/data/battleOutfitter';
-import { equipmentStats, enhancementCost, MAX_EQUIPMENT_LEVEL, type EquipmentCopy } from './equipmentEnhancement';
+import { equipmentStats, rollEquipmentMilestone, enhancementCost, MAX_EQUIPMENT_LEVEL, type EquipmentCopy } from './equipmentEnhancement';
 import type { GameSave } from '@/types/save';
 const FLAG='equipmentCopiesV1';
 type Collection={version:1;serial:number;copies:EquipmentCopy[]};
@@ -13,10 +13,10 @@ export function getEquipmentCollection(input:GameSave):Collection {
  const old:EquipmentCopy[]=Array.isArray(raw.copies)?raw.copies.filter(c=>{
   if(!c||typeof c.id!=='string'||seen.has(c.id)||!catalog.some(i=>i.itemId===c.itemId))return false;
   seen.add(c.id);return true;
- }).map(c=>({...c,level:Math.min(15,count(c.level)),owner:typeof c.owner==='string'?c.owner:undefined})):[];
+ }).map(c=>({...c,level:Math.min(15,count(c.level)),owner:typeof c.owner==='string'?c.owner:undefined,legacyThrough:c.legacyThrough??(c.enhancementVersion===2?0:Math.min(15,count(c.level))),rolls:c.rolls??[]})):[];
  let serial=Math.max(count(raw.serial),...old.map(c=>count(c.id.replace(/^gear_/,''))),0);
  const copies:EquipmentCopy[]=[];const used=new Set<string>();
- const make=(itemId:string,owner?:string)=>({id:`gear_${++serial}`,itemId,level:0,owner});
+ const make=(itemId:string,owner?:string)=>({id:`gear_${++serial}`,itemId,level:0,owner,enhancementVersion:Array.isArray(raw.copies)?2 as const:undefined,legacyThrough:0,rolls:[]});
  const slots=(save.creatures??[]).map(c=>({id:String(c.creatureId),slots:getEquipmentSlots(save,c.creatureId)}));
  for(const item of catalog){
   for(const c of slots.filter(c=>c.slots[item.equipmentSlot!]===item.itemId)){
@@ -34,9 +34,9 @@ function write(save:GameSave,collection:Collection):GameSave{return {...save,fla
 export function getEquipmentCopies(save:GameSave,itemId?:string){return getEquipmentCollection(save).copies.filter(c=>!itemId||c.itemId===itemId);}
 export function getEquippedCopy(save:GameSave,owner:string,itemId:string){return getEquipmentCopies(save,itemId).find(c=>c.owner===owner);}
 export function getPreviewCopy(save:GameSave,owner:string,item:BattleOutfitterItem,copyId?:string|null){
- if(copyId===null)return {id:`new_${item.itemId}`,itemId:item.itemId,level:0};
+ if(copyId===null)return {id:`new_${item.itemId}`,itemId:item.itemId,level:0,enhancementVersion:2 as const,legacyThrough:0,rolls:[]};
  const copies=getEquipmentCopies(save,item.itemId);
- return (copyId?copies.find(c=>c.id===copyId):copies.find(c=>c.owner===owner)??copies.find(c=>!c.owner))??{id:`new_${item.itemId}`,itemId:item.itemId,level:0};
+ return (copyId?copies.find(c=>c.id===copyId):copies.find(c=>c.owner===owner)??copies.find(c=>!c.owner))??{id:`new_${item.itemId}`,itemId:item.itemId,level:0,enhancementVersion:2 as const,legacyThrough:0,rolls:[]};
 }
 export function withEquipmentPreview(save:GameSave,owner:string,item:BattleOutfitterItem,copy:EquipmentCopy){
  const collection=getEquipmentCollection(save);
@@ -62,7 +62,7 @@ export function getEnhancementQuote(save:GameSave,copyId:string){
  const cost=enhancementCost(item,copy.level),maxed=copy.level>=MAX_EQUIPMENT_LEVEL;
  return {copy,item,cost,maxed,before:equipmentStats(item,copy),after:equipmentStats(item,{...copy,level:Math.min(15,copy.level+1)}),canUpgrade:!maxed&&save.currencies.gold>=cost};
 }
-export function enhanceEquipment(save:GameSave,copyId:string,expectedLevel:number){
+export function enhanceEquipment(save:GameSave,copyId:string,expectedLevel:number,random:()=>number=Math.random){
  const fail=(message:string)=>({save,ok:false,message});
  const quote=getEnhancementQuote(save,copyId);
  if(!quote)return fail('Equipment copy not found.');
@@ -70,7 +70,8 @@ export function enhanceEquipment(save:GameSave,copyId:string,expectedLevel:numbe
  if(quote.maxed)return fail('This equipment is already +15.');
  if(!quote.canUpgrade)return fail(`Need ${quote.cost} Gold. No materials are charged.`);
  const collection=getEquipmentCollection(save);
- collection.copies=collection.copies.map(c=>c.id===copyId?{...c,level:c.level+1}:c);
+ const milestone=(quote.copy.level+1)%3===0?rollEquipmentMilestone(quote.item,quote.copy,random):null;
+ collection.copies=collection.copies.map(c=>c.id===copyId?{...c,level:c.level+1,rolls:milestone?[...(c.rolls??[]),milestone]:c.rolls}:c);
  const next=write({...normalizeBattleEquipment(save),updatedAt:new Date().toISOString(),currencies:{...save.currencies,gold:save.currencies.gold-quote.cost}},collection);
  return {save:next,ok:true,message:`${quote.item.name} #${copyId.replace('gear_','')} improved to +${quote.copy.level+1} for ${quote.cost} Gold. Only this copy changed.`};
 }

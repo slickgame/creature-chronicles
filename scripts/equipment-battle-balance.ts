@@ -19,11 +19,12 @@ export function runEquipmentBattleBalance(samples = 24, teamLevel = 1, rosterInd
   for(const kit of ['none','weapons','full-common'] as const){
     for(const level of kit==='none'?[0]:[0,3,6]){
       let save=structuredClone(base);save.currencies.gold=100000;
+      let rollSeed=1729;const equipmentRandom=()=>{rollSeed=(Math.imul(1664525,rollSeed)+1013904223)>>>0;return rollSeed/4294967296;};
       for(const creature of save.creatures!.slice(0,3)){
         for(const id of kit==='none'?[]:kit==='weapons'?['training_grips' as const]:COMMON_SET){
           const purchase=purchaseBattleOutfitterItem(save,id);if(!purchase.ok)throw Error(purchase.message);save=purchase.save;
           const copy=getEquipmentCopies(save,id).find(c=>!c.owner)!;
-          for(let n=0;n<level;n++){const enhanced=enhanceEquipment(save,copy.id,n);if(!enhanced.ok)throw Error(enhanced.message);save=enhanced.save;}
+          for(let n=0;n<level;n++){const enhanced=enhanceEquipment(save,copy.id,n,equipmentRandom);if(!enhanced.ok)throw Error(enhanced.message);save=enhanced.save;}
           const equipped=assignBattleOutfitterEquipment(save,creature.creatureId,id,copy.id);if(!equipped.ok)throw Error(equipped.message);save=equipped.save;
         }
       }
@@ -44,6 +45,6 @@ export function runEquipmentBattleBalance(samples = 24, teamLevel = 1, rosterInd
       }
     }
   }
-  return {method:'Fixed first three starters at the selected level using normal stat growth and move loadouts; tactical player AI versus authored enemy AI; matched battle IDs across loadouts; no consumables, training, level gains or rewards; 60-round cap. Seeds sample deterministic rolls, not human win probabilities.',team:base.creatures!.slice(0,3).map(c=>({name:c.nickname,level:c.level})),rows};
+  return {method:'Fixed first three starters at the selected level using normal stat growth and move loadouts; tactical player AI versus authored enemy AI; matched battle IDs across loadouts; fixed seeded equipment rolls; no consumables, training, level gains or rewards; 60-round cap. Seeds sample deterministic rolls, not human win probabilities.',team:base.creatures!.slice(0,3).map(c=>({name:c.nickname,level:c.level})),rows};
 }
 if(process.argv[1]?.endsWith('equipment-battle-balance.ts'))console.log(JSON.stringify([runEquipmentBattleBalance(24,1),runEquipmentBattleBalance(24,4),runEquipmentBattleBalance(24,4,[0,2,3])],null,2));
