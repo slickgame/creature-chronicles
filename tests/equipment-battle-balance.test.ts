@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { runEquipmentBattleBalance } from '../scripts/equipment-battle-balance.ts';
+import { runEquipmentBattleBalance, equipmentAuditRandom } from '../scripts/equipment-battle-balance.ts';
 import { createNewGameSave } from '@/lib/save/localSave';
 import { createBattleState } from '@/data/battleEngine';
 import { applyBattleOutfitterLoadouts } from '@/data/battleOutfitterIntegration';
@@ -24,4 +24,15 @@ test('preparation stats match the actual new battle with an enhanced equipped co
  const snapshot=JSON.stringify(s),stats=getEquippedBattleStats(s,c);
  const battle=applyBattleOutfitterLoadouts(s,createBattleState({battleId:'prep-proof',playerCreatures:[c],enemyCreatures:[s.creatures![1]]}));
  assert.deepEqual(stats,battle.combatants[battle.teams.player.combatantIds[0]].battleStats);assert.equal(JSON.stringify(s),snapshot);
+});
+
+test('paired audit profiles change increment draws while keeping stat choice draws identical',()=>{
+ const low=equipmentAuditRandom('low',123),mid=equipmentAuditRandom('typical',123),high=equipmentAuditRandom('high',123);
+ for(let n=0;n<20;n++){
+  const choice=low();assert.equal(choice,mid());assert.equal(choice,high());
+  assert.equal(low(),0);const typical=mid();assert.ok(typical>=0&&typical<1);assert.equal(high(),1-Number.EPSILON);
+ }
+ const a=runEquipmentBattleBalance(2,1,[0,1,2],'low'),b=runEquipmentBattleBalance(2,1,[0,1,2],'high');
+ for(let n=0;n<a.rows.length;n++)assert.equal(a.rows[n].goldCost,b.rows[n].goldCost);
+ assert.equal(a.rollProfile,'low');assert.equal(b.rollProfile,'high');
 });

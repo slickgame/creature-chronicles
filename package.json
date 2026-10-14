@@ -7,6 +7,7 @@
     "validate:breeding-assets": "node scripts/validate-breeding-assets.mjs",
     "prepare:cow-images": "node scripts/prepare-cow-images.mjs",
     "restore:cow-images": "node scripts/restore-cow-alpha.mjs",
+    "simulate:equipment-rolls": "node --no-warnings --loader ./scripts/ts-test-loader.mjs scripts/equipment-roll-audit.ts",
     "simulate:equipment-battles": "node --no-warnings --loader ./scripts/ts-test-loader.mjs scripts/equipment-battle-balance.ts",
     "simulate:first-week": "node --no-warnings --loader ./scripts/ts-test-loader.mjs scripts/first-week-economy.ts",
     "simulate:genetics": "node scripts/simulate-genetics.mjs",
