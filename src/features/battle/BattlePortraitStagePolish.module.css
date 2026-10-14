@@ -141,3 +141,15 @@
     --portrait-offset-y: 10% !important;
   }
 }
+
+/* The Lapine KO image has a low-ground silhouette and intentional empty space
+   above it. Adjust only this pose, preserving other species' scale rules. */
+.combatant[data-lapine-pose="ko"][data-side][data-slot] {
+  --portrait-offset-y: 14% !important;
+}
+
+@media (max-width: 850px) {
+  .combatant[data-lapine-pose="ko"][data-side][data-slot] {
+    --portrait-offset-y: 12% !important;
+  }
+}

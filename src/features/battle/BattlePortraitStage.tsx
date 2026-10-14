@@ -8,6 +8,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
 import { NYLA_GAMEPLAY_ART, getNylaCombatSprite, getNylaGameplayCardSprite, isNylaBaseFeline } from "@/data/nylaGameplayArt";
 import { getEquineCombatSprite, getEquineGameplayCardSprite } from "@/data/equineGameplayArt";
+import { LAPINE_GAMEPLAY_ART, getLapineCombatSprite, getLapineGameplayCardSprite } from "@/data/lapineGameplayArt";
 import type { BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -50,7 +51,7 @@ function creatureProfile(source?: CreatureRecord): string {
 function creaturePortrait(source?: CreatureRecord): string {
   if (!source) return FALLBACK_IMAGE;
   const variant = getVariantDefinition(source.variantId);
-  return getEquineGameplayCardSprite(source, getNylaGameplayCardSprite(source, source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE));
+  return getLapineGameplayCardSprite(source, getEquineGameplayCardSprite(source, getNylaGameplayCardSprite(source, source.portraitPath || variant.portraitPath || source.profilePath || variant.profilePath || FALLBACK_IMAGE)));
 }
 
 function compactStatus(combatant: BattleCombatant): string[] {
@@ -120,6 +121,14 @@ function CombatantFigure({
     effectPreset: activeEvent?.preset,
     specialAttack: Boolean(actingMove && (actingMove.category === "special" || actingMove.rarity === "signature")),
   });
+  const lapineSprite = getLapineCombatSprite(source, {
+    fainted: combatant.isFainted,
+    actor: isActor,
+    target: isEventTarget,
+    eventKind: activeEvent?.kind,
+    effectPreset: activeEvent?.preset,
+    specialAttack: Boolean(actingMove && (actingMove.category === "special" || actingMove.rarity === "signature")),
+  });
   const canTarget = !combatant.isFainted || combatant.sideId === "player";
   const profileStyle: PortraitStyle = {
     "--portrait-scale": Math.min(1.02, Math.max(0.56, portrait.scale * 0.78)),
@@ -161,6 +170,7 @@ function CombatantFigure({
       data-side={combatant.sideId}
       data-slot={combatant.slotIndex}
       data-nyla-pose={nylaSprite === NYLA_GAMEPLAY_ART.combatKO ? "ko" : undefined}
+      data-lapine-pose={lapineSprite === LAPINE_GAMEPLAY_ART.combatKO ? "ko" : lapineSprite === LAPINE_GAMEPLAY_ART.combatSpecial ? "special" : undefined}
       title={detailTitle}
     >
       <button
@@ -174,7 +184,7 @@ function CombatantFigure({
         <span className={styles.selectionRing} aria-hidden="true" />
         <span className={`${styles.portraitWindow} ${polishStyles.portraitWindow}`} data-ui-fixed-size="true">
           <img
-            src={equineSprite ?? nylaSprite ?? creatureProfile(source)}
+            src={lapineSprite ?? equineSprite ?? nylaSprite ?? creatureProfile(source)}
             alt=""
             onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }}
           />

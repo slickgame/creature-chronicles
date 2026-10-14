@@ -1,6 +1,7 @@
 "use client";
 
 import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
+import { getLapineGameplayCardSprite, getLapineGameplayProfileSprite } from "@/data/lapineGameplayArt";
 import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 
 import { useMemo, useState } from "react";
@@ -569,7 +570,7 @@ export function CollectionScreen() {
                         }
                       >
                         <img
-                          src={getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))}
+                          src={getLapineGameplayCardSprite(creature, getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)))}
                           alt=""
                           onError={(event) => {
                             event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
@@ -860,7 +861,7 @@ function CompareIdentity({
   const species = getSpeciesDefinition(creature.speciesId);
   return (
     <article className={styles.compareIdentity}>
-      <img src={getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))} alt="" />
+      <img src={getLapineGameplayProfileSprite(creature, getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)))} alt="" />
       <h3>{creature.nickname} {creature.shiny ? "✦" : ""}</h3>
       <p>{variant.name} {species.name}</p>
       <dl>

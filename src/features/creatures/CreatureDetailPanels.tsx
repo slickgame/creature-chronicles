@@ -1,6 +1,7 @@
 "use client";
 
 import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
+import { getLapineGameplayProfileSprite } from "@/data/lapineGameplayArt";
 import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
@@ -296,7 +297,7 @@ export function SharedCreatureDetail({
           ) : null}
           <img
             src={useGameplayArt
-              ? getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))
+              ? getLapineGameplayProfileSprite(creature, getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE)))
               : variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE}
             alt=""
             style={{

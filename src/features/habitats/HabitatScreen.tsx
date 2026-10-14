@@ -1,6 +1,7 @@
 "use client";
 
 import { getEquineGameplayCardSprite } from "@/data/equineGameplayArt";
+import { getLapineGameplayCardSprite } from "@/data/lapineGameplayArt";
 import { getNylaGameplayCardSprite } from "@/data/nylaGameplayArt";
 
 import { useMemo, useState } from "react";
@@ -211,7 +212,7 @@ export function HabitatScreen() {
                     onClick={() => handleSelectCreature(creature)}
                   >
                     <img
-                      src={getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, getImagePath(variant.portraitPath)))}
+                      src={getLapineGameplayCardSprite(creature, getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, getImagePath(variant.portraitPath))))}
                       data-nyla-card={isNylaBaseFeline(creature) ? "true" : undefined}
                       alt=""
                       onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }}
