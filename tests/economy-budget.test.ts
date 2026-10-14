@@ -35,3 +35,13 @@ test('a seven-day farm route feeds residents and affords starter gear +3 and a q
   for(const day of result.rows){assert.equal(day.actions,3);assert.equal(day.previewShortage,0);assert.equal(day.foodCovered,day.foodRequired);assert.ok(day.gold>=0);}
   assert.ok(result.endGold>=200);
 });
+
+test('construction allowance identifies stops after food without reserving or spending Gold',()=>{
+ const save=createNewGameSave('Budget',0),item=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId==='training_grips')!;
+ const snapshot=JSON.stringify(save),plan=getUpgradeBudget(save,item,0,240);
+ assert.equal(plan.constructionGold,240);assert.equal(plan.plannedStop,12);
+ assert.equal(plan.rows.at(-1)!.afterPlan,-280);assert.equal(JSON.stringify(save),snapshot);
+ assert.equal(getUpgradeBudget(save,item,0,2000).plannedStop,null);
+ assert.equal(getUpgradeBudget(save,item,15,240).plannedStop,null);
+ assert.equal(getUpgradeBudget(save,item,0,NaN).constructionGold,0);
+});

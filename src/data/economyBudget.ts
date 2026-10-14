@@ -27,13 +27,15 @@ export function getFoodBudget(save: GameSave, nights = 7) {
   return { nights: horizon, nightlyNeed, shortage, days, topUpGold: shortage * RESOURCES.rations.price };
 }
 
-export function getUpgradeBudget(save: GameSave, item: BattleOutfitterItem, currentLevel: number) {
+export function getUpgradeBudget(save: GameSave, item: BattleOutfitterItem, currentLevel: number, constructionAllowance = 0) {
   const food = getFoodBudget(save);
+  const constructionGold = Number.isFinite(constructionAllowance) ? Math.max(0, Math.floor(constructionAllowance)) : 0;
   const rows = [3, 6, 9, 12, 15].filter(target => target > currentLevel).map(target => {
     let gold = 0;
     for (let level = currentLevel; level < target; level++) gold += enhancementCost(item, level);
     const remaining = save.currencies.gold - gold;
-    return { target, gold, remaining, afterFood: remaining - food.topUpGold, affordable: remaining >= 0 };
+    return { target, gold, remaining, afterFood: remaining - food.topUpGold, afterPlan: remaining - food.topUpGold - constructionGold, affordable: remaining >= 0 };
   });
-  return { food, rows };
+  const withinPlan = rows.filter(row=>row.afterPlan>=0);
+  return { food, constructionGold, rows, plannedStop: withinPlan.at(-1)?.target ?? null };
 }

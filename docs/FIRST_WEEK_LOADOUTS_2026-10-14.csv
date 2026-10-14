@@ -1,0 +1,30 @@
+name,cost,balance,afterFood,dayOneAfterPlan,withoutGoalGold,accepted,reason,encounter,samples,wins,losses,timeouts,averageRounds
+Farm first,0,1660,1644,500,864,True,Food fallback covered after construction,Opening Scrimmage,24,19,5,0,11.4
+Farm first,0,1660,1644,500,864,True,Food fallback covered after construction,Support Drill,24,16,8,0,14.5
+Farm first,0,1660,1644,500,864,True,Food fallback covered after construction,Novice Division Champion,24,0,24,0,12.8
+Farm first,0,1660,1644,500,864,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.2
+One weapon +3,103,1557,1541,397,761,True,Food fallback covered after construction,Opening Scrimmage,24,20,4,0,11
+One weapon +3,103,1557,1541,397,761,True,Food fallback covered after construction,Support Drill,24,21,3,0,11.9
+One weapon +3,103,1557,1541,397,761,True,Food fallback covered after construction,Novice Division Champion,24,0,24,0,14
+One weapon +3,103,1557,1541,397,761,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.2
+Three weapons +3,309,1351,1335,191,555,True,Food fallback covered after construction,Opening Scrimmage,24,24,0,0,8.3
+Three weapons +3,309,1351,1335,191,555,True,Food fallback covered after construction,Support Drill,24,23,1,0,9.3
+Three weapons +3,309,1351,1335,191,555,True,Food fallback covered after construction,Novice Division Champion,24,10,14,0,20.8
+Three weapons +3,309,1351,1335,191,555,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.2
+Three weapons +6,669,991,975,-169,195,True,Food fallback covered after construction,Opening Scrimmage,24,24,0,0,7.1
+Three weapons +6,669,991,975,-169,195,True,Food fallback covered after construction,Support Drill,24,23,1,0,7.6
+Three weapons +6,669,991,975,-169,195,True,Food fallback covered after construction,Novice Division Champion,24,17,7,0,17.7
+Three weapons +6,669,991,975,-169,195,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.2
+One common set +3,475,1185,1169,25,389,True,Food fallback covered after construction,Opening Scrimmage,24,24,0,0,8
+One common set +3,475,1185,1169,25,389,True,Food fallback covered after construction,Support Drill,24,23,1,0,9.7
+One common set +3,475,1185,1169,25,389,True,Food fallback covered after construction,Novice Division Champion,24,0,24,0,17.2
+One common set +3,475,1185,1169,25,389,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.2
+Three common sets +0,705,955,939,-205,159,True,Food fallback covered after construction,Opening Scrimmage,24,24,0,0,7.4
+Three common sets +0,705,955,939,-205,159,True,Food fallback covered after construction,Support Drill,24,23,1,0,8.7
+Three common sets +0,705,955,939,-205,159,True,Food fallback covered after construction,Novice Division Champion,24,17,7,0,20.8
+Three common sets +0,705,955,939,-205,159,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.3
+Three common sets +3,1425,235,219,-925,-561,True,Food fallback covered after construction,Opening Scrimmage,24,24,0,0,5.3
+Three common sets +3,1425,235,219,-925,-561,True,Food fallback covered after construction,Support Drill,24,24,0,0,6.5
+Three common sets +3,1425,235,219,-925,-561,True,Food fallback covered after construction,Novice Division Champion,24,24,0,0,13.5
+Three common sets +3,1425,235,219,-925,-561,True,Food fallback covered after construction,Breaker Squad,24,0,24,0,4.7
+Three common sets +6,3225,-1565,-1581,-2725,-2361,False,Not enough Gold,Not simulated,0,,,,

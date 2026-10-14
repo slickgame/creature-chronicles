@@ -3,7 +3,7 @@ import {UpgradeSuccess,type UpgradeReceipt} from './UpgradeSuccess';
 import {UpgradeReview} from './UpgradeReview';
 import {equipmentStats} from '@/data/equipmentEnhancement';
 import { EnhancementMilestones } from './EnhancementMilestones';
-import { getUpgradeBudget } from '@/data/economyBudget';
+import {UpgradeBudget} from './UpgradeBudget';
 import { useRef, useState } from 'react';
 import { BATTLE_OUTFITTER_ITEMS, assignBattleOutfitterEquipment, removeBattleOutfitterEquipment } from '@/data/battleOutfitter';
 import { getEquipmentCopies, getEnhancementQuote, enhanceEquipment } from '@/data/equipmentInstances';
@@ -21,7 +21,6 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  const [selectedId,setSelectedId]=useState(initialEquipmentId);
  const [creatureId,setCreatureId]=useState(initialCreatureId);
  const [page,setPage]=useState(()=>save?Math.max(0,Math.floor(getEquipmentCopies(save).findIndex(c=>c.id===initialEquipmentId)/4)):0);
- const [budgetPage,setBudgetPage]=useState(0);
  const [popup,setPopup]=useState<'milestones'|'stats'|'budget'|'assignment'|'upgrade'|'equip'|'remove'|'report'|null>(null);
  const [reviewLevel,setReviewLevel]=useState(0);
  const [message,setMessage]=useState('');
@@ -34,7 +33,6 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  const owner=save.creatures?.find(c=>c.creatureId===copy?.owner);
  const pages=Math.max(1,Math.ceil(copies.length/4)),currentPage=Math.min(page,pages-1);
  const comparison=quote&&creature?compareEquipment(save,creature,quote.item,copy!.id):null;
- const budget=quote?getUpgradeBudget(save,quote.item,quote.copy.level):null;
  function review(kind:'upgrade'|'equip'|'remove'){if(!copy)return;busy.current=false;setReviewLevel(copy.level);setPopup(kind);}
  function confirm(){
   if(!save||!quote||!copy||busy.current)return;busy.current=true;setUpgradeReceipt(null);
@@ -51,7 +49,7 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
   </div>
   {popup==='milestones'&&quote&&copy&&<EnhancementMilestones item={quote.item} copy={copy} gold={save.currencies.gold} onClose={()=>setPopup(null)}/>}
   {popup==='stats'&&quote&&<EquipmentGuide item={quote.item} copy={copy} onClose={()=>setPopup(null)}/>}
-  {popup==='budget'&&<GameDialog title="Upgrade budget" onClose={()=>setPopup(null)}>{budget&&budget.rows.length>0?<><div className={styles.actions}><button aria-pressed={budgetPage===0} onClick={()=>setBudgetPage(0)}>Milestone costs</button><button aria-pressed={budgetPage===1} onClick={()=>setBudgetPage(1)}>Food plan</button></div>{budgetPage===0?<><p>Total Gold from the current level to each milestone. Pay one level at a time.</p><table className={styles.table}><thead><tr><th>Target</th><th>Total Gold</th><th>Gold left</th></tr></thead><tbody>{budget.rows.map(row=><tr key={row.target}><th>+{row.target}</th><td>{row.gold}</td><td>{row.affordable?row.remaining:`Need ${-row.remaining} more`}</td></tr>)}</tbody></table></>:<><p>Seven-night food budget: {budget.food.shortage} additional Balanced rations · {budget.food.topUpGold} Gold at Trade prices.</p><p className={styles.note}>Based on current residents, unreserved stock and ingredient feeding. Assumes no gathering, rewards, new arrivals or training returns. Bundles may cost less. Gold is not reserved; allow for construction and other expenses.</p>{budget.rows.some(row=>row.affordable&&row.afterFood<0)&&<p className={styles.highlight}>Some milestones leave less than this food budget. Gather or cook more rations, or stop earlier.</p>}</>}</>:<p>This equipment is already at maximum level.</p>}</GameDialog>}
+  {popup==='budget'&&quote&&copy&&<UpgradeBudget save={save} item={quote.item} level={copy.level} onClose={()=>setPopup(null)}/>}
   {popup==='assignment'&&quote&&copy&&<GameDialog title="Equip or remove equipment" onClose={()=>setPopup(null)}><h3>Equip this piece</h3>{!copy.owner&&creature?<label>Creature <select value={creature.creatureId} onChange={e=>setCreatureId(e.target.value)}>{save.creatures?.map(c=><option key={c.creatureId} value={c.creatureId}>{c.nickname}</option>)}</select></label>:<p>{owner?`Remove from ${owner.nickname} before assigning to someone else.`:'No creature available.'}</p>}{comparison&&!copy.owner&&<><p>Replaces {comparison.previous?.name??'an empty slot'}.</p><table className={styles.table}><thead><tr><th>Battle stat</th><th>Current</th><th>After</th></tr></thead><tbody>{comparison.rows.filter(r=>r.delta!==0).map(r=><tr key={r.key}><th>{r.label}</th><td>{r.current}</td><td>{r.after}</td></tr>)}</tbody></table></>}<button disabled={copy.owner?!owner:!creature} onClick={()=>review(copy.owner?'remove':'equip')}>{copy.owner?'Remove this piece':'Review equip'}</button><p className={styles.note}>Equipment changes affect newly started battles. An existing battle keeps its starting loadout. Base creature stats and innate grades are unchanged.</p></GameDialog>}
   {popup==='upgrade'&&quote&&<UpgradeReview quote={quote} gold={save.currencies.gold} stale={copy?.level!==reviewLevel} onClose={()=>setPopup(null)} onConfirm={confirm}/>}
   {(popup==='equip'||popup==='remove')&&quote&&<GameDialog title={popup==='equip'?'Confirm equipment':'Confirm equipment removal'} onClose={()=>setPopup(null)}><p>{popup==='equip'?`Equip ${quote.item.name} +${copy!.level} (#${copy!.id.replace('gear_','')}) on ${creature?.nickname}? The replaced piece returns to inventory with its upgrades.`:`Return ${quote.item.name} +${copy!.level} to inventory with its upgrades intact?`}</p><EquipmentStats item={quote.item} copy={copy}/><div className={styles.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button onClick={confirm}>Confirm {popup==='equip'?'equip':'removal'}</button></div></GameDialog>}
