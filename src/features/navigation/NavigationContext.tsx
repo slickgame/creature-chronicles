@@ -11,7 +11,9 @@ export type NavigationView =
   | "advisor"
   | "guide"
   | null;
+export type NightReturn = {screen:string;tab:string;entry:number}|null;
 const Context = createContext<{
+  nightReturn:NightReturn;setNightReturn:Dispatch<SetStateAction<NightReturn>>;
   growthPage:number|null;setGrowthPage:Dispatch<SetStateAction<number|null>>;
   ranchPlot:number;setRanchPlot:Dispatch<SetStateAction<number>>;
   ranchView:'map'|'house';setRanchView:Dispatch<SetStateAction<'map'|'house'>>;
@@ -19,12 +21,13 @@ const Context = createContext<{
   ranchSaveId:string;setRanchSaveId:Dispatch<SetStateAction<string>>;
   view: NavigationView;
   open: (view: NavigationView) => void;
-}>({growthPage:null,setGrowthPage:()=>{},view:null,open:()=>{},ranchPlot:0,setRanchPlot:()=>{},ranchView:'map',setRanchView:()=>{},ranchHousePage:0,setRanchHousePage:()=>{},ranchSaveId:'',setRanchSaveId:()=>{}});
+}>({nightReturn:null,setNightReturn:()=>{},growthPage:null,setGrowthPage:()=>{},view:null,open:()=>{},ranchPlot:0,setRanchPlot:()=>{},ranchView:'map',setRanchView:()=>{},ranchHousePage:0,setRanchHousePage:()=>{},ranchSaveId:'',setRanchSaveId:()=>{}});
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [ranchPlot,setRanchPlot]=useState(0),[ranchView,setRanchView]=useState<'map'|'house'>('map'),[ranchHousePage,setRanchHousePage]=useState(0),[ranchSaveId,setRanchSaveId]=useState('');
+  const [nightReturn,setNightReturn]=useState<NightReturn>(null);
   const [growthPage,setGrowthPage]=useState<number|null>(null);
   const [view, open] = useState<NavigationView>(null);
-  return <Context.Provider value={{ growthPage,setGrowthPage,view, open, ranchPlot,setRanchPlot,ranchView,setRanchView,ranchHousePage,setRanchHousePage,ranchSaveId,setRanchSaveId }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ nightReturn,setNightReturn,growthPage,setGrowthPage,view, open, ranchPlot,setRanchPlot,ranchView,setRanchView,ranchHousePage,setRanchHousePage,ranchSaveId,setRanchSaveId }}>{children}</Context.Provider>;
 }
 export function useNavigation() {
   return useContext(Context);

@@ -1,0 +1,37 @@
+"use client";
+import {useMemo,useState} from 'react';
+import {useGameContext} from '@/state/GameProvider';
+import {useNavigation} from './NavigationContext';
+import {GameDialog} from '@/features/ui/GameDialog';
+import {getNightCareReview} from '@/data/nightCareReview';
+import {getGameplayArtSet} from '@/data/baseGameplayArt';
+import {gameplayArt} from '@/data/creatureGameplayArt';
+import {RanchIcon} from '@/features/ui/RanchIcon';
+import s from './NightCareReview.module.css';
+const TABS=['Tonight','Food','Recovery','Timers'];
+export function NightCareReview({onClose,onSleep}:{onClose:()=>void;onSleep:()=>void}){
+ const game=useGameContext(),nav=useNavigation();
+ const [tab,setTab]=useState(()=>TABS.includes(nav.nightReturn?.tab??'')?nav.nightReturn!.tab:'Tonight');
+ const [entry,setEntry]=useState(nav.nightReturn?.entry??0),[small,setSmall]=useState(false);
+ const review=useMemo(()=>game.currentSave?getNightCareReview(game.currentSave):null,[game.currentSave]);
+ if(!review)return null;
+ const creatureIndex=Math.min(entry,Math.max(0,review.creatures.length-1)),crew=review.creatures[creatureIndex];
+ const timerIndex=Math.min(entry,Math.max(0,review.timers.length-1)),timer=review.timers[timerIndex];
+ const illustrated=tab==='Recovery'?crew:review.creatures.find(c=>!c.away)??crew;
+ const art=illustrated?(illustrated.away?gameplayArt(illustrated.before):getGameplayArtSet(illustrated.before)?.sleeping??gameplayArt(illustrated.before)):null;
+ const visit=(destination:'food'|'supplies'|'builder'|'training'|'nursery'|'office')=>{
+  nav.setNightReturn({screen:game.appScreen,tab,entry});nav.open(null);
+  if(destination==='builder'){window.localStorage.setItem('creature-chronicles-open-builder-yard','1');game.goToTown();return;}
+  ({food:game.goToRanchJobs,supplies:game.goToSupplyDepot,training:game.goToTrainingGrounds,nursery:game.goToNursery,office:game.goToRanchOffice})[destination]();
+ };
+ return <GameDialog fullScreen title="Tonight at the ranch" onClose={onClose}><main className={`${s.night} ${small?s.compact:''}`} data-night-review>
+ <header><button onClick={onClose}>Keep Playing</button><h1>Tonight at the ranch</h1><button aria-expanded={!small} onClick={()=>setSmall(v=>!v)}>{small?'Expand art':'Minimize art'}</button></header>
+ <section className={s.workspace}><aside className={s.art}>{art&&<img src={art} alt={`${illustrated.before.nickname} ${illustrated.away?'at training':'resting'}`}/>}<p>Day {game.currentSave!.dayState.dayNumber} → {review.nextDay}<br/>{illustrated?.away?'Away with Rhea':'A quiet night at home'}</p></aside><article className={s.paper}>
+ <nav aria-label="Night review pages">{TABS.map(t=><button key={t} aria-pressed={tab===t} onClick={()=>{setTab(t);setEntry(0);}}>{t}</button>)}</nav><h2>{tab==='Tonight'?'Before the lights go out':tab==='Food'?'Food coverage':tab==='Recovery'?'Projected recovery':'Ready after sleep'}</h2>
+ {tab==='Tonight'&&<><div className={s.summary}><p><RanchIcon name="feed"/><span>Food tonight<strong>{review.covered} / {review.required} covered</strong></span></p><p><RanchIcon name="moon"/><span>Player Energy<strong>{review.playerEnergy} / {review.playerMaxEnergy}</strong></span></p><p><RanchIcon name="house"/><span>Timers ready after sleep<strong>{review.timers.filter(t=>t.ready).length}</strong></span></p></div><p className={review.shortage?s.warning:s.good}>{review.shortage?`Short by ${review.shortage} food units. Review Food before sleeping.`:'Food needs are covered in this projection.'}</p><p>{review.taxDue?`${review.tax} Gold tax due tonight · ${review.gold} Gold currently available.`:'Work rewards are already in storage. Food is consumed overnight; training, eggs and construction advance.'}</p><small>Recovery is projected from the current ranch. The morning report confirms overnight events and final results.</small></>}
+ {tab==='Food'&&<><dl><div><dt>Needed</dt><dd>{review.required}</dd></div><div><dt>Covered</dt><dd>{review.covered}</dd></div><div><dt>Shortfall</dt><dd>{review.shortage}</dd></div></dl><p>Balanced rations: {review.rations} stored · {review.reservedRations} reserved. Legacy Feed used: {review.legacyUsed}.</p><p>Ingredient feeding is <strong>{review.ingredientFeeding?'enabled':'off'}</strong>. Reserved food stays protected. Creatures away at training eat with Rhea.</p><small>Uses the actual overnight projection, including earned daily rewards processed before feeding. No future gathering or cooking is assumed.</small><div className={s.links}><button onClick={()=>visit('food')}>Gather, cook & reserves</button><button onClick={()=>visit('supplies')}>Pella · Rations</button></div></>}
+ {tab==='Recovery'&&(crew?<><label>Creature<select aria-label="Recovery creature" value={creatureIndex} onChange={e=>setEntry(Number(e.target.value))}>{review.creatures.map((c,i)=><option key={c.before.creatureId} value={i}>{c.before.nickname}{c.away?' · With Rhea':''}</option>)}</select></label><dl><div><dt>Energy</dt><dd>{crew.before.energy} → {crew.after.energy}</dd></div><div><dt>Hearts</dt><dd>{crew.before.hearts} → {crew.after.hearts}</dd></div><div><dt>Affection</dt><dd>{crew.before.affection} → {crew.after.affection}</dd></div></dl><p>{crew.away?'At Training Grounds. Home recovery and feeding do not apply; collect completed training from Rhea.':'Projected with food coverage, recovery talents and ranch condition included.'}</p><p>{review.conditionPenalty?`Ranch condition: ${review.conditionPenalty}% recovery penalty in this projection.`:'No ranch condition recovery penalty in this projection.'}</p><div className={s.links}><button onClick={()=>visit(crew.away?'training':'food')}>{crew.away?'Visit Rhea':'Manage food & care'}</button><button onClick={()=>visit('office')}>Ranch repairs</button></div><div className={s.pager}><button disabled={creatureIndex===0} onClick={()=>setEntry(creatureIndex-1)}>‹ Creature</button><span>{creatureIndex+1} / {review.creatures.length}</span><button disabled={creatureIndex===review.creatures.length-1} onClick={()=>setEntry(creatureIndex+1)}>Creature ›</button></div></>:<p>No resident creatures to review.</p>)}
+ {tab==='Timers'&&(timer?<><label>Work order or care timer<select aria-label="Care timer" value={timerIndex} onChange={e=>setEntry(Number(e.target.value))}>{review.timers.map((t,i)=><option key={i} value={i}>{t.title}</option>)}</select></label><p className={timer.ready?s.good:s.status}>{timer.ready?'Ready by tomorrow morning':'Still in progress tomorrow'}</p><p>{timer.detail}</p><p>Construction fees are already paid. Sleep advances the clock; it does not charge the construction fee again.</p><button onClick={()=>visit(timer.destination)}>Open {timer.destination==='builder'?'Petra’s work orders':timer.destination==='training'?'Training Grounds':'Nursery'}</button><div className={s.pager}><button disabled={timerIndex===0} onClick={()=>setEntry(timerIndex-1)}>‹ Timer</button><span>{timerIndex+1} / {review.timers.length}</span><button disabled={timerIndex===review.timers.length-1} onClick={()=>setEntry(timerIndex+1)}>Timer ›</button></div></>:<><p>No construction, training or nursery timers to review.</p><div className={s.links}><button onClick={()=>visit('builder')}>Visit Petra</button><button onClick={()=>visit('nursery')}>Visit Nursery</button></div></>)}
+ <footer><small>Advance to Ranch Day {review.nextDay}</small><button data-tutorial-id="ranch-end-day" onClick={onSleep}>Sleep & Advance Day</button></footer>
+ </article></section></main></GameDialog>;
+}

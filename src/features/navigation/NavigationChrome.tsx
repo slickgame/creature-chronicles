@@ -1,7 +1,7 @@
 "use client";
 
-import {getVariantDefinition} from "@/data/creatures";
-import {getGameplayArtSet} from "@/data/baseGameplayArt";
+import {RanchReview} from "@/features/ranch/RanchReview";
+import {NightCareReview} from "./NightCareReview";
 import { useEffect, useRef, useState } from "react";
 import { RanchJournal } from "@/features/ranch/RanchJournal";
 import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
@@ -14,19 +14,21 @@ import {
   enterEveningReview,
 } from "@/data/ranch-day/ranchDayState";
 import { LedgerPanel } from "./LedgerPanel";
-import { RanchLedger } from "./RanchLedger";
 import { NavigationIcon } from "./NavigationIcon";
 import styles from "./Navigation.module.css";
 
 export function NavigationChrome() {
   const game = useGameContext();
-  const { view, open, setRanchView, setRanchPlot } = useNavigation();
+  const { view, open, setRanchView, setRanchPlot, nightReturn, setNightReturn } = useNavigation();
   const [report, setReport] = useState<DayAdvanceResult | null>(null);
   const sleeping = useRef(false);
+  const previousScreen=useRef(game.appScreen);
   useEffect(() => {
-    open(null);
+    if(previousScreen.current===game.appScreen)return;
+    previousScreen.current=game.appScreen;
+    open(nightReturn?.screen===game.appScreen?"end-day":null);
     setReport(null);
-  }, [game.appScreen, open]);
+  }, [game.appScreen, open, nightReturn]);
   useEffect(() => {
     const save = game.currentSave;
     if (view === "end-day" && save) {
@@ -71,6 +73,7 @@ export function NavigationChrome() {
   if (!game.currentSave) return null;
   const save = game.currentSave;
   function closeReview() {
+    setNightReturn(null);
     game.saveCurrentGame(cancelEveningReview(save));
     open(null);
   }
@@ -81,6 +84,7 @@ export function NavigationChrome() {
   function sleep() {
     if (sleeping.current) return;
     sleeping.current = true;
+    setNightReturn(null);
     try {
       const result = game.advanceDay();
       if (result) {
@@ -191,24 +195,7 @@ export function NavigationChrome() {
       {view === "ledger" && (
         <LedgerPanel />
       )}
-      {view === "end-day" && (
-        <GameDialog title="End Day?" onClose={closeReview}>
-          <div className={styles.restingCrew}>{[...new Map((save?.creatures??[]).map(c=>[c.variantId,c])).values()].map(c=>{const art=getGameplayArtSet(c);return art?<img key={c.variantId} src={art.sleeping} alt={`${getVariantDefinition(c.variantId).name} resting`}/>:null;})}</div><RanchLedger endDay />
-          <div className={styles.actions}>
-            <button type="button" data-initial-focus onClick={closeReview}>
-              Keep Playing
-            </button>
-            <button
-              type="button"
-              className={styles.primary}
-              data-tutorial-id="ranch-end-day"
-              onClick={sleep}
-            >
-              Sleep & Advance Day
-            </button>
-          </div>
-        </GameDialog>
-      )}
+      {view === "end-day" && <NightCareReview onClose={closeReview} onSleep={sleep}/>}
       {view === "travel" && (
         <GameDialog title="Travel" onClose={() => open(null)}>
           <div className={styles.menuGrid}>
@@ -240,35 +227,8 @@ export function NavigationChrome() {
           <RanchAdvisorOverlay embedded />
         </GameDialog>
       )}
-      {report && (
-        <GameDialog
-          title="Morning Report"
-          onClose={() => {
-            setReport(null);
-            open("ledger");
-          }}
-          wide
-        >
-          <p>
-            {report.previousDateLabel} → {report.nextDateLabel}
-          </p>
-          <ul className={styles.reportList}>
-            {report.summaryItems.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ul>
-          <button
-            type="button"
-            className={styles.primary}
-            onClick={() => {
-              setReport(null);
-              open("ledger");
-            }}
-          >
-            Review Morning Brief
-          </button>
-        </GameDialog>
-      )}
+      {report && <RanchReview title="Morning Report" art="/images/ui/ranch-v3/house.webp" onClose={()=>{setReport(null);open("ledger");}} pages={Array.from({length:Math.max(1,Math.ceil(report.summaryItems.length/2))},(_,i)=>({title:`${report.previousDateLabel} → ${report.nextDateLabel}`,content:<><p>Night report · {i+1} / {Math.max(1,Math.ceil(report.summaryItems.length/2))}</p>{report.summaryItems.slice(i*2,i*2+2).map((item,n)=><p key={n}>{item}</p>)}</>}))} actions={<button onClick={()=>{setReport(null);open("ledger");}}>Review Morning Brief</button>}/>}
+
     </>
   );
 }
