@@ -4,20 +4,23 @@ import {useGameContext} from '@/state/GameProvider';
 import {useNavigation} from '@/features/navigation/NavigationContext';
 import {GameDialog} from '@/features/ui/GameDialog';
 import {RanchIcon} from '@/features/ui/RanchIcon';
+import {RanchGrowthPlanner} from './RanchGrowthPlanner';
 import styles from './RanchHouse.module.css';
 const PAGES=['Management','Care','Records','Rest'];
 export function RanchHouse(){
  const game=useGameContext(),nav=useNavigation();const [small,setSmall]=useState(false);
  const page=nav.ranchHousePage;
+ if(nav.growthPage!==null)return <RanchGrowthPlanner/>;
  const actions=page===0?[
  {label:'Farm work & production',icon:'tools' as const,hint:'Gather, cook, craft and maintain fortifications.',action:game.goToRanchJobs},
  {label:'Ranch upgrades & repairs',icon:'house' as const,hint:'Habitat capacity, nursery, breeding comfort and recovery.',action:game.goToRanchOffice},
  {label:'Storage & inventory',icon:'bag' as const,hint:'Resources, reserves, trade and owned items.',action:()=>nav.open('inventory')},
  ]:page===1?[
+ {label:'Growth planner',icon:'house' as const,hint:'Compare new housing, adoptions and food reserves.',action:()=>nav.setGrowthPage(0)},
  {label:'Habitat fields',icon:'paw' as const,hint:'Visit owned habitats or plan new housing with Petra.',action:()=>{nav.setRanchPlot(1);nav.setRanchView('map');}},
- {label:'Creature roster',icon:'paw' as const,hint:'Profiles, equipment, care and creature records.',action:game.goToCollection},
  {label:'Egg nursery',icon:'egg' as const,hint:'Pregnancies, incubation and hatching.',action:game.goToNursery},
  ]:page===2?[
+ {label:'Creature roster',icon:'paw' as const,hint:'Profiles, equipment, care and creature records.',action:game.goToCollection},
  {label:'Ranch ledger',icon:'tax' as const,hint:'Daily needs, food, security and ranch records.',action:()=>nav.open('ledger')},
  {label:'Story journal',icon:'nest' as const,hint:'Chapter progress and recorded events.',action:()=>nav.open('journal')},
  ]:[{label:'Review & End Day',icon:'moon' as const,hint:'Review food, recovery and construction before sleeping.',action:()=>nav.open('end-day')}];

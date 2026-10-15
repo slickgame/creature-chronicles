@@ -95,7 +95,7 @@ export function MarketScreen() {
 
   return <main className={`${ui.interior} ${styles.hearth}`} data-hearthside>
     <section className={`${ui.page} ${styles.layout}`}>
-      <header className={ui.heading}><h1>Vale&apos;s Adoption Hearth</h1><ScreenNavigation onBack={goToTown} backLabel="Town" /></header>
+      <header className={ui.heading}><h1>Vale&apos;s Adoption Hearth</h1><ScreenNavigation /></header>
       <section className={`${ui.summary} ${styles.resources}`} aria-label="Hearth resources">
         <div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div>
         <div><RanchIcon name="sun" /><span>Week</span><strong>{market.weekNumber}</strong></div>

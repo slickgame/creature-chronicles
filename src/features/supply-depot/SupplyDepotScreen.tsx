@@ -17,7 +17,7 @@ type Shelf = "all" | "ranch" | "special";
 type Popup = "quests" | "profile" | "talk" | "ledger" | "usage" | "purchase" | "result" | null;
 
 export function SupplyDepotScreen() {
-  const { currentSave: save, buySupplyDepotItem, goToTown } = useGameContext();
+  const { currentSave: save, buySupplyDepotItem } = useGameContext();
   const [shelf, setShelf] = useState<Shelf>("all");
   const [selectedId, setSelectedId] = useState("feed_bundle");
   const [popup, setPopup] = useState<Popup>(null);
@@ -61,7 +61,7 @@ export function SupplyDepotScreen() {
   }
   return <main className={`${ui.interior} ${styles.depot}`} data-pellas-counter>
     <section className={ui.page}>
-      <header className={ui.heading}><h1>The Supply Depot</h1><ScreenNavigation onBack={goToTown} backLabel="Town" /></header>
+      <header className={ui.heading}><h1>The Supply Depot</h1><ScreenNavigation /></header>
       <section className={`${ui.summary} ${styles.resources}`} aria-label="Ranch supplies">
         <div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div>
         <div><IllustratedIcon name="feed" /><span>Rations</span><strong>{counts.feed}</strong></div>
