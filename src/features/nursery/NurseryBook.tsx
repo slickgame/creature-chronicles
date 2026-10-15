@@ -1,0 +1,22 @@
+"use client";
+import { useState, type ReactNode } from 'react';
+import { GameDialog } from '@/features/ui/GameDialog';
+import s from './NurseryBook.module.css';
+export type NurseryPage = { key: string; title: string; content: ReactNode };
+export function NurseryPages({ pages, label = 'Care page' }: { pages: NurseryPage[]; label?: string }) {
+  const [key, setKey] = useState(pages[0]?.key ?? '');
+  const index = Math.max(0, pages.findIndex(p => p.key === key));
+  const page = pages[index];
+  return <div className={s.pages}>
+    {page ? <><label>{label}<select aria-label={label} value={page.key} onChange={e => setKey(e.target.value)}>{pages.map(p => <option key={p.key} value={p.key}>{p.title}</option>)}</select></label>
+    <article className={s.entry}><h2>{page.title}</h2>{page.content}</article>
+    <footer className={s.pager}><button disabled={!index} onClick={() => setKey(pages[index - 1].key)}>‹ Previous</button><span>{index + 1} / {pages.length}</span><button disabled={index === pages.length - 1} onClick={() => setKey(pages[index + 1].key)}>Next ›</button></footer></> : <p>No records yet.</p>}
+  </div>;
+}
+export function NurseryBook({ title, onClose, pages, art = '/images/ui/interiors-v1/atelier-egg.webp', artAlt = 'Egg in its incubation cradle', footer }: { title: string; onClose: () => void; pages: NurseryPage[]; art?: string; artAlt?: string; footer?: ReactNode }) {
+  const [small, setSmall] = useState(false);
+  return <GameDialog title={title} onClose={onClose} fullScreen><main className={`${s.shell} ${small ? s.compact : ''}`} data-nursery-book>
+    <header className={s.header}><button onClick={onClose}>← Back</button><h1>{title}</h1><button aria-expanded={!small} onClick={() => setSmall(v => !v)}>{small ? 'Expand art' : 'Minimize art'}</button></header>
+    <section className={s.workspace}><aside className={s.art}><img src={art} alt={artAlt}/></aside><div className={s.paper}><NurseryPages pages={pages}/>{footer && <div className={s.actions}>{footer}</div>}</div></section>
+  </main></GameDialog>;
+}

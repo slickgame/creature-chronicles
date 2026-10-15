@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { getBattleMove } from "@/data/battleMoves";
 import { getSpeciesDefinition } from "@/data/creatures";
 import { useGameContext } from "@/state/GameProvider";
 import type { BattleMoveInheritanceResult } from "@/types/battle";
 import type { BirthRecord, EggRecord, PregnancyRecord } from "@/types/save";
 import { NurseryScreen as LedgerNurseryScreen } from "./NurseryScreenLedger";
-import styles from "./NurseryScreenMoves.module.css";
+import { NurseryBook, type NurseryPage } from "./NurseryBook";
 
 type MoveLineageRecord = {
   recordId: string;
@@ -29,9 +29,6 @@ function inheritanceRecord(
     ? (record as PregnancyRecord).inheritance.battleMoveInheritance
     : (record as EggRecord).battleMoveInheritance;
   if (!inheritance) return null;
-  const parents = stage === "Pregnancy"
-    ? (record as PregnancyRecord)
-    : (record as EggRecord).parents;
   const parentNames = stage === "Pregnancy"
     ? `${(record as PregnancyRecord).giver.displayName} × ${(record as PregnancyRecord).receiver.displayName}`
     : `${(record as EggRecord).parents.giver.displayName} × ${(record as EggRecord).parents.receiver.displayName}`;
@@ -67,12 +64,6 @@ function birthRecord(record: BirthRecord): MoveLineageRecord | null {
   };
 }
 
-function moveNames(moveIds: readonly string[]): string {
-  return moveIds.length
-    ? moveIds.map((moveId) => getBattleMove(moveId).name).join(", ")
-    : "None";
-}
-
 export function NurseryScreen() {
   const { currentSave } = useGameContext();
   const [open, setOpen] = useState(false);
@@ -85,61 +76,23 @@ export function NurseryScreen() {
     ].filter((record): record is MoveLineageRecord => record !== null);
   }, [currentSave]);
 
-  useEffect(() => {
-    function onEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && open) setOpen(false);
-    }
-    window.addEventListener("keydown", onEscape, true);
-    return () => window.removeEventListener("keydown", onEscape, true);
-  }, [open]);
+  const pages: NurseryPage[] = records.flatMap(record => [
+    {key:`${record.stage}-${record.recordId}-summary`,title:`${record.name} · ${record.stage}`,content:<><p>{record.speciesName} · {record.parentNames}</p><p>{record.loadoutMoveIds.length} learned moves · {record.combinationMoveIds.length} combination moves</p></>},
+    ...([
+      ['Direct inheritance',record.inheritedMoveIds.filter(id=>!record.combinationMoveIds.includes(id))],
+      ['Combination moves',record.combinationMoveIds],
+      ['Starting library',record.loadoutMoveIds],
+    ] as const).flatMap(([category,ids])=> ids.length ? ids.map((id,i)=>({key:`${record.stage}-${record.recordId}-${category}-${i}`,title:`${record.name} · ${category}`,content:<><h3>{getBattleMove(id).name}</h3><p>{record.stage} · {record.parentNames}</p></>})) : [{key:`${record.stage}-${record.recordId}-${category}`,title:`${record.name} · ${category}`,content:<p>None recorded.</p>}]),
+    ...record.notes.map((note,i)=>({key:`${record.stage}-${record.recordId}-note-${i}`,title:`${record.name} · Note ${i+1}`,content:<p>{note}</p>})),
+  ]);
+  if(!pages.length)pages.push({key:'empty',title:'No move-lineage records yet',content:<p>Successful creature-to-creature conceptions retain parent moves and possible combination techniques through pregnancy, egg and hatch stages.</p>});
 
   return (
     <>
       <LedgerNurseryScreen headerLinks={currentSave ? (
         <button type="button" onClick={() => setOpen(true)}>Move Lineage {records.length ? `(${records.length})` : ""}</button>
       ) : null} />
-      {open ? (
-        <div className={styles.backdrop} role="presentation" onMouseDown={() => setOpen(false)}>
-          <section className={styles.modal} role="dialog" aria-modal="true" aria-label="Nursery move lineage" onMouseDown={(event) => event.stopPropagation()}>
-            <header className={styles.header}>
-              <div>
-                <p>Pregnancy → Egg → Hatchling</p>
-                <h1>Move Lineage</h1>
-                <span>Inherited parent moves and rare combination techniques remain attached to the offspring record through every Nursery stage.</span>
-              </div>
-              <button type="button" onClick={() => setOpen(false)}>Close</button>
-            </header>
-            <div className={styles.content}>
-              {records.length ? records.map((record) => (
-                <article key={`${record.stage}-${record.recordId}`} className={styles.card} data-ui-text-box="auto">
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <p>{record.stage} · {record.speciesName}</p>
-                      <h2>{record.name}</h2>
-                      <span>{record.parentNames}</span>
-                    </div>
-                    <strong>{record.loadoutMoveIds.length} learned</strong>
-                  </div>
-                  <dl>
-                    <div><dt>Direct inheritance</dt><dd>{moveNames(record.inheritedMoveIds.filter((moveId) => !record.combinationMoveIds.includes(moveId)))}</dd></div>
-                    <div><dt>Combination moves</dt><dd>{moveNames(record.combinationMoveIds)}</dd></div>
-                    <div><dt>Starting library</dt><dd>{moveNames(record.loadoutMoveIds)}</dd></div>
-                  </dl>
-                  <details>
-                    <summary>Inheritance notes</summary>
-                    <ul>{record.notes.map((note, index) => <li key={`${record.recordId}-${index}`}>{note}</li>)}</ul>
-                  </details>
-                </article>
-              )) : (
-                <section className={styles.emptyCard} data-ui-text-box="auto">
-                  <h2>No move-lineage records yet</h2>
-                  <p>Successful creature-to-creature conceptions will lock parent move snapshots and possible combination techniques into the pregnancy record.</p>
-                </section>
-              )}
-            </div>
-          </section>
-        </div>
-      ) : null}
+      {open ? <NurseryBook title="Move Lineage" onClose={() => setOpen(false)} pages={pages}/> : null}
     </>
   );
 }

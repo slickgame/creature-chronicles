@@ -1,330 +1,84 @@
 "use client";
-import { gameplayArt } from "@/data/creatureGameplayArt";
-import { TalentOutcome } from "@/features/creatures/TalentOutcome";
+import { useRef, useState, type ReactNode } from 'react';
+import { gameplayArt } from '@/data/creatureGameplayArt';
+import { getEggReadiness } from '@/data/nurseryCare';
+import { getEstimatedDeliveryDateLabel, getLineageRiskLabel, getPregnancyProgressPercent, suggestHatchlingName } from '@/data/nursery';
+import { getNurseryCapacity } from '@/data/ranchUpgrades';
+import { getSpeciesDefinition, getVariantDefinition } from '@/data/creatures';
+import { useGameContext } from '@/state/GameProvider';
+import { ScreenNavigation } from '@/features/navigation/ScreenNavigation';
+import { useNavigation } from '@/features/navigation/NavigationContext';
+import type { CreatureRecord } from '@/types/creature';
+import type { EggRecord } from '@/types/save';
+import { NurseryBook, type NurseryPage } from './NurseryBook';
+import s from './NurseryBook.module.css';
 
-import { type ReactNode, useMemo, useState } from "react";
-import {
-  NURSERY_ASSETS,
-  getEstimatedDeliveryDateLabel,
-  getLineageRiskLabel,
-  getPregnancyProgressPercent,
-  suggestHatchlingName,
-} from "@/data/nursery";
-import { getNurseryCapacity } from "@/data/ranchUpgrades";
-import { CREATURE_PLACEHOLDER_IMAGE, getSpeciesDefinition, getVariantDefinition } from "@/data/creatures";
-import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
-import { useGameContext } from "@/state/GameProvider";
-import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
-import type { CreatureRecord } from "@/types/creature";
-import type { EggId } from "@/types/ids";
-import type {
-  BirthRecord,
-  DayState,
-  EggRecord,
-  PregnancyRecord,
-} from "@/types/save";
-import { GameDialog } from "@/features/ui/GameDialog";
-import { IllustratedIcon } from "@/features/ui/IllustratedIcon";
-import { RanchIcon } from "@/features/ui/RanchIcon";
-import { PagedItems } from "@/features/ui/PagedItems";
-import ui from "@/features/ui/InteriorShell.module.css";
-import styles from "./NurseryScreen.module.css";
-
-const STAT_LABELS = {
-  STR: "Strength",
-  DEX: "Dexterity",
-  STA: "Stamina",
-  CHA: "Charm",
-  WIL: "Willpower",
-  FER: "Fertility",
-} as const;
-
-type HatchResult = { egg: EggRecord; creature: CreatureRecord };
-
-export function NurseryScreen({ headerLinks }: { headerLinks?: ReactNode }) {
-  const {
-    currentSave,
-    goToRanch,
-    goToBreeding,
-    hatchReadyEgg,
-    removeNurseryEgg,
-    renameCreature,
-  } = useGameContext();
-
-  const pregnancies = currentSave?.pregnancies ?? [];
-  const eggs = currentSave?.eggs ?? [];
-  const birthHistory = currentSave?.birthHistory ?? [];
-  const nurseryCapacity = currentSave ? getNurseryCapacity(currentSave) : 6;
-  const activePregnancies = pregnancies.filter(
-    (pregnancy) => pregnancy.status === "pregnant",
-  );
-  const activeEggs = eggs.filter((egg) => egg.status !== "hatched").sort((a, b) => Number(b.status === "ready") - Number(a.status === "ready") || a.daysRemaining - b.daysRemaining);
-  const legacyHatchedEggs = eggs.filter((egg) => egg.status === "hatched");
-  const readyEggs = activeEggs.filter((egg) => egg.status === "ready");
-
-  const [selectedEggId, setSelectedEggId] = useState<EggId | null>(
-    readyEggs[0]?.eggId ?? activeEggs[0]?.eggId ?? null,
-  );
-  const [showEggPicker, setShowEggPicker] = useState(false);
-  const [showEggDetail, setShowEggDetail] = useState(true);
-  const [activeTab, setActiveTab] = useState<"eggs" | "pregnancies" | "history">("eggs");
-  const [pendingRemoval, setPendingRemoval] = useState<{egg: EggRecord; mode: "release" | "donate"} | null>(null);
-  const [hatchName, setHatchName] = useState("");
-  const [hatchResult, setHatchResult] = useState<HatchResult | null>(null);
-  const [revealName, setRevealName] = useState("");
-  const [showMessage, setShowMessage] = useState(false);
-  const [message, setMessage] = useState(
-    "",
-  );
-
-  const selectedEgg = useMemo(
-    () =>
-      activeEggs.find((egg) => egg.eggId === selectedEggId) ??
-      activeEggs[0] ??
-      null,
-    [activeEggs, selectedEggId],
-  );
-
-  if (!currentSave) {
-    return (
-      <main className={styles.emptyScreen}>
-        <section className={styles.emptyPanel}>
-          <h1>No active save</h1>
-          <p>Load or create a save before using the Egg Nursery.</p>
-          <button type="button" onClick={goToRanch}>
-            Back to Ranch
-          </button>
-        </section>
-      </main>
-    );
-  }
-
-  function handleHatch(egg: EggRecord) {
-    const finalName =
-      hatchName.trim() || egg.suggestedName || suggestHatchlingName(egg);
-    const creature = hatchReadyEgg(egg.eggId, finalName);
-    if (!creature) {
-      setMessage("This egg needs a ready incubation timer and an owned habitat with an open space. Petra builds missing habitats in Builder’s Yard.");setShowMessage(true);
-      return;
-    }
-    setHatchName("");
-    setRevealName(creature.nickname);
-    setHatchResult({ egg, creature });
-    setSelectedEggId(null);
-    setMessage(
-      `${creature.nickname} hatched. The birth ledger was updated automatically.`,
-    );
-  }
-
-  function handleConfirmReveal() {
-    if (!hatchResult) return;
-    const nextName = revealName.trim();
-    if (nextName && nextName !== hatchResult.creature.nickname) {
-      renameCreature(hatchResult.creature.creatureId, nextName);
-    }
-    setMessage(
-      `${nextName || hatchResult.creature.nickname} joined the ranch and remains in the nursery birth ledger.`,
-    );
-    setHatchResult(null);
-  }
-
-  function handleRemoveEgg(egg: EggRecord, mode: "release" | "donate") {
-    removeNurseryEgg(egg.eggId, mode);
-    setSelectedEggId(null);
-    setMessage(
-      mode === "donate"
-        ? "Egg donated for 75 Gold and 1 GP."
-        : "Egg released from the nursery.",
-    );
-  }
-
-  return (
-    <main className={`${ui.interior} ${styles.interior}`}>
-      <div className={ui.page}>
-        <header className={ui.heading}><div><p className={ui.eyebrow}>A little care. A new beginning.</p><h1>Egg Nursery</h1></div><ScreenNavigation>{headerLinks}</ScreenNavigation></header>
-        <section className={`${ui.summary} ${styles.summary}`} aria-label="Nursery status"><div><span>Ready to hatch</span><strong>{readyEggs.length}</strong></div><div><span>Incubating</span><strong>{activeEggs.length - readyEggs.length}</strong></div><div><span>Pregnancies</span><strong>{activePregnancies.length}</strong></div><div><span>Nursery spaces</span><strong>{activeEggs.length}/{nurseryCapacity}</strong></div></section>
-        <nav className={`${ui.paper} ${styles.tabs}`} aria-label="Nursery sections">
-          <button type="button" aria-pressed={activeTab === "eggs"} onClick={() => setShowEggPicker(true)}>Eggs ({activeEggs.length})</button>
-          <button type="button" aria-pressed={activeTab === "pregnancies"} onClick={() => setActiveTab("pregnancies")}>Pregnancies ({activePregnancies.length})</button>
-          <button type="button" aria-pressed={activeTab === "history"} onClick={() => setActiveTab("history")} aria-label={`Birth History (${birthHistory.length || legacyHatchedEggs.length})`}>Births ({birthHistory.length || legacyHatchedEggs.length})</button>
-        </nav>
-
-        <div className={styles.workspace} data-detail={showEggDetail && Boolean(selectedEgg)}>
-          <aside className={`${ui.paper} ${styles.eggList}`}><h2>Eggs in your care</h2>
-            {activeEggs.length ? <PagedItems label="Eggs" rowHeight={114} items={activeEggs.map(egg => <button type="button" key={egg.eggId} className={`${styles.eggListCard} ${selectedEgg?.eggId === egg.eggId ? styles.selectedEgg : ""}`} aria-pressed={selectedEgg?.eggId === egg.eggId} onClick={() => {setSelectedEggId(egg.eggId);setHatchName("");setShowEggDetail(true);}}><img src="/images/ui/atelier-v1/egg.webp" alt="" /><span><strong>{egg.suggestedName || suggestHatchlingName(egg)}</strong><span>{egg.rarity} · {getSpeciesDefinition(egg.speciesId).name}</span><em>{egg.status === "ready" ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</em></span></button>)} /> : <p className={styles.emptyText}>No eggs in the nursery yet.</p>}
-          </aside>
-          <section className={`${ui.paper} ${styles.selectedPanel}`} aria-label="Selected egg">
-            {selectedEgg ? <button type="button" className={styles.mobileBack} onClick={() => setShowEggDetail(false)}>← All Eggs ({activeEggs.length})</button> : null}
-            {selectedEgg ? <EggDetail key={selectedEgg.eggId} egg={selectedEgg} hatchName={hatchName} onHatchNameChange={setHatchName} onHatch={handleHatch} onRemove={(egg,mode) => setPendingRemoval({egg,mode})} /> : <div className={styles.emptyChamber}><RanchIcon name="nest" className={styles.emptyNest} /><h2>A new beginning awaits</h2><p>Successful creature-receiver breeding starts a pregnancy. Sleep until delivery, then care for the egg until it is ready.</p><button className={ui.primary} type="button" onClick={goToBreeding}>Visit Breeding</button></div>}
-          </section>
-        </div>
-        {activeTab === "pregnancies" ? <GameDialog title="Pregnancies" onClose={() => setActiveTab("eggs")}><section className={styles.records}><h2>Pending Births</h2>{activePregnancies.length ? activePregnancies.map(pregnancy => <PregnancyCard key={pregnancy.pregnancyId} pregnancy={pregnancy} dayState={currentSave.dayState} />) : <p>No active pregnancies. Successful creature-receiver breeding attempts create one.</p>}<p className={styles.sleepNote}>Delivery timers advance when you sleep.</p></section></GameDialog> : null}
-        {activeTab === "history" ? <GameDialog title="Birth History" onClose={() => setActiveTab("eggs")}><section className={styles.records}><h2>Birth History</h2>{birthHistory.length ? birthHistory.map(birth => <BirthHistoryCard key={birth.birthId} birth={birth} />) : legacyHatchedEggs.length ? legacyHatchedEggs.map(egg => <LegacyBirthCard key={egg.eggId} egg={egg} />) : <p>Hatched offspring will be recorded here permanently.</p>}</section></GameDialog> : null}
-      </div>
-      {showEggPicker ? <GameDialog title="Choose an Egg" onClose={() => setShowEggPicker(false)}><div className={styles.eggChoices}>{activeEggs.length ? activeEggs.map(egg => <button key={egg.eggId} type="button" onClick={() => {setSelectedEggId(egg.eggId);setHatchName("");setShowEggDetail(true);setShowEggPicker(false);}}>{egg.suggestedName || suggestHatchlingName(egg)} · {egg.status === "ready" ? "Ready to Hatch" : `${egg.daysRemaining} days remaining`}</button>) : <p>No active eggs.</p>}</div></GameDialog> : null}
-      {showMessage ? <GameDialog title="Nursery Notice" onClose={() => setShowMessage(false)}><p role="status">{message}</p></GameDialog> : null}
-      {pendingRemoval ? <GameDialog title={pendingRemoval.mode === "donate" ? "Donate Egg?" : "Release Egg?"} onClose={() => setPendingRemoval(null)}><p>This removes {pendingRemoval.egg.suggestedName || suggestHatchlingName(pendingRemoval.egg)} from your nursery.{pendingRemoval.mode === "donate" ? " You will receive 75 Gold and 1 GP." : " This cannot be undone."}</p><div className={ui.actionRow}><button type="button" onClick={() => setPendingRemoval(null)}>Cancel</button><button type="button" onClick={() => {handleRemoveEgg(pendingRemoval.egg,pendingRemoval.mode);setHatchName("");setPendingRemoval(null);}}>{pendingRemoval.mode === "donate" ? "Donate Egg" : "Release Egg"}</button></div></GameDialog> : null}
-      {hatchResult ? <HatchRevealModal result={hatchResult} renameValue={revealName} onRenameValueChange={setRevealName} onConfirm={handleConfirmReveal} /> : null}
-    </main>
-  );
+const EGG_ART = '/images/ui/interiors-v1/atelier-egg.webp';
+const STAT_LABELS = { STR:'Strength', DEX:'Dexterity', STA:'Stamina', CHA:'Charm', WIL:'Willpower', FER:'Fertility' } as const;
+type HatchResult = {egg:EggRecord;creature:CreatureRecord};
+function statsPage(stats: Record<string,number>, grades: Record<string,string>): NurseryPage {
+  return {key:'stats',title:'Stats & grades',content:<dl className={s.stats}>{Object.entries(stats).map(([key,value])=><div key={key}><dt>{STAT_LABELS[key as keyof typeof STAT_LABELS] ?? key}</dt><dd>{value} <small>Grade {grades[key]}</small></dd></div>)}</dl>};
 }
-
-function PregnancyCard({
-  pregnancy,
-  dayState,
-}: {
-  pregnancy: PregnancyRecord;
-  dayState: DayState;
-}) {
-  const progress = getPregnancyProgressPercent(pregnancy);
-  const estimatedDate = getEstimatedDeliveryDateLabel(
-    dayState,
-    pregnancy.daysRemaining,
-  );
-
-  return (
-    <article className={styles.pregnancyCard}>
-      <img src={NURSERY_ASSETS.pregnancy} alt="" />
-      <div>
-        <strong>{pregnancy.receiver.displayName}</strong>
-        <span>
-          {pregnancy.daysRemaining} day{pregnancy.daysRemaining === 1 ? "" : "s"} until egg
-        </span>
-        <em>Expected {estimatedDate}</em>
-        <em>
-          {pregnancy.giver.displayName} × {pregnancy.receiver.displayName}
-        </em>
-        <div
-          aria-label={`${progress}% pregnancy progress`}
-          style={{
-            height: 7,
-            marginTop: 6,
-            overflow: "hidden",
-            borderRadius: 999,
-            background: "rgba(255,255,255,.13)",
-          }}
-        >
-          <span
-            style={{
-              display: "block",
-              width: `${progress}%`,
-              height: "100%",
-              borderRadius: 999,
-              background: "linear-gradient(90deg,#f5c980,#7fdbff)",
-            }}
-          />
-        </div>
-      </div>
-    </article>
-  );
+function abilityPages(abilities: EggRecord['projectedAbilities']): NurseryPage[] {
+  return abilities.length ? abilities.map((a,i)=>({key:`ability-${i}`,title:a.name,content:<><p>Grade {a.grade} · {a.source}</p><p>{a.description}</p></>})) : [{key:'abilities-empty',title:'Abilities',content:<p>No inherited ability recorded.</p>}];
 }
-
-function BirthHistoryCard({ birth }: { birth: BirthRecord }) {
-  const variant = getVariantDefinition(birth.variantId);
-  const species = getSpeciesDefinition(birth.speciesId);
-  return (
-    <article className={styles.pregnancyCard}>
-      <img src={NURSERY_ASSETS.hatch} alt="" />
-      <div>
-        <strong>{birth.nickname}</strong>
-        <span>
-          {birth.rarity} {variant.name} {species.name}
-        </span>
-        <em>Hatched Day {birth.hatchedAtDayNumber}</em>
-        <em>
-          {birth.parents.giver.displayName} × {birth.parents.receiver.displayName}
-        </em>
-        <TalentOutcome talents={birth.inheritedAbilities} />
-      </div>
-    </article>
-  );
+function notePages(notes: string[]): NurseryPage[] {
+  return notes.map((note,i)=>({key:`note-${i}`,title:`Inheritance note ${i+1}`,content:<p>{note}</p>}));
 }
-
-function LegacyBirthCard({ egg }: { egg: EggRecord }) {
-  const variant = getVariantDefinition(egg.variantId);
-  const species = getSpeciesDefinition(egg.speciesId);
-  return (
-    <article className={styles.pregnancyCard}>
-      <img src={NURSERY_ASSETS.hatch} alt="" />
-      <div>
-        <strong>{egg.suggestedName || suggestHatchlingName(egg)}</strong>
-        <span>
-          {egg.rarity} {variant.name} {species.name}
-        </span>
-        <em>Legacy hatch record</em>
-        <em>
-          {egg.parents.giver.displayName} × {egg.parents.receiver.displayName}
-        </em>
-      </div>
-    </article>
-  );
+export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
+  const game=useGameContext(),nav=useNavigation(),save=game.currentSave;
+  const remembered=nav.nurserySelection?.saveId===save?.saveId?nav.nurserySelection:null;
+  const tab=remembered?.tab??'eggs',small=remembered?.small??false;
+  const [hatchName,setHatchName]=useState('');
+  const [detail,setDetail]=useState<{title:string;pages:NurseryPage[]}|null>(null);
+  const [pending,setPending]=useState<{egg:EggRecord;mode:'release'|'donate'}|null>(null);
+  const [result,setResult]=useState<HatchResult|null>(null),[rename,setRename]=useState('');
+  const [notice,setNotice]=useState('');
+  const busy=useRef(false);
+  if(!save)return <main className={s.shell}><header className={s.header}><h1>Egg Nursery</h1><ScreenNavigation/></header><p>No active save.</p></main>;
+  const eggs=(save.eggs??[]).filter(e=>e.status!=='hatched').sort((a,b)=>Number(b.status==='ready')-Number(a.status==='ready')||a.daysRemaining-b.daysRemaining);
+  const pregnancies=(save.pregnancies??[]).filter(p=>p.status==='pregnant');
+  const births=save.birthHistory??[],legacy=(save.eggs??[]).filter(e=>e.status==='hatched'&&!births.some(b=>b.eggId===e.eggId));
+  const change=(nextTab=tab,id='',nextSmall=small)=>{nav.setNurserySelection({saveId:save.saveId,tab:nextTab,id,small:nextSmall});if(nextSmall===small)setHatchName('');};
+  const selected=eggs.find(e=>e.eggId===remembered?.id)??eggs[0];
+  const readiness=selected?getEggReadiness(save,selected):null;
+  const visitPetra=()=>{if(selected)window.localStorage.setItem('creature-chronicles-builder-family-v1',getSpeciesDefinition(selected.speciesId).family);window.localStorage.setItem('creature-chronicles-open-builder-yard','1');game.goToTown();};
+  const hatch=(egg:EggRecord)=>{if(busy.current)return;busy.current=true;const creature=game.hatchReadyEgg(egg.eggId,hatchName.trim()||egg.suggestedName||suggestHatchlingName(egg));if(!creature){busy.current=false;setNotice('This egg cannot hatch yet. Check incubation and its target habitat.');return;}setResult({egg,creature});setRename(creature.nickname);setHatchName('');};
+  const confirmHatch=()=>{if(result&&rename.trim()&&rename.trim()!==result.creature.nickname)game.renameCreature(result.creature.creatureId,rename.trim());setResult(null);busy.current=false;};
+  const remove=()=>{if(!pending||busy.current)return;busy.current=true;game.removeNurseryEgg(pending.egg.eggId,pending.mode);setNotice(pending.mode==='donate'?'Egg donated. Added 75 Gold and 1 GP.':'Egg released from the nursery.');setPending(null);busy.current=false;};
+  const eggName=(e:EggRecord)=>e.suggestedName||suggestHatchlingName(e);
+  const selectedIndex=Math.max(0,eggs.findIndex(e=>e.eggId===selected?.eggId));
+  const pregnancy=pregnancies.find(p=>p.pregnancyId===remembered?.id)??pregnancies[0];
+  const mother=save.creatures?.find(c=>c.creatureId===pregnancy?.receiver.creatureId);
+  const selectedBirth=births.find(b=>b.birthId===remembered?.id)??(legacy.some(e=>e.eggId===remembered?.id)?undefined:births[0]);
+  const child=save.creatures?.find(c=>c.creatureId===selectedBirth?.creatureId);
+  const art=tab==='pregnancies'&&mother?gameplayArt(mother):tab==='births'&&selectedBirth?gameplayArt(child??selectedBirth):EGG_ART;
+  const summary=`${eggs.filter(e=>e.status==='ready').length} ready · ${eggs.filter(e=>e.status!=='ready').length} incubating · ${pregnancies.length} pregnancies · ${eggs.length}/${getNurseryCapacity(save)} egg spaces`;
+  const pregnancyPages: NurseryPage[]=pregnancies.map(p=>({key:p.pregnancyId,title:`${p.receiver.displayName} · ${p.daysRemaining} days`,content:<><p>{p.giver.displayName} × {p.receiver.displayName}</p><p className={s.good}>Expected {getEstimatedDeliveryDateLabel(save.dayState,p.daysRemaining)} · {p.daysRemaining} day{p.daysRemaining===1?'':'s'} until egg delivery</p><progress max={100} value={getPregnancyProgressPercent(p)} aria-label="Pregnancy progress"/><p>Sleep advances delivery. A new egg begins its own incubation timer after delivery.</p><button onClick={()=>setDetail({title:'Pregnancy inheritance',pages:[statsPage(p.inheritance.projectedStats,p.inheritance.projectedStatGrades),...abilityPages(p.inheritance.projectedAbilities),...notePages([...(p.inheritance.lineageNotes??[]),...p.inheritance.statRollNotes,...p.inheritance.abilityRollNotes])]})}>Inheritance details</button></>}));
+  const birthPages: NurseryPage[]=[...births.map(b=>({key:b.birthId,title:b.nickname,content:<><p>{b.rarity} · {getVariantDefinition(b.variantId).name} {getSpeciesDefinition(b.speciesId).name}</p><p className={s.good}>Hatched on Ranch Day {b.hatchedAtDayNumber}</p><p>{b.parents.giver.displayName} × {b.parents.receiver.displayName}</p><button onClick={()=>setDetail({title:`${b.nickname} · Birth record`,pages:[{key:'grades',title:'Inherited grades',content:<dl className={s.stats}>{Object.entries(b.inheritedStatGrades).map(([key,g])=><div key={key}><dt>{STAT_LABELS[key as keyof typeof STAT_LABELS]}</dt><dd>Grade {g}</dd></div>)}</dl>},...abilityPages(b.inheritedAbilities),...notePages([b.lineageRiskLabel??getLineageRiskLabel(b.lineageRisk),...(b.lineageTraits??[])])]})}>Birth details</button></>})),...legacy.map(e=>({key:e.eggId,title:eggName(e),content:<><p>Legacy hatch record · {getSpeciesDefinition(e.speciesId).name}</p><p>{e.parents.giver.displayName} × {e.parents.receiver.displayName}</p><p>This older save retains its original egg record.</p></>}))];
+  const records=tab==='pregnancies'?pregnancyPages:birthPages;
+  // Selection persists across source visits; each book starts at the remembered record.
+  const recordIndex=Math.max(0,records.findIndex(r=>r.key===remembered?.id));
+  const record=records[recordIndex];
+  return <main className={`${s.shell} ${small?s.compact:''}`} data-nursery>
+    <header className={s.header}><h1>Egg Nursery</h1><ScreenNavigation>{headerLinks}</ScreenNavigation><button aria-expanded={!small} onClick={()=>change(tab,remembered?.id??'',!small)}>{small?'Expand art':'Minimize art'}</button></header>
+    <section className={s.workspace}><aside className={s.art}><img src={art} alt={tab==='pregnancies'&&mother?`${mother.nickname} awaiting delivery`:tab==='births'&&selectedBirth?`${selectedBirth.nickname} full body`:'Egg in its incubation cradle'}/></aside>
+    <article className={s.paper}><p className={s.summary}>{summary}</p><nav aria-label="Nursery sections">{(['eggs','pregnancies','births'] as const).map(t=><button key={t} aria-pressed={tab===t} onClick={()=>change(t)}>{t==='eggs'?'Eggs':t==='pregnancies'?'Pregnancies':'Births'}</button>)}</nav>
+    {tab==='eggs'?(selected?<>
+      <label className={s.name}>Egg in your care<select aria-label="Egg in your care" value={selected.eggId} onChange={e=>change('eggs',e.target.value)}>{eggs.map(e=><option key={e.eggId} value={e.eggId}>{eggName(e)} · {e.status==='ready'?'Ready':`${e.daysRemaining} days`}</option>)}</select></label>
+      <div className={s.entry} data-nursery-egg><h2>{eggName(selected)}</h2><p>{selected.rarity} · {getVariantDefinition(selected.variantId).name} {getSpeciesDefinition(selected.speciesId).name}</p><p className={readiness?.canHatch?s.good:s.warning}>{readiness?.canHatch?`Ready to hatch · ${readiness.spaces} habitat space${readiness.spaces===1?'':'s'} open`:readiness?.blocker}</p>
+      {selected.status!=='ready'&&<progress aria-label="Incubation progress" max={Math.max(1,selected.totalDays)} value={Math.max(0,selected.totalDays-selected.daysRemaining)}/>}
+      {selected.status==='ready'&&readiness?.canHatch&&<label className={s.name}>Hatchling name<input aria-label="Hatchling name" value={hatchName} onChange={e=>setHatchName(e.target.value)} placeholder={eggName(selected)} maxLength={24}/></label>}
+      <div className={s.actions}><button disabled={!readiness?.canHatch} onClick={()=>hatch(selected)}>Hatch</button>{selected.status==='ready'&&!readiness?.canHatch&&<button onClick={visitPetra}>Petra · Housing</button>}<button onClick={game.goToEggAtelier}>Selene · Egg care</button></div></div>
+      <div className={s.actions}><button onClick={()=>setDetail({title:'Projected Stats & Abilities',pages:[statsPage(selected.projectedStats,selected.projectedStatGrades),...abilityPages(selected.projectedAbilities)]})}>Stats & Abilities</button><button onClick={()=>setDetail({title:'Lineage & Inheritance',pages:[{key:'parents',title:'Parents & lineage',content:<><p>{selected.parents.giver.displayName} × {selected.parents.receiver.displayName}</p><p>{selected.lineageRiskLabel??getLineageRiskLabel(selected.lineageRisk)}</p></>},...notePages([...(selected.lineageNotes??[]),...(selected.lineageTraits??[]).map(t=>`Trait marker: ${t}`),...selected.statRollNotes,...selected.abilityRollNotes,...(selected.geneticsNotes??[])])]})}>Lineage</button><button onClick={()=>setDetail({title:'Other Actions',pages:[{key:'remove',title:'Remove this egg',content:<><p>Donation gives 75 Gold and 1 GP. Release gives no reward. Both remove the egg permanently.</p><div className={s.actions}>{(['release','donate'] as const).map(mode=><button key={mode} onClick={()=>{setDetail(null);setPending({egg:selected,mode});}}>{mode==='donate'?'Donate':'Release'}</button>)}</div></>}]})}>Other Actions</button></div>
+      <div className={s.pager}><button disabled={!selectedIndex} onClick={()=>change('eggs',eggs[selectedIndex-1].eggId)}>‹ Previous</button><span>{selectedIndex+1} / {eggs.length}</span><button disabled={selectedIndex===eggs.length-1} onClick={()=>change('eggs',eggs[selectedIndex+1].eggId)}>Next ›</button></div>
+    </>:<div className={s.empty}><h2>A new beginning awaits</h2><p>Successful breeding starts a pregnancy. Sleep until delivery, then care for the egg until it is ready.</p><button onClick={game.goToBreeding}>Visit Breeding</button></div>):record?<>
+      <label className={s.name}>{tab==='pregnancies'?'Pregnancy':'Birth record'}<select aria-label={tab==='pregnancies'?'Pregnancy':'Birth record'} value={record.key} onChange={e=>change(tab,e.target.value)}>{records.map(r=><option key={r.key} value={r.key}>{r.title}</option>)}</select></label><div className={s.entry}><h2>{record.title}</h2>{record.content}</div><div className={s.pager}><button disabled={!recordIndex} onClick={()=>change(tab,records[recordIndex-1].key)}>‹ Previous</button><span>{recordIndex+1} / {records.length}</span><button disabled={recordIndex===records.length-1} onClick={()=>change(tab,records[recordIndex+1].key)}>Next ›</button></div>
+    </>:<div className={s.empty}><h2>{tab==='pregnancies'?'No active pregnancies':'No births recorded yet'}</h2><p>{tab==='pregnancies'?'Successful breeding creates a pregnancy. Delivery advances when you sleep.':'Hatched offspring appear here with their parents and inherited grades.'}</p><button onClick={game.goToBreeding}>Visit Breeding</button></div>}
+    </article></section>
+    {detail&&<NurseryBook title={detail.title} onClose={()=>setDetail(null)} pages={detail.pages}/>}
+    {pending&&<NurseryBook title={pending.mode==='donate'?'Donate Egg?':'Release Egg?'} onClose={()=>setPending(null)} pages={[{key:'confirm',title:eggName(pending.egg),content:<><p>This permanently removes the egg from your Nursery.</p><p>{pending.mode==='donate'?'Receive exactly 75 Gold and 1 GP.':'No reward is granted.'}</p></>}]} footer={<><button onClick={()=>setPending(null)}>Cancel</button><button onClick={remove}>{pending.mode==='donate'?'Confirm Donation':'Confirm Release'}</button></>}/>}
+    {notice&&<NurseryBook title="Nursery Notice" onClose={()=>setNotice('')} pages={[{key:'notice',title:'Nursery update',content:<p role="status">{notice}</p>}]}/>}
+    {result&&<NurseryBook title={`${result.creature.nickname} hatched!`} art={gameplayArt(result.creature)} artAlt={`${result.creature.nickname} full body`} onClose={confirmHatch} pages={[{key:'welcome',title:'Welcome to the ranch',content:<><p>{result.egg.parents.giver.displayName} × {result.egg.parents.receiver.displayName}</p><p className={s.good}>Joined {getSpeciesDefinition(result.creature.speciesId).name} housing · Birth recorded</p><label className={s.name}>Hatchling name<input value={rename} onChange={e=>setRename(e.target.value)} maxLength={24} placeholder={result.creature.nickname}/></label></>},statsPage(result.creature.stats,result.creature.statGrades),{key:'care',title:'First-day care',content:<dl className={s.stats}><div><dt>Energy</dt><dd>{result.creature.energy}/{result.creature.maxEnergy}</dd></div><div><dt>Hearts</dt><dd>{result.creature.hearts}/{result.creature.maxHearts}</dd></div><div><dt>Affection</dt><dd>{result.creature.affection}</dd></div></dl>},...abilityPages(result.creature.abilities),...notePages([...(result.egg.lineageNotes??[]),...result.egg.statRollNotes,...result.egg.abilityRollNotes,...(result.egg.geneticsNotes??[])])]} footer={<button onClick={confirmHatch}>Confirm Hatchling</button>}/>}
+  </main>;
 }
-
-function EggDetail({
-  egg,
-  hatchName,
-  onHatchNameChange,
-  onHatch,
-  onRemove,
-}: {
-  egg: EggRecord;
-  hatchName: string;
-  onHatchNameChange: (value: string) => void;
-  onHatch: (egg: EggRecord) => void;
-  onRemove: (egg: EggRecord, mode: "release" | "donate") => void;
-}) {
-  const [detail, setDetail] = useState<"stats" | "lineage" | "actions" | null>(null);
-  const variant = getVariantDefinition(egg.variantId);
-  const species = getSpeciesDefinition(egg.speciesId);
-  const isReady = egg.status === "ready";
-  const highestStat = Math.max(...Object.values(egg.projectedStats));
-  const statHighlights = Object.entries(egg.projectedStats)
-    .filter(([, value]) => value === highestStat)
-    .map(([statKey]) => STAT_LABELS[statKey as keyof typeof STAT_LABELS]);
-  const suggestedName = egg.suggestedName || suggestHatchlingName(egg);
-
-  return <article className={styles.eggDetail}>
-    <div className={styles.eggHero}><div className={styles.eggArtPanel}><img src="/images/ui/interiors-v1/atelier-egg.webp" alt="Egg in its incubation cradle" /></div><div><p className={ui.eyebrow}>{egg.rarity} Egg · {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}</p><h2>{suggestedName}</h2><p>{variant.name} {species.name}</p><strong className={`${styles.eggStatus} ${isReady ? styles.ready : styles.timer}`}><IllustratedIcon name={isReady ? "leaf" : "timer"} />{isReady ? "Ready to Hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`}</strong></div></div>
-    {!isReady ? <progress className={styles.incubationProgress} max={Math.max(1,egg.totalDays)} value={Math.max(0,egg.totalDays-egg.daysRemaining)} aria-label="Incubation progress" /> : null}
-    {isReady ? <div className={styles.hatchControls}><label htmlFor="hatch-name">Hatchling name<input id="hatch-name" value={hatchName} onChange={event => onHatchNameChange(event.target.value)} placeholder={suggestedName} disabled={!isReady} maxLength={24} /></label><button className={ui.primary} type="button" disabled={!isReady} onClick={() => onHatch(egg)}>Hatch</button></div> : <div className={styles.incubatingNote}><button type="button" disabled>Hatch</button><span>Incubation advances when you sleep.</span></div>}
-
-    <div className={styles.parents}><span>Parents</span><strong>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName}</strong><small>{egg.parents.giver.familyLabel} · {egg.parents.receiver.familyLabel}</small></div>
-    <div className={styles.detailActions}><button type="button" onClick={() => setDetail("stats")}>Stats & Abilities</button><button type="button" onClick={() => setDetail("lineage")}>Lineage</button><button type="button" onClick={() => setDetail("actions")}>Other Actions</button></div>
-    {detail === "stats" ? <GameDialog title="Projected Stats & Abilities" onClose={() => setDetail(null)}><p>Strongest projected stat: {statHighlights.join(", ")}</p><div className={styles.statGrid}>{Object.entries(egg.projectedStats).map(([key,value]) => <div key={key}><span>{STAT_LABELS[key as keyof typeof STAT_LABELS]}</span><strong>{value} <small>Grade {egg.projectedStatGrades[key as keyof typeof STAT_LABELS]}</small></strong></div>)}</div>{egg.projectedAbilities.length ? egg.projectedAbilities.map(ability => <div key={ability.id}><h3>{ability.name}</h3><p>Grade {ability.grade} · {ability.source}</p><p>{ability.description}</p></div>) : <p>No ability projected. Abilities mostly come from parents; new mutations are extremely rare.</p>}</GameDialog> : null}
-    {detail === "lineage" ? <GameDialog title="Lineage & Inheritance" onClose={() => setDetail(null)}><p>{variant.rarity} {variant.name} {species.name} · {egg.lineageRiskLabel ?? getLineageRiskLabel(egg.lineageRisk)}</p><ul>{[...(egg.lineageNotes ?? []),...(egg.lineageTraits ?? []).map(trait => `Trait marker: ${trait}`),...egg.statRollNotes,...egg.abilityRollNotes].map((note,index) => <li key={`${index}-${note}`}>{note}</li>)}</ul></GameDialog> : null}
-    {detail === "actions" ? <GameDialog title="Other Actions" onClose={() => setDetail(null)}><p>Remove this egg from your nursery.</p><div className={ui.actionRow}><button type="button" onClick={() => (setDetail(null),onRemove(egg,"release"))}>Release</button><button type="button" onClick={() => (setDetail(null),onRemove(egg,"donate"))}>Donate</button></div></GameDialog> : null}
-  </article>;
-}
-
-function HatchRevealModal({
-  result,
-  renameValue,
-  onRenameValueChange,
-  onConfirm,
-}: {
-  result: HatchResult;
-  renameValue: string;
-  onRenameValueChange: (value: string) => void;
-  onConfirm: () => void;
-}) {
-  const { egg, creature } = result;
-  const lineageLabel =
-    creature.lineage?.label ??
-    egg.lineageRiskLabel ??
-    getLineageRiskLabel(egg.lineageRisk);
-  const notes = [
-    ...(egg.lineageNotes ?? []),
-    ...(egg.statRollNotes ?? []),
-    ...(egg.abilityRollNotes ?? []),
-  ].slice(0, 12);
-
-  return <GameDialog title={`${creature.nickname} hatched!`} onClose={onConfirm} wide>
-    <div className={styles.reveal}><img className={styles.hatchPortrait} src={gameplayArt(creature)} alt={`${creature.nickname} full body`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /><p>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName} · {lineageLabel}</p>
-      <TalentOutcome talents={creature.abilities} notes={egg.abilityRollNotes} />
-      <SharedCreatureDetail creature={creature} mode="full" showActions={false} dossier />
-      <details><summary>Roll Notes</summary><ul>{notes.length ? notes.map((note,index) => <li key={`${index}-${note}`}>{note}</li>) : <li>No additional roll notes recorded.</li>}</ul></details>
-      <div className={styles.hatchControls}><label>Hatchling name<input value={renameValue} onChange={event => onRenameValueChange(event.target.value)} maxLength={24} placeholder={creature.nickname} /></label><button type="button" onClick={onConfirm}>Confirm Hatchling</button></div>
-    </div>
-  </GameDialog>;
-}
-

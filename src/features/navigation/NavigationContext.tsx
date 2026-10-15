@@ -12,7 +12,9 @@ export type NavigationView =
   | "guide"
   | null;
 export type NightReturn = {screen:string;tab:string;entry:number;entryKey?:string}|null;
+export type NurserySelection = {saveId:string;tab:"eggs"|"pregnancies"|"births";id:string;small:boolean};
 const Context = createContext<{
+  nurserySelection:NurserySelection|null;setNurserySelection:Dispatch<SetStateAction<NurserySelection|null>>;
   ledgerReturn:NightReturn;setLedgerReturn:Dispatch<SetStateAction<NightReturn>>;
   nightReturn:NightReturn;setNightReturn:Dispatch<SetStateAction<NightReturn>>;
   growthPage:number|null;setGrowthPage:Dispatch<SetStateAction<number|null>>;
@@ -22,14 +24,15 @@ const Context = createContext<{
   ranchSaveId:string;setRanchSaveId:Dispatch<SetStateAction<string>>;
   view: NavigationView;
   open: (view: NavigationView) => void;
-}>({ledgerReturn:null,setLedgerReturn:()=>{},nightReturn:null,setNightReturn:()=>{},growthPage:null,setGrowthPage:()=>{},view:null,open:()=>{},ranchPlot:0,setRanchPlot:()=>{},ranchView:'map',setRanchView:()=>{},ranchHousePage:0,setRanchHousePage:()=>{},ranchSaveId:'',setRanchSaveId:()=>{}});
+}>({nurserySelection:null,setNurserySelection:()=>{},ledgerReturn:null,setLedgerReturn:()=>{},nightReturn:null,setNightReturn:()=>{},growthPage:null,setGrowthPage:()=>{},view:null,open:()=>{},ranchPlot:0,setRanchPlot:()=>{},ranchView:'map',setRanchView:()=>{},ranchHousePage:0,setRanchHousePage:()=>{},ranchSaveId:'',setRanchSaveId:()=>{}});
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [ranchPlot,setRanchPlot]=useState(0),[ranchView,setRanchView]=useState<'map'|'house'>('map'),[ranchHousePage,setRanchHousePage]=useState(0),[ranchSaveId,setRanchSaveId]=useState('');
+  const [nurserySelection,setNurserySelection]=useState<NurserySelection|null>(null);
   const [ledgerReturn,setLedgerReturn]=useState<NightReturn>(null);
   const [nightReturn,setNightReturn]=useState<NightReturn>(null);
   const [growthPage,setGrowthPage]=useState<number|null>(null);
   const [view, open] = useState<NavigationView>(null);
-  return <Context.Provider value={{ ledgerReturn,setLedgerReturn,nightReturn,setNightReturn,growthPage,setGrowthPage,view, open, ranchPlot,setRanchPlot,ranchView,setRanchView,ranchHousePage,setRanchHousePage,ranchSaveId,setRanchSaveId }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ nurserySelection,setNurserySelection,ledgerReturn,setLedgerReturn,nightReturn,setNightReturn,growthPage,setGrowthPage,view, open, ranchPlot,setRanchPlot,ranchView,setRanchView,ranchHousePage,setRanchHousePage,ranchSaveId,setRanchSaveId }}>{children}</Context.Provider>;
 }
 export function useNavigation() {
   return useContext(Context);

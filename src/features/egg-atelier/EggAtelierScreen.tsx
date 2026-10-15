@@ -8,6 +8,7 @@ import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
 import { getQuickhatchCatalystCount } from "@/data/tutorialQuickhatch";
 import { NpcQuestPanel } from "@/features/town-quests/NpcQuestPanel";
 import { getNpcQuestChain, recordSeleneAppraisal } from "@/data/npcQuests";
+import { useNavigation } from "@/features/navigation/NavigationContext";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { RanchIcon } from "@/features/ui/RanchIcon";
@@ -42,15 +43,16 @@ const eggName = (egg: EggRecord) => egg.suggestedName || `${getVariantDefinition
 const eggStatus = (egg: EggRecord) => egg.status === "ready" ? "Ready to hatch" : `${egg.daysRemaining} day${egg.daysRemaining === 1 ? "" : "s"} remaining`;
 
 export function EggAtelierScreen() {
-  const { currentSave: save, saveCurrentGame, goToTown, goToNursery } = useGameContext();
+  const { currentSave: save, saveCurrentGame, goToNursery } = useGameContext();
+  const { nurserySelection } = useNavigation();
   const [mode, setMode] = useState<Mode>("care");
-  const [eggId, setEggId] = useState<EggId | null>(null);
+  const [eggId, setEggId] = useState<EggId | null>(() => nurserySelection?.saveId === save?.saveId && nurserySelection?.tab === "eggs" ? save?.eggs?.find(egg => egg.eggId === nurserySelection.id)?.eggId ?? null : null);
   const [offerId, setOfferId] = useState<EggAtelierEggOfferId>("common_mystery_egg");
   const [upgradeId, setUpgradeId] = useState<EggAtelierUpgradeId>("soft_bedding");
   const [popup, setPopup] = useState<Popup>(null);
   const [pending, setPending] = useState<{ action: Action; signature: string } | null>(null);
   const [message, setMessage] = useState("");
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => Math.max(0, (save?.eggs ?? []).filter(egg => egg.status !== "hatched").sort((a,b) => Number(b.status === "ready") - Number(a.status === "ready") || a.daysRemaining - b.daysRemaining).findIndex(egg => egg.eggId === eggId)));
   const [pageSize, setPageSize] = useState(1);
   const dockRef = useRef<HTMLDivElement>(null);
   const sizeRef = useRef(1);
@@ -60,7 +62,7 @@ export function EggAtelierScreen() {
     if (!dockRef.current) return;
     const observer = new ResizeObserver(([entry]) => {
       const size = Math.max(1, Math.min(4, Math.floor((entry.contentRect.width + 8) / 210)));
-      if (size !== sizeRef.current) { sizeRef.current = size; setPageSize(size); setPage(0); }
+      if (size !== sizeRef.current) { const previousSize = sizeRef.current; sizeRef.current = size; setPageSize(size); setPage(previous => Math.floor(previous * previousSize / size)); }
     });
     observer.observe(dockRef.current);
     return () => observer.disconnect();
@@ -142,7 +144,7 @@ export function EggAtelierScreen() {
   function changeMode(next: Mode) { setMode(next); setPage(0); }
   return <main className={`${ui.interior} ${styles.atelier}`} data-sunlit-incubator>
     <section className={ui.page}>
-      <header className={ui.heading}><h1>The Egg Atelier</h1><ScreenNavigation onBack={goToTown} backLabel="Town" /></header>
+      <header className={ui.heading}><h1>The Egg Atelier</h1><ScreenNavigation /></header>
       <section className={`${ui.summary} ${styles.resources}`} aria-label="Atelier resources"><div><RanchIcon name="gold" /><span>Gold</span><strong>{save.currencies.gold.toLocaleString()}</strong></div><div><img className={styles.icon} src="/images/items/supply_depot/nursery_supply_kit.png" alt="" aria-hidden="true" /><span>Nursery Kits</span><strong>{kits}</strong></div><div><AtelierIcon name="egg" /><span>Ready</span><strong>{ready}</strong></div><button type="button" onClick={goToNursery}><AtelierIcon name="leaf" />Visit Nursery</button></section>
       <nav className={`${ui.paper} ${styles.tabs}`} aria-label="Atelier sections">{([['care', 'Egg Care'], ['offers', 'Egg Offers'], ['upgrades', 'Upgrades']] as const).map(([id, label]) => <button key={id} type="button" aria-pressed={mode === id} onClick={() => changeMode(id)}>{id === "upgrades" ? <RanchIcon name="gear" /> : <AtelierIcon name={id === "care" ? "egg" : "ledger"} />}{label}</button>)}<div className={styles.compactSteward}><button type="button" onClick={() => setPopup("talk")}><AtelierIcon name="talk" />Talk</button><button type="button" onClick={() => setPopup("trust")}><AtelierIcon name="ledger" />Trust</button></div></nav>
       <div className={styles.workspace}>

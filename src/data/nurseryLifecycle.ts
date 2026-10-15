@@ -321,3 +321,9 @@ export function hatchEgg(
     },
   };
 }
+
+/** Reject stale removal confirmations, including a record already hatched or removed. */
+export function removeEgg(save: GameSave, eggId: EggId, mode: "release" | "donate"): GameSave {
+  if (!(save.eggs ?? []).some(egg => egg.eggId === eggId && egg.status !== "hatched")) return save;
+  return core.removeEgg(save, eggId, mode);
+}
