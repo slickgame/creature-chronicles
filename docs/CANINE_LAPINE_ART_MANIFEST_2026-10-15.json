@@ -1,0 +1,402 @@
+[
+  {
+    "species": "canine",
+    "id": "148Nla2ZbF76TAAk6uH4jRNY0g5-ZSOo0",
+    "title": "DAISY_10_Resting_Sleeping_APPROVED.png",
+    "url": "https://drive.google.com/file/d/148Nla2ZbF76TAAk6uH4jRNY0g5-ZSOo0/view?usp=drivesdk",
+    "sha256": "838ffb944a55dfb97f0d9e936a7cd73126d5d80ce6de19da00f5648a44834245",
+    "path": "/images/creatures/canine/daisy/daisy_10.webp",
+    "webpSha256": "491f982935e23a31bb357bf1529fafbd2c114bbedebb71fb9357cbd6303c6fde",
+    "size": 242572,
+    "dimensions": [
+      1440,
+      1080
+    ],
+    "role": "sleeping",
+    "masterBytes": 1415459,
+    "masterDimensions": [
+      1448,
+      1086
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1yDmfwW_ns0vu7ttcj_7XR6s0g3mumvuA",
+    "title": "DAISY_09_Ranch_Work_Harvest_Crate_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1yDmfwW_ns0vu7ttcj_7XR6s0g3mumvuA/view?usp=drivesdk",
+    "sha256": "e9231e27a5f2c965b73e3d2ba7dacdf847ad4abe598b69b21875c1264e439bc4",
+    "path": "/images/creatures/canine/daisy/daisy_09.webp",
+    "webpSha256": "59ed3cf3cf71def4ca3de9bb09035a3209c5a3ce89aa8211797bdebc99bb6089",
+    "size": 265272,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "ranchWork",
+    "masterBytes": 1396655,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1TKvz2kQzvMuXKSTfOl9miNqcyOZYyd-9",
+    "title": "DAISY_08_Defeated_KO_Kneeling_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1TKvz2kQzvMuXKSTfOl9miNqcyOZYyd-9/view?usp=drivesdk",
+    "sha256": "6eb62cf938b0ad357a0a28cacb9d3990c31f69b1bc01dd780309d3282deba045",
+    "path": "/images/creatures/canine/daisy/daisy_08.webp",
+    "webpSha256": "40e22ef4cc3696e6075c763242558889827e734fd209b50e0db83a40a20f3c4d",
+    "size": 279442,
+    "dimensions": [
+      1200,
+      1311
+    ],
+    "role": "combatKO",
+    "masterBytes": 1733042,
+    "masterDimensions": [
+      1200,
+      1311
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1k7NxgNSz3whRkZEtsY3yHLcqvChA39G3",
+    "title": "DAISY_07_Taking_Damage_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1k7NxgNSz3whRkZEtsY3yHLcqvChA39G3/view?usp=drivesdk",
+    "sha256": "5bc95e51f577600cca0886d6c0e48fbdb9db367dc958ad96a7df607032f7732e",
+    "path": "/images/creatures/canine/daisy/daisy_07.webp",
+    "webpSha256": "f26f45c7f6ae30f507474d215f64860b4c3d0cef5efccf385c4751ab8b44a103",
+    "size": 286944,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatHit",
+    "masterBytes": 1653654,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1ouZr05XTpfptvO3e3VRcmL99lC0aG8-1",
+    "title": "DAISY_06_Defend_Guard_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1ouZr05XTpfptvO3e3VRcmL99lC0aG8-1/view?usp=drivesdk",
+    "sha256": "5bff842bc3694b4f602d3d6392a4d5f020dd1c325ef19aa08d6ff1cbb5657433",
+    "path": "/images/creatures/canine/daisy/daisy_06.webp",
+    "webpSha256": "444dcdca012769a5d59f2e5259f0030f80897310287b116e37d7fc94b7b20a90",
+    "size": 282164,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatGuard",
+    "masterBytes": 1625742,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1D9nsmfzRgBXh6DLTFv6KO3fdPyX3we_h",
+    "title": "DAISY_05_Special_Attack_Double_Claw_Pounce_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1D9nsmfzRgBXh6DLTFv6KO3fdPyX3we_h/view?usp=drivesdk",
+    "sha256": "4600dc59918a5f125d27978ad686b5ad8dd1cf6b7ff06e699a88d3e2ebe62cea",
+    "path": "/images/creatures/canine/daisy/daisy_05.webp",
+    "webpSha256": "55df620699bb3d9998078c169d3276ad0c28f4c9b559f1808869d57bf20a143d",
+    "size": 325248,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatSpecial",
+    "masterBytes": 1699558,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1NSoWJN7GSX_IgSAW331aJbLIOlep-pbQ",
+    "title": "DAISY_04_Basic_Attack_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1NSoWJN7GSX_IgSAW331aJbLIOlep-pbQ/view?usp=drivesdk",
+    "sha256": "17d5b8cfec7e9e855cc3c4355520252d562d0ef5991eac5de8a973811db4adb1",
+    "path": "/images/creatures/canine/daisy/daisy_04.webp",
+    "webpSha256": "ef47cf7feb1f65cba17494bdf6a14e2ab06296570e664ae15a1a0a57a622ab01",
+    "size": 304084,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatBasic",
+    "masterBytes": 1684012,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "11dB7c4SCp4bIEXTJ5Kz_b6uQeU3nNctk",
+    "title": "DAISY_03_Combat_Idle_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/11dB7c4SCp4bIEXTJ5Kz_b6uQeU3nNctk/view?usp=drivesdk",
+    "sha256": "757f67f49cbae71bb1ce1a6c25dfa4b842cb3becf2c3d8930b221f60f3744595",
+    "path": "/images/creatures/canine/daisy/daisy_03.webp",
+    "webpSha256": "a6193764389499819e7b368035501fa75b651b345d74d4d476a608c358d3dca2",
+    "size": 280054,
+    "dimensions": [
+      1080,
+      1440
+    ],
+    "role": "combatIdle",
+    "masterBytes": 1586757,
+    "masterDimensions": [
+      1086,
+      1448
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1b2dS5n3xpw-VtqYLldC0FtYiFMzDVmD3",
+    "title": "DAISY_02_Bust_Portrait_Default_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1b2dS5n3xpw-VtqYLldC0FtYiFMzDVmD3/view?usp=drivesdk",
+    "sha256": "deb37d6c0c329e5fc17fb6f9643098db79b9664cbad2e62ad9835aba6fd45296",
+    "path": "/images/creatures/canine/daisy/daisy_02.webp",
+    "webpSha256": "34f1545f9c4f72dbc1d1ae95c83a41cc5764be52dbee0dbfd9f82263f4a990f5",
+    "size": 312846,
+    "dimensions": [
+      1145,
+      1374
+    ],
+    "role": "card",
+    "masterBytes": 1990590,
+    "masterDimensions": [
+      1145,
+      1374
+    ]
+  },
+  {
+    "species": "canine",
+    "id": "1cU7x6NB9e1ao9vtGU1qwXv4RZOPrVsy4",
+    "title": "DAISY_01_Full_Body_Default_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1cU7x6NB9e1ao9vtGU1qwXv4RZOPrVsy4/view?usp=drivesdk",
+    "sha256": "75800d03149b72db40b3fac6f30c44b9b672e658b92d7a2a1baea4597e506775",
+    "path": "/images/creatures/canine/daisy/daisy_01.webp",
+    "webpSha256": "4aad86b22668bc879959b7806332c9b941b6e51cec59f5d6a3f613b5c247f5b1",
+    "size": 221476,
+    "dimensions": [
+      1080,
+      1440
+    ],
+    "role": "profile",
+    "masterBytes": 1252721,
+    "masterDimensions": [
+      1086,
+      1448
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "179SiHh_8DZYd8BX58gYeErP1gxdcoQIh",
+    "title": "LAPINE_10_Resting_Sleeping_APPROVED.png",
+    "url": "https://drive.google.com/file/d/179SiHh_8DZYd8BX58gYeErP1gxdcoQIh/view?usp=drivesdk",
+    "sha256": "d1445329ac66942df28f799b5c0570c297d339c1ce8b01efd32c3d0b2d285772",
+    "path": "/images/creatures/lapine/gameplay/lapine_10.webp",
+    "webpSha256": "4215313acd1343d1fa88395d783f5e084c8dc477ea73ee0a80949c6a3c4abc77",
+    "size": 241300,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "sleeping",
+    "masterBytes": 1750720,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1zqrmIYK2BVzHcdq8ZElreP_DE2AlevFz",
+    "title": "LAPINE_09_Ranch_Work_Harvesting_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1zqrmIYK2BVzHcdq8ZElreP_DE2AlevFz/view?usp=drivesdk",
+    "sha256": "94d5f770d37ea12377f724eb23a1423467080322aafc22803131cca5f80ac068",
+    "path": "/images/creatures/lapine/gameplay/lapine_09.webp",
+    "webpSha256": "f0caf4b4f342a065d162b6722e4f0440158c75e6e57f0504ee1d0776f14c9e88",
+    "size": 243266,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "ranchWork",
+    "masterBytes": 1180862,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1L0h5RrymhP7ijcxBS5Y7s6y45zNssxEr",
+    "title": "LAPINE_08_Defeated_KO_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1L0h5RrymhP7ijcxBS5Y7s6y45zNssxEr/view?usp=drivesdk",
+    "sha256": "5946af5f4757b5a157df62f6cca83d14a396ed586af534f13aabddc50db451ed",
+    "path": "/images/creatures/lapine/gameplay/lapine_08.webp",
+    "webpSha256": "02550b81f5e25580d25763b5a63bda80a91930228d5032b1580792853a6c8e92",
+    "size": 151316,
+    "dimensions": [
+      1080,
+      1440
+    ],
+    "role": "combatKO",
+    "masterBytes": 785964,
+    "masterDimensions": [
+      1086,
+      1448
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1dY3bcWn9kIYCjNPyJ9BCVfqS9qZj7kEV",
+    "title": "LAPINE_07_Taking_Damage_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1dY3bcWn9kIYCjNPyJ9BCVfqS9qZj7kEV/view?usp=drivesdk",
+    "sha256": "95df9210bff6e11e50f0b31b74bc31d433e048a2e0dcd4867247b60b6584d282",
+    "path": "/images/creatures/lapine/gameplay/lapine_07.webp",
+    "webpSha256": "fbe7ef6a94b87240733d732863158b7013c17cd729a493cf3ceed25ddb601fca",
+    "size": 283000,
+    "dimensions": [
+      960,
+      1440
+    ],
+    "role": "combatHit",
+    "masterBytes": 1970774,
+    "masterDimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1eEejV2lkJn9KMPNWcCLyx6NVYgPNuZfJ",
+    "title": "LAPINE_06_Defend_Guard_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1eEejV2lkJn9KMPNWcCLyx6NVYgPNuZfJ/view?usp=drivesdk",
+    "sha256": "ab2aa42df1082935aede09e8e0e987fe871ad5eb0a50b9d9652f8bf1ea8784a7",
+    "path": "/images/creatures/lapine/gameplay/lapine_06.webp",
+    "webpSha256": "a946748f31fdd3377cbc65ebc89972671f1271982f6a6bc0ccb1361b5d9b269c",
+    "size": 239756,
+    "dimensions": [
+      960,
+      1440
+    ],
+    "role": "combatGuard",
+    "masterBytes": 1852942,
+    "masterDimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1k3PJ7WQoQn25KewfKK86866cDkE1nSiC",
+    "title": "LAPINE_05_Special_Attack_Airborne_Double_Kick_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1k3PJ7WQoQn25KewfKK86866cDkE1nSiC/view?usp=drivesdk",
+    "sha256": "dc9ef41a2670252259d14944e2d0f40e1eacf3703f75bf0d23e87a9eaadb6331",
+    "path": "/images/creatures/lapine/gameplay/lapine_05.webp",
+    "webpSha256": "67174cd0e1ee8450a1c87802367b651fe084a018387248a22ac1e72e7863b69e",
+    "size": 258266,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatSpecial",
+    "masterBytes": 1331764,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "17v_OwuKm8gB1_28jQoOngupallWmvxGF",
+    "title": "LAPINE_04_Basic_Attack_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/17v_OwuKm8gB1_28jQoOngupallWmvxGF/view?usp=drivesdk",
+    "sha256": "e7e91d1ead0b49ab1c415c48480b4112dc856fd106a2f02f3e68f19e45a405f7",
+    "path": "/images/creatures/lapine/gameplay/lapine_04.webp",
+    "webpSha256": "9b53b9f1c3ddda2d49fbe598007f65d0d3a19caad114986a7d6d700c776092ae",
+    "size": 238420,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatBasic",
+    "masterBytes": 1209513,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1UvBRXFe_fszWIfsXpWZ09S-LIHO_CAqD",
+    "title": "LAPINE_03_Combat_Idle_Right_Facing_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1UvBRXFe_fszWIfsXpWZ09S-LIHO_CAqD/view?usp=drivesdk",
+    "sha256": "a5e9f813e36f22bbaf723fc87a5f440d6b07c28aff58526ae1b7fdd9ee2d0b41",
+    "path": "/images/creatures/lapine/gameplay/lapine_03.webp",
+    "webpSha256": "5df75bf8a6231f6acf8c0b001495766e5c699d45356abb4901e66ba504055cd6",
+    "size": 238720,
+    "dimensions": [
+      1122,
+      1402
+    ],
+    "role": "combatIdle",
+    "masterBytes": 1212998,
+    "masterDimensions": [
+      1122,
+      1402
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1zEeBImmfG4DdaiqqL6xBPqFNf4j9EO3V",
+    "title": "LAPINE_02_Bust_Portrait_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1zEeBImmfG4DdaiqqL6xBPqFNf4j9EO3V/view?usp=drivesdk",
+    "sha256": "64be1f7699a36ba1fbcd04ad90c6fb069638841eda4ddb0e8b8d8d3b907c35f5",
+    "path": "/images/creatures/lapine/gameplay/lapine_02.webp",
+    "webpSha256": "a4e8c545dc2343d2c84fdd82058eae8603257396bdcd112ffe47f6ea3e992898",
+    "size": 309522,
+    "dimensions": [
+      960,
+      1440
+    ],
+    "role": "card",
+    "masterBytes": 2186465,
+    "masterDimensions": [
+      1024,
+      1536
+    ]
+  },
+  {
+    "species": "lapine",
+    "id": "1DV1bdFA74-54v5MO2at9kdPVn9SjNUOn",
+    "title": "LAPINE_01_Full_Body_Default_APPROVED.png",
+    "url": "https://drive.google.com/file/d/1DV1bdFA74-54v5MO2at9kdPVn9SjNUOn/view?usp=drivesdk",
+    "sha256": "1217aeb0ab33641ce43fb7b5789c1b4a52125203b2886461590e5f09c72b906c",
+    "path": "/images/creatures/lapine/gameplay/lapine_01.webp",
+    "webpSha256": "10a42dcd28992cc81691e6081e75f077cfd4adf742c395b616a2adade12d9270",
+    "size": 196762,
+    "dimensions": [
+      960,
+      1440
+    ],
+    "role": "profile",
+    "masterBytes": 1709190,
+    "masterDimensions": [
+      1024,
+      1536
+    ]
+  }
+]

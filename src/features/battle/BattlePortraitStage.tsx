@@ -7,7 +7,8 @@ import { getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { getVariantDefinition } from "@/data/creatures";
 import { NYLA_GAMEPLAY_ART, getNylaCombatSprite, getNylaGameplayCardSprite, isNylaBaseFeline } from "@/data/nylaGameplayArt";
-import { getEquineCombatSprite, getEquineGameplayCardSprite } from "@/data/equineGameplayArt";
+import { getEquineGameplayCardSprite } from "@/data/equineGameplayArt";
+import {getCreatureCombatArt} from "@/data/baseGameplayArt";
 import type { BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -112,7 +113,7 @@ function CombatantFigure({
     // Pounce is physical by category but is Feline's signature attack.
     specialAttack: Boolean(actingMove && (actingMove.category === "special" || actingMove.rarity === "signature")),
   });
-  const equineSprite = getEquineCombatSprite(source, {
+  const equineSprite = getCreatureCombatArt(source, {
     fainted: combatant.isFainted,
     actor: isActor,
     target: isEventTarget,

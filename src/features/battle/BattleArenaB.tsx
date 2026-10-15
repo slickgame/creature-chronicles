@@ -15,6 +15,8 @@ import type { CreatureRecord } from "@/types/creature";
 import type { useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
 import { BattleStatusBadges, StatusIcon, statusLabel } from "./BattleStatusBadges";
+import {BattleCreatureImage} from "./BattleCreatureImage";
+import {gameplayArt} from "@/data/creatureGameplayArt";
 import s from "./BattleArenaB.module.css";
 
 const ART = "/images/ui/battle-v1/";
@@ -33,9 +35,7 @@ export type BattleArenaBProps = {
 
 function artwork(source: CreatureRecord | undefined, full = false) {
   if (!source) return FALLBACK;
-  const variant = getVariantDefinition(source.variantId);
-  return full ? source.profilePath || variant.profilePath || source.portraitPath || variant.portraitPath || FALLBACK
-    : source.portraitPath || variant.portraitPath || FALLBACK;
+  return gameplayArt(source,!full);
 }
 function Meter({ label, value, max }: { label: "HP" | "BE"; value: number; max: number }) {
   return <span className={s.meter} data-kind={label}><i style={{ width: `${Math.max(0,Math.min(100,value/Math.max(1,max)*100))}%` }} /><b>{label} {value}/{max}</b></span>;
@@ -125,9 +125,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
     <section className={s.field} aria-label="3 versus 3 battle stage"><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span>{combatants.map(c=>{
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
       const event=presentation.activeEvent,affected=event?.targetIds.includes(c.battleCombatantId);
-      return <article key={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&validTargets.includes(c.battleCombatantId)} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
+      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&validTargets.includes(c.battleCombatantId)} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><img key={event&&(affected||acting)?event.eventId:"idle"} src={artwork(sourceById.get(String(c.sourceCreatureId)),true)} alt={`${c.name}, full body`}/>{acting&&<b className={s.marker}>{resolving?"ACTING":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>TARGET</b>}{affected&&event&&event.kind!=="attack"&&<b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
+          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>TARGET</b>}{affected&&event&&event.kind!=="attack"&&<b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
           <span className={s.nameplate}><strong title={c.name}>{c.name}</strong><Meter label="HP" value={c.currentHp} max={c.maxHp}/><Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy}/>{c.isFainted&&<small>K.O.</small>}</span>
         </button>
         <BattleStatusBadges name={c.name} effects={c.statuses} onOpen={()=>openStatuses(c.battleCombatantId)}/>

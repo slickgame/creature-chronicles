@@ -1,7 +1,7 @@
 "use client";
 
-import { NYLA_GAMEPLAY_ART, isNylaBaseFeline } from "@/data/nylaGameplayArt";
-import { EQUINE_GAMEPLAY_ART, isBaseEquine } from "@/data/equineGameplayArt";
+import {getVariantDefinition} from "@/data/creatures";
+import {getGameplayArtSet} from "@/data/baseGameplayArt";
 import { useEffect, useRef, useState } from "react";
 import { RanchJournal } from "@/features/ranch/RanchJournal";
 import { PlayerInventoryMenu } from "@/features/inventory/PlayerInventoryMenu";
@@ -193,7 +193,7 @@ export function NavigationChrome() {
       )}
       {view === "end-day" && (
         <GameDialog title="End Day?" onClose={closeReview}>
-          <div className={styles.restingCrew}>{save?.creatures?.some(isNylaBaseFeline) && <img src={NYLA_GAMEPLAY_ART.sleeping} alt="Feline resting"/>}{save?.creatures?.some(isBaseEquine) && <img src={EQUINE_GAMEPLAY_ART.sleeping} alt="Equine resting"/>}</div><RanchLedger endDay />
+          <div className={styles.restingCrew}>{[...new Map((save?.creatures??[]).map(c=>[c.variantId,c])).values()].map(c=>{const art=getGameplayArtSet(c);return art?<img key={c.variantId} src={art.sleeping} alt={`${getVariantDefinition(c.variantId).name} resting`}/>:null;})}</div><RanchLedger endDay />
           <div className={styles.actions}>
             <button type="button" data-initial-focus onClick={closeReview}>
               Keep Playing

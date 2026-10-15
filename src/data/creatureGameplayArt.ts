@@ -1,9 +1,9 @@
-import type { CreatureRecord } from "@/types/creature";
-import { getVariantDefinition } from "./creatures";
-import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "./equineGameplayArt";
-import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "./nylaGameplayArt";
-/** Non-breeding views opt in; shared variant and scene registries remain unchanged. */
-export function gameplayArt(creature: Pick<CreatureRecord,"variantId">, portrait = false): string {
- const variant = getVariantDefinition(creature.variantId);
- return portrait ? getEquineGameplayCardSprite(creature,getNylaGameplayCardSprite(creature,variant.portraitPath)) : getEquineGameplayProfileSprite(creature,getNylaGameplayProfileSprite(creature,variant.profilePath || variant.portraitPath));
+import type {CreatureRecord} from "@/types/creature";
+import {getVariantDefinition} from "./creatures";
+import {getGameplayArtSet} from "./baseGameplayArt";
+/** Gameplay views use approved common art; rare variants retain their canonical images. */
+export function gameplayArt(creature:Pick<CreatureRecord,"variantId">,portrait=false):string{
+ const art=getGameplayArtSet(creature);if(art)return portrait?art.card:art.profile;
+ const variant=getVariantDefinition(creature.variantId);
+ return portrait?variant.portraitPath:variant.profilePath||variant.portraitPath;
 }

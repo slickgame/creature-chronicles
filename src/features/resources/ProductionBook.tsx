@@ -6,6 +6,7 @@ import { GameDialog } from '@/features/ui/GameDialog';
 import { FarmResourcesPanel } from './FarmResourcesPanel';
 import { IngredientCounter } from '@/features/builder/IngredientCounter';
 import { getResourceArt } from '@/data/resourceArt';
+import {getGameplayArtSet} from '@/data/baseGameplayArt';
 import { getVariantDefinition } from '@/data/creatures';
 import { SITES, RECIPES, RESOURCES, RESOURCE_IDS, FACILITIES, getFarmState, canSpend, resourceList, workPreview, workerBlocker, workResourceSite, craftResource, serveMeal, mealEnergyRestoration, type FacilityId, type SiteId, type ResourceId, type FarmResult } from '@/data/farmResources';
 import type { GameSave } from '@/types/save';
@@ -38,7 +39,7 @@ export function ProductionBook({ section, onSection, onBack, initialSelection = 
   const cost = Object.fromEntries(Object.entries(recipe?.inputs ?? {}).map(([id, n]) => [id, n * quantity]));
   const output = gathering ? preview?.amount ?? SITES[siteId].amount : recipe!.output * quantity * (resourceId === 'planks' && state.facilities.sawmill ? 2 : 1);
   const reason = gathering ? creature ? workerBlocker(save, creature, siteId) : 'No creature available.' : recipe?.facility && !state.facilities[recipe.facility] ? `Build ${FACILITIES[recipe.facility].name} first.` : !canSpend(state, cost) ? 'Not enough unreserved ingredients.' : null;
-  const art = gathering && creature ? getVariantDefinition(creature.variantId).profilePath : getResourceArt(resourceId) ?? (RESOURCES[resourceId].category === 'Meals' ? '/images/items/supply_depot/energy_meal.webp' : '/images/ui/resources-v1/pantry-workbench.webp');
+  const art = gathering && creature ? (getGameplayArtSet(creature)?.ranchWork??getVariantDefinition(creature.variantId).profilePath) : getResourceArt(resourceId) ?? (RESOURCES[resourceId].category === 'Meals' ? '/images/items/supply_depot/energy_meal.webp' : '/images/ui/resources-v1/pantry-workbench.webp');
   const inputs = Object.entries(cost) as [ResourceId, number][];
   const canServe = creature && canSpend(state, { [resourceId]: 1 }) && state.meals[creature.creatureId]?.day !== save.dayState.dayNumber;
   const recovered = creature ? Math.max(0, Math.min(creature.maxEnergy - creature.energy, mealEnergyRestoration(resourceId))) : 0;
