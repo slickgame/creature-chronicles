@@ -36,11 +36,11 @@ const ICONS: Record<string, RanchIconName> = { house: "house", nursery: "egg", b
 export function ScenicRanchScreen() {
   const game = useGameContext();
   const nav=useNavigation();
-  const {open,view,ranchPlot:plot,setRanchPlot:setPlot,ranchView,setRanchView,ranchSaveId,setRanchSaveId,setRanchHousePage,setGrowthPage,setNightReturn}=nav;
+  const {open,view,ranchPlot:plot,setRanchPlot:setPlot,ranchView,setRanchView,ranchSaveId,setRanchSaveId,setRanchHousePage,setGrowthPage,setNightReturn,setLedgerReturn}=nav;
   const [siteArtMinimized,setSiteArtMinimized]=useState(false);
   const [selected, setSelected] = useState<BuildingShortcut | null>(null);
   const saveId=game.currentSave?.saveId;
-  useEffect(()=>{if(saveId&&ranchSaveId!==saveId){setRanchSaveId(saveId);setPlot(0);setRanchView('map');setRanchHousePage(0);setGrowthPage(null);setNightReturn(null);}},[saveId,ranchSaveId,setRanchSaveId,setPlot,setRanchView,setRanchHousePage,setGrowthPage,setNightReturn]);
+  useEffect(()=>{if(saveId&&ranchSaveId!==saveId){setRanchSaveId(saveId);setPlot(0);setRanchView('map');setRanchHousePage(0);setGrowthPage(null);setNightReturn(null);setLedgerReturn(null);}},[saveId,ranchSaveId,setRanchSaveId,setPlot,setRanchView,setRanchHousePage,setGrowthPage,setNightReturn,setLedgerReturn]);
   if (!game.currentSave) return null;
   const save = game.currentSave;
   const currentPlot = RANCH_PLOTS[Math.min(plot,RANCH_PLOTS.length-1)];

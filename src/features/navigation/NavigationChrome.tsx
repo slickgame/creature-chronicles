@@ -19,16 +19,17 @@ import styles from "./Navigation.module.css";
 
 export function NavigationChrome() {
   const game = useGameContext();
-  const { view, open, setRanchView, setRanchPlot, nightReturn, setNightReturn } = useNavigation();
+  const { view, open, setRanchView, setRanchPlot, nightReturn, setNightReturn, ledgerReturn } = useNavigation();
   const [report, setReport] = useState<DayAdvanceResult | null>(null);
   const sleeping = useRef(false);
   const previousScreen=useRef(game.appScreen);
+  const shownMorning=useRef<string|null>(null);
   useEffect(() => {
     if(previousScreen.current===game.appScreen)return;
     previousScreen.current=game.appScreen;
-    open(nightReturn?.screen===game.appScreen?"end-day":null);
+    open(nightReturn?.screen===game.appScreen?"end-day":ledgerReturn?.screen===game.appScreen?"ledger":null);
     setReport(null);
-  }, [game.appScreen, open, nightReturn]);
+  }, [game.appScreen, open, nightReturn, ledgerReturn]);
   useEffect(() => {
     const save = game.currentSave;
     if (view === "end-day" && save) {
@@ -38,16 +39,24 @@ export function NavigationChrome() {
     }
   }, [view, game, open]);
   useEffect(() => {
+    if(view === "ledger" && game.currentSave?.ranchDay?.phase === "morning"){
+      shownMorning.current=`${game.currentSave.saveId}:${game.currentSave.dayState.dayNumber}`;
+      return;
+    }
     if (
       game.appScreen === "ranch-hub" &&
       game.currentSave?.ranchDay?.phase === "morning" &&
       game.currentSave.flags.m24IntroSeen &&
       !view &&
-      !report
-    )
+      !report &&
+      shownMorning.current!==`${game.currentSave.saveId}:${game.currentSave.dayState.dayNumber}`
+    ){
+      shownMorning.current=`${game.currentSave.saveId}:${game.currentSave.dayState.dayNumber}`;
       open("ledger");
+    }
   }, [
     game.appScreen,
+    game.currentSave?.saveId,
     game.currentSave?.dayState.dayNumber,
     game.currentSave?.flags.m24IntroSeen,
     game.currentSave?.ranchDay?.phase,
