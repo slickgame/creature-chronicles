@@ -122,3 +122,10 @@
  .dock button>span:first-child {width:24px;height:24px;}
  .dayAction>button {min-height:42px;}
 }
+/* Live site previews distinguish empty plots, paid work and resident housing. */
+.home .habitatSite{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;width:210px;padding:5px;text-align:center}.habitatSite .siteArt{display:block;width:100%;height:76px;object-fit:cover;border:1px solid #bc9c61}.habitatSite[data-site-state=planned]{filter:saturate(.65)}.habitatSite[data-site-state=building]{box-shadow:0 0 0 2px #f4b44d,0 4px 12px #39281480}.habitatSite[data-site-state=owned] small{color:#d8edab}.habitatSite[data-site-state=building] small{color:#ffe1a1}
+@media(max-width:1000px){.home .habitatSite{width:100%;max-width:220px;font-size:13px;padding:3px;gap:3px}.habitatSite .siteArt{height:clamp(28px,7vh,64px)}.habitatSite small{font-size:10px;margin-top:3px}.habitatSite>span{min-width:0}}
+@media(max-height:500px){.home .habitatSite{font-size:12px;gap:2px}.habitatSite .siteArt{height:27px}.habitatSite small{font-size:9px;line-height:1.15;margin-top:2px}}
+@media(max-width:600px){.home .energy{font-size:12px}.home .energy>span:last-child{min-width:0}}
+
+.plotNav .siteArtToggle{font:700 11px/1.2 system-ui,sans-serif;min-height:30px;padding:4px 6px;border:1px solid #a38950}.minimizedSites .siteArt{display:none}

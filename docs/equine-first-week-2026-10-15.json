@@ -1,0 +1,1664 @@
+[
+  {
+    "route": "solo",
+    "seed": 0,
+    "withoutGoalGold": false,
+    "habitatFamily": null,
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 0,
+    "habitatFee": 0,
+    "deliveryGold": 100,
+    "rewardGold": 615,
+    "endGold": 1915,
+    "adoptedDay": null,
+    "habitatCommissionDay": null,
+    "pairingDay": null,
+    "threeCreatureDay": null,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 1515,
+        "goldChange": 315,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 1590,
+        "goldChange": 75,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 22,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 1665,
+        "goldChange": 75,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 27,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 1800,
+        "goldChange": 135,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 24,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 1840,
+        "goldChange": 40,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 30,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 1915,
+        "goldChange": 75,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 35,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 1915,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 40,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      }
+    ]
+  },
+  {
+    "route": "solo",
+    "seed": 0,
+    "withoutGoalGold": true,
+    "habitatFamily": null,
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 0,
+    "habitatFee": 0,
+    "deliveryGold": 100,
+    "rewardGold": 0,
+    "endGold": 1300,
+    "adoptedDay": null,
+    "habitatCommissionDay": null,
+    "pairingDay": null,
+    "threeCreatureDay": null,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 1200,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 1200,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 22,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 1200,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 27,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 1300,
+        "goldChange": 100,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 24,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 1300,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 30,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 1300,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 35,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 1300,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 40,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      }
+    ]
+  },
+  {
+    "route": "adoption-first",
+    "seed": 0,
+    "withoutGoalGold": false,
+    "habitatFamily": null,
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 0,
+    "deliveryGold": 100,
+    "rewardGold": 850,
+    "endGold": 1340,
+    "adoptedDay": 1,
+    "habitatCommissionDay": null,
+    "pairingDay": 2,
+    "threeCreatureDay": 3,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 680,
+        "goldChange": -520,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 8,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 1015,
+        "goldChange": 335,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 1090,
+        "goldChange": 75,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 22,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Guided hatch",
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 1225,
+        "goldChange": 135,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 19,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 1265,
+        "goldChange": 40,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 25,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 1340,
+        "goldChange": 75,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 30,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 1340,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 35,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "adoption-first",
+    "seed": 0,
+    "withoutGoalGold": true,
+    "habitatFamily": null,
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 0,
+    "deliveryGold": 100,
+    "rewardGold": 0,
+    "endGold": 490,
+    "adoptedDay": 1,
+    "habitatCommissionDay": null,
+    "pairingDay": 2,
+    "threeCreatureDay": 3,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 390,
+        "goldChange": -810,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 8,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 390,
+        "goldChange": 0,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 390,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 22,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Guided hatch",
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 490,
+        "goldChange": 100,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 19,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 490,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 25,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 490,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 30,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 490,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 35,
+        "minEnergy": 124,
+        "habitats": 1,
+        "actions": [
+          "Holwyn: +4 Wheat, −17 Energy. No Gold charged.",
+          "Holwyn: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": false,
+    "habitatFamily": "lapine",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 250,
+    "deliveryGold": 100,
+    "rewardGold": 890,
+    "endGold": 1130,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 1265,
+        "goldChange": 65,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission lapine habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 580,
+        "goldChange": -685,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 18,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 880,
+        "goldChange": 300,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 23,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 1015,
+        "goldChange": 135,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 20,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 1055,
+        "goldChange": 40,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 26,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 1130,
+        "goldChange": 75,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 31,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 1130,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 36,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": true,
+    "habitatFamily": "lapine",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 250,
+    "deliveryGold": 100,
+    "rewardGold": 0,
+    "endGold": 240,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 950,
+        "goldChange": -250,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission lapine habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 140,
+        "goldChange": -810,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 140,
+        "goldChange": 0,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 22,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 240,
+        "goldChange": 100,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 19,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 240,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 25,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 240,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 30,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 240,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 35,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": false,
+    "habitatFamily": "feline",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 300,
+    "deliveryGold": 100,
+    "rewardGold": 890,
+    "endGold": 1080,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 1215,
+        "goldChange": 15,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 15,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission feline habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 530,
+        "goldChange": -685,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 16,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 830,
+        "goldChange": 300,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 21,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 965,
+        "goldChange": 135,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 18,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 1005,
+        "goldChange": 40,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 24,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 1080,
+        "goldChange": 75,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 29,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 1080,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 34,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": true,
+    "habitatFamily": "feline",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 300,
+    "deliveryGold": 100,
+    "rewardGold": 0,
+    "endGold": 190,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 900,
+        "goldChange": -300,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 15,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission feline habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 90,
+        "goldChange": -810,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 15,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 90,
+        "goldChange": 0,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 20,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 190,
+        "goldChange": 100,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 190,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 23,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 190,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 28,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 190,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 32,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": false,
+    "habitatFamily": "canine",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 300,
+    "deliveryGold": 100,
+    "rewardGold": 890,
+    "endGold": 1080,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 1215,
+        "goldChange": 15,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 15,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission canine habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 530,
+        "goldChange": -685,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 16,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 830,
+        "goldChange": 300,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 21,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 965,
+        "goldChange": 135,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 18,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 1005,
+        "goldChange": 40,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 24,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 1080,
+        "goldChange": 75,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 29,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 1080,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 34,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": true,
+    "habitatFamily": "canine",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 300,
+    "deliveryGold": 100,
+    "rewardGold": 0,
+    "endGold": 190,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 900,
+        "goldChange": -300,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 15,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission canine habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 90,
+        "goldChange": -810,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 15,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 90,
+        "goldChange": 0,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 20,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 190,
+        "goldChange": 100,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 17,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 190,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 23,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 190,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 28,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 190,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 32,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": false,
+    "habitatFamily": "bovine",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 400,
+    "deliveryGold": 100,
+    "rewardGold": 890,
+    "endGold": 980,
+    "adoptedDay": 2,
+    "habitatCommissionDay": 1,
+    "pairingDay": 3,
+    "threeCreatureDay": 4,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 1115,
+        "goldChange": -85,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 13,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission bovine habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 430,
+        "goldChange": -685,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 14,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 730,
+        "goldChange": 300,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 19,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 865,
+        "goldChange": 135,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 16,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 905,
+        "goldChange": 40,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 22,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 980,
+        "goldChange": 75,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 27,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 980,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 32,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged.",
+          "Cook 4 rations"
+        ]
+      }
+    ]
+  },
+  {
+    "route": "habitat-first",
+    "seed": 0,
+    "withoutGoalGold": true,
+    "habitatFamily": "bovine",
+    "initialResidents": 1,
+    "initialFamilies": [
+      "equine"
+    ],
+    "startGold": 1200,
+    "adoptionFee": 810,
+    "habitatFee": 400,
+    "deliveryGold": 100,
+    "rewardGold": 0,
+    "endGold": 90,
+    "adoptedDay": 5,
+    "habitatCommissionDay": 1,
+    "pairingDay": 6,
+    "threeCreatureDay": 7,
+    "rows": [
+      {
+        "day": 1,
+        "gold": 800,
+        "goldChange": -400,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 13,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "Commission bovine habitat"
+        ]
+      },
+      {
+        "day": 2,
+        "gold": 800,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 18,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 3,
+        "gold": 800,
+        "goldChange": 0,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 23,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 4,
+        "gold": 900,
+        "goldChange": 100,
+        "residents": 1,
+        "foodRequired": 2,
+        "foodShortage": 0,
+        "wood": 20,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Marlow: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Marlow: +4 Wood, −21 Energy. No Gold charged.",
+          "One timber delivery"
+        ]
+      },
+      {
+        "day": 5,
+        "gold": 90,
+        "goldChange": -810,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 20,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Adopt equine",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Horse: +4 Vegetables, −17 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 6,
+        "gold": 90,
+        "goldChange": 0,
+        "residents": 2,
+        "foodRequired": 4,
+        "foodShortage": 0,
+        "wood": 25,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided pairing",
+          "Horse: +4 Wheat, −17 Energy. No Gold charged.",
+          "Marlow: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      },
+      {
+        "day": 7,
+        "gold": 90,
+        "goldChange": 0,
+        "residents": 3,
+        "foodRequired": 6,
+        "foodShortage": 0,
+        "wood": 29,
+        "minEnergy": 124,
+        "habitats": 2,
+        "actions": [
+          "Guided hatch",
+          "Hstra: +4 Wheat, −17 Energy. No Gold charged.",
+          "Hstra: +4 Vegetables, −17 Energy. No Gold charged.",
+          "Horse: +4 Wood, −21 Energy. No Gold charged."
+        ]
+      }
+    ]
+  }
+]

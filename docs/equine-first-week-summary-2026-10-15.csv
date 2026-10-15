@@ -1,0 +1,13 @@
+Route,First habitat,Omit day-end Gold,Adoption fee,Habitat fee,Timber income,Goal Gold,End Gold,Three-creature day,Food shortages
+solo,,False,0,0,100,615,1915,,0
+solo,,True,0,0,100,0,1300,,0
+adoption-first,,False,810,0,100,850,1340,3,0
+adoption-first,,True,810,0,100,0,490,3,0
+habitat-first,lapine,False,810,250,100,890,1130,4,0
+habitat-first,lapine,True,810,250,100,0,240,4,0
+habitat-first,feline,False,810,300,100,890,1080,4,0
+habitat-first,feline,True,810,300,100,0,190,4,0
+habitat-first,canine,False,810,300,100,890,1080,4,0
+habitat-first,canine,True,810,300,100,0,190,4,0
+habitat-first,bovine,False,810,400,100,890,980,4,0
+habitat-first,bovine,True,810,400,100,0,90,7,0

@@ -1,0 +1,23 @@
+[
+  {
+    "path": "public/images/ui/ranch-stages-v1/building.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 151480,
+    "sha256": "7df120ecb41d66dcafb846acfde6f174de4fab84114fd67b545e42739cb0a093"
+  },
+  {
+    "path": "public/images/ui/ranch-stages-v1/fields.webp",
+    "width": 1663,
+    "height": 936,
+    "bytes": 438014,
+    "sha256": "2544f35edbba5172258817ae42f66767d4d56dc1370d1ee882bb7b42fa96f18f"
+  },
+  {
+    "path": "public/images/ui/ranch-stages-v1/planned.webp",
+    "width": 768,
+    "height": 512,
+    "bytes": 164782,
+    "sha256": "14f856105f123f59c171b2b8bf3696d3a7527670d0fca9615049c91c85f0f1b7"
+  }
+]

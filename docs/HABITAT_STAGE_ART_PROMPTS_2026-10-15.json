@@ -1,0 +1,19 @@
+{
+  "generator": "OpenAI built-in image generation",
+  "reference": "public/images/ui/ranch-v3/habitats.webp",
+  "processing": "Pillow thumbnail optimization only; fields maximum1664×936, stage previews768×512, WebP86 method6.",
+  "prompts": [
+    {
+      "id": "habitat-fields-v4",
+      "prompt": "Use case: stylized-concept. Production game scenery for Creature Chronicles. Match reference's sharp anime-painterly finish, warm golden-hour light, golden grass, red clay roofs, cream plaster and dark timber; natural brush texture, realistic farm proportions, elevated oblique view. No text, labels, UI, creatures, people, watermarks or chibi/toy styling. Wide 16:9 habitat district landscape. One finished large equine stable in lower middle-right around 61% width and 73% height. Exactly four EMPTY fenced golden-grass plots with winding paths at upper-left, upper-middle, upper-right and lower-left. The four plots have no buildings, roofs, scaffolding or finished shelters. Distant hills and red-roof farm village far on horizon only. Spacious readable composition with five sites."
+    },
+    {
+      "id": "habitat-planned",
+      "prompt": "Use case: stylized-concept. Production game scenery for Creature Chronicles. Match reference's sharp anime-painterly finish, warm golden-hour light, golden grass, red clay roofs, cream plaster and dark timber; natural brush texture, realistic farm proportions, elevated oblique view. No text, labels, UI, creatures, people, watermarks or chibi/toy styling. Landscape 3:2 close view of one UNBUILT habitat plot: golden grassy fenced pasture, four small wooden survey stakes and a rolled blank parchment blueprint beside a measuring rope in foreground. No finished shelter and no construction in progress. Distant countryside. Readable focal point for a small game site-card illustration."
+    },
+    {
+      "id": "habitat-building",
+      "prompt": "Use case: stylized-concept. Production game scenery for Creature Chronicles. Match reference's sharp anime-painterly finish, warm golden-hour light, golden grass, red clay roofs, cream plaster and dark timber; natural brush texture, realistic farm proportions, elevated oblique view. No text, labels, UI, creatures, people, watermarks or chibi/toy styling. Landscape 3:2 close view of one habitat UNDER CONSTRUCTION: timber wall frame on low stone foundation, simple wooden scaffolding, stacked cut lumber and a neat pile of red clay roof tiles. No completed walls or roof, no workers. Fenced golden pasture, distant hills. Same warm painterly style as reference. Clear unfinished construction silhouette for small game site-card illustration."
+    }
+  ]
+}
