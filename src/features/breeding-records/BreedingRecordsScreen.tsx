@@ -1,395 +1,89 @@
 "use client";
+import {useEffect,useMemo,useState,type ReactNode} from 'react';
+import {filterBreedingAttempts,getAttemptOutcome,getBreedingLedgerOverview,getBreedingPairSummaries,getCreatureBreedingSummaries,getFocusedFamilyTree,type BreedingPairSummary,type FamilyTreeNode} from '@/data/breedingRecords';
+import {getAttemptCareRecords,type BreedingCareRecord} from '@/data/breedingLedgerCare';
+import {getBreedingParticipants} from '@/data/breeding';
+import {gameplayArt} from '@/data/creatureGameplayArt';
+import {getBattleMove} from '@/data/battleMoves';
+import {useGameContext} from '@/state/GameProvider';
+import {useNavigation,type BreedingLedgerSelection} from '@/features/navigation/NavigationContext';
+import {NurseryBook,type NurseryPage} from '@/features/nursery/NurseryBook';
+import type {BreedingAttemptRecord} from '@/types/breeding';
+import type {CreatureStatKey} from '@/types/creature';
+import s from '@/features/nursery/NurseryBook.module.css';
+import local from './BreedingLedgerBook.module.css';
 
-import { useMemo, useState } from "react";
-import {
-  filterBreedingAttempts,
-  getAttemptOffspring,
-  getAttemptOutcome,
-  getBreedingLedgerOverview,
-  getBreedingPairSummaries,
-  getCreatureBreedingSummaries,
-  getFocusedFamilyTree,
-  type BreedingPairSummary,
-  type BreedingRecordOutcomeFilter,
-  type FamilyTreeNode,
-} from "@/data/breedingRecords";
-import { useGameContext } from "@/state/GameProvider";
-import type { BreedingAttemptRecord } from "@/types/breeding";
-import { GameDialog } from "@/features/ui/GameDialog";
-import styles from "./BreedingRecordsScreen.module.css";
+const ARCHIVE_ART='/images/ui/atelier-v1/ledger.webp';
+const LABELS={STR:'Strength',DEX:'Dexterity',STA:'Stamina',CHA:'Charm',WIL:'Willpower',FER:'Fertility'};
+const TABS=['overview','attempts','pairs','creatures','tree'] as const;
+type Entry=NurseryPage&{art?:string};
+const pct=(n:number)=>`${n}%`;
+function date(value:string|null|undefined){if(!value)return 'Not recorded';const d=new Date(value);return Number.isNaN(d.getTime())?value:d.toLocaleString();}
+function Metrics({values}:{values:[string,ReactNode][]}){return <dl className={s.stats}>{values.map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>;}
 
-const BREEDING_HANDOFF_KEY = "creature_chronicles_breeding_focus";
-const ATTEMPTS_PER_PAGE = 12;
-type LedgerTab = "overview" | "attempts" | "pairs" | "creatures" | "tree";
-
-type Props = {
-  onClose: () => void;
-  embedded?: boolean;
-};
-
-function formatTimestamp(value: string | null | undefined): string {
-  if (!value) return "No recorded timestamp";
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function pct(value: number): string {
-  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
-}
-
-function Metric({ label, value }: { label: string; value: string | number }) {
-  return (
-    <article className={styles.metric} data-ui-text-box="auto">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </article>
-  );
-}
-
-function Portrait({ path, name }: { path: string; name: string }) {
-  return (
-    <img
-      className={styles.portrait}
-      src={path || "/images/ui/icons/icon_parent_compare.png"}
-      alt=""
-      title={name}
-      onError={(event) => {
-        event.currentTarget.src = "/images/ui/icons/icon_parent_compare.png";
-      }}
-    />
-  );
-}
-
-function TreeNodeCard({
-  node,
-  onSelect,
-}: {
-  node: FamilyTreeNode;
-  onSelect: (node: FamilyTreeNode) => void;
-}) {
-  const selectable = Boolean(node.creatureId && node.status !== "unknown");
-  return (
-    <button
-      type="button"
-      className={`${styles.treeNode} ${styles[`treeNode_${node.status}`]}`}
-      disabled={!selectable}
-      onClick={() => onSelect(node)}
-    >
-      <Portrait path={node.portraitPath} name={node.displayName} />
-      <span>
-        <strong>{node.displayName}{node.shiny ? " ✦" : ""}</strong>
-        <small>{node.variantName}</small>
-        <em>{node.generation ? `Generation ${node.generation}` : node.status}</em>
-      </span>
-    </button>
-  );
-}
-
-export function BreedingRecordsScreen({ onClose, embedded = false }: Props) {
-  const { currentSave } = useGameContext();
-  const Root = embedded ? "div" : "main";
-  const [tab, setTab] = useState<LedgerTab>("overview");
-  const [query, setQuery] = useState("");
-  const [outcome, setOutcome] = useState<BreedingRecordOutcomeFilter>("all");
-  const [creatureFilter, setCreatureFilter] = useState<string>("all");
-  const [role, setRole] = useState<"either" | "giver" | "receiver">("either");
-  const [newestFirst, setNewestFirst] = useState(true);
-  const [page, setPage] = useState(0);
-  const [detailAttempt, setDetailAttempt] = useState<BreedingAttemptRecord | null>(null);
-  const [treeFocusId, setTreeFocusId] = useState<string | null>(null);
-
-  const overview = useMemo(
-    () => (currentSave ? getBreedingLedgerOverview(currentSave) : null),
-    [currentSave],
-  );
-  const pairs = useMemo(
-    () => (currentSave ? getBreedingPairSummaries(currentSave) : []),
-    [currentSave],
-  );
-  const creatureSummaries = useMemo(
-    () => (currentSave ? getCreatureBreedingSummaries(currentSave) : []),
-    [currentSave],
-  );
-  const attempts = useMemo(
-    () =>
-      currentSave
-        ? filterBreedingAttempts(currentSave, {
-            query,
-            creatureId: creatureFilter === "all" ? null : creatureFilter,
-            outcome,
-            role,
-            newestFirst,
-          })
-        : [],
-    [currentSave, query, creatureFilter, outcome, role, newestFirst],
-  );
-  const pageCount = Math.max(1, Math.ceil(attempts.length / ATTEMPTS_PER_PAGE));
-  const visibleAttempts = attempts.slice(
-    Math.min(page, pageCount - 1) * ATTEMPTS_PER_PAGE,
-    Math.min(page, pageCount - 1) * ATTEMPTS_PER_PAGE + ATTEMPTS_PER_PAGE,
-  );
-
-  const treeChoices = useMemo(() => {
-    if (!currentSave) return [];
-    const current = (currentSave.creatures ?? []).map((creature) => ({
-      id: creature.creatureId,
-      name: creature.nickname,
-    }));
-    const archived = (currentSave.birthHistory ?? [])
-      .filter((birth) => !current.some((choice) => choice.id === birth.creatureId))
-      .map((birth) => ({ id: birth.creatureId, name: `${birth.nickname} (Archived)` }));
-    return [...current, ...archived].sort((a, b) => a.name.localeCompare(b.name));
-  }, [currentSave]);
-  const effectiveTreeId = treeFocusId ?? treeChoices[0]?.id ?? null;
-  const tree = useMemo(
-    () => currentSave && effectiveTreeId ? getFocusedFamilyTree(currentSave, effectiveTreeId) : null,
-    [currentSave, effectiveTreeId],
-  );
-
-  if (!currentSave || !overview) {
-    return (
-      <Root className={embedded ? styles.embedded : styles.screen}>
-        <section className={styles.emptyPanel}>
-          <h1>No active breeding ledger</h1>
-          <button type="button" onClick={onClose}>Return</button>
-        </section>
-      </Root>
-    );
-  }
-
-  function usePair(pair: BreedingPairSummary) {
-    window.sessionStorage.setItem(
-      BREEDING_HANDOFF_KEY,
-      JSON.stringify({ giverId: pair.participantAId, receiverId: pair.participantBId }),
-    );
-    onClose();
-  }
-
-  function useCreature(participantId: string) {
-    window.sessionStorage.setItem(
-      BREEDING_HANDOFF_KEY,
-      JSON.stringify({ creatureId: participantId, preferredRole: "receiver" }),
-    );
-    onClose();
-  }
-
-  function switchTab(next: LedgerTab) {
-    setTab(next);
-    setPage(0);
-  }
-
-  return (
-    <Root className={embedded ? styles.embedded : styles.screen}>
-      <section className={styles.frame}>
-        <header className={styles.header}>
-          <div>
-            <p className={styles.kicker}>Ranch Archive</p>
-            <h1>Breeding Ledger</h1>
-            <p>{currentSave.player.ranchName} · {overview.totalAttempts} recorded sessions</p>
-          </div>
-          <button type="button" onClick={onClose}>Back to Breeding Pen</button>
-        </header>
-
-        <nav className={styles.tabs} aria-label="Breeding ledger sections">
-          {(["overview", "attempts", "pairs", "creatures", "tree"] as LedgerTab[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={tab === item ? styles.activeTab : ""}
-              onClick={() => switchTab(item)}
-            >
-              {item === "tree" ? "Family Tree" : item[0].toUpperCase() + item.slice(1)}
-            </button>
-          ))}
-        </nav>
-
-        <section className={styles.workspace}>
-          {tab === "overview" ? (
-            <div className={styles.overviewGrid}>
-              <section className={styles.metricsGrid}>
-                <Metric label="Total Attempts" value={overview.totalAttempts} />
-                <Metric label="Successful Pregnancies" value={overview.successfulPregnancies} />
-                <Metric label="No Pregnancy" value={overview.failedAttempts} />
-                <Metric label="Blocked Sessions" value={overview.blockedSessions} />
-                <Metric label="Live Offspring" value={overview.liveOffspring} />
-                <Metric label="Active Pregnancies" value={overview.activePregnancies} />
-                <Metric label="Eligible Success Rate" value={pct(overview.successRate)} />
-              </section>
-              <section className={styles.highlightGrid}>
-                <article data-ui-text-box="auto">
-                  <span>Most Successful Pair</span>
-                  <strong>{overview.mostSuccessfulPair ? `${overview.mostSuccessfulPair.participantAName} × ${overview.mostSuccessfulPair.participantBName}` : "No successful pair yet"}</strong>
-                  <p>{overview.mostSuccessfulPair ? `${overview.mostSuccessfulPair.successfulPregnancies} pregnancies · ${overview.mostSuccessfulPair.hatchedOffspring} offspring · ${pct(overview.mostSuccessfulPair.successRate)}` : "Complete breeding attempts to establish a record."}</p>
-                  {overview.mostSuccessfulPair ? <button type="button" onClick={() => usePair(overview.mostSuccessfulPair!)}>Use This Pair</button> : null}
-                </article>
-                <article data-ui-text-box="auto">
-                  <span>Most Prolific Creature</span>
-                  <strong>{overview.mostProlificCreature?.displayName ?? "No offspring recorded"}</strong>
-                  <p>{overview.mostProlificCreature ? `${overview.mostProlificCreature.hatchedOffspring} offspring · ${overview.mostProlificCreature.successfulPregnancies} pregnancies` : "Hatched offspring will appear here."}</p>
-                </article>
-                <article data-ui-text-box="auto">
-                  <span>Longest Pair Streak</span>
-                  <strong>{overview.longestPairStreak ? `${overview.longestPairStreak.participantAName} × ${overview.longestPairStreak.participantBName}` : "No streak recorded"}</strong>
-                  <p>{overview.longestPairStreak ? `Longest historical streak: ${overview.longestPairStreak.longestStreak}` : "Failed eligible attempts build pair familiarity."}</p>
-                </article>
-              </section>
-            </div>
-          ) : null}
-
-          {tab === "attempts" ? (
-            <div className={styles.recordsLayout}>
-              <section className={styles.filters}>
-                <input
-                  value={query}
-                  onChange={(event) => { setQuery(event.target.value); setPage(0); }}
-                  placeholder="Search name or variant..."
-                />
-                <select value={outcome} onChange={(event) => { setOutcome(event.target.value as BreedingRecordOutcomeFilter); setPage(0); }}>
-                  <option value="all">All Outcomes</option>
-                  <option value="pregnancy">Pregnancy</option>
-                  <option value="failed">No Pregnancy</option>
-                  <option value="blocked">Blocked</option>
-                </select>
-                <select value={creatureFilter} onChange={(event) => { setCreatureFilter(event.target.value); setPage(0); }}>
-                  <option value="all">All Participants</option>
-                  {creatureSummaries.map((creature) => <option key={creature.participantId} value={creature.participantId}>{creature.displayName}</option>)}
-                </select>
-                <select value={role} onChange={(event) => { setRole(event.target.value as typeof role); setPage(0); }}>
-                  <option value="either">Either Role</option>
-                  <option value="giver">Giver Only</option>
-                  <option value="receiver">Receiver Only</option>
-                </select>
-                <button type="button" onClick={() => setNewestFirst((value) => !value)}>{newestFirst ? "Newest First" : "Oldest First"}</button>
-              </section>
-              <div className={styles.attemptGrid}>
-                {visibleAttempts.map((attempt) => {
-                  const result = getAttemptOutcome(attempt);
-                  const offspring = getAttemptOffspring(currentSave, attempt);
-                  return (
-                    <article key={attempt.attemptId} className={`${styles.attemptCard} ${styles[`outcome_${result}`]}`} data-ui-text-box="auto">
-                      <header><span>Ranch Day {attempt.dayNumber}</span><time>{formatTimestamp(attempt.createdAt)}</time></header>
-                      <div className={styles.attemptPair}>
-                        <Portrait path={attempt.giverSnapshot?.portraitPath ?? ""} name={attempt.giverName} />
-                        <div><strong>{attempt.giverName}</strong><small>{attempt.giverSnapshot?.variantName ?? attempt.giverFamily} · Giver</small></div>
-                        <b>×</b>
-                        <Portrait path={attempt.receiverSnapshot?.portraitPath ?? ""} name={attempt.receiverName} />
-                        <div><strong>{attempt.receiverName}</strong><small>{attempt.receiverSnapshot?.variantName ?? attempt.receiverFamily} · Receiver</small></div>
-                      </div>
-                      <div className={styles.attemptStats}>
-                        <span>Outcome <b>{result === "pregnancy" ? "Pregnancy" : result === "blocked" ? "Blocked" : "No Pregnancy"}</b></span>
-                        <span>Chance <b>{attempt.pregnancyChance}%</b></span>
-                        <span>Streak <b>{attempt.streakBefore} → {attempt.streakAfter}</b></span>
-                        <span>Offspring <b>{offspring.length}</b></span>
-                      </div>
-                      <button type="button" onClick={() => setDetailAttempt(attempt)}>View Complete Record</button>
-                    </article>
-                  );
-                })}
-                {!visibleAttempts.length ? <p className={styles.emptyMessage}>No attempt records match these filters.</p> : null}
-              </div>
-              <div className={styles.pagination}>
-                <button type="button" disabled={page <= 0} onClick={() => setPage((value) => Math.max(0, value - 1))}>Previous</button>
-                <span>Page {Math.min(page, pageCount - 1) + 1} of {pageCount} · {attempts.length} records</span>
-                <button type="button" disabled={page >= pageCount - 1} onClick={() => setPage((value) => Math.min(pageCount - 1, value + 1))}>Next</button>
-              </div>
-            </div>
-          ) : null}
-
-          {tab === "pairs" ? (
-            <div className={styles.cardGrid}>
-              {pairs.map((pair) => (
-                <article key={pair.pairKey} className={styles.pairCard} data-ui-text-box="auto">
-                  <div className={styles.dualPortrait}><Portrait path={pair.participantAPortrait} name={pair.participantAName} /><Portrait path={pair.participantBPortrait} name={pair.participantBName} /></div>
-                  <h2>{pair.participantAName} × {pair.participantBName}</h2>
-                  <div className={styles.statMatrix}>
-                    <Metric label="Attempts" value={pair.totalAttempts} />
-                    <Metric label="Pregnancies" value={pair.successfulPregnancies} />
-                    <Metric label="Offspring" value={pair.hatchedOffspring} />
-                    <Metric label="Success" value={pct(pair.successRate)} />
-                    <Metric label="Current Streak" value={pair.currentStreak} />
-                    <Metric label="Longest Streak" value={pair.longestStreak} />
-                  </div>
-                  <p>{pair.participantAName} giver: {pair.aAsGiverAttempts} · {pair.participantBName} giver: {pair.bAsGiverAttempts}</p>
-                  <p>Last attempt: {formatTimestamp(pair.lastAttemptAt)}</p>
-                  <button type="button" onClick={() => usePair(pair)}>Use This Pair in Breeding Pen</button>
-                </article>
-              ))}
-              {!pairs.length ? <p className={styles.emptyMessage}>No pair records yet.</p> : null}
-            </div>
-          ) : null}
-
-          {tab === "creatures" ? (
-            <div className={styles.cardGrid}>
-              {creatureSummaries.map((creature) => (
-                <article key={creature.participantId} className={styles.creatureCard} data-ui-text-box="auto">
-                  <header><Portrait path={creature.portraitPath} name={creature.displayName} /><div><h2>{creature.displayName}</h2><p>{creature.variantName} · {creature.familyLabel}{creature.isArchived ? " · Archived" : ""}</p></div></header>
-                  <div className={styles.statMatrix}>
-                    <Metric label="Sessions" value={creature.totalAttempts} />
-                    <Metric label="As Giver" value={creature.giverAttempts} />
-                    <Metric label="As Receiver" value={creature.receiverAttempts} />
-                    <Metric label="Pregnancies" value={creature.successfulPregnancies} />
-                    <Metric label="Offspring" value={creature.hatchedOffspring} />
-                    <Metric label="Partners" value={creature.uniquePartners} />
-                  </div>
-                  <p>Eligible success rate: {pct(creature.successRate)}</p>
-                  <p>Best partner: {creature.mostSuccessfulPartnerName ?? "No successful partner yet"}</p>
-                  <p>Last bred: {formatTimestamp(creature.lastAttemptAt)}</p>
-                  {creature.currentPairStreaks.length ? <p>Active familiarity: {creature.currentPairStreaks.map((item) => `${item.partnerName} (${item.streak})`).join(", ")}</p> : null}
-                  <div className={styles.cardActions}>
-                    {creature.participantId !== "player" ? <button type="button" onClick={() => { setTreeFocusId(creature.participantId); setTab("tree"); }}>Family Tree</button> : null}
-                    <button type="button" onClick={() => useCreature(creature.participantId)}>Send to Breeding Pen</button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : null}
-
-          {tab === "tree" ? (
-            <div className={styles.treeWorkspace}>
-              <section className={styles.treeToolbar}>
-                <label>Center Creature<select value={effectiveTreeId ?? ""} onChange={(event) => setTreeFocusId(event.target.value)}>{treeChoices.map((choice) => <option key={choice.id} value={choice.id}>{choice.name}</option>)}</select></label>
-                <span>{tree ? `${tree.siblingCount} tracked sibling${tree.siblingCount === 1 ? "" : "s"}` : "No family record"}</span>
-              </section>
-              {tree ? (
-                <div className={styles.familyTree}>
-                  <section><h3>Grandparents</h3><div>{tree.grandparents.length ? tree.grandparents.map((node, index) => <TreeNodeCard key={`${node.participantId}-${index}`} node={node} onSelect={(selected) => selected.creatureId && setTreeFocusId(selected.creatureId)} />) : <p>Grandparents are not recorded.</p>}</div></section>
-                  <i aria-hidden="true">↓</i>
-                  <section><h3>Parents</h3><div>{tree.parents.length ? tree.parents.map((node, index) => <TreeNodeCard key={`${node.participantId}-${index}`} node={node} onSelect={(selected) => selected.creatureId && setTreeFocusId(selected.creatureId)} />) : <p>Parents are not tracked for this creature.</p>}</div></section>
-                  <i aria-hidden="true">↓</i>
-                  <section className={styles.centerGeneration}><h3>Selected Creature</h3><div><TreeNodeCard node={tree.center} onSelect={() => undefined} /></div></section>
-                  <i aria-hidden="true">↓</i>
-                  <section><h3>Children</h3><div>{tree.children.length ? tree.children.map((node) => <TreeNodeCard key={node.participantId} node={node} onSelect={(selected) => selected.creatureId && setTreeFocusId(selected.creatureId)} />) : <p>No hatched children recorded.</p>}</div></section>
-                </div>
-              ) : <p className={styles.emptyMessage}>No tracked creatures are available for a family tree.</p>}
-            </div>
-          ) : null}
-        </section>
-      </section>
-
-      {detailAttempt ? (
-        <GameDialog title="Complete Attempt Record" onClose={() => setDetailAttempt(null)} wide><div>
-            <header><div><p className={styles.kicker}>Complete Attempt Record</p><h2>{detailAttempt.giverName} × {detailAttempt.receiverName}</h2><p>Ranch Day {detailAttempt.dayNumber} · {formatTimestamp(detailAttempt.createdAt)}</p></div><button type="button" onClick={() => setDetailAttempt(null)}>Close</button></header>
-            <div className={styles.detailImages}><img src={detailAttempt.pairingImagePath} alt="Pairing scene record" /><img src={detailAttempt.outcomeImagePath} alt="Outcome record" /></div>
-            <div className={styles.detailStats}>
-              <Metric label="Outcome" value={getAttemptOutcome(detailAttempt)} />
-              <Metric label="Pregnancy Chance" value={`${detailAttempt.pregnancyChance}%`} />
-              <Metric label="Energy Cost" value={detailAttempt.energyCost} />
-              <Metric label="Heart Cost" value={detailAttempt.heartCost} />
-              <Metric label="Streak" value={`${detailAttempt.streakBefore} → ${detailAttempt.streakAfter}`} />
-              <Metric label="Pregnancy Link" value={detailAttempt.pregnancyId ?? "None"} />
-            </div>
-            <article data-ui-text-box="auto"><h3>Result</h3><p>{detailAttempt.resultText}</p><p>{detailAttempt.outcomeFlavorText}</p></article>
-            <article data-ui-text-box="auto"><h3>Progression</h3>{detailAttempt.progressionEvents.length ? detailAttempt.progressionEvents.map((event) => <p key={`${event.participantId}-${event.displayName}`}>{event.displayName}: +{event.xpAfter - event.xpBefore} XP{event.levelUps ? ` · ${event.levelUps} level up` : ""}{event.abilityTriggers.length ? ` · ${event.abilityTriggers.join(" ")}` : ""}</p>) : <p>No progression events recorded.</p>}</article>
-            <article data-ui-text-box="auto"><h3>Offspring</h3>{getAttemptOffspring(currentSave, detailAttempt).length ? getAttemptOffspring(currentSave, detailAttempt).map((birth) => <p key={birth.birthId}>{birth.nickname} · Hatched Day {birth.hatchedAtDayNumber} · {formatTimestamp(birth.hatchedAt)}</p>) : <p>No hatched offspring linked to this attempt.</p>}</article>
-          </div></GameDialog>
-      ) : null}
-    </Root>
-  );
+export function BreedingRecordsScreen({onClose}:{onClose:()=>void;embedded?:boolean}){
+ const game=useGameContext(),nav=useNavigation(),save=game.currentSave;
+ // Reopen nested records only after the archive dialog has entered the native top layer.
+ const [mounted,setMounted]=useState(false);
+ useEffect(()=>{const frame=requestAnimationFrame(()=>setMounted(true));return()=>cancelAnimationFrame(frame);},[]);
+ const [failedArt,setFailedArt]=useState<string|null>(null);
+ const [popup,setPopup]=useState<{title:string;pages:NurseryPage[]}|null>(null),[filters,setFilters]=useState(false);
+ const state:BreedingLedgerSelection=nav.breedingLedger&&nav.breedingLedger.saveId===save?.saveId?nav.breedingLedger:{saveId:save?.saveId??'',tab:'overview',entry:'',query:'',outcome:'all',participant:'all',role:'either',newest:true,small:false,treeId:'',returning:false};
+ const patch=(next:Partial<BreedingLedgerSelection>)=>nav.setBreedingLedger({...state,...next});
+ const attempts=useMemo(()=>save?filterBreedingAttempts(save,{query:state.query,creatureId:state.participant==='all'?null:state.participant,outcome:state.outcome,role:state.role,newestFirst:state.newest}):[],[save,state.query,state.participant,state.outcome,state.role,state.newest]);
+ const pairs=useMemo(()=>save?getBreedingPairSummaries(save):[],[save]);
+ const creatures=useMemo(()=>save?getCreatureBreedingSummaries(save):[],[save]);
+ if(!save)return <main className={s.shell}><header className={s.header}><button onClick={onClose}>Back</button><h1>No active breeding ledger</h1></header></main>;
+ const overview=getBreedingLedgerOverview(save),participants=getBreedingParticipants(save);
+ const artFor=(id:string,fallback?:string)=>{const c=save.creatures?.find(c=>c.creatureId===id);if(c)return gameplayArt(c);const birth=save.birthHistory?.find(b=>b.creatureId===id);if(birth)return gameplayArt(birth);return id==='player'||fallback?.includes('/icons/')?undefined:fallback;};
+ const canSelect=(id:string)=>participants.some(p=>p.participantId===id);
+ const focusPair=(a:string,b:string)=>{window.sessionStorage.setItem('creature_chronicles_breeding_focus',JSON.stringify({giverId:a,receiverId:b}));onClose();};
+ const pairButton=(p:BreedingPairSummary)=>{const recent=[...(save.breeding?.attempts??[])].sort((a,b)=>b.createdAt.localeCompare(a.createdAt)).find(a=>[a.giverId,a.receiverId].sort().join('__')===p.pairKey);const a=recent?.giverId??p.participantAId,b=recent?.receiverId??p.participantBId;return <><button disabled={!canSelect(a)||!canSelect(b)} onClick={()=>focusPair(a,b)}>Use This Pair</button>{(!canSelect(a)||!canSelect(b))&&<small>A participant is archived or no longer available.</small>}</>;};
+ const visit=(care?:BreedingCareRecord)=>{patch({returning:true});if(care)nav.setNurserySelection({saveId:save.saveId,tab:care.tab,id:care.id,small:false});game.goToNursery();};
+ const comparison=(attempt:BreedingAttemptRecord,care:BreedingCareRecord):NurseryPage[]=>{
+  const giver=participants.find(c=>c.participantId===attempt.giverId),receiver=participants.find(c=>c.participantId===attempt.receiverId);
+  return [{key:'meaning',title:`${care.name} · Saved inheritance`,content:<><p>{care.stage}</p><p>Offspring values below come from the saved care record. Parent base stats are current, after any later growth. Equipment bonuses are excluded.</p><p>{care.stats?'Saved projected numbers and innate grades are shown.':'This birth record saved innate grades; birth stat numbers were not recorded.'}</p></>},...(Object.keys(LABELS)as CreatureStatKey[]).map(key=>({key:`stat-${key}`,title:LABELS[key],content:<><Metrics values={[[`${attempt.giverName} · current`,giver?.stats?`${giver.stats[key]} · Grade ${giver.statGrades?.[key]??'not recorded'}`:'Not recorded / archived'],[`${attempt.receiverName} · current`,receiver?.stats?`${receiver.stats[key]} · Grade ${receiver.statGrades?.[key]??'not recorded'}`:'Not recorded / archived'],[`${care.name} · saved`,`${care.stats?.[key]??'Number not recorded'} · Grade ${care.grades[key]}`]]}/><p>Numeric stats and innate grades are separate. This comparison does not reroll inheritance.</p></>})),...(care.abilities.length?care.abilities.map((a,i)=>({key:`ability-${i}`,title:`Saved talent · ${a.name}`,content:<><p>Grade {a.grade} · {a.source}</p><p>{a.description}</p></>})):[{key:'talents',title:'Saved talents',content:<p>No inherited talent recorded.</p>}]),...care.moveIds.map((id,i)=>({key:`move-${i}`,title:'Recorded offspring move',content:<h3>{getBattleMove(id).name}</h3>}))];
+ };
+ const attemptPages=(a:BreedingAttemptRecord):NurseryPage[]=>{
+  const care=getAttemptCareRecords(save,a);
+  return [{key:'result',title:`${a.giverName} × ${a.receiverName}`,content:<><p>Day {a.dayNumber} · {date(a.createdAt)}</p><p className={s.good}>{getAttemptOutcome(a)==='pregnancy'?'Pregnancy':getAttemptOutcome(a)==='blocked'?'Blocked session':'No pregnancy'} · Recorded chance {pct(a.pregnancyChance)}</p><p>{a.resultText}</p></>},
+  {key:'cost',title:'Recorded costs & Energy',content:<><Metrics values={[["Energy cost",a.energyCost],["Heart cost",a.heartCost],['Familiarity',`${a.streakBefore} → ${a.streakAfter}`],[`${a.giverName} · Energy`,`${a.giverEnergyBefore} → ${a.giverEnergyAfter}`],[`${a.receiverName} · Energy`,`${a.receiverEnergyBefore} → ${a.receiverEnergyAfter}`],['Pregnancy link',a.pregnancyId??'None']]}/><p>Historical values. No costs are charged by reviewing this record.</p></>},
+  ...[a.processText,a.outcomeFlavorText,a.pregnancyBlockedReason].filter((v):v is string=>!!v).map((text,i)=>({key:`result-${i}`,title:`Session note ${i+1}`,content:<p>{text}</p>})),
+  ...a.progressionEvents.flatMap((e,i)=>[{key:`progress-${i}`,title:`${e.displayName} · Growth`,content:<><Metrics values={[["XP",`${e.xpBefore} → ${e.xpAfter}`],['Level',`${e.levelBefore} → ${e.levelAfter}`],['Level ups',e.levelUps]]}/><p>{Object.entries(e.statGrowth).map(([key,n])=>`${key} +${n}`).join(' · ')||'No numeric stat growth.'}</p><p>{Object.entries(e.gradeChanges??{}).map(([key,g])=>`${key}: ${g}`).join(' · ')||'Innate grades unchanged.'}</p></>},...e.abilityTriggers.map((text,j)=>({key:`trigger-${i}-${j}`,title:`${e.displayName} · Talent`,content:<p>{text}</p>}))]),
+  ...care.flatMap(c=>[{key:`care-${c.id}`,title:`${c.name} · Nursery`,content:<><p>{c.stage}</p><button onClick={()=>visit(c)}>Open matching Nursery record</button></>},...comparison(a,c).map(p=>({...p,key:`${c.id}-${p.key}`}))]),
+  ...([['pairing','Pairing scene',a.pairingImagePath],['outcome','Outcome scene',a.outcomeImagePath]]as const).map(([key,title,path])=>({key,title,content:path?<img className={local.scene} src={path} alt={title}/>:<p>No scene saved.</p>})),
+  ...(!care.length?[{key:'no-care',title:'Offspring records',content:<p>No linked active pregnancy, egg or birth record. Older records without explicit IDs are not guessed from parent names.</p>}]:[])];
+ };
+ const treeChoices=[...(save.creatures??[]).map(c=>({id:c.creatureId,name:c.nickname})),...(save.birthHistory??[]).filter(b=>!save.creatures?.some(c=>c.creatureId===b.creatureId)).map(b=>({id:b.creatureId,name:`${b.nickname} · Archived`}))];
+ const tree=treeChoices.length?getFocusedFamilyTree(save,state.treeId||treeChoices[0].id):null;
+ let entries:Entry[]=[];
+ if(state.tab==='overview')entries=[{key:'counts',title:'Ranch archive',content:<Metrics values={[["Sessions",overview.totalAttempts],['Pregnancies',overview.successfulPregnancies],['No pregnancy',overview.failedAttempts],['Blocked',overview.blockedSessions],['Hatched offspring',overview.liveOffspring],['Active pregnancies',overview.activePregnancies]]}/>},
+ {key:'rate',title:'Eligible success rate',content:<><h3>{pct(overview.successRate)}</h3><p>Recorded pregnancies divided by eligible sessions. Blocked sessions are excluded.</p><button onClick={()=>visit()}>Visit Nursery</button></>},
+ {key:'pair',title:'Most successful pair',content:overview.mostSuccessfulPair?<><h3>{overview.mostSuccessfulPair.participantAName} × {overview.mostSuccessfulPair.participantBName}</h3><p>{overview.mostSuccessfulPair.successfulPregnancies} pregnancies · {overview.mostSuccessfulPair.hatchedOffspring} offspring · {pct(overview.mostSuccessfulPair.successRate)}</p>{pairButton(overview.mostSuccessfulPair)}</>:<p>No successful pair yet.</p>},
+ {key:'creature',title:'Most prolific creature',content:<><h3>{overview.mostProlificCreature?.displayName??'No offspring recorded'}</h3><p>{overview.mostProlificCreature?`${overview.mostProlificCreature.hatchedOffspring} offspring · ${overview.mostProlificCreature.successfulPregnancies} pregnancies`:'Hatched offspring will appear here.'}</p></>},
+ {key:'streak',title:'Longest pair streak',content:<><h3>{overview.longestPairStreak?`${overview.longestPairStreak.participantAName} × ${overview.longestPairStreak.participantBName}`:'No streak recorded'}</h3><p>Longest historical streak: {overview.longestPairStreak?.longestStreak??0}</p></>}];
+ if(state.tab==='attempts')entries=attempts.map(a=>({key:a.attemptId,title:`${a.giverName} × ${a.receiverName}`,art:artFor(a.receiverId,a.receiverSnapshot?.portraitPath),content:<><p>Day {a.dayNumber} · {getAttemptOutcome(a)==='pregnancy'?'Pregnancy':getAttemptOutcome(a)==='blocked'?'Blocked':'No pregnancy'}</p><Metrics values={[["Recorded chance",pct(a.pregnancyChance)],['Streak',`${a.streakBefore} → ${a.streakAfter}`],['Linked care records',getAttemptCareRecords(save,a).length]]}/><p>{a.giverSnapshot?.variantName??a.giverFamily} giver · {a.receiverSnapshot?.variantName??a.receiverFamily} receiver</p><button onClick={()=>patch({detail:a.attemptId,detailPage:undefined})}>View Complete Record</button></>}));
+ if(state.tab==='pairs')entries=pairs.map(p=>({key:p.pairKey,title:`${p.participantAName} × ${p.participantBName}`,art:artFor(p.participantBId,p.participantBPortrait),content:<><Metrics values={[["Sessions",p.totalAttempts],['Pregnancies',p.successfulPregnancies],['Offspring',p.hatchedOffspring],['Success',pct(p.successRate)],['Current streak',p.currentStreak],['Longest streak',p.longestStreak]]}/><div className={s.actions}>{pairButton(p)}<button onClick={()=>setPopup({title:'Pair history',pages:[{key:'roles',title:'Recorded roles',content:<><p>{p.participantAName} as giver: {p.aAsGiverAttempts}</p><p>{p.participantBName} as giver: {p.bAsGiverAttempts}</p><p>Use This Pair restores the latest recorded role order; it does not perform an attempt.</p></>},{key:'dates',title:'Session dates',content:<><p>First: {date(p.firstAttemptAt)}</p><p>Last: {date(p.lastAttemptAt)}</p><p>Last success: {date(p.lastSuccessAt)}</p></>}]})}>Details</button></div></>}));
+ if(state.tab==='creatures')entries=creatures.map(c=>({key:c.participantId,title:c.displayName,art:artFor(c.participantId,c.portraitPath),content:<><p>{c.variantName} · {c.familyLabel}{c.isArchived?' · Archived':''}</p><Metrics values={[["Sessions",c.totalAttempts],['As giver',c.giverAttempts],['As receiver',c.receiverAttempts],['Pregnancies',c.successfulPregnancies],['Offspring',c.hatchedOffspring],['Partners',c.uniquePartners]]}/><div className={s.actions}><button disabled={!canSelect(c.participantId)} onClick={()=>{window.sessionStorage.setItem('creature_chronicles_breeding_focus',JSON.stringify({creatureId:c.participantId,preferredRole:c.participantId==='player'?'giver':'receiver'}));onClose();}}>Use in Pen</button><button disabled={c.participantId==='player'} onClick={()=>patch({tab:'tree',treeId:c.participantId,entry:''})}>Family Tree</button><button onClick={()=>setPopup({title:'Creature history',pages:[{key:'summary',title:c.displayName,content:<><p>Eligible success: {pct(c.successRate)}</p><p>Best partner: {c.mostSuccessfulPartnerName??'None recorded'}</p><p>Last bred: {date(c.lastAttemptAt)}</p><p>Pregnancies carried: {c.pregnanciesCarried}</p></>},...c.currentPairStreaks.map((p,i)=>({key:`streak-${i}`,title:p.partnerName,content:<p>Active familiarity: {p.streak}</p>}))]})}>Details</button></div></>}));
+ if(state.tab==='tree'&&tree){const nodes:[string,FamilyTreeNode][]=[['Selected creature',tree.center],...tree.parents.map(n=>['Parent',n]as[string,FamilyTreeNode]),...tree.grandparents.map(n=>['Grandparent',n]as[string,FamilyTreeNode]),...tree.children.map(n=>['Child',n]as[string,FamilyTreeNode])];entries=nodes.map(([relation,n],i)=>({key:`${relation}-${n.participantId}-${i}`,title:`${relation} · ${n.displayName}`,art:artFor(n.participantId,n.portraitPath),content:<><p>{n.variantName} · {n.familyLabel}{n.shiny?' · Shiny':''}</p><Metrics values={[["Status",n.status],['Generation',n.generation??'Unknown'],['Tracked siblings',tree.siblingCount]]}/><p>{tree.parents.length?'Recorded parent links available.':'Parents are not recorded.'} {tree.grandparents.length?'Recorded grandparents available.':'Grandparents are not recorded.'} {tree.children.length?`${tree.children.length} tracked children.`:'No hatched children recorded.'}</p><button disabled={!n.creatureId||n.status==='unknown'||n.participantId===tree.center.participantId} onClick={()=>patch({treeId:n.creatureId??'',entry:''})}>Center this creature</button></>}));}
+ const index=Math.max(0,entries.findIndex(e=>e.key===state.entry)),entry=entries[index];
+ const selectedAttempt=save.breeding?.attempts.find(a=>a.attemptId===state.detail);
+ const candidateArt=entry?.art||(state.tab==='overview'&&save.creatures?.[0]?gameplayArt(save.creatures[0]):ARCHIVE_ART);
+ const art=failedArt===candidateArt?ARCHIVE_ART:candidateArt;
+ const filterPages: NurseryPage[]=[{key:'search',title:'Search records',content:<label className={s.name}>Name or variant<input aria-label="Search breeding records" value={state.query} onChange={e=>patch({query:e.target.value,entry:''})}/></label>},
+ {key:'outcome',title:'Outcome',content:<label className={s.name}>Recorded outcome<select value={state.outcome} onChange={e=>patch({outcome:e.target.value as typeof state.outcome,entry:''})}>{['all','pregnancy','failed','blocked'].map(o=><option key={o} value={o}>{o==='failed'?'No pregnancy':o==='all'?'All outcomes':o==='pregnancy'?'Pregnancy':'Blocked'}</option>)}</select></label>},
+ {key:'participant',title:'Participant',content:<label className={s.name}>Recorded participant<select value={state.participant} onChange={e=>patch({participant:e.target.value,entry:''})}><option value="all">All participants</option>{creatures.map(c=><option key={c.participantId} value={c.participantId}>{c.displayName}</option>)}</select></label>},
+ {key:'role',title:'Role & order',content:<><label className={s.name}>Recorded role<select value={state.role} onChange={e=>patch({role:e.target.value as typeof state.role,entry:''})}>{['either','giver','receiver'].map(r=><option key={r} value={r}>{r==='either'?'Either role':r==='giver'?'Giver only':'Receiver only'}</option>)}</select></label><button onClick={()=>patch({newest:!state.newest,entry:''})}>{state.newest?'Newest first':'Oldest first'}</button></>}];
+ return <main className={`${s.shell} ${local.ledger} ${state.small?s.compact:''}`} data-breeding-ledger data-ledger-tab={state.tab}>
+ <header className={s.header}><button onClick={onClose}>← Breeding Pen</button><h1>Breeding Ledger</h1><button aria-expanded={!state.small} onClick={()=>patch({small:!state.small})}>{state.small?'Expand art':'Minimize art'}</button></header>
+ <section className={s.workspace}><aside className={s.art}><img src={art} data-neutral={art===ARCHIVE_ART} alt={art===ARCHIVE_ART?"Ranch archive illustration":"Selected ledger participant"} onError={()=>{if(art!==ARCHIVE_ART)setFailedArt(candidateArt);}}/></aside><article className={`${s.paper} ${local.paper}`}>
+ <nav className={local.tabs} aria-label="Breeding ledger sections">{TABS.map(t=><button key={t} aria-pressed={state.tab===t} onClick={()=>patch({tab:t,entry:'',detail:undefined})}>{t==='tree'?'Family Tree':t[0].toUpperCase()+t.slice(1)}</button>)}</nav>
+ {state.tab==='attempts'&&<div className={s.actions}><button onClick={()=>setFilters(true)}>Filters</button><small>{attempts.length} matches · {state.newest?'Newest first':'Oldest first'}</small><button onClick={()=>patch({query:'',outcome:'all',participant:'all',role:'either',entry:''})}>Reset filters</button></div>}
+ {state.tab==='tree'&&treeChoices.length>0&&<label className={s.name}>Center creature<select aria-label="Center creature" value={state.treeId||treeChoices[0].id} onChange={e=>patch({treeId:e.target.value,entry:''})}>{treeChoices.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>}
+ {entry?<><label className={s.name}>Ledger record<select aria-label="Ledger record" value={entry.key} onChange={e=>patch({entry:e.target.value})}>{entries.map(e=><option key={e.key} value={e.key}>{e.title}</option>)}</select></label><section className={s.entry}><h2>{entry.title}</h2>{entry.content}</section><footer className={s.pager}><button disabled={!index} onClick={()=>patch({entry:entries[index-1].key})}>‹ Previous</button><span>{index+1} / {entries.length}</span><button disabled={index===entries.length-1} onClick={()=>patch({entry:entries[index+1].key})}>Next ›</button></footer></>:<section className={s.entry}><h2>No {state.tab==='attempts'?'matching attempts':state.tab==='pairs'?'pair records':'tracked records'}</h2><p>{state.tab==='attempts'?'Adjust or reset the filters to see other recorded sessions.':'Records appear as your ranch grows.'}</p></section>}
+ </article></section>
+ {mounted&&selectedAttempt&&<NurseryBook title="Complete Attempt Record" onClose={()=>patch({detail:undefined,detailPage:undefined})} art={art} pages={attemptPages(selectedAttempt)} pageKey={state.detailPage} onPageChange={key=>patch({detailPage:key})}/>}
+ {filters&&<NurseryBook title="Attempt Filters" onClose={()=>setFilters(false)} pages={filterPages}/>}
+ {popup&&<NurseryBook title={popup.title} onClose={()=>setPopup(null)} pages={popup.pages}/>}
+ </main>;
 }
