@@ -32,6 +32,9 @@ import scenic from "./BreedingScenic.module.css";
 import ui from "@/features/ui/InteriorShell.module.css";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { BreedingParentPicker } from "./BreedingParentPicker";
+import { BreedingPreviewBook, BREEDING_BOOK_ART } from "./BreedingPreviewBook";
+import { getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
 import { RanchIcon } from "@/features/ui/RanchIcon";
 
 type SelectorRole = "giver" | "receiver";
@@ -345,7 +348,7 @@ export function BreedingFocusedScreen() {
   }
 
   function choose(role: SelectorRole, participantId: string) {
-    if (isAttempting) return;
+    if (isAttempting || getBreedingSelectionBlocker(participants.find(p=>p.participantId===participantId),role,role==="giver"?receiverId:giverId)) return;
     if (role === "giver") {
       setGiverId(participantId);
       if (participantId === receiverId) setReceiverId(null);
@@ -420,7 +423,7 @@ export function BreedingFocusedScreen() {
       setResult(attempt);
       setMessage(attempt.resultText);
     } finally {
-      attemptLockRef.current = false;
+      queueMicrotask(() => { attemptLockRef.current = false; });
       setIsAttempting(false);
     }
   }
@@ -469,7 +472,14 @@ export function BreedingFocusedScreen() {
         </section>
       </div>
       {showOptions ? <GameDialog title="Pair Options" onClose={() => setShowOptions(false)}><div className={scenic.options}><button type="button" disabled={!canSwap || isAttempting} onClick={() => {swapRoles();setShowOptions(false);}}>Swap Roles</button><button type="button" disabled={isAttempting} onClick={() => {randomPair();setShowOptions(false);}}>Random Pair</button><button type="button" disabled={isAttempting || (!giverId && !receiverId)} onClick={() => {clearPair();setShowOptions(false);}}>Clear Pair</button><label>Scene Mode<select value={sceneMode} onChange={event => {const mode=event.target.value as SceneMode;setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode);}}><option value="full">Full Scenes</option><option value="quick">Quick Results</option></select></label></div></GameDialog> : null}
-      {showChanceBreakdown ? <GameDialog title="Chance & Readiness" onClose={() => setShowChanceBreakdown(false)}><div className={scenic.modal}><h3>Pregnancy chance: {preview ? `${preview.pregnancyChance}%` : "—"}</h3>{chanceRows.map(([label,amount]) => <div className={scenic.breakdownRow} key={label}><span>{label}</span><strong>{amount > 0 ? "+" : ""}{amount}%</strong></div>)}<p>{statusText}</p>{blockedReasons.length ? <ul>{blockedReasons.map(reason => <li key={reason}>{reason}</li>)}</ul> : null}<p>{message}</p>{preview?.readinessNotes?.length ? <><h3>Readiness and genetics notes</h3><ul>{preview.readinessNotes.map(note => <li key={note}>{note}</li>)}</ul></> : null}<h3>Resource cost</h3>{giver && preview ? <CostRow participant={giver} preview={preview} /> : null}{receiver && preview ? <CostRow participant={receiver} preview={preview} /> : null}<p>Energy discount: {preview?.energyDiscount ?? "—"}. Heart cost: {preview?.heartCost ?? "—"} each.</p><div className={scenic.progress}><MiniStat label="Creature XP" value={preview ? `+${preview.xpGain}` : "—"} /><MiniStat label="Breeder XP" value={preview ? `+${preview.breederXpGain}` : "—"} /><MiniStat label="Pair Streak" value={String(preview?.streakCount ?? "—")} /></div></div></GameDialog> : null}
+      {showChanceBreakdown ? <BreedingPreviewBook title="Chance & Readiness" marker="chance-readiness" onClose={()=>setShowChanceBreakdown(false)} art={receiver?.kind==="creature"?getParticipantImage(receiver):BREEDING_BOOK_ART} pages={[
+        {key:'summary',title:'Pair readiness',content:<><h3>Pregnancy chance: {preview?`${preview.pregnancyChance}%`:'—'}</h3><p>{statusText}</p><p>{message}</p></>},
+        ...chanceRows.map(([label,amount],i)=>({key:`chance-${i}`,title:label,content:<h3>{amount>0?'+':''}{amount}%</h3>})),
+        ...blockedReasons.map((reason,i)=>({key:`blocked-${i}`,title:`Readiness blocker ${i+1}`,content:<p>{reason}</p>})),
+        ...(preview?.readinessNotes??[]).map((note,i)=>({key:`note-${i}`,title:`Readiness note ${i+1}`,content:<p>{note}</p>})),
+        ...[giver,receiver].filter((p):p is BreedingParticipant=>!!p).map((p,i)=>({key:`cost-${i}`,title:`${p.displayName} · Costs`,content:preview?<><CostRow participant={p} preview={preview}/><p>Cost each: {preview.energyCost} Energy · {preview.heartCost} Hearts. Energy discount: {preview.energyDiscount}.</p></>:<p>Choose the complete pair to see exact costs.</p>})),
+        {key:'progress',title:'Progression on attempt',content:<><p>Creature XP: {preview?`+${preview.xpGain}`:'—'} · Breeder XP: {preview?`+${preview.breederXpGain}`:'—'}</p><p>Pair streak: {preview?.streakCount??'—'}</p><p>Reviewing or selecting parents spends nothing. The existing confirmation and attempt rules still apply.</p></>}
+      ]}/> : null}
 
       {selectorRole ? (
         <ParticipantSelectorModal
@@ -482,7 +492,6 @@ export function BreedingFocusedScreen() {
           onSortChange={setSortMode}
           onFilterChange={setFilterMode}
           onChoose={choose}
-          onInfo={setInfoParticipant}
           onClose={() => setSelectorRole(null)}
         />
       ) : null}
@@ -559,56 +568,7 @@ function CostRow({ participant, preview }: { participant: BreedingParticipant; p
   );
 }
 
-function ParticipantSelectorModal({
-  role,
-  participants,
-  oppositeId,
-  selectedId,
-  sortMode,
-  filterMode,
-  onSortChange,
-  onFilterChange,
-  onChoose,
-  onInfo,
-  onClose,
-}: {
-  role: SelectorRole;
-  participants: BreedingParticipant[];
-  oppositeId: string | null;
-  selectedId: string | null;
-  sortMode: SortMode;
-  filterMode: FilterMode;
-  onSortChange: (value: SortMode) => void;
-  onFilterChange: (value: FilterMode) => void;
-  onChoose: (role: SelectorRole, participantId: string) => void;
-  onInfo: (participant: BreedingParticipant) => void;
-  onClose: () => void;
-}) {
-  return (
-    <GameDialog title={role === "giver" ? "Choose Giver" : "Choose Receiver"} onClose={onClose} wide><div className={scenic.modal}>
-
-        <div className={styles.selectorToolbar}>
-          <label>Sort<select value={sortMode} onChange={(event) => onSortChange(event.target.value as SortMode)}><option value="name">Name</option><option value="level">Level</option><option value="energy">Energy</option><option value="affection">Affection</option><option value="fertility">Fertility</option></select></label>
-          <label>Filter<select value={filterMode} onChange={(event) => onFilterChange(event.target.value as FilterMode)}><option value="all">All Participants</option><option value="available">Only Available</option><option value="nonPregnant">Non-Pregnant</option><option value="creatures">Creatures Only</option><option value="player">Player</option><option value="feline">Feline</option><option value="canine">Canine</option><option value="bovine">Bovine</option><option value="lapine">Lapine</option><option value="equine">Equine</option></select></label>
-        </div>
-        <div className={styles.selectorGrid}>
-          {participants.map((participant) => {
-            const disabled = participant.participantId === oppositeId || !participant.canBreed || !participant.roleTags.includes(role);
-            const selected = participant.participantId === selectedId;
-            return (
-              <article key={`${role}-${participant.participantId}`} className={`${styles.selectorCard} ${selected ? styles.selectedCard : ""} ${disabled ? styles.disabledCard : ""}`}>
-                <button type="button" className={styles.selectOverlay} disabled={disabled} onClick={() => onChoose(role, participant.participantId)} aria-label={`Select ${participant.displayName}`} />
-                <button type="button" className={styles.selectorInfo} onClick={() => onInfo(participant)} aria-label={`Inspect ${participant.displayName}`}>i</button>
-                <img src={participant.portraitPath || CREATURE_PLACEHOLDER_IMAGE} alt="" onError={(event) => { event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE; }} />
-                <div><strong>{participant.displayName}</strong><span>{participant.familyLabel}</span><small>Energy {formatEnergy(participant.energy, participant.maxEnergy)} · Hearts {participant.hearts}/{participant.maxHearts}</small><em>{participantStatus(participant)}</em></div>
-              </article>
-            );
-          })}
-        </div>
-      </div>
-    </GameDialog>
-  );
-}
+const ParticipantSelectorModal = BreedingParentPicker;
 
 function ParticipantInfoModal({ participant, creature, dayNumber, onClose }: { participant: BreedingParticipant; creature: CreatureRecord | null; dayNumber: number; onClose: () => void }) {
   return (

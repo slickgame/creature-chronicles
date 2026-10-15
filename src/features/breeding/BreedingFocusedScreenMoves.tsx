@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { getBattleMoveInheritancePreview } from "@/data/battleMoveInheritance";
-import { getBattleMove } from "@/data/battleMoves";
-import { getSpeciesDefinition } from "@/data/creatures";
+
+
 import { useGameContext } from "@/state/GameProvider";
 import { BreedingFocusedScreen as ItemsBreedingScreen } from "./BreedingFocusedScreenItems";
-import { GameDialog } from "@/features/ui/GameDialog";
-import { TalentInheritancePanel } from "./TalentInheritancePanel";
-import styles from "./BreedingFocusedScreenMoves.module.css";
+
+import { BreedingInheritanceBook } from "./BreedingInheritanceBook";
+
 
 type PairMemory = { giverId: string | null; receiverId: string | null };
 
@@ -33,7 +33,6 @@ function readPair(saveId: string): PairMemory {
 
 export function BreedingFocusedScreen() {
   const [showMoves,setShowMoves]=useState(false);
-  const [inheritanceTab, setInheritanceTab] = useState<"talents" | "moves">("talents");
   const { currentSave } = useGameContext();
   const [host, setHost] = useState<HTMLElement | null>(null);
   const [pair, setPair] = useState<PairMemory>({ giverId: "player", receiverId: null });
@@ -82,58 +81,7 @@ export function BreedingFocusedScreen() {
     [currentSave, pair.giverId, pair.receiverId],
   );
 
-  const panel = preview ? (
-    <><button type="button" style={{order:-1}} onClick={() => setShowMoves(true)}><img src="/images/ui/icons/icon_collection_book.png" alt="" />Inheritance</button>{showMoves ? <GameDialog title="Inheritance" onClose={() => setShowMoves(false)}><nav aria-label="Inheritance views" style={{display:"flex",gap:8,marginBottom:16}}><button type="button" aria-pressed={inheritanceTab === "talents"} onClick={() => setInheritanceTab("talents")}>Talents</button><button type="button" aria-pressed={inheritanceTab === "moves"} onClick={() => setInheritanceTab("moves")}>Moves</button></nav>{inheritanceTab === "talents" && currentSave ? <TalentInheritancePanel save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} /> : <><p>{preview.canProduceOffspring ? `+${preview.contextBonus}% pair bonus` : "Select two creatures"}</p>
-      <div className={styles.body}>
-        <p>{preview.reason}</p>
-        {preview.childSpeciesId ? (
-          <div className={styles.childLabel}>
-            <span>Projected family move compatibility</span>
-            <strong>{getSpeciesDefinition(preview.childSpeciesId).name}</strong>
-          </div>
-        ) : null}
-
-        {preview.directCandidates.length ? (
-          <section>
-            <h3>Possible Parent Moves</h3>
-            <div className={styles.list}>
-              {preview.directCandidates.map((candidate) => (
-                <article key={candidate.moveId}>
-                  <div>
-                    <strong>{candidate.moveName}</strong>
-                    <span>{getBattleMove(candidate.moveId).category} · {candidate.knownByBothParents ? "both parents" : "one parent"}</span>
-                  </div>
-                  <b>{candidate.finalChance}%</b>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {preview.combinationCandidates.length ? (
-          <section>
-            <h3>Possible Combination Moves</h3>
-            <div className={styles.list}>
-              {preview.combinationCandidates.map((candidate) => (
-                <article key={candidate.recipeId} className={styles.combination}>
-                  <div>
-                    <strong>{candidate.outputMoveName}</strong>
-                    <span>{candidate.contributingMoveNames.join(" + ")}</span>
-                  </div>
-                  <b>{candidate.chance}%</b>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {preview.canProduceOffspring && !preview.directCandidates.length && !preview.combinationCandidates.length ? (
-          <p className={styles.nativeNote}>No bonus technique is available, but every hatchling still receives its species’ complete native starting library.</p>
-        ) : null}
-        <p className={styles.disclosure}>Chances are visible before breeding. Exact rolls and the final inherited loadout are locked only after successful conception.</p>
-      </div>
-    </>}</GameDialog> : null}</>
-  ) : null;
+  const panel = preview ? <><button type="button" style={{order:-1}} onClick={()=>setShowMoves(true)}><img src="/images/ui/icons/icon_collection_book.png" alt=""/>Inheritance</button>{showMoves&&currentSave?<BreedingInheritanceBook save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} onClose={()=>setShowMoves(false)}/>:null}</> : null;
 
   return (
     <>
