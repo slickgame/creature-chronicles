@@ -15,6 +15,7 @@ const PLANS:{name:string;items:BattleOutfitterItemId[]}[]=[
  {name:'Swift four + Vigor pair',items:['channeling_prism','focus_circlet','field_gloves','runner_bands','padded_harness','keepsake_charm']},
  {name:'Striker four + Bulwark pair',items:['training_grips','practice_wraps','sentinel_greaves','reserve_pendant','warded_harness','sentinel_helm']},
 ];
+export const STARTER_SET_PLANS=PLANS;
 /** A detached acquisition audit, not a first-week income model or battle win-rate estimate. */
 export function auditStarterSetLoadouts(){
  const initial=createNewGameSave('Starter set audit',0);

@@ -1,0 +1,958 @@
+{
+  "method": "Actual one-equine/one-habitat start, 1200 Gold; three timestamp seeds; three work actions per day for seven days, actual Energy blockers/recovery/feeding, two Wood reserved; actual one-time starter/daily goals and one timber order at most. Alternative route plans: care only, Quarry+Sawmill, canine habitat (no canine adoption). Upfront equipment is admitted only after protecting seven-night stock-only food fallback plus the full construction Gold, market replacement value of missing unreserved inputs, and missing two-Wood repair stock. Starting legacy Feed is counted by the real food planner. The material fallback is a conservative reserve, not actual spending: actual construction gathers resources. No borrowed future income; no infinite wallet in actual routes. Fixed 0.5 enhancement RNG is a reproducible example, not an expected roll. No battles, battle income, breeding, adoption, sales, training or bonus meals. No discretionary incident responses or injected incidents; normal overnight security processing is retained; Farm gear grants no direct work benefit; Gold-dependent daily-goal eligibility can change reward stocks, so every admitted loadout is simulated independently. No-goal-Gold sensitivity retains one-time non-Gold rewards and claim flags; it is not a zero-reward/zero-stock stress test. Day1 through Day8 morning only; no monthly tax bill assumed.",
+  "totalDecisions": 234,
+  "admittedRoutes": 114,
+  "rows": [
+    {
+      "route": "care",
+      "plan": "No gear",
+      "level": 0,
+      "cost": 0,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 1184,
+      "afterReserveWith200Buffer": 984,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1915,
+        1935
+      ],
+      "noGoalGoldEnd": [
+        1300,
+        1300
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Vigor pair",
+      "level": 0,
+      "cost": 75,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 1109,
+      "afterReserveWith200Buffer": 909,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1840,
+        1860
+      ],
+      "noGoalGoldEnd": [
+        1225,
+        1225
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Vigor pair",
+      "level": 3,
+      "cost": 171,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 1013,
+      "afterReserveWith200Buffer": 813,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1744,
+        1764
+      ],
+      "noGoalGoldEnd": [
+        1129,
+        1129
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Bulwark pair",
+      "level": 0,
+      "cost": 670,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 514,
+      "afterReserveWith200Buffer": 314,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1245,
+        1265
+      ],
+      "noGoalGoldEnd": [
+        630,
+        630
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Bulwark pair",
+      "level": 3,
+      "cost": 850,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 334,
+      "afterReserveWith200Buffer": 134,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1065,
+        1085
+      ],
+      "noGoalGoldEnd": [
+        450,
+        450
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Swift four",
+      "level": 0,
+      "cost": 785,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 399,
+      "afterReserveWith200Buffer": 199,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1130,
+        1150
+      ],
+      "noGoalGoldEnd": [
+        515,
+        515
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Swift four",
+      "level": 3,
+      "cost": 1073,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 111,
+      "afterReserveWith200Buffer": -89,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        842,
+        862
+      ],
+      "noGoalGoldEnd": [
+        227,
+        227
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Striker four",
+      "level": 0,
+      "cost": 765,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 419,
+      "afterReserveWith200Buffer": 219,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1150,
+        1170
+      ],
+      "noGoalGoldEnd": [
+        535,
+        535
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Striker four",
+      "level": 3,
+      "cost": 1041,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 143,
+      "afterReserveWith200Buffer": -57,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        874,
+        894
+      ],
+      "noGoalGoldEnd": [
+        259,
+        259
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Swift four + Vigor pair",
+      "level": 0,
+      "cost": 880,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": 304,
+      "afterReserveWith200Buffer": 104,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1035,
+        1055
+      ],
+      "noGoalGoldEnd": [
+        420,
+        420
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "care",
+      "plan": "Swift four + Vigor pair",
+      "level": 3,
+      "cost": 1264,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": -80,
+      "afterReserveWith200Buffer": -280,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "care",
+      "plan": "Striker four + Bulwark pair",
+      "level": 0,
+      "cost": 1435,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": -251,
+      "afterReserveWith200Buffer": -451,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "care",
+      "plan": "Striker four + Bulwark pair",
+      "level": 3,
+      "cost": 1891,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 0,
+        "materialFallbackGold": 0,
+        "repairFallbackGold": 16,
+        "total": 16
+      },
+      "afterReserve": -707,
+      "afterReserveWith200Buffer": -907,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "No gear",
+      "level": 0,
+      "cost": 0,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": 620,
+      "afterReserveWith200Buffer": 420,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1380,
+        1475
+      ],
+      "noGoalGoldEnd": [
+        880,
+        880
+      ],
+      "minPreSleepEnergy": [
+        53,
+        67
+      ]
+    },
+    {
+      "route": "production",
+      "plan": "Vigor pair",
+      "level": 0,
+      "cost": 75,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": 545,
+      "afterReserveWith200Buffer": 345,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1305,
+        1400
+      ],
+      "noGoalGoldEnd": [
+        805,
+        805
+      ],
+      "minPreSleepEnergy": [
+        53,
+        67
+      ]
+    },
+    {
+      "route": "production",
+      "plan": "Vigor pair",
+      "level": 3,
+      "cost": 171,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": 449,
+      "afterReserveWith200Buffer": 249,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1209,
+        1304
+      ],
+      "noGoalGoldEnd": [
+        709,
+        709
+      ],
+      "minPreSleepEnergy": [
+        53,
+        67
+      ]
+    },
+    {
+      "route": "production",
+      "plan": "Bulwark pair",
+      "level": 0,
+      "cost": 670,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -50,
+      "afterReserveWith200Buffer": -250,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Bulwark pair",
+      "level": 3,
+      "cost": 850,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -230,
+      "afterReserveWith200Buffer": -430,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Swift four",
+      "level": 0,
+      "cost": 785,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -165,
+      "afterReserveWith200Buffer": -365,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Swift four",
+      "level": 3,
+      "cost": 1073,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -453,
+      "afterReserveWith200Buffer": -653,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Striker four",
+      "level": 0,
+      "cost": 765,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -145,
+      "afterReserveWith200Buffer": -345,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Striker four",
+      "level": 3,
+      "cost": 1041,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -421,
+      "afterReserveWith200Buffer": -621,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Swift four + Vigor pair",
+      "level": 0,
+      "cost": 880,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -260,
+      "afterReserveWith200Buffer": -460,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Swift four + Vigor pair",
+      "level": 3,
+      "cost": 1264,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -644,
+      "afterReserveWith200Buffer": -844,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Striker four + Bulwark pair",
+      "level": 0,
+      "cost": 1435,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -815,
+      "afterReserveWith200Buffer": -1015,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "production",
+      "plan": "Striker four + Bulwark pair",
+      "level": 3,
+      "cost": 1891,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 420,
+        "materialFallbackGold": 144,
+        "repairFallbackGold": 16,
+        "total": 580
+      },
+      "afterReserve": -1271,
+      "afterReserveWith200Buffer": -1471,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "No gear",
+      "level": 0,
+      "cost": 0,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": 836,
+      "afterReserveWith200Buffer": 636,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1615,
+        1635
+      ],
+      "noGoalGoldEnd": [
+        1000,
+        1000
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Vigor pair",
+      "level": 0,
+      "cost": 75,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": 761,
+      "afterReserveWith200Buffer": 561,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1540,
+        1560
+      ],
+      "noGoalGoldEnd": [
+        925,
+        925
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Vigor pair",
+      "level": 3,
+      "cost": 171,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": 665,
+      "afterReserveWith200Buffer": 465,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        1444,
+        1464
+      ],
+      "noGoalGoldEnd": [
+        829,
+        829
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Bulwark pair",
+      "level": 0,
+      "cost": 670,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": 166,
+      "afterReserveWith200Buffer": -34,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        945,
+        965
+      ],
+      "noGoalGoldEnd": [
+        330,
+        330
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Bulwark pair",
+      "level": 3,
+      "cost": 850,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -14,
+      "afterReserveWith200Buffer": -214,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Swift four",
+      "level": 0,
+      "cost": 785,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": 51,
+      "afterReserveWith200Buffer": -149,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        830,
+        850
+      ],
+      "noGoalGoldEnd": [
+        215,
+        215
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Swift four",
+      "level": 3,
+      "cost": 1073,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -237,
+      "afterReserveWith200Buffer": -437,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Striker four",
+      "level": 0,
+      "cost": 765,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": 71,
+      "afterReserveWith200Buffer": -129,
+      "cases": 6,
+      "admitted": 6,
+      "normalEndGold": [
+        850,
+        870
+      ],
+      "noGoalGoldEnd": [
+        235,
+        235
+      ],
+      "minPreSleepEnergy": [
+        55,
+        69
+      ]
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Striker four",
+      "level": 3,
+      "cost": 1041,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -205,
+      "afterReserveWith200Buffer": -405,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Swift four + Vigor pair",
+      "level": 0,
+      "cost": 880,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -44,
+      "afterReserveWith200Buffer": -244,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Swift four + Vigor pair",
+      "level": 3,
+      "cost": 1264,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -428,
+      "afterReserveWith200Buffer": -628,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Striker four + Bulwark pair",
+      "level": 0,
+      "cost": 1435,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -599,
+      "afterReserveWith200Buffer": -799,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    },
+    {
+      "route": "canine-habitat",
+      "plan": "Striker four + Bulwark pair",
+      "level": 3,
+      "cost": 1891,
+      "reserve": {
+        "foodGold": 0,
+        "constructionGold": 300,
+        "materialFallbackGold": 48,
+        "repairFallbackGold": 16,
+        "total": 364
+      },
+      "afterReserve": -1055,
+      "afterReserveWith200Buffer": -1255,
+      "cases": 6,
+      "admitted": 0,
+      "normalEndGold": null,
+      "noGoalGoldEnd": null,
+      "minPreSleepEnergy": null
+    }
+  ]
+}

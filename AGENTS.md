@@ -6,3 +6,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Creature Chronicles UI direction
 Keep primary menus within the viewport; use pages and focused detail popups instead of long scrolling panels. Do not hide overflowing information to make a screen appear to fit. Create or reuse images, icons, frames, panels and backgrounds whenever they improve clarity or visual quality. Preserve approved creature artwork and the established anime-painterly/parchment visual direction. Small interface symbols should extend the existing SVG icon system; use image generation for new painterly illustrations when needed.
+
+## Continuing visual reviews
+For each new menu, window or popup redesign, show actual current-game screenshots and distinct concept-art options for the user to choose from before implementing the new visual direction. Keep concept proposals separate from live screenshots and actual transactions. After implementation, show actual game results on desktop and phone; retain the viewport/page/minimize rules above. Routine fixes within a selected design can proceed.
