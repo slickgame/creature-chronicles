@@ -9,3 +9,6 @@ Keep primary menus within the viewport; use pages and focused detail popups inst
 
 ## Continuing visual reviews
 For each new menu, window or popup redesign, show actual current-game screenshots and distinct concept-art options for the user to choose from before implementing the new visual direction. Keep concept proposals separate from live screenshots and actual transactions. After implementation, show actual game results on desktop and phone; retain the viewport/page/minimize rules above. Routine fixes within a selected design can proceed.
+
+## Approved concept fidelity
+Treat the selected concept as a visual acceptance reference. Compare actual screenshots against its typography, panel borders/ornament, card proportions, spacing, header and action hierarchy on desktop and phone before calling the UI complete. A matching palette and passing layout checks alone are insufficient; avoid stretching cards to fill unused space when the concept uses compact cards and an inline detail area.

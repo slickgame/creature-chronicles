@@ -129,10 +129,11 @@
   "preview": {
     "path": "preview.html",
     "sampleOnly": true,
-    "localStorageWrites": false
+    "localStorageWrites": false,
+    "historicalAssembly": true
   },
   "runtimeIntegration": {
     "component": "src/features/builder/BlacksmithWorkshop.tsx",
-    "notes": "docs/FORGE_A_GALLERY_LIVE_2026-10-16.md"
+    "notes": "docs/FORGE_A_CONCEPT_FIDELITY_2026-10-16.md"
   }
 }

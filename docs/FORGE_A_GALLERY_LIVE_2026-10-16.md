@@ -1,5 +1,7 @@
 # Forge A — live Recipe Gallery
 
+Current visual follow-up: read `docs/FORGE_A_CONCEPT_FIDELITY_2026-10-16.md` first. The user identified typography/frame/composition mismatches in this first implementation; the follow-up corrects them, including inline phone details. The notes below retain the original integration history and transaction validation.
+
 The selected Recipe Gallery now replaces the real Forge UI. Desktop shows the six canonical recipe cards beside the selected output and material/labor counts; phones show two cards per page and focused detail/material windows. Short landscape puts details/materials behind explicit buttons. Iona can collapse on desktop/landscape; her canonical portrait remains in dialogue on phone. Menu and Builder’s Yard keep their original navigation handlers.
 
 All six recipes derive from `getBlacksmithQuote`, `equipmentStats` and actual stock/reserve helpers. Rarity, Power Grade and enhancement are separate. Output details page the exact main/substats and complete description, passive and set information. The existing equipment guide remains reachable. Comparisons choose an actual creature, show current/after battle values and page hypothetical set losses/gains/progress. Previewing never changes saved gear.

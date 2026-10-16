@@ -2,6 +2,8 @@
 
 Selected by the user on October 16, 2026. Use corrected Forge A only. This folder is a production graphic kit with an isolated, sample-only assembly. Forge A is now integrated into the real BlacksmithWorkshop; see docs/FORGE_A_GALLERY_LIVE_2026-10-16.md.
 
+Current visual reference: `docs/FORGE_A_CONCEPT_FIDELITY_2026-10-16.md` and the runtime `ForgeGallery.module.css`. The standalone preview is the original asset assembly, not the final visual acceptance reference.
+
 ## Contents
 
 - Three original painted illustrations: quiet parchment, botanical corner, craft-completion seal. Production RGBA WebPs are here; unmodified full-resolution PNG masters and exact prompts are in the complete Drive archive.
