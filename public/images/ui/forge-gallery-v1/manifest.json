@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "selectedConcept": "Forge A \u2014 corrected Recipe Gallery",
+  "status": "Production asset kit and isolated sample assembly; live Forge integration is next.",
+  "generatedWith": "built-in image_gen.imagegen",
+  "art": [
+    {
+      "id": "parchment",
+      "master": "masters/parchment.png",
+      "masterSha256": "5507f670e737469acf4dc60596681a9f0c7d6531ea96f0d16247edb8a8051abb",
+      "production": "parchment.webp",
+      "sha256": "887d50fe5420af738daf7f3b8a970c0ce466c5efd3738457aac82d4a85959144",
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: one production UI parchment panel for Creature Chronicles Forge A Recipe Gallery. Reference image is STYLE ONLY, not an edit target. Create a single large rectangular ivory-gold parchment sheet with lightly textured warm cream center, subtly beveled double brass border, delicate hand-painted olive-green leaves and a few small white blossoms confined to four corners, fine gold filigree. Shape aspect ratio about 3:2 landscape, full panel silhouette centered with 8 percent clear margin on every side. The central 85 percent must be exceptionally quiet, light, blank, evenly colored and suitable for readable UI text, no central illustrations, no lines, grid, words, numbers, buttons, shadows beyond panel, background environment or watermark. No curled scroll ends or perspective: perfectly straight-on flat UI surface. Match reference's refined anime-painterly botanical parchment craft interface. Truly transparent background outside the complete panel.",
+      "conversion": "RGBA WebP quality92/method6; ornaments downsampled to512px, no creative raster changes.",
+      "masterSize": [
+        1536,
+        1024
+      ],
+      "originalFilename": "exec-2bcb74eb-4a7a-4a92-b0b0-f97749dfce3d.png",
+      "productionSize": [
+        1536,
+        1024
+      ]
+    },
+    {
+      "id": "corner",
+      "master": "masters/corner.png",
+      "masterSha256": "7b8b02ab529b32c6e0bc57ff444b89a720a488a37ed6b0c0658c89e088aa56e1",
+      "production": "corner.webp",
+      "sha256": "8df793bf95caeca5372bfb3d9859452bcecc9dcb57f35ea94a724f8a8ab2a992",
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: standalone transparent botanical corner ornament for Creature Chronicles Forge A UI. Reference image supplies style only. One restrained L-shaped upper-left corner flourish: thin curved brushed-gold filigree stems, olive green leaves, two small white five-petal flowers with warm gold centers. Delicate painterly anime-fantasy ranch craft aesthetic, crisp readable small silhouette, warm natural lighting. Leaves and gold stems hug the top and left edges of an implied 90-degree corner, open blank space toward bottom right. Single ornament centered with 15 percent transparent padding, full uncropped silhouette. No parchment panel, frame rectangle, lettering, words, numbers, icons, environment, detached shadow or watermark. This will overlay existing modular UI frames. Genuinely transparent background.",
+      "conversion": "RGBA WebP quality92/method6; ornaments downsampled to512px, no creative raster changes.",
+      "masterSize": [
+        1292,
+        1218
+      ],
+      "originalFilename": "exec-f1e72320-30e0-431a-a161-0d6478a06321.png",
+      "productionSize": [
+        512,
+        483
+      ]
+    },
+    {
+      "id": "craft-seal",
+      "master": "masters/craft-seal.png",
+      "masterSha256": "9ca7d8cbcac863b2ea3406093178da9ce136b88db903b0f9e542dda64d836122",
+      "production": "craft-seal.webp",
+      "sha256": "6c316b2a53af0f259ebb339f4588430fd04d6f0508ca8dd5734e3d9612f710ed",
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: production transparent craft-completion ornament for Creature Chronicles Forge A. Reference image supplies styling only. One compact green-bronze circular blacksmith medallion: a practical small iron hammer and anvil embossed in the center, encircled by a restrained botanical laurel of olive leaves and fine gold accents. Handmade brass and muted forest-green enamel, refined sharp anime-painterly fantasy ranch illustration, warm natural highlights. Centered full silhouette with 15 percent clear padding, readable at 64px. No text, letters, numbers, check mark, mystery symbol, sparkles, glow, reward rarity colors, gem, ribbon, environment or watermark. This means a guaranteed completed craft, not a random reward. Truly transparent background.",
+      "conversion": "RGBA WebP quality92/method6; ornaments downsampled to512px, no creative raster changes.",
+      "masterSize": [
+        1278,
+        1230
+      ],
+      "originalFilename": "exec-63bb3e6e-dcf4-4b20-945f-3b2c6a6ec3ef.png",
+      "productionSize": [
+        512,
+        493
+      ]
+    }
+  ],
+  "reuse": [
+    {
+      "role": "Approved background",
+      "path": "/images/ui/locations-v2/builder-yard.webp",
+      "sha256": "46efc78f935f494e4c454cf74e9063e1705bf4c71d635cd7c40fd63d51ae9d2f"
+    },
+    {
+      "role": "Canonical Iona",
+      "path": "/images/ui/blacksmith-v1/iona.webp",
+      "sha256": "93d66f44ac09b1627e41e0821dc5aa655e233d904a01932126ca10c725696183"
+    },
+    {
+      "role": "Existing item plinth",
+      "path": "/images/ui/blacksmith-v1/recipe-frame.svg",
+      "sha256": "588752e56ca24579a20d36fa69954703608750480f19f99ed2d3943267a64b1a"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/duelist_bracers.webp",
+      "sha256": "40f53f5f83da99fdb47bb4b19522acbf39ceca736df63f0ef892535482b1be19"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/duelist_grips.webp",
+      "sha256": "7489781f32245734980a21676e474925b4a71f96adad38861a27e0377c1e3d4a"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/focus_circlet.webp",
+      "sha256": "10b6a0161342405978fd0d9b60e03bdce4ebf29ae836b1119e5dfe59c3714e76"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/reserve_pendant.webp",
+      "sha256": "e9f8faf19db9b41fc0034c8c8460bc424e8f395f47d06857e8f9c31afdcbf706"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/sentinel_helm.webp",
+      "sha256": "267696e58dfb5f4476faa58ad70fe262355955431dd4d191f76eab45cb529641"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/training_grips.webp",
+      "sha256": "6ccce907e9cc013f166f091a81162cd6467b3b43d52fa8d417a7c7020362960b"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/resources-v3/iron.webp",
+      "sha256": "3e6a8e8acf612a292f5b43c99ed5c2d3ef6096b123de21d14a7c2c3c452530e1"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/resources-v4/nails.webp",
+      "sha256": "f875be1d939fe97c49e6efe4a8b8dbe75afb985b38de81f0507096cb0fcbccb5"
+    }
+  ],
+  "counts": {
+    "generatedIllustrations": 3,
+    "editableSurfaces": 44,
+    "icons": 35,
+    "canonicalReused": 11,
+    "totalGraphics": 93
+  },
+  "preview": {
+    "path": "preview.html",
+    "sampleOnly": true,
+    "localStorageWrites": false
+  }
+}

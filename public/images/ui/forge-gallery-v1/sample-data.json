@@ -1,0 +1,840 @@
+{
+  "labels": {
+    "maxHp": "Max HP",
+    "physicalPower": "Physical Power",
+    "specialPower": "Special Power",
+    "defense": "Defense",
+    "resistance": "Resistance",
+    "speed": "Speed",
+    "accuracy": "Accuracy",
+    "evasion": "Evasion",
+    "statusPower": "Status Power",
+    "statusResist": "Status Resist",
+    "battleEnergy": "Max Battle Energy"
+  },
+  "sets": {
+    "vigor": {
+      "name": "Vigor",
+      "pieces": 2,
+      "rates": {
+        "maxHp": 10
+      },
+      "description": "+10% base Max HP per completed two-piece group."
+    },
+    "bulwark": {
+      "name": "Bulwark",
+      "pieces": 2,
+      "rates": {
+        "defense": 10,
+        "resistance": 10
+      },
+      "description": "+10% base Defense and Resistance per completed two-piece group."
+    },
+    "striker": {
+      "name": "Striker",
+      "pieces": 4,
+      "rates": {
+        "physicalPower": 15,
+        "specialPower": 15
+      },
+      "description": "+15% base Physical and Special Power per completed four-piece group."
+    },
+    "swift": {
+      "name": "Swift",
+      "pieces": 4,
+      "rates": {
+        "speed": 10
+      },
+      "description": "+10% base Speed per completed four-piece group."
+    }
+  },
+  "host": {
+    "name": "Iona Flint",
+    "title": "Master Blacksmith",
+    "portrait": "/images/ui/blacksmith-v1/iona.webp"
+  },
+  "recipes": [
+    {
+      "id": "training_blade",
+      "name": "Training Blade",
+      "itemId": "training_grips",
+      "art": "/images/ui/equipment-v2/training_grips.webp",
+      "shopGold": 55,
+      "laborGold": 10,
+      "description": "A simple iron shortsword with a leather-wrapped handle. Improves physical striking power.",
+      "stats": {
+        "level": 0,
+        "main": {
+          "key": "physicalPower",
+          "value": 3
+        },
+        "substats": [],
+        "passiveBonuses": {},
+        "passive": null,
+        "milestones": [],
+        "bonuses": {
+          "physicalPower": 3
+        },
+        "rarity": "Common",
+        "powerGrade": "D",
+        "setId": "striker",
+        "initialSubstatCount": 0,
+        "legacy": false
+      },
+      "comparison": [
+        {
+          "key": "maxHp",
+          "label": "Max HP",
+          "current": 154,
+          "after": 154,
+          "delta": 0
+        },
+        {
+          "key": "physicalPower",
+          "label": "Physical Power",
+          "current": 27,
+          "after": 30,
+          "delta": 3
+        },
+        {
+          "key": "specialPower",
+          "label": "Special Power",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "defense",
+          "label": "Defense",
+          "current": 20,
+          "after": 20,
+          "delta": 0
+        },
+        {
+          "key": "resistance",
+          "label": "Resistance",
+          "current": 18,
+          "after": 18,
+          "delta": 0
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "current": 11,
+          "after": 11,
+          "delta": 0
+        },
+        {
+          "key": "accuracy",
+          "label": "Accuracy",
+          "current": 92,
+          "after": 92,
+          "delta": 0
+        },
+        {
+          "key": "evasion",
+          "label": "Evasion",
+          "current": 1,
+          "after": 1,
+          "delta": 0
+        },
+        {
+          "key": "statusPower",
+          "label": "Status Power",
+          "current": 16,
+          "after": 16,
+          "delta": 0
+        },
+        {
+          "key": "statusResist",
+          "label": "Status Resist",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "battleEnergy",
+          "label": "Max Battle Energy",
+          "current": 94,
+          "after": 94,
+          "delta": 0
+        }
+      ],
+      "inputs": [
+        {
+          "id": "iron",
+          "name": "Iron ingots",
+          "quantity": 1,
+          "price": 40,
+          "art": "/images/ui/resources-v3/iron.webp"
+        }
+      ]
+    },
+    {
+      "id": "focus_circlet",
+      "name": "Focus Circlet",
+      "itemId": "focus_circlet",
+      "art": "/images/ui/equipment-v2/focus_circlet.webp",
+      "shopGold": 185,
+      "laborGold": 45,
+      "description": "Fine focus circlet with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "stats": {
+        "level": 0,
+        "main": {
+          "key": "maxHp",
+          "value": 15
+        },
+        "substats": [
+          {
+            "key": "specialPower",
+            "value": 3
+          }
+        ],
+        "passiveBonuses": {},
+        "passive": null,
+        "milestones": [],
+        "bonuses": {
+          "maxHp": 15,
+          "specialPower": 3
+        },
+        "rarity": "Uncommon",
+        "powerGrade": "C",
+        "setId": "swift",
+        "initialSubstatCount": 1,
+        "legacy": false
+      },
+      "comparison": [
+        {
+          "key": "maxHp",
+          "label": "Max HP",
+          "current": 154,
+          "after": 169,
+          "delta": 15
+        },
+        {
+          "key": "physicalPower",
+          "label": "Physical Power",
+          "current": 27,
+          "after": 27,
+          "delta": 0
+        },
+        {
+          "key": "specialPower",
+          "label": "Special Power",
+          "current": 19,
+          "after": 22,
+          "delta": 3
+        },
+        {
+          "key": "defense",
+          "label": "Defense",
+          "current": 20,
+          "after": 20,
+          "delta": 0
+        },
+        {
+          "key": "resistance",
+          "label": "Resistance",
+          "current": 18,
+          "after": 18,
+          "delta": 0
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "current": 11,
+          "after": 11,
+          "delta": 0
+        },
+        {
+          "key": "accuracy",
+          "label": "Accuracy",
+          "current": 92,
+          "after": 92,
+          "delta": 0
+        },
+        {
+          "key": "evasion",
+          "label": "Evasion",
+          "current": 1,
+          "after": 1,
+          "delta": 0
+        },
+        {
+          "key": "statusPower",
+          "label": "Status Power",
+          "current": 16,
+          "after": 16,
+          "delta": 0
+        },
+        {
+          "key": "statusResist",
+          "label": "Status Resist",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "battleEnergy",
+          "label": "Max Battle Energy",
+          "current": 94,
+          "after": 94,
+          "delta": 0
+        }
+      ],
+      "inputs": [
+        {
+          "id": "iron",
+          "name": "Iron ingots",
+          "quantity": 3,
+          "price": 40,
+          "art": "/images/ui/resources-v3/iron.webp"
+        }
+      ]
+    },
+    {
+      "id": "reserve_pendant",
+      "name": "Reserve Pendant",
+      "itemId": "reserve_pendant",
+      "art": "/images/ui/equipment-v2/reserve_pendant.webp",
+      "shopGold": 205,
+      "laborGold": 60,
+      "description": "Fine reserve pendant with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "stats": {
+        "level": 0,
+        "main": {
+          "key": "battleEnergy",
+          "value": 5
+        },
+        "substats": [
+          {
+            "key": "resistance",
+            "value": 2
+          },
+          {
+            "key": "specialPower",
+            "value": 3
+          }
+        ],
+        "passiveBonuses": {},
+        "passive": null,
+        "milestones": [],
+        "bonuses": {
+          "battleEnergy": 5,
+          "resistance": 2,
+          "specialPower": 3
+        },
+        "rarity": "Rare",
+        "powerGrade": "C",
+        "setId": "striker",
+        "initialSubstatCount": 2,
+        "legacy": false
+      },
+      "comparison": [
+        {
+          "key": "maxHp",
+          "label": "Max HP",
+          "current": 154,
+          "after": 154,
+          "delta": 0
+        },
+        {
+          "key": "physicalPower",
+          "label": "Physical Power",
+          "current": 27,
+          "after": 27,
+          "delta": 0
+        },
+        {
+          "key": "specialPower",
+          "label": "Special Power",
+          "current": 19,
+          "after": 22,
+          "delta": 3
+        },
+        {
+          "key": "defense",
+          "label": "Defense",
+          "current": 20,
+          "after": 20,
+          "delta": 0
+        },
+        {
+          "key": "resistance",
+          "label": "Resistance",
+          "current": 18,
+          "after": 20,
+          "delta": 2
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "current": 11,
+          "after": 11,
+          "delta": 0
+        },
+        {
+          "key": "accuracy",
+          "label": "Accuracy",
+          "current": 92,
+          "after": 92,
+          "delta": 0
+        },
+        {
+          "key": "evasion",
+          "label": "Evasion",
+          "current": 1,
+          "after": 1,
+          "delta": 0
+        },
+        {
+          "key": "statusPower",
+          "label": "Status Power",
+          "current": 16,
+          "after": 16,
+          "delta": 0
+        },
+        {
+          "key": "statusResist",
+          "label": "Status Resist",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "battleEnergy",
+          "label": "Max Battle Energy",
+          "current": 94,
+          "after": 99,
+          "delta": 5
+        }
+      ],
+      "inputs": [
+        {
+          "id": "iron",
+          "name": "Iron ingots",
+          "quantity": 3,
+          "price": 40,
+          "art": "/images/ui/resources-v3/iron.webp"
+        }
+      ]
+    },
+    {
+      "id": "duelist_saber",
+      "name": "Duelist Saber",
+      "itemId": "duelist_grips",
+      "art": "/images/ui/equipment-v2/duelist_grips.webp",
+      "shopGold": 470,
+      "laborGold": 100,
+      "description": "A curved steel saber with an ornate guard and navy grip. Improves physical power and precision.",
+      "stats": {
+        "level": 0,
+        "main": {
+          "key": "physicalPower",
+          "value": 7
+        },
+        "substats": [
+          {
+            "key": "accuracy",
+            "value": 3
+          },
+          {
+            "key": "battleEnergy",
+            "value": 4
+          },
+          {
+            "key": "maxHp",
+            "value": 4
+          }
+        ],
+        "passiveBonuses": {},
+        "passive": null,
+        "milestones": [],
+        "bonuses": {
+          "physicalPower": 7,
+          "accuracy": 3,
+          "battleEnergy": 4,
+          "maxHp": 4
+        },
+        "rarity": "Heroic",
+        "powerGrade": "B",
+        "setId": "striker",
+        "initialSubstatCount": 3,
+        "legacy": false
+      },
+      "comparison": [
+        {
+          "key": "maxHp",
+          "label": "Max HP",
+          "current": 154,
+          "after": 158,
+          "delta": 4
+        },
+        {
+          "key": "physicalPower",
+          "label": "Physical Power",
+          "current": 27,
+          "after": 34,
+          "delta": 7
+        },
+        {
+          "key": "specialPower",
+          "label": "Special Power",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "defense",
+          "label": "Defense",
+          "current": 20,
+          "after": 20,
+          "delta": 0
+        },
+        {
+          "key": "resistance",
+          "label": "Resistance",
+          "current": 18,
+          "after": 18,
+          "delta": 0
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "current": 11,
+          "after": 11,
+          "delta": 0
+        },
+        {
+          "key": "accuracy",
+          "label": "Accuracy",
+          "current": 92,
+          "after": 95,
+          "delta": 3
+        },
+        {
+          "key": "evasion",
+          "label": "Evasion",
+          "current": 1,
+          "after": 1,
+          "delta": 0
+        },
+        {
+          "key": "statusPower",
+          "label": "Status Power",
+          "current": 16,
+          "after": 16,
+          "delta": 0
+        },
+        {
+          "key": "statusResist",
+          "label": "Status Resist",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "battleEnergy",
+          "label": "Max Battle Energy",
+          "current": 94,
+          "after": 98,
+          "delta": 4
+        }
+      ],
+      "inputs": [
+        {
+          "id": "iron",
+          "name": "Iron ingots",
+          "quantity": 8,
+          "price": 40,
+          "art": "/images/ui/resources-v3/iron.webp"
+        },
+        {
+          "id": "nails",
+          "name": "Nails",
+          "quantity": 2,
+          "price": 12,
+          "art": "/images/ui/resources-v4/nails.webp"
+        }
+      ]
+    },
+    {
+      "id": "sentinel_helm",
+      "name": "Sentinel Helm",
+      "itemId": "sentinel_helm",
+      "art": "/images/ui/equipment-v2/sentinel_helm.webp",
+      "shopGold": 440,
+      "laborGold": 100,
+      "description": "Superior sentinel helm with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "stats": {
+        "level": 0,
+        "main": {
+          "key": "maxHp",
+          "value": 21
+        },
+        "substats": [
+          {
+            "key": "defense",
+            "value": 4
+          },
+          {
+            "key": "statusResist",
+            "value": 4
+          },
+          {
+            "key": "battleEnergy",
+            "value": 4
+          }
+        ],
+        "passiveBonuses": {},
+        "passive": null,
+        "milestones": [],
+        "bonuses": {
+          "maxHp": 21,
+          "defense": 4,
+          "statusResist": 4,
+          "battleEnergy": 4
+        },
+        "rarity": "Heroic",
+        "powerGrade": "B",
+        "setId": "bulwark",
+        "initialSubstatCount": 3,
+        "legacy": false
+      },
+      "comparison": [
+        {
+          "key": "maxHp",
+          "label": "Max HP",
+          "current": 154,
+          "after": 175,
+          "delta": 21
+        },
+        {
+          "key": "physicalPower",
+          "label": "Physical Power",
+          "current": 27,
+          "after": 27,
+          "delta": 0
+        },
+        {
+          "key": "specialPower",
+          "label": "Special Power",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "defense",
+          "label": "Defense",
+          "current": 20,
+          "after": 24,
+          "delta": 4
+        },
+        {
+          "key": "resistance",
+          "label": "Resistance",
+          "current": 18,
+          "after": 18,
+          "delta": 0
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "current": 11,
+          "after": 11,
+          "delta": 0
+        },
+        {
+          "key": "accuracy",
+          "label": "Accuracy",
+          "current": 92,
+          "after": 92,
+          "delta": 0
+        },
+        {
+          "key": "evasion",
+          "label": "Evasion",
+          "current": 1,
+          "after": 1,
+          "delta": 0
+        },
+        {
+          "key": "statusPower",
+          "label": "Status Power",
+          "current": 16,
+          "after": 16,
+          "delta": 0
+        },
+        {
+          "key": "statusResist",
+          "label": "Status Resist",
+          "current": 19,
+          "after": 23,
+          "delta": 4
+        },
+        {
+          "key": "battleEnergy",
+          "label": "Max Battle Energy",
+          "current": 94,
+          "after": 98,
+          "delta": 4
+        }
+      ],
+      "inputs": [
+        {
+          "id": "iron",
+          "name": "Iron ingots",
+          "quantity": 7,
+          "price": 40,
+          "art": "/images/ui/resources-v3/iron.webp"
+        },
+        {
+          "id": "nails",
+          "name": "Nails",
+          "quantity": 4,
+          "price": 12,
+          "art": "/images/ui/resources-v4/nails.webp"
+        }
+      ]
+    },
+    {
+      "id": "duelist_bracers",
+      "name": "Duelist Bracers",
+      "itemId": "duelist_bracers",
+      "art": "/images/ui/equipment-v2/duelist_bracers.webp",
+      "shopGold": 460,
+      "laborGold": 110,
+      "description": "Superior duelist bracers with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "stats": {
+        "level": 0,
+        "main": {
+          "key": "physicalPower",
+          "value": 7
+        },
+        "substats": [
+          {
+            "key": "specialPower",
+            "value": 4
+          },
+          {
+            "key": "accuracy",
+            "value": 4
+          },
+          {
+            "key": "speed",
+            "value": 2
+          }
+        ],
+        "passiveBonuses": {},
+        "passive": null,
+        "milestones": [],
+        "bonuses": {
+          "physicalPower": 7,
+          "specialPower": 4,
+          "accuracy": 4,
+          "speed": 2
+        },
+        "rarity": "Heroic",
+        "powerGrade": "B",
+        "setId": "striker",
+        "initialSubstatCount": 3,
+        "legacy": false
+      },
+      "comparison": [
+        {
+          "key": "maxHp",
+          "label": "Max HP",
+          "current": 154,
+          "after": 154,
+          "delta": 0
+        },
+        {
+          "key": "physicalPower",
+          "label": "Physical Power",
+          "current": 27,
+          "after": 34,
+          "delta": 7
+        },
+        {
+          "key": "specialPower",
+          "label": "Special Power",
+          "current": 19,
+          "after": 23,
+          "delta": 4
+        },
+        {
+          "key": "defense",
+          "label": "Defense",
+          "current": 20,
+          "after": 20,
+          "delta": 0
+        },
+        {
+          "key": "resistance",
+          "label": "Resistance",
+          "current": 18,
+          "after": 18,
+          "delta": 0
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "current": 11,
+          "after": 13,
+          "delta": 2
+        },
+        {
+          "key": "accuracy",
+          "label": "Accuracy",
+          "current": 92,
+          "after": 96,
+          "delta": 4
+        },
+        {
+          "key": "evasion",
+          "label": "Evasion",
+          "current": 1,
+          "after": 1,
+          "delta": 0
+        },
+        {
+          "key": "statusPower",
+          "label": "Status Power",
+          "current": 16,
+          "after": 16,
+          "delta": 0
+        },
+        {
+          "key": "statusResist",
+          "label": "Status Resist",
+          "current": 19,
+          "after": 19,
+          "delta": 0
+        },
+        {
+          "key": "battleEnergy",
+          "label": "Max Battle Energy",
+          "current": 94,
+          "after": 94,
+          "delta": 0
+        }
+      ],
+      "inputs": [
+        {
+          "id": "iron",
+          "name": "Iron ingots",
+          "quantity": 7,
+          "price": 40,
+          "art": "/images/ui/resources-v3/iron.webp"
+        },
+        {
+          "id": "nails",
+          "name": "Nails",
+          "quantity": 4,
+          "price": 12,
+          "art": "/images/ui/resources-v4/nails.webp"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,655 @@
+{
+  "files": [
+    {
+      "name": "corner.webp",
+      "url": "corner.webp",
+      "kind": "Generated illustration",
+      "bytes": 58682,
+      "sha256": "8df793bf95caeca5372bfb3d9859452bcecc9dcb57f35ea94a724f8a8ab2a992"
+    },
+    {
+      "name": "craft-seal.webp",
+      "url": "craft-seal.webp",
+      "kind": "Generated illustration",
+      "bytes": 74916,
+      "sha256": "6c316b2a53af0f259ebb339f4588430fd04d6f0508ca8dd5734e3d9612f710ed"
+    },
+    {
+      "name": "frames/badge-common.svg",
+      "url": "frames/badge-common.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "04ab6a73a7de364a9ab56a2adfedb2a30e8d4f0477e6a723d0c30a56e9be8843"
+    },
+    {
+      "name": "frames/badge-heroic.svg",
+      "url": "frames/badge-heroic.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "a7eef53c0d405698c83fc74ab75959bcfe8687b334dc5d568498c389e15d6ff8"
+    },
+    {
+      "name": "frames/badge-legendary.svg",
+      "url": "frames/badge-legendary.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "bd2569bdd8518dd9b9dbb3aa24dd1ff6ee3cf71f63880da9b42af9f9af3f382c"
+    },
+    {
+      "name": "frames/badge-rare.svg",
+      "url": "frames/badge-rare.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "23a59e9d6fee4cf963916f276a55d502454ea30e5a13a50f8c0faf0a681e68fb"
+    },
+    {
+      "name": "frames/badge-uncommon.svg",
+      "url": "frames/badge-uncommon.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "278a2e4c4fdc46f7b52d30facd8e094d10865ccbcb794390d55060c7c4d7fe46"
+    },
+    {
+      "name": "frames/button-primary-disabled.svg",
+      "url": "frames/button-primary-disabled.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "9efd456e49e75965a3c37eed3dc67012adcb7c3f71ff519ce9b67e165124b73f"
+    },
+    {
+      "name": "frames/button-primary-hover.svg",
+      "url": "frames/button-primary-hover.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "03245fb802ec85b6e959032450ce1682874c7741ff0e230c39110b78bf11339d"
+    },
+    {
+      "name": "frames/button-primary-pressed.svg",
+      "url": "frames/button-primary-pressed.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "6044375807019dd258294eed1b6c274b03561f23587ac96c150539744559b377"
+    },
+    {
+      "name": "frames/button-primary.svg",
+      "url": "frames/button-primary.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "754e37f47c4be3c48fae0efbaeeab2ff86b39999a7d287f6f91b7558db3e3f7d"
+    },
+    {
+      "name": "frames/button-secondary-disabled.svg",
+      "url": "frames/button-secondary-disabled.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "2d24893519ae8e909880c2b5a12d3efe2768fe56e93914348963f9148d6faf47"
+    },
+    {
+      "name": "frames/button-secondary-hover.svg",
+      "url": "frames/button-secondary-hover.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "7bcaae9354862fed0683ee83a756db91911f55775336e6c742737717131a6a75"
+    },
+    {
+      "name": "frames/button-secondary-pressed.svg",
+      "url": "frames/button-secondary-pressed.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "52cefd92868ba74669b7f12ffe035681262304f17a3da84edad8c60cd2552588"
+    },
+    {
+      "name": "frames/button-secondary.svg",
+      "url": "frames/button-secondary.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "90ff186ee4935fff80e5e5e32eb2a123c707e0bf458033d654b9764c8a92a067"
+    },
+    {
+      "name": "frames/cost-row.svg",
+      "url": "frames/cost-row.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "f78745dd4e386771e32a95b6a5bd0609918348a25216b40a828f06907b1289b4"
+    },
+    {
+      "name": "frames/detail-frame.svg",
+      "url": "frames/detail-frame.svg",
+      "kind": "Editable vector",
+      "bytes": 1304,
+      "sha256": "440850be857891406ebd1783b95a8cc7745ba2e093827b82dac89b7cd0afb6d8"
+    },
+    {
+      "name": "frames/dialog-frame.svg",
+      "url": "frames/dialog-frame.svg",
+      "kind": "Editable vector",
+      "bytes": 1304,
+      "sha256": "440850be857891406ebd1783b95a8cc7745ba2e093827b82dac89b7cd0afb6d8"
+    },
+    {
+      "name": "frames/dialogue-frame.svg",
+      "url": "frames/dialogue-frame.svg",
+      "kind": "Editable vector",
+      "bytes": 1304,
+      "sha256": "440850be857891406ebd1783b95a8cc7745ba2e093827b82dac89b7cd0afb6d8"
+    },
+    {
+      "name": "frames/divider.svg",
+      "url": "frames/divider.svg",
+      "kind": "Editable vector",
+      "bytes": 280,
+      "sha256": "e140f8323a59e1be4684e6131c6db08a55b5ca0bdfa5f2cdd7f5fa6ad493ce20"
+    },
+    {
+      "name": "frames/field.svg",
+      "url": "frames/field.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "24b2c83b7351da58e4b5feb4e237594016296969a4306663cd745a1c5d61f5db"
+    },
+    {
+      "name": "frames/gallery-frame.svg",
+      "url": "frames/gallery-frame.svg",
+      "kind": "Editable vector",
+      "bytes": 1304,
+      "sha256": "440850be857891406ebd1783b95a8cc7745ba2e093827b82dac89b7cd0afb6d8"
+    },
+    {
+      "name": "frames/host-plaque.svg",
+      "url": "frames/host-plaque.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "15c8ac3a82cabb32f3c4a42a025fcb0db0d2420612909a7951b3e4d8e1f3bfb3"
+    },
+    {
+      "name": "frames/material-row-warning.svg",
+      "url": "frames/material-row-warning.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "120cf2b7f0c59ba31b4dc3b3f7e18a71457e259e035a08e23655fc0e3bbdc4a5"
+    },
+    {
+      "name": "frames/material-row.svg",
+      "url": "frames/material-row.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "ef1d3d7371f7438fdf766da23d5cfff1150d0ab90d7a0894e557edcaed4e3ab5"
+    },
+    {
+      "name": "frames/notice-panel.svg",
+      "url": "frames/notice-panel.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "8202f45acb0877138ab0a8c2948eff58bd80d3fb2f667a704958fba08230468f"
+    },
+    {
+      "name": "frames/pager.svg",
+      "url": "frames/pager.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "c1656ec12e118d580b84632444df20b04a840905c6f81ed7b700f6f9a4701a75"
+    },
+    {
+      "name": "frames/receipt-frame.svg",
+      "url": "frames/receipt-frame.svg",
+      "kind": "Editable vector",
+      "bytes": 1304,
+      "sha256": "440850be857891406ebd1783b95a8cc7745ba2e093827b82dac89b7cd0afb6d8"
+    },
+    {
+      "name": "frames/recipe-card-hover.svg",
+      "url": "frames/recipe-card-hover.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "08bf2eee3493493eb95ff12f7987823f9eda7c39efdeae3d381413d84b1ecd0a"
+    },
+    {
+      "name": "frames/recipe-card-selected.svg",
+      "url": "frames/recipe-card-selected.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "a506285ee63bd4cba855946ccba9af0ecc26b012c517fca63057992bb02cb1b9"
+    },
+    {
+      "name": "frames/recipe-card-unavailable.svg",
+      "url": "frames/recipe-card-unavailable.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "d5cce70e9236b43fa7dc31fa8315aa65630f7b71ca6e1e884a7fb5d118e5ac92"
+    },
+    {
+      "name": "frames/recipe-card.svg",
+      "url": "frames/recipe-card.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "c2f74f20c8e3b5573d32d4adee3b532015f71b810bdc38bc033e1d1b4263493a"
+    },
+    {
+      "name": "frames/reserved-pill.svg",
+      "url": "frames/reserved-pill.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "975abda94295e680cfbe79ad9c06c72ff8e5742f7184d35c63a16604e812de32"
+    },
+    {
+      "name": "frames/source-frame.svg",
+      "url": "frames/source-frame.svg",
+      "kind": "Editable vector",
+      "bytes": 1304,
+      "sha256": "440850be857891406ebd1783b95a8cc7745ba2e093827b82dac89b7cd0afb6d8"
+    },
+    {
+      "name": "frames/source-tile.svg",
+      "url": "frames/source-tile.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "a6d90610c361586946125a36f777a56ed6359ce427cfa7e5fd5c1445a194e923"
+    },
+    {
+      "name": "frames/stat-row.svg",
+      "url": "frames/stat-row.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "ab44923b1a29b64a3fe720b8f0368e1b0fc967f6db7cf6417442f2969b15cb13"
+    },
+    {
+      "name": "frames/stock-row.svg",
+      "url": "frames/stock-row.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "d2aa3dcd75c37163563adda85dc8c3e70e7774d82a2e91e4e5a499ebc87d4bd7"
+    },
+    {
+      "name": "frames/substat-row.svg",
+      "url": "frames/substat-row.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "d9dcd6bf959fad6d7e903008e5a51529a4821a173169c6199b104275db559708"
+    },
+    {
+      "name": "frames/success-panel.svg",
+      "url": "frames/success-panel.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "6b33d5b5df32f4c8fee376e5e8f37347c44feb164c4d0acd2ef6e24a5bac537b"
+    },
+    {
+      "name": "frames/tab-active.svg",
+      "url": "frames/tab-active.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "aef246c34caddaca3510098e83bef50079355ef0e834faee405195df3fdf6d0e"
+    },
+    {
+      "name": "frames/tab-disabled.svg",
+      "url": "frames/tab-disabled.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "8da5d1c2ffd6061aacc58af00642f3472f88364e0c6ced4b97acdca5a45fdcbc"
+    },
+    {
+      "name": "frames/tab.svg",
+      "url": "frames/tab.svg",
+      "kind": "Editable vector",
+      "bytes": 420,
+      "sha256": "e4fb101d7d7b42b4292bf69189a381539cf81e1898b5e4a07da6e92663ed3510"
+    },
+    {
+      "name": "frames/title-plate.svg",
+      "url": "frames/title-plate.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "cdfab19c933c01322ef5bb1b58f5fe60e8e5ba2dc38b63b56ed01b7d870f19fe"
+    },
+    {
+      "name": "frames/toast.svg",
+      "url": "frames/toast.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "292a4b3b97e619788e85240409b5fbe48ec5175b02fa300b7d3b80ab11bb25cc"
+    },
+    {
+      "name": "frames/tooltip.svg",
+      "url": "frames/tooltip.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "d9d4bdc14bfeab1db6b94ebde6af61bb078b9220d83fd1289d3a5cc2ce01edfd"
+    },
+    {
+      "name": "frames/warning-panel.svg",
+      "url": "frames/warning-panel.svg",
+      "kind": "Editable vector",
+      "bytes": 427,
+      "sha256": "30f0ed9c3311ea1d32ae555eeb6a8fc9a6f374c10a3338f1bd13faab294caa23"
+    },
+    {
+      "name": "icons/accessory.svg",
+      "url": "icons/accessory.svg",
+      "kind": "Editable vector",
+      "bytes": 204,
+      "sha256": "749f01474803794513d885757da775f4102e3a11c0c5d9e08d712ce6856fe21a"
+    },
+    {
+      "name": "icons/accuracy.svg",
+      "url": "icons/accuracy.svg",
+      "kind": "Editable vector",
+      "bytes": 275,
+      "sha256": "ef230c7607097aa69a72c66e1af8b1167f9977fbea8388c3c67284a0fde39ee3"
+    },
+    {
+      "name": "icons/armor.svg",
+      "url": "icons/armor.svg",
+      "kind": "Editable vector",
+      "bytes": 206,
+      "sha256": "f5ba135b19b69fd4c7fc43db1b9b47ec828dd988e1c4ae4f87ee657a8a32bc60"
+    },
+    {
+      "name": "icons/back.svg",
+      "url": "icons/back.svg",
+      "kind": "Editable vector",
+      "bytes": 186,
+      "sha256": "c0d5ca5679fcdc9ec1083d17f17f86a66b834b8954500a67bfcf6b78bb58d12c"
+    },
+    {
+      "name": "icons/check.svg",
+      "url": "icons/check.svg",
+      "kind": "Editable vector",
+      "bytes": 187,
+      "sha256": "47c06602ac6c774680229723c0e853fc670728b81e75166b51eca9c0770711f6"
+    },
+    {
+      "name": "icons/close.svg",
+      "url": "icons/close.svg",
+      "kind": "Editable vector",
+      "bytes": 193,
+      "sha256": "dfb8c94c6ae9ed9a5fb1fcf0ea66efc8b385c8bac2cfdfb4e78c80f2f037d5e9"
+    },
+    {
+      "name": "icons/coin.svg",
+      "url": "icons/coin.svg",
+      "kind": "Editable vector",
+      "bytes": 261,
+      "sha256": "e14f1e47dc17e814fc8a3c25a48071f5c4c6eda68055575c186298477177705b"
+    },
+    {
+      "name": "icons/collapse.svg",
+      "url": "icons/collapse.svg",
+      "kind": "Editable vector",
+      "bytes": 186,
+      "sha256": "4b364f75fc9966050d27e861313a67ff774d65f3e8cb0d015f098901bfcff654"
+    },
+    {
+      "name": "icons/compare.svg",
+      "url": "icons/compare.svg",
+      "kind": "Editable vector",
+      "bytes": 229,
+      "sha256": "b6f0864930850dd07623ec8e2617c136ec8dfe7f4d0e6e6a6d7dee0388e000f1"
+    },
+    {
+      "name": "icons/craft.svg",
+      "url": "icons/craft.svg",
+      "kind": "Editable vector",
+      "bytes": 213,
+      "sha256": "a2617f4f3a503c56135118e647441c29dc9d48a8c6e7a81330e91c5ed7b79000"
+    },
+    {
+      "name": "icons/expand.svg",
+      "url": "icons/expand.svg",
+      "kind": "Editable vector",
+      "bytes": 185,
+      "sha256": "dafc6aa264c792a90f5eef509cca8011d29ed8ac54a649e16d3235c61a8d4466"
+    },
+    {
+      "name": "icons/filter.svg",
+      "url": "icons/filter.svg",
+      "kind": "Editable vector",
+      "bytes": 196,
+      "sha256": "99326e6e93228466ae6e9bcde1dff005cc0e1bbc4ba289203a1140bcb7def388"
+    },
+    {
+      "name": "icons/forge.svg",
+      "url": "icons/forge.svg",
+      "kind": "Editable vector",
+      "bytes": 224,
+      "sha256": "6ff9bf3e0467ddf7d5916f361238dd21e0aa03d4b29fefaf6b05707604147f56"
+    },
+    {
+      "name": "icons/hands.svg",
+      "url": "icons/hands.svg",
+      "kind": "Editable vector",
+      "bytes": 222,
+      "sha256": "ba08fa69e2143bad1e6761336ae2a118ad2e6c6e2d8587fc1042ca11f73d0b10"
+    },
+    {
+      "name": "icons/head.svg",
+      "url": "icons/head.svg",
+      "kind": "Editable vector",
+      "bytes": 221,
+      "sha256": "0e61551a76b0b3f8efa17525f87e4d969946f249a1f14b81ce0c93e42cb3ccce"
+    },
+    {
+      "name": "icons/info.svg",
+      "url": "icons/info.svg",
+      "kind": "Editable vector",
+      "bytes": 228,
+      "sha256": "dadda65fba6d6dcec2530413d5a1b514714f6f355f94b5b909c807d52e4f1066"
+    },
+    {
+      "name": "icons/inventory.svg",
+      "url": "icons/inventory.svg",
+      "kind": "Editable vector",
+      "bytes": 205,
+      "sha256": "00504dd42f9ffb4ae0b11ce7efc96d0f15d02f013541bda9c28f7863b46e2814"
+    },
+    {
+      "name": "icons/labor.svg",
+      "url": "icons/labor.svg",
+      "kind": "Editable vector",
+      "bytes": 216,
+      "sha256": "4f870a6cf7e51c09f2630841975649fb2d56e4690f24c30a2bd2aa3e5107ca97"
+    },
+    {
+      "name": "icons/lock.svg",
+      "url": "icons/lock.svg",
+      "kind": "Editable vector",
+      "bytes": 218,
+      "sha256": "ad45c8937070536449b740563df1095139f248a2314a9010eddf8e4d90a3dd10"
+    },
+    {
+      "name": "icons/materials.svg",
+      "url": "icons/materials.svg",
+      "kind": "Editable vector",
+      "bytes": 217,
+      "sha256": "19aead5a483a635daa968b45b59b0a11abf3bbd1614ec99d9e7b06b2e3b4c02f"
+    },
+    {
+      "name": "icons/menu.svg",
+      "url": "icons/menu.svg",
+      "kind": "Editable vector",
+      "bytes": 196,
+      "sha256": "5ee08cbf4daedbc39ab582ef26951a60e2859e40892e683bd384285357897018"
+    },
+    {
+      "name": "icons/minus.svg",
+      "url": "icons/minus.svg",
+      "kind": "Editable vector",
+      "bytes": 181,
+      "sha256": "3309bced6de0007ffe570d0257875c3bcec83f7c33bf7379de8553f4f45250ac"
+    },
+    {
+      "name": "icons/next.svg",
+      "url": "icons/next.svg",
+      "kind": "Editable vector",
+      "bytes": 185,
+      "sha256": "d37a719b8674c534f5c90c2ba570229cc90aba5d4e10c114fa580e5455f0a8f5"
+    },
+    {
+      "name": "icons/output.svg",
+      "url": "icons/output.svg",
+      "kind": "Editable vector",
+      "bytes": 219,
+      "sha256": "2b2a70ad164138658b90fd681ef07b7bca46b68e72f48749f4f99aba56257e05"
+    },
+    {
+      "name": "icons/plus.svg",
+      "url": "icons/plus.svg",
+      "kind": "Editable vector",
+      "bytes": 189,
+      "sha256": "98ae3b1ab7694fb89ea57726361e1d593224ce31243cbbb27aa8efcabed6e64e"
+    },
+    {
+      "name": "icons/recipes.svg",
+      "url": "icons/recipes.svg",
+      "kind": "Editable vector",
+      "bytes": 223,
+      "sha256": "ef55561154edfb2c64266522e23fa60174a3c82a84e3dd16d27fea83b76e10c7"
+    },
+    {
+      "name": "icons/search.svg",
+      "url": "icons/search.svg",
+      "kind": "Editable vector",
+      "bytes": 219,
+      "sha256": "490e577f3c80c876fc85802ee824677c9de870cb8177b7362719913146f930ab"
+    },
+    {
+      "name": "icons/shield.svg",
+      "url": "icons/shield.svg",
+      "kind": "Editable vector",
+      "bytes": 208,
+      "sha256": "f0554d378a3c105b6c49b233f31c855000a1f2cd06ddb21b30a225aa32e6c38b"
+    },
+    {
+      "name": "icons/sort.svg",
+      "url": "icons/sort.svg",
+      "kind": "Editable vector",
+      "bytes": 217,
+      "sha256": "4ae1daeb58c8e254a44ec2c7847480980ec56a97dc5925600350a49e6e01a742"
+    },
+    {
+      "name": "icons/source.svg",
+      "url": "icons/source.svg",
+      "kind": "Editable vector",
+      "bytes": 218,
+      "sha256": "bdd22646f16588d28eee6147985af9fd1b3364a05e133560ec6766c607179349"
+    },
+    {
+      "name": "icons/spark.svg",
+      "url": "icons/spark.svg",
+      "kind": "Editable vector",
+      "bytes": 207,
+      "sha256": "dd8eec41afb2c9f7b5ac2e975d99bec383660e0e9323674ca40340a97f1522b4"
+    },
+    {
+      "name": "icons/talk.svg",
+      "url": "icons/talk.svg",
+      "kind": "Editable vector",
+      "bytes": 210,
+      "sha256": "fd3a627e46cdc600ba6b3118e968d47798809927d8bbdaa5408563c15b421511"
+    },
+    {
+      "name": "icons/upgrade.svg",
+      "url": "icons/upgrade.svg",
+      "kind": "Editable vector",
+      "bytes": 198,
+      "sha256": "013ecf4b4b9d1d114ad1f360848d5ec05a251098e0d72b3ae88c33e83a20c071"
+    },
+    {
+      "name": "icons/warning.svg",
+      "url": "icons/warning.svg",
+      "kind": "Editable vector",
+      "bytes": 202,
+      "sha256": "031718488cf736d1d8372f1c5bd125dbd0ebd239c913f823af2a6bc0b4822a83"
+    },
+    {
+      "name": "icons/weapon.svg",
+      "url": "icons/weapon.svg",
+      "kind": "Editable vector",
+      "bytes": 212,
+      "sha256": "13ea5ddbb4fe42d2f4beffc5441915db94bccffb1feb4b1f3f6bee6edf4a366c"
+    },
+    {
+      "name": "parchment.webp",
+      "url": "parchment.webp",
+      "kind": "Generated illustration",
+      "bytes": 147272,
+      "sha256": "887d50fe5420af738daf7f3b8a970c0ce466c5efd3738457aac82d4a85959144"
+    },
+    {
+      "name": "builder-yard.webp",
+      "url": "/images/ui/locations-v2/builder-yard.webp",
+      "kind": "Canonical reused Approved background",
+      "bytes": 483330,
+      "sha256": "46efc78f935f494e4c454cf74e9063e1705bf4c71d635cd7c40fd63d51ae9d2f"
+    },
+    {
+      "name": "iona.webp",
+      "url": "/images/ui/blacksmith-v1/iona.webp",
+      "kind": "Canonical reused Canonical Iona",
+      "bytes": 162992,
+      "sha256": "93d66f44ac09b1627e41e0821dc5aa655e233d904a01932126ca10c725696183"
+    },
+    {
+      "name": "recipe-frame.svg",
+      "url": "/images/ui/blacksmith-v1/recipe-frame.svg",
+      "kind": "Canonical reused Existing item plinth",
+      "bytes": 454,
+      "sha256": "588752e56ca24579a20d36fa69954703608750480f19f99ed2d3943267a64b1a"
+    },
+    {
+      "name": "duelist_bracers.webp",
+      "url": "/images/ui/equipment-v2/duelist_bracers.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 13964,
+      "sha256": "40f53f5f83da99fdb47bb4b19522acbf39ceca736df63f0ef892535482b1be19"
+    },
+    {
+      "name": "duelist_grips.webp",
+      "url": "/images/ui/equipment-v2/duelist_grips.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 9650,
+      "sha256": "7489781f32245734980a21676e474925b4a71f96adad38861a27e0377c1e3d4a"
+    },
+    {
+      "name": "focus_circlet.webp",
+      "url": "/images/ui/equipment-v2/focus_circlet.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 14250,
+      "sha256": "10b6a0161342405978fd0d9b60e03bdce4ebf29ae836b1119e5dfe59c3714e76"
+    },
+    {
+      "name": "reserve_pendant.webp",
+      "url": "/images/ui/equipment-v2/reserve_pendant.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 9706,
+      "sha256": "e9f8faf19db9b41fc0034c8c8460bc424e8f395f47d06857e8f9c31afdcbf706"
+    },
+    {
+      "name": "sentinel_helm.webp",
+      "url": "/images/ui/equipment-v2/sentinel_helm.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 14888,
+      "sha256": "267696e58dfb5f4476faa58ad70fe262355955431dd4d191f76eab45cb529641"
+    },
+    {
+      "name": "training_grips.webp",
+      "url": "/images/ui/equipment-v2/training_grips.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 7866,
+      "sha256": "6ccce907e9cc013f166f091a81162cd6467b3b43d52fa8d417a7c7020362960b"
+    },
+    {
+      "name": "iron.webp",
+      "url": "/images/ui/resources-v3/iron.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 43400,
+      "sha256": "3e6a8e8acf612a292f5b43c99ed5c2d3ef6096b123de21d14a7c2c3c452530e1"
+    },
+    {
+      "name": "nails.webp",
+      "url": "/images/ui/resources-v4/nails.webp",
+      "kind": "Canonical reused Canonical gear or ingredient",
+      "bytes": 47032,
+      "sha256": "f875be1d939fe97c49e6efe4a8b8dbe75afb985b38de81f0507096cb0fcbccb5"
+    }
+  ]
+}
