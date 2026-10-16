@@ -40,33 +40,8 @@ export function PlayerInventoryMenu(props: { controlledOpen?: boolean; onClose?:
       );
       if (!creature) return;
 
+      try {const key=`inventoryAtelier:${currentSave.saveId}`;const previous=JSON.parse(sessionStorage.getItem(key)??'{}');sessionStorage.setItem(key,JSON.stringify({...previous,recipient:creatureId}));}catch{}
       openManagedMenu();
-
-      window.setTimeout(() => {
-        const root = rootRef.current;
-        const dialog = root?.querySelector<HTMLElement>("[role='dialog']") ?? null;
-        if (!dialog) return;
-        findButtonByText("Creatures", dialog)?.click();
-
-        window.setTimeout(() => {
-          const openDialog = rootRef.current?.querySelector<HTMLElement>("[role='dialog']") ?? null;
-          const card = openDialog
-            ? Array.from(openDialog.querySelectorAll<HTMLElement>("article")).find(
-                (article) =>
-                  article.querySelector("strong")?.textContent?.trim() === creature.nickname,
-              )
-            : null;
-          if (!card) return;
-          card.scrollIntoView({ block: "center", behavior: "smooth" });
-          card.animate(
-            [
-              { boxShadow: "0 0 0 2px rgba(127,219,255,.9),0 0 18px rgba(86,199,255,.35)" },
-              { boxShadow: "0 0 0 0 rgba(127,219,255,0),0 0 0 rgba(86,199,255,0)" },
-            ],
-            { duration: 1600, easing: "ease-out" },
-          );
-        }, 100);
-      }, 100);
     }
 
     window.addEventListener(OPEN_PLAYER_MENU_EVENT, handleOpenPlayerMenu);

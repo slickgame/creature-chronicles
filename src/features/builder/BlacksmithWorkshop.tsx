@@ -16,10 +16,10 @@ import { IngredientCounter } from './IngredientCounter';
 import s from './RecipeWorkbench.module.css';
 
 type Popup='review'|'report'|'talk'|'output'|'comparison'|'cost'|'routes'|null;
-export function BlacksmithWorkshop({ onBack }: { onBack: () => void }) {
+export function BlacksmithWorkshop({ onBack, initialRecipeId=BLACKSMITH_RECIPES[0].id }: { onBack: () => void;initialRecipeId?:typeof BLACKSMITH_RECIPES[number]['id'] }) {
  const {currentSave:save,saveCurrentGame,goToBattleOutfitter}=useGameContext();
  const {open}=useNavigation();
- const [recipeId,setRecipeId]=useState(BLACKSMITH_RECIPES[0].id);
+ const [recipeId,setRecipeId]=useState(initialRecipeId);
  const [creatureId,setCreatureId]=useState('');
  const [popup,setPopup]=useState<Popup>(null);
  const [page,setPage]=useState(0);

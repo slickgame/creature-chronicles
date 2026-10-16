@@ -1,8 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "@/lib/save/localSave";
-import { assignCreatureToRanchJob, processRanchJobsForNewDay } from "@/data/ranchJobs";
-import { assignResourceWorker, getFarmState, getProductionGuide, claimProductionGuide, processResourceDay, reserveResource, craftResource, commissionFacility, grantFarmResources, planIngredientFeeding } from "@/data/farmResources";
+import { assignResourceWorker, workPreview, getFarmState, getProductionGuide, claimProductionGuide, processResourceDay, reserveResource, craftResource, commissionFacility, grantFarmResources, planIngredientFeeding } from "@/data/farmResources";
 import { applyStarterGoalRewards } from "@/data/starterGoals";
 function fresh(){const s=createNewGameSave("Production guide",0);s.currencies.gold=5000;return s;}
 function next(s:ReturnType<typeof fresh>){return {...s,dayState:{...s.dayState,dayNumber:s.dayState.dayNumber+1},creatures:s.creatures?.map(c=>({...c,energy:c.maxEnergy}))};}
@@ -20,8 +19,9 @@ test("rations feed any species without raw ingredient opt-in and respect reserve
 test("full guide uses actual gathering and crafting, waits for construction, rewards once after reload",()=>{
  let s=fresh();assert.equal(claimProductionGuide(s).ok,false);
  const bought=grantFarmResources(s,{wood:20,planks:20});assert.equal(getProductionGuide(bought)[0].done,false);assert.equal(getProductionGuide(bought)[2].done,false);
- for(let i=0;i<3;i++)s=assignResourceWorker(s,'woodlot',s.creatures![0].creatureId).save;
- assert.equal(getFarmState(s).stock.wood,12);
+ let expectedWood=getFarmState(s).stock.wood??0;
+ for(let i=0;i<3;i++){expectedWood+=workPreview(s,'woodlot',s.creatures![0]).amount;const result=assignResourceWorker(s,'woodlot',s.creatures![0].creatureId);assert.equal(result.ok,true);s=result.save;}
+ assert.equal(getFarmState(s).stock.wood,expectedWood);
  s=reserveResource(s,'wood',2).save;s=craftResource(s,'planks').save;
  assert.equal(getProductionGuide(s).filter(x=>x.done).length,3);
  s=commissionFacility(s,'quarry').save;assert.equal(getProductionGuide(s)[3].done,false);

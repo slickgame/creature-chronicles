@@ -29,6 +29,7 @@ export function SupplyDepotScreen() {
   const sizeRef = useRef(1);
   const lock = useRef(false);
   const hasSave = Boolean(save);
+  useEffect(()=>{const id=sessionStorage.getItem('inventoryDepotFocus');if(!id||!SUPPLY_DEPOT_ITEMS.some(i=>i.itemId===id))return;sessionStorage.removeItem('inventoryDepotFocus');const frame=requestAnimationFrame(()=>{setShelf('all');setSelectedId(id);setPage(0);});return()=>cancelAnimationFrame(frame);},[]);
   useEffect(() => {
     if (!dockRef.current) return;
     const observer = new ResizeObserver(([entry]) => {

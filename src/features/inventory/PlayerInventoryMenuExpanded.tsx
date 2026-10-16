@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getBreedingSupportItem,
   getBreedingSupportItemActiveCount,
   getBreedingSupportItemCount,
   getRecentItemUseHistory,
-  useBreedingSupportItem,
+  useBreedingSupportItem as applySupportItem,
 } from "@/data/breedingItems";
 import {
   getSupplyDepotSupplyCounts,
@@ -17,6 +17,8 @@ import { useGameContext } from "@/state/GameProvider";
 import type { BreedingSupportItemId } from "@/types/items";
 import styles from "./PlayerInventoryMenu.module.css";
 import extra from "./PlayerInventoryMenuExpanded.module.css";
+
+import { InventoryAtelier, INVENTORY_RETURN } from "./InventoryAtelier";
 
 const FALLBACK_ITEM_ICON = "/images/ui/icons/icon_shop_bag.png";
 
@@ -139,6 +141,7 @@ export function PlayerInventoryMenu({ controlledOpen, onClose }: { controlledOpe
   const selectedPregnancy = pregnancies.find((pregnancy) => pregnancy.pregnancyId === selectedPregnancyId) ?? pregnancies[0] ?? null;
   const selectedRow = supplyRows.find((row) => row.item.itemId === selectedItemId) ?? filteredRows[0] ?? null;
 
+  useEffect(()=>{try{const back=JSON.parse(sessionStorage.getItem(INVENTORY_RETURN)??'null');if(back?.entry==='menu'&&back.screen===appScreen){sessionStorage.removeItem(INVENTORY_RETURN);const frame=requestAnimationFrame(()=>{setActiveMenuTab('inventory');setInternalOpen(true);window.dispatchEvent(new Event('creature-chronicles:open-player-menu'));});return()=>cancelAnimationFrame(frame);}}catch{}},[appScreen]);
   if (!currentSave || appScreen === "main-menu") return null;
   const save = currentSave;
 
@@ -160,7 +163,7 @@ export function PlayerInventoryMenu({ controlledOpen, onClose }: { controlledOpe
   }
 
   function executeUse(itemId: BreedingSupportItemId, targetId?: string) {
-    const result = useBreedingSupportItem(save, itemId, {
+    const result = applySupportItem(save, itemId, {
       source: "inventory",
       targetId,
     });
@@ -466,6 +469,7 @@ export function PlayerInventoryMenu({ controlledOpen, onClose }: { controlledOpe
 
   const armedItems = ["fertility_tonic", "trait_stabilizer", "mutation_catalyst"] as BreedingSupportItemId[];
 
+  if(isOpen&&activeMenuTab==='inventory')return <>{controlledOpen===undefined&&<button type="button" className={styles.menuButton} onClick={()=>setIsOpen(true)}>Menu</button>}<InventoryAtelier onClose={()=>setIsOpen(false)} onOtherMenu={()=>setActiveMenuTab('ranch')}/></>;
   return (
     <>
       {controlledOpen === undefined && <button type="button" className={styles.menuButton} onClick={() => setIsOpen(true)}>Menu</button>}
