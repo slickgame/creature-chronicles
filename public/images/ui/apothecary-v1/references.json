@@ -1,0 +1,14 @@
+{
+  "approved-main": {
+    "source": "exec-d6c208b1-3202-4fd4-8f4f-ee8d39a29377.png",
+    "sha256": "8f34323a645a5d9916ee03b4e672060b52a7e4909b0c461a03cfd5e8d5fbacaa"
+  },
+  "approved-recipient": {
+    "source": "exec-dceae1cf-3a9d-4526-8cc3-7c10c3c49ab2.png",
+    "sha256": "a8770e533665b604f5bb4cc7f01ff014e101a313d403d60d79ad49e5e9fb5ec4"
+  },
+  "approved-browser": {
+    "source": "exec-6baab998-ba53-45ac-9353-17cc811cb7e4.png",
+    "sha256": "21609e8e1da2236d8b29a05eb433e2f5cab0d147ae83635e407e78fb4a685e20"
+  }
+}

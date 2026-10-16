@@ -1,0 +1,23 @@
+/* Live text is always HTML. Raster illustrations never contain labels. */
+.apothecary{--ink:#3e2b19;--cream:#f7ebd2;--sage:#416341;--brass:#b69960;color:var(--ink);font:16px/1.4 Georgia,serif;background:#876745 url('./workbench-background.webp') center/cover;min-height:100dvh}
+.apothecary :is(button,input,select){font:inherit;color:inherit;min-height:44px}
+.apothecary button{cursor:pointer}.apothecary button:disabled{cursor:default;opacity:.55}
+.apothecary :focus-visible{outline:3px solid #167c83;outline-offset:3px}
+.apothecary .panel{border:28px solid transparent;border-image:url('./parchment-panel.webp') 110 fill stretch;padding:8px;box-sizing:border-box;color:var(--ink)}
+.apothecary .control{border:10px solid transparent;border-image:url('./frames/button-secondary.svg') 14 fill stretch;background:transparent;padding:0 12px}
+.apothecary .primary{border-image-source:url('./frames/button-primary.svg');color:#fff5db}
+.apothecary .wood{border-image-source:url('./frames/button-wood.svg');color:#fff5db}
+.apothecary .card{position:relative;border:10px solid transparent;border-image:url('./frames/card.svg') 14 fill stretch;min-width:0;background:transparent}
+.apothecary .card[aria-selected=true]{border-image-source:url('./frames/card-selected.svg');outline:2px solid var(--sage);outline-offset:1px}
+.apothecary .card[data-unavailable=true]{border-image-source:url('./frames/card-disabled.svg')}
+.apothecary .icon{height:24px;width:24px;vertical-align:middle;display:inline-block;background:currentColor;mask:var(--icon) center/contain no-repeat}
+.apothecary .info{position:absolute;right:5px;top:5px;z-index:2;min-height:44px;min-width:44px;border:1px solid #a58b58;border-radius:50%;background:#fff1d4;color:var(--ink);display:grid;place-items:center}
+.apothecary .info .icon{width:26px;height:26px;--icon:url('./icons/info.svg')}
+.apothecary .divider{height:20px;background:url('./frames/divider.svg') center/100% 20px no-repeat}
+.apothecary .scrim{background:#20190dc2;backdrop-filter:blur(4px)}
+.apothecary .badge{border:1px solid #ae935b;border-radius:4px;background:#f4e5c5;padding:3px 10px}
+.apothecary .tooltip{max-width:260px;border:8px solid transparent;border-image:url('./frames/tooltip.svg') 14 fill stretch;color:#fff1d4;font:14px/1.4 Arial,sans-serif}
+.apothecary .recipient-grid,.apothecary .item-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;min-height:0}
+.apothecary .card img{width:100%;aspect-ratio:1;object-fit:contain}.apothecary .recipient-grid .card img{object-fit:cover}
+@media(max-width:650px){.apothecary .recipient-grid,.apothecary .item-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.apothecary .panel{border-width:18px;padding:4px}}
+@media(max-height:550px){.apothecary .panel{border-width:16px}.apothecary .recipient-grid,.apothecary .item-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}}
