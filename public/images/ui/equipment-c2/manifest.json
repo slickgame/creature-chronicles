@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "concept": "C2 approved October 16, 2026",
+  "art": [
+    {
+      "id": "trail_boots",
+      "master": "exec-0b0060f9-9df0-4c32-85c7-08292fea761c.png",
+      "masterSha256": "4a131b8e85305f19868559109cc3c8f8141ae08dc8769b5ace76cb43b3e142d5",
+      "production": "trail_boots.webp",
+      "productionSha256": "72733bab495890f6167fddb149218d030b64d9a820125a6312d8b2b1c8dec68a",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": true,
+      "generationPrompt": "Use case: stylized-concept. Production inventory item cutout for Creature Chronicles in established sharp anime-painterly fantasy ranch style, crisp hand-painted highlights, warm natural lighting, earthy green/navy/brown/brass palette, polished game item illustration. A pair of common sturdy brown leather short trail boots, green cloth cuff lining, simple brass buckles, subtle ranch leaf embossing. Modest practical starter footwear, not grand armor. Center both items as a balanced pair at slight three-quarter angle, complete silhouettes, ample clear padding, attractive icon readable at 96px. Truly transparent background. No floor, no environment, no cast shadow outside silhouette, no frame, no text, no watermark. Square composition."
+    },
+    {
+      "id": "field_gloves",
+      "master": "exec-218d24a8-fee3-4cc4-b3e2-756ceca3d2fc.png",
+      "masterSha256": "d23a0ef2a52e703962085f104fe3675bb7eedbe0d10ce0ab4e6643235afef7f3",
+      "production": "field_gloves.webp",
+      "productionSha256": "49f7f1b1db37b58bff5103403e677372d702c75c43996dba888dfda5bd945019",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": true,
+      "generationPrompt": "Use case: stylized-concept. Production inventory item cutout for Creature Chronicles in established sharp anime-painterly fantasy ranch style, crisp hand-painted highlights, warm natural lighting, earthy green/navy/brown/brass palette, polished game item illustration. A pair of fine-quality fitted dark green leather field gloves, brown wrist straps, tasteful brass leaf rivets, five clearly formed finger sections on each glove. Hand equipment, not bracers, no disembodied body parts. Center both items as a balanced pair at slight three-quarter angle, complete silhouettes, ample clear padding, attractive icon readable at 96px. Truly transparent background. No floor, no environment, no cast shadow outside silhouette, no frame, no text, no watermark. Square composition."
+    },
+    {
+      "id": "sentinel_greaves",
+      "master": "exec-e9150403-5975-4b9b-9b16-cd4272d8ef2b.png",
+      "masterSha256": "ae034807c69119b2df38345125538a12271c26b321c23f69ec72d37ab3bb155a",
+      "production": "sentinel_greaves.webp",
+      "productionSha256": "75c86ecbbdd43d8f9a70142c4fb8251a5e7f53fd973f61ee89db4ca90194e411",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": true,
+      "generationPrompt": "Use case: stylized-concept. Production inventory item cutout for Creature Chronicles in established sharp anime-painterly fantasy ranch style, crisp hand-painted highlights, warm natural lighting, earthy green/navy/brown/brass palette, polished game item illustration. A pair of superior navy blue and steel armored boots with protective fitted shin plates, restrained engraved brass leaf trim, brown leather soles and straps. Footwear with armored greaves, coherent premium ranch guard equipment. Center both items as a balanced pair at slight three-quarter angle, complete silhouettes, ample clear padding, attractive icon readable at 96px. Truly transparent background. No floor, no environment, no cast shadow outside silhouette, no frame, no text, no watermark. Square composition."
+    }
+  ],
+  "generatedWith": "built-in image_gen",
+  "generatedCommonPrompt": "Production inventory item cutout for Creature Chronicles in established sharp anime-painterly fantasy ranch style, crisp hand-painted highlights, warm natural lighting, earthy green/navy/brown/brass palette, polished game item illustration. Center both items as a balanced pair at slight three-quarter angle, complete silhouettes, ample clear padding, attractive icon readable at 96px. Truly transparent background. No floor, no environment, no cast shadow outside silhouette, no frame, no text, no watermark. Square composition.",
+  "subjects": {
+    "trail_boots": "A pair of common sturdy brown leather short trail boots, green cloth cuff lining, simple brass buckles, subtle ranch leaf embossing. Modest practical starter footwear, not grand armor.",
+    "field_gloves": "A pair of fine-quality fitted dark green leather field gloves, brown wrist straps, tasteful brass leaf rivets, five clearly formed finger sections on each glove. Hand equipment, not bracers, no disembodied body parts.",
+    "sentinel_greaves": "A pair of superior navy blue and steel armored boots with protective fitted shin plates, restrained engraved brass leaf trim, brown leather soles and straps. Footwear with armored greaves, coherent premium ranch guard equipment."
+  },
+  "reused": {
+    "background": "/images/ui/apothecary-v1/workbench-background.webp",
+    "parchment": "/images/ui/apothecary-v1/parchment-panel.webp",
+    "title": "/images/ui/apothecary-v1/title-banner.webp",
+    "buttons": "/images/ui/apothecary-v1/frames/",
+    "portraits": "Canonical participant portrait URLs; concept portraits are not production art.",
+    "equipment": "Existing equipment-v2/outfitter-v1 art remains canonical."
+  },
+  "vectors": "13 slot/control icons, 5 grade card frames, 6 stat/status/comparison graphics. Editable SVG extensions; labels remain HTML."
+}

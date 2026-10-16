@@ -24,12 +24,12 @@ test("old three-slot saves migrate without loss or repeat refunds", () => {
   const snapshot = JSON.stringify(save);
   const normalized = normalizeBattleEquipment(save);
   const slots = getEquipmentSlots(normalized, id);
-  assert.equal(slots.handsFeet, "sparring_wraps");
+  assert.equal(slots.hands, "sparring_wraps");
   assert.equal(slots.accessory, "guard_charm");
   assert.equal(getBattleOutfitterStock(normalized,item("tactician_emblem")),4);
   assert.equal(normalizeBattleEquipment(normalized),normalized);
   assert.equal(JSON.stringify(save),snapshot);
-  assert.equal(EQUIPMENT_SLOTS.length,5);
+  assert.equal(EQUIPMENT_SLOTS.length,6);
   assert.equal(slots.head,null);
 });
 test("every equipment preview equals actual new battle stats; grades and base numbers stay innate", () => {
@@ -63,7 +63,7 @@ test("replacement includes negative deltas, returns previous stock and does not 
   const result = assignBattleOutfitterEquipment(save,creature.creatureId,"focus_prism");
   assert.equal(getBattleOutfitterStock(result.save,item("arena_blade_wraps")),3);
   assert.equal(getBattleOutfitterStock(result.save,item("focus_prism")),2);
-  assert.equal(getEquipmentSlots(result.save,creature.creatureId).handsFeet,"sparring_wraps");
+  assert.equal(getEquipmentSlots(result.save,creature.creatureId).hands,"sparring_wraps");
   assert.equal(assignBattleOutfitterEquipment(result.save,creature.creatureId,"focus_prism").ok,false);
   assert.deepEqual(result.save.creatures,save.creatures);
 });
@@ -81,9 +81,9 @@ test("purchase and Focus Manual keep grades unchanged and preserve existing rest
 
 test("new shop catalogue covers every slot at three grades and purchases exactly one copy", () => {
   const entries=BATTLE_OUTFITTER_ITEMS.filter(i=>i.statBonuses);
-  assert.equal(entries.length,15);
+  assert.equal(entries.length,18);
   assert.equal(new Set(BATTLE_OUTFITTER_ITEMS.map(i=>i.itemId)).size,BATTLE_OUTFITTER_ITEMS.length);
-  for(const slot of EQUIPMENT_SLOTS) assert.deepEqual(entries.filter(i=>i.equipmentSlot===slot).map(i=>i.equipmentGrade),["D","C","B"]);
+  for(const slot of EQUIPMENT_SLOTS) assert.deepEqual(entries.filter(i=>i.equipmentSlot===slot).map(i=>i.equipmentGrade).sort(),["B","C","D"]);
   for(const entry of entries){
     const save=fixture(), creature=save.creatures![0];
     save.flags[entry.flagKey]=0;
@@ -118,5 +118,5 @@ test("ownership distinguishes selected loadout, inventory and equipment on anoth
   assert.equal(gear.name,"Training Blade");
   assert.equal(item("channeling_prism").name,"Channeling Staff");
   assert.equal(item("duelist_grips").name,"Duelist Saber");
-  assert.equal(new Set(BATTLE_OUTFITTER_ITEMS.filter(i=>i.statBonuses).map(i=>i.iconPath)).size,15);
+  assert.equal(new Set(BATTLE_OUTFITTER_ITEMS.filter(i=>i.statBonuses).map(i=>i.iconPath)).size,18);
 });

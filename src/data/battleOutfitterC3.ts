@@ -19,12 +19,12 @@ export type BattleOutfitterItemId = ShopEquipmentId
   | "champion_harness";
 
 export type BattleOutfitterCategory = "Equipment" | "Manual" | "Consumable" | "Team Prep";
-export const EQUIPMENT_SLOTS = ["weapon", "armor", "head", "handsFeet", "accessory"] as const;
+export const EQUIPMENT_SLOTS = ["weapon", "armor", "head", "hands", "feet", "accessory"] as const;
 export type EquipmentSlot = typeof EQUIPMENT_SLOTS[number];
 export type BattleLoadoutSlot = "offense" | "defense" | "utility" | EquipmentSlot;
-export const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = { weapon: "Weapon", armor: "Armor", head: "Head", handsFeet: "Hands / Feet", accessory: "Accessory" };
+export const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = { weapon: "Weapon", armor: "Armor", head: "Head", hands: "Hands", feet: "Feet", accessory: "Accessory" };
 const ITEM_SLOTS: Partial<Record<BattleOutfitterItemId, EquipmentSlot>> = {
-  sparring_wraps: "handsFeet", arena_blade_wraps: "weapon", focus_prism: "weapon",
+  sparring_wraps: "hands", arena_blade_wraps: "weapon", focus_prism: "weapon",
   guard_charm: "accessory", bastion_badge: "armor", tactician_emblem: "accessory", champion_harness: "armor",
 };
 export type BattleReadinessTier = "Unprepared" | "Prepared" | "Ready" | "Elite";
@@ -187,7 +187,7 @@ export function normalizeBattleEquipment(save: GameSave): GameSave {
   for (const creature of save.creatures ?? []) {
     const id = creature.creatureId;
     const marker = `battleEquipmentV1_${id}`;
-    if (flags[marker] === true) continue;
+    if (flags[marker] !== true) {
     changed = true;
     for (const legacy of ["offense", "defense", "utility"] as const) {
       const oldKey = getSlotFlag(id, legacy);
@@ -200,6 +200,29 @@ export function normalizeBattleEquipment(save: GameSave): GameSave {
       flags[oldKey] = "";
     }
     flags[marker] = true;
+    }
+    // The five-slot marker is independent: old saves may already have V1.
+    const legacyKey = `battleEquipment_${id}_handsFeet`;
+    const old = getItem(getFlagString(flags[legacyKey]));
+    if (old && (old.equipmentSlot === 'hands' || old.equipmentSlot === 'feet')) {
+      changed = true;
+      const key = equipmentFlag(id, old.equipmentSlot);
+      if (!flags[key]) flags[key] = old.itemId;
+      else {
+        flags[old.flagKey] = getFlagNumber(flags[old.flagKey]) + 1;
+        // Preserve upgraded instance data if a newer slot already holds gear.
+        try {
+          const collection = JSON.parse(String(flags.equipmentCopiesV1 ?? '{}'));
+          let released = false;
+          if (Array.isArray(collection.copies)) collection.copies = collection.copies.map((c: {itemId:string;owner?:string}) => {
+            if (!released && c.itemId === old.itemId && c.owner === id) { released = true; return {...c,owner:undefined}; }
+            return c;
+          });
+          if (released) flags.equipmentCopiesV1 = JSON.stringify(collection);
+        } catch {}
+      }
+    }
+    if (flags[legacyKey]) {flags[legacyKey] = ''; changed = true;}
   }
   return changed ? { ...save, flags } : save;
 }
@@ -315,7 +338,7 @@ export function getBattleOutfitterSummary(save: GameSave): BattleOutfitterSummar
 export function getBattleOutfitterDailySummaryItems(save: GameSave): string[] {
   const summary = getBattleOutfitterSummary(save);
   if (summary.assignedEquipment <= 0 && summary.manualRanks <= 0) return [];
-  return [`Battle prep: ${summary.assignedEquipment} equipment pieces assigned across five equipment slots; ${summary.manualRanks} Focus Training ranks learned.`];
+  return [`Battle prep: ${summary.assignedEquipment} equipment pieces assigned across six equipment slots; ${summary.manualRanks} Focus Training ranks learned.`];
 }
 
 export function purchaseBattleOutfitterItem(save: GameSave, itemId: string): BattleOutfitterResult {
