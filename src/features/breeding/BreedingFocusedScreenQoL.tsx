@@ -18,7 +18,7 @@ import {
   getBreedingSceneImagePath,
 } from "@/data/breedingSceneImages";
 import { CREATURE_PLACEHOLDER_IMAGE } from "@/data/creatures";
-import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
+import { BreedingInspectBook } from "./BreedingInspectBook";
 import { formatEnergy } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type {
@@ -471,7 +471,12 @@ export function BreedingFocusedScreen() {
           </section>
         </section>
       </div>
-      {showOptions ? <GameDialog title="Pair Options" onClose={() => setShowOptions(false)}><div className={scenic.options}><button type="button" disabled={!canSwap || isAttempting} onClick={() => {swapRoles();setShowOptions(false);}}>Swap Roles</button><button type="button" disabled={isAttempting} onClick={() => {randomPair();setShowOptions(false);}}>Random Pair</button><button type="button" disabled={isAttempting || (!giverId && !receiverId)} onClick={() => {clearPair();setShowOptions(false);}}>Clear Pair</button><label>Scene Mode<select value={sceneMode} onChange={event => {const mode=event.target.value as SceneMode;setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode);}}><option value="full">Full Scenes</option><option value="quick">Quick Results</option></select></label></div></GameDialog> : null}
+      {showOptions ? <BreedingPreviewBook title="Pair Options" marker="pair-options" onClose={()=>setShowOptions(false)} pages={[
+        {key:'swap',title:'Swap roles',content:<><p>{giver?.displayName??'No giver'} → {receiver?.displayName??'No receiver'}</p><p>Exchange giver and receiver. Both participants must support their new role. Selection spends nothing.</p><button disabled={!canSwap||isAttempting} onClick={()=>{swapRoles();setShowOptions(false);}}>Swap Roles</button></>},
+        {key:'random',title:'Random eligible pair',content:<><p>Choose a complete eligible creature pair from the current ranch. This changes selection only and does not run an attempt.</p><button disabled={isAttempting} onClick={()=>{randomPair();setShowOptions(false);}}>Random Pair</button></>},
+        {key:'clear',title:'Clear selected pair',content:<><p>Remove both selections. Creatures and saved attempts remain unchanged.</p><button disabled={isAttempting||(!giverId&&!receiverId)} onClick={()=>{clearPair();setShowOptions(false);}}>Clear Pair</button></>},
+        {key:'scenes',title:'Result presentation',content:<><label>Scene Mode<select aria-label="Scene Mode" value={sceneMode} onChange={event=>{const mode=event.target.value as SceneMode;setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode);}}><option value="full">Full Scenes</option><option value="quick">Quick Results</option></select></label><p>Full opens the recorded Attempt view, then Outcome. Quick opens Outcome directly. Both views stay available. This preference is saved on this device.</p></>}
+      ]}/> : null}
       {showChanceBreakdown ? <BreedingPreviewBook title="Chance & Readiness" marker="chance-readiness" onClose={()=>setShowChanceBreakdown(false)} art={receiver?.kind==="creature"?getParticipantImage(receiver):BREEDING_BOOK_ART} pages={[
         {key:'summary',title:'Pair readiness',content:<><h3>Pregnancy chance: {preview?`${preview.pregnancyChance}%`:'—'}</h3><p>{statusText}</p><p>{message}</p></>},
         ...chanceRows.map(([label,amount],i)=>({key:`chance-${i}`,title:label,content:<h3>{amount>0?'+':''}{amount}%</h3>})),
@@ -572,14 +577,8 @@ function CostRow({ participant, preview }: { participant: BreedingParticipant; p
 
 const ParticipantSelectorModal = BreedingParentPicker;
 
-function ParticipantInfoModal({ participant, creature, dayNumber, onClose }: { participant: BreedingParticipant; creature: CreatureRecord | null; dayNumber: number; onClose: () => void }) {
-  return (
-    <GameDialog title={participant.displayName} onClose={onClose} wide><div className={scenic.modal}>
-
-        {creature ? <SharedCreatureDetail dossier creature={creature} dayNumber={dayNumber} showActions={false} /> : <div className={styles.playerInfo}><img src={getParticipantImage(participant)} alt="" /><p>{participant.description}</p><div className={styles.progressCard}><MiniStat label="Energy" value={formatEnergy(participant.energy, participant.maxEnergy)} /><MiniStat label="Hearts" value={`${participant.hearts}/${participant.maxHearts}`} /><MiniStat label="Affection" value={String(participant.affection)} /></div></div>}
-      </div>
-    </GameDialog>
-  );
+function ParticipantInfoModal(props: { participant: BreedingParticipant; creature: CreatureRecord | null; dayNumber: number; onClose: () => void }) {
+  return <BreedingInspectBook {...props}/>;
 }
 
 function WarningModal({ warnings, participants, preview, onCancel, onConfirm }: { warnings: ResourceWarning[]; participants: BreedingParticipant[]; preview: BreedingPreview | null; onCancel: () => void; onConfirm: () => void }) {
