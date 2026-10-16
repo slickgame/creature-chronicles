@@ -68,5 +68,74 @@
       "sets-crest.svg"
     ],
     "purpose": "Starter set symbols. Main card colors now denote rarity; power grade remains explicit text. Existing raster art is unchanged."
+  },
+  "setStripUpdate": {
+    "date": "2026-10-16",
+    "approvedConcept": "A \u00b7 equipped-only live set strip",
+    "generatedWith": "built-in image_gen",
+    "art": [
+      {
+        "id": "vigor",
+        "master": "exec-32931e85-c790-4837-b9fb-4665079664e3.png",
+        "masterSha256": "c709f3bd1d3ee7c2b93115d4bbf68d4dab42d78aa203d7eedd144664eca4f48b",
+        "production": "set-vigor.webp",
+        "productionSha256": "58944d819e576fe88c872a7a04f2929400718b7d76222d0845c2420d5548362d",
+        "size": [
+          256,
+          256
+        ],
+        "alpha": true,
+        "generationPrompt": "Use case: stylized-concept. Asset type: separate production equipment set crest icon for Creature Chronicles. A gold-edged emerald heart-shaped shield containing three fresh gold-veined leaves. Health and vitality heraldic crest. Established sharp anime-painterly fantasy ranch UI style: warm sunlit highlights, crisp elegant painted edges, brass and deep green/navy enamel, botanical detail, rich hand-painted materials, sophisticated readable silhouette at 48px. One isolated centered crest only, square composition, complete silhouette with 12 percent padding. No words, letters, numbers, background scene, frame, other icons or watermark. Truly transparent background."
+      },
+      {
+        "id": "bulwark",
+        "master": "exec-4716548b-7b1a-4e7a-9d42-ffcabe6573d5.png",
+        "masterSha256": "034f378c63908ec7c61aee585bbda220f8944341d80e45273666d7e26be4b2a4",
+        "production": "set-bulwark.webp",
+        "productionSha256": "bdf801acfd5a0a99be30efe3bf3e2f0977314e0a8ddda490c3a6bbf1ab15377a",
+        "size": [
+          256,
+          256
+        ],
+        "alpha": true,
+        "generationPrompt": "Use case: stylized-concept. Asset type: separate production equipment set crest icon for Creature Chronicles. A sturdy dark forest-green shield with embossed brass border and a single golden oak sprig. Defense heraldic crest. Established sharp anime-painterly fantasy ranch UI style: warm sunlit highlights, crisp elegant painted edges, brass and deep green/navy enamel, botanical detail, rich hand-painted materials, sophisticated readable silhouette at 48px. One isolated centered crest only, square composition, complete silhouette with 12 percent padding. No words, letters, numbers, background scene, frame, other icons or watermark. Truly transparent background."
+      },
+      {
+        "id": "striker",
+        "master": "exec-612bb81d-6937-44bb-97ef-9206232f8788.png",
+        "masterSha256": "1da2cdb9addfe9183cf6618fb5b8d1a092e80ca6675f6a996b52af88eda8ef8b",
+        "production": "set-striker.webp",
+        "productionSha256": "25b68732a7d48ef8619b12dea71c0a0471a7d34a943339256a652ff9a3b5f0d9",
+        "size": [
+          256,
+          256
+        ],
+        "alpha": true,
+        "generationPrompt": "Use case: stylized-concept. Asset type: separate production equipment set crest icon for Creature Chronicles. Two crossed elegant silver short swords with warm brass hilts, a small golden leaf joining the crossing. Offensive heraldic crest. Established sharp anime-painterly fantasy ranch UI style: warm sunlit highlights, crisp elegant painted edges, brass and deep green/navy enamel, botanical detail, rich hand-painted materials, sophisticated readable silhouette at 48px. One isolated centered crest only, square composition, complete silhouette with 12 percent padding. No words, letters, numbers, background scene, frame, other icons or watermark. Truly transparent background."
+      },
+      {
+        "id": "swift",
+        "master": "exec-8ad32305-e0ba-47db-a0ab-877b3356bfa5.png",
+        "masterSha256": "add845049c7d5d8a775f060da7db874ac36ec52ea5992646da2b0c0a7a53cfa5",
+        "production": "set-swift.webp",
+        "productionSha256": "4f69ffcd4f7dd68783c688881d9a1ffeee79f42fbbcdc94a60d338ce77506a4d",
+        "size": [
+          256,
+          256
+        ],
+        "alpha": true,
+        "generationPrompt": "Use case: stylized-concept. Asset type: separate production equipment set crest icon for Creature Chronicles. A small navy leather boot with golden wing feathers sweeping upward from the ankle and delicate brass edging. Speed heraldic crest. Established sharp anime-painterly fantasy ranch UI style: warm sunlit highlights, crisp elegant painted edges, brass and deep green/navy enamel, botanical detail, rich hand-painted materials, sophisticated readable silhouette at 48px. One isolated centered crest only, square composition, complete silhouette with 12 percent padding. No words, letters, numbers, background scene, frame, other icons or watermark. Truly transparent background."
+      }
+    ],
+    "vectors": [
+      "set-strip-panel.svg",
+      "set-chip.svg",
+      "active-pill.svg",
+      "rarity-pill.svg",
+      "progress-track.svg",
+      "botanical-divider.svg"
+    ],
+    "behavior": "Only selected creature equipped sets count>0; includes incomplete sets, actual counts, active groups, phone paging. Full set book lists reference rules separately.",
+    "reused": "Approved apothecary scene/parchment/buttons and C2 slots/rarity frames/stat rows/equipment illustrations remain production assets. Text remains editable HTML."
   }
 }

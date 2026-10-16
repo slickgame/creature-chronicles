@@ -4,12 +4,20 @@
     "sha256": "451912cc168adc79147e75b70837840551b31082a1fc1a800c1418a863ab5029"
   },
   {
+    "path": "active-pill.svg",
+    "sha256": "fdafdbc203ff540d0005a927c18fe36cc9cb0f2f92db4c185f1e4df88dae6da1"
+  },
+  {
     "path": "all.svg",
     "sha256": "da86b1bf645a2620b3ba31fe86f67e0d05502c20c44eca52e31d17fb8b5bf80f"
   },
   {
     "path": "armor.svg",
     "sha256": "137f60adab5ee33e3c84006378e79566bbbc0b519e7734bfafd1bd147ddddf43"
+  },
+  {
+    "path": "botanical-divider.svg",
+    "sha256": "45702b539d2f85fc38c9e6735df576051030f241276e7b1f00b8b0dc2de9fd53"
   },
   {
     "path": "card-A.svg",
@@ -72,6 +80,10 @@
     "sha256": "e8c1ea2271965adcfabccc64a6b1c122f81de12083eed42ff3fa0d50022fa5f9"
   },
   {
+    "path": "manifest.json",
+    "sha256": "b65783382eb9c8950f681e14ea81b065e2d177e0c461e44c48f6ad26bcbdb0a5"
+  },
+  {
     "path": "mystery-tile.svg",
     "sha256": "1c621f6ce2e361158c3e24f18483e1c602530d399ab01a3ac75fd9e0fe4ab0fa"
   },
@@ -84,6 +96,18 @@
     "sha256": "3a3ead6a86d4dc732adaf0d4a5de8e144c63e3c9c7884f5491d5f43da7012926"
   },
   {
+    "path": "preview.html",
+    "sha256": "371fb7dde3171c07470c9115166762e69b06432cf62e789e249e4e6a1ad37b2c"
+  },
+  {
+    "path": "progress-track.svg",
+    "sha256": "77d20401e312ecaa1eddbb2a97df3f930f402c998dcf741b65c765873c466f1c"
+  },
+  {
+    "path": "rarity-pill.svg",
+    "sha256": "02f106adeea652cd3c6390f755aa2dbb9b57abf3d27bee04efaa325f640d1831"
+  },
+  {
     "path": "sentinel_greaves.webp",
     "sha256": "75c86ecbbdd43d8f9a70142c4fb8251a5e7f53fd973f61ee89db4ca90194e411"
   },
@@ -92,16 +116,44 @@
     "sha256": "43b2b3c24297fae4949c4d7a91e388582c9a42e7381bb0759b438537feb2dadd"
   },
   {
+    "path": "set-bulwark.webp",
+    "sha256": "bdf801acfd5a0a99be30efe3bf3e2f0977314e0a8ddda490c3a6bbf1ab15377a"
+  },
+  {
+    "path": "set-chip.svg",
+    "sha256": "197f598bbce823a8113ed443f9a370acdde0d797465de28f03142314b6cfd1bc"
+  },
+  {
     "path": "set-striker.svg",
     "sha256": "7fcb1abc835d98255ee88f5015346946a417548c84a66ef1e5675503dce91c17"
+  },
+  {
+    "path": "set-striker.webp",
+    "sha256": "25b68732a7d48ef8619b12dea71c0a0471a7d34a943339256a652ff9a3b5f0d9"
+  },
+  {
+    "path": "set-strip-assets.html",
+    "sha256": "2c717165aab6c6c0ea692d99b620ea3e0adaec701210f2c066e0375cdbaf0e62"
+  },
+  {
+    "path": "set-strip-panel.svg",
+    "sha256": "3826a466fe639d9d82037c9cbb200b6c219c5f8df38d7b99fcf73742c48ab993"
   },
   {
     "path": "set-swift.svg",
     "sha256": "879cee6e9af23c5df39f64054736b9931373a931a75fd4505728cbad3ad3785c"
   },
   {
+    "path": "set-swift.webp",
+    "sha256": "4f69ffcd4f7dd68783c688881d9a1ffeee79f42fbbcdc94a60d338ce77506a4d"
+  },
+  {
     "path": "set-vigor.svg",
     "sha256": "2cdbbd90363d887675d620cf9cb4c38a8eb664129397c59b4d4ad6173be8ee6f"
+  },
+  {
+    "path": "set-vigor.webp",
+    "sha256": "58944d819e576fe88c872a7a04f2929400718b7d76222d0845c2420d5548362d"
   },
   {
     "path": "sets-crest.svg",

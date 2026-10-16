@@ -25,3 +25,30 @@
 .gearCard[data-rarity=Rare],.statCard[data-rarity=Rare]{background-image:url('/images/ui/equipment-c2/card-B.svg')}
 .gearCard[data-rarity=Heroic],.statCard[data-rarity=Heroic]{background-image:url('/images/ui/equipment-c2/card-A.svg')}
 .gearCard[data-rarity=Legendary],.statCard[data-rarity=Legendary]{background-image:url('/images/ui/equipment-c2/card-S.svg')}
+
+/* Approved A: responsive equipped-only set strip; every entry remains reachable by pages. */
+.galleryPaper{grid-template-rows:auto auto auto minmax(0,1fr) auto auto}
+.setStrip{background:url('/images/ui/equipment-c2/set-strip-panel.svg') center/100% 100% no-repeat;padding:8px 12px;min-width:0}
+.setStripHeading{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:4px}.setStripHeading>span{font:11px Arial,sans-serif}
+.setStripBody{display:flex;align-items:center;gap:8px;min-width:0}.setStripEntries{display:flex;flex:1;min-width:0;gap:8px}
+.shell .setChip{border:0;border-image:none;background:url('/images/ui/equipment-c2/set-chip.svg') center/100% 100% no-repeat;display:flex;align-items:center;gap:6px;padding:3px 9px;flex:1;min-width:0;text-align:left;min-height:50px}
+.setChip>img{height:46px;width:46px;object-fit:contain}.setChip>span{display:grid;gap:3px}.setChip strong{font:700 14px Georgia,serif}.setChip b{margin-left:5px;font:600 12px Arial,sans-serif}.setChip small{font:11px Arial,sans-serif;color:#276039}
+.setEmpty{font:12px Arial,sans-serif;align-self:center}.setStripPager{display:flex;align-items:center;gap:3px;font:11px Arial,sans-serif}.shell .setStripPager button{width:30px;padding:2px;min-height:32px}.shell .setDetails{white-space:nowrap;font-size:11px}.cardSet{display:flex;align-items:center;gap:4px}.cardSet>img{width:21px;height:23px;object-fit:contain}
+@media(max-width:650px){.setStrip{padding:6px 8px}.setStripHeading{font-size:12px;margin-bottom:2px}.setStripHeading>span{font-size:10px}.setStripBody,.setStripEntries{gap:3px}.shell .setChip{padding:3px;min-height:43px;gap:3px}.setChip>img{width:31px;height:34px}.setChip strong{font-size:12px}.setChip b,.setChip small{font-size:10px}.setChip b{margin-left:3px}.shell .setDetails{font-size:10px;padding:2px}.shell .setStripPager button{width:24px;min-height:29px}.cardSet>img{height:18px;width:16px}}
+@media(max-height:550px){.setStrip{padding:3px 8px}.setStripHeading{display:none}.shell .setChip{min-height:32px;padding:1px 4px}.setChip>img{height:28px;width:28px}.setChip strong{font-size:11px}.setChip b,.setChip small{font-size:9px}.cardSet>img{height:15px;width:13px}.shell .setDetails{min-height:28px}}
+
+@media(max-width:650px) and (min-height:551px) and (max-height:799px){.grid{grid-template-rows:minmax(0,1fr)}}
+@media(max-height:550px){.grid{grid-template-rows:minmax(0,1fr)}}
+
+.setChip small[data-active=true]{justify-self:start;background:url('/images/ui/equipment-c2/active-pill.svg') center/100% 100% no-repeat;padding:2px 8px;color:#fff8e9}.badges span{border:1px solid #ac8e58;border-radius:12px;padding:3px 8px;background:#eadcc1}.gearCard[data-rarity=Rare] .badges span{background:#d4e4f9;border-color:#7099bf}.gearCard[data-rarity=Uncommon] .badges span{background:#dcebd6;border-color:#7d9c65}.gearCard[data-rarity=Heroic] .badges span{background:#e9d8f5;border-color:#ac83c6}.gearCard[data-rarity=Legendary] .badges span{background:#ffe09c;border-color:#ba8729}
+
+/* Short gear hints are read-only and must never intercept adjacent paging controls. */
+:global(dialog):has(.shell) :global([role=tooltip]){pointer-events:none}
+
+.badges b{white-space:nowrap;flex-shrink:0}
+@media(max-width:650px) and (min-height:551px){.grid{grid-template-rows:minmax(0,1fr)}.slots .icon{display:none}.badges span{font-size:9px;padding:3px 4px}.slots button{font-size:10px}.pick>img{min-height:45px}}
+
+.setChip em{font:10px/1.2 Arial,sans-serif;color:#59432a}.setChip>span{flex:1}.setChip strong{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+@media(max-width:650px),(max-height:550px){.setChip em{display:none}}
+
+@media(max-width:650px){.slots button{font-size:9px;white-space:nowrap;padding:3px 2px}}
