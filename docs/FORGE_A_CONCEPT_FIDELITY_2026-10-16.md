@@ -1,5 +1,14 @@
 # Forge A — concept fidelity correction
 
+## Equipment type follow-up
+
+Equipment slot now appears beneath every recipe name, the desktop/phone selected item, result details, crafting confirmation and receipt. Comparison names the destination slot. Labels reuse the authoritative `EQUIPMENT_SLOT_LABELS` mapping (Weapon, Armor, Head, Hands, Feet, Accessory); no types are inferred from artwork. The receipt snapshots its displayed type with the actual crafted item. This is a small refinement within approved A.
+
+Current slot-label screenshots: [desktop](https://drive.google.com/file/d/1tvzerdwneBzl4FZc1KU39B_eFQsSFQtj/view) · [phone](https://drive.google.com/file/d/1DA2l3ENg22NpzDNLWWWiIRvzHMt9uCj9/view). Both show the actual local production game using the existing synthetic QA save.
+
+Further suggested information priorities, not additional implemented changes: main bonus on browsing cards, available versus equipped ownership counts, and a clearer selected-creature replacement summary. Existing detail/comparison/material views already expose much of this information. Avoid adding every detail to the compact cards.
+
+
 The user compared the first live screenshot with the supplied A concept and identified mismatched fonts, textboxes and composition. The first implementation had oversized vertical cards, a plain main panel, compact sans-serif buttons, a green title plaque and a phone layout dominated by tall recipe cards. Functional/viewport validation had not established visual fidelity.
 
 This correction keeps the selected A direction and rebuilds those visual details in the actual game:

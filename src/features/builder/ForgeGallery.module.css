@@ -66,3 +66,8 @@
 @media(max-width:650px){.mobileTabs{grid-row:1}.boardHeader{grid-row:2;position:relative;justify-content:center;padding:0 32px 3px;border-bottom:0;min-height:28px}.boardHeader h2{display:none}.boardTools{position:absolute;left:0;top:0}.boardHeader .pager{margin:auto}.workGrid{grid-row:3}.boardFooter{grid-row:4}}
 @media(max-height:550px) and (min-width:651px){.selection .item{gap:4px}.selection .identity{gap:2px}.selection .rarity,.selection .power,.selection .enhancement{padding:1px 4px;font-size:10px!important}}
 @media(max-height:550px) and (min-width:651px){.selection .item{grid-template-columns:85px minmax(0,1fr);grid-template-rows:auto auto;gap:4px 7px;align-content:center}.selection .item>h2{grid-column:2;grid-row:1;font-size:17px;line-height:1.1}.selection .itemArt{grid-column:1;grid-row:1/3}.selection .identity{grid-column:2;grid-row:2;flex-direction:row;justify-content:start;align-self:start;gap:3px}.selection .itemArt::after{height:30px;width:30px}}
+
+/* Equipment type stays with the item name across browsing and confirmation. */
+.slotLabel{display:block;margin-top:3px;font:400 13px/1.1 "Times New Roman",Times,serif;color:#6b5134;letter-spacing:.02em}.recipeCard .slotLabel{font-size:12px}.mobileDetail .slotLabel{font-size:12px;margin-top:2px}
+@media(max-width:650px) and (max-height:780px){.recipeCard .slotLabel{font-size:11px;margin-top:2px}}
+@media(max-height:550px) and (min-width:651px){.slotLabel,.recipeCard .slotLabel{font-size:10px;margin-top:1px}}
