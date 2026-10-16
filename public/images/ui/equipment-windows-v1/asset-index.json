@@ -1,0 +1,66 @@
+[
+  {
+    "path": "compare-arrow.svg",
+    "sha256": "f85ea0d1898bacb6f9ceeaaff2bc3120118b2e9c9fb13fb15358f9f7cb4a790b"
+  },
+  {
+    "path": "comparison-row.svg",
+    "sha256": "89e8b16530548846d2738dd2d98460e72ff9953f2ee3ead988417a28f29d637d"
+  },
+  {
+    "path": "concept-A.webp",
+    "sha256": "ed215cce83032b4432b6a0bafd777a94de1b1d647b533352432b7f4b9bbd1472"
+  },
+  {
+    "path": "concept-B.webp",
+    "sha256": "bea64098d18c12a9e4da8df7714ca75d13d363dae7466cfc2b300eb0a39a5f4f"
+  },
+  {
+    "path": "cost-plate.svg",
+    "sha256": "7624071082d37859b65373e06a3e4d27681df14fca69458f0d4a4b6eb0a968d1"
+  },
+  {
+    "path": "forge-anvil.webp",
+    "sha256": "14c8b0afec8555456e145740ee7d640f6f6b9ea2df5ad55dd9c89d339832f663"
+  },
+  {
+    "path": "manifest.json",
+    "sha256": "cef603d7118af7d9043d06f4b6814eb36a72917957d613e2c5343124b220f4e2"
+  },
+  {
+    "path": "milestone-halo.webp",
+    "sha256": "7f72f0c8a8c6c8e137a6c47f2e37b9c4ed93c8ee6ca2be1e10ef4f35841609d6"
+  },
+  {
+    "path": "milestone-node.svg",
+    "sha256": "25e5b0244747303718aaf8acb34d4295278f329a1be46cc79dde77bd5819fc45"
+  },
+  {
+    "path": "mystery-panel.svg",
+    "sha256": "1c22fdbdf30b5cbf905083239f74d972e8fd2b7f8797bee6dcbf63a2c85560cb"
+  },
+  {
+    "path": "mystery-seal.webp",
+    "sha256": "f003a62af731f8acd548a3a5909080fa56ce9c5203903e7501df90a5c24c852f"
+  },
+  {
+    "path": "negative-change.svg",
+    "sha256": "b1ae575e6f4cdfc43d943d39755ecab60b7beac478caee21a16fd609698f66bc"
+  },
+  {
+    "path": "positive-change.svg",
+    "sha256": "3d812be2bab15382fcd1d8643feab941a3b83894e1ed843f208969d95d3985be"
+  },
+  {
+    "path": "preview.html",
+    "sha256": "676426d916b775ecf15d309735293ffdd0e574580c07ead37d26f4085f2ec80b"
+  },
+  {
+    "path": "reward-panel.svg",
+    "sha256": "f57bdb1a42e6bb91fb2262d0276248afb6683fe5153624f046ca33e573563e06"
+  },
+  {
+    "path": "window-frame.svg",
+    "sha256": "988d3e38ee1224d08c9c35a54674b6a97e46264a765ad255796176013a330dc4"
+  }
+]

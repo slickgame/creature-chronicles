@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "date": "2026-10-16",
+  "status": "Production assets and isolated asset assembly; comparison/upgrade layout concepts await user selection. No live gameplay or price changes.",
+  "generatedWith": "built-in image_gen",
+  "art": [
+    {
+      "id": "forge-anvil",
+      "master": "exec-3fd5b8ca-5fe8-4e35-86e8-f0c2726c31c4.png",
+      "masterSha256": "df074515f5bf8df9e38278d529d5df0a882c84101363b1e57972417267a6c5d9",
+      "production": "forge-anvil.webp",
+      "productionSha256": "14c8b0afec8555456e145740ee7d640f6f6b9ea2df5ad55dd9c89d339832f663",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: production transparent upgrade illustration for Creature Chronicles. An elegant small iron blacksmith anvil on a low dark oak block, one brass-handled smithing hammer laid diagonally on top, a few carved leaf motifs and restrained emerald enamel accents. Sharp anime-painterly fantasy ranch style, warm sunlit metal highlights, refined brass, practical handmade tools. One centered compact object group, full silhouette, generous 15 percent padding, square composition, readable at 100px. No environment, floor or detached cast shadow, no letters, numbers, UI frame, sparks or watermark. Truly transparent background."
+    },
+    {
+      "id": "mystery-seal",
+      "master": "exec-c785cc2f-73f9-4851-893c-7ffb0dcfb15b.png",
+      "masterSha256": "b4906b4a266c3bc9e15593c113c6552fe1cdc9017b5a97d604354d611cbe6415",
+      "production": "mystery-seal.webp",
+      "productionSha256": "f003a62af731f8acd548a3a5909080fa56ce9c5203903e7501df90a5c24c852f",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: production transparent mystery-substat emblem for Creature Chronicles. A small closed ivory parchment envelope with a dark forest-green wax seal embossed with a simple gold botanical spiral, tiny restrained blue-green glints along the sealed flap. It must read as a sealed unknown reward, not as revealed gear or a specific stat. Sharp anime-painterly fantasy ranch style, crisp clean contours, warm gold accents, subtle paper grain. Single centered icon, complete silhouette and 15 percent clear padding, square composition, readable at 64px. No letters, question mark, numbers, background, frame, floor or watermark. Truly transparent background."
+    },
+    {
+      "id": "milestone-halo",
+      "master": "exec-96274ecb-6155-472d-bf13-72d8ff1bd0a4.png",
+      "masterSha256": "23936f9bad4e355ffd00ab110f1127fe1af9df7fcb59dd748cc3b1d97ecb9929",
+      "production": "milestone-halo.webp",
+      "productionSha256": "7f72f0c8a8c6c8e137a6c47f2e37b9c4ed93c8ee6ca2be1e10ef4f35841609d6",
+      "size": [
+        512,
+        512
+      ],
+      "alpha": true,
+      "prompt": "Use case: stylized-concept. Asset type: reusable production transparent milestone highlight effect for Creature Chronicles equipment upgrade receipt. A restrained circular wreath of fine golden light, a few tiny emerald motes and six delicate botanical leaves at the lower edges. Leave the large center entirely empty and transparent for runtime equipment art. Sharp anime-painterly fantasy game effect, warm sunlit brass palette, subtle magical shimmer rather than explosive fire. Complete circle centered, ample 15 percent padding, square composition. No item, character, backdrop, floor, UI panel, text, stars, numbers or watermark. Truly transparent background."
+    }
+  ],
+  "vectors": [
+    "comparison-row.svg",
+    "milestone-node.svg",
+    "cost-plate.svg",
+    "negative-change.svg",
+    "compare-arrow.svg",
+    "mystery-panel.svg",
+    "window-frame.svg",
+    "positive-change.svg",
+    "reward-panel.svg"
+  ],
+  "reused": {
+    "background": "/images/ui/apothecary-v1/workbench-background.webp",
+    "parchment": "/images/ui/apothecary-v1/parchment-panel.webp",
+    "buttons": "/images/ui/apothecary-v1/frames/",
+    "equipment": "Existing canonical C2/equipment-v2/outfitter-v1 art",
+    "setIcons": "/images/ui/equipment-c2/set-*.webp",
+    "rarityFrames": "/images/ui/equipment-c2/card-*.svg"
+  },
+  "conceptPrompts": {
+    "A": "Use case: ui-mockup. Creature Chronicles equipment window concept, landscape 1536x1024. Reference image is the approved live equipment gallery STYLE REFERENCE. Match the sharp anime-painterly sunlit alpine ranch workbench background, warm ivory parchment, delicate brass botanical borders, forest green buttons, clean serif headings. This is ORIGINAL concept art, not Epic Seven assets. Text stays legible, no menu scrolling, all actions inside frame, no portrait redesign. Present a single coherent UI screen with a small inset of an upgrade result. Use only these known example items: current Field Gloves, Rare, Power C, +0, main Physical Power +5, substats Accuracy +2 and Speed +2; selected Practice Wraps, Common, Power D, +0, main Physical Power +3, no starting substats. Keep rarity, power and enhancement distinct. Equipping selected wraps breaks Swift from4/4 to3/4 and adds Striker1/4; do not invent a price to equip. Upgrade review reveals ONLY main-stat preview and exact Gold fee, random substat is a sealed mystery. Upgrade result reveals an actual rolled substat only after payment. No stars, gearscore, crafting failure, hidden costs or random future stat previews. Label 'Concept \u00b7 illustrative layout'. Title 'A \u00b7 Compare Ledger'. Large centered parchment with header Compare equipment; recipient Willow chip top right. Two equal elegant cards, Current and Selected, with distinct hand-painted green gloves and linen wraps, rarity/power/+0 badges, mainstat row and four substat slots. Beneath them a compact strip 'Swift 4/4 \u21923/4 \u00b7 Bonus lost' and 'Striker 0/4 \u21921/4 \u00b7 In progress'. Three clear tabs Item stats / Creature impact / Upgrade. Footer Back, Blacksmith, Find source, green Review equip. Lower-right small inset receipt titled Upgrade complete with real example mainstat Physical Power5\u21926 and 'No milestone this level \u00b7 Substats unchanged'; a modest botanical golden halo surrounds the glove icon. Keep clean and purposeful. Show a small wax-sealed mystery emblem in Upgrade tab label area but no future numeric substat.",
+    "B": "Use case: ui-mockup. Creature Chronicles equipment window concept, landscape 1536x1024. Reference image is the approved live equipment gallery STYLE REFERENCE. Match the sharp anime-painterly sunlit alpine ranch workbench background, warm ivory parchment, delicate brass botanical borders, forest green buttons, clean serif headings. This is ORIGINAL concept art, not Epic Seven assets. Text stays legible, no menu scrolling, all actions inside frame, no portrait redesign. Present a single coherent UI screen with a small inset of an upgrade result. Use only these known example items: current Field Gloves, Rare, Power C, +0, main Physical Power +5, substats Accuracy +2 and Speed +2; selected Practice Wraps, Common, Power D, +0, main Physical Power +3, no starting substats. Keep rarity, power and enhancement distinct. Equipping selected wraps breaks Swift from4/4 to3/4 and adds Striker1/4; do not invent a price to equip. Upgrade review reveals ONLY main-stat preview and exact Gold fee, random substat is a sealed mystery. Upgrade result reveals an actual rolled substat only after payment. No stars, gearscore, crafting failure, hidden costs or random future stat previews. Label 'Concept \u00b7 illustrative layout'. Title 'B \u00b7 Focused Gear Book'. A focused parchment page with selected Practice Wraps large beautiful illustration left. Right-hand page shows its Common / PowerD / +0 identity, mainPhysicalPower+3, four empty outlined substat rows, and a compact current-gloves comparison summary mainPhysicalPower5\u21923. Tabs 'Gear' / 'Creature impact' / 'Upgrade' / 'Set changes', with Set changes notification badge. Footer Back to gear, Find source, green Review equip; Blacksmith as secondary link. A matching smaller inset focused Upgrade review page shows Field Gloves+0\u2192+1, Physical Power5\u21926, '12 Gold', 'Substats unchanged; next mystery at+3', a closed green wax-sealed parchment reward icon and cancel/confirm. The 12 Gold is explicitly sample UI copy, not a balance recommendation. Include note 'Exact costs shown before payment'. Artwork moderate, typography readable, one focused topic per page; paged details work on phones. Same approved A gallery background/frame style, no new color direction."
+  },
+  "policy": "All labels, numeric stats, costs and state remain HTML/engine data. Mystery seal conveys no future stat identity. Halo is a decorative receipt effect, not new rarity or gameplay.",
+  "concepts": [
+    {
+      "id": "A",
+      "master": "exec-0890278f-348b-4c72-a9a8-fd916abd9237.png",
+      "masterSha256": "897b081b26897ab35f0d33663c0ff0a8bc4863b8ca923973cab7e0def7427b26",
+      "preview": "concept-A.webp",
+      "previewSha256": "ed215cce83032b4432b6a0bafd777a94de1b1d647b533352432b7f4b9bbd1472",
+      "status": "Illustrative layout only. Not live game UI or gear data."
+    },
+    {
+      "id": "B",
+      "master": "exec-3543d992-6a9a-4989-ae37-8cc66cf1aec1.png",
+      "masterSha256": "61eb3fc74cbac017952c7baf6bd95c3742955eda60116c1d4c101a9f0d3ebb72",
+      "preview": "concept-B.webp",
+      "previewSha256": "bea64098d18c12a9e4da8df7714ca75d13d363dae7466cfc2b300eb0a39a5f4f",
+      "status": "Illustrative layout only. Not live game UI or gear data."
+    }
+  ],
+  "conceptACorrectionPrompt": "Use case: precise-object-edit. Edit this Creature Chronicles A Compare Ledger concept. Preserve the entire left and center comparison cards, background, frames, buttons, typography, recipient, set-change strip and overall composition. Correct ONLY the upper-right Upgrade preview panel and lower-right Upgrade complete inset so the game rules are accurate. Upper-right panel: Field Gloves, Rare \u00b7 Power C \u00b7 +0 \u2192 +1; main stat Physical Power +5 \u2192 +6; replace all substat-reward text with 'Substats unchanged this level. Next mystery at +3.'; show EXACT fee '12 Gold', never 200. Do not show a mystery being awarded at +1. Lower-right receipt: Field Gloves, Rare \u00b7 Power C, Physical Power +5 \u2192 +6; show existing 'Accuracy +2 \u00b7 Speed +2' WITHOUT any New badge. Footer 'No milestone this level \u00b7 Substats unchanged'. No other stat roll, value or item changes. This is still labelled Concept \u00b7 illustrative layout. Keep crisp readable text.\n",
+  "styleReference": {
+    "path": "QA set-strip-1440.png",
+    "sha256": "41a71db613d8c89907622da417478e83ea7e7875a5068304982a5b06ae8c5ad4"
+  }
+}
