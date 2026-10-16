@@ -5,7 +5,7 @@ import {substatRollRange} from '@/data/equipmentEnhancement';
 import type {getEnhancementQuote} from '@/data/equipmentInstances';
 import s from './EnhancementMilestones.module.css';
 export function UpgradeReview({quote,gold,stale,onClose,onConfirm}:{quote:NonNullable<ReturnType<typeof getEnhancementQuote>>;gold:number;stale:boolean;onClose:()=>void;onConfirm:()=>void}){
- const next=quote.copy.level+1,milestone=next%3===0,range=substatRollRange(quote.item,'defense');
+ const next=quote.copy.level+1,milestone=next%3===0,range=substatRollRange(quote.item,'defense',quote.copy);
  return <GameDialog fullScreen title="Confirm equipment upgrade" onClose={onClose}><section className={s.book} data-upgrade-review>
  <div className={s.hero}><img src="/images/ui/enhancement-v1/forge-crest.webp" alt=""/><div><small>{quote.item.name} · #{quote.copy.id.replace('gear_','')}</small><h3>Upgrade +{quote.copy.level} → +{next}</h3><b>Guaranteed level increase</b></div></div>
  <div className={s.stats}><div><small>Main stat · Guaranteed</small><strong>{BATTLE_STAT_LABELS[quote.after.main.key]}</strong><b>{quote.before.main.value} → {quote.after.main.value}</b></div><div className={s.reward}><small>{milestone?'Milestone reward':'No milestone this level'}</small><strong>{milestone?'? Mystery substat':'Substats unchanged'}</strong><b>{milestone?'Revealed on upgrade':`Next reward: +${Math.ceil(next/3)*3}`}</b></div></div>

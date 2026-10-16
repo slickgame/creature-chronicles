@@ -1,0 +1,1715 @@
+[
+  {
+    "copy": {
+      "id": "legacy_sparring_wraps_v1_5",
+      "itemId": "sparring_wraps",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "physicalPower",
+        "value": 11
+      },
+      "substats": [
+        {
+          "key": "specialPower",
+          "value": 4
+        },
+        {
+          "key": "accuracy",
+          "value": 3
+        },
+        {
+          "key": "defense",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "defense",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "physicalPower": 11,
+        "specialPower": 4,
+        "accuracy": 3,
+        "defense": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_sparring_wraps_v1_15",
+      "itemId": "sparring_wraps",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "physicalPower",
+        "value": 21
+      },
+      "substats": [
+        {
+          "key": "specialPower",
+          "value": 5
+        },
+        {
+          "key": "accuracy",
+          "value": 5
+        },
+        {
+          "key": "maxHp",
+          "value": 2
+        },
+        {
+          "key": "speed",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "maxHp",
+          "added": true,
+          "amount": 2
+        },
+        {
+          "level": 6,
+          "key": "speed",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "accuracy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "accuracy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "specialPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "physicalPower": 21,
+        "specialPower": 5,
+        "accuracy": 5,
+        "maxHp": 2,
+        "speed": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_sparring_wraps_2_5",
+      "itemId": "sparring_wraps",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "physicalPower",
+        "value": 11
+      },
+      "substats": [
+        {
+          "key": "specialPower",
+          "value": 4
+        },
+        {
+          "key": "accuracy",
+          "value": 3
+        },
+        {
+          "key": "battleEnergy",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "physicalPower": 11,
+        "specialPower": 4,
+        "accuracy": 3,
+        "battleEnergy": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_sparring_wraps_2_15",
+      "itemId": "sparring_wraps",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "physicalPower",
+        "value": 21
+      },
+      "substats": [
+        {
+          "key": "specialPower",
+          "value": 5
+        },
+        {
+          "key": "accuracy",
+          "value": 3
+        },
+        {
+          "key": "maxHp",
+          "value": 4
+        },
+        {
+          "key": "statusPower",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "maxHp",
+          "added": true,
+          "amount": 2
+        },
+        {
+          "level": 6,
+          "key": "statusPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "specialPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "maxHp",
+          "added": false,
+          "amount": 2
+        },
+        {
+          "level": 15,
+          "key": "statusPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "physicalPower": 21,
+        "specialPower": 5,
+        "accuracy": 3,
+        "maxHp": 4,
+        "statusPower": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_guard_charm_v1_5",
+      "itemId": "guard_charm",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "maxHp",
+        "value": 22
+      },
+      "substats": [
+        {
+          "key": "defense",
+          "value": 5
+        },
+        {
+          "key": "resistance",
+          "value": 5
+        },
+        {
+          "key": "statusResist",
+          "value": 3
+        },
+        {
+          "key": "specialPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "specialPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 22,
+        "defense": 5,
+        "resistance": 5,
+        "statusResist": 3,
+        "specialPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_guard_charm_v1_15",
+      "itemId": "guard_charm",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "maxHp",
+        "value": 42
+      },
+      "substats": [
+        {
+          "key": "defense",
+          "value": 6
+        },
+        {
+          "key": "resistance",
+          "value": 6
+        },
+        {
+          "key": "statusResist",
+          "value": 4
+        },
+        {
+          "key": "speed",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "speed",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "speed",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "statusResist",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "defense",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 42,
+        "defense": 6,
+        "resistance": 6,
+        "statusResist": 4,
+        "speed": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_guard_charm_2_5",
+      "itemId": "guard_charm",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "maxHp",
+        "value": 22
+      },
+      "substats": [
+        {
+          "key": "defense",
+          "value": 5
+        },
+        {
+          "key": "resistance",
+          "value": 5
+        },
+        {
+          "key": "statusResist",
+          "value": 3
+        },
+        {
+          "key": "physicalPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "physicalPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 22,
+        "defense": 5,
+        "resistance": 5,
+        "statusResist": 3,
+        "physicalPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_guard_charm_2_15",
+      "itemId": "guard_charm",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "maxHp",
+        "value": 42
+      },
+      "substats": [
+        {
+          "key": "defense",
+          "value": 7
+        },
+        {
+          "key": "resistance",
+          "value": 7
+        },
+        {
+          "key": "statusResist",
+          "value": 3
+        },
+        {
+          "key": "battleEnergy",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "defense",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "defense",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 42,
+        "defense": 7,
+        "resistance": 7,
+        "statusResist": 3,
+        "battleEnergy": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_focus_prism_v1_5",
+      "itemId": "focus_prism",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "specialPower",
+        "value": 13
+      },
+      "substats": [
+        {
+          "key": "statusPower",
+          "value": 5
+        },
+        {
+          "key": "accuracy",
+          "value": 3
+        },
+        {
+          "key": "physicalPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "physicalPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "specialPower": 13,
+        "statusPower": 5,
+        "accuracy": 3,
+        "physicalPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_focus_prism_v1_15",
+      "itemId": "focus_prism",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "specialPower",
+        "value": 23
+      },
+      "substats": [
+        {
+          "key": "statusPower",
+          "value": 6
+        },
+        {
+          "key": "accuracy",
+          "value": 5
+        },
+        {
+          "key": "maxHp",
+          "value": 2
+        },
+        {
+          "key": "resistance",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "maxHp",
+          "added": true,
+          "amount": 2
+        },
+        {
+          "level": 6,
+          "key": "resistance",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "accuracy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "accuracy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "statusPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "specialPower": 23,
+        "statusPower": 6,
+        "accuracy": 5,
+        "maxHp": 2,
+        "resistance": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_focus_prism_2_5",
+      "itemId": "focus_prism",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "specialPower",
+        "value": 13
+      },
+      "substats": [
+        {
+          "key": "statusPower",
+          "value": 5
+        },
+        {
+          "key": "accuracy",
+          "value": 3
+        },
+        {
+          "key": "physicalPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "physicalPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "specialPower": 13,
+        "statusPower": 5,
+        "accuracy": 3,
+        "physicalPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_focus_prism_2_15",
+      "itemId": "focus_prism",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "specialPower",
+        "value": 23
+      },
+      "substats": [
+        {
+          "key": "statusPower",
+          "value": 6
+        },
+        {
+          "key": "accuracy",
+          "value": 3
+        },
+        {
+          "key": "resistance",
+          "value": 2
+        },
+        {
+          "key": "battleEnergy",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "resistance",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "statusPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "battleEnergy",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "specialPower": 23,
+        "statusPower": 6,
+        "accuracy": 3,
+        "resistance": 2,
+        "battleEnergy": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_padded_harness_v1_5",
+      "itemId": "padded_harness",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "maxHp",
+        "value": 16
+      },
+      "substats": [
+        {
+          "key": "defense",
+          "value": 2
+        },
+        {
+          "key": "specialPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "specialPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 16,
+        "defense": 2,
+        "specialPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_padded_harness_v1_15",
+      "itemId": "padded_harness",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "maxHp",
+        "value": 36
+      },
+      "substats": [
+        {
+          "key": "defense",
+          "value": 2
+        },
+        {
+          "key": "statusResist",
+          "value": 1
+        },
+        {
+          "key": "battleEnergy",
+          "value": 2
+        },
+        {
+          "key": "resistance",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "statusResist",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "resistance",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "battleEnergy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 36,
+        "defense": 2,
+        "statusResist": 1,
+        "battleEnergy": 2,
+        "resistance": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_padded_harness_2_5",
+      "itemId": "padded_harness",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "defense",
+        "value": 7
+      },
+      "substats": [
+        {
+          "key": "maxHp",
+          "value": 6
+        },
+        {
+          "key": "accuracy",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "accuracy",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "defense": 7,
+        "maxHp": 6,
+        "accuracy": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_padded_harness_2_15",
+      "itemId": "padded_harness",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "defense",
+        "value": 17
+      },
+      "substats": [
+        {
+          "key": "maxHp",
+          "value": 6
+        },
+        {
+          "key": "specialPower",
+          "value": 1
+        },
+        {
+          "key": "resistance",
+          "value": 2
+        },
+        {
+          "key": "battleEnergy",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "specialPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "resistance",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "battleEnergy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "defense": 17,
+        "maxHp": 6,
+        "specialPower": 1,
+        "resistance": 2,
+        "battleEnergy": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_linen_headband_v1_5",
+      "itemId": "linen_headband",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "accuracy",
+        "value": 7
+      },
+      "substats": [
+        {
+          "key": "physicalPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "physicalPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "accuracy": 7,
+        "physicalPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_linen_headband_v1_15",
+      "itemId": "linen_headband",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "accuracy",
+        "value": 17
+      },
+      "substats": [
+        {
+          "key": "physicalPower",
+          "value": 2
+        },
+        {
+          "key": "speed",
+          "value": 1
+        },
+        {
+          "key": "defense",
+          "value": 1
+        },
+        {
+          "key": "specialPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "physicalPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "speed",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "defense",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "specialPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "physicalPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "accuracy": 17,
+        "physicalPower": 2,
+        "speed": 1,
+        "defense": 1,
+        "specialPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_linen_headband_2_5",
+      "itemId": "linen_headband",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "maxHp",
+        "value": 16
+      },
+      "substats": [
+        {
+          "key": "accuracy",
+          "value": 2
+        },
+        {
+          "key": "specialPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "specialPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 16,
+        "accuracy": 2,
+        "specialPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_linen_headband_2_15",
+      "itemId": "linen_headband",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "maxHp",
+        "value": 36
+      },
+      "substats": [
+        {
+          "key": "accuracy",
+          "value": 2
+        },
+        {
+          "key": "statusResist",
+          "value": 1
+        },
+        {
+          "key": "resistance",
+          "value": 2
+        },
+        {
+          "key": "physicalPower",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "statusResist",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "resistance",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "physicalPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "physicalPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "maxHp": 36,
+        "accuracy": 2,
+        "statusResist": 1,
+        "resistance": 2,
+        "physicalPower": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_runner_bands_v1_5",
+      "itemId": "runner_bands",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "speed",
+        "value": 8
+      },
+      "substats": [
+        {
+          "key": "accuracy",
+          "value": 1
+        },
+        {
+          "key": "statusPower",
+          "value": 1
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "statusPower",
+          "added": true,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "speed": 8,
+        "accuracy": 1,
+        "statusPower": 1
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_runner_bands_v1_15",
+      "itemId": "runner_bands",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "speed",
+        "value": 18
+      },
+      "substats": [
+        {
+          "key": "accuracy",
+          "value": 1
+        },
+        {
+          "key": "specialPower",
+          "value": 1
+        },
+        {
+          "key": "battleEnergy",
+          "value": 2
+        },
+        {
+          "key": "statusPower",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "specialPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "statusPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "battleEnergy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "statusPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "speed": 18,
+        "accuracy": 1,
+        "specialPower": 1,
+        "battleEnergy": 2,
+        "statusPower": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_runner_bands_2_5",
+      "itemId": "runner_bands",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "speed",
+        "value": 8
+      },
+      "substats": [
+        {
+          "key": "accuracy",
+          "value": 1
+        },
+        {
+          "key": "maxHp",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "maxHp",
+          "added": true,
+          "amount": 2
+        }
+      ],
+      "bonuses": {
+        "speed": 8,
+        "accuracy": 1,
+        "maxHp": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_runner_bands_2_15",
+      "itemId": "runner_bands",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "speed",
+        "value": 18
+      },
+      "substats": [
+        {
+          "key": "accuracy",
+          "value": 1
+        },
+        {
+          "key": "statusPower",
+          "value": 1
+        },
+        {
+          "key": "statusResist",
+          "value": 2
+        },
+        {
+          "key": "battleEnergy",
+          "value": 2
+        }
+      ],
+      "passiveBonuses": {},
+      "passive": null,
+      "milestones": [
+        {
+          "level": 3,
+          "key": "statusPower",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "statusResist",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "battleEnergy",
+          "added": true,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "battleEnergy",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "statusResist",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "speed": 18,
+        "accuracy": 1,
+        "statusPower": 1,
+        "statusResist": 2,
+        "battleEnergy": 2
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_champion_harness_v1_5",
+      "itemId": "champion_harness",
+      "level": 5,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "maxHp",
+        "value": 22
+      },
+      "substats": [
+        {
+          "key": "physicalPower",
+          "value": 4
+        },
+        {
+          "key": "specialPower",
+          "value": 4
+        },
+        {
+          "key": "defense",
+          "value": 5
+        },
+        {
+          "key": "resistance",
+          "value": 4
+        }
+      ],
+      "passiveBonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10
+      },
+      "passive": "Champion’s Resolve: +2 Accuracy and +10 Max Battle Energy. Start each battle Guarded for 1 round (25% damage reduction); does not stack with Guarded.",
+      "milestones": [
+        {
+          "level": 3,
+          "key": "defense",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10,
+        "maxHp": 22,
+        "physicalPower": 4,
+        "specialPower": 4,
+        "defense": 5,
+        "resistance": 4
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_champion_harness_v1_15",
+      "itemId": "champion_harness",
+      "level": 15,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "maxHp",
+        "value": 42
+      },
+      "substats": [
+        {
+          "key": "physicalPower",
+          "value": 6
+        },
+        {
+          "key": "specialPower",
+          "value": 6
+        },
+        {
+          "key": "defense",
+          "value": 4
+        },
+        {
+          "key": "resistance",
+          "value": 5
+        }
+      ],
+      "passiveBonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10
+      },
+      "passive": "Champion’s Resolve: +2 Accuracy and +10 Max Battle Energy. Start each battle Guarded for 1 round (25% damage reduction); does not stack with Guarded.",
+      "milestones": [
+        {
+          "level": 3,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "physicalPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "specialPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 12,
+          "key": "specialPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "physicalPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10,
+        "maxHp": 42,
+        "physicalPower": 6,
+        "specialPower": 6,
+        "defense": 4,
+        "resistance": 5
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_champion_harness_2_5",
+      "itemId": "champion_harness",
+      "level": 5,
+      "enhancementVersion": 2,
+      "legacyThrough": 5,
+      "rolls": []
+    },
+    "stats": {
+      "level": 5,
+      "main": {
+        "key": "defense",
+        "value": 9
+      },
+      "substats": [
+        {
+          "key": "maxHp",
+          "value": 12
+        },
+        {
+          "key": "physicalPower",
+          "value": 5
+        },
+        {
+          "key": "specialPower",
+          "value": 4
+        },
+        {
+          "key": "resistance",
+          "value": 4
+        }
+      ],
+      "passiveBonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10
+      },
+      "passive": "Champion’s Resolve: +2 Accuracy and +10 Max Battle Energy. Start each battle Guarded for 1 round (25% damage reduction); does not stack with Guarded.",
+      "milestones": [
+        {
+          "level": 3,
+          "key": "physicalPower",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10,
+        "defense": 9,
+        "maxHp": 12,
+        "physicalPower": 5,
+        "specialPower": 4,
+        "resistance": 4
+      }
+    }
+  },
+  {
+    "copy": {
+      "id": "legacy_champion_harness_2_15",
+      "itemId": "champion_harness",
+      "level": 15,
+      "enhancementVersion": 2,
+      "legacyThrough": 15,
+      "rolls": []
+    },
+    "stats": {
+      "level": 15,
+      "main": {
+        "key": "defense",
+        "value": 19
+      },
+      "substats": [
+        {
+          "key": "maxHp",
+          "value": 14
+        },
+        {
+          "key": "physicalPower",
+          "value": 5
+        },
+        {
+          "key": "specialPower",
+          "value": 6
+        },
+        {
+          "key": "resistance",
+          "value": 5
+        }
+      ],
+      "passiveBonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10
+      },
+      "passive": "Champion’s Resolve: +2 Accuracy and +10 Max Battle Energy. Start each battle Guarded for 1 round (25% damage reduction); does not stack with Guarded.",
+      "milestones": [
+        {
+          "level": 3,
+          "key": "specialPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 6,
+          "key": "physicalPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 9,
+          "key": "maxHp",
+          "added": false,
+          "amount": 2
+        },
+        {
+          "level": 12,
+          "key": "specialPower",
+          "added": false,
+          "amount": 1
+        },
+        {
+          "level": 15,
+          "key": "resistance",
+          "added": false,
+          "amount": 1
+        }
+      ],
+      "bonuses": {
+        "accuracy": 2,
+        "battleEnergy": 10,
+        "defense": 19,
+        "maxHp": 14,
+        "physicalPower": 5,
+        "specialPower": 6,
+        "resistance": 5
+      }
+    }
+  }
+]

@@ -1,4 +1,6 @@
-import { getPreviewCopy, getEquipmentCopies, moveEquipmentCopy, releaseEquipmentCopy, withEquipmentPreview } from "./equipmentInstances";
+import {equipmentStats} from './equipmentEnhancement';
+import { getEquipmentRarity, EQUIPMENT_STAT_NAMES, type EquipmentRarity, type EquipmentSetId } from "./equipmentRules";
+import { getPreviewCopy, getEquipmentCopies, moveEquipmentCopy, releaseEquipmentCopy, withEquipmentPreview, syncEquipmentCopies } from "./equipmentInstances";
 import { SHOP_EQUIPMENT, type ShopEquipmentId } from "./equipmentCatalogue";
 import type { BattleStats } from "@/types/battle";
 import * as active from "./battleOutfitterActive";
@@ -47,6 +49,9 @@ export type BattleOutfitterItem = {
   quality?: "Common" | "Fine" | "Superior" | "Masterwork" | "Relic";
   equipmentGrade?: "D" | "C" | "B" | "A" | "S";
   statBonuses?: Partial<BattleStats>;
+  equipmentRarity?: EquipmentRarity;
+  equipmentSet?: EquipmentSetId;
+  mainStat?: keyof BattleStats;
 };
 
 export type BattleLoadout = {
@@ -157,9 +162,11 @@ export const BATTLE_OUTFITTER_ITEMS: BattleOutfitterItem[] = [
   ...COLISEUM_ITEMS,
 ].map(item => ({ ...item, equipmentSlot: ITEM_SLOTS[item.itemId], ...(item.category === "Equipment" ? { quality: item.itemId === "champion_harness" ? "Relic" as const : item.coliseumExclusive ? "Masterwork" as const : "Fine" as const, equipmentGrade: item.itemId === "champion_harness" ? "S" as const : item.coliseumExclusive ? "A" as const : "C" as const } : {}), iconPath: `/images/ui/outfitter-v1/${item.itemId}.webp` }));
 BATTLE_OUTFITTER_ITEMS.push(...SHOP_EQUIPMENT);
+// Catalogue effects describe newly acquired gear; instance views use their saved profile.
+for(const gear of BATTLE_OUTFITTER_ITEMS)if(gear.equipmentSlot)gear.effectLabel=Object.entries(equipmentStats(gear).bonuses).map(([key,value])=>`+${value} ${EQUIPMENT_STAT_NAMES[key as keyof BattleStats]}`).join(' · ')+' in battle.';
 
 export function equipmentQualityLabel(item: BattleOutfitterItem): string {
-  return item.equipmentGrade ? `${item.quality} · Gear Grade ${item.equipmentGrade}` : item.category;
+  return item.equipmentGrade ? `${getEquipmentRarity(item)} rarity · Power Grade ${item.equipmentGrade}` : item.category;
 }
 
 function getFlagNumber(value: boolean | number | string | undefined, fallback = 0): number {
@@ -347,12 +354,15 @@ export function purchaseBattleOutfitterItem(save: GameSave, itemId: string): Bat
   if (item.coliseumExclusive) {
     return { save, ok: false, message: `${item.name} is exclusive to the Coliseum Marks Exchange.` };
   }
-  if (!item.statBonuses) return active.purchaseBattleOutfitterItem(normalizeBattleEquipment(save), itemId);
+  if (!item.statBonuses) {
+    const result = active.purchaseBattleOutfitterItem(syncEquipmentCopies(save), itemId);
+    return result.ok ? {...result, save: syncEquipmentCopies(result.save)} : {...result, save};
+  }
   const stock = getBattleOutfitterStock(save, item), materials = getBattleOutfitterMaterialStock(save);
   if (item.maxStock && stock >= item.maxStock) return { save, ok: false, message: `${item.name} stock is full.` };
   if (save.currencies.gold < item.costGold || materials < item.materialCost) return { save, ok: false, message: `Need ${getBattleOutfitterCostLabel(item)}. Available: ${save.currencies.gold} Gold + ${materials} Materials.` };
-  const normalized = normalizeBattleEquipment(save);
-  return { ok: true, save: { ...normalized, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: save.currencies.gold - item.costGold }, flags: { ...normalized.flags, m51BattleOutfitter: true, m53CombatReadiness: true, m54BattleOutfitterEconomy: true, ranchMaterialsStock: materials - item.materialCost, [item.flagKey]: stock + 1 } }, message: `${item.name} purchased for ${getBattleOutfitterCostLabel(item)}. In inventory; choose Equip to use it.` };
+  const normalized = syncEquipmentCopies(save);
+  return { ok: true, save: syncEquipmentCopies({ ...normalized, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: save.currencies.gold - item.costGold }, flags: { ...normalized.flags, m51BattleOutfitter: true, m53CombatReadiness: true, m54BattleOutfitterEconomy: true, ranchMaterialsStock: materials - item.materialCost, [item.flagKey]: stock + 1 } }), message: `${item.name} purchased for ${getBattleOutfitterCostLabel(item)}. In inventory; choose Equip to use it.` };
 }
 
 export function assignBattleOutfitterEquipment(

@@ -8,6 +8,7 @@ import { createBattleState } from "@/data/battleEngine";
 const item = (id: string) => BATTLE_OUTFITTER_ITEMS.find(entry => entry.itemId === id)!;
 function fixture() {
   const save = createNewGameSave("Equipment QA", 0);
+  delete save.flags.equipmentRulesVersion; // This fixture specifically exercises legacy equipment values.
   save.currencies.gold = 20000;
   save.flags.ranchMaterialsStock = 100;
   for (const entry of BATTLE_OUTFITTER_ITEMS) save.flags[entry.flagKey] = 3;

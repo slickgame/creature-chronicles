@@ -67,6 +67,7 @@ test("assigned equipment and Focus training modify battle stats only for the ran
       battleManualRank_outfitter_player: 2,
     },
   };
+  delete equippedSave.flags.equipmentRulesVersion; // Reconstructed three-slot pre-instance save.
   const integrated = applyBattleOutfitterLoadouts(equippedSave, baseState);
   const before = baseState.combatants[playerId];
   const after = integrated.combatants[playerId];

@@ -87,7 +87,7 @@ test('new slot main stats are predictable while legacy owned main stats are pres
   if(i.equipmentSlot==='armor')assert.equal(modern.main.key,'defense');
   if(i.equipmentSlot==='weapon')assert.ok(['physicalPower','specialPower'].includes(modern.main.key));
  }
- const s=fresh();delete s.flags.equipmentCopiesV1;
+ const s=fresh();delete s.flags.equipmentCopiesV1;delete s.flags.equipmentRulesVersion;
  for(const c of getEquipmentCopies(s))assert.deepEqual(equipmentStats(item(c.itemId),c).bonuses,item(c.itemId).statBonuses??LEGACY_EQUIPMENT_STATS[c.itemId]);
 });
 test('milestones draw eligible stats within inclusive grade ranges and persist without preview leaks or rerolls',()=>{

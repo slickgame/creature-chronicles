@@ -1,3 +1,4 @@
+import {syncEquipmentCopies} from './equipmentInstances';
 import { BATTLE_OUTFITTER_ITEMS, getBattleOutfitterStock, normalizeBattleEquipment } from '@/data/battleOutfitter';
 import { consumeFarmResources, getFarmState, resourceShortages, resourceList, RESOURCES, type Stock, type ResourceId } from './farmResources';
 import type { GameSave } from '@/types/save';
@@ -39,13 +40,13 @@ export function craftBlacksmithEquipment(save: GameSave, recipeId: string, expec
   if (!quote) return fail('That recipe is unavailable.');
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision !== quote.revision || quote.revision >= Number.MAX_SAFE_INTEGER) return fail('This crafting review is no longer current. Review the recipe again.');
   if (!quote.canCraft) return fail(`Still needed: ${quote.reason}`);
-  const normalized = normalizeBattleEquipment(save);
+  const normalized = syncEquipmentCopies(normalizeBattleEquipment(save));
   const materials = consumeFarmResources(normalized, quote.recipe.inputs);
   if (!materials.ok) return fail(materials.message);
   const stock = getBattleOutfitterStock(normalized, quote.item);
   return {
     ok: true,
-    save: { ...materials.save, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: save.currencies.gold - quote.recipe.laborGold }, flags: { ...materials.save.flags, [quote.item.flagKey]: stock + 1, [REVISION]: quote.revision + 1 } },
+    save: syncEquipmentCopies({ ...materials.save, updatedAt: new Date().toISOString(), currencies: { ...save.currencies, gold: save.currencies.gold - quote.recipe.laborGold }, flags: { ...materials.save.flags, [quote.item.flagKey]: stock + 1, [REVISION]: quote.revision + 1 } }),
     message: `Iona crafted 1 ${quote.item.name} (${quote.item.quality} / ${quote.item.equipmentGrade}) for ${resourceList(quote.recipe.inputs)} + ${quote.recipe.laborGold} Gold labor. Added to equipment inventory; equip it at the Outfitter.`,
   };
 }

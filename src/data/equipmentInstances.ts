@@ -1,5 +1,5 @@
 import { BATTLE_OUTFITTER_ITEMS, getEquipmentSlots, normalizeBattleEquipment, type BattleOutfitterItem } from '@/data/battleOutfitter';
-import { equipmentStats, rollEquipmentMilestone, enhancementCost, MAX_EQUIPMENT_LEVEL, type EquipmentCopy } from './equipmentEnhancement';
+import { equipmentStats, createEquipmentCopy, rollEquipmentMilestone, enhancementCost, MAX_EQUIPMENT_LEVEL, type EquipmentCopy } from './equipmentEnhancement';
 import type { GameSave } from '@/types/save';
 const FLAG='equipmentCopiesV1';
 type Collection={version:1;serial:number;copies:EquipmentCopy[]};
@@ -16,7 +16,7 @@ export function getEquipmentCollection(input:GameSave):Collection {
  }).map(c=>({...c,level:Math.min(15,count(c.level)),owner:typeof c.owner==='string'?c.owner:undefined,legacyThrough:c.legacyThrough??(c.enhancementVersion===2?0:Math.min(15,count(c.level))),rolls:c.rolls??[]})):[];
  let serial=Math.max(count(raw.serial),...old.map(c=>count(c.id.replace(/^gear_/,''))),0);
  const copies:EquipmentCopy[]=[];const used=new Set<string>();
- const make=(itemId:string,owner?:string)=>({id:`gear_${++serial}`,itemId,level:0,owner,enhancementVersion:Array.isArray(raw.copies)?2 as const:undefined,legacyThrough:0,rolls:[]});
+ const make=(itemId:string,owner?:string)=>save.flags.equipmentRulesVersion===3?createEquipmentCopy(`gear_${++serial}`,catalog.find(i=>i.itemId===itemId)!,owner):({id:`gear_${++serial}`,itemId,level:0,owner,enhancementVersion:Array.isArray(raw.copies)?2 as const:undefined,legacyThrough:0,rolls:[]});
  const slots=(save.creatures??[]).map(c=>({id:String(c.creatureId),slots:getEquipmentSlots(save,c.creatureId)}));
  for(const item of catalog){
   for(const c of slots.filter(c=>c.slots[item.equipmentSlot!]===item.itemId)){
@@ -34,9 +34,9 @@ function write(save:GameSave,collection:Collection):GameSave{return {...save,fla
 export function getEquipmentCopies(save:GameSave,itemId?:string){return getEquipmentCollection(save).copies.filter(c=>!itemId||c.itemId===itemId);}
 export function getEquippedCopy(save:GameSave,owner:string,itemId:string){return getEquipmentCopies(save,itemId).find(c=>c.owner===owner);}
 export function getPreviewCopy(save:GameSave,owner:string,item:BattleOutfitterItem,copyId?:string|null){
- if(copyId===null)return {id:`new_${item.itemId}`,itemId:item.itemId,level:0,enhancementVersion:2 as const,legacyThrough:0,rolls:[]};
+ if(copyId===null)return createEquipmentCopy(`new_${item.itemId}`,item);
  const copies=getEquipmentCopies(save,item.itemId);
- return (copyId?copies.find(c=>c.id===copyId):copies.find(c=>c.owner===owner)??copies.find(c=>!c.owner))??{id:`new_${item.itemId}`,itemId:item.itemId,level:0,enhancementVersion:2 as const,legacyThrough:0,rolls:[]};
+ return (copyId?copies.find(c=>c.id===copyId):copies.find(c=>c.owner===owner)??copies.find(c=>!c.owner))??createEquipmentCopy(`new_${item.itemId}`,item);
 }
 export function withEquipmentPreview(save:GameSave,owner:string,item:BattleOutfitterItem,copy:EquipmentCopy){
  const collection=getEquipmentCollection(save);
@@ -59,7 +59,7 @@ export function getEnhancementQuote(save:GameSave,copyId:string){
  const copy=getEquipmentCopies(save).find(c=>c.id===copyId);
  const item=copy&&BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===copy.itemId);
  if(!copy||!item)return null;
- const cost=enhancementCost(item,copy.level),maxed=copy.level>=MAX_EQUIPMENT_LEVEL;
+ const cost=enhancementCost(item,copy.level,copy),maxed=copy.level>=MAX_EQUIPMENT_LEVEL;
  return {copy,item,cost,maxed,before:equipmentStats(item,copy),after:equipmentStats(item,{...copy,level:Math.min(15,copy.level+1)}),canUpgrade:!maxed&&save.currencies.gold>=cost};
 }
 export function enhanceEquipment(save:GameSave,copyId:string,expectedLevel:number,random:()=>number=Math.random){
@@ -94,5 +94,5 @@ export function syncEquipmentCopies(input:GameSave):GameSave {
   if(orphanIds.size)save={...save,flags:{...flags,[FLAG]:JSON.stringify({...raw,copies})}};
  }
  const serialized=JSON.stringify(getEquipmentCollection(save));
- return save.flags[FLAG]===serialized?save:{...save,flags:{...save.flags,[FLAG]:serialized}};
+ return save.flags[FLAG]===serialized&&save.flags.equipmentRulesVersion===3?save:{...save,flags:{...save.flags,[FLAG]:serialized,equipmentRulesVersion:3}};
 }

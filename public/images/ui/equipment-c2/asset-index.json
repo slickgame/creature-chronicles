@@ -88,6 +88,26 @@
     "sha256": "75c86ecbbdd43d8f9a70142c4fb8251a5e7f53fd973f61ee89db4ca90194e411"
   },
   {
+    "path": "set-bulwark.svg",
+    "sha256": "43b2b3c24297fae4949c4d7a91e388582c9a42e7381bb0759b438537feb2dadd"
+  },
+  {
+    "path": "set-striker.svg",
+    "sha256": "7fcb1abc835d98255ee88f5015346946a417548c84a66ef1e5675503dce91c17"
+  },
+  {
+    "path": "set-swift.svg",
+    "sha256": "879cee6e9af23c5df39f64054736b9931373a931a75fd4505728cbad3ad3785c"
+  },
+  {
+    "path": "set-vigor.svg",
+    "sha256": "2cdbbd90363d887675d620cf9cb4c38a8eb664129397c59b4d4ad6173be8ee6f"
+  },
+  {
+    "path": "sets-crest.svg",
+    "sha256": "1ac1bc7a60dbb534d46bb0af518652541a5d01cb11884fae1f6d5168494e69d7"
+  },
+  {
     "path": "stat-row.svg",
     "sha256": "1b00ae7a20d2e52cea20e60babaaa66d6f2ad6b1e5eda61a88cfd0cc973a7f47"
   },

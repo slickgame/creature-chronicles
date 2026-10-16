@@ -18,3 +18,10 @@
 .gearCard[data-grade=B],.statCard[data-grade=B]{border-image:none;background-image:url('/images/ui/equipment-c2/card-B.svg')}
 .gearCard[data-grade=A],.statCard[data-grade=A]{border-image:none;background-image:url('/images/ui/equipment-c2/card-A.svg')}
 .gearCard[data-grade=S],.statCard[data-grade=S]{border-image:none;background-image:url('/images/ui/equipment-c2/card-S.svg')}
+
+.bottom{flex-wrap:wrap}.bottom>nav{display:flex;gap:5px}.bottom>.pager{margin-left:auto}
+.gearCard[data-rarity=Common],.statCard[data-rarity=Common]{background-image:url('/images/ui/equipment-c2/card-D.svg')}
+.gearCard[data-rarity=Uncommon],.statCard[data-rarity=Uncommon]{background-image:url('/images/ui/equipment-c2/card-C.svg')}
+.gearCard[data-rarity=Rare],.statCard[data-rarity=Rare]{background-image:url('/images/ui/equipment-c2/card-B.svg')}
+.gearCard[data-rarity=Heroic],.statCard[data-rarity=Heroic]{background-image:url('/images/ui/equipment-c2/card-A.svg')}
+.gearCard[data-rarity=Legendary],.statCard[data-rarity=Legendary]{background-image:url('/images/ui/equipment-c2/card-S.svg')}

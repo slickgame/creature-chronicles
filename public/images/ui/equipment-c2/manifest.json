@@ -57,5 +57,16 @@
     "portraits": "Canonical participant portrait URLs; concept portraits are not production art.",
     "equipment": "Existing equipment-v2/outfitter-v1 art remains canonical."
   },
-  "vectors": "13 slot/control icons, 5 grade card frames, 6 stat/status/comparison graphics. Editable SVG extensions; labels remain HTML."
+  "vectors": "13 slot/control icons, 5 grade card frames, 6 stat/status/comparison graphics. Editable SVG extensions; labels remain HTML.",
+  "rulesUpdate": {
+    "date": "2026-10-16",
+    "vectorAssets": [
+      "set-vigor.svg",
+      "set-bulwark.svg",
+      "set-striker.svg",
+      "set-swift.svg",
+      "sets-crest.svg"
+    ],
+    "purpose": "Starter set symbols. Main card colors now denote rarity; power grade remains explicit text. Existing raster art is unchanged."
+  }
 }

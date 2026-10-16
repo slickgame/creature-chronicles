@@ -148,8 +148,8 @@ test("utility equipment occupies its own slot and applies combat bonuses", () =>
   const before = base.combatants[playerId];
   const applied = applyBattleOutfitterLoadouts(assigned.save, base);
   const after = applied.combatants[playerId];
-  assert.equal(after.battleStats.speed, before.battleStats.speed + 3);
-  assert.equal(after.maxBattleEnergy, before.maxBattleEnergy + 8);
+  assert.equal(after.battleStats.speed, before.battleStats.speed + 2);
+  assert.equal(after.maxBattleEnergy, before.maxBattleEnergy + 9);
 });
 
 test("Coliseum manuals teach dedicated moves and consume only on success", () => {

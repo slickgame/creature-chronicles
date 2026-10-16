@@ -5,11 +5,8 @@ import type { BattleStatKey } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { GameSave } from "@/types/save";
 
-export const BATTLE_STAT_LABELS: Record<BattleStatKey, string> = {
-  maxHp: "Max HP", physicalPower: "Physical Power", specialPower: "Special Power", defense: "Defense",
-  resistance: "Resistance", speed: "Speed", accuracy: "Accuracy", evasion: "Evasion",
-  statusPower: "Status Power", statusResist: "Status Resist", battleEnergy: "Max Battle Energy",
-};
+export {EQUIPMENT_STAT_NAMES as BATTLE_STAT_LABELS} from './equipmentRules';
+import {EQUIPMENT_STAT_NAMES as BATTLE_STAT_LABELS} from './equipmentRules';
 
 export function getEquippedBattleStats(save: GameSave, creature: CreatureRecord) {
   return applyOutfitterStatBonuses(calculateBattleStats(creature), getBattleOutfitterCreatureEffectSummary(save, creature.creatureId));
@@ -19,11 +16,13 @@ export function getEquippedBattleStats(save: GameSave, creature: CreatureRecord)
 export function compareEquipment(save: GameSave, creature: CreatureRecord, item: BattleOutfitterItem, copyId?: string | null) {
   const base = calculateBattleStats(creature);
   const current = getEquippedBattleStats(save, creature);
-  const after = applyOutfitterStatBonuses(base, getBattleOutfitterCreatureEffectSummary(previewEquipmentSave(save, creature.creatureId, item, copyId), creature.creatureId));
+  const currentSummary=getBattleOutfitterCreatureEffectSummary(save,creature.creatureId);
+  const afterSummary=getBattleOutfitterCreatureEffectSummary(previewEquipmentSave(save, creature.creatureId, item, copyId),creature.creatureId);
+  const after = applyOutfitterStatBonuses(base, afterSummary);
   const previousId = item.equipmentSlot ? getEquipmentSlots(save, creature.creatureId)[item.equipmentSlot] : null;
   return {
     previous: BATTLE_OUTFITTER_ITEMS.find(entry => entry.itemId === previousId) ?? null,
     rows: (Object.keys(current) as BattleStatKey[]).map(key => ({ key, label: BATTLE_STAT_LABELS[key], current: current[key], after: after[key], delta: after[key] - current[key] })),
-    base, current, after,
+    base, current, after, sets:{current:currentSummary.sets??[],after:afterSummary.sets??[]},
   };
 }

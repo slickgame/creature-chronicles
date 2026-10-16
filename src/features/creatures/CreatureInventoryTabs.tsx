@@ -18,7 +18,7 @@ import s from "./CreatureInventoryTabs.module.css";
 
 function gearHint(item: BattleOutfitterItem, copy: EquipmentCopy) {
   const stats = equipmentStats(item, copy);
-  return `${item.name} +${stats.level} · Grade ${item.equipmentGrade}\nMain: ${BATTLE_STAT_LABELS[stats.main.key]} +${stats.main.value}\n${stats.substats.map(stat => `${BATTLE_STAT_LABELS[stat.key]} +${stat.value}`).join(" · ") || "No substats yet"}${stats.passive ? `\n${stats.passive}` : ""}\nSelect for full details and comparison.`;
+  return `${item.name} +${stats.level} · ${stats.rarity} · Power ${stats.powerGrade}\nMain: ${BATTLE_STAT_LABELS[stats.main.key]} +${stats.main.value}\n${stats.substats.map(stat => `${BATTLE_STAT_LABELS[stat.key]} +${stat.value}`).join(" · ") || "No substats yet"}${stats.passive ? `\n${stats.passive}` : ""}\nSelect for full details and comparison.`;
 }
 
 function ItemArt({src, name}: {src:string; name:string}) {

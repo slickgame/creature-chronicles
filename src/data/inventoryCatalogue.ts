@@ -1,3 +1,5 @@
+import {equipmentStats} from './equipmentEnhancement';
+import {EQUIPMENT_STAT_NAMES} from './equipmentRules';
 import {BREEDING_SUPPORT_ITEMS,getBreedingSupportItemCount,getBreedingSupportItemActiveCount,useBreedingSupportItem as applySupportItem} from './breedingItems';
 import {SUPPLY_DEPOT_ITEMS,getSupplyDepotCount} from './supplyDepot';
 import {BATTLE_OUTFITTER_ITEMS,getBattleOutfitterStock} from '@/data/battleOutfitter';
@@ -15,7 +17,7 @@ export function getInventoryCatalogue(save:GameSave):InventoryEntry[]{
  const copies=getEquipmentCopies(save),farm=getFarmState(save);
  return [
  ...BREEDING_SUPPORT_ITEMS.map(item=>({id:item.itemId,name:item.name,art:`/images/ui/apothecary-v1/${item.itemId.replaceAll('_','-')}.webp`,category:'Consumables' as const,count:getBreedingSupportItemCount(save,item.itemId),description:item.description,effect:item.exactEffect,support:item})),
- ...BATTLE_OUTFITTER_ITEMS.filter(i=>i.category==='Equipment').flatMap(item=>{const owned=copies.filter(c=>c.itemId===item.itemId);return (owned.length?owned:[undefined]).map(copy=>({id:copy?.id??`shop:${item.itemId}`,name:copy?`${item.name} +${copy.level}`:item.name,art:item.iconPath,category:'Equipment' as const,count:copy?1:0,description:item.description,effect:`${item.effectLabel} · Grade ${item.equipmentGrade??'—'}${copy?.owner?` · Equipped by ${save.creatures?.find(c=>c.creatureId===copy.owner)?.nickname??'another creature'}`:''}`,gear:item,copy}));}),
+ ...BATTLE_OUTFITTER_ITEMS.filter(i=>i.category==='Equipment').flatMap(item=>{const owned=copies.filter(c=>c.itemId===item.itemId);return (owned.length?owned:[undefined]).map(copy=>({id:copy?.id??`shop:${item.itemId}`,name:copy?`${item.name} +${copy.level}`:item.name,art:item.iconPath,category:'Equipment' as const,count:copy?1:0,description:item.description,effect:`${inventoryEquipmentEffect(item,copy)}${copy?.owner?` · Equipped by ${save.creatures?.find(c=>c.creatureId===copy.owner)?.nickname??'another creature'}`:''}`,gear:item,copy}));}),
  ...BATTLE_OUTFITTER_ITEMS.filter(i=>i.category!=='Equipment').map(item=>({id:`battle:${item.itemId}`,name:item.name,art:item.iconPath,category:'Consumables' as const,count:getBattleOutfitterStock(save,item),description:item.description,effect:item.effectLabel,destination:'outfitter' as const})),
  ...SUPPLY_DEPOT_ITEMS.filter(i=>['repair_kit','nursery_supply_kit'].includes(i.itemId)).map(item=>({id:item.itemId,name:item.name,art:item.iconPath,category:'Consumables' as const,count:getSupplyDepotCount(save,item.stockFlag),description:item.description,effect:item.exactEffect,destination:item.itemId==='repair_kit'?'ranch' as const:'nursery' as const})),
  ...RESOURCE_IDS.map(id=>({id:`resource:${id}`,name:RESOURCES[id].name,art:getResourceArt(id)??'/images/ui/apothecary-v1/icons/materials.svg',category:'Materials' as const,count:farm.stock[id]??0,description:`Shared ranch storage · ${RESOURCES[id].category}`,effect:`${farm.stock[id]??0} stored · ${farm.reserves[id]??0} reserved · ${Math.max(0,(farm.stock[id]??0)-(farm.reserves[id]??0))} available.`,resource:id})),
@@ -38,3 +40,8 @@ export function inventoryRecipientBlocker(save:GameSave,item:InventoryEntry,id:s
  return 'No direct-use action for this item.';
 }
 export function inventoryArmedCount(save:GameSave){return BREEDING_SUPPORT_ITEMS.filter(i=>i.target==='breeding-pair'&&getBreedingSupportItemActiveCount(save,i.itemId)>0).length;}
+
+function inventoryEquipmentEffect(item:typeof BATTLE_OUTFITTER_ITEMS[number],copy?:ReturnType<typeof getEquipmentCopies>[number]){
+ const stats=equipmentStats(item,copy);
+ return `${Object.entries(stats.bonuses).map(([key,value])=>`+${value} ${EQUIPMENT_STAT_NAMES[key as keyof typeof EQUIPMENT_STAT_NAMES]}`).join(' · ')} · ${stats.rarity} · Power ${stats.powerGrade}`;
+}

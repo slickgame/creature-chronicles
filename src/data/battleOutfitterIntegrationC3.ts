@@ -1,3 +1,4 @@
+import {getEquipmentSet,equipmentSetProgress,equipmentSetRates,type EquipmentSetProgress} from './equipmentRules';
 import { getEquippedCopy } from "./equipmentInstances";
 import { equipmentStats } from "./equipmentEnhancement";
 import * as active from "./battleOutfitterIntegrationActive";
@@ -16,6 +17,8 @@ export * from "./battleOutfitterIntegrationActive";
 export type BattleOutfitterCreatureEffectSummaryC3 = {
   creatureId: CreatureId;
   labels: string[];
+  sets?: EquipmentSetProgress[];
+  setPercentBonuses?: Partial<Record<keyof BattleStats,number>>;
   physicalPowerBonus: number;
   specialPowerBonus: number;
   maxHpBonus: number;
@@ -77,22 +80,26 @@ export function getBattleOutfitterCreatureEffectSummary(
       summary.battleEnergyBonus += bonuses.battleEnergy ?? 0;
     }
   }
+  summary.sets=equipmentSetProgress(itemIds.map(id=>{const item=getItem(id)!;return getEquipmentSet(item,getEquippedCopy(save,creatureId,id));}));
+  summary.setPercentBonuses=equipmentSetRates(summary.sets);
+  for(const set of summary.sets)if(set.activations)summary.labels.push(`${set.name} set ×${set.activations}`);
   return summary;
 }
 
 export function applyOutfitterStatBonuses(stats: BattleStats, summary: BattleOutfitterCreatureEffectSummaryC3): BattleStats {
+  const set=(key:keyof BattleStats)=>Math.floor(stats[key]*(summary.setPercentBonuses?.[key]??0)/100);
   return {
     ...stats,
-    maxHp: stats.maxHp + summary.maxHpBonus,
-    physicalPower: stats.physicalPower + summary.physicalPowerBonus,
-    specialPower: stats.specialPower + summary.specialPowerBonus,
-    defense: stats.defense + summary.defenseBonus,
-    resistance: stats.resistance + summary.resistanceBonus,
-    speed: stats.speed + summary.speedBonus,
-    accuracy: stats.accuracy + summary.accuracyBonus,
-    statusPower: stats.statusPower + summary.statusPowerBonus,
-    statusResist: stats.statusResist + summary.statusResistBonus,
-    battleEnergy: stats.battleEnergy + summary.battleEnergyBonus,
+    maxHp: stats.maxHp + summary.maxHpBonus + set('maxHp'),
+    physicalPower: stats.physicalPower + summary.physicalPowerBonus + set('physicalPower'),
+    specialPower: stats.specialPower + summary.specialPowerBonus + set('specialPower'),
+    defense: stats.defense + summary.defenseBonus + set('defense'),
+    resistance: stats.resistance + summary.resistanceBonus + set('resistance'),
+    speed: stats.speed + summary.speedBonus + set('speed'),
+    accuracy: stats.accuracy + summary.accuracyBonus + set('accuracy'),
+    statusPower: stats.statusPower + summary.statusPowerBonus + set('statusPower'),
+    statusResist: stats.statusResist + summary.statusResistBonus + set('statusResist'),
+    battleEnergy: stats.battleEnergy + summary.battleEnergyBonus + set('battleEnergy'),
   };
 }
 
