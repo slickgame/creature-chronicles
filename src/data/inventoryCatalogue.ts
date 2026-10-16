@@ -22,6 +22,10 @@ export function getInventoryCatalogue(save:GameSave):InventoryEntry[]{
  {id:QUICKHATCH_CATALYST.itemId,name:QUICKHATCH_CATALYST.name,art:QUICKHATCH_CATALYST.iconPath,category:'Key items',count:getQuickhatchCatalystCount(save),description:QUICKHATCH_CATALYST.description,effect:QUICKHATCH_CATALYST.exactEffect,keyItem:true}
  ];
 }
+// Inventory lists actual possession; shops keep their complete catalogues separately.
+export function getOwnedInventory(save:GameSave):InventoryEntry[]{
+ return getInventoryCatalogue(save).filter(item=>item.count>0);
+}
 export function inventoryRecipientBlocker(save:GameSave,item:InventoryEntry,id:string):string|null{
  if(item.support?.target==='breeding-pair')return 'This effect is armed for a pair; no recipient is needed.';
  if(item.resource)return 'Manage or serve this resource from Storage.';

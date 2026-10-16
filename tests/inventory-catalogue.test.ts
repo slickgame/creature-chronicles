@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createNewGameSave} from './helpers/establishedSave';
-import {getInventoryCatalogue,inventoryRecipientBlocker} from '@/data/inventoryCatalogue';
+import {getInventoryCatalogue,getOwnedInventory,inventoryRecipientBlocker} from '@/data/inventoryCatalogue';
 import {BREEDING_SUPPORT_ITEMS,useBreedingSupportItem as applySupportItem} from '@/data/breedingItems';
 import {RESOURCE_IDS} from '@/data/farmResources';
-import {BATTLE_OUTFITTER_ITEMS,purchaseBattleOutfitterItem} from '@/data/battleOutfitter';
+import {BATTLE_OUTFITTER_ITEMS,purchaseBattleOutfitterItem,assignBattleOutfitterEquipment} from '@/data/battleOutfitter';
 import {getEquipmentCopies} from '@/data/equipmentInstances';
 test('inventory catalogue keeps named stock, upgraded instances and source save intact',()=>{
  let save=createNewGameSave('Inventory test',0);save={...save,currencies:{...save.currencies,gold:10000}};
@@ -44,4 +44,24 @@ test('pregnancy recipient selection maps exact participant IDs, rejects due time
  assert.match(inventoryRecipientBlocker(save,item,b.creatureId)!,/already due/);
  assert.match(inventoryRecipientBlocker(save,item,'player')!,/No active pregnancy/);
  assert.deepEqual(save,before);
+});
+
+test('owned inventory omits zero stock and shop previews, retaining equipped instances and removing depleted supplies',()=>{
+ let save=createNewGameSave('Owned stock',0);
+ save={...save,currencies:{...save.currencies,gold:10000}};
+ save.flags.energySnackStock=1;save.flags.affectionTreatStock=0;
+ const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.category==='Equipment'&&!i.coliseumExclusive)!;
+ const purchase=purchaseBattleOutfitterItem(save,gear.itemId);assert.equal(purchase.ok,true);save=purchase.save;
+ const instance=getEquipmentCopies(save).find(i=>i.itemId===gear.itemId)!;
+ const equipped=assignBattleOutfitterEquipment(save,save.creatures![0].creatureId,gear.itemId,instance.id);assert.equal(equipped.ok,true);save=equipped.save;
+ const before=structuredClone(save),owned=getOwnedInventory(save);
+ assert.ok(owned.every(i=>i.count>0));assert.ok(owned.every(i=>!i.gear||!!i.copy));
+ assert.ok(!owned.some(i=>i.id==='affection_treat'));assert.ok(owned.some(i=>i.id==='energy_snack'));
+ assert.equal(owned.filter(i=>i.gear).length,getEquipmentCopies(save).length);
+ assert.equal(owned.find(i=>i.id===instance.id)?.copy?.owner,save.creatures![0].creatureId);
+ assert.deepEqual(save,before);
+ save.creatures![0].energy=save.creatures![0].maxEnergy-12;
+ const used=applySupportItem(save,'energy_snack',{source:'inventory',targetId:save.creatures![0].creatureId});assert.equal(used.ok,true);
+ assert.ok(!getOwnedInventory(used.save).some(i=>i.id==='energy_snack'));
+ const reloaded=JSON.parse(JSON.stringify(used.save));assert.deepEqual(getOwnedInventory(reloaded),getOwnedInventory(used.save));
 });
