@@ -1,6 +1,6 @@
 # Forge A — Recipe Gallery production assets
 
-Selected by the user on October 16, 2026. Use corrected Forge A only. This folder is a production graphic kit with an isolated, sample-only assembly. The live Forge has not been redesigned yet.
+Selected by the user on October 16, 2026. Use corrected Forge A only. This folder is a production graphic kit with an isolated, sample-only assembly. Forge A is now integrated into the real BlacksmithWorkshop; see docs/FORGE_A_GALLERY_LIVE_2026-10-16.md.
 
 ## Contents
 
@@ -21,6 +21,6 @@ The assembly shows sample stock (3 Iron, 0 Nails, 0 reserved, 1200 Gold). The re
 
 Recipe gallery; selected output with paged substats; materials and labor; paged creature comparison; exact-cost table; craft-versus-buy explanation; craft review; craft receipt; ingredient source; tools; Iona dialogue; complete graphic catalogue. Desktop shows six recipes; phone shows two per page. Iona can collapse on desktop. All information is reachable through pages/focused windows.
 
-## Next integration
+## Live integration
 
-Wire the selected layout into existing real Forge handlers and guards: exact recipe output/cost, usable and reserved quantities, stale-quote checks, transaction locks, inventory delivery, no failure/hidden fees/automatic equip. Reuse existing upgrade windows and engine behavior; do not substitute sample routes or illustrative receipts. Verify real cancelled/confirmed crafting, source returns and persistence at all four tested sizes; show actual game screenshots afterwards. Keep PR21 draft/unmerged.
+The live layout uses the existing real Forge handlers and guards: exact recipe output/cost, usable and reserved quantities, stale-quote checks, transaction locks, inventory delivery, no failure/hidden fees/automatic equip. Reuse existing upgrade windows and engine behavior; do not substitute sample routes or illustrative receipts. Live validation and actual game screenshots are recorded in the follow-up integration notes. Keep PR21 draft/unmerged.

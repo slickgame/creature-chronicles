@@ -1,5 +1,7 @@
 # Selected Forge A — complete production graphic kit
 
+Current status: Forge A is now integrated in the real game. Read `docs/FORGE_A_GALLERY_LIVE_2026-10-16.md` first. The notes below document the original asset-kit delivery; its isolated assembly stays sample-only.
+
 The user selected corrected Forge A, Recipe Gallery, then requested every visual asset needed for it. Selection is final; Forge B stays unused. This update creates the complete asset kit and isolated responsive assembly. It does not yet integrate Forge A into live gameplay. The previous equipment Compare A is already implemented and is separate.
 
 ## Contents

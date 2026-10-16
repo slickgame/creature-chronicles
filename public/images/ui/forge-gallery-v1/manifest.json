@@ -1,7 +1,7 @@
 {
   "version": 1,
   "selectedConcept": "Forge A \u2014 corrected Recipe Gallery",
-  "status": "Production asset kit and isolated sample assembly; live Forge integration is next.",
+  "status": "Production kit integrated into the real BlacksmithWorkshop; the isolated public preview remains sample-only.",
   "generatedWith": "built-in image_gen.imagegen",
   "art": [
     {
@@ -130,5 +130,9 @@
     "path": "preview.html",
     "sampleOnly": true,
     "localStorageWrites": false
+  },
+  "runtimeIntegration": {
+    "component": "src/features/builder/BlacksmithWorkshop.tsx",
+    "notes": "docs/FORGE_A_GALLERY_LIVE_2026-10-16.md"
   }
 }

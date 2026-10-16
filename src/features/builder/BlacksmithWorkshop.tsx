@@ -1,81 +1,75 @@
 "use client";
 
-import { useRef, useState } from 'react';
-import { EquipmentUpgrades } from '@/features/equipment/EquipmentUpgrades';
-import { BLACKSMITH, BLACKSMITH_RECIPES, getBlacksmithQuote, craftBlacksmithEquipment } from '@/data/blacksmith';
-import { getFarmState, resourceList, RESOURCES, type ResourceId } from '@/data/farmResources';
-import { getResourceArt } from '@/data/resourceArt';
-import { BATTLE_STAT_LABELS, compareEquipment } from '@/data/equipmentComparison';
-import { getEquipmentCopies } from '@/data/equipmentInstances';
-import { equipmentStats } from '@/data/equipmentEnhancement';
-import { getBattleOutfitterStock } from '@/data/battleOutfitter';
-import { useGameContext } from '@/state/GameProvider';
-import { GameDialog } from '@/features/ui/GameDialog';
-import { useNavigation } from '@/features/navigation/NavigationContext';
-import { IngredientCounter } from './IngredientCounter';
-import s from './RecipeWorkbench.module.css';
+import {useEffect,useRef,useState} from 'react';
+import {EquipmentUpgrades} from '@/features/equipment/EquipmentUpgrades';
+import {EquipmentGuide} from '@/features/equipment/EquipmentGuide';
+import {BLACKSMITH,BLACKSMITH_RECIPES,getBlacksmithQuote,craftBlacksmithEquipment} from '@/data/blacksmith';
+import {getFarmState,resourceList,RESOURCES,type ResourceId} from '@/data/farmResources';
+import {getResourceArt} from '@/data/resourceArt';
+import {BATTLE_STAT_LABELS,compareEquipment} from '@/data/equipmentComparison';
+import {getEquipmentCopies} from '@/data/equipmentInstances';
+import {equipmentStats} from '@/data/equipmentEnhancement';
+import {EQUIPMENT_SETS} from '@/data/equipmentRules';
+import {getBattleOutfitterStock} from '@/data/battleOutfitter';
+import {useGameContext} from '@/state/GameProvider';
+import {useNavigation} from '@/features/navigation/NavigationContext';
+import {IngredientCounter} from './IngredientCounter';
+import {ForgeWindow,ForgeIcon,FORGE_ART} from './ForgeWindow';
+import s from './ForgeGallery.module.css';
 
-type Popup='review'|'report'|'talk'|'output'|'comparison'|'cost'|'routes'|null;
-export function BlacksmithWorkshop({ onBack, initialRecipeId=BLACKSMITH_RECIPES[0].id }: { onBack: () => void;initialRecipeId?:typeof BLACKSMITH_RECIPES[number]['id'] }) {
- const {currentSave:save,saveCurrentGame,goToBattleOutfitter}=useGameContext();
- const {open}=useNavigation();
- const [recipeId,setRecipeId]=useState(initialRecipeId);
- const [creatureId,setCreatureId]=useState('');
- const [popup,setPopup]=useState<Popup>(null);
- const [page,setPage]=useState(0);
- const [revision,setRevision]=useState(0);
- const [message,setMessage]=useState('');
- const [source,setSource]=useState<ResourceId|null>(null);
- const [upgradeOpen,setUpgradeOpen]=useState(false);
- const [craftedId,setCraftedId]=useState('');
- const [upgradeTarget,setUpgradeTarget]=useState('');
+type Popup='review'|'report'|'talk'|'output'|'comparison'|'cost'|'routes'|'materials'|'tools'|null;
+type Receipt={ok:boolean;message:string;name:string;art:string;copyId:string;spent:string;gold:number;goalGold:number;goalGp:number};
+export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0].id}:{onBack:()=>void;initialRecipeId?:typeof BLACKSMITH_RECIPES[number]['id']}){
+ const {currentSave:save,saveCurrentGame,goToBattleOutfitter}=useGameContext();const {open}=useNavigation();
+ const [recipeId,setRecipeId]=useState(initialRecipeId),[creatureId,setCreatureId]=useState(''),[popup,setPopup]=useState<Popup>(null),[page,setPage]=useState(0),[revision,setRevision]=useState(0),[source,setSource]=useState<ResourceId|null>(null),[upgradeOpen,setUpgradeOpen]=useState(false),[upgradeTarget,setUpgradeTarget]=useState(''),[hostOpen,setHostOpen]=useState(true),[phone,setPhone]=useState(false),[short,setShort]=useState(false),[guide,setGuide]=useState(false),[receipt,setReceipt]=useState<Receipt|null>(null);
  const busy=useRef(false);
+ useEffect(()=>{const resize=()=>{setPhone(innerWidth<=650);setShort(innerHeight<=550);};const frame=requestAnimationFrame(resize);addEventListener('resize',resize);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',resize);};},[]);
  if(upgradeOpen)return <EquipmentUpgrades initialEquipmentId={upgradeTarget} initialCreatureId={creatureId} returnLabel="Back to forge" onBack={()=>setUpgradeOpen(false)}/>;
  if(!save)return null;
- const quote=getBlacksmithQuote(save,recipeId)!;
- const {recipe,item}=quote;
- const index=BLACKSMITH_RECIPES.findIndex(r=>r.id===recipeId);
- const state=getFarmState(save);
- const creature=save.creatures?.find(c=>c.creatureId===creatureId)??save.creatures?.[0];
- const comparison=creature?compareEquipment(save,creature,item,null):null;
- const inputs=Object.entries(recipe.inputs) as [ResourceId,number][];
- const stats=equipmentStats(item);
- const statRows=Object.entries(stats.bonuses).filter(([,value])=>value!==0);
- const outputPages=Math.max(1,Math.ceil(statRows.length/3));
- const comparisonPages=Math.max(1,Math.ceil((comparison?.rows.length??0)/2));
+ const quote=getBlacksmithQuote(save,recipeId)??getBlacksmithQuote(save,BLACKSMITH_RECIPES[0].id)!;
+ const {recipe,item}=quote,index=BLACKSMITH_RECIPES.findIndex(r=>r.id===recipe.id),capacity=phone?2:6,galleryPage=Math.floor(index/capacity),galleryPages=Math.ceil(BLACKSMITH_RECIPES.length/capacity);
+ const state=getFarmState(save),stats=equipmentStats(item),inputs=Object.entries(recipe.inputs) as [ResourceId,number][],creature=save.creatures?.find(c=>c.creatureId===creatureId)??save.creatures?.[0],comparison=creature?compareEquipment(save,creature,item,null):null;
+ const statRows=[{key:stats.main.key,value:stats.main.value,main:true},...stats.substats.map(st=>({...st,main:false}))],statPages=Math.ceil(statRows.length/3),outputPages=statPages+1;
+ const changes=comparison?.sets.current.flatMap(before=>{const after=comparison.sets.after.find(x=>x.id===before.id);return after&&after.count!==before.count?[{before,after}]:[];}).sort((a,b)=>(a.after.activations-a.before.activations)-(b.after.activations-b.before.activations))??[];
+ const impactCapacity=short?3:4,impactPages=Math.ceil((comparison?.rows.length??0)/impactCapacity),comparisonPages=Math.max(1,impactPages+Math.ceil(changes.length/2)),outputPage=Math.min(page,outputPages-1),impactPage=Math.min(page,comparisonPages-1);
  const usable=(id:ResourceId)=>Math.max(0,(state.stock[id]??0)-(state.reserves[id]??0));
  function show(next:Popup){setPage(0);setPopup(next);}
  function review(){busy.current=false;setRevision(quote.revision);show('review');}
+ function improve(copyId=''){setUpgradeTarget(copyId);setPopup(null);setUpgradeOpen(true);}
  function confirm(){
   if(!save||busy.current)return;busy.current=true;
-  const beforeIds=new Set(getEquipmentCopies(save).map(c=>c.id));
-  setCraftedId('');
-  const result=craftBlacksmithEquipment(save,recipeId,revision);let report=result.message;
-  if(result.ok){const persisted=saveCurrentGame(result.save);setCraftedId(getEquipmentCopies(persisted,item.itemId).find(c=>!beforeIds.has(c.id))?.id??'');const gold=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(gold||gp)report+=` Goal rewards: +${gold} Gold, +${gp} GP.`;}
-  setMessage(report);setPopup('report');
+  const beforeIds=new Set(getEquipmentCopies(save).map(c=>c.id));const result=craftBlacksmithEquipment(save,recipe.id,revision);
+  const persisted=result.ok?saveCurrentGame(result.save):save;
+  setReceipt({ok:result.ok,message:result.message,name:item.name,art:item.iconPath??'',copyId:result.ok?getEquipmentCopies(persisted,item.itemId).find(c=>!beforeIds.has(c.id))?.id??'':'',spent:`${resourceList(recipe.inputs)} + ${recipe.laborGold} Gold labor`,gold:persisted.currencies.gold,goalGold:result.ok?persisted.currencies.gold-result.save.currencies.gold:0,goalGp:result.ok?persisted.currencies.guildPoints-result.save.currencies.guildPoints:0});
+  setPage(0);setPopup('report');
  }
- const output=<div className={s.popupBody}><strong>1 {item.name} +0 · {item.quality} / Grade {item.equipmentGrade}</strong><dl className={s.outputStats}>{statRows.slice(page*3,page*3+3).map(([key,value])=><div key={key}><dt>{BATTLE_STAT_LABELS[key as keyof typeof BATTLE_STAT_LABELS]}</dt><dd>+{value}</dd></div>)}</dl><p>{stats.passive??'No passive effect.'} Added to inventory, not equipped.</p></div>;
- const costs=<div className={s.popupBody}><table className={s.table}><thead><tr><th>Ingredient</th><th>Need</th><th>Owned</th><th>Reserved</th><th>Usable</th></tr></thead><tbody>{inputs.map(([id,n])=><tr key={id}><th>{RESOURCES[id].name}</th><td>{n}</td><td>{state.stock[id]??0}</td><td>{state.reserves[id]??0}</td><td>{usable(id)}</td></tr>)}</tbody></table><p><strong>{recipe.laborGold} Gold labor</strong> · Balance {save.currencies.gold}{save.currencies.gold>=recipe.laborGold?` → ${save.currencies.gold-recipe.laborGold}`:` · Need ${recipe.laborGold-save.currencies.gold} more`} Gold.</p><p>Reserved supplies are protected. Guaranteed result; no hidden fees.</p></div>;
- const pages=(count:number)=><div className={s.pager}><button disabled={page===0} onClick={()=>setPage(page-1)}>Previous details</button><span>{page+1} / {count}</span><button disabled={page+1>=count} onClick={()=>setPage(page+1)}>Next details</button></div>;
- return <main className={s.screen} data-blacksmith-workshop>
-  <header className={s.header}><button onClick={onBack}>‹ Builder’s Yard</button><div><small>Iona Flint · Master Blacksmith</small><h1>Iona’s Forge</h1></div><button data-navigation-launcher onClick={()=>open('menu')}>Menu</button></header>
-  <div className={s.layout}>
-   <aside className={s.host}><img src={BLACKSMITH.portrait} alt="Iona Flint, master blacksmith"/><div><strong>Crafting & improvements</strong><button onClick={()=>show('talk')}>Talk to Iona</button><button onClick={()=>{setUpgradeTarget('');setUpgradeOpen(true);}}>Improve equipment</button></div></aside>
-   <section className={s.recipe} aria-label="Crafting recipe">
-    <div className={s.selector}><button aria-label="Previous recipe" disabled={index===0} onClick={()=>setRecipeId(BLACKSMITH_RECIPES[index-1].id)}>‹</button><label>Recipe <select aria-label="Select crafting recipe" value={recipeId} onChange={e=>setRecipeId(e.target.value)}>{BLACKSMITH_RECIPES.map(r=><option key={r.id} value={r.id}>{getBlacksmithQuote(save,r.id)!.item.name}</option>)}</select></label><span>{index+1} / {BLACKSMITH_RECIPES.length}</span><button aria-label="Next recipe" disabled={index+1>=BLACKSMITH_RECIPES.length} onClick={()=>setRecipeId(BLACKSMITH_RECIPES[index+1].id)}>›</button></div>
-    <div className={s.hero}><div className={s.art}><img src={item.iconPath} alt={item.name}/></div><div><small>ONE FINISHED ITEM · +0</small><h2>{item.name}</h2><strong>{item.quality} / Grade {item.equipmentGrade}</strong><p>{Object.entries(stats.bonuses).map(([key,value])=>`+${value} ${BATTLE_STAT_LABELS[key as keyof typeof BATTLE_STAT_LABELS]}`).join(" · ")}</p><small>{getBattleOutfitterStock(save,item)} available in inventory</small></div></div>
-    <div className={s.ingredients} aria-label="Recipe cost">{inputs.map(([id,n])=><button key={id} aria-label={`Source ${RESOURCES[id].name}`} onClick={()=>setSource(id)}>{getResourceArt(id)?<img src={getResourceArt(id)} alt=""/>:null}<span><strong>{n} {RESOURCES[id].name}</strong><small>{usable(id)} usable · {(state.reserves[id]??0)} reserved</small></span></button>)}<div><strong>{recipe.laborGold} Gold</strong><small>Labor fee · {save.currencies.gold} owned</small></div></div>
-    <div className={s.actions}><button onClick={()=>show('output')}>Result details</button><button onClick={()=>show('comparison')}>Compare</button><button onClick={()=>show('cost')}>Cost breakdown</button><button onClick={()=>show('routes')}>Craft or buy?</button><button className={s.mobileSmith} onClick={()=>{setUpgradeTarget('');setUpgradeOpen(true);}}>Improve gear</button></div>
-    <footer className={s.footer}><p role="status">{quote.canCraft?'Ready · Instant crafting':`Needed: ${quote.reason}`}</p><button disabled={!quote.canCraft} onClick={review}>Review crafting</button></footer>
-   </section>
-  </div>
-  {source?<IngredientCounter key={source} resourceId={source} needed={Math.max(1,quote.missingInputs[source]??1)} onClose={()=>setSource(null)}/>:null}
-  {popup==='review'?<GameDialog title="Review crafting" onClose={()=>setPopup(null)}>{page<outputPages?output:costs}{(!quote.canCraft||revision!==quote.revision)?<p role="alert">Supplies or crafting record changed. Review again.</p>:null}<div className={s.pager}><button onClick={()=>page?setPage(page-1):setPopup(null)}>{page?'Back':'Cancel'}</button><span>{page+1} / {outputPages+1}</span>{page<outputPages?<button onClick={()=>setPage(page+1)}>Review costs</button>:<button disabled={!quote.canCraft||revision!==quote.revision} onClick={confirm}>Confirm crafting</button>}</div></GameDialog>:null}
-  {popup==='output'?<GameDialog title="Crafted equipment" onClose={()=>setPopup(null)}>{output}{outputPages>1?pages(outputPages):null}</GameDialog>:null}
-  {popup==='cost'?<GameDialog title="Materials & labor" onClose={()=>setPopup(null)}>{costs}</GameDialog>:null}
-  {popup==='comparison'?<GameDialog title="Equipment comparison" onClose={()=>setPopup(null)}>{creature&&comparison?<div className={s.popupBody}><label>Compare for <select aria-label="Compare equipment for" value={creature.creatureId} onChange={e=>{setCreatureId(e.target.value);setPage(0);}}>{save.creatures?.map(c=><option key={c.creatureId} value={c.creatureId}>{c.nickname}</option>)}</select></label><p>Replaces {comparison.previous?.name??'an empty slot'} when equipped.</p><table className={s.table}><thead><tr><th>Stat</th><th>Current</th><th>After</th><th>Change</th></tr></thead><tbody>{comparison.rows.slice(page*2,page*2+2).map(row=><tr key={row.key}><th>{row.label}</th><td>{row.current}</td><td>{row.after}</td><td>{row.delta>0?'+':''}{row.delta}</td></tr>)}</tbody></table>{pages(comparisonPages)}</div>:<p>No creature available. Crafted gear goes into inventory.</p>}</GameDialog>:null}
-  {popup==='routes'?<GameDialog title="Craft or buy?" onClose={()=>setPopup(null)}><div className={s.popupBody}>{page===0?<><p>Ready-made at Outfitter: <strong>{item.costGold} Gold</strong>.</p><p>Buy missing materials + labor: <strong>{quote.procurementGold} Gold</strong>.</p><p>{quote.restockGold?`Missing: ${resourceList(quote.missingInputs)} · ${quote.restockGold} Gold at Trade.`:'Unreserved stock covers the materials.'} Purchases are separate.</p></>:<><p>Stored material value: {quote.materialValue} Gold. With labor: {quote.totalValue} Gold.</p><p>Both routes give the same +0 equipment. Iona uses her town forge; no farm forge is required.</p><button onClick={goToBattleOutfitter}>Visit Outfitter</button></>}{pages(2)}</div></GameDialog>:null}
-  {popup==='report'?<GameDialog title="Iona’s Crafting Receipt" onClose={()=>setPopup(null)}><div className={s.popupBody}><p role="status">{message}</p><p>Balance: {save.currencies.gold} Gold.</p><div className={s.pager}>{craftedId&&<button onClick={()=>{setUpgradeTarget(craftedId);setPopup(null);setUpgradeOpen(true);}}>Equip or improve this item</button>}<button onClick={()=>setPopup(null)}>Back to forge</button></div></div></GameDialog>:null}
-  {popup==='talk'?<GameDialog title="A Word with Iona" onClose={()=>setPopup(null)}><p>“Petra builds the places you come home to. I make the pieces you take out into the world.”</p><p>Bring refined Iron ingots, not ore. Ingredient cards show where to buy or produce them. Every pattern has fixed stats and an exact labor fee.</p></GameDialog>:null}
+ const identity=(meta=stats)=><div className={s.identity}><span className={s.rarity} data-rarity={meta.rarity}>{meta.rarity}</span><span>Power {meta.powerGrade}</span><b>+0</b></div>;
+ const itemHero=<div className={s.item}><div className={s.itemArt}><img src={item.iconPath} alt={item.name}/></div><h2>{item.name}</h2>{identity()}</div>;
+ const materialRows=inputs.map(([id,n])=><div className={s.material} key={id} data-missing={usable(id)<n}><img src={getResourceArt(id)} alt=""/><span><strong>{RESOURCES[id].name} · {n} required</strong><small>{state.stock[id]??0} owned · {state.reserves[id]??0} reserved · {usable(id)} usable</small></span><button aria-label={`Source ${RESOURCES[id].name}`} onClick={()=>setSource(id)}><ForgeIcon name="source"/></button></div>);
+ const labor=<div className={s.fee}><ForgeIcon name="coin"/><span><strong>{recipe.laborGold} Gold labor</strong><small>Balance {save.currencies.gold} {save.currencies.gold>=recipe.laborGold?`→ ${save.currencies.gold-recipe.laborGold}`:`· Need ${recipe.laborGold-save.currencies.gold} more`} Gold</small></span></div>;
+ const mainStat=<div className={s.stat}><span>{BATTLE_STAT_LABELS[stats.main.key]}</span><strong>+{stats.main.value}</strong></div>;
+ const costs=<><table><thead><tr><th>Ingredient</th><th>Need</th><th>Owned</th><th>Reserved</th><th>Usable</th></tr></thead><tbody>{inputs.map(([id,n])=><tr key={id}><th>{RESOURCES[id].name}</th><td>{n}</td><td>{state.stock[id]??0}</td><td>{state.reserves[id]??0}</td><td>{usable(id)}</td></tr>)}</tbody></table>{labor}<p className={s.notice}>Reserved supplies stay protected. Guaranteed output; no hidden fees. Materials purchases are separate.</p></>;
+ const action=(label:string,next:Popup,icon:string)=><button onClick={()=>show(next)}><ForgeIcon name={icon}/>{label}</button>;
+ const stale=!quote.canCraft||revision!==quote.revision;
+ return <main className={s.screen} data-blacksmith-workshop><section className={s.forge} data-host-open={hostOpen}>
+ <header className={s.forgeHeader}><button onClick={onBack}><ForgeIcon name="back"/>Builder’s Yard</button><div><small>Iona Flint · Master Blacksmith</small><h1>Iona’s Forge</h1></div><button data-navigation-launcher onClick={()=>open('menu')}><ForgeIcon name="menu"/>Menu</button></header>
+ <div className={s.forgeGrid}><aside className={s.host}><img src={BLACKSMITH.portrait} alt="Iona Flint, master blacksmith"/><div>{action('Talk to Iona','talk','talk')}<button onClick={()=>improve()}><ForgeIcon name="upgrade"/>Improve gear</button></div></aside>
+ <section className={s.board} aria-label="Crafting recipes"><header className={s.boardHeader}><h2>Recipe Gallery</h2><nav className={s.pager} aria-label="Recipe pages"><button aria-label="Previous recipe page" disabled={!galleryPage} onClick={()=>setRecipeId(BLACKSMITH_RECIPES[(galleryPage-1)*capacity].id)}><ForgeIcon name="back"/>Previous</button><span>{galleryPage+1}/{galleryPages}</span><button aria-label="Next recipe page" disabled={galleryPage+1>=galleryPages} onClick={()=>setRecipeId(BLACKSMITH_RECIPES[(galleryPage+1)*capacity].id)}>Next<ForgeIcon name="next"/></button></nav></header>
+ <div className={s.workGrid}><div className={s.recipes}>{BLACKSMITH_RECIPES.slice(galleryPage*capacity,(galleryPage+1)*capacity).map(r=>{const q=getBlacksmithQuote(save,r.id)!,meta=equipmentStats(q.item);return <button key={r.id} className={s.recipeCard} aria-label={`Select ${q.item.name}`} aria-pressed={recipe.id===r.id} data-recipe={r.id} onClick={()=>setRecipeId(r.id)}><img src={q.item.iconPath} alt=""/><strong>{q.item.name}</strong>{identity(meta)}<small>{Object.entries(r.inputs).map(([id,n])=>`${n} ${RESOURCES[id as ResourceId].name}`).join(' · ')} + {r.laborGold} Gold</small></button>;})}</div>
+ <aside className={s.selection} aria-label="Selected recipe">{itemHero}{mainStat}<div className={s.requirements}>{short?<>{action('Materials & labor','materials','materials')}{action('Result details','output','output')}</>:<><h3>Required materials</h3>{materialRows}{labor}<div className={s.balance}><span>{getBattleOutfitterStock(save,item)} owned</span>{action('Result details','output','output')}</div></>}</div></aside>
+ <div className={s.mobileSelection}><strong>{item.name} · +0</strong>{action('Details & materials','output','output')}</div></div>
+ <footer className={s.boardFooter}><div>{action('Compare','comparison','compare')}{action('Craft or buy?','routes','source')}{action('Tools','tools','forge')}</div><button className={s.primary} disabled={!quote.canCraft} onClick={review}><ForgeIcon name="craft"/>Review crafting</button><p className={s.availability} role="status">{quote.canCraft?'Ready · Instant crafting':`Needed: ${quote.reason}`}</p></footer>
+ </section></div></section>
+ {source?<IngredientCounter key={source} appearance="forge" resourceId={source} needed={Math.max(1,quote.missingInputs[source]??1)} onClose={()=>setSource(null)}/>:null}
+ {popup==='output'?<ForgeWindow title="Crafted equipment" marker="output" onClose={()=>setPopup(null)} page={outputPage} pages={outputPages} onPage={setPage}>{itemHero}{outputPage<statPages?<><div className={s.stats}>{statRows.slice(outputPage*3,outputPage*3+3).map(st=><div className={s.stat} key={st.key}><span>{st.main?'Main · ':''}{BATTLE_STAT_LABELS[st.key]}</span><strong>+{st.value}</strong></div>)}</div><p className={s.note}>{stats.substats.length}/4 starting substats · {getBattleOutfitterStock(save,item)} owned. Added to inventory, not equipped.</p></>:<div className={s.outputFacts}><p>{item.description}</p><p>{stats.setId?EQUIPMENT_SETS[stats.setId].description:'No equipment set.'}</p><p>{stats.passive??'No passive effect.'}</p></div>}<div className={s.toolgrid}>{action('Materials & labor','materials','materials')}<button onClick={()=>setGuide(true)}>Slot rules & rolls</button></div></ForgeWindow>:null}
+ {popup==='materials'?<ForgeWindow title="Materials & labor" marker="materials" onClose={()=>setPopup(null)}><h2>{item.name}</h2>{materialRows}{labor}<p className={s.notice}>Only usable ingredients can be spent. Reserved stock stays protected.</p><button className={s.primary} disabled={!quote.canCraft} onClick={review}>Review crafting</button></ForgeWindow>:null}
+ {popup==='cost'?<ForgeWindow title="Cost breakdown" marker="cost" onClose={()=>setPopup(null)}><h2>Materials & labor</h2>{costs}</ForgeWindow>:null}
+ {popup==='review'?<ForgeWindow title="Review crafting" marker="review" onClose={()=>setPopup(null)}><div className={s.reviewHero}><img src={item.iconPath} alt=""/><div><h2>1 {item.name} +0</h2>{identity()}</div></div>{mainStat}<div className={s.reviewCosts}>{materialRows}{labor}</div><p className={s.notice}>{stale?'Supplies or crafting record changed. Cancel and review again.':'Guaranteed output · added to inventory, not equipped. No hidden fees.'}</p><div className={s.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button className={s.primary} disabled={stale} onClick={confirm}>Confirm crafting</button></div></ForgeWindow>:null}
+ {popup==='report'&&receipt?<ForgeWindow title="Iona’s Crafting Receipt" marker="receipt" onClose={()=>setPopup(null)}><div className={s.reviewHero}><img src={receipt.ok?`${FORGE_ART}craft-seal.webp`:receipt.art} alt=""/><div><h2>{receipt.ok?'Craft complete':'Crafting unavailable'}</h2><h3>{receipt.name}{receipt.ok?' +0':''}</h3></div></div><div className={s.success}><p role="status">{receipt.ok?'Added 1 finished item to equipment inventory.':receipt.message}</p>{receipt.ok?<p>Spent: {receipt.spent}.</p>:null}<strong>Balance: {receipt.gold} Gold</strong>{receipt.goalGold||receipt.goalGp?<small>Goal rewards: +{receipt.goalGold} Gold, +{receipt.goalGp} GP.</small>:null}</div><div className={s.actions}>{receipt.copyId?<button onClick={()=>improve(receipt.copyId)}>Equip or improve this item</button>:null}</div></ForgeWindow>:null}
+ {popup==='comparison'?<ForgeWindow title="Creature comparison" marker="comparison" onClose={()=>setPopup(null)} page={impactPage} pages={comparisonPages} onPage={setPage}>{creature&&comparison?<><label className={s.compareFor}>Compare for <select aria-label="Compare equipment for" value={creature.creatureId} onChange={e=>{setCreatureId(e.target.value);setPage(0);}}>{save.creatures?.map(c=><option key={c.creatureId} value={c.creatureId}>{c.nickname}</option>)}</select></label><p className={s.note}>{item.name} +0 · Replaces {comparison.previous?.name??'an empty slot'}. Preview only.</p>{impactPage<impactPages?<table><thead><tr><th>Stat</th><th>Current</th><th>After</th><th>Change</th></tr></thead><tbody>{comparison.rows.slice(impactPage*impactCapacity,(impactPage+1)*impactCapacity).map(row=><tr key={row.key}><th>{row.label}</th><td>{row.current}</td><td>{row.after}</td><td data-delta={Math.sign(row.delta)}>{row.delta>0?'+':''}{row.delta}</td></tr>)}</tbody></table>:changes.slice((impactPage-impactPages)*2,(impactPage-impactPages+1)*2).map(({before,after})=><div className={s.setChange} key={before.id}><strong>{before.name} · {before.count}/{before.required} → {after.count}/{after.required}</strong><p>{after.activations<before.activations?'Bonus lost':after.activations>before.activations?'Bonus gained':'Progress changes'} · {before.activations} → {after.activations} active groups.</p><small>{EQUIPMENT_SETS[before.id].description}</small></div>)}<button onClick={()=>setGuide(true)}>Set & slot rules</button></>:<p>No creature available. Crafted equipment goes into inventory.</p>}</ForgeWindow>:null}
+ {popup==='routes'?<ForgeWindow title="Craft or buy?" marker="routes" onClose={()=>setPopup(null)} page={page} pages={2} onPage={setPage}>{page===0?<><div className={s.route}><h3>Ready-made at Outfitter</h3><strong>{item.costGold} Gold</strong><p>No ingredients charged by the shop.</p></div><div className={s.route}><h3>Craft using current stock</h3><strong>{recipe.laborGold} Gold labor + listed ingredients</strong><p>{quote.restockGold?`Missing: ${resourceList(quote.missingInputs)} · ${quote.restockGold} Gold at Trade.`:'Unreserved stock covers the materials.'}</p></div><p className={s.note}>Missing materials + labor need {quote.procurementGold} Gold. Buying ingredients is separate.</p></>:<><p className={s.notice}>Full recipe material value: {quote.materialValue} Gold; with labor: {quote.totalValue} Gold. Stored ingredients are still consumed.</p><p>Both routes produce the same +0 equipment. Iona uses her town forge; no farm forge unlock is needed.</p><button onClick={goToBattleOutfitter}>Visit Outfitter</button>{action('Ingredient sources','materials','source')}</>}</ForgeWindow>:null}
+ {popup==='tools'?<ForgeWindow title="Forge tools" marker="tools" onClose={()=>setPopup(null)}><div className={s.toolgrid}>{action('Result details','output','output')}{action('Materials & labor','materials','materials')}{action('Compare','comparison','compare')}{action('Cost breakdown','cost','coin')}<button onClick={()=>improve()}><ForgeIcon name="upgrade"/>Improve gear</button>{action('Talk to Iona','talk','talk')}</div>{!phone?<button aria-expanded={hostOpen} onClick={()=>setHostOpen(!hostOpen)}><ForgeIcon name={hostOpen?'collapse':'expand'}/>{hostOpen?'Collapse Iona':'Show Iona'}</button>:null}</ForgeWindow>:null}
+ {popup==='talk'?<ForgeWindow title="A word with Iona" marker="talk" onClose={()=>setPopup(null)}><div className={s.dialogue}><img src={BLACKSMITH.portrait} alt="Iona Flint"/><div><p>“Petra builds the places you come home to. I make the pieces you take out into the world.”</p><p>Bring refined Iron ingots, not ore. Ingredient cards show where to buy or produce them. Every pattern has fixed stats and an exact labor fee.</p></div></div></ForgeWindow>:null}
+ {guide?<EquipmentGuide item={item} onClose={()=>setGuide(false)}/>:null}
  </main>;
 }
