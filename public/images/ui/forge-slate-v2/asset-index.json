@@ -8,7 +8,7 @@
     {
       "path": "README.md",
       "bytes": 8688,
-      "sha256": "4ece3d2427294669252edb158f26a11e2b5c53eb43bceb4a7746d73474aaae16",
+      "sha256": "6bf27a730cdc169b363dd665ea4806d162c24edd574ca022c8b8f5faaee795a4",
       "kind": "source-or-document"
     },
     {
@@ -242,7 +242,7 @@
     {
       "path": "forge.css",
       "bytes": 19482,
-      "sha256": "85b426abc3344d425335cf7b18e17077d8dccc86a42813fdf3c490d340412524",
+      "sha256": "3af176cc9b08366ef1abc12a7123f51ee0d502ae3291b7a2ac887a534a212d98",
       "kind": "source-or-document"
     },
     {
@@ -402,14 +402,14 @@
     {
       "path": "frames/item-common-hover.svg",
       "bytes": 543,
-      "sha256": "76856cb8d092e7bc10f15fd52d8ac4eb0f53896c415656c8e716a132ea4fdd28",
+      "sha256": "22313992f1201f90bc798030ce71b5036a3ae6f3015ff1010b96470ee9646791",
       "kind": "vector",
       "viewBox": "0 0 128 128"
     },
     {
       "path": "frames/item-common.svg",
       "bytes": 543,
-      "sha256": "76856cb8d092e7bc10f15fd52d8ac4eb0f53896c415656c8e716a132ea4fdd28",
+      "sha256": "22313992f1201f90bc798030ce71b5036a3ae6f3015ff1010b96470ee9646791",
       "kind": "vector",
       "viewBox": "0 0 128 128"
     },
@@ -486,14 +486,14 @@
     {
       "path": "frames/item-uncommon-hover.svg",
       "bytes": 543,
-      "sha256": "22313992f1201f90bc798030ce71b5036a3ae6f3015ff1010b96470ee9646791",
+      "sha256": "76856cb8d092e7bc10f15fd52d8ac4eb0f53896c415656c8e716a132ea4fdd28",
       "kind": "vector",
       "viewBox": "0 0 128 128"
     },
     {
       "path": "frames/item-uncommon.svg",
       "bytes": 543,
-      "sha256": "22313992f1201f90bc798030ce71b5036a3ae6f3015ff1010b96470ee9646791",
+      "sha256": "76856cb8d092e7bc10f15fd52d8ac4eb0f53896c415656c8e716a132ea4fdd28",
       "kind": "vector",
       "viewBox": "0 0 128 128"
     },

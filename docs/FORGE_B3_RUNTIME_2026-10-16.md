@@ -4,7 +4,7 @@ The existing Creature Chronicles BlacksmithWorkshop now renders the user-approve
 
 ## Result
 
-- Six compact, nameless artwork tiles on desktop and phone. Common green, Uncommon silver/grey, Rare blue, Heroic purple; Legendary gold remains supplied for future equipment. White selection brackets preserve the rarity border.
+- Six compact, nameless artwork tiles on desktop and phone. Common silver/grey, Uncommon green, Rare blue, Heroic purple; Legendary gold remains supplied for future equipment. White selection brackets preserve the rarity border.
 - Power letter at the artwork upper-left, +0 upper-right, approved category silhouette in a gold-rimmed dark badge at lower-right. Desktop hover/focus exposes name, slot, rarity, power, enhancement, main/substats, set, ownership and description. Escape dismisses the tooltip. Phone inspection uses the existing paged item-details window.
 - Local Tinos typography, slate material, gold framed panels, amber Craft tab, emerald Craft button. Canonical Iona, workshop scene, six gear illustrations, Iron and Nails are reused unchanged.
 - Approved sculpted Craft hammer, Gold star-seal coin, Compare scales, Improve sword/chevrons, Talk speech bubble and Ranch/source building are actual RGBA production assets. Originals are separate transparent PNG generations; 256px WebP delivery files retain alpha. `sculpted/generation-prompts.json` and `sculpted/manifest.json` record exact prompts, references and hashes. `scripts/prepare-forge-sculpted-icons.py` verifies masters and reproduces the delivery encodings without changing originals.

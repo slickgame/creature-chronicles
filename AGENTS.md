@@ -24,3 +24,5 @@ Forge spacing QA must include1920px and2560px widths. Keep the recipe cards in a
 Forge desktops above1100px center the approved composition within1440×900. Keep Iona’s entire head/source portrait vertically inside the host column; verify wide short1920×720 as well as1920×960 and2560×1440. Avoid unconditional width-based background enlargement.
 
 The user approved set badge style C (sculpted ivory & gold). Runtime set markers use `forge-slate-v2/sets/sculpted/*.webp`, not the rejected initial flat SVGs. Preserve their bottom-left anchor opposite the category at bottom right. Set identity comes from actual equipment metadata; no set means no badge.
+
+Final rarity mapping: Common gray/silver, Uncommon green, Rare blue, Heroic purple, Legendary gold. This corrects the earlier inverted Common/Uncommon Forge mapping.

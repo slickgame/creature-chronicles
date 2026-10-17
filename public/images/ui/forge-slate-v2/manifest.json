@@ -97,8 +97,8 @@
     "scripts/prepare-forge-sculpted-icons.py"
   ],
   "colors": {
-    "Common": "#66d999",
-    "Uncommon": "#b4c1cd",
+    "Common": "#b4c1cd",
+    "Uncommon": "#66d999",
     "Rare": "#4fb7ff",
     "Heroic": "#cd75f6",
     "Legendary": "#f0b841"

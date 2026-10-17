@@ -62,7 +62,7 @@ for base,c,bg in [('button-primary','#d5c57a','#006b5e'),('button-secondary',GOL
   elif state=='-pressed': shade={'#006b5e':'#00463e','#14232e':'#08151f','#10202b':'#09151e','#603d1c':'#44280e'}[bg]
   elif state=='-disabled': shade='#26323a'
   control(base+state,base,state)
-rarities={'common':'#66d999','uncommon':'#b4c1cd','rare':'#4fb7ff','heroic':'#cd75f6','legendary':'#f0b841'}
+rarities={'common':'#b4c1cd','uncommon':'#66d999','rare':'#4fb7ff','heroic':'#cd75f6','legendary':'#f0b841'}
 for n,c in rarities.items():
  for state in ['', '-hover','-disabled']:
   frame('item-'+n+state,c if state!='-disabled' else '#68737d',bg=None,w=128,h=128)
