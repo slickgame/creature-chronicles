@@ -28,3 +28,7 @@ The QA fixture uses synthetic accounts/creatures and resources, never the user's
 ## Remaining work
 
 Confirm the exact branch deployment after publication. The existing Improve Equipment overview is reached by the new tab but keeps its own current layout; a redesign of that screen needs its own screenshot/concept review. Preserve the branch and draft/unmerged PR.
+
+## Wide-screen card spacing correction
+
+The user’s 1920px actual screenshot exposed the old min-width1500 rule: 128px tracks with space-between produced large gaps. The recipe group now stays left-aligned, caps its total width at494px including selection-bracket padding, and uses at most150px cards with a17px desktop gap. Narrow layouts retain their existing compact sizing. The static asset assembly mirrors this correction. Include1920×960 and2560×1440 in future visual checks and measure actual card bounds/gaps, rather than checking only viewport overflow.
