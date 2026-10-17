@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "Overview": "overview",
+    "Stats & Growth": "growth",
+    "Work Skills": "work",
+    "Talents": "talents",
+    "Lineage": "lineage",
+    "Inventory": "inventory",
+    "Equipment": "equipment",
+    "Care": "care"
+  },
+  "records": {
+    "Identity": "identity",
+    "Health & protection": "health",
+    "Lineage": "lineage",
+    "Role strengths": "roles"
+  },
+  "actions": {
+    "Choose creature": "creatures",
+    "Profile & Care": "profile",
+    "Habitat": "habitat",
+    "Inventory": "case",
+    "More overview": "more",
+    "Previous screen": "back",
+    "Menu": "menu",
+    "Expand artwork": "expand"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "results": [
+    {
+      "size": {
+        "width": 1280,
+        "height": 920
+      },
+      "metrics": {
+        "width": 1280,
+        "height": 920,
+        "scrollWidth": 1280,
+        "scrollHeight": 920,
+        "broken": [],
+        "outside": []
+      }
+    },
+    {
+      "size": {
+        "width": 1440,
+        "height": 960
+      },
+      "metrics": {
+        "width": 1440,
+        "height": 960,
+        "scrollWidth": 1440,
+        "scrollHeight": 960,
+        "broken": [],
+        "outside": []
+      }
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "metrics": {
+        "width": 390,
+        "height": 844,
+        "scrollWidth": 390,
+        "scrollHeight": 844,
+        "broken": [],
+        "outside": []
+      }
+    },
+    {
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "metrics": {
+        "width": 360,
+        "height": 740,
+        "scrollWidth": 360,
+        "scrollHeight": 740,
+        "broken": [],
+        "outside": []
+      }
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,36 @@
+{
+  "version": "creature-overview-a-v2",
+  "scope": "production kit; runtime integration pending",
+  "svgCount": 90,
+  "paintedIconCount": 3,
+  "reuse": [
+    {
+      "path": "public/images/creatures/feline/nyla/nyla_01_full_body.png",
+      "sha256": "b8bd02a11f1c9f19a05690c8a9c7e8303c3bef57ad8cbd1470e5d0221ff9fb75"
+    },
+    {
+      "path": "public/images/ui/ranch-dossier-v2/portrait-meadow.webp",
+      "sha256": "078d08b29d6c6aaf8b0fa552bc70939e4ab1656b9248dfee8869ad6576f7432a"
+    },
+    {
+      "path": "public/images/ui/forge-slate-v2/fonts/Tinos-Regular.woff",
+      "sha256": "d7931b9002ecfd8daa5c8c307a57efa574b37facc8dfb9bca838dba9f5efd412"
+    },
+    {
+      "path": "public/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff",
+      "sha256": "00881fa43c0c06720439ce020258525aeaea619f4a54620c71802c5c56d9c398"
+    },
+    {
+      "path": "public/images/ui/forge-slate-v2/fonts/Tinos-Regular.ttf",
+      "sha256": "60a0e8ef0c04dd5dd69ffe91025fa2ae5836cbd35600a82ba031977557e2cb61"
+    },
+    {
+      "path": "public/images/ui/forge-slate-v2/fonts/Tinos-Bold.ttf",
+      "sha256": "393269dbab8899f938db19783eca5eac92eb431f7ae0ab45b8349ca895f1a06b"
+    },
+    {
+      "path": "public/images/ui/forge-slate-v2/fonts/OFL.txt",
+      "sha256": "cb3382d4643e8b02c12e322c220a3c76a5020d667e4fd4e7c75e744cca6caa6b"
+    }
+  ]
+}
