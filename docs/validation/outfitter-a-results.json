@@ -1,0 +1,257 @@
+{
+  "layouts": {
+    "results": [
+      {
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "view": "gear",
+        "box": {
+          "x": 290,
+          "y": 50,
+          "width": 1340,
+          "height": 860
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "view": "details",
+        "box": {
+          "x": 290,
+          "y": 50,
+          "width": 1340,
+          "height": 860
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "view": "gear",
+        "box": {
+          "x": 50,
+          "y": 24,
+          "width": 1340,
+          "height": 852
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "view": "details",
+        "box": {
+          "x": 50,
+          "y": 24,
+          "width": 1340,
+          "height": 852
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "view": "gear",
+        "box": {
+          "x": 290,
+          "y": 12,
+          "width": 1340,
+          "height": 696
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "view": "details",
+        "box": {
+          "x": 290,
+          "y": 12,
+          "width": 1340,
+          "height": 696
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "view": "gear",
+        "box": {
+          "x": 610,
+          "y": 290,
+          "width": 1340,
+          "height": 860
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "view": "details",
+        "box": {
+          "x": 610,
+          "y": 290,
+          "width": 1340,
+          "height": 860
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "view": "gear",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 370,
+          "height": 824
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "view": "details",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 370,
+          "height": 824
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "view": "gear",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "view": "details",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "view": "gear",
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "view": "details",
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      }
+    ],
+    "errors": []
+  },
+  "functional": {
+    "results": [
+      "Exact approved All icon",
+      "Exact approved slider Filters icon",
+      "Shop shows new Rare blueprint",
+      "Owned-copy gallery preserves existing Legendary identity",
+      "Owned-copy transfer cancel leaves save untouched",
+      "Category available: Manuals",
+      "Category available: Consumables",
+      "Category available: Team Prep",
+      "Category available: Equipment",
+      "Shop search",
+      "Slot filter",
+      "Power filter selects correct profile",
+      "Purchase comparison fits 390",
+      "Purchase comparison fits 844",
+      "Browsing and comparisons never save",
+      "Purchase cancel never saves",
+      "Double-click purchase adds one unassigned +0 copy",
+      "Purchase rarity is shop blueprint, not existing Legendary copy",
+      "Receipt records 160 Gold purchase",
+      "Receipt opens exact newly purchased copy",
+      "New copy equips only through shared confirmation",
+      "Marks-exclusive equipment cannot be purchased for Gold",
+      "Improve returns to shop",
+      "No browser runtime errors"
+    ],
+    "errors": []
+  },
+  "supportAndBlockedPurchase": {
+    "results": [
+      "Manual purchase increments inventory",
+      "Study consumes one manual once",
+      "Manual preserves innate grades",
+      "Insufficient Gold blocks purchase",
+      "Blocked purchase does not save",
+      "No support-item runtime errors"
+    ],
+    "errors": []
+  }
+}
