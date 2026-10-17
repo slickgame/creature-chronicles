@@ -20,11 +20,17 @@ Target: the user's second image, `image(20261017-210340).png`, approved portrait
 - catalog.html: every actual production asset and state, not a concept redraw.
 - validation.json: browser fit, missing-image and error checks at 1280×920, 1440×960, 390×844 and 360×740.
 
+## Fidelity correction — October 17 follow-up
+
+The user's first image exposed records extending below the footer divider. The revised assembly sets explicit `minmax(0,1fr)` rows and minimum heights, resets record icons to a single grid row, and reserves the footer track. Validation now checks record containment and a positive gap above the footer divider; viewport bounds alone did not detect the earlier overlap.
+
+Dark navy card faces replace the grey gloss. The hammer, pouch, family-tree and group silhouettes are revised; gold symbols have a lighter ivory finish. Three separately generated icon refinements soften the red heart and gold star/bolt. Earlier painted masters are retained as `*-master-v1.png` for provenance. The preview also uses taller section tabs, compact vital cards, larger headings and corrected portrait clipping.
+
 ## Integration details
 
 Use nine-slice border images. Ornate frames have 40px source corner zones, with 13–24px rendered borders. Simple frames/control surfaces use 16px slices and 7–10px rendered borders. Preserve the corners; do not scale a whole frame as one stretched rectangle. A complete state family is provided even when the assembly uses a CSS focus outline instead of the focus surface.
 
-Desktop: portrait ~35%, right content ~65%; eight tabs in two rows of four; four compact vitals; all four secondary records; three footer actions. Phone: Menu + title, Previous screen + Choose creature, compact portrait/identity, section picker, four vital cards, More overview, three footer actions. The kit's h1 is 42px desktop/28px phone, section title 34px/25px; body 20px desktop/15px phone. Use the explicit bold face rather than browser-synthesized weight.
+Desktop: portrait ~35%, right content ~65%; eight tabs in two rows of four; four compact vitals; all four secondary records; three footer actions. Phone: Menu + title, Previous screen + Choose creature, compact portrait/identity, section picker, four vital cards, More overview, three footer actions. The kit's h1 is 44px desktop/28px phone, section title 38px/25px; vital values 22px desktop/15px phone. Use the explicit bold face rather than browser-synthesized weight.
 
 Artwork remains the existing approved `public/images/creatures/feline/nyla/nyla_01_full_body.png`. Do not replace it with the concept's AI redraw. The scenery remains `public/images/ui/ranch-dossier-v2/portrait-meadow.webp`. These and licensed fonts are included unchanged in the download archive, at original project-relative paths.
 
@@ -50,7 +56,7 @@ for p in sorted(K.rglob('*')):
   b=p.read_bytes();index.append({'path':str(p.relative_to(K)),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
 (K/'asset-index.json').write_text(json.dumps(index,indent=2))
 (R/'docs/CREATURE_OVERVIEW_A_ASSET_KIT_2026-10-17.md').write_text(readme)
-D=R/'docs/exports';D.mkdir(exist_ok=True);z=D/'creature-overview-a-production-kit.zip'
+D=R/'docs/exports';D.mkdir(exist_ok=True);z=D/'creature-overview-a-production-kit-r2.zip'
 with zipfile.ZipFile(z,'w',zipfile.ZIP_DEFLATED) as out:
  for p in K.rglob('*'):
   if p.is_file():out.write(p,p.relative_to(R))

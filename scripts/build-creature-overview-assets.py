@@ -9,7 +9,7 @@ def svg(path,body,w=64,h=64):
  (R/path).write_text(f'<svg{aspect} xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">{body}</svg>')
 metal='''<linearGradient id="gold" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#fff0b5"/><stop offset=".19" stop-color="#e9c578"/><stop offset=".48" stop-color="#a36e2d"/><stop offset=".68" stop-color="#f1d390"/><stop offset="1" stop-color="#8c632b"/></linearGradient>'''
 def corner(x,y,rot):
- return f'''<g transform="translate({x} {y}) rotate({rot})" fill="none" stroke="url(#gold)" stroke-linejoin="round"><path stroke-width="1.9" d="M0 34V0H34M3 30V3H30M0 0l18 18M4 24Q5 5 24 4M10 3 8 10 3 8M14 5l4 5-5 4-4-5Z"/><path d="M7 22Q9 10 22 7M1 12l5-5 6-1" stroke="#fff0b8" stroke-width=".65"/></g>'''
+ return f'''<g transform="translate({x} {y}) rotate({rot})" fill="none" stroke="url(#gold)" stroke-linejoin="round"><path stroke-width="1.9" d="M0 34V0H34M3 30V3H30M0 0l23 23M4 30Q5 5 30 4M10 3 8 10 3 8M14 5l4 5-5 4-4-5Z"/><path d="M7 22Q9 10 22 7M1 12l5-5 6-1" stroke="#fff0b8" stroke-width=".65"/></g>'''
 # Frames have fixed 40px corner zones. Use CSS border-image, never stretch corners.
 for name,ornate,filled,w,h in [('screen',True,False,240,160),('portrait',True,False,240,240),('header',True,True,320,96),('tab-group',False,True,240,160),('vitals-group',False,True,240,160),('phone-footer',False,True,240,96),('dialog',True,True,240,160),('picker',True,True,240,160)]:
  body=f'<defs>{metal}<linearGradient id="slate" x2=".8" y2="1"><stop stop-color="#102e3d"/><stop offset=".7" stop-color="#041824"/><stop offset="1" stop-color="#071c28"/></linearGradient></defs>'
@@ -24,16 +24,16 @@ for family in ['primary','secondary','tab','tab-active','dropdown','square','vit
  for state in ['normal','hover','pressed','disabled','focus']:
   w,h=(80,80) if family=='square' else (320,104) if family=='vital-card' else (320,84) if family=='record-card' else (240,72)
   active=family in ['primary','tab-active'];disabled=state=='disabled'
-  top,bottom=('#16816d','#004c45') if active else ('#15313f','#041925')
-  if state=='hover':top,bottom=('#249b83','#075b51') if active else ('#244957','#0a2937')
+  top,bottom=('#16816d','#004c45') if active else ('#0b2432','#041823')
+  if state=='hover':top,bottom=('#249b83','#075b51') if active else ('#143443','#071e2a')
   if state=='pressed':top,bottom=('#004b43','#096255') if active else ('#04151e','#183541')
   if disabled:top,bottom='#26343b','#1a2931'
-  line='#6e786e' if disabled else '#f2d185' if state in ['hover','focus'] or active else '#c49d55'
-  body=f'<defs>{metal}<linearGradient id="face" x2=".3" y2="1"><stop stop-color="{top}"/><stop offset="1" stop-color="{bottom}"/></linearGradient><linearGradient id="shine" x2="0" y2="1"><stop stop-color="#fff8ce" stop-opacity=".13"/><stop offset=".5" stop-color="#fff8ce" stop-opacity="0"/></linearGradient></defs>'
+  line='#6e786e' if disabled else '#f2d185' if state in ['hover','focus'] or active else '#d1aa63'
+  body=f'<defs>{metal}<linearGradient id="face" x2=".3" y2="1"><stop stop-color="{top}"/><stop offset="1" stop-color="{bottom}"/></linearGradient><linearGradient id="shine" x2="0" y2="1"><stop stop-color="#fff8ce" stop-opacity=".035"/><stop offset=".5" stop-color="#fff8ce" stop-opacity="0"/></linearGradient></defs>'
   path=f'M10 4H{w-10}L{w-4} 10V{h-10}L{w-10} {h-4}H10L4 {h-10}V10Z'
   if state=='focus':body+=f'<rect x="1" y="1" width="{w-2}" height="{h-2}" rx="7" fill="none" stroke="#fff6cf" stroke-width="2"/>'
-  body+=f'<path d="{path}" fill="url(#face)" stroke="{line}" stroke-width="1.6"/><path d="M12 7H{w-12}L{w-7} 12V{h-12}L{w-12} {h-7}H12L7 {h-12}V12Z" fill="url(#shine)" stroke="url(#gold)" stroke-opacity="{.25 if disabled else .65}" stroke-width=".7"/>'
-  if family in ['primary','tab-active','secondary','square','dropdown']:
+  body+=f'<path d="{path}" fill="url(#face)" stroke="{line}" stroke-width="2"/><path d="M12 7H{w-12}L{w-7} 12V{h-12}L{w-12} {h-7}H12L7 {h-12}V12Z" fill="url(#shine)" stroke="url(#gold)" stroke-opacity="{.25 if disabled else .65}" stroke-width=".7"/>'
+  if family in ['primary','tab-active','square']:
    for x,y,rot in [(8,8,0),(w-8,8,90),(w-8,h-8,180),(8,h-8,270)]:body+=f'<g transform="translate({x} {y}) rotate({rot})"><path d="M0 9V0H9L6 3H3V6Z" fill="url(#gold)"/><path d="M1 7V1H7" stroke="#ffe9a1" stroke-width=".6" fill="none"/></g>'
   if active and not disabled:body+=f'<path d="M13 5H{w-13}" stroke="#c8e3a5" stroke-width="1.2"/><path d="M9 10V{h-10}" stroke="#73bf9a" stroke-width=".6"/>'
   svg(f'frames/{family}-{state}.svg',body,w,h)
@@ -44,15 +44,15 @@ for name,fill,line in [('ready','#235b3e','#e3c47b'),('attention','#6c302c','#ed
 shapes={
 'overview':'<circle cx="32" cy="17" r="10"/><path d="M12 56V47Q12 31 32 31T52 47V56Z"/>',
 'growth':'<path d="M5 56V35H17V56ZM25 56V22H37V56ZM45 56V8H57V56Z"/>',
-'work':'<path d="m11 7 9-4 26 24-8 10-12-9-18 24Q4 57 1 53L0 48 20 23 8 13ZM43 24l12 11-10 12-12-12Z" transform="translate(4 2)"/>',
+'work':'<g transform="rotate(40 32 32)"><path d="M12 7H52Q55 7 55 10V23Q55 26 52 26H12Q9 26 9 23V10Q9 7 12 7ZM27 26H37V57Q32 62 27 57Z"/><path d="M14 10H50" stroke="#fff5d9" stroke-width="1.5" fill="none"/></g>',
  'talents':'<path d="m32 3 8 19 21 2-16 14 5 22-18-11-18 11 5-22L3 24l21-2Z"/>',
-'lineage':'<g fill="none" stroke="url(#ivory)" stroke-width="5"><circle cx="32" cy="12" r="7"/><circle cx="12" cy="50" r="7"/><circle cx="52" cy="50" r="7"/><path d="M32 19V29L12 43M32 29l20 14"/></g>',
-'inventory':'<path fill-rule="evenodd" d="M20 6H44V17L40 25H24L20 17ZM16 24Q32 32 48 24L55 51Q55 59 47 60H17Q9 59 9 51ZM27 9v7h10V9Z"/>',
+'lineage':'<g fill="none" stroke="url(#ivory)" stroke-width="5.5" stroke-linecap="round"><circle cx="32" cy="12" r="7"/><circle cx="12" cy="50" r="8"/><circle cx="52" cy="50" r="8"/><path d="M32 20V28Q32 32 27 35L17 43M32 28Q32 32 37 35L47 43"/></g>',
+'inventory':'<path fill-rule="evenodd" d="M23 5Q32 1 41 5L40 19Q32 24 24 19ZM28 8v7q4 3 8 0V8Q32 6 28 8ZM18 22Q32 29 46 22L53 46Q59 59 47 61H17Q5 59 11 46Z"/><path d="M19 26Q32 32 45 26" fill="none" stroke="#fff4d3" stroke-width="1.4"/>',
 'equipment':'<path d="M47 3 60 1 57 14 27 45 20 38ZM17 34 32 49 27 54 12 39ZM15 43l7 7-11 12-7-7Z"/>',
 'care':'<path d="M32 57 8 34C-9 16 16-3 32 14 48-3 73 16 56 34Z"/>',
 'identity':'<g fill="none" stroke="url(#ivory)" stroke-width="5" stroke-linejoin="round"><rect x="6" y="6" width="19" height="19" rx="2"/><rect x="39" y="6" width="19" height="19" rx="2"/><rect x="6" y="39" width="19" height="19" rx="2"/><rect x="39" y="39" width="19" height="19" rx="2"/></g>',
 'health':'<path fill-rule="evenodd" d="M32 2Q45 11 58 10V34Q55 50 32 62 9 50 6 34V10Q19 11 32 2ZM28 16v12H17v9h11v12h9V37h11v-9H37V16Z"/>',
-'roles':'<circle cx="32" cy="15" r="9"/><circle cx="11" cy="24" r="7"/><circle cx="53" cy="24" r="7"/><path d="M18 58V42Q18 29 32 29T46 42V58ZM2 53V41Q2 32 12 32L20 35Q13 43 14 53ZM50 53Q51 43 44 35L52 32Q62 32 62 41V53Z"/>',
+'roles':'<circle cx="32" cy="14" r="9"/><circle cx="12" cy="23" r="7"/><circle cx="52" cy="23" r="7"/><path d="M17 59V44Q17 28 32 28T47 44V59ZM1 54V43Q1 32 12 32L20 35Q11 42 13 54ZM51 54Q53 42 44 35L52 32Q63 32 63 43V54Z"/>',
 'creatures':'<ellipse cx="14" cy="20" rx="6" ry="9" transform="rotate(-22 14 20)"/><ellipse cx="28" cy="12" rx="6" ry="9"/><ellipse cx="43" cy="15" rx="6" ry="9" transform="rotate(15 43 15)"/><ellipse cx="54" cy="28" rx="6" ry="9" transform="rotate(35 54 28)"/><path d="M12 48Q13 37 23 31T42 35Q55 43 48 53 43 60 32 55 22 61 15 56Z"/>',
 'profile':'<g fill="none" stroke="url(#ivory)" stroke-width="4"><circle cx="32" cy="17" r="10"/><path d="M13 58V46Q13 32 32 32T51 46V58Z"/></g>',
 'habitat':'<g fill="none" stroke="url(#ivory)" stroke-width="4" stroke-linejoin="round"><path d="m4 28 28-24 28 24M12 25V59H52V25M26 58V37H39V58"/></g>',
@@ -69,14 +69,14 @@ shapes={
 'search':'<g fill="none" stroke="url(#ivory)" stroke-width="6"><circle cx="26" cy="26" r="18"/><path d="m40 40 19 19"/></g>',
 'favorite':'<path d="m32 3 8 19 21 2-16 14 5 22-18-11-18 11 5-22L3 24l21-2Z"/>'}
 for name,body in shapes.items():
- svg(f'icons/{name}.svg',f'<defs><linearGradient id="ivory" x1="0" y1="0" x2=".65" y2="1"><stop stop-color="#fff2cf"/><stop offset=".45" stop-color="#eace8f"/><stop offset="1" stop-color="#b58c40"/></linearGradient></defs><g fill="url(#ivory)">{body}</g>')
+ svg(f'icons/{name}.svg',f'<defs><linearGradient id="ivory" x1="0" y1="0" x2=".65" y2="1"><stop stop-color="#fff2cf"/><stop offset=".45" stop-color="#ead39d"/><stop offset="1" stop-color="#d0ad66"/></linearGradient></defs><g fill="url(#ivory)">{body}</g>')
 svg('ornaments/corner.svg',f'<defs>{metal}</defs>'+corner(2,2,0),40,40)
 svg('ornaments/divider.svg',f'<defs>{metal}</defs><path d="M0 10H180M220 10H400M187 10l13-6 13 6-13 6Z" fill="none" stroke="url(#gold)" stroke-width="1"/><path d="m197 10 3-3 3 3-3 3Z" fill="#e8c679"/>',400,20)
 svg('ornaments/slate.svg','<defs><radialGradient id="s" cx=".2" cy="0" r="1"><stop stop-color="#102d3b"/><stop offset=".65" stop-color="#041823"/><stop offset="1" stop-color="#071923"/></radialGradient></defs><rect width="512" height="512" fill="url(#s)"/>',512,512)
 for name,top,bottom in [('energy','#7be9a4','#32b875'),('affection','#ffa49a','#ee6c68'),('hearts','#ffe68b','#edb640'),('experience','#f8d87e','#c49a40')]:
  svg(f'meters/{name}-fill.svg',f'<defs><linearGradient id="f" x2="0" y2="1"><stop stop-color="{top}"/><stop offset="1" stop-color="{bottom}"/></linearGradient></defs><rect x="0" y="0" width="240" height="16" rx="8" fill="url(#f)"/>',240,16)
 svg('meters/track.svg','<rect x="1" y="1" width="238" height="14" rx="7" fill="#273743" stroke="#a59067" stroke-width="1"/><path d="M10 3H230" stroke="#fff1c3" stroke-opacity=".1"/>',240,16)
-tokens={'colors':{'navy':'#041823','slate':'#102d3b','ivory':'#fff2d4','gold':'#d5ad61','emerald':'#08675b','heart':'#ef7371'},'fonts':{'family':'OverviewA Tinos','regular':'../forge-slate-v2/fonts/Tinos-Regular.woff','bold':'../forge-slate-v2/fonts/Tinos-Bold.woff'},'type':{'titleDesktop':42,'titlePhone':29,'sectionDesktop':34,'bodyDesktop':20,'secondaryDesktop':18,'tabDesktop':18,'phoneBody':15},'nineSlice':{'ornate':{'slice':40,'renderedBorder':24},'simple':{'slice':16,'renderedBorder':8}},'iconSizes':[20,24,32,40,48,64],'reference':'Image 2: image(20261017-210340).png','scope':'Asset kit and read-only assembly; not a live gameplay capture.'}
+tokens={'colors':{'navy':'#041823','slate':'#102d3b','ivory':'#fff2d4','gold':'#d5ad61','emerald':'#08675b','heart':'#ef7371'},'fonts':{'family':'OverviewA Tinos','regular':'../forge-slate-v2/fonts/Tinos-Regular.woff','bold':'../forge-slate-v2/fonts/Tinos-Bold.woff'},'type':{'titleDesktop':44,'titlePhone':29,'sectionDesktop':38,'bodyDesktop':22,'secondaryDesktop':19,'tabDesktop':20,'phoneBody':15},'nineSlice':{'ornate':{'slice':40,'renderedBorder':24},'simple':{'slice':16,'renderedBorder':8}},'iconSizes':[20,24,32,40,48,64],'reference':'Image 2: image(20261017-210340).png','scope':'Asset kit and read-only assembly; not a live gameplay capture.'}
 (R/'tokens.json').write_text(json.dumps(tokens,indent=2))
 (R/'icon-map.json').write_text(json.dumps({'nav':{'Overview':'overview','Stats & Growth':'growth','Work Skills':'work','Talents':'talents','Lineage':'lineage','Inventory':'inventory','Equipment':'equipment','Care':'care'},'records':{'Identity':'identity','Health & protection':'health','Lineage':'lineage','Role strengths':'roles'},'actions':{'Choose creature':'creatures','Profile & Care':'profile','Habitat':'habitat','Inventory':'case','More overview':'more','Previous screen':'back','Menu':'menu','Expand artwork':'expand'}},indent=2))
 print('Generated',len(list(R.rglob('*.svg'))),'scalable assets')

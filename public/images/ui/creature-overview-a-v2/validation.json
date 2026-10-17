@@ -10,6 +10,13 @@
         "height": 920,
         "scrollWidth": 1280,
         "scrollHeight": 920,
+        "recordCheck": {
+          "groupBottom": 811,
+          "cardsBottom": 811,
+          "footerTop": 825,
+          "gap": 14,
+          "contained": true
+        },
         "broken": [],
         "outside": []
       }
@@ -24,6 +31,13 @@
         "height": 960,
         "scrollWidth": 1440,
         "scrollHeight": 960,
+        "recordCheck": {
+          "groupBottom": 851,
+          "cardsBottom": 851,
+          "footerTop": 865,
+          "gap": 14,
+          "contained": true
+        },
         "broken": [],
         "outside": []
       }
@@ -38,8 +52,19 @@
         "height": 844,
         "scrollWidth": 390,
         "scrollHeight": 844,
+        "recordCheck": null,
         "broken": [],
         "outside": []
+      }
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "morePage": {
+        "contained": true,
+        "gap": 86
       }
     },
     {
@@ -52,8 +77,19 @@
         "height": 740,
         "scrollWidth": 360,
         "scrollHeight": 740,
+        "recordCheck": null,
         "broken": [],
         "outside": []
+      }
+    },
+    {
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "morePage": {
+        "contained": true,
+        "gap": 86
       }
     }
   ],
