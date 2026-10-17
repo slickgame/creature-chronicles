@@ -1,0 +1,41 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 1920,
+      "height": 960
+    },
+    {
+      "width": 1920,
+      "height": 720
+    },
+    {
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 360,
+      "height": 740
+    },
+    {
+      "width": 844,
+      "height": 390
+    }
+  ],
+  "cancelReadOnly": true,
+  "exactlyOnceMilestone": true,
+  "exactlyOnceRegular": true,
+  "costs": [
+    36,
+    48
+  ],
+  "paidRolls": 1,
+  "persistence": true
+}

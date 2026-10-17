@@ -29,3 +29,6 @@ Final rarity mapping: Common gray/silver, Uncommon green, Rare blue, Heroic purp
 
 ## Approved Improve Equipment B
 The user approved the B upgrade workbench with exactly All plus six category filters, compact nameless gear tiles and one Equip action opening creature selection. Use the sculpted ivory/gold stat/action atlas (ten equipment stats plus Inventory and Equip); do not replace it with flat glyphs. Keep full details on selected-art click, inline current/next stats and exact Gold cost, no milestone rail/Budget/Details/Choose creature buttons. Worn copies retain explicit Remove/confirmation. Evasion stays creature/combat-only, outside every gear pool. See docs/IMPROVE_WORKBENCH_B_RUNTIME_2026-10-17.md for production verification.
+
+## Approved compact upgrade windows
+The selected upgrade review/receipt is compact A with B's closed-envelope/question-mark mystery icon. Use UpgradeLedger's slate/gold surfaces and the true-alpha `forge-slate-v2/upgrade/mystery-envelope.webp`; preserve actual rarity color through success. Known stats remain visible, future random rolls remain hidden until paid confirmation, and exact-copy/price/stale-review guards remain. See docs/UPGRADE_COMPACT_A_RUNTIME_2026-10-17.md.
