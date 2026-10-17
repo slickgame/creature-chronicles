@@ -1,0 +1,40 @@
+{
+  "tool": "built-in image_gen",
+  "transparentBackground": true,
+  "approvedReferences": [
+    "4a251f9f-91eb-41c1-a0d4-2635c7989baf.png",
+    "647f0558-73f6-4121-958c-77b04518e731(1).png"
+  ],
+  "prompts": [
+    {
+      "name": "craft",
+      "prompt": "Production game UI icon extraction/recreation from the approved reference sheet. Generate ONE isolated icon ONLY on a genuinely transparent background (alpha), no text, label, board, button, frame, shadow rectangle or other icons. Closely reproduce the named icon from the reference, preserving its silhouette, proportions, materials and details. Sculpted warm ivory/silver metal with champagne gold beveled trim, crisp painterly anime RPG relief, controlled highlights, subtle shadow confined to the object. Center fully inside a square canvas, fill about85% with comfortable uncut margins. Clean transparency around AND inside openings. This is a separately usable game icon, not an icon design sheet. No redesign or extra ornaments.\nRecreate the CRAFT hammer: diagonal wrapped dark leather handle down-left, broad ivory-silver rectangular forged head up-right with gold striking faces/rims and a tiny diamond stud. Exactly match the reference hammer.",
+      "reference": 0
+    },
+    {
+      "name": "gold-coin",
+      "prompt": "Production game UI icon extraction/recreation from the approved reference sheet. Generate ONE isolated icon ONLY on a genuinely transparent background (alpha), no text, label, board, button, frame, shadow rectangle or other icons. Closely reproduce the named icon from the reference, preserving its silhouette, proportions, materials and details. Sculpted warm ivory/silver metal with champagne gold beveled trim, crisp painterly anime RPG relief, controlled highlights, subtle shadow confined to the object. Center fully inside a square canvas, fill about85% with comfortable uncut margins. Clean transparency around AND inside openings. This is a separately usable game icon, not an icon design sheet. No redesign or extra ornaments.\nRecreate the GOLD coin face-on: double embossed gold rim, large elongated four-point star/diamond seal, four tiny rim studs. Rich gold relief, exact reference proportions.",
+      "reference": 0
+    },
+    {
+      "name": "compare",
+      "prompt": "Production game UI icon extraction/recreation from the approved reference sheet. Generate ONE isolated icon ONLY on a genuinely transparent background (alpha), no text, label, board, button, frame, shadow rectangle or other icons. Closely reproduce the named icon from the reference, preserving its silhouette, proportions, materials and details. Sculpted warm ivory/silver metal with champagne gold beveled trim, crisp painterly anime RPG relief, controlled highlights, subtle shadow confined to the object. Center fully inside a square canvas, fill about85% with comfortable uncut margins. Clean transparency around AND inside openings. This is a separately usable game icon, not an icon design sheet. No redesign or extra ornaments.\nRecreate the COMPARE balance scales: elegant ivory-gold sculpted central pillar with open diamond crest, symmetric gold crossbar, hanging shallow gold pans and thin suspension rods. Preserve all transparent openings and strong symmetry.",
+      "reference": 0
+    },
+    {
+      "name": "upgrade",
+      "prompt": "Production game UI icon extraction/recreation from the approved reference sheet. Generate ONE isolated icon ONLY on a genuinely transparent background (alpha), no text, label, board, button, frame, shadow rectangle or other icons. Closely reproduce the named icon from the reference, preserving its silhouette, proportions, materials and details. Sculpted warm ivory/silver metal with champagne gold beveled trim, crisp painterly anime RPG relief, controlled highlights, subtle shadow confined to the object. Center fully inside a square canvas, fill about85% with comfortable uncut margins. Clean transparency around AND inside openings. This is a separately usable game icon, not an icon design sheet. No redesign or extra ornaments.\nRecreate the IMPROVE emblem: diagonal silver sword pointing upper-right, wrapped dark leather grip lower-left, ornate gold hilt with central ivory diamond, and two ascending gold chevrons on the sword's lower-right. Exact reference design, transparent space between shapes.",
+      "reference": 0
+    },
+    {
+      "name": "talk",
+      "prompt": "Production game UI icon extraction/recreation from the approved reference sheet. Generate ONE isolated icon ONLY on a genuinely transparent background (alpha), no text, label, board, button, frame, shadow rectangle or other icons. Closely reproduce the named icon from the reference, preserving its silhouette, proportions, materials and details. Sculpted warm ivory/silver metal with champagne gold beveled trim, crisp painterly anime RPG relief, controlled highlights, subtle shadow confined to the object. Center fully inside a square canvas, fill about85% with comfortable uncut margins. Clean transparency around AND inside openings. This is a separately usable game icon, not an icon design sheet. No redesign or extra ornaments.\nRecreate the TALK speech bubble: broad warm ivory oval face, short lower-left pointed speech tail, beveled gold rim, three recessed dark dots and three tiny diamond rim studs. Exact reference design.",
+      "reference": 1
+    },
+    {
+      "name": "source",
+      "prompt": "Production game UI icon extraction/recreation from the approved reference sheet. Generate ONE isolated icon ONLY on a genuinely transparent background (alpha), no text, label, board, button, frame, shadow rectangle or other icons. Closely reproduce the named icon from the reference, preserving its silhouette, proportions, materials and details. Sculpted warm ivory/silver metal with champagne gold beveled trim, crisp painterly anime RPG relief, controlled highlights, subtle shadow confined to the object. Center fully inside a square canvas, fill about85% with comfortable uncut margins. Clean transparency around AND inside openings. This is a separately usable game icon, not an icon design sheet. No redesign or extra ornaments.\nRecreate the RANCH building: compact ivory barn/farmhouse with gold pitched roof, diamond stud at gable peak, dark recessed arched wooden double doorway, small dark loft window, modest stone base. Exact reference design, no landscape, fences or other buildings.",
+      "reference": 1
+    }
+  ]
+}

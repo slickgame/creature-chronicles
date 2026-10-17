@@ -1,7 +1,7 @@
 {
   "version": 2,
   "design": "Locked Forge B3 \u2014 compact nameless tiles, approved silhouettes, Craft label",
-  "status": "Complete production kit and isolated asset assembly; not integrated into runtime Forge.",
+  "status": "Integrated into the existing BlacksmithWorkshop/ForgeWindow; standalone assembly remains read-only. Protected hosted gameplay is unverified.",
   "lockedReference": {
     "originalFilename": "a759b7fb-e715-4c50-b735-2c5c7654f059.png",
     "sha256": "579cffa65944e0a0985b87b6e941a210fb52201791c4683fefca561c21892e2e",
@@ -9,7 +9,7 @@
   },
   "counts": {
     "svg": 108,
-    "raster": 7,
+    "raster": 13,
     "fontFiles": 8,
     "canonicalReusedImages": 10
   },
@@ -93,7 +93,8 @@
   "catalog": "catalog.html",
   "scripts": [
     "scripts/build-forge-slate-assets.py",
-    "scripts/index-forge-slate-assets.py"
+    "scripts/index-forge-slate-assets.py",
+    "scripts/prepare-forge-sculpted-icons.py"
   ],
   "colors": {
     "Common": "#66d999",
@@ -108,7 +109,7 @@
     "Preview stock and ownership are synthetic examples, not production save data.",
     "Fonts and glyphs are provided; user text still rendered by UI code.",
     "Buttons and tabs include distinct normal/hover/pressed/disabled artwork.",
-    "Runtime integration and actual hosted gameplay remain separate unfinished work."
+    "Runtime uses live engine/save data; the standalone assembly still uses synthetic sample data. Protected hosted gameplay remains unverified."
   ],
   "categoryArt": [
     {
@@ -166,5 +167,18 @@
     ],
     "sample": "control-samples.html",
     "scope": "Production assets and sample assembly only; runtime unchanged"
+  },
+  "sculptedActions": {
+    "manifest": "sculpted/manifest.json",
+    "prompts": "sculpted/generation-prompts.json",
+    "icons": [
+      "craft",
+      "gold-coin",
+      "compare",
+      "upgrade",
+      "talk",
+      "source"
+    ],
+    "encoding": "256px RGBA WebP, quality96/method6, resized from untouched transparent PNG masters; no creative postprocessing."
   }
 }

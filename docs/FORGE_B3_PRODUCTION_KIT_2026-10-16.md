@@ -2,7 +2,11 @@
 
 On October16,2026 (America/New_York), the user locked the supplied compact slate/gold Forge concept and requested every asset needed to reproduce it. The attached reference supersedes Forge A as the visual target. The selected concept uses name-free square item tiles, colored rarity rims, power letter upper-left, enhancement upper-right, filled ivory category silhouette lower-right, full hover/focus/tap details, Craft/Improve tabs, a secondary Outfitter-price link and **Craft** as the primary action label.
 
-## Latest correction — control finish
+## Runtime integration update
+
+The user approved the sculpted Craft/Gold/Compare/Improve and Talk/Ranch icon sheets and requested live integration. The existing BlacksmithWorkshop and ForgeWindow now consume the locked slate/gold assets, local Tinos font and six transparent sculpted action icons. All six nameless tiles fit on phone; full item details use desktop hover/focus and explicit phone inspection. See `FORGE_B3_RUNTIME_2026-10-16.md` for actual runtime checks and screenshots. The standalone assembly remains sample-only.
+
+## Historical correction — control finish
 
 Following the user’s comparison with the concept, the production assets now have beveled gold control rims, pointed corner details, richer slate/emerald surfaces and an amber active Craft tab. Filled action emblems improve Craft/Improve and Talk; the source action uses a framed supplies/route symbol; Gold uses an embossed hammer coin instead of a dollar sign. Normal/hover/pressed/disabled surfaces are distinct, including dedicated Talk button states. `control-samples.html` presents the actual corrected controls. All-six-recipe/four-viewport assembly and window checks pass again with zero page/asset errors. No runtime behavior changed.
 
@@ -30,11 +34,11 @@ Browser checks pass for all six recipes, full item details, Craft preview window
 
 These are assembly screenshots, not live gameplay. Game transaction tests were not rerun for static asset work; the previously validated runtime is unchanged.
 
-## Next
+## Integration contract
 
-Integrate the locked kit into the existing BlacksmithWorkshop and ForgeWindow while preserving engine quotes, stats/sets, reserves, exact-copy receipts, confirmation/stale-quote guards, rapid-click locks and save behavior. Keep **Craft** as the visible action label; the wording change does not remove transaction review semantics. Remove redundant Tools/anvil, label Craft/Improve and keep cost-route comparison secondary. Hide one-page pagers. Preserve approved equipment comparison/review/receipt behavior; a new Improve Equipment overview still requires its own visual review.
+The runtime integrates the locked kit into the existing BlacksmithWorkshop and ForgeWindow while preserving engine quotes, stats/sets, reserves, exact-copy receipts, confirmation/stale-quote guards, rapid-click locks and save behavior. Keep **Craft** as the visible action label; the wording change does not remove transaction review semantics. Remove redundant Tools/anvil, label Craft/Improve and keep cost-route comparison secondary. Hide one-page pagers. Preserve approved equipment comparison/review/receipt behavior; a new Improve Equipment overview still requires its own visual review.
 
-The live Forge remains its previous implementation until that integration is complete. Maintain the existing branch `feature/ui-ranch-ledger-2026-09-29` and draft/unmerged PR21. Do not create a new game or change deployment protection. Protected hosted gameplay remains unverified.
+The existing runtime now uses the locked kit and approved sculpted icons. Maintain the existing branch `feature/ui-ranch-ledger-2026-09-29` and draft/unmerged PR21. Do not create a new game or change deployment protection. Protected hosted gameplay remains unverified.
 
 ## Initial production archive (before control correction)
 

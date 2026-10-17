@@ -1,0 +1,77 @@
+{
+  "description": "Approved sculpted action/currency family; separate imagegen transparent masters, resized without creative editing. Canonical gear/character art unchanged.",
+  "icons": [
+    {
+      "name": "craft",
+      "master": "masters/sculpted/exec-6b4e9fa4-e43f-4302-bc08-31026b342c83.png",
+      "masterSha256": "cec0af4b8b6f56aee9947958b7e29544e519035c025c4bc24178f836d2691835",
+      "file": "craft.webp",
+      "sha256": "4691928c87abcb0dfa170fa4d7c6e7d6b7ec4c9b0e7cb781898206f4bd4eee54",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "name": "gold-coin",
+      "master": "masters/sculpted/exec-7f6264b5-95eb-46e5-9a0c-2872c0ed1e5d.png",
+      "masterSha256": "e6415002750a5eff27edf810e15163859d6977c4c6263a2de1af632aaaaa8000",
+      "file": "gold-coin.webp",
+      "sha256": "c1c2ec719f34c4cf416e0eb0a1dfafd30d947dc06ae406f30c7d22cdff58d15f",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "name": "compare",
+      "master": "masters/sculpted/exec-e3f4a48d-8c6d-445c-8d37-3bc9b17d9c25.png",
+      "masterSha256": "35d07fe9dc3982f8c084a1c1b6645352c0e6b489959e76c56691fadf634bef95",
+      "file": "compare.webp",
+      "sha256": "0b13846ade05d6ea3f6aed1f24fb57ecccfcdbcb0f5093a6a46a382eb7bc3c85",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "name": "upgrade",
+      "master": "masters/sculpted/exec-561c3c56-cc44-44b0-ad86-135eed854400.png",
+      "masterSha256": "1e6680266487a50728df4a87cde09137ab376144dc1b72f5430e20b46a3e1680",
+      "file": "upgrade.webp",
+      "sha256": "97b66ab31e30ab83bb1fa6a5c852efd8a722edda300e96e04a1ca8aeb046a120",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "name": "talk",
+      "master": "masters/sculpted/exec-e578a0cd-8e1b-42dd-8ed9-d13027c84370.png",
+      "masterSha256": "ced8efc041802e51cf402bcacc107f13716f8cca2c75557e9e42bf609c126c27",
+      "file": "talk.webp",
+      "sha256": "06ff96e61fa4ff83ce383ea2254569e9859d1e24a89ba1c986b54ce4c2a14a93",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "name": "source",
+      "master": "masters/sculpted/exec-5c6b867c-3dfd-4182-a7af-8d0d8d326f69.png",
+      "masterSha256": "e224cae461b367ff71f946eba6612b73a59ee02b16dda7cf5a2053fd9536848b",
+      "file": "source.webp",
+      "sha256": "71cebaf54db9714b60d7af24143c01a225f50921af2b37704de16f79044444a2",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    }
+  ]
+}

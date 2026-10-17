@@ -7,14 +7,14 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 6952,
-      "sha256": "3ae4784bebb542718239de4167b8a4d6ebc89bbcaebb61d333816d587e8bbe6b",
+      "bytes": 7636,
+      "sha256": "d07ceb0448d63d3db62bcc614e56ec7828e0123e43ef754ce234503cb9f64404",
       "kind": "source-or-document"
     },
     {
       "path": "catalog.html",
-      "bytes": 13570,
-      "sha256": "8215befb5a6100d0e1e8b6de8a4eb0644adba78e39944ef7f5b633eef22ae011",
+      "bytes": 14257,
+      "sha256": "4353a6da4efcaa6cf7f9eba897767f82cdd7a2d4397a20e4761ee69fb2f8dfe9",
       "kind": "source-or-document"
     },
     {
@@ -175,8 +175,8 @@
     },
     {
       "path": "control-samples.html",
-      "bytes": 3520,
-      "sha256": "b806e35e5b18b000a28fe59b472acde5cf3c8c7185f1e2681cc8a156835037e8",
+      "bytes": 3601,
+      "sha256": "bde2e4cecc9479b47ede3257b7f309b92853487a0f903dc5e8fe4a2d8b3246ce",
       "kind": "source-or-document"
     },
     {
@@ -925,14 +925,14 @@
     },
     {
       "path": "preview.html",
-      "bytes": 2017,
-      "sha256": "2a33c13269d981b19115c86efe73a3d7ee2ac044775a425661696fb6df5e84ed",
+      "bytes": 2033,
+      "sha256": "6ceed72921346eb72dfbfb133cad14b54911f785ef293d5035ff6da07e44961d",
       "kind": "source-or-document"
     },
     {
       "path": "preview.js",
-      "bytes": 6623,
-      "sha256": "45db5ff11705ee92f6b9fd595e8dcd98b769920d382987d5b01a87a14547a211",
+      "bytes": 6727,
+      "sha256": "77b27b7a295a24e4360bf4b59b34d839f6b2c74b1a1ef4e42f23004c7c51de05",
       "kind": "source-or-document"
     },
     {
@@ -940,6 +940,78 @@
       "bytes": 5911,
       "sha256": "a4b2777394d1a273b18d5acb2119308ffb3aeea9d721a6b0f1d9e185a5dc217d",
       "kind": "source-or-document"
+    },
+    {
+      "path": "sculpted/compare.webp",
+      "bytes": 30084,
+      "sha256": "0b13846ade05d6ea3f6aed1f24fb57ecccfcdbcb0f5093a6a46a382eb7bc3c85",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sculpted/craft.webp",
+      "bytes": 18886,
+      "sha256": "4691928c87abcb0dfa170fa4d7c6e7d6b7ec4c9b0e7cb781898206f4bd4eee54",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sculpted/generation-prompts.json",
+      "bytes": 6465,
+      "sha256": "8c2d5064590235b0f5157154346c63add3841c88f4b003007e4ca9ced8a2370c",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "sculpted/gold-coin.webp",
+      "bytes": 24404,
+      "sha256": "c1c2ec719f34c4cf416e0eb0a1dfafd30d947dc06ae406f30c7d22cdff58d15f",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sculpted/source.webp",
+      "bytes": 21328,
+      "sha256": "71cebaf54db9714b60d7af24143c01a225f50921af2b37704de16f79044444a2",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sculpted/talk.webp",
+      "bytes": 20720,
+      "sha256": "06ff96e61fa4ff83ce383ea2254569e9859d1e24a89ba1c986b54ce4c2a14a93",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sculpted/upgrade.webp",
+      "bytes": 21572,
+      "sha256": "97b66ab31e30ab83bb1fa6a5c852efd8a722edda300e96e04a1ca8aeb046a120",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
     },
     {
       "path": "textures/slate.webp",

@@ -15,3 +15,6 @@ Treat the selected concept as a visual acceptance reference. Compare actual scre
 
 ## Current locked Forge target
 The user locked Forge B3 (slate/gold, compact nameless item tiles, ivory silhouette category badges, Craft button) on October16,2026. Read docs/FORGE_B3_PRODUCTION_KIT_2026-10-16.md and public/images/ui/forge-slate-v2/README.md before the next Forge change. This supersedes the prior Forge A visual direction. The asset kit is separate from live runtime integration; do not claim the new style is in the game until actual BlacksmithWorkshop integration and screenshots pass.
+
+## Approved Forge action icons and runtime
+The user approved the sculpted ivory/gold action family (Craft hammer, Gold star coin, Compare scales, Improve sword/chevrons, Talk bubble and Ranch source building) and requested runtime integration. Production icons are RGBA WebP under `public/images/ui/forge-slate-v2/sculpted/`; do not revert them to the rejected flat SVG study. BlacksmithWorkshop/ForgeWindow now use the B3 kit. Keep the standalone asset assembly explicitly separate from actual game screenshots and tests. Consult `docs/FORGE_B3_RUNTIME_2026-10-16.md` for current validation and remaining hosted verification.

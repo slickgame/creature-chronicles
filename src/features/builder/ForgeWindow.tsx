@@ -3,7 +3,8 @@ import type {ReactNode} from 'react';
 import {GameDialog} from '@/features/ui/GameDialog';
 import s from './ForgeGallery.module.css';
 export const FORGE_ART='/images/ui/forge-gallery-v1/';
-export function ForgeIcon({name}:{name:string}){return <img className={s.icon} src={`${FORGE_ART}icons/${name}.svg`} alt=""/>;}
+export const FORGE_SLATE='/images/ui/forge-slate-v2/';
+export function ForgeIcon({name}:{name:string}){const sculpted=['craft','coin','gold-coin','compare','upgrade','talk','source'].includes(name);const file=name==='coin'?'gold-coin':name;return <img className={s.icon} src={`${FORGE_SLATE}${sculpted?'sculpted/':'icons/'}${file}.${sculpted?'webp':'svg'}`} alt=""/>;}
 export function ForgeWindow({title,marker,onClose,children,page=0,pages=1,onPage}:{title:string;marker:string;onClose:()=>void;children:ReactNode;page?:number;pages?:number;onPage?:(page:number)=>void}){
  return <GameDialog fullScreen title={title} onClose={onClose}><main className={s.dialogStage}><section className={s.window} data-forge-window={marker}>
  <header><h2>{title}</h2><button aria-label={`Close ${title}`} onClick={onClose}><ForgeIcon name="close"/></button></header>
