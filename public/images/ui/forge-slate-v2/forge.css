@@ -22,3 +22,5 @@
 @media(min-width:1101px){body:has(>.forge){min-height:100dvh;display:grid;place-items:center}.forge{max-width:1440px;max-height:900px}}
 
 @media(min-width:1101px) and (max-height:800px){.details{grid-template-rows:auto minmax(60px,1fr) auto auto auto auto auto;gap:6px}.detail-heading h2{font-size:24px}.main-stat{font-size:18px;padding:6px 8px}.summary .description{font-size:14px}.summary .owned{font-size:14px;margin-top:4px}.materials{gap:4px;padding-top:5px}.materials h3{font-size:17px}.cost-row{padding:3px 6px;min-height:40px}.cost-row>img{height:32px;width:32px}.cost-row strong{font-size:15px}.cost-row small{font-size:12px}}
+
+.set-badge{position:absolute;width:29%;height:29%;left:4%;bottom:4%;border:1px solid #d5ad5c;border-radius:50%;background:#0b1823;display:grid;place-items:center;pointer-events:none}.set-badge>img{width:82%;height:82%;object-fit:contain}

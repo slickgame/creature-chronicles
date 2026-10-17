@@ -87,3 +87,6 @@
  .selection .material strong,.selection .fee strong{font-size:15px}
  .selection .material small,.selection .fee small{font-size:12px}
 }
+
+/* Set identity mirrors the category anchor without changing tile geometry. */
+.setBadge{position:absolute;width:29%;height:29%;left:4%;bottom:4%;border:1px solid #d5ad5c;border-radius:50%;background:#0b1823;display:grid;place-items:center;pointer-events:none}.setBadge>img{width:82%;height:82%;object-fit:contain}

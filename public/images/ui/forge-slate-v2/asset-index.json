@@ -7,8 +7,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 7636,
-      "sha256": "d07ceb0448d63d3db62bcc614e56ec7828e0123e43ef754ce234503cb9f64404",
+      "bytes": 8191,
+      "sha256": "4c9f03ca0fec7d4345194a4b1eff6aa2fd3c3c6041b7a234ca1579868351ba3d",
       "kind": "source-or-document"
     },
     {
@@ -241,8 +241,8 @@
     },
     {
       "path": "forge.css",
-      "bytes": 19141,
-      "sha256": "1dc00ef4444b46fe84a5c30437c03266f265c86383ebc34aec848946772f1f1d",
+      "bytes": 19380,
+      "sha256": "f933202fd9c6a80c073bb12ee0aef8c23447ae602d3e0d15ade567c6b632b093",
       "kind": "source-or-document"
     },
     {
@@ -931,8 +931,8 @@
     },
     {
       "path": "preview.js",
-      "bytes": 6727,
-      "sha256": "77b27b7a295a24e4360bf4b59b34d839f6b2c74b1a1ef4e42f23004c7c51de05",
+      "bytes": 6880,
+      "sha256": "6bdf160b3e68f342f78c1f56df6b87a90f1c48afcaeb028f08611c825f5dbaf7",
       "kind": "source-or-document"
     },
     {
@@ -1012,6 +1012,40 @@
         256
       ],
       "mode": "RGBA"
+    },
+    {
+      "path": "set-badges.html",
+      "bytes": 2572,
+      "sha256": "dd03ad37741569891ecb41febc5144e061167bda42066fe6ed12e85f48bb8bac",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "sets/bulwark.svg",
+      "bytes": 271,
+      "sha256": "7477ae14d1d94412dd22852b17f5409df89a9974b3fdfe1a27059080a2fe04f4",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "sets/striker.svg",
+      "bytes": 358,
+      "sha256": "4a73a99bf11e1e32357bbebbe7ac499a5522b8aecf1475a0028ead3e581c4db4",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "sets/swift.svg",
+      "bytes": 186,
+      "sha256": "6d8c46cc39b161de363e822f142290c9baaa37957fed05cac04c407258e1f6b8",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "sets/vigor.svg",
+      "bytes": 226,
+      "sha256": "bf8fca26dd676e6be65fd960eefb6bf31f934f094615abfd8e8979a5bb3e2a35",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
     },
     {
       "path": "textures/slate.webp",
