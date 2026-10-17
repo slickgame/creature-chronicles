@@ -1,0 +1,1558 @@
+{
+  "results": [
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 308,
+        "sh": 308,
+        "bottom": 358.03125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-projection",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 318,
+        "sh": 318,
+        "bottom": 363,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 340,
+        "sh": 340,
+        "bottom": 373.796875,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 309,
+        "sh": 309,
+        "bottom": 358.328125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 345,
+        "sh": 345,
+        "bottom": 376.296875,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 308,
+        "sh": 308,
+        "bottom": 358.03125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 308,
+        "sh": 308,
+        "bottom": 358.03125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 308,
+        "sh": 308,
+        "bottom": 358.03125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 308,
+        "sh": 308,
+        "bottom": 358.03125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 308,
+        "sh": 308,
+        "bottom": 358.03125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 558,
+        "sh": 558,
+        "bottom": 658,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-projection",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 494,
+        "sh": 494,
+        "bottom": 626.1875,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 539,
+        "sh": 539,
+        "bottom": 648.734375,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 512,
+        "sh": 512,
+        "bottom": 635,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 485,
+        "sh": 485,
+        "bottom": 621.359375,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 537,
+        "sh": 537,
+        "bottom": 647.4375,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 558,
+        "sh": 558,
+        "bottom": 658,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 537,
+        "sh": 537,
+        "bottom": 647.4375,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 558,
+        "sh": 558,
+        "bottom": 658,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 322,
+        "sw": 322,
+        "h": 558,
+        "sh": 558,
+        "bottom": 658,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 558,
+        "sh": 558,
+        "bottom": 710,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-projection",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 479,
+        "sh": 479,
+        "bottom": 670.5,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 518,
+        "sh": 518,
+        "bottom": 690.1875,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 512,
+        "sh": 512,
+        "bottom": 687,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 485,
+        "sh": 485,
+        "bottom": 673.359375,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 537,
+        "sh": 537,
+        "bottom": 699.4375,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 558,
+        "sh": 558,
+        "bottom": 710,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 537,
+        "sh": 537,
+        "bottom": 699.4375,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 558,
+        "sh": 558,
+        "bottom": 710,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 352,
+        "sw": 352,
+        "h": 558,
+        "sh": 558,
+        "bottom": 710,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 600.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 455,
+        "sh": 455,
+        "bottom": 596.359375,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 437,
+        "sh": 437,
+        "bottom": 587.3125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 488,
+        "sh": 488,
+        "bottom": 612.90625,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 600.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 600.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 600.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 600.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 600.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 487,
+        "sh": 487,
+        "bottom": 781,
+        "right": 1422,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 690.078125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 460,
+        "sh": 460,
+        "bottom": 688.984375,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 442,
+        "sh": 442,
+        "bottom": 679.9375,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 493,
+        "sh": 493,
+        "bottom": 705.53125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 690.078125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 690.078125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 690.078125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 690.078125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 690.078125,
+        "right": 1270,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 487,
+        "sh": 487,
+        "bottom": 781,
+        "right": 1422,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 720.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 460,
+        "sh": 460,
+        "bottom": 718.984375,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 442,
+        "sh": 442,
+        "bottom": 709.9375,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 493,
+        "sh": 493,
+        "bottom": 735.53125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 720.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 720.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 720.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 720.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 720.078125,
+        "right": 1510,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1982,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 960.078125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-0",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 460,
+        "sh": 460,
+        "bottom": 958.984375,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-1",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 442,
+        "sh": 442,
+        "bottom": 949.9375,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-factors-2",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 493,
+        "sh": 493,
+        "bottom": 975.53125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 960.078125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 960.078125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 960.078125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 960.078125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1082,
+        "sw": 1082,
+        "h": 462,
+        "sh": 462,
+        "bottom": 960.078125,
+        "right": 1830,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1982,
+        "bad": []
+      }
+    }
+  ],
+  "errors": [],
+  "readOnly": true
+}
