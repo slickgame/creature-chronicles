@@ -7,7 +7,7 @@ import { GameDialog } from "@/features/ui/GameDialog";
 import styles from "./ScreenNavigation.module.css";
 
 /** In-flow navigation reserves its own space alongside each interior's controls. */
-export function ScreenNavigation({ children, onBack, backLabel = "Previous screen" }: { children?: ReactNode; onBack?: () => void; backLabel?: string }) {
+export function ScreenNavigation({ children, onBack, backLabel = "Previous screen", backIcon }: { children?: ReactNode; onBack?: () => void; backLabel?: string; backIcon?: ReactNode }) {
   const { goBack } = useGameContext();
   const { open } = useNavigation();
   const [more, setMore] = useState(false);
@@ -16,7 +16,7 @@ export function ScreenNavigation({ children, onBack, backLabel = "Previous scree
     <nav className={styles.actions} aria-label="Screen navigation">
       {children ? <><div className={styles.related}>{children}</div><button className={styles.more} type="button" onClick={() => setMore(true)}>More</button></> : null}
       <button type="button" className={styles.back} onClick={onBack ?? goBack} aria-label={backLabel === "Previous screen" ? backLabel : `Back to ${backLabel}`}>
-        <span aria-hidden="true">←</span> {backLabel !== "Previous screen" && <span className={styles.backPrefix}>Back to </span>}{backLabel}
+        {backIcon ?? <span aria-hidden="true">←</span>} {backLabel !== "Previous screen" && <span className={styles.backPrefix}>Back to </span>}{backLabel}
       </button>
       <button
         type="button"

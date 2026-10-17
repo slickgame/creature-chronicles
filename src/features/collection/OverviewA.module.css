@@ -73,3 +73,12 @@
 .screen.screen [data-overview-kit] nav[role=tablist]>button:hover{border-image-source:url('/images/ui/creature-overview-a-v2/frames/tab-hover.svg')!important;}
 .screen.screen [data-overview-kit] nav[role=tablist]>button[aria-selected=true]:hover{border-image-source:url('/images/ui/creature-overview-a-v2/frames/tab-active-hover.svg')!important;}
 @media(max-width:850px),(max-height:650px){.screen.screen nav[aria-label="Screen navigation"] button{font-size:13px;}}
+
+/* Native kit navigation symbols and an explicitly reserved More actions row. */
+.navigationIcon{display:block;width:24px;height:24px;object-fit:contain;flex:none;}
+.screen.screen .expandArt{display:grid;place-items:center;padding:4px;}
+.screen.screen [data-oa=footer]{padding-top:22px;}
+.screen.screen [data-oa=footer] [class*=moreActions]{top:2px;right:4px;}
+.screen.screen [data-oa=footer] [class*=moreActions] summary{min-height:16px;line-height:16px;padding:0 4px;background:#061b27;}
+@media(max-width:850px),(max-height:650px){.navigationIcon{width:21px;height:21px;}}
+@media(max-height:550px){.screen.screen [data-oa=footer]{padding-top:20px;}}

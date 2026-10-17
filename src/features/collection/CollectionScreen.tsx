@@ -409,7 +409,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
           </div>
           <div className={styles.headerActions}><button type="button" data-oa="choose" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}><img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/creatures.webp" alt=""/>{rosterCollapsed ? "Choose creature" : "Close creature picker"}</button><button type="button" className={overview.artToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
-            <ScreenNavigation>{headerLinks}</ScreenNavigation>
+            <ScreenNavigation backIcon={<img className={overview.navigationIcon} src="/images/ui/creature-overview-a-v2/icons/back.svg" alt=""/>}>{headerLinks}</ScreenNavigation>
           </div>
         </header>
 
@@ -457,7 +457,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                 <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
                 <div data-oa="workspace" className={dossier.workspace}>
                   <article data-oa="portrait" className={dossier.heroCard} data-ui-fixed-size="true" aria-label={`${selectedCreature.nickname} selected creature`}>
-                    <button className={overview.expandArt} aria-label="Expand creature artwork" onClick={()=>setShowArtwork(true)}>⤢</button>
+                    <button className={overview.expandArt} aria-label="Expand creature artwork" onClick={()=>setShowArtwork(true)}><img className={overview.navigationIcon} src="/images/ui/creature-overview-a-v2/icons/expand.svg" alt=""/></button>
                     <div data-oa="identity" className={dossier.heroIdentity}>
                       <h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2>
                       <p>{getVariantDefinition(selectedCreature.variantId).name} · {displaySex(getCreatureManagementStatus(activeSave, selectedCreature).sex)}</p>
