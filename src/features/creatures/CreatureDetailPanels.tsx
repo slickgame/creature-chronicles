@@ -233,7 +233,7 @@ export function SharedCreatureDetail({
   );
   const tabId = useId();
   const tabs = getAvailableTabs(mode, hasCareActions, ranchDossier);
-  const [activeTab, setActiveTab] = useState<CreatureDetailTab>(ranchDossier ? "stats" : tabs[0]);
+  const [activeTab, setActiveTab] = useState<CreatureDetailTab>(tabs[0]);
   function selectTab(tab:CreatureDetailTab){setActiveTab(tab);if(tab==='equipment')onEquipmentFocus?.();}
   useEffect(()=>{if(activeTab!=='equipment'||!onEquipmentFocus)return;const resize=()=>onEquipmentFocus();addEventListener('resize',resize);return()=>removeEventListener('resize',resize);},[activeTab,onEquipmentFocus]);
 
@@ -287,7 +287,7 @@ export function SharedCreatureDetail({
   };
 
   return (
-    <div className={dossier ? `${dossierStyles.dossier} ${ranchDossier ? dossierStyles.ranch : ""} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
+    <div className={dossier ? `${dossierStyles.dossier} ${ranchDossier ? dossierStyles.ranch : ""} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-creature-section={activeTab} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
       {!dossier || showDossierPortrait ? <section className={dossier ? dossierStyles.portrait : undefined} style={portraitCardStyle}>
         <p style={kickerStyle}>{variant.rarity} Variant</p>
         <h2 style={{ margin: "3px 0", color: "#fff7dd", fontSize: "1.42rem", lineHeight: 1 }}>

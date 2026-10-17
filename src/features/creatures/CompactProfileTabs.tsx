@@ -15,7 +15,7 @@ function chunks(lines: string[]) {
     if (part) pages.push(part); return pages;
   });
 }
-function RecordDialog({ entry, onClose }: { entry: Entry; onClose: () => void }) {
+export function RecordDialog({ entry, onClose }: { entry: Entry; onClose: () => void }) {
   const [page, setPage] = useState(0);
   const pages = chunks(entry.details);
   return <GameDialog title={entry.title} onClose={onClose}><p className={s.detailText}>{pages[page] ?? entry.summary}</p>{pages.length > 1 ? <div className={s.pager} aria-label="Detail pages"><button disabled={page===0} onClick={()=>setPage(page-1)}>Previous detail</button><span aria-live="polite">{page+1} / {pages.length}</span><button disabled={page+1>=pages.length} onClick={()=>setPage(page+1)}>Next detail</button></div> : null}</GameDialog>;

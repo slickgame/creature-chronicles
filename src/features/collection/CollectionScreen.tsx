@@ -31,6 +31,7 @@ import { PagedItems } from "@/features/ui/PagedItems";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./CollectionScreen.module.css";
 import dossier from "./RanchDossier.module.css";
+import overview from "./OverviewA.module.css";
 
 const FAMILY_OPTIONS = [
   ["all", "All Families"],
@@ -98,9 +99,10 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     toggleCreatureLock,
   } = useGameContext();
   const [showFilters, setShowFilters] = useState(false);
-  const [rosterCollapsed, setRosterCollapsed] = useState(false);
+  const [rosterCollapsed, setRosterCollapsed] = useState(true);
   const [artCollapsed, setArtCollapsed] = useState(false);
   const [inventoryRequest, setInventoryRequest] = useState(0);
+  const [showArtwork, setShowArtwork] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showDossier, setShowDossier] = useState(false);
   const [filters, setFilters] = useState<CreatureManagementFilters>(
@@ -208,6 +210,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
   function selectCreature(creature: CreatureRecord) {
     setSelectedCreatureId(creature.creatureId);
+    setRosterCollapsed(true);
     setRenameValue(creature.nickname);
     setConfirmMode(null);
     setMessage(`${creature.nickname} selected.`);
@@ -397,7 +400,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   }
 
   return (
-    <main className={`${ui.interior} ${styles.interior} ${dossier.screen}`} data-profile-open={showDossier} data-roster-collapsed={rosterCollapsed} data-art-collapsed={artCollapsed}>
+    <main className={`${ui.interior} ${styles.interior} ${dossier.screen} ${overview.screen}`} data-profile-open={showDossier} data-roster-collapsed={rosterCollapsed} data-art-collapsed={artCollapsed}>
       <section className={`${ui.page} ${styles.rosterPage} ${dossier.page}`}>
         <header className={`${ui.heading} ${dossier.heading}`}>
           <div>
@@ -405,7 +408,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             <h1>Ranch Roster</h1>
 
           </div>
-          <div className={styles.headerActions}><button type="button" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}>{rosterCollapsed ? "Show creatures" : "Hide creatures"}</button><button type="button" className={dossier.layoutToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
+          <div className={styles.headerActions}><button type="button" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}>{rosterCollapsed ? "Choose creature" : "Close creature picker"}</button><button type="button" className={overview.artToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
             <ScreenNavigation>{headerLinks}</ScreenNavigation>
           </div>
         </header>
@@ -454,6 +457,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                 <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
                 <div className={dossier.workspace}>
                   <article className={dossier.heroCard} data-ui-fixed-size="true" aria-label={`${selectedCreature.nickname} selected creature`}>
+                    <button className={overview.expandArt} aria-label="Expand creature artwork" onClick={()=>setShowArtwork(true)}>⤢</button>
                     <div className={dossier.heroIdentity}>
                       <h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2>
                       <p>{getVariantDefinition(selectedCreature.variantId).name} · {displaySex(getCreatureManagementStatus(activeSave, selectedCreature).sex)}</p>
@@ -470,7 +474,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                     <div className={dossier.tabsWorkspace}>
                       <SharedCreatureDetail
                       inventoryRequest={inventoryRequest}
-                      onEquipmentFocus={()=>{if(innerWidth<=850||innerHeight<=550){setRosterCollapsed(true);setArtCollapsed(true);}}}
+                      onEquipmentFocus={()=>setRosterCollapsed(true)}
                         creature={selectedCreature}
                         dossier
                         ranchDossier
@@ -513,6 +517,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
         </section>
       </section>
 
+      {showArtwork && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} artwork`} onClose={()=>setShowArtwork(false)}><img style={{width:"100%",height:"min(65vh,650px)",objectFit:"contain"}} src={getEquineGameplayProfileSprite(selectedCreature,getNylaGameplayProfileSprite(selectedCreature,getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`}/></GameDialog> : null}
       {viewMode === "cards" ? <GameDialog title={compareMode ? "Choose Creatures to Compare" : "Creature Cards"} onClose={() => {setViewMode("compact");setCompareMode(false);}} wide>{compareMode ? <p>{compareIds.length}/2 selected</p> : null}<div className={styles.cardGallery}>{visibleCreatures.map(creature => renderCreatureCard(creature,true))}</div>{compareMode ? <button type="button" disabled={compareIds.length !== 2} onClick={() => {setViewMode("compact");setCompareTab("overview");setShowCompare(true);}}>Compare Creatures</button> : null}</GameDialog> : null}
       {showFilters ? <GameDialog title="Roster Filters & Sort" onClose={() => setShowFilters(false)} wide>
         <section className={styles.summaryStrip}>

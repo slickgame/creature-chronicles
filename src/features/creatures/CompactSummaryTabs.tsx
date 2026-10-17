@@ -5,15 +5,18 @@ import { STAT_KEYS } from "@/data/creatures";
 import { getCreatureRoleTags } from "@/data/talents/creatureRoleTags";
 import { getCreatureGrowthProjections, getProjectedEnergyGainNextLevel } from "@/data/levelGrowth";
 import type { CreatureRecord, CreatureStatKey } from "@/types/creature";
-import { Records, type Entry } from "./CompactProfileTabs";
+import { Records, RecordDialog, type Entry } from "./CompactProfileTabs";
 import s from "./CompactProfileTabs.module.css";
+import a from "./OverviewA.module.css";
 
 const LABELS:Record<CreatureStatKey,string>={STR:"Strength",DEX:"Dexterity",STA:"Stamina",CHA:"Charm",WIL:"Willpower",FER:"Fertility"};
 const ART="/images/ui/dossier-vitals-v1/";
 export function CompactOverview({creature,injury,lineageLabel,variantName,speciesName,statusNote}:{creature:CreatureRecord;injury:boolean;lineageLabel:string;variantName:string;speciesName:string;statusNote?:string}) {
  const tags=getCreatureRoleTags(creature);
+ const [more,setMore]=useState(false);
+ const [selected,setSelected]=useState<Entry|null>(null);
  const vital=(id:string,title:string,value:number,max:number,detail:string):Entry=>({id,title,summary:`${value} / ${max}`,icon:"overview",iconPath:`${ART}${id}.svg`,meter:{value,max,label:title},details:[`${title}: ${value} / ${max}. ${detail}`]});
- return <Records title="At a Glance" entries={[
+ const entries:Entry[]=[
   vital("energy","Energy",creature.energy,creature.maxEnergy,"Available energy for creature activities. Normal feeding and recovery remain in effect."),
   vital("affection","Affection",creature.affection,100,"Current bond with this creature. Review care item effects in Inventory before using them."),
   vital("hearts","Hearts",creature.hearts,creature.maxHearts,"Current hearts and maximum capacity."),
@@ -22,7 +25,9 @@ export function CompactOverview({creature,injury,lineageLabel,variantName,specie
   {id:"health",title:"Health & protection",summary:injury?creature.injuryLabel??"Injured":"Healthy",icon:"care",iconPath:`${ART}health.svg`,details:[statusNote??(injury?"Injured.":"No additional status notice."),creature.isLocked?"Protected from removal. Use Care to unlock this creature.":"Not protected from removal. Use Care to lock this creature."]},
   {id:"lineage",title:"Lineage",summary:lineageLabel,icon:"lineage",details:[`Lineage assessment: ${lineageLabel}. See the Lineage tab for parent records, inherited markers and notes.`]},
   {id:"roles",title:"Role strengths",summary:tags.length?`${tags.length} role indicators`:"No role indicators",icon:"work",details:tags.length?tags.map(tag=>`${tag.label}: ${tag.reasons.join(" ")}`):["No role indicators recorded."]}
- ]}/>;
+ ];
+ return <section className={a.overview} data-more={more} aria-label="At a Glance"><h3>{more?"More overview":"At a Glance"}</h3><div className={a.vitals}>{entries.slice(0,4).map(card)}</div><div className={a.secondary}>{entries.slice(4).map(card)}</div><button className={a.more} onClick={()=>setMore(!more)}>{more?"Back to vitals":"More overview ›"}</button>{selected?<RecordDialog key={selected.id} entry={selected} onClose={()=>setSelected(null)}/>:null}</section>;
+ function card(entry:Entry){return <button type="button" key={entry.id} className={a.card} data-vital={entry.id} onClick={()=>setSelected(entry)} aria-label={`${entry.title}. ${entry.summary}. View details`}><img src={entry.iconPath??`/images/ui/ranch-dossier-v1/icons/${entry.icon}.svg`} alt=""/><div><strong>{entry.id==="experience"?"Experience":entry.title}</strong><span>{entry.id==="identity"?`${entry.summary} · ${creature.originLabel}`:entry.id==="health"?`${entry.summary} · ${creature.isLocked?"Protected":"Not protected"}`:entry.summary}</span></div>{entry.meter?<progress aria-label={entry.meter.label} value={entry.meter.value} max={Math.max(1,entry.meter.max)}/>:null}</button>;} 
 }
 export function CompactStats({creature,growth,energyPreview,acceleration,bestStatLabels}:{creature:CreatureRecord;growth:ReturnType<typeof getCreatureGrowthProjections>;energyPreview:ReturnType<typeof getProjectedEnergyGainNextLevel>;acceleration:number;bestStatLabels:string[]}) {
  const [view,setView]=useState<"stats"|"forecast">("stats");

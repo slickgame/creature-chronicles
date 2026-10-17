@@ -1,0 +1,36 @@
+@font-face{font-family:OverviewTinos;src:url('/images/ui/forge-slate-v2/fonts/Tinos-Regular.woff')} 
+.screen.screen{background:linear-gradient(#03142199,#031421cc),url('/images/ui/ranch-dossier-v2/portrait-meadow.webp') center/cover!important;color:#fff3d5;font-family:OverviewTinos,Georgia,serif;}
+.screen.screen>section{max-width:1440px;padding:16px;gap:12px;}
+.screen.screen >section>header{background:linear-gradient(120deg,#102a38,#041620)!important;border:1px solid #c5a15d;box-shadow:inset 0 0 0 3px #071a25,inset 0 0 0 4px #9c7c40;padding:16px 22px;}
+.screen.screen h1{color:#fff3d5;font-size:34px;}.screen.screen >section>header p{display:none;}
+.screen.screen button,.screen.screen select{background:linear-gradient(#153442,#061b27);color:#fff0cd;border:1px solid #b69350;border-radius:4px;font-family:OverviewTinos,Georgia,serif;}
+.screen.screen button:focus-visible{outline:3px solid #70d6d1;outline-offset:2px;}
+.screen.screen [data-detail]{grid-template-columns:1fr!important;position:relative;}
+.screen.screen aside[aria-label='Creature selector']{position:absolute;inset:0 auto 0 0;width:min(480px,100%);z-index:10;box-shadow:0 10px 50px #000c;background:#e9dbb7;}
+.screen.screen [data-detail]>section{background:#061b27!important;box-shadow:inset 0 0 0 3px #091b25,inset 0 0 0 4px #9f8149;padding:10px;border-color:#b99855;}
+.screen.screen [class*='workspace']{grid-template-columns:minmax(240px,.72fr) minmax(0,1.35fr);gap:14px;}
+.screen.screen [class*='heroCard']{border:1px solid #caa15b;box-shadow:inset 0 0 0 3px #b29558;}
+.screen.screen [class*='heroIdentity']{padding:14px 18px 30px;}
+.screen.screen [class*='heroArt']{bottom:0;height:calc(100% - 125px);}
+.screen.screen [class*='heroMeters']{display:none;}
+.screen.screen [class*='profileColumn']{padding:0;gap:10px;}
+.screen.screen [class*='tabsWorkspace']{overflow:hidden;}
+.screen.screen [data-creature-detail-layout=dossier]{height:100%!important;gap:0!important;}
+.screen.screen [data-creature-detail-layout=dossier]>section{gap:12px!important;}
+.screen.screen [data-creature-detail-layout=dossier] nav[role=tablist]{gap:6px!important;padding:5px!important;border:1px solid #9e8148!important;}
+.screen.screen [data-creature-detail-layout=dossier] nav[role=tablist] button{min-height:58px!important;background:linear-gradient(#153442,#061b27)!important;color:#fff1d3!important;border:1px solid #b69350!important;font-size:14px!important;}
+.screen.screen [data-creature-detail-layout=dossier] nav[role=tablist] button[aria-selected=true]{background:linear-gradient(#13796d,#06483f)!important;box-shadow:inset 0 0 0 2px #e0bd70;}
+.screen.screen [data-creature-detail-layout=dossier] nav[role=tablist] span{display:inline-block!important;color:inherit!important;}
+.screen.screen [class*='quickActions']{padding-top:12px;border-color:#a7894b;grid-template-columns:1.2fr 1fr 1fr;}
+.screen.screen [class*='quickActions'] button{min-height:56px;font-size:16px;}.screen.screen [class*='quickActions'] button:first-child{background:linear-gradient(#08796b,#034c43);}
+.screen.screen [class*='moreActions'] summary{color:#e6ce95;}
+.artToggle{display:none!important;}
+@media(max-width:850px){.screen.screen>section{padding:6px;gap:7px;}.screen.screen >section>header{padding:12px;}.screen.screen h1{font-size:26px;}.screen.screen [class*='workspace']{grid-template-columns:1fr;grid-template-rows:190px minmax(0,1fr);gap:8px;}.screen.screen [class*='heroCard']{height:190px;}.screen.screen [class*='heroIdentity']{left:42%;width:58%;padding:18px 10px;background:#071c28; height:100%;}.screen.screen [class*='heroIdentity'] h2{color:#fff3d5!important;font-size:29px;}.screen.screen [class*='heroIdentity'] p{color:#f5e8cc;}.screen.screen [class*='heroIdentity'] [class*='badges']{display:flex;}.screen.screen [class*='heroArt']{left:0;right:auto;bottom:0;width:42%;height:100%;object-fit:contain;}.screen.screen [class*='quickActions']{padding-top:10px;grid-template-columns:1.1fr 1fr 1fr;gap:6px;}.screen.screen [class*='quickActions'] button{grid-column:auto!important;font-size:13px;min-height:62px;flex-direction:column;}.screen.screen [class*='sectionPicker']{color:#f9ebca!important;}.screen.screen [class*='sectionPicker'] select{background:#0c2938;color:#fff0d0;min-height:42px;}.screen.screen [class*='detail']{padding:7px!important;}}
+@media(max-height:650px){.screen.screen >section>header{padding:8px 14px;}.screen.screen [class*='workspace']{grid-template-columns:150px minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;}.screen.screen [class*='heroCard']{height:100%;display:block!important;}.screen.screen [class*='heroIdentity']{left:0;width:100%;height:auto;padding:8px;background:linear-gradient(#fff1d9,#fff1d900);}.screen.screen [class*='heroIdentity'] h2{color:#49321d!important;font-size:22px;}.screen.screen [class*='heroArt']{width:100%;height:75%;}.screen.screen [class*='quickActions'] button{min-height:36px;flex-direction:row;font-size:12px;}.screen.screen [class*='quickActions']{padding-top:5px;}}
+.screen.screen [class*='quickActions']{bottom:auto;}
+.screen.screen [class*='layoutToggle']{background:linear-gradient(#153442,#061b27)!important;color:#fff0cd!important;min-height:44px;font-size:14px;}
+.expandArt{position:absolute;top:10px;right:10px;z-index:6;width:36px;height:36px;font-size:26px;}
+@media(max-width:850px) and (min-height:651px){.screen.screen>section>header{display:grid;grid-template-columns:1fr auto;gap:8px;padding:10px;}.screen.screen [class*='headerActions']{display:contents;}.screen.screen nav[aria-label='Screen navigation']{grid-column:1/-1;justify-content:flex-end;}.screen.screen [class*='heroCard'] .expandArt{top:auto;bottom:6px;right:6px;}.screen.screen [class*='quickActions']{margin-bottom:0;}}
+@media(max-width:850px),(max-height:550px){.screen.screen:has([data-creature-section=equipment]) [class*='heroCard']{display:none!important;}.screen.screen:has([data-creature-section=equipment]) [class*='workspace']{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;}}
+
+@media(max-width:560px) and (max-height:800px) and (min-height:651px){.screen.screen [class*=workspace]{grid-template-rows:145px minmax(0,1fr);}.screen.screen [class*=heroCard]{height:145px;}.screen.screen [class*=heroIdentity]{padding:10px;}.screen.screen [class*=heroIdentity] h2{font-size:25px;}}
