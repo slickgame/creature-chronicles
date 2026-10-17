@@ -1,0 +1,328 @@
+{
+  "results": [
+    {
+      "name": "runtime-chooser-1440",
+      "box": {
+        "x": 20,
+        "y": 100.828125,
+        "width": 1400,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-expanded-1440",
+      "box": {
+        "x": 20,
+        "y": 42.46875,
+        "width": 1400,
+        "height": 815.0625
+      }
+    },
+    {
+      "name": "runtime-expanded-last-1440",
+      "box": {
+        "x": 20,
+        "y": 135.359375,
+        "width": 1400,
+        "height": 629.28125
+      }
+    },
+    {
+      "name": "runtime-chooser-1920",
+      "box": {
+        "x": 240,
+        "y": 130.828125,
+        "width": 1440,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-expanded-1920",
+      "box": {
+        "x": 240,
+        "y": 72.46875,
+        "width": 1440,
+        "height": 815.0625
+      }
+    },
+    {
+      "name": "runtime-expanded-last-1920",
+      "box": {
+        "x": 240,
+        "y": 165.359375,
+        "width": 1440,
+        "height": 629.28125
+      }
+    },
+    {
+      "name": "runtime-chooser-1920",
+      "box": {
+        "x": 240,
+        "y": 20,
+        "width": 1440,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-expanded-1920",
+      "box": {
+        "x": 240,
+        "y": 26.859375,
+        "width": 1440,
+        "height": 666.28125
+      }
+    },
+    {
+      "name": "runtime-expanded-last-1920",
+      "box": {
+        "x": 240,
+        "y": 45.359375,
+        "width": 1440,
+        "height": 629.28125
+      }
+    },
+    {
+      "name": "runtime-chooser-2560",
+      "box": {
+        "x": 560,
+        "y": 370.828125,
+        "width": 1440,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-expanded-2560",
+      "box": {
+        "x": 560,
+        "y": 312.46875,
+        "width": 1440,
+        "height": 815.0625
+      }
+    },
+    {
+      "name": "runtime-expanded-last-2560",
+      "box": {
+        "x": 560,
+        "y": 405.359375,
+        "width": 1440,
+        "height": 629.28125
+      }
+    },
+    {
+      "name": "runtime-chooser-390",
+      "box": {
+        "x": 9,
+        "y": 122.046875,
+        "width": 372,
+        "height": 599.890625
+      }
+    },
+    {
+      "name": "runtime-gear-390",
+      "box": {
+        "x": 9,
+        "y": 131.921875,
+        "width": 372,
+        "height": 580.15625
+      }
+    },
+    {
+      "name": "runtime-expanded-390",
+      "box": {
+        "x": 9,
+        "y": 127.109375,
+        "width": 372,
+        "height": 589.78125
+      }
+    },
+    {
+      "name": "runtime-expanded-last-390",
+      "box": {
+        "x": 9,
+        "y": 127.109375,
+        "width": 372,
+        "height": 589.78125
+      }
+    },
+    {
+      "name": "runtime-expanded-last-390",
+      "box": {
+        "x": 9,
+        "y": 187.109375,
+        "width": 372,
+        "height": 469.78125
+      }
+    },
+    {
+      "name": "runtime-chooser-360",
+      "box": {
+        "x": 9,
+        "y": 15.484375,
+        "width": 342,
+        "height": 709.03125
+      }
+    },
+    {
+      "name": "runtime-gear-360",
+      "box": {
+        "x": 9,
+        "y": 77.96875,
+        "width": 342,
+        "height": 584.046875
+      }
+    },
+    {
+      "name": "runtime-expanded-360",
+      "box": {
+        "x": 9,
+        "y": 75.109375,
+        "width": 342,
+        "height": 589.78125
+      }
+    },
+    {
+      "name": "runtime-expanded-last-360",
+      "box": {
+        "x": 9,
+        "y": 75.109375,
+        "width": 342,
+        "height": 589.78125
+      }
+    },
+    {
+      "name": "runtime-expanded-last-360",
+      "box": {
+        "x": 9,
+        "y": 135.109375,
+        "width": 342,
+        "height": 469.78125
+      }
+    },
+    {
+      "name": "runtime-chooser-844",
+      "box": {
+        "x": 9,
+        "y": 16.28125,
+        "width": 826,
+        "height": 357.4375
+      }
+    },
+    {
+      "name": "runtime-gear-844",
+      "box": {
+        "x": 9,
+        "y": 43.703125,
+        "width": 826,
+        "height": 302.59375
+      }
+    },
+    {
+      "name": "runtime-expanded-844",
+      "box": {
+        "x": 9,
+        "y": 16.65625,
+        "width": 826,
+        "height": 356.6875
+      }
+    },
+    {
+      "name": "runtime-expanded-last-844",
+      "box": {
+        "x": 9,
+        "y": 16.65625,
+        "width": 826,
+        "height": 356.6875
+      }
+    },
+    {
+      "name": "runtime-expanded-last-844",
+      "box": {
+        "x": 9,
+        "y": 16.65625,
+        "width": 826,
+        "height": 356.6875
+      }
+    },
+    {
+      "name": "runtime-confirm-1440",
+      "box": {
+        "x": 20,
+        "y": 100.828125,
+        "width": 1400,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-confirm-1920",
+      "box": {
+        "x": 240,
+        "y": 130.828125,
+        "width": 1440,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-confirm-1920",
+      "box": {
+        "x": 240,
+        "y": 20,
+        "width": 1440,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-confirm-2560",
+      "box": {
+        "x": 560,
+        "y": 370.828125,
+        "width": 1440,
+        "height": 698.34375
+      }
+    },
+    {
+      "name": "runtime-confirm-390",
+      "box": {
+        "x": 9,
+        "y": 74.984375,
+        "width": 372,
+        "height": 694.03125
+      }
+    },
+    {
+      "name": "runtime-confirm-360",
+      "box": {
+        "x": 9,
+        "y": 15.484375,
+        "width": 342,
+        "height": 709.03125
+      }
+    },
+    {
+      "name": "runtime-confirm-844",
+      "box": {
+        "x": 9,
+        "y": 16.28125,
+        "width": 826,
+        "height": 357.4375
+      }
+    }
+  ],
+  "transactions": "cancel unchanged, double confirm one equip, zero Gold, exact copies retained, reload persisted",
+  "date": "2026-10-17",
+  "source": "actual production game with isolated synthetic save",
+  "statChanges": 9,
+  "build": "pass",
+  "regression": {
+    "passed": 351,
+    "failed": 0
+  },
+  "lint": {
+    "errors": 0,
+    "imageAdvisories": 8
+  },
+  "hostedGameplay": "unverified",
+  "screenshots": [
+    "equipment-assignment-b-desktop.webp",
+    "equipment-assignment-b-phone.webp"
+  ]
+}

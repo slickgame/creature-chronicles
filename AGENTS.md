@@ -32,3 +32,6 @@ The user approved the B upgrade workbench with exactly All plus six category fil
 
 ## Approved compact upgrade windows
 The selected upgrade review/receipt is compact A with B's closed-envelope/question-mark mystery icon. Use UpgradeLedger's slate/gold surfaces and the true-alpha `forge-slate-v2/upgrade/mystery-envelope.webp`; preserve actual rarity color through success. Known stats remain visible, future random rolls remain hidden until paid confirmation, and exact-copy/price/stale-review guards remain. See docs/UPGRADE_COMPACT_A_RUNTIME_2026-10-17.md.
+
+## Approved equipment assignment B
+The user selected the B roster/comparison chooser and replacement confirmation, with battle changes minimized to three rows by default. View all changes uses the set-panel space; Minimize restores it. Retain a persistent lost-set warning while expanded, count all changed stats and page according to viewport height. Phones use focused Creature/Equipment/Changes sections. Preserve canonical portraits, exact replaced copies, recipient blockers, stale-review checks and confirmation locking. See docs/EQUIPMENT_ASSIGNMENT_B_RUNTIME_2026-10-17.md.

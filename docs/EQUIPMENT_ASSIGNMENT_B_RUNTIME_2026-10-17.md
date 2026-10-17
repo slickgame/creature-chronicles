@@ -1,0 +1,13 @@
+# Equipment assignment B — October 17, 2026
+
+The selected B roster/comparison is integrated into Improve Equipment’s Equip action and final replacement confirmation. Desktop retains searchable, two-per-page canonical creature portraits, current/new equipment with actual copy badges, and total battle stats/set changes. Phones and short landscape use Creature / Equipment / Changes sections rather than scrolling the entire window. Existing removal and upgrade flows remain separate.
+
+Stat changes start minimized at three rows with an increase/decrease count. View all changes replaces the set panels; Minimize stats restores them. Expansion pages eight rows on tall desktop, five on shorter desktop, four on phone and three in short landscape. Every changed stat remains reachable, including more than eight changes. A lost-set-bonus warning remains visible throughout expansion and paging. Both chooser and confirmation start minimized.
+
+The comparison reads the existing combat-equivalent compareEquipment calculation; set bonuses are already included in the totals. The old exact equipment copy returns to inventory intact. Existing inventory recipient blockers govern selection and confirmation, including training and gauntlet locks. Confirmation rechecks availability and the reviewed copy/stat fingerprint, preserves the rapid-click lock, and uses the existing assignment/save reducer. No prices, stat pools, RNG or save schema changed. The approved sculpted stat, Inventory, Equip, set and category icons are reused; canonical character/gear art is unchanged.
+
+## Validation
+
+Production Next build and TypeScript pass. Scoped lint has zero errors (eight image performance advisories). All 351 regression tests pass. Actual production-browser QA uses an isolated synthetic established save, including a nine-stat replacement with Swift bonus loss; never a user save. Search, empty search results, roster paging and recipient-specific comparisons are checked. Desktop/phone/short-landscape checks cover 1440×900, 1920×960, 1920×720, 2560×1440, 390×844, 360×740 and 844×390. Expanded pages expose all nine changes and minimizing restores set panels. Actual replacement checks cover unchanged cancellation, rapid double confirmation, zero Gold cost, old/new copy identity and saved properties, and reload persistence.
+
+Runtime screenshots under docs/validation use synthetic test gear; they are actual game UI, not concepts. Missing unrelated legacy art in this sparse checkout receives a QA-only canonical workshop fallback; no production assets are substituted. Protected hosted gameplay remains separately unverified. Keep PR21 draft and unmerged.

@@ -1,4 +1,6 @@
 "use client";
+import {EquipmentAssignment} from './EquipmentAssignment';
+import {getOwnedInventory,inventoryRecipientBlocker} from '@/data/inventoryCatalogue';
 import {UpgradeSuccess,type UpgradeReceipt} from './UpgradeSuccess';
 import {UpgradeReview} from './UpgradeReview';
 import {equipmentStats} from '@/data/equipmentEnhancement';
@@ -34,6 +36,7 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  const [message,setMessage]=useState('');
  const [upgradeReceipt,setUpgradeReceipt]=useState<UpgradeReceipt|null>(null);
  const busy=useRef(false);
+ const equipReview=useRef('');
  if(!save)return null;
  const copies=getEquipmentCopies(save),copy=copies.find(c=>c.id===selectedId)??copies[0];
  const quote=copy?getEnhancementQuote(save,copy.id):null;
@@ -48,10 +51,14 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  const facts=(c:typeof copies[number])=>{const item=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)!;const stats=equipmentStats(item,c);return `${item.name} +${c.level} · ${EQUIPMENT_SLOT_LABELS[item.equipmentSlot!]} · ${stats.rarity} · Power ${stats.powerGrade}\n${BATTLE_STAT_LABELS[stats.main.key]} +${stats.main.value}\n${stats.substats.map(st=>`${BATTLE_STAT_LABELS[st.key]} +${st.value}`).join(' · ')||'No substats'}\n${stats.setId?EQUIPMENT_SETS[stats.setId].name+' set':'No set'} · ${c.owner?'Worn by '+(save!.creatures?.find(x=>x.creatureId===c.owner)?.nickname??'creature'):'In inventory'}\n${item.description}`;};
  const tile=(c:typeof copies[number])=>{const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)!;const meta=equipmentStats(gear,c);return <><img className={styles.gear} src={gear.iconPath} alt=""/><img className={styles.frame} src={`/images/ui/forge-slate-v2/frames/item-${meta.rarity.toLowerCase()}.svg`} alt=""/><span className={styles.grade}>{meta.powerGrade}</span><span className={styles.level}>+{c.level}</span>{meta.setId&&<span className={styles.setBadge} data-equipment-set={meta.setId}><img src={`/images/ui/forge-slate-v2/sets/sculpted/${meta.setId}.webp`} alt={`${EQUIPMENT_SETS[meta.setId].name} set`}/></span>}<span className={styles.category}><img src={`/images/ui/forge-slate-v2/categories/${gear.equipmentSlot}.webp`} alt={EQUIPMENT_SLOT_LABELS[gear.equipmentSlot!]}/></span>{c.owner&&<span className={styles.worn} aria-label="Equipped">◆</span>}</>;};
 
- const comparison=quote&&creature?compareEquipment(save,creature,quote.item,copy!.id):null;
- function review(kind:'upgrade'|'equip'|'remove'){if(!copy)return;busy.current=false;setReviewLevel(copy.level);setPopup(kind);}
+ const equipFingerprint=copy&&creature&&quote?JSON.stringify({copy,comparison:compareEquipment(save,creature,quote.item,copy.id),creature:creature.creatureId}):'';
+ function review(kind:'upgrade'|'equip'|'remove'){if(!copy)return;busy.current=false;setReviewLevel(copy.level);if(kind==='equip')equipReview.current=equipFingerprint;setPopup(kind);}
  function confirm(){
   if(!save||!quote||!copy||busy.current)return;busy.current=true;setUpgradeReceipt(null);
+  if(popup==='equip'&&equipReview.current!==equipFingerprint){setMessage('Equipment or creature stats changed. Review this piece again before equipping.');setPopup('report');return;}
+  const entry=getOwnedInventory(save).find(e=>e.id===copy.id);
+  const restriction=popup==='equip'&&creature?(entry?inventoryRecipientBlocker(save,entry,creature.creatureId):'This equipment is no longer available.'):null;
+  if(restriction){setMessage(restriction);setPopup('report');return;}
   const result=popup==='upgrade'?enhanceEquipment(save,copy.id,reviewLevel):popup==='equip'&&creature?assignBattleOutfitterEquipment(save,creature.creatureId,quote.item.itemId,copy.id):popup==='remove'&&owner?removeBattleOutfitterEquipment(save,owner.creatureId,quote.item.equipmentSlot!):{save,ok:false,message:'Select an available copy and creature again.'};
   let report=result.message;
   if(result.ok){const persisted=saveCurrentGame(result.save);if(popup==='upgrade'){const upgraded=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:quote.item.name,art:quote.item.iconPath,slot:quote.item.equipmentSlot,level:upgraded.level,cost:quote.cost,before:quote.before,after:equipmentStats(quote.item,upgraded)});}const g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(g||gp)report+=` Goal rewards: +${g} Gold, +${gp} GP.`;}
@@ -74,9 +81,10 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
   </div>
  </div>
   {popup==='stats'&&quote&&<EquipmentGuide item={quote.item} copy={copy} onClose={()=>setPopup(null)}/>}
-  {popup==='assignment'&&quote&&copy&&<GameDialog title="Equip or remove equipment" onClose={()=>setPopup(null)}><h3>Equip this piece</h3>{!copy.owner&&creature?<label>Creature <select value={creature.creatureId} onChange={e=>setCreatureId(e.target.value)}>{save.creatures?.map(c=><option key={c.creatureId} value={c.creatureId}>{c.nickname}</option>)}</select></label>:<p>{owner?`Remove from ${owner.nickname} before assigning to someone else.`:'No creature available.'}</p>}{comparison&&!copy.owner&&<><p>Replaces {comparison.previous?.name??'an empty slot'}.</p><table className={styles.table}><thead><tr><th>Battle stat</th><th>Current</th><th>After</th></tr></thead><tbody>{comparison.rows.filter(r=>r.delta!==0).map(r=><tr key={r.key}><th>{r.label}</th><td>{r.current}</td><td>{r.after}</td></tr>)}</tbody></table></>}<button disabled={copy.owner?!owner:!creature} onClick={()=>review(copy.owner?'remove':'equip')}>{copy.owner?'Remove this piece':'Review equip'}</button><p className={styles.note}>Equipment changes affect newly started battles. An existing battle keeps its starting loadout. Base creature stats and innate grades are unchanged.</p></GameDialog>}
+  {(popup==='assignment'||popup==='equip')&&quote&&copy&&!copy.owner&&<EquipmentAssignment key={popup} save={save} copyId={copy.id} creatureId={creature?.creatureId??''} confirmation={popup==='equip'} onSelect={setCreatureId} onClose={()=>setPopup(null)} onReview={()=>review('equip')} onConfirm={confirm}/>}
+  {popup==='assignment'&&quote&&copy&&copy.owner&&<GameDialog title="Remove equipment" onClose={()=>setPopup(null)}><p>Remove {quote.item.name} from {owner?.nickname}?</p><button onClick={()=>review('remove')}>Review removal</button></GameDialog>}
   {popup==='upgrade'&&quote&&<UpgradeReview quote={quote} gold={save.currencies.gold} stale={copy?.level!==reviewLevel} onClose={()=>setPopup(null)} onConfirm={confirm}/>}
-  {(popup==='equip'||popup==='remove')&&quote&&<GameDialog title={popup==='equip'?'Confirm equipment':'Confirm equipment removal'} onClose={()=>setPopup(null)}><p>{popup==='equip'?`Equip ${quote.item.name} +${copy!.level} (#${copy!.id.replace('gear_','')}) on ${creature?.nickname}? The replaced piece returns to inventory with its upgrades.`:`Return ${quote.item.name} +${copy!.level} to inventory with its upgrades intact?`}</p><EquipmentStats item={quote.item} copy={copy}/><div className={styles.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button onClick={confirm}>Confirm {popup==='equip'?'equip':'removal'}</button></div></GameDialog>}
+  {popup==='remove'&&quote&&<GameDialog title="Confirm equipment removal" onClose={()=>setPopup(null)}><p>Return {quote.item.name} +{copy!.level} to inventory with its upgrades intact?</p><EquipmentStats item={quote.item} copy={copy}/><div className={styles.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button onClick={confirm}>Confirm removal</button></div></GameDialog>}
   {popup==='report'&&upgradeReceipt&&<UpgradeSuccess receipt={upgradeReceipt} gold={save.currencies.gold} onClose={()=>{setPopup(null);setUpgradeReceipt(null);}}/>}
   {popup==='report'&&!upgradeReceipt&&<GameDialog title="Equipment receipt" onClose={()=>setPopup(null)}><p role="status">{message}</p><p>Balance: {save.currencies.gold} Gold.</p><button onClick={()=>setPopup(null)}>Continue</button></GameDialog>}
  </main>;
