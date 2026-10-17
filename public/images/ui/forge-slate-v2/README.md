@@ -38,3 +38,6 @@ Do not replace canonical Iona/gear art with the AI redraws shown inside a concep
 
 ## Equipment set markers
 Four original scalable ivory silhouettes in `sets/`: Vigor heart/cross, Bulwark shield, Striker crossed blades, Swift wing. Matching dark/gold circular badges anchor to the bottom left of equipment art, opposite category bottom right. The recipe, selected output and full-detail artwork share the same authoritative `equipmentStats(...).setId`; no set renders no badge. Tooltips retain full set name, required pieces and bonus. These markers show membership, not an activated bonus. No equipment rules or set assignments change.
+
+### Approved C replaces the initial flat set glyphs
+The user selected C (sculpted ivory & gold) from the A/B/C concept comparison. Production uses four separately generated true-alpha WebPs in `sets/sculpted/`, with ivory faces, warm gold edges and a genuinely feathered Swift wing. The circle/rim remains a separate UI surface. Initial SVG studies remain for provenance only and are not the runtime design. Exact prompts, source hashes, reference hash and production hashes accompany the files.

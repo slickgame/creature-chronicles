@@ -1,0 +1,86 @@
+{
+  "style": "Approved C \u2014 Ivory & gold",
+  "reference": {
+    "archivePath": "references/APPROVED_SET_C.png",
+    "sha256": "574a4856441a5cc20efa271a6fe06ae2df0348a06afdfc85f705da1dfa3cf223"
+  },
+  "encoding": "256px RGBA WebP, quality96/method6, LANCZOS resize only; untouched original PNG masters retained in Drive archive. No creative postprocessing.",
+  "icons": [
+    {
+      "id": "vigor",
+      "file": "vigor.webp",
+      "master": "masters/vigor.png",
+      "masterSha256": "7275598698c65c144c0029c5b628b56e1d74bdd2147aed1db7b818df1249773e",
+      "masterSize": [
+        1254,
+        1254
+      ],
+      "sha256": "49405197d2656aa24f12aac3041f5f54da7a9535e3d837e454a74b0e0e37baa8",
+      "size": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "bulwark",
+      "file": "bulwark.webp",
+      "master": "masters/bulwark.png",
+      "masterSha256": "18a59321114477ee9a2fd62aafc005a9f1da5b7bad0e77279ab60b1b0206460f",
+      "masterSize": [
+        1254,
+        1254
+      ],
+      "sha256": "f642b759597918514f3270e115765d6594a50e0e443d5013cd90c90c2834f03f",
+      "size": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "striker",
+      "file": "striker.webp",
+      "master": "masters/striker.png",
+      "masterSha256": "1f12cae6fd0500d37f659e399fd5ea8c785ae301ca32ad0fd47e79c0a86d5a6e",
+      "masterSize": [
+        1254,
+        1254
+      ],
+      "sha256": "2c5a04f411072677560d475a710bb9a1ab6cd00a7140b0f7a2d4abf15ca58be1",
+      "size": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    },
+    {
+      "id": "swift",
+      "file": "swift.webp",
+      "master": "masters/swift.png",
+      "masterSha256": "f076aa7288195a2ff23b0f724c2b331f8b3cf75f697fb6e0b4d134fd2203152f",
+      "masterSize": [
+        1254,
+        1254
+      ],
+      "sha256": "8c545937bb3c4c6e9651f98583e9047dfd9bde110e50ef6d08cbf38064b1e134",
+      "size": [
+        256,
+        256
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ]
+    }
+  ]
+}

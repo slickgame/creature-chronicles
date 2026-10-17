@@ -89,4 +89,4 @@
 }
 
 /* Set identity mirrors the category anchor without changing tile geometry. */
-.setBadge{position:absolute;width:29%;height:29%;left:4%;bottom:4%;border:1px solid #d5ad5c;border-radius:50%;background:#0b1823;display:grid;place-items:center;pointer-events:none}.setBadge>img{width:82%;height:82%;object-fit:contain}
+.setBadge{position:absolute;width:29%;height:29%;left:4%;bottom:4%;border:1px solid #d5ad5c;border-radius:50%;background:radial-gradient(circle at 35% 22%,#263540,#0b1823 72%);box-shadow:inset 0 0 0 1px #f6db8c44,0 1px 2px #0009;display:grid;place-items:center;pointer-events:none}.setBadge>img{width:100%;height:100%;object-fit:contain}

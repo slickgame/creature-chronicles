@@ -7,8 +7,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 8191,
-      "sha256": "4c9f03ca0fec7d4345194a4b1eff6aa2fd3c3c6041b7a234ca1579868351ba3d",
+      "bytes": 8688,
+      "sha256": "4ece3d2427294669252edb158f26a11e2b5c53eb43bceb4a7746d73474aaae16",
       "kind": "source-or-document"
     },
     {
@@ -241,8 +241,8 @@
     },
     {
       "path": "forge.css",
-      "bytes": 19380,
-      "sha256": "f933202fd9c6a80c073bb12ee0aef8c23447ae602d3e0d15ade567c6b632b093",
+      "bytes": 19482,
+      "sha256": "85b426abc3344d425335cf7b18e17077d8dccc86a42813fdf3c490d340412524",
       "kind": "source-or-document"
     },
     {
@@ -931,8 +931,8 @@
     },
     {
       "path": "preview.js",
-      "bytes": 6880,
-      "sha256": "6bdf160b3e68f342f78c1f56df6b87a90f1c48afcaeb028f08611c825f5dbaf7",
+      "bytes": 6890,
+      "sha256": "b80ea04fa7d2fb9836a565dc21eee5dfdc41e00a16421e79c56d13d43a088a8e",
       "kind": "source-or-document"
     },
     {
@@ -1015,8 +1015,8 @@
     },
     {
       "path": "set-badges.html",
-      "bytes": 2572,
-      "sha256": "dd03ad37741569891ecb41febc5144e061167bda42066fe6ed12e85f48bb8bac",
+      "bytes": 2800,
+      "sha256": "1662ffdca2501142984eb3b2a8083d469ec298c287d9d59d29c0318bcd8d437e",
       "kind": "source-or-document"
     },
     {
@@ -1025,6 +1025,56 @@
       "sha256": "7477ae14d1d94412dd22852b17f5409df89a9974b3fdfe1a27059080a2fe04f4",
       "kind": "vector",
       "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "sets/sculpted/bulwark.webp",
+      "bytes": 17840,
+      "sha256": "f642b759597918514f3270e115765d6594a50e0e443d5013cd90c90c2834f03f",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sets/sculpted/generation-prompts.json",
+      "bytes": 5100,
+      "sha256": "ed6ca483bba7cd84883bc71b81e45086696fa2a320e57bfe8dc93625eb641c32",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "sets/sculpted/striker.webp",
+      "bytes": 24188,
+      "sha256": "2c5a04f411072677560d475a710bb9a1ab6cd00a7140b0f7a2d4abf15ca58be1",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sets/sculpted/swift.webp",
+      "bytes": 20660,
+      "sha256": "8c545937bb3c4c6e9651f98583e9047dfd9bde110e50ef6d08cbf38064b1e134",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "sets/sculpted/vigor.webp",
+      "bytes": 18390,
+      "sha256": "49405197d2656aa24f12aac3041f5f54da7a9535e3d837e454a74b0e0e37baa8",
+      "kind": "raster",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
     },
     {
       "path": "sets/striker.svg",

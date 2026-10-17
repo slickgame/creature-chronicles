@@ -1,5 +1,7 @@
 # Forge equipment set markers
 
+**Historical initial flat study; superseded visually by approved C.** See `FORGE_SET_C_2026-10-17.md`. Runtime now uses separately generated sculpted ivory/gold WebPs. Set positions and authoritative membership behavior below remain valid.
+
 Adds a matching ivory silhouette for each current equipment set: Vigor heart/cross, Bulwark shield, Striker crossed blades and Swift wing. Original editable SVGs are under `public/images/ui/forge-slate-v2/sets/`. `set-badges.html` displays all four at 112, 32 and 24 CSS pixels.
 
 Each Forge recipe tile, selected output and full-detail artwork now shows its actual `equipmentStats(item).setId` in a dark enamel/gold circle at bottom left, mirroring the category badge at bottom right. No set means no marker. All labels, piece requirements and actual bonuses remain in the existing hover/focus/phone item details. A marker identifies membership; it never claims a set bonus is active. The read-only assembly mirrors the runtime and remains sample-only.
