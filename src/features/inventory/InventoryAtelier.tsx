@@ -5,6 +5,7 @@ import {useGameContext} from '@/state/GameProvider';
 import {getBreedingParticipants} from '@/data/breeding';
 import {getInventoryCatalogue,getOwnedInventory,inventoryRecipientBlocker,inventoryArmedCount,INVENTORY_CATEGORIES,type InventoryCategory,type InventoryEntry} from '@/data/inventoryCatalogue';
 import {useBreedingSupportItem as applySupportItem,getBreedingSupportItemActiveCount} from '@/data/breedingItems';
+import {equipmentRecipientBlocker} from '@/data/equipmentTransfer';
 import {assignBattleOutfitterEquipment} from '@/data/battleOutfitter';
 import {compareEquipment,BATTLE_STAT_LABELS} from '@/data/equipmentComparison';
 import {equipmentStats} from '@/data/equipmentEnhancement';
@@ -41,7 +42,7 @@ export function InventoryAtelier({onClose,onOtherMenu,entry='menu',initialCatego
  const pregnancies=(save.pregnancies??[]).filter(p=>p.status==='pregnant'),selectedPregnancy=pregnancies.find(p=>p.receiver.participantId===recipient)??null,pregnancy=selectedPregnancy?.pregnancyId??'';
  const target=item.support?.target==='pregnancy'?pregnancy:recipient,needsRecipient=!!item.gear||!!item.support&&['player-or-creature','creature','pregnancy'].includes(item.support.target);
  const quote=item.support?applySupportItem(save,item.support.itemId,{source:'inventory',targetId:target}):null;
- const targetBlock=needsRecipient?(!p?'Choose a recipient first.':inventoryRecipientBlocker(save,item,recipient)):null;
+ const targetBlock=needsRecipient?(!p?'Choose a recipient first.':(item.gear?equipmentRecipientBlocker(save,item,recipient):inventoryRecipientBlocker(save,item,recipient))):null;
  const blocked=targetBlock??(item.support&&!quote?.ok?quote?.message:null)??(item.count<=0?'No owned item available.':null);
  const after=quote?.ok?getBreedingParticipants(quote.save).find(c=>c.participantId===recipient):null;
  const comparison=item.gear&&item.copy&&creature?compareEquipment(save,creature,item.gear,item.copy.id):null;
@@ -77,7 +78,7 @@ export function InventoryAtelier({onClose,onOtherMenu,entry='menu',initialCatego
  {item.support?.target==='pregnancy'&&selectedPregnancy&&<p>Pregnancy: {selectedPregnancy.daysRemaining} days remaining</p>}
  {p&&after&&<div className={s.changes}><span>Energy {p.energy} → {after.energy}</span><span>Hearts {p.hearts} → {after.hearts}</span><span>Affection {p.affection} → {after.affection}</span></div>}
  <p className={s.blocked} role="status">{blocked??(item.gear?'Review exact battle-stat changes before equipping.':item.support?.target==='breeding-pair'?'Armed effects are reviewed before committing.':'')}</p>
- {!catalogue.length?<button className={s.primary} onClick={()=>openSource('depot')}>Visit Supply Depot</button>:(item.support||item.gear)?<button className={s.primary} disabled={!!blocked} onClick={request}>{item.gear?'Compare equipment':item.support?.target==='breeding-pair'?(armed?'Armed':'Arm'):'Use Item'}</button>:<button className={s.primary} onClick={()=>item.resource?setStorage(true):openSource(item.keyItem?'nursery':item.destination==='outfitter'?'outfitter':item.destination==='nursery'?'nursery':'ranch')}>{item.resource?'Open Storage':item.keyItem?'Open Nursery':`Open ${item.destination==='outfitter'?'Outfitter':item.destination==='nursery'?'Nursery':'Ranch care'}`}</button>}
+ {!catalogue.length?<button className={s.primary} onClick={()=>openSource('depot')}>Visit Supply Depot</button>:(item.support||item.gear)?<button className={s.primary} disabled={!!blocked&&!item.gear} onClick={request}>{item.gear?'Compare equipment':item.support?.target==='breeding-pair'?(armed?'Armed':'Arm'):'Use Item'}</button>:<button className={s.primary} onClick={()=>item.resource?setStorage(true):openSource(item.keyItem?'nursery':item.destination==='outfitter'?'outfitter':item.destination==='nursery'?'nursery':'ranch')}>{item.resource?'Open Storage':item.keyItem?'Open Nursery':`Open ${item.destination==='outfitter'?'Outfitter':item.destination==='nursery'?'Nursery':'Ranch care'}`}</button>}
  <nav className={s.actions}><button disabled={!catalogue.length} onClick={()=>setPopup('source')}><Icon name="source"/>Find source</button><button onClick={()=>setPopup('armed')}>Armed effects: {inventoryArmedCount(save)}</button>{onOtherMenu&&<button onClick={()=>{remember();onOtherMenu();}}>Other menus</button>}</nav>
  {pager(Math.max(0,index),Math.max(1,rows.length),()=>{if(index>0)setSelected(rows[index-1].id);},()=>{if(index+1<rows.length)setSelected(rows[Math.max(0,index+1)].id);})}
  </article></section></main></GameDialog>

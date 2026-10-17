@@ -470,6 +470,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                     <div className={dossier.tabsWorkspace}>
                       <SharedCreatureDetail
                       inventoryRequest={inventoryRequest}
+                      onEquipmentFocus={()=>{if(innerWidth<=850||innerHeight<=550){setRosterCollapsed(true);setArtCollapsed(true);}}}
                         creature={selectedCreature}
                         dossier
                         ranchDossier

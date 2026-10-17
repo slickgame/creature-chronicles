@@ -2,24 +2,12 @@
 
 import { useRef, useState } from "react";
 import { BREEDING_SUPPORT_ITEMS, getBreedingSupportItemCount, useBreedingSupportItem as applySupportItem } from "@/data/breedingItems";
-import { BATTLE_OUTFITTER_ITEMS, EQUIPMENT_SLOTS, EQUIPMENT_SLOT_LABELS, type EquipmentSlot } from "@/data/battleOutfitter";
-import { getEquipmentCopies } from "@/data/equipmentInstances";
-import { BATTLE_STAT_LABELS, getEquippedBattleStats } from "@/data/equipmentComparison";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { DetailButton } from "@/features/ui/DetailButton";
-import { equipmentStats, type EquipmentCopy } from "@/data/equipmentEnhancement";
-import type { BattleOutfitterItem } from "@/data/battleOutfitter";
-import { EquipmentGallery } from '@/features/equipment/EquipmentGallery';
-import { BreedingPreviewBook } from '@/features/breeding/BreedingPreviewBook';
 import { GameDialog } from "@/features/ui/GameDialog";
 import { useGameContext } from "@/state/GameProvider";
 import type { CreatureRecord } from "@/types/creature";
 import s from "./CreatureInventoryTabs.module.css";
-
-function gearHint(item: BattleOutfitterItem, copy: EquipmentCopy) {
-  const stats = equipmentStats(item, copy);
-  return `${item.name} +${stats.level} · ${stats.rarity} · Power ${stats.powerGrade}\nMain: ${BATTLE_STAT_LABELS[stats.main.key]} +${stats.main.value}\n${stats.substats.map(stat => `${BATTLE_STAT_LABELS[stat.key]} +${stat.value}`).join(" · ") || "No substats yet"}${stats.passive ? `\n${stats.passive}` : ""}\nSelect for full details and comparison.`;
-}
 
 function ItemArt({src, name}: {src:string; name:string}) {
   const [failed,setFailed]=useState(false);
@@ -70,17 +58,4 @@ export function CreatureInventoryTab({creature}: {creature:CreatureRecord}) {
   </section>;
 }
 
-export function CreatureEquipmentTab({creature}: {creature:CreatureRecord}) {
- const {currentSave:save}=useGameContext();
- const [slot,setSlot]=useState<EquipmentSlot>('weapon'),[gearOpen,setGearOpen]=useState(false),[statsOpen,setStatsOpen]=useState(false);
- if(!save)return null;
- const equipped=getEquipmentCopies(save).filter(c=>c.owner===creature.creatureId),stats=getEquippedBattleStats(save,creature);
- return <section className={s.page}>
- <Heading eyebrow={`${equipped.length} / ${EQUIPMENT_SLOTS.length} slots filled`} title={`Equipment · ${creature.nickname}`} />
- <p>Select a slot to browse owned equipment. Each item retains its upgrades.</p>
- <div className={s.slots} aria-label="Creature equipment slots">{EQUIPMENT_SLOTS.map(key=>{const worn=equipped.find(c=>BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)?.equipmentSlot===key),gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===worn?.itemId);return <DetailButton key={key} hint={gear&&worn?gearHint(gear,worn):`${EQUIPMENT_SLOT_LABELS[key]} · Empty slot`} aria-label={`Inspect ${EQUIPMENT_SLOT_LABELS[key]} slot`} onClick={()=>{setSlot(key);setGearOpen(true);}}><small>{EQUIPMENT_SLOT_LABELS[key]}</small>{gear?<ItemArt src={gear.iconPath} name={gear.name}/>:<span className={s.emptySlot}>+</span>}<strong>{gear?.name??'Empty'}</strong><small>{worn?`+${worn.level} · Grade ${gear?.equipmentGrade}`:'No bonus'}</small></DetailButton>;})}</div>
- <DetailButton hint="Total battle stats include all six equipped slots. Existing battles retain their starting loadout." onClick={()=>setStatsOpen(true)}>Battle stats</DetailButton>
- {gearOpen&&<EquipmentGallery initialCreatureId={creature.creatureId} initialSlot={slot} onClose={()=>setGearOpen(false)}/>}
- {statsOpen&&<BreedingPreviewBook title="Equipped battle stats" marker="creature-equipment-stats" onClose={()=>setStatsOpen(false)} pages={Object.entries(stats).map(([key,value])=>({key,title:BATTLE_STAT_LABELS[key as keyof typeof stats],content:<p>{value}</p>}))}/>}
- </section>;
-}
+export {CreatureEquipmentLedger as CreatureEquipmentTab} from './CreatureEquipmentLedger';

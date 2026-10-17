@@ -1,6 +1,7 @@
 "use client";
 import {EquipmentActionFlow} from './EquipmentActionFlow';
 import type {EquipmentActionRequest} from '@/data/equipmentAction';
+import {equipmentRecipientBlocker} from '@/data/equipmentTransfer';
 import {equipmentRemovalBlocker} from '@/data/equipmentChangeSnapshot';
 import {useEffect,useRef,useState} from 'react';
 import {EQUIPMENT_RARITIES,EQUIPMENT_SETS,equipmentSetProgress} from '@/data/equipmentRules';
@@ -56,7 +57,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
  const quote=copy?getEnhancementQuote(save,copy.id):null;
  const recipe=BLACKSMITH_RECIPES.find(r=>r.itemId===gear?.itemId);
  const removalBlock=creature?equipmentRemovalBlocker(save,creature.creatureId):'Choose a creature first.';
- const blocker=item?(!creature?'Choose a creature first.':inventoryRecipientBlocker(save,item,creature.creatureId)):'This item is no longer owned.';
+ const blocker=item?(!creature?'Choose a creature first.':equipmentRecipientBlocker(save,item,creature.creatureId)):'This item is no longer owned.';
  const pages=Math.max(1,Math.ceil(rows.length/capacity)),index=Math.min(page,pages-1);
  const candidates=participants.filter(p=>p.displayName.toLowerCase().includes(recipientSearch.toLowerCase())),recipientPages=Math.max(1,Math.ceil(candidates.length/capacity)),recipientIndex=Math.min(recipientPage,recipientPages-1);
  const info=participants.find(p=>p.participantId===recipientInfo);
@@ -91,7 +92,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
    </aside>
   </div>
   <EquipmentSetChanges key={`${recipient}:${selected}`} comparison={comparison} onDetails={()=>setSetsOpen(true)}/>
-  <footer className={s.detailFooter}><p role="status">{blocker??'Equipping costs no Gold or materials. Review changes before confirming.'}</p><div className={s.actions}><button disabled={!item} onClick={()=>setInformation(item??null)}><Icon name="info"/>Details</button><button title={recipe?'Open exact recipe':'Browse Iona’s recipes'} onClick={()=>setSource('forge')}>Blacksmith</button><button onClick={()=>setSource(gear?.coliseumExclusive?'marks':'shop')}>Find source</button>{copy?.owner===creature?.creatureId&&copy?.owner?<button disabled={!!removalBlock} title={removalBlock??'Return this item to inventory'} onClick={()=>{if(copy&&creature)setEquipmentAction({kind:'remove',equipmentId:copy.id,creatureId:creature.creatureId});}}>Review remove</button>:<button className={s.primary} disabled={!copy||!!copy.owner||!save.creatures?.length} onClick={()=>{if(copy)setEquipmentAction({kind:'equip',equipmentId:copy.id,creatureId:creature?.creatureId??''});}}>Equip</button>}</div></footer>
+  <footer className={s.detailFooter}><p role="status">{blocker??'Equipping costs no Gold or materials. Review changes before confirming.'}</p><div className={s.actions}><button disabled={!item} onClick={()=>setInformation(item??null)}><Icon name="info"/>Details</button><button title={recipe?'Open exact recipe':'Browse Iona’s recipes'} onClick={()=>setSource('forge')}>Blacksmith</button><button onClick={()=>setSource(gear?.coliseumExclusive?'marks':'shop')}>Find source</button>{copy?.owner===creature?.creatureId&&copy?.owner?<button disabled={!!removalBlock} title={removalBlock??'Return this item to inventory'} onClick={()=>{if(copy&&creature)setEquipmentAction({kind:'remove',equipmentId:copy.id,creatureId:creature.creatureId});}}>Review remove</button>:<button className={s.primary} disabled={!copy||!save.creatures?.length} onClick={()=>{if(copy)setEquipmentAction({kind:'equip',equipmentId:copy.id,creatureId:creature?.creatureId??''});}}>{copy?.owner?'Transfer':'Equip'}</button>}{copy?.owner===creature?.creatureId&&copy?.owner&&<button onClick={()=>setEquipmentAction({kind:'equip',equipmentId:copy.id,creatureId:creature?.creatureId??''})}>Transfer</button>}</div></footer>
  </section></main></GameDialog>}
  {filters&&<BreedingPreviewBook title="Equipment filters" marker="equipment-filters" pages={[
  {key:'grade',title:'Power and rarity',content:<div className={s.filterFields}><label>Power grade<select aria-label="Grade filter" value={grade} onChange={e=>{setGrade(e.target.value);setPage(0);}}><option value="all">All power grades</option>{['D','C','B','A','S'].map(g=><option key={g}>{g}</option>)}</select></label><label>Rarity<select aria-label="Rarity filter" value={rarityFilter} onChange={e=>{setRarityFilter(e.target.value);setPage(0);}}><option value="all">All rarities</option>{EQUIPMENT_RARITIES.map(r=><option key={r}>{r}</option>)}</select></label></div>},

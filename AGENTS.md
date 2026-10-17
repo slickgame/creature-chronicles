@@ -44,3 +44,6 @@ Inventory and creature-card Equipment tabs share EquipmentGallery; its equip/rem
 
 ## Shared equipment chooser entry points
 Inventory, creature-card Equipment and BattleOutfitterBench Equip actions now begin with EquipmentActionFlow’s approved B roster/comparison chooser. Capture the quote only when Review equip opens; preserve parent recipient selection without saving and guard the fresh confirmation against click-through. Removal stays direct. See docs/EQUIPMENT_CHOOSER_ROUTES_2026-10-17.md.
+
+## Approved creature equipment ledger B and transfers
+The user selected B for the creature Equipment tab. Keep desktop creature tabs and the phone Creature section selector; Previous screen leaves the roster. CreatureEquipmentLedger uses shared gear art, all six slots, paged equipped-only sets and four-substat support. Worn pieces can transfer through EquipmentActionFlow: validate both creatures, preview both loadouts/set losses, persist once and retain exact copy/upgrades. Never bypass training/gauntlet locks or replace the two-creature review with a single-recipient confirmation. Forge, Inventory and Outfitter use the shared flow. See docs/CREATURE_EQUIPMENT_LEDGER_AND_TRANSFER_2026-10-17.md.

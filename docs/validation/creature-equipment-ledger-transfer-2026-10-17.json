@@ -1,0 +1,1213 @@
+{
+  "layouts": {
+    "results": [
+      {
+        "route": "creature-ledger",
+        "shots": [
+          {
+            "name": "ledger-slots-1920-960",
+            "size": {
+              "width": 1920,
+              "height": 960
+            },
+            "box": {
+              "x": 942.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 584.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 584,
+                "scroll": 584
+              }
+            }
+          },
+          {
+            "name": "ledger-item-1920-960",
+            "size": {
+              "width": 1920,
+              "height": 960
+            },
+            "box": {
+              "x": 942.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 584.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 584,
+                "scroll": 584
+              }
+            }
+          },
+          {
+            "name": "battle-stats-1920-960",
+            "size": {
+              "width": 1920,
+              "height": 960
+            },
+            "box": {
+              "x": 660,
+              "y": 0,
+              "width": 600,
+              "height": 960
+            },
+            "metrics": {
+              "scrollWidth": 600,
+              "clientWidth": 600,
+              "panel": null
+            }
+          },
+          {
+            "name": "ledger-slots-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 704,
+              "y": 245.6875,
+              "width": 696.984375,
+              "height": 524.3125
+            },
+            "metrics": {
+              "scrollWidth": 695,
+              "clientWidth": 695,
+              "panel": {
+                "height": 524,
+                "scroll": 524
+              }
+            }
+          },
+          {
+            "name": "ledger-item-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 704,
+              "y": 245.6875,
+              "width": 696.984375,
+              "height": 524.3125
+            },
+            "metrics": {
+              "scrollWidth": 695,
+              "clientWidth": 695,
+              "panel": {
+                "height": 524,
+                "scroll": 524
+              }
+            }
+          },
+          {
+            "name": "battle-stats-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 420,
+              "y": 0,
+              "width": 600,
+              "height": 900
+            },
+            "metrics": {
+              "scrollWidth": 600,
+              "clientWidth": 600,
+              "panel": null
+            }
+          },
+          {
+            "name": "ledger-slots-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 942.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 344.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 344,
+                "scroll": 344
+              }
+            }
+          },
+          {
+            "name": "ledger-item-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 942.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 344.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 344,
+                "scroll": 344
+              }
+            }
+          },
+          {
+            "name": "ledger-substats-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 942.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 344.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 344,
+                "scroll": 344
+              }
+            }
+          },
+          {
+            "name": "ledger-sets-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 942.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 344.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 344,
+                "scroll": 344
+              }
+            }
+          },
+          {
+            "name": "battle-stats-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 660,
+              "y": 0,
+              "width": 600,
+              "height": 720
+            },
+            "metrics": {
+              "scrollWidth": 600,
+              "clientWidth": 600,
+              "panel": null
+            }
+          },
+          {
+            "name": "ledger-slots-2560-1440",
+            "size": {
+              "width": 2560,
+              "height": 1440
+            },
+            "box": {
+              "x": 1262.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 1064.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 1064,
+                "scroll": 1064
+              }
+            }
+          },
+          {
+            "name": "ledger-item-2560-1440",
+            "size": {
+              "width": 2560,
+              "height": 1440
+            },
+            "box": {
+              "x": 1262.234375,
+              "y": 245.6875,
+              "width": 878.765625,
+              "height": 1064.3125
+            },
+            "metrics": {
+              "scrollWidth": 877,
+              "clientWidth": 877,
+              "panel": {
+                "height": 1064,
+                "scroll": 1064
+              }
+            }
+          },
+          {
+            "name": "battle-stats-2560-1440",
+            "size": {
+              "width": 2560,
+              "height": 1440
+            },
+            "box": {
+              "x": 980,
+              "y": 0,
+              "width": 600,
+              "height": 1440
+            },
+            "metrics": {
+              "scrollWidth": 600,
+              "clientWidth": 600,
+              "panel": null
+            }
+          },
+          {
+            "name": "ledger-slots-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 366,
+              "height": 488.5
+            },
+            "metrics": {
+              "scrollWidth": 364,
+              "clientWidth": 364,
+              "panel": {
+                "height": 489,
+                "scroll": 489
+              }
+            }
+          },
+          {
+            "name": "ledger-item-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 366,
+              "height": 488.5
+            },
+            "metrics": {
+              "scrollWidth": 364,
+              "clientWidth": 364,
+              "panel": {
+                "height": 489,
+                "scroll": 489
+              }
+            }
+          },
+          {
+            "name": "ledger-substats-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 366,
+              "height": 488.5
+            },
+            "metrics": {
+              "scrollWidth": 364,
+              "clientWidth": 364,
+              "panel": {
+                "height": 489,
+                "scroll": 489
+              }
+            }
+          },
+          {
+            "name": "ledger-sets-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 366,
+              "height": 488.5
+            },
+            "metrics": {
+              "scrollWidth": 364,
+              "clientWidth": 364,
+              "panel": {
+                "height": 489,
+                "scroll": 489
+              }
+            }
+          },
+          {
+            "name": "battle-stats-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 390,
+              "height": 844
+            },
+            "metrics": {
+              "scrollWidth": 390,
+              "clientWidth": 390,
+              "panel": null
+            }
+          },
+          {
+            "name": "ledger-slots-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 336,
+              "height": 384.5
+            },
+            "metrics": {
+              "scrollWidth": 334,
+              "clientWidth": 334,
+              "panel": {
+                "height": 385,
+                "scroll": 385
+              }
+            }
+          },
+          {
+            "name": "ledger-item-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 336,
+              "height": 384.5
+            },
+            "metrics": {
+              "scrollWidth": 334,
+              "clientWidth": 334,
+              "panel": {
+                "height": 385,
+                "scroll": 385
+              }
+            }
+          },
+          {
+            "name": "ledger-substats-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 336,
+              "height": 384.5
+            },
+            "metrics": {
+              "scrollWidth": 334,
+              "clientWidth": 334,
+              "panel": {
+                "height": 385,
+                "scroll": 385
+              }
+            }
+          },
+          {
+            "name": "ledger-sets-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 12,
+              "y": 211.5,
+              "width": 336,
+              "height": 384.5
+            },
+            "metrics": {
+              "scrollWidth": 334,
+              "clientWidth": 334,
+              "panel": {
+                "height": 385,
+                "scroll": 385
+              }
+            }
+          },
+          {
+            "name": "battle-stats-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 360,
+              "height": 740
+            },
+            "metrics": {
+              "scrollWidth": 360,
+              "clientWidth": 360,
+              "panel": null
+            }
+          },
+          {
+            "name": "ledger-slots-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 21,
+              "y": 128,
+              "width": 798,
+              "height": 186.0625
+            },
+            "metrics": {
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "panel": {
+                "height": 186,
+                "scroll": 186
+              }
+            }
+          },
+          {
+            "name": "ledger-item-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 21,
+              "y": 128,
+              "width": 798,
+              "height": 186.0625
+            },
+            "metrics": {
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "panel": {
+                "height": 186,
+                "scroll": 186
+              }
+            }
+          },
+          {
+            "name": "ledger-sets-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 21,
+              "y": 128,
+              "width": 798,
+              "height": 186.0625
+            },
+            "metrics": {
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "panel": {
+                "height": 186,
+                "scroll": 186
+              }
+            }
+          },
+          {
+            "name": "battle-stats-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 122,
+              "y": 0,
+              "width": 600,
+              "height": 390
+            },
+            "metrics": {
+              "scrollWidth": 600,
+              "clientWidth": 600,
+              "panel": null
+            }
+          }
+        ],
+        "navigation": "Overview and Work Skills return to same creature; desktop tabs and phone selector",
+        "save": "unchanged"
+      }
+    ],
+    "errors": []
+  },
+  "transfer": {
+    "results": [
+      {
+        "route": "creature-ledger",
+        "shots": [
+          {
+            "name": "ledger-slots-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 21,
+              "y": 128,
+              "width": 798,
+              "height": 186.0625
+            },
+            "metrics": {
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "panel": {
+                "height": 186,
+                "scroll": 186
+              }
+            }
+          },
+          {
+            "name": "ledger-item-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 21,
+              "y": 128,
+              "width": 798,
+              "height": 186.0625
+            },
+            "metrics": {
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "panel": {
+                "height": 186,
+                "scroll": 186
+              }
+            }
+          },
+          {
+            "name": "ledger-sets-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 21,
+              "y": 128,
+              "width": 798,
+              "height": 186.0625
+            },
+            "metrics": {
+              "scrollWidth": 796,
+              "clientWidth": 796,
+              "panel": {
+                "height": 186,
+                "scroll": 186
+              }
+            }
+          }
+        ],
+        "navigation": "Overview and Work Skills return to same creature; desktop tabs and phone selector",
+        "save": "unchanged"
+      },
+      {
+        "route": "creature-transfer",
+        "shots": [
+          {
+            "name": "transfer-donor-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-donor-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-recipient-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-recipient-1440-900",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 39.796875,
+              "width": 1300,
+              "height": 820.390625
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-donor-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 310,
+              "y": 34.84375,
+              "width": 1300,
+              "height": 650.3125
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-donor-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 310,
+              "y": 34.84375,
+              "width": 1300,
+              "height": 650.3125
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-recipient-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 310,
+              "y": 34.84375,
+              "width": 1300,
+              "height": 650.3125
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-recipient-1920-720",
+            "size": {
+              "width": 1920,
+              "height": 720
+            },
+            "box": {
+              "x": 310,
+              "y": 20,
+              "width": 1300,
+              "height": 698.046875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-donor-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-donor-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 82.359375,
+              "width": 372,
+              "height": 679.28125
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-recipient-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 69.796875,
+              "width": 372,
+              "height": 704.390625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-recipient-390-844",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 82.359375,
+              "width": 372,
+              "height": 679.28125
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-donor-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 9,
+              "y": 15.375,
+              "width": 342,
+              "height": 709.234375
+            },
+            "metrics": {
+              "scrollWidth": 340,
+              "clientWidth": 340,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-donor-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 9,
+              "y": 24.0625,
+              "width": 342,
+              "height": 691.875
+            },
+            "metrics": {
+              "scrollWidth": 340,
+              "clientWidth": 340,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-recipient-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 9,
+              "y": 11.5,
+              "width": 342,
+              "height": 716.984375
+            },
+            "metrics": {
+              "scrollWidth": 340,
+              "clientWidth": 340,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-recipient-360-740",
+            "size": {
+              "width": 360,
+              "height": 740
+            },
+            "box": {
+              "x": 9,
+              "y": 24.0625,
+              "width": 342,
+              "height": 691.875
+            },
+            "metrics": {
+              "scrollWidth": 340,
+              "clientWidth": 340,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-donor-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 9,
+              "y": 20.75,
+              "width": 826,
+              "height": 348.484375
+            },
+            "metrics": {
+              "scrollWidth": 824,
+              "clientWidth": 824,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-donor-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 9,
+              "y": 9,
+              "width": 826,
+              "height": 375.484375
+            },
+            "metrics": {
+              "scrollWidth": 824,
+              "clientWidth": 824,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-recipient-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 9,
+              "y": 9,
+              "width": 826,
+              "height": 377.734375
+            },
+            "metrics": {
+              "scrollWidth": 824,
+              "clientWidth": 824,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-expanded-recipient-844-390",
+            "size": {
+              "width": 844,
+              "height": 390
+            },
+            "box": {
+              "x": 9,
+              "y": 9,
+              "width": 826,
+              "height": 375.484375
+            },
+            "metrics": {
+              "scrollWidth": 824,
+              "clientWidth": 824,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 65.859375,
+              "width": 1300,
+              "height": 768.28125
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          },
+          {
+            "name": "transfer-receipt-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 71.875,
+              "width": 372,
+              "height": 700.234375
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "doubleClick": "review guarded, confirm once, receipt retained",
+        "copy": "exact source moved and exact replacement returned, all upgrades preserved",
+        "sets": "both loss warnings visible minimized and expanded",
+        "reload": "persisted"
+      }
+    ],
+    "errors": []
+  },
+  "entryPoints": {
+    "results": [
+      {
+        "route": "inventory",
+        "shots": [
+          {
+            "name": "inventory-transfer-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "inventory-transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 65.859375,
+              "width": 1300,
+              "height": 768.28125
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "transfer": "exact selected copy, one confirm, receipt retained",
+        "upgrades": "preserved"
+      },
+      {
+        "route": "outfitter",
+        "shots": [
+          {
+            "name": "outfitter-transfer-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "outfitter-transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "transfer": "exact selected copy, one confirm, receipt retained",
+        "upgrades": "preserved"
+      },
+      {
+        "route": "forge",
+        "shots": [
+          {
+            "name": "forge-transfer-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "forge-transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "transfer": "exact selected copy, one confirm, receipt retained",
+        "upgrades": "preserved"
+      }
+    ],
+    "errors": []
+  },
+  "upgradeRegression": {
+    "upgrade": "passed, exact worn copy +1, wearer preserved",
+    "errors": []
+  },
+  "fullSuite": {
+    "tests": 362,
+    "passed": 362
+  },
+  "focusedTests": {
+    "tests": 12,
+    "passed": 12
+  },
+  "build": "passed",
+  "lint": "zero errors"
+}

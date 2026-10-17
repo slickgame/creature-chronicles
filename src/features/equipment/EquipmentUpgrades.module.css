@@ -18,3 +18,5 @@
 .inventory,.details{position:relative}.inventory::before,.details::before,.inventory::after,.details::after{content:'';position:absolute;top:2px;width:25px;height:25px;background:url('/images/ui/forge-slate-v2/ornaments/corner.svg') center/contain no-repeat;pointer-events:none}.inventory::before,.details::before{left:2px}.inventory::after,.details::after{right:2px;transform:rotate(90deg)}
 @media(max-width:700px){.layout{grid-template-rows:285px minmax(0,1fr)}.copyList{width:min(100%,310px);align-self:center}.inventory::before,.details::before,.inventory::after,.details::after{width:17px;height:17px}}
 @media(max-width:700px) and (max-height:780px){.layout{grid-template-rows:250px minmax(0,1fr)}}
+
+.equipActions{display:grid;gap:5px;align-content:center}.equipActions>button{min-height:36px}.equipActions>button:last-child:not(:first-child){font-size:14px;padding:4px 12px;}

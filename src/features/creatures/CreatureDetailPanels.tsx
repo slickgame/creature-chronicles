@@ -53,6 +53,7 @@ type SharedCreatureDetailProps = {
   dossier?: boolean;
   ranchDossier?: boolean;
   inventoryRequest?: number;
+  onEquipmentFocus?: () => void;
   showDossierPortrait?: boolean;
   statusNote?: string;
   bestStatLabels?: string[];
@@ -209,6 +210,7 @@ export function SharedCreatureDetail({
   dossier = false,
   ranchDossier = false,
   inventoryRequest = 0,
+  onEquipmentFocus,
   showDossierPortrait = false,
   statusNote,
   bestStatLabels = [],
@@ -232,6 +234,8 @@ export function SharedCreatureDetail({
   const tabId = useId();
   const tabs = getAvailableTabs(mode, hasCareActions, ranchDossier);
   const [activeTab, setActiveTab] = useState<CreatureDetailTab>(ranchDossier ? "stats" : tabs[0]);
+  function selectTab(tab:CreatureDetailTab){setActiveTab(tab);if(tab==='equipment')onEquipmentFocus?.();}
+  useEffect(()=>{if(activeTab!=='equipment'||!onEquipmentFocus)return;const resize=()=>onEquipmentFocus();addEventListener('resize',resize);return()=>removeEventListener('resize',resize);},[activeTab,onEquipmentFocus]);
 
   useEffect(() => {
     setActiveTab(current => ranchDossier && getAvailableTabs(mode, hasCareActions, ranchDossier).includes(current) ? current : getAvailableTabs(mode, hasCareActions, ranchDossier)[0]);
@@ -349,7 +353,8 @@ export function SharedCreatureDetail({
           overflow: "hidden",
         }}
       >
-        {tabs.length > 1 ? (
+        {tabs.length > 1 ? <div>
+          {ranchDossier&&<label className={dossierStyles.sectionPicker}>Creature section<select aria-label="Creature section" value={activeTab} onChange={event=>selectTab(event.target.value as typeof activeTab)}>{tabs.map(tab=><option key={tab} value={tab}>{getTabLabel(tab)}</option>)}</select></label>}
           <nav
             aria-label="Creature detail tabs"
             role="tablist"
@@ -360,7 +365,7 @@ export function SharedCreatureDetail({
                 : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : -1;
               if (next < 0) return;
               event.preventDefault();
-              setActiveTab(tabs[next]);
+              selectTab(tabs[next]);
               event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
             }}
             style={{
@@ -377,7 +382,7 @@ export function SharedCreatureDetail({
               <button
                 key={tab}
                 type="button"
-                onClick={() => setActiveTab(tab)}
+                onClick={() => selectTab(tab)}
                 role="tab"
                 id={`${tabId}-${tab}`}
                 aria-controls={`${tabId}-panel`}
@@ -399,7 +404,7 @@ export function SharedCreatureDetail({
               </button>
             ))}
           </nav>
-        ) : null}
+        </div> : null}
 
         <div key={`${activeTab}-${creature.creatureId}-${inventoryRequest}`} role="tabpanel" id={`${tabId}-panel`} aria-labelledby={tabs.length > 1 ? `${tabId}-${activeTab}` : undefined} aria-label={tabs.length === 1 ? getTabLabel(activeTab) : undefined} tabIndex={0} className={dossier ? dossierStyles.tabContent : undefined} style={{ minHeight: 0, overflow: "auto" }}>
           {activeTab === "overview" ? (
