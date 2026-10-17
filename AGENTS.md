@@ -12,3 +12,6 @@ For each new menu, window or popup redesign, show actual current-game screenshot
 
 ## Approved concept fidelity
 Treat the selected concept as a visual acceptance reference. Compare actual screenshots against its typography, panel borders/ornament, card proportions, spacing, header and action hierarchy on desktop and phone before calling the UI complete. A matching palette and passing layout checks alone are insufficient; avoid stretching cards to fill unused space when the concept uses compact cards and an inline detail area.
+
+## Current locked Forge target
+The user locked Forge B3 (slate/gold, compact nameless item tiles, ivory silhouette category badges, Craft button) on October16,2026. Read docs/FORGE_B3_PRODUCTION_KIT_2026-10-16.md and public/images/ui/forge-slate-v2/README.md before the next Forge change. This supersedes the prior Forge A visual direction. The asset kit is separate from live runtime integration; do not claim the new style is in the game until actual BlacksmithWorkshop integration and screenshots pass.

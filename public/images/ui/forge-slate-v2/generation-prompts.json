@@ -1,0 +1,54 @@
+{
+  "texture": {
+    "prompt": "Use case: stylized-concept. Asset type: one seamless production UI surface texture for the LOCKED Creature Chronicles Forge B3 slate-and-gold game screen. Reference image is STYLE ONLY: sample the almost-black midnight blue-slate interior of its equipment and tooltip panels, NOT the visible text, frames, art, character or scene. Generate a square flat straight-on uniform dark midnight navy-blue slate surface, extremely subtle fine matte mineral grain and restrained soft painterly variation. Overall near #0c1a26 to #142938. Very low contrast; readable ivory UI text and vibrant gear illustrations will overlay it. Seamless/tileable in both directions: match edge colors, no vignette or central highlight. No metallic edge, no border, no ornament, no symbols, no letters, no words, no numbers, no scratches, no logos, no icon, no figure, no equipment, no lighting hotspot. This is exclusively the quiet dark material background. Opaque full canvas. Premium smooth anime fantasy RPG UI material, no photographic surface detail or obvious patterned shapes.",
+    "originalFilename": "exec-0d246880-b916-40bc-8f5c-c0df62e224df.png",
+    "method": "Built-in image_gen; opaque PNG master. Pixel-preserving WebP encode quality92/method6, no creative raster edits.",
+    "production": "textures/slate.webp",
+    "use": "Optional low-opacity slate texture under dark overlay; no font/item data baked into art."
+  },
+  "vectors": {
+    "source": "scripts/build-forge-slate-assets.py",
+    "method": "Original editable code-native SVG shapes, frames, state variants and approved silhouette interpretation; not raster crops."
+  },
+  "fonts": {
+    "family": "Tinos",
+    "source": "https://github.com/google/fonts/tree/main/ofl/tinos",
+    "upstream": "https://github.com/googlefonts/tinos",
+    "license": "Included fonts/OFL.txt",
+    "method": "Unmodified full upstream TTFs, lossless WOFF packaging using fontTools; no font artwork generated."
+  },
+  "lockedReference": "User-uploaded a759b7fb-e715-4c50-b735-2c5c7654f059.png",
+  "categoryArt": [
+    {
+      "id": "weapon",
+      "originalFilename": "exec-e69671c9-a718-4817-96ce-50f16a4923b4.png",
+      "prompt": "Production game UI asset for Creature Chronicles locked Forge B3. Reference is APPROVED silhouette category sheet, use the weapon symbol only as exact design style/shape reference. Generate ONE ISOLATED weapon CATEGORY GLYPH, elegant diagonal longsword, tapered blade upper-right, distinct crossguard, wrapped grip lower-left, rounded pommel; one long dark negative-space blade slit. Warm ivory solid fill (#fff0cf), completely flat single color, expertly smooth premium fantasy silhouette with only essential transparent negative-space cutouts. Match approved sheet's silhouette craftsmanship. NO gold ring, NO badge/circle/container, NO background, NO shadows, NO gradients, NO texture, NO metallic light, NO outlines, NO letters/names/words/numbers, NO duplicate small version. Exactly one glyph centered in square transparent canvas, full silhouette with15% transparent padding around all sides. Keep broad clear anatomy of equipment, mature professional game icon design; intended display at24\u201332px. Entire exterior AND internal cutouts genuinely transparent, not navy painted regions. Straight-on flat UI artwork, crisp edges, no perspective beyond the approved silhouette shape."
+    },
+    {
+      "id": "armor",
+      "originalFilename": "exec-b76d2894-b742-4430-a0c5-caf61f6250fe.png",
+      "prompt": "Production game UI asset for Creature Chronicles locked Forge B3. Reference is APPROVED silhouette category sheet, use the armor symbol only as exact design style/shape reference. Generate ONE ISOLATED armor CATEGORY GLYPH, symmetrical shaped breastplate with two distinct shoulder guards, neck opening and tapered torso/lower V-shaped armored waist, smooth curved edges, dark shoulder separations. Warm ivory solid fill (#fff0cf), completely flat single color, expertly smooth premium fantasy silhouette with only essential transparent negative-space cutouts. Match approved sheet's silhouette craftsmanship. NO gold ring, NO badge/circle/container, NO background, NO shadows, NO gradients, NO texture, NO metallic light, NO outlines, NO letters/names/words/numbers, NO duplicate small version. Exactly one glyph centered in square transparent canvas, full silhouette with15% transparent padding around all sides. Keep broad clear anatomy of equipment, mature professional game icon design; intended display at24\u201332px. Entire exterior AND internal cutouts genuinely transparent, not navy painted regions. Straight-on flat UI artwork, crisp edges, no perspective beyond the approved silhouette shape."
+    },
+    {
+      "id": "head",
+      "originalFilename": "exec-30538f04-abda-42f0-be19-52c53daeaa35.png",
+      "prompt": "Production game UI asset for Creature Chronicles locked Forge B3. Reference is APPROVED silhouette category sheet, use the head symbol only as exact design style/shape reference. Generate ONE ISOLATED head CATEGORY GLYPH, side-profile crested closed knight helmet facing RIGHT, swept curved crest, projecting brow and angular visor, two broad vent cutouts and neck guard, NOT frontal helmet or human face. Warm ivory solid fill (#fff0cf), completely flat single color, expertly smooth premium fantasy silhouette with only essential transparent negative-space cutouts. Match approved sheet's silhouette craftsmanship. NO gold ring, NO badge/circle/container, NO background, NO shadows, NO gradients, NO texture, NO metallic light, NO outlines, NO letters/names/words/numbers, NO duplicate small version. Exactly one glyph centered in square transparent canvas, full silhouette with15% transparent padding around all sides. Keep broad clear anatomy of equipment, mature professional game icon design; intended display at24\u201332px. Entire exterior AND internal cutouts genuinely transparent, not navy painted regions. Straight-on flat UI artwork, crisp edges, no perspective beyond the approved silhouette shape."
+    },
+    {
+      "id": "hands",
+      "originalFilename": "exec-e695bc6d-c64b-4af4-bcd5-9b7f6ac069b1.png",
+      "prompt": "Production game UI asset for Creature Chronicles locked Forge B3. Reference is APPROVED silhouette category sheet, use the hands symbol only as exact design style/shape reference. Generate ONE ISOLATED hands CATEGORY GLYPH, armored gauntlet angled with broad flared cuff upper-right and curled fingers lower-left, thumb and four simplified armored fingers separated by a few deliberate dark cutouts. Warm ivory solid fill (#fff0cf), completely flat single color, expertly smooth premium fantasy silhouette with only essential transparent negative-space cutouts. Match approved sheet's silhouette craftsmanship. NO gold ring, NO badge/circle/container, NO background, NO shadows, NO gradients, NO texture, NO metallic light, NO outlines, NO letters/names/words/numbers, NO duplicate small version. Exactly one glyph centered in square transparent canvas, full silhouette with15% transparent padding around all sides. Keep broad clear anatomy of equipment, mature professional game icon design; intended display at24\u201332px. Entire exterior AND internal cutouts genuinely transparent, not navy painted regions. Straight-on flat UI artwork, crisp edges, no perspective beyond the approved silhouette shape."
+    },
+    {
+      "id": "feet",
+      "originalFilename": "exec-7e6da992-1fd5-45b7-8b98-322e8af48ba2.png",
+      "prompt": "Production game UI asset for Creature Chronicles locked Forge B3. Reference is APPROVED silhouette category sheet, use the feet symbol only as exact design style/shape reference. Generate ONE ISOLATED feet CATEGORY GLYPH, single side-profile boot, flared cuff, ankle, toe projecting LEFT and separate heel at lower-right, one cuff separation and a single ankle seam as negative space. Warm ivory solid fill (#fff0cf), completely flat single color, expertly smooth premium fantasy silhouette with only essential transparent negative-space cutouts. Match approved sheet's silhouette craftsmanship. NO gold ring, NO badge/circle/container, NO background, NO shadows, NO gradients, NO texture, NO metallic light, NO outlines, NO letters/names/words/numbers, NO duplicate small version. Exactly one glyph centered in square transparent canvas, full silhouette with15% transparent padding around all sides. Keep broad clear anatomy of equipment, mature professional game icon design; intended display at24\u201332px. Entire exterior AND internal cutouts genuinely transparent, not navy painted regions. Straight-on flat UI artwork, crisp edges, no perspective beyond the approved silhouette shape."
+    },
+    {
+      "id": "accessory",
+      "originalFilename": "exec-af547576-dfaf-476d-b2fa-c94f1557b2e5.png",
+      "prompt": "Production game UI asset for Creature Chronicles locked Forge B3. Reference is APPROVED silhouette category sheet, use the accessory symbol only as exact design style/shape reference. Generate ONE ISOLATED accessory CATEGORY GLYPH, elegant necklace curved oval band with teardrop pendant suspended centered below; band has dark open interior and teardrop one negative-space central opening, no links, no crossed lines. Warm ivory solid fill (#fff0cf), completely flat single color, expertly smooth premium fantasy silhouette with only essential transparent negative-space cutouts. Match approved sheet's silhouette craftsmanship. NO gold ring, NO badge/circle/container, NO background, NO shadows, NO gradients, NO texture, NO metallic light, NO outlines, NO letters/names/words/numbers, NO duplicate small version. Exactly one glyph centered in square transparent canvas, full silhouette with15% transparent padding around all sides. Keep broad clear anatomy of equipment, mature professional game icon design; intended display at24\u201332px. Entire exterior AND internal cutouts genuinely transparent, not navy painted regions. Straight-on flat UI artwork, crisp edges, no perspective beyond the approved silhouette shape."
+    }
+  ],
+  "categoryEncoding": "Original RGBA PNG masters preserved in archive; production RGBA WebP512px via Lanczos sizing, quality95/method6. No creative pixel edits."
+}

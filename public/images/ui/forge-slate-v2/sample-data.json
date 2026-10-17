@@ -1,0 +1,243 @@
+{
+  "notice": "Read-only asset assembly sample. Catalog values exported from existing game helpers; no transactions or save access.",
+  "gold": 95320,
+  "stock": {
+    "iron": 30,
+    "nails": 15
+  },
+  "reserves": {
+    "iron": 2,
+    "nails": 1
+  },
+  "recipes": [
+    {
+      "id": "training_blade",
+      "name": "Training Blade",
+      "art": "/images/ui/equipment-v2/training_grips.webp",
+      "slot": "weapon",
+      "rarity": "Common",
+      "grade": "D",
+      "level": 0,
+      "main": {
+        "label": "Physical Power",
+        "value": 3
+      },
+      "substats": [],
+      "set": {
+        "name": "Striker",
+        "pieces": 4,
+        "rates": {
+          "physicalPower": 15,
+          "specialPower": 15
+        },
+        "description": "+15% base Physical and Special Power per completed four-piece group."
+      },
+      "description": "A simple iron shortsword with a leather-wrapped handle. Improves physical striking power.",
+      "inputs": {
+        "iron": 1
+      },
+      "labor": 10,
+      "price": 55
+    },
+    {
+      "id": "focus_circlet",
+      "name": "Focus Circlet",
+      "art": "/images/ui/equipment-v2/focus_circlet.webp",
+      "slot": "head",
+      "rarity": "Uncommon",
+      "grade": "C",
+      "level": 0,
+      "main": {
+        "label": "Max HP",
+        "value": 15
+      },
+      "substats": [
+        {
+          "label": "Special Power",
+          "value": 3
+        }
+      ],
+      "set": {
+        "name": "Swift",
+        "pieces": 4,
+        "rates": {
+          "speed": 10
+        },
+        "description": "+10% base Speed per completed four-piece group."
+      },
+      "description": "Fine focus circlet with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "inputs": {
+        "iron": 3
+      },
+      "labor": 45,
+      "price": 185
+    },
+    {
+      "id": "reserve_pendant",
+      "name": "Reserve Pendant",
+      "art": "/images/ui/equipment-v2/reserve_pendant.webp",
+      "slot": "accessory",
+      "rarity": "Rare",
+      "grade": "C",
+      "level": 0,
+      "main": {
+        "label": "Max Battle Energy",
+        "value": 5
+      },
+      "substats": [
+        {
+          "label": "Resistance",
+          "value": 2
+        },
+        {
+          "label": "Special Power",
+          "value": 3
+        }
+      ],
+      "set": {
+        "name": "Striker",
+        "pieces": 4,
+        "rates": {
+          "physicalPower": 15,
+          "specialPower": 15
+        },
+        "description": "+15% base Physical and Special Power per completed four-piece group."
+      },
+      "description": "Fine reserve pendant with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "inputs": {
+        "iron": 3
+      },
+      "labor": 60,
+      "price": 205
+    },
+    {
+      "id": "duelist_saber",
+      "name": "Duelist Saber",
+      "art": "/images/ui/equipment-v2/duelist_grips.webp",
+      "slot": "weapon",
+      "rarity": "Heroic",
+      "grade": "B",
+      "level": 0,
+      "main": {
+        "label": "Physical Power",
+        "value": 7
+      },
+      "substats": [
+        {
+          "label": "Accuracy",
+          "value": 3
+        },
+        {
+          "label": "Max Battle Energy",
+          "value": 4
+        },
+        {
+          "label": "Max HP",
+          "value": 4
+        }
+      ],
+      "set": {
+        "name": "Striker",
+        "pieces": 4,
+        "rates": {
+          "physicalPower": 15,
+          "specialPower": 15
+        },
+        "description": "+15% base Physical and Special Power per completed four-piece group."
+      },
+      "description": "A curved steel saber with an ornate guard and navy grip. Improves physical power and precision.",
+      "inputs": {
+        "iron": 8,
+        "nails": 2
+      },
+      "labor": 100,
+      "price": 470
+    },
+    {
+      "id": "sentinel_helm",
+      "name": "Sentinel Helm",
+      "art": "/images/ui/equipment-v2/sentinel_helm.webp",
+      "slot": "head",
+      "rarity": "Heroic",
+      "grade": "B",
+      "level": 0,
+      "main": {
+        "label": "Max HP",
+        "value": 21
+      },
+      "substats": [
+        {
+          "label": "Defense",
+          "value": 4
+        },
+        {
+          "label": "Status Resist",
+          "value": 4
+        },
+        {
+          "label": "Max Battle Energy",
+          "value": 4
+        }
+      ],
+      "set": {
+        "name": "Bulwark",
+        "pieces": 2,
+        "rates": {
+          "defense": 10,
+          "resistance": 10
+        },
+        "description": "+10% base Defense and Resistance per completed two-piece group."
+      },
+      "description": "Superior sentinel helm with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "inputs": {
+        "iron": 7,
+        "nails": 4
+      },
+      "labor": 100,
+      "price": 440
+    },
+    {
+      "id": "duelist_bracers",
+      "name": "Duelist Bracers",
+      "art": "/images/ui/equipment-v2/duelist_bracers.webp",
+      "slot": "hands",
+      "rarity": "Heroic",
+      "grade": "B",
+      "level": 0,
+      "main": {
+        "label": "Physical Power",
+        "value": 7
+      },
+      "substats": [
+        {
+          "label": "Special Power",
+          "value": 4
+        },
+        {
+          "label": "Accuracy",
+          "value": 4
+        },
+        {
+          "label": "Speed",
+          "value": 2
+        }
+      ],
+      "set": {
+        "name": "Striker",
+        "pieces": 4,
+        "rates": {
+          "physicalPower": 15,
+          "specialPower": 15
+        },
+        "description": "+15% base Physical and Special Power per completed four-piece group."
+      },
+      "description": "Superior duelist bracers with adaptable fittings for any creature. Choose for its bonuses, not grade alone.",
+      "inputs": {
+        "iron": 7,
+        "nails": 4
+      },
+      "labor": 110,
+      "price": 460
+    }
+  ]
+}

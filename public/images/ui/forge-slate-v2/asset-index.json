@@ -1,0 +1,974 @@
+{
+  "algorithm": "SHA256",
+  "excludes": [
+    "asset-index.json",
+    "manifest.json"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 6224,
+      "sha256": "d157c9a5130eb9d4eaa8d906b3f27050ca0c4ea28a5717c483621f1e2d23e2b2",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "catalog.html",
+      "bytes": 13055,
+      "sha256": "abd5fac112433107bc8560bdbd54a3e342f7274d2e4366ff19b6b314838f7087",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "categories/accessory-badge.svg",
+      "bytes": 609,
+      "sha256": "fc24b2775deee4cd0b5a21ea3db1de8ad7896bdff98a13b968251988b551a98c",
+      "kind": "vector",
+      "viewBox": "0 0 80 80"
+    },
+    {
+      "path": "categories/accessory.svg",
+      "bytes": 308,
+      "sha256": "5283462769d7f4b82bfec1d4e0df37bc14312a3cf3c260a2edd04e87c1e68572",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "categories/accessory.webp",
+      "bytes": 21672,
+      "sha256": "e1b261772577be94083887e998ee38c6a269ed4b3bee37b69220837e6521a6b5",
+      "kind": "raster",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "categories/armor-badge.svg",
+      "bytes": 630,
+      "sha256": "ffe2b5fd47c8bb26ea5f86c64bc13e456da6e0d6831ee7c75fb015399dec1813",
+      "kind": "vector",
+      "viewBox": "0 0 80 80"
+    },
+    {
+      "path": "categories/armor.svg",
+      "bytes": 329,
+      "sha256": "f57f067a0cf4c31af4435252ddf68e723ce02acd9e29a3d986324d259656fa35",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "categories/armor.webp",
+      "bytes": 30488,
+      "sha256": "df77ef4b85843c48f9382eb333c9bf3b1f8cb0d4b60165058c3f7f6b10aa5b2b",
+      "kind": "raster",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "categories/feet-badge.svg",
+      "bytes": 594,
+      "sha256": "333c3f9aeb2460a03b085dbca53d32962fa009686328f46466d7581efdb3bb9b",
+      "kind": "vector",
+      "viewBox": "0 0 80 80"
+    },
+    {
+      "path": "categories/feet.svg",
+      "bytes": 293,
+      "sha256": "962e5c07f9eda9b46e182b39373a98a38409372b164ef78e1f96c81ca8ff547b",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "categories/feet.webp",
+      "bytes": 19228,
+      "sha256": "5888f4bd921abd959edcbd48f597f6d1077314fc35a89103fd55dc5ce9019857",
+      "kind": "raster",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "categories/hands-badge.svg",
+      "bytes": 640,
+      "sha256": "6a7728e3b6d41f18fe9929fc12b2432399782cf83773a15539a0c0d01e08dc76",
+      "kind": "vector",
+      "viewBox": "0 0 80 80"
+    },
+    {
+      "path": "categories/hands.svg",
+      "bytes": 339,
+      "sha256": "3a7d89a83c1d5507531b4591df37470b59d985af7391ad90666397ea1eeb6fcc",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "categories/hands.webp",
+      "bytes": 29226,
+      "sha256": "04fc1b4e7738e705458cfd34d70df2995d0c59ed92c9cbaf43321cdae4484605",
+      "kind": "raster",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "categories/head-badge.svg",
+      "bytes": 620,
+      "sha256": "2d9a4cb76162bedbd90fa8448986120c85b9d3474ac38c68ab7776c1c46ef070",
+      "kind": "vector",
+      "viewBox": "0 0 80 80"
+    },
+    {
+      "path": "categories/head.svg",
+      "bytes": 319,
+      "sha256": "6fdf9aabc62df71e77262e97dbd2e99d60e0640d2f2d1e2b18135c42b5c8e24f",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "categories/head.webp",
+      "bytes": 32486,
+      "sha256": "e9869e9d82416ff86e44dd5b24c6667caa9bbf2d0af4bb10d151405ed922174c",
+      "kind": "raster",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "categories/weapon-badge.svg",
+      "bytes": 570,
+      "sha256": "a2c72c2ef0de1abd7c86e26dbaf33ea6a95449191672c9b3db4e09915bd1edfd",
+      "kind": "vector",
+      "viewBox": "0 0 80 80"
+    },
+    {
+      "path": "categories/weapon.svg",
+      "bytes": 269,
+      "sha256": "1401a1f865655f03756fd9b15a05902efd2886627a6adf5ba4b4b48080673d46",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "categories/weapon.webp",
+      "bytes": 20100,
+      "sha256": "c0f599a515c95234bd8906f81c1b8f6cb94407591e21723b498cb73bcd526958",
+      "kind": "raster",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "category-sizes.html",
+      "bytes": 2150,
+      "sha256": "5a5296fe7d58bfbd917464f0c8a7e1c5611be0a3c4cc68e189b65bb449ea733e",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "fonts/METADATA.pb",
+      "bytes": 1395,
+      "sha256": "e9db6bd24890351be0ac41486fbcf4ccb10b34ec19f2e77d7a5517f2eb1dbafe",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "fonts/OFL.txt",
+      "bytes": 4383,
+      "sha256": "cb3382d4643e8b02c12e322c220a3c76a5020d667e4fd4e7c75e744cca6caa6b",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "fonts/Tinos-Bold.ttf",
+      "bytes": 597880,
+      "sha256": "393269dbab8899f938db19783eca5eac92eb431f7ae0ab45b8349ca895f1a06b",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-Bold.woff",
+      "bytes": 298896,
+      "sha256": "00881fa43c0c06720439ce020258525aeaea619f4a54620c71802c5c56d9c398",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-BoldItalic.ttf",
+      "bytes": 578976,
+      "sha256": "a5de79f0fe863ea0954757acb3d47b3ccd0a930ce3dd5b97230cd3866790a06e",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-BoldItalic.woff",
+      "bytes": 305764,
+      "sha256": "45a9adce507fef2dfdcb60bb74be8a59c5c8954922c90a6ee0bcb8218af2865b",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-Italic.ttf",
+      "bytes": 565016,
+      "sha256": "5942266ed398b155d7dc23e36833e7ec6be988f2439bdbeb8ef1bede808eaa91",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-Italic.woff",
+      "bytes": 303344,
+      "sha256": "2582674640af36b37115bc98d16246fcf9dc9c596567a48aa821e531bbe47241",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-Regular.ttf",
+      "bytes": 521588,
+      "sha256": "60a0e8ef0c04dd5dd69ffe91025fa2ae5836cbd35600a82ba031977557e2cb61",
+      "kind": "font"
+    },
+    {
+      "path": "fonts/Tinos-Regular.woff",
+      "bytes": 274860,
+      "sha256": "d7931b9002ecfd8daa5c8c307a57efa574b37facc8dfb9bca838dba9f5efd412",
+      "kind": "font"
+    },
+    {
+      "path": "forge.css",
+      "bytes": 16165,
+      "sha256": "a18c48c68fb0cc3eaff520aeeda11cc155f726554710bc0d59a6b4b610aa4e99",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "frames/button-primary-disabled.svg",
+      "bytes": 538,
+      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-primary-hover.svg",
+      "bytes": 538,
+      "sha256": "9c7620fd53fc86016975f147feb8ec776dcc16b341294d619f66c39d74fa705f",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-primary-pressed.svg",
+      "bytes": 538,
+      "sha256": "50726a846c5ba762345f8f0759555b85fee2daddf51d180e9758c131922ad01e",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-primary.svg",
+      "bytes": 538,
+      "sha256": "8294060e19109870647ff7604cd821cad5e964049dd3f6a4cacadd66ae2c290c",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-secondary-disabled.svg",
+      "bytes": 538,
+      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-secondary-hover.svg",
+      "bytes": 538,
+      "sha256": "b09ddcdcefad8764d91c31b7de21a7802759423bbd3b7a3a6a62ddb3f9388f39",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-secondary-pressed.svg",
+      "bytes": 538,
+      "sha256": "e2a37ca397389ef89feb49f4c1bf92da31206428a01f9252b1faa9f3efb89649",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-secondary.svg",
+      "bytes": 538,
+      "sha256": "a3641b4aed2eccaba84a7d18bc65a2f86b3945d3123a49e2d4d16dc83398d331",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/details.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/dialog.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/dialogue.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/enhancement-plate.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/error.svg",
+      "bytes": 543,
+      "sha256": "4efef81d4c9f5a28a4fa2f5367dfcc79942126a09feb1a1820a3b879e676f1f7",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/field.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/focus.svg",
+      "bytes": 543,
+      "sha256": "4fa663f68a04927d1094dc352bde3b1da2aed3d467864c6a71b516e0092c9a7b",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/grade-plate.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/host-plaque.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/item-common-disabled.svg",
+      "bytes": 543,
+      "sha256": "be3ac19fca2211bf41d028cc2b43fef39b9056ce55922a11dda3b0a70c80c867",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-common-hover.svg",
+      "bytes": 543,
+      "sha256": "76856cb8d092e7bc10f15fd52d8ac4eb0f53896c415656c8e716a132ea4fdd28",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-common.svg",
+      "bytes": 543,
+      "sha256": "76856cb8d092e7bc10f15fd52d8ac4eb0f53896c415656c8e716a132ea4fdd28",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-heroic-disabled.svg",
+      "bytes": 543,
+      "sha256": "be3ac19fca2211bf41d028cc2b43fef39b9056ce55922a11dda3b0a70c80c867",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-heroic-hover.svg",
+      "bytes": 543,
+      "sha256": "9f71333d277f0256ec35663ca21ae41bac2c6c4ff179406ea6bcea9e8a4c452d",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-heroic.svg",
+      "bytes": 543,
+      "sha256": "9f71333d277f0256ec35663ca21ae41bac2c6c4ff179406ea6bcea9e8a4c452d",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-legendary-disabled.svg",
+      "bytes": 543,
+      "sha256": "be3ac19fca2211bf41d028cc2b43fef39b9056ce55922a11dda3b0a70c80c867",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-legendary-hover.svg",
+      "bytes": 543,
+      "sha256": "c9ae8b16484b6a7adbf0be9153ad86a408473d127f1a95be934cfc271a4e8950",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-legendary.svg",
+      "bytes": 543,
+      "sha256": "c9ae8b16484b6a7adbf0be9153ad86a408473d127f1a95be934cfc271a4e8950",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-rare-disabled.svg",
+      "bytes": 543,
+      "sha256": "be3ac19fca2211bf41d028cc2b43fef39b9056ce55922a11dda3b0a70c80c867",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-rare-hover.svg",
+      "bytes": 543,
+      "sha256": "56305e4317a401ceec0e2393cc6c3c0d4321950c8ed4eabadcaf4014ebd291e4",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-rare.svg",
+      "bytes": 543,
+      "sha256": "56305e4317a401ceec0e2393cc6c3c0d4321950c8ed4eabadcaf4014ebd291e4",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-uncommon-disabled.svg",
+      "bytes": 543,
+      "sha256": "be3ac19fca2211bf41d028cc2b43fef39b9056ce55922a11dda3b0a70c80c867",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-uncommon-hover.svg",
+      "bytes": 543,
+      "sha256": "22313992f1201f90bc798030ce71b5036a3ae6f3015ff1010b96470ee9646791",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/item-uncommon.svg",
+      "bytes": 543,
+      "sha256": "22313992f1201f90bc798030ce71b5036a3ae6f3015ff1010b96470ee9646791",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/labor-row.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/material-row.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/notice.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/pager.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/receipt.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/recipes.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/screen.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/selection.svg",
+      "bytes": 284,
+      "sha256": "2948724c1e450a1fd47eff3d08f81f14cc51702d4aea30b634ad798d987566ef",
+      "kind": "vector",
+      "viewBox": "0 0 128 128"
+    },
+    {
+      "path": "frames/source.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/stat-row.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/stock-row.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/substat-row.svg",
+      "bytes": 538,
+      "sha256": "d2b7138bfc840f6ecf1a23550191ac4268c15db7ed490ac08e35bad908fc28ba",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/success.svg",
+      "bytes": 543,
+      "sha256": "0ad75d4bdb719fd7bb0d6887cfbc2c8fa5c7642eae52778aa073d3259f7e7dfe",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/tab-active-disabled.svg",
+      "bytes": 538,
+      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab-active-hover.svg",
+      "bytes": 538,
+      "sha256": "b4045c9f44e60b4cb01cc74a33f50a934c84021f0fcf1c5a3422f548419bd730",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab-active-pressed.svg",
+      "bytes": 538,
+      "sha256": "bb2b9fb79533e4178fa4494849c6a85a5e493a2470a5041b4c944adabff6ab94",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab-active.svg",
+      "bytes": 538,
+      "sha256": "ded0895f967316aa6a57ee2b7ef18d71f00453f81b10b352e9436b359eeeeddb",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab-disabled.svg",
+      "bytes": 538,
+      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab-hover.svg",
+      "bytes": 538,
+      "sha256": "2172f06d6cae4ef8ecbbe5f1f892cf28b3ba4afc8cb0b1e8f010c7c75b2f53c9",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab-pressed.svg",
+      "bytes": 538,
+      "sha256": "e2baaa3f681f90cb37e1b351386ba32275fa11aef13816518feae27d77e2c3e3",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tab.svg",
+      "bytes": 538,
+      "sha256": "521819f5b7c16fb1b641c8b75fbaade6514d908c7838746eaba840d15c5d8cd8",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/tooltip-pointer.svg",
+      "bytes": 195,
+      "sha256": "e01d0628950d16938d23002ce505b838b3ec1270fc23b22f8e4af5fd989a3551",
+      "kind": "vector",
+      "viewBox": "0 0 32 16"
+    },
+    {
+      "path": "frames/tooltip.svg",
+      "bytes": 1268,
+      "sha256": "377a530664d3eb0ad5cf46c73a396fc58b9eb693291c13e58875829b4d198c41",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "frames/warning.svg",
+      "bytes": 543,
+      "sha256": "aa34e960003aa6567336647231eb59f7c03ee1715155008a1c0a53bebe857b4a",
+      "kind": "vector",
+      "viewBox": "0 0 240 160"
+    },
+    {
+      "path": "generation-prompts.json",
+      "bytes": 10244,
+      "sha256": "1c7b9726e647447e3187db3c5a71da9641eaf71580be7603b2bf7fd392b14c63",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "icons/accuracy.svg",
+      "bytes": 275,
+      "sha256": "4b1727c596e9ccaadc19eb30eea4bd31b08bffbcd23e1bd6b55bc0109ddeb27e",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/back.svg",
+      "bytes": 186,
+      "sha256": "d0eda1ea686526a4e71b02a4c4b99ae320758d667dd7d2bc72fd5942381bb172",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/check.svg",
+      "bytes": 187,
+      "sha256": "a9e4c8dfec3426e7c42ae7228a448d24195bc77d093b09976f752d44d02eebe8",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/close.svg",
+      "bytes": 193,
+      "sha256": "9125a4b1b5f2ce9ed6baff25e00ecff30448d3004802561cddd8f93324c2ff2e",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/coin.svg",
+      "bytes": 261,
+      "sha256": "534cbd2b6095968c8a667ccdc53ab9334780fa9f6621211063c7ea9b2d90a58c",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/collapse.svg",
+      "bytes": 186,
+      "sha256": "bdf2fceb81266ac3a7441c0832f25db5a737cef97333936e8ee83b524a645019",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/compare.svg",
+      "bytes": 229,
+      "sha256": "da1e5aad51f0ec8ecb76291d41f3e6478d5cf018f8a4515953c8b40e11e2e511",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/craft.svg",
+      "bytes": 213,
+      "sha256": "f3379d814316665b4d91173473042bbb841d4033f9aed1c435e903d3bc5f8f3b",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/expand.svg",
+      "bytes": 185,
+      "sha256": "d3777d44054eb58ff848a7ea0965ce8cfa702a8329059fe68e606e82c8615253",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/filter.svg",
+      "bytes": 196,
+      "sha256": "0bbbd2a4a2a955791f5f63df2746f9aeb636af477646d1186ed620a52b1f6267",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/forge.svg",
+      "bytes": 224,
+      "sha256": "c1bfee0b85270632ab8471a640bdebd656242ab906b70bb500fde01e52f1b05a",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/gold-coin.svg",
+      "bytes": 475,
+      "sha256": "4d39c5b5ca242d6371e7b198085e527b93f5fa920e5211f181ced01571223f14",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "icons/home.svg",
+      "bytes": 215,
+      "sha256": "c7790a54b96aa8e71f68e98a30fe0136aba33de512212a688b2777356e4a4744",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/info.svg",
+      "bytes": 232,
+      "sha256": "b4c2479e58a562e8893481eba9dfa95bc772b71c58d0b5d0d3866fbbba8eca38",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/inventory.svg",
+      "bytes": 205,
+      "sha256": "c95e70027e173dd17eca185b99bdcb6757cb52205a751fe4d3d70c31ff53a983",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/labor.svg",
+      "bytes": 216,
+      "sha256": "e78a3b0117b022b17f43f3fbdb099a7b801f4fd084c6777f4563ad151f4a28d3",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/lock.svg",
+      "bytes": 218,
+      "sha256": "0e80164e71ab74a720c50e090f719086d29a63c0ad6b09ae1341cfe93c4876a3",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/materials.svg",
+      "bytes": 217,
+      "sha256": "a2dbcc5bd7cdd9046c6e2c960878e58c0e9c236769d0eb14fd8512e8958ccf7b",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/menu.svg",
+      "bytes": 196,
+      "sha256": "2deaac08d80ee013924d8082d2fa000fab97e159e70bfae1d0b124df73d267db",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/minus.svg",
+      "bytes": 181,
+      "sha256": "369fa07587d1ddb64c43ad2f88a6e9ec52e7aad37d1af5ce599bcc5ead351c93",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/next.svg",
+      "bytes": 185,
+      "sha256": "7e30be7e696a3c9d3b92d42fdc3dfec0b0b44c3fe3c6e67a22f5e7672c686ab0",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/output.svg",
+      "bytes": 219,
+      "sha256": "2b1b65ae45a4e7fd852c2cb4041bb84004edc428458f715a2d96561c945752f5",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/plus.svg",
+      "bytes": 189,
+      "sha256": "75f8ca7302269ca27d2317d28f7f74555e725035fbc08778fbb90bfe43af4df8",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/recipes.svg",
+      "bytes": 223,
+      "sha256": "eb6e7295a0f936cf22ee509fa214745252d4123e2cb9494f774e9689b0da3c06",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/search.svg",
+      "bytes": 219,
+      "sha256": "d5ae31e2e287d7caf5ef8d360990eabc74c74fd47893982cce217961ca96da71",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/shield.svg",
+      "bytes": 208,
+      "sha256": "6e29e510120fd4bca27d6f21172a5c6c20b3e9ef3b9e2c3f7cef171bcc6ed1d2",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/sort.svg",
+      "bytes": 217,
+      "sha256": "786941f3d616819a133b7aaa3f96148e127552acb4d04b749b56fd928513e7c8",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/source.svg",
+      "bytes": 218,
+      "sha256": "c7b051e14c69807abb46b8c7caaae787ac935a73002b304d1bdecdcfa4245ded",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/spark.svg",
+      "bytes": 207,
+      "sha256": "373ff0de2f30f22c27071e8d5f64e6bc034f61ff346c5018e18d624c17844e7c",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/talk.svg",
+      "bytes": 210,
+      "sha256": "8dd556a0b1c2f007c38ac22c3bb8788b609a2dfc9cd2d397b1f1f8b906146b2f",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/upgrade.svg",
+      "bytes": 198,
+      "sha256": "653841a33c65422663e658149de38a52f1ca47a534d0c12fad5cd27747d72b0a",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/warning.svg",
+      "bytes": 202,
+      "sha256": "ebfbaf7508cf0d8c0ce021fcb96eb82cd4824c8ba73fbacf2969f36eb040092e",
+      "kind": "vector",
+      "viewBox": "0 0 24 24"
+    },
+    {
+      "path": "icons/weapon.svg",
+      "bytes": 269,
+      "sha256": "1401a1f865655f03756fd9b15a05902efd2886627a6adf5ba4b4b48080673d46",
+      "kind": "vector",
+      "viewBox": "0 0 64 64"
+    },
+    {
+      "path": "ornaments/corner.svg",
+      "bytes": 178,
+      "sha256": "d6844cb70e715823c6bf3bb6908baf89981fc079b8b53da077b249d325d48977",
+      "kind": "vector",
+      "viewBox": "0 0 36 36"
+    },
+    {
+      "path": "ornaments/divider.svg",
+      "bytes": 160,
+      "sha256": "469e74925defee7e04f55564865452a9ffff6f6dc2948845c23b4a5dd7853f2f",
+      "kind": "vector",
+      "viewBox": "0 0 300 16"
+    },
+    {
+      "path": "ornaments/item-plinth.svg",
+      "bytes": 334,
+      "sha256": "64d735d3eb755a3d75365f4e73bfff976add29f628fd3dfb2b3fb497d4d50d3e",
+      "kind": "vector",
+      "viewBox": "0 0 200 200"
+    },
+    {
+      "path": "preview.html",
+      "bytes": 2017,
+      "sha256": "2a33c13269d981b19115c86efe73a3d7ee2ac044775a425661696fb6df5e84ed",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "preview.js",
+      "bytes": 6623,
+      "sha256": "45db5ff11705ee92f6b9fd595e8dcd98b769920d382987d5b01a87a14547a211",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "sample-data.json",
+      "bytes": 5911,
+      "sha256": "a4b2777394d1a273b18d5acb2119308ffb3aeea9d721a6b0f1d9e185a5dc217d",
+      "kind": "source-or-document"
+    },
+    {
+      "path": "textures/slate.webp",
+      "bytes": 123720,
+      "sha256": "af85d677885f9fa4fd67932b988a16b62a7bf223fef0163728bc03ec7112c8dd",
+      "kind": "raster",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB"
+    }
+  ],
+  "reuse": [
+    {
+      "role": "Approved background",
+      "path": "/images/ui/locations-v2/builder-yard.webp",
+      "sha256": "46efc78f935f494e4c454cf74e9063e1705bf4c71d635cd7c40fd63d51ae9d2f"
+    },
+    {
+      "role": "Canonical Iona",
+      "path": "/images/ui/blacksmith-v1/iona.webp",
+      "sha256": "93d66f44ac09b1627e41e0821dc5aa655e233d904a01932126ca10c725696183"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/duelist_bracers.webp",
+      "sha256": "40f53f5f83da99fdb47bb4b19522acbf39ceca736df63f0ef892535482b1be19"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/duelist_grips.webp",
+      "sha256": "7489781f32245734980a21676e474925b4a71f96adad38861a27e0377c1e3d4a"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/focus_circlet.webp",
+      "sha256": "10b6a0161342405978fd0d9b60e03bdce4ebf29ae836b1119e5dfe59c3714e76"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/reserve_pendant.webp",
+      "sha256": "e9f8faf19db9b41fc0034c8c8460bc424e8f395f47d06857e8f9c31afdcbf706"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/sentinel_helm.webp",
+      "sha256": "267696e58dfb5f4476faa58ad70fe262355955431dd4d191f76eab45cb529641"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/training_grips.webp",
+      "sha256": "6ccce907e9cc013f166f091a81162cd6467b3b43d52fa8d417a7c7020362960b"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/resources-v3/iron.webp",
+      "sha256": "3e6a8e8acf612a292f5b43c99ed5c2d3ef6096b123de21d14a7c2c3c452530e1"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/resources-v4/nails.webp",
+      "sha256": "f875be1d939fe97c49e6efe4a8b8dbe75afb985b38de81f0507096cb0fcbccb5"
+    }
+  ]
+}

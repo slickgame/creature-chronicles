@@ -1,5 +1,7 @@
 # Forge A — concept fidelity correction
 
+Current visual target: the user locked Forge B3. Read `FORGE_B3_PRODUCTION_KIT_2026-10-16.md` first. Its new kit is complete; runtime integration remains the next step. The following Forge A work describes the existing runtime history.
+
 ## Equipment type follow-up
 
 Equipment slot now appears beneath every recipe name, the desktop/phone selected item, result details, crafting confirmation and receipt. Comparison names the destination slot. Labels reuse the authoritative `EQUIPMENT_SLOT_LABELS` mapping (Weapon, Armor, Head, Hands, Feet, Accessory); no types are inferred from artwork. The receipt snapshots its displayed type with the actual crafted item. This is a small refinement within approved A.

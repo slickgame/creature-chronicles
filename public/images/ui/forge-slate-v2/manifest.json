@@ -1,0 +1,157 @@
+{
+  "version": 2,
+  "design": "Locked Forge B3 \u2014 compact nameless tiles, approved silhouettes, Craft label",
+  "status": "Complete production kit and isolated asset assembly; not integrated into runtime Forge.",
+  "lockedReference": {
+    "originalFilename": "a759b7fb-e715-4c50-b735-2c5c7654f059.png",
+    "sha256": "579cffa65944e0a0985b87b6e941a210fb52201791c4683fefca561c21892e2e",
+    "archivePath": "references/LOCKED_FORGE_B3.png"
+  },
+  "counts": {
+    "svg": 104,
+    "raster": 7,
+    "fontFiles": 8,
+    "canonicalReusedImages": 10
+  },
+  "texture": {
+    "production": "textures/slate.webp",
+    "sha256": "af85d677885f9fa4fd67932b988a16b62a7bf223fef0163728bc03ec7112c8dd",
+    "masterFilename": "exec-0d246880-b916-40bc-8f5c-c0df62e224df.png",
+    "masterSha256": "2a7c719a82ef08ac0950daf8805a35f54457cf89e634fa6fa5051942a6de47e0",
+    "archivePath": "masters/slate.png",
+    "promptFile": "generation-prompts.json",
+    "encoding": "Opaque WebP, original dimensions, quality92/method6; no creative raster edits."
+  },
+  "fonts": {
+    "family": "Tinos",
+    "styles": [
+      "Regular",
+      "Bold",
+      "Italic",
+      "BoldItalic"
+    ],
+    "license": "fonts/OFL.txt",
+    "source": "https://github.com/google/fonts/tree/main/ofl/tinos",
+    "sourceMetadata": "fonts/METADATA.pb",
+    "originals": "Full unmodified TTF files",
+    "web": "Lossless full-font WOFF packaging; CSS local font-face, no network font service"
+  },
+  "reuse": [
+    {
+      "role": "Approved background",
+      "path": "/images/ui/locations-v2/builder-yard.webp",
+      "sha256": "46efc78f935f494e4c454cf74e9063e1705bf4c71d635cd7c40fd63d51ae9d2f"
+    },
+    {
+      "role": "Canonical Iona",
+      "path": "/images/ui/blacksmith-v1/iona.webp",
+      "sha256": "93d66f44ac09b1627e41e0821dc5aa655e233d904a01932126ca10c725696183"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/duelist_bracers.webp",
+      "sha256": "40f53f5f83da99fdb47bb4b19522acbf39ceca736df63f0ef892535482b1be19"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/duelist_grips.webp",
+      "sha256": "7489781f32245734980a21676e474925b4a71f96adad38861a27e0377c1e3d4a"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/focus_circlet.webp",
+      "sha256": "10b6a0161342405978fd0d9b60e03bdce4ebf29ae836b1119e5dfe59c3714e76"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/reserve_pendant.webp",
+      "sha256": "e9f8faf19db9b41fc0034c8c8460bc424e8f395f47d06857e8f9c31afdcbf706"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/sentinel_helm.webp",
+      "sha256": "267696e58dfb5f4476faa58ad70fe262355955431dd4d191f76eab45cb529641"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/equipment-v2/training_grips.webp",
+      "sha256": "6ccce907e9cc013f166f091a81162cd6467b3b43d52fa8d417a7c7020362960b"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/resources-v3/iron.webp",
+      "sha256": "3e6a8e8acf612a292f5b43c99ed5c2d3ef6096b123de21d14a7c2c3c452530e1"
+    },
+    {
+      "role": "Canonical gear or ingredient",
+      "path": "/images/ui/resources-v4/nails.webp",
+      "sha256": "f875be1d939fe97c49e6efe4a8b8dbe75afb985b38de81f0507096cb0fcbccb5"
+    }
+  ],
+  "integrationContract": "README.md",
+  "preview": "preview.html",
+  "catalog": "catalog.html",
+  "scripts": [
+    "scripts/build-forge-slate-assets.py",
+    "scripts/index-forge-slate-assets.py"
+  ],
+  "colors": {
+    "Common": "#66d999",
+    "Uncommon": "#b4c1cd",
+    "Rare": "#4fb7ff",
+    "Heroic": "#cd75f6",
+    "Legendary": "#f0b841"
+  },
+  "notes": [
+    "No text/data baked into raster or SVG surfaces.",
+    "SVG category icons are scalable original silhouette interpretations; raster concept is not an exact vector trace.",
+    "Preview stock and ownership are synthetic examples, not production save data.",
+    "Fonts and glyphs are provided; user text still rendered by UI code.",
+    "Buttons and tabs include distinct normal/hover/pressed/disabled artwork.",
+    "Runtime integration and actual hosted gameplay remain separate unfinished work."
+  ],
+  "categoryArt": [
+    {
+      "id": "weapon",
+      "originalFilename": "exec-e69671c9-a718-4817-96ce-50f16a4923b4.png",
+      "production": "categories/weapon.webp",
+      "sourceArchivePath": "masters/categories/weapon.png",
+      "masterSha256": "0345d77b35f49a9c22e84e011b17ca1d3998e9a527977023a40ba67b0c7d6b33"
+    },
+    {
+      "id": "armor",
+      "originalFilename": "exec-b76d2894-b742-4430-a0c5-caf61f6250fe.png",
+      "production": "categories/armor.webp",
+      "sourceArchivePath": "masters/categories/armor.png",
+      "masterSha256": "9d34455d83ccc24bf294782d5c7bf645be67117339b29655d4ec7067f624d1a9"
+    },
+    {
+      "id": "head",
+      "originalFilename": "exec-30538f04-abda-42f0-be19-52c53daeaa35.png",
+      "production": "categories/head.webp",
+      "sourceArchivePath": "masters/categories/head.png",
+      "masterSha256": "928b9ae8014f2db5f32bce1374bced4a8d5fd5d00a1c7564954fc24eda114354"
+    },
+    {
+      "id": "hands",
+      "originalFilename": "exec-e695bc6d-c64b-4af4-bcd5-9b7f6ac069b1.png",
+      "production": "categories/hands.webp",
+      "sourceArchivePath": "masters/categories/hands.png",
+      "masterSha256": "da481bdbbf7f8a28489b215687da4288ff1bed7307b80428307ad82388f69a9d"
+    },
+    {
+      "id": "feet",
+      "originalFilename": "exec-7e6da992-1fd5-45b7-8b98-322e8af48ba2.png",
+      "production": "categories/feet.webp",
+      "sourceArchivePath": "masters/categories/feet.png",
+      "masterSha256": "c5950fed658bd68fc0b5c546668345a361e1aeda07f19147507cc13885e8fa00"
+    },
+    {
+      "id": "accessory",
+      "originalFilename": "exec-af547576-dfaf-476d-b2fa-c94f1557b2e5.png",
+      "production": "categories/accessory.webp",
+      "sourceArchivePath": "masters/categories/accessory.png",
+      "masterSha256": "6b3edd29dff863881f7e8a0d4bdfce1633160f5ccb6669091831041c8594c8d5"
+    }
+  ]
+}
