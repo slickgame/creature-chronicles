@@ -34,7 +34,7 @@ const STATUS_GLOSSARY: Record<BattleStatusId, BattleGlossaryEntry> = {
     key: "inspired",
     label: "Inspired",
     flavor: "Confidence sharpens every offensive instinct.",
-    mechanics: "A general Inspired effect adds its amount (+3 by default) per stack to Physical Power, Special Power, and Status Power. Stat-specific Inspired effects increase only the named stat. Any active Inspired effect also adds 2 Battle Energy to end-of-round recovery. Up to 2 stacks.",
+    mechanics: "A general Inspired effect adds its amount (+3 by default) per stack to Physical Power, Special Power, and Effectiveness. Stat-specific Inspired effects increase only the named stat. Any active Inspired effect also adds 2 Battle Energy to end-of-round recovery. Up to 2 stacks.",
   },
   marked: {
     key: "marked",
@@ -95,9 +95,9 @@ const STAT_GLOSSARY: Record<BattleStatKey, BattleGlossaryEntry> = {
   },
   resistance: {
     key: "resistance",
-    label: "Resistance",
+    label: "Special Defense",
     flavor: "The ability to endure special and elemental pressure.",
-    mechanics: "Reduces damage from moves resisted by Resistance.",
+    mechanics: "Reduces damage from moves resisted by Special Defense.",
   },
   speed: {
     key: "speed",
@@ -119,13 +119,13 @@ const STAT_GLOSSARY: Record<BattleStatKey, BattleGlossaryEntry> = {
   },
   statusPower: {
     key: "statusPower",
-    label: "Status Power",
+    label: "Effectiveness",
     flavor: "The strength and reliability of disruptive techniques.",
-    mechanics: "Improves status-move hit chance and secondary-effect chance when compared with the target's Status Resist.",
+    mechanics: "Improves status-move hit chance and secondary-effect chance when compared with the target's Effect Resistance.",
   },
   statusResist: {
     key: "statusResist",
-    label: "Status Resist",
+    label: "Effect Resistance",
     flavor: "Composure against control, debuffs, and lingering effects.",
     mechanics: "Opposes hostile status accuracy and secondary-effect chance.",
   },

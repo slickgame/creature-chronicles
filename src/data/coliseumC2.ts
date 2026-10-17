@@ -555,7 +555,7 @@ export const COLISEUM_C2_ENCOUNTERS: readonly ColiseumC2EncounterDefinition[] = 
     encounterId: "silver_bastion_exhibition", divisionId: "silver", name: "Bastion Exhibition",
     opponentName: "The Stone Chorus", description: "A protected spellcaster fights behind a sturdy guardian and a dedicated medic.",
     strategyLabel: "Guard and special pressure", optional: true,
-    scoutingNotes: ["Piercing Echo breaks Guarded and attacks Resistance. Physical guard breakers remain useful against the guardian.", "Pressure the medic to stop recovery, or remove the spellcaster before its special attacks accumulate."],
+    scoutingNotes: ["Piercing Echo breaks Guarded and attacks Special Defense. Physical guard breakers remain useful against the guardian.", "Pressure the medic to stop recovery, or remove the spellcaster before its special attacks accumulate."],
     aiDifficulty: "tactical", recommendedLevel: 8, prerequisiteEncounterIds: ["bronze_pack_clash"],
     firstClearReward: { gold: 400, guildPoints: 14, itemId: "focus_manual", itemQuantity: 1 },
     repeatRewardPool: rewardPool(96, 2, 2), baseCombatXp: 56,

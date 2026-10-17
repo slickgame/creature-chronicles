@@ -13,7 +13,7 @@ export type PowerGrade='D'|'C'|'B'|'A'|'S';
 export type EquipmentSetId='vigor'|'bulwark'|'striker'|'swift';
 export const EQUIPMENT_SETS={
  vigor:{name:'Vigor',pieces:2,rates:{maxHp:10},description:'+10% base Max HP per completed two-piece group.'},
- bulwark:{name:'Bulwark',pieces:2,rates:{defense:10,resistance:10},description:'+10% base Defense and Resistance per completed two-piece group.'},
+ bulwark:{name:'Bulwark',pieces:2,rates:{defense:10,resistance:10},description:'+10% base Defense and Special Defense per completed two-piece group.'},
  striker:{name:'Striker',pieces:4,rates:{physicalPower:15,specialPower:15},description:'+15% base Physical and Special Power per completed four-piece group.'},
  swift:{name:'Swift',pieces:4,rates:{speed:10},description:'+10% base Speed per completed four-piece group.'},
 } satisfies Record<EquipmentSetId,{name:string;pieces:number;rates:Partial<Record<BattleStatKey,number>>;description:string}>;
@@ -66,4 +66,4 @@ export function equipmentSetProgress(ids:readonly (EquipmentSetId|null)[]):Equip
 }
 export function equipmentSetRates(progress:EquipmentSetProgress[]){const rates:Partial<Record<BattleStatKey,number>>={};for(const p of progress)for(const [key,rate] of Object.entries(EQUIPMENT_SETS[p.id].rates))rates[key as BattleStatKey]=(rates[key as BattleStatKey]??0)+rate*p.activations;return rates;}
 
-export const EQUIPMENT_STAT_NAMES:Record<BattleStatKey,string>={maxHp:'Max HP',physicalPower:'Physical Power',specialPower:'Special Power',defense:'Defense',resistance:'Resistance',speed:'Speed',accuracy:'Accuracy',evasion:'Evasion',statusPower:'Status Power',statusResist:'Status Resist',battleEnergy:'Max Battle Energy'};
+export const EQUIPMENT_STAT_NAMES:Record<BattleStatKey,string>={maxHp:'Max HP',physicalPower:'Physical Power',specialPower:'Special Power',defense:'Defense',resistance:'Special Defense',speed:'Speed',accuracy:'Accuracy',evasion:'Evasion',statusPower:'Effectiveness',statusResist:'Effect Resistance',battleEnergy:'Max Battle Energy'};

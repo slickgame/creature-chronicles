@@ -86,3 +86,11 @@ test('four Striker plus two Bulwark use base power and defenses, with no set bon
  const source=createBattleState({battleId:'striker-bulwark',playerCreatures:[wearer,ally],enemyCreatures:[save.creatures![2]]}),battle=applyBattleOutfitterLoadouts(save,source);
  assert.deepEqual(battle.combatants[battle.teams.player.combatantIds[0]].battleStats,total);assert.deepEqual(battle.combatants[battle.teams.player.combatantIds[1]].battleStats,source.combatants[source.teams.player.combatantIds[1]].battleStats);
 });
+
+// Evasion belongs to creature combat stats, never an equipment roll pool.
+test('equipment excludes Evasion from every main and substat pool',()=>{
+ for(const [slot,pool] of Object.entries(EQUIPMENT_STAT_POOLS)){
+  assert.ok(!pool.main.includes('evasion'),`${slot} main`);
+  assert.ok(!pool.sub.includes('evasion'),`${slot} sub`);
+ }
+});

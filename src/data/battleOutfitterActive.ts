@@ -20,11 +20,11 @@ const ACTIVE_ITEM_TEXT = {
   },
   guard_charm: {
     description: "A defensive charm that reinforces health, defenses, and resistance to hostile effects.",
-    effectLabel: "+12 Max HP, +5 Defense, +5 Resistance, and +3 Status Resist in battle.",
+    effectLabel: "+12 Max HP, +5 Defense, +5 Special Defense, and +3 Effect Resistance in battle.",
   },
   focus_manual: {
     description: "Permanent combat study. Each rank improves precision, status techniques, and Battle Energy capacity. Manuals may also teach compatible standard techniques from Move Training.",
-    effectLabel: "Each training rank grants +2 Accuracy, +2 Status Power, and +2 maximum Battle Energy, up to rank 3. A manual can instead teach one compatible move.",
+    effectLabel: "Each training rank grants +2 Accuracy, +2 Effectiveness, and +2 maximum Battle Energy, up to rank 3. A manual can instead teach one compatible move.",
   },
   team_tactics_kit: {
     description: "A one-battle team preparation kit that can be armed before entering the arena.",
@@ -75,6 +75,6 @@ export function useBattleOutfitterManual(save: GameSave, creatureId: CreatureId)
   const rank = core.getBattleLoadout(result.save, creatureId).manualRank;
   return {
     ...result,
-    message: `${result.message} Focus Training rank ${rank} is active in battle: +${rank * 2} Accuracy, +${rank * 2} Status Power, and +${rank * 2} maximum Battle Energy.`,
+    message: `${result.message} Focus Training rank ${rank} is active in battle: +${rank * 2} Accuracy, +${rank * 2} Effectiveness, and +${rank * 2} maximum Battle Energy.`,
   };
 }

@@ -6,6 +6,7 @@ export {LEGACY_EQUIPMENT_STATS} from './equipmentRules';
 export type MilestoneRoll = {level:number;key:BattleStatKey;added:boolean;amount:number};
 export type EquipmentCopy = { id:string; itemId:string; level:number; owner?:string; enhancementVersion?:2; legacyThrough?:number; rolls?:MilestoneRoll[]; rulesVersion?:3; rarity?:EquipmentRarity; powerGrade?:PowerGrade; baseMain?:EquipmentStat; initialSubstats?:EquipmentStat[]; setId?:EquipmentSetId|null };
 export type EquipmentStat = { key:BattleStatKey; value:number };
+// Frozen historical pool: changing this would reinterpret unrecorded legacy milestone rolls.
 const POOL: BattleStatKey[] = ['maxHp','physicalPower','specialPower','defense','resistance','speed','accuracy','statusPower','statusResist','battleEnergy'];
 function hash(value:string){let n=2166136261;for(const c of value)n=Math.imul(n^c.charCodeAt(0),16777619);return n>>>0;}
 const step=(key:BattleStatKey)=>key==='maxHp'?2:1;

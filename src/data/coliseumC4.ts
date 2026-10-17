@@ -195,7 +195,7 @@ export const COLISEUM_C4_MODIFIERS: readonly ColiseumC4ModifierDefinition[] = [
   { modifierId: "marked_opening", name: "Marked Opening", description: "Every combatant begins Marked for two rounds and takes increased focused damage.", rewardBonusPercent: 10, tone: "mixed" },
   { modifierId: "exhausting_heat", name: "Exhausting Heat", description: "The ranch team begins Exhausted for two rounds, reducing Battle Energy recovery.", rewardBonusPercent: 20, tone: "hazard" },
   { modifierId: "restricted_aid", name: "Restricted Aid", description: "Field Tonics and Revival Salves cannot be used during this challenge.", rewardBonusPercent: 25, tone: "hazard" },
-  { modifierId: "enemy_focus", name: "Focused Opposition", description: "Enemies gain +6 Accuracy and +6 Status Power.", rewardBonusPercent: 15, tone: "hazard" },
+  { modifierId: "enemy_focus", name: "Focused Opposition", description: "Enemies gain +6 Accuracy and +6 Effectiveness.", rewardBonusPercent: 15, tone: "hazard" },
   { modifierId: "rallying_start", name: "Rallying Start", description: "The ranch team begins Inspired for two rounds.", rewardBonusPercent: -10, tone: "benefit" },
 ] as const;
 

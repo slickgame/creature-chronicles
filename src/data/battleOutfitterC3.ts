@@ -106,7 +106,7 @@ const COLISEUM_ITEMS: BattleOutfitterItem[] = [
     costGold: 0,
     materialCost: 0,
     iconPath: "/images/ui/icons/icon_collection_book.png",
-    effectLabel: "+8 Special Power, +5 Status Power, and +3 Accuracy in battle.",
+    effectLabel: "+8 Special Power, +5 Effectiveness, and +3 Accuracy in battle.",
     flagKey: "coliseumGear_focusPrisms",
     loadoutSlot: "offense",
     readinessValue: 4,
@@ -120,7 +120,7 @@ const COLISEUM_ITEMS: BattleOutfitterItem[] = [
     costGold: 0,
     materialCost: 0,
     iconPath: "/images/ui/icons/icon_lock_favorite.png",
-    effectLabel: "+18 Max HP, +7 Defense, +5 Resistance, and +4 Status Resist in battle.",
+    effectLabel: "+18 Max HP, +7 Defense, +5 Special Defense, and +4 Effect Resistance in battle.",
     flagKey: "coliseumGear_bastionBadges",
     loadoutSlot: "defense",
     readinessValue: 4,
@@ -134,7 +134,7 @@ const COLISEUM_ITEMS: BattleOutfitterItem[] = [
     costGold: 0,
     materialCost: 0,
     iconPath: "/images/ui/icons/icon_guild_points.png",
-    effectLabel: "+3 Speed, +3 Status Power, +2 Status Resist, and +8 maximum Battle Energy.",
+    effectLabel: "+3 Speed, +3 Effectiveness, +2 Effect Resistance, and +8 maximum Battle Energy.",
     flagKey: "coliseumGear_tacticianEmblems",
     loadoutSlot: "utility",
     readinessValue: 4,
@@ -148,7 +148,7 @@ const COLISEUM_ITEMS: BattleOutfitterItem[] = [
     costGold: 0,
     materialCost: 0,
     iconPath: "/images/ui/icons/icon_upgrade_arrow.png",
-    effectLabel: "+12 Max HP, +4 Physical and Special Power, +4 Defense and Resistance, +2 Accuracy, and +10 maximum Battle Energy.",
+    effectLabel: "+12 Max HP, +4 Physical and Special Power, +4 Defense and Special Defense, +2 Accuracy, and +10 maximum Battle Energy.",
     flagKey: "coliseumGear_championHarnesses",
     maxStock: 1,
     loadoutSlot: "utility",
@@ -431,7 +431,7 @@ export function removeBattleOutfitterEquipment(
 export function useBattleOutfitterManual(save: GameSave, creatureId: CreatureId): BattleOutfitterResult {
   const result = active.useBattleOutfitterManual(normalizeBattleEquipment(save), creatureId);
   if (!result.ok) return result;
-  return { ...result, message: `Focus Manual studied. ${getBattleReadinessLabel(result.save, creatureId)}. This rank adds +2 Accuracy, +2 Status Power and +2 maximum Battle Energy. Innate grades are unchanged.` };
+  return { ...result, message: `Focus Manual studied. ${getBattleReadinessLabel(result.save, creatureId)}. This rank adds +2 Accuracy, +2 Effectiveness and +2 maximum Battle Energy. Innate grades are unchanged.` };
 }
 
 /** Ownership includes copies worn by other creatures, not only available stock. */
