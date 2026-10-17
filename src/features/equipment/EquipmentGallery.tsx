@@ -1,4 +1,7 @@
 "use client";
+import {EquipmentActionFlow} from './EquipmentActionFlow';
+import type {EquipmentActionRequest} from '@/data/equipmentAction';
+import {equipmentRemovalBlocker} from '@/data/equipmentChangeSnapshot';
 import {useEffect,useRef,useState} from 'react';
 import {EQUIPMENT_RARITIES,EQUIPMENT_SETS,equipmentSetProgress} from '@/data/equipmentRules';
 import {calculateBattleStats} from '@/data/battleStats';
@@ -8,12 +11,10 @@ import {EquipmentSetChanges} from './EquipmentSetChanges';
 import {EquipmentGuide} from './EquipmentGuide';
 import {useGameContext} from '@/state/GameProvider';
 import {getOwnedInventory,inventoryRecipientBlocker,type InventoryEntry} from '@/data/inventoryCatalogue';
-import {BATTLE_OUTFITTER_ITEMS,EQUIPMENT_SLOTS,EQUIPMENT_SLOT_LABELS,assignBattleOutfitterEquipment,removeBattleOutfitterEquipment,type EquipmentSlot} from '@/data/battleOutfitter';
+import {BATTLE_OUTFITTER_ITEMS,EQUIPMENT_SLOTS,EQUIPMENT_SLOT_LABELS,type EquipmentSlot} from '@/data/battleOutfitter';
 import {equipmentStats} from '@/data/equipmentEnhancement';
 import {getEquipmentCopies,getEnhancementQuote,enhanceEquipment} from '@/data/equipmentInstances';
-import {compareEquipment,getEquippedBattleStats,BATTLE_STAT_LABELS} from '@/data/equipmentComparison';
-import {getTrainingUnavailableReason} from '@/data/trainingGrounds';
-import {getColiseumC4State} from '@/data/coliseumC4';
+import {compareEquipment,BATTLE_STAT_LABELS} from '@/data/equipmentComparison';
 import {getBreedingParticipants} from '@/data/breeding';
 import {BLACKSMITH_RECIPES} from '@/data/blacksmith';
 import {GameDialog} from '@/features/ui/GameDialog';
@@ -34,7 +35,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
  const game=useGameContext(),save=game.currentSave;
  const [slot,setSlot]=useState<EquipmentSlot|'all'>(initialSlot),[search,setSearch]=useState(''),[sort,setSort]=useState('level'),[grade,setGrade]=useState('all'),[rarityFilter,setRarityFilter]=useState('all'),[setFilter,setSetFilter]=useState('all'),[setsOpen,setSetsOpen]=useState(false),[guide,setGuide]=useState<InventoryEntry|null>(null),[availability,setAvailability]=useState('all'),[page,setPage]=useState(0),[capacity,setCapacity]=useState(8);
  const [recipient,setRecipient]=useState(initialCreatureId),[recipientPage,setRecipientPage]=useState(0),[recipientSearch,setRecipientSearch]=useState(''),[recipientInfo,setRecipientInfo]=useState(''),[picker,setPicker]=useState(false),[filters,setFilters]=useState(false);
- const [selected,setSelected]=useState(initialEquipmentId),[detail,setDetail]=useState(!!initialEquipmentId),[tab,setTab]=useState<'Item stats'|'Creature impact'|'Upgrade'>('Item stats'),[impactPage,setImpactPage]=useState(0),[artExpanded,setArtExpanded]=useState(true),[cardPage,setCardPage]=useState(0),[review,setReview]=useState<'equip'|'remove'|null>(null),[receipt,setReceipt]=useState(''),[information,setInformation]=useState<InventoryEntry|null>(null),[source,setSource]=useState<'forge'|'shop'|'marks'|null>(null),[upgradeLevel,setUpgradeLevel]=useState<number|null>(null),[upgradeReceipt,setUpgradeReceipt]=useState<UpgradeReceipt|null>(null);
+ const [selected,setSelected]=useState(initialEquipmentId),[detail,setDetail]=useState(!!initialEquipmentId),[tab,setTab]=useState<'Item stats'|'Creature impact'|'Upgrade'>('Item stats'),[impactPage,setImpactPage]=useState(0),[artExpanded,setArtExpanded]=useState(true),[cardPage,setCardPage]=useState(0),[equipmentAction,setEquipmentAction]=useState<EquipmentActionRequest|null>(null),[receipt,setReceipt]=useState(''),[information,setInformation]=useState<InventoryEntry|null>(null),[source,setSource]=useState<'forge'|'shop'|'marks'|null>(null),[upgradeLevel,setUpgradeLevel]=useState<number|null>(null),[upgradeReceipt,setUpgradeReceipt]=useState<UpgradeReceipt|null>(null);
  const latest=useRef(save),busy=useRef(false);
  useEffect(()=>{latest.current=save;},[save]);
  useEffect(()=>{const resize=()=>setCapacity(innerHeight<=550?4:innerWidth<=650?2:8);const frame=requestAnimationFrame(resize);addEventListener('resize',resize);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',resize);};},[]);
@@ -54,24 +55,13 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
  const previous= BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===current?.itemId);
  const quote=copy?getEnhancementQuote(save,copy.id):null;
  const recipe=BLACKSMITH_RECIPES.find(r=>r.itemId===gear?.itemId);
- const removalBlock=creature?(getTrainingUnavailableReason(save,creature.creatureId)??(getColiseumC4State(save).activeRun?.teamCreatureIds.includes(creature.creatureId)?'Equipment is locked during this gauntlet run.':null)):'Choose a creature first.';
- const removalQuote=creature&&gear?removeBattleOutfitterEquipment(save,creature.creatureId,gear.equipmentSlot!):null;
- const reviewSets=review==='remove'&&removalQuote?.ok&&creature?getBattleOutfitterCreatureEffectSummary(removalQuote.save,creature.creatureId).sets:comparison?.sets.after;
- const reviewRows=review==='remove'&&removalQuote?.ok&&creature?Object.entries(getEquippedBattleStats(removalQuote.save,creature)).map(([key,after])=>({key,label:BATTLE_STAT_LABELS[key as keyof typeof BATTLE_STAT_LABELS],current:getEquippedBattleStats(save,creature)[key as keyof typeof BATTLE_STAT_LABELS],after,delta:after-getEquippedBattleStats(save,creature)[key as keyof typeof BATTLE_STAT_LABELS]})):comparison?.rows??[];
+ const removalBlock=creature?equipmentRemovalBlocker(save,creature.creatureId):'Choose a creature first.';
  const blocker=item?(!creature?'Choose a creature first.':inventoryRecipientBlocker(save,item,creature.creatureId)):'This item is no longer owned.';
  const pages=Math.max(1,Math.ceil(rows.length/capacity)),index=Math.min(page,pages-1);
  const candidates=participants.filter(p=>p.displayName.toLowerCase().includes(recipientSearch.toLowerCase())),recipientPages=Math.max(1,Math.ceil(candidates.length/capacity)),recipientIndex=Math.min(recipientPage,recipientPages-1);
  const info=participants.find(p=>p.participantId===recipientInfo);
  const pager=(n:number,total:number,set:(n:number)=>void)=><footer className={s.pager}><button disabled={!n} onClick={()=>set(n-1)}>‹ Previous</button><span>{n+1} / {total}</span><button disabled={n+1>=total} onClick={()=>set(n+1)}>Next ›</button></footer>;
  function select(id:string){setSelected(id);setDetail(true);setImpactPage(0);setTab('Item stats');setCardPage(0);}
- function confirm(){const now=latest.current;if(!now||busy.current||!creature||!item)return;busy.current=true;
-  const fresh=getOwnedInventory(now).find(i=>i.id===item.id);
-  if(!fresh?.gear||!fresh.copy){setReceipt('This item is no longer owned. Review equipment again.');setReview(null);return;}
-  const restriction=review==='remove'?(getTrainingUnavailableReason(now,creature.creatureId)??(getColiseumC4State(now).activeRun?.teamCreatureIds.includes(creature.creatureId)?'Equipment is locked during this gauntlet run.':null)):inventoryRecipientBlocker(now,fresh,creature.creatureId);
-  if(restriction||review==='remove'&&fresh.copy.owner!==creature.creatureId){setReceipt(restriction??'The selected equipment has changed. Review it again.');setReview(null);return;}
-  const result=review==='remove'?removeBattleOutfitterEquipment(now,creature.creatureId,fresh.gear.equipmentSlot!):assignBattleOutfitterEquipment(now,creature.creatureId,fresh.gear.itemId,fresh.copy.id);
-  if(result.ok){latest.current=result.save;game.saveCurrentGame(result.save);}setReceipt(result.message);setReview(null);
- }
  function confirmUpgrade(){const now=latest.current;if(!now||busy.current||!copy||upgradeLevel===null)return;busy.current=true;
   const fresh=getEnhancementQuote(now,copy.id);if(!fresh){setReceipt('This equipment is no longer owned.');setUpgradeLevel(null);return;}
   const result=enhanceEquipment(now,copy.id,upgradeLevel);if(result.ok){latest.current=result.save;const persisted=game.saveCurrentGame(result.save);const updated=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:fresh.item.name,art:fresh.item.iconPath,slot:fresh.item.equipmentSlot,level:updated.level,cost:fresh.cost,before:fresh.before,after:equipmentStats(fresh.item,updated)});}else setReceipt(result.message);setUpgradeLevel(null);
@@ -101,7 +91,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
    </aside>
   </div>
   <EquipmentSetChanges key={`${recipient}:${selected}`} comparison={comparison} onDetails={()=>setSetsOpen(true)}/>
-  <footer className={s.detailFooter}><p role="status">{blocker??'Equipping costs no Gold or materials. Review changes before confirming.'}</p><div className={s.actions}><button disabled={!item} onClick={()=>setInformation(item??null)}><Icon name="info"/>Details</button><button title={recipe?'Open exact recipe':'Browse Iona’s recipes'} onClick={()=>setSource('forge')}>Blacksmith</button><button onClick={()=>setSource(gear?.coliseumExclusive?'marks':'shop')}>Find source</button>{copy?.owner===creature?.creatureId&&copy?.owner?<button disabled={!!removalBlock} title={removalBlock??'Return this item to inventory'} onClick={()=>{busy.current=false;setReview('remove');}}>Review remove</button>:<button className={s.primary} disabled={!!blocker} onClick={()=>{busy.current=false;setReview('equip');}}>Review equip</button>}</div></footer>
+  <footer className={s.detailFooter}><p role="status">{blocker??'Equipping costs no Gold or materials. Review changes before confirming.'}</p><div className={s.actions}><button disabled={!item} onClick={()=>setInformation(item??null)}><Icon name="info"/>Details</button><button title={recipe?'Open exact recipe':'Browse Iona’s recipes'} onClick={()=>setSource('forge')}>Blacksmith</button><button onClick={()=>setSource(gear?.coliseumExclusive?'marks':'shop')}>Find source</button>{copy?.owner===creature?.creatureId&&copy?.owner?<button disabled={!!removalBlock} title={removalBlock??'Return this item to inventory'} onClick={()=>{if(copy&&creature)setEquipmentAction({kind:'remove',equipmentId:copy.id,creatureId:creature.creatureId});}}>Review remove</button>:<button className={s.primary} disabled={!!blocker} onClick={()=>{if(copy&&creature)setEquipmentAction({kind:'equip',equipmentId:copy.id,creatureId:creature.creatureId});}}>Review equip</button>}</div></footer>
  </section></main></GameDialog>}
  {filters&&<BreedingPreviewBook title="Equipment filters" marker="equipment-filters" pages={[
  {key:'grade',title:'Power and rarity',content:<div className={s.filterFields}><label>Power grade<select aria-label="Grade filter" value={grade} onChange={e=>{setGrade(e.target.value);setPage(0);}}><option value="all">All power grades</option>{['D','C','B','A','S'].map(g=><option key={g}>{g}</option>)}</select></label><label>Rarity<select aria-label="Rarity filter" value={rarityFilter} onChange={e=>{setRarityFilter(e.target.value);setPage(0);}}><option value="all">All rarities</option>{EQUIPMENT_RARITIES.map(r=><option key={r}>{r}</option>)}</select></label></div>},
@@ -115,7 +105,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
  {picker&&<GameDialog title="Choose equipment recipient" fullScreen onClose={()=>setPicker(false)}><main className={s.shell} data-equipment-recipients><section className={s.paper}><header className={s.heading}><h2>Choose creature</h2><button onClick={()=>setPicker(false)}>Close ×</button></header><input aria-label="Search equipment recipients" placeholder="Search name" value={recipientSearch} onChange={e=>{setRecipientSearch(e.target.value);setRecipientPage(0);}}/><p>The player cannot equip creature gear. Unavailable creatures remain inspectable.</p><div className={s.grid}>{candidates.slice(recipientIndex*capacity,recipientIndex*capacity+capacity).map(p=>{const reason=p.kind==='player'?'Creature gear only':item?inventoryRecipientBlocker(save,{...item,copy:item.copy?{...item.copy,owner:undefined}:undefined},p.participantId):null;return <article className={s.gearCard} key={p.participantId}><button className={s.portraitPick} disabled={!!reason} title={reason??'Select recipient'} onClick={()=>{setRecipient(p.participantId);setImpactPage(0);setPicker(false);}}><GearArt src={p.portraitPath}/><strong>{p.displayName}</strong><small>{reason?'Unavailable':`Energy ${p.energy}/${p.maxEnergy}`}</small></button><button className={s.info} aria-label={`Details for ${p.displayName}`} onClick={()=>setRecipientInfo(p.participantId)}><Icon name="info"/></button></article>;})}</div>{pager(recipientIndex,recipientPages,setRecipientPage)}</section></main></GameDialog>}
  {info&&<BreedingInspectBook title="Character Details" participant={info} creature={save.creatures?.find(c=>c.creatureId===info.creatureId)??null} dayNumber={save.dayState.dayNumber} onClose={()=>setRecipientInfo('')}/>}
  {information&&<BreedingPreviewBook title={information.name} marker="equipment-information" art={information.art} pages={infoPages} onClose={()=>setInformation(null)}/>}
- {review&&<BreedingPreviewBook title={review==='equip'?'Confirm equip':'Confirm removal'} marker="equipment-confirm" art={item?.art} pages={[{key:'confirm',title:item?.name??'Equipment unavailable',content:<><p>{creature?.nickname??'No creature selected'}</p><p>{review==='remove'?'Return this exact item and its upgrades to inventory.':'Replace only the selected slot; displaced equipment returns to inventory.'}</p><p>No Gold or materials consumed.</p></>},...setProgress.filter(p=>p.activations!==(reviewSets?.find(after=>after.id===p.id)?.activations??p.activations)).map(p=>({key:`set-${p.id}`,title:`${p.name} set change`,content:<><p>{p.count} → {reviewSets?.find(after=>after.id===p.id)?.count} equipped pieces</p><p>{p.activations} → {reviewSets?.find(after=>after.id===p.id)?.activations} active groups</p><p>{p.description}</p></>})),...reviewRows.filter(r=>r.delta!==0).map(r=>({key:r.key,title:r.label,content:<p>{r.current} → {r.after} ({r.delta>0?'+':''}{r.delta})</p>}))]} footer={<><button onClick={()=>setReview(null)}>Cancel</button><button onClick={confirm}>Confirm {review}</button></>} onClose={()=>setReview(null)}/>}
+ {equipmentAction&&<EquipmentActionFlow request={equipmentAction} onClose={()=>setEquipmentAction(null)}/>}
  {receipt&&<BreedingPreviewBook title="Equipment receipt" marker="equipment-receipt" pages={[{key:'result',title:'Result',content:<p>{receipt}</p>}]} onClose={()=>setReceipt('')} footer={<button onClick={()=>setReceipt('')}>Continue</button>}/>}
  {upgradeLevel!==null&&quote&&<UpgradeReview quote={quote} gold={save.currencies.gold} stale={quote.copy.level!==upgradeLevel} onClose={()=>setUpgradeLevel(null)} onConfirm={confirmUpgrade}/>}
  {upgradeReceipt&&<UpgradeSuccess receipt={upgradeReceipt} gold={save.currencies.gold} onClose={()=>setUpgradeReceipt(null)}/>}

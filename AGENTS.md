@@ -38,3 +38,6 @@ The user selected the B roster/comparison chooser and replacement confirmation, 
 
 ## Approved equipment results B
 The user approved B for removal review and equip/remove receipts. Use EquipmentResultWindow with actual before/persisted-save snapshots, Current/After versus Before/Saved wording, exact-copy return and explicit empty slots. Keep three-stat minimized defaults, viewport paging, persistent lost-bonus warnings and paged phone set changes. Removal goes straight to its full review and preserves training/gauntlet blockers and stale-review guards. See docs/EQUIPMENT_RESULTS_B_RUNTIME_2026-10-17.md.
+
+## All active removal entry points
+Inventory and creature-card Equipment tabs share EquipmentGallery; its equip/remove actions and BattleOutfitterBench must use EquipmentActionFlow and getEquipmentActionQuote. Do not reintroduce their old paged-book/plain-text equipment confirmations or success receipts. Keep exact selected-copy IDs, recipient blockers, stale-review checks, cancel-without-write behavior and fresh receipt component state. See docs/EQUIPMENT_REMOVAL_ROUTES_FIX_2026-10-17.md.

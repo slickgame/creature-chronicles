@@ -10,7 +10,7 @@ import {EquipmentStatIcon} from './EquipmentStatIcon';
 import a from './EquipmentAssignment.module.css';
 import s from './EquipmentResultWindow.module.css';
 
-export function EquipmentResultWindow({snapshot,completed=false,blocker,onClose,onConfirm}:{snapshot:EquipmentChangeSnapshot;completed?:boolean;blocker?:string|null;onClose:()=>void;onConfirm?:()=>void}){
+export function EquipmentResultWindow({snapshot,completed=false,blocker,note,onClose,onConfirm}:{snapshot:EquipmentChangeSnapshot;completed?:boolean;blocker?:string|null;note?:string;onClose:()=>void;onConfirm?:()=>void}){
  const [continueReady,setContinueReady]=useState(!completed);
  useEffect(()=>{if(!completed)return;const timer=setTimeout(()=>setContinueReady(true),250);return()=>clearTimeout(timer);},[completed]);
  const [expanded,setExpanded]=useState(false),[page,setPage]=useState(0),[setPageIndex,setSetPage]=useState(0),[tab,setTab]=useState<'equipment'|'changes'>('changes');
@@ -37,7 +37,7 @@ export function EquipmentResultWindow({snapshot,completed=false,blocker,onClose,
  {!expanded&&<section className={s.sets} aria-label="Result set changes"><div className={s.setHeading}><h3>Set status</h3>{setPages>1&&<nav aria-label="Result set pages"><button aria-label="Previous result set" disabled={!setIndex} onClick={()=>setSetPage(setIndex-1)}>‹</button><span>{setIndex+1}/{setPages}</span><button aria-label="Next result set" disabled={setIndex+1>=setPages} onClick={()=>setSetPage(setIndex+1)}>›</button></nav>}</div>{sets.slice(setIndex*setCapacity,(setIndex+1)*setCapacity).map(({before,after})=><div key={before.id}><img src={`/images/ui/forge-slate-v2/sets/sculpted/${before.id}.webp`} alt=""/><span><strong>{before.name} {before.count}/{before.required} → {after.count}/{after.required}</strong><small>{after.activations<before.activations?'Bonus lost':after.activations>before.activations?'Bonus gained':after.activations?'Active':'Incomplete set'} · {before.description}</small></span></div>)}{!sets.length&&<p>No set counts change.</p>}</section>}
  {lost.length>0&&<p className={s.warning} role="status">{lost.map(c=>`${c.before.name} bonus ${completed?'lost':'will be lost'} (${c.before.activations} → ${c.after.activations} active groups).`).join(' ')}</p>}
  </section></div>
- <p className={s.inventory}><EquipmentStatIcon name="inventory"/><span><strong>{inventory}</strong><small>Upgrades preserved · No Gold cost</small></span></p>
+ <p className={s.inventory}><EquipmentStatIcon name="inventory"/><span><strong>{inventory}</strong><small>Upgrades preserved · No Gold cost{note?` · ${note}`:''}</small></span></p>
  {blocker&&<p className={s.warning} role="alert">{blocker}</p>}
  <footer>{!completed&&<button onClick={onClose}>Cancel</button>}<span>{snapshot.name} · {EQUIPMENT_SLOT_LABELS[snapshot.slot]}</span><button disabled={completed?!continueReady:!!blocker} onClick={completed?onClose:onConfirm}>{!completed&&<EquipmentStatIcon name="inventory"/>}{completed?'Continue':'Confirm removal'}</button></footer>
  </section></main></GameDialog>;
