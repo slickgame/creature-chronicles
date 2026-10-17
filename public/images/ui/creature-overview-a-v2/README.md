@@ -38,3 +38,7 @@ The assembled kit matches the concept's visual language and component hierarchy.
 ## Icon family R3
 
 The user requested a complete refinement of the section, selection, record and footer icons. The final editable ivory/gold family is rebuilt by `scripts/build-creature-overview-icons.py`, invoked at the end of the main builder. Overview now uses a creature portrait; Identity uses a creature ID card; Work includes a hammer/crop; Habitat is a barn/fence. Both Inventory placements share the same detailed pouch. The review board `icon-review.html` shows all requested icons enlarged and at 24/32/40px. The separate `creature-overview-icons-r3.zip` supersedes the icon files in the historical R2 archive. Frames, vital art and gameplay remain unchanged. See docs/CREATURE_OVERVIEW_ICON_REFINEMENT_R3_2026-10-17.md.
+
+## Approved painted R4
+
+The user approved the Painted ivory & gold study and explicitly requested a commit. Painted production assets under `painted-r4/*.webp` now supersede the R3 vectors in the read-only assembly. Original PNG masters and the exact approved style board are stored under painted-r4/source and painted-r4/approved-style.png. Both Inventory locations use one shared inventory.webp. Use the raster art directly; do not mask it to one color. Live gameplay integration is pending. See docs/CREATURE_OVERVIEW_PAINTED_ICONS_R4_2026-10-17.md.

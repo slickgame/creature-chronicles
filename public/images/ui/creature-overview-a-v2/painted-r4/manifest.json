@@ -1,0 +1,194 @@
+{
+  "version": "painted-r4",
+  "approved": true,
+  "scope": "production icons and asset assembly; live game integration pending",
+  "uniqueIcons": 14,
+  "aliases": {
+    "case": "inventory"
+  },
+  "validation": [
+    {
+      "name": "overview",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "a0650034b9ff5fa872373c3dd0eec39744c26ebb781cd20b96c4ff914fab09ec",
+      "productionSha256": "654f78944a047bc3a8d1195065e6b0238ae4b11e423a5c3b18ad97f68aff1df6"
+    },
+    {
+      "name": "growth",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "f9e76c685b2bd1d3e0ae107e825d77411461ca146464b9e073a90424fe6ec55c",
+      "productionSha256": "ac06d909abe042382ee0a9231696b3e3f2e447515f3985fa5b865880350eff40"
+    },
+    {
+      "name": "work",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "dfa3b676e499cd039a3b76134d42fc84f2887aa3c984f8f3e17e210793c2fe13",
+      "productionSha256": "def54e1a0fb287e113ea7aa243f3c92d17f0ae1303d296e31d4e21217cf2f016"
+    },
+    {
+      "name": "talents",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "824301e30d1d3953a5079fdca9aa5d3333401ef66322b00093767f293abee7cc",
+      "productionSha256": "f8c24b0bfd84c1f1a8d95c3708b3ffbe7dba739980f36839972d61552aa782ae"
+    },
+    {
+      "name": "lineage",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "25ec35d30346ca27211f671cc32d12408f81e5f958dcf85cbe63cc478c820af9",
+      "productionSha256": "a7e0df2c22ae34335af49efd0c8310ab4de8a0fa85847e08ed7cd5ea3e831298"
+    },
+    {
+      "name": "inventory",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "7a6cee40853c831af0111affda95259b9a48413336009e3223e4529a7156dc30",
+      "productionSha256": "f10b9b3af2e8c70a56b64e909545f80b82ff315227336d5fc71c81fda0f13952"
+    },
+    {
+      "name": "equipment",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "1c96c611c0e365f06fc15e4290c61400acff995ef85603d6f49d7e745aaf57ca",
+      "productionSha256": "8f9a59d512b7a9a3bfa6c73ab8d5279dbd4931b5424c2a1f424d70ba01e78c94"
+    },
+    {
+      "name": "care",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "733c51844df856092fa3b2006d9cd43d3607d493f879907040be5e2ed8bc06dc",
+      "productionSha256": "01f6762ac709a2c603778e954b78604a28c6f360d15847b2ec5356cd85a74f8e"
+    },
+    {
+      "name": "creatures",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "f199c976364bca7ec1cce68ca9ae505a79b7462f3e4dcd757c45c806a270f806",
+      "productionSha256": "5c0f3aac76f6f6b4b48db1aac8288d685d5f6d956a6e0b84711d0d4794ca09cb"
+    },
+    {
+      "name": "identity",
+      "dimensions": [
+        256,
+        171
+      ],
+      "alphaRange": [
+        0,
+        254
+      ],
+      "masterSha256": "a988c5c4845f85876473d5b5c775d9929723190560971253cd7510ae91d4c876",
+      "productionSha256": "2b0d982332f99190dac0592cdc26f8f3d3393e0af93f02822664876b5c4be180"
+    },
+    {
+      "name": "health",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "1196ab9b028e262f9f5a0cdc588bef977d097cf0897091ab506e3ec3193959c8",
+      "productionSha256": "0f95d6bdc69236b76e92d3f775fbdfe0318fe7840671216f9236ad1b17609fb1"
+    },
+    {
+      "name": "roles",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "58987f85f9e29225f8741eb79ea13816ee38653e5a90373f5d5cb36c17dbb420",
+      "productionSha256": "65ce40bd244fe57af8f21d45a9c1dc7db26641e47b1f5e70f152721236ccca81"
+    },
+    {
+      "name": "profile",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "af781b762107d981255626825b63a8282c0e4a733dc55d36dde41815d9550027",
+      "productionSha256": "d40fd2438aabceb827aba005f2654124c333e6cce5e720c0245a1612b38be245"
+    },
+    {
+      "name": "habitat",
+      "dimensions": [
+        256,
+        256
+      ],
+      "alphaRange": [
+        0,
+        255
+      ],
+      "masterSha256": "f41316ad76d7becec578726a3284b9cf8b2e2e65115b87f125e7a7c9cb28f22b",
+      "productionSha256": "28381d9818fa8b7a40591522e5bf5457532495351a79cba196089dba8946bf15"
+    }
+  ],
+  "note": "All assets contain actual alpha. Identity retains a soft gold edge glow in its generated master; no opaque rectangular backdrop is introduced. Original aspect ratios are preserved."
+}

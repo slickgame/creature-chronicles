@@ -1,5 +1,5 @@
 /* Read-only sample assembly. No game state, storage or gameplay transactions. */
-const base='./';const icon=(n,extra='')=>`<img class="cc-oa-icon ${extra}" src="${base}icons/${n}.svg" alt="">`;
+const base='./';const painted=new Set(["overview", "growth", "work", "talents", "lineage", "inventory", "equipment", "care", "creatures", "identity", "health", "roles", "profile", "habitat", "case"]);const icon=(n,extra='')=>`<img class="cc-oa-icon ${extra}" src="${base}${painted.has(n)?'painted-r4/'+(n==='case'?'inventory':n)+'.webp':'icons/'+n+'.svg'}" alt="">`;
 const sculpt=(n)=>`<img class="cc-oa-icon vital" src="${base}sculpted/${n}.webp" alt="">`;
 const button=(text,n,cls='',attrs='')=>`<button class="cc-oa-button ${cls}" ${attrs}>${icon(n)}${text}</button>`;
 const tabs=[['Overview','overview'],['Stats & Growth','growth'],['Work Skills','work'],['Talents','talents'],['Lineage','lineage'],['Inventory','inventory'],['Equipment','equipment'],['Care','care']];

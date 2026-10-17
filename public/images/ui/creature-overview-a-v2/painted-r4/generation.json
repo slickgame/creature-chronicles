@@ -1,0 +1,91 @@
+{
+  "mode": "built-in image_gen",
+  "approvedReference": "approved-style.png",
+  "assets": [
+    {
+      "name": "overview",
+      "label": "Overview",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-6e690e72-02f7-4810-952b-33435957f19b.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Overview emblem in the first row, first column: one elegant carved ivory creature bust with pointed ears, calm face, neck and shoulders and a small antique-gold collar medallion."
+    },
+    {
+      "name": "growth",
+      "label": "Stats & Growth",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-2271fe50-3e73-4457-8844-2a43d6c36765.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Stats & Growth emblem in row one, column two: three rising ivory stone columns with a slender curving antique-gold upward arrow and a restrained small wheat sprig at the base.",
+      "cleanupPrompt": "Use case: background-extraction. The attached growth icon is the edit target. Keep the three ivory columns, rising golden arrow and gold leaves exactly as designed. Remove ALL of the brown/gold atmosphere, blurry glow, aura and background haze around it. Outside the hard silhouette of the actual columns, arrow and leaves must be completely transparent alpha=0. Keep fully opaque cream and gold material inside the icon. Center the complete isolated icon in a square transparent canvas with 10 percent empty transparent margin on each side. Do not add anything, no words, no UI, no cast shadow. Production cutout only."
+    },
+    {
+      "name": "work",
+      "label": "Work Skills",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-b5d59665-f193-4b5e-b60b-f1987dccef37.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Work Skills emblem in row one, column three: one ivory-handled craftsman's hammer with softly sculpted grey-ivory head and antique-gold bands, crossed beside one natural pale wheat sprig."
+    },
+    {
+      "name": "talents",
+      "label": "Talents",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-5c01eba6-1d76-4c97-b30b-91b4055020d6.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Talents emblem in row one, column four: one broad five-point carved ivory star with a fine gold rim, subtle central engraved flower/star and just two small cream leaves at its base."
+    },
+    {
+      "name": "lineage",
+      "label": "Lineage",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-972c75ef-eddc-4764-ab7b-2e093ad2f249.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Lineage emblem in row one, column five: three ivory cameo medallions with creature-profile silhouettes connected by thin graceful curved branching gold stems; exactly one medallion above two lower ones."
+    },
+    {
+      "name": "inventory",
+      "label": "Inventory",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-6cccbfcf-3799-4f7c-aeba-280ea0cf5630.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Inventory emblem in row two, column one: one small cream leather drawstring satchel, soft folds, antique-gold round clasp with subtle leaf engraving and two short drawstring tassels. No extra objects."
+    },
+    {
+      "name": "equipment",
+      "label": "Equipment",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-7598a210-aeb1-4aab-94e7-4e94c33ce7f1.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Equipment emblem in row two, column two: one elegant ivory-steel short sword diagonally from lower left to upper right, antique-gold gently curved guard and wrapped cream grip."
+    },
+    {
+      "name": "care",
+      "label": "Care",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-2a991d78-df8a-40b8-bc42-dbb9452a1960.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Care emblem in row two, column three: one softly sculpted warm ivory heart with a delicate gold rim and clear small gold checkmark, two restrained golden leaves below."
+    },
+    {
+      "name": "creatures",
+      "label": "Choose creature",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-9ba11b0b-4afd-417d-b596-b6fccd3bd8cd.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Choose creature emblem in row two, column four: one softly sculpted ivory paw with four oval toes and a large central pad, delicate gold rim and one small curved gold selection arrow at lower right."
+    },
+    {
+      "name": "identity",
+      "label": "Identity",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-2bec5b64-8887-412c-a764-4d78de0644e3.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Identity emblem in row two, column five: one horizontal ivory parchment identity card, gold bevel edge, one engraved creature-profile cameo on left, three short gold rules on right, just a tiny leaf at one corner. No text."
+    },
+    {
+      "name": "health",
+      "label": "Health & protection",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-d1b7e2c7-cae6-433e-b662-45fecdd9c3a3.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Health & protection emblem in row three, column one: one curved ivory shield with antique-gold rim and a clear recessed medical plus, two restrained golden leaves below."
+    },
+    {
+      "name": "roles",
+      "label": "Role strengths",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-3d7a7285-749e-4293-bd41-bef100ca563b.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Role strengths emblem in row three, column two: three softly carved ivory creature busts, central bust slightly larger, one small gold star medallion at front center and two simple leaves below."
+    },
+    {
+      "name": "profile",
+      "label": "Profile & Care",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-38673918-b1e4-44bf-969d-43c12a25e375.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Profile & Care emblem in row three, column three: one graceful small antique-gold portrait frame with an ivory creature cameo, one warm cream heart overlapping lower right, restrained tiny gold leaf detail."
+    },
+    {
+      "name": "habitat",
+      "label": "Habitat",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-881ff496-948e-4d6f-bb0a-555235262464.png",
+      "prompt": "Use case: stylized-concept. Production fantasy RPG UI icon. Attached image is the APPROVED STYLE REFERENCE only; create just the ONE emblem described below, not the board. Match its hand-painted warm ivory, antique brushed gold, elegant carved relief, rounded organic contours, nuanced cream highlights and restrained occlusion shadows. Quiet painterly anime-fantasy finish, NOT geometric vector art, NOT plastic, NOT an emoji. One centered complete icon, fills 80 percent of a square canvas, all edges fully visible. Genuine transparent RGBA background. No card, no border tile, no words, no labels, no sample miniatures, no separate badge, no cast shadow outside the emblem. Readable at 32px; simplify details without changing the silhouette. The Habitat emblem in row three, column four: one charming tiny sculpted ivory barn, warm gold shingle roof, cream double door and a very short cream fence either side, two restrained leaves at base. Simple readable silhouette, no scene or ground."
+    }
+  ]
+}
