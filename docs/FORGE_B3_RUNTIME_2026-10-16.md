@@ -32,3 +32,7 @@ Confirm the exact branch deployment after publication. The existing Improve Equi
 ## Wide-screen card spacing correction
 
 The user’s 1920px actual screenshot exposed the old min-width1500 rule: 128px tracks with space-between produced large gaps. The recipe group now stays left-aligned, caps its total width at494px including selection-bracket padding, and uses at most150px cards with a17px desktop gap. Narrow layouts retain their existing compact sizing. The static asset assembly mirrors this correction. Include1920×960 and2560×1440 in future visual checks and measure actual card bounds/gaps, rather than checking only viewport overflow.
+
+## Reference composition and complete portrait
+
+The user requested the supplied1440×900 composition rather than a stretched wide-screen layout, and explicitly required Iona’s head to stay visible. Desktops wider than1100px now center a Forge canvas bounded to1440×900. The recipe and detail panels consequently retain reference proportions. Iona’s portrait scale is bounded by both the host-column width and available canvas height; the full source image fits vertically, including at1920×720. The static assembly uses the same canvas bounds and contains its portrait image. Short desktops use tighter detail spacing and a smaller duplicate hero so every ingredient row remains inline and visible. Phone layouts stay as before. No artwork bytes, labels, menus or game transactions change.

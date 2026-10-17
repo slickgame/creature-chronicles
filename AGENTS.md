@@ -20,3 +20,5 @@ The user locked Forge B3 (slate/gold, compact nameless item tiles, ivory silhoue
 The user approved the sculpted ivory/gold action family (Craft hammer, Gold star coin, Compare scales, Improve sword/chevrons, Talk bubble and Ranch source building) and requested runtime integration. Production icons are RGBA WebP under `public/images/ui/forge-slate-v2/sculpted/`; do not revert them to the rejected flat SVG study. BlacksmithWorkshop/ForgeWindow now use the B3 kit. Keep the standalone asset assembly explicitly separate from actual game screenshots and tests. Consult `docs/FORGE_B3_RUNTIME_2026-10-16.md` for current validation and remaining hosted verification.
 
 Forge spacing QA must include1920px and2560px widths. Keep the recipe cards in a compact group with bounded gaps; do not distribute fixed-width cards across the entire gallery with space-between.
+
+Forge desktops above1100px center the approved composition within1440×900. Keep Iona’s entire head/source portrait vertically inside the host column; verify wide short1920×720 as well as1920×960 and2560×1440. Avoid unconditional width-based background enlargement.

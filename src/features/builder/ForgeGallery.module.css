@@ -2,7 +2,7 @@
 @font-face{font-family:ForgeTinos;src:url('/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff') format('woff');font-weight:700;font-display:swap}
 .screen,.dialogStage{color:#fff0cf;font:17px/1.2 ForgeTinos,Georgia,serif;--ink:#fff0cf;--gold:#d5ad5c;--surface:#0b1823}
 .screen *,.dialogStage *{box-sizing:border-box}
-.screen{height:100dvh;padding:12px 16px;background:linear-gradient(90deg,#070e1322,#09121b33),url('/images/ui/locations-v2/builder-yard.webp') center/cover}
+.screen{display:grid;grid-template: minmax(0,1fr) / minmax(0,1fr);place-items:center;height:100dvh;padding:12px 16px;background:linear-gradient(90deg,#070e1322,#09121b33),url('/images/ui/locations-v2/builder-yard.webp') center/cover}
 :is(.screen,.dialogStage) :is(h1,h2,h3,p){margin:0;color:inherit;text-shadow:none}
 :is(.screen,.dialogStage) :is(strong,small,span,label){color:inherit}
 :is(.screen,.dialogStage) h1{font-size:36px;text-shadow:0 2px 2px #0009}
@@ -19,12 +19,12 @@
 :is(.screen,.dialogStage) :is(button,select):focus-visible{outline:2px solid #fff4cb;outline-offset:3px}
 :is(.screen,.dialogStage) select{min-height:34px;max-width:100%;min-width:0;padding:4px 7px;background:#10232f;border:1px solid #b7985e;color:#fff0cf;font:16px ForgeTinos,Georgia,serif}
 .icon{width:27px;height:27px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 1px 1px #0007)}
-.forge{height:100%;padding:12px 16px;display:grid;grid-template-rows:58px minmax(0,1fr);gap:10px}
+.forge{width:100%;height:100%;min-height:0;padding:12px 16px;display:grid;grid-template-rows:58px minmax(0,1fr);gap:10px}
 .forgeHeader{display:flex;align-items:center;justify-content:space-between;gap:15px}
 .forgeHeader h1{margin-left:auto}.headerActions{display:flex;align-items:center;gap:12px;margin-left:auto}
 .gold{display:flex;align-items:center;gap:8px;padding:7px 12px;border:1px solid #65706f;border-radius:4px;background:#0c1725ef;box-shadow:inset 0 1px 0 #d8bb7044;font-size:21px;font-weight:700}.gold .icon{width:32px;height:32px}
 .forgeGrid{display:grid;grid-template-columns:minmax(210px,25%) minmax(0,1fr);gap:12px;min-height:0}
-.host{background:url('/images/ui/blacksmith-v1/iona.webp') center bottom/130% auto no-repeat;position:relative;min-width:0;min-height:0;display:flex;align-items:end;justify-content:center}
+.host{background:url('/images/ui/blacksmith-v1/iona.webp') center bottom/min(130%, calc((min(100dvh, 900px) - 92px) * .6666667)) auto no-repeat;position:relative;min-width:0;min-height:0;display:flex;align-items:end;justify-content:center}
 
 .host>div,.gallery,.selection,.tooltip,.window{background:linear-gradient(#08121de8,#08121de8),url('/images/ui/forge-slate-v2/textures/slate.webp') center/500px;border:12px solid transparent;border-image:url('/images/ui/forge-slate-v2/frames/recipes.svg') 28 stretch;padding:8px 9px;min-width:0}
 .host>div{position:relative;text-align:center;width:min(100%,260px);border-image-source:url('/images/ui/forge-slate-v2/frames/host-plaque.svg');margin-bottom:2px}
@@ -73,3 +73,17 @@
 @media(max-width:650px) and (max-height:780px){.selection .hero{display:none}.selection>.stat{grid-column:1/-1;grid-row:2}.selection{grid-template-columns:1fr}}
 
 @media(min-width:651px) and (max-height:550px){.host{background-size:auto 100%}}
+
+/* Keep the approved 1440×900 composition centered on larger desktops. */
+@media(min-width:1101px){.forge{max-width:1440px;max-height:900px}}
+
+@media(min-width:1101px) and (max-height:800px){
+ .selection{grid-template-rows:auto minmax(60px,1fr) auto auto auto auto auto;gap:6px}
+ .detailHeading h2{font-size:24px}.selection>.stat{font-size:18px;padding:6px 8px}
+ .summary .itemDescription{font-size:14px}.summary .owned{font-size:14px;margin-top:4px!important}
+ .requirements{gap:4px;padding-top:5px}.requirements h3{font-size:17px}
+ .selection .material,.selection .fee{padding:3px 6px;min-height:40px}
+ .selection .material>img,.selection .fee>.icon{height:32px;width:32px}
+ .selection .material strong,.selection .fee strong{font-size:15px}
+ .selection .material small,.selection .fee small{font-size:12px}
+}
