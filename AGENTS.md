@@ -41,3 +41,6 @@ The user approved B for removal review and equip/remove receipts. Use EquipmentR
 
 ## All active removal entry points
 Inventory and creature-card Equipment tabs share EquipmentGallery; its equip/remove actions and BattleOutfitterBench must use EquipmentActionFlow and getEquipmentActionQuote. Do not reintroduce their old paged-book/plain-text equipment confirmations or success receipts. Keep exact selected-copy IDs, recipient blockers, stale-review checks, cancel-without-write behavior and fresh receipt component state. See docs/EQUIPMENT_REMOVAL_ROUTES_FIX_2026-10-17.md.
+
+## Shared equipment chooser entry points
+Inventory, creature-card Equipment and BattleOutfitterBench Equip actions now begin with EquipmentActionFlow’s approved B roster/comparison chooser. Capture the quote only when Review equip opens; preserve parent recipient selection without saving and guard the fresh confirmation against click-through. Removal stays direct. See docs/EQUIPMENT_CHOOSER_ROUTES_2026-10-17.md.

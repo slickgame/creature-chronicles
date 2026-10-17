@@ -1,0 +1,467 @@
+{
+  "results": [
+    {
+      "route": "inventory",
+      "shots": [
+        {
+          "name": "inventory-chooser-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 92.703125,
+            "width": 1400,
+            "height": 714.59375
+          }
+        },
+        {
+          "name": "inventory-expanded-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 42.46875,
+            "width": 1400,
+            "height": 815.0625
+          }
+        },
+        {
+          "name": "inventory-chooser-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 214.171875,
+            "width": 372,
+            "height": 415.640625
+          }
+        },
+        {
+          "name": "inventory-expanded-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 127.109375,
+            "width": 372,
+            "height": 589.78125
+          }
+        },
+        {
+          "name": "inventory-chooser-360",
+          "size": {
+            "width": 360,
+            "height": 740
+          },
+          "box": {
+            "x": 9,
+            "y": 162.171875,
+            "width": 342,
+            "height": 415.640625
+          }
+        },
+        {
+          "name": "inventory-expanded-360",
+          "size": {
+            "width": 360,
+            "height": 740
+          },
+          "box": {
+            "x": 9,
+            "y": 75.109375,
+            "width": 342,
+            "height": 589.78125
+          }
+        },
+        {
+          "name": "inventory-chooser-844",
+          "size": {
+            "width": 844,
+            "height": 390
+          },
+          "box": {
+            "x": 9,
+            "y": 43.703125,
+            "width": 826,
+            "height": 302.59375
+          }
+        },
+        {
+          "name": "inventory-expanded-844",
+          "size": {
+            "width": 844,
+            "height": 390
+          },
+          "box": {
+            "x": 9,
+            "y": 16.65625,
+            "width": 826,
+            "height": 356.6875
+          }
+        },
+        {
+          "name": "inventory-confirm-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 150.046875,
+            "width": 1400,
+            "height": 599.90625
+          }
+        },
+        {
+          "name": "inventory-receipt-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 176.859375,
+            "width": 1400,
+            "height": 546.28125
+          }
+        },
+        {
+          "name": "inventory-receipt-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 93.109375,
+            "width": 372,
+            "height": 657.765625
+          }
+        }
+      ],
+      "cancel": "chooser and confirmation unchanged",
+      "review": "double click cannot confirm",
+      "recipient": "Rook retained across cancel/reopen",
+      "equip": "selected exact copy once",
+      "copies": "all upgrades and other owners preserved",
+      "reload": "persisted"
+    },
+    {
+      "route": "creature",
+      "shots": [
+        {
+          "name": "creature-chooser-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 92.703125,
+            "width": 1400,
+            "height": 714.59375
+          }
+        },
+        {
+          "name": "creature-expanded-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 42.46875,
+            "width": 1400,
+            "height": 815.0625
+          }
+        },
+        {
+          "name": "creature-chooser-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 214.171875,
+            "width": 372,
+            "height": 415.640625
+          }
+        },
+        {
+          "name": "creature-expanded-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 127.109375,
+            "width": 372,
+            "height": 589.78125
+          }
+        },
+        {
+          "name": "creature-chooser-360",
+          "size": {
+            "width": 360,
+            "height": 740
+          },
+          "box": {
+            "x": 9,
+            "y": 162.171875,
+            "width": 342,
+            "height": 415.640625
+          }
+        },
+        {
+          "name": "creature-expanded-360",
+          "size": {
+            "width": 360,
+            "height": 740
+          },
+          "box": {
+            "x": 9,
+            "y": 75.109375,
+            "width": 342,
+            "height": 589.78125
+          }
+        },
+        {
+          "name": "creature-chooser-844",
+          "size": {
+            "width": 844,
+            "height": 390
+          },
+          "box": {
+            "x": 9,
+            "y": 43.703125,
+            "width": 826,
+            "height": 302.59375
+          }
+        },
+        {
+          "name": "creature-expanded-844",
+          "size": {
+            "width": 844,
+            "height": 390
+          },
+          "box": {
+            "x": 9,
+            "y": 16.65625,
+            "width": 826,
+            "height": 356.6875
+          }
+        },
+        {
+          "name": "creature-confirm-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 150.046875,
+            "width": 1400,
+            "height": 599.90625
+          }
+        },
+        {
+          "name": "creature-receipt-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 176.859375,
+            "width": 1400,
+            "height": 546.28125
+          }
+        },
+        {
+          "name": "creature-receipt-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 93.109375,
+            "width": 372,
+            "height": 657.765625
+          }
+        }
+      ],
+      "cancel": "chooser and confirmation unchanged",
+      "review": "double click cannot confirm",
+      "recipient": "Rook retained across cancel/reopen",
+      "equip": "selected exact copy once",
+      "copies": "all upgrades and other owners preserved",
+      "reload": "persisted"
+    },
+    {
+      "route": "outfitter",
+      "shots": [
+        {
+          "name": "outfitter-chooser-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 92.703125,
+            "width": 1400,
+            "height": 714.59375
+          }
+        },
+        {
+          "name": "outfitter-expanded-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 42.46875,
+            "width": 1400,
+            "height": 815.0625
+          }
+        },
+        {
+          "name": "outfitter-chooser-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 214.171875,
+            "width": 372,
+            "height": 415.640625
+          }
+        },
+        {
+          "name": "outfitter-expanded-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 127.109375,
+            "width": 372,
+            "height": 589.78125
+          }
+        },
+        {
+          "name": "outfitter-chooser-360",
+          "size": {
+            "width": 360,
+            "height": 740
+          },
+          "box": {
+            "x": 9,
+            "y": 162.171875,
+            "width": 342,
+            "height": 415.640625
+          }
+        },
+        {
+          "name": "outfitter-expanded-360",
+          "size": {
+            "width": 360,
+            "height": 740
+          },
+          "box": {
+            "x": 9,
+            "y": 75.109375,
+            "width": 342,
+            "height": 589.78125
+          }
+        },
+        {
+          "name": "outfitter-chooser-844",
+          "size": {
+            "width": 844,
+            "height": 390
+          },
+          "box": {
+            "x": 9,
+            "y": 43.703125,
+            "width": 826,
+            "height": 302.59375
+          }
+        },
+        {
+          "name": "outfitter-expanded-844",
+          "size": {
+            "width": 844,
+            "height": 390
+          },
+          "box": {
+            "x": 9,
+            "y": 16.65625,
+            "width": 826,
+            "height": 356.6875
+          }
+        },
+        {
+          "name": "outfitter-confirm-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 150.046875,
+            "width": 1400,
+            "height": 599.90625
+          }
+        },
+        {
+          "name": "outfitter-receipt-1440",
+          "size": {
+            "width": 1440,
+            "height": 900
+          },
+          "box": {
+            "x": 20,
+            "y": 176.859375,
+            "width": 1400,
+            "height": 546.28125
+          }
+        },
+        {
+          "name": "outfitter-receipt-390",
+          "size": {
+            "width": 390,
+            "height": 844
+          },
+          "box": {
+            "x": 9,
+            "y": 100.90625,
+            "width": 372,
+            "height": 642.171875
+          }
+        }
+      ],
+      "cancel": "chooser and confirmation unchanged",
+      "review": "double click cannot confirm",
+      "recipient": "Rook retained across cancel/reopen",
+      "equip": "selected exact copy once",
+      "copies": "all upgrades and other owners preserved",
+      "reload": "persisted"
+    }
+  ],
+  "errors": []
+}

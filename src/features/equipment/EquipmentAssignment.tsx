@@ -13,7 +13,7 @@ import {UpgradeItemArt} from './UpgradeItemArt';
 import {EquipmentStatIcon} from './EquipmentStatIcon';
 import s from './EquipmentAssignment.module.css';
 
-export function EquipmentAssignment({save,copyId,creatureId,confirmation,onSelect,onClose,onReview,onConfirm}:{save:GameSave;copyId:string;creatureId:string;confirmation:boolean;onSelect:(id:string)=>void;onClose:()=>void;onReview:()=>void;onConfirm:()=>void}){
+export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirmDisabled=false,onSelect,onClose,onReview,onConfirm}:{save:GameSave;copyId:string;creatureId:string;confirmation:boolean;confirmDisabled?:boolean;onSelect:(id:string)=>void;onClose:()=>void;onReview:()=>void;onConfirm:()=>void}){
  const [search,setSearch]=useState(''),[page,setPage]=useState(0),[expanded,setExpanded]=useState(false),[statPage,setStatPage]=useState(0),[mobile,setMobile]=useState(false),[short,setShort]=useState(false),[desktopCapacity,setDesktopCapacity]=useState(5),[tab,setTab]=useState<'creature'|'equipment'|'changes'>(confirmation?'changes':'creature');
  useEffect(()=>{const resize=()=>{setMobile(innerWidth<=700||innerHeight<=550);setShort(innerHeight<=550);setDesktopCapacity(innerHeight>=850?8:5);};const frame=requestAnimationFrame(resize);addEventListener('resize',resize);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',resize);};},[]);
  const copy=getEquipmentCopies(save).find(c=>c.id===copyId),item=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===copy?.itemId);
@@ -48,6 +48,6 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,onSelec
  {!expanded&&<section className={s.sets} aria-label="Set changes"><h3>Set changes</h3>{sets.map(({before,after})=><div key={before.id}><img src={`/images/ui/forge-slate-v2/sets/sculpted/${before.id}.webp`} alt=""/><span><strong>{before.name} {before.count}/{before.required} → {after.count}/{after.required}</strong><small>{after.activations<before.activations?'Bonus lost':after.activations>before.activations?'Bonus gained':after.activations?'Active':'Incomplete set'} · {before.description}</small></span></div>)}{!sets.length&&<p>No set counts change.</p>}</section>}
  </section></div>
  {blocker&&<p className={s.warning}>{blocker}</p>}
- <footer><button onClick={onClose}>Cancel</button><span>{participant?.displayName??'No creature selected'} · No Gold cost</span><button disabled={!!blocker} onClick={confirmation?onConfirm:onReview}><EquipmentStatIcon name="equip"/>{confirmation?'Confirm equip':'Review equip'}</button></footer>
+ <footer><button onClick={onClose}>Cancel</button><span>{participant?.displayName??'No creature selected'} · No Gold cost</span><button disabled={!!blocker||(confirmation&&confirmDisabled)} onClick={confirmation?onConfirm:onReview}><EquipmentStatIcon name="equip"/>{confirmation?'Confirm equip':'Review equip'}</button></footer>
  </section></main></GameDialog>;
 }
