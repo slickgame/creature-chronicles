@@ -35,3 +35,6 @@ The selected upgrade review/receipt is compact A with B's closed-envelope/questi
 
 ## Approved equipment assignment B
 The user selected the B roster/comparison chooser and replacement confirmation, with battle changes minimized to three rows by default. View all changes uses the set-panel space; Minimize restores it. Retain a persistent lost-set warning while expanded, count all changed stats and page according to viewport height. Phones use focused Creature/Equipment/Changes sections. Preserve canonical portraits, exact replaced copies, recipient blockers, stale-review checks and confirmation locking. See docs/EQUIPMENT_ASSIGNMENT_B_RUNTIME_2026-10-17.md.
+
+## Approved equipment results B
+The user approved B for removal review and equip/remove receipts. Use EquipmentResultWindow with actual before/persisted-save snapshots, Current/After versus Before/Saved wording, exact-copy return and explicit empty slots. Keep three-stat minimized defaults, viewport paging, persistent lost-bonus warnings and paged phone set changes. Removal goes straight to its full review and preserves training/gauntlet blockers and stale-review guards. See docs/EQUIPMENT_RESULTS_B_RUNTIME_2026-10-17.md.

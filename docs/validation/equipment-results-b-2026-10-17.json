@@ -1,0 +1,352 @@
+{
+  "date": "2026-10-17",
+  "runtime": "Actual production game with isolated synthetic save",
+  "build": "pass",
+  "regression": {
+    "passed": 354,
+    "failed": 0
+  },
+  "focusedReceiptTests": {
+    "passed": 3,
+    "failed": 0
+  },
+  "lint": {
+    "errors": 0,
+    "imageAdvisories": 9
+  },
+  "layoutScenarios": [
+    "removal confirmation",
+    "equip receipt",
+    "removal receipt"
+  ],
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 1920,
+      "height": 960
+    },
+    {
+      "width": 1920,
+      "height": 720
+    },
+    {
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 360,
+      "height": 740
+    },
+    {
+      "width": 844,
+      "height": 390
+    }
+  ],
+  "changedStatsStressCases": {
+    "removalReview": 6,
+    "equipReceipt": 9,
+    "removalReceipt": 5
+  },
+  "verified": [
+    "stat expansion/paging and minimize",
+    "persistent bonus-loss warning",
+    "phone set paging",
+    "immediate responsive dialog sizing",
+    "unchanged cancellation",
+    "rapid confirm receipt click-through guard",
+    "no Gold cost",
+    "exact-copy replacement and removal",
+    "reload persistence"
+  ],
+  "finalRemovalReceiptAndTransactionCheck": {
+    "captures": [
+      {
+        "name": "runtime-removed-360x740",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 9,
+          "y": 77.515625,
+          "width": 342,
+          "height": 584.96875
+        }
+      },
+      {
+        "name": "runtime-removed-gear-360x740",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 9,
+          "y": 78.3125,
+          "width": 342,
+          "height": 583.375
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-360x740",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 9,
+          "y": 93.3125,
+          "width": 342,
+          "height": 553.375
+        }
+      },
+      {
+        "name": "runtime-removed-last-360x740",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 9,
+          "y": 147.3125,
+          "width": 342,
+          "height": 445.375
+        }
+      },
+      {
+        "name": "runtime-removed-844x390",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 9,
+          "y": 27.703125,
+          "width": 826,
+          "height": 334.59375
+        }
+      },
+      {
+        "name": "runtime-removed-gear-844x390",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 9,
+          "y": 27.703125,
+          "width": 826,
+          "height": 334.59375
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-844x390",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 9,
+          "y": 27.703125,
+          "width": 826,
+          "height": 334.59375
+        }
+      },
+      {
+        "name": "runtime-removed-last-844x390",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 9,
+          "y": 27.703125,
+          "width": 826,
+          "height": 334.59375
+        }
+      },
+      {
+        "name": "runtime-removed-390x844",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 9,
+          "y": 100.90625,
+          "width": 372,
+          "height": 642.171875
+        }
+      },
+      {
+        "name": "runtime-removed-gear-390x844",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 9,
+          "y": 119,
+          "width": 372,
+          "height": 605.984375
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-390x844",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 9,
+          "y": 120,
+          "width": 372,
+          "height": 603.984375
+        }
+      },
+      {
+        "name": "runtime-removed-last-390x844",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 9,
+          "y": 180,
+          "width": 372,
+          "height": 483.984375
+        }
+      },
+      {
+        "name": "runtime-removed-1440x900",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 20,
+          "y": 176.859375,
+          "width": 1400,
+          "height": 546.28125
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-1440x900",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 20,
+          "y": 144.671875,
+          "width": 1400,
+          "height": 610.65625
+        }
+      },
+      {
+        "name": "runtime-removed-1920x960",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 240,
+          "y": 204.25,
+          "width": 1440,
+          "height": 551.5
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-1920x960",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 240,
+          "y": 174.671875,
+          "width": 1440,
+          "height": 610.65625
+        }
+      },
+      {
+        "name": "runtime-removed-1920x720",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 240,
+          "y": 84.25,
+          "width": 1440,
+          "height": 551.5
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-1920x720",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 240,
+          "y": 50.5625,
+          "width": 1440,
+          "height": 618.859375
+        }
+      },
+      {
+        "name": "runtime-removed-last-1920x720",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 240,
+          "y": 84.25,
+          "width": 1440,
+          "height": 551.5
+        }
+      },
+      {
+        "name": "runtime-removed-2560x1440",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 560,
+          "y": 444.25,
+          "width": 1440,
+          "height": 551.5
+        }
+      },
+      {
+        "name": "runtime-removed-expanded-2560x1440",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 560,
+          "y": 414.671875,
+          "width": 1440,
+          "height": 610.65625
+        }
+      }
+    ],
+    "errors": [],
+    "transactions": "Cancellation unchanged; exactly-once equip and removal; no Gold cost; copy identities, levels, rolls and rarity preserved; reload persisted."
+  },
+  "screenshots": [
+    "equipment-results-b-desktop.webp",
+    "equipment-results-b-phone.webp"
+  ],
+  "hostedGameplay": "unverified"
+}

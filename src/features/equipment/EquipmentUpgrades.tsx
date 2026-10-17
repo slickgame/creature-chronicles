@@ -1,4 +1,6 @@
 "use client";
+import {EquipmentResultWindow} from './EquipmentResultWindow';
+import {getEquipmentChangeSnapshot,equipmentRemovalBlocker,type EquipmentChangeSnapshot} from '@/data/equipmentChangeSnapshot';
 import {EquipmentAssignment} from './EquipmentAssignment';
 import {getOwnedInventory,inventoryRecipientBlocker} from '@/data/inventoryCatalogue';
 import {UpgradeSuccess,type UpgradeReceipt} from './UpgradeSuccess';
@@ -16,7 +18,6 @@ import { BATTLE_STAT_LABELS, compareEquipment } from '@/data/equipmentComparison
 import { useGameContext } from '@/state/GameProvider';
 import { useNavigation } from '@/features/navigation/NavigationContext';
 import { GameDialog } from '@/features/ui/GameDialog';
-import { EquipmentStats } from './EquipmentStats';
 import { EquipmentGuide } from './EquipmentGuide';
 import styles from './EquipmentUpgrades.module.css';
 
@@ -35,6 +36,7 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  const [reviewLevel,setReviewLevel]=useState(0);
  const [message,setMessage]=useState('');
  const [upgradeReceipt,setUpgradeReceipt]=useState<UpgradeReceipt|null>(null);
+ const [equipmentReceipt,setEquipmentReceipt]=useState<EquipmentChangeSnapshot|null>(null);
  const busy=useRef(false);
  const equipReview=useRef('');
  if(!save)return null;
@@ -52,16 +54,20 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  const tile=(c:typeof copies[number])=>{const gear=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===c.itemId)!;const meta=equipmentStats(gear,c);return <><img className={styles.gear} src={gear.iconPath} alt=""/><img className={styles.frame} src={`/images/ui/forge-slate-v2/frames/item-${meta.rarity.toLowerCase()}.svg`} alt=""/><span className={styles.grade}>{meta.powerGrade}</span><span className={styles.level}>+{c.level}</span>{meta.setId&&<span className={styles.setBadge} data-equipment-set={meta.setId}><img src={`/images/ui/forge-slate-v2/sets/sculpted/${meta.setId}.webp`} alt={`${EQUIPMENT_SETS[meta.setId].name} set`}/></span>}<span className={styles.category}><img src={`/images/ui/forge-slate-v2/categories/${gear.equipmentSlot}.webp`} alt={EQUIPMENT_SLOT_LABELS[gear.equipmentSlot!]}/></span>{c.owner&&<span className={styles.worn} aria-label="Equipped">◆</span>}</>;};
 
  const equipFingerprint=copy&&creature&&quote?JSON.stringify({copy,comparison:compareEquipment(save,creature,quote.item,copy.id),creature:creature.creatureId}):'';
- function review(kind:'upgrade'|'equip'|'remove'){if(!copy)return;busy.current=false;setReviewLevel(copy.level);if(kind==='equip')equipReview.current=equipFingerprint;setPopup(kind);}
+ const removal=quote&&owner?removeBattleOutfitterEquipment(save,owner.creatureId,quote.item.equipmentSlot!):null;
+ const removalSnapshot=quote&&owner&&removal?.ok?getEquipmentChangeSnapshot(save,removal.save,owner.creatureId,quote.item.equipmentSlot!,'remove'):null;
+ const removalBlock=owner?equipmentRemovalBlocker(save,owner.creatureId):'This equipment is no longer worn.';
+ function review(kind:'upgrade'|'equip'|'remove'){if(!copy)return;busy.current=false;setReviewLevel(copy.level);if(kind==='equip'||kind==='remove')equipReview.current=kind==='equip'?equipFingerprint:JSON.stringify(removalSnapshot);setPopup(kind);}
  function confirm(){
-  if(!save||!quote||!copy||busy.current)return;busy.current=true;setUpgradeReceipt(null);
+  if(!save||!quote||!copy||busy.current)return;busy.current=true;setUpgradeReceipt(null);setEquipmentReceipt(null);
   if(popup==='equip'&&equipReview.current!==equipFingerprint){setMessage('Equipment or creature stats changed. Review this piece again before equipping.');setPopup('report');return;}
+  if(popup==='remove'&&(equipReview.current!==JSON.stringify(removalSnapshot)||removalBlock)){setMessage(removalBlock??'Equipment changed. Review removal again.');setPopup('report');return;}
   const entry=getOwnedInventory(save).find(e=>e.id===copy.id);
   const restriction=popup==='equip'&&creature?(entry?inventoryRecipientBlocker(save,entry,creature.creatureId):'This equipment is no longer available.'):null;
   if(restriction){setMessage(restriction);setPopup('report');return;}
   const result=popup==='upgrade'?enhanceEquipment(save,copy.id,reviewLevel):popup==='equip'&&creature?assignBattleOutfitterEquipment(save,creature.creatureId,quote.item.itemId,copy.id):popup==='remove'&&owner?removeBattleOutfitterEquipment(save,owner.creatureId,quote.item.equipmentSlot!):{save,ok:false,message:'Select an available copy and creature again.'};
   let report=result.message;
-  if(result.ok){const persisted=saveCurrentGame(result.save);if(popup==='upgrade'){const upgraded=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:quote.item.name,art:quote.item.iconPath,slot:quote.item.equipmentSlot,level:upgraded.level,cost:quote.cost,before:quote.before,after:equipmentStats(quote.item,upgraded)});}const g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(g||gp)report+=` Goal rewards: +${g} Gold, +${gp} GP.`;}
+  if(result.ok){const persisted=saveCurrentGame(result.save);if((popup==='equip'&&creature)||(popup==='remove'&&owner))setEquipmentReceipt(getEquipmentChangeSnapshot(save,persisted,popup==='equip'?creature!.creatureId:owner!.creatureId,quote.item.equipmentSlot!,popup==='equip'?'equip':'remove'));if(popup==='upgrade'){const upgraded=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:quote.item.name,art:quote.item.iconPath,slot:quote.item.equipmentSlot,level:upgraded.level,cost:quote.cost,before:quote.before,after:equipmentStats(quote.item,upgraded)});}const g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(g||gp)report+=` Goal rewards: +${g} Gold, +${gp} GP.`;}
   setMessage(report);setPopup('report');
  }
  return <main className={styles.screen} data-equipment-upgrades>
@@ -74,7 +80,7 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
    {tooltip&&tooltipItem&&<div id="upgrade-equipment-tooltip" role="tooltip" className={styles.tooltip}>{facts(tooltip)}</div>}
    {pages>1&&<nav className={styles.paging} aria-label="Equipment"><button aria-label="Previous equipment" disabled={currentPage===0} onClick={()=>{setPage(currentPage-1);setHoverId(null);}}>‹</button><span>{currentPage+1} / {pages}</span><button aria-label="Next equipment" disabled={currentPage+1>=pages} onClick={()=>{setPage(currentPage+1);setHoverId(null);}}>›</button></nav>}</aside>
    <section className={styles.details} aria-label="Selected equipment">{quote&&copy?<>
-    <div className={styles.item}><button className={styles.selectedArt} aria-label={`Inspect ${quote.item.name}`} onClick={()=>setPopup('stats')}>{tile(copy)}</button><div className={styles.itemName}><h2>{quote.item.name} +{copy.level}</h2><p>{EQUIPMENT_SLOT_LABELS[quote.item.equipmentSlot!]} · <span data-rarity={quote.before.rarity}>{quote.before.rarity}</span></p><p className={styles.ownership}><EquipmentStatIcon name={owner?'equip':'inventory'}/>{owner?`Worn by ${owner.nickname}`:'In inventory'}</p></div><button className={styles.equip} onClick={()=>setPopup('assignment')}><EquipmentStatIcon name="equip"/>{copy.owner?'Remove':'Equip'}</button></div>
+    <div className={styles.item}><button className={styles.selectedArt} aria-label={`Inspect ${quote.item.name}`} onClick={()=>setPopup('stats')}>{tile(copy)}</button><div className={styles.itemName}><h2>{quote.item.name} +{copy.level}</h2><p>{EQUIPMENT_SLOT_LABELS[quote.item.equipmentSlot!]} · <span data-rarity={quote.before.rarity}>{quote.before.rarity}</span></p><p className={styles.ownership}><EquipmentStatIcon name={owner?'equip':'inventory'}/>{owner?`Worn by ${owner.nickname}`:'In inventory'}</p></div><button className={styles.equip} onClick={()=>copy.owner?review('remove'):setPopup('assignment')}><EquipmentStatIcon name="equip"/>{copy.owner?'Remove':'Equip'}</button></div>
     <div className={styles.statPanel}><table className={styles.stats}><thead><tr><th aria-label="Stat"/><th>Current (+{copy.level})</th><th aria-label="Change"/><th>{quote.maxed?'Maximum':`Next (+${copy.level+1})`}</th></tr></thead><tbody><tr><th><EquipmentStatIcon name={quote.before.main.key}/>{BATTLE_STAT_LABELS[quote.before.main.key]}</th><td>{quote.before.main.value}</td><td>→</td><td className={styles.gain}>{quote.after.main.value}</td></tr>{Array.from({length:4},(_,i)=>{const stat=quote.before.substats[i];return <tr key={i} className={!stat?styles.emptyRow:undefined}><th>{stat?<><EquipmentStatIcon name={stat.key}/>{BATTLE_STAT_LABELS[stat.key]}</>:'Empty substat'}</th><td>{stat?`+${stat.value}`:'—'}</td><td>→</td><td>{stat?`+${stat.value}`:'—'}</td></tr>;})}</tbody></table><p className={styles.mystery}>{quote.maxed?'Maximum improvement reached':(copy.level+1)%3===0?`${quote.before.substats.length>=4?'Random substat increase':'Mystery substat'} · Revealed after payment`:`Substats unchanged · Next ${quote.before.substats.length>=4?'random increase':'mystery'} at +${Math.ceil((copy.level+1)/3)*3}`}</p></div>
     <footer className={styles.footer}><div className={styles.cost}><strong><ForgeIcon name="coin"/>{quote.maxed?'Maximum +15':`${quote.cost} Gold`}</strong><small>No materials required</small><small>{quote.maxed?'':quote.canUpgrade?`Balance: ${save.currencies.gold.toLocaleString('en-US')} → ${(save.currencies.gold-quote.cost).toLocaleString('en-US')}`:`Need ${quote.cost-save.currencies.gold} more Gold`}</small></div><button className={styles.primary} disabled={!quote.canUpgrade} onClick={()=>review('upgrade')}><ForgeIcon name="upgrade"/>Improve</button></footer>
    </>:<div className={styles.empty}><h2>No equipment yet</h2><p>Buy equipment at the Outfitter, craft it with Iona, or earn gear in the Coliseum.</p></div>}</section>
@@ -82,10 +88,10 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  </div>
   {popup==='stats'&&quote&&<EquipmentGuide item={quote.item} copy={copy} onClose={()=>setPopup(null)}/>}
   {(popup==='assignment'||popup==='equip')&&quote&&copy&&!copy.owner&&<EquipmentAssignment key={popup} save={save} copyId={copy.id} creatureId={creature?.creatureId??''} confirmation={popup==='equip'} onSelect={setCreatureId} onClose={()=>setPopup(null)} onReview={()=>review('equip')} onConfirm={confirm}/>}
-  {popup==='assignment'&&quote&&copy&&copy.owner&&<GameDialog title="Remove equipment" onClose={()=>setPopup(null)}><p>Remove {quote.item.name} from {owner?.nickname}?</p><button onClick={()=>review('remove')}>Review removal</button></GameDialog>}
   {popup==='upgrade'&&quote&&<UpgradeReview quote={quote} gold={save.currencies.gold} stale={copy?.level!==reviewLevel} onClose={()=>setPopup(null)} onConfirm={confirm}/>}
-  {popup==='remove'&&quote&&<GameDialog title="Confirm equipment removal" onClose={()=>setPopup(null)}><p>Return {quote.item.name} +{copy!.level} to inventory with its upgrades intact?</p><EquipmentStats item={quote.item} copy={copy}/><div className={styles.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button onClick={confirm}>Confirm removal</button></div></GameDialog>}
+  {popup==='remove'&&removalSnapshot&&<EquipmentResultWindow snapshot={removalSnapshot} blocker={removalBlock} onClose={()=>setPopup(null)} onConfirm={confirm}/>}
   {popup==='report'&&upgradeReceipt&&<UpgradeSuccess receipt={upgradeReceipt} gold={save.currencies.gold} onClose={()=>{setPopup(null);setUpgradeReceipt(null);}}/>}
-  {popup==='report'&&!upgradeReceipt&&<GameDialog title="Equipment receipt" onClose={()=>setPopup(null)}><p role="status">{message}</p><p>Balance: {save.currencies.gold} Gold.</p><button onClick={()=>setPopup(null)}>Continue</button></GameDialog>}
+  {popup==='report'&&equipmentReceipt&&<EquipmentResultWindow snapshot={equipmentReceipt} completed onClose={()=>{setPopup(null);setEquipmentReceipt(null);}}/>}
+  {popup==='report'&&!upgradeReceipt&&!equipmentReceipt&&<GameDialog title="Equipment receipt" onClose={()=>setPopup(null)}><p role="status">{message}</p><p>Balance: {save.currencies.gold} Gold.</p><button onClick={()=>setPopup(null)}>Continue</button></GameDialog>}
  </main>;
 }
