@@ -2,6 +2,10 @@
 
 The user locked the uploaded `a759b7fb-e715-4c50-b735-2c5c7654f059.png` concept on October 16, 2026 (America/New_York). Slate/gold Forge, compact name-free item tiles, filled ivory category silhouettes and a **Craft** primary label are the approved direction. This supersedes Forge A as the next visual target. **This kit is not yet integrated into the live BlacksmithWorkshop.** The existing game and transaction guards are unchanged.
 
+## Control finish correction
+
+The user compared the first assembly against the locked concept and requested stronger treatment for Craft/Improve, Talk to Iona, ingredient source, currency and Craft action. The current frame sources now use beveled gradient metal rims, dark enamel depth, small corner details, amber selected-tab light and emerald primary-button depth. Filled action emblems replace thin outlines. The source action is a supplies crate with a route arrow, labeled Ingredient sources, rather than a generic house. Gold uses an embossed hammer coin, not a dollar sign. `control-samples.html` shows the actual controls and distinct supplied state surfaces. This remains an asset assembly, not runtime integration.
+
 ## Contents and use
 
 - `frames/`: text-free screen, recipe/detail, tooltip, dialog, receipt, source, dialogue, host, row/field/notice/grade/enhancement surfaces; primary/secondary buttons and Craft/Improve tabs with normal/hover/pressed/disabled states; five rarity tile frames with hover/disabled states; white selection brackets and tooltip pointer.

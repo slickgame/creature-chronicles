@@ -35,14 +35,33 @@ def frame(name,color=GOLD,bg='#0b1823',ornate=False,w=240,h=160):
 for n in ['screen','recipes','details','tooltip','dialog','receipt','source','dialogue','host-plaque']:frame(n,ornate=True,bg=None)
 for n in ['material-row','labor-row','stat-row','substat-row','stock-row','field','notice','pager','grade-plate','enhancement-plate']:frame(n,color='#6d756e',bg='#10202c',w=240,h=72)
 for n,c in [('success','#6dab85'),('warning','#d5ad5c'),('error','#da8c7c'),('focus','#fff6dc')]:frame(n,c,bg=None)
-for base,c,bg in [('button-primary','#d5c57a','#006b5e'),('button-secondary',GOLD,'#14232e'),('tab',GOLD,'#10202b'),('tab-active','#ffd783','#603d1c')]:
+def control(name,base,state):
+ primary=base=='button-primary';active=base=='tab-active';disabled=state=='-disabled';pressed=state=='-pressed';hover=state=='-hover'
+ if primary: colors=('#07977c','#006f60','#003d3b')
+ elif active: colors=('#745023','#372b1b','#111c23')
+ else: colors=('#243a47','#122533','#0b1924')
+ if hover:colors=tuple('#'+''.join(f'{min(255,round(int(c[i:i+2],16)*1.15)):02x}' for i in (1,3,5)) for c in colors)
+ if pressed:colors=('#0a2529','#0b222a','#18313b') if not primary else ('#00483d','#00594d','#003731')
+ if disabled:colors=('#29353c','#222e35','#1d2930')
+ edge='#657378' if disabled else '#f4d184' if hover or active else '#d8b26b'
+ glow=not disabled and not pressed and (primary or active or hover)
+ body=f'''<defs><linearGradient id="surface" x2="0" y2="1"><stop stop-color="{colors[0]}"/><stop offset=".5" stop-color="{colors[1]}"/><stop offset="1" stop-color="{colors[2]}"/></linearGradient><linearGradient id="metal" x1="0" y1="0" x2=".3" y2="1"><stop stop-color="#fff1b5"/><stop offset=".24" stop-color="{edge}"/><stop offset=".54" stop-color="#97713d"/><stop offset=".78" stop-color="{edge}"/><stop offset="1" stop-color="#6c4c24"/></linearGradient><linearGradient id="sheen" x2="0" y2="1"><stop stop-color="#fff6d5" stop-opacity=".15"/><stop offset=".48" stop-color="#fff6d5" stop-opacity="0"/></linearGradient><radialGradient id="warm" cx=".5" cy="0" r=".9"><stop stop-color="#ffb94e" stop-opacity=".35"/><stop offset=".7" stop-color="#f5a12c" stop-opacity="0"/></radialGradient><filter id="glow" x="-.1" y="-.4" width="1.2" height="1.8"><feGaussianBlur stdDeviation="2"/></filter></defs>'''
+ path='M10 4H230L237 11V61L230 68H10L3 61V11Z'
+ if glow:body+=f'<path d="{path}" fill="none" stroke="{"#ffb54c" if active else "#54d6aa" if primary else edge}" stroke-width="3" opacity=".65" filter="url(#glow)"/>'
+ body+=f'<path d="{path}" fill="url(#surface)" stroke="url(#metal)" stroke-width="2"/><path d="M12 8H228L233 13V59L228 64H12L7 59V13Z" fill="url(#sheen)" stroke="{edge}" stroke-opacity=".45" stroke-width=".7"/>'
+ if active and not disabled:body+=f'<path d="{path}" fill="url(#warm)"/>'
+ body+='<path d="M12 6H228M5 14V57" fill="none" stroke="#fff0bb" stroke-width=".8" opacity=".65"/><path d="M12 66H228M235 14V57" fill="none" stroke="#000" stroke-width="1" opacity=".65"/>'
+ for x,y,r in [(7,8,0),(233,8,90),(233,64,180),(7,64,270)]:
+  body+=f'<g transform="translate({x} {y}) rotate({r})"><path d="m0-3 3 3-3 3-3-3Z" fill="{edge}"/><path d="M-1 6Q0 0 6-1" fill="none" stroke="#fff0b2" stroke-width=".7"/></g>'
+ write('frames',name,body,'0 0 240 72')
+for base,c,bg in [('button-primary','#d5c57a','#006b5e'),('button-secondary',GOLD,'#14232e'),('button-talk',GOLD,'#14232e'),('tab',GOLD,'#10202b'),('tab-active','#ffd783','#603d1c')]:
  for state in ['', '-hover','-pressed','-disabled']:
   
   shade=bg
   if state=='-hover': shade={'#006b5e':'#008576','#14232e':'#203744','#10202b':'#20333f','#603d1c':'#805223'}[bg]
   elif state=='-pressed': shade={'#006b5e':'#00463e','#14232e':'#08151f','#10202b':'#09151e','#603d1c':'#44280e'}[bg]
   elif state=='-disabled': shade='#26323a'
-  frame(base+state,c if state!='-disabled' else '#647079',shade,w=240,h=72)
+  control(base+state,base,state)
 rarities={'common':'#66d999','uncommon':'#b4c1cd','rare':'#4fb7ff','heroic':'#cd75f6','legendary':'#f0b841'}
 for n,c in rarities.items():
  for state in ['', '-hover','-disabled']:
@@ -56,6 +75,18 @@ for src in old.glob('*.svg'):
 write('icons','home',f'<g fill="none" stroke="{IVORY}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8M6 10v11h5v-7h3v7h4V10"/></g>','0 0 24 24')
 write('icons','info',f'<circle cx="12" cy="12" r="10" fill="none" stroke="{GOLD}" stroke-width="1.5"/><path d="M12 10v7M12 6v1" stroke="{IVORY}" stroke-width="2.3" stroke-linecap="round"/>','0 0 24 24')
 write('icons','gold-coin','<defs><radialGradient id="c"><stop stop-color="#ffe599"/><stop offset=".7" stop-color="#d58e24"/><stop offset="1" stop-color="#805016"/></radialGradient></defs><circle cx="32" cy="32" r="29" fill="url(#c)" stroke="#ffe2a0" stroke-width="2"/><circle cx="32" cy="32" r="23" fill="none" stroke="#ffe2a0"/><path d="M39 20H28q-8 0-8 7t9 7h6q9 0 9 7t-8 7H25M32 15v38" fill="none" stroke="#fff4c6" stroke-width="3"/>')
+# Filled action emblems and a game-currency strike, refined against the locked concept.
+actions={
+ 'craft':'M9 3 12 1 24 13 21 16 18 15 10 7ZM17 14 20 17 8 29Q6 31 4 28Z M8 3 5 6 9 10 12 7Z',
+ 'upgrade':'M16 2 28 15H21V28H11V15H4ZM9 29H23V31H9Z',
+ 'talk':'M7 5H25Q29 5 29 9V20Q29 24 25 24H15L7 30V24Q3 24 3 20V9Q3 5 7 5Z M10 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM16 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM22 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z',
+ 'source':'M3 15 13 9 23 15 13 21ZM3 18 12 23V31L3 26ZM15 23 24 18V26L15 31ZM19 3H26V0L32 6 26 12V9H19Z'}
+for n,path in actions.items():
+ body=f'<path d="{path}" fill="#573c21" fill-rule="evenodd" transform="translate(0 1)"/><path d="{path}" fill="{IVORY if n in ["craft","upgrade"] else "#efcf88"}" fill-rule="evenodd"/>'
+ write('icons',n,body,'0 0 32 32')
+coin='''<defs><radialGradient id="coin" cx=".35" cy=".25"><stop stop-color="#fff3b2"/><stop offset=".35" stop-color="#f2bd52"/><stop offset=".75" stop-color="#c47b20"/><stop offset="1" stop-color="#70400c"/></radialGradient><linearGradient id="rim" x2=".7" y2="1"><stop stop-color="#fff4c4"/><stop offset=".4" stop-color="#f1c261"/><stop offset=".7" stop-color="#8e581a"/><stop offset="1" stop-color="#f7d27c"/></linearGradient></defs><circle cx="32" cy="33" r="30" fill="#4f2d0a"/><circle cx="32" cy="31" r="29" fill="url(#coin)" stroke="url(#rim)" stroke-width="3"/><circle cx="32" cy="31" r="23" fill="none" stroke="#915515" stroke-width="1.4"/><circle cx="32" cy="30" r="21.5" fill="none" stroke="#ffe9a3" stroke-width=".8"/>
+<g transform="translate(16 14) rotate(-8 16 16)"><path d="M9 3 12 1 24 13 21 16 18 15 10 7ZM17 14 20 17 8 29Q6 31 4 28ZM8 3 5 6 9 10 12 7Z" fill="#945619" transform="translate(1 1)"/><path d="M9 3 12 1 24 13 21 16 18 15 10 7ZM17 14 20 17 8 29Q6 31 4 28ZM8 3 5 6 9 10 12 7Z" fill="#fff0ad"/></g><path d="M12 17Q22 5 39 7" fill="none" stroke="#fff5cc" stroke-width="1.8" stroke-linecap="round" opacity=".9"/>'''
+write('icons','gold-coin',coin)
 write('ornaments','item-plinth',f'<g fill="none" stroke="{GOLD}" opacity=".35"><circle cx="100" cy="100" r="81"/><circle cx="100" cy="100" r="65"/><path d="M100 8v184M8 100h184M42 42l116 116M158 42 42 158"/><path d="m100 5 4 8-4 8-4-8Zm0 174 4 8-4 8-4-8ZM5 100l8-4 8 4-8 4Zm174 0 8-4 8 4-8 4Z"/></g>','0 0 200 200')
 write('ornaments','divider',f'<path d="M0 8H135M165 8H300m-157 0 7-5 7 5-7 5Z" fill="none" stroke="{GOLD}" opacity=".65"/>','0 0 300 16')
 write('ornaments','corner',f'<path d="M2 32V2h30M5 25Q8 7 25 5M2 2l13 13m-3-8 4 1-1 4-4-1Z" fill="none" stroke="{GOLD}" stroke-width="1.3"/>','0 0 36 36')

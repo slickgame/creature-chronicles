@@ -8,7 +8,7 @@
     "archivePath": "references/LOCKED_FORGE_B3.png"
   },
   "counts": {
-    "svg": 104,
+    "svg": 108,
     "raster": 7,
     "fontFiles": 8,
     "canonicalReusedImages": 10
@@ -153,5 +153,18 @@
       "sourceArchivePath": "masters/categories/accessory.png",
       "masterSha256": "6b3edd29dff863881f7e8a0d4bdfce1633160f5ccb6669091831041c8594c8d5"
     }
-  ]
+  ],
+  "controlRevision": {
+    "reference": "User image2 feca7133-55b5-47b0-8cbb-fea7d148c21a.png compared with first assembly image4",
+    "changes": [
+      "Beveled metallic control rims and corner details",
+      "Recessed/enamel surface gradients",
+      "Amber active Craft tab",
+      "Emerald Craft primary action",
+      "Filled hammer, improve arrow, speech-bubble and supply-route emblems",
+      "Embossed hammer coin replaces dollar sign"
+    ],
+    "sample": "control-samples.html",
+    "scope": "Production assets and sample assembly only; runtime unchanged"
+  }
 }

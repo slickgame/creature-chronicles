@@ -7,14 +7,14 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 6224,
-      "sha256": "d157c9a5130eb9d4eaa8d906b3f27050ca0c4ea28a5717c483621f1e2d23e2b2",
+      "bytes": 6952,
+      "sha256": "3ae4784bebb542718239de4167b8a4d6ebc89bbcaebb61d333816d587e8bbe6b",
       "kind": "source-or-document"
     },
     {
       "path": "catalog.html",
-      "bytes": 13055,
-      "sha256": "abd5fac112433107bc8560bdbd54a3e342f7274d2e4366ff19b6b314838f7087",
+      "bytes": 13570,
+      "sha256": "8215befb5a6100d0e1e8b6de8a4eb0644adba78e39944ef7f5b633eef22ae011",
       "kind": "source-or-document"
     },
     {
@@ -174,6 +174,12 @@
       "kind": "source-or-document"
     },
     {
+      "path": "control-samples.html",
+      "bytes": 3520,
+      "sha256": "b806e35e5b18b000a28fe59b472acde5cf3c8c7185f1e2681cc8a156835037e8",
+      "kind": "source-or-document"
+    },
+    {
       "path": "fonts/METADATA.pb",
       "bytes": 1395,
       "sha256": "e9db6bd24890351be0ac41486fbcf4ccb10b34ec19f2e77d7a5517f2eb1dbafe",
@@ -235,63 +241,91 @@
     },
     {
       "path": "forge.css",
-      "bytes": 16165,
-      "sha256": "a18c48c68fb0cc3eaff520aeeda11cc155f726554710bc0d59a6b4b610aa4e99",
+      "bytes": 18513,
+      "sha256": "32b58993d68ac1df6cd835ae7b9c5a7820d57ab4ba907fe0b0dd8476921d3e29",
       "kind": "source-or-document"
     },
     {
       "path": "frames/button-primary-disabled.svg",
-      "bytes": 538,
-      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "bytes": 2059,
+      "sha256": "35776a452a937c55993d8fdf5d1dda787abe9676a6af4536383dc599a298fb30",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-primary-hover.svg",
-      "bytes": 538,
-      "sha256": "9c7620fd53fc86016975f147feb8ec776dcc16b341294d619f66c39d74fa705f",
+      "bytes": 2189,
+      "sha256": "58d9264cc2d359fcfcd84d6894b06b66c1f6fda72e27b81ddbfa279dc419322d",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-primary-pressed.svg",
-      "bytes": 538,
-      "sha256": "50726a846c5ba762345f8f0759555b85fee2daddf51d180e9758c131922ad01e",
+      "bytes": 2059,
+      "sha256": "5ab0958aca0183c342f64f1130e7dd4759f142d3f79d63ff622f1ec199605f63",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-primary.svg",
-      "bytes": 538,
-      "sha256": "8294060e19109870647ff7604cd821cad5e964049dd3f6a4cacadd66ae2c290c",
+      "bytes": 2189,
+      "sha256": "6276e17d9090cd39f705528b5eaca8e604b1adf7967504bc0bba857e992dbc57",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-secondary-disabled.svg",
-      "bytes": 538,
-      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "bytes": 2059,
+      "sha256": "35776a452a937c55993d8fdf5d1dda787abe9676a6af4536383dc599a298fb30",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-secondary-hover.svg",
-      "bytes": 538,
-      "sha256": "b09ddcdcefad8764d91c31b7de21a7802759423bbd3b7a3a6a62ddb3f9388f39",
+      "bytes": 2189,
+      "sha256": "9b372fd2e2d6d311baf389cebad9cf4dd0fc6d170e3b4eae35a34260f5c3c82c",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-secondary-pressed.svg",
-      "bytes": 538,
-      "sha256": "e2a37ca397389ef89feb49f4c1bf92da31206428a01f9252b1faa9f3efb89649",
+      "bytes": 2059,
+      "sha256": "37be2195165b42700f33563ffe81a6c316f3dda5a064d8a6e274d614426c2aaf",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/button-secondary.svg",
-      "bytes": 538,
-      "sha256": "a3641b4aed2eccaba84a7d18bc65a2f86b3945d3123a49e2d4d16dc83398d331",
+      "bytes": 2059,
+      "sha256": "4610686f9a6883189b4c4c86821a1a28766bf996ef5ccd3405e15f85ec207cd1",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-talk-disabled.svg",
+      "bytes": 2059,
+      "sha256": "35776a452a937c55993d8fdf5d1dda787abe9676a6af4536383dc599a298fb30",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-talk-hover.svg",
+      "bytes": 2189,
+      "sha256": "9b372fd2e2d6d311baf389cebad9cf4dd0fc6d170e3b4eae35a34260f5c3c82c",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-talk-pressed.svg",
+      "bytes": 2059,
+      "sha256": "37be2195165b42700f33563ffe81a6c316f3dda5a064d8a6e274d614426c2aaf",
+      "kind": "vector",
+      "viewBox": "0 0 240 72"
+    },
+    {
+      "path": "frames/button-talk.svg",
+      "bytes": 2059,
+      "sha256": "4610686f9a6883189b4c4c86821a1a28766bf996ef5ccd3405e15f85ec207cd1",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
@@ -556,57 +590,57 @@
     },
     {
       "path": "frames/tab-active-disabled.svg",
-      "bytes": 538,
-      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "bytes": 2059,
+      "sha256": "35776a452a937c55993d8fdf5d1dda787abe9676a6af4536383dc599a298fb30",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab-active-hover.svg",
-      "bytes": 538,
-      "sha256": "b4045c9f44e60b4cb01cc74a33f50a934c84021f0fcf1c5a3422f548419bd730",
+      "bytes": 2257,
+      "sha256": "515d244cdcbd3d4fbe07f7b4ee2e55f0cdfe95e64d35e65c5230bd8830792527",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab-active-pressed.svg",
-      "bytes": 538,
-      "sha256": "bb2b9fb79533e4178fa4494849c6a85a5e493a2470a5041b4c944adabff6ab94",
+      "bytes": 2127,
+      "sha256": "a363c7cc1e14ea6d5653aedb9da3bd62bd406c01ed6dd5ad98febaf82fdd8470",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab-active.svg",
-      "bytes": 538,
-      "sha256": "ded0895f967316aa6a57ee2b7ef18d71f00453f81b10b352e9436b359eeeeddb",
+      "bytes": 2257,
+      "sha256": "e1a283513a6800c30adad2f45d450709d70e0024fda54e144f9247648381e903",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab-disabled.svg",
-      "bytes": 538,
-      "sha256": "205ad563544e6a36da400df2274d1f052c1835f9d735664fbb5bed8651e5c94d",
+      "bytes": 2059,
+      "sha256": "35776a452a937c55993d8fdf5d1dda787abe9676a6af4536383dc599a298fb30",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab-hover.svg",
-      "bytes": 538,
-      "sha256": "2172f06d6cae4ef8ecbbe5f1f892cf28b3ba4afc8cb0b1e8f010c7c75b2f53c9",
+      "bytes": 2189,
+      "sha256": "9b372fd2e2d6d311baf389cebad9cf4dd0fc6d170e3b4eae35a34260f5c3c82c",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab-pressed.svg",
-      "bytes": 538,
-      "sha256": "e2baaa3f681f90cb37e1b351386ba32275fa11aef13816518feae27d77e2c3e3",
+      "bytes": 2059,
+      "sha256": "37be2195165b42700f33563ffe81a6c316f3dda5a064d8a6e274d614426c2aaf",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
     {
       "path": "frames/tab.svg",
-      "bytes": 538,
-      "sha256": "521819f5b7c16fb1b641c8b75fbaade6514d908c7838746eaba840d15c5d8cd8",
+      "bytes": 2059,
+      "sha256": "4610686f9a6883189b4c4c86821a1a28766bf996ef5ccd3405e15f85ec207cd1",
       "kind": "vector",
       "viewBox": "0 0 240 72"
     },
@@ -688,10 +722,10 @@
     },
     {
       "path": "icons/craft.svg",
-      "bytes": 213,
-      "sha256": "f3379d814316665b4d91173473042bbb841d4033f9aed1c435e903d3bc5f8f3b",
+      "bytes": 349,
+      "sha256": "ca41387680a41bc219d98824170227aa76066621a631a63148dd3eb1c7efe424",
       "kind": "vector",
-      "viewBox": "0 0 24 24"
+      "viewBox": "0 0 32 32"
     },
     {
       "path": "icons/expand.svg",
@@ -716,8 +750,8 @@
     },
     {
       "path": "icons/gold-coin.svg",
-      "bytes": 475,
-      "sha256": "4d39c5b5ca242d6371e7b198085e527b93f5fa920e5211f181ced01571223f14",
+      "bytes": 1194,
+      "sha256": "f4e6e36d154400d9b6552a506ce91a7d204c816a28adce36a55b5349f38ed7cb",
       "kind": "vector",
       "viewBox": "0 0 64 64"
     },
@@ -828,10 +862,10 @@
     },
     {
       "path": "icons/source.svg",
-      "bytes": 218,
-      "sha256": "c7b051e14c69807abb46b8c7caaae787ac935a73002b304d1bdecdcfa4245ded",
+      "bytes": 371,
+      "sha256": "0219e541dff379c31645634b5aff9f2e0d734a86d97466a3c4a84debaba1c53f",
       "kind": "vector",
-      "viewBox": "0 0 24 24"
+      "viewBox": "0 0 32 32"
     },
     {
       "path": "icons/spark.svg",
@@ -842,17 +876,17 @@
     },
     {
       "path": "icons/talk.svg",
-      "bytes": 210,
-      "sha256": "8dd556a0b1c2f007c38ac22c3bb8788b609a2dfc9cd2d397b1f1f8b906146b2f",
+      "bytes": 527,
+      "sha256": "2e6690b3a098e15e5c702eae60bd6c7bc2711c195828966dba9e4c19d8519014",
       "kind": "vector",
-      "viewBox": "0 0 24 24"
+      "viewBox": "0 0 32 32"
     },
     {
       "path": "icons/upgrade.svg",
-      "bytes": 198,
-      "sha256": "653841a33c65422663e658149de38a52f1ca47a534d0c12fad5cd27747d72b0a",
+      "bytes": 267,
+      "sha256": "3749c0130599e63179858e607778cc51632d6bc4758087bdef11e0eec79a9f3f",
       "kind": "vector",
-      "viewBox": "0 0 24 24"
+      "viewBox": "0 0 32 32"
     },
     {
       "path": "icons/warning.svg",

@@ -24,9 +24,10 @@ manifest={'version':2,'design':'Locked Forge B3 — compact nameless tiles, appr
 
 prior=json.loads((K/'manifest.json').read_text()) if (K/'manifest.json').exists() else {}
 if 'categoryArt' in prior:manifest['categoryArt']=prior['categoryArt']
+if 'controlRevision' in prior:manifest['controlRevision']=prior['controlRevision']
 (K/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 for e in entries:assert sha(K/e['path'])==e['sha256']
-for b in ['button-primary','button-secondary','tab','tab-active']:
+for b in ['button-primary','button-secondary','button-talk','tab','tab-active']:
  assert len({sha(K/'frames'/f'{b}{suffix}.svg') for suffix in ['','-hover','-pressed','-disabled']})==4
 assert (K/'fonts/OFL.txt').read_text().startswith('Copyright 2026')
 print(json.dumps(manifest['counts']));print('PASS hashes, canonical reuse, XML, complete font license, distinct state variants')
