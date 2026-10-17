@@ -26,3 +26,6 @@ Forge desktops above1100px center the approved composition within1440×900. Keep
 The user approved set badge style C (sculpted ivory & gold). Runtime set markers use `forge-slate-v2/sets/sculpted/*.webp`, not the rejected initial flat SVGs. Preserve their bottom-left anchor opposite the category at bottom right. Set identity comes from actual equipment metadata; no set means no badge.
 
 Final rarity mapping: Common gray/silver, Uncommon green, Rare blue, Heroic purple, Legendary gold. This corrects the earlier inverted Common/Uncommon Forge mapping.
+
+## Approved Improve Equipment B
+The user approved the B upgrade workbench with exactly All plus six category filters, compact nameless gear tiles and one Equip action opening creature selection. Use the sculpted ivory/gold stat/action atlas (ten equipment stats plus Inventory and Equip); do not replace it with flat glyphs. Keep full details on selected-art click, inline current/next stats and exact Gold cost, no milestone rail/Budget/Details/Choose creature buttons. Worn copies retain explicit Remove/confirmation. Evasion stays creature/combat-only, outside every gear pool. See docs/IMPROVE_WORKBENCH_B_RUNTIME_2026-10-17.md for production verification.

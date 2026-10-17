@@ -1,0 +1,45 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "width": 1920,
+      "height": 960
+    },
+    {
+      "width": 2560,
+      "height": 1440
+    },
+    {
+      "width": 1920,
+      "height": 720
+    },
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 360,
+      "height": 740
+    },
+    {
+      "width": 844,
+      "height": 390
+    }
+  ],
+  "tests": 351,
+  "upgrades": 3,
+  "costs": [
+    12,
+    24,
+    36
+  ],
+  "milestoneRolls": 1,
+  "equipRemove": true,
+  "reload": true,
+  "inspectionReadOnly": true,
+  "errors": [],
+  "forgeAssetErrors": []
+}
