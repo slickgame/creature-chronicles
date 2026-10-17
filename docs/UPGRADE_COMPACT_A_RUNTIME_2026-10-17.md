@@ -11,6 +11,10 @@ The user selected A and specifically requested B's sealed-envelope question-mark
 - Exact Gold cost, no-materials wording and resulting/current balance remain visible. Cancel, Escape and close retain existing behavior. The confirmation remains required, including expected-level and rapid-click guards.
 - Both receipt creation paths pass the equipment slot for the correct category badge. Costs, stats, pools, RNG, saves and transaction reducers are unchanged.
 
+## Four-substat wording refinement
+
+At four saved substats, the workbench and milestone confirmation say **Random substat increase**. Below four they say **Mystery substat**. Non-milestone hints on the workbench, review and receipt similarly distinguish the next random increase from a new mystery substat. The envelope still indicates the unrevealed random outcome. No mechanics or transaction changes. Production build/TypeScript and zero-error scoped lint pass; actual 360px review checks verify both full and open-slot wording without overflow.
+
 ## Validation
 
 Production Next build/TypeScript passes. All 351 regression tests pass; scoped lint has zero errors (15 image optimization advisories).
