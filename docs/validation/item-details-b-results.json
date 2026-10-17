@@ -1,0 +1,1606 @@
+{
+  "layouts": {
+    "results": [
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 490,
+          "y": 165,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 490,
+          "y": 165,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 610,
+          "y": 165,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 250,
+          "y": 135,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 250,
+          "y": 135,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 370,
+          "y": 135,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 490,
+          "y": 45,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 490,
+          "y": 45,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 610,
+          "y": 45,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 810,
+          "y": 405,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 810,
+          "y": 405,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 930,
+          "y": 405,
+          "width": 700,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 32,
+          "width": 370,
+          "height": 780
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 32,
+          "width": 370,
+          "height": 780
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 52,
+          "width": 370,
+          "height": 740
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Stats",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_1 Set & passive",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 0",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 1",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 2",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 3",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 4",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 5",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 6",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 7",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "rules 8",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 490,
+          "y": 165,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 490,
+          "y": 165,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 250,
+          "y": 135,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 250,
+          "y": 135,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 490,
+          "y": 45,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 490,
+          "y": 45,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 810,
+          "y": 405,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 810,
+          "y": 405,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 32,
+          "width": 370,
+          "height": 780
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 32,
+          "width": 370,
+          "height": 780
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Stats",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_17 Set & passive",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 490,
+          "y": 165,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 1920,
+          "height": 960
+        },
+        "box": {
+          "x": 490,
+          "y": 165,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 250,
+          "y": 135,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 1440,
+          "height": 900
+        },
+        "box": {
+          "x": 250,
+          "y": 135,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 490,
+          "y": 45,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 1920,
+          "height": 720
+        },
+        "box": {
+          "x": 490,
+          "y": 45,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 810,
+          "y": 405,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 2560,
+          "height": 1440
+        },
+        "box": {
+          "x": 810,
+          "y": 405,
+          "width": 940,
+          "height": 630
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 32,
+          "width": 370,
+          "height": 780
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 390,
+          "height": 844
+        },
+        "box": {
+          "x": 10,
+          "y": 32,
+          "width": 370,
+          "height": 780
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 360,
+          "height": 740
+        },
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Stats",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      },
+      {
+        "label": "gear_18 Set & passive",
+        "size": {
+          "width": 844,
+          "height": 390
+        },
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": []
+      }
+    ],
+    "errors": []
+  },
+  "entryRoutes": {
+    "results": [
+      "Inspector always renders four substat slots",
+      "Evasion absent from gear rules",
+      "Creature details returns to same Equipment ledger",
+      "Creature selected slot is preserved",
+      "Creature inspection never saves",
+      "Inspector always renders four substat slots",
+      "Evasion absent from gear rules",
+      "Improve details returns to same workbench",
+      "Improve inspection never saves",
+      "Recipe guide clearly labels non-owned blueprint",
+      "Inspector always renders four substat slots",
+      "Evasion absent from gear rules",
+      "Blueprint details returns to recipe output preview",
+      "Blueprint inspection never purchases or saves",
+      "Inspector always renders four substat slots",
+      "Evasion absent from gear rules",
+      "Outfitter details returns to comparison",
+      "Outfitter inspection never buys or saves",
+      "No runtime errors across entry routes"
+    ],
+    "errors": []
+  }
+}
