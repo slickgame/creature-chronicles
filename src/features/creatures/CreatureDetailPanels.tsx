@@ -287,7 +287,7 @@ export function SharedCreatureDetail({
   };
 
   return (
-    <div className={dossier ? `${dossierStyles.dossier} ${ranchDossier ? dossierStyles.ranch : ""} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-creature-section={activeTab} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
+    <div className={dossier ? `${dossierStyles.dossier} ${ranchDossier ? dossierStyles.ranch : ""} ${showDossierPortrait ? dossierStyles.withPortrait : ""}` : undefined} style={shellStyle} data-overview-kit={ranchDossier || undefined} data-creature-section={activeTab} data-creature-detail-layout={dossier ? "dossier" : fitViewport ? "viewport" : "standard"}>
       {!dossier || showDossierPortrait ? <section className={dossier ? dossierStyles.portrait : undefined} style={portraitCardStyle}>
         <p style={kickerStyle}>{variant.rarity} Variant</p>
         <h2 style={{ margin: "3px 0", color: "#fff7dd", fontSize: "1.42rem", lineHeight: 1 }}>
@@ -399,7 +399,7 @@ export function SharedCreatureDetail({
                     }
                   : tabButtonStyle}
               >
-                {dossier ? <span className={dossierStyles.icon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${tab === "stats" ? "growth" : tab === "equipment" ? "inventory" : tab}.svg)` }} /> : null}
+                {ranchDossier ? <img data-oa="tab-icon" src={`/images/ui/creature-overview-a-v2/painted-r4/${tab === "stats" ? "growth" : tab}.webp`} alt="" /> : dossier ? <span className={dossierStyles.icon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${tab === "stats" ? "growth" : tab === "equipment" ? "inventory" : tab}.svg)` }} /> : null}
                 {getTabLabel(tab)}
               </button>
             ))}

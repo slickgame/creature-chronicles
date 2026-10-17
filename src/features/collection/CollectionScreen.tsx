@@ -408,7 +408,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             <h1>Ranch Roster</h1>
 
           </div>
-          <div className={styles.headerActions}><button type="button" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}>{rosterCollapsed ? "Choose creature" : "Close creature picker"}</button><button type="button" className={overview.artToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
+          <div className={styles.headerActions}><button type="button" data-oa="choose" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}><img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/creatures.webp" alt=""/>{rosterCollapsed ? "Choose creature" : "Close creature picker"}</button><button type="button" className={overview.artToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
             <ScreenNavigation>{headerLinks}</ScreenNavigation>
           </div>
         </header>
@@ -455,23 +455,23 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             {selectedCreature ? (
               <>
                 <button type="button" className={styles.mobileBack} onClick={() => setShowDossier(false)}>← All Creatures</button>
-                <div className={dossier.workspace}>
-                  <article className={dossier.heroCard} data-ui-fixed-size="true" aria-label={`${selectedCreature.nickname} selected creature`}>
+                <div data-oa="workspace" className={dossier.workspace}>
+                  <article data-oa="portrait" className={dossier.heroCard} data-ui-fixed-size="true" aria-label={`${selectedCreature.nickname} selected creature`}>
                     <button className={overview.expandArt} aria-label="Expand creature artwork" onClick={()=>setShowArtwork(true)}>⤢</button>
-                    <div className={dossier.heroIdentity}>
+                    <div data-oa="identity" className={dossier.heroIdentity}>
                       <h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2>
                       <p>{getVariantDefinition(selectedCreature.variantId).name} · {displaySex(getCreatureManagementStatus(activeSave, selectedCreature).sex)}</p>
                       <div className={dossier.badges}><span>{getVariantDefinition(selectedCreature.variantId).rarity}</span><span>Level {selectedCreature.level}</span></div>
                       <strong className={dossier.ready}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</strong>
                     </div>
-                    <img className={dossier.heroArt} src={getEquineGameplayProfileSprite(selectedCreature, getNylaGameplayProfileSprite(selectedCreature, getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
+                    <img data-oa="art" className={dossier.heroArt} src={getEquineGameplayProfileSprite(selectedCreature, getNylaGameplayProfileSprite(selectedCreature, getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
                     <div className={dossier.heroMeters}>
                       <div><span>Energy</span><strong>{selectedCreature.energy}/{selectedCreature.maxEnergy}</strong><progress max={selectedCreature.maxEnergy} value={selectedCreature.energy} aria-label="Selected creature energy" /></div>
                       <div><span>Affection</span><strong>{selectedCreature.affection}/100</strong><progress max={100} value={selectedCreature.affection} aria-label="Selected creature affection" /></div>
                     </div>
                   </article>
-                  <div className={dossier.profileColumn}>
-                    <div className={dossier.tabsWorkspace}>
+                  <div data-oa="column" className={dossier.profileColumn}>
+                    <div data-oa="tabs-workspace" className={dossier.tabsWorkspace}>
                       <SharedCreatureDetail
                       inventoryRequest={inventoryRequest}
                       onEquipmentFocus={()=>setRosterCollapsed(true)}
@@ -490,13 +490,13 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                         statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
                       />
                     </div>
-                <div className={`${styles.quickActions} ${dossier.actions}`}>
-                  <button type="button" className={ui.primary} onClick={() => setShowProfile(true)}><span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/profile.svg)"}} />Profile & Care</button>
+                <div data-oa="footer" className={`${styles.quickActions} ${dossier.actions}`}>
+                  <button type="button" className={ui.primary} onClick={() => setShowProfile(true)}><img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/profile.webp" alt=""/>Profile & Care</button>
                   <button type="button" onClick={() => openHabitat(selectedCreature)}>
-                    <span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/habitat.svg)"}} />Habitat
+                    <img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/habitat.webp" alt=""/>Habitat
                   </button>
                   <button type="button" onClick={openInventory}>
-                    <span className={dossier.actionIcon} aria-hidden="true" style={{maskImage:"url(/images/ui/ranch-dossier-v1/icons/inventory.svg)"}} />Inventory
+                    <img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/inventory.webp" alt=""/>Inventory
                   </button>
                   <details className={dossier.moreActions}>
                     <summary>More actions</summary>

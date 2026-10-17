@@ -1,0 +1,298 @@
+{
+  "results": [
+    {
+      "label": "overview",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 571,
+          "scroll": 571,
+          "width": 889,
+          "scrollWidth": 889
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "fidelity": {
+        "gap": 14,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "overview",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 511,
+          "scroll": 511,
+          "width": 889,
+          "scrollWidth": 889
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "fidelity": {
+        "gap": 14,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "overview",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 331,
+          "scroll": 331,
+          "width": 889,
+          "scrollWidth": 889
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "fidelity": {
+        "gap": 14,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "secondary",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 331,
+          "scroll": 331,
+          "width": 889,
+          "scrollWidth": 889
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "overview",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 571,
+          "scroll": 571,
+          "width": 889,
+          "scrollWidth": 889
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "fidelity": {
+        "gap": 14,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "overview",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 333,
+          "scroll": 333,
+          "width": 354,
+          "scrollWidth": 354
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "fidelity": {
+        "gap": 8,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "secondary",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 333,
+          "scroll": 333,
+          "width": 354,
+          "scrollWidth": 354
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "overview",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 274,
+          "scroll": 274,
+          "width": 324,
+          "scrollWidth": 324
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "fidelity": {
+        "gap": 8,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "secondary",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 274,
+          "scroll": 274,
+          "width": 324,
+          "scrollWidth": 324
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "overview",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 169,
+          "scroll": 169,
+          "width": 652,
+          "scrollWidth": 652
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "containment-and-assets",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "fidelity": {
+        "gap": 5,
+        "missing": [],
+        "escaped": [],
+        "frame": "url(\"http://127.0.0.1:3094/images/ui/creature-overview-a-v2/frames/vital-card-normal.svg\")"
+      }
+    },
+    {
+      "label": "secondary",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "metrics": {
+        "cardBounds": [],
+        "panel": {
+          "height": 169,
+          "scroll": 169,
+          "width": 652,
+          "scrollWidth": 652
+        },
+        "outside": []
+      }
+    },
+    {
+      "label": "equipment-details-removal-cancel-return",
+      "size": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    {
+      "label": "equipment-details-removal-cancel-return",
+      "size": {
+        "width": 390,
+        "height": 844
+      }
+    }
+  ],
+  "errors": [],
+  "readOnly": true
+}

@@ -9,3 +9,7 @@ Fourteen unique generated assets serve all requested placements through the Inve
 Growth received a separate cutout cleanup. Identity retains a soft gold edge glow in its generated master. All files have alpha=0 outside their transparent regions and no opaque rectangular backdrop. Transparent padding and internal detail vary; inspect the actual 24/32/40px assembly rather than assuming the AI study's miniature samples are exact.
 
 The asset assembly now consumes the painted files. Live gameplay integration remains pending: this commit changes the approved art kit and read-only assembly only. Preserve canonical creature artwork, authoritative values, eight sections, equipment transaction guards and parent navigation when integrating. The PR remains draft and unmerged.
+
+## Runtime follow-up
+
+The painted kit is now consumed by the actual collection Overview and ranch-only section navigation. The statements above about pending integration describe the original asset-only commit. See `docs/CREATURE_OVERVIEW_PAINTED_RUNTIME_2026-10-17.md` and its actual-game screenshots for runtime scope and checks. The standalone assembly remains read-only sample data; PR21 remains draft and unmerged.

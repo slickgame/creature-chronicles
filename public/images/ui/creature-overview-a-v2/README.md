@@ -42,3 +42,7 @@ The user requested a complete refinement of the section, selection, record and f
 ## Approved painted R4
 
 The user approved the Painted ivory & gold study and explicitly requested a commit. Painted production assets under `painted-r4/*.webp` now supersede the R3 vectors in the read-only assembly. Original PNG masters and the exact approved style board are stored under painted-r4/source and painted-r4/approved-style.png. Both Inventory locations use one shared inventory.webp. Use the raster art directly; do not mask it to one color. Live gameplay integration is pending. See docs/CREATURE_OVERVIEW_PAINTED_ICONS_R4_2026-10-17.md.
+
+## Runtime follow-up
+
+The painted kit is now consumed by the actual collection Overview and ranch-only section navigation. The statements above about pending integration describe the original asset-only commit. See `docs/CREATURE_OVERVIEW_PAINTED_RUNTIME_2026-10-17.md` and its actual-game screenshots for runtime scope and checks. The standalone assembly remains read-only sample data; PR21 remains draft and unmerged.

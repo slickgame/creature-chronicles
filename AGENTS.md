@@ -69,3 +69,6 @@ The user requested a further icon-family refinement. R3 uses `scripts/build-crea
 
 ## Approved painted icon family R4
 The user approved the “Painted ivory & gold” study and explicitly said “commit this.” The generated raster family under `creature-overview-a-v2/painted-r4/*.webp` now supersedes the R3 vector treatment for the requested section/selection/record/footer icons. Preserve the carved ivory, brushed gold, organic painterly finish and direct RGBA rendering. Do not replace it with SVG approximations or recolor it through a mask. Both Inventory locations share inventory.webp. Approved reference, untouched source PNGs, exact prompts and hashes accompany the assets. The read-only assembly consumes these actual images; live-game integration remains pending. Keep PR21 draft and unmerged.
+
+## Overview painted kit runtime
+The approved R4 icons and refined frame assets are integrated into CollectionScreen and ranch-only creature tabs. Preserve direct RGBA icons, explicit bold Tinos, canonical artwork, the separate vital group and two record rows, bounded desktop composition, and focused small-screen pages. New runtime surfaces use explicit data-oa/data-overview-kit scope; do not extend them into breeding or equipment transaction internals. See docs/CREATURE_OVERVIEW_PAINTED_RUNTIME_2026-10-17.md for actual-game evidence and validation.

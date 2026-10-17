@@ -34,3 +34,42 @@
 @media(max-width:850px),(max-height:550px){.screen.screen:has([data-creature-section=equipment]) [class*='heroCard']{display:none!important;}.screen.screen:has([data-creature-section=equipment]) [class*='workspace']{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;}}
 
 @media(max-width:560px) and (max-height:800px) and (min-height:651px){.screen.screen [class*=workspace]{grid-template-rows:145px minmax(0,1fr);}.screen.screen [class*=heroCard]{height:145px;}.screen.screen [class*=heroIdentity]{padding:10px;}.screen.screen [class*=heroIdentity] h2{font-size:25px;}}
+/* Approved R4 kit: collection-only surfaces and direct painted RGBA icons. */
+@font-face{font-family:OverviewTinos;src:url('/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff') format('woff');font-weight:700;font-display:swap}
+.paintedIcon{width:34px;height:34px;object-fit:contain;flex:none;}
+.screen.screen>section{border:14px solid transparent;border-image:url('/images/ui/creature-overview-a-v2/frames/screen.svg') 40 / 22px stretch!important;background:#061b27;padding:4px;gap:14px;}
+.screen.screen>section>header{border:8px solid transparent;border-image:url('/images/ui/creature-overview-a-v2/frames/header.svg') 32 fill / 15px stretch!important;box-shadow:none;padding:8px 14px;}
+.screen.screen h1{font-size:42px;}
+.screen.screen [data-oa=choose]{display:flex;align-items:center;gap:8px;font-size:19px;}
+.screen.screen [data-detail]>section{border:0;box-shadow:none;padding:0;}
+.screen.screen [data-detail]>section:before,.screen.screen [data-detail]>section:after{display:none;}
+.screen.screen [data-oa=workspace]{grid-template-columns:minmax(240px,.76fr) minmax(0,1.35fr);}
+.screen.screen [data-oa=portrait]{border:12px solid transparent;border-image:url('/images/ui/creature-overview-a-v2/frames/portrait.svg') 40 / 22px stretch!important;box-shadow:none;background-color:#071b27;}
+.screen.screen [data-oa=portrait]:after{background:none;box-shadow:none;}
+.screen.screen [data-oa=identity]{background:linear-gradient(#061b27f5,#061b27d9 70%,transparent);padding:14px 16px 30px;}
+.screen.screen [data-oa=identity] h2{font-size:44px;color:#fff2d4!important;}
+.screen.screen [data-oa=identity] p{font-size:18px;color:#f3dfb8;}
+.screen.screen [data-oa=identity] [class*=badges]>span{color:#ffe6b4;background:#0b2734;border-color:#b79554;font-size:13px;}
+.screen.screen [data-oa=column]{padding:0;gap:14px;}
+.screen.screen [data-oa=footer]{border-top:1px solid #b79553;padding-top:18px;gap:10px;}
+.screen.screen [data-oa=footer]>button,.screen.screen [data-oa=choose]{border:8px solid transparent;border-image:url('/images/ui/creature-overview-a-v2/frames/secondary-normal.svg') 20 fill / 10px stretch!important;box-shadow:none;background:none;}
+.screen.screen [data-oa=footer]>button{font-size:20px;min-height:64px;padding:4px;}
+.screen.screen [data-oa=footer]>button:first-child{border-image-source:url('/images/ui/creature-overview-a-v2/frames/primary-normal.svg')!important;background:none;}
+.screen.screen [data-overview-kit] nav[role=tablist]{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px!important;border:8px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/tab-group.svg') 32 fill / 12px stretch!important;padding:4px!important;background:none!important;border-radius:0;}
+.screen.screen [data-overview-kit] nav[role=tablist]>button{display:flex;align-items:center;justify-content:center;gap:6px;border:6px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/tab-normal.svg') 20 fill / 8px stretch!important;background:none!important;padding:4px!important;min-height:60px!important;font-size:18px!important;}
+.screen.screen [data-overview-kit] nav[role=tablist]>button[aria-selected=true]{border-image-source:url('/images/ui/creature-overview-a-v2/frames/tab-active-normal.svg')!important;background:none!important;box-shadow:none;}
+.screen [data-oa=tab-icon]{width:30px;height:30px;object-fit:contain;flex:none;}
+@media(max-width:850px){.screen.screen>section{border-width:8px;padding:3px;gap:7px;}.screen.screen>section>header{padding:3px 6px;gap:4px;}.screen.screen h1{font-size:26px;}.screen.screen [data-oa=choose]{font-size:14px;gap:4px;}.paintedIcon{width:28px;height:28px;}.screen.screen [data-oa=workspace]{grid-template-columns:1fr;}.screen.screen [data-oa=identity]{left:42%;width:58%;height:100%;padding:10px;background:#071c28;}.screen.screen [data-oa=identity] h2{font-size:29px;}.screen.screen [data-oa=identity] p{font-size:14px;}.screen.screen [data-oa=identity] [class*=badges]>span{font-size:10px;}.screen.screen [data-oa=portrait]{border-width:7px;}.screen.screen [data-oa=footer]{padding-top:14px;gap:5px;}.screen.screen [data-oa=footer]>button{font-size:14px;min-height:64px;gap:3px;padding:2px;}.screen.screen [data-oa=column]{gap:8px;}}
+@media(max-height:650px){.screen.screen>section{border-width:7px;gap:6px;}.screen.screen>section>header{padding:3px 6px;}.screen.screen h1{font-size:24px;}.screen.screen [data-oa=choose]{font-size:13px;}.screen.screen [data-oa=identity]{left:0;width:100%;height:auto;padding:5px;}.screen.screen [data-oa=identity] h2{font-size:22px;}.screen.screen [data-oa=footer]{padding-top:8px;}.screen.screen [data-oa=footer]>button{font-size:12px;min-height:36px;}.paintedIcon{width:22px;height:22px;}.screen.screen [data-oa=column]{gap:5px;}}
+/* The small-screen selector replaces the desktop tab grid. */
+@media(max-width:850px),(max-height:550px){.screen.screen [data-overview-kit] nav[role=tablist]{display:none!important;}}
+@media(min-width:851px) and (min-height:651px){.screen.screen [data-oa=identity]{background:linear-gradient(#fff2d5fa 12%,#fff2d5df 62%,#fff2d500);}.screen.screen [data-oa=identity] h2{color:#172c35!important;}.screen.screen [data-oa=identity] p{color:#172c35;}.screen.screen [data-oa=identity] [class*=badges]>span{color:#172c35;background:#f2dfb1e8;}.screen.screen [data-oa=art]{height:calc(100% - 110px);}}
+
+.screen.screen>section{max-height:960px;margin:auto;}
+.screen.screen nav[aria-label="Screen navigation"] button{border:7px solid transparent;border-image:url('/images/ui/creature-overview-a-v2/frames/secondary-normal.svg') 20 fill / 9px stretch!important;background:none;font-size:16px;}
+.screen.screen nav[aria-label="Screen navigation"] [data-navigation-launcher]{border-image-source:url('/images/ui/creature-overview-a-v2/frames/primary-normal.svg')!important;}
+.screen.screen [data-oa=footer]>button:hover,.screen.screen [data-oa=choose]:hover{border-image-source:url('/images/ui/creature-overview-a-v2/frames/secondary-hover.svg')!important;}
+.screen.screen [data-oa=footer]>button:first-child:hover{border-image-source:url('/images/ui/creature-overview-a-v2/frames/primary-hover.svg')!important;}
+.screen.screen [data-overview-kit] nav[role=tablist]>button:hover{border-image-source:url('/images/ui/creature-overview-a-v2/frames/tab-hover.svg')!important;}
+.screen.screen [data-overview-kit] nav[role=tablist]>button[aria-selected=true]:hover{border-image-source:url('/images/ui/creature-overview-a-v2/frames/tab-active-hover.svg')!important;}
+@media(max-width:850px),(max-height:650px){.screen.screen nav[aria-label="Screen navigation"] button{font-size:13px;}}
