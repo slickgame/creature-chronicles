@@ -1,0 +1,45 @@
+{
+  "results": [
+    {
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "metrics": {
+        "overflow": false,
+        "clipped": 0
+      },
+      "all": "four-tile SVG",
+      "filters": "slider SVG",
+      "clicks": "pass"
+    },
+    {
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "metrics": {
+        "overflow": false,
+        "clipped": 0
+      },
+      "all": "four-tile SVG",
+      "filters": "slider SVG",
+      "clicks": "pass"
+    },
+    {
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "metrics": {
+        "overflow": false,
+        "clipped": 0
+      },
+      "all": "four-tile SVG",
+      "filters": "slider SVG",
+      "clicks": "pass"
+    }
+  ],
+  "errors": [],
+  "noSaveWrites": true
+}

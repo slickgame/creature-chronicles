@@ -71,7 +71,8 @@ write('frames','tooltip-pointer',f'<path d="M0 16 16 1 32 16" fill="{NAVY}" stro
 # Action icons extend existing vector family with matching warm-ivory color.
 old=R/'public/images/ui/forge-gallery-v1/icons'
 for src in old.glob('*.svg'):
- if src.stem not in ['weapon','head','hands','armor','accessory']:(root/'icons'/src.name).write_text(src.read_text().replace('#60401f',IVORY))
+ # Preserve the hand-authored ivory/gold gallery controls in icons/{all,filter}.svg.
+ if src.stem not in ['weapon','head','hands','armor','accessory','all','filter']:(root/'icons'/src.name).write_text(src.read_text().replace('#60401f',IVORY))
 write('icons','home',f'<g fill="none" stroke="{IVORY}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8M6 10v11h5v-7h3v7h4V10"/></g>','0 0 24 24')
 write('icons','info',f'<circle cx="12" cy="12" r="10" fill="none" stroke="{GOLD}" stroke-width="1.5"/><path d="M12 10v7M12 6v1" stroke="{IVORY}" stroke-width="2.3" stroke-linecap="round"/>','0 0 24 24')
 write('icons','gold-coin','<defs><radialGradient id="c"><stop stop-color="#ffe599"/><stop offset=".7" stop-color="#d58e24"/><stop offset="1" stop-color="#805016"/></radialGradient></defs><circle cx="32" cy="32" r="29" fill="url(#c)" stroke="#ffe2a0" stroke-width="2"/><circle cx="32" cy="32" r="23" fill="none" stroke="#ffe2a0"/><path d="M39 20H28q-8 0-8 7t9 7h6q9 0 9 7t-8 7H25M32 15v38" fill="none" stroke="#fff4c6" stroke-width="3"/>')

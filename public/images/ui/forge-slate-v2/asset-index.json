@@ -679,6 +679,13 @@
       "viewBox": "0 0 24 24"
     },
     {
+      "path": "icons/all.svg",
+      "bytes": 969,
+      "sha256": "c055a6353f8dc9f61f3b7228227fab7aa0e7774e6d9f8a7bca42814bc845feda",
+      "kind": "vector",
+      "viewBox": "0 0 32 32"
+    },
+    {
       "path": "icons/back.svg",
       "bytes": 186,
       "sha256": "d0eda1ea686526a4e71b02a4c4b99ae320758d667dd7d2bc72fd5942381bb172",
@@ -736,10 +743,10 @@
     },
     {
       "path": "icons/filter.svg",
-      "bytes": 196,
-      "sha256": "0bbbd2a4a2a955791f5f63df2746f9aeb636af477646d1186ed620a52b1f6267",
+      "bytes": 931,
+      "sha256": "d1c8a7298ac5b0b37545827f9161cd60aeb217b33f6533528e41e3cd86ec5958",
       "kind": "vector",
-      "viewBox": "0 0 24 24"
+      "viewBox": "0 0 32 32"
     },
     {
       "path": "icons/forge.svg",

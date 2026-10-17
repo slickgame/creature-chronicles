@@ -35,3 +35,9 @@ Actual local production screenshots (synthetic game data):
 The first save can independently award eligible ranch goals; the upgrade receipt reports the actual 36 Gold price and current persisted balance. Reducer tests verify the equipment charge. Sparse-checkout unrelated legacy image requests used a local workshop fallback during QA; every category, equipment, set and stat/action asset exercised here exists in the production kit.
 
 Hosted preview gameplay remains authentication-protected and was not exercised in this pass. Publish on the existing feature branch only; PR #21 stays draft and unmerged.
+
+## All and Filters icon refinement
+
+The user requested clearer All and Filters icons after approving gallery A. All now uses four large ivory/gold tiles in `icons/all.svg`; Filters uses three ivory/gold adjustment sliders in `icons/filter.svg`. Both are original scalable symbols extending the existing kit. The asset index records their exact bytes/hashes and the kit generator preserves these hand-authored controls. The font-dependent All character and its CSS rules were removed.
+
+The production build/TypeScript passed. Actual production-browser checks at 1440×900, 390×844 and 360×740 confirmed both SVG sources, category-to-All reset, Filters open/close, unchanged saves, no clipping and no runtime errors. Actual control screenshots: `validation/owned-equipment-controls-desktop.webp` and `validation/owned-equipment-controls-phone.webp`; results: `validation/owned-equipment-controls-results.json`.

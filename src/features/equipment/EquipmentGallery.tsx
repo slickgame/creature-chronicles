@@ -93,7 +93,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
    <button onClick={()=>setFilters(true)}><ForgeIcon name="filter"/>Filters{filtered?' •':''}</button>
    <button className={s.recipient} onClick={()=>setPicker(true)}>{target&&<img src={target.portraitPath} alt=""/>}<span>{target?.displayName??'Choose creature'}<small>Change creature ▾</small></span></button>
   </div>
-  <nav className={s.categories} aria-label="Equipment categories">{(['all',...EQUIPMENT_SLOTS] as const).map(key=><button key={key} aria-pressed={slot===key} onClick={()=>{setSlot(key);setPage(0);}}>{key==='all'?<span className={s.allIcon} aria-hidden="true">▦</span>:<img src={`${KIT}categories/${key}.webp`} alt=""/>}{categoryLabel(key)}</button>)}</nav>
+  <nav className={s.categories} aria-label="Equipment categories">{(['all',...EQUIPMENT_SLOTS] as const).map(key=><button key={key} aria-pressed={slot===key} onClick={()=>{setSlot(key);setPage(0);}}>{key==='all'?<ForgeIcon name="all"/>:<img src={`${KIT}categories/${key}.webp`} alt=""/>}{categoryLabel(key)}</button>)}</nav>
   <nav className={s.focusTabs} aria-label="Gallery sections"><button aria-pressed={view==='gear'} onClick={()=>setView('gear')}>Gear ({rows.length})</button><button disabled={!item} aria-pressed={view==='details'} onClick={()=>setView('details')}>Selected item</button></nav>
   <div className={s.body}>
    <section className={s.galleryPane} aria-label="Owned gear tiles">
