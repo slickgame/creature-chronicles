@@ -1,0 +1,43 @@
+{
+  "tool": "built-in image_gen",
+  "transparent_background": true,
+  "reference": "references/desktop.webp",
+  "assets": [
+    {
+      "name": "strength",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-3120098d-595e-471b-a4a7-291f1f12d90d.png",
+      "subject": "A compact horizontal dumbbell with two balanced ivory-metal weights on each side and a brushed antique gold central grip, strong simple silhouette",
+      "prompt": "Generate ONE isolated fantasy game stat icon. A compact horizontal dumbbell with two balanced ivory-metal weights on each side and a brushed antique gold central grip, strong simple silhouette. Match the approved Creature Chronicles sculpted gold/ivory painterly UI family: organic painted edges, polished but gently weathered carved material, cream highlights, restrained soft brown contact shadows, clear legibility at 24\u201340 pixels, balanced silhouette filling a square canvas with generous transparent padding. Object only, centered, no badge, no border, no text, no labels, no scene, no stand, no ground plane, no glow halo, no second item, no extra decorations. Actual transparent RGBA background, not a colored rectangle or checkerboard. Reference image is the approved full-page B layout; extract only its material and stat-symbol language, do not reproduce the screen."
+    },
+    {
+      "name": "dexterity",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-43f212b6-735e-495e-b37c-215628f26c57.png",
+      "subject": "A single elegant ankle-height leather boot, warm ivory leather and antique gold trim, three-quarter view, no foot or leg",
+      "prompt": "Generate ONE isolated fantasy game stat icon. A single elegant ankle-height leather boot, warm ivory leather and antique gold trim, three-quarter view, no foot or leg. Match the approved Creature Chronicles sculpted gold/ivory painterly UI family: organic painted edges, polished but gently weathered carved material, cream highlights, restrained soft brown contact shadows, clear legibility at 24\u201340 pixels, balanced silhouette filling a square canvas with generous transparent padding. Object only, centered, no badge, no border, no text, no labels, no scene, no stand, no ground plane, no glow halo, no second item, no extra decorations. Actual transparent RGBA background, not a colored rectangle or checkerboard. Reference image is the approved full-page B layout; extract only its material and stat-symbol language, do not reproduce the screen."
+    },
+    {
+      "name": "stamina",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-809aaf5e-23ed-4823-83c8-fdb8383dfacd.png",
+      "subject": "A single plump symmetrical sculpted heart in warm ivory and softly brushed antique gold, rounded dimensional surface",
+      "prompt": "Generate ONE isolated fantasy game stat icon. A single plump symmetrical sculpted heart in warm ivory and softly brushed antique gold, rounded dimensional surface. Match the approved Creature Chronicles sculpted gold/ivory painterly UI family: organic painted edges, polished but gently weathered carved material, cream highlights, restrained soft brown contact shadows, clear legibility at 24\u201340 pixels, balanced silhouette filling a square canvas with generous transparent padding. Object only, centered, no badge, no border, no text, no labels, no scene, no stand, no ground plane, no glow halo, no second item, no extra decorations. Actual transparent RGBA background, not a colored rectangle or checkerboard. Reference image is the approved full-page B layout; extract only its material and stat-symbol language, do not reproduce the screen."
+    },
+    {
+      "name": "charm",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-67a59428-234d-4047-abf5-c5c0d3c5e889.png",
+      "subject": "A single four-point faceted radiant gold star, long vertical and horizontal points, subtle ivory highlights, no surrounding sparkles",
+      "prompt": "Generate ONE isolated fantasy game stat icon. A single four-point faceted radiant gold star, long vertical and horizontal points, subtle ivory highlights, no surrounding sparkles. Match the approved Creature Chronicles sculpted gold/ivory painterly UI family: organic painted edges, polished but gently weathered carved material, cream highlights, restrained soft brown contact shadows, clear legibility at 24\u201340 pixels, balanced silhouette filling a square canvas with generous transparent padding. Object only, centered, no badge, no border, no text, no labels, no scene, no stand, no ground plane, no glow halo, no second item, no extra decorations. Actual transparent RGBA background, not a colored rectangle or checkerboard. Reference image is the approved full-page B layout; extract only its material and stat-symbol language, do not reproduce the screen."
+    },
+    {
+      "name": "willpower",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-09477a53-8d0a-4cac-97df-a79a20584aa5.png",
+      "subject": "A single small open book with warm ivory pages and antique gold cover and binding, readable page grooves but absolutely no writing",
+      "prompt": "Generate ONE isolated fantasy game stat icon. A single small open book with warm ivory pages and antique gold cover and binding, readable page grooves but absolutely no writing. Match the approved Creature Chronicles sculpted gold/ivory painterly UI family: organic painted edges, polished but gently weathered carved material, cream highlights, restrained soft brown contact shadows, clear legibility at 24\u201340 pixels, balanced silhouette filling a square canvas with generous transparent padding. Object only, centered, no badge, no border, no text, no labels, no scene, no stand, no ground plane, no glow halo, no second item, no extra decorations. Actual transparent RGBA background, not a colored rectangle or checkerboard. Reference image is the approved full-page B layout; extract only its material and stat-symbol language, do not reproduce the screen."
+    },
+    {
+      "name": "fertility",
+      "path": "/workspace/scratch/e32c3bffa7e0/generated_images/exec-d220126a-aec2-4ced-a041-c8bea5bd4d27.png",
+      "subject": "A single broad sculpted leaf angled from bottom left to top right, warm ivory veins and brushed antique gold face, short curved stem",
+      "prompt": "Generate ONE isolated fantasy game stat icon. A single broad sculpted leaf angled from bottom left to top right, warm ivory veins and brushed antique gold face, short curved stem. Match the approved Creature Chronicles sculpted gold/ivory painterly UI family: organic painted edges, polished but gently weathered carved material, cream highlights, restrained soft brown contact shadows, clear legibility at 24\u201340 pixels, balanced silhouette filling a square canvas with generous transparent padding. Object only, centered, no badge, no border, no text, no labels, no scene, no stand, no ground plane, no glow halo, no second item, no extra decorations. Actual transparent RGBA background, not a colored rectangle or checkerboard. Reference image is the approved full-page B layout; extract only its material and stat-symbol language, do not reproduce the screen."
+    }
+  ]
+}

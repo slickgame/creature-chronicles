@@ -15,3 +15,7 @@ Current actual-game screenshots are stats-growth-current-{desktop,phone}.webp an
 Proposed alternatives reuse the approved navy/gold surfaces, ivory typography, painted icon language and emerald selection. A uses six compact attribute cards with an inline selected-attribute detail area. B uses six compact ledger rows with aligned Value / Innate grade / Growth columns and the same detail area. Phones page their rows/cards; no scrolling information wall. Future growth, XP, energy capacity and strongest-stat explanations must remain accessible.
 
 This is a concept review for the Stats interior, following AGENTS.md’s continuing visual-review rule. It does not change Stats gameplay or publish an unchosen new layout. PR21 remains draft and unmerged.
+
+## Approved follow-up
+
+The user selected B, reviewed it inside the full creature page on desktop and phone, and explicitly approved “lock this in. commit it.” See docs/STATS_GROWTH_B_RUNTIME_2026-10-17.md for the implemented ledger and actual-game validation. The earlier unchosen-layout language records the initial review stage.

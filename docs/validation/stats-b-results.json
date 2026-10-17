@@ -1,0 +1,666 @@
+{
+  "results": [
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "capacity": "6",
+        "width": 873,
+        "sw": 873,
+        "height": 547,
+        "sh": 547,
+        "panel": {
+          "height": 563,
+          "scroll": 563
+        },
+        "bottom": 841,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "capacity": "6",
+        "width": 873,
+        "sw": 873,
+        "height": 547,
+        "sh": 547,
+        "panel": {
+          "height": 563,
+          "scroll": 563
+        },
+        "bottom": 841,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "capacity": "6",
+        "width": 873,
+        "sw": 873,
+        "height": 487,
+        "sh": 487,
+        "panel": {
+          "height": 503,
+          "scroll": 503
+        },
+        "bottom": 781,
+        "right": 1422,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "capacity": "6",
+        "width": 873,
+        "sw": 873,
+        "height": 487,
+        "sh": 487,
+        "panel": {
+          "height": 503,
+          "scroll": 503
+        },
+        "bottom": 781,
+        "right": 1422,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "capacity": "2",
+        "width": 873,
+        "sw": 873,
+        "height": 307,
+        "sh": 307,
+        "panel": {
+          "height": 323,
+          "scroll": 323
+        },
+        "bottom": 601,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "capacity": "2",
+        "width": 873,
+        "sw": 873,
+        "height": 307,
+        "sh": 307,
+        "panel": {
+          "height": 323,
+          "scroll": 323
+        },
+        "bottom": 601,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "capacity": "2",
+        "width": 873,
+        "sw": 873,
+        "height": 307,
+        "sh": 307,
+        "panel": {
+          "height": 323,
+          "scroll": 323
+        },
+        "bottom": 601,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "capacity": "2",
+        "width": 873,
+        "sw": 873,
+        "height": 307,
+        "sh": 307,
+        "panel": {
+          "height": 323,
+          "scroll": 323
+        },
+        "bottom": 601,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "capacity": "2",
+        "width": 873,
+        "sw": 873,
+        "height": 307,
+        "sh": 307,
+        "panel": {
+          "height": 323,
+          "scroll": 323
+        },
+        "bottom": 601,
+        "right": 1662,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "capacity": "6",
+        "width": 873,
+        "sw": 873,
+        "height": 547,
+        "sh": 547,
+        "panel": {
+          "height": 563,
+          "scroll": 563
+        },
+        "bottom": 841,
+        "right": 1982,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "capacity": "6",
+        "width": 873,
+        "sw": 873,
+        "height": 547,
+        "sh": 547,
+        "panel": {
+          "height": 563,
+          "scroll": 563
+        },
+        "bottom": 841,
+        "right": 1982,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "capacity": "3",
+        "width": 342,
+        "sw": 342,
+        "height": 309,
+        "sh": 309,
+        "panel": {
+          "height": 321,
+          "scroll": 321
+        },
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "capacity": "3",
+        "width": 342,
+        "sw": 342,
+        "height": 309,
+        "sh": 309,
+        "panel": {
+          "height": 321,
+          "scroll": 321
+        },
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "capacity": "3",
+        "width": 342,
+        "sw": 342,
+        "height": 309,
+        "sh": 309,
+        "panel": {
+          "height": 321,
+          "scroll": 321
+        },
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "capacity": "3",
+        "width": 342,
+        "sw": 342,
+        "height": 309,
+        "sh": 309,
+        "panel": {
+          "height": 321,
+          "scroll": 321
+        },
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "capacity": "2",
+        "width": 312,
+        "sw": 312,
+        "height": 250,
+        "sh": 250,
+        "panel": {
+          "height": 262,
+          "scroll": 262
+        },
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "capacity": "2",
+        "width": 312,
+        "sw": 312,
+        "height": 250,
+        "sh": 250,
+        "panel": {
+          "height": 262,
+          "scroll": 262
+        },
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "capacity": "2",
+        "width": 312,
+        "sw": 312,
+        "height": 250,
+        "sh": 250,
+        "panel": {
+          "height": 262,
+          "scroll": 262
+        },
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "capacity": "2",
+        "width": 312,
+        "sw": 312,
+        "height": 250,
+        "sh": 250,
+        "panel": {
+          "height": 262,
+          "scroll": 262
+        },
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "capacity": "2",
+        "width": 312,
+        "sw": 312,
+        "height": 250,
+        "sh": 250,
+        "panel": {
+          "height": 262,
+          "scroll": 262
+        },
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "capacity": "1",
+        "width": 644,
+        "sw": 644,
+        "height": 149,
+        "sh": 149,
+        "panel": {
+          "height": 157,
+          "scroll": 157
+        },
+        "bottom": 300,
+        "right": 827,
+        "bad": [],
+        "missing": []
+      }
+    }
+  ],
+  "errors": [],
+  "readOnly": true
+}

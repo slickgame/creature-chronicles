@@ -1,0 +1,92 @@
+[
+  {
+    "name": "strength",
+    "source": "source/strength.png",
+    "production": "strength.webp",
+    "size": [
+      256,
+      171
+    ],
+    "alpha": [
+      0,
+      254
+    ],
+    "sourceSha256": "831388358a686fc749f7a27cb6f7fda0ddf45373b6ee1893c12f1b7ba2874a0d",
+    "productionSha256": "a7a4bf74511115670514b676998fd2d146b7f2b869564d89f801b11fc326b196"
+  },
+  {
+    "name": "dexterity",
+    "source": "source/dexterity.png",
+    "production": "dexterity.webp",
+    "size": [
+      256,
+      256
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "sourceSha256": "b27e4cbbd811d43b410d0585901123f99f3b2dbd77c40b4f1073d449a5aef9e1",
+    "productionSha256": "db350e2db753e6d049cd6e7aa0a560e5c724ba332b0a47c1835e23ea6c2f4af3"
+  },
+  {
+    "name": "stamina",
+    "source": "source/stamina.png",
+    "production": "stamina.webp",
+    "size": [
+      256,
+      256
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "sourceSha256": "f1894a75ef3098a81fe28c2f7f1cb93c8a155cd49fd11abcbf54a4f83831cf26",
+    "productionSha256": "a3b7e802cce6e3a0b14c1392306b2c473ca36fe4d19ee976ec84c5194f9a270c"
+  },
+  {
+    "name": "charm",
+    "source": "source/charm.png",
+    "production": "charm.webp",
+    "size": [
+      256,
+      256
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "sourceSha256": "93b1d6e32ae04e5e82052e0e5efccdef19c55ba5c5a76091ca4f25a4b8b4e3a7",
+    "productionSha256": "21038945ea28c5a582bcbcf9fac091ecc91c5a918e5a60a5d0067d15b2b33d1e"
+  },
+  {
+    "name": "willpower",
+    "source": "source/willpower.png",
+    "production": "willpower.webp",
+    "size": [
+      256,
+      171
+    ],
+    "alpha": [
+      0,
+      254
+    ],
+    "sourceSha256": "5322907ed0336d51678a31cce5ae094ca9294a952410b1427b365f685d83d2de",
+    "productionSha256": "ab3495b3d6c97d040adc4556373185b1d72ec6225920aee4b4c341133dd16b42"
+  },
+  {
+    "name": "fertility",
+    "source": "source/fertility.png",
+    "production": "fertility.webp",
+    "size": [
+      256,
+      256
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "sourceSha256": "9a4f8c0210697b7e1d77e172d7324741f25aebb09010245f89cfccf06a306397",
+    "productionSha256": "c375cc231d84ccd3efa56faf1389dc295d4f91d154a809e392b180113125bd71"
+  }
+]

@@ -1,0 +1,60 @@
+.shell.shell.shell{height:100%;min-height:0;display:flex;flex-direction:column;gap:8px;padding:10px!important;border:8px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/vitals-group.svg') 32 fill / 13px stretch!important;background:#061b27!important;font-family:OverviewTinos,Georgia,serif;color:#fff2d4!important;box-sizing:border-box;}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex:none;}
+.shell.shell h3{margin:0;color:#fff2d4!important;font:700 32px/1.05 OverviewTinos,Georgia,serif;}
+.switcher{display:flex;gap:8px;flex:none;}
+.shell .switcher button,.shell .detail button,.shell .pager button{border:6px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/secondary-normal.svg') 20 fill / 8px stretch!important;background:none!important;color:#fff2d4!important;padding:4px 8px;min-height:38px;font:700 17px/1.1 OverviewTinos,Georgia,serif;cursor:pointer;}
+.shell .switcher button[aria-pressed=true]{border-image-source:url('/images/ui/creature-overview-a-v2/frames/primary-normal.svg')!important;}
+.columns,.row{display:grid;grid-template-columns:minmax(0,1.25fr) .35fr .7fr minmax(0,1fr);gap:12px;align-items:center;}
+.columns{padding:0 13px;font-size:15px;flex:none;}.columns span{color:#eddcb8!important;}
+.rows{display:grid;gap:6px;min-height:0;flex:1;}
+.shell .row{border:6px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/record-card-normal.svg') 20 fill / 8px stretch!important;background:none!important;color:#fff2d4!important;text-align:left;padding:3px 8px;min-width:0;min-height:0;max-height:60px;font-family:inherit;cursor:pointer;}
+.shell .row[aria-pressed=true]{border-image-source:url('/images/ui/creature-overview-a-v2/frames/tab-active-normal.svg')!important;}
+.name{display:flex;align-items:center;gap:10px;min-width:0;}.name img{width:34px;height:34px;object-fit:contain;flex:none;}.shell .name strong{font-size:20px;line-height:1.05;color:#fff2d4!important;}
+.shell .value{font-size:26px;line-height:1;color:#fff2d4!important;}
+.shell .grade{justify-self:start;white-space:nowrap;padding:3px 10px;background:linear-gradient(115deg,#eed394,#c69b4b,#f2d594);border:1px solid #d6b368;box-shadow:inset 0 0 0 2px #78522155;border-radius:2px;color:#241c13!important;font-size:15px;font-weight:700;line-height:1.1;}
+.growth{min-width:0;}.shell progress{display:block;appearance:none;width:100%;height:10px;border:1px solid #bda777;border-radius:8px;overflow:hidden;background:#153440;}
+.shell progress::-webkit-progress-bar{background:#153440;}.shell progress::-webkit-progress-value{background:linear-gradient(#8de9b3,#40be83);border-radius:7px;}.shell progress::-moz-progress-bar{background:linear-gradient(#8de9b3,#40be83);}
+.pager{display:flex;justify-content:center;align-items:center;gap:14px;flex:none;background:transparent!important;border:0!important;}.shell .pager button{padding:0 10px;min-height:28px;font-size:22px;}.pager span{color:#fff2d4!important;font-size:15px;}.pager button:disabled{opacity:.4;cursor:default;}
+.detail{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:0;flex:none;border:7px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/record-card-normal.svg') 20 fill / 9px stretch!important;padding:5px 8px;}
+.detail>img{width:44px;height:44px;object-fit:contain;}.detail>div{min-width:0;display:flex;flex-direction:column;gap:5px;}.shell .detail strong{font-size:21px;line-height:1;color:#fff2d4!important;}.shell .detail span{font-size:15px;color:#fff2d4!important;}.detail progress{max-width:360px;}.shell .detail button{white-space:nowrap;min-height:38px;}
+.shell .note{margin:0;color:#dac9a8!important;font-size:12px;line-height:1.1;flex:none;}
+.forecastValue{grid-column:2/4;color:#fff2d4!important;font-size:18px;}.detailHint{color:#e5cc90!important;font-size:14px;}
+.shell[data-view=forecast] .columns span:nth-child(2){grid-column:2/4;}
+.shell button:focus-visible{outline:2px solid #fff2c8;outline-offset:2px;}
+@media(max-width:1150px){.shell.shell h3{font-size:27px;}.shell .name strong{font-size:18px;}.columns,.row{gap:8px;}.shell .detail button{font-size:14px;padding:3px;}.shell .grade{padding:3px 6px;font-size:14px;}}
+@media(max-width:850px){
+ .shell.shell.shell{padding:6px!important;border-width:6px!important;gap:6px;}.header{flex-direction:column;align-items:stretch;gap:6px;}.shell.shell h3{font-size:27px;}.switcher{justify-content:center;gap:8px;}.shell .switcher button{font-size:15px;min-height:32px;padding:2px 8px;border-width:4px!important;}
+ .columns{display:none;}.rows{gap:6px;}.shell .row{grid-template-columns:minmax(0,1fr) 24px 68px;gap:3px 5px;padding:4px;border-width:4px!important;max-height:76px;}
+ .name{gap:5px;}.name img{width:27px;height:27px;}.shell .name strong{font-size:16px;}.shell .value{font-size:21px;}.shell .grade{font-size:12px;padding:3px 4px;justify-self:end;}.growth{grid-column:1/-1;padding-left:32px;}.shell progress{height:7px;}
+ .detail{grid-template-columns:28px minmax(0,1fr);padding:4px;border-width:4px!important;gap:4px 6px;}.detail>img{width:26px;height:26px;grid-row:1/3;}.shell .detail strong{font-size:16px;}.shell .detail span{font-size:12px;}.detail>div{gap:3px;}.shell .detail button{grid-column:2;justify-self:start;min-height:26px;padding:1px 4px;border-width:4px!important;font-size:12px;}.shell .detail button .fullWord{display:none;}.detail progress{display:none;}.shell .note{font-size:10px;}.shell .pager button{min-height:24px;border-width:4px!important;font-size:19px;}.pager{gap:12px;}.pager span{font-size:13px;}
+ .forecastValue{grid-column:2/4;font-size:14px;text-align:right;}.shell[data-view=forecast] .name strong{font-size:14px;}
+}
+@media(max-height:800px) and (min-width:851px){.shell.shell.shell{gap:6px;padding:6px!important;}.shell.shell h3{font-size:27px;}.shell .row{max-height:54px;}.detail{padding:3px 6px;}.detail>img{width:32px;height:32px;}.shell .detail strong{font-size:18px;}.shell .detail span{font-size:13px;}.shell .detail button{min-height:32px;font-size:14px;}.shell .note{display:none;}}
+@media(max-height:550px){
+ .shell.shell.shell{gap:4px;padding:3px!important;border-width:4px!important;}.header{flex-direction:row;align-items:center;gap:5px;}.shell.shell h3{font-size:21px;}.shell .switcher button{font-size:12px;min-height:26px;padding:1px 5px;border-width:4px!important;}.columns,.note{display:none!important;}.shell .row{max-height:54px;grid-template-columns:minmax(0,1fr) 35px 80px minmax(60px,1fr);padding:2px 5px;border-width:4px!important;gap:6px;}.name img{width:25px;height:25px;}.shell .name strong{font-size:15px;}.shell .value{font-size:20px;}.shell .grade{font-size:12px;}.growth{grid-column:4;padding-left:0;}.shell progress{height:6px;}.detail{grid-template-columns:28px minmax(0,1fr) auto;padding:3px;gap:5px;border-width:4px!important;}.detail>img{grid-row:auto;width:26px;height:26px;}.shell .detail strong{font-size:15px;}.shell .detail span{font-size:12px;}.shell .detail button{grid-column:auto;min-height:26px;font-size:12px;padding:1px 4px;border-width:4px!important;}.shell .detail progress{display:none;}.pager{gap:12px;}.shell .pager button{min-height:22px;font-size:18px;padding:0 8px;border-width:4px!important;}.pager span{font-size:12px;}
+}
+
+.shell .row{border-width:4px!important;}.name img{width:30px;height:30px;}
+@media(max-width:850px) and (min-height:551px){
+ .shell.shell h3{font-size:24px;}.shell .detail{grid-template-columns:26px minmax(0,1fr) auto;gap:4px;}.shell .detail>img{grid-row:auto;}.shell .detail>div>span{display:none;}.shell .detail button{grid-column:auto;white-space:nowrap;font-size:11px;}.shell .note{display:none;}
+}
+@media(max-width:850px){.shell[data-view=forecast] .growth:has(.detailHint){display:none;}}
+/* Reused paged record dialog, styled only inside this approved ledger. */
+.shell.shell dialog{border:9px solid transparent;border-image:url('/images/ui/creature-overview-a-v2/frames/dialog.svg') 40 fill / 16px stretch;background:#061b27;color:#fff2d4;border-radius:0;font-family:OverviewTinos,Georgia,serif;}
+.shell.shell dialog header{background:#09222f;border-bottom:1px solid #aa8c54;}
+.shell.shell dialog h2{color:#fff2d4!important;font-family:inherit;}
+.shell.shell dialog p{color:#fff2d4!important;font-family:inherit;}
+.shell.shell dialog button{border:6px solid transparent!important;border-image:url('/images/ui/creature-overview-a-v2/frames/secondary-normal.svg') 20 fill / 8px stretch!important;background:none!important;color:#fff2d4!important;font-family:inherit;}
+.shell.shell dialog span{color:#fff2d4!important;}
+/* Isolate ledger controls from the older dossier's broad navigation/detail rules. */
+.shell.shell.shell .pager{gap:14px!important;}
+.shell.shell.shell .pager button{flex:0 0 34px;min-height:28px!important;padding:0 8px!important;font:700 20px/1 OverviewTinos,Georgia,serif!important;}
+@media(max-width:850px) and (min-height:551px){
+ .header{flex-direction:row;align-items:center;gap:6px;}.shell.shell h3{font-size:20px;white-space:nowrap;}.switcher{gap:4px;}.shell.shell.shell .switcher button{font-size:13px;min-height:32px!important;padding:2px 4px;}
+ .shell.shell.shell .detail{padding:4px!important;}.shell.shell.shell .detail button{min-height:28px!important;font-size:12px;}.name img{width:24px;height:24px;}
+}
+@media(max-height:550px){.shell.shell.shell .switcher button,.shell.shell.shell .detail button{min-height:26px!important;}.shell.shell.shell .detail{padding:3px!important;}.shell.shell.shell .pager button{min-height:22px!important;font-size:18px!important;}}
+@media(max-height:550px){
+ .name img,.detail>img{width:22px;height:22px;}.shell .detail>div>span{display:none;}.shell.shell.shell .detail{padding:2px!important;}.shell.shell.shell .pager button{font-size:16px!important;}.shell.shell.shell .row{min-height:34px!important;}
+}
+.shell.shell.shell .pager{display:flex!important;justify-content:center!important;}
