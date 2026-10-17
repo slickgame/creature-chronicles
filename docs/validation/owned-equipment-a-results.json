@@ -1,0 +1,456 @@
+{
+  "layout": {
+    "results": [
+      {
+        "name": "gallery-gear-1920x960",
+        "box": {
+          "x": 290,
+          "y": 80,
+          "width": 1340,
+          "height": 800
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-1920x960",
+        "box": {
+          "x": 290,
+          "y": 80,
+          "width": 1340,
+          "height": 800
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-gear-1440x900",
+        "box": {
+          "x": 50,
+          "y": 50,
+          "width": 1340,
+          "height": 800
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-1440x900",
+        "box": {
+          "x": 50,
+          "y": 50,
+          "width": 1340,
+          "height": 800
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-gear-1920x720",
+        "box": {
+          "x": 290,
+          "y": 12,
+          "width": 1340,
+          "height": 696
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-1920x720",
+        "box": {
+          "x": 290,
+          "y": 12,
+          "width": 1340,
+          "height": 696
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-gear-2560x1440",
+        "box": {
+          "x": 610,
+          "y": 320,
+          "width": 1340,
+          "height": 800
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-2560x1440",
+        "box": {
+          "x": 610,
+          "y": 320,
+          "width": 1340,
+          "height": 800
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-gear-390x844",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 370,
+          "height": 824
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-390x844",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 370,
+          "height": 824
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-gear-360x740",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-360x740",
+        "box": {
+          "x": 10,
+          "y": 10,
+          "width": 340,
+          "height": 720
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-gear-844x390",
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      },
+      {
+        "name": "gallery-details-844x390",
+        "box": {
+          "x": 10,
+          "y": 7,
+          "width": 824,
+          "height": 376
+        },
+        "overflow": [],
+        "outside": [],
+        "substats": 4,
+        "categories": [
+          "/images/ui/forge-slate-v2/categories/weapon.webp",
+          "/images/ui/forge-slate-v2/categories/armor.webp",
+          "/images/ui/forge-slate-v2/categories/head.webp",
+          "/images/ui/forge-slate-v2/categories/hands.webp",
+          "/images/ui/forge-slate-v2/categories/feet.webp",
+          "/images/ui/forge-slate-v2/categories/accessory.webp"
+        ]
+      }
+    ],
+    "errors": []
+  },
+  "functional": {
+    "results": [
+      "Eight compact desktop tiles",
+      "Exactly six approved category assets",
+      "All four substats shown",
+      "Search includes distinct duplicate copies",
+      "Unworn copy shows approved Inventory icon",
+      "Filters combine power, rarity, availability and search",
+      "Category empty state clears stale detail",
+      "Set strip follows target equipped pieces only",
+      "Next page shows next eight exact copies",
+      "Selected tile stays on current page",
+      "Browse, target, paging and filters never save",
+      "Transfer cancel leaves save untouched",
+      "Transfer persists exact selected copy",
+      "Transfer returns displaced exact copy",
+      "Duplicate copy remains untouched",
+      "Gallery refreshes wearer after saved receipt",
+      "Remove review uses actual owner rather than gallery target",
+      "Removal returns the exact piece",
+      "Unworn Equip uses shared chooser and reviewed replacement",
+      "Full four-substat piece previews Random substat increase",
+      "Approved mystery envelope is preserved",
+      "Upgrade changes only selected copy once",
+      "Milestone is saved once after paid confirmation",
+      "Upgrade receipt records exact 36 Gold cost (first save also awards ranch goals)",
+      "Creature entry preserves selected category",
+      "Close returns to same creature Equipment tab",
+      "No browser runtime errors"
+    ],
+    "errors": []
+  },
+  "entryRoutes": {
+    "results": [
+      {
+        "route": "inventory",
+        "shots": [
+          {
+            "name": "inventory-transfer-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "inventory-transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 65.859375,
+              "width": 1300,
+              "height": 768.28125
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "transfer": "exact selected copy, one confirm, receipt retained",
+        "upgrades": "preserved"
+      },
+      {
+        "route": "outfitter",
+        "shots": [
+          {
+            "name": "outfitter-transfer-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "outfitter-transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "transfer": "exact selected copy, one confirm, receipt retained",
+        "upgrades": "preserved"
+      },
+      {
+        "route": "forge",
+        "shots": [
+          {
+            "name": "forge-transfer-390",
+            "size": {
+              "width": 390,
+              "height": 844
+            },
+            "box": {
+              "x": 9,
+              "y": 73.671875,
+              "width": 372,
+              "height": 696.640625
+            },
+            "metrics": {
+              "scrollWidth": 370,
+              "clientWidth": 370,
+              "panel": null
+            }
+          },
+          {
+            "name": "forge-transfer-receipt-1440",
+            "size": {
+              "width": 1440,
+              "height": 900
+            },
+            "box": {
+              "x": 70,
+              "y": 71.65625,
+              "width": 1300,
+              "height": 756.6875
+            },
+            "metrics": {
+              "scrollWidth": 1298,
+              "clientWidth": 1298,
+              "panel": null
+            }
+          }
+        ],
+        "cancel": "unchanged",
+        "transfer": "exact selected copy, one confirm, receipt retained",
+        "upgrades": "preserved"
+      }
+    ],
+    "errors": []
+  }
+}
