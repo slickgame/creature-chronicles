@@ -9,6 +9,11 @@ readme='''# Creature Overview A — production art kit
 
 Target: the user's second image, `image(20261017-210340).png`, approved portrait-led Overview A. This is a production asset kit and a read-only browser assembly, not a live gameplay integration or an actual transaction screenshot.
 
+
+## Icon family R3
+
+The user requested a complete refinement of the section, selection, record and footer icons. The final editable ivory/gold family is rebuilt by `scripts/build-creature-overview-icons.py`, invoked at the end of the main builder. Overview now uses a creature portrait; Identity uses a creature ID card; Work includes a hammer/crop; Habitat is a barn/fence. Both Inventory placements share the same detailed pouch. The review board `icon-review.html` shows all requested icons enlarged and at 24/32/40px. The separate `creature-overview-icons-r3.zip` supersedes the icon files in the historical R2 archive. Frames, vital art and gameplay remain unchanged. See docs/CREATURE_OVERVIEW_ICON_REFINEMENT_R3_2026-10-17.md.
+
 ## Complete inventory
 
 - 90 original editable SVG assets: 8 structural frames, 40 control/card state surfaces (8 families × normal/hover/pressed/disabled/focus), 8 metadata/status plaques, 26 section/record/action symbols, 3 ornaments/backgrounds, 5 meter assets.

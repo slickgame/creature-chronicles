@@ -33,7 +33,7 @@
 .cc-oa-footer{min-height:0;position:relative;}
 .cc-oa-portrait{background-clip:padding-box;background-color:#071b27;}
 .cc-oa-portrait:after{background:transparent;}
-.cc-oa-tabs [aria-selected=true] .cc-oa-icon{filter:brightness(0) saturate(100%) invert(96%) sepia(16%) saturate(500%) hue-rotate(345deg);}
+.cc-oa-tabs [aria-selected=true] .cc-oa-icon{filter:drop-shadow(0 0 2px #a5e4c23a);}
 @media(min-width:851px){.cc-oa-screen{gap:14px;}.cc-oa-art{height:calc(100% - 110px);}}
 
 .cc-oa h2{font-size:44px;}.cc-oa-identity p{font-size:20px;}.cc-oa-badge.ready{font-size:18px;padding:4px 10px;}.cc-oa-mobile-break{display:none;}.cc-oa-button.primary{box-shadow:0 0 5px #20987920;}

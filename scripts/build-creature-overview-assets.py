@@ -80,3 +80,7 @@ tokens={'colors':{'navy':'#041823','slate':'#102d3b','ivory':'#fff2d4','gold':'#
 (R/'tokens.json').write_text(json.dumps(tokens,indent=2))
 (R/'icon-map.json').write_text(json.dumps({'nav':{'Overview':'overview','Stats & Growth':'growth','Work Skills':'work','Talents':'talents','Lineage':'lineage','Inventory':'inventory','Equipment':'equipment','Care':'care'},'records':{'Identity':'identity','Health & protection':'health','Lineage':'lineage','Role strengths':'roles'},'actions':{'Choose creature':'creatures','Profile & Care':'profile','Habitat':'habitat','Inventory':'case','More overview':'more','Previous screen':'back','Menu':'menu','Expand artwork':'expand'}},indent=2))
 print('Generated',len(list(R.rglob('*.svg'))),'scalable assets')
+
+# Final semantic, beveled icon family supersedes the initial silhouette studies.
+import runpy
+runpy.run_path(str(ROOT/"scripts/build-creature-overview-icons.py"))

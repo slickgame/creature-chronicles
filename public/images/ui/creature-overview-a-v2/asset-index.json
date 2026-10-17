@@ -1,78 +1,83 @@
 [
   {
+    "path": "ICON_REFINEMENT_R3.md",
+    "bytes": 1527,
+    "sha256": "181ee291345a74b0c7a2ac0d206c104d8443084a27540af960232c7ceb0c8713"
+  },
+  {
     "path": "README.md",
-    "bytes": 5142,
-    "sha256": "20d7d2a13e623da78507d5049293bec0aede4e75e3d3e27f28289b25037a9d08"
+    "bytes": 5876,
+    "sha256": "d0b09f6395887b34214becd2283b3a0f4b8c0a8ec54ff5016da5ad1738eff674"
   },
   {
     "path": "assembly-1280.png",
-    "bytes": 1007961,
-    "sha256": "f92bd7096751f2171b52bee00073bcaf15a8ecb104d6522746d2aea93dcab4f9"
+    "bytes": 1013908,
+    "sha256": "373cdfab9b9b73d59e3c1e734878b21f4a8c8197ab736cdb4e9ee744e6b30d0c"
   },
   {
     "path": "assembly-1280.webp",
-    "bytes": 183118,
-    "sha256": "3559c3dd11a071658a641b59bfc1be9f10d8d4326e5bda27f412c6869b9bc654"
+    "bytes": 183340,
+    "sha256": "ce21364d2193fb86f975d2ecf5e6675c51119de54907fac286659fc6c5049925"
   },
   {
     "path": "assembly-1440.png",
-    "bytes": 1142752,
-    "sha256": "269f17d96fcb6c16e3eb7c5d3a0d2c5f5103dd39cd3947eee3fbe3ce510be4dd"
+    "bytes": 1148150,
+    "sha256": "5f0d72feeedffce16f7be706333831ac105fdc7499948fa9bb3b9e3b265f4373"
   },
   {
     "path": "assembly-1440.webp",
-    "bytes": 198558,
-    "sha256": "5cf8492586f9840df5f6336b5e622bd8fa5bc9fed66252329821047c7321184e"
+    "bytes": 199458,
+    "sha256": "5af6481200808cd6d80a0bf8b76f95007dd9e2cefa4904f53ea700da23490c2e"
   },
   {
     "path": "assembly-360-more.png",
-    "bytes": 195602,
-    "sha256": "a0464c46647a57e9f795c412199bde7ca9425ede15f97be2f431571e7cb11c40"
+    "bytes": 197288,
+    "sha256": "b561d1966a3db29c3dd5f2708c690b3e05d6de74f6393b6cc80b7bda6464458e"
   },
   {
     "path": "assembly-360-more.webp",
-    "bytes": 47978,
-    "sha256": "dce34bd240cc8e652343daa9b6d1d70d57a23dcc56756fa766492557be7c7a5c"
+    "bytes": 48072,
+    "sha256": "5fd7cc48e13a658eebdcfa14fafe656a28b3246a0e4dae96648cb0ab7ae67d2b"
   },
   {
     "path": "assembly-360.png",
-    "bytes": 195382,
-    "sha256": "c12ef141debdc64978caa853862c77f27b91b965ef47e8b173d28a5acd9e28b8"
+    "bytes": 196878,
+    "sha256": "b4d366e20b750099e1e49aa05888db9838f897193c2162e62234def4fe105bfd"
   },
   {
     "path": "assembly-360.webp",
-    "bytes": 46924,
-    "sha256": "7017dd1883a3a16ca5b44c7d533c4c6490824f9196f0043ba08316a2efd371d9"
+    "bytes": 47150,
+    "sha256": "6f00f8c80f00aecca073e84f6d862c69ceeb0def37457a7ba018f2fd833db703"
   },
   {
     "path": "assembly-390-more.png",
-    "bytes": 234688,
-    "sha256": "aef789c0e25585fc413eda7861e0ce45b0c26be0b573eb26b3561322198558c2"
+    "bytes": 236163,
+    "sha256": "209f06a2322a4bcd57650007db31553013969569bdd7d17e4b35ceaf739ed4d2"
   },
   {
     "path": "assembly-390-more.webp",
-    "bytes": 50134,
-    "sha256": "96ef845a855af80d6bee520d062aa42e4f8104c071a49c8db63697b67d20ce78"
+    "bytes": 50250,
+    "sha256": "969c432cb8f1c3e49553f63f574f330ce78c146934178679b94f37fd7b21ed54"
   },
   {
     "path": "assembly-390.png",
-    "bytes": 232315,
-    "sha256": "56c16d70fc5e99260912ed1f35c52b7f07d5f863c9ef76270678915e3891bf00"
+    "bytes": 233598,
+    "sha256": "6069c6f102dd6f36bd85a4f37bd1dfd27ddced997f527fce27183baeb47af40b"
   },
   {
     "path": "assembly-390.webp",
-    "bytes": 50376,
-    "sha256": "2c455691be14bfe262e05bbcbadeca4ea6080a4fde2132b383e428fa2b0aaca7"
+    "bytes": 50506,
+    "sha256": "d14cfe5b19c77dd718ec220bacf5f557db13af65cb29fcf8c99698e6ab306922"
   },
   {
     "path": "catalog-preview.png",
-    "bytes": 409908,
-    "sha256": "375e8ed5cb6a380ddce38033e64e4e6a91dd559ab4b52a30d71d94e19432804b"
+    "bytes": 429371,
+    "sha256": "df872c0f6e71945db914566c49f77ec1f68cc5627d269cd2530c61336664dc0b"
   },
   {
     "path": "catalog-preview.webp",
-    "bytes": 71794,
-    "sha256": "d218a753407df13ef486eae760677315046b12e8ba98254006e12d6a172a3189"
+    "bytes": 75384,
+    "sha256": "fe3f7e458434bbedb5acda0d94bf2b805474b352b501a9f883c558557d4bbf5c"
   },
   {
     "path": "catalog.html",
@@ -370,19 +375,34 @@
     "sha256": "c4fa96872cda2bf298a81f43373c431d808acc5f7fb8a9c5bcfa8b0401394545"
   },
   {
+    "path": "icon-refinement.json",
+    "bytes": 661,
+    "sha256": "90ba1e036fa54e037dccfeac7e937ee10d54b39ea816cb4023989c384550d434"
+  },
+  {
+    "path": "icon-review-r3.png",
+    "bytes": 406231,
+    "sha256": "5ba2bc467e717189506a24c839aaac1610f4fb5582499d9840b6325d3dc9fa88"
+  },
+  {
+    "path": "icon-review.html",
+    "bytes": 5357,
+    "sha256": "985629d04c4c859cbf3df4b0ed10a14b7340fc6978736cffaac19b81808942ab"
+  },
+  {
     "path": "icons/back.svg",
     "bytes": 363,
     "sha256": "a9b4dde69fd8bc72c96bc3caa70ec332bfb0ca9b0964920e742c89ffee41ade5"
   },
   {
     "path": "icons/care.svg",
-    "bytes": 368,
-    "sha256": "958f7fdc34845b4e798fe5f5289213ca6d5054358e355a5cbfa8a9d814ad5898"
+    "bytes": 1297,
+    "sha256": "2823995fa5259ec9389614feb78fe7388d6f2d233aadb46bffee13fc9f58f471"
   },
   {
     "path": "icons/case.svg",
-    "bytes": 456,
-    "sha256": "8a7394189f3416836383c30942bcf02746486c7ba4b0a8f95eaf7c722b04d559"
+    "bytes": 1415,
+    "sha256": "845fc06e09aee0a6d91782e9c9fcb88af9226f324228ebb023a2e2783bb74212"
   },
   {
     "path": "icons/chevron-down.svg",
@@ -401,13 +421,13 @@
   },
   {
     "path": "icons/creatures.svg",
-    "bytes": 631,
-    "sha256": "8faff503cc62ef888d8d59630c388ead014f9928689321cc13c0b05831760a42"
+    "bytes": 1588,
+    "sha256": "db2518287494f88e32f9387f87809ad81e7d7a57172ec7353ace45aebb967dde"
   },
   {
     "path": "icons/equipment.svg",
-    "bytes": 397,
-    "sha256": "e22c5e2848f6f2f21228d4c3d97d74bc10986eae7cc83181200cd317fcdbca6b"
+    "bytes": 1328,
+    "sha256": "33a2ebb6a4563c538264a2d9df9e9e02d453f9b8ef37a90bf860fe399fca9060"
   },
   {
     "path": "icons/expand.svg",
@@ -426,33 +446,33 @@
   },
   {
     "path": "icons/growth.svg",
-    "bytes": 368,
-    "sha256": "7c04510cea16fbd035fda6a4a73284d54d8a5fdfe49283d9bc147cb149a2b631"
+    "bytes": 1255,
+    "sha256": "00b4a8226e778355371964abf55f08090a542d8f569519a7fc7a7b77fd9a368a"
   },
   {
     "path": "icons/habitat.svg",
-    "bytes": 450,
-    "sha256": "157a6a004543d38ce48cacd99398d8e6080c0fec77156501457579e1c1d6f06c"
+    "bytes": 1406,
+    "sha256": "867af91669c19562250cc0c8f88c94574ff3c995679c1f72a8019b56d091180b"
   },
   {
     "path": "icons/health.svg",
-    "bytes": 437,
-    "sha256": "b77e8d707dabee3c19926e36fdb9fbf1241e16023907166ffc1bc72e291d0a0d"
+    "bytes": 1347,
+    "sha256": "fdf51660bcfdb029251250a1aa0a6cde86e7e9f6810f13237c3620d589d03423"
   },
   {
     "path": "icons/identity.svg",
-    "bytes": 591,
-    "sha256": "423e3cd78c2ce9810975ff27c11fd635e0241cf901b66e52e805db0b592a7dd3"
+    "bytes": 1375,
+    "sha256": "1dae99086450ddd48b7b07f383c7151db0cfef17cfa642a035bff030877637b0"
   },
   {
     "path": "icons/inventory.svg",
-    "bytes": 533,
-    "sha256": "6902d3ab0a57ec52dbe21b7c3ff544713cb4a531f167c3a1ca05e521f7be1d57"
+    "bytes": 1415,
+    "sha256": "845fc06e09aee0a6d91782e9c9fcb88af9226f324228ebb023a2e2783bb74212"
   },
   {
     "path": "icons/lineage.svg",
-    "bytes": 548,
-    "sha256": "9056f20423436de155c8bbfa01f6a5e6fd409855acf1d17a83239ab08143e3e0"
+    "bytes": 1466,
+    "sha256": "3d75b4258f2723fe752a61dc96b99be05935c68761da33bee2b53ef157fb49eb"
   },
   {
     "path": "icons/lock.svg",
@@ -471,18 +491,18 @@
   },
   {
     "path": "icons/overview.svg",
-    "bytes": 385,
-    "sha256": "459b97d69ed18d1a3d5d6c5d582f5a663e9f861ddc06a3fec87b9972f6633180"
+    "bytes": 1333,
+    "sha256": "981281210f80f2b3d64f7980847847a6ef0ae0fc70e5e3d3ef01849e1064e159"
   },
   {
     "path": "icons/profile.svg",
-    "bytes": 442,
-    "sha256": "41998cb62b6f3efaf87475dcb02afd55136b833e0e82107c96f9fd791f97a22d"
+    "bytes": 1530,
+    "sha256": "5172a2d619d1044d641e8f37ffb249fc4784376eeebe6b20fa2f9dfa7f119bac"
   },
   {
     "path": "icons/roles.svg",
-    "bytes": 524,
-    "sha256": "d01671dcbb7fc8ee85ca0028f649cdb30bcb9b0b86a42ca2020b4d95ae658283"
+    "bytes": 1415,
+    "sha256": "f3ac540b471617a79c4fc1d11496eb968b0fbae2c67c112f47ede5abb2f03dc1"
   },
   {
     "path": "icons/search.svg",
@@ -491,13 +511,13 @@
   },
   {
     "path": "icons/talents.svg",
-    "bytes": 376,
-    "sha256": "413bce5be7a4106ed59a8cd02755832067bff5edd6aab8974cf9fccab3923776"
+    "bytes": 1288,
+    "sha256": "5637faa9c7cb65f8bde9d9ddcf5e11258d19fd5c229364bad53026a541095fcd"
   },
   {
     "path": "icons/work.svg",
-    "bytes": 512,
-    "sha256": "6b748e81fd74641da6c383933b4fc1e8fd30505412bd16c9a714e3071e5f7ba5"
+    "bytes": 1358,
+    "sha256": "cf6b4241efb99adf777d42f6724fb6277719886864aa93451c68dedfe205a69b"
   },
   {
     "path": "manifest.json",
@@ -546,8 +566,8 @@
   },
   {
     "path": "overview-kit.css",
-    "bytes": 11915,
-    "sha256": "c8da8ef58c97af55d88c00a4e3837cc1fd9176fdf8afe7b0dff5d2e532e10a8f"
+    "bytes": 11860,
+    "sha256": "f01e1e15cf774ecdc776844038a1886c81a0f40dda9a2617a330af584dac8e25"
   },
   {
     "path": "preview.html",

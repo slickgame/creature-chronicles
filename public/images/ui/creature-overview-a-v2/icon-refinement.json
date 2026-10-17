@@ -1,0 +1,22 @@
+{
+  "scope": "asset kit; live-game integration pending",
+  "icons": {
+    "overview": "Overview",
+    "growth": "Stats & Growth",
+    "work": "Work Skills",
+    "talents": "Talents",
+    "lineage": "Lineage",
+    "inventory": "Inventory",
+    "equipment": "Equipment",
+    "care": "Care",
+    "creatures": "Choose creature",
+    "identity": "Identity",
+    "health": "Health & protection",
+    "roles": "Role strengths",
+    "profile": "Profile & Care",
+    "habitat": "Habitat",
+    "case": "Inventory action"
+  },
+  "finish": "ivory enamel faces, warm gold bevels, dark cutouts, restrained highlights",
+  "source": "scripts/build-creature-overview-icons.py"
+}

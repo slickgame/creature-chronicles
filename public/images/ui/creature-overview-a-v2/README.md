@@ -34,3 +34,7 @@ Keep all text as text. All surfaces are text-free and accept longer labels. Bind
 Run `python scripts/build-creature-overview-assets.py` to deterministically rebuild the SVG assets. Run a static server with `public/` as its root and open `/images/ui/creature-overview-a-v2/preview.html` or `catalog.html`. The read-only preview's buttons explain that gameplay is not connected; More overview switches the phone sample page.
 
 The assembled kit matches the concept's visual language and component hierarchy. AI concept typography and the redrawn character are not pixel-identical source assets; production uses the explicit licensed font and canonical creature. This kit does not claim an already-deployed live-game replacement.
+
+## Icon family R3
+
+The user requested a complete refinement of the section, selection, record and footer icons. The final editable ivory/gold family is rebuilt by `scripts/build-creature-overview-icons.py`, invoked at the end of the main builder. Overview now uses a creature portrait; Identity uses a creature ID card; Work includes a hammer/crop; Habitat is a barn/fence. Both Inventory placements share the same detailed pouch. The review board `icon-review.html` shows all requested icons enlarged and at 24/32/40px. The separate `creature-overview-icons-r3.zip` supersedes the icon files in the historical R2 archive. Frames, vital art and gameplay remain unchanged. See docs/CREATURE_OVERVIEW_ICON_REFINEMENT_R3_2026-10-17.md.
