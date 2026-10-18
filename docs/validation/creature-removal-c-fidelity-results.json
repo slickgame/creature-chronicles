@@ -1,0 +1,597 @@
+{
+  "checks": 197,
+  "results": [
+    {
+      "label": "Release review 1440x900 {\"x\":445,\"y\":47.171875,\"right\":995,\"bottom\":852.828125,\"w\":530,\"sw\":530,\"h\":786,\"sh\":786,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Release has no reward"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 1440x900 {\"x\":445,\"y\":163.21875,\"right\":995,\"bottom\":736.78125,\"w\":530,\"sw\":530,\"h\":554,\"sh\":554,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1440x900 {\"x\":445,\"y\":163.21875,\"right\":995,\"bottom\":736.78125,\"w\":530,\"sw\":530,\"h\":554,\"sh\":554,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1440x900 {\"x\":445,\"y\":163.21875,\"right\":995,\"bottom\":736.78125,\"w\":530,\"sw\":530,\"h\":554,\"sh\":554,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Donate review 1440x900 {\"x\":445,\"y\":44.859375,\"right\":995,\"bottom\":855.125,\"w\":530,\"sw\":530,\"h\":790,\"sh\":790,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Exact donation shown before payment"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 1440x900 {\"x\":445,\"y\":163.21875,\"right\":995,\"bottom\":736.78125,\"w\":530,\"sw\":530,\"h\":554,\"sh\":554,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1440x900 {\"x\":445,\"y\":163.21875,\"right\":995,\"bottom\":736.78125,\"w\":530,\"sw\":530,\"h\":554,\"sh\":554,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1440x900 {\"x\":445,\"y\":163.21875,\"right\":995,\"bottom\":736.78125,\"w\":530,\"sw\":530,\"h\":554,\"sh\":554,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Release review 1366x768 {\"x\":303,\"y\":212.890625,\"right\":1063,\"bottom\":555.109375,\"w\":740,\"sw\":740,\"h\":322,\"sh\":322,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Release has no reward"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 1366x768 {\"x\":303,\"y\":235.625,\"right\":1063,\"bottom\":532.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1366x768 {\"x\":303,\"y\":235.625,\"right\":1063,\"bottom\":532.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1366x768 {\"x\":303,\"y\":235.625,\"right\":1063,\"bottom\":532.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Donate review 1366x768 {\"x\":303,\"y\":210.6875,\"right\":1063,\"bottom\":557.3125,\"w\":740,\"sw\":740,\"h\":327,\"sh\":327,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Exact donation shown before payment"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 1366x768 {\"x\":303,\"y\":235.625,\"right\":1063,\"bottom\":532.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1366x768 {\"x\":303,\"y\":235.625,\"right\":1063,\"bottom\":532.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1366x768 {\"x\":303,\"y\":235.625,\"right\":1063,\"bottom\":532.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Release review 1280x720 {\"x\":260,\"y\":188.890625,\"right\":1020,\"bottom\":531.109375,\"w\":740,\"sw\":740,\"h\":322,\"sh\":322,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Release has no reward"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 1280x720 {\"x\":260,\"y\":211.625,\"right\":1020,\"bottom\":508.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1280x720 {\"x\":260,\"y\":211.625,\"right\":1020,\"bottom\":508.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1280x720 {\"x\":260,\"y\":211.625,\"right\":1020,\"bottom\":508.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Donate review 1280x720 {\"x\":260,\"y\":186.6875,\"right\":1020,\"bottom\":533.3125,\"w\":740,\"sw\":740,\"h\":327,\"sh\":327,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Exact donation shown before payment"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 1280x720 {\"x\":260,\"y\":211.625,\"right\":1020,\"bottom\":508.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1280x720 {\"x\":260,\"y\":211.625,\"right\":1020,\"bottom\":508.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 1280x720 {\"x\":260,\"y\":211.625,\"right\":1020,\"bottom\":508.359375,\"w\":740,\"sw\":740,\"h\":277,\"sh\":277,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Release review 390x844 {\"x\":10,\"y\":98.65625,\"right\":380,\"bottom\":745.328125,\"w\":350,\"sw\":350,\"h\":627,\"sh\":627,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Release has no reward"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 390x844 {\"x\":10,\"y\":156.5,\"right\":380,\"bottom\":687.484375,\"w\":350,\"sw\":350,\"h\":511,\"sh\":511,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 390x844 {\"x\":10,\"y\":156.5,\"right\":380,\"bottom\":687.484375,\"w\":350,\"sw\":350,\"h\":511,\"sh\":511,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 390x844 {\"x\":10,\"y\":156.5,\"right\":380,\"bottom\":687.484375,\"w\":350,\"sw\":350,\"h\":511,\"sh\":511,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Donate review 390x844 {\"x\":10,\"y\":96.15625,\"right\":380,\"bottom\":747.828125,\"w\":350,\"sw\":350,\"h\":632,\"sh\":632,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Exact donation shown before payment"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 390x844 {\"x\":10,\"y\":156.5,\"right\":380,\"bottom\":687.484375,\"w\":350,\"sw\":350,\"h\":511,\"sh\":511,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 390x844 {\"x\":10,\"y\":156.5,\"right\":380,\"bottom\":687.484375,\"w\":350,\"sw\":350,\"h\":511,\"sh\":511,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 390x844 {\"x\":10,\"y\":156.5,\"right\":380,\"bottom\":687.484375,\"w\":350,\"sw\":350,\"h\":511,\"sh\":511,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Release review 360x740 {\"x\":10,\"y\":58.1875,\"right\":350,\"bottom\":681.8125,\"w\":320,\"sw\":320,\"h\":604,\"sh\":604,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Release has no reward"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 360x740 {\"x\":10,\"y\":97.796875,\"right\":350,\"bottom\":642.1875,\"w\":320,\"sw\":320,\"h\":524,\"sh\":524,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 360x740 {\"x\":10,\"y\":97.796875,\"right\":350,\"bottom\":642.1875,\"w\":320,\"sw\":320,\"h\":524,\"sh\":524,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 360x740 {\"x\":10,\"y\":97.796875,\"right\":350,\"bottom\":642.1875,\"w\":320,\"sw\":320,\"h\":524,\"sh\":524,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Donate review 360x740 {\"x\":10,\"y\":44.203125,\"right\":350,\"bottom\":695.78125,\"w\":320,\"sw\":320,\"h\":632,\"sh\":632,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Exact donation shown before payment"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 360x740 {\"x\":10,\"y\":97.796875,\"right\":350,\"bottom\":642.1875,\"w\":320,\"sw\":320,\"h\":524,\"sh\":524,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 360x740 {\"x\":10,\"y\":97.796875,\"right\":350,\"bottom\":642.1875,\"w\":320,\"sw\":320,\"h\":524,\"sh\":524,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 360x740 {\"x\":10,\"y\":97.796875,\"right\":350,\"bottom\":642.1875,\"w\":320,\"sw\":320,\"h\":524,\"sh\":524,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Release review 844x390 {\"x\":42,\"y\":31.890625,\"right\":802,\"bottom\":358.109375,\"w\":740,\"sw\":740,\"h\":306,\"sh\":306,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Release has no reward"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 844x390 {\"x\":42,\"y\":48.625,\"right\":802,\"bottom\":341.359375,\"w\":740,\"sw\":740,\"h\":273,\"sh\":273,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 844x390 {\"x\":42,\"y\":48.625,\"right\":802,\"bottom\":341.359375,\"w\":740,\"sw\":740,\"h\":273,\"sh\":273,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 844x390 {\"x\":42,\"y\":48.625,\"right\":802,\"bottom\":341.359375,\"w\":740,\"sw\":740,\"h\":273,\"sh\":273,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "Donate review 844x390 {\"x\":42,\"y\":29.6875,\"right\":802,\"bottom\":360.3125,\"w\":740,\"sw\":740,\"h\":311,\"sh\":311,\"bad\":[]}"
+    },
+    {
+      "label": "Permanent warning visible"
+    },
+    {
+      "label": "Six items will return"
+    },
+    {
+      "label": "Keep creature gets initial focus"
+    },
+    {
+      "label": "Exact donation shown before payment"
+    },
+    {
+      "label": "Review loads real artwork"
+    },
+    {
+      "label": "Returning items 844x390 {\"x\":42,\"y\":48.625,\"right\":802,\"bottom\":341.359375,\"w\":740,\"sw\":740,\"h\":273,\"sh\":273,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 844x390 {\"x\":42,\"y\":48.625,\"right\":802,\"bottom\":341.359375,\"w\":740,\"sw\":740,\"h\":273,\"sh\":273,\"bad\":[]}"
+    },
+    {
+      "label": "Returning items 844x390 {\"x\":42,\"y\":48.625,\"right\":802,\"bottom\":341.359375,\"w\":740,\"sw\":740,\"h\":273,\"sh\":273,\"bad\":[]}"
+    },
+    {
+      "label": "Every exact equipped ID is accessible"
+    },
+    {
+      "label": "Cancel/browse leaves save unchanged"
+    },
+    {
+      "label": "locked review 1440x900 {\"x\":445,\"y\":33.65625,\"right\":995,\"bottom\":866.328125,\"w\":530,\"sw\":530,\"h\":813,\"sh\":813,\"bad\":[]}"
+    },
+    {
+      "label": "locked blocker disables confirmation"
+    },
+    {
+      "label": "locked blocker explained"
+    },
+    {
+      "label": "locked does not return gear early"
+    },
+    {
+      "label": "locked review 360x740 {\"x\":10,\"y\":37.609375,\"right\":350,\"bottom\":702.390625,\"w\":320,\"sw\":320,\"h\":645,\"sh\":645,\"bad\":[]}"
+    },
+    {
+      "label": "locked blocker disables confirmation"
+    },
+    {
+      "label": "locked blocker explained"
+    },
+    {
+      "label": "locked does not return gear early"
+    },
+    {
+      "label": "locked review 844x390 {\"x\":42,\"y\":19.984375,\"right\":802,\"bottom\":370.015625,\"w\":740,\"sw\":740,\"h\":330,\"sh\":330,\"bad\":[]}"
+    },
+    {
+      "label": "locked blocker disables confirmation"
+    },
+    {
+      "label": "locked blocker explained"
+    },
+    {
+      "label": "locked does not return gear early"
+    },
+    {
+      "label": "training review 1440x900 {\"x\":445,\"y\":24.65625,\"right\":995,\"bottom\":875.328125,\"w\":530,\"sw\":530,\"h\":831,\"sh\":831,\"bad\":[]}"
+    },
+    {
+      "label": "training blocker disables confirmation"
+    },
+    {
+      "label": "training blocker explained"
+    },
+    {
+      "label": "training does not return gear early"
+    },
+    {
+      "label": "training review 360x740 {\"x\":10,\"y\":20.8125,\"right\":350,\"bottom\":719.1875,\"w\":320,\"sw\":320,\"h\":678,\"sh\":678,\"bad\":[]}"
+    },
+    {
+      "label": "training blocker disables confirmation"
+    },
+    {
+      "label": "training blocker explained"
+    },
+    {
+      "label": "training does not return gear early"
+    },
+    {
+      "label": "training review 844x390 {\"x\":42,\"y\":19.984375,\"right\":802,\"bottom\":370.015625,\"w\":740,\"sw\":740,\"h\":330,\"sh\":330,\"bad\":[]}"
+    },
+    {
+      "label": "training blocker disables confirmation"
+    },
+    {
+      "label": "training blocker explained"
+    },
+    {
+      "label": "training does not return gear early"
+    },
+    {
+      "label": "Release removes exact creature once"
+    },
+    {
+      "label": "Release pays exact reward once"
+    },
+    {
+      "label": "Release conserves total copies"
+    },
+    {
+      "label": "Release preserves exact gear_7"
+    },
+    {
+      "label": "Release preserves exact gear_8"
+    },
+    {
+      "label": "Release preserves exact gear_11"
+    },
+    {
+      "label": "Release preserves exact gear_12"
+    },
+    {
+      "label": "Release preserves exact gear_1"
+    },
+    {
+      "label": "Release preserves exact gear_2"
+    },
+    {
+      "label": "Release preserves exact gear_3"
+    },
+    {
+      "label": "Release preserves exact gear_4"
+    },
+    {
+      "label": "Release preserves exact gear_5"
+    },
+    {
+      "label": "Release preserves exact gear_6"
+    },
+    {
+      "label": "Release preserves exact gear_9"
+    },
+    {
+      "label": "Release preserves exact gear_10"
+    },
+    {
+      "label": "Release preserves permanent ancestry"
+    },
+    {
+      "label": "Release reload does not duplicate returned gear"
+    },
+    {
+      "label": "Donate removes exact creature once"
+    },
+    {
+      "label": "Donate pays exact reward once"
+    },
+    {
+      "label": "Donate conserves total copies"
+    },
+    {
+      "label": "Donate preserves exact gear_7"
+    },
+    {
+      "label": "Donate preserves exact gear_8"
+    },
+    {
+      "label": "Donate preserves exact gear_11"
+    },
+    {
+      "label": "Donate preserves exact gear_12"
+    },
+    {
+      "label": "Donate preserves exact gear_1"
+    },
+    {
+      "label": "Donate preserves exact gear_2"
+    },
+    {
+      "label": "Donate preserves exact gear_3"
+    },
+    {
+      "label": "Donate preserves exact gear_4"
+    },
+    {
+      "label": "Donate preserves exact gear_5"
+    },
+    {
+      "label": "Donate preserves exact gear_6"
+    },
+    {
+      "label": "Donate preserves exact gear_9"
+    },
+    {
+      "label": "Donate preserves exact gear_10"
+    },
+    {
+      "label": "Donate preserves permanent ancestry"
+    },
+    {
+      "label": "Donate reload does not duplicate returned gear"
+    },
+    {
+      "label": "Habitat uses the same C review"
+    },
+    {
+      "label": "Habitat C review 1440x900 {\"x\":445,\"y\":44.859375,\"right\":995,\"bottom\":855.125,\"w\":530,\"sw\":530,\"h\":790,\"sh\":790,\"bad\":[]}"
+    },
+    {
+      "label": "Habitat cancel returns to management"
+    },
+    {
+      "label": "Habitat cancel preserves all gear"
+    },
+    {
+      "label": "Long creature name 360x740 {\"x\":10,\"y\":13.25,\"right\":350,\"bottom\":726.734375,\"w\":320,\"sw\":320,\"h\":693,\"sh\":693,\"bad\":[]}"
+    },
+    {
+      "label": "Escape closes review"
+    },
+    {
+      "label": "No runtime exceptions"
+    }
+  ],
+  "errors": []
+}
