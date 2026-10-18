@@ -1,4 +1,5 @@
 import * as lifecycle from "./nurseryGeneticsLifecycle";
+import { preserveFamilyArchive } from './familyArchive';
 import { buildBredCreatureStartingMoveLoadout } from "@/data/battleLoadouts";
 import { getBattleMove } from "@/data/battleMoves";
 import type { CreatureRecord } from "@/types/creature";
@@ -150,7 +151,7 @@ export function hatchEgg(
 
   return {
     creature,
-    save: {
+    save: preserveFamilyArchive({
       ...updatedSave,
       birthHistory,
       flags: {
@@ -160,6 +161,6 @@ export function hatchEgg(
         lastHatchInheritedMoveCount: inheritedMoveIds.length,
         lastHatchCombinationMoveCount: inheritance?.combinationMoveIds.length ?? 0,
       },
-    },
+    }, save),
   };
 }

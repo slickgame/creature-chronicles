@@ -7,6 +7,7 @@ function resolveGeneration(
   creatureMap: Map<CreatureId, CreatureRecord>,
   cache: Map<CreatureId, number>,
   visiting: Set<CreatureId>,
+  archive: NonNullable<GameSave['familyArchive']>['records'],
 ): number {
   const cached = cache.get(creature.creatureId);
   if (cached) return cached;
@@ -24,12 +25,15 @@ function resolveGeneration(
 
   visiting.add(creature.creatureId);
   const parentGenerations = parentIds
-    .map((parentId) => creatureMap.get(parentId))
-    .filter((parent): parent is CreatureRecord => Boolean(parent))
-    .map((parent) => resolveGeneration(parent, creatureMap, cache, visiting));
+    .map((parentId) => {
+      const parent = creatureMap.get(parentId);
+      return parent ? resolveGeneration(parent, creatureMap, cache, visiting, archive) : archive[`creature:${parentId}`]?.generation;
+    })
+    .filter((generation): generation is number => typeof generation === 'number' && Number.isFinite(generation));
   visiting.delete(creature.creatureId);
 
-  const generation = Math.max(1, ...parentGenerations) + 1;
+  const calculated = Math.max(1, ...parentGenerations) + 1;
+  const generation = parentGenerations.length < parentIds.length ? Math.max(creature.generation || 1, archive[`creature:${creature.creatureId}`]?.generation ?? 1, calculated) : calculated;
   cache.set(creature.creatureId, generation);
   return generation;
 }
@@ -49,6 +53,7 @@ export function normalizeTrackedCreatureGenerations(save: GameSave): GameSave {
       creatureMap,
       cache,
       new Set<CreatureId>(),
+      save.familyArchive?.records ?? {},
     );
     if (generation === creature.generation) return creature;
     changed = true;

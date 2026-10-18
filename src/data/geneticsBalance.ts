@@ -338,7 +338,7 @@ export function getCorrectOffspringGeneration(
   const parentGenerations = parentCreatureIds.map(
     (id) =>
       (save.creatures ?? []).find((creature) => creature.creatureId === id)
-        ?.generation ?? 1,
+        ?.generation ?? save.familyArchive?.records[`creature:${id}`]?.generation ?? 1,
   );
   return Math.max(1, ...parentGenerations) + 1;
 }

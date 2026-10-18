@@ -1,0 +1,1453 @@
+{
+  "checks": 132,
+  "results": [
+    {
+      "label": "Main cards",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 532.65625,
+        "y": 278,
+        "right": 1422,
+        "bottom": 781,
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "Recorded parents named"
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 264.171875,
+        "right": 1080,
+        "bottom": 635.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Long retained notes available"
+    },
+    {
+      "label": "Tree window",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1440,
+        "bottom": 900,
+        "w": 1420,
+        "sw": 1420,
+        "h": 880,
+        "sh": 880,
+        "bad": []
+      }
+    },
+    {
+      "label": "Zoom control changes camera"
+    },
+    {
+      "label": "Pointer dragging pans"
+    },
+    {
+      "label": "Keyboard panning"
+    },
+    {
+      "label": "Wheel zoom"
+    },
+    {
+      "label": "Pinch changes scale"
+    },
+    {
+      "label": "Expanded tree",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1440,
+        "bottom": 900,
+        "w": 1420,
+        "sw": 1420,
+        "h": 880,
+        "sh": 880,
+        "bad": []
+      }
+    },
+    {
+      "label": "Search centers selected relative"
+    },
+    {
+      "label": "Departed relative record",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 360,
+        "y": 273.96875,
+        "right": 1080,
+        "bottom": 626.03125,
+        "w": 698,
+        "sw": 698,
+        "h": 330,
+        "sh": 330,
+        "bad": []
+      }
+    },
+    {
+      "label": "Departed record explicit"
+    },
+    {
+      "label": "Record return preserves camera"
+    },
+    {
+      "label": "Returned main cards",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 532.65625,
+        "y": 278,
+        "right": 1422,
+        "bottom": 781,
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "Browsing spends nothing and does not save"
+    },
+    {
+      "label": "Main cards",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 475.03125,
+        "y": 280,
+        "right": 1261.984375,
+        "bottom": 601,
+        "w": 787,
+        "sw": 787,
+        "h": 321,
+        "sh": 321,
+        "bad": []
+      }
+    },
+    {
+      "label": "Recorded parents named"
+    },
+    {
+      "label": "Focused birth records",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 475.03125,
+        "y": 280,
+        "right": 1261.984375,
+        "bottom": 601,
+        "w": 787,
+        "sw": 787,
+        "h": 321,
+        "sh": 321,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 174.171875,
+        "right": 1000,
+        "bottom": 545.828125,
+        "w": 698,
+        "sw": 698,
+        "h": 350,
+        "sh": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "Long retained notes available"
+    },
+    {
+      "label": "Tree window",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1280,
+        "bottom": 720,
+        "w": 1260,
+        "sw": 1260,
+        "h": 700,
+        "sh": 700,
+        "bad": []
+      }
+    },
+    {
+      "label": "Zoom control changes camera"
+    },
+    {
+      "label": "Pointer dragging pans"
+    },
+    {
+      "label": "Keyboard panning"
+    },
+    {
+      "label": "Wheel zoom"
+    },
+    {
+      "label": "Pinch changes scale"
+    },
+    {
+      "label": "Expanded tree",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1280,
+        "bottom": 720,
+        "w": 1260,
+        "sw": 1260,
+        "h": 700,
+        "sh": 700,
+        "bad": []
+      }
+    },
+    {
+      "label": "Search centers selected relative"
+    },
+    {
+      "label": "Departed relative record",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 280,
+        "y": 183.96875,
+        "right": 1000,
+        "bottom": 536.03125,
+        "w": 698,
+        "sw": 698,
+        "h": 330,
+        "sh": 330,
+        "bad": []
+      }
+    },
+    {
+      "label": "Departed record explicit"
+    },
+    {
+      "label": "Record return preserves camera"
+    },
+    {
+      "label": "Returned main cards",
+      "size": {
+        "width": 1280,
+        "height": 720
+      },
+      "m": {
+        "x": 475.03125,
+        "y": 280,
+        "right": 1261.984375,
+        "bottom": 601,
+        "w": 787,
+        "sw": 787,
+        "h": 321,
+        "sh": 321,
+        "bad": []
+      }
+    },
+    {
+      "label": "Browsing spends nothing and does not save"
+    },
+    {
+      "label": "Main cards",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 18,
+        "y": 331.1875,
+        "right": 372,
+        "bottom": 723.703125,
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "Recorded parents named"
+    },
+    {
+      "label": "Focused birth records",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 18,
+        "y": 331.1875,
+        "right": 372,
+        "bottom": 723.703125,
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 233.046875,
+        "right": 380,
+        "bottom": 610.9375,
+        "w": 348,
+        "sw": 348,
+        "h": 356,
+        "sh": 356,
+        "bad": []
+      }
+    },
+    {
+      "label": "Long retained notes available"
+    },
+    {
+      "label": "Tree window",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 390,
+        "bottom": 844,
+        "w": 376,
+        "sw": 376,
+        "h": 830,
+        "sh": 830,
+        "bad": []
+      }
+    },
+    {
+      "label": "Zoom control changes camera"
+    },
+    {
+      "label": "Pointer dragging pans"
+    },
+    {
+      "label": "Keyboard panning"
+    },
+    {
+      "label": "Wheel zoom"
+    },
+    {
+      "label": "Pinch changes scale"
+    },
+    {
+      "label": "Expanded tree",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 390,
+        "bottom": 844,
+        "w": 376,
+        "sw": 376,
+        "h": 830,
+        "sh": 830,
+        "bad": []
+      }
+    },
+    {
+      "label": "Search centers selected relative"
+    },
+    {
+      "label": "Departed relative record",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 10,
+        "y": 256.25,
+        "right": 380,
+        "bottom": 587.75,
+        "w": 348,
+        "sw": 348,
+        "h": 310,
+        "sh": 310,
+        "bad": []
+      }
+    },
+    {
+      "label": "Departed record explicit"
+    },
+    {
+      "label": "Record return preserves camera"
+    },
+    {
+      "label": "Returned main cards",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 18,
+        "y": 331.1875,
+        "right": 372,
+        "bottom": 723.703125,
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "Browsing spends nothing and does not save"
+    },
+    {
+      "label": "Main cards",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 18,
+        "y": 331.1875,
+        "right": 342,
+        "bottom": 619.703125,
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Recorded parents named"
+    },
+    {
+      "label": "Focused birth records",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 18,
+        "y": 331.1875,
+        "right": 342,
+        "bottom": 619.703125,
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 170.15625,
+        "right": 350,
+        "bottom": 569.828125,
+        "w": 318,
+        "sw": 318,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Long retained notes available"
+    },
+    {
+      "label": "Tree window",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 360,
+        "bottom": 740,
+        "w": 346,
+        "sw": 346,
+        "h": 726,
+        "sh": 726,
+        "bad": []
+      }
+    },
+    {
+      "label": "Zoom control changes camera"
+    },
+    {
+      "label": "Pointer dragging pans"
+    },
+    {
+      "label": "Keyboard panning"
+    },
+    {
+      "label": "Wheel zoom"
+    },
+    {
+      "label": "Pinch changes scale"
+    },
+    {
+      "label": "Expanded tree",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 360,
+        "bottom": 740,
+        "w": 346,
+        "sw": 346,
+        "h": 726,
+        "sh": 726,
+        "bad": []
+      }
+    },
+    {
+      "label": "Search centers selected relative"
+    },
+    {
+      "label": "Departed relative record",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 10,
+        "y": 196.109375,
+        "right": 350,
+        "bottom": 543.890625,
+        "w": 318,
+        "sw": 318,
+        "h": 326,
+        "sh": 326,
+        "bad": []
+      }
+    },
+    {
+      "label": "Departed record explicit"
+    },
+    {
+      "label": "Record return preserves camera"
+    },
+    {
+      "label": "Returned main cards",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 18,
+        "y": 331.1875,
+        "right": 342,
+        "bottom": 619.703125,
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Browsing spends nothing and does not save"
+    },
+    {
+      "label": "Main cards",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 175,
+        "y": 143,
+        "right": 827,
+        "bottom": 300,
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Recorded parents named"
+    },
+    {
+      "label": "Focused birth records",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 175,
+        "y": 143,
+        "right": 827,
+        "bottom": 300,
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Parent details",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 75.25,
+        "right": 782,
+        "bottom": 314.75,
+        "w": 698,
+        "sw": 698,
+        "h": 218,
+        "sh": 218,
+        "bad": []
+      }
+    },
+    {
+      "label": "Long retained notes available"
+    },
+    {
+      "label": "Tree window",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 844,
+        "bottom": 390,
+        "w": 832,
+        "sw": 832,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Zoom control changes camera"
+    },
+    {
+      "label": "Pointer dragging pans"
+    },
+    {
+      "label": "Keyboard panning"
+    },
+    {
+      "label": "Wheel zoom"
+    },
+    {
+      "label": "Pinch changes scale"
+    },
+    {
+      "label": "Expanded tree",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 844,
+        "bottom": 390,
+        "w": 832,
+        "sw": 832,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Search centers selected relative"
+    },
+    {
+      "label": "Departed relative record",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 62,
+        "y": 81.359375,
+        "right": 782,
+        "bottom": 308.640625,
+        "w": 698,
+        "sw": 698,
+        "h": 205,
+        "sh": 205,
+        "bad": []
+      }
+    },
+    {
+      "label": "Departed record explicit"
+    },
+    {
+      "label": "Record return preserves camera"
+    },
+    {
+      "label": "Returned main cards",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 175,
+        "y": 143,
+        "right": 827,
+        "bottom": 300,
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Browsing spends nothing and does not save"
+    },
+    {
+      "label": "Missing ancestry honest"
+    },
+    {
+      "label": "Unknown ancestry tree has only focal record"
+    },
+    {
+      "label": "Thousand-child canvas culls offscreen cards"
+    },
+    {
+      "label": "Overview uses lightweight node marks"
+    },
+    {
+      "label": "Offscreen search restores readable card"
+    },
+    {
+      "label": "Large family tree",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1440,
+        "bottom": 900,
+        "w": 1420,
+        "sw": 1420,
+        "h": 880,
+        "sh": 880,
+        "bad": []
+      }
+    },
+    {
+      "label": "Archive survives reload"
+    },
+    {
+      "label": "No browser errors"
+    }
+  ],
+  "errors": [],
+  "serverLog": "▲ Next.js 16.2.6\n- Local:         http://127.0.0.1:3129\n- Network:       http://127.0.0.1:3129\n✓ Ready in 88ms\n"
+}

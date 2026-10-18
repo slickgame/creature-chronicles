@@ -1,5 +1,7 @@
 # Lineage A and expanded family tree
 
+Runtime follow-up: the user approved integration of both views. They are implemented with permanent ancestry records and reusable SVG connectors; see LINEAGE_A_RUNTIME_2026-10-18.md for validation and current behavior. The notes below preserve the design discussion.
+
 The user selected A's family-record cards on October 18, 2026. The exact uploaded original is preserved unchanged at `public/images/ui/lineage-a/approved-concept.png` (SHA-256 a4500791801a3940a82dfd181468ef21acfa6e54f4137a8dd1693f36510996d8). This selects the main page direction; no runtime changes have been made yet.
 
 View full record opens a B-inspired tree window. The user specifically requested click-and-drag navigation for late-game trees spanning several generations. The follow-up concept should show a large desktop canvas and focused full-screen phone view, not shrink all ancestry into the small main-page panel.

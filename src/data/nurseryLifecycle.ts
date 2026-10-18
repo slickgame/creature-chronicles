@@ -1,6 +1,7 @@
 import * as core from "./nursery";
 import { getVariantDefinition } from "./creatures";
 import type { CreatureId, EggId } from "@/types/ids";
+import { preserveFamilyArchive } from './familyArchive';
 import type {
   BirthRecord,
   DayState,
@@ -308,10 +309,12 @@ export function hatchEgg(
       record.creatureId !== result.creature.creatureId,
   );
 
+  const archived = preserveFamilyArchive({ ...result.save, birthHistory: [birthRecord, ...historyWithoutDuplicate] }, save);
+
   return {
     creature: result.creature,
     save: {
-      ...result.save,
+      ...archived,
       birthHistory: [birthRecord, ...historyWithoutDuplicate].slice(0, 150),
       flags: {
         ...result.save.flags,

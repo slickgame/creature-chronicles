@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { WorkSkillsLedger } from './WorkSkillsLedger';
 import { TalentsLedger } from './TalentsLedger';
+import { LineageLedger } from './LineageLedger';
 import type { CreatureRecord } from "@/types/creature";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { DetailButton } from "@/features/ui/DetailButton";
@@ -37,14 +38,7 @@ export function CompactTalents({creature,onWorkSkills}:{creature:CreatureRecord;
   return <TalentsLedger creature={creature} onWorkSkills={onWorkSkills}/>;
 }
 export function CompactLineage({creature}:{creature:CreatureRecord}) {
-  const lineage=creature.lineage;
-  return <Records title="Family register" entries={[
-    {id:"parents",title:"Recorded parents",summary:lineage?.parentNames?.length?`${lineage.parentNames.length} parents recorded`:"Parentage not recorded",icon:"lineage",details:lineage?.parentNames?.length?lineage.parentNames.map((name,index)=>`Parent ${index+1}: ${name}`):["Parentage not recorded."]},
-    {id:"origin",title:"Origin",summary:`Generation ${creature.generation}`,icon:"overview",details:[`${creature.nickname} · Generation ${creature.generation}. ${creature.originLabel}`]},
-    {id:"assessment",title:"Lineage assessment",summary:lineage?.label??"No Risk",icon:"lineage",details:lineage?.notes?.length?lineage.notes:["No close lineage risk detected, or this creature predates lineage tracking."]},
-    {id:"traits",title:"Inherited markers",summary:`${lineage?.traits?.length??0} markers`,icon:"talents",details:lineage?.traits?.length?lineage.traits:["No trait markers recorded."]},
-    ...(creature.notes?[{id:"notes",title:"Ranch notes",summary:"Read recorded notes",icon:"care",details:[creature.notes]}]:[])
-  ]}/>;
+  return <LineageLedger creature={creature}/>;
 }
 export type CompactCareProps={creature:CreatureRecord;injury:boolean;statusNote?:string;bestStatLabels:string[];renameValue?:string;onRenameValueChange?:(value:string)=>void;onRename?:()=>void;onToggleLock?:()=>void;onFeed?:()=>void;onRelease?:()=>void;onDonate?:()=>void};
 export function CompactCare({creature,injury,statusNote,bestStatLabels,renameValue,onRenameValueChange,onRename,onToggleLock,onFeed,onRelease,onDonate}:CompactCareProps) {

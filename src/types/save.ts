@@ -209,6 +209,7 @@ export type GameSave = {
   pregnancies?: PregnancyRecord[];
   eggs?: EggRecord[];
   birthHistory?: BirthRecord[];
+  familyArchive?: import('./family').FamilyArchive;
   itemUseHistory?: ItemUseRecord[];
   market?: MarketState;
   guild?: GuildState;

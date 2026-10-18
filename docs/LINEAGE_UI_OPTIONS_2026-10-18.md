@@ -1,6 +1,6 @@
 # Lineage UI review — October 18, 2026
 
-The user selected A's family-record cards, with a B-inspired expanded family tree behind View full record. Neither is integrated yet. See LINEAGE_A_AND_EXPANDED_TREE_2026-10-18.md for the approved direction and next stage. The live page remains unchanged.
+The user selected A's family-record cards, with a B-inspired expanded family tree behind View full record. Both are now integrated; see LINEAGE_A_RUNTIME_2026-10-18.md for current behavior and validation. The alternatives and baseline screenshots below preserve the earlier design review.
 
 ## Current game
 
