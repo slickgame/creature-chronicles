@@ -3,6 +3,7 @@
 import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 import { careStatusTone } from "@/data/carePresentation";
+import { CreatureRemovalWindow } from '@/features/creatures/CreatureRemovalWindow';
 import { useMemo, useState, type ReactNode } from "react";
 import {
   DEFAULT_CREATURE_MANAGEMENT_FILTERS,
@@ -90,11 +91,9 @@ function roleLabel(ready: boolean, reason: string | null): string {
 export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const {
     currentSave,
-    donateCreature,
     goToBreeding,
     goToHabitat,
     goToRanch,
-    releaseCreature,
     renameCreature,
     saveCurrentGame,
     toggleCreatureLock,
@@ -293,16 +292,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     setMessage(`${selectedCreature.nickname} was renamed to ${renameValue.trim()}.`);
   }
 
-  function handleConfirmedAction() {
-    if (!selectedCreature || !confirmMode) return;
-    const result =
-      confirmMode === "donate"
-        ? donateCreature(selectedCreature.creatureId)
-        : releaseCreature(selectedCreature.creatureId);
-    setMessage(result);
-    setConfirmMode(null);
-    setSelectedCreatureId(null);
-  }
 
   function renderCreatureCard(creature: CreatureRecord, detailed = false) {
                   const status = getCreatureManagementStatus(activeSave, creature);
@@ -728,10 +717,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       ) : null}
 
       {confirmMode && selectedCreature ? (
-        <GameDialog title={confirmMode === "donate" ? "Donate Creature?" : "Release Creature?"} onClose={() => setConfirmMode(null)}>
-          <p>{selectedCreature.isLocked ? `${selectedCreature.nickname} is locked. Unlock them first.` : `This will permanently remove ${selectedCreature.nickname} from your ranch.`}</p>
-          <div className={ui.actionRow}><button type="button" onClick={() => setConfirmMode(null)}>Cancel</button><button type="button" disabled={selectedCreature.isLocked} onClick={handleConfirmedAction}>{confirmMode === "donate" ? "Donate" : "Release"}</button></div>
-        </GameDialog>
+        <CreatureRemovalWindow key={`${confirmMode}-${selectedCreature.creatureId}`} creatureId={selectedCreature.creatureId} mode={confirmMode} onClose={() => setConfirmMode(null)} onRemoved={result => {setMessage(result); setConfirmMode(null); setSelectedCreatureId(null);}}/>
       ) : null}
     </main>
   );

@@ -1,4 +1,4 @@
-import { BATTLE_OUTFITTER_ITEMS, getEquipmentSlots, normalizeBattleEquipment, type BattleOutfitterItem } from '@/data/battleOutfitter';
+import { BATTLE_OUTFITTER_ITEMS, EQUIPMENT_SLOTS, getEquipmentSlots, normalizeBattleEquipment, type BattleOutfitterItem } from '@/data/battleOutfitter';
 import { equipmentStats, createEquipmentCopy, rollEquipmentMilestone, enhancementCost, MAX_EQUIPMENT_LEVEL, type EquipmentCopy } from './equipmentEnhancement';
 import type { GameSave } from '@/types/save';
 const FLAG='equipmentCopiesV1';
@@ -54,6 +54,17 @@ export function moveEquipmentCopy(before:GameSave,after:GameSave,owner:string,it
 }
 export function releaseEquipmentCopy(before:GameSave,after:GameSave,owner:string,itemId:string){
  const collection=getEquipmentCollection(before);collection.copies=collection.copies.map(c=>c.owner===owner&&c.itemId===itemId?{...c,owner:undefined}:c);return write(after,collection);
+}
+/** Materialize legacy copies before departure, then return the same copies in one save. */
+export function returnDepartingCreatureEquipment(input:GameSave,owner:string){
+ const save=syncEquipmentCopies(input),collection=getEquipmentCollection(save);
+ const returned=collection.copies.filter(c=>c.owner===owner);
+ if(!returned.length)return {save,returned};
+ const flags={...save.flags};
+ for(const copy of returned){const item=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===copy.itemId)!;flags[item.flagKey]=count(flags[item.flagKey])+1;}
+ for(const slot of EQUIPMENT_SLOTS)flags[`battleEquipment_${owner}_${slot}`]='';
+ collection.copies=collection.copies.map(c=>c.owner===owner?{...c,owner:undefined}:c);
+ return {save:write({...save,flags},collection),returned};
 }
 export function getEnhancementQuote(save:GameSave,copyId:string){
  const copy=getEquipmentCopies(save).find(c=>c.id===copyId);

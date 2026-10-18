@@ -9,6 +9,7 @@ import { getCreatureManagementStatus } from "@/data/creatureManagement";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { getBestStatLabels } from "@/data/collection";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
+import { CreatureRemovalWindow } from '@/features/creatures/CreatureRemovalWindow';
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { RanchReview } from "@/features/ranch/RanchReview";
@@ -24,8 +25,8 @@ const FOCUS_KEY = "creature_chronicles_habitat_focus";
 type Popup = "profile" | "manage" | "release" | "donate" | "feedback" | null;
 
 export function HabitatScreen() {
-  const { activeHabitatFamily, currentSave, donateCreature, feedCreature, goToCollection,
-    goToRanch, goBack, goToBreeding, releaseCreature,
+  const { activeHabitatFamily, currentSave, feedCreature, goToCollection,
+    goToRanch, goBack, goToBreeding,
     renameCreature, toggleCreatureLock } = useGameContext();
   const {setRanchView}=useNavigation();
   const [compact,setCompact]=useState(false);
@@ -106,9 +107,8 @@ export function HabitatScreen() {
     setMessage(`Renamed to ${renameValue.trim()}.`);
     setPopup(null);
   }
-  function remove(kind: "release" | "donate") {
-    if (!selected) return;
-    setMessage(kind === "release" ? releaseCreature(selected.creatureId) : donateCreature(selected.creatureId));
+  function removed(message: string) {
+    setMessage(message);
     setSelectedId(null);
     setPage(null);
     setPopup("feedback");
@@ -166,7 +166,7 @@ export function HabitatScreen() {
       {title:"Protection",content:<><p>Protect this creature against release or donation.</p><button onClick={()=>{toggleCreatureLock(selected.creatureId);setMessage(selected.isLocked?"Protection removed.":"Creature protected.");}}>{selected.isLocked?"Remove protection":"Protect creature"}</button></>},
       {title:"Release or donate",content:<><p>These actions permanently remove this creature from your ranch. Protected creatures cannot be removed.</p><div className={ui.actionRow}><button disabled={selected.isLocked} onClick={()=>setPopup("release")}>Release</button><button disabled={selected.isLocked} onClick={()=>setPopup("donate")}>Donate</button></div></>}
     ]}/> : null}
-    {(popup === "release" || popup === "donate") && selected ? <GameDialog title={`${popup === "release" ? "Release" : "Donate"} ${selected.nickname}?`} onClose={() => setPopup("manage")}><p>This permanently removes {selected.nickname} from your ranch. This cannot be undone.</p><div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup("manage")}>Cancel</button><button type="button" disabled={selected.isLocked} onClick={() => remove(popup)}>{popup === "release" ? "Confirm release" : "Confirm donation"}</button></div></GameDialog> : null}
+    {(popup === "release" || popup === "donate") && selected ? <CreatureRemovalWindow key={`${popup}-${selected.creatureId}`} creatureId={selected.creatureId} mode={popup} onClose={() => setPopup('manage')} onRemoved={removed}/> : null}
     {popup === "feedback" ? <GameDialog title="Habitat update" onClose={() => setPopup(null)}><p>{message}</p></GameDialog> : null}
   </main>;
 }

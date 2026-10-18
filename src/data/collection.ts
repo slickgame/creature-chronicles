@@ -1,5 +1,8 @@
 import { getSpeciesDefinition, getVariantDefinition, STAT_KEYS } from "@/data/creatures";
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
+import { getColiseumC4State } from '@/data/coliseumC4';
+import { returnDepartingCreatureEquipment } from './equipmentInstances';
+import { preserveFamilyArchive } from './familyArchive';
 import type { CreatureFamily, CreatureRecord, CreatureStatKey, StatGrade } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -32,4 +35,32 @@ export function sortAndFilterCreatures(creatures: CreatureRecord[], filter: Crea
   const filtered = creatures.filter((creature) => { const variant = getVariantDefinition(creature.variantId); if (filter === "all") return true; if (["feline", "canine", "bovine", "lapine", "equine"].includes(filter)) return variant.family === filter; if (filter === "locked") return creature.isLocked; return creature.origin === filter; });
   return [...filtered].sort((a, b) => { const variantA = getVariantDefinition(a.variantId); const variantB = getVariantDefinition(b.variantId); const speciesA = getSpeciesDefinition(a.speciesId); const speciesB = getSpeciesDefinition(b.speciesId); if (sort === "level") return b.level - a.level || a.nickname.localeCompare(b.nickname); if (sort === "rarity") return variantA.rarity.localeCompare(variantB.rarity) || a.nickname.localeCompare(b.nickname); if (sort === "species") return speciesA.name.localeCompare(speciesB.name) || a.nickname.localeCompare(b.nickname); if (sort === "variant") return variantA.name.localeCompare(variantB.name) || a.nickname.localeCompare(b.nickname); if (sort === "best-grade") return GRADE_SCORE[getHighestStatGrade(b)] - GRADE_SCORE[getHighestStatGrade(a)] || a.nickname.localeCompare(b.nickname); if (sort === "origin") return (a.originLabel ?? a.origin ?? "unknown").localeCompare(b.originLabel ?? b.origin ?? "unknown") || a.nickname.localeCompare(b.nickname); return a.nickname.localeCompare(b.nickname); });
 }
-export function releaseOrDonateCreature(save: GameSave, creatureId: CreatureId, mode: "release" | "donate"): { save: GameSave; ok: boolean; message: string } { const creature = (save.creatures ?? []).find((item) => item.creatureId === creatureId); if (!creature) return { save, ok: false, message: "Creature not found." }; const trainingReason = getTrainingUnavailableReason(save, creatureId); if (trainingReason) return { save, ok: false, message: `${creature.nickname} is away at the Training Grounds: ${trainingReason}. Collect them before ${mode === "donate" ? "donating" : "releasing"}.` }; if (creature.isLocked) return { save, ok: false, message: `${creature.nickname} is locked. Unlock them before ${mode === "donate" ? "donating" : "releasing"}.` }; const nextCreatures = (save.creatures ?? []).filter((item) => item.creatureId !== creatureId); const nextCreatureIds = save.creatureIds.filter((id) => id !== creatureId); const nextHabitats = (save.habitats ?? []).map((habitat) => ({ ...habitat, creatureIds: habitat.creatureIds.filter((id) => id !== creatureId) })); const rewardGold = mode === "donate" ? Math.max(50, creature.level * 35 + getHighestStatGrade(creature).charCodeAt(0)) : 0; const rewardGp = mode === "donate" ? 1 : 0; const totalReleased = Number(save.flags.m9TotalReleased ?? 0) + (mode === "release" ? 1 : 0); const totalDonated = Number(save.flags.m9TotalDonated ?? 0) + (mode === "donate" ? 1 : 0); return { save: { ...save, creatures: nextCreatures, creatureIds: nextCreatureIds, habitats: nextHabitats, currencies: mode === "donate" ? { ...save.currencies, gold: save.currencies.gold + rewardGold, guildPoints: save.currencies.guildPoints + rewardGp } : save.currencies, flags: { ...save.flags, m9CreatureManagement: true, m9TotalReleased: totalReleased, m9TotalDonated: totalDonated, m47TrainingAvailability: true } }, ok: true, message: mode === "donate" ? `${creature.nickname} donated for ${rewardGold} Gold and ${rewardGp} GP.` : `${creature.nickname} was released from the ranch.` }; }
+export function getCreatureRemovalBlocker(save: GameSave, creatureId: CreatureId): string | null {
+  const creature = save.creatures?.find(c => c.creatureId === creatureId);
+  if (!creature) return 'That creature is no longer on the ranch.';
+  if (creature.isLocked) return `${creature.nickname} is locked. Unlock them in Care first.`;
+  const training = getTrainingUnavailableReason(save, creatureId);
+  if (training) return `${creature.nickname} is at the Training Grounds: ${training}. Collect them before removal.`;
+  if (getColiseumC4State(save).activeRun?.teamCreatureIds.includes(creatureId)) return 'This creature is in an active gauntlet run. Finish the run before removal.';
+  return null;
+}
+export function getCreatureDonationReward(creature: CreatureRecord) {
+  return {gold: Math.max(50, creature.level * 35 + getHighestStatGrade(creature).charCodeAt(0)), guildPoints: 1};
+}
+export function releaseOrDonateCreature(save: GameSave, creatureId: CreatureId, mode: "release" | "donate"): { save: GameSave; ok: boolean; message: string } {
+  const creature = save.creatures?.find(c => c.creatureId === creatureId);
+  const blocker = getCreatureRemovalBlocker(save, creatureId);
+  if (!creature || blocker) return {save, ok: false, message: blocker ?? 'Creature not found.'};
+  const archived = preserveFamilyArchive(save);
+  const equipment = returnDepartingCreatureEquipment(archived, creatureId);
+  const source = equipment.save, reward = mode === 'donate' ? getCreatureDonationReward(creature) : {gold: 0, guildPoints: 0};
+  return {save: {...source,
+    creatures: source.creatures?.filter(c => c.creatureId !== creatureId),
+    creatureIds: source.creatureIds.filter(id => id !== creatureId),
+    habitats: source.habitats?.map(h => ({...h, creatureIds: h.creatureIds.filter(id => id !== creatureId)})),
+    currencies: {...source.currencies, gold: source.currencies.gold + reward.gold, guildPoints: source.currencies.guildPoints + reward.guildPoints},
+    flags: {...source.flags, m9CreatureManagement: true,
+      m9TotalReleased: Number(source.flags.m9TotalReleased ?? 0) + (mode === 'release' ? 1 : 0),
+      m9TotalDonated: Number(source.flags.m9TotalDonated ?? 0) + (mode === 'donate' ? 1 : 0), m47TrainingAvailability: true},
+  }, ok: true, message: `${creature.nickname} ${mode === 'donate' ? `donated for ${reward.gold} Gold and ${reward.guildPoints} GP` : 'released from the ranch'}. ${equipment.returned.length} equipped item(s) returned to inventory.`};
+}

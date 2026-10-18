@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { getBattleOutfitterDailySummaryItems, purchaseBattleOutfitterItem } from "@/data/battleOutfitter";
 import { performBreedingAttempt } from "@/data/breeding";
 import { releaseOrDonateCreature } from "@/data/collection";
+import { confirmCreatureRemoval, type CreatureRemovalQuote } from '@/data/creatureRemoval';
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
 import { applyEggAtelierHatchEffects } from "@/data/eggAtelier";
 import { MVP_VERSION } from "@/data/gameConstants";
@@ -93,6 +94,7 @@ type GameContextValue = {
   toggleCreatureLock: (creatureId: CreatureId) => void;
   releaseCreature: (creatureId: CreatureId) => string;
   donateCreature: (creatureId: CreatureId) => string;
+  confirmCreatureRemovalReview: (quote: CreatureRemovalQuote) => {ok: boolean; message: string};
   attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
   hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null;
   removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
@@ -142,12 +144,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const goBack=useCallback(()=>{const previous=navigationHistory.current.pop();setActiveHabitatFamily(previous?.family??null);setAppScreen(previous?.screen==='main-menu'?'ranch-hub':previous?.screen??'ranch-hub');},[]);
   const [saveSlots, setSaveSlots] = useState<Array<GameSave | null>>([null, null, null]);
   const [currentSave, setCurrentSave] = useState<GameSave | null>(null);
+  const latestSave = useRef<GameSave | null>(null);
 
   const refreshSaveSlots = useCallback(() => {
     const saves = loadAllSaves();
     setSaveSlots(saves);
     const activeSaveId = getActiveSaveId();
-    setCurrentSave(saves.find((save) => save?.saveId === activeSaveId) ?? null);
+    const active = saves.find((save) => save?.saveId === activeSaveId) ?? null;
+    latestSave.current = active;
+    setCurrentSave(active);
   }, []);
 
   useEffect(() => {
@@ -160,6 +165,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const rewardedSave = applyStarterGoalRewards(taxPostedSave);
     const savedGame = saveGameToSlot(rewardedSave);
     setActiveSaveId(savedGame.saveId);
+    latestSave.current = savedGame;
     setCurrentSave(savedGame);
     setSaveSlots(loadAllSaves());
     return savedGame;
@@ -179,6 +185,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     const save = loadSaveFromSlot(slotIndex);
     if (!save) return null;
     setActiveSaveId(save.saveId);
+    latestSave.current = save;
     setCurrentSave(save);
     setSaveSlots(loadAllSaves());
     setActiveHabitatFamily(null);
@@ -192,7 +199,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [refreshSaveSlots]);
 
   const goToMainMenu = useCallback(() => { navigationHistory.current=[]; setActiveHabitatFamily(null); setAppScreen("main-menu"); }, []);
-  const exitRunToMainMenu = useCallback(() => { navigationHistory.current=[]; setActiveSaveId(""); setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
+  const exitRunToMainMenu = useCallback(() => { navigationHistory.current=[]; setActiveSaveId(""); latestSave.current=null; setCurrentSave(null); setActiveHabitatFamily(null); setSaveSlots(loadAllSaves()); setAppScreen("main-menu"); }, []);
   const goToRanch = useCallback(() => navigate("ranch-hub"), [navigate]);
   const goToRanchOffice = useCallback(() => navigate("ranch-office"), [navigate]);
   const goToRanchJobs = useCallback(() => navigate("ranch-jobs"), [navigate]);
@@ -254,18 +261,25 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [currentSave, saveCurrentGame]);
 
   const releaseCreature = useCallback((creatureId: CreatureId) => {
-    if (!currentSave) return "No active save.";
-    const result = releaseOrDonateCreature(currentSave, creatureId, "release");
-    saveCurrentGame(result.save);
+    if (!latestSave.current) return "No active save.";
+    const result = releaseOrDonateCreature(latestSave.current, creatureId, "release");
+    if (result.ok) saveCurrentGame(result.save);
     return result.message;
-  }, [currentSave, saveCurrentGame]);
+  }, [saveCurrentGame]);
 
   const donateCreature = useCallback((creatureId: CreatureId) => {
-    if (!currentSave) return "No active save.";
-    const result = releaseOrDonateCreature(currentSave, creatureId, "donate");
-    saveCurrentGame(result.save);
+    if (!latestSave.current) return "No active save.";
+    const result = releaseOrDonateCreature(latestSave.current, creatureId, "donate");
+    if (result.ok) saveCurrentGame(result.save);
     return result.message;
-  }, [currentSave, saveCurrentGame]);
+  }, [saveCurrentGame]);
+
+  const confirmCreatureRemovalReview = useCallback((quote: CreatureRemovalQuote) => {
+    if (!latestSave.current) return {ok: false, message: 'No active save.'};
+    const result = confirmCreatureRemoval(latestSave.current, quote);
+    if (result.ok) saveCurrentGame(result.save);
+    return {ok: result.ok, message: result.message};
+  }, [saveCurrentGame]);
 
   const attemptBreeding = useCallback((giverId: string, receiverId: string) => {
     if (!currentSave) return null;
@@ -346,11 +360,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, [currentSave, saveCurrentGame]);
 
   const donateCreatureToGuild = useCallback((contractId: string, creatureId: CreatureId) => {
-    if (!currentSave) return "No active save.";
-    const result = donateCreatureToGuildContract(currentSave, contractId, creatureId);
-    saveCurrentGame(result.save);
+    if (!latestSave.current) return "No active save.";
+    const result = donateCreatureToGuildContract(latestSave.current, contractId, creatureId);
+    if (result.ok) saveCurrentGame(result.save);
     return result.message;
-  }, [currentSave, saveCurrentGame]);
+  }, [saveCurrentGame]);
 
   const buyTownUpgrade = useCallback((upgradeId: TownUpgradeId) => {
     if (!currentSave) return { save: currentSave as unknown as GameSave, ok: false, message: "No active save." };
@@ -495,6 +509,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     toggleCreatureLock,
     releaseCreature,
     donateCreature,
+    confirmCreatureRemovalReview,
     attemptBreeding,
     hatchReadyEgg,
     removeNurseryEgg,
@@ -550,6 +565,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     toggleCreatureLock,
     releaseCreature,
     donateCreature,
+    confirmCreatureRemovalReview,
     attemptBreeding,
     hatchReadyEgg,
     removeNurseryEgg,

@@ -1,4 +1,7 @@
 import {hasHousingForRequirement} from "./ranchHabitats";
+import { getCreatureRemovalBlocker } from './collection';
+import { returnDepartingCreatureEquipment } from './equipmentInstances';
+import { preserveFamilyArchive } from './familyArchive';
 import { guildRandom, guildRoll } from "./guildRandom";
 import { createWeeklyCommissions, getGuildObjectiveCount } from "./guildCommissions";
 import { getVariantDefinition } from "@/data/creatures";
@@ -306,7 +309,8 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   if (!contract) return { save: syncedSave, ok: false, message: "That contract no longer exists." };
   if (contract.objective) return { save: syncedSave, ok: false, message: "Use the commission claim action for this request." };
   if (!creature) return { save: syncedSave, ok: false, message: "That creature is no longer available." };
-  if (creature.isLocked && contract.type === "donate_creature") return { save: syncedSave, ok: false, message: `${creature.nickname} is locked. Unlock them before donating.` };
+  const removalBlocker = contract.type === 'donate_creature' ? getCreatureRemovalBlocker(syncedSave, creature.creatureId) : null;
+  if (removalBlocker) return {save: syncedSave, ok: false, message: removalBlocker};
   if (contract.status !== "accepted" && contract.status !== "available") return { save: syncedSave, ok: false, message: "That contract cannot receive submissions." };
   if (!doesCreatureMatchContract(creature, contract)) return { save: syncedSave, ok: false, message: `${creature.nickname} does not match that contract or lacks the required energy.` };
 
@@ -327,11 +331,12 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
     qualityBonusReasons: qualityBonus.reasons,
   } : normalizeContract(item));
   const isDonation = contract.type === "donate_creature";
+  const removalSource = isDonation ? returnDepartingCreatureEquipment(preserveFamilyArchive(syncedSave), creature.creatureId).save : syncedSave;
   const serviceEnergyCost = contract.serviceEnergyCost ?? DEFAULT_SERVICE_ENERGY_COST;
   const serviceXpReward = contract.serviceXpReward ?? DEFAULT_SERVICE_XP_REWARD;
   const serviceAffectionReward = contract.serviceAffectionReward ?? DEFAULT_SERVICE_AFFECTION_REWARD;
   const nextCreatures = isDonation
-    ? (syncedSave.creatures ?? []).filter((item) => item.creatureId !== creature.creatureId)
+    ? (removalSource.creatures ?? []).filter((item) => item.creatureId !== creature.creatureId)
     : (syncedSave.creatures ?? []).map((item) => item.creatureId === creature.creatureId ? { ...item, energy: Math.max(0, item.energy - serviceEnergyCost), xp: item.xp + serviceXpReward, affection: Math.min(100, item.affection + serviceAffectionReward) } : item);
   const nextCreatureIds = isDonation ? syncedSave.creatureIds.filter((id) => id !== creature.creatureId) : syncedSave.creatureIds;
   const nextHabitats = isDonation ? (syncedSave.habitats ?? []).map((habitat) => ({ ...habitat, creatureIds: habitat.creatureIds.filter((id) => id !== creature.creatureId) })) : syncedSave.habitats;
@@ -341,13 +346,13 @@ export function donateCreatureToGuildContract(save: GameSave, contractId: string
   const firstBonusText = firstBonus ? ` First contract bonus: +${firstBonus} GP.` : "";
   return {
     save: {
-      ...syncedSave,
+      ...removalSource,
       creatures: nextCreatures,
       creatureIds: nextCreatureIds,
       habitats: nextHabitats,
       guild: { ...guild, contracts: nextContracts, completedCount: guild.completedCount + 1, donatedCreatureCount: guild.donatedCreatureCount + (isDonation ? 1 : 0), guildRank: Math.max(guild.guildRank, Math.floor((guild.completedCount + 1) / 5) + 1) },
       currencies: { ...syncedSave.currencies, gold: syncedSave.currencies.gold + goldReward, guildPoints: syncedSave.currencies.guildPoints + guildPointReward },
-      flags: { ...syncedSave.flags, m7GuildContractCompleted: true, m33ContractQualityBonus: true, m34ContractCategories: true, m34ServiceContracts: true },
+      flags: { ...removalSource.flags, m7GuildContractCompleted: true, m33ContractQualityBonus: true, m34ContractCategories: true, m34ServiceContracts: true },
     },
     ok: true,
     message: `${creature.nickname} was ${actionVerb} ${contract.title}. Earned ${goldReward} Gold and ${guildPointReward} GP.${serviceText}${bonusText}${firstBonusText}`,
