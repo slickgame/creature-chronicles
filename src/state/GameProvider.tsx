@@ -5,6 +5,7 @@ import { getBattleOutfitterDailySummaryItems, purchaseBattleOutfitterItem } from
 import { performBreedingAttempt } from "@/data/breeding";
 import { releaseOrDonateCreature } from "@/data/collection";
 import { confirmCreatureRemoval, type CreatureRemovalQuote } from '@/data/creatureRemoval';
+import { renameOwnedCreature } from '@/data/creatureNaming';
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
 import { applyEggAtelierHatchEffects } from "@/data/eggAtelier";
 import { MVP_VERSION } from "@/data/gameConstants";
@@ -89,7 +90,7 @@ type GameContextValue = {
   goToDevTools: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
   advanceDay: () => DayAdvanceResult | null;
-  renameCreature: (creatureId: CreatureId, nickname: string) => void;
+  renameCreature: (creatureId: CreatureId, nickname: string) => {ok: boolean; message: string};
   feedCreature: (creatureId: CreatureId) => void;
   toggleCreatureLock: (creatureId: CreatureId) => void;
   releaseCreature: (creatureId: CreatureId) => string;
@@ -233,13 +234,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const goToTown = useCallback(() => navigate("town"), [navigate]);
 
   const renameCreature = useCallback((creatureId: CreatureId, nickname: string) => {
-    if (!currentSave || !nickname.trim()) return;
-    saveCurrentGame({
-      ...currentSave,
-      creatures: (currentSave.creatures ?? []).map((creature) => creature.creatureId === creatureId ? { ...creature, nickname: nickname.trim() } : creature),
-      flags: { ...currentSave.flags, m3CreatureRenamed: true, m9RenamePolishUsed: true },
-    });
-  }, [currentSave, saveCurrentGame]);
+    if (!latestSave.current) return {ok: false, message: 'No active save.'};
+    const result = renameOwnedCreature(latestSave.current, creatureId, nickname);
+    if (result.ok && result.save !== latestSave.current) saveCurrentGame(result.save);
+    return {ok: result.ok, message: result.message};
+  }, [saveCurrentGame]);
 
   const feedCreature = useCallback((creatureId: CreatureId) => {
     if (!currentSave) return;

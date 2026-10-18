@@ -1,0 +1,11 @@
+# Rename creature A
+
+The user said the options looked good and asked to continue after A was recommended. A's Identity card is the implemented direction: canonical portrait and identity strip, gold divider, painted quill/tag, editable name, counter, helper text, teal Save name and Cancel. Phones stack actions; shorter keyboard/landscape windows retain compact side-by-side actions. No charge or random-name feature is added.
+
+Care and Habitat now share CreatureRenameWindow. Habitat Manage opens it instead of hosting a separate unlimited name editor; cancel returns to Manage. Care cancel/Escape returns to the same section. Draft text stays local and resets on reopening. Initial focus goes to the name field; Enter submits. Blank/whitespace names are explained, unchanged names disable Save, and input and action boundary both enforce the existing 24 UTF-16-unit limit. Names are trimmed on save. Legacy overlength names remain visible and can be corrected, rather than being silently truncated.
+
+`renameOwnedCreature` validates ownership before changes, preserves all other creature/save fields and sets only the existing rename flags. Invalid or unchanged submissions return the identical save. GameProvider uses its latest-save reference, saves only a changed successful result, and returns structured failure text. The shared modal also checks active-save identity and guards repeated submission. Other callers retain the same rename action signature, with an additional return value they may ignore.
+
+The complete unchanged comparison board is `public/images/ui/creature-rename-a/approved-options.png`; A is selected. The prior live screenshots and exact prompt are in CREATURE_RENAME_UI_OPTIONS_2026-10-18.md. Actual runtime screenshots are separate under docs/validation. PR21 remains draft and unmerged.
+
+Validation: production build passed; the focused engine test passed; 80 dedicated browser checks and 124 existing Care checks passed. Desktop, phone, short landscape and 390×500 mobile-keyboard layouts were covered. Relevant ESLint reported zero errors and nine warnings (native images and existing provider warnings). Desktop and phone draft screenshots were visually compared with A. The modal portals to the document body so page-specific Care button styles cannot override its presentation.

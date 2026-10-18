@@ -1,0 +1,246 @@
+{
+  "checks": 80,
+  "results": [
+    {
+      "label": "Rename A 1440x900 {\"x\":450,\"y\":238.640625,\"right\":990,\"bottom\":661.34375,\"w\":520,\"sw\":520,\"h\":403,\"sh\":403,\"bad\":[]}"
+    },
+    {
+      "label": "Field receives focus"
+    },
+    {
+      "label": "Unchanged name cannot write"
+    },
+    {
+      "label": "Exact counter"
+    },
+    {
+      "label": "Canonical artwork loaded"
+    },
+    {
+      "label": "Whitespace rejected"
+    },
+    {
+      "label": "Blank explanation"
+    },
+    {
+      "label": "Boundary accepted"
+    },
+    {
+      "label": "Boundary counter"
+    },
+    {
+      "label": "Input enforces 24"
+    },
+    {
+      "label": "Cancel has no write"
+    },
+    {
+      "label": "Escape leaves save intact"
+    },
+    {
+      "label": "Rename A 1280x720 {\"x\":370,\"y\":148.640625,\"right\":910,\"bottom\":571.34375,\"w\":520,\"sw\":520,\"h\":403,\"sh\":403,\"bad\":[]}"
+    },
+    {
+      "label": "Field receives focus"
+    },
+    {
+      "label": "Unchanged name cannot write"
+    },
+    {
+      "label": "Exact counter"
+    },
+    {
+      "label": "Canonical artwork loaded"
+    },
+    {
+      "label": "Whitespace rejected"
+    },
+    {
+      "label": "Blank explanation"
+    },
+    {
+      "label": "Boundary accepted"
+    },
+    {
+      "label": "Boundary counter"
+    },
+    {
+      "label": "Input enforces 24"
+    },
+    {
+      "label": "Cancel has no write"
+    },
+    {
+      "label": "Escape leaves save intact"
+    },
+    {
+      "label": "Rename A 390x844 {\"x\":10,\"y\":206.796875,\"right\":380,\"bottom\":637.1875,\"w\":350,\"sw\":350,\"h\":410,\"sh\":410,\"bad\":[]}"
+    },
+    {
+      "label": "Field receives focus"
+    },
+    {
+      "label": "Unchanged name cannot write"
+    },
+    {
+      "label": "Exact counter"
+    },
+    {
+      "label": "Canonical artwork loaded"
+    },
+    {
+      "label": "Whitespace rejected"
+    },
+    {
+      "label": "Blank explanation"
+    },
+    {
+      "label": "Boundary accepted"
+    },
+    {
+      "label": "Boundary counter"
+    },
+    {
+      "label": "Input enforces 24"
+    },
+    {
+      "label": "Cancel has no write"
+    },
+    {
+      "label": "Escape leaves save intact"
+    },
+    {
+      "label": "Rename A 360x740 {\"x\":10,\"y\":154.796875,\"right\":350,\"bottom\":585.1875,\"w\":320,\"sw\":320,\"h\":410,\"sh\":410,\"bad\":[]}"
+    },
+    {
+      "label": "Field receives focus"
+    },
+    {
+      "label": "Unchanged name cannot write"
+    },
+    {
+      "label": "Exact counter"
+    },
+    {
+      "label": "Canonical artwork loaded"
+    },
+    {
+      "label": "Whitespace rejected"
+    },
+    {
+      "label": "Blank explanation"
+    },
+    {
+      "label": "Boundary accepted"
+    },
+    {
+      "label": "Boundary counter"
+    },
+    {
+      "label": "Input enforces 24"
+    },
+    {
+      "label": "Cancel has no write"
+    },
+    {
+      "label": "Escape leaves save intact"
+    },
+    {
+      "label": "Rename A 844x390 {\"x\":152,\"y\":33.71875,\"right\":692,\"bottom\":356.28125,\"w\":520,\"sw\":520,\"h\":303,\"sh\":303,\"bad\":[]}"
+    },
+    {
+      "label": "Field receives focus"
+    },
+    {
+      "label": "Unchanged name cannot write"
+    },
+    {
+      "label": "Exact counter"
+    },
+    {
+      "label": "Canonical artwork loaded"
+    },
+    {
+      "label": "Whitespace rejected"
+    },
+    {
+      "label": "Blank explanation"
+    },
+    {
+      "label": "Boundary accepted"
+    },
+    {
+      "label": "Boundary counter"
+    },
+    {
+      "label": "Input enforces 24"
+    },
+    {
+      "label": "Cancel has no write"
+    },
+    {
+      "label": "Escape leaves save intact"
+    },
+    {
+      "label": "Rename A 390x500 {\"x\":10,\"y\":92.21875,\"right\":380,\"bottom\":407.78125,\"w\":350,\"sw\":350,\"h\":296,\"sh\":296,\"bad\":[]}"
+    },
+    {
+      "label": "Field receives focus"
+    },
+    {
+      "label": "Unchanged name cannot write"
+    },
+    {
+      "label": "Exact counter"
+    },
+    {
+      "label": "Canonical artwork loaded"
+    },
+    {
+      "label": "Whitespace rejected"
+    },
+    {
+      "label": "Blank explanation"
+    },
+    {
+      "label": "Boundary accepted"
+    },
+    {
+      "label": "Boundary counter"
+    },
+    {
+      "label": "Input enforces 24"
+    },
+    {
+      "label": "Cancel has no write"
+    },
+    {
+      "label": "Escape leaves save intact"
+    },
+    {
+      "label": "Trimmed rename persists"
+    },
+    {
+      "label": "Rename survives reload"
+    },
+    {
+      "label": "Habitat uses shared A"
+    },
+    {
+      "label": "Habitat cancel restores Manage"
+    },
+    {
+      "label": "Habitat cancel read-only"
+    },
+    {
+      "label": "Habitat keyboard rename persists"
+    },
+    {
+      "label": "Long identity 360x740 {\"x\":10,\"y\":128.28125,\"right\":350,\"bottom\":611.703125,\"w\":320,\"sw\":320,\"h\":463,\"sh\":463,\"bad\":[]}"
+    },
+    {
+      "label": "No runtime exceptions"
+    }
+  ],
+  "errors": []
+}

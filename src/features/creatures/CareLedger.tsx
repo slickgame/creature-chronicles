@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { CreatureRecord } from '@/types/creature';
 import { careDetailPages, careMeterPercent, getCarePresentation } from '@/data/carePresentation';
 import { GameDialog } from '@/features/ui/GameDialog';
+import { CreatureRenameWindow } from './CreatureRenameWindow';
 import s from './CareLedger.module.css';
 
 export type CareLedgerProps = {
@@ -63,6 +64,6 @@ export function CareLedger({ creature, injury, statusNote, bestStatLabels, renam
       {compactManagement && (onRelease || onDonate) ? <nav className={s.managementPages} aria-label="Management pages"><button disabled={!managementPage} onClick={() => setManagementPage(0)}>Previous</button><span>{managementPage === 0 ? 'Identity & protection' : 'Transfer or release'}</span><button disabled={managementPage === 1} onClick={() => setManagementPage(1)}>Next</button></nav> : null}
     </aside>
     {dialog === 'health' ? <GameDialog title={`${creature.nickname} · Health & care`} onClose={() => setDialog(null)}><div className={s.dialog}><h3>{details[detailPage].title}</h3>{details[detailPage].lines.map((line, i) => <p key={i}>{line}</p>)}<nav aria-label="Health detail pages"><button disabled={!detailPage} onClick={() => setDetailPage(detailPage - 1)}>Previous detail</button><span>{detailPage + 1} / {details.length}</span><button disabled={detailPage + 1 >= details.length} onClick={() => setDetailPage(detailPage + 1)}>Next detail</button></nav><button onClick={() => setDialog(null)}>Back to Care</button></div></GameDialog> : null}
-    {dialog === 'rename' && canRename ? <GameDialog title="Rename creature" onClose={() => setDialog(null)}><div className={s.dialog}><label>Creature name<input aria-label="Creature name" maxLength={24} value={renameValue} onChange={event => onRenameValueChange(event.target.value)}/></label><nav><button onClick={() => setDialog(null)}>Cancel</button><button disabled={!renameValue?.trim()} onClick={() => {onRename(); setDialog(null);}}>Save name</button></nav></div></GameDialog> : null}
+    {dialog === 'rename' && canRename ? <CreatureRenameWindow key={creature.creatureId} creature={creature} onClose={() => setDialog(null)} onRenamed={name => {onRenameValueChange(name); setDialog(null);}}/> : null}
   </section>;
 }

@@ -10,6 +10,7 @@ import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { getBestStatLabels } from "@/data/collection";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { CreatureRemovalWindow } from '@/features/creatures/CreatureRemovalWindow';
+import { CreatureRenameWindow } from '@/features/creatures/CreatureRenameWindow';
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { RanchReview } from "@/features/ranch/RanchReview";
@@ -22,18 +23,17 @@ import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./HabitatCourtyard.module.css";
 
 const FOCUS_KEY = "creature_chronicles_habitat_focus";
-type Popup = "profile" | "manage" | "release" | "donate" | "feedback" | null;
+type Popup = "profile" | "manage" | "rename" | "release" | "donate" | "feedback" | null;
 
 export function HabitatScreen() {
   const { activeHabitatFamily, currentSave, feedCreature, goToCollection,
     goToRanch, goBack, goToBreeding,
-    renameCreature, toggleCreatureLock } = useGameContext();
+    toggleCreatureLock } = useGameContext();
   const {setRanchView}=useNavigation();
   const [compact,setCompact]=useState(false);
   function house(){setRanchView("house");goToRanch();}
   const [selectedId, setSelectedId] = useState<string | null>(() =>
     typeof window === "undefined" ? null : window.sessionStorage.getItem(FOCUS_KEY));
-  const [renameValue, setRenameValue] = useState("");
   const [message, setMessage] = useState("");
   const [popup, setPopup] = useState<Popup>(null);
   const [page, setPage] = useState<number | null>(null);
@@ -92,20 +92,13 @@ export function HabitatScreen() {
 
   function select(creature: CreatureRecord) {
     setSelectedId(creature.creatureId);
-    setRenameValue(creature.nickname);
     setMessage("");
   }
-  function manage() { if (selected) { setRenameValue(selected.nickname); setPopup("manage"); } }
+  function manage() { if (selected) setPopup("manage"); }
   function feed() {
     if (!selected || feedDisabled) return;
     feedCreature(selected.creatureId);
     setMessage(`${selected.nickname} fed. Energy +${Math.min(10, selected.maxEnergy - selected.energy)} · Affection +${Math.min(5, 100 - selected.affection)}.`);
-  }
-  function rename() {
-    if (!selected || !renameValue.trim()) return;
-    renameCreature(selected.creatureId, renameValue.trim());
-    setMessage(`Renamed to ${renameValue.trim()}.`);
-    setPopup(null);
   }
   function removed(message: string) {
     setMessage(message);
@@ -162,10 +155,11 @@ export function HabitatScreen() {
     </section>
     {popup === "profile" && selected ? <GameDialog title={`${selected.nickname} · Full Profile`} fullScreen onClose={()=>setPopup(null)}><main className={styles.profileFrame} data-habitat-profile><header><button onClick={()=>setPopup(null)}>‹ Habitat</button><h2>{selected.nickname} · Full Profile</h2><button onClick={manage}>Manage</button></header><SharedCreatureDetail useGameplayArt creature={selected} dayNumber={day} dossier ranchDossier fitViewport statusNote={statusNote} bestStatLabels={getBestStatLabels(selected)} showActions={false}/></main></GameDialog> : null}
     {popup === "manage" && selected ? <RanchReview title={`Manage ${selected.nickname}`} onClose={()=>setPopup(null)} pages={[
-      {title:"Name",content:<form className={styles.management} onSubmit={event=>{event.preventDefault();rename();}}><label htmlFor="habitat-name">Creature name</label><input id="habitat-name" value={renameValue} onChange={event=>setRenameValue(event.target.value)}/><button type="submit" disabled={!renameValue.trim()}>Save Name</button></form>},
+      {title:"Name",content:<div className={styles.management}><p>Current name: {selected.nickname}</p><button onClick={()=>setPopup('rename')}>Rename creature</button></div>},
       {title:"Protection",content:<><p>Protect this creature against release or donation.</p><button onClick={()=>{toggleCreatureLock(selected.creatureId);setMessage(selected.isLocked?"Protection removed.":"Creature protected.");}}>{selected.isLocked?"Remove protection":"Protect creature"}</button></>},
       {title:"Release or donate",content:<><p>These actions permanently remove this creature from your ranch. Protected creatures cannot be removed.</p><div className={ui.actionRow}><button disabled={selected.isLocked} onClick={()=>setPopup("release")}>Release</button><button disabled={selected.isLocked} onClick={()=>setPopup("donate")}>Donate</button></div></>}
     ]}/> : null}
+    {popup === 'rename' && selected ? <CreatureRenameWindow key={selected.creatureId} creature={selected} onClose={() => setPopup('manage')} onRenamed={(_name, message) => {setMessage(message); setPopup('manage');}}/> : null}
     {(popup === "release" || popup === "donate") && selected ? <CreatureRemovalWindow key={`${popup}-${selected.creatureId}`} creatureId={selected.creatureId} mode={popup} onClose={() => setPopup('manage')} onRemoved={removed}/> : null}
     {popup === "feedback" ? <GameDialog title="Habitat update" onClose={() => setPopup(null)}><p>{message}</p></GameDialog> : null}
   </main>;
