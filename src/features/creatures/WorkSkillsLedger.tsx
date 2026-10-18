@@ -4,6 +4,7 @@ import { getChoreSkillAptitudeLabel, MAX_CHORE_SKILL_LEVEL } from '@/data/choreS
 import { getWorkSkillLedger, WORK_SKILL_FILTERS, type WorkSkillEntry, type WorkSkillFilter } from '@/data/workSkillLedger';
 import type { CreatureRecord } from '@/types/creature';
 import { GameDialog } from '@/features/ui/GameDialog';
+import { ProductionBook, type ProductionSection } from '@/features/resources/ProductionBook';
 import s from './WorkSkillsLedger.module.css';
 
 export function WorkSkillArt({ index }: { index: number }) {
@@ -58,6 +59,11 @@ export function WorkSkillsLedger({ creature }: { creature: CreatureRecord }) {
 }
 function WorkSkillDetails({ creature, entry, onClose }: { creature: CreatureRecord; entry: WorkSkillEntry; onClose: () => void }) {
   const [page, setPage] = useState(0);const p = entry.progress;
+  const [working, setWorking] = useState(false);
+  const [workSection, setWorkSection] = useState<ProductionSection>(entry.activity?.section ?? 'Gathering');
+  if (working && entry.activity) return <GameDialog fullScreen title={`${entry.title} activities`} onClose={() => setWorking(false)}>
+    <ProductionBook section={workSection} onSection={setWorkSection} initialSelection={entry.activity.selection} initialWorkerId={creature.creatureId} backLabel="Skill details" onBack={() => setWorking(false)}/>
+  </GameDialog>;
   return <GameDialog title={`${entry.title} · Skill details`} titleIcon={<WorkSkillArt index={entry.icon}/>} onClose={onClose}>
     <div className={s.dialog} data-work-details>
       <nav className={s.detailTabs} aria-label="Skill detail sections">{['Progress', 'Use & training', 'Creature context'].map((label, index) => <button key={label} aria-pressed={page === index} onClick={() => setPage(index)}>{label}</button>)}</nav>
@@ -65,7 +71,7 @@ function WorkSkillDetails({ creature, entry, onClose }: { creature: CreatureReco
         <div className={s.xpBox}><span>Skill XP toward next level</span><SkillXp entry={entry} label="Selected work skill XP"/></div>
         <p>{p && entry.baseline !== null ? p.level > entry.baseline ? `Trained ${p.level - entry.baseline} levels above the natural starting level.` : 'No extra skill levels trained yet.' : 'Breeding skill benefits and progression are still to be defined.'}</p>
         {entry.planned ? <p className={s.notice}>{entry.planned}. {entry.id === 'crafting' || entry.id === 'cooking' ? 'Saved proficiency is shown; recipe actions do not train this skill yet.' : 'This skill has no active action or bonus yet.'}</p> : <p className={s.notice}>Complete matching work to gain skill XP. At level 20, the skill is mastered. Creature level and skill level are separate.</p>}
-      </> : page === 1 ? <><h3>Use & training</h3><p>{entry.training}</p>{!entry.planned ? <p>Higher proficiency reduces recipe Energy costs; gathering proficiency improves output and reduces Energy costs. The work preview shows the exact result and cost before you act.</p> : null}</> : <><h3>{creature.nickname}</h3><p>Creature level {creature.level}. {entry.title} {p ? `level ${p.level}` : 'progression is not defined'}.</p><p>Equipment does not improve farm work or change these skill records. Browsing this page spends no XP, Energy or Gold.</p></>}
+      </> : page === 1 ? <><h3>Use & training</h3><p>{entry.training}</p>{!entry.planned ? <p>Higher proficiency reduces recipe Energy costs; gathering proficiency improves output and reduces Energy costs. The work preview shows the exact result and cost before you act.</p> : null}{entry.activity ? <button className={s.practice} onClick={() => { setWorkSection(entry.activity!.section); setWorking(true); }}>Open activities for {creature.nickname}</button> : null}</> : <><h3>{creature.nickname}</h3><p>Creature level {creature.level}. {entry.title} {p ? `level ${p.level}` : 'progression is not defined'}.</p><p>Equipment does not improve farm work or change these skill records. Browsing this page spends no XP, Energy or Gold.</p></>}
       <footer><span>{page + 1} / 3 · Read-only</span><button onClick={onClose}>Back to Work Skills</button></footer>
     </div>
   </GameDialog>;

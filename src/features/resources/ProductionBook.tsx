@@ -13,14 +13,14 @@ import type { GameSave } from '@/types/save';
 import { recipePreview, recipeWorkerBlocker } from '@/data/farmResources';
 import s from './ProductionBook.module.css';
 
-type Section = 'Gathering' | 'Kitchen' | 'Workbench';
+export type ProductionSection = 'Gathering' | 'Kitchen' | 'Workbench';
 // Event-time guard, never evaluated while constructing the view.
 function reviewClickReady(openedAt: number) { return Date.now() - openedAt >= 250; }
-export function ProductionBook({ section, onSection, onBack, initialSelection = '' }: { initialSelection?: string; section: Section; onSection: (section: Section) => void; onBack: () => void }) {
+export function ProductionBook({ section, onSection, onBack, initialSelection = '', initialWorkerId = '', backLabel = 'Resources' }: { initialSelection?: string; initialWorkerId?: string; backLabel?: string; section: ProductionSection; onSection: (section: ProductionSection) => void; onBack: () => void }) {
   const { currentSave: save, saveCurrentGame } = useGameContext();
   const [facility, setFacility] = useState<FacilityId | null>(null);
   const [selection, setSelection] = useState(initialSelection);
-  const [workerId, setWorkerId] = useState('');
+  const [workerId, setWorkerId] = useState(initialWorkerId);
   const [quantity, setQuantity] = useState(1);
   const [popup, setPopup] = useState<'details' | 'review' | 'serve' | 'receipt' | null>(null);
   const [page, setPage] = useState(0);
@@ -38,7 +38,7 @@ export function ProductionBook({ section, onSection, onBack, initialSelection = 
   const siteId = entry.id as SiteId;
   const recipe = RECIPES.find(r => r.id === entry.id);
   const resourceId = gathering ? SITES[siteId].resource : entry.id as ResourceId;
-  const creature = save.creatures?.find(c => c.creatureId === workerId) ?? save.creatures?.[0];
+  const creature = save.creatures?.find(c => c.creatureId === workerId) ?? (!workerId ? save.creatures?.[0] : undefined);
   const state = getFarmState(save);
   const preview = gathering && creature ? workPreview(save, siteId, creature) : null;
   const recipeWork = !gathering && creature ? recipePreview(save, resourceId, quantity, creature) : null;
@@ -76,11 +76,11 @@ export function ProductionBook({ section, onSection, onBack, initialSelection = 
   const requiredFacility = gathering ? siteId === 'quarry' && !state.facilities.quarry ? 'quarry' : null : recipe?.facility && !state.facilities[recipe.facility] ? recipe.facility : null;
   const pager = <div className={s.actions}><button disabled={page === 0} onClick={() => setPage(page - 1)}>Previous details</button><span>{page + 1} / 2</span><button disabled={page === 1} onClick={() => setPage(page + 1)}>Next details</button></div>;
   return <main className={s.book} data-production-book>
-    <header><button onClick={onBack}>‹ Resources</button><h1>{gathering ? 'Work locations' : section}</h1><select aria-label="Production section" value={section} onChange={e => { setSelection(''); onSection(e.target.value as Section); }}><option value="Gathering">Work locations</option><option>Kitchen</option><option>Workbench</option></select></header>
+    <header><button onClick={onBack}>‹ {backLabel}</button><h1>{gathering ? 'Work locations' : section}</h1><select aria-label="Production section" value={section} onChange={e => { setSelection(''); onSection(e.target.value as ProductionSection); }}><option value="Gathering">Work locations</option><option>Kitchen</option><option>Workbench</option></select></header>
     <section className={s.sheet} data-tutorial-id={gathering ? "farm-work-locations" : undefined}>
       <div className={s.selector}><button aria-label="Previous recipe or location" disabled={index === 0} onClick={() => setSelection(entries[index - 1].id)}>‹</button><select aria-label="Select recipe or location" value={entry.id} onChange={e => setSelection(e.target.value)}>{entries.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select><span>{index + 1}/{entries.length}</span><button aria-label="Next recipe or location" disabled={index === entries.length - 1} onClick={() => setSelection(entries[index + 1].id)}>›</button></div>
       <div className={s.hero}><div className={gathering ? s.location : s.recipeArt} style={gathering ? {backgroundImage:`url(/images/ui/gathering-v1/${siteId}.webp)`} : undefined}><img src={art} alt={gathering ? creature?.nickname ?? entry.name : getResourceArt(resourceId) ? RESOURCES[resourceId].name : 'Recipe illustration'}/></div><div><small>{gathering ? 'INSTANT WORK · OWNED LOCATION' : recipe?.facility ? FACILITIES[recipe.facility].name : 'WORKER + INGREDIENTS · NO GOLD FEE'}</small><h2>{entry.name}</h2><strong>{output} {RESOURCES[resourceId].name}</strong><p>{gathering ? `${preview?.energy ?? '—'} Energy · 0 Gold` : `In storage: ${state.stock[resourceId] ?? 0} · 0 Gold`}</p></div></div>
-      <div className={s.controls}>{<label>{gathering ? 'Worker' : section === 'Kitchen' ? 'Cook / meal recipient' : 'Crafter'}<select aria-label="Production creature" value={creature?.creatureId ?? ''} onChange={e => setWorkerId(e.target.value)}>{save.creatures?.map(c => <option key={c.creatureId} value={c.creatureId}>{c.nickname} · {c.energy}/{c.maxEnergy} Energy</option>)}</select></label>}{!gathering && <label>Batches<select aria-label="Recipe batches" value={quantity} onChange={e => setQuantity(Number(e.target.value))}>{Array.from({length:20},(_,i)=>i+1).map(n => <option key={n}>{n}</option>)}</select></label>}</div>
+      <div className={s.controls}>{<label>{gathering ? 'Worker' : section === 'Kitchen' ? 'Cook / meal recipient' : 'Crafter'}<select aria-label="Production creature" value={creature?.creatureId ?? ''} onChange={e => setWorkerId(e.target.value)}><option value="" disabled>Choose a creature</option>{save.creatures?.map(c => <option key={c.creatureId} value={c.creatureId}>{c.nickname} · {c.energy}/{c.maxEnergy} Energy</option>)}</select></label>}{!gathering && <label>Batches<select aria-label="Recipe batches" value={quantity} onChange={e => setQuantity(Number(e.target.value))}>{Array.from({length:20},(_,i)=>i+1).map(n => <option key={n}>{n}</option>)}</select></label>}</div>
       {!gathering && <div className={s.ingredients}>{inputs.map(([id,n]) => <button key={id} aria-label={`Source ${RESOURCES[id].name}`} onClick={() => setSource(id)}>{getResourceArt(id) ? <img src={getResourceArt(id)} alt=""/> : null}<span><b>{n} {RESOURCES[id].name}</b><small>{Math.max(0,(state.stock[id] ?? 0)-(state.reserves[id] ?? 0))} usable · {state.reserves[id] ?? 0} reserved</small></span></button>)}</div>}
       <footer><p role="status" data-tutorial-id={gathering ? "chore-security" : undefined}>{reason ?? (gathering ? `Ready · +${preview?.xp ?? 0} work skill XP` : `${recipeWork?.skillLabel} Lv ${recipeWork?.skillLevel} · ${recipeWork?.energy} Energy · +${recipeWork?.xp} XP`)}</p><div className={s.actions}>{requiredFacility && <button onClick={() => setFacility(requiredFacility)}>Open {FACILITIES[requiredFacility].name}</button>}<button onClick={() => show('details')}>{gathering ? 'Yield & Energy details' : 'Recipe details'}</button>{!gathering && RESOURCES[resourceId].category === 'Meals' && <button disabled={!canServe} onClick={() => show('serve')}>Review serving</button>}<button disabled={!!reason} onClick={() => gathering ? handleApply(s => workResourceSite(s,siteId,creature!.creatureId)) : show('review')}>{gathering ? 'Collect' : 'Review recipe'}</button></div></footer>
     </section>

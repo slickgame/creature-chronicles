@@ -10,6 +10,15 @@ export const WORK_SKILL_FILTERS = [
   { id: 'care', label: 'Breeding & Care', icon: 'breeding' },
 ] as const;
 export type WorkSkillFilter = typeof WORK_SKILL_FILTERS[number]['id'];
+type WorkSkillActivity = { section: 'Gathering' | 'Kitchen' | 'Workbench'; selection: string };
+const WORK_SKILL_ACTIVITIES: Partial<Record<ChoreSkillId, WorkSkillActivity>> = {
+  harvesting: { section: 'Gathering', selection: 'garden' },
+  hauling: { section: 'Gathering', selection: 'woodlot' },
+  production: { section: 'Gathering', selection: 'dairy' },
+  hunting: { section: 'Gathering', selection: 'hunting' },
+  crafting: { section: 'Workbench', selection: 'planks' },
+  cooking: { section: 'Kitchen', selection: 'rations' },
+};
 type SkillDefinition = {
   id: string; skillId: ChoreSkillId | null; title: string; purpose: string;
   group: Exclude<WorkSkillFilter, 'all'>; icon: number; planned?: string; training: string;
@@ -27,6 +36,7 @@ export const WORK_SKILL_LEDGER: readonly SkillDefinition[] = [
 export function getWorkSkillLedger(creature: CreatureRecord) {
   const family = getVariantDefinition(creature.variantId).family;
   return WORK_SKILL_LEDGER.map(definition => ({ ...definition,
+    activity: definition.skillId && !definition.planned ? WORK_SKILL_ACTIVITIES[definition.skillId] : undefined,
     progress: definition.skillId ? getCreatureChoreSkillProgress(creature, definition.skillId) : null,
     baseline: definition.skillId ? getFamilyChoreBaselineLevel(family, definition.skillId) : null,
   }));
