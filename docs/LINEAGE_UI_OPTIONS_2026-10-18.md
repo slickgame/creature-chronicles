@@ -1,6 +1,6 @@
 # Lineage UI review — October 18, 2026
 
-Current stage: screenshots and concept options only. No new Lineage layout is selected or integrated. The live page remains unchanged.
+The user selected A's family-record cards, with a B-inspired expanded family tree behind View full record. Neither is integrated yet. See LINEAGE_A_AND_EXPANDED_TREE_2026-10-18.md for the approved direction and next stage. The live page remains unchanged.
 
 ## Current game
 
