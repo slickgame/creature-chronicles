@@ -1,0 +1,2278 @@
+{
+  "results": [
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 487,
+        "sh": 487,
+        "bottom": 781,
+        "right": 1422,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 699.84375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 692,
+        "sh": 692,
+        "bottom": 808.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 785,
+        "sh": 785,
+        "bottom": 854.359375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 699.84375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 699.84375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 699.84375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 699.84375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 699.84375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 833.109375,
+        "right": 1290,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 487,
+        "sh": 487,
+        "bottom": 781,
+        "right": 1422,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 581,
+        "sh": 581,
+        "bottom": 722.28125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-projection",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 502,
+        "sh": 502,
+        "bottom": 682.78125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 735,
+        "sh": 735,
+        "bottom": 799.40625,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 719,
+        "sh": 719,
+        "bottom": 791.265625,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 559,
+        "sh": 559,
+        "bottom": 711.71875,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 581,
+        "sh": 581,
+        "bottom": 722.28125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 559,
+        "sh": 559,
+        "bottom": 711.71875,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 581,
+        "sh": 581,
+        "bottom": 722.28125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 581,
+        "sh": 581,
+        "bottom": 722.28125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 350,
+        "sw": 350,
+        "h": 751,
+        "sh": 751,
+        "bottom": 807.453125,
+        "right": 380,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "w": 342,
+        "sw": 342,
+        "h": 309,
+        "sh": 309,
+        "bottom": 723.703125,
+        "right": 372,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 581,
+        "sh": 581,
+        "bottom": 670.28125,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-projection",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 517,
+        "sh": 517,
+        "bottom": 638.46875,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 683,
+        "sh": 683,
+        "bottom": 721.65625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 672,
+        "sh": 672,
+        "bottom": 716.125,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 559,
+        "sh": 559,
+        "bottom": 659.71875,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 581,
+        "sh": 581,
+        "bottom": 670.28125,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 559,
+        "sh": 559,
+        "bottom": 659.71875,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 581,
+        "sh": 581,
+        "bottom": 670.28125,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 581,
+        "sh": 581,
+        "bottom": 670.28125,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 312,
+        "sw": 312,
+        "h": 250,
+        "sh": 250,
+        "bottom": 619.703125,
+        "right": 342,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 292,
+        "sh": 292,
+        "bottom": 349.859375,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-projection",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 302,
+        "sh": 302,
+        "bottom": 354.828125,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 307,
+        "sh": 307,
+        "bottom": 357.625,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 330,
+        "sh": 330,
+        "bottom": 369,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 292,
+        "sh": 292,
+        "bottom": 349.859375,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 292,
+        "sh": 292,
+        "bottom": 349.859375,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 292,
+        "sh": 292,
+        "bottom": 349.859375,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 292,
+        "sh": 292,
+        "bottom": 349.859375,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 292,
+        "sh": 292,
+        "bottom": 349.859375,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 788,
+        "sw": 788,
+        "h": 312,
+        "sh": 312,
+        "bottom": 360,
+        "right": 825,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "w": 644,
+        "sw": 644,
+        "h": 149,
+        "sh": 149,
+        "bottom": 300,
+        "right": 827,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 408,
+        "sh": 408,
+        "bottom": 574.03125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 506,
+        "sh": 506,
+        "bottom": 623.046875,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 631,
+        "sh": 631,
+        "bottom": 685.453125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 408,
+        "sh": 408,
+        "bottom": 574.03125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 408,
+        "sh": 408,
+        "bottom": 574.03125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 408,
+        "sh": 408,
+        "bottom": 574.03125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 408,
+        "sh": 408,
+        "bottom": 574.03125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 408,
+        "sh": 408,
+        "bottom": 574.03125,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 1120,
+        "sw": 1120,
+        "h": 577,
+        "sh": 577,
+        "bottom": 658.390625,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 307,
+        "sh": 307,
+        "bottom": 601,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 729.84375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 692,
+        "sh": 692,
+        "bottom": 838.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 785,
+        "sh": 785,
+        "bottom": 884.359375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 729.84375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 729.84375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 729.84375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 729.84375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 729.84375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 863.109375,
+        "right": 1530,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1662,
+        "bad": []
+      }
+    },
+    {
+      "label": "forecast",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1982,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 969.84375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Growth factors",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Forecast notes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 692,
+        "sh": 692,
+        "bottom": 1078.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "factor-section-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 785,
+        "sh": 785,
+        "bottom": 1124.359375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 969.84375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 969.84375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 969.84375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 969.84375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "growth-progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 476,
+        "sh": 476,
+        "bottom": 969.84375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "formula-all-attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 1116,
+        "sw": 1116,
+        "h": 742,
+        "sh": 742,
+        "bottom": 1103.109375,
+        "right": 1850,
+        "bad": []
+      }
+    },
+    {
+      "label": "attributes",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "w": 873,
+        "sw": 873,
+        "h": 547,
+        "sh": 547,
+        "bottom": 841,
+        "right": 1982,
+        "bad": []
+      }
+    },
+    {
+      "label": "capped-formula",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 686,
+        "sh": 686,
+        "bottom": 723.015625,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "tied-safety-context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 700,
+        "sh": 702,
+        "bottom": 730,
+        "right": 350,
+        "bad": []
+      }
+    },
+    {
+      "label": "safety-notes",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "w": 320,
+        "sw": 320,
+        "h": 683,
+        "sh": 683,
+        "bottom": 721.65625,
+        "right": 350,
+        "bad": []
+      }
+    }
+  ],
+  "errors": [],
+  "readOnly": true
+}

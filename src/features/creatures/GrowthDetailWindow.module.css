@@ -80,3 +80,33 @@
 @media(max-width:700px){.window.window .factorPanel p{font-size:14px!important;line-height:1.25!important;}.window.window .factorPanel .rateNote p{font-size:13px!important;line-height:1.15!important;}}
 @media(max-width:700px) and (max-height:800px){.window.window .factorPanel p{font-size:13px!important;}.window.window .factorPanel .rateNote p{font-size:12px!important;}}
 @media(max-height:550px){.window.window .factorPanel p{font-size:13px!important;line-height:1.15!important;}.window.window .factorPanel .rateNote p{font-size:11px!important;line-height:1.1!important;}}
+/* Approved A follow-ups: compact cards with the Growth factors ornament. */
+.noteCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;}
+.noteCard,.contextCard,.contextIdentity{border:8px solid transparent;border-image:url('/images/ui/stats-growth-b/factors-a/frames/card.svg') 32 fill / 18px stretch;min-width:0;}
+.noteCard{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:start;gap:12px;padding:14px 8px;}
+.noteCard>img{width:64px;height:76px;object-fit:contain;align-self:center;}
+.window.window .noteCard h4{font:700 20px/1.15 OverviewTinos,Georgia,serif;color:#f6e9c9!important;margin:0 0 10px;}
+.window.window .noteCard p{font-size:17px!important;line-height:1.3!important;}
+.window.window .equipmentNote{font-size:15px!important;line-height:1.2!important;}
+.contextIdentity{display:flex;align-items:center;gap:12px;padding:8px 12px;}.contextIdentity>img{width:44px;height:44px;object-fit:contain;}.contextIdentity>div{display:flex;flex-direction:column;gap:4px;min-width:0;}.contextIdentity strong{font-size:26px;line-height:1.1;}.contextIdentity span{font-size:16px;}
+.contextCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.contextCard{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:16px;padding:10px 12px;}.contextCard>img{width:64px;height:64px;object-fit:contain;}.contextCard>div{display:flex;flex-direction:column;gap:6px;min-width:0;}.contextCard span{font-size:17px;line-height:1.1;}.contextCard strong{font-size:30px;line-height:1.1;overflow-wrap:anywhere;}.contextCard small{font-size:15px;line-height:1.2;}.contextCard progress{margin-top:2px;}
+.window[data-mode=notes] .footer>span,.window[data-mode=context] .footer>span{display:none;}.window[data-mode=notes] .footer,.window[data-mode=context] .footer{justify-content:flex-end;}
+@media(max-height:850px) and (min-width:701px){
+ .noteCards{gap:12px;}.noteCard{grid-template-columns:48px minmax(0,1fr);gap:8px;padding:10px 6px;}.noteCard>img{width:48px;height:56px;}.window.window .noteCard h4{font-size:18px;margin-bottom:7px;}.window.window .noteCard p{font-size:15px!important;}.contextIdentity{padding:5px 10px;}.contextIdentity strong{font-size:23px;}.contextIdentity span{font-size:14px;}.contextCard{padding:7px 10px;grid-template-columns:48px minmax(0,1fr);gap:10px;}.contextCard>img{width:48px;height:48px;}.contextCard strong{font-size:25px;}.contextCard span{font-size:15px;}.contextCard small{font-size:13px;}
+}
+@media(max-width:700px){
+ .noteCards{grid-template-columns:1fr;gap:7px;}.noteCard{grid-template-columns:42px minmax(0,1fr);padding:6px 5px;gap:8px;border-width:6px;}.noteCard>img{width:42px;height:48px;}.window.window .noteCard h4{font-size:16px;margin-bottom:5px;}.window.window .noteCard p{font-size:14px!important;line-height:1.2!important;}.window.window .equipmentNote{font-size:12px!important;}
+ .contextIdentity{padding:5px;gap:8px;border-width:6px;}.contextIdentity>img{width:32px;height:32px;}.contextIdentity strong{font-size:19px;}.contextIdentity span{font-size:13px;}.contextCards{grid-template-columns:1fr;gap:6px;}.contextCard{grid-template-columns:38px minmax(0,1fr);gap:10px;padding:5px 6px;border-width:6px;}.contextCard>img{width:38px;height:38px;}.contextCard>div{gap:4px;}.contextCard span{font-size:13px;}.contextCard strong{font-size:22px;}.contextCard small{font-size:12px;}.contextCard progress{height:8px;}
+}
+@media(max-width:700px) and (max-height:800px){
+ .noteCards{gap:5px;}.noteCard{padding:4px;grid-template-columns:32px minmax(0,1fr);gap:6px;}.noteCard>img{width:32px;height:38px;}.window.window .noteCard h4{font-size:15px;margin-bottom:4px;}.window.window .noteCard p{font-size:13px!important;}.contextIdentity strong{font-size:18px;}.contextIdentity span{font-size:12px;}.contextCards{gap:4px;}.contextCard{padding:4px 5px;}.contextCard strong{font-size:20px;}
+}
+@media(max-height:550px){
+ .window[data-mode=notes] .factorPanel>h3,.window[data-mode=context] .factorPanel>h3{display:none;}.noteCards{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}.noteCard{grid-template-columns:28px minmax(0,1fr);padding:4px;gap:6px;border-width:5px;}.noteCard>img{width:28px;height:32px;}.window.window .noteCard h4{font-size:14px;margin-bottom:5px;}.window.window .noteCard p{font-size:12px!important;line-height:1.15!important;}.window.window .equipmentNote{font-size:11px!important;}.contextIdentity{padding:3px 6px;border-width:5px;}.contextIdentity>img{width:24px;height:24px;}.contextIdentity strong{font-size:17px;}.contextIdentity span{font-size:11px;}.contextCards{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}.contextCard{grid-template-columns:28px minmax(0,1fr);padding:3px 6px;gap:8px;border-width:5px;}.contextCard>img{width:28px;height:28px;}.contextCard>div{gap:3px;}.contextCard span{font-size:12px;}.contextCard strong{font-size:18px;}.contextCard small{font-size:11px;}.contextCard progress{height:7px;}
+}
+@media(max-height:550px) and (min-width:701px){
+ .contextCards{grid-template-columns:repeat(4,minmax(0,1fr));}.contextCard{grid-template-columns:1fr;align-content:start;gap:4px;padding:4px 6px;}.contextCard>img{width:24px;height:24px;}.contextIdentity>div{flex-direction:row;align-items:center;gap:12px;}.contextCard strong{font-size:17px;}.contextCard .strongest{font-size:16px;}
+}
+@media(max-width:700px){.contextCard .strongest[data-tied=true]{font-size:16px;line-height:1.1;}.window[data-mode=context] .rateNote p{font-size:12px!important;}}
+@media(max-width:700px) and (max-height:800px){.contextCards{gap:3px;}.contextCard{border-width:5px;}.contextCard .strongest[data-tied=true]{font-size:15px;}}
