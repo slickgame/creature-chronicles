@@ -1,6 +1,6 @@
 # Talents C — first ten production icon assets
 
-This asset kit supplies the ten talent IDs used by current generation. These are assets and shared presentation data; the C register has not been wired into the game yet. The remaining 73 registered talents currently use the approved generic painted talent symbol in the data model until their dedicated assets are generated.
+This asset kit supplies the complete ten-talent launch lineup: nine general talents plus canine Guard Dog. The 73 additional retained definitions use the approved generic painted talent symbol for compatibility. Dedicated legacy icons are outside initial-release scope. See the runtime documentation for C register integration status.
 
 ## Contents
 

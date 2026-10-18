@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WorkSkillsLedger } from './WorkSkillsLedger';
+import { TalentsLedger } from './TalentsLedger';
 import type { CreatureRecord } from "@/types/creature";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { DetailButton } from "@/features/ui/DetailButton";
@@ -32,8 +33,8 @@ export function Records({ title, entries }: { title: string; entries: Entry[] })
 export function CompactWork({creature}:{creature:CreatureRecord}) {
   return <WorkSkillsLedger creature={creature}/>;
 }
-export function CompactTalents({creature}:{creature:CreatureRecord}) {
-  return <Records title="Talents" entries={creature.abilities.map(ability=>({id:ability.id,title:ability.name,summary:`Grade ${ability.grade} · ${ability.source}`,icon:"talents",details:[ability.description,`Grade ${ability.grade}. Source: ${ability.source}.${ability.category?` Category: ${ability.category}.`:""}${ability.tags?.length?` Tags: ${ability.tags.join(", ")}.`:""}`]}))}/>;
+export function CompactTalents({creature,onWorkSkills}:{creature:CreatureRecord;onWorkSkills?:()=>void}) {
+  return <TalentsLedger creature={creature} onWorkSkills={onWorkSkills}/>;
 }
 export function CompactLineage({creature}:{creature:CreatureRecord}) {
   const lineage=creature.lineage;

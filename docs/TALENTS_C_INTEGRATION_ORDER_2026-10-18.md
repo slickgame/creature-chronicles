@@ -10,7 +10,7 @@ At Grade C, Eager Learner changes one Planks batch from 11 to 12 Crafting XP and
 
 ## 2. Build the shared talent presentation data
 
-The catalog contains 83 distinct registered talent IDs: nine current general-pool talents, Guard Dog in current canine generation, and 73 additional retained definitions. All 83 need icon coverage, including talents that can exist on older saves. Do not silently delete or relabel retained talents as unavailable.
+The initial release has ten talents: nine current general-pool talents plus Guard Dog for canines. The catalog also retains 73 additional definitions for compatibility. These retained records are not added release scope and do not require dedicated artwork. Preserve their saved data and use the approved generic painted talent icon when encountered.
 
 `docs/validation/talents-c-content-inventory.json` lists every ID, planned icon path, source, declared systems/triggers, stacking rule, restrictions, grade coverage and Grade C example. Regenerate with:
 
@@ -29,9 +29,9 @@ Review effect applicability against actual consumers before presenting it as act
 
 ## 3. Produce the icon kit
 
-Make one distinct painted ivory/gold true-alpha icon for every registered talent, keyed by stable ID: 83 icons, not 83 multiplied by six grades. Names, numeric effects and grade letters stay outside the artwork so the same image can be used in the register and full details.
+Make one distinct painted ivory/gold true-alpha icon for each of the ten launch talents, keyed by stable ID. These ten icons are complete. Names, numeric effects and grade letters stay outside the artwork so the same image can be used in the register and full details. Retained definitions use the generic painted talent symbol.
 
-Begin with the ten talents used by current generation, then cover the remaining 73 in coherent batches. Use the approved C book/star and moon/stars as style anchors. Inspect legibility at 24/32/48px and in the larger detail view. Preserve generated alpha; avoid flat silhouettes, masks, recoloring and baked dark rectangles. Package editable source images, optimized RGBA WebP, exact prompts and an ID-to-file manifest with dimensions/hashes. Reuse approved shared All/Work/Battle/Care and detail-field symbols where they fit.
+Use the approved C book/star and moon/stars as style anchors. Inspect legibility at 24/32/48px and in the larger detail view. Preserve generated alpha; avoid flat silhouettes, masks, recoloring and baked dark rectangles. Package source images, optimized RGBA WebP, exact prompts and an ID-to-file manifest with dimensions/hashes. Reuse approved shared All/Work/Battle/Care and detail-field symbols where they fit. Do not generate the remaining 73 icons for this release.
 
 | First batch | Icon direction | Current applicability |
 | --- | --- | --- |
@@ -56,10 +56,10 @@ Use All / Work / Battle / Care filters based on actual effects. Source categorie
 
 ## 5. Compare actual gameplay with C and release
 
-Check visual fidelity and fit on desktop, phone and short landscape. Confirm every displayed talent resolves to its own icon and every grade reads actual effects. Verify read-only browsing, filters, full details, return state, real recipe/gathering XP and save/reload. Compare the actual game screenshots against the selected reference before calling the interface complete. Keep PR21 draft and unmerged.
+Check visual fidelity and fit on desktop, phone and short landscape. Confirm every launch talent resolves to its dedicated icon, retained talents resolve to the generic icon, and every grade reads actual effects. Verify read-only browsing, filters, full details, return state, real recipe/gathering XP and save/reload. Compare the actual game screenshots against the selected reference before calling the interface complete. Keep PR21 draft and unmerged.
 
 ## This increment
 
-This increment locks C, fixes recipe XP, and saves the complete catalog inventory and implementation order. The new Talents register and its 83-icon kit are the subsequent implementation stages, not completed runtime features in this commit.
+The initial increment locked C, fixed recipe XP, and saved the complete compatibility inventory. The ten-icon launch kit is now complete. Continue directly to the register integration. The former 83-icon proposal was a scope error, corrected after the user reaffirmed the streamlined initial release.
 
 Verification: 19 focused tests pass, including every recipe at all six Eager Learner grades, duplicate-instance protection, batch rounding, other-talent exclusion, quoted/saved XP agreement and a talent-driven level-up. The existing production browser runner passes 34 checks, including visible extra talent XP, real Crafting/Cooking level-ups, cancellation and save/reload. Production build and focused ESLint pass (existing native-image/compatibility warnings only). The catalog has 83 unique IDs and icon assignments, each with all six defined grades. Evidence is under docs/validation/eager-learner-*.

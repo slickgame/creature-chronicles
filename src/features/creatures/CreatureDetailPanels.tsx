@@ -431,7 +431,7 @@ export function SharedCreatureDetail({
             />
           ) : null}
           {activeTab === "work" ? <WorkSkillsTab creature={creature} ranchDossier={ranchDossier} /> : null}
-          {activeTab === "talents" ? <TalentsTab creature={creature} ranchDossier={ranchDossier} /> : null}
+          {activeTab === "talents" ? <TalentsTab creature={creature} ranchDossier={ranchDossier} onWorkSkills={() => selectTab('work')} /> : null}
           {activeTab === "lineage" ? <LineageTab creature={creature} ranchDossier={ranchDossier} /> : null}
           {activeTab === "inventory" ? <CreatureInventoryTab key={creature.creatureId} creature={creature} /> : null}
           {activeTab === "equipment" ? <CreatureEquipmentTab key={creature.creatureId} creature={creature} /> : null}
@@ -636,7 +636,7 @@ function WorkSkillsTab({ creature, ranchDossier = false }: { creature: CreatureR
   );
 }
 
-function TalentsTab({ creature, ranchDossier = false }: { creature: CreatureRecord; ranchDossier?: boolean }) {
+function TalentsTab({ creature, ranchDossier = false, onWorkSkills }: { creature: CreatureRecord; ranchDossier?: boolean; onWorkSkills?: () => void }) {
   const pageSize = 3;
   const pageCount = Math.max(1, Math.ceil(creature.abilities.length / pageSize));
   const [page, setPage] = useState(0);
@@ -645,7 +645,7 @@ function TalentsTab({ creature, ranchDossier = false }: { creature: CreatureReco
     setPage(0);
   }, [creature.creatureId, creature.abilities.length]);
 
-  if (ranchDossier) return <CompactTalents creature={creature}/>;
+  if (ranchDossier) return <CompactTalents creature={creature} onWorkSkills={onWorkSkills}/>;
   const visibleTalents = creature.abilities.slice(page * pageSize, page * pageSize + pageSize);
   return (
     <section className={dossierStyles.talentPage} style={{ ...cardStyle, minHeight: "100%", display: "grid", gridTemplateRows: "auto auto minmax(0,1fr) auto" }}>

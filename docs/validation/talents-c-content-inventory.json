@@ -5,10 +5,10 @@
   "currentGeneralCount": 9,
   "currentCanineTalentCount": 1,
   "additionalRetainedCount": 73,
-  "expectedUniqueTalentIcons": 83,
+  "expectedUniqueTalentIcons": 10,
   "notes": [
-    "An icon path is a planned asset assignment, not a claim that the asset already exists.",
-    "One icon per stable talent ID; grades use shared badges rather than six artwork copies.",
+    "The complete launch kit has ten dedicated icons. Retained legacy records use the generic painted talent symbol.",
+    "One icon per launch talent ID; grades use shared badges rather than six artwork copies.",
     "Current-roll coverage is distinct from retained definitions available to existing saves.",
     "Declared systems and triggers do not certify that every runtime hook is connected.",
     "UI values must derive from the owned grade through talentDefinitions, not the C examples in this report.",
@@ -58,7 +58,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/plain_vigor.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "growth",
@@ -119,7 +119,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/soft_focus.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -173,7 +173,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/gentle_start.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -238,7 +238,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_habits.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -303,7 +303,7 @@
       "source": "general",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/faint_spark.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -671,7 +671,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/quick_learner.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -725,7 +725,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/hardy_body.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -807,7 +807,7 @@
       "source": "general",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/warm_temper.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -872,7 +872,7 @@
       "source": "general",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/lucky_spark.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -940,7 +940,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/focused_growth.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -994,7 +994,7 @@
       "source": "general",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_worker.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1059,7 +1059,7 @@
       "source": "general",
       "category": "general",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/gentle_rhythm.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1124,7 +1124,7 @@
       "source": "general",
       "category": "lineage",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/strong_line.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -1192,7 +1192,7 @@
       "source": "species",
       "category": "lineage",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/feline_grace.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -1262,7 +1262,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/soft_step.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -1326,7 +1326,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/curious_heart.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -1385,7 +1385,7 @@
       "source": "species",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/moonlit_patience.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding"
       ],
@@ -1431,7 +1431,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/pack_loyalty.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1502,7 +1502,7 @@
       "source": "species",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/guard_instinct.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "growth",
@@ -1590,7 +1590,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_nerves.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "recovery",
@@ -1652,7 +1652,7 @@
       "source": "species",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/loyal_spark.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1733,7 +1733,7 @@
       "source": "species",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_grazer.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1813,7 +1813,7 @@
       "source": "species",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/reliable_producer.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1873,7 +1873,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/calm_herdmate.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -1966,7 +1966,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/stubborn_frame.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -2041,7 +2041,7 @@
       "source": "species",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/quick_nesting.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "inheritance"
@@ -2093,7 +2093,7 @@
       "source": "species",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/soft_bond.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding"
       ],
@@ -2139,7 +2139,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/fleet_paws.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -2203,7 +2203,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/spring_vitality.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2263,7 +2263,7 @@
       "source": "species",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_trot.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2360,7 +2360,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/strong_back.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2448,7 +2448,7 @@
       "source": "species",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/fieldhand.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2513,7 +2513,7 @@
       "source": "species",
       "category": "species",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/calm_presence.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2596,7 +2596,7 @@
       "source": "variant",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_purr.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2702,7 +2702,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/bright_eyes.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -2762,7 +2762,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/ancient_poise.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2839,7 +2839,7 @@
       "source": "variant",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/sun_warmed.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2910,7 +2910,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/royal_gaze.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -2983,7 +2983,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/tiger_instinct.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -3061,7 +3061,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/apex_pounce.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -3121,7 +3121,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/striped_vigor.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "growth",
@@ -3188,7 +3188,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/steady_companion.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "recovery",
@@ -3251,7 +3251,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/gentle_guard.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "growth",
@@ -3360,7 +3360,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/ember_blood.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -3420,7 +3420,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/infernal_focus.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -3490,7 +3490,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/ash_resolve.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding"
       ],
@@ -3537,7 +3537,7 @@
       "source": "variant",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/alpha_bond.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding"
       ],
@@ -3584,7 +3584,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/winter_coat.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -3660,7 +3660,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/pack_anchor.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -3738,7 +3738,7 @@
       "source": "variant",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/pasture_calm.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -3832,7 +3832,7 @@
       "source": "variant",
       "category": "lineage",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/milk_line.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -3899,7 +3899,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/labyrinth_guard.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "growth",
@@ -3988,7 +3988,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/iron_shoulders.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4092,7 +4092,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/intimidating_presence.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4160,7 +4160,7 @@
       "source": "variant",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/moonlit_graze.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding"
       ],
@@ -4207,7 +4207,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/silver_coat.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -4283,7 +4283,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/calm_herd_aura.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4377,7 +4377,7 @@
       "source": "variant",
       "category": "breeding",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/meadow_nest.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4444,7 +4444,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/bright_hop.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4522,7 +4522,7 @@
       "source": "variant",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/blooming_antlers.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4583,7 +4583,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/wild_leap.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4661,7 +4661,7 @@
       "source": "variant",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/verdant_nest.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4728,7 +4728,7 @@
       "source": "variant",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/dream_nest.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4801,7 +4801,7 @@
       "source": "variant",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/soft_lullaby.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4885,7 +4885,7 @@
       "source": "variant",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/comfort_coat.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -4983,7 +4983,7 @@
       "source": "variant",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/ranch_trot.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -5066,7 +5066,7 @@
       "source": "variant",
       "category": "chore",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/work_saddle.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -5132,7 +5132,7 @@
       "source": "variant",
       "category": "recovery",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/healing_horn.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -5216,7 +5216,7 @@
       "source": "variant",
       "category": "lineage",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/pure_lineage.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "inheritance"
@@ -5277,7 +5277,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/radiant_calm.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -5361,7 +5361,7 @@
       "source": "variant",
       "category": "combat",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/dark_gallop.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "chore",
@@ -5464,7 +5464,7 @@
       "source": "variant",
       "category": "variant",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/infernal_stamina.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",
@@ -5535,7 +5535,7 @@
       "source": "variant",
       "category": "lineage",
       "coverage": "additional-retained-definition",
-      "icon": "/images/ui/talents-c/icons/fearless_bloodline.webp",
+      "icon": "/images/ui/creature-overview-a-v2/painted-r4/talents.webp",
       "declaredSystems": [
         "breeding",
         "battle",

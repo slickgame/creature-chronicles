@@ -77,14 +77,14 @@
 /* Native kit navigation symbols and an explicitly reserved More actions row. */
 .navigationIcon{display:block;width:24px;height:24px;object-fit:contain;flex:none;}
 @media(max-width:850px) and (min-height:551px){
- .screen.screen:has([data-work-ledger]) [data-oa=workspace]{grid-template-rows:118px minmax(0,1fr)!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=portrait]{height:118px!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=identity]{padding:6px 9px!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=identity] h2{font-size:24px!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=identity] p{font-size:12px!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=identity] p,.screen.screen:has([data-work-ledger]) [data-oa=identity] [class*=badges]{margin-bottom:3px!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=identity] [class*=ready]{padding:2px 5px!important;font-size:11px!important;line-height:1.1!important;}
- .screen.screen:has([data-work-ledger]) [data-oa=footer]>button{min-height:52px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=workspace]{grid-template-rows:118px minmax(0,1fr)!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=portrait]{height:118px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=identity]{padding:6px 9px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=identity] h2{font-size:24px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=identity] p{font-size:12px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=identity] p,.screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=identity] [class*=badges]{margin-bottom:3px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=identity] [class*=ready]{padding:2px 5px!important;font-size:11px!important;line-height:1.1!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger])) [data-oa=footer]>button{min-height:52px!important;}
 }
 .screen.screen .expandArt{display:grid;place-items:center;padding:4px;}
 .screen.screen [data-oa=footer]{padding-top:22px;}
