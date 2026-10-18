@@ -1,0 +1,295 @@
+{
+  "source": "source/core-atlas.png",
+  "sourceSize": [
+    1983,
+    793
+  ],
+  "sourceSha256": "aa48ee97a98b105a88c02302bf42430ef6e1447bddd6a0ed2003e715062511ea",
+  "grid": [
+    5,
+    2
+  ],
+  "size": 192,
+  "icons": [
+    {
+      "id": "eager_learner",
+      "path": "icons/eager_learner.webp",
+      "cell": [
+        0,
+        0,
+        397,
+        396
+      ],
+      "sourceAlphaBounds": [
+        33,
+        45,
+        397,
+        388
+      ],
+      "visibleAlphaBounds": [
+        42,
+        60,
+        396,
+        350
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "ff788851a06e309be53a0a8e564c4d1c10c4c2bc42cd1440681612c44cbcd208",
+      "bytes": 31296
+    },
+    {
+      "id": "sound_sleeper",
+      "path": "icons/sound_sleeper.webp",
+      "cell": [
+        397,
+        0,
+        793,
+        396
+      ],
+      "sourceAlphaBounds": [
+        0,
+        49,
+        396,
+        396
+      ],
+      "visibleAlphaBounds": [
+        67,
+        58,
+        352,
+        356
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "df4d7c4d7a8a26460e1e3760da15fb8cf7f34e5be77e90c9e48c7c4f69e69a20",
+      "bytes": 20326
+    },
+    {
+      "id": "diligent",
+      "path": "icons/diligent.webp",
+      "cell": [
+        793,
+        0,
+        1190,
+        396
+      ],
+      "sourceAlphaBounds": [
+        0,
+        28,
+        370,
+        389
+      ],
+      "visibleAlphaBounds": [
+        31,
+        54,
+        365,
+        367
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "61bafbb98c988480aa6369a45666a39a6c8b71781ee110d8bda9df2322b8b759",
+      "bytes": 33542
+    },
+    {
+      "id": "efficient_worker",
+      "path": "icons/efficient_worker.webp",
+      "cell": [
+        1190,
+        0,
+        1586,
+        396
+      ],
+      "sourceAlphaBounds": [
+        18,
+        27,
+        394,
+        391
+      ],
+      "visibleAlphaBounds": [
+        41,
+        47,
+        342,
+        374
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "13d809567e056d0dacb488cbcaeccb235cbf5788e08a5d3fb39350c8399fc74f",
+      "bytes": 28636
+    },
+    {
+      "id": "sure_strike",
+      "path": "icons/sure_strike.webp",
+      "cell": [
+        1586,
+        0,
+        1983,
+        396
+      ],
+      "sourceAlphaBounds": [
+        26,
+        48,
+        365,
+        396
+      ],
+      "visibleAlphaBounds": [
+        28,
+        51,
+        346,
+        347
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "096e2f149a00c981f81bf1071151a4cb4454725755328c7c567582e98d69bfb1",
+      "bytes": 27426
+    },
+    {
+      "id": "thick_hide",
+      "path": "icons/thick_hide.webp",
+      "cell": [
+        0,
+        396,
+        397,
+        793
+      ],
+      "sourceAlphaBounds": [
+        41,
+        5,
+        373,
+        357
+      ],
+      "visibleAlphaBounds": [
+        73,
+        9,
+        356,
+        338
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "969ffc094117484eee42ca0e5d1944bcd4ed98479eb0b2ad3634b796631cd19b",
+      "bytes": 32336
+    },
+    {
+      "id": "light_footed",
+      "path": "icons/light_footed.webp",
+      "cell": [
+        397,
+        396,
+        793,
+        793
+      ],
+      "sourceAlphaBounds": [
+        47,
+        1,
+        395,
+        351
+      ],
+      "visibleAlphaBounds": [
+        52,
+        27,
+        368,
+        320
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "81e4d754a50557d130610aa9f02e17d800020c493c7c50f8a291bd6b6fb35123",
+      "bytes": 26132
+    },
+    {
+      "id": "hot_blooded",
+      "path": "icons/hot_blooded.webp",
+      "cell": [
+        793,
+        396,
+        1190,
+        793
+      ],
+      "sourceAlphaBounds": [
+        2,
+        1,
+        394,
+        355
+      ],
+      "visibleAlphaBounds": [
+        47,
+        41,
+        349,
+        325
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "58e99f7105e29efbc651f8b277433e63dadccec69d03224df2779ab54b4f3e4a",
+      "bytes": 23222
+    },
+    {
+      "id": "lasting_vigor",
+      "path": "icons/lasting_vigor.webp",
+      "cell": [
+        1190,
+        396,
+        1586,
+        793
+      ],
+      "sourceAlphaBounds": [
+        30,
+        14,
+        396,
+        355
+      ],
+      "visibleAlphaBounds": [
+        34,
+        19,
+        345,
+        340
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "2e3b843d7007dac06b66b8a164b105622368526f7ec181366cc97cb61ca7fcf7",
+      "bytes": 34300
+    },
+    {
+      "id": "guard_dog",
+      "path": "icons/guard_dog.webp",
+      "cell": [
+        1586,
+        396,
+        1983,
+        793
+      ],
+      "sourceAlphaBounds": [
+        1,
+        0,
+        383,
+        397
+      ],
+      "visibleAlphaBounds": [
+        51,
+        11,
+        326,
+        338
+      ],
+      "size": [
+        192,
+        192
+      ],
+      "sha256": "c2670507c77494ef05c86a21139cf4fc1cc5237c903f95e86d57038e77889e87",
+      "bytes": 26826
+    }
+  ]
+}
