@@ -2,6 +2,7 @@
 
 import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
+import { careStatusTone } from "@/data/carePresentation";
 import { useMemo, useState, type ReactNode } from "react";
 import {
   DEFAULT_CREATURE_MANAGEMENT_FILTERS,
@@ -462,7 +463,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                       <h2>{selectedCreature.nickname}{selectedCreature.shiny ? " ✦" : ""}</h2>
                       <p>{getVariantDefinition(selectedCreature.variantId).name} · {displaySex(getCreatureManagementStatus(activeSave, selectedCreature).sex)}</p>
                       <div className={dossier.badges}><span>{getVariantDefinition(selectedCreature.variantId).rarity}</span><span>Level {selectedCreature.level}</span></div>
-                      <strong className={dossier.ready}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</strong>
+                      <strong className={dossier.ready} data-status-tone={careStatusTone(getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus)}>{getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}</strong>
                     </div>
                     <img data-oa="art" className={dossier.heroArt} src={getEquineGameplayProfileSprite(selectedCreature, getNylaGameplayProfileSprite(selectedCreature, getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`} onError={(event) => {event.currentTarget.onerror = null; event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;}} />
                     <div className={dossier.heroMeters}>

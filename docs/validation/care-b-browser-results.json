@@ -1,0 +1,378 @@
+{
+  "checks": 124,
+  "results": [
+    {
+      "label": "Care 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Health details 1440x900 {\"x\":410,\"y\":277.78125,\"right\":1030,\"bottom\":622.21875,\"w\":600,\"sw\":600,\"h\":324,\"sh\":324,\"bad\":[]}"
+    },
+    {
+      "label": "Exact current resource details"
+    },
+    {
+      "label": "Complete creature record"
+    },
+    {
+      "label": "Health browsing read only"
+    },
+    {
+      "label": "Management 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Rename dialog 1440x900 {\"x\":410,\"y\":338.1875,\"right\":1030,\"bottom\":561.796875,\"w\":600,\"sw\":600,\"h\":204,\"sh\":204,\"bad\":[]}"
+    },
+    {
+      "label": "Rename cancel read only"
+    },
+    {
+      "label": "Closed lock art when protected"
+    },
+    {
+      "label": "Lock persisted to exact creature"
+    },
+    {
+      "label": "Transfer or release 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Protected removal remains blocked"
+    },
+    {
+      "label": "Open lock art when unlocked"
+    },
+    {
+      "label": "Release cancel preserves save"
+    },
+    {
+      "label": "Donate cancel preserves save"
+    },
+    {
+      "label": "Care 1280x720 {\"x\":475.03125,\"y\":280,\"right\":1261.984375,\"bottom\":601,\"w\":787,\"sw\":787,\"h\":321,\"sh\":321,\"bad\":[]}"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Health details 1280x720 {\"x\":330,\"y\":187.78125,\"right\":950,\"bottom\":532.21875,\"w\":600,\"sw\":600,\"h\":324,\"sh\":324,\"bad\":[]}"
+    },
+    {
+      "label": "Exact current resource details"
+    },
+    {
+      "label": "Complete creature record"
+    },
+    {
+      "label": "Health browsing read only"
+    },
+    {
+      "label": "Management 1280x720 {\"x\":475.03125,\"y\":280,\"right\":1261.984375,\"bottom\":601,\"w\":787,\"sw\":787,\"h\":321,\"sh\":321,\"bad\":[]}"
+    },
+    {
+      "label": "Rename dialog 1280x720 {\"x\":330,\"y\":248.1875,\"right\":950,\"bottom\":471.796875,\"w\":600,\"sw\":600,\"h\":204,\"sh\":204,\"bad\":[]}"
+    },
+    {
+      "label": "Rename cancel read only"
+    },
+    {
+      "label": "Closed lock art when protected"
+    },
+    {
+      "label": "Lock persisted to exact creature"
+    },
+    {
+      "label": "Transfer or release 1280x720 {\"x\":475.03125,\"y\":280,\"right\":1261.984375,\"bottom\":601,\"w\":787,\"sw\":787,\"h\":321,\"sh\":321,\"bad\":[]}"
+    },
+    {
+      "label": "Protected removal remains blocked"
+    },
+    {
+      "label": "Open lock art when unlocked"
+    },
+    {
+      "label": "Release cancel preserves save"
+    },
+    {
+      "label": "Donate cancel preserves save"
+    },
+    {
+      "label": "Care 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Health details 390x844 {\"x\":10,\"y\":245.203125,\"right\":380,\"bottom\":598.78125,\"w\":350,\"sw\":350,\"h\":334,\"sh\":334,\"bad\":[]}"
+    },
+    {
+      "label": "Exact current resource details"
+    },
+    {
+      "label": "Complete creature record"
+    },
+    {
+      "label": "Health browsing read only"
+    },
+    {
+      "label": "Management 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Rename dialog 390x844 {\"x\":10,\"y\":301.5625,\"right\":380,\"bottom\":542.421875,\"w\":350,\"sw\":350,\"h\":221,\"sh\":221,\"bad\":[]}"
+    },
+    {
+      "label": "Rename cancel read only"
+    },
+    {
+      "label": "Closed lock art when protected"
+    },
+    {
+      "label": "Lock persisted to exact creature"
+    },
+    {
+      "label": "Transfer or release 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Protected removal remains blocked"
+    },
+    {
+      "label": "Open lock art when unlocked"
+    },
+    {
+      "label": "Release cancel preserves save"
+    },
+    {
+      "label": "Donate cancel preserves save"
+    },
+    {
+      "label": "Care 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Health details 360x740 {\"x\":10,\"y\":172.203125,\"right\":350,\"bottom\":567.78125,\"w\":320,\"sw\":320,\"h\":376,\"sh\":376,\"bad\":[]}"
+    },
+    {
+      "label": "Exact current resource details"
+    },
+    {
+      "label": "Complete creature record"
+    },
+    {
+      "label": "Health browsing read only"
+    },
+    {
+      "label": "Management 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Rename dialog 360x740 {\"x\":10,\"y\":249.5625,\"right\":350,\"bottom\":490.421875,\"w\":320,\"sw\":320,\"h\":221,\"sh\":221,\"bad\":[]}"
+    },
+    {
+      "label": "Rename cancel read only"
+    },
+    {
+      "label": "Closed lock art when protected"
+    },
+    {
+      "label": "Lock persisted to exact creature"
+    },
+    {
+      "label": "Transfer or release 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Protected removal remains blocked"
+    },
+    {
+      "label": "Open lock art when unlocked"
+    },
+    {
+      "label": "Release cancel preserves save"
+    },
+    {
+      "label": "Donate cancel preserves save"
+    },
+    {
+      "label": "Care 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Health details 844x390 {\"x\":112,\"y\":51.390625,\"right\":732,\"bottom\":338.609375,\"w\":600,\"sw\":600,\"h\":267,\"sh\":267,\"bad\":[]}"
+    },
+    {
+      "label": "Exact current resource details"
+    },
+    {
+      "label": "Complete creature record"
+    },
+    {
+      "label": "Health browsing read only"
+    },
+    {
+      "label": "Management 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Rename dialog 844x390 {\"x\":112,\"y\":90.6875,\"right\":732,\"bottom\":299.296875,\"w\":600,\"sw\":600,\"h\":189,\"sh\":189,\"bad\":[]}"
+    },
+    {
+      "label": "Rename cancel read only"
+    },
+    {
+      "label": "Closed lock art when protected"
+    },
+    {
+      "label": "Lock persisted to exact creature"
+    },
+    {
+      "label": "Transfer or release 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Protected removal remains blocked"
+    },
+    {
+      "label": "Open lock art when unlocked"
+    },
+    {
+      "label": "Release cancel preserves save"
+    },
+    {
+      "label": "Donate cancel preserves save"
+    },
+    {
+      "label": "Live Tired state"
+    },
+    {
+      "label": "Portrait and Care Tired agree"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "High hearts use one normalized bar"
+    },
+    {
+      "label": "High-heart exact fill"
+    },
+    {
+      "label": "Tired state 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Tired state 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Tired state 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Tired state 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Live Exhausted state"
+    },
+    {
+      "label": "Portrait and Care Exhausted agree"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Exhausted state 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Exhausted state 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Exhausted state 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Exhausted state 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Live Hurt state"
+    },
+    {
+      "label": "Portrait and Care Hurt agree"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "High hearts use one normalized bar"
+    },
+    {
+      "label": "High-heart exact fill"
+    },
+    {
+      "label": "Hurt state 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Hurt state 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Hurt state 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Hurt state 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Live Wounded state"
+    },
+    {
+      "label": "Portrait and Care Wounded agree"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Wounded state 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Wounded state 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Wounded state 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Wounded state 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Live Training state"
+    },
+    {
+      "label": "Portrait and Care Training agree"
+    },
+    {
+      "label": "All visible Care art loaded"
+    },
+    {
+      "label": "Training state 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Training state 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Training state 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Training state 844x390 {\"x\":175,\"y\":143,\"right\":827,\"bottom\":300,\"w\":652,\"sw\":652,\"h\":157,\"sh\":157,\"bad\":[]}"
+    },
+    {
+      "label": "Rename persists"
+    },
+    {
+      "label": "Confirmed donation removes exact creature once"
+    },
+    {
+      "label": "Confirmed donation retains existing rewards"
+    },
+    {
+      "label": "Donation preserves archived ancestry"
+    },
+    {
+      "label": "No runtime exceptions"
+    }
+  ],
+  "errors": []
+}

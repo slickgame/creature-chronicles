@@ -1,0 +1,98 @@
+{
+  "generator": "built-in image generation",
+  "reference": "status-protection-study.png",
+  "runtime": "384px maximum edge WebP, quality 94, alpha quality 100",
+  "source": "Unchanged PNG originals in source/. Service original: service-mission.png.",
+  "statesActive": [
+    "healthy",
+    "hurt",
+    "injured",
+    "tired",
+    "exhausted",
+    "recovering",
+    "training",
+    "pregnant"
+  ],
+  "reserved": [
+    "sick",
+    "service-mission"
+  ],
+  "prompts": [
+    {
+      "name": "healthy",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A full polished gold heart cradled by two gold and muted green laurel branches."
+    },
+    {
+      "name": "hurt",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A gold heart with a visible diagonal crack and one ivory adhesive bandage."
+    },
+    {
+      "name": "injured",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A gold shield with two crossed ivory adhesive bandages, small gold laurel at base."
+    },
+    {
+      "name": "tired",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A crescent gold moon with a small bent gold lightning bolt, restrained gold laurel."
+    },
+    {
+      "name": "exhausted",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A depleted empty battery outline in gold, gray ivory lightningbolt slumped across it. No text."
+    },
+    {
+      "name": "recovering",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A gold heart encircled by two gentle blue and gold recovery arrows."
+    },
+    {
+      "name": "training",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. Two crossed short carved wood and gold training clubs with a gold star above."
+    },
+    {
+      "name": "pregnant",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A large gold heart sheltering three smaller gold hearts, with gentle ivory gold leaves at its base."
+    },
+    {
+      "name": "sick",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A gold heart with an ivory thermometer beside it, small muted red thermometer fill. Reserved future illness icon."
+    },
+    {
+      "name": "lock-open",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A thick polished sculpted gold padlock with ivory gold highlights, black keyhole, gold laurel engraving, clearly OPEN curved shackle. Same rectangular rounded lock base as the closed-lock reference."
+    },
+    {
+      "name": "lock-closed",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A thick polished sculpted gold padlock with ivory gold highlights, black keyhole, gold laurel engraving, clearly CLOSED curved shackle. Same rectangular rounded lock base as the open-lock reference."
+    },
+    {
+      "name": "rename",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A single diagonal sculpted gold and ivory writing pencil."
+    },
+    {
+      "name": "release",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. A small open red and gold doorway with a gold arrow pointing outward."
+    },
+    {
+      "name": "donate",
+      "prompt": "Use case: illustration-story. One individual production Creature Chronicles Care B UI icon. Reference is the just-viewed approved status and protection sheet. Reproduce its hand-painted sculpted gold/ivory aesthetic, warm highlights, softly dimensional carved surfaces and clear readable silhouette. Not flat vector, not emoji. Single isolated centered object on true transparent background, no backdrop rectangle, no text, no letters, no badge or border frame, no broad cast shadow. Full object visible with transparent margin. Readable at64px. An ivory open hand gently holding a small gold and muted green sprout."
+    }
+  ],
+  "extras": [
+    [
+      "heart-gold",
+      "One simple softly sculpted plump gold heart, warm gold and ivory specular highlights, no laurels or ornament, no emojioutline."
+    ],
+    [
+      "management",
+      "One softly sculpted gold cogwheel with eight rounded teeth, ivory inner highlights, clean dark transparent centerhole. No other objects."
+    ]
+  ],
+  "service": [
+    {
+      "title": "Service mission icon",
+      "prompt": "Use case: illustration-story. Production game UI icon for Creature Chronicles Care B. Match the last viewed status study's sculpted painted gold/ivory style, warm highlights, softly dimensional polished carved surfaces, clear silhouette. Single centered gold compass over a small rolled ivory parchment commission with a red wax seal, compact unified silhouette; no weapons, no trainingclubs, no characters. Fine gold laurels subtle framing like existing status icons, restrained, readable at64px. Actual transparent background, no navy rectangle, no text, no letters or numbers, no drop shadow outside the object. Adequate transparent margin, entire icon inside frame. Represents away on a service mission. One icon only."
+    },
+    {
+      "title": "Service mission status card",
+      "prompt": "Use case: ui-mockup. Preview-only Creature Chronicles Care B status card, matching last reference status-study panel precisely: deep navy rectangular panel, thin warm gold ornamental corners, warm ivory bold Tinos serif typography. A single compact finished state card centered on navy surroundings. Sculpted gold compass with small rolled ivory parchment commission and wax seal on the left, same painted softly dimensional gold/ivory style as approved states. To right large exact heading 'On service mission', below exact text 'Temporarily unavailable.' Then a muted blue framed status badge with exact text 'On service mission'. Small top caption 'CONCEPT · SERVICE STATUS'. Do not invent countdown, date, rewards, illness, training or gameplay effects. No creature portrait or full application layout. Spacious readable composition, horizontally balanced, gold cornerornaments match existing family. This is one additional state card, not the complete sheet."
+    }
+  ]
+}

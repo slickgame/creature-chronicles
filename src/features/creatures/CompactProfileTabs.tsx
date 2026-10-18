@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { WorkSkillsLedger } from './WorkSkillsLedger';
 import { TalentsLedger } from './TalentsLedger';
 import { LineageLedger } from './LineageLedger';
+import { CareLedger, type CareLedgerProps } from './CareLedger';
 import type { CreatureRecord } from "@/types/creature";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { DetailButton } from "@/features/ui/DetailButton";
@@ -40,14 +41,7 @@ export function CompactTalents({creature,onWorkSkills}:{creature:CreatureRecord;
 export function CompactLineage({creature}:{creature:CreatureRecord}) {
   return <LineageLedger creature={creature}/>;
 }
-export type CompactCareProps={creature:CreatureRecord;injury:boolean;statusNote?:string;bestStatLabels:string[];renameValue?:string;onRenameValueChange?:(value:string)=>void;onRename?:()=>void;onToggleLock?:()=>void;onFeed?:()=>void;onRelease?:()=>void;onDonate?:()=>void};
-export function CompactCare({creature,injury,statusNote,bestStatLabels,renameValue,onRenameValueChange,onRename,onToggleLock,onFeed,onRelease,onDonate}:CompactCareProps) {
-  const [rename,setRename]=useState(false);
-  const entries:Entry[]=[{id:"health",title:"Health & care",summary:injury?creature.injuryLabel??"Injured":"Healthy",icon:"care",details:[statusNote??"No additional care notice.",`Energy ${creature.energy} / ${creature.maxEnergy}. Affection ${creature.affection} / 100. Hearts ${creature.hearts} / ${creature.maxHearts}.`,`Origin: ${creature.originLabel}. Best stats: ${bestStatLabels.join(", ")||"Balanced"}.`]}];
-  if(onFeed)entries.push({id:"feed",title:"Feed Creature",summary:"Open existing feeding action",icon:"care",details:[],action:onFeed});
-  if(onToggleLock)entries.push({id:"lock",title:creature.isLocked?"Unlock Creature":"Lock / Protect Creature",summary:creature.isLocked?"Protected from removal":"Currently unlocked",icon:"care",details:[],action:onToggleLock});
-  if(renameValue!==undefined&&onRenameValueChange&&onRename)entries.push({id:"rename",title:"Rename",summary:creature.nickname,icon:"overview",details:[],action:()=>setRename(true)});
-  if(onRelease)entries.push({id:"release",title:"Release",summary:"Requires removal confirmation",icon:"care",details:[],action:onRelease});
-  if(onDonate)entries.push({id:"donate",title:"Donate",summary:"Requires removal confirmation",icon:"care",details:[],action:onDonate});
-  return <><Records title="Care & Management" entries={entries}/>{rename?<GameDialog title="Rename creature" onClose={()=>setRename(false)}><label>Creature name<input aria-label="Creature name" maxLength={24} value={renameValue} onChange={event=>onRenameValueChange?.(event.target.value)}/></label><div className={s.pager}><button onClick={()=>setRename(false)}>Cancel</button><button disabled={!renameValue?.trim()} onClick={()=>{onRename?.();setRename(false);}}>Save Name</button></div></GameDialog>:null}</>;
+export type CompactCareProps = CareLedgerProps;
+export function CompactCare(props: CompactCareProps) {
+  return <CareLedger {...props}/>;
 }
