@@ -9,6 +9,7 @@ export type RanchChoreSkillId =
   | "security"
   | "harvesting"
   | "production"
+  | "hunting"
   | "hauling"
   | "ranch_care";
 

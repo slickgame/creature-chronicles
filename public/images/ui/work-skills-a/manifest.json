@@ -1,0 +1,30 @@
+{
+  "grid": {
+    "columns": 4,
+    "rows": 2
+  },
+  "icons": [
+    "Harvesting",
+    "Material Gathering",
+    "Husbandry",
+    "Hunting",
+    "Crafting",
+    "Cooking",
+    "Breeding",
+    "Cleaning"
+  ],
+  "alpha": "Direct RGBA, preserved through resize and lossless conversion",
+  "sourceDimensions": [
+    1774,
+    887
+  ],
+  "runtimeDimensions": [
+    896,
+    448
+  ],
+  "sha256": {
+    "source/skill-atlas.png": "e00b2ea377a95cb8dc8627044be9ad09ca997acaccf8fccf10578c2658256531",
+    "skill-atlas.webp": "ed4ed7f8af70ce99c742c852f9c528387fd9c7936408a78250252a2a1265d71b",
+    "approved-concept.webp": "2baab538d775d9b88509ca20b58cd332f55bf132829dc549bb39150a21cfcc48"
+  }
+}

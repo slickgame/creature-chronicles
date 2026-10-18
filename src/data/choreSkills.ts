@@ -65,16 +65,16 @@ export const CHORE_SKILL_DEFINITIONS: ChoreSkillDefinition[] = [
   {
     skillId: "production",
     category: "ranch",
-    label: "Production",
-    shortLabel: "Produce",
-    description: "Feed production, stable output, and repeatable ranch resources.",
+    label: "Husbandry",
+    shortLabel: "Husbandry",
+    description: "Producing milk and gathering animal resources.",
   },
   {
     skillId: "hauling",
     category: "ranch",
-    label: "Hauling",
-    shortLabel: "Haul",
-    description: "Moving supplies, field work, maintenance, and heavy transport.",
+    label: "Material Gathering",
+    shortLabel: "Gather",
+    description: "Gathering wood, stone and iron ore.",
   },
   {
     skillId: "ranch_care",
@@ -83,6 +83,7 @@ export const CHORE_SKILL_DEFINITIONS: ChoreSkillDefinition[] = [
     shortLabel: "Ranch Care",
     description: "Comfort routines, nursery support, and ranch-wide morale care.",
   },
+  { skillId: "hunting", category: "ranch", label: "Hunting", shortLabel: "Hunt", description: "Gathering meat from the hunting trail." },
 ];
 
 export const DOMESTIC_CHORE_SKILL_IDS: ChoreSkillId[] = CHORE_SKILL_DEFINITIONS
@@ -103,6 +104,7 @@ const FAMILY_BASELINE_LEVELS: Record<CreatureFamily, Record<ChoreSkillId, number
     security: 2,
     harvesting: 2,
     production: 2,
+    hunting: 2,
     hauling: 1,
     ranch_care: 4,
   },
@@ -115,6 +117,7 @@ const FAMILY_BASELINE_LEVELS: Record<CreatureFamily, Record<ChoreSkillId, number
     security: 5,
     harvesting: 1,
     production: 2,
+    hunting: 2,
     hauling: 3,
     ranch_care: 3,
   },
@@ -127,6 +130,7 @@ const FAMILY_BASELINE_LEVELS: Record<CreatureFamily, Record<ChoreSkillId, number
     security: 3,
     harvesting: 2,
     production: 5,
+    hunting: 5,
     hauling: 4,
     ranch_care: 2,
   },
@@ -139,6 +143,7 @@ const FAMILY_BASELINE_LEVELS: Record<CreatureFamily, Record<ChoreSkillId, number
     security: 1,
     harvesting: 5,
     production: 3,
+    hunting: 3,
     hauling: 1,
     ranch_care: 4,
   },
@@ -151,6 +156,7 @@ const FAMILY_BASELINE_LEVELS: Record<CreatureFamily, Record<ChoreSkillId, number
     security: 3,
     harvesting: 2,
     production: 2,
+    hunting: 2,
     hauling: 5,
     ranch_care: 2,
   },
@@ -224,7 +230,9 @@ export function normalizeCreatureChoreSkills(
 
   return CHORE_SKILL_DEFINITIONS.reduce((skills, definition) => {
     const fallback = defaults[definition.skillId];
-    const saved = source[definition.skillId];
+    // Preserve the old shared Production proficiency once; future work trains
+    // the two persisted records independently.
+    const saved = source[definition.skillId] ?? (definition.skillId === "hunting" ? source.production : undefined);
     const level = clampLevel(Number(saved?.level ?? fallback.level));
     const xpToNext = getChoreSkillXpToNext(level);
     const xp = xpToNext > 0
@@ -297,7 +305,14 @@ export function gainCreatureChoreSkillXp(
   jobId: RanchJobId,
   xpGain: number,
 ): { creature: CreatureRecord; gain: ChoreSkillGainResult } {
-  const skillId = getJobChoreSkillId(jobId);
+  return gainChoreSkillXp(creature, getJobChoreSkillId(jobId), xpGain);
+}
+
+export function gainChoreSkillXp(
+  creature: CreatureRecord,
+  skillId: ChoreSkillId,
+  xpGain: number,
+): { creature: CreatureRecord; gain: ChoreSkillGainResult } {
   const definition = getChoreSkillDefinition(skillId);
   const skills = normalizeCreatureChoreSkills(creature);
   const before = skills[skillId];

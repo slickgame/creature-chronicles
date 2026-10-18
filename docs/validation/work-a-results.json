@@ -1,0 +1,4806 @@
+{
+  "results": [
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 131.984375,
+          "right": 1140,
+          "bottom": 768
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 131.984375,
+          "right": 1140,
+          "bottom": 768
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 253.5,
+          "right": 1140,
+          "bottom": 646.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 131.984375,
+          "right": 1140,
+          "bottom": 768
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 253.5,
+          "right": 1140,
+          "bottom": 646.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 131.984375,
+          "right": 1140,
+          "bottom": 768
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 253.5,
+          "right": 1140,
+          "bottom": 646.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 143.453125,
+          "right": 1140,
+          "bottom": 756.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 283.4375,
+          "right": 1140,
+          "bottom": 616.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 143.453125,
+          "right": 1140,
+          "bottom": 756.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 283.4375,
+          "right": 1140,
+          "bottom": 616.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 150.984375,
+          "right": 1140,
+          "bottom": 749
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 283.4375,
+          "right": 1140,
+          "bottom": 616.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 150.984375,
+          "right": 1140,
+          "bottom": 749
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 271.96875,
+          "right": 1140,
+          "bottom": 628.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 332,
+        "sh": 332,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 300,
+          "y": 264.96875,
+          "right": 1140,
+          "bottom": 635.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "box": {
+          "x": 532.65625,
+          "y": 278,
+          "right": 1422,
+          "bottom": 781
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 503,
+        "sh": 503,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 139.078125,
+          "right": 380,
+          "bottom": 704.90625
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 232.515625,
+          "right": 380,
+          "bottom": 611.46875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 361,
+        "sh": 361,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 139.078125,
+          "right": 380,
+          "bottom": 704.90625
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 223.765625,
+          "right": 380,
+          "bottom": 620.21875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 139.078125,
+          "right": 380,
+          "bottom": 704.90625
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 223.765625,
+          "right": 380,
+          "bottom": 620.21875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 139.078125,
+          "right": 380,
+          "bottom": 704.90625
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 215.015625,
+          "right": 380,
+          "bottom": 628.96875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 396,
+        "sh": 396,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 147.828125,
+          "right": 380,
+          "bottom": 696.15625
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 530,
+        "sh": 530,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 246.265625,
+          "right": 380,
+          "bottom": 597.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 333,
+        "sh": 333,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 147.828125,
+          "right": 380,
+          "bottom": 696.15625
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 530,
+        "sh": 530,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 255.015625,
+          "right": 380,
+          "bottom": 588.96875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 316,
+        "sh": 316,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 144.765625,
+          "right": 380,
+          "bottom": 699.234375
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 536,
+        "sh": 536,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 255.015625,
+          "right": 380,
+          "bottom": 588.96875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 316,
+        "sh": 316,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 153.515625,
+          "right": 380,
+          "bottom": 690.484375
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 519,
+        "sh": 519,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 237.515625,
+          "right": 380,
+          "bottom": 606.46875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 351,
+        "sh": 351,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 241.265625,
+          "right": 380,
+          "bottom": 602.71875
+        },
+        "w": 352,
+        "sw": 352,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "focused-selected",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 372,
+          "bottom": 723.703125
+        },
+        "w": 354,
+        "sw": 354,
+        "h": 393,
+        "sh": 393,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 87.078125,
+          "right": 350,
+          "bottom": 652.90625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 180.515625,
+          "right": 350,
+          "bottom": 559.46875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 361,
+        "sh": 361,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 189.265625,
+          "right": 350,
+          "bottom": 550.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 74.984375,
+          "right": 350,
+          "bottom": 665
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 572,
+        "sh": 572,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 159.671875,
+          "right": 350,
+          "bottom": 580.3125
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 403,
+        "sh": 403,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 177.171875,
+          "right": 350,
+          "bottom": 562.8125
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 368,
+        "sh": 368,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 87.078125,
+          "right": 350,
+          "bottom": 652.90625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 171.765625,
+          "right": 350,
+          "bottom": 568.21875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 378,
+        "sh": 378,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 189.265625,
+          "right": 350,
+          "bottom": 550.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 87.078125,
+          "right": 350,
+          "bottom": 652.90625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 548,
+        "sh": 548,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 163.015625,
+          "right": 350,
+          "bottom": 576.96875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 396,
+        "sh": 396,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 189.265625,
+          "right": 350,
+          "bottom": 550.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 95.828125,
+          "right": 350,
+          "bottom": 644.15625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 530,
+        "sh": 530,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 185.515625,
+          "right": 350,
+          "bottom": 554.46875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 351,
+        "sh": 351,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 189.265625,
+          "right": 350,
+          "bottom": 550.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 95.828125,
+          "right": 350,
+          "bottom": 644.15625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 530,
+        "sh": 530,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 194.265625,
+          "right": 350,
+          "bottom": 545.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 333,
+        "sh": 333,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 189.265625,
+          "right": 350,
+          "bottom": 550.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 76.09375,
+          "right": 350,
+          "bottom": 663.90625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 570,
+        "sh": 570,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 194.265625,
+          "right": 350,
+          "bottom": 545.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 333,
+        "sh": 333,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 180.515625,
+          "right": 350,
+          "bottom": 559.46875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 361,
+        "sh": 361,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 101.515625,
+          "right": 350,
+          "bottom": 638.484375
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 519,
+        "sh": 519,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 176.765625,
+          "right": 350,
+          "bottom": 563.21875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 368,
+        "sh": 368,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 189.265625,
+          "right": 350,
+          "bottom": 550.71875
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 343,
+        "sh": 343,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "focused-selected",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 80.796875,
+          "right": 825,
+          "bottom": 309.203125
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 210,
+        "sh": 210,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 80.796875,
+          "right": 825,
+          "bottom": 309.203125
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 210,
+        "sh": 210,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 91.265625,
+          "right": 825,
+          "bottom": 298.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 189,
+        "sh": 189,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 91.265625,
+          "right": 825,
+          "bottom": 298.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 189,
+        "sh": 189,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 91.265625,
+          "right": 825,
+          "bottom": 298.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 189,
+        "sh": 189,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 41.84375,
+          "right": 825,
+          "bottom": 348.140625
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 288,
+        "sh": 288,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 91.265625,
+          "right": 825,
+          "bottom": 298.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 189,
+        "sh": 189,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 19,
+          "y": 88.265625,
+          "right": 825,
+          "bottom": 301.734375
+        },
+        "w": 788,
+        "sw": 788,
+        "h": 195,
+        "sh": 195,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "box": {
+          "x": 175,
+          "y": 143,
+          "right": 827,
+          "bottom": 300
+        },
+        "w": 652,
+        "sw": 652,
+        "h": 157,
+        "sh": 157,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 41.984375,
+          "right": 1380,
+          "bottom": 678
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 41.984375,
+          "right": 1380,
+          "bottom": 678
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 163.5,
+          "right": 1380,
+          "bottom": 556.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 41.984375,
+          "right": 1380,
+          "bottom": 678
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 163.5,
+          "right": 1380,
+          "bottom": 556.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 41.984375,
+          "right": 1380,
+          "bottom": 678
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 163.5,
+          "right": 1380,
+          "bottom": 556.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 53.453125,
+          "right": 1380,
+          "bottom": 666.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 193.4375,
+          "right": 1380,
+          "bottom": 526.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 53.453125,
+          "right": 1380,
+          "bottom": 666.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 193.4375,
+          "right": 1380,
+          "bottom": 526.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 60.984375,
+          "right": 1380,
+          "bottom": 659
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 193.4375,
+          "right": 1380,
+          "bottom": 526.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 60.984375,
+          "right": 1380,
+          "bottom": 659
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 181.96875,
+          "right": 1380,
+          "bottom": 538.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 332,
+        "sh": 332,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 174.96875,
+          "right": 1380,
+          "bottom": 545.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 1920,
+        "height": 720
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 601
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 323,
+        "sh": 323,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 161.984375,
+          "right": 1380,
+          "bottom": 798
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 161.984375,
+          "right": 1380,
+          "bottom": 798
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 283.5,
+          "right": 1380,
+          "bottom": 676.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 161.984375,
+          "right": 1380,
+          "bottom": 798
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 283.5,
+          "right": 1380,
+          "bottom": 676.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 161.984375,
+          "right": 1380,
+          "bottom": 798
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 283.5,
+          "right": 1380,
+          "bottom": 676.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 173.453125,
+          "right": 1380,
+          "bottom": 786.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 313.4375,
+          "right": 1380,
+          "bottom": 646.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 173.453125,
+          "right": 1380,
+          "bottom": 786.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 313.4375,
+          "right": 1380,
+          "bottom": 646.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 180.984375,
+          "right": 1380,
+          "bottom": 779
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 313.4375,
+          "right": 1380,
+          "bottom": 646.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 180.984375,
+          "right": 1380,
+          "bottom": 779
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 301.96875,
+          "right": 1380,
+          "bottom": 658.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 332,
+        "sh": 332,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 540,
+          "y": 294.96875,
+          "right": 1380,
+          "bottom": 665.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 1920,
+        "height": 960
+      },
+      "m": {
+        "box": {
+          "x": 772.65625,
+          "y": 278,
+          "right": 1662,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 401.984375,
+          "right": 1700,
+          "bottom": 1038
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Harvesting-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 401.984375,
+          "right": 1700,
+          "bottom": 1038
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 523.5,
+          "right": 1700,
+          "bottom": 916.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Material Gathering-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 401.984375,
+          "right": 1700,
+          "bottom": 1038
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 523.5,
+          "right": 1700,
+          "bottom": 916.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Husbandry-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 401.984375,
+          "right": 1700,
+          "bottom": 1038
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 612,
+        "sh": 612,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 523.5,
+          "right": 1700,
+          "bottom": 916.484375
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 369,
+        "sh": 369,
+        "bad": []
+      }
+    },
+    {
+      "label": "Hunting-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 413.453125,
+          "right": 1700,
+          "bottom": 1026.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 553.4375,
+          "right": 1700,
+          "bottom": 886.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Crafting-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "ledger",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 413.453125,
+          "right": 1700,
+          "bottom": 1026.53125
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 589,
+        "sh": 589,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 553.4375,
+          "right": 1700,
+          "bottom": 886.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cooking-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 420.984375,
+          "right": 1700,
+          "bottom": 1019
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 553.4375,
+          "right": 1700,
+          "bottom": 886.546875
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 309,
+        "sh": 309,
+        "bad": []
+      }
+    },
+    {
+      "label": "Breeding-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Progress",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 420.984375,
+          "right": 1700,
+          "bottom": 1019
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 574,
+        "sh": 574,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Use & training",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 541.96875,
+          "right": 1700,
+          "bottom": 898.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 332,
+        "sh": 332,
+        "bad": []
+      }
+    },
+    {
+      "label": "Cleaning-Creature context",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 860,
+          "y": 534.96875,
+          "right": 1700,
+          "bottom": 905.015625
+        },
+        "w": 816,
+        "sw": 816,
+        "h": 346,
+        "sh": 346,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Gathering",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Crafting & Cooking",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-Breeding & Care",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "filter-All skills",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "selected-materials",
+      "size": {
+        "width": 2560,
+        "height": 1440
+      },
+      "m": {
+        "box": {
+          "x": 1092.65625,
+          "y": 278,
+          "right": 1982,
+          "bottom": 841
+        },
+        "w": 889,
+        "sw": 889,
+        "h": 563,
+        "sh": 563,
+        "bad": []
+      }
+    },
+    {
+      "label": "trained-progress",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 18,
+          "y": 331.1875,
+          "right": 342,
+          "bottom": 619.703125
+        },
+        "w": 324,
+        "sw": 324,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "mastered",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "box": {
+          "x": 10,
+          "y": 95.828125,
+          "right": 350,
+          "bottom": 644.15625
+        },
+        "w": 322,
+        "sw": 322,
+        "h": 530,
+        "sh": 530,
+        "bad": []
+      }
+    }
+  ],
+  "errors": [],
+  "readOnly": true
+}

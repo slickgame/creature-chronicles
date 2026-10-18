@@ -38,8 +38,8 @@ function starterByFamily(family: "feline" | "canine" | "bovine" | "lapine" | "eq
   return creature;
 }
 
-test("chore skill registry separates five domestic and five ranch proficiencies", () => {
-  assert.equal(CHORE_SKILL_DEFINITIONS.length, 10);
+test("chore registry retains domestic skills and adds independent Hunting", () => {
+  assert.equal(CHORE_SKILL_DEFINITIONS.length, 11);
   assert.deepEqual(DOMESTIC_CHORE_SKILL_IDS, [
     "cooking",
     "cleaning",
@@ -53,6 +53,7 @@ test("chore skill registry separates five domestic and five ranch proficiencies"
     "production",
     "hauling",
     "ranch_care",
+    "hunting",
   ]);
 });
 
@@ -61,7 +62,7 @@ test("save lifecycle persists complete chore skill records for every creature", 
   assert.ok((save.creatures ?? []).length > 0);
   for (const creature of save.creatures ?? []) {
     assert.ok(creature.choreSkills, `${creature.nickname} should have persistent chore skills`);
-    assert.equal(Object.keys(creature.choreSkills ?? {}).length, 10);
+    assert.equal(Object.keys(creature.choreSkills ?? {}).length, 11);
   }
   assert.equal(save.flags.m61ChoreSkills, true);
   assert.equal(save.flags.m61UniversalChoreAccess, true);
@@ -70,9 +71,9 @@ test("save lifecycle persists complete chore skill records for every creature", 
 test("old creature records receive complete species-based chore baselines", () => {
   const canine = starterByFamily("canine");
   const normalized = normalizeCreatureChoreSkills({ ...canine, choreSkills: undefined });
-  assert.equal(Object.keys(normalized).length, 10);
+  assert.equal(Object.keys(normalized).length, 11);
   assert.equal(getCreatureChoreSkillGroup(canine, "domestic").length, 5);
-  assert.equal(getCreatureChoreSkillGroup(canine, "ranch").length, 5);
+  assert.equal(getCreatureChoreSkillGroup(canine, "ranch").length, 6);
   assert.ok(normalized.security.level >= 1);
   assert.ok(normalized.cooking.level >= 1);
 });

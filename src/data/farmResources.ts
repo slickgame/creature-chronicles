@@ -1,6 +1,6 @@
 import { getRanchUpgradeEffects } from "./ranchUpgrades";
 import { getChoreTalentSummary } from "./talents/talentEngine";
-import { getChoreSkillDefinition, getJobChoreSkillId, gainCreatureChoreSkillXp, getChoreSkillXpGain, getCreatureChoreSkillLevelForJob } from "./choreSkills";
+import { getChoreSkillDefinition, getJobChoreSkillId, gainChoreSkillXp, getChoreSkillXpGain, getCreatureChoreSkillProgress } from "./choreSkills";
 import type { RanchJobId } from "@/types/ranchJobs";
 import type { GameSave } from "@/types/save";
 import type { CreatureStatKey, CreatureRecord } from "@/types/creature";
@@ -93,6 +93,7 @@ export function workerBlocker(save: GameSave, c: CreatureRecord, site: SiteId, _
 /** Compatibility entrypoint: an explicit click now performs one instant work action. */
 export const assignResourceWorker = workResourceSite;
 export function siteJob(site: SiteId): RanchJobId { return ["woodlot", "iron_deposit", "quarry"].includes(site) ? "field_hauling" : site === "dairy" || site === "hunting" ? "stable_production" : "garden_tending"; }
+export function siteSkill(site: SiteId) { return site === "hunting" ? "hunting" as const : getJobChoreSkillId(siteJob(site)); }
 /** Stats are innate/current creature stats; battle equipment does not improve farm work. */
 export const WORK_PROFILES: Record<SiteId, { stats: [CreatureStatKey, CreatureStatKey]; energy: number }> = {
   garden: { stats: ['DEX', 'WIL'], energy: 18 },
@@ -107,7 +108,7 @@ export function workPreview(save: GameSave, site: SiteId, creature: CreatureReco
   const profile = WORK_PROFILES[site];
   const talent = getChoreTalentSummary(creature.abilities, siteJob(site));
   const upgrades = getRanchUpgradeEffects(save);
-  const level = getCreatureChoreSkillLevelForJob(creature, siteJob(site));
+  const level = getCreatureChoreSkillProgress(creature, siteSkill(site)).level;
   const skillBonus = Math.min(3, Math.floor((level - 1) / 5));
   const stat = (key: CreatureStatKey) => Math.max(0, Number(creature.stats[key]) || 0);
   const score = (stat(profile.stats[0]) * 2 + stat(profile.stats[1])) / 3;
@@ -120,7 +121,7 @@ export function workPreview(save: GameSave, site: SiteId, creature: CreatureReco
   const energy = Math.max(8, mealBonus(save, creature.creatureId, 'stew') ? Math.ceil(beforeMeal * 0.85) : beforeMeal);
   return { amount, energy, xp: getChoreSkillXpGain(amount, talent.xpPercent),
     details: {
-      stats: profile.stats, score, statBonus, skillLevel: level, skillLabel: getChoreSkillDefinition(getJobChoreSkillId(siteJob(site))).label, skillBonus, base,
+      stats: profile.stats, score, statBonus, skillLevel: level, skillLabel: getChoreSkillDefinition(siteSkill(site)).label, skillBonus, base,
       talentBonus, upgradeBonus: upgrades.ranchChoreScoreBonus, baseEnergy: profile.energy,
       staminaDiscount, talentDiscount: talent.energyDiscount, upgradeDiscount: upgrades.ranchChoreEnergyDiscount,
       mealDiscount: beforeMeal - energy,
@@ -136,7 +137,7 @@ export function workResourceSite(save: GameSave, site: SiteId, id: string): Farm
   const state = getFarmState(save), preview = workPreview(save, site, c), resource = SITES[site].resource;
   if (c.energy < preview.energy) return fail(save, "Not enough Energy for work.");
   const job = siteJob(site);
-  const progressed = gainCreatureChoreSkillXp({ ...c, energy: c.energy - preview.energy }, job, preview.xp).creature;
+  const progressed = gainChoreSkillXp({ ...c, energy: c.energy - preview.energy }, siteSkill(site), preview.xp).creature;
   if (state.workDay !== save.dayState.dayNumber) { state.workDay = save.dayState.dayNumber; state.workOutput = {}; state.workCount = 0; state.workLog = []; }
   state.assignments = {};
   state.stock[resource] = (state.stock[resource] ?? 0) + preview.amount;

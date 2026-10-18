@@ -59,8 +59,9 @@ function addChoreSkillTags(creature: CreatureRecord, map: Map<string, MutableTag
     hospitality: "Host",
     security: "Security",
     harvesting: "Harvester",
-    production: "Producer",
-    hauling: "Field Worker",
+    production: "Animal Handler",
+    hauling: "Material Gatherer",
+    hunting: "Hunter",
     ranch_care: "Ranch Caregiver",
   };
 
