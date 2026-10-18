@@ -97,3 +97,6 @@
 .screen.screen [data-oa=footer] [class*=moreActions] summary{min-height:16px;line-height:16px;padding:0 4px;background:#061b27;}
 @media(max-width:850px),(max-height:650px){.navigationIcon{width:21px;height:21px;}}
 @media(max-height:550px){.screen.screen [data-oa=footer]{padding-top:20px;}}
+.screen.screen[data-roster-collapsed=false] [data-detail]>section:not([data-creature-picker]){display:none!important;}
+.screen.screen[data-roster-collapsed=false] [data-detail]>[data-creature-picker]{display:flex!important;padding:18px;background:#041d29!important;min-height:0;}
+@media(max-width:700px){.screen.screen[data-roster-collapsed=false] [data-detail]>[data-creature-picker]{padding:9px!important;}}

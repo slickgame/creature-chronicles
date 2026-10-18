@@ -113,3 +113,6 @@ Removal C fidelity: preserve the stronger ornate nine-slice frames built by scri
 
 ## Approved rename Identity card A
 The user continued with recommended A. Care and Habitat share CreatureRenameWindow: canonical identity strip, painted rename icon, name field/counter, 24-character limit, teal Save and Cancel, compact keyboard/phone layouts. Draft edits/cancel/Escape are read-only; only trimmed valid changed names persist. Keep centralized action validation, latest-save access and exact creature identity. The unchanged comparison board is public/images/ui/creature-rename-a/approved-options.png; A is selected. See docs/CREATURE_RENAME_A_RUNTIME_2026-10-18.md. PR21 stays draft/unmerged.
+
+## Approved Choose creature A
+The user selected compact roster A and asked to remove the female symbol (creatures are intersex). Omit sex symbols/labels in the picker; do not mutate saved identities or breeding rules. Preserve canonical portraits, painted favorite and open/closed locks, truthful status/Energy, paged rows and focused phone summary. Row clicks preview; Open profile confirms; Back/Escape preserves the original profile and tab. Search and filters must not silently change that profile. Keep Cards, Compare and all other supported filters available. See docs/CREATURE_PICKER_A_RUNTIME_2026-10-18.md. PR21 stays draft/unmerged.

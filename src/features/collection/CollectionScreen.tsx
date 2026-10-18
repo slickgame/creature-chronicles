@@ -29,11 +29,11 @@ import { useGameContext } from "@/state/GameProvider";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
 import { GameDialog } from "@/features/ui/GameDialog";
-import { PagedItems } from "@/features/ui/PagedItems";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./CollectionScreen.module.css";
 import dossier from "./RanchDossier.module.css";
 import overview from "./OverviewA.module.css";
+import { CreaturePickerA } from './CreaturePickerA';
 
 const FAMILY_OPTIONS = [
   ["all", "All Families"],
@@ -140,13 +140,13 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     [currentSave],
   );
   const selectedCreature = useMemo(() => {
-    if (!visibleCreatures.length) return null;
+    if (!currentSave?.creatures?.length) return null;
     return (
-      visibleCreatures.find(
+      currentSave.creatures.find(
         (creature) => creature.creatureId === selectedCreatureId,
-      ) ?? visibleCreatures[0]
+      ) ?? currentSave.creatures[0]
     );
-  }, [selectedCreatureId, visibleCreatures]);
+  }, [selectedCreatureId, currentSave]);
   const compareCreatures = useMemo(
     () =>
       compareIds
@@ -200,12 +200,10 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
   function patchFilters(patch: Partial<CreatureManagementFilters>) {
     setFilters((current) => ({ ...current, ...patch }));
-    setSelectedCreatureId(null);
   }
 
   function clearFilters() {
     setFilters(DEFAULT_CREATURE_MANAGEMENT_FILTERS);
-    setSelectedCreatureId(null);
   }
 
   function selectCreature(creature: CreatureRecord) {
@@ -343,7 +341,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                             {creature.nickname} {creature.shiny ? "✦" : ""}
                           </strong>
                           <span>
-                            {variant.name} {species.name} · Lv {creature.level} · {displaySex(status.sex)}
+                            {variant.name} {species.name} · Lv {creature.level}
                           </span>
                           <em>{status.primaryStatus}</em>
                           <span className={styles.energyLabel}>Energy {creature.energy}/{creature.maxEnergy}</span><span className={styles.energyTrack}><span style={{width: `${status.energyPercent}%`}} /></span>
@@ -398,48 +396,24 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             <h1>Ranch Roster</h1>
 
           </div>
-          <div className={styles.headerActions}><button type="button" data-oa="choose" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}><img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/creatures.webp" alt=""/>{rosterCollapsed ? "Choose creature" : "Close creature picker"}</button><button type="button" className={overview.artToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
+          <div className={styles.headerActions}><button type="button" data-oa="choose" className={dossier.layoutToggle} aria-expanded={!rosterCollapsed} onClick={()=>setRosterCollapsed(v=>!v)}><img className={overview.paintedIcon} src="/images/ui/creature-overview-a-v2/painted-r4/creatures.webp" alt=""/>{rosterCollapsed ? "Choose creature" : "Back to profile"}</button><button type="button" className={overview.artToggle} aria-expanded={!artCollapsed} onClick={()=>setArtCollapsed(v=>!v)}>{artCollapsed ? "Show artwork" : "Hide artwork"}</button>
             <ScreenNavigation backIcon={<img className={overview.navigationIcon} src="/images/ui/creature-overview-a-v2/icons/back.svg" alt=""/>}>{headerLinks}</ScreenNavigation>
           </div>
         </header>
 
 
         <section className={`${styles.contentGrid} ${dossier.layout}`} data-detail={showDossier}>
-          <aside className={`${ui.paper} ${styles.listPanel} ${dossier.selector}`} aria-label="Creature selector">
-<div className={styles.searchRow}><input type="search" aria-label="Search creatures" placeholder="Search creatures…" value={filters.search} onChange={event => patchFilters({search:event.target.value})} /><button type="button" onClick={() => setShowFilters(true)}>Filters & Sort{activeFilterCount ? ` (${activeFilterCount})` : ""}</button><span>{visibleCreatures.length}/{summary.total} creatures</span></div>
-            <div className={styles.listHeader}>
-              <h2>Creatures</h2>
-
-            </div>
-            <div className={styles.viewButtons}>
-              <button
-                type="button"
-                className={viewMode === "compact" ? styles.activeButton : ""}
-                onClick={() => setViewMode("compact")}
-              >
-                Compact
-              </button>
-              <button
-                type="button"
-                className={viewMode === "cards" ? styles.activeButton : ""}
-                onClick={() => {setCompareMode(false);setViewMode("cards");}}
-              >
-                Cards
-              </button>
-              <button
-                type="button"
-                className={compareMode ? styles.activeButton : ""}
-                onClick={() => {
-                  setCompareMode(true);
-                  setCompareIds([]);
-                  setViewMode("cards");
-                }}
-              >
-                Compare
-              </button>
-            </div>
-            {visibleCreatures.length ? <PagedItems key={JSON.stringify([filters,sortMode,sortDirection,viewMode])} label="Creatures" rowHeight={170} items={visibleCreatures.map(creature => renderCreatureCard(creature))} /> : <div className={styles.noResults}><strong>No creatures match.</strong><button type="button" onClick={clearFilters}>Clear Filters</button></div>}
-          </aside>
+          {!rosterCollapsed ? <CreaturePickerA
+            save={activeSave} creatures={visibleCreatures} selectedId={selectedCreature?.creatureId}
+            search={filters.search} filterCount={activeFilterCount}
+            pageKey={JSON.stringify([filters,sortMode,sortDirection])}
+            onSearch={search=>patchFilters({search})} onFilters={()=>setShowFilters(true)} onClear={clearFilters}
+            onOpen={creature=>{selectCreature(creature);setShowDossier(true);}}
+            onCompare={()=>{setCompareMode(true);setCompareIds([]);setViewMode('cards');}}
+            onCards={()=>{setCompareMode(false);setViewMode('cards');}}
+            onFavorite={toggleFavorite} onLock={creature=>toggleCreatureLock(creature.creatureId)}
+            onBack={()=>setRosterCollapsed(true)}
+          /> : null}
 
           <section className={`${ui.paper} ${styles.detailPanel} ${dossier.detail}`}>
             {selectedCreature ? (
@@ -588,18 +562,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
         {showAdvancedFilters ? (
           <section className={styles.advancedFilters}>
-            <FilterSelect
-              label="Sex"
-              value={filters.sex}
-              onChange={(value) =>
-                patchFilters({ sex: value as CreatureManagementFilters["sex"] })
-              }
-              options={[
-                ["all", "All"],
-                ["female", "Female"],
-                ["male", "Male"],
-              ]}
-            />
             <FilterSelect
               label="Pregnancy"
               value={filters.pregnancy}
