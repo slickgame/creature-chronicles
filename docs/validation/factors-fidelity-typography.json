@@ -1,0 +1,27 @@
+{
+  "title": {
+    "font": "34px",
+    "family": "OverviewTinos, Georgia, serif",
+    "color": "rgb(246, 233, 201)"
+  },
+  "description": {
+    "font": "17px",
+    "family": "OverviewTinos, Georgia, serif",
+    "color": "rgb(246, 233, 201)"
+  },
+  "note": {
+    "font": "17px",
+    "family": "OverviewTinos, Georgia, serif",
+    "color": "rgb(246, 233, 201)"
+  },
+  "result": {
+    "font": "50px",
+    "family": "OverviewTinos, Georgia, serif",
+    "color": "rgb(248, 232, 188)"
+  },
+  "summary": {
+    "font": "27px",
+    "family": "OverviewTinos, Georgia, serif",
+    "color": "rgb(246, 233, 201)"
+  }
+}
