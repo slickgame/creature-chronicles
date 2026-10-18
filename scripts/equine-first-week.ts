@@ -45,7 +45,7 @@ export function simulateEquineFirstWeek(route:EquineRoute,seed=0,withoutGoalGold
   }
   if(route==='habitat-first'&&!habitatDay&&(getFarmState(save).stock.wood??0)>=housing.wood){const r=commissionBuilderProject(save,housing.projectId);if(r.ok){habitatFee=save.currencies.gold-r.save.currencies.gold;save=r.save;habitatDay=day;actions.push(`Commission ${habitatFamily} habitat`);}}
   // Cook only enough for tonight plus one night of buffer, protecting the existing stock path.
-  for(let n=0;n<4&&getFoodBudget(save,2).shortage>0;n++){const r=craftResource(save,'rations',1);if(!r.ok)break;save=r.save;actions.push('Cook 4 rations');}
+  for(let n=0;n<4&&getFoodBudget(save,2).shortage>0;n++){const r=craftResource(save,'rations',1,save.creatures![0].creatureId);if(!r.ok)break;save=r.save;actions.push('Cook 4 rations');}
   const farm=getFarmState(save);
   if(day>=4&&farm.orders.timber!=='completed'&&(farm.stock.wood??0)>=8){if(!farm.orders.timber)spend(actSupplyOrder(save,'timber'));const goldBefore=save.currencies.gold;spend(actSupplyOrder(save,'timber'));deliveryGold+=save.currencies.gold-goldBefore;actions.push('One timber delivery');}
   const food=getFoodBudget(save,1),beforeNightGold=save.currencies.gold;const result=projectRanchDay(enterEveningReview(save));if(!result)throw Error('No day projection');save=result.save;if(withoutGoalGold)save={...save,currencies:{...save.currencies,gold:Math.min(save.currencies.gold,beforeNightGold)}};

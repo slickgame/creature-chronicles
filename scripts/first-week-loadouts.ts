@@ -31,7 +31,7 @@ export function buildFirstWeekFarm(){
  for(let day=1;day<=7;day++){
   const before=save.currencies.gold;
   for(const [index,site] of (['wheat_field','garden',day===5?'quarry':'woodlot'] as const).entries())apply(workResourceSite(save,site,save.creatures![index].creatureId));
-  apply(craftResource(save,'rations',2));
+  apply(craftResource(save,'rations',2,save.creatures![0].creatureId));
   if(day===2){apply(actSupplyOrder(save,'timber'));const g=save.currencies.gold;apply(actSupplyOrder(save,'timber'));deliveryGold+=save.currencies.gold-g;}
   if(day===3||day===6){const g=save.currencies.gold;apply(commissionFacility(save,day===3?'quarry':'sawmill'));constructionGold+=g-save.currencies.gold;}
   const beforeNight=save.currencies.gold,tonight=getFoodBudget(save,1),projected=projectRanchDay(enterEveningReview(save));if(!projected)throw Error('Day projection failed');save=projected.save;

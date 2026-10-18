@@ -26,7 +26,7 @@ export function simulateFirstWeek() {
     for (const [index, site] of (['wheat_field', 'garden', 'woodlot'] as const).entries()) {
       apply(workResourceSite(save, site, save.creatures![index].creatureId));
     }
-    apply(craftResource(save, 'rations', 2));
+    apply(craftResource(save, 'rations', 2,save.creatures![0].creatureId));
     if (day === 1) {
       apply(purchaseBattleOutfitterItem(save, 'training_grips'));
       const copy = getEquipmentCopies(save, 'training_grips')[0];

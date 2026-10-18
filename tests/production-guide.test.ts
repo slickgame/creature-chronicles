@@ -22,7 +22,7 @@ test("full guide uses actual gathering and crafting, waits for construction, rew
  let expectedWood=getFarmState(s).stock.wood??0;
  for(let i=0;i<3;i++){expectedWood+=workPreview(s,'woodlot',s.creatures![0]).amount;const result=assignResourceWorker(s,'woodlot',s.creatures![0].creatureId);assert.equal(result.ok,true);s=result.save;}
  assert.equal(getFarmState(s).stock.wood,expectedWood);
- s=reserveResource(s,'wood',2).save;s=craftResource(s,'planks').save;
+ s=reserveResource(s,'wood',2).save;s=craftResource(s,'planks',1,s.creatures![0].creatureId).save;
  assert.equal(getProductionGuide(s).filter(x=>x.done).length,3);
  s=commissionFacility(s,'quarry').save;assert.equal(getProductionGuide(s)[3].done,false);
  assert.equal(claimProductionGuide(s).ok,false);

@@ -56,7 +56,7 @@ function run(route:Route,seed:number,noGoalGold:boolean,planIndex=0,level=0){
   if(route==='canine-habitat'&&!isHabitatUnlocked(save,'canine')&&!getBuilderWorkOrder(save)){
    const before=save.currencies.gold,r=commissionBuilderProject(save,'unlock_canine_habitat');if(r.ok){constructionGold+=before-r.save.currencies.gold;apply(r);commissionDay=day;actions.push('Commission canine habitat');}
   }
-  for(let n=0;n<4&&getFoodBudget(save,2).shortage>0;n++){const r=craftResource(save,'rations',1);if(!r.ok)break;apply(r);actions.push('Cook four rations');}
+  for(let n=0;n<4&&getFoodBudget(save,2).shortage>0;n++){const r=craftResource(save,'rations',1,save.creatures![0].creatureId);if(!r.ok)break;apply(r);actions.push('Cook four rations');}
   const shortage=getFoodBudget(save,1).shortage;
   if(shortage){let remaining=shortage;while(remaining){const qty=Math.min(20,remaining),before=save.currencies.gold;apply(tradeResource(save,'rations',qty,false));foodGold+=before-save.currencies.gold;remaining-=qty;}actions.push(`Buy ${shortage} fallback rations`);}
   const farm=getFarmState(save),needed=route==='production'?(!farm.facilities.quarry?14:!farm.facilities.sawmill?8:0):route==='canine-habitat'&&!isHabitatUnlocked(save,'canine')?6:0;

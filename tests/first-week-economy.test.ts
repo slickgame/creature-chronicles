@@ -26,7 +26,7 @@ test("a balanced starter crew supports first construction and shopping without G
   let s=createNewGameSave(`Week ${sample}`,0);
   for(let d=0;d<7;d++){
    for(const site of ['garden','wheat_field'] as const) s=workResourceSite(s,site,s.creatures![0].creatureId).save;
-   s=craftResource(s,'rations',2).save;s=night(s);assert.equal(s.flags.ranchFeedConsumedToday,s.flags.ranchFeedRequiredToday);
+   s=craftResource(s,'rations',2,s.creatures![0].creatureId).save;s=night(s);assert.equal(s.flags.ranchFeedConsumedToday,s.flags.ranchFeedRequiredToday);
   }
   totals.push(s.currencies.gold);
   assert.ok(s.currencies.gold<2300,"passive chores should not recreate the old starting windfall");

@@ -52,7 +52,7 @@ test('tutorial and foundation guide advance through instant work and completed c
  let s=fresh();s.currencies.gold=5000;const id=s.creatures![0].creatureId;assert.equal(getChapterOneTutorialProgress(s).choresAssigned,false);
  for(let i=0;i<3;i++)s=workResourceSite(s,'woodlot',id).save;
  assert.equal(getChapterOneTutorialProgress(s).secondChoreAssigned,true);assert.equal(getChapterOneTutorialProgress(s).firstNightResolved,false);
- s=reserveResource(s,'wood',2).save;s=craftResource(s,'planks').save;s=commissionFacility(s,'quarry').save;
+ s=reserveResource(s,'wood',2).save;s=craftResource(s,'planks',1,s.creatures![0].creatureId).save;s=commissionFacility(s,'quarry').save;
  assert.equal(claimProductionGuide(s).ok,false);s=processResourceDay(next(s));assert.equal(getProductionGuide(s).every(x=>x.done),true);
  const gold=s.currencies.gold,gp=s.currencies.guildPoints;const r=claimProductionGuide(s);assert.equal(r.ok,true);assert.equal(r.save.currencies.gold,gold+75);assert.equal(r.save.currencies.guildPoints,gp+5);assert.equal(claimProductionGuide(r.save).ok,false);
 });

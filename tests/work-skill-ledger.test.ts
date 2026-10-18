@@ -36,6 +36,7 @@ test('ledger retains saved XP and labels unfinished features without changing re
   assert.deepEqual(entries.map(e => e.title), ['Harvesting', 'Material Gathering', 'Husbandry', 'Hunting', 'Crafting', 'Cooking', 'Breeding', 'Cleaning']);
   assert.deepEqual(entries.find(e => e.id === 'materials')!.progress, creature.choreSkills.hauling);
   assert.equal(entries.find(e => e.id === 'breeding')!.progress, null);
-  for (const id of ['crafting', 'cooking', 'cleaning']) assert.ok(entries.find(e => e.id === id)!.planned);
+  assert.ok(entries.find(e => e.id === 'cleaning')!.planned);
+  for (const id of ['crafting', 'cooking']) assert.equal(entries.find(e => e.id === id)!.planned, undefined);
   assert.deepEqual(creature, before);
 });

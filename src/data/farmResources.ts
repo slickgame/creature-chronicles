@@ -137,13 +137,14 @@ export function workResourceSite(save: GameSave, site: SiteId, id: string): Farm
   const state = getFarmState(save), preview = workPreview(save, site, c), resource = SITES[site].resource;
   if (c.energy < preview.energy) return fail(save, "Not enough Energy for work.");
   const job = siteJob(site);
-  const progressed = gainChoreSkillXp({ ...c, energy: c.energy - preview.energy }, siteSkill(site), preview.xp).creature;
+  const progress = gainChoreSkillXp({ ...c, energy: c.energy - preview.energy }, siteSkill(site), preview.xp);
+  const progressed = progress.creature;
   if (state.workDay !== save.dayState.dayNumber) { state.workDay = save.dayState.dayNumber; state.workOutput = {}; state.workCount = 0; state.workLog = []; }
   state.assignments = {};
   state.stock[resource] = (state.stock[resource] ?? 0) + preview.amount;
   state.workOutput = { ...state.workOutput, [resource]: (state.workOutput?.[resource] ?? 0) + preview.amount };
   state.workCount = (state.workCount ?? 0) + 1;
-  const message = `${c.nickname}: +${preview.amount} ${RESOURCES[resource].name}, −${preview.energy} Energy. No Gold charged.`;
+  const message = `${c.nickname}: +${preview.amount} ${RESOURCES[resource].name}, −${preview.energy} Energy. ${progress.gain.summary} No Gold charged.`;
   state.workLog = [...(state.workLog ?? []), message].slice(-30);
   const food = RESOURCES[resource].category === "Food";
   const flags = { ...save.flags,
@@ -176,17 +177,53 @@ export function processResourceDay(save: GameSave): GameSave {
   state.lastDay = save.dayState.dayNumber;
   return write(save, state);
 }
-export function craftResource(save: GameSave, id: ResourceId, quantity = 1): FarmResult {
+/** Recipe proficiency saves Energy, never creates extra ingredients or changes ratios. */
+export function recipePreview(save: GameSave, id: ResourceId, quantity: number, creature: CreatureRecord) {
+  const recipe = RECIPES.find(r => r.id === id);
+  if (!recipe || !Number.isInteger(quantity) || quantity < 1 || quantity > 20) return null;
+  const skillId = ['Food', 'Meals'].includes(RESOURCES[id].category) ? 'cooking' as const : 'crafting' as const;
+  const skill = getCreatureChoreSkillProgress(creature, skillId);
+  const skillDiscount = Math.min(3, Math.floor((skill.level - 1) / 5));
+  const baseEnergy = skillId === 'cooking' ? 6 : 8;
+  const beforeMeal = Math.max(3, baseEnergy - skillDiscount);
+  const perBatchEnergy = mealBonus(save, creature.creatureId, 'stew') ? Math.max(3, Math.ceil(beforeMeal * 0.85)) : beforeMeal;
+  const xp = quantity * getChoreSkillXpGain(recipe.output);
+  const progress = gainChoreSkillXp(creature, skillId, xp).gain;
+  return { skillId, skillLabel: getChoreSkillDefinition(skillId).label, skillLevel: skill.level,
+    skillDiscount, baseEnergy, perBatchEnergy, energy: quantity * perBatchEnergy, xp, progress,
+    cost: Object.fromEntries(Object.entries(recipe.inputs).map(([key, n]) => [key, n * quantity])) as Stock,
+    output: quantity * recipe.output * (id === 'planks' && getFarmState(save).facilities.sawmill ? 2 : 1) };
+}
+export function recipeWorkerBlocker(save: GameSave, id: ResourceId, quantity: number, creature?: CreatureRecord): string | null {
+  if (!creature) return 'Choose a creature worker.';
+  const preview = recipePreview(save, id, quantity, creature);
+  if (!preview) return 'Choose 1–20 recipe batches.';
+  const recipe = RECIPES.find(r => r.id === id)!;
+  const state = getFarmState(save);
+  if (recipe.facility && !state.facilities[recipe.facility]) return `Build ${FACILITIES[recipe.facility].name} first.`;
+  if (getTrainingUnavailableReason(save, creature.creatureId)) return 'Away at training.';
+  if ((creature.injuredUntilDayNumber ?? -1) >= save.dayState.dayNumber) return 'Recovering from injury.';
+  if (creature.energy < preview.energy) return `Not enough Energy: ${preview.energy} needed for ${quantity} batch(es).`;
+  if (!canSpend(state, preview.cost)) return 'Not enough unreserved ingredients.';
+  return null;
+}
+export function craftResource(save: GameSave, id: ResourceId, quantity = 1, creatureId?: string): FarmResult {
   const recipe = RECIPES.find(r => r.id === id), state = getFarmState(save);
   if (!recipe || !Number.isInteger(quantity) || quantity < 1 || quantity > 20) return fail(save, "Choose 1–20 recipe batches.");
+  const creature = save.creatures?.find(c => c.creatureId === creatureId);
+  const reason = recipeWorkerBlocker(save, id, quantity, creature);
+  if (reason) return fail(save, reason);
+  const preview = recipePreview(save, id, quantity, creature!)!;
   if (recipe.facility && !state.facilities[recipe.facility]) return fail(save, `Build ${FACILITIES[recipe.facility].name} first.`);
   const cost = Object.fromEntries(Object.entries(recipe.inputs).map(([key, n]) => [key, n * quantity])) as Stock;
   if (!canSpend(state, cost)) return fail(save, "Not enough unreserved ingredients.");
   spend(state, cost);
   const output = quantity * recipe.output * (id === "planks" && state.facilities.sawmill ? 2 : 1);
   state.stock[id] = (state.stock[id] ?? 0) + output;
+  const progress = gainChoreSkillXp({ ...creature!, energy: creature!.energy - preview.energy }, preview.skillId, preview.xp);
+  save = { ...save, creatures: save.creatures?.map(c => c.creatureId === creatureId ? progress.creature : c) };
   if (id === "planks") save = { ...save, flags: { ...save.flags, productionPlanksCrafted: Number(save.flags.productionPlanksCrafted ?? 0) + output } };
-  return done(save, state, `Made ${output} ${RESOURCES[id].name}. Used ${resourceList(cost)}.`);
+  return done(save, state, `${creature!.nickname}: made ${output} ${RESOURCES[id].name}. Used ${resourceList(cost)} and ${preview.energy} Energy. ${progress.gain.summary} No Gold charged.`);
 }
 export function mealEnergyRestoration(id: ResourceId): number { return id === "breakfast" ? 15 : id === "porridge" ? 8 : 0; }
 export function serveMeal(save: GameSave, id: ResourceId, creatureId: string): FarmResult {

@@ -32,18 +32,18 @@ test("full wood-to-iron-to-nails chain and shared construction crew",()=>{
  let s=fresh();s=buy(s,"wood",20);s=buy(s,"wood",20);s=buy(s,"stone",20);s=buy(s,"stone",20);s=buy(s,"iron_ore",8);
  s=ok(commissionFacility(s,"quarry"));assert.equal(commissionBuilderProject(s,"north_pasture_land").ok,false);assert.equal(commissionFacility(s,"sawmill").ok,false);
  s=processResourceDay(next(s));assert.equal(getFarmState(s).facilities.quarry,true);
- s=ok(commissionFacility(s,"sawmill"));s=processResourceDay(next(s));s=ok(craftResource(s,"planks",4));assert.equal(getFarmState(s).stock.planks,8);
- s=ok(commissionFacility(s,"kiln"));s=processResourceDay(next(s));s=ok(craftResource(s,"charcoal",2));
- s=ok(commissionFacility(s,"furnace"));s=processResourceDay(next(s));s=ok(craftResource(s,"iron",4));
- s=ok(commissionFacility(s,"forge"));s=processResourceDay(next(s));s=ok(craftResource(s,"nails",2));assert.equal(getFarmState(s).stock.nails,8);
- assert.equal(craftResource(s,"iron",1).ok,false);
+ s=ok(commissionFacility(s,"sawmill"));s=processResourceDay(next(s));s=ok(craftResource(s,"planks",4,s.creatures![0].creatureId));assert.equal(getFarmState(s).stock.planks,8);
+ s=ok(commissionFacility(s,"kiln"));s=processResourceDay(next(s));s=ok(craftResource(s,"charcoal",2,s.creatures![0].creatureId));
+ s=ok(commissionFacility(s,"furnace"));s=processResourceDay(next(s));s=ok(craftResource(s,"iron",4,s.creatures![0].creatureId));
+ s=ok(commissionFacility(s,"forge"));s=processResourceDay(next(s));s=ok(craftResource(s,"nails",2,s.creatures![1].creatureId));assert.equal(getFarmState(s).stock.nails,8);
+ assert.equal(craftResource(s,"iron",1,s.creatures![0].creatureId).ok,false);
  const old=commissionBuilderProject(fresh(),"north_pasture_land"); // needs specific building supplies
  let funded=grantFarmResources(fresh(),{wood:8,stone:4});funded=commissionBuilderProject(funded,"north_pasture_land").save;
  assert.equal(commissionFacility(funded,"quarry").ok,false);assert.equal(old.ok,false);
 });
 test("reserve controls block sales, recipes, construction, and deliveries without charging",()=>{
  let s=buy(fresh(),"wood",10);s=ok(reserveResource(s,"wood",10));const before=JSON.stringify(s);
- assert.equal(tradeResource(s,"wood",1,true).ok,false);assert.equal(craftResource(s,"planks").ok,false);assert.equal(commissionFacility(s,"quarry").ok,false);
+ assert.equal(tradeResource(s,"wood",1,true).ok,false);assert.equal(craftResource(s,"planks",1,s.creatures![0].creatureId).ok,false);assert.equal(commissionFacility(s,"quarry").ok,false);
  s=ok(actSupplyOrder(s,"timber"));assert.equal(actSupplyOrder(s,"timber").ok,false);
  assert.equal(JSON.stringify(reserveResource(JSON.parse(before),"wood",-1).save),before);
 });
@@ -55,14 +55,14 @@ test("delivery only consumes on confirmation and pays once",()=>{
 });
 test("meals consume once, cap recovery, and expire after the intended overnight",()=>{
  let s=fresh();for(const id of ["wheat","vegetables","eggs","milk","meat"] as ResourceId[])s=buy(s,id,5);
- s=ok(craftResource(s,"breakfast",2));const c=s.creatures![0];c.energy=c.maxEnergy-5;
+ s=ok(craftResource(s,"breakfast",2,s.creatures![0].creatureId));const c=s.creatures![0];c.energy=c.maxEnergy-5;
  s=ok(serveMeal(s,"breakfast",c.creatureId));assert.equal(s.creatures![0].energy,c.maxEnergy);assert.equal(serveMeal(s,"breakfast",c.creatureId).ok,false);
- s=ok(craftResource(s,"breeders_bowl"));const other=s.creatures![1].creatureId;s=ok(serveMeal(s,"breeders_bowl",other));assert.equal(mealBonus(s,other,"breeders_bowl"),true);assert.equal(mealBonus(next(s),other,"breeders_bowl"),false);
- s=ok(craftResource(s,"stew"));const worker=s.creatures![2].creatureId;s=ok(serveMeal(s,"stew",worker));assert.equal(overnightChoreCost(next(s),worker,20),17);assert.equal(overnightChoreCost(next(next(s)),worker,20),20);
+ s=ok(craftResource(s,"breeders_bowl",1,s.creatures![0].creatureId));const other=s.creatures![1].creatureId;s=ok(serveMeal(s,"breeders_bowl",other));assert.equal(mealBonus(s,other,"breeders_bowl"),true);assert.equal(mealBonus(next(s),other,"breeders_bowl"),false);
+ s=ok(craftResource(s,"stew",1,s.creatures![0].creatureId));const worker=s.creatures![2].creatureId;s=ok(serveMeal(s,"stew",worker));assert.equal(overnightChoreCost(next(s),worker,20),17);assert.equal(overnightChoreCost(next(next(s)),worker,20),20);
 });
 test("malformed quantities and locked recipes cannot create items or money",()=>{
- const s=fresh();for(const n of [-1,0,NaN,Infinity,1.5,21]){assert.equal(tradeResource(s,"wood",n).ok,false);assert.equal(craftResource(s,"planks",n).ok,false);}
- assert.equal(craftResource(s,"iron").ok,false);assert.equal(commissionFacility(s,"forge").ok,false);
+ const s=fresh();for(const n of [-1,0,NaN,Infinity,1.5,21]){assert.equal(tradeResource(s,"wood",n).ok,false);assert.equal(craftResource(s,"planks",n,s.creatures![0].creatureId).ok,false);}
+ assert.equal(craftResource(s,"iron",1,s.creatures![0].creatureId).ok,false);assert.equal(commissionFacility(s,"forge").ok,false);
 });
 
 test("breeder meal affects real preview once per pair and expires next day",async()=>{
@@ -71,7 +71,7 @@ test("breeder meal affects real preview once per pair and expires next day",asyn
  const a=s.creatures[0].creatureId,b=s.creatures[1].creatureId;
  const baseline=getBreedingPreview(s,a,b);assert.ok(baseline);
  for(const id of ["eggs","milk","vegetables"] as ResourceId[])s=buy(s,id,2);
- s=ok(craftResource(s,"breeders_bowl",2));s=ok(serveMeal(s,"breeders_bowl",a));
+ s=ok(craftResource(s,"breeders_bowl",2,s.creatures![0].creatureId));s=ok(serveMeal(s,"breeders_bowl",a));
  assert.equal(getBreedingPreview(s,a,b)!.pregnancyChance,baseline.pregnancyChance+10);
  s=ok(serveMeal(s,"breeders_bowl",b));assert.equal(getBreedingPreview(s,a,b)!.pregnancyChance,baseline.pregnancyChance+10);
  assert.equal(getBreedingPreview(next(s),a,b)!.pregnancyChance,baseline.pregnancyChance);

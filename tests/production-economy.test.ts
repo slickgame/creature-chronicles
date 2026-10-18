@@ -21,9 +21,9 @@ test('quarry to kiln to furnace produces ingots for Iona without a farm forge an
  const start=s.currencies.gold;
  for(const id of ['quarry','kiln','furnace'] as const){const built=commissionFacility(s,id);assert.ok(built.ok);s=processResourceDay({...built.save,dayState:{...built.save.dayState,dayNumber:built.save.dayState.dayNumber+1}});}
  assert.equal(start-s.currencies.gold,620);assert.equal(getFarmState(s).facilities.forge,undefined);
- let r=craftResource(s,'charcoal',2);assert.ok(r.ok);s=r.save;
- s=reserveResource(s,'iron_ore',1).save;assert.equal(craftResource(s,'iron',3).ok,false);
- s=reserveResource(s,'iron_ore',0).save;r=craftResource(s,'iron',3);assert.ok(r.ok);s=r.save;
+ let r=craftResource(s,'charcoal',2,s.creatures![0].creatureId);assert.ok(r.ok);s=r.save;
+ s=reserveResource(s,'iron_ore',1).save;assert.equal(craftResource(s,'iron',3,s.creatures![0].creatureId).ok,false);
+ s=reserveResource(s,'iron_ore',0).save;r=craftResource(s,'iron',3,s.creatures![0].creatureId);assert.ok(r.ok);s=r.save;
  assert.equal(getFarmState(s).stock.iron,3);assert.equal(getFarmState(s).stock.charcoal,1);
  const q=getBlacksmithQuote(s,'focus_circlet')!;assert.equal(q.procurementGold,45);r=craftBlacksmithEquipment(s,'focus_circlet',0);assert.ok(r.ok);assert.equal(getFarmState(r.save).stock.iron,0);
 });
@@ -40,8 +40,8 @@ test('cooked energy meals use ingredients only, cap recovery, and cannot be serv
  for(const [meal,recovery] of [['porridge',8],['breakfast',15]] as const){
   let s=grantFarmResources(createNewGameSave('Cooking',0),{wheat:5,vegetables:5,eggs:5,milk:5});
   const c=s.creatures![0];s={...s,creatures:s.creatures!.map(x=>x.creatureId===c.creatureId?{...x,energy:x.maxEnergy-5}:x)};
-  const cooked=craftResource(s,meal,2);assert.ok(cooked.ok);assert.equal(cooked.save.currencies.gold,s.currencies.gold);
-  const served=serveMeal(cooked.save,meal,c.creatureId);assert.ok(served.ok);assert.equal(served.save.creatures![0].energy,c.maxEnergy);assert.ok(recovery>=5);
+  const cooked=craftResource(s,meal,2,s.creatures![0].creatureId);assert.ok(cooked.ok);assert.equal(cooked.save.currencies.gold,s.currencies.gold);
+  const served=serveMeal(cooked.save,meal,c.creatureId);assert.ok(served.ok);assert.equal(served.save.creatures![0].energy,Math.min(c.maxEnergy,cooked.save.creatures![0].energy+recovery));assert.ok(recovery>=5);
   assert.equal(getFarmState(served.save).stock[meal],1);assert.equal(serveMeal(served.save,meal,c.creatureId).ok,false);
  }
 });
