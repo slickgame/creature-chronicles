@@ -5,6 +5,8 @@ import { normalizeCreatureChoreSkills, getChoreSkillXpToNext } from '@/data/chor
 import { craftResource, recipePreview, grantFarmResources, getFarmState, reserveResource, RECIPES, workPreview, workResourceSite, type SiteId } from '@/data/farmResources';
 import { getVariantDefinition } from '@/data/creatures';
 import { startTrainingGroundsAssignment } from '@/data/trainingGrounds';
+import { createGeneralTalent } from '@/data/talents/generalTalents';
+import { getChoreSkillXpGain } from '@/data/choreSkills';
 
 function fixture() {
   const save = grantFarmResources(createNewGameSave('Recipe workers', 0), { wood:100, wheat:100, vegetables:100, eggs:100, milk:100, meat:100, iron_ore:100, charcoal:100, iron:100 });
@@ -26,6 +28,32 @@ test('every recipe requires a worker and persists exactly quoted materials, Ener
     for(const skill of Object.keys(c.choreSkills!))if(skill!==q.skillId)assert.deepEqual(worker.choreSkills[skill],c.choreSkills![skill as keyof typeof c.choreSkills]);
     assert.match(r.message,/XP/);
   }
+});
+test('Eager Learner applies its grade bonus once to every recipe, rounded per batch and persisted only to its worker',()=>{
+  for(const [grade,percent] of [['F',5],['D',8],['C',10],['B',15],['A',20],['S',30]] as const){
+    for(const recipe of RECIPES){
+      const s=fixture(),c=s.creatures![1],plain=recipePreview(s,recipe.id,2,c)!;
+      // Duplicate saved instances must not multiply the same talent bonus.
+      c.abilities=[createGeneralTalent('eager_learner',grade),createGeneralTalent('eager_learner',grade)];
+      const before=structuredClone(s),q=recipePreview(s,recipe.id,2,c)!;
+      assert.equal(q.talentXpPercent,percent);assert.equal(q.xp,2*getChoreSkillXpGain(recipe.output,percent));
+      assert.equal(q.baseXp,plain.xp);assert.equal(q.talentXpBonus,q.xp-plain.xp);
+      assert.equal(q.energy,plain.energy);assert.equal(q.output,plain.output);assert.deepEqual(q.cost,plain.cost);
+      assert.equal(q.xp,2*recipePreview(s,recipe.id,1,c)!.xp);
+      const r=craftResource(s,recipe.id,2,c.creatureId);assert.ok(r.ok,r.message);assert.deepEqual(s,before);
+      const saved=JSON.parse(JSON.stringify(r.save));assert.equal(saved.creatures[1].choreSkills[q.skillId].lifetimeXp,q.xp);
+      assert.deepEqual(saved.creatures[0],s.creatures![0]);assert.equal(saved.creatures[1].xp,c.xp);
+    }
+  }
+});
+test('other general talents do not grant recipe XP and Eager Learner can cause a recipe skill level-up',()=>{
+  const s=fixture(),c=s.creatures![0],plain=recipePreview(s,'rations',1,c)!;
+  c.abilities=[createGeneralTalent('diligent','S'),createGeneralTalent('efficient_worker','S'),createGeneralTalent('sound_sleeper','S')];
+  assert.equal(recipePreview(s,'rations',1,c)!.xp,plain.xp);
+  c.abilities=[createGeneralTalent('eager_learner','C')];
+  c.choreSkills!.cooking.xp=35-13;
+  const r=craftResource(s,'rations',1,c.creatureId);assert.ok(r.ok);assert.match(r.message,/Level 1 to Level 2/);
+  assert.equal(r.save.creatures![0].choreSkills!.cooking.level,2);assert.equal(r.save.creatures![0].choreSkills!.cooking.xp,0);
 });
 test('proficiency tiers reduce recipe Energy, leave ratios unchanged and cap at mastery',()=>{
   for(const id of ['planks','breakfast'] as const){const s=fixture(),c=s.creatures![0],base=recipePreview(s,id,1,c)!;

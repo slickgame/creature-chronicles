@@ -144,7 +144,8 @@ export function getBreedingTalentSummary(
 
 export function getChoreTalentSummary(
   talents: CreatureAbility[] | undefined,
-  jobId: RanchJobId,
+  // Recipe work has no legacy ranch-job ID; include only unrestricted effects.
+  jobId?: RanchJobId,
 ): ChoreTalentSummary {
   const summary: ChoreTalentSummary = {
     scoreBonus: 0,

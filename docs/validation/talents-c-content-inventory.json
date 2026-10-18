@@ -1,0 +1,5607 @@
+{
+  "date": "2026-10-18",
+  "target": "Approved Talents C compact register",
+  "definitionCount": 83,
+  "currentGeneralCount": 9,
+  "currentCanineTalentCount": 1,
+  "additionalRetainedCount": 73,
+  "expectedUniqueTalentIcons": 83,
+  "notes": [
+    "An icon path is a planned asset assignment, not a claim that the asset already exists.",
+    "One icon per stable talent ID; grades use shared badges rather than six artwork copies.",
+    "Current-roll coverage is distinct from retained definitions available to existing saves.",
+    "Declared systems and triggers do not certify that every runtime hook is connected.",
+    "UI values must derive from the owned grade through talentDefinitions, not the C examples in this report.",
+    "Unrestricted work XP bonuses now apply to recipe XP, rounded per batch; job-scoped bonuses remain scoped."
+  ],
+  "talents": [
+    {
+      "id": "guard_dog",
+      "name": "Guard Dog",
+      "source": "species",
+      "category": "species",
+      "coverage": "current-canine-generation",
+      "icon": "/images/ui/talents-c/icons/guard_dog.webp",
+      "declaredSystems": [
+        "farm-security"
+      ],
+      "declaredTriggers": [
+        "passive"
+      ],
+      "stackingRule": "highest-only",
+      "sourceRestrictions": [
+        {
+          "family": "canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3 farm Security while resident. Only the strongest Guard Dog applies; no Energy cost.",
+      "exampleEffects": [
+        {
+          "type": "farm-security-flat",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "plain_vigor",
+      "name": "Plain Vigor",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/plain_vigor.webp",
+      "declaredSystems": [
+        "breeding",
+        "growth",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "level-growth",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +4 creature XP per breeding session; favors STA growth; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "growth-stat-bias",
+          "value": 1,
+          "creatureStatKey": "STA"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "soft_focus",
+      "name": "Soft Focus",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/soft_focus.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "gentle_start",
+      "name": "Gentle Start",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/gentle_start.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 extra Affection after breeding; +0 resources per matching work action; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-affection-gain",
+          "value": 1
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_habits",
+      "name": "Steady Habits",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_habits.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; +0 resources per matching work action; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "chore-score",
+          "value": 0.3,
+          "note": "Applies to every ranch chore."
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "faint_spark",
+      "name": "Faint Spark",
+      "source": "general",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/faint_spark.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +4 creature XP per breeding session; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "hot_blooded",
+      "name": "Hot-Blooded",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/hot_blooded.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3 Fertility during breeding.",
+      "exampleEffects": [
+        {
+          "type": "breeding-fertility-flat",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "eager_learner",
+      "name": "Eager Learner",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/eager_learner.webp",
+      "declaredSystems": [
+        "chore"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+10% work-skill XP.",
+      "exampleEffects": [
+        {
+          "type": "chore-xp-percent",
+          "value": 10
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "lasting_vigor",
+      "name": "Lasting Vigor",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/lasting_vigor.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "3 less Breeding Energy cost for the pair.",
+      "exampleEffects": [
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "diligent",
+      "name": "Diligent",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/diligent.webp",
+      "declaredSystems": [
+        "chore"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3 resources per matching work action.",
+      "exampleEffects": [
+        {
+          "type": "chore-score",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "efficient_worker",
+      "name": "Efficient Worker",
+      "source": "general",
+      "category": "chore",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/efficient_worker.webp",
+      "declaredSystems": [
+        "chore"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "3 less Energy for all work actions.",
+      "exampleEffects": [
+        {
+          "type": "chore-energy-discount",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "sure_strike",
+      "name": "Sure Strike",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/sure_strike.webp",
+      "declaredSystems": [
+        "battle"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3 Physical Power.",
+      "exampleEffects": [
+        {
+          "type": "battle-stat-flat",
+          "battleStatKey": "physicalPower",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "thick_hide",
+      "name": "Thick Hide",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/thick_hide.webp",
+      "declaredSystems": [
+        "battle"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3 Defense.",
+      "exampleEffects": [
+        {
+          "type": "battle-stat-flat",
+          "battleStatKey": "defense",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "light_footed",
+      "name": "Light-Footed",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/light_footed.webp",
+      "declaredSystems": [
+        "battle"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3 Speed.",
+      "exampleEffects": [
+        {
+          "type": "battle-stat-flat",
+          "battleStatKey": "speed",
+          "value": 3
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "sound_sleeper",
+      "name": "Sound Sleeper",
+      "source": "general",
+      "category": "general",
+      "coverage": "current-general-pool",
+      "icon": "/images/ui/talents-c/icons/sound_sleeper.webp",
+      "declaredSystems": [
+        "recovery"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "recover an extra 10% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "recovery-energy-percent",
+          "value": 10
+        }
+      ],
+      "needsRuntimeScopeReview": false
+    },
+    {
+      "id": "quick_learner",
+      "name": "Quick Learner",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/quick_learner.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +4 creature XP per breeding session; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "hardy_body",
+      "name": "Hardy Body",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/hardy_body.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; +0 resources per matching work action; +8 Max Hp; +2 Defense; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "chore-score",
+          "value": 0.3,
+          "note": "Applies to every ranch chore."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "warm_temper",
+      "name": "Warm Temper",
+      "source": "general",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/warm_temper.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 extra Affection after breeding; +0 resources per matching work action; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-affection-gain",
+          "value": 1
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "lucky_spark",
+      "name": "Lucky Spark",
+      "source": "general",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/lucky_spark.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3% pregnancy chance; +4 creature XP per breeding session; +1 Accuracy; +2 inheritance stability; +2% talent inheritance chance; +1% beneficial mutation chance.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 3,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 2
+        },
+        {
+          "type": "inheritance-ability-chance",
+          "value": 2
+        },
+        {
+          "type": "inheritance-mutation-chance",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "focused_growth",
+      "name": "Focused Growth",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/focused_growth.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +4 creature XP per breeding session; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_worker",
+      "name": "Steady Worker",
+      "source": "general",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_worker.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; +0 resources per matching work action; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "chore-score",
+          "value": 0.3,
+          "note": "Applies to every ranch chore."
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "gentle_rhythm",
+      "name": "Gentle Rhythm",
+      "source": "general",
+      "category": "general",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/gentle_rhythm.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 extra Affection after breeding; +0 resources per matching work action; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-affection-gain",
+          "value": 1
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "strong_line",
+      "name": "Strong Line",
+      "source": "general",
+      "category": "lineage",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/strong_line.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Physical Power; +2 inheritance stability; +2% talent inheritance chance; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 2
+        },
+        {
+          "type": "inheritance-ability-chance",
+          "value": 2
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "feline_grace",
+      "name": "Feline Grace",
+      "source": "species",
+      "category": "lineage",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/feline_grace.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3% pregnancy chance; +1 creature XP per breeding session; +2 Speed; +1 Evasion; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 3,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "soft_step",
+      "name": "Soft Step",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/soft_step.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Speed; +1 Evasion.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "curious_heart",
+      "name": "Curious Heart",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/curious_heart.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "moonlit_patience",
+      "name": "Moonlit Patience",
+      "source": "species",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/moonlit_patience.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "pack_loyalty",
+      "name": "Pack Loyalty",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/pack_loyalty.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +4 Breeder XP when the player participates; +0 resources per matching work action; +1 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-breeder-xp-flat",
+          "value": 4
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "guard_instinct",
+      "name": "Guard Instinct",
+      "source": "species",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/guard_instinct.webp",
+      "declaredSystems": [
+        "breeding",
+        "growth",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "level-growth",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +4 Breeder XP when the player participates; favors WIL growth; +0 resources per matching work action; +8 Max Hp; +2 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-breeder-xp-flat",
+          "value": 4
+        },
+        {
+          "type": "growth-stat-bias",
+          "value": 1,
+          "creatureStatKey": "WIL"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_nerves",
+      "name": "Steady Nerves",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_nerves.webp",
+      "declaredSystems": [
+        "breeding",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "loyal_spark",
+      "name": "Loyal Spark",
+      "source": "species",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/loyal_spark.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +4 creature XP per breeding session; +4 Breeder XP when the player participates; +0 resources per matching work action; +1 Defense; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-breeder-xp-flat",
+          "value": 4
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_grazer",
+      "name": "Steady Grazer",
+      "source": "species",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_grazer.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; +0 resources per matching work action; 1 less Energy for Stable Production; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Producer"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "reliable_producer",
+      "name": "Reliable Producer",
+      "source": "species",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/reliable_producer.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Producer"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "calm_herdmate",
+      "name": "Calm Herdmate",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/calm_herdmate.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Producer"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "stubborn_frame",
+      "name": "Stubborn Frame",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/stubborn_frame.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +8 Max Hp; +2 Defense; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "quick_nesting",
+      "name": "Quick Nesting",
+      "source": "species",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/quick_nesting.webp",
+      "declaredSystems": [
+        "breeding",
+        "inheritance"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "soft_bond",
+      "name": "Soft Bond",
+      "source": "species",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/soft_bond.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3% pregnancy chance; +1 creature XP per breeding session.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 3,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "fleet_paws",
+      "name": "Fleet Paws",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/fleet_paws.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Speed; +1 Evasion.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "spring_vitality",
+      "name": "Spring Vitality",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/spring_vitality.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "garden_tending"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Harvester"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_trot",
+      "name": "Steady Trot",
+      "source": "species",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_trot.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; +0 resources per matching work action; 1 less Energy for Field Hauling; +2 Speed; +1 Evasion; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "strong_back",
+      "name": "Strong Back",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/strong_back.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Field Hauling; +2 Physical Power; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "fieldhand",
+      "name": "Fieldhand",
+      "source": "species",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/fieldhand.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Field Hauling.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "calm_presence",
+      "name": "Calm Presence",
+      "source": "species",
+      "category": "species",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/calm_presence.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_purr",
+      "name": "Steady Purr",
+      "source": "variant",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_purr.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_base_feline"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; +1 extra Affection after breeding; +0 resources per matching work action; 1 less Energy for Comfort Care; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "breeding-affection-gain",
+          "value": 1
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "bright_eyes",
+      "name": "Bright Eyes",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/bright_eyes.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_base_feline"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "ancient_poise",
+      "name": "Ancient Poise",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/ancient_poise.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_sphinx"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +4 Breeder XP when the player participates; +0 resources per matching work action; +2 Status Power; +1 Status Resist.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-breeder-xp-flat",
+          "value": 4
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "sun_warmed",
+      "name": "Sun-Warmed",
+      "source": "variant",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/sun_warmed.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_sphinx"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +1 extra Affection after breeding; +0 resources per matching work action; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-affection-gain",
+          "value": 1
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "royal_gaze",
+      "name": "Royal Gaze",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/royal_gaze.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_sphinx"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Status Power; +1 Status Resist.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "tiger_instinct",
+      "name": "Tiger Instinct",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/tiger_instinct.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_tiger"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Physical Power; +1 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "apex_pounce",
+      "name": "Apex Pounce",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/apex_pounce.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_tiger"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Physical Power.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "striped_vigor",
+      "name": "Striped Vigor",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/striped_vigor.webp",
+      "declaredSystems": [
+        "breeding",
+        "growth",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "level-growth",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "feline",
+          "speciesId": "species_feline",
+          "variantId": "variant_tiger"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +4 creature XP per breeding session; favors STA growth; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 4,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "growth-stat-bias",
+          "value": 1,
+          "creatureStatKey": "STA"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "steady_companion",
+      "name": "Steady Companion",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/steady_companion.webp",
+      "declaredSystems": [
+        "breeding",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_base_canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; 3 less Breeding Energy cost for the pair; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-energy-discount",
+          "value": 3
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "gentle_guard",
+      "name": "Gentle Guard",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/gentle_guard.webp",
+      "declaredSystems": [
+        "breeding",
+        "growth",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "level-growth",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_base_canine"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +4 Breeder XP when the player participates; +1 extra Affection after breeding; favors WIL growth; +0 resources per matching work action; +0 resources per matching work action; +8 Max Hp; +2 Defense; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-breeder-xp-flat",
+          "value": 4
+        },
+        {
+          "type": "breeding-affection-gain",
+          "value": 1
+        },
+        {
+          "type": "growth-stat-bias",
+          "value": 1,
+          "creatureStatKey": "WIL"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "ember_blood",
+      "name": "Ember Blood",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/ember_blood.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_hellhound"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Physical Power.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "infernal_focus",
+      "name": "Infernal Focus",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/infernal_focus.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_hellhound"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Physical Power; +1 Accuracy.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "accuracy"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Fast Learner"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "ash_resolve",
+      "name": "Ash Resolve",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/ash_resolve.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_hellhound"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "alpha_bond",
+      "name": "Alpha Bond",
+      "source": "variant",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/alpha_bond.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_direwolf"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+3% pregnancy chance; +1 creature XP per breeding session.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 3,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "winter_coat",
+      "name": "Winter Coat",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/winter_coat.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_direwolf"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +8 Max Hp; +2 Defense; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "pack_anchor",
+      "name": "Pack Anchor",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/pack_anchor.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "canine",
+          "speciesId": "species_canine",
+          "variantId": "variant_direwolf"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +8 Max Hp; +2 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "pasture_calm",
+      "name": "Pasture Calm",
+      "source": "variant",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/pasture_calm.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_cow"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Producer"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "milk_line",
+      "name": "Milk Line",
+      "source": "variant",
+      "category": "lineage",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/milk_line.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_cow"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Producer"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "labyrinth_guard",
+      "name": "Labyrinth Guard",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/labyrinth_guard.webp",
+      "declaredSystems": [
+        "breeding",
+        "growth",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "level-growth",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_minotaur"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +4 Breeder XP when the player participates; favors WIL growth; +0 resources per matching work action; +8 Max Hp; +2 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-breeder-xp-flat",
+          "value": 4
+        },
+        {
+          "type": "growth-stat-bias",
+          "value": 1,
+          "creatureStatKey": "WIL"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "iron_shoulders",
+      "name": "Iron Shoulders",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/iron_shoulders.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_minotaur"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Field Hauling; +8 Max Hp; +2 Defense; +2 Physical Power; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "intimidating_presence",
+      "name": "Intimidating Presence",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/intimidating_presence.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_minotaur"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +1 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "moonlit_graze",
+      "name": "Moonlit Graze",
+      "source": "variant",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/moonlit_graze.webp",
+      "declaredSystems": [
+        "breeding"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_moon_yak"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "silver_coat",
+      "name": "Silver Coat",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/silver_coat.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_moon_yak"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +8 Max Hp; +2 Defense; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "calm_herd_aura",
+      "name": "Calm Herd Aura",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/calm_herd_aura.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "bovine",
+          "speciesId": "species_bovine",
+          "variantId": "variant_moon_yak"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "stable_production"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Producer"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "meadow_nest",
+      "name": "Meadow Nest",
+      "source": "variant",
+      "category": "breeding",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/meadow_nest.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_bunny"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "garden_tending"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Harvester"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "bright_hop",
+      "name": "Bright Hop",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/bright_hop.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_bunny"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Speed; +1 Evasion.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "garden_tending"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Harvester"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "blooming_antlers",
+      "name": "Blooming Antlers",
+      "source": "variant",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/blooming_antlers.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_antlerhare"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "garden_tending"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Harvester"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "wild_leap",
+      "name": "Wild Leap",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/wild_leap.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_antlerhare"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Speed; +1 Evasion.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "garden_tending"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Harvester"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "verdant_nest",
+      "name": "Verdant Nest",
+      "source": "variant",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/verdant_nest.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_antlerhare"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "garden_tending"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Harvester"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "dream_nest",
+      "name": "Dream Nest",
+      "source": "variant",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/dream_nest.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "recovery",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "chore-score",
+        "chore-energy-cost",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_dream_lop"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +1 Affection during daily recovery; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "soft_lullaby",
+      "name": "Soft Lullaby",
+      "source": "variant",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/soft_lullaby.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_dream_lop"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "comfort_coat",
+      "name": "Comfort Coat",
+      "source": "variant",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/comfort_coat.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "lapine",
+          "speciesId": "species_lapine",
+          "variantId": "variant_dream_lop"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Comfort Care; +8 Max Hp; +2 Defense; +1 Affection during daily recovery; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 8,
+          "battleStatKey": "maxHp"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Tank"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "ranch_trot",
+      "name": "Ranch Trot",
+      "source": "variant",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/ranch_trot.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_horse"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Field Hauling; +2 Speed; +1 Evasion.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "work_saddle",
+      "name": "Work Saddle",
+      "source": "variant",
+      "category": "chore",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/work_saddle.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_horse"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Field Hauling.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "healing_horn",
+      "name": "Healing Horn",
+      "source": "variant",
+      "category": "recovery",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/healing_horn.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_unicorn"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "pure_lineage",
+      "name": "Pure Lineage",
+      "source": "variant",
+      "category": "lineage",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/pure_lineage.webp",
+      "declaredSystems": [
+        "breeding",
+        "inheritance"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_unicorn"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 inheritance stability; +2% talent inheritance chance; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 2
+        },
+        {
+          "type": "inheritance-ability-chance",
+          "value": 2
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "radiant_calm",
+      "name": "Radiant Calm",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/radiant_calm.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_unicorn"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; +2 Status Power; +1 Status Resist; +1 Affection during daily recovery.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "comfort_care"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "statusPower"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "statusResist"
+        },
+        {
+          "type": "recovery-affection",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Support"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Caregiver"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "dark_gallop",
+      "name": "Dark Gallop",
+      "source": "variant",
+      "category": "combat",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/dark_gallop.webp",
+      "declaredSystems": [
+        "breeding",
+        "chore",
+        "battle",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "chore-score",
+        "chore-energy-cost",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_nightmare"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +0 resources per matching work action; 1 less Energy for Security Patrol; +0 resources per matching work action; 1 less Energy for Field Hauling; +2 Speed; +1 Evasion; +1 Defense.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "security_patrol"
+        },
+        {
+          "type": "chore-score",
+          "value": 0.8,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "chore-energy-discount",
+          "value": 1,
+          "jobId": "field_hauling"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "speed"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "evasion"
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 1,
+          "battleStatKey": "defense"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Skirmisher"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Security"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Field Worker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "infernal_stamina",
+      "name": "Infernal Stamina",
+      "source": "variant",
+      "category": "variant",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/infernal_stamina.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "recovery",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "battle-stats",
+        "daily-recovery"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_nightmare"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Physical Power; recover an extra 3% of maximum Energy each day.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "recovery-energy-percent",
+          "value": 3
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Durable"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    },
+    {
+      "id": "fearless_bloodline",
+      "name": "Fearless Bloodline",
+      "source": "variant",
+      "category": "lineage",
+      "coverage": "additional-retained-definition",
+      "icon": "/images/ui/talents-c/icons/fearless_bloodline.webp",
+      "declaredSystems": [
+        "breeding",
+        "battle",
+        "inheritance",
+        "role-tags"
+      ],
+      "declaredTriggers": [
+        "passive",
+        "breeding-preview",
+        "breeding-attempt",
+        "inheritance-roll",
+        "battle-stats"
+      ],
+      "stackingRule": "additive",
+      "sourceRestrictions": [
+        {
+          "family": "equine",
+          "speciesId": "species_equine",
+          "variantId": "variant_nightmare"
+        }
+      ],
+      "gradeCoverage": [
+        "F",
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ],
+      "exampleGrade": "C",
+      "exampleDescription": "+1% pregnancy chance; +1 creature XP per breeding session; +2 Physical Power; +2 inheritance stability; +2% talent inheritance chance; +1 inheritance stability.",
+      "exampleEffects": [
+        {
+          "type": "breeding-pregnancy-chance",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "breeding-creature-xp-flat",
+          "value": 1,
+          "note": "Matches the current live Breeding Pen talent adapter."
+        },
+        {
+          "type": "battle-stat-flat",
+          "value": 2,
+          "battleStatKey": "physicalPower"
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 2
+        },
+        {
+          "type": "inheritance-ability-chance",
+          "value": 2
+        },
+        {
+          "type": "inheritance-stability",
+          "value": 1
+        },
+        {
+          "type": "role-tag",
+          "value": 1,
+          "roleTag": "Striker"
+        }
+      ],
+      "needsRuntimeScopeReview": true
+    }
+  ]
+}

@@ -187,10 +187,13 @@ export function recipePreview(save: GameSave, id: ResourceId, quantity: number, 
   const baseEnergy = skillId === 'cooking' ? 6 : 8;
   const beforeMeal = Math.max(3, baseEnergy - skillDiscount);
   const perBatchEnergy = mealBonus(save, creature.creatureId, 'stew') ? Math.max(3, Math.ceil(beforeMeal * 0.85)) : beforeMeal;
-  const xp = quantity * getChoreSkillXpGain(recipe.output);
+  const talentXpPercent = getChoreTalentSummary(creature.abilities).xpPercent;
+  const baseXp = quantity * getChoreSkillXpGain(recipe.output);
+  const xp = quantity * getChoreSkillXpGain(recipe.output, talentXpPercent);
   const progress = gainChoreSkillXp(creature, skillId, xp).gain;
   return { skillId, skillLabel: getChoreSkillDefinition(skillId).label, skillLevel: skill.level,
-    skillDiscount, baseEnergy, perBatchEnergy, energy: quantity * perBatchEnergy, xp, progress,
+    skillDiscount, baseEnergy, perBatchEnergy, energy: quantity * perBatchEnergy, xp, baseXp,
+    talentXpPercent, talentXpBonus: xp - baseXp, progress,
     cost: Object.fromEntries(Object.entries(recipe.inputs).map(([key, n]) => [key, n * quantity])) as Stock,
     output: quantity * recipe.output * (id === 'planks' && getFarmState(save).facilities.sawmill ? 2 : 1) };
 }

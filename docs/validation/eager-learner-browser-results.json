@@ -1,0 +1,595 @@
+{
+  "results": [
+    {
+      "label": "Workbench",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1440,
+        "bottom": 900,
+        "w": 1440,
+        "sw": 1440,
+        "h": 900,
+        "sh": 900,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench review",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 380,
+        "y": 302.46875,
+        "right": 1060,
+        "bottom": 597.53125,
+        "w": 640,
+        "sw": 640,
+        "h": 255,
+        "sh": 255,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 1",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 380,
+        "y": 259.9375,
+        "right": 1060,
+        "bottom": 640.0625,
+        "w": 640,
+        "sw": 640,
+        "h": 340,
+        "sh": 340,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 2",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 380,
+        "y": 313.3125,
+        "right": 1060,
+        "bottom": 586.6875,
+        "w": 640,
+        "sw": 640,
+        "h": 233,
+        "sh": 233,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 1440,
+        "bottom": 900,
+        "w": 1440,
+        "sw": 1440,
+        "h": 900,
+        "sh": 900,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen review",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 380,
+        "y": 302.46875,
+        "right": 1060,
+        "bottom": 597.53125,
+        "w": 640,
+        "sw": 640,
+        "h": 255,
+        "sh": 255,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 1",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 380,
+        "y": 259.9375,
+        "right": 1060,
+        "bottom": 640.0625,
+        "w": 640,
+        "sw": 640,
+        "h": 340,
+        "sh": 340,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 2",
+      "size": {
+        "width": 1440,
+        "height": 900
+      },
+      "m": {
+        "x": 380,
+        "y": 313.3125,
+        "right": 1060,
+        "bottom": 586.6875,
+        "w": 640,
+        "sw": 640,
+        "h": 233,
+        "sh": 233,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 390,
+        "bottom": 844,
+        "w": 390,
+        "sw": 390,
+        "h": 844,
+        "sh": 844,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench review",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 8,
+        "y": 280.625,
+        "right": 382,
+        "bottom": 563.375,
+        "w": 346,
+        "sw": 346,
+        "h": 255,
+        "sh": 255,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 1",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 8,
+        "y": 216.40625,
+        "right": 382,
+        "bottom": 627.59375,
+        "w": 346,
+        "sw": 346,
+        "h": 383,
+        "sh": 383,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 2",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 8,
+        "y": 291.46875,
+        "right": 382,
+        "bottom": 552.53125,
+        "w": 346,
+        "sw": 346,
+        "h": 233,
+        "sh": 233,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 390,
+        "bottom": 844,
+        "w": 390,
+        "sw": 390,
+        "h": 844,
+        "sh": 844,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen review",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 8,
+        "y": 269.78125,
+        "right": 382,
+        "bottom": 574.21875,
+        "w": 346,
+        "sw": 346,
+        "h": 276,
+        "sh": 276,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 1",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 8,
+        "y": 205.5625,
+        "right": 382,
+        "bottom": 638.4375,
+        "w": 346,
+        "sw": 346,
+        "h": 405,
+        "sh": 405,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 2",
+      "size": {
+        "width": 390,
+        "height": 844
+      },
+      "m": {
+        "x": 8,
+        "y": 280.625,
+        "right": 382,
+        "bottom": 563.375,
+        "w": 346,
+        "sw": 346,
+        "h": 255,
+        "sh": 255,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 360,
+        "bottom": 740,
+        "w": 360,
+        "sw": 360,
+        "h": 740,
+        "sh": 740,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench review",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 8,
+        "y": 200.28125,
+        "right": 352,
+        "bottom": 539.71875,
+        "w": 316,
+        "sw": 316,
+        "h": 311,
+        "sh": 311,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 1",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 8,
+        "y": 114.375,
+        "right": 352,
+        "bottom": 625.625,
+        "w": 316,
+        "sw": 316,
+        "h": 483,
+        "sh": 483,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 2",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 8,
+        "y": 211.125,
+        "right": 352,
+        "bottom": 528.875,
+        "w": 316,
+        "sw": 316,
+        "h": 290,
+        "sh": 290,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 360,
+        "bottom": 740,
+        "w": 360,
+        "sw": 360,
+        "h": 740,
+        "sh": 740,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen review",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 8,
+        "y": 189.4375,
+        "right": 352,
+        "bottom": 550.5625,
+        "w": 316,
+        "sw": 316,
+        "h": 333,
+        "sh": 333,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 1",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 8,
+        "y": 125.21875,
+        "right": 352,
+        "bottom": 614.78125,
+        "w": 316,
+        "sw": 316,
+        "h": 462,
+        "sh": 462,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 2",
+      "size": {
+        "width": 360,
+        "height": 740
+      },
+      "m": {
+        "x": 8,
+        "y": 211.125,
+        "right": 352,
+        "bottom": 528.875,
+        "w": 316,
+        "sw": 316,
+        "h": 290,
+        "sh": 290,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 844,
+        "bottom": 390,
+        "w": 844,
+        "sw": 844,
+        "h": 390,
+        "sh": 390,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench review",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 82,
+        "y": 64.40625,
+        "right": 762,
+        "bottom": 325.578125,
+        "w": 640,
+        "sw": 640,
+        "h": 221,
+        "sh": 221,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 1",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 82,
+        "y": 30.515625,
+        "right": 762,
+        "bottom": 359.46875,
+        "w": 640,
+        "sw": 640,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Workbench details 2",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 82,
+        "y": 73.703125,
+        "right": 762,
+        "bottom": 316.28125,
+        "w": 640,
+        "sw": 640,
+        "h": 203,
+        "sh": 203,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 0,
+        "y": 0,
+        "right": 844,
+        "bottom": 390,
+        "w": 844,
+        "sw": 844,
+        "h": 390,
+        "sh": 390,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen review",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 82,
+        "y": 64.40625,
+        "right": 762,
+        "bottom": 325.578125,
+        "w": 640,
+        "sw": 640,
+        "h": 221,
+        "sh": 221,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 1",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 82,
+        "y": 30.515625,
+        "right": 762,
+        "bottom": 359.46875,
+        "w": 640,
+        "sw": 640,
+        "h": 289,
+        "sh": 289,
+        "bad": []
+      }
+    },
+    {
+      "label": "Kitchen details 2",
+      "size": {
+        "width": 844,
+        "height": 390
+      },
+      "m": {
+        "x": 82,
+        "y": 73.703125,
+        "right": 762,
+        "bottom": 316.28125,
+        "w": 640,
+        "sw": 640,
+        "h": 203,
+        "sh": 203,
+        "bad": []
+      }
+    },
+    {
+      "label": "crafting transaction",
+      "energy": 8,
+      "xp": 12,
+      "level": 6
+    },
+    {
+      "label": "cooking transaction",
+      "energy": 6,
+      "xp": 13,
+      "level": 6
+    }
+  ],
+  "errors": [],
+  "cancelWithoutWrite": true,
+  "reload": true
+}
