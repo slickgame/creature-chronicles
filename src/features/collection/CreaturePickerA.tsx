@@ -43,11 +43,12 @@ export function CreaturePickerA({save, creatures, selectedId, search, filterCoun
     </div>
     <div className={styles.body}>
       <div className={styles.list}>
-        {creatures.length ? <PagedItems key={pageKey} label="Creatures" rowHeight={96} maxPerPage={4} initialItemIndex={creatures.findIndex(c=>c.creatureId===selectedId)} items={creatures.map(c=><article key={c.creatureId} className={styles.row} data-selected={c.creatureId===selected?.creatureId}>
+        {creatures.length ? <PagedItems key={pageKey} label="Creatures" rowHeight={82} initialItemIndex={creatures.findIndex(c=>c.creatureId===selectedId)} items={creatures.map(c=><article key={c.creatureId} className={styles.row} data-selected={c.creatureId===selected?.creatureId} data-long-name={c.nickname.length>18}>
           {favorite(c)}
           <button type="button" className={styles.select} aria-label={`Select ${c.nickname}`} aria-pressed={c.creatureId===selected?.creatureId} onClick={()=>setPreviewId(c.creatureId)}>
             <img className={styles.portrait} src={portrait(c)} alt=""/>
-            <span className={styles.identity}><strong>{c.nickname}</strong><small>{getVariantDefinition(c.variantId).name} · Lv {c.level}</small></span>
+            <span className={styles.identity}><strong>{c.nickname}</strong><small>{getVariantDefinition(c.variantId).name}<span className={styles.mobileLevel}> · Lv {c.level}</span></small></span>
+            <span className={styles.level}>Lv {c.level}</span>
             <span className={styles.vitals}>{badge(c)}<span className={styles.energy}><img src="/images/ui/creature-overview-a-v2/sculpted/energy.webp" alt="Energy"/> {c.energy} / {c.maxEnergy}</span></span>
           </button>
           {lock(c)}
@@ -55,7 +56,7 @@ export function CreaturePickerA({save, creatures, selectedId, search, filterCoun
       </div>
       {selected ? <article className={styles.summary} aria-label="Selected creature summary">
         <img className={styles.largePortrait} src={portrait(selected)} alt={`${selected.nickname} portrait`}/>
-        <div className={styles.summaryText}><h2>{selected.nickname}</h2><p>{getVariantDefinition(selected.variantId).name} · Lv {selected.level}</p>{badge(selected)}<p>Energy {selected.energy} / {selected.maxEnergy}</p></div>
+        <div className={styles.summaryText}><h2>{selected.nickname}</h2><p>{getVariantDefinition(selected.variantId).name} · Lv {selected.level}</p><div className={styles.summaryStatus}><span>Status</span>{badge(selected)}</div><p className={styles.summaryEnergy}><span>Energy</span><strong>{selected.energy} / {selected.maxEnergy}</strong></p></div>
         <div className={styles.actions}>{favorite(selected)}{lock(selected)}</div>
         <button className={styles.open} type="button" onClick={()=>onOpen(selected)}>Open profile →</button>
       </article> : null}

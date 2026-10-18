@@ -2,7 +2,7 @@ import { chromium } from '/opt/codex/runtimes/codex-primary-runtime/dependencies
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
-const cwd=process.cwd(), out='/tmp/creature-picker-a-proof', port=3131, url=`http://127.0.0.1:${port}`;
+const cwd=process.cwd(), out=process.env.PICKER_QA_OUTPUT||'/tmp/creature-picker-a-proof', port=3131, url=`http://127.0.0.1:${port}`;
 mkdirSync(out,{recursive:true});
 const fixture=JSON.parse(readFileSync('/tmp/work-ledger-fixture.json'));
 const server=spawn(process.execPath,['node_modules/next/dist/bin/next','start','-H','127.0.0.1','-p',String(port)],{cwd,stdio:'ignore'});
@@ -37,6 +37,11 @@ try{
 
  for(const size of [{width:1440,height:900},{width:1280,height:720},{width:390,height:844},{width:360,height:740},{width:844,height:390},{width:390,height:500}]){
   await page.setViewportSize(size);await page.waitForTimeout(200);await bounds('Picker A',picker);
+  const count=await picker.locator('article[data-selected]').count();
+  if(size.width===1440)check('Desktop uses spare height for at least seven rows',count>=7);
+  if(size.width===390&&size.height===844)check('Phone accommodates at least four rows',count>=4);
+  check('Rows and text stay contained',await picker.locator('article[data-selected]').evaluateAll(rows=>rows.every(row=>{const b=row.getBoundingClientRect();return [...row.querySelectorAll('button,strong,small')].every(el=>{const r=el.getBoundingClientRect();return !r.width||r.top>=b.top-2&&r.bottom<=b.bottom+2&&r.left>=b.left-2&&r.right<=b.right+2})})));
+
   check('No sex markers',!/(Female|Male|♀|♂)/.test(await picker.innerText()));
   check('Pagination visible',await picker.getByRole('navigation',{name:'Creatures pages'}).isVisible());
   if([1440,390].includes(size.width)&&size.height!==500)await page.screenshot({path:`${out}/picker-${size.width}.png`,animations:'disabled'});
@@ -51,7 +56,7 @@ try{
  await picker.getByRole('searchbox').fill('Mira 7');await picker.getByRole('button',{name:'Add favorite: Mira 7'}).first().click();check('Favorite persists',JSON.parse(await read()).creatures.find(c=>c.nickname==='Mira 7').isFavorite===true);
  await picker.getByRole('button',{name:'Lock creature: Mira 7'}).first().click();check('Lock persists',JSON.parse(await read()).creatures.find(c=>c.nickname==='Mira 7').isLocked===true);check('Unlock label updates',await picker.getByRole('button',{name:'Unlock creature: Mira 7'}).first().isVisible());
  await picker.getByRole('searchbox').fill('ABCDEFGHIJKLMNOPQRSTUVWX');
- for(const size of [{width:360,height:740},{width:844,height:390}]){await page.setViewportSize(size);await page.waitForTimeout(150);await bounds('Long name',picker);}
+ for(const size of [{width:360,height:740},{width:844,height:390}]){await page.setViewportSize(size);await page.waitForTimeout(150);await bounds('Long name',picker);check('Long row fits',await picker.locator('article[data-selected]').evaluateAll(rows=>rows.every(row=>{const b=row.getBoundingClientRect();return [...row.querySelectorAll('button,strong,small')].every(el=>{const r=el.getBoundingClientRect();return !r.width||r.top>=b.top-2&&r.bottom<=b.bottom+2&&r.left>=b.left-2&&r.right<=b.right+2})})));}
  await picker.getByRole('searchbox').focus();await page.keyboard.press('Escape');check('Escape returns profile',await picker.count()===0);
  check('No runtime errors',errors.length===0);writeFileSync(out+'/results.json',JSON.stringify({checks:results.length,results,errors},null,2));console.log(JSON.stringify({checks:results.length,out}));
 }catch(e){await page?.screenshot({path:out+'/failure.png'}).catch(()=>{});console.error(e);process.exitCode=1;}finally{await browser?.close();server.kill();}

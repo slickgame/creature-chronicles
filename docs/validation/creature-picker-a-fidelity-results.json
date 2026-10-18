@@ -1,0 +1,147 @@
+{
+  "checks": 47,
+  "results": [
+    {
+      "label": "Picker A 1440x900 {\"x\":18,\"y\":116,\"right\":1422,\"bottom\":882,\"w\":1404,\"sw\":1404,\"h\":766,\"sh\":766,\"bad\":[]}"
+    },
+    {
+      "label": "Desktop uses spare height for at least seven rows"
+    },
+    {
+      "label": "Rows and text stay contained"
+    },
+    {
+      "label": "No sex markers"
+    },
+    {
+      "label": "Pagination visible"
+    },
+    {
+      "label": "Picker A 1280x720 {\"x\":18,\"y\":116,\"right\":1262,\"bottom\":702,\"w\":1244,\"sw\":1244,\"h\":586,\"sh\":586,\"bad\":[]}"
+    },
+    {
+      "label": "Rows and text stay contained"
+    },
+    {
+      "label": "No sex markers"
+    },
+    {
+      "label": "Pagination visible"
+    },
+    {
+      "label": "Picker A 390x844 {\"x\":11,\"y\":144.1875,\"right\":379,\"bottom\":833,\"w\":368,\"sw\":368,\"h\":689,\"sh\":689,\"bad\":[]}"
+    },
+    {
+      "label": "Phone accommodates at least four rows"
+    },
+    {
+      "label": "Rows and text stay contained"
+    },
+    {
+      "label": "No sex markers"
+    },
+    {
+      "label": "Pagination visible"
+    },
+    {
+      "label": "Picker A 360x740 {\"x\":11,\"y\":144.1875,\"right\":349,\"bottom\":729,\"w\":338,\"sw\":338,\"h\":585,\"sh\":585,\"bad\":[]}"
+    },
+    {
+      "label": "Rows and text stay contained"
+    },
+    {
+      "label": "No sex markers"
+    },
+    {
+      "label": "Pagination visible"
+    },
+    {
+      "label": "Picker A 844x390 {\"x\":10,\"y\":82,\"right\":834,\"bottom\":380,\"w\":824,\"sw\":824,\"h\":298,\"sh\":298,\"bad\":[]}"
+    },
+    {
+      "label": "Rows and text stay contained"
+    },
+    {
+      "label": "No sex markers"
+    },
+    {
+      "label": "Pagination visible"
+    },
+    {
+      "label": "Picker A 390x500 {\"x\":10,\"y\":163.390625,\"right\":380,\"bottom\":490,\"w\":370,\"sw\":370,\"h\":327,\"sh\":327,\"bad\":[]}"
+    },
+    {
+      "label": "Rows and text stay contained"
+    },
+    {
+      "label": "No sex markers"
+    },
+    {
+      "label": "Pagination visible"
+    },
+    {
+      "label": "Preview stays in picker"
+    },
+    {
+      "label": "Preview names chosen creature"
+    },
+    {
+      "label": "Preview is read-only"
+    },
+    {
+      "label": "Cancel retains original creature"
+    },
+    {
+      "label": "Cancel no write"
+    },
+    {
+      "label": "Original profile identity retained"
+    },
+    {
+      "label": "Open returns Care tab"
+    },
+    {
+      "label": "Open no write"
+    },
+    {
+      "label": "Empty state"
+    },
+    {
+      "label": "Existing filters retained"
+    },
+    {
+      "label": "Compare opens"
+    },
+    {
+      "label": "All browsing read-only"
+    },
+    {
+      "label": "Favorite persists"
+    },
+    {
+      "label": "Lock persists"
+    },
+    {
+      "label": "Unlock label updates"
+    },
+    {
+      "label": "Long name 360x740 {\"x\":11,\"y\":144.1875,\"right\":349,\"bottom\":729,\"w\":338,\"sw\":338,\"h\":585,\"sh\":585,\"bad\":[]}"
+    },
+    {
+      "label": "Long row fits"
+    },
+    {
+      "label": "Long name 844x390 {\"x\":10,\"y\":82,\"right\":834,\"bottom\":380,\"w\":824,\"sw\":824,\"h\":298,\"sh\":298,\"bad\":[]}"
+    },
+    {
+      "label": "Long row fits"
+    },
+    {
+      "label": "Escape returns profile"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}

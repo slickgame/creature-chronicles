@@ -116,3 +116,5 @@ The user continued with recommended A. Care and Habitat share CreatureRenameWind
 
 ## Approved Choose creature A
 The user selected compact roster A and asked to remove the female symbol (creatures are intersex). Omit sex symbols/labels in the picker; do not mutate saved identities or breeding rules. Preserve canonical portraits, painted favorite and open/closed locks, truthful status/Energy, paged rows and focused phone summary. Row clicks preview; Open profile confirms; Back/Escape preserves the original profile and tab. Search and filters must not silently change that profile. Keep Cards, Compare and all other supported filters available. See docs/CREATURE_PICKER_A_RUNTIME_2026-10-18.md. PR21 stays draft/unmerged.
+
+Picker A fidelity: use available height for compact rows rather than restoring the original four-row or 450px ceilings. Keep readable ivory name/type, separate desktop level/status/Energy columns, compact phone vitals, full long names, stronger ornate summary frames and high-contrast search placeholder. Verify contained row text and navigation as well as viewport bounds.
