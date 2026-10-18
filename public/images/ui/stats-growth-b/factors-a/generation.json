@@ -1,0 +1,22 @@
+{
+  "method": "Built-in image generation",
+  "transparent_background": true,
+  "reference": "approved-concept.webp",
+  "icons": [
+    {
+      "name": "species",
+      "source": "source/species.png",
+      "prompt": "Use case: stylized-concept. Single production game UI icon, no background, true transparent RGBA. Subject: A small elegant spreading family tree with broad organic canopy, short sturdy trunk and delicate roots, carved warm ivory leaves and brushed antique gold branches. Clear readable silhouette; matches the Species + variant tree in the reference formula card. Reference image: style reference only, approved Creature Chronicles formula cards. Painterly carved ivory and brushed gold, organic hand-painted detail, tasteful soft highlights, established fantasy farm RPG UI family. Isolated centered icon with generous transparent edge padding. Strong readable silhouette at 48px, avoid tiny intricate clutter, no text, no border tile or panel, no label, no shadow extending outside icon, no watermark, no photographic environment, no extra objects. Icon only."
+    },
+    {
+      "name": "grade",
+      "source": "source/grade.png",
+      "prompt": "Use case: stylized-concept. Single production game UI icon, no background, true transparent RGBA. Subject: An ornate compact shield crest with a restrained laurel wreath, brushed antique gold frame and warm ivory center. Center MUST be completely blank with no letter, number, symbol or writing; the game overlays the creature's live grade. Reference image: style reference only, approved Creature Chronicles formula cards. Painterly carved ivory and brushed gold, organic hand-painted detail, tasteful soft highlights, established fantasy farm RPG UI family. Isolated centered icon with generous transparent edge padding. Strong readable silhouette at 48px, avoid tiny intricate clutter, no text, no border tile or panel, no label, no shadow extending outside icon, no watermark, no photographic environment, no extra objects. Icon only."
+    },
+    {
+      "name": "young",
+      "source": "source/young.png",
+      "prompt": "Use case: stylized-concept. Single production game UI icon, no background, true transparent RGBA. Subject: A graceful young seedling with exactly two large leaves and one small central shoot rising from a very small mound, sculpted warm ivory and brushed antique gold, subtle olive-green leaf warmth; matches the young-growth sprout in the reference formula card. Reference image: style reference only, approved Creature Chronicles formula cards. Painterly carved ivory and brushed gold, organic hand-painted detail, tasteful soft highlights, established fantasy farm RPG UI family. Isolated centered icon with generous transparent edge padding. Strong readable silhouette at 48px, avoid tiny intricate clutter, no text, no border tile or panel, no label, no shadow extending outside icon, no watermark, no photographic environment, no extra objects. Icon only."
+    }
+  ]
+}

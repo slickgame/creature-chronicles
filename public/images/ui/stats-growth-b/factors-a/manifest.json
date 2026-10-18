@@ -1,0 +1,41 @@
+[
+  {
+    "name": "species",
+    "dimensions": [
+      256,
+      240
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "source_sha256": "4b78f7f11516989d6f84a0774a47df379a7eb7eb5d41f441a17f0f4ecf6082f7",
+    "production_sha256": "b74df46299a488ac5cc1817fa5499ba82915f6a3bd7dcb9b3e19d94bc20083b6"
+  },
+  {
+    "name": "grade",
+    "dimensions": [
+      256,
+      233
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "source_sha256": "1f01d1833bfd4c8fe2b3928663e6cd27cd693df9417e354f7122efe69b6078eb",
+    "production_sha256": "ca0aa4541e47ece5af62493f9a64013e76feb17e9f8e649baaa56afad8e1d182"
+  },
+  {
+    "name": "young",
+    "dimensions": [
+      256,
+      234
+    ],
+    "alpha": [
+      0,
+      255
+    ],
+    "source_sha256": "b5870c6f053c5b531a802bc6005329112097c7d25c7e4849816b45d5d7e00143",
+    "production_sha256": "ccd5e1ac98c0a463a057c663c92aeb49e6a23e4fd92eb6c9f71aaeec64b53c00"
+  }
+]

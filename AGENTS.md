@@ -78,3 +78,6 @@ The user selected B's aligned attribute ledger and approved the full-page deskto
 
 ## Approved Stats & Growth follow-ups B
 The user approved B's six-attribute current/next comparison and structured selected-attribute growth window. Keep both views read-only, preserve mode/selection/page on close, and use paged Progress/Projection/factor sections on smaller screens. Growth rates and fills come from the engine; when the guaranteed level-up point's activity seed is unknown, show stat and Energy ranges with the explicit explanation. Never invent an exact safety-growth result. Use the existing Experience star and Energy bolt. See docs/STATS_GROWTH_FOLLOWUPS_B_2026-10-17.md. Finish these click-through states before proceeding to Work Skills.
+
+## Approved Growth factors A
+The user chose A's formula cards for Growth factors. Preserve the painted tree, live-grade crest and sprout under `stats-growth-b/factors-a`, three factors plus a calculated contribution, changing-rate/cap note and current-value/grade/formula summary. Use direct Progress/Growth factors/Forecast notes/Creature context sections; keep all content accessible on phones and short windows. Formula arrows and explicit cap wording must remain honest for capped or rounded results. Do not alter growth mechanics or save while previewing. See docs/GROWTH_FACTORS_A_RUNTIME_2026-10-18.md.

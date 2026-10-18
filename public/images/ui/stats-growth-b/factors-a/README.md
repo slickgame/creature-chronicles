@@ -1,0 +1,1 @@
+Approved Growth factors A: true-alpha painted ivory/gold icons. The crest is blank; the actual innate grade is overlaid by the game. Untouched generated sources and the approved concept accompany deterministic packaging. All runtime values use the existing growth engine.
