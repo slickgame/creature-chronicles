@@ -1,0 +1,219 @@
+{
+  "checks": 71,
+  "results": [
+    {
+      "label": "Chooser A 1440x900 {\"x\":210,\"y\":85,\"right\":1230,\"bottom\":815,\"w\":1000,\"sw\":1000,\"h\":710,\"sh\":710,\"bad\":[]}"
+    },
+    {
+      "label": "Compare disabled with no pair"
+    },
+    {
+      "label": "Chooser A 1280x720 {\"x\":130,\"y\":12,\"right\":1150,\"bottom\":708,\"w\":1000,\"sw\":1000,\"h\":676,\"sh\":676,\"bad\":[]}"
+    },
+    {
+      "label": "Compare disabled with no pair"
+    },
+    {
+      "label": "Chooser A 390x844 {\"x\":8,\"y\":97,\"right\":382,\"bottom\":747,\"w\":360,\"sw\":360,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Compare disabled with no pair"
+    },
+    {
+      "label": "Chooser A 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Compare disabled with no pair"
+    },
+    {
+      "label": "Chooser A 844x390 {\"x\":12,\"y\":12,\"right\":832,\"bottom\":378,\"w\":800,\"sw\":800,\"h\":346,\"sh\":346,\"bad\":[]}"
+    },
+    {
+      "label": "Compare disabled with no pair"
+    },
+    {
+      "label": "Chooser A 390x500 {\"x\":8,\"y\":12,\"right\":382,\"bottom\":488,\"w\":360,\"sw\":360,\"h\":462,\"sh\":462,\"bad\":[]}"
+    },
+    {
+      "label": "Compare disabled with no pair"
+    },
+    {
+      "label": "Two selections retained across search"
+    },
+    {
+      "label": "Third choice cannot silently replace selection"
+    },
+    {
+      "label": "Removal disables comparison"
+    },
+    {
+      "label": "Overview 1440x900 {\"x\":210,\"y\":85,\"right\":1230,\"bottom\":815,\"w\":1000,\"sw\":1000,\"h\":710,\"sh\":710,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Stats & Talents 1440x900 {\"x\":210,\"y\":85,\"right\":1230,\"bottom\":815,\"w\":1000,\"sw\":1000,\"h\":710,\"sh\":710,\"bad\":[]}"
+    },
+    {
+      "label": "All six attributes shown together"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Breeding 1440x900 {\"x\":210,\"y\":85,\"right\":1230,\"bottom\":815,\"w\":1000,\"sw\":1000,\"h\":710,\"sh\":710,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Overview 1280x720 {\"x\":130,\"y\":12,\"right\":1150,\"bottom\":708,\"w\":1000,\"sw\":1000,\"h\":676,\"sh\":676,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Stats & Talents 1280x720 {\"x\":130,\"y\":12,\"right\":1150,\"bottom\":708,\"w\":1000,\"sw\":1000,\"h\":676,\"sh\":676,\"bad\":[]}"
+    },
+    {
+      "label": "All six attributes shown together"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Breeding 1280x720 {\"x\":130,\"y\":12,\"right\":1150,\"bottom\":708,\"w\":1000,\"sw\":1000,\"h\":676,\"sh\":676,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Overview 390x844 {\"x\":8,\"y\":97,\"right\":382,\"bottom\":747,\"w\":360,\"sw\":360,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Stats & Talents 390x844 {\"x\":8,\"y\":97,\"right\":382,\"bottom\":747,\"w\":360,\"sw\":360,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "All six attributes shown together"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Breeding 390x844 {\"x\":8,\"y\":97,\"right\":382,\"bottom\":747,\"w\":360,\"sw\":360,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Overview 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Stats & Talents 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "All six attributes shown together"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Breeding 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Overview 844x390 {\"x\":12,\"y\":12,\"right\":832,\"bottom\":378,\"w\":800,\"sw\":800,\"h\":346,\"sh\":346,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Stats & Talents 844x390 {\"x\":12,\"y\":12,\"right\":832,\"bottom\":378,\"w\":800,\"sw\":800,\"h\":346,\"sh\":346,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Breeding 844x390 {\"x\":12,\"y\":12,\"right\":832,\"bottom\":378,\"w\":800,\"sw\":800,\"h\":346,\"sh\":346,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Overview 390x500 {\"x\":8,\"y\":12,\"right\":382,\"bottom\":488,\"w\":360,\"sw\":360,\"h\":462,\"sh\":462,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Stats & Talents 390x500 {\"x\":8,\"y\":12,\"right\":382,\"bottom\":488,\"w\":360,\"sw\":360,\"h\":462,\"sh\":462,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Breeding 390x500 {\"x\":8,\"y\":12,\"right\":382,\"bottom\":488,\"w\":360,\"sw\":360,\"h\":462,\"sh\":462,\"bad\":[]}"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "All six attributes reachable on phone"
+    },
+    {
+      "label": "Talent view 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Full talent details reachable"
+    },
+    {
+      "label": "Full talent details 360x740 {\"x\":10,\"y\":149.8125,\"right\":350,\"bottom\":590.1875,\"w\":316,\"sw\":316,\"h\":416,\"sh\":416,\"bad\":[]}"
+    },
+    {
+      "label": "Talent detail closes back to comparison"
+    },
+    {
+      "label": "Eligibility details 360x740 {\"x\":10,\"y\":245.15625,\"right\":350,\"bottom\":494.84375,\"w\":324,\"sw\":324,\"h\":234,\"sh\":234,\"bad\":[]}"
+    },
+    {
+      "label": "Pair record 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Pair record preserves lineage"
+    },
+    {
+      "label": "Change creatures retains both slots"
+    },
+    {
+      "label": "Cancel chooser returns picker"
+    },
+    {
+      "label": "Browsing leaves save unchanged"
+    },
+    {
+      "label": "Long chooser identities 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Long chooser identities 844x390 {\"x\":12,\"y\":12,\"right\":832,\"bottom\":378,\"w\":800,\"sw\":800,\"h\":346,\"sh\":346,\"bad\":[]}"
+    },
+    {
+      "label": "Long comparison identities 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Long comparison identities 844x390 {\"x\":12,\"y\":12,\"right\":832,\"bottom\":378,\"w\":800,\"sw\":800,\"h\":346,\"sh\":346,\"bad\":[]}"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}

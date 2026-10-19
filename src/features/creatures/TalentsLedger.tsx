@@ -48,7 +48,7 @@ export function TalentsLedger({ creature, onWorkSkills }: { creature: CreatureRe
   </section>;
 }
 
-function TalentDetails({ talent, onClose }: { talent: TalentPresentation; onClose: () => void }) {
+export function TalentDetails({ talent, onClose }: { talent: TalentPresentation; onClose: () => void }) {
   const [page, setPage] = useState(0);
   // Bounded text pages retain every saved description and condition, including legacy records.
   const entries = [

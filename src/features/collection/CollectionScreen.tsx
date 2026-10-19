@@ -10,7 +10,6 @@ import {
   filterAndSortManagedCreatures,
   getCreatureManagementStatus,
   getCreatureManagementSummary,
-  getPairManagementSummary,
   type CreatureManagementFilters,
   type CreatureSortMode,
   type SortDirection,
@@ -20,11 +19,10 @@ import {
 } from "@/data/collection";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
-  STAT_KEYS,
   getSpeciesDefinition,
   getVariantDefinition,
 } from "@/data/creatures";
-import { SharedCreatureDetail, SHARED_STAT_LABELS } from "@/features/creatures/CreatureDetailPanels";
+import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
 import { useGameContext } from "@/state/GameProvider";
 import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
 import type { CreatureRecord } from "@/types/creature";
@@ -34,6 +32,7 @@ import styles from "./CollectionScreen.module.css";
 import dossier from "./RanchDossier.module.css";
 import overview from "./OverviewA.module.css";
 import { RosterFiltersC } from './RosterFiltersC';
+import { CreatureComparisonA, CreatureCompareChooserA } from './CreatureComparisonA';
 import { CreaturePickerA } from './CreaturePickerA';
 
 type ViewMode = "compact" | "cards";
@@ -437,7 +436,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       </section>
 
       {showArtwork && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} artwork`} onClose={()=>setShowArtwork(false)}><img style={{width:"100%",height:"min(65vh,650px)",objectFit:"contain"}} src={getEquineGameplayProfileSprite(selectedCreature,getNylaGameplayProfileSprite(selectedCreature,getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`}/></GameDialog> : null}
-      {viewMode === "cards" ? <GameDialog title={compareMode ? "Choose Creatures to Compare" : "Creature Cards"} onClose={() => {setViewMode("compact");setCompareMode(false);}} wide>{compareMode ? <p>{compareIds.length}/2 selected</p> : null}<div className={styles.cardGallery}>{visibleCreatures.map(creature => renderCreatureCard(creature,true))}</div>{compareMode ? <button type="button" disabled={compareIds.length !== 2} onClick={() => {setViewMode("compact");setCompareTab("overview");setShowCompare(true);}}>Compare Creatures</button> : null}</GameDialog> : null}
+      {viewMode === "cards" && !compareMode ? <GameDialog title={compareMode ? "Choose Creatures to Compare" : "Creature Cards"} onClose={() => {setViewMode("compact");setCompareMode(false);}} wide>{compareMode ? <p>{compareIds.length}/2 selected</p> : null}<div className={styles.cardGallery}>{visibleCreatures.map(creature => renderCreatureCard(creature,true))}</div>{compareMode ? <button type="button" disabled={compareIds.length !== 2} onClick={() => {setViewMode("compact");setCompareTab("overview");setShowCompare(true);}}>Compare Creatures</button> : null}</GameDialog> : null}
       {showFilters ? <RosterFiltersC save={activeSave} filters={filters} sort={sortMode} direction={sortDirection} onClose={()=>setShowFilters(false)} onApply={(next,sort,direction)=>{setFilters(next);setSortMode(sort);setSortDirection(direction);setShowFilters(false);}}/> : null}
       {showProfile && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} · Profile & Care`} onClose={() => setShowProfile(false)} wide>
                 <SharedCreatureDetail
@@ -458,169 +457,12 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                 />
         <p role="status">{message}</p>
       </GameDialog> : null}
-      {showCompare && compareCreatures.length === 2 ? (
-        <CompareOverlay
-          save={activeSave}
-          creatures={compareCreatures as [CreatureRecord, CreatureRecord]}
-          activeTab={compareTab}
-          onTabChange={setCompareTab}
-          onClose={() => setShowCompare(false)}
-          onBreed={openBreedingPair}
-        />
-      ) : null}
+      {viewMode==='cards' && compareMode ? <CreatureCompareChooserA save={activeSave} creatures={visibleCreatures} ids={compareIds} onToggle={toggleCompareSelection} onClose={()=>{setViewMode('compact');setCompareMode(false);}} onCompare={()=>{setViewMode('compact');setCompareTab('stats');setShowCompare(true);}}/> : null}
+      {showCompare && compareCreatures.length===2 ? <CreatureComparisonA key={compareIds.join(':')} save={activeSave} creatures={compareCreatures as [CreatureRecord,CreatureRecord]} tab={compareTab} onTab={setCompareTab} onClose={()=>{setShowCompare(false);setRosterCollapsed(false);}} onChange={()=>{setShowCompare(false);setCompareMode(true);setViewMode('cards');}} onBreed={openBreedingPair}/> : null}
 
       {confirmMode && selectedCreature ? (
         <CreatureRemovalWindow key={`${confirmMode}-${selectedCreature.creatureId}`} creatureId={selectedCreature.creatureId} mode={confirmMode} onClose={() => setConfirmMode(null)} onRemoved={result => {setMessage(result); setConfirmMode(null); setSelectedCreatureId(null);}}/>
       ) : null}
     </main>
-  );
-}
-
-function CompareOverlay({
-  save,
-  creatures,
-  activeTab,
-  onTabChange,
-  onClose,
-  onBreed,
-}: {
-  save: Parameters<typeof getCreatureManagementStatus>[0];
-  creatures: [CreatureRecord, CreatureRecord];
-  activeTab: CompareTab;
-  onTabChange: (tab: CompareTab) => void;
-  onClose: () => void;
-  onBreed: (a: CreatureRecord, b: CreatureRecord, swap?: boolean) => void;
-}) {
-  const [a, b] = creatures;
-  const statusA = getCreatureManagementStatus(save, a);
-  const statusB = getCreatureManagementStatus(save, b);
-  const pair = getPairManagementSummary(save, a, b);
-
-  return (
-    <GameDialog title={`${a.nickname} × ${b.nickname}`} onClose={onClose} wide>
-      <div className={styles.comparison}>
-        <nav className={styles.compareTabs}>
-          {(["overview", "stats", "breeding"] as CompareTab[]).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              className={activeTab === tab ? styles.activeButton : ""}
-              onClick={() => onTabChange(tab)}
-              aria-pressed={activeTab === tab}
-            >
-              {tab === "stats" ? "Stats & Talents" : tab[0].toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </nav>
-
-        {activeTab === "overview" ? (
-          <div className={styles.compareColumns}>
-            <CompareIdentity creature={a} status={statusA} />
-            <CompareIdentity creature={b} status={statusB} />
-          </div>
-        ) : null}
-
-        {activeTab === "stats" ? (
-          <div className={styles.compareStats}>
-            <div className={styles.compareStatHeader}><span>Attribute</span><strong>{a.nickname}</strong><strong>{b.nickname}</strong></div>
-            {STAT_KEYS.map((key) => {
-              const valueA = a.stats[key];
-              const valueB = b.stats[key];
-              return (
-                <div key={key}>
-                  <span>{SHARED_STAT_LABELS[key]}</span>
-                  <strong className={valueA > valueB ? styles.higherValue : ""}>{valueA} / {a.statGrades[key]}</strong>
-                  <strong className={valueB > valueA ? styles.higherValue : ""}>{valueB} / {b.statGrades[key]}</strong>
-                </div>
-              );
-            })}
-            <section className={styles.talentCompare}>
-              <TalentList title={a.nickname} creature={a} />
-              <TalentList title={b.nickname} creature={b} />
-            </section>
-          </div>
-        ) : null}
-
-        {activeTab === "breeding" ? (
-          <div className={styles.breedingCompare}>
-            <div className={styles.compareColumns}>
-              <RoleSummary creature={a} status={statusA} />
-              <RoleSummary creature={b} status={statusB} />
-            </div>
-            <div className={styles.pairSummary}>
-              <strong>Pair Familiarity: {pair.streak}</strong>
-              <span>Lineage: {pair.lineageLabel}</span>
-              <span>{formatLastBred(Math.min(statusA.daysSinceBred ?? 999, statusB.daysSinceBred ?? 999) === 999 ? null : Math.min(statusA.daysSinceBred ?? 999, statusB.daysSinceBred ?? 999))}</span>
-            </div>
-            <div className={styles.modalActions}>
-              <button type="button" onClick={() => onBreed(a, b)}>{a.nickname} Giver / {b.nickname} Receiver</button>
-              <button type="button" onClick={() => onBreed(a, b, true)}>{b.nickname} Giver / {a.nickname} Receiver</button>
-            </div>
-          </div>
-        ) : null}
-      </div>
-    </GameDialog>
-  );
-}
-
-function CompareIdentity({
-  creature,
-  status,
-}: {
-  creature: CreatureRecord;
-  status: ReturnType<typeof getCreatureManagementStatus>;
-}) {
-  const variant = getVariantDefinition(creature.variantId);
-  const species = getSpeciesDefinition(creature.speciesId);
-  return (
-    <article className={styles.compareIdentity}>
-      <img src={getEquineGameplayProfileSprite(creature, getNylaGameplayProfileSprite(creature, variant.profilePath || variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))} alt="" />
-      <h3>{creature.nickname} {creature.shiny ? "✦" : ""}</h3>
-      <p>{variant.name} {species.name}</p>
-      <dl>
-        <div><dt>Level</dt><dd>{creature.level}</dd></div>
-        <div><dt>Generation</dt><dd>{creature.generation}</dd></div>
-        <div><dt>Sex</dt><dd>{displaySex(status.sex)}</dd></div>
-        <div><dt>Rarity</dt><dd>{status.rarity}</dd></div>
-        <div><dt>Energy</dt><dd>{status.energyPercent}%</dd></div>
-        <div><dt>Affection</dt><dd>{creature.affection}</dd></div>
-        <div><dt>Status</dt><dd>{status.primaryStatus}</dd></div>
-        <div><dt>Protection</dt><dd>{creature.isLocked ? "Locked" : "Unlocked"}</dd></div>
-      </dl>
-    </article>
-  );
-}
-
-function TalentList({ title, creature }: { title: string; creature: CreatureRecord }) {
-  return (
-    <article>
-      <h3>{title}</h3>
-      {creature.abilities.length ? (
-        creature.abilities.map((ability) => (
-          <p key={ability.id}><strong>{ability.name}</strong> · Grade {ability.grade}</p>
-        ))
-      ) : (
-        <p>No talents.</p>
-      )}
-    </article>
-  );
-}
-
-function RoleSummary({
-  creature,
-  status,
-}: {
-  creature: CreatureRecord;
-  status: ReturnType<typeof getCreatureManagementStatus>;
-}) {
-  return (
-    <article className={styles.roleSummary}>
-      <h3>{creature.nickname}</h3>
-      <p><strong>Giver:</strong> {roleLabel(status.giverEligible, status.giverBlockedReason)}</p>
-      <p><strong>Receiver:</strong> {roleLabel(status.receiverEligible, status.receiverBlockedReason)}</p>
-      <p><strong>Fertility:</strong> {creature.stats.FER} / Grade {creature.statGrades.FER}</p>
-      <p><strong>Affection:</strong> {creature.affection}</p>
-      <p><strong>History:</strong> {formatLastBred(status.daysSinceBred)}</p>
-    </article>
   );
 }
