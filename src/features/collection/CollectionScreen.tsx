@@ -33,41 +33,8 @@ import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./CollectionScreen.module.css";
 import dossier from "./RanchDossier.module.css";
 import overview from "./OverviewA.module.css";
+import { RosterFiltersC } from './RosterFiltersC';
 import { CreaturePickerA } from './CreaturePickerA';
-
-const FAMILY_OPTIONS = [
-  ["all", "All Families"],
-  ["feline", "Feline"],
-  ["canine", "Canine"],
-  ["bovine", "Bovine"],
-  ["lapine", "Lapine"],
-  ["equine", "Equine"],
-] as const;
-
-const STATUS_OPTIONS = [
-  ["all", "All Statuses"],
-  ["ready", "Breeding Ready"],
-  ["pregnant", "Pregnant"],
-  ["recovering", "Recovering"],
-  ["recently-bred", "Recently Bred"],
-  ["injured", "Injured"],
-  ["training", "Training"],
-  ["low-energy", "Low Energy"],
-  ["attention", "Needs Attention"],
-] as const;
-
-const SORT_OPTIONS: Array<{ value: CreatureSortMode; label: string }> = [
-  { value: "name", label: "Name" },
-  { value: "newest", label: "Newest" },
-  { value: "level", label: "Level" },
-  { value: "energy", label: "Energy %" },
-  { value: "affection", label: "Affection" },
-  { value: "fertility", label: "Fertility" },
-  { value: "rarity", label: "Rarity" },
-  { value: "variant", label: "Variant" },
-  { value: "best-grade", label: "Best Grade" },
-  { value: "generation", label: "Generation" },
-];
 
 type ViewMode = "compact" | "cards";
 type CompareTab = "overview" | "stats" | "breeding";
@@ -111,7 +78,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const [sortMode, setSortMode] = useState<CreatureSortMode>("newest");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [viewMode, setViewMode] = useState<ViewMode>("compact");
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [confirmMode, setConfirmMode] = useState<"release" | "donate" | null>(null);
@@ -158,17 +124,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
         .filter((creature): creature is CreatureRecord => Boolean(creature)),
     [compareIds, currentSave?.creatures],
   );
-  const variantOptions = useMemo(() => {
-    if (!currentSave) return [];
-    const variants = (currentSave.creatures ?? [])
-      .map((creature) => getVariantDefinition(creature.variantId))
-      .filter(
-        (variant) => filters.family === "all" || variant.family === filters.family,
-      );
-    return Array.from(
-      new Map(variants.map((variant) => [variant.variantId, variant])).values(),
-    ).sort((a, b) => a.name.localeCompare(b.name));
-  }, [currentSave, filters.family]);
 
   if (!currentSave || !summary) {
     return (
@@ -483,171 +438,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
       {showArtwork && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} artwork`} onClose={()=>setShowArtwork(false)}><img style={{width:"100%",height:"min(65vh,650px)",objectFit:"contain"}} src={getEquineGameplayProfileSprite(selectedCreature,getNylaGameplayProfileSprite(selectedCreature,getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`}/></GameDialog> : null}
       {viewMode === "cards" ? <GameDialog title={compareMode ? "Choose Creatures to Compare" : "Creature Cards"} onClose={() => {setViewMode("compact");setCompareMode(false);}} wide>{compareMode ? <p>{compareIds.length}/2 selected</p> : null}<div className={styles.cardGallery}>{visibleCreatures.map(creature => renderCreatureCard(creature,true))}</div>{compareMode ? <button type="button" disabled={compareIds.length !== 2} onClick={() => {setViewMode("compact");setCompareTab("overview");setShowCompare(true);}}>Compare Creatures</button> : null}</GameDialog> : null}
-      {showFilters ? <GameDialog title="Roster Filters & Sort" onClose={() => setShowFilters(false)} wide>
-        <section className={styles.summaryStrip}>
-          <SummaryPill label="Total" value={summary.total} />
-          <SummaryPill label="Breeding Ready" value={summary.ready} />
-          <SummaryPill label="Pregnant" value={summary.pregnant} />
-          <SummaryPill label="Need Attention" value={summary.attention} />
-          <SummaryPill label="Favorites" value={summary.favorites} />
-          <span className={styles.resultCount}>
-            Showing {visibleCreatures.length} of {summary.total}
-          </span>
-        </section>
-
-        <section className={`${ui.paper} ${styles.toolbar}`}>
-          <input
-            aria-label="Search creatures"
-            type="search"
-            value={filters.search}
-            placeholder="Search name, species, or variant..."
-            onChange={(event) => patchFilters({ search: event.target.value })}
-          />
-          <select
-            aria-label="Family filter"
-            value={filters.family}
-            onChange={(event) =>
-              patchFilters({
-                family: event.target.value as CreatureManagementFilters["family"],
-                variantId: "all",
-              })
-            }
-          >
-            {FAMILY_OPTIONS.map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-          <select
-            aria-label="Status filter"
-            value={filters.status}
-            onChange={(event) =>
-              patchFilters({
-                status: event.target.value as CreatureManagementFilters["status"],
-              })
-            }
-          >
-            {STATUS_OPTIONS.map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-          <select
-            aria-label="Sort creatures"
-            value={sortMode}
-            onChange={(event) => setSortMode(event.target.value as CreatureSortMode)}
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-          <button
-            type="button"
-            aria-label="Reverse sort direction"
-            onClick={() =>
-              setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
-            }
-          >
-            {sortDirection === "asc" ? "↑" : "↓"}
-          </button>
-          <button
-            type="button"
-            className={showAdvancedFilters ? styles.activeButton : ""}
-            onClick={() => setShowAdvancedFilters((current) => !current)}
-          >
-            More Filters {activeFilterCount ? `(${activeFilterCount})` : ""}
-          </button>
-          <button type="button" disabled={!activeFilterCount} onClick={clearFilters}>
-            Clear
-          </button>
-        </section>
-
-        {showAdvancedFilters ? (
-          <section className={styles.advancedFilters}>
-            <FilterSelect
-              label="Pregnancy"
-              value={filters.pregnancy}
-              onChange={(value) =>
-                patchFilters({
-                  pregnancy: value as CreatureManagementFilters["pregnancy"],
-                })
-              }
-              options={[
-                ["all", "All"],
-                ["not-pregnant", "Not Pregnant"],
-                ["pregnant", "Pregnant"],
-                ["due-soon", "Due Soon"],
-                ["recovering", "Recovering"],
-              ]}
-            />
-            <FilterSelect
-              label="Energy"
-              value={filters.energy}
-              onChange={(value) =>
-                patchFilters({ energy: value as CreatureManagementFilters["energy"] })
-              }
-              options={[
-                ["all", "All"],
-                ["full", "Full"],
-                ["ready", "Ready"],
-                ["tired", "Tired"],
-                ["exhausted", "Exhausted"],
-              ]}
-            />
-            <FilterSelect
-              label="Rarity"
-              value={filters.rarity}
-              onChange={(value) =>
-                patchFilters({ rarity: value as CreatureManagementFilters["rarity"] })
-              }
-              options={[
-                ["all", "All"],
-                ["Common", "Common"],
-                ["Uncommon", "Uncommon"],
-                ["Rare", "Rare"],
-                ["Epic", "Epic"],
-              ]}
-            />
-            <FilterSelect
-              label="Variant"
-              value={filters.variantId}
-              onChange={(value) => patchFilters({ variantId: value })}
-              options={[
-                ["all", "All Variants"],
-                ...variantOptions.map((variant) => [variant.variantId, variant.name] as const),
-              ]}
-            />
-            <FilterSelect
-              label="Origin"
-              value={filters.origin}
-              onChange={(value) =>
-                patchFilters({ origin: value as CreatureManagementFilters["origin"] })
-              }
-              options={[
-                ["all", "All"],
-                ["starter", "Starter"],
-                ["hatched", "Hatched"],
-                ["market", "Market"],
-                ["guild", "Guild"],
-              ]}
-            />
-            <FilterToggle
-              label="Favorites"
-              checked={filters.favoritesOnly}
-              onChange={(checked) => patchFilters({ favoritesOnly: checked })}
-            />
-            <FilterToggle
-              label="Locked"
-              checked={filters.lockedOnly}
-              onChange={(checked) => patchFilters({ lockedOnly: checked })}
-            />
-            <FilterToggle
-              label="Shiny"
-              checked={filters.shinyOnly}
-              onChange={(checked) => patchFilters({ shinyOnly: checked })}
-            />
-          </section>
-        ) : null}
-
-      </GameDialog> : null}
+      {showFilters ? <RosterFiltersC save={activeSave} filters={filters} sort={sortMode} direction={sortDirection} onClose={()=>setShowFilters(false)} onApply={(next,sort,direction)=>{setFilters(next);setSortMode(sort);setSortDirection(direction);setShowFilters(false);}}/> : null}
       {showProfile && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} · Profile & Care`} onClose={() => setShowProfile(false)} wide>
                 <SharedCreatureDetail
                   creature={selectedCreature}
@@ -682,59 +473,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
         <CreatureRemovalWindow key={`${confirmMode}-${selectedCreature.creatureId}`} creatureId={selectedCreature.creatureId} mode={confirmMode} onClose={() => setConfirmMode(null)} onRemoved={result => {setMessage(result); setConfirmMode(null); setSelectedCreatureId(null);}}/>
       ) : null}
     </main>
-  );
-}
-
-function SummaryPill({ label, value }: { label: string; value: number }) {
-  return (
-    <article className={styles.summaryPill}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </article>
-  );
-}
-
-function FilterSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: ReadonlyArray<readonly [string, string]>;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label>
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)}>
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>{optionLabel}</option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function FilterToggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className={styles.filterToggle}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <span>{label} Only</span>
-    </label>
   );
 }
 

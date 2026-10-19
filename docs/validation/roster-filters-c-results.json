@@ -1,0 +1,204 @@
+{
+  "checks": 66,
+  "results": [
+    {
+      "label": "Condition 1440x900 {\"x\":814,\"y\":110,\"right\":1424,\"bottom\":627.5,\"w\":590,\"sw\":590,\"h\":498,\"sh\":498,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Details 1440x900 {\"x\":814,\"y\":110,\"right\":1424,\"bottom\":616.5,\"w\":590,\"sw\":590,\"h\":487,\"sh\":487,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Sort 1440x900 {\"x\":814,\"y\":110,\"right\":1424,\"bottom\":578.25,\"w\":590,\"sw\":590,\"h\":448,\"sh\":448,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Condition 1280x720 {\"x\":654,\"y\":110,\"right\":1264,\"bottom\":627.5,\"w\":590,\"sw\":590,\"h\":498,\"sh\":498,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Details 1280x720 {\"x\":654,\"y\":110,\"right\":1264,\"bottom\":616.5,\"w\":590,\"sw\":590,\"h\":487,\"sh\":487,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Sort 1280x720 {\"x\":654,\"y\":110,\"right\":1264,\"bottom\":578.25,\"w\":590,\"sw\":590,\"h\":448,\"sh\":448,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Condition 390x844 {\"x\":8,\"y\":161.5,\"right\":382,\"bottom\":682.5,\"w\":360,\"sw\":360,\"h\":507,\"sh\":507,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Details 390x844 {\"x\":8,\"y\":175.5,\"right\":382,\"bottom\":668.5,\"w\":360,\"sw\":360,\"h\":479,\"sh\":479,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Sort 390x844 {\"x\":8,\"y\":196.5,\"right\":382,\"bottom\":647.5,\"w\":360,\"sw\":360,\"h\":437,\"sh\":437,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Condition 360x740 {\"x\":8,\"y\":109.5,\"right\":352,\"bottom\":630.5,\"w\":330,\"sw\":330,\"h\":507,\"sh\":507,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Details 360x740 {\"x\":8,\"y\":123.5,\"right\":352,\"bottom\":616.5,\"w\":330,\"sw\":330,\"h\":479,\"sh\":479,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Sort 360x740 {\"x\":8,\"y\":144.5,\"right\":352,\"bottom\":595.5,\"w\":330,\"sw\":330,\"h\":437,\"sh\":437,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Condition 844x390 {\"x\":218,\"y\":8,\"right\":828,\"bottom\":376.59375,\"w\":590,\"sw\":590,\"h\":349,\"sh\":349,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Details 844x390 {\"x\":218,\"y\":8,\"right\":828,\"bottom\":375.59375,\"w\":590,\"sw\":590,\"h\":348,\"sh\":348,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Sort 844x390 {\"x\":218,\"y\":8,\"right\":828,\"bottom\":324.59375,\"w\":590,\"sw\":590,\"h\":297,\"sh\":297,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Condition 390x500 {\"x\":0,\"y\":8,\"right\":374,\"bottom\":363.6875,\"w\":360,\"sw\":360,\"h\":342,\"sh\":342,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Details 390x500 {\"x\":0,\"y\":8,\"right\":374,\"bottom\":392.6875,\"w\":360,\"sw\":360,\"h\":371,\"sh\":371,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Sort 390x500 {\"x\":0,\"y\":8,\"right\":374,\"bottom\":328.484375,\"w\":360,\"sw\":360,\"h\":306,\"sh\":306,\"bad\":[]}"
+    },
+    {
+      "label": "Visible fields contained"
+    },
+    {
+      "label": "Assets loaded"
+    },
+    {
+      "label": "Draft match count updates"
+    },
+    {
+      "label": "Background search unchanged"
+    },
+    {
+      "label": "Cancel keeps filters"
+    },
+    {
+      "label": "Apply updates roster"
+    },
+    {
+      "label": "Escape discards clear"
+    },
+    {
+      "label": "Favorite preview count"
+    },
+    {
+      "label": "Family resets variant"
+    },
+    {
+      "label": "Zero result count"
+    },
+    {
+      "label": "Text sort direction descriptive"
+    },
+    {
+      "label": "Sorted roster visible"
+    },
+    {
+      "label": "No save writes from filtering"
+    },
+    {
+      "label": "No runtime exceptions"
+    }
+  ],
+  "errors": []
+}
