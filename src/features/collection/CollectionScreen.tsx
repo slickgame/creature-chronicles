@@ -33,6 +33,7 @@ import overview from "./OverviewA.module.css";
 import { RosterFiltersC } from './RosterFiltersC';
 import { CreatureComparisonA, CreatureCompareChooserA } from './CreatureComparisonA';
 import { CreatureCardsC } from './CreatureCardsC';
+import { CreatureProfileCardA } from '@/features/creatures/CreatureProfileCardA';
 import { CreaturePickerA } from './CreaturePickerA';
 
 type ViewMode = "compact" | "cards";
@@ -56,6 +57,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const [rosterCollapsed, setRosterCollapsed] = useState(true);
   const [artCollapsed, setArtCollapsed] = useState(false);
   const [inventoryRequest, setInventoryRequest] = useState(0);
+  const [profileSectionRequest,setProfileSectionRequest]=useState<{tab:'overview'|'care';request:number}>();
   const [showArtwork, setShowArtwork] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showDossier, setShowDossier] = useState(false);
@@ -73,9 +75,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const [compareTab, setCompareTab] = useState<CompareTab>("overview");
-  const [message, setMessage] = useState(
-    "Search, filter, compare, protect, and route creatures to ranch systems.",
-  );
 
   const visibleCreatures = useMemo(
     () =>
@@ -154,7 +153,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
     setRosterCollapsed(true);
     setRenameValue(creature.nickname);
     setConfirmMode(null);
-    setMessage(`${creature.nickname} selected.`);
   }
 
   function toggleFavorite(creature: CreatureRecord) {
@@ -170,11 +168,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
         creatureFavoriteUsed: true,
       },
     });
-    setMessage(
-      creature.isFavorite
-        ? `${creature.nickname} removed from favorites.`
-        : `${creature.nickname} added to favorites.`,
-    );
   }
 
   function toggleCompareSelection(creature: CreatureRecord) {
@@ -190,7 +183,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   function beginCompareWith(creature: CreatureRecord) {
     setCompareMode(true);
     setCompareIds([creature.creatureId]);
-    setMessage(`Choose one more creature to compare with ${creature.nickname}.`);
   }
 
   function openBreedingForCreature(creature: CreatureRecord) {
@@ -230,7 +222,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   function handleRename() {
     if (!selectedCreature || !renameValue.trim()) return;
     renameCreature(selectedCreature.creatureId, renameValue.trim());
-    setMessage(`${selectedCreature.nickname} was renamed to ${renameValue.trim()}.`);
   }
 
 
@@ -286,6 +277,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                     <div data-oa="tabs-workspace" className={dossier.tabsWorkspace}>
                       <SharedCreatureDetail
                       inventoryRequest={inventoryRequest}
+                      sectionRequest={profileSectionRequest}
                       onEquipmentFocus={()=>setRosterCollapsed(true)}
                         creature={selectedCreature}
                         dossier
@@ -332,30 +324,12 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       {showArtwork && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} artwork`} onClose={()=>setShowArtwork(false)}><img style={{width:"100%",height:"min(65vh,650px)",objectFit:"contain"}} src={getEquineGameplayProfileSprite(selectedCreature,getNylaGameplayProfileSprite(selectedCreature,getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`}/></GameDialog> : null}
       {viewMode==='cards' && !compareMode ? <CreatureCardsC save={activeSave} creatures={visibleCreatures} selectedId={cardsPreviewId??selectedCreature?.creatureId} search={filters.search} filterCount={activeFilterCount} pageKey={JSON.stringify([filters,sortMode,sortDirection])} onSearch={search=>patchFilters({search})} onFilters={()=>setShowFilters(true)} onClear={clearFilters} onClose={()=>setViewMode('compact')} onOpen={c=>{selectCreature(c);setShowDossier(true);setViewMode('compact');}} onCompare={c=>{setCompareIds([c.creatureId]);setCompareMode(true);}} onFavorite={toggleFavorite} onLock={c=>toggleCreatureLock(c.creatureId)}/> : null}
       {showFilters ? <RosterFiltersC save={activeSave} filters={filters} sort={sortMode} direction={sortDirection} onClose={()=>setShowFilters(false)} onApply={(next,sort,direction)=>{setFilters(next);setSortMode(sort);setSortDirection(direction);setShowFilters(false);}}/> : null}
-      {showProfile && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} · Profile & Care`} onClose={() => setShowProfile(false)} wide>
-                <SharedCreatureDetail
-                  creature={selectedCreature}
-                  useGameplayArt
-                  dayNumber={activeSave.dayState.dayNumber}
-                  renameValue={renameValue || selectedCreature.nickname}
-                  onRenameValueChange={setRenameValue}
-                  onRename={handleRename}
-                  onToggleLock={() => toggleCreatureLock(selectedCreature.creatureId)}
-                  onRelease={() => setConfirmMode("release")}
-                  onDonate={() => setConfirmMode("donate")}
-                  bestStatLabels={getBestStatLabels(selectedCreature)}
-                  statusNote={getCreatureManagementStatus(activeSave, selectedCreature).primaryStatus}
-                  dossier
-                  ranchDossier
-                  showDossierPortrait
-                />
-        <p role="status">{message}</p>
-      </GameDialog> : null}
+      {showProfile && selectedCreature ? <CreatureProfileCardA save={activeSave} creature={selectedCreature} onClose={()=>setShowProfile(false)} onToggleLock={()=>toggleCreatureLock(selectedCreature.creatureId)} onSupplies={()=>{setShowProfile(false);openInventory();}} onCare={()=>{setShowProfile(false);setProfileSectionRequest(current=>({tab:'care',request:(current?.request??0)+1}));}} onProfile={()=>{setShowProfile(false);setProfileSectionRequest(current=>({tab:'overview',request:(current?.request??0)+1}));}}/> : null}
       {viewMode==='cards' && compareMode ? <CreatureCompareChooserA save={activeSave} creatures={visibleCreatures} ids={compareIds} onToggle={toggleCompareSelection} onClose={()=>{setViewMode('compact');setCompareMode(false);}} onCompare={()=>{setViewMode('compact');setCompareTab('stats');setShowCompare(true);}}/> : null}
       {showCompare && compareCreatures.length===2 ? <CreatureComparisonA key={compareIds.join(':')} save={activeSave} creatures={compareCreatures as [CreatureRecord,CreatureRecord]} tab={compareTab} onTab={setCompareTab} onClose={()=>{setShowCompare(false);setRosterCollapsed(false);}} onChange={()=>{setShowCompare(false);setCompareMode(true);setViewMode('cards');}} onBreed={openBreedingPair}/> : null}
 
       {confirmMode && selectedCreature ? (
-        <CreatureRemovalWindow key={`${confirmMode}-${selectedCreature.creatureId}`} creatureId={selectedCreature.creatureId} mode={confirmMode} onClose={() => setConfirmMode(null)} onRemoved={result => {setMessage(result); setConfirmMode(null); setSelectedCreatureId(null);}}/>
+        <CreatureRemovalWindow key={`${confirmMode}-${selectedCreature.creatureId}`} creatureId={selectedCreature.creatureId} mode={confirmMode} onClose={() => setConfirmMode(null)} onRemoved={() => {setConfirmMode(null); setSelectedCreatureId(null);}}/>
       ) : null}
     </main>
   );

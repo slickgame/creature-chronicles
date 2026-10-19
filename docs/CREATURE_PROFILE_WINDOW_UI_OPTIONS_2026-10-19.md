@@ -1,0 +1,13 @@
+# Expanded Profile & Care window review
+
+Baseline: `c7afcc4a42a492a16f73998f1a732fbd8531c582`, after Inventory A integration. The user selected A and integration is documented in CREATURE_PROFILE_CARD_A_RUNTIME_2026-10-19.md.
+
+The main eight creature sections are updated, but the footer's Profile & Care action still opens a generic parchment GameDialog around the shared navy detail panels. Actual desktop and phone captures are `validation/creature-profile-before-1440.webp` and `validation/creature-profile-before-390.webp`. The desktop tabs wrap words; the phone portrait consumes most of the viewport and requires scrolling to reach the interior content.
+
+Options: A focused profile card with compact identity/vitals and explicit links into the existing full profile, Supplies and Care; B expanded profile preserving all eight sections inside a properly framed bounded window; C a right-aligned care drawer with stacked vitals and the same navigation shortcuts. Recommendation A, avoiding a second full section-navigation shell while keeping all existing functions reachable.
+
+All options must retain canonical portrait art, exact Energy/Affection/Hearts/XP, actual primary status, current protection state and parent navigation. The Open lock action is Lock creature; Closed lock is Unlock creature. More than five Hearts use the established numeric/bar treatment. Browsing and closing remain read-only. Supplies opens the approved Inventory A flow; Care & management opens existing Care B. No free healing, new prices, direct unguarded removal or save-schema changes. Keep the existing rename/removal and equipment transactions intact. Preserve the original selected creature and section on cancel, including when invoked from the Inventory tab.
+
+Concepts are built-in imagegen UI mockups, labeled sample data. Prompt direction: three desktop/phone bands; midnight navy, ornate warm gold corners, ivory Tinos-style serif, emerald actions and painted vital symbols. A centered 2×2 summary and identity strip; B expanded section navigation; C stacked drawer. Exact vitals shown for illustration only. Canonical creature art is reused in runtime, never regenerated from a concept thumbnail. Review approval precedes any new visual direction. Habitat is the suggested next larger screen after finishing this popup.
+
+Board: `public/images/ui/creature-profile-review/options.png`, generated with the built-in image tool. This is concept art only. Runtime must use the already approved open/closed lock artwork, exact numeric vitals, canonical portraits and existing section labels; illustrative icon/pip variations and percentage-only labels in the board do not supersede those requirements.

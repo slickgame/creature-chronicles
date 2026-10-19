@@ -53,6 +53,7 @@ type SharedCreatureDetailProps = {
   dossier?: boolean;
   ranchDossier?: boolean;
   inventoryRequest?: number;
+  sectionRequest?: {tab:CreatureDetailTab;request:number};
   onEquipmentFocus?: () => void;
   showDossierPortrait?: boolean;
   statusNote?: string;
@@ -210,6 +211,7 @@ export function SharedCreatureDetail({
   dossier = false,
   ranchDossier = false,
   inventoryRequest = 0,
+  sectionRequest,
   onEquipmentFocus,
   showDossierPortrait = false,
   statusNote,
@@ -244,6 +246,8 @@ export function SharedCreatureDetail({
   useEffect(() => {
     if (ranchDossier && inventoryRequest > 0) setActiveTab("inventory");
   }, [inventoryRequest, ranchDossier]);
+
+  useEffect(()=>{if(ranchDossier&&sectionRequest)setActiveTab(sectionRequest.tab);},[sectionRequest,ranchDossier]);
 
   const shellStyle: CSSProperties = {
     height: fitViewport ? "100%" : "auto",
