@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CreatureRecord } from '@/types/creature';
 import type { GameSave } from '@/types/save';
 import { getVariantDefinition, CREATURE_PLACEHOLDER_IMAGE } from '@/data/creatures';
@@ -23,6 +23,12 @@ export function CreaturePickerA({save, creatures, selectedId, search, filterCoun
   onBack: () => void;
 }) {
   const [previewId, setPreviewId] = useState(selectedId);
+  const pickerRef=useRef<HTMLElement>(null);
+  useEffect(()=>{
+    const previous=document.activeElement as HTMLElement|null;
+    pickerRef.current?.querySelector<HTMLInputElement>('input')?.focus({preventScroll:true});
+    return()=>{if(previous?.isConnected)previous.focus({preventScroll:true});};
+  },[]);
   const selected = creatures.find(c => c.creatureId === previewId) ?? creatures[0];
   function badge(c: CreatureRecord) {
     const status = getCreatureManagementStatus(save,c).primaryStatus;
@@ -34,7 +40,7 @@ export function CreaturePickerA({save, creatures, selectedId, search, filterCoun
   function lock(c: CreatureRecord) {
     return <button type="button" aria-label={`${c.isLocked ? 'Unlock' : 'Lock'} creature: ${c.nickname}`} onClick={()=>onLock(c)}><img className={styles.symbol} src={`/images/ui/care-b/icons/lock-${c.isLocked?'closed':'open'}.webp`} alt=""/></button>;
   }
-  return <section className={styles.picker} data-creature-picker aria-label="Choose creature" onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();onBack();}}}>
+  return <section ref={pickerRef} className={styles.picker} data-creature-picker aria-label="Choose creature" onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();onBack();}}}>
     <div className={styles.toolbar}>
       <input type="search" aria-label="Search creatures" placeholder="Search creatures…" value={search} onChange={e=>onSearch(e.target.value)}/>
       <button type="button" onClick={onFilters}>Filters & Sort{filterCount ? ` (${filterCount})` : ''}</button>

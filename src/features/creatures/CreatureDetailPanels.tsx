@@ -35,7 +35,7 @@ export const SHARED_STAT_LABELS: Record<CreatureStatKey, string> = {
 };
 
 type CreatureDetailMode = "full" | "compact" | "growth" | "lineage";
-type CreatureDetailTab = "overview" | "stats" | "work" | "talents" | "lineage" | "care" | "inventory" | "equipment";
+type CreatureDetailTab = import('@/features/navigation/NavigationContext').CreatureRosterSection;
 
 type SharedCreatureDetailProps = {
   creature: CreatureRecord;
@@ -54,6 +54,8 @@ type SharedCreatureDetailProps = {
   ranchDossier?: boolean;
   inventoryRequest?: number;
   sectionRequest?: {tab:CreatureDetailTab;request:number};
+  initialSection?: CreatureDetailTab;
+  onSectionChange?: (section:CreatureDetailTab)=>void;
   onEquipmentFocus?: () => void;
   showDossierPortrait?: boolean;
   statusNote?: string;
@@ -212,6 +214,8 @@ export function SharedCreatureDetail({
   ranchDossier = false,
   inventoryRequest = 0,
   sectionRequest,
+  initialSection,
+  onSectionChange,
   onEquipmentFocus,
   showDossierPortrait = false,
   statusNote,
@@ -235,7 +239,8 @@ export function SharedCreatureDetail({
   );
   const tabId = useId();
   const tabs = getAvailableTabs(mode, hasCareActions, ranchDossier);
-  const [activeTab, setActiveTab] = useState<CreatureDetailTab>(tabs[0]);
+  const [activeTab, setActiveTab] = useState<CreatureDetailTab>(()=>ranchDossier&&initialSection&&tabs.includes(initialSection)?initialSection:tabs[0]);
+  useEffect(()=>{if(ranchDossier)onSectionChange?.(activeTab);},[activeTab,ranchDossier,onSectionChange]);
   function selectTab(tab:CreatureDetailTab){setActiveTab(tab);if(tab==='equipment')onEquipmentFocus?.();}
   useEffect(()=>{if(activeTab!=='equipment'||!onEquipmentFocus)return;const resize=()=>onEquipmentFocus();addEventListener('resize',resize);return()=>removeEventListener('resize',resize);},[activeTab,onEquipmentFocus]);
 

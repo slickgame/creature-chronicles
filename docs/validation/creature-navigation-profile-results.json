@@ -1,0 +1,195 @@
+{
+  "checks": 63,
+  "results": [
+    {
+      "label": "Profile A 1440x900 {\"x\":395,\"y\":146.046875,\"right\":1045,\"bottom\":753.9375,\"w\":630,\"sw\":630,\"h\":588,\"sh\":588,\"bad\":[]}"
+    },
+    {
+      "label": "All four live vitals visible"
+    },
+    {
+      "label": "Open profile visible"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "No duplicate section navigation"
+    },
+    {
+      "label": "All profile images loaded"
+    },
+    {
+      "label": "Profile A 1280x720 {\"x\":315,\"y\":75.5625,\"right\":965,\"bottom\":644.4375,\"w\":630,\"sw\":630,\"h\":549,\"sh\":549,\"bad\":[]}"
+    },
+    {
+      "label": "All four live vitals visible"
+    },
+    {
+      "label": "Open profile visible"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "No duplicate section navigation"
+    },
+    {
+      "label": "All profile images loaded"
+    },
+    {
+      "label": "Profile A 390x844 {\"x\":9,\"y\":116.421875,\"right\":381,\"bottom\":727.5625,\"w\":356,\"sw\":356,\"h\":595,\"sh\":595,\"bad\":[]}"
+    },
+    {
+      "label": "All four live vitals visible"
+    },
+    {
+      "label": "Open profile visible"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "No duplicate section navigation"
+    },
+    {
+      "label": "All profile images loaded"
+    },
+    {
+      "label": "Profile A 360x740 {\"x\":9,\"y\":75.5625,\"right\":351,\"bottom\":664.4375,\"w\":326,\"sw\":326,\"h\":573,\"sh\":573,\"bad\":[]}"
+    },
+    {
+      "label": "All four live vitals visible"
+    },
+    {
+      "label": "Open profile visible"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "No duplicate section navigation"
+    },
+    {
+      "label": "All profile images loaded"
+    },
+    {
+      "label": "Profile A 844x390 {\"x\":97,\"y\":53.734375,\"right\":747,\"bottom\":336.265625,\"w\":636,\"sw\":636,\"h\":269,\"sh\":269,\"bad\":[]}"
+    },
+    {
+      "label": "All four live vitals visible"
+    },
+    {
+      "label": "Open profile visible"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "No duplicate section navigation"
+    },
+    {
+      "label": "All profile images loaded"
+    },
+    {
+      "label": "Profile A 390x500 {\"x\":9,\"y\":47.734375,\"right\":381,\"bottom\":452.25,\"w\":358,\"sw\":358,\"h\":391,\"sh\":391,\"bad\":[]}"
+    },
+    {
+      "label": "All four live vitals visible"
+    },
+    {
+      "label": "Open profile visible"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "No duplicate section navigation"
+    },
+    {
+      "label": "All profile images loaded"
+    },
+    {
+      "label": "Exact Energy and Affection values"
+    },
+    {
+      "label": "Real Energy fill"
+    },
+    {
+      "label": "Exact heart pips"
+    },
+    {
+      "label": "Unlocked uses open icon"
+    },
+    {
+      "label": "Escape returns to Inventory"
+    },
+    {
+      "label": "Browsing is read-only"
+    },
+    {
+      "label": "Exact creature locked"
+    },
+    {
+      "label": "Lock label and closed artwork update"
+    },
+    {
+      "label": "Unlock persists"
+    },
+    {
+      "label": "Back retains Inventory"
+    },
+    {
+      "label": "Care shortcut opens existing Care B"
+    },
+    {
+      "label": "Supplies shortcut opens Inventory A"
+    },
+    {
+      "label": "Full profile opens Overview"
+    },
+    {
+      "label": "All eight main sections retained"
+    },
+    {
+      "label": "Shortcuts never save"
+    },
+    {
+      "label": "More than five Hearts uses numeric meter"
+    },
+    {
+      "label": "Actual XP fill"
+    },
+    {
+      "label": "Long name Profile A 360x740 {\"x\":9,\"y\":45.21875,\"right\":351,\"bottom\":694.765625,\"w\":326,\"sw\":326,\"h\":634,\"sh\":634,\"bad\":[]}"
+    },
+    {
+      "label": "Full name retained"
+    },
+    {
+      "label": "Long name Profile A 844x390 {\"x\":97,\"y\":45.9375,\"right\":747,\"bottom\":344.0625,\"w\":636,\"sw\":636,\"h\":284,\"sh\":284,\"bad\":[]}"
+    },
+    {
+      "label": "Full name retained"
+    },
+    {
+      "label": "Long name Profile A 390x500 {\"x\":9,\"y\":31.421875,\"right\":381,\"bottom\":468.5625,\"w\":358,\"sw\":358,\"h\":423,\"sh\":423,\"bad\":[]}"
+    },
+    {
+      "label": "Full name retained"
+    },
+    {
+      "label": "Live training badge"
+    },
+    {
+      "label": "Training Profile A 390x844 {\"x\":9,\"y\":116.421875,\"right\":381,\"bottom\":727.5625,\"w\":356,\"sw\":356,\"h\":595,\"sh\":595,\"bad\":[]}"
+    },
+    {
+      "label": "Training supply restriction remains"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}

@@ -4,7 +4,8 @@ import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
 import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 import { careStatusTone } from "@/data/carePresentation";
 import { CreatureRemovalWindow } from '@/features/creatures/CreatureRemovalWindow';
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useNavigation, type CreatureRosterSection } from '@/features/navigation/NavigationContext';
 import {
   DEFAULT_CREATURE_MANAGEMENT_FILTERS,
   filterAndSortManagedCreatures,
@@ -44,6 +45,7 @@ function displaySex(sex: string): string {
 }
 
 export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
+  const {creatureRoster,setCreatureRoster}=useNavigation();
   const {
     currentSave,
     goToBreeding,
@@ -68,7 +70,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [cardsPreviewId,setCardsPreviewId]=useState<string|null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("compact");
-  const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
+  const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(()=>creatureRoster?.saveId===currentSave?.saveId?creatureRoster?.creatureId??null:null);
+  const [initialSection]=useState<CreatureRosterSection>(()=>creatureRoster?.saveId===currentSave?.saveId?creatureRoster?.section??'overview':'overview');
   const [renameValue, setRenameValue] = useState("");
   const [confirmMode, setConfirmMode] = useState<"release" | "donate" | null>(null);
   const [compareMode, setCompareMode] = useState(false);
@@ -100,6 +103,11 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       ) ?? currentSave.creatures[0]
     );
   }, [selectedCreatureId, currentSave]);
+  const rosterSaveId=currentSave?.saveId,rosterCreatureId=selectedCreature?.creatureId;
+  const rememberSection=useCallback((section:CreatureRosterSection)=>{
+    if(!rosterSaveId||!rosterCreatureId)return;
+    setCreatureRoster(previous=>previous?.saveId===rosterSaveId&&previous.creatureId===rosterCreatureId&&previous.section===section?previous:{saveId:rosterSaveId,creatureId:rosterCreatureId,section});
+  },[rosterSaveId,rosterCreatureId,setCreatureRoster]);
   const compareCreatures = useMemo(
     () =>
       compareIds
@@ -150,6 +158,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
 
   function selectCreature(creature: CreatureRecord) {
     setSelectedCreatureId(creature.creatureId);
+    setCreatureRoster(previous=>({saveId:activeSave.saveId,creatureId:creature.creatureId,section:previous?.saveId===activeSave.saveId?previous.section:'overview'}));
     setRosterCollapsed(true);
     setRenameValue(creature.nickname);
     setConfirmMode(null);
@@ -278,6 +287,8 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
                       <SharedCreatureDetail
                       inventoryRequest={inventoryRequest}
                       sectionRequest={profileSectionRequest}
+                      initialSection={initialSection}
+                      onSectionChange={rememberSection}
                       onEquipmentFocus={()=>setRosterCollapsed(true)}
                         creature={selectedCreature}
                         dossier

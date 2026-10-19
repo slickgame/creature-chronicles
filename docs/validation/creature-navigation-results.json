@@ -1,0 +1,147 @@
+{
+  "checks": 47,
+  "results": [
+    {
+      "label": "Habitat receives exact creature"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps equipment"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps inventory"
+    },
+    {
+      "label": "Habitat profile closes to same resident"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps inventory"
+    },
+    {
+      "label": "Picker search receives focus"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps inventory"
+    },
+    {
+      "label": "Picker Escape restores launcher focus"
+    },
+    {
+      "label": "Entire navigation flow read-only"
+    },
+    {
+      "label": "Section reachable overview 1440"
+    },
+    {
+      "label": "Section reachable stats 1440"
+    },
+    {
+      "label": "Section reachable work 1440"
+    },
+    {
+      "label": "Section reachable talents 1440"
+    },
+    {
+      "label": "Section reachable lineage 1440"
+    },
+    {
+      "label": "Section reachable inventory 1440"
+    },
+    {
+      "label": "Section reachable equipment 1440"
+    },
+    {
+      "label": "Section reachable care 1440"
+    },
+    {
+      "label": "Other save starts on its own first creature"
+    },
+    {
+      "label": "Other save does not inherit Inventory"
+    },
+    {
+      "label": "Habitat receives exact creature"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps equipment"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps inventory"
+    },
+    {
+      "label": "Habitat profile closes to same resident"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps inventory"
+    },
+    {
+      "label": "Picker search receives focus"
+    },
+    {
+      "label": "Return keeps selected creature"
+    },
+    {
+      "label": "Return keeps inventory"
+    },
+    {
+      "label": "Picker Escape restores launcher focus"
+    },
+    {
+      "label": "Entire navigation flow read-only"
+    },
+    {
+      "label": "Section reachable overview 390"
+    },
+    {
+      "label": "Section reachable stats 390"
+    },
+    {
+      "label": "Section reachable work 390"
+    },
+    {
+      "label": "Section reachable talents 390"
+    },
+    {
+      "label": "Section reachable lineage 390"
+    },
+    {
+      "label": "Section reachable inventory 390"
+    },
+    {
+      "label": "Section reachable equipment 390"
+    },
+    {
+      "label": "Section reachable care 390"
+    },
+    {
+      "label": "Other save starts on its own first creature"
+    },
+    {
+      "label": "Other save does not inherit Inventory"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}
