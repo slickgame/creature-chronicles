@@ -1,0 +1,309 @@
+{
+  "checks": 101,
+  "results": [
+    {
+      "label": "Supply gallery 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "All visible supply art loaded"
+    },
+    {
+      "label": "Supply pager visible"
+    },
+    {
+      "label": "Supply content above shell footer"
+    },
+    {
+      "label": "Supply inspector 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector frame 1440x900 {\"x\":861.96875,\"y\":350,\"right\":1410,\"bottom\":767,\"w\":532,\"sw\":532,\"h\":401,\"sh\":401,\"bad\":[]}"
+    },
+    {
+      "label": "Supply effect page 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Exact snack effect displayed"
+    },
+    {
+      "label": "Supply full details 1440x900 {\"x\":420,\"y\":283.203125,\"right\":1020,\"bottom\":616.796875,\"w\":580,\"sw\":580,\"h\":314,\"sh\":314,\"bad\":[]}"
+    },
+    {
+      "label": "Complete exact effect retained"
+    },
+    {
+      "label": "Supply use review 1440x900 {\"x\":420,\"y\":252.421875,\"right\":1020,\"bottom\":647.5625,\"w\":580,\"sw\":580,\"h\":375,\"sh\":375,\"bad\":[]}"
+    },
+    {
+      "label": "Initial safe focus"
+    },
+    {
+      "label": "Supply gallery 1280x720 {\"x\":475.03125,\"y\":280,\"right\":1261.984375,\"bottom\":601,\"w\":787,\"sw\":787,\"h\":321,\"sh\":321,\"bad\":[]}"
+    },
+    {
+      "label": "All visible supply art loaded"
+    },
+    {
+      "label": "Supply pager visible"
+    },
+    {
+      "label": "Supply content above shell footer"
+    },
+    {
+      "label": "Supply inspector 1280x720 {\"x\":475.03125,\"y\":280,\"right\":1261.984375,\"bottom\":601,\"w\":787,\"sw\":787,\"h\":321,\"sh\":321,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector frame 1280x720 {\"x\":767.71875,\"y\":352,\"right\":1249.984375,\"bottom\":587,\"w\":466,\"sw\":466,\"h\":219,\"sh\":219,\"bad\":[]}"
+    },
+    {
+      "label": "Supply effect page 1280x720 {\"x\":475.03125,\"y\":280,\"right\":1261.984375,\"bottom\":601,\"w\":787,\"sw\":787,\"h\":321,\"sh\":321,\"bad\":[]}"
+    },
+    {
+      "label": "Exact snack effect displayed"
+    },
+    {
+      "label": "Supply full details 1280x720 {\"x\":340,\"y\":193.203125,\"right\":940,\"bottom\":526.796875,\"w\":580,\"sw\":580,\"h\":314,\"sh\":314,\"bad\":[]}"
+    },
+    {
+      "label": "Complete exact effect retained"
+    },
+    {
+      "label": "Supply use review 1280x720 {\"x\":340,\"y\":162.421875,\"right\":940,\"bottom\":557.5625,\"w\":580,\"sw\":580,\"h\":375,\"sh\":375,\"bad\":[]}"
+    },
+    {
+      "label": "Initial safe focus"
+    },
+    {
+      "label": "Supply gallery 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "All visible supply art loaded"
+    },
+    {
+      "label": "Supply pager visible"
+    },
+    {
+      "label": "Supply content above shell footer"
+    },
+    {
+      "label": "Supply inspector 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector frame 390x844 {\"x\":20,\"y\":380.28125,\"right\":370,\"bottom\":715.703125,\"w\":340,\"sw\":340,\"h\":325,\"sh\":327,\"bad\":[]}"
+    },
+    {
+      "label": "Supply effect page 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Exact snack effect displayed"
+    },
+    {
+      "label": "Supply full details 390x844 {\"x\":10,\"y\":253,\"right\":380,\"bottom\":591,\"w\":350,\"sw\":350,\"h\":318,\"sh\":318,\"bad\":[]}"
+    },
+    {
+      "label": "Complete exact effect retained"
+    },
+    {
+      "label": "Supply use review 390x844 {\"x\":10,\"y\":234.28125,\"right\":380,\"bottom\":609.703125,\"w\":350,\"sw\":350,\"h\":355,\"sh\":355,\"bad\":[]}"
+    },
+    {
+      "label": "Initial safe focus"
+    },
+    {
+      "label": "Supply gallery 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "All visible supply art loaded"
+    },
+    {
+      "label": "Supply pager visible"
+    },
+    {
+      "label": "Supply content above shell footer"
+    },
+    {
+      "label": "Supply inspector 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector frame 360x740 {\"x\":20,\"y\":380.28125,\"right\":340,\"bottom\":611.703125,\"w\":310,\"sw\":310,\"h\":221,\"sh\":221,\"bad\":[]}"
+    },
+    {
+      "label": "Supply effect page 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Exact snack effect displayed"
+    },
+    {
+      "label": "Supply full details 360x740 {\"x\":10,\"y\":201,\"right\":350,\"bottom\":539,\"w\":320,\"sw\":320,\"h\":318,\"sh\":318,\"bad\":[]}"
+    },
+    {
+      "label": "Complete exact effect retained"
+    },
+    {
+      "label": "Supply use review 360x740 {\"x\":10,\"y\":182.28125,\"right\":350,\"bottom\":557.703125,\"w\":320,\"sw\":320,\"h\":355,\"sh\":355,\"bad\":[]}"
+    },
+    {
+      "label": "Initial safe focus"
+    },
+    {
+      "label": "Supply gallery 844x390 {\"x\":175,\"y\":122,\"right\":827,\"bottom\":302,\"w\":652,\"sw\":652,\"h\":180,\"sh\":180,\"bad\":[]}"
+    },
+    {
+      "label": "All visible supply art loaded"
+    },
+    {
+      "label": "Supply pager visible"
+    },
+    {
+      "label": "Supply content above shell footer"
+    },
+    {
+      "label": "Supply inspector 844x390 {\"x\":175,\"y\":122,\"right\":827,\"bottom\":302,\"w\":652,\"sw\":652,\"h\":180,\"sh\":180,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector frame 844x390 {\"x\":177,\"y\":155.796875,\"right\":825,\"bottom\":300,\"w\":642,\"sw\":642,\"h\":138,\"sh\":138,\"bad\":[]}"
+    },
+    {
+      "label": "Supply effect page 844x390 {\"x\":175,\"y\":122,\"right\":827,\"bottom\":302,\"w\":652,\"sw\":652,\"h\":180,\"sh\":180,\"bad\":[]}"
+    },
+    {
+      "label": "Exact snack effect displayed"
+    },
+    {
+      "label": "Supply full details 844x390 {\"x\":122,\"y\":81.140625,\"right\":722,\"bottom\":308.859375,\"w\":580,\"sw\":580,\"h\":208,\"sh\":208,\"bad\":[]}"
+    },
+    {
+      "label": "Complete exact effect retained"
+    },
+    {
+      "label": "Supply use review 844x390 {\"x\":122,\"y\":50,\"right\":722,\"bottom\":340,\"w\":580,\"sw\":580,\"h\":270,\"sh\":270,\"bad\":[]}"
+    },
+    {
+      "label": "Initial safe focus"
+    },
+    {
+      "label": "Supply gallery 390x500 {\"x\":17,\"y\":186.09375,\"right\":373,\"bottom\":412,\"w\":356,\"sw\":356,\"h\":226,\"sh\":226,\"bad\":[]}"
+    },
+    {
+      "label": "All visible supply art loaded"
+    },
+    {
+      "label": "Supply pager visible"
+    },
+    {
+      "label": "Supply content above shell footer"
+    },
+    {
+      "label": "Supply inspector 390x500 {\"x\":17,\"y\":186.09375,\"right\":373,\"bottom\":412,\"w\":356,\"sw\":356,\"h\":226,\"sh\":226,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector frame 390x500 {\"x\":19,\"y\":219.890625,\"right\":371,\"bottom\":410,\"w\":346,\"sw\":346,\"h\":184,\"sh\":184,\"bad\":[]}"
+    },
+    {
+      "label": "Supply effect page 390x500 {\"x\":17,\"y\":186.09375,\"right\":373,\"bottom\":412,\"w\":356,\"sw\":356,\"h\":226,\"sh\":226,\"bad\":[]}"
+    },
+    {
+      "label": "Exact snack effect displayed"
+    },
+    {
+      "label": "Supply full details 390x500 {\"x\":10,\"y\":127.6875,\"right\":380,\"bottom\":372.296875,\"w\":350,\"sw\":350,\"h\":225,\"sh\":225,\"bad\":[]}"
+    },
+    {
+      "label": "Complete exact effect retained"
+    },
+    {
+      "label": "Supply use review 390x500 {\"x\":10,\"y\":105,\"right\":380,\"bottom\":395,\"w\":350,\"sw\":350,\"h\":270,\"sh\":270,\"bad\":[]}"
+    },
+    {
+      "label": "Initial safe focus"
+    },
+    {
+      "label": "Browsing, details, paging and cancellation never save"
+    },
+    {
+      "label": "Saved item receipt 1440x900 {\"x\":420,\"y\":235.03125,\"right\":1020,\"bottom\":664.96875,\"w\":580,\"sw\":580,\"h\":410,\"sh\":410,\"bad\":[]}"
+    },
+    {
+      "label": "Exactly one snack consumed"
+    },
+    {
+      "label": "Exact target gains 12 Energy"
+    },
+    {
+      "label": "Gold unchanged"
+    },
+    {
+      "label": "Other creatures untouched"
+    },
+    {
+      "label": "Receipt shows saved result"
+    },
+    {
+      "label": "Rapid repeat confirmation consumes one treat"
+    },
+    {
+      "label": "Balm exact Hearts preview"
+    },
+    {
+      "label": "Balm consumes one and restores one Heart"
+    },
+    {
+      "label": "No-effect balm use disabled"
+    },
+    {
+      "label": "Blocker explained"
+    },
+    {
+      "label": "Empty stock state"
+    },
+    {
+      "label": "Empty stock 1440x900 {\"x\":532.65625,\"y\":278,\"right\":1422,\"bottom\":781,\"w\":889,\"sw\":889,\"h\":503,\"sh\":503,\"bad\":[]}"
+    },
+    {
+      "label": "Full Energy blocks snack"
+    },
+    {
+      "label": "Long name blocked inspector 360x740 {\"x\":18,\"y\":331.1875,\"right\":342,\"bottom\":619.703125,\"w\":324,\"sw\":324,\"h\":289,\"sh\":289,\"bad\":[]}"
+    },
+    {
+      "label": "Long name blocked inspector 844x390 {\"x\":175,\"y\":122,\"right\":827,\"bottom\":302,\"w\":652,\"sw\":652,\"h\":180,\"sh\":180,\"bad\":[]}"
+    },
+    {
+      "label": "Three-row balm preview 390x844 {\"x\":18,\"y\":331.1875,\"right\":372,\"bottom\":723.703125,\"w\":354,\"sw\":354,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Balm injury and stock reachable"
+    },
+    {
+      "label": "Three-row balm review 390x844 {\"x\":10,\"y\":215.28125,\"right\":380,\"bottom\":628.703125,\"w\":350,\"sw\":350,\"h\":393,\"sh\":393,\"bad\":[]}"
+    },
+    {
+      "label": "Three-row balm preview 844x390 {\"x\":175,\"y\":122,\"right\":827,\"bottom\":302,\"w\":652,\"sw\":652,\"h\":180,\"sh\":180,\"bad\":[]}"
+    },
+    {
+      "label": "Balm injury and stock reachable"
+    },
+    {
+      "label": "Three-row balm review 844x390 {\"x\":122,\"y\":35,\"right\":722,\"bottom\":355,\"w\":580,\"sw\":580,\"h\":300,\"sh\":300,\"bad\":[]}"
+    },
+    {
+      "label": "Three-row balm preview 390x500 {\"x\":17,\"y\":186.09375,\"right\":373,\"bottom\":412,\"w\":356,\"sw\":356,\"h\":226,\"sh\":226,\"bad\":[]}"
+    },
+    {
+      "label": "Balm injury and stock reachable"
+    },
+    {
+      "label": "Three-row balm review 390x500 {\"x\":10,\"y\":90,\"right\":380,\"bottom\":410,\"w\":350,\"sw\":350,\"h\":300,\"sh\":300,\"bad\":[]}"
+    },
+    {
+      "label": "Training use blocked"
+    },
+    {
+      "label": "Training explanation"
+    },
+    {
+      "label": "No runtime exceptions"
+    }
+  ],
+  "errors": []
+}

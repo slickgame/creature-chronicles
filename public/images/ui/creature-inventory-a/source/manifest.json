@@ -1,0 +1,15 @@
+{
+  "source": "supply-atlas.png",
+  "sha256": "5216a9a70d4000a23757554c00c664c0c8651e0c0385f9d2ed0f806338bddd7c",
+  "tool": "built-in image_gen",
+  "transparent_background": true,
+  "layout": "3 columns by 2 rows, each 512px cell; crop alpha bounds; center within 480px export with 28px minimum padding",
+  "exports": [
+    "energy_snack",
+    "energy_meal",
+    "affection_treat",
+    "recovery_balm",
+    "stock",
+    "chevron"
+  ]
+}

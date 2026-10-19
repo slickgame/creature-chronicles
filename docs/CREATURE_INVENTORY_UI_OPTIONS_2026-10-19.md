@@ -1,0 +1,11 @@
+# Creature Inventory visual review
+
+Next after the approved Cards C integration: restyle the creature Inventory interior and its item-use review/receipt. A was selected and integrated; see CREATURE_INVENTORY_A_RUNTIME_2026-10-19.md. PR21 remains draft/unmerged.
+
+Current local game screenshots: `validation/creature-inventory-before-1440.webp` and `validation/creature-inventory-before-390.webp`. These use an isolated established-ranch sample save, restored canonical supply item art, and the existing production build. They show dark inherited text on navy surfaces, small artwork and no inline selected-item preview.
+
+Comparison board: `public/images/ui/creature-inventory-review/options.png`. Options: A compact item gallery and side inspector; B compact supply ledger and bottom preview; C grouped Energy/Care kit and full-width preview. All include desktop and phone arrangements. Recommendation: A, matching the approved equipment and Cards gallery patterns. Illustrated item art and abbreviated navigation are concept-only; the user subsequently requested all artwork needed to match A, so the inventory kit now supplies matching generated food/care art while retaining all eight existing creature sections and canonical creature portraits.
+
+Preserve shared ranch stock, All/Energy/Care filters, exact owned counts and canonical item art. Preview capped actual Energy/Affection/Hearts changes, injury recovery and remaining stock. Review use opens explicit Cancel/Confirm; selecting or browsing must not consume anything. Keep fresh-save validation, duplicate-click protection, training restrictions, exact target identity, empty states and a receipt from saved results. Breeding and pregnancy items stay in their existing dedicated flows. No prices, invented bonuses, new mechanics or new creature artwork.
+
+Concept prompt: built-in imagegen, ui-mockup; three labeled desktop/phone bands A/B/C, midnight navy, warm gold ornate corners, ivory Tinos-style type, emerald actions, painterly food and care icons. Four supplies: Energy Snack, Hearty Energy Meal, Affection Treat and Recovery Balm. Sample selected snack for Mira: Energy 35 to 47 of 91, stock 6 to 5, consumes one, no Gold charge. Explicit Review use, compact paging and no scrolling panels. Concepts are sample data and visual proposals, separate from current-game captures.

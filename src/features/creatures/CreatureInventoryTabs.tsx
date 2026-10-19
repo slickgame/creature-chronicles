@@ -1,61 +1,63 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { BREEDING_SUPPORT_ITEMS, getBreedingSupportItemCount, useBreedingSupportItem as applySupportItem } from "@/data/breedingItems";
-import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
-import { DetailButton } from "@/features/ui/DetailButton";
-import { GameDialog } from "@/features/ui/GameDialog";
-import { useGameContext } from "@/state/GameProvider";
-import type { CreatureRecord } from "@/types/creature";
-import s from "./CreatureInventoryTabs.module.css";
+import {useEffect, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
+import {BREEDING_SUPPORT_ITEMS, ENERGY_SNACK_RESTORE, ENERGY_MEAL_RESTORE, AFFECTION_TREAT_GAIN, getBreedingSupportItem, getBreedingSupportItemCount} from '@/data/breedingItems';
+import {creatureSupplyChanges, getCreatureSupplyQuote, type CreatureSupplyQuote, type SupplyChange} from '@/data/creatureSupplyUse';
+import {GameDialog} from '@/features/ui/GameDialog';
+import {useGameContext} from '@/state/GameProvider';
+import type {CreatureRecord} from '@/types/creature';
+import type {BreedingSupportItemId} from '@/types/items';
+import s from './CreatureInventoryTabs.module.css';
 
-function ItemArt({src, name}: {src:string; name:string}) {
-  const [failed,setFailed]=useState(false);
-  return failed ? <span className={s.fallback} aria-label={name}>✦</span> : <img src={src} alt="" onError={()=>setFailed(true)} />;
+const ROOT='/images/ui/creature-inventory-a';
+const supplyItems=BREEDING_SUPPORT_ITEMS.filter(i=>['Energy','Care'].includes(i.category)&&['creature','player-or-creature'].includes(i.target));
+const icons={energy:'/images/ui/creature-overview-a-v2/sculpted/energy.webp',heart:'/images/ui/creature-overview-a-v2/sculpted/heart.webp',stock:ROOT+'/art/stock.webp',recovery:'/images/ui/care-b/icons/recovering.webp'};
+const summaries:Partial<Record<BreedingSupportItemId,string>>={energy_snack:`Restores +${ENERGY_SNACK_RESTORE} Energy. Energy is capped at your creature’s maximum.`,energy_meal:`Restores +${ENERGY_MEAL_RESTORE} Energy. Energy is capped at your creature’s maximum.`,affection_treat:`Adds +${AFFECTION_TREAT_GAIN} Affection, up to 100.`,recovery_balm:'Restores 1 Heart and shortens an active injury by 1 day. At least one effect must apply.'};
+function ItemArt({id}:{id:BreedingSupportItemId}) {return <img className={s.itemArt} src={ROOT+'/art/'+id+'.webp'} alt=""/>;}
+function Changes({rows,saved=false}:{rows:SupplyChange[];saved?:boolean}) {
+  return <dl className={s.changes} aria-label={saved?'Before and saved result':'Item effect preview'}>{rows.map(row=><div key={row.label}><dt><img src={icons[row.icon]} alt=""/>{row.label}</dt><dd><span>{row.before}</span><span aria-hidden="true">→</span><strong>{row.after}</strong></dd></div>)}</dl>;
 }
-function Heading({eyebrow,title}: {eyebrow:string;title:string}) {
-  return <header className={s.heading}><small>{eyebrow}</small><h3>{title}</h3></header>;
-}
-
-export function CreatureInventoryTab({creature}: {creature:CreatureRecord}) {
-  const {currentSave:save,saveCurrentGame}=useGameContext();
-  const [category,setCategory]=useState("All");
-  const [selectedId,setSelectedId]=useState("");
-  const [review,setReview]=useState(false);
-  const [itemOpen,setItemOpen]=useState(false);
-  const [message,setMessage]=useState("");
-  const busy=useRef(false);
+export function CreatureInventoryTab({creature}:{creature:CreatureRecord}) {
+  const {currentSave:save,confirmCreatureSupplyReview}=useGameContext();
+  const [category,setCategory]=useState('All'),[selectedId,setSelectedId]=useState<BreedingSupportItemId>('energy_snack');
+  const [focused,setFocused]=useState(false),[effectPage,setEffectPage]=useState(false);
+  const [page,setPage]=useState(0),[capacity,setCapacity]=useState(4),[availableHeight,setAvailableHeight]=useState(420);
+  const [review,setReview]=useState<CreatureSupplyQuote|null>(null),[error,setError]=useState('');
+  const [receipt,setReceipt]=useState<{name:string;itemId:BreedingSupportItemId;rows:SupplyChange[];message:string}|null>(null);
+  const [details,setDetails]=useState(false);
+  const gallery=useRef<HTMLDivElement>(null),busy=useRef(false),openedAt=useRef(0),receiptAt=useRef(0);
+  useEffect(()=>{const element=gallery.current;if(!element)return;const observer=new ResizeObserver(entries=>{const h=entries[0].contentRect.height;setCapacity(h<285?2:4);setAvailableHeight(h);});observer.observe(element);return ()=>observer.disconnect();},[]);
   if(!save)return null;
-  const rows=BREEDING_SUPPORT_ITEMS.filter(item=>getBreedingSupportItemCount(save,item.itemId)>0&&(item.target==="creature"||item.target==="player-or-creature")&&(category==="All"||item.category===category));
-  const item=rows.find(i=>i.itemId===selectedId)??rows[0];
-  const stock=item?getBreedingSupportItemCount(save,item.itemId):0;
-  const preview=item?applySupportItem(save,item.itemId,{source:"inventory",targetId:creature.creatureId}):null;
-  const after=preview?.save.creatures?.find(c=>c.creatureId===creature.creatureId);
-  const unavailable=getTrainingUnavailableReason(save,creature.creatureId);
-  function confirm() {
-    if(!save||!item||busy.current||unavailable)return;
-    busy.current=true;
-    const result=applySupportItem(save,item.itemId,{source:"inventory",targetId:creature.creatureId});
-    if(result.ok)saveCurrentGame(result.save);
-    setMessage(result.message);setReview(false);setItemOpen(false);
+  const target=save.creatures?.find(c=>c.creatureId===creature.creatureId);if(!target)return null;
+  const rows=supplyItems.filter(i=>getBreedingSupportItemCount(save,i.itemId)>0&&(category==='All'||i.category===category));
+  const item=rows.find(i=>i.itemId===selectedId)??rows[0],quote=item?getCreatureSupplyQuote(save,target.creatureId,item.itemId):null;
+  const compact=availableHeight<310||Boolean(quote&&(quote.changes.length>2||!quote.canUse)&&availableHeight<390)||target.nickname.length>16&&availableHeight<375;
+  const pages=Math.max(1,Math.ceil(rows.length/capacity)),currentPage=Math.min(page,pages-1);
+  const selected=supplyItems.find(i=>i.itemId===review?.itemId),liveReview=review?getCreatureSupplyQuote(save,review.targetId,review.itemId):null;
+  const stale=Boolean(review&&liveReview?.revision!==review.revision);
+  function openReview(){if(!quote?.canUse)return;busy.current=false;openedAt.current=Date.now();setError('');setReview(quote);}
+  function confirm(){
+    if(!review||busy.current||Date.now()-openedAt.current<250||stale)return;busy.current=true;
+    const before=save?.creatures?.find(c=>c.creatureId===review.targetId),result=confirmCreatureSupplyReview(review),after=result.save?.creatures?.find(c=>c.creatureId===review.targetId);
+    if(result.ok&&before&&after&&result.save){receiptAt.current=Date.now();setReceipt({name:after.nickname,itemId:review.itemId,rows:creatureSupplyChanges(before,after,review.stock,getBreedingSupportItemCount(result.save,review.itemId),review.itemId),message:result.message});setReview(null);}else{setError(result.message);busy.current=false;}
   }
-  const changes=after&&preview?.ok?<dl className={s.changes}>
-    <div><dt>Energy</dt><dd>{creature.energy} → {after.energy} / {creature.maxEnergy}</dd></div>
-    <div><dt>Affection</dt><dd>{creature.affection} → {after.affection} / 100</dd></div>
-    <div><dt>Hearts</dt><dd>{creature.hearts} → {after.hearts} / {creature.maxHearts}</dd></div>
-    {creature.injuredUntilDayNumber!==after.injuredUntilDayNumber?<div><dt>Injury recovery</dt><dd>{after.injuredUntilDayNumber ? `Through day ${after.injuredUntilDayNumber}` : "Cleared"}</dd></div>:null}
-  </dl>:null;
-  return <section className={s.page}>
-    <Heading eyebrow="Shared ranch supplies" title={`Inventory · ${creature.nickname}`} />
-    <p>Select an item to review its effect. Stock is shared across the ranch.</p>
-    <div className={s.filters} aria-label="Item categories">{["All","Energy","Care"].map(c=><button key={c} aria-pressed={category===c} onClick={()=>{setCategory(c);setSelectedId("");setMessage("");}}>{c}</button>)}</div>
-    {!rows.length&&<p>No owned care items match this category.</p>}
-    <div className={s.itemGrid}>{rows.map(i=><DetailButton hint={`${i.name} · ${i.rarity}\n${i.exactEffect}\n${getBreedingSupportItemCount(save,i.itemId)} owned · Shared ranch stock. Select to review use.`} key={i.itemId} className={s.itemCard} aria-pressed={item?.itemId===i.itemId} aria-label={`Select ${i.name}`} onClick={()=>{setSelectedId(i.itemId);setMessage("");setItemOpen(true);}}><ItemArt key={i.iconPath} src={i.iconPath} name={i.name}/><strong>{i.name}</strong><small>{i.category} · {i.rarity}</small><span className={s.stock}>{getBreedingSupportItemCount(save,i.itemId)} owned</span></DetailButton>)}</div>
-    {itemOpen&&item?<GameDialog title={item.name} onClose={()=>setItemOpen(false)}><article className={s.detail}><h4>{item.name}</h4><p>{item.exactEffect}</p>{changes}<p className={s.note}>{preview?.ok ? `Stock after use: ${stock} → ${stock-1}. No Gold charge.` : preview?.message}</p>{unavailable?<p role="status">Away at training: {unavailable}. Collect this creature before using care items here.</p>:null}<button className={s.primary} disabled={!preview?.ok||!!unavailable} onClick={()=>{busy.current=false;setReview(true);}}>Review use on {creature.nickname}</button></article></GameDialog>:null}
-
-    {message?<GameDialog title="Receipt" onClose={()=>setMessage("")}><p role="status">{message}</p><button onClick={()=>setMessage("")}>Continue</button></GameDialog>:null}
-    {review&&item?<GameDialog title={`Use ${item.name}?`} onClose={()=>setReview(false)}><p>Target: <strong>{creature.nickname}</strong>. Consumes one {item.name} from shared stock.</p>{changes}<p>{item.exactEffect}</p><div className={s.actions}><button onClick={()=>setReview(false)}>Cancel</button><button disabled={!preview?.ok||!!unavailable} onClick={confirm}>Confirm item use</button></div></GameDialog>:null}
+  function switchCategory(value:string){setCategory(value);setPage(0);setEffectPage(false);}
+  return <section className={s.supply} data-supply-gallery data-focused={focused} data-compact={compact}>
+    <header className={s.heading}><h3>Supplies</h3><div className={s.shared}><img src={ROOT+'/art/stock.webp'} alt=""/><span><strong>Shared Ranch Stock</strong><small>Items are shared across your ranch.</small></span></div><div className={s.filters} aria-label="Item categories">{['All','Energy','Care'].map(c=><button type="button" key={c} aria-pressed={category===c} onClick={()=>switchCategory(c)}>{c}</button>)}</div></header>
+    <div className={s.focusTabs}><button type="button" aria-pressed={!focused} onClick={()=>setFocused(false)}>Items</button><button type="button" disabled={!item} aria-label="Selected item" aria-pressed={focused&&(!compact||!effectPage)} onClick={()=>{setFocused(true);setEffectPage(false);}}>{compact?'Item':'Selected item'}</button>{compact?<button type="button" className={s.compactEffect} aria-pressed={focused&&effectPage} onClick={()=>{setFocused(true);setEffectPage(true);}}>Effect</button>:null}</div>
+    <div className={s.body} ref={gallery}>
+      {item&&quote?<><div className={s.gallery}><div className={s.tiles}>{rows.slice(currentPage*capacity,(currentPage+1)*capacity).map(i=><button type="button" className={s.tile} key={i.itemId} aria-label={'Select '+i.name} aria-pressed={item.itemId===i.itemId} onClick={()=>{setSelectedId(i.itemId);setFocused(true);setEffectPage(false);}}><ItemArt id={i.itemId}/><span className={s.stock} aria-label={getBreedingSupportItemCount(save,i.itemId)+' owned'}>{getBreedingSupportItemCount(save,i.itemId)}</span><strong>{i.name}</strong></button>)}</div><nav className={s.pager} aria-label="Supply pages"><button type="button" disabled={!currentPage} onClick={()=>setPage(currentPage-1)}>Previous</button><span>{currentPage+1} / {pages}</span><button type="button" disabled={currentPage+1>=pages} onClick={()=>setPage(currentPage+1)}>Next</button></nav></div>
+      <article className={s.inspector} aria-label="Selected supply" data-effect-page={effectPage}>
+        <div className={s.detailTabs}><button type="button" aria-pressed={!effectPage} onClick={()=>setEffectPage(false)}>Item</button><button type="button" aria-pressed={effectPage} onClick={()=>setEffectPage(true)}>Effect</button></div>
+        <div className={s.supplyIllustration}><ItemArt id={item.itemId}/></div><div className={s.identity}><h4>{item.name}</h4><span className={s.category}><img src={icons[item.category==='Energy'?'energy':'heart']} alt=""/>{item.category}</span><p className={s.owned}>Owned: <strong>{quote.stock}</strong></p><p className={s.description}>{summaries[item.itemId]??item.exactEffect}</p></div>
+        <div className={s.effect}><h5>Effect on {target.nickname}</h5><Changes rows={quote.changes}/></div><p className={s.blocker} role="status">{quote.canUse||compact&&effectPage?'':quote.message.startsWith(target.nickname+' ')?quote.message.slice(target.nickname.length+1):quote.message}</p>
+        <div className={s.inspectorFooter}><button type="button" className={s.detailLink} onClick={()=>setDetails(true)}>Item details</button><button type="button" data-primary disabled={!quote.canUse} onClick={openReview}>Review use <img src={ROOT+'/art/chevron.webp'} alt=""/></button></div>
+      </article></>:<div className={s.empty}><img src={ROOT+'/art/stock.webp'} alt=""/><h4>No supplies in this category</h4><p>Owned Energy and Care items appear here. Stock is shared across the ranch.</p><button type="button" onClick={()=>switchCategory('All')}>Show all supplies</button></div>}
+    </div>
+    {typeof document!=='undefined'&&review&&selected?createPortal(<GameDialog title={'Use '+selected.name+'?'} onClose={()=>setReview(null)}><div className={s.window} data-supply-review><div className={s.reviewIdentity}><ItemArt id={selected.itemId}/><div><h3>{selected.name}</h3><p>For <strong>{review.targetName}</strong></p><small>Consumes one from shared ranch stock.</small></div></div><Changes rows={review.changes}/><p>No Gold charge.</p>{stale||error?<p role="alert" className={s.alert}>{error||'The creature or stock changed. Cancel and review the item again.'}</p>:null}<footer><button type="button" data-initial-focus onClick={()=>setReview(null)}>Cancel</button><button type="button" data-primary disabled={stale||!liveReview?.canUse||!!error} onClick={confirm}>Confirm item use</button></footer></div></GameDialog>,document.body):null}
+    {typeof document!=='undefined'&&receipt?createPortal(<GameDialog title="Item used" onClose={()=>setReceipt(null)}><div className={s.window} data-supply-receipt><div className={s.reviewIdentity}><ItemArt id={receipt.itemId}/><div><h3>{getBreedingSupportItem(receipt.itemId)?.name}</h3><p>Used on <strong>{receipt.name}</strong></p><small>Before → Saved</small></div></div><Changes rows={receipt.rows} saved/><p role="status">{receipt.message}</p><p>Result saved. No Gold charged.</p><footer><button type="button" data-primary onClick={()=>{if(Date.now()-receiptAt.current>=250)setReceipt(null);}}>Continue</button></footer></div></GameDialog>,document.body):null}
+    {typeof document!=='undefined'&&details&&item&&quote?createPortal(<GameDialog title="Supply details" onClose={()=>setDetails(false)}><div className={s.window} data-supply-details><div className={s.reviewIdentity}><ItemArt id={item.itemId}/><div><h3>{item.name}</h3><p>{item.category} · {item.rarity} · {quote.stock} owned</p></div></div><p>{item.exactEffect}</p><p>{quote.message}</p><footer><button type="button" onClick={()=>setDetails(false)}>Back to supplies</button></footer></div></GameDialog>,document.body):null}
   </section>;
 }
-
 export {CreatureEquipmentLedger as CreatureEquipmentTab} from './CreatureEquipmentLedger';

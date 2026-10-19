@@ -6,6 +6,7 @@ import { performBreedingAttempt } from "@/data/breeding";
 import { releaseOrDonateCreature } from "@/data/collection";
 import { confirmCreatureRemoval, type CreatureRemovalQuote } from '@/data/creatureRemoval';
 import { renameOwnedCreature } from '@/data/creatureNaming';
+import {confirmCreatureSupplyUse, type CreatureSupplyQuote} from '@/data/creatureSupplyUse';
 import { buildDailyReportBundle, serializeDailyReportBundle } from "@/data/dailyReport";
 import { applyEggAtelierHatchEffects } from "@/data/eggAtelier";
 import { MVP_VERSION } from "@/data/gameConstants";
@@ -89,6 +90,7 @@ type GameContextValue = {
   goToRanchJobs: () => void;
   goToDevTools: () => void;
   saveCurrentGame: (nextSave: GameSave) => GameSave;
+  confirmCreatureSupplyReview: (quote:CreatureSupplyQuote) => {ok:boolean;message:string;save:GameSave|null};
   advanceDay: () => DayAdvanceResult | null;
   renameCreature: (creatureId: CreatureId, nickname: string) => {ok: boolean; message: string};
   feedCreature: (creatureId: CreatureId) => void;
@@ -239,6 +241,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     if (result.ok && result.save !== latestSave.current) saveCurrentGame(result.save);
     return {ok: result.ok, message: result.message};
   }, [saveCurrentGame]);
+
+  const confirmCreatureSupplyReview = useCallback((quote:CreatureSupplyQuote) => {
+    if(!latestSave.current)return {ok:false,message:'No active save.',save:null};
+    const result=confirmCreatureSupplyUse(latestSave.current,quote);
+    return {...result,save:result.ok?saveCurrentGame(result.save):result.save};
+  },[saveCurrentGame]);
 
   const feedCreature = useCallback((creatureId: CreatureId) => {
     if (!currentSave) return;
@@ -502,6 +510,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     goToRanchJobs,
     goToDevTools,
     saveCurrentGame,
+    confirmCreatureSupplyReview,
     advanceDay,
     renameCreature,
     feedCreature,
@@ -558,6 +567,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     goToRanchJobs,
     goToDevTools,
     saveCurrentGame,
+    confirmCreatureSupplyReview,
     advanceDay,
     renameCreature,
     feedCreature,

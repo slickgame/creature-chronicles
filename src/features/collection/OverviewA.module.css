@@ -77,14 +77,14 @@
 /* Native kit navigation symbols and an explicitly reserved More actions row. */
 .navigationIcon{display:block;width:24px;height:24px;object-fit:contain;flex:none;}
 @media(max-width:850px) and (min-height:551px){
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=workspace]{grid-template-rows:118px minmax(0,1fr)!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=portrait]{height:118px!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=identity]{padding:6px 9px!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=identity] h2{font-size:24px!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=identity] p{font-size:12px!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=identity] p,.screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=identity] [class*=badges]{margin-bottom:3px!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=identity] [class*=ready]{padding:2px 5px!important;font-size:11px!important;line-height:1.1!important;}
- .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger])) [data-oa=footer]>button{min-height:52px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=workspace]{grid-template-rows:118px minmax(0,1fr)!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=portrait]{height:118px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=identity]{padding:6px 9px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=identity] h2{font-size:24px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=identity] p{font-size:12px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=identity] p,.screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=identity] [class*=badges]{margin-bottom:3px!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=identity] [class*=ready]{padding:2px 5px!important;font-size:11px!important;line-height:1.1!important;}
+ .screen.screen:has(:is([data-work-ledger],[data-talents-ledger],[data-lineage-ledger],[data-care-ledger],[data-supply-gallery])) [data-oa=footer]>button{min-height:52px!important;}
 }
 .screen.screen .expandArt{display:grid;place-items:center;padding:4px;}
 .screen.screen [data-status-tone=warning]{background:linear-gradient(#8f641e,#51310e)!important;border-color:#d9b56b!important;}
@@ -100,3 +100,16 @@
 .screen.screen[data-roster-collapsed=false] [data-detail]>section:not([data-creature-picker]){display:none!important;}
 .screen.screen[data-roster-collapsed=false] [data-detail]>[data-creature-picker]{display:flex!important;padding:18px;background:#041d29!important;min-height:0;}
 @media(max-width:700px){.screen.screen[data-roster-collapsed=false] [data-detail]>[data-creature-picker]{padding:9px!important;}}
+/* Supply pages keep usable room on short screens without covering the footer. */
+@media(max-height:550px){
+ .screen.screen:has([data-supply-gallery])>section>header{padding:1px 5px!important;min-height:0!important;}
+ .screen.screen:has([data-supply-gallery])>section>header h1{font-size:21px!important;}
+ .screen.screen:has([data-supply-gallery])>section>header button{min-height:29px!important;padding:2px 7px!important;font-size:12px!important;}
+ .screen.screen:has([data-supply-gallery]) [class*=sectionPicker] select{min-height:30px!important;padding:2px 7px!important;}
+ .screen.screen:has([data-supply-gallery]) [data-oa=footer]>button{min-height:32px!important;font-size:11px!important;}
+ .screen.screen:has([data-supply-gallery]) [data-oa=footer]{padding-top:18px!important;}
+}
+@media(max-width:560px) and (max-height:550px){
+ .screen.screen:has([data-supply-gallery]) [data-oa=workspace]{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;}
+ .screen.screen:has([data-supply-gallery]) [data-oa=portrait]{display:none!important;}
+}
