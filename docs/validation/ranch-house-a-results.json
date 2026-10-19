@@ -1,0 +1,354 @@
+{
+  "checks": 116,
+  "results": [
+    {
+      "label": "Management 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 1280x720 {\"x\":0,\"y\":0,\"right\":1280,\"bottom\":720,\"w\":1280,\"sw\":1280,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 1280x720 {\"x\":0,\"y\":0,\"right\":1280,\"bottom\":720,\"w\":1280,\"sw\":1280,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 1280x720 {\"x\":0,\"y\":0,\"right\":1280,\"bottom\":720,\"w\":1280,\"sw\":1280,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 1280x720 {\"x\":0,\"y\":0,\"right\":1280,\"bottom\":720,\"w\":1280,\"sw\":1280,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 1920x720 {\"x\":0,\"y\":0,\"right\":1920,\"bottom\":720,\"w\":1920,\"sw\":1920,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 1920x720 {\"x\":0,\"y\":0,\"right\":1920,\"bottom\":720,\"w\":1920,\"sw\":1920,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 1920x720 {\"x\":0,\"y\":0,\"right\":1920,\"bottom\":720,\"w\":1920,\"sw\":1920,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 1920x720 {\"x\":0,\"y\":0,\"right\":1920,\"bottom\":720,\"w\":1920,\"sw\":1920,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 2560x1440 {\"x\":0,\"y\":0,\"right\":2560,\"bottom\":1440,\"w\":2560,\"sw\":2560,\"h\":1440,\"sh\":1440,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 2560x1440 {\"x\":0,\"y\":0,\"right\":2560,\"bottom\":1440,\"w\":2560,\"sw\":2560,\"h\":1440,\"sh\":1440,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 2560x1440 {\"x\":0,\"y\":0,\"right\":2560,\"bottom\":1440,\"w\":2560,\"sw\":2560,\"h\":1440,\"sh\":1440,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 2560x1440 {\"x\":0,\"y\":0,\"right\":2560,\"bottom\":1440,\"w\":2560,\"sw\":2560,\"h\":1440,\"sh\":1440,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 360x740 {\"x\":0,\"y\":0,\"right\":360,\"bottom\":740,\"w\":360,\"sw\":360,\"h\":740,\"sh\":740,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 360x740 {\"x\":0,\"y\":0,\"right\":360,\"bottom\":740,\"w\":360,\"sw\":360,\"h\":740,\"sh\":740,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 360x740 {\"x\":0,\"y\":0,\"right\":360,\"bottom\":740,\"w\":360,\"sw\":360,\"h\":740,\"sh\":740,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 360x740 {\"x\":0,\"y\":0,\"right\":360,\"bottom\":740,\"w\":360,\"sw\":360,\"h\":740,\"sh\":740,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Management 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Management"
+    },
+    {
+      "label": "Complete action list Management"
+    },
+    {
+      "label": "Care 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Care"
+    },
+    {
+      "label": "Complete action list Care"
+    },
+    {
+      "label": "Records 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Records"
+    },
+    {
+      "label": "Complete action list Records"
+    },
+    {
+      "label": "Rest 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Selected section Rest"
+    },
+    {
+      "label": "Complete action list Rest"
+    },
+    {
+      "label": "Browsing sections is read-only"
+    },
+    {
+      "label": "Regular and bold Tinos loaded"
+    },
+    {
+      "label": "Explicit minimize hides room vignette"
+    },
+    {
+      "label": "Minimized 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Expand restores room"
+    },
+    {
+      "label": "Menu returns to house"
+    },
+    {
+      "label": "Work returns to Management"
+    },
+    {
+      "label": "Upgrades returns to house"
+    },
+    {
+      "label": "Storage is usable and returns to house"
+    },
+    {
+      "label": "Planner returns to Care"
+    },
+    {
+      "label": "Nursery returns to Care"
+    },
+    {
+      "label": "Habitat fields opens actual habitat district"
+    },
+    {
+      "label": "House retains Care after habitat district"
+    },
+    {
+      "label": "Ledger returns to Records"
+    },
+    {
+      "label": "Journal returns to house"
+    },
+    {
+      "label": "Resident tiles retain name level status"
+    },
+    {
+      "label": "End Day opens review before advancing"
+    },
+    {
+      "label": "Cancel keeps day and balances"
+    },
+    {
+      "label": "House Escape returns to ranch"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}

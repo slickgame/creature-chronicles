@@ -1,0 +1,15 @@
+{
+  "viewports": [
+    "1440x900",
+    "390x844"
+  ],
+  "pages": [
+    "Management",
+    "Care",
+    "Records",
+    "Rest",
+    "Daily ledger"
+  ],
+  "readOnly": true,
+  "errors": []
+}

@@ -1,0 +1,61 @@
+{
+  "builder": "scripts/build-ranch-house-a-assets.py",
+  "selection": "A; supersedes initial C",
+  "reference": "public/images/ui/ranch-house-review/options.png",
+  "raster_sources": [
+    "public/images/ui/ranch-v3/house.webp",
+    "public/images/ui/ranch-v2/icons.webp",
+    "public/images/ui/atelier-v1/ledger.webp"
+  ],
+  "fonts": [
+    "public/images/ui/forge-slate-v2/fonts/Tinos-Regular.woff",
+    "public/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3883,
+      "sha256": "0ca1a777ec3f63b7e9741ffd3fef5771ddbf427a73f21149304a3eb3b862251e"
+    },
+    {
+      "path": "action-hover.svg",
+      "bytes": 780,
+      "sha256": "02300549d4be8f7eb2346df37fe242444d609224afc69b33ac609f3b9cc4b530"
+    },
+    {
+      "path": "action.svg",
+      "bytes": 780,
+      "sha256": "9bc7b9daf216a6447ee6ad2dbc9f7ca84e090b8c075cc5a447969387a5458250"
+    },
+    {
+      "path": "button.svg",
+      "bytes": 875,
+      "sha256": "d79d647c08878bad854f4fe0a5d96f50aa8837770af12b7a9cc03437a392ef1d"
+    },
+    {
+      "path": "chevron.svg",
+      "bytes": 186,
+      "sha256": "b9d264bfbafdc00a0a85353c568cc4940aa9ab36c20c4f88cfcfbf987610277e"
+    },
+    {
+      "path": "divider.svg",
+      "bytes": 162,
+      "sha256": "c9af1c8fb66e6292699d0014f3939c4630299d32cfe1cf295d2f1ceb92c13f19"
+    },
+    {
+      "path": "menu.svg",
+      "bytes": 172,
+      "sha256": "ef3d0b3aece64a02c331625f63d9c0d0c8301319deeba4ebf785144c66231cdb"
+    },
+    {
+      "path": "primary.svg",
+      "bytes": 875,
+      "sha256": "d0d7022fa4da5e07253fe3cdbc0b023299226d532d4bca359e0f2611b4b8afe2"
+    },
+    {
+      "path": "window.svg",
+      "bytes": 2398,
+      "sha256": "4d937dfc4c4989587967a52cdf9b98a7db4c4bf7567f6163c622f9cfc655840f"
+    }
+  ]
+}

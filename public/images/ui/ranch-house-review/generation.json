@@ -1,0 +1,12 @@
+{
+  "tool": "built-in image_gen",
+  "use_case": "ui-mockup",
+  "purpose": "Ranch House A/B/C visual selection",
+  "original": "generated_images/exec-2ff66f57-1368-4cc0-b3bb-63184ad7bbcf.png",
+  "project_copy": "public/images/ui/ranch-house-review/options.png",
+  "reference_images": [
+    "docs/validation/ranch-house-before-management-1440.jpg",
+    "docs/validation/ranch-house-before-management-390.jpg"
+  ],
+  "transparent_background": false
+}
