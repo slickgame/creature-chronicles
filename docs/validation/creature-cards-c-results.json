@@ -1,0 +1,210 @@
+{
+  "checks": 68,
+  "results": [
+    {
+      "label": "Cards gallery C 1440x900 {\"x\":110,\"y\":170,\"right\":1330,\"bottom\":730,\"w\":1200,\"sw\":1200,\"h\":540,\"sh\":540,\"bad\":[]}"
+    },
+    {
+      "label": "Pager and footer do not overlap"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Cards pager visible"
+    },
+    {
+      "label": "Selected inspector C 1440x900 {\"x\":110,\"y\":170,\"right\":1330,\"bottom\":730,\"w\":1200,\"sw\":1200,\"h\":540,\"sh\":540,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector stays above footer"
+    },
+    {
+      "label": "Open profile visible in inspector"
+    },
+    {
+      "label": "Cards gallery C 1280x720 {\"x\":30,\"y\":80,\"right\":1250,\"bottom\":640,\"w\":1200,\"sw\":1200,\"h\":540,\"sh\":540,\"bad\":[]}"
+    },
+    {
+      "label": "Pager and footer do not overlap"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Cards pager visible"
+    },
+    {
+      "label": "Selected inspector C 1280x720 {\"x\":30,\"y\":80,\"right\":1250,\"bottom\":640,\"w\":1200,\"sw\":1200,\"h\":540,\"sh\":540,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector stays above footer"
+    },
+    {
+      "label": "Open profile visible in inspector"
+    },
+    {
+      "label": "Cards gallery C 390x844 {\"x\":8,\"y\":97,\"right\":382,\"bottom\":747,\"w\":360,\"sw\":360,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Pager and footer do not overlap"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Cards pager visible"
+    },
+    {
+      "label": "Selected inspector C 390x844 {\"x\":8,\"y\":97,\"right\":382,\"bottom\":747,\"w\":360,\"sw\":360,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector stays above footer"
+    },
+    {
+      "label": "Open profile visible in inspector"
+    },
+    {
+      "label": "Cards gallery C 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Pager and footer do not overlap"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Cards pager visible"
+    },
+    {
+      "label": "Selected inspector C 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector stays above footer"
+    },
+    {
+      "label": "Open profile visible in inspector"
+    },
+    {
+      "label": "Cards gallery C 844x390 {\"x\":8,\"y\":12,\"right\":836,\"bottom\":378,\"w\":814,\"sw\":814,\"h\":352,\"sh\":352,\"bad\":[]}"
+    },
+    {
+      "label": "Pager and footer do not overlap"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Cards pager visible"
+    },
+    {
+      "label": "Selected inspector C 844x390 {\"x\":8,\"y\":12,\"right\":836,\"bottom\":378,\"w\":814,\"sw\":814,\"h\":352,\"sh\":352,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector stays above footer"
+    },
+    {
+      "label": "Open profile visible in inspector"
+    },
+    {
+      "label": "Cards gallery C 390x500 {\"x\":8,\"y\":12,\"right\":382,\"bottom\":488,\"w\":360,\"sw\":360,\"h\":462,\"sh\":462,\"bad\":[]}"
+    },
+    {
+      "label": "Pager and footer do not overlap"
+    },
+    {
+      "label": "No sex labels"
+    },
+    {
+      "label": "Cards pager visible"
+    },
+    {
+      "label": "Selected inspector C 390x500 {\"x\":8,\"y\":12,\"right\":382,\"bottom\":488,\"w\":360,\"sw\":360,\"h\":462,\"sh\":462,\"bad\":[]}"
+    },
+    {
+      "label": "Inspector stays above footer"
+    },
+    {
+      "label": "Open profile visible in inspector"
+    },
+    {
+      "label": "Preview stays local"
+    },
+    {
+      "label": "Selected identity visible"
+    },
+    {
+      "label": "Card details 1440x900 {\"x\":425,\"y\":308.53125,\"right\":1015,\"bottom\":591.46875,\"w\":574,\"sw\":574,\"h\":267,\"sh\":267,\"bad\":[]}"
+    },
+    {
+      "label": "Card details 1440x900 {\"x\":425,\"y\":295.359375,\"right\":1015,\"bottom\":604.640625,\"w\":574,\"sw\":574,\"h\":293,\"sh\":293,\"bad\":[]}"
+    },
+    {
+      "label": "Card details 1440x900 {\"x\":425,\"y\":308.53125,\"right\":1015,\"bottom\":591.46875,\"w\":574,\"sw\":574,\"h\":267,\"sh\":267,\"bad\":[]}"
+    },
+    {
+      "label": "Card details 1440x900 {\"x\":425,\"y\":308.53125,\"right\":1015,\"bottom\":591.46875,\"w\":574,\"sw\":574,\"h\":267,\"sh\":267,\"bad\":[]}"
+    },
+    {
+      "label": "All existing card facts retained"
+    },
+    {
+      "label": "Details return to Cards"
+    },
+    {
+      "label": "Preview and details never save"
+    },
+    {
+      "label": "Filter cancel preserves gallery search"
+    },
+    {
+      "label": "Compare preselects preview creature"
+    },
+    {
+      "label": "Cards compare cancellation returns roster"
+    },
+    {
+      "label": "All browsing read-only"
+    },
+    {
+      "label": "Favorite persists"
+    },
+    {
+      "label": "Lock persists"
+    },
+    {
+      "label": "Unlock action updates"
+    },
+    {
+      "label": "Open profile confirms exact selected creature"
+    },
+    {
+      "label": "Profile section retained"
+    },
+    {
+      "label": "Empty state"
+    },
+    {
+      "label": "Long gallery name 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Long inspector name 360x740 {\"x\":8,\"y\":45,\"right\":352,\"bottom\":695,\"w\":330,\"sw\":330,\"h\":636,\"sh\":636,\"bad\":[]}"
+    },
+    {
+      "label": "Long card details 360x740 {\"x\":10,\"y\":182.9375,\"right\":350,\"bottom\":557.0625,\"w\":324,\"sw\":324,\"h\":358,\"sh\":358,\"bad\":[]}"
+    },
+    {
+      "label": "Long gallery name 844x390 {\"x\":8,\"y\":12,\"right\":836,\"bottom\":378,\"w\":814,\"sw\":814,\"h\":352,\"sh\":352,\"bad\":[]}"
+    },
+    {
+      "label": "Long inspector name 844x390 {\"x\":8,\"y\":12,\"right\":836,\"bottom\":378,\"w\":814,\"sw\":814,\"h\":352,\"sh\":352,\"bad\":[]}"
+    },
+    {
+      "label": "Long card details 844x390 {\"x\":127,\"y\":59.75,\"right\":717,\"bottom\":330.25,\"w\":574,\"sw\":574,\"h\":255,\"sh\":255,\"bad\":[]}"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}

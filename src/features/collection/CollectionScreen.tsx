@@ -1,7 +1,7 @@
 "use client";
 
-import { getEquineGameplayCardSprite, getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
-import { getNylaGameplayCardSprite, getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
+import { getEquineGameplayProfileSprite } from "@/data/equineGameplayArt";
+import { getNylaGameplayProfileSprite } from "@/data/nylaGameplayArt";
 import { careStatusTone } from "@/data/carePresentation";
 import { CreatureRemovalWindow } from '@/features/creatures/CreatureRemovalWindow';
 import { useMemo, useState, type ReactNode } from "react";
@@ -19,7 +19,6 @@ import {
 } from "@/data/collection";
 import {
   CREATURE_PLACEHOLDER_IMAGE,
-  getSpeciesDefinition,
   getVariantDefinition,
 } from "@/data/creatures";
 import { SharedCreatureDetail } from "@/features/creatures/CreatureDetailPanels";
@@ -33,6 +32,7 @@ import dossier from "./RanchDossier.module.css";
 import overview from "./OverviewA.module.css";
 import { RosterFiltersC } from './RosterFiltersC';
 import { CreatureComparisonA, CreatureCompareChooserA } from './CreatureComparisonA';
+import { CreatureCardsC } from './CreatureCardsC';
 import { CreaturePickerA } from './CreaturePickerA';
 
 type ViewMode = "compact" | "cards";
@@ -40,18 +40,6 @@ type CompareTab = "overview" | "stats" | "breeding";
 
 function displaySex(sex: string): string {
   return sex === "female" ? "Female" : "Male";
-}
-
-function formatLastBred(daysSinceBred: number | null): string {
-  if (daysSinceBred === null) return "Never bred";
-  if (daysSinceBred === 0) return "Bred today";
-  if (daysSinceBred === 1) return "Bred yesterday";
-  return `Last bred ${daysSinceBred} days ago`;
-}
-
-function roleLabel(ready: boolean, reason: string | null): string {
-  if (ready) return "Ready";
-  return reason?.split(".")[0] ?? "Unavailable";
 }
 
 export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
@@ -76,6 +64,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   );
   const [sortMode, setSortMode] = useState<CreatureSortMode>("newest");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [cardsPreviewId,setCardsPreviewId]=useState<string|null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("compact");
   const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -245,101 +234,6 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
   }
 
 
-  function renderCreatureCard(creature: CreatureRecord, detailed = false) {
-                  const status = getCreatureManagementStatus(activeSave, creature);
-                  const variant = getVariantDefinition(creature.variantId);
-                  const species = getSpeciesDefinition(creature.speciesId);
-                  const isSelected = selectedCreature?.creatureId === creature.creatureId;
-                  const isCompared = compareIds.includes(creature.creatureId);
-                  return (
-                    <article
-                      key={creature.creatureId}
-                      className={`${styles.creatureCard} ${
-                        detailed ? styles.detailedCard : ""
-                      } ${isSelected ? styles.selectedCard : ""} ${
-                        status.needsAttention ? styles.attentionCard : ""
-                      } ${creature.shiny ? styles.shinyCard : ""}`}
-                    >
-                      {compareMode && detailed ? (
-                        <label className={styles.compareCheck}>
-                          <input
-                            type="checkbox"
-                            checked={isCompared}
-                            onChange={() => toggleCompareSelection(creature)}
-                          />
-                          Compare
-                        </label>
-                      ) : null}
-                      <button
-                        type="button"
-                        aria-pressed={compareMode && detailed ? isCompared : isSelected}
-                        aria-label={`Select ${creature.nickname}`}
-                        data-creature-id={creature.creatureId}
-                        className={styles.cardMain}
-                        onClick={() =>
-                          compareMode && detailed
-                            ? toggleCompareSelection(creature)
-                            : (selectCreature(creature), setShowDossier(true), setViewMode("compact"))
-                        }
-                      >
-                        <img
-                          src={getEquineGameplayCardSprite(creature, getNylaGameplayCardSprite(creature, variant.portraitPath || CREATURE_PLACEHOLDER_IMAGE))}
-                          alt=""
-                          onError={(event) => {
-                            event.currentTarget.onerror = null;
-                            event.currentTarget.src = CREATURE_PLACEHOLDER_IMAGE;
-                          }}
-                        />
-                        <div className={styles.cardText}>
-                          <strong>
-                            {creature.nickname} {creature.shiny ? "✦" : ""}
-                          </strong>
-                          <span>
-                            {variant.name} {species.name} · Lv {creature.level}
-                          </span>
-                          <em>{status.primaryStatus}</em>
-                          <span className={styles.energyLabel}>Energy {creature.energy}/{creature.maxEnergy}</span><span className={styles.energyTrack}><span style={{width: `${status.energyPercent}%`}} /></span>
-                          {detailed ? <><div className={styles.cardMetrics}>
-                            <b>Energy {status.energyPercent}%</b>
-                            <b>Aff {creature.affection}</b>
-                            <b>FER {creature.stats.FER}/{creature.statGrades.FER}</b>
-                          </div>
-                          <div className={styles.roleBadges}>
-                            <i className={status.giverEligible ? styles.readyBadge : styles.blockedBadge}>
-                              Giver {roleLabel(status.giverEligible, status.giverBlockedReason)}
-                            </i>
-                            <i className={status.receiverEligible ? styles.readyBadge : styles.blockedBadge}>
-                              Receiver {roleLabel(status.receiverEligible, status.receiverBlockedReason)}
-                            </i>
-                          </div>
-                          </> : null}
-                          {detailed ? (
-                            <small>{formatLastBred(status.daysSinceBred)} · {status.rarity} · Gen {creature.generation}</small>
-                          ) : null}
-                        </div>
-                      </button>
-                      <div className={styles.cardIcons}>
-                        <button
-                          type="button"
-                          aria-label={creature.isFavorite ? "Remove favorite" : "Add favorite"}
-                          title={creature.isFavorite ? "Remove favorite" : "Add favorite"}
-                          onClick={() => toggleFavorite(creature)}
-                        >
-                          <span className={styles.actionIcon} aria-hidden="true" style={{ maskImage: "url(/images/ui/ranch-dossier-v1/icons/talents.svg)", opacity: creature.isFavorite ? 1 : .5 }} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={creature.isLocked ? "Unlock creature" : "Lock creature"}
-                          title={creature.isLocked ? "Unlock creature" : "Lock creature"}
-                          onClick={() => toggleCreatureLock(creature.creatureId)}
-                        >
-                          <span className={styles.actionIcon} aria-hidden="true" style={{ maskImage: `url(/images/ui/ranch-dossier-v1/icons/${creature.isLocked ? "lock" : "unlock"}.svg)` }} />
-                        </button>
-                      </div>
-                    </article>
-                  );
-
-  }
 
   return (
     <main className={`${ui.interior} ${styles.interior} ${dossier.screen} ${overview.screen}`} data-profile-open={showDossier} data-roster-collapsed={rosterCollapsed} data-art-collapsed={artCollapsed}>
@@ -364,7 +258,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
             onSearch={search=>patchFilters({search})} onFilters={()=>setShowFilters(true)} onClear={clearFilters}
             onOpen={creature=>{selectCreature(creature);setShowDossier(true);}}
             onCompare={()=>{setCompareMode(true);setCompareIds([]);setViewMode('cards');}}
-            onCards={()=>{setCompareMode(false);setViewMode('cards');}}
+            onCards={c=>{setCardsPreviewId(c?.creatureId??null);setCompareMode(false);setViewMode('cards');}}
             onFavorite={toggleFavorite} onLock={creature=>toggleCreatureLock(creature.creatureId)}
             onBack={()=>setRosterCollapsed(true)}
           /> : null}
@@ -436,7 +330,7 @@ export function CollectionScreen({ headerLinks }: { headerLinks?: ReactNode }) {
       </section>
 
       {showArtwork && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} artwork`} onClose={()=>setShowArtwork(false)}><img style={{width:"100%",height:"min(65vh,650px)",objectFit:"contain"}} src={getEquineGameplayProfileSprite(selectedCreature,getNylaGameplayProfileSprite(selectedCreature,getVariantDefinition(selectedCreature.variantId).profilePath || CREATURE_PLACEHOLDER_IMAGE))} alt={`${selectedCreature.nickname} full body`}/></GameDialog> : null}
-      {viewMode === "cards" && !compareMode ? <GameDialog title={compareMode ? "Choose Creatures to Compare" : "Creature Cards"} onClose={() => {setViewMode("compact");setCompareMode(false);}} wide>{compareMode ? <p>{compareIds.length}/2 selected</p> : null}<div className={styles.cardGallery}>{visibleCreatures.map(creature => renderCreatureCard(creature,true))}</div>{compareMode ? <button type="button" disabled={compareIds.length !== 2} onClick={() => {setViewMode("compact");setCompareTab("overview");setShowCompare(true);}}>Compare Creatures</button> : null}</GameDialog> : null}
+      {viewMode==='cards' && !compareMode ? <CreatureCardsC save={activeSave} creatures={visibleCreatures} selectedId={cardsPreviewId??selectedCreature?.creatureId} search={filters.search} filterCount={activeFilterCount} pageKey={JSON.stringify([filters,sortMode,sortDirection])} onSearch={search=>patchFilters({search})} onFilters={()=>setShowFilters(true)} onClear={clearFilters} onClose={()=>setViewMode('compact')} onOpen={c=>{selectCreature(c);setShowDossier(true);setViewMode('compact');}} onCompare={c=>{setCompareIds([c.creatureId]);setCompareMode(true);}} onFavorite={toggleFavorite} onLock={c=>toggleCreatureLock(c.creatureId)}/> : null}
       {showFilters ? <RosterFiltersC save={activeSave} filters={filters} sort={sortMode} direction={sortDirection} onClose={()=>setShowFilters(false)} onApply={(next,sort,direction)=>{setFilters(next);setSortMode(sort);setSortDirection(direction);setShowFilters(false);}}/> : null}
       {showProfile && selectedCreature ? <GameDialog title={`${selectedCreature.nickname} · Profile & Care`} onClose={() => setShowProfile(false)} wide>
                 <SharedCreatureDetail

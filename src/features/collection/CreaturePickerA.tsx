@@ -18,7 +18,7 @@ function portrait(c: CreatureRecord) {
 export function CreaturePickerA({save, creatures, selectedId, search, filterCount, pageKey, onSearch, onFilters, onClear, onOpen, onCompare, onCards, onFavorite, onLock, onBack}: {
   save: GameSave; creatures: CreatureRecord[]; selectedId?: string; search: string; filterCount: number; pageKey: string;
   onSearch: (value: string) => void; onFilters: () => void; onClear: () => void;
-  onOpen: (creature: CreatureRecord) => void; onCompare: () => void; onCards: () => void;
+  onOpen: (creature: CreatureRecord) => void; onCompare: () => void; onCards: (creature?: CreatureRecord) => void;
   onFavorite: (creature: CreatureRecord) => void; onLock: (creature: CreatureRecord) => void;
   onBack: () => void;
 }) {
@@ -39,7 +39,7 @@ export function CreaturePickerA({save, creatures, selectedId, search, filterCoun
       <input type="search" aria-label="Search creatures" placeholder="Search creatures…" value={search} onChange={e=>onSearch(e.target.value)}/>
       <button type="button" onClick={onFilters}>Filters & Sort{filterCount ? ` (${filterCount})` : ''}</button>
       <span aria-live="polite">{creatures.length} / {save.creatures?.length ?? 0} creatures</span>
-      <button type="button" onClick={onCards}>Cards</button><button type="button" onClick={onCompare}>Compare</button>
+      <button type="button" onClick={()=>onCards(selected)}>Cards</button><button type="button" onClick={onCompare}>Compare</button>
     </div>
     <div className={styles.body}>
       <div className={styles.list}>
