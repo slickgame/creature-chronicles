@@ -1,0 +1,285 @@
+{
+  "checks": 93,
+  "results": [
+    {
+      "label": "Habitat A 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 1280x720 {\"x\":0,\"y\":0,\"right\":1280,\"bottom\":720,\"w\":1280,\"sw\":1280,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 1920x720 {\"x\":0,\"y\":0,\"right\":1920,\"bottom\":720,\"w\":1920,\"sw\":1920,\"h\":720,\"sh\":720,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 2560x1440 {\"x\":0,\"y\":0,\"right\":2560,\"bottom\":1440,\"w\":2560,\"sw\":2560,\"h\":1440,\"sh\":1440,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 360x740 {\"x\":0,\"y\":0,\"right\":360,\"bottom\":740,\"w\":360,\"sw\":360,\"h\":740,\"sh\":740,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Habitat A 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Resident name, level and status"
+    },
+    {
+      "label": "All three vitals visible"
+    },
+    {
+      "label": "Primary actions visible"
+    },
+    {
+      "label": "Artwork and kit loaded"
+    },
+    {
+      "label": "Explicit font family"
+    },
+    {
+      "label": "Browsing read-only"
+    },
+    {
+      "label": "Exact Energy fill"
+    },
+    {
+      "label": "Four heart pips"
+    },
+    {
+      "label": "Feed actual Energy capped"
+    },
+    {
+      "label": "Feed actual Affection"
+    },
+    {
+      "label": "Feedback visible"
+    },
+    {
+      "label": "After feeding 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Explicit minimize"
+    },
+    {
+      "label": "Expand restores art"
+    },
+    {
+      "label": "Full profile all eight tabs"
+    },
+    {
+      "label": "Profile returns to Habitat"
+    },
+    {
+      "label": "Open lock action"
+    },
+    {
+      "label": "Lock persists"
+    },
+    {
+      "label": "Closed lock action"
+    },
+    {
+      "label": "Locked removal blocked"
+    },
+    {
+      "label": "Seven residents real capacity"
+    },
+    {
+      "label": "All identical-name residents distinguishable by level"
+    },
+    {
+      "label": "Last page bounded"
+    },
+    {
+      "label": "Seven residents 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Long name and protected 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Full long name retained"
+    },
+    {
+      "label": "Long name and protected 360x740 {\"x\":0,\"y\":0,\"right\":360,\"bottom\":740,\"w\":360,\"sw\":360,\"h\":740,\"sh\":740,\"bad\":[]}"
+    },
+    {
+      "label": "Full long name retained"
+    },
+    {
+      "label": "Long name and protected 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Full long name retained"
+    },
+    {
+      "label": "Long name and protected 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Full long name retained"
+    },
+    {
+      "label": "Large heart count uses exact meter"
+    },
+    {
+      "label": "Approved rename opens"
+    },
+    {
+      "label": "Rename cancel does not save"
+    },
+    {
+      "label": "Removal cancellation read-only"
+    },
+    {
+      "label": "Last family resident removed"
+    },
+    {
+      "label": "Empty habitat 1440x900 {\"x\":0,\"y\":0,\"right\":1440,\"bottom\":900,\"w\":1440,\"sw\":1440,\"h\":900,\"sh\":900,\"bad\":[]}"
+    },
+    {
+      "label": "Empty Breeding route reachable"
+    },
+    {
+      "label": "Empty habitat 390x844 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":844,\"w\":390,\"sw\":390,\"h\":844,\"sh\":844,\"bad\":[]}"
+    },
+    {
+      "label": "Empty Breeding route reachable"
+    },
+    {
+      "label": "Empty habitat 844x390 {\"x\":0,\"y\":0,\"right\":844,\"bottom\":390,\"w\":844,\"sw\":844,\"h\":390,\"sh\":390,\"bad\":[]}"
+    },
+    {
+      "label": "Empty Breeding route reachable"
+    },
+    {
+      "label": "Empty habitat 390x500 {\"x\":0,\"y\":0,\"right\":390,\"bottom\":500,\"w\":390,\"sw\":390,\"h\":500,\"sh\":500,\"bad\":[]}"
+    },
+    {
+      "label": "Empty Breeding route reachable"
+    },
+    {
+      "label": "Empty habitat remains visible when art minimized"
+    },
+    {
+      "label": "Training feed restricted"
+    },
+    {
+      "label": "Training status in resident bar"
+    },
+    {
+      "label": "Back returns to roster"
+    },
+    {
+      "label": "No runtime errors"
+    }
+  ],
+  "errors": []
+}

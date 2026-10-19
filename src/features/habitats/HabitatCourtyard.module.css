@@ -1,141 +1,32 @@
-.courtyard {background-image:url('/images/ui/interiors-v1/habitat.webp');background-position:center;}
-.courtyard>.layout {width:100%;max-width:1680px;padding:14px 24px;gap:10px;}
-.courtyard .occupancy {align-items:center;min-height:58px;}
-.courtyard .occupancy>div {display:flex;align-items:center;gap:12px;flex:1 1 0;}
-.courtyard .occupancy span {font-size:16px;}
-.courtyard .occupancy strong {font-size:22px;white-space:nowrap;}
-.courtyard .occupancy button {display:flex;gap:8px;align-items:center;background:linear-gradient(#61794b,#3e5933);color:#fff2cd;}
-.occupancy [aria-hidden] {width:30px;height:30px;flex:none;}
-.stage {flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,30%);gap:24px;}
-.residentView {position:relative;min-height:0;display:grid;place-items:center;}
-.residentView>img {width:100%;height:100%;min-height:0;max-height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 12px 12px #27190866);}
-.courtyard .care {display:flex;flex-direction:column;justify-content:center;min-height:0;padding:clamp(14px,2vw,30px);gap:clamp(10px,1.4vh,18px);box-shadow:0 4px 16px #27170677,inset 0 0 0 4px #bc986355;}
-.identity {border-bottom:1px solid #a7855255;padding-bottom:10px;}
-.courtyard .layout .identity h2 {font-size:clamp(26px,2.8vw,42px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.identity p {margin:0;font-size:16px;}
-.courtyard .care .readiness {background:#648f3229;border:0;color:#305626;display:flex;align-items:center;justify-content:space-between;text-align:left;font-weight:bold;padding:7px 10px;line-height:1.2;min-height:38px;}
-.courtyard .care .attention {color:#8b3521;background:#bf713426;}
-.stats {margin:0;display:grid;gap:12px;}
-.stats>div {display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;}
-.stats dt {display:flex;gap:10px;align-items:center;}
-.stats dd {margin:0;font-weight:bold;white-space:nowrap;}
-.stats dt [aria-hidden] {width:32px;height:32px;flex:none;}
-.heart {font-size:30px;line-height:32px;color:#ba4940;text-align:center;text-shadow:0 1px 1px #4c281b;}
-.stats meter {grid-column:1 / -1;width:100%;height:12px;accent-color:#56743b;}
-.careButtons {display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.courtyard .careButtons button {display:flex;justify-content:center;align-items:center;gap:7px;padding:9px 6px;min-height:44px;white-space:nowrap;}
-.careButtons [aria-hidden] {width:24px;height:24px;flex:none;}
-.careButtons .feed {grid-column:1 / -1;}
-.courtyard .careButtons .feed {font-size:22px;min-height:48px;}
-.courtyard .dock {flex:none;display:grid;grid-template-columns:auto 44px minmax(0,1fr) 60px 44px;gap:14px;align-items:center;padding:12px 18px;}
-.courtyard .layout .dock h2 {margin:0;font-size:23px;}
-.courtyard .dock>button {font-size:30px;padding:0;min-height:44px;}
-.residents {display:flex;gap:10px;min-height:78px;align-items:stretch;}
-.courtyard .dock .resident {display:flex;flex:1 1 0;min-width:0;align-items:center;gap:12px;padding:5px 9px;text-align:left;border-color:#b18a50;background:#f4e5c388;}
-.resident img {width:64px;height:64px;object-fit:cover;flex:none;border:1px solid #957043;border-radius:3px;}
-.resident>span {min-width:0;display:grid;gap:4px;}
-.resident strong {font-size:21px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.resident small {font-size:14px;line-height:1.2;color:#395b2c;}
-.resident small.warningText {color:#943a25;}
-.courtyard .dock .selected {background:#91a95942;border:2px solid #466633;box-shadow:inset 0 0 0 2px #f8efc7;}
-.pageNumber {text-align:center;white-space:nowrap;font-size:16px;}
-.courtyard .feedback {flex:none;border:1px solid #9d8454;background:#f4e5c3;color:#49341d;padding:7px 12px;display:flex;gap:16px;text-align:left;min-height:36px;border-radius:4px;}
-.feedback>span:first-child {white-space:nowrap;text-overflow:ellipsis;overflow:hidden;flex:1;}
-.feedback>span:last-child {text-decoration:underline;}
-.empty {width:min(420px,95%);align-self:center;}
-.management form {display:grid;gap:10px;}
-.management button {min-height:44px;padding:8px 12px;border:1px solid #997847;border-radius:4px;background:linear-gradient(#f7edcf,#ddc493);color:#49341d;}
-@media(max-width:1000px) {
- .courtyard>.layout {padding:8px;gap:8px;}
- .stage {grid-template-columns:minmax(0,1fr) 310px;gap:12px;}
- .courtyard .occupancy span {font-size:13px;}
- .courtyard .occupancy strong {font-size:18px;}
- .courtyard .occupancy>div {gap:8px;}
- .occupancy [aria-hidden] {width:24px;height:24px;}
- .courtyard .dock {gap:8px;padding:8px;}
- .courtyard .layout .dock h2 {font-size:18px;}
-}
-@media(max-width:600px) and (min-height:601px) {
- .stage {grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;gap:6px;}
- .courtyard .care {padding:10px 12px;gap:8px;display:grid;grid-template-columns:minmax(0,1fr);}
- .identity {padding:0;border:0;}
- .courtyard .layout .identity h2 {font-size:25px;margin:0;}
- .identity p {font-size:13px;}
- .courtyard .care .readiness {min-height:30px;padding:5px 8px;font-size:14px;}
- .stats {grid-template-columns:1fr 1fr 1.1fr;gap:6px;}
- .stats>div {display:flex;flex-direction:column;gap:0;align-items:flex-start;}
- .stats dt {gap:4px;font-size:13px;}
- .stats dt [aria-hidden] {width:20px;height:20px;font-size:20px;line-height:20px;}
- .stats dd {font-size:15px;}
- .stats meter {height:7px;}
- .careButtons {gap:6px;grid-template-columns:1fr 1fr 1fr;}
- .careButtons .feed {grid-column:auto;grid-row:span 2;}
- .courtyard .careButtons button {font-size:13px;padding:5px 3px;min-height:38px;gap:3px;}
- .courtyard .careButtons .feed {font-size:17px;flex-direction:column;}
- .careButtons [aria-hidden] {width:18px;height:18px;}
- .courtyard .dock {grid-template-columns:38px minmax(0,1fr) 38px;gap:5px;padding:6px;position:relative;}
- .courtyard .dock>h2 {display:none;}
- .pageNumber {position:absolute;right:10px;bottom:5px;font-size:11px;pointer-events:none;}
- .courtyard .dock>button {padding:0;min-height:54px;}
- .residents {min-height:65px;}
- .resident img {width:48px;height:48px;}
- .resident strong {font-size:18px;}
- .resident small {font-size:12px;}
- .courtyard .dock .resident {gap:8px;padding:4px;}
-}
-@media(max-width:600px) {
- .courtyard .occupancy {gap:4px;min-height:56px;padding:6px;}
- .courtyard .occupancy>div {display:grid;gap:0;flex:1 1 0;}
- .occupancy>div>[aria-hidden] {display:none;}
- .courtyard .occupancy span {font-size:11px;white-space:nowrap;}
- .courtyard .occupancy strong {font-size:17px;}
- .courtyard .occupancy button {gap:2px;padding:4px;flex-direction:column;}
- .occupancy button [aria-hidden] {width:18px;height:18px;}
-}
-@media(max-height:600px) {
- .courtyard>.layout {padding:5px 8px;gap:5px;}
- .courtyard .occupancy {min-height:36px;padding:3px 10px;}
- .courtyard .occupancy button {min-height:28px;padding:2px 8px;}
- .stage {grid-template-columns:minmax(0,1fr) 340px;gap:10px;}
- .courtyard .care {padding:8px 10px;gap:5px;justify-content:center;}
- .identity {padding:0;border:0;display:flex;gap:10px;align-items:baseline;}
- .courtyard .layout .identity h2 {font-size:22px;margin:0;}
- .identity p {font-size:11px;white-space:nowrap;}
- .courtyard .care .readiness {min-height:26px;padding:3px 6px;font-size:13px;}
- .stats {grid-template-columns:1fr 1fr 1fr;gap:7px;}
- .stats>div {display:flex;flex-direction:column;gap:0;align-items:flex-start;}
- .stats dt {gap:3px;font-size:12px;}
- .stats dt [aria-hidden] {width:18px;height:18px;font-size:18px;line-height:18px;}
- .stats dd {font-size:13px;}
- .stats meter {height:6px;}
- .careButtons {grid-template-columns:1fr 1fr 1fr;gap:5px;}
- .careButtons .feed {grid-column:auto;grid-row:span 2;}
- .courtyard .careButtons button {min-height:30px;font-size:12px;padding:3px;gap:3px;}
- .courtyard .careButtons .feed {font-size:17px;flex-direction:column;}
- .careButtons [aria-hidden] {width:18px;height:18px;}
- .courtyard .dock {padding:4px 10px;gap:8px;grid-template-columns:auto 36px minmax(0,1fr) 40px 36px;}
- .courtyard .layout .dock h2 {font-size:17px;}
- .residents {min-height:49px;}
- .resident img {width:40px;height:40px;}
- .resident strong {font-size:16px;}
- .resident small {font-size:12px;}
- .courtyard .dock .resident {padding:3px 6px;gap:6px;}
- .courtyard .feedback {min-height:26px;padding:3px 10px;font-size:12px;}
-}
-.courtyard .occupancy button span {color:#fff2cd;}
-.readiness small {font-size:11px;font-weight:400;text-decoration:underline;}
-.stats meter::-webkit-meter-bar {background:#b4a482;border:0;border-radius:6px;}
-.stats meter::-webkit-meter-optimum-value {background:linear-gradient(#789650,#46682f);border-radius:6px;}
-.stats meter::-moz-meter-bar {background:linear-gradient(#789650,#46682f);border-radius:6px;}
-.courtyard .occupancy [data-illustrated-icon]{width:28px;height:28px;object-fit:contain;}
-.resident[aria-pressed=true]{position:relative;padding-right:17px!important;}.resident[aria-pressed=true]:after{content:'✓';position:absolute;top:2px;right:3px;color:#3c5c2d;font-size:13px;}
-@media(max-width:600px){.courtyard .occupancy>div{display:grid;grid-template-columns:17px 1fr;gap:0 3px;}.courtyard .occupancy>div>[aria-hidden]{display:block;width:17px;height:17px;grid-row:span 2;}.courtyard .occupancy>div>strong{grid-column:2;}}
+@font-face{font-family:HabitatTinos;src:url('/images/ui/forge-slate-v2/fonts/Tinos-Regular.woff');font-weight:400;font-display:swap}
+@font-face{font-family:HabitatTinos;src:url('/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff');font-weight:700;font-display:swap}
+.courtyard{--ink:#fff0d5;--muted:#dbc9a6;height:100dvh;background:#061826 center/cover;color:var(--ink);font:18px/1.2 HabitatTinos,Georgia,serif;padding:14px 20px;}
+.courtyard *{box-sizing:border-box;min-width:0}.courtyard :is(h1,h2,p,dl,dd){margin:0}.courtyard :is(h1,h2){color:var(--ink);font-family:HabitatTinos,Georgia,serif;line-height:1.1}.courtyard p{line-height:1.3}
+.layout{height:100%;width:100%;max-width:1440px;margin:auto;display:flex;flex-direction:column;gap:0;border:8px solid transparent;border-image:url('/images/ui/habitat-a/window.svg') 40 fill / 22px stretch;background:#031725;box-shadow:0 8px 26px #0009;padding:3px;}
+.courtyard button,.profileFrame button{font:700 17px/1.1 HabitatTinos,Georgia,serif;color:var(--ink);border:5px solid transparent;border-image:url('/images/ui/habitat-a/button.svg') 16 fill / 9px stretch;background:none;border-radius:0;box-shadow:none;display:flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:5px 10px;cursor:pointer;text-shadow:none;}
+.courtyard button[data-primary]{border-image-source:url('/images/ui/habitat-a/primary.svg')}.courtyard button:hover:not(:disabled){filter:brightness(1.16)}.courtyard button:disabled{opacity:.48;cursor:default}.courtyard button:focus-visible{outline:2px solid #ffe6ac;outline-offset:2px}.icon{width:27px;height:27px;object-fit:contain;flex:none}.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px 10px;border-bottom:1px solid #bba066;flex:none}.heading h1{font-size:34px;letter-spacing:.01em}.heading nav{flex-wrap:nowrap}.heading nav button{font-size:16px;min-height:37px;padding:4px 10px}.heading nav button .icon{width:18px;height:18px}.heading nav button[data-navigation-launcher]{border-image-source:url('/images/ui/habitat-a/primary.svg')}
+.occupancy{flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:8px 14px;border-bottom:1px solid #bba066;background:#041b2a;}
+.occupancy>div{display:flex;align-items:center;gap:8px;border-right:1px solid #bba06666}.occupancy>div:last-child{border:0}.occupancy span{font-size:17px;color:var(--muted)}.occupancy strong{font-size:20px;white-space:nowrap;font-weight:400}.occupancy .icon{width:26px;height:26px}
+.stage{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(315px,30%);gap:10px;background:url('/images/ui/ranch-v3/feline.webp') center/cover;padding:8px;position:relative;}
+.courtyard{--scene:none}.stage{background-image:var(--scene)}
+.residentView{min-height:0;display:grid;place-items:center;position:relative;}.residentView>img{width:100%;height:100%;min-height:0;max-height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 8px 8px #25150577);}
+.care{min-height:0;align-self:center;display:flex;flex-direction:column;gap:16px;padding:22px 19px;border:7px solid transparent;border-image:url('/images/ui/habitat-a/window.svg') 40 fill / 17px stretch;background:#031725;box-shadow:0 4px 12px #0007;}
+.identity{display:grid;gap:7px}.identity h2{font-size:36px;overflow-wrap:anywhere}.identity h2[data-long-name=true]{font-size:27px}.identity p{font-size:18px;color:#e9d8b6}.courtyard .readiness{justify-content:start;min-height:36px;padding:3px 8px;border:1px solid #82a36e;border-radius:4px;background:#214e37;color:#fff0d5;font-size:17px;}.readiness .icon{width:26px;height:26px}.readiness span{flex:1;overflow-wrap:anywhere}.readiness small{font-size:12px;text-decoration:underline;font-weight:400}.courtyard .readiness[data-tone=warning],.courtyard .readiness[data-tone=danger]{background:#592d32;border-color:#b16f65}.courtyard .readiness[data-tone=occupied]{background:#29465c;border-color:#7b9faf}.courtyard .readiness[data-tone=pregnant]{background:#583e5b;border-color:#c49abb}
+.stats{display:grid;gap:16px}.vital{display:grid;grid-template-columns:minmax(95px,1fr) auto;gap:5px 10px;align-items:center}.vital dt{display:flex;align-items:center;gap:8px;font-size:19px}.vital dd{font-size:19px;white-space:nowrap}.meter{grid-column:1/-1;margin-left:35px;height:9px;background:#263945;border:1px solid #bba47277;border-radius:8px;}.meter>i{display:block;max-width:100%;height:100%;border-radius:8px;background:linear-gradient(#ffe4a0,#d8a83e)}.vital[data-habitat-vital=Affection] .meter>i{background:linear-gradient(#a8d96b,#65a143)}.hearts{grid-column:1/-1;display:flex;gap:4px;margin-left:35px;height:24px}.hearts>span{position:relative;width:24px;height:24px;flex:none}.hearts img{width:24px;height:24px;object-fit:contain;display:block}.hearts i{position:absolute;top:0;left:0;height:100%;overflow:hidden}
+.careButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px}.careButtons .feed{grid-column:1/-1;font-size:23px;min-height:47px}.careButtons button{font-size:17px;padding:6px 5px;white-space:nowrap}.careButtons .icon{width:25px;height:25px}
+.dock{flex:none;display:grid;grid-template-columns:auto 33px minmax(180px,1fr) 45px 33px auto;gap:8px;align-items:center;padding:10px 9px;background:#031725;border-top:1px solid #bba066;}.dock h2{font-size:21px}.dock>button{padding:0;min-height:40px}.dock>button>.icon{width:17px;height:17px}.dock>button[aria-label="Next residents"]>.icon{transform:rotate(180deg)}.residents{display:flex;gap:8px;min-height:78px;align-items:stretch;}.courtyard .resident{flex:0 1 250px;display:flex;justify-content:start;gap:9px;text-align:left;padding:5px 8px;border-width:4px;}.resident img{width:54px;height:61px;object-fit:cover;object-position:top;border:1px solid #a68d60;border-radius:3px;flex:none}.resident>span{display:grid;gap:2px;min-width:0;}.resident strong{font-size:19px;overflow-wrap:anywhere;line-height:1.05}.resident small{font-size:14px;color:#aecd9d;line-height:1.05}.resident .residentLevel{color:#ead5ab;font-size:14px}.resident small.warningText{color:#f0a9a1}.courtyard .resident.selected{border-image-source:url('/images/ui/habitat-a/resident-selected.svg')}.resident img[data-nyla-card=true]{object-position:center top}.pageNumber{font-size:15px;text-align:center;white-space:nowrap;}.destinations{display:flex;gap:7px;border-left:1px solid #bba06666;padding-left:9px}.destinations button{font-size:16px;padding:5px 7px;min-height:45px}.destinations .icon{width:27px;height:27px}.courtyard .feedback{flex:none;min-height:32px;display:flex;justify-content:space-between;gap:12px;padding:4px 12px;font-size:15px;border:1px solid #ac9462;background:#13382c;}.feedback>span:first-child{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.feedback>span:last-child{text-decoration:underline;flex:none}
+.compact{grid-template-columns:minmax(0,540px);justify-content:center}.compact .residentView{display:none}.compact .care{width:100%}.empty{width:min(450px,100%);background:#031725;border:6px solid transparent;border-image:url('/images/ui/habitat-a/window.svg') 40 fill / 17px stretch;padding:20px;display:grid;gap:16px;}.stage:has(.empty){grid-template-columns:1fr}.empty h2{font-size:30px}.empty p{font-size:18px}.management{display:grid;gap:12px}
+.profileFrame{box-sizing:border-box;height:100%;padding:12px;background:#031725;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;color:#fff0d5}.profileFrame header{display:flex;align-items:center;justify-content:space-between;gap:10px}.profileFrame header h2{font:700 24px HabitatTinos,Georgia,serif;margin:0;color:#fff0d5}.profileFrame header button{min-height:35px;font-size:15px}
+@media(min-width:1700px){.courtyard{padding-top:max(14px,calc((100dvh - 930px)/2));padding-bottom:max(14px,calc((100dvh - 930px)/2))}}
+@media(max-width:1150px){.heading h1{font-size:29px}.heading nav button{font-size:14px;padding:4px 7px}.dock{grid-template-columns:32px minmax(170px,1fr) 38px 32px auto;gap:6px}.dockTitle{display:none}.destinations{gap:5px;padding-left:6px}.destinations button{font-size:14px;gap:4px;padding:4px}.destinations .icon{width:23px;height:23px}.care{padding:17px 14px;gap:13px}.stage{grid-template-columns:minmax(0,1fr) 310px}.occupancy span{font-size:15px}.occupancy strong{font-size:18px}.courtyard{padding:9px}}
+@media(max-width:700px){.heading{flex-wrap:wrap;gap:5px;padding:5px 6px}.heading h1{font-size:28px}.heading nav{width:100%;justify-content:space-between}.heading nav button{min-height:32px;font-size:14px;padding:3px 6px;gap:4px}.occupancy{padding:6px 7px;gap:5px}.occupancy>div{display:grid;grid-template-columns:23px 1fr;gap:0 4px}.occupancy .icon{grid-row:1/3;width:23px;height:23px}.occupancy span{font-size:11px;white-space:nowrap}.occupancy strong{font-size:17px;grid-column:2}.stage{grid-template-columns:1fr;grid-template-rows:minmax(70px,1fr) auto;padding:5px;gap:4px}.care{align-self:stretch;padding:10px 11px;border-width:5px;gap:8px}.identity{gap:3px}.identity h2{font-size:28px}.identity h2[data-long-name=true]{font-size:23px}.identity p{font-size:14px}.courtyard .readiness{min-height:29px;font-size:14px;padding:2px 7px}.readiness .icon{width:21px;height:21px}.readiness small{font-size:11px}.stats{gap:6px}.vital{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px}.vital dt,.vital dd{font-size:16px}.vital .icon{width:21px;height:21px}.meter{height:7px;margin-left:29px}.hearts{margin-left:29px;height:18px;gap:3px}.hearts>span,.hearts img{width:18px;height:18px}.careButtons{gap:6px}.careButtons button{min-height:33px;font-size:15px;padding:3px 5px}.careButtons .feed{font-size:19px;min-height:36px}.careButtons .icon{width:22px;height:22px}.dock{grid-template-columns:30px minmax(0,1fr) 35px 30px;gap:5px;padding:5px}.residents{min-height:66px}.courtyard .resident{flex:1;padding:4px;gap:7px}.resident img{width:44px;height:51px}.resident strong{font-size:17px}.resident small,.resident .residentLevel{font-size:12px}.dock>button{min-height:36px}.pageNumber{font-size:13px}.destinations{grid-column:1/-1;justify-content:stretch;border:0;border-top:1px solid #bba06666;padding:4px 0 0;gap:5px}.destinations button{flex:1;min-height:32px;font-size:12px;padding:3px;gap:4px}.destinations .icon{width:21px;height:21px}.courtyard{padding:6px}.layout{border-width:6px;padding:2px}.compact{grid-template-columns:1fr;grid-template-rows:1fr}.compact .care{align-self:center}.empty{padding:16px}.profileFrame{padding:6px}.profileFrame header h2{font-size:17px}.profileFrame header button{font-size:12px;padding:3px;min-height:30px}}
+@media(max-height:650px) and (min-width:701px){.courtyard{padding:5px 8px}.layout{border-width:5px;padding:2px}.heading{padding:3px 7px}.heading h1{font-size:25px}.heading nav button{font-size:13px;min-height:29px;padding:2px 5px}.occupancy{padding:3px 10px}.occupancy span{font-size:14px}.occupancy strong{font-size:17px}.occupancy .icon{width:21px;height:21px}.stage{grid-template-columns:minmax(0,1fr) 330px;padding:4px;gap:5px}.care{padding:8px 10px;border-width:5px;gap:5px}.identity{display:flex;align-items:baseline;gap:7px}.identity h2{font-size:25px}.identity h2[data-long-name=true]{font-size:19px}.identity p{font-size:12px}.courtyard .readiness{min-height:24px;font-size:13px;padding:1px 5px}.readiness .icon{width:20px;height:20px}.readiness small{font-size:10px}.stats{gap:4px}.vital{gap:1px 7px}.vital dt,.vital dd{font-size:14px}.vital .icon{width:19px;height:19px}.meter{height:6px;margin-left:27px}.hearts{margin-left:27px;height:16px}.hearts>span,.hearts img{width:16px;height:16px}.careButtons{gap:4px}.careButtons button{min-height:28px;font-size:13px;padding:2px 5px}.careButtons .feed{min-height:29px;font-size:17px}.careButtons .icon{width:20px;height:20px}.dock{padding:4px 5px;gap:4px}.residents{min-height:54px}.courtyard .resident{padding:3px 5px;gap:6px}.resident img{width:36px;height:42px}.resident strong{font-size:15px}.resident small,.resident .residentLevel{font-size:11px}.destinations button{min-height:32px;font-size:12px;gap:3px}.destinations .icon{width:21px;height:21px}.pageNumber{font-size:12px}.dock>button{min-height:32px}.compact{grid-template-columns:minmax(0,530px)}.courtyard .feedback{min-height:25px;font-size:12px}}
+@media(max-width:700px) and (max-height:760px){.courtyard{padding:4px}.heading{padding:3px 5px;gap:4px}.heading h1{font-size:25px}.heading nav button{font-size:12px;min-height:29px;padding:2px 5px}.occupancy{padding:4px 5px}.stage{grid-template-rows:minmax(45px,1fr) auto;padding:4px}.care{padding:7px 9px;gap:5px}.identity h2{font-size:25px}.identity p{font-size:12px}.courtyard .readiness{min-height:26px;font-size:13px}.stats{gap:4px}.vital dt,.vital dd{font-size:14px}.vital .icon{width:19px;height:19px}.hearts,.hearts>span,.hearts img{height:16px}.hearts>span,.hearts img{width:16px}.careButtons button{min-height:30px;font-size:13px}.careButtons .feed{min-height:32px;font-size:17px}.residents{min-height:57px}.resident img{height:44px;width:38px}.resident strong{font-size:15px}.resident small,.resident .residentLevel{font-size:11px}.destinations button{min-height:29px;font-size:11px}.destinations .icon{width:18px;height:18px}}
+/* Short phones use compact vital columns while retaining the scenic portrait. */
+@media(max-width:700px) and (max-height:600px){.stage{grid-template-rows:minmax(40px,1fr) auto}.care{align-self:center;padding:6px 8px;gap:4px}.identity{display:flex;gap:8px;align-items:baseline}.identity h2{font-size:21px}.identity p{font-size:11px}.stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.vital{grid-template-columns:1fr}.vital dt{font-size:12px;gap:3px}.vital dd{font-size:13px}.vital .icon{width:17px;height:17px}.meter,.hearts{margin:0;grid-column:1}.careButtons button{min-height:28px}.careButtons .feed{min-height:28px;font-size:16px}.hearts{gap:1px}.residents{min-height:50px}.resident img{height:36px;width:32px}.resident strong{font-size:14px}.resident small,.resident .residentLevel{font-size:10px}.heading h1{font-size:22px}.occupancy strong{font-size:15px}}
 
-.courtyard img[data-nyla-card="true"]{object-position:center top}
+.courtyard .heading nav button{border:5px solid transparent;border-image:url('/images/ui/habitat-a/button.svg') 16 fill / 9px stretch;background:none;color:#fff0d5;font-family:HabitatTinos,Georgia,serif}.courtyard .heading nav button[data-navigation-launcher]{border-image-source:url('/images/ui/habitat-a/primary.svg')}.courtyard .heading nav button>span{color:inherit}.courtyard .heading nav button:has(.icon){gap:6px}
+.courtyard :global(dialog){border:8px solid transparent;border-image:url('/images/ui/habitat-a/window.svg') 40 fill / 20px stretch;background:#031725;color:#fff0d5;overflow:visible;font-family:HabitatTinos,Georgia,serif}.courtyard :global(dialog)>header{background:none;color:#fff0d5;border-bottom:1px solid #9c8456;padding:10px}.courtyard :global(dialog)>header h2{color:#fff0d5;font-family:HabitatTinos,Georgia,serif}.courtyard :global(dialog)>div{padding:12px}.courtyard :global(dialog) button{min-height:35px;font-size:15px}.courtyard :global(dialog) p{color:#fff0d5}
+:global(dialog):has(.management){background:#031725;color:#fff0d5}:global(dialog):has(.management) :global([data-ranch-review]){background:#031725;font-family:HabitatTinos,Georgia,serif;padding:18px}:global(dialog):has(.management) :global([data-ranch-review]) :is(h1,h2,p,span){color:#fff0d5!important;font-family:HabitatTinos,Georgia,serif!important}:global(dialog):has(.management) :global([data-ranch-review]) h1{background:none}:global(dialog):has(.management) :global([data-ranch-review])>section{justify-self:center;background:#062130;border:7px solid transparent;border-image:url('/images/ui/habitat-a/window.svg') 40 fill / 18px stretch}:global(dialog):has(.management) button{font:700 16px HabitatTinos,Georgia,serif;color:#fff0d5;background:none;border:5px solid transparent;border-image:url('/images/ui/habitat-a/button.svg') 16 fill / 9px stretch;border-radius:0;display:inline-flex;gap:7px;align-items:center;justify-content:center}:global(dialog):has(.management) button:focus-visible{outline:2px solid #ffe6ac;outline-offset:2px}
 
-.compact{grid-template-columns:minmax(0,720px);justify-content:center}.compact .residentView{display:none}@media(max-width:600px){.compact{grid-template-rows:minmax(0,1fr)}.compact .care{align-self:center}}
-
-@media(max-width:600px){.courtyard .occupancy button{font-size:11px;max-width:84px}.courtyard .occupancy button span{font-size:10px}.courtyard .careButtons button{white-space:normal;line-height:1.15}}
-@media(max-height:600px){.identity{min-width:0}.identity h2{min-width:0;flex:1}.identity p{flex:none;font-size:10px}.courtyard .layout .identity h2{font-size:20px}}
-
-.profileFrame{box-sizing:border-box;height:100%;padding:16px;background:#efdfbc;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px}.profileFrame header{display:flex;align-items:center;justify-content:space-between;gap:10px}.profileFrame header h2{font:700 22px Georgia,serif;margin:0}.profileFrame header button{min-height:38px;padding:8px;border:1px solid #a48954;background:#f5e9ce;color:#49341d}@media(max-width:600px){.profileFrame{padding:8px;gap:6px}.profileFrame header h2{font-size:16px}.profileFrame header button{font-size:11px;padding:6px;min-height:32px}}@media(max-height:550px){.profileFrame{padding:6px;gap:4px}.profileFrame header h2{font-size:17px}.profileFrame header button{min-height:28px;padding:4px}}
+.compact .residentView:has(.empty){display:grid}

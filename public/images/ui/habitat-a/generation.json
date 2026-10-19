@@ -1,0 +1,53 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: stylized-concept. Asset type: single game interface icon, transparent cutout. Primary request: a beautiful compact feed sack icon for Creature Chronicles farm Habitat Feed button. One small open ivory linen sack with a folded cuff and a few golden grain kernels visibly inside, tiny stitched gold wheat emblem on front. Sculpted painterly ivory and brushed warm gold fantasy UI art, soft hand-painted edges, warm highlights, restrained shadows, deep brown line details, matches carved ivory/gold fantasy RPG icon family. Front three-quarter view, centered isolated, fills 80% of image, square canvas, true transparent background. Readable at 24-40 px. Single object no text, no badge, no border, no floor/background, no glow/cloud, no extra props.",
+  "transparent_background": true,
+  "original": "generated_images/exec-efa60706-14b5-49df-80d7-d7b3087f5579.png",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3711,
+      "sha256": "a6e8b22c9fed1105d953500a35da1f8a85063df4bba3bfe3e1d5ec3533d3ba70"
+    },
+    {
+      "path": "button.svg",
+      "bytes": 875,
+      "sha256": "d79d647c08878bad854f4fe0a5d96f50aa8837770af12b7a9cc03437a392ef1d"
+    },
+    {
+      "path": "feed.webp",
+      "bytes": 21380,
+      "sha256": "57f0a445b10a828f2eeb01146c5ea57594664fcff16e7a3ba3e0b19079be45d6"
+    },
+    {
+      "path": "heart-empty.svg",
+      "bytes": 200,
+      "sha256": "960a7a94158601bd209ec1aa0094f5ce243a335a2233a07a751efc03b30576d4"
+    },
+    {
+      "path": "panel.svg",
+      "bytes": 563,
+      "sha256": "f0ab0a77760708dc1a1d340e31e065fea7f5807bd5c3de8bea0b1902b204ecad"
+    },
+    {
+      "path": "primary.svg",
+      "bytes": 875,
+      "sha256": "d0d7022fa4da5e07253fe3cdbc0b023299226d532d4bca359e0f2611b4b8afe2"
+    },
+    {
+      "path": "resident-selected.svg",
+      "bytes": 875,
+      "sha256": "2be704c1b3393f269520895334af63247a29f0b8d35fdc2aa96afb8ef7f0e7bb"
+    },
+    {
+      "path": "source/feed.png",
+      "bytes": 1984182,
+      "sha256": "443768b3ecc3bc855c241938752ef94a7a79a149546a8a2fc497db176318bf75"
+    },
+    {
+      "path": "window.svg",
+      "bytes": 2398,
+      "sha256": "4d937dfc4c4989587967a52cdf9b98a7db4c4bf7567f6163c622f9cfc655840f"
+    }
+  ]
+}
