@@ -1,0 +1,19 @@
+{
+  "selected": "A \u2014 Scenic briefing",
+  "sources": {
+    "public/images/ui/ranch-house-a/window.svg": "4d937dfc4c4989587967a52cdf9b98a7db4c4bf7567f6163c622f9cfc655840f",
+    "public/images/ui/ranch-house-a/button.svg": "d79d647c08878bad854f4fe0a5d96f50aa8837770af12b7a9cc03437a392ef1d",
+    "public/images/ui/ranch-house-a/primary.svg": "d0d7022fa4da5e07253fe3cdbc0b023299226d532d4bca359e0f2611b4b8afe2",
+    "public/images/ui/ranch-house-a/action.svg": "9bc7b9daf216a6447ee6ad2dbc9f7ca84e090b8c075cc5a447969387a5458250",
+    "public/images/ui/ranch-house-a/action-hover.svg": "02300549d4be8f7eb2346df37fe242444d609224afc69b33ac609f3b9cc4b530",
+    "public/images/ui/ranch-house-a/chevron.svg": "b9d264bfbafdc00a0a85353c568cc4940aa9ab36c20c4f88cfcfbf987610277e",
+    "public/images/ui/ranch-house-a/divider.svg": "c9af1c8fb66e6292699d0014f3939c4630299d32cfe1cf295d2f1ceb92c13f19",
+    "public/images/ui/habitat-a/feed.webp": "57f0a445b10a828f2eeb01146c5ea57594664fcff16e7a3ba3e0b19079be45d6",
+    "public/images/ui/atelier-v1/egg.webp": "cf533f6b0964a1723f61753f9e978ee2043b3788cadbffe181bf7284e5122708",
+    "public/images/ui/atelier-v1/ledger.webp": "5247d2ad4634c8623fc802ec8ca7a00be21af555181b368d0b8065ac1cf70bfb",
+    "public/images/ui/ranch-v2/icons.webp": "81d146457167bffae737e309712323d62fa772072ccf20747ed939c44a508935",
+    "public/images/ui/ranch-v3/house.webp": "39b3cb9b62742535b3a872e074d89cb390b7ea220d68251886080ab25ffc5f66",
+    "public/images/ui/forge-slate-v2/fonts/Tinos-Regular.woff": "d7931b9002ecfd8daa5c8c307a57efa574b37facc8dfb9bca838dba9f5efd412",
+    "public/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff": "00881fa43c0c06720439ce020258525aeaea619f4a54620c71802c5c56d9c398"
+  }
+}

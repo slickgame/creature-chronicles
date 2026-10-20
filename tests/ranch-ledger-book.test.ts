@@ -18,5 +18,5 @@ test('event pages keep exact choice descriptions, then show one saved result and
 });
 test('empty sections remain explicit and all priority rows are available after morning starts',()=>{
  const s=createNewGameSave('Empty',2);s.creatures=[];s.creatureIds=[];s.ranchDay!.goals=[];s.ranchDay!.activities=[];s.ranchDay!.event=undefined;s.ranchDay!.morningBrief=undefined;
- const b=getRanchLedgerBook(s);for(const tab of ['Brief','Event','Goals','Records','Moods'] as const)assert.deepEqual(b[tab],[]);assert.equal(b.Priorities.length,6);
+ const b=getRanchLedgerBook(s);for(const tab of ['Brief','Event','Goals','Records','Moods'] as const)assert.deepEqual(b[tab],[]);assert.equal(b.Priorities.length,5);assert.equal(b.Priorities.some(r=>r.key==='training'),false);assert.equal(b.Priorities.some(r=>r.key==='cleaning'),false);
 });

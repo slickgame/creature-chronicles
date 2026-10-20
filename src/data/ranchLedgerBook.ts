@@ -8,7 +8,8 @@ export type LedgerEntry={key:string;title:string;detail:string;note?:string;atte
 export function getRanchLedgerBook(save:GameSave):Record<LedgerSection,LedgerEntry[]>{
  const planner=getRanchPlanner(save),day=save.ranchDay,brief=day?.morningBrief,event=day?.event;
  return {
- Priorities:[...planner.rows].sort((a,b)=>Number(b.attention)-Number(a.attention)).map(r=>({key:r.id,title:r.title,detail:r.detail,note:r.status,attention:r.attention,destination:r.destination,action:r.action.replace('Open Office','Ranch repairs')})),
+ // Town training has its own screen. Cleanliness joins only when implemented.
+ Priorities:planner.rows.filter(r=>r.id!=='training').sort((a,b)=>Number(b.attention)-Number(a.attention)).map(r=>({key:r.id,title:r.title,detail:r.detail,note:r.status,attention:r.attention,destination:r.destination,action:r.action.replace('Open Office','Ranch repairs')})),
  Brief:brief?[...brief.warnings.map((detail,i)=>({key:'warning-'+i,title:'Warning',detail,attention:true})),...brief.highlights.map((detail,i)=>({key:'highlight-'+i,title:'Highlight',detail})),...brief.nextSteps.map((detail,i)=>({key:'step-'+i,title:'Next step',detail}))]:[],
  Event:event?(event.resultText?[{key:event.eventId,title:event.title,detail:event.resultText,note:'Resolved · This event cannot pay again.'}]:event.choices.map(c=>({key:event.eventId+":"+c.choiceId,title:c.label,detail:c.description,note:c.requirementLabel,choiceId:c.choiceId}))):[],
  Goals:(day?.goals??[]).map(g=>({key:g.goalId,title:g.label,detail:g.description,note:`${g.progress} / ${g.target} · ${g.complete?'Complete':'In progress'} · ${g.rewardLabel}${g.rewardClaimed?' · Claimed':''}`})),
