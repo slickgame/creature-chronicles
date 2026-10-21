@@ -1,14 +1,6 @@
-import { getFarmState, planIngredientFeeding, workerBlocker } from "./farmResources";
-import { getVariantDefinition } from "./creatures";
-import { isCreatureAwayForTraining } from "./trainingGrounds";
-import { updateDailyGoalsAndRewards } from "@/data/ranch-day/ranchDayGoals";
+import { getFarmState, workerBlocker, SITES, type SiteId } from "./farmResources";
 import { projectRanchDay } from "@/data/ranch-day/ranchDayLifecycle";
 import { enterEveningReview } from "@/data/ranch-day/ranchDayState";
-import {
-  getEligibleCreaturesForJob,
-  getRanchJobs,
-  RANCH_JOB_IDS,
-} from "@/data/ranchJobs";
 import { getCurrentMonthFinalizedTax } from "@/data/taxes";
 import { getTrainingAssignment } from "@/data/trainingGrounds";
 import type { GameSave } from "@/types/save";
@@ -42,7 +34,8 @@ export function getRanchPlanner(save: GameSave) {
   const covered = numberFlag(projected.flags.ranchFeedConsumedToday);
   const available = covered;
   const shortage = Math.max(0, required - covered);
-  const unassigned = (save.creatures ?? []).filter(c=>!workerBlocker(save,c,"woodlot")).length;
+  const unassigned = (save.creatures ?? []).filter(c=>(Object.keys(SITES) as SiteId[]).some(site=>!workerBlocker(save,c,site))).length;
+  const incubatingEggs = (save.eggs ?? []).filter(egg=>egg.status==='incubating').length;
   const readyEggs = (save.eggs ?? []).filter(
     (egg) => egg.status === "ready",
   ).length;
@@ -57,10 +50,10 @@ export function getRanchPlanner(save: GameSave) {
     {
       id: "feed",
       title: "Food tonight",
-      detail: `${covered}/${required} food units covered by available rations, enabled ingredients, and legacy Feed.`,
+      detail: `${covered} / ${required} food units ready for tonight. Food is consumed when you sleep.\n\nNightly need: 2 units per bovine or equine; 1 per other resident. Rare and Epic variants need 1 extra. Away trainees eat with Rhea.\n\nUnreserved Balanced rations are used first. ${farm.ingredientFeeding?'Raw ingredient feeding is on: diet-compatible ingredients come next.':'Raw ingredient feeding is off: ingredients stay available for recipes.'} Older Feed stock covers the remainder.\n\nManage food shows each resident’s need, feeding settings, storage and reserves, cooking, and ration sources. One ration or compatible ingredient covers 1 food unit. Prepared bonus meals are served manually.`,
       status: shortage
         ? `Short by ${shortage}`
-        : "Food needs covered",
+        : "Enough for tonight",
       attention: shortage > 0,
       action: "Manage food",
       destination: "chores",
@@ -68,10 +61,8 @@ export function getRanchPlanner(save: GameSave) {
     {
       id: "nursery",
       title: "Nursery",
-      detail: readyEggs
-        ? `${readyEggs} egg${readyEggs === 1 ? " is" : "s are"} ready to hatch.`
-        : "No ready eggs waiting.",
-      status: readyEggs ? `${readyEggs} ready` : "Up to date",
+      detail: `${incubatingEggs} egg${incubatingEggs===1?'':'s'} incubating. ${readyEggs} ready to hatch.\n\nIncubation advances when you end the ranch day. Ready eggs wait for you to hatch them in the Nursery; the matching habitat needs an open space.`,
+      status: `${incubatingEggs} incubating · ${readyEggs} ready`,
       attention: readyEggs > 0,
       action: "Visit Nursery",
       destination: "nursery",
@@ -79,8 +70,8 @@ export function getRanchPlanner(save: GameSave) {
     {
       id: "chores",
       title: "Farm work",
-      detail: `${unassigned} creatures have Energy available. Work is optional and resolves immediately.`,
-      status: `${farm.workDay === save.dayState.dayNumber ? farm.workCount ?? 0 : 0} actions today`,
+      detail: `Gather crops, wood, stone and ore; produce milk; hunt; cook food; and craft components such as planks and iron ingots.\n\n${unassigned} creature${unassigned===1?' can':'s can'} currently gather at an available work location. Choose a worker and review output, Energy cost and skill XP before confirming. Work resolves immediately.\n\nThe counter records gathering actions today; cooking and crafting are separate recipe actions. Cleaning remains planned.`,
+      status: `${farm.workDay === save.dayState.dayNumber ? farm.workCount ?? 0 : 0} gathering actions today`,
       attention: false,
       action: "Manage farm",
       destination: "chores",
@@ -126,6 +117,7 @@ export function getRanchPlanner(save: GameSave) {
     rows,
     attentionCount: rows.filter((row) => row.attention).length,
     readyEggs,
+    incubatingEggs,
     unassigned,
     feed: {
       stock,

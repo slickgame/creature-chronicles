@@ -1,0 +1,27 @@
+{
+  "count": 21,
+  "checks": [
+    "No start-day gate",
+    "Food quantity is visible",
+    "Food phone[]",
+    "Manage food opens feeding directly",
+    "Feeding and ledger agree",
+    "Food browsing and cancel do not write",
+    "Food return retains entry",
+    "Nursery shows both current counts",
+    "Nursery 1440x900[]",
+    "End Ranch Day remains available",
+    "Nursery 390x844[]",
+    "End Ranch Day remains available",
+    "Nursery 390x500[]",
+    "End Ranch Day remains available",
+    "Counts and resizing are read-only",
+    "Morning action opens review without advancing",
+    "Review does not spend stock",
+    "Confirmed sleep advances exactly one day",
+    "Next morning keeps End Ranch Day",
+    "No Begin button after sleeping",
+    "No runtime errors"
+  ],
+  "errors": []
+}

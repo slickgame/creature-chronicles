@@ -267,10 +267,10 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       dayLabel: "Day 1 · Farm Work",
       title: "Read the Morning Brief",
       body: "Start each day by checking resources, warnings, creature moods, and the ranch's most urgent need.",
-      hint: phase === "morning" ? "Review the cards, then begin the ranch day." : "Open Today, then expand Morning Brief & Daily Records.",
+      hint: "Read the Morning Brief, then return to the ranch. End Ranch Day opens the overnight review whenever you are ready.",
       action: "ranch",
       actionLabel: "Show Morning Brief",
-      targetId: phase === "morning" ? "ranch-begin-day" : "ranch-morning-brief",
+      targetId: "ranch-morning-brief",
       lockToTarget: true,
     };
   }
@@ -322,10 +322,10 @@ export function getChapterOneGuidedTutorialStep(save: GameSave): ChapterOneTutor
       dayLabel: "Day 2 · Morning Results",
       title: "See What Changed Overnight",
       body: "Review food consumed, recovery, building progress, and any overnight incidents. Your work supplies were already collected when you pressed Work.",
-      hint: phase === "morning" ? "Read the overnight highlights before beginning the next day." : "Open Morning Brief and review the resource changes.",
+      hint: "Open Morning Brief and review the overnight highlights and resource changes, then return to the ranch.",
       action: "ranch",
       actionLabel: "Review Morning Results",
-      targetId: phase === "morning" ? "ranch-begin-day" : "ranch-morning-brief",
+      targetId: "ranch-morning-brief",
     };
   }
 

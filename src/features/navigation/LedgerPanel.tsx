@@ -4,10 +4,9 @@ import {useNavigation} from './NavigationContext';
 import {useGameContext} from '@/state/GameProvider';
 import {GameDialog} from '@/features/ui/GameDialog';
 import {RanchIcon,type RanchIconName} from '@/features/ui/RanchIcon';
+import {FarmCareBook} from '@/features/resources/FarmCareBook';
 import {LEDGER_SECTIONS,getRanchLedgerBook,type LedgerSection,type LedgerEntry} from '@/data/ranchLedgerBook';
 import {canResolveDailyEventChoice,resolveDailyRanchEventChoice} from '@/data/ranch-day/ranchDayEvents';
-import {beginRanchDay} from '@/data/ranch-day/ranchDayState';
-import {markChapterOneTutorialSignal} from '@/data/chapterOneGuidedTutorial';
 import {getCreatureManagementStatus} from '@/data/creatureManagement';
 import {gameplayArt} from '@/data/creatureGameplayArt';
 import s from './LedgerPanel.module.css';
@@ -39,6 +38,7 @@ export function LedgerPanel(){
  const [restoredKey,setRestoredKey]=useState(nav.ledgerReturn?.entryKey??null);
  const [page,setPage]=useState(nav.ledgerReturn?.entry??0),[small,setSmall]=useState(false),[review,setReview]=useState<string|null>(null),[message,setMessage]=useState('');
  const [detailPage,setDetailPage]=useState(0),[focus,setFocus]=useState<'entries'|'detail'>('entries');
+ const [foodOpen,setFoodOpen]=useState(false);
  const [viewport,setViewport]=useState({width:1440,height:900});
  const latest=useRef(save),busy=useRef(false);
  useEffect(()=>{latest.current=save;},[save]);
@@ -53,28 +53,27 @@ export function LedgerPanel(){
  const creature=entry?.creatureId?save.creatures?.find(c=>c.creatureId===entry.creatureId):undefined;
  const portrait=creature?gameplayArt(creature):undefined;
  const status=creature?getCreatureManagementStatus(save,creature).primaryStatus:null;
- const empty=section==='Brief'?'The first morning has no previous-day report. Check Priorities and choose how to begin.':section==='Records'?'No major actions recorded today.':section==='Moods'?'No resident creatures to review.':section==='Goals'?'No daily goals are recorded for this day.':'No daily event to review.';
+ const empty=section==='Brief'?'The first morning has no previous-day report. Check Priorities, then return to the ranch whenever you are ready.':section==='Records'?'No major actions recorded today.':section==='Moods'?'No resident creatures to review.':section==='Goals'?'No daily goals are recorded for this day.':'No daily event to review.';
  const reviewEligibility=review?canResolveDailyEventChoice(save,review):null;
  const paragraphs=review?[
   reviewChoice?.description??'This choice is no longer available.',reviewChoice?.requirementLabel??'No item or Gold requirement.',
   'This resolves today’s event once. Reserved supplies stay protected.',!reviewEligibility?.ok?reviewEligibility?.reason??'':'',
  ]:entry?[
-  section==='Event'&&!event?.resultText?event?.description??'':'',entry.detail,
+  section==='Event'&&!event?.resultText?event?.description??'':'',...entry.detail.split('\n\n'),
   choice&&!choice.ok?choice.reason??'':section==='Priorities'?'':entry.note??'',message!==entry.detail?message:'',
  ]:[empty,message];
- const limit=short?140:narrow?(viewport.height<800?180:210):viewport.height<800?260:430,details=textPages(paragraphs,limit),detailIndex=Math.min(detailPage,details.length-1);
+ const limit=short?100:narrow?150:viewport.height<800?260:430,details=textPages(paragraphs,limit),detailIndex=Math.min(detailPage,details.length-1);
  const close=()=>{nav.setLedgerReturn(null);nav.open(null);};
  const select=(n:number,openDetail=true)=>{setRestoredKey(null);setPage(n);setDetailPage(0);setMessage('');if(focused&&openDetail)setFocus('detail');};
  const chooseSection=(next:LedgerSection)=>{setSection(next);setRestoredKey(null);setPage(0);setDetailPage(0);setMessage('');setFocus('entries');};
  const visit=(destination=entry?.destination)=>{if(!destination||!entry)return;nav.setLedgerReturn({screen:game.appScreen,tab:section,entry:index,entryKey:entry.key});nav.open(null);({nursery:game.goToNursery,chores:game.goToRanchJobs,supplies:game.goToSupplyDepot,office:game.goToRanchOffice,training:game.goToTrainingGrounds,collection:game.goToCollection})[destination]();};
- const begin=()=>{const fresh=latest.current;if(!fresh||busy.current)return;busy.current=true;try{game.saveCurrentGame(markChapterOneTutorialSignal(beginRanchDay(fresh),fresh.dayState.dayNumber>1?'day-two-brief-opened':'morning-opened'));close();}finally{busy.current=false;}};
  const confirm=()=>{if(!review||!latest.current||busy.current)return;busy.current=true;try{const result=resolveDailyRanchEventChoice(latest.current,review);if(result.ok)latest.current=game.saveCurrentGame(result.save);setMessage(result.message);setReview(null);setDetailPage(0);}finally{busy.current=false;}};
  const cancel=()=>{setReview(null);setDetailPage(0);};
- return <GameDialog fullScreen title="Ranch ledger & morning brief" onClose={review?cancel:close}><main className={`${s.ledger} ${small?s.compact:''}`} data-ledger-book data-focused={focused}>
+ return <><GameDialog fullScreen title="Ranch ledger & morning brief" onClose={review?cancel:close}><main className={`${s.ledger} ${small?s.compact:''}`} data-ledger-book data-focused={focused}>
  <div className={s.workspace}><div className={s.scenery} role="img" aria-label="Sunny farmhouse interior"/>
  <article className={s.paper} aria-label="Ranch ledger">
  <header className={s.heading}><h1>Ranch Ledger <small>Day {save.dayState.dayNumber}</small></h1><div><button aria-label={review?'Cancel event review':'Close ranch ledger'} onClick={review?cancel:close}><img src="/images/ui/creature-overview-a-v2/icons/back.svg" alt=""/><span>{review?'Back':'Back to ranch'}</span></button><button aria-label={small?'Expand art':'Minimize art'} aria-expanded={!small} onClick={()=>setSmall(v=>!v)}><img src="/images/ui/creature-overview-a-v2/icons/expand.svg" alt=""/><span>{small?'Expand art':'Minimize art'}</span></button></div></header>
- {!review&&<nav className={s.tabs} aria-label="Ranch ledger sections">{LEDGER_SECTIONS.map(t=><button key={t} onClick={()=>chooseSection(t)} aria-pressed={section===t}>{t}</button>)}</nav>}
+ {!review&&<nav className={s.tabs} aria-label="Ranch ledger sections">{LEDGER_SECTIONS.map(t=><button key={t} data-tutorial-id={t==='Brief'?'ranch-morning-brief':undefined} onClick={()=>chooseSection(t)} aria-pressed={section===t}>{t}</button>)}</nav>}
  <div className={s.vignette}><img src="/images/ui/ranch-v3/house.webp" alt="Sunny farmhouse desk"/></div>
  {focused&&!review&&entries.length>0&&<nav className={s.focusTabs} aria-label="Ledger view"><button aria-pressed={focus==='entries'} onClick={()=>setFocus('entries')}>Entries</button><button aria-pressed={focus==='detail'} onClick={()=>setFocus('detail')}>Selected entry</button></nav>}
  <h2 className={s.sectionTitle}>{review?'Review daily event choice':section==='Event'?event?.title??LABELS.Event:LABELS[section]}</h2>
@@ -88,9 +87,9 @@ export function LedgerPanel(){
  <div className={s.identity}><EntryArt entry={entry} section={section} portrait={portrait}/><div><h3>{review?reviewChoice?.label??'Choice':entry?.title??LABELS[section]}</h3>{creature&&<small>Level {creature.level} · {status}</small>}{!review&&entry?.note&&<span className={s.badge} data-warning={entry.attention}>{entry.attention?'!':'◇'} {section==='Priorities'?entry.note:LABELS[section]}</span>}</div></div>
  <div className={s.copy} data-ledger-copy>{details[detailIndex].map((p,n)=><p key={n}>{p}</p>)}</div>
  {details.length>1&&<nav className={s.pager} aria-label="Detail pages"><button disabled={!detailIndex} onClick={()=>setDetailPage(detailIndex-1)}>‹ Back</button><span>Details {detailIndex+1} / {details.length}</span><button disabled={detailIndex>=details.length-1} onClick={()=>setDetailPage(detailIndex+1)}>More ›</button></nav>}
- <div className={s.links}>{review?<><button onClick={cancel}>Cancel</button><button data-primary disabled={!reviewEligibility?.ok} onClick={confirm}>Confirm choice</button></>:<>{entry?.destination&&<button data-primary onClick={()=>visit()}>{entry.action}<img className={s.chevron} src={`${KIT}/chevron.svg`} alt=""/></button>}{section==='Priorities'&&entry?.key==='feed'&&<button onClick={()=>visit('supplies')}>Pella · Rations</button>}{entry?.choiceId&&!event?.resultText&&<button data-primary disabled={!choice?.ok} onClick={()=>{setReview(entry.choiceId!);setDetailPage(0);}}>Review choice</button>}{!entries.length&&section!=='Priorities'&&<button data-primary onClick={()=>chooseSection('Priorities')}>View priorities</button>}</>}</div>
+ <div className={s.links}>{review?<><button onClick={cancel}>Cancel</button><button data-primary disabled={!reviewEligibility?.ok} onClick={confirm}>Confirm choice</button></>:<>{entry?.destination&&<button data-primary onClick={()=>entry.key==='feed'?setFoodOpen(true):visit()}>{entry.action}<img className={s.chevron} src={`${KIT}/chevron.svg`} alt=""/></button>}{section==='Priorities'&&entry?.key==='feed'&&<button onClick={()=>visit('supplies')}>Pella · Rations</button>}{entry?.choiceId&&!event?.resultText&&<button data-primary disabled={!choice?.ok} onClick={()=>{setReview(entry.choiceId!);setDetailPage(0);}}>Review choice</button>}{!entries.length&&section!=='Priorities'&&<button data-primary onClick={()=>chooseSection('Priorities')}>View priorities</button>}</>}</div>
  {message&&<span className={s.status} role="status">{message}</span>}
  </section></div>
- {!review&&<footer className={s.footer}><span className={s.phase}><RanchIcon name={save.ranchDay?.phase==='morning'?'sun':'moon'}/>{save.ranchDay?.phase==='morning'?'Morning':'Today'}</span>{save.ranchDay?.phase==='morning'?<button data-primary data-tutorial-id="ranch-begin-day" onClick={begin}>Begin Ranch Day</button>:<button data-primary data-tutorial-id="ranch-review-day" onClick={()=>{nav.setLedgerReturn(null);nav.open('end-day');}}>Review & End Day</button>}<small>{save.ranchDay?.goals.filter(g=>g.complete).length??0} / {save.ranchDay?.goals.length??0} daily goals complete</small></footer>}
- </article></div></main></GameDialog>;
+ {!review&&<footer className={s.footer}><span className={s.phase}><RanchIcon name={save.ranchDay?.phase==='morning'?'sun':'moon'}/>{save.ranchDay?.phase==='morning'?'Morning':'Today'}</span><button data-primary data-tutorial-id="ranch-review-day" onClick={()=>{nav.setLedgerReturn(null);nav.open('end-day');}}>End Ranch Day</button><small>{save.ranchDay?.goals.filter(g=>g.complete).length??0} / {save.ranchDay?.goals.length??0} daily goals complete</small></footer>}
+ </article></div></main></GameDialog>{foodOpen&&<GameDialog fullScreen title="Food management" onClose={()=>setFoodOpen(false)}><FarmCareBook initialSection="Feeding" onBack={()=>setFoodOpen(false)}/></GameDialog>}</>;
 }

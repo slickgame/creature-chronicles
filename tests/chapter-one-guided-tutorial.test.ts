@@ -170,6 +170,8 @@ test("visiting Battle Outfitter early cannot skip earlier guided lessons", () =>
   };
   const step = getChapterOneGuidedTutorialStep(save);
   assert.equal(step?.id, "read-morning-brief");
+  assert.equal(step?.targetId, "ranch-morning-brief");
+  assert.doesNotMatch(step?.hint ?? '', /begin the ranch day/i);
 });
 
 test("the active first battle handoff names Opening Scrimmage", () => {

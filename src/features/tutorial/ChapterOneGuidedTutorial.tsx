@@ -70,7 +70,7 @@ export function ChapterOneGuidedTutorial() {
     if (!requestedReview || appScreen !== "ranch-hub") return;
     open(requestedReview);
     setRequestedReview(null);
-    if (requestedReview === "ledger" && currentSave?.ranchDay?.phase !== "morning") {
+    if (requestedReview === "ledger") {
       window.dispatchEvent(new CustomEvent(SIGNAL_EVENT, { detail: {
         signal: (currentSave?.dayState.dayNumber ?? 1) > 1 ? "day-two-brief-opened" : "morning-opened",
       } }));

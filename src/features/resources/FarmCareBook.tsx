@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useGameContext } from '@/state/GameProvider';
 import { GameDialog } from '@/features/ui/GameDialog';
 import { IngredientCounter } from '@/features/builder/IngredientCounter';
 import { ResourceShelf } from './ResourceShelf';
 import { ProductionBook } from './ProductionBook';
 import { getFoodBudget } from '@/data/economyBudget';
+import { getNightCareReview } from '@/data/nightCareReview';
 import { getFarmSecurity } from '@/data/farmSecurity';
 import { getPredatorThreatAssessment } from '@/data/predatorThreat';
 import { getDailyFeedCost } from '@/data/ranchJobsPredator';
@@ -26,8 +27,9 @@ export function FarmCareBook({ initialSection, onBack }: { initialSection: Secti
  const [route,setRoute]=useState<'storage'|'rations'|'kitchen'|null>(null);
  const [productionSection,setProductionSection]=useState<'Gathering'|'Kitchen'|'Workbench'>('Kitchen');
  const [message,setMessage]=useState('');const busy=useRef(false);
- if(!save)return null;
- const farm=getFarmState(save),budget=getFoodBudget(save),tonight=budget.days[0],security=getFarmSecurity(save),threat=getPredatorThreatAssessment(save);
+ const tonight=useMemo(()=>save?getNightCareReview(save):null,[save]);
+ if(!save||!tonight)return null;
+ const farm=getFarmState(save),budget=getFoodBudget(save),security=getFarmSecurity(save),threat=getPredatorThreatAssessment(save);
  const creatures=save.creatures??[];
  const count=section==='Feeding'?1+creatures.length:section==='Budget'?7:2;
  const current=Math.min(page,count-1),creature=section==='Feeding'&&current>0?creatures[current-1]:null;

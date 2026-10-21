@@ -44,7 +44,13 @@ Five ranch priorities: food, nursery, farm work, monthly tax and ranch condition
 Town training is omitted from this list; training and its rewards remain in the
 existing game. Habitat cleanliness is deferred until the actual system exists.
 
-Begin Ranch Day and Confirm choice are explicit saved actions. Review & End Day
-opens the existing review. Event review/cancel uses the same production kit.
+End Ranch Day opens the existing review in every phase, including morning.
+Sleep & Advance Day is the separate explicit confirmation. Event review/cancel
+uses the same production kit, and Confirm choice remains an explicit saved action.
 Resident names, levels and statuses remain on the existing Habitat dock; Moods
 also shows the live resident level and management status.
+
+The nursery summary shows incubating and ready-to-hatch counts. Manage food
+opens Feeding directly and uses the same overnight projection as the ledger.
+Farm work names gathering, husbandry, hunting, cooking and crafting; its counter
+is explicitly labeled gathering actions today.

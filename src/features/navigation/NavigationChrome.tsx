@@ -33,8 +33,7 @@ export function NavigationChrome() {
   useEffect(() => {
     const save = game.currentSave;
     if (view === "end-day" && save) {
-      if (save.ranchDay?.phase === "morning") open("ledger");
-      else if (save.ranchDay?.phase !== "evening")
+      if (save.ranchDay?.phase !== "evening")
         game.saveCurrentGame(enterEveningReview(save));
     }
   }, [view, game, open]);
