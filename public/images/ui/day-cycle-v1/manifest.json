@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "stage": "approved-c-runtime",
+  "selected": "C Resident recovery ledger",
+  "created": "2026-10-22",
+  "painted": {
+    "evening.webp": "end-of-day emblem, true alpha",
+    "morning.webp": "morning-report emblem, true alpha",
+    "evening-room.webp": "clean twilight farmhouse background"
+  },
+  "nativeGenerator": "scripts/build-feeding-polish-assets.py",
+  "nativeSymbols": ["timer.svg", "check.svg", "warning.svg"],
+  "surfaces": {
+    "window.svg": 44,
+    "panel.svg": 38,
+    "portrait.svg": 32,
+    "action.svg": 24,
+    "selected.svg": 24,
+    "hover.svg": 24,
+    "button.svg": 20,
+    "primary.svg": 20,
+    "disabled.svg": 20,
+    "field.svg": 20,
+    "stat.svg": 20,
+    "badge-fed.svg": 8,
+    "badge-warning.svg": 8,
+    "divider.svg": null
+  },
+  "fonts": {
+    "regular": "/images/ui/forge-slate-v2/fonts/Tinos-Regular.woff",
+    "bold": "/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff"
+  },
+  "creatures": "Canonical registered portraitPath only; never full-body profilePath",
+  "concepts": ["A Scenic evening desk", "B Compact night checklist", "C Resident recovery ledger"]
+}

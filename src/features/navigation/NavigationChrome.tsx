@@ -1,6 +1,7 @@
 "use client";
 
-import {RanchReview} from "@/features/ranch/RanchReview";
+import {MorningCycleReport} from "./MorningCycleReport";
+import type {GameSave} from "@/types/save";
 import {NightCareReview} from "./NightCareReview";
 import { useEffect, useRef, useState } from "react";
 import { RanchJournal } from "@/features/ranch/RanchJournal";
@@ -21,6 +22,8 @@ export function NavigationChrome() {
   const game = useGameContext();
   const { view, open, setRanchView, setRanchPlot, nightReturn, setNightReturn, ledgerReturn } = useNavigation();
   const [report, setReport] = useState<DayAdvanceResult | null>(null);
+  const [reportBefore,setReportBefore]=useState<GameSave|null>(null);
+  const [reportCreature,setReportCreature]=useState<string|undefined>(undefined);
   const sleeping = useRef(false);
   const previousScreen=useRef(game.appScreen);
   const shownMorning=useRef<string|null>(null);
@@ -29,6 +32,8 @@ export function NavigationChrome() {
     previousScreen.current=game.appScreen;
     open(nightReturn?.screen===game.appScreen?"end-day":ledgerReturn?.screen===game.appScreen?"ledger":null);
     setReport(null);
+    setReportBefore(null);
+    setReportCreature(undefined);
   }, [game.appScreen, open, nightReturn, ledgerReturn]);
   useEffect(() => {
     const save = game.currentSave;
@@ -89,13 +94,16 @@ export function NavigationChrome() {
     open(null);
     action();
   }
-  function sleep() {
+  function sleep(creatureId?:string) {
     if (sleeping.current) return;
     sleeping.current = true;
     setNightReturn(null);
     try {
+      const beforeSleep=structuredClone(save);
       const result = game.advanceDay();
       if (result) {
+        setReportBefore(beforeSleep);
+        setReportCreature(creatureId);
         open("morning-report");
         setReport(result);
       }
@@ -235,7 +243,7 @@ export function NavigationChrome() {
           <RanchAdvisorOverlay embedded />
         </GameDialog>
       )}
-      {report && <RanchReview title="Morning Report" art="/images/ui/ranch-v3/house.webp" onClose={()=>{setReport(null);open("ledger");}} pages={Array.from({length:Math.max(1,Math.ceil(report.summaryItems.length/2))},(_,i)=>({title:`${report.previousDateLabel} → ${report.nextDateLabel}`,content:<><p>Night report · {i+1} / {Math.max(1,Math.ceil(report.summaryItems.length/2))}</p>{report.summaryItems.slice(i*2,i*2+2).map((item,n)=><p key={n}>{item}</p>)}</>}))} actions={<button onClick={()=>{setReport(null);open("ledger");}}>Review Morning Brief</button>}/>}
+      {report && reportBefore && <MorningCycleReport before={reportBefore} after={save} result={report} initialCreatureId={reportCreature} onClose={()=>{setReport(null);setReportBefore(null);open("ledger");}}/>}
 
     </>
   );

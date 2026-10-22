@@ -11,7 +11,7 @@ export type NavigationView =
   | "advisor"
   | "guide"
   | null;
-export type NightReturn = {screen:string;tab:string;entry:number;entryKey?:string}|null;
+export type NightReturn = {screen:string;tab:string;entry:number;entryKey?:string;timerKey?:string}|null;
 export type CreatureRosterSection = 'overview'|'stats'|'work'|'talents'|'lineage'|'care'|'inventory'|'equipment';
 export type CreatureRosterSelection = {saveId:string;creatureId:string;section:CreatureRosterSection};
 export type NurserySelection = {saveId:string;tab:"eggs"|"pregnancies"|"births";id:string;small:boolean};
