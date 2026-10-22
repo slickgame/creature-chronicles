@@ -1,4 +1,4 @@
-import { planIngredientFeeding, RESOURCES } from './farmResources';
+import { planNightFeeding, RESOURCES, getFarmState } from './farmResources';
 import { getDailyFeedCost } from './ranchJobsPredator';
 import { isCreatureAwayForTraining } from './trainingGrounds';
 import { enhancementCost } from './equipmentEnhancement';
@@ -12,19 +12,17 @@ export function getFoodBudget(save: GameSave, nights = 7) {
     .map(creature => ({ creature, amount: getDailyFeedCost(creature) }));
   const nightlyNeed = needs.reduce((sum, n) => sum + n.amount, 0);
   let projected = save;
-  let legacy = Math.max(0, Math.floor(Number(save.flags.ranchFeedStock) || 0));
   let shortage = 0;
   const days = [];
   for (let n = 0; n < horizon; n++) {
-    const feeding = planIngredientFeeding(projected, needs);
+    const feeding = planNightFeeding(projected, needs);
     projected = feeding.save;
-    const legacyUsed = Math.min(legacy, nightlyNeed - feeding.covered);
-    legacy -= legacyUsed;
-    const missing = nightlyNeed - feeding.covered - legacyUsed;
+    const missing = nightlyNeed - feeding.covered;
     shortage += missing;
     days.push({ night: n + 1, required: nightlyNeed, covered: nightlyNeed - missing, shortage: missing });
   }
-  return { nights: horizon, nightlyNeed, shortage, days, topUpGold: shortage * RESOURCES.rations.price };
+  const topUpAllowed = !getFarmState(save).excludedFoods?.includes('rations');
+  return { nights: horizon, nightlyNeed, shortage, days, topUpAllowed, topUpGold: shortage * RESOURCES.rations.price };
 }
 
 export function getUpgradeBudget(save: GameSave, item: BattleOutfitterItem, currentLevel: number, constructionAllowance = 0) {

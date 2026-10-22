@@ -56,7 +56,7 @@ export const SUPPLY_ORDERS: { id: string; name: string; inputs: Stock; gold: num
   { id: "nails", name: "Fasteners for the town", inputs: { nails: 8 }, gold: 160, gp: 6, prerequisite: "forge" },
 ];
 export type FarmState = {
-  workDay?: number; workOutput?: Stock; workCount?: number; workLog?: string[]; version: 1; ingredientFeeding?: boolean; stock: Stock; reserves: Stock; assignments: Partial<Record<SiteId, string[]>>;
+  workDay?: number; workOutput?: Stock; workCount?: number; workLog?: string[]; version: 1; ingredientFeeding?: boolean; excludedFoods?: string[]; stock: Stock; reserves: Stock; assignments: Partial<Record<SiteId, string[]>>;
   facilities: Partial<Record<FacilityId, boolean>>; lastDay: number;
   project?: { id: FacilityId; readyDay: number };
   meals: Record<string, { id: ResourceId; day: number }>;
@@ -69,7 +69,9 @@ export function getFarmState(save: GameSave): FarmState {
     const raw = JSON.parse(String(save.flags[FLAG] ?? "null"));
     if (!raw || raw.version !== 1) return fallback;
     const sanitize = (values: Stock): Stock => Object.fromEntries(RESOURCE_IDS.map(id => [id, Math.max(0, Math.floor(Number(values?.[id]) || 0))]));
-    return { ...fallback, ...raw, stock: sanitize(raw.stock), reserves: sanitize(raw.reserves) };
+    return { ...fallback, ...raw, ingredientFeeding: raw.ingredientFeeding === true,
+      excludedFoods: Array.isArray(raw.excludedFoods) ? raw.excludedFoods.filter((id: unknown) => AUTOMATIC_FOODS.includes(id as AutomaticFood)) : [],
+      stock: sanitize(raw.stock), reserves: sanitize(raw.reserves) };
   } catch { return fallback; }
 }
 function write(save: GameSave, state: FarmState): GameSave { return { ...save, flags: { ...save.flags, [FLAG]: JSON.stringify(state) } }; }
@@ -284,9 +286,22 @@ export function foodChoices(creature: CreatureRecord): ResourceId[] {
   if (family === "canine") return ["meat", "eggs", "vegetables", "wheat", "milk"];
   return ["vegetables", "wheat"];
 }
+export function creatureDiet(creature: CreatureRecord): 'Herbivore' | 'Carnivore' | 'Omnivore' {
+  const family = getVariantDefinition(creature.variantId).family;
+  return family === 'feline' ? 'Carnivore' : family === 'canine' ? 'Omnivore' : 'Herbivore';
+}
+export const AUTOMATIC_FOODS = ['rations', 'vegetables', 'wheat', 'meat', 'eggs', 'milk', 'legacy_feed'] as const;
+export type AutomaticFood = typeof AUTOMATIC_FOODS[number];
+export function setAutomaticFood(save: GameSave, food: AutomaticFood, allowed: boolean): FarmResult {
+  if (!AUTOMATIC_FOODS.includes(food)) return fail(save, 'That item cannot be used for automatic feeding.');
+  const state = getFarmState(save);
+  state.excludedFoods = [...new Set(state.excludedFoods ?? [])].filter(id => id !== food);
+  if (!allowed) state.excludedFoods.push(food);
+  return done(save, state, `${food === 'legacy_feed' ? 'Older Feed' : RESOURCES[food].name} ${allowed ? 'allowed for' : 'excluded from'} automatic feeding. No food consumed.`);
+}
 export function setIngredientFeeding(save: GameSave, enabled: boolean): FarmResult {
   const state = getFarmState(save); state.ingredientFeeding = enabled;
-  return done(save, state, enabled ? "Balanced rations come first; unreserved raw ingredients cover remaining needs before legacy Feed." : "Raw ingredients saved for recipes. Tonight uses Balanced rations and existing Feed.");
+  return done(save, state, enabled ? "Allowed diet-compatible ingredients are available overnight. Reserves stay protected; Balanced rations and older Feed cover remaining needs." : "Raw ingredients saved for recipes. Allowed Balanced rations and older Feed cover tonight’s needs.");
 }
 export function consumeFarmResources(save: GameSave, cost: Stock): FarmResult {
   const state = getFarmState(save);
@@ -295,20 +310,48 @@ export function consumeFarmResources(save: GameSave, cost: Stock): FarmResult {
 }
 export function planIngredientFeeding(save: GameSave, needs: { creature: CreatureRecord; amount: number }[]) {
   const state = getFarmState(save), used: Stock = {};
+  const meals: { creatureId: string; required: number; covered: number; used: Stock; legacyUsed: number }[] = [];
   let covered = 0;
-  for (const { creature, amount } of needs) {
-    let remaining = amount;
-    const choices: ResourceId[] = ["rations", ...(state.ingredientFeeding ? foodChoices(creature) : [])];
+  // Flexible eaters go last so they cannot take a restricted diet's only food.
+  const ordered = [...needs].sort((a,b) => Number(creatureDiet(a.creature) === 'Omnivore') - Number(creatureDiet(b.creature) === 'Omnivore'));
+  for (const { creature, amount } of ordered) {
+    let remaining = Math.max(0, Math.floor(amount));
+    const meal = { creatureId: String(creature.creatureId), required: remaining, covered: 0, used: {} as Stock, legacyUsed: 0 };
+    meals.push(meal);
+    const choices = state.ingredientFeeding ? foodChoices(creature) : [];
     for (const id of choices) {
+      if (state.excludedFoods?.includes(id)) continue;
       const count = Math.min(remaining, Math.max(0, (state.stock[id] ?? 0) - (state.reserves[id] ?? 0)));
       if (!count) continue;
       state.stock[id] = (state.stock[id] ?? 0) - count;
       used[id] = (used[id] ?? 0) + count;
+      meal.used[id] = count; meal.covered += count;
       covered += count; remaining -= count;
       if (!remaining) break;
     }
   }
-  return { save: write(save, state), covered, used };
+  // Spend diet-specific supplies before the common pool, avoiding preventable shortages.
+  if (!state.excludedFoods?.includes('rations')) for (const meal of meals) {
+    const count = Math.min(meal.required - meal.covered, Math.max(0, (state.stock.rations ?? 0) - (state.reserves.rations ?? 0)));
+    if (!count) continue;
+    state.stock.rations = (state.stock.rations ?? 0) - count;
+    meal.used.rations = count; meal.covered += count;
+    used.rations = (used.rations ?? 0) + count; covered += count;
+  }
+  return { save: write(save, state), covered, used, meals };
+}
+
+/** Shared by actual sleep, stock forecasts and detached UI projections. */
+export function planNightFeeding(save: GameSave, needs: { creature: CreatureRecord; amount: number }[]) {
+  const result = planIngredientFeeding(save, needs);
+  const available = Math.max(0, Math.floor(Number(save.flags.ranchFeedStock) || 0));
+  let legacyUsed = 0;
+  if (!getFarmState(save).excludedFoods?.includes('legacy_feed')) for (const meal of result.meals) {
+    const count = Math.min(meal.required - meal.covered, available - legacyUsed);
+    meal.legacyUsed = count; meal.covered += count; legacyUsed += count;
+  }
+  const nextSave: GameSave = { ...result.save, flags: { ...result.save.flags, ranchFeedStock: available - legacyUsed } };
+  return { ...result, covered: result.covered + legacyUsed, legacyUsed, save: nextSave };
 }
 
 export function resourceShortages(state: FarmState, cost: Stock): string[] {

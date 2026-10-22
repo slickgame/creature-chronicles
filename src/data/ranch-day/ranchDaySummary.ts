@@ -1,4 +1,4 @@
-import { getFarmState, planIngredientFeeding } from "@/data/farmResources";
+import { getFarmState, planNightFeeding } from "@/data/farmResources";
 import { getPredatorThreatAssessment } from "@/data/predatorThreat";
 import { isCreatureAwayForTraining } from "@/data/trainingGrounds";
 import { getVariantDefinition } from "@/data/creatures";
@@ -12,11 +12,6 @@ import type {
 import type { GameSave } from "@/types/save";
 import { summarizeCreatureMoods } from "./ranchDayMood";
 import { getRanchDayDateLabel, getRanchResourceSnapshot } from "./ranchDayState";
-
-function readFlagNumber(value: boolean | number | string | undefined): number {
-  const parsed = typeof value === "number" ? value : Number(value ?? 0);
-  return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
-}
 
 export function buildResourceFlow(starting: RanchResourceSnapshot, ending: RanchResourceSnapshot): RanchResourceFlow {
   return {
@@ -42,7 +37,7 @@ export function buildEveningPreview(save: GameSave): RanchEveningPreview {
   const day = save.ranchDay;
   const activities = day?.activities ?? [];
   const goals = day?.goals ?? [];
-  const currentFeed = readFlagNumber(save.flags.ranchFeedStock) + planIngredientFeeding(save,(save.creatures ?? []).filter(c=>!isCreatureAwayForTraining(save,c.creatureId)).map(creature=>({creature,amount:(getVariantDefinition(creature.variantId).family === "bovine" || getVariantDefinition(creature.variantId).family === "equine" ? 2 : 1) + (["Rare","Epic"].includes(getVariantDefinition(creature.variantId).rarity)?1:0)}))).covered;
+  const currentFeed = planNightFeeding(save,(save.creatures ?? []).filter(c=>!isCreatureAwayForTraining(save,c.creatureId)).map(creature=>({creature,amount:(getVariantDefinition(creature.variantId).family === "bovine" || getVariantDefinition(creature.variantId).family === "equine" ? 2 : 1) + (["Rare","Epic"].includes(getVariantDefinition(creature.variantId).rarity)?1:0)}))).covered;
   const feedRequired = projectedFeedRequired(save);
   const assignments = (save.ranchJobs?.assignments ?? {}) as Record<string, string[] | undefined>;
   const securityAssigned = (assignments.security_patrol ?? []).length > 0;

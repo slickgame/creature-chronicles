@@ -1,4 +1,4 @@
-import { processResourceDay, planIngredientFeeding, resourceList, getFarmState } from "./farmResources";
+import { processResourceDay, planNightFeeding, resourceList, getFarmState } from "./farmResources";
 import { getVariantDefinition } from "@/data/creatures";
 import { resolvePredatorNightCheck } from "@/data/predatorEvents";
 import { getRanchUpgradeEffects } from "@/data/ranchUpgrades";
@@ -108,7 +108,7 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
     producedMaterials = work.workOutput?.wood ?? 0;
   }
   const predatorCheck = resolvePredatorNightCheck(save, securityScore);
-  const ingredientFeeding = planIngredientFeeding(predatorCheck.save, nextCreatures
+  const ingredientFeeding = planNightFeeding(predatorCheck.save, nextCreatures
     .filter(c => !isCreatureAwayForTraining(predatorCheck.save, c.creatureId))
     .map(creature => ({ creature, amount: getDailyFeedCost(creature) })));
   const workingSave = ingredientFeeding.save;
@@ -116,7 +116,6 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const feedRequired = nextCreatures
     .filter((creature) => !isCreatureAwayForTraining(workingSave, creature.creatureId))
     .reduce((total, creature) => total + getDailyFeedCost(creature), 0);
-  const startingFeed = getFlagNumber(workingSave.flags.ranchFeedStock);
   const startingMaterials = getFlagNumber(workingSave.flags.ranchMaterialsStock);
   const startingDamage = getFlagNumber(workingSave.flags.ranchDamage);
   const wear = resolveRanchWear(workingSave, upkeepScore, startingDamage);
@@ -127,25 +126,18 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   const finalDamage = Math.max(0, damageBeforeRepair - repairedDamage);
   const conditionLabel = getRanchConditionLabel(finalDamage);
   const conditionPenalty = getConditionRecoveryPenalty(finalDamage);
-  const feedAvailable = startingFeed;
-  const feedConsumed = Math.min(feedAvailable, Math.max(0, feedRequired - ingredientFeeding.covered));
-  const remainingFeed = Math.max(0, feedAvailable - feedConsumed);
+  const feedConsumed = ingredientFeeding.legacyUsed;
+  const remainingFeed = getFlagNumber(workingSave.flags.ranchFeedStock);
   const remainingMaterials = startingMaterials;
-  const fedRatio = feedRequired > 0 ? (feedConsumed + ingredientFeeding.covered) / feedRequired : 1;
+  const fedRatio = feedRequired > 0 ? ingredientFeeding.covered / feedRequired : 1;
   const basePlayerEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
-  const baseCreatureEnergyRatio = fedRatio >= 1 ? 1 : fedRatio > 0 ? 0.45 : 0.1;
-  const baseAffectionDelta = fedRatio >= 1 ? 0 : fedRatio > 0 ? -1 : -3;
   const playerEnergyRatio = Math.max(0.05, basePlayerEnergyRatio - conditionPenalty.energyPenalty);
-  const creatureEnergyRatio = Math.max(0.05, baseCreatureEnergyRatio - conditionPenalty.energyPenalty);
-  const affectionDelta = baseAffectionDelta + conditionPenalty.affectionPenalty;
   const foodStatus = fedRatio >= 1 ? "Fed" : fedRatio > 0 ? "Short" : "Empty";
-  const feedingSummary = (ingredientFeeding.covered ? `Ingredients used: ${resourceList(ingredientFeeding.used)} (${ingredientFeeding.covered} food units). ` : "") + (feedRequired <= 0
-    ? "No creatures needed feed today."
-    : foodStatus === "Fed"
-      ? `Ranch provisions covered daily feed: ${feedConsumed + ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} Feed consumed.`
-      : foodStatus === "Short"
-        ? `Food shortage: ${feedConsumed + ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} Feed consumed. Sleep recovery was weak and creature affection dropped by 1.`
-        : `No food available: 0/${feedRequired} Feed consumed. Sleep recovered almost no energy and creature affection dropped by 3.`);
+  const creaturesFed = ingredientFeeding.meals.filter(m => m.covered >= m.required).length;
+  const feedingSummary = `Creatures fed: ${creaturesFed}/${ingredientFeeding.meals.length}. `
+    + (Object.keys(ingredientFeeding.used).length ? `Ingredients used: ${resourceList(ingredientFeeding.used)}. ` : '')
+    + `${ingredientFeeding.covered}/${feedRequired} food units covered; ${feedConsumed} older Feed consumed.`
+    + (fedRatio < 1 ? ' Only underfed creatures receive hunger recovery and affection penalties.' : '');
   const haulingSummary = producedMaterials > 0 ? `Work produced ${producedMaterials} Wood. Wood stock is now ${getFarmState(workingSave).stock.wood ?? 0}.` : "No Wood gathered today.";
   const damageSourceSummary = totalDamageAdded > 0 ? `Weather added ${totalDamageAdded} ranch damage.` : "No weather damage was added today.";
   const upkeepSummary = repairedDamage > 0
@@ -163,6 +155,10 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
   ];
   const fedCreatures = nextCreatures.map((creature) => {
     if (isCreatureAwayForTraining(workingSave, creature.creatureId)) return creature;
+    const meal = ingredientFeeding.meals.find(m => m.creatureId === creature.creatureId);
+    const ratio = meal && meal.required > 0 ? meal.covered / meal.required : 1;
+    const creatureEnergyRatio = Math.max(0.05, (ratio >= 1 ? 1 : ratio > 0 ? 0.45 : 0.1) - conditionPenalty.energyPenalty);
+    const affectionDelta = (ratio >= 1 ? 0 : ratio > 0 ? -1 : -3) + conditionPenalty.affectionPenalty;
     const maxEnergy = creature.maxEnergy ?? creature.energy;
     const recoveryTalent = getRecoveryTalentSummary(creature.abilities);
     const adjustedRecoveryRatio = Math.min(1, creatureEnergyRatio + recoveryTalent.energyPercent / 100);
@@ -209,8 +205,11 @@ export function processRanchJobsForNewDay(save: GameSave): { save: GameSave; res
         ranchFeedStock: remainingFeed,
         ranchFeedProducedToday: producedFeed,
         ranchFeedRequiredToday: feedRequired,
-        ranchFeedConsumedToday: feedConsumed + ingredientFeeding.covered,
+        ranchFeedConsumedToday: ingredientFeeding.covered,
         ranchLegacyFeedConsumedToday: feedConsumed,
+        ranchFeedingMealsToday: JSON.stringify(ingredientFeeding.meals),
+        ranchCreaturesFedToday: creaturesFed,
+        ranchCreaturesEatingToday: ingredientFeeding.meals.length,
         ranchFoodStatus: foodStatus,
         ranchFeedingSummary: feedingSummary,
         ranchMaterialsStock: remainingMaterials,
