@@ -1,0 +1,29 @@
+{
+  "tool": "built-in image generation",
+  "icons": [
+    {
+      "asset": "meals.webp",
+      "original": "exec-f91fff84-72c5-4541-b731-f78903dfed88.png",
+      "promptSummary": "Individual centered fantasy farming RPG UI object, polished painterly warm antique gold and navy accents, readable at 48\u201372px. Genuine transparent background. No text, border, scene, people or animals. Shallow navy ceramic bowl with gold rim, hearty stew with vegetables and a wooden spoon.",
+      "sourceSha256": "f76314db06eb5910a1e769c84ac52fe523fe109830e0fb88c351f11e985ee3a4",
+      "runtimeSha256": "8a491edbb00245d23d19df6087319d2427bc5bae4cd90a685a0003c88d146df4",
+      "conversion": "RGBA WebP quality 94; longest side 512px; alpha preserved"
+    },
+    {
+      "asset": "supplies.webp",
+      "original": "exec-4ca5909d-3221-47f4-bb5b-395bc9844028.png",
+      "promptSummary": "Individual centered fantasy farming RPG UI object, polished painterly warm antique gold and navy accents, readable at 48\u201372px. Genuine transparent background. No text, border, scene, people or animals. Compact oak and brass supply crate with wheat, carrots and a tied cream grain sack.",
+      "sourceSha256": "178b4aec294e23a79020dd80c166ce65240ebf6d3bf7e85baffe54dcd897e5c7",
+      "runtimeSha256": "2cc31d47dd3b56885fcdaba435c34ea1838abb20d978597f4b8708dc5c69c6d3",
+      "conversion": "RGBA WebP quality 94; longest side 512px; alpha preserved"
+    },
+    {
+      "asset": "cooking.webp",
+      "original": "exec-91f5b536-195f-4772-aa7b-b46929103f37.png",
+      "promptSummary": "Individual centered fantasy farming RPG UI object, polished painterly warm antique gold and navy accents, readable at 48\u201372px. Genuine transparent background. No text, border, scene, people or animals. Navy enamel cooking pot with brass handles and gold rim, lid ajar and wooden spoon.",
+      "sourceSha256": "0512332955afdfac07d8308bbf826fd1fb0162e321f080df6baefeea92c9f688",
+      "runtimeSha256": "9d01263da9f5613035200261475a0f9db17cc4b24fbe5c67f9b6c36f2cb6f623",
+      "conversion": "RGBA WebP quality 94; longest side 512px; alpha preserved"
+    }
+  ]
+}

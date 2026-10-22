@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="70" viewBox="0 0 180 70" preserveAspectRatio="none"><defs>
+<linearGradient id="gold" x2=".65" y2="1"><stop stop-color="#fff1b4"/><stop offset=".2" stop-color="#e3b75d"/><stop offset=".43" stop-color="#98632a"/><stop offset=".65" stop-color="#f8d98b"/><stop offset="1" stop-color="#b9873e"/></linearGradient>
+<linearGradient id="navy" x2=".2" y2="1"><stop stop-color="#0e2b3b"/><stop offset=".42" stop-color="#061d2c"/><stop offset="1" stop-color="#03121e"/></linearGradient>
+<linearGradient id="emerald" x2=".2" y2="1"><stop stop-color="#127b69"/><stop offset=".42" stop-color="#075447"/><stop offset="1" stop-color="#03352f"/></linearGradient>
+<linearGradient id="disabled" x2=".2" y2="1"><stop stop-color="#23343d"/><stop offset="1" stop-color="#12212a"/></linearGradient>
+<radialGradient id="light"><stop stop-color="#d3c694" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+</defs><path d="M11 2H169L178 11V59L169 68H11L2 59V11Z" fill="url(#emerald)" stroke="#30200e" stroke-width="3"/><path d="M11 3H169L177 11V59L169 67H11L3 59V11Z" fill="none" stroke="url(#gold)" stroke-width="1.9"/><path d="M12 7H168L173 12V58L168 63H12L7 58V12Z" fill="url(#light)" stroke="#f8dca1" stroke-opacity=".27" stroke-width=".7"/><path d="M13 10H167" stroke="#d8ffdf" stroke-opacity=".65" stroke-width="1"/></svg>

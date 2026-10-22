@@ -18,6 +18,7 @@ type View='hub'|'meals'|'supplies';
 type Food=ResourceId|'legacy_feed';
 type Review={snapshot:string;food:Food;reserve:number;allowed:boolean;raw?:boolean};
 const KIT='/images/ui/feeding-station-connected';
+const POLISH=`${KIT}/polish-v2`;
 const PAINTED='/images/ui/creature-overview-a-v2/painted-r4';
 const FOOD_ORDER:ResourceId[]=['vegetables','wheat','meat','rations','eggs','milk',...RESOURCE_IDS.filter(id=>RESOURCES[id].category==='Meals')];
 const name=(id:Food)=>id==='legacy_feed'?'Older Feed':RESOURCES[id].name;
@@ -100,9 +101,9 @@ export function FeedingStation({onBack,onSection}:{onBack:()=>void;onSection:(se
      <nav className={s.tabs} aria-label="Care section"><button aria-current="page">Feeding</button><button onClick={()=>onSection('Security')}>Security</button><button onClick={()=>onSection('Budget')}>Budget</button></nav>
      {summary}
      <div className={s.actions}>
-      <button onClick={()=>go('meals')}><img src={getResourceArt('breakfast')} alt=""/><span><b>Tonight’s meals</b><small>Review each creature’s planned food</small></span><img className={s.arrow} src={`${KIT}/chevron.svg`} alt=""/></button>
-      <button onClick={()=>{go('supplies');chooseFood(food);setFocus('list');}}><img src={getResourceArt('vegetables')} alt=""/><span><b>Food & ingredients</b><small>Available stock, reserves and permissions</small></span><img className={s.arrow} src={`${KIT}/chevron.svg`} alt=""/></button>
-      <button onClick={()=>open('sources')}><img src={getResourceArt('rations')} alt=""/><span><b>Food sources</b><small>Cook recipes, gather or buy supplies</small></span><img className={s.arrow} src={`${KIT}/chevron.svg`} alt=""/></button>
+      <button onClick={()=>go('meals')}><img src={`${POLISH}/meals.webp`} alt=""/><span><b>Tonight’s meals</b><small>Review each creature’s planned food</small></span><img className={s.arrow} src={`${KIT}/chevron.svg`} alt=""/></button>
+      <button onClick={()=>{go('supplies');chooseFood(food);setFocus('list');}}><img src={`${POLISH}/supplies.webp`} alt=""/><span><b>Food & ingredients</b><small>Available stock, reserves and permissions</small></span><img className={s.arrow} src={`${KIT}/chevron.svg`} alt=""/></button>
+      <button onClick={()=>open('sources')}><img src={`${POLISH}/cooking.webp`} alt=""/><span><b>Food sources</b><small>Cook recipes, gather or buy supplies</small></span><img className={s.arrow} src={`${KIT}/chevron.svg`} alt=""/></button>
      </div>
      <footer className={s.hubFooter}><button onClick={permissions}><img src={`${KIT}/permissions.svg`} alt=""/>Food permissions</button><span>Raw ingredients: <b>{farm.ingredientFeeding?'On':'Off'}</b></span></footer>
      {tonight.shortage>0&&<p className={s.warning}>Short by {tonight.shortage} food units. Review tonight’s meals.</p>}
@@ -116,11 +117,11 @@ export function FeedingStation({onBack,onSection}:{onBack:()=>void;onSection:(se
        <div className={s.columns}><span>Creature</span><span>Level</span><span>Status</span><span>Meal</span></div>
        <PagedItems label="Ranch residents" rowHeight={66} maxPerPage={7} initialItemIndex={Math.max(0,residents.findIndex(r=>r.before.creatureId===residentId))} items={residents.map(r=>{
         const c=r.before,status=getCreatureManagementStatus(save,c).primaryStatus,full=!!r.meal&&r.meal.covered>=r.meal.required;
-        return <button key={c.creatureId} className={s.resident} aria-pressed={selected?.creatureId===c.creatureId} aria-label={`Meal for ${c.nickname}`} onClick={()=>{setResidentId(c.creatureId);setFocus('selected');}}><span><img src={getVariantDefinition(c.variantId).profilePath} alt=""/><b>{c.nickname}</b></span><span>Lv {c.level}</span><span>{status}</span><span data-good={full}>{r.away?'With Rhea':full?'Fully fed':`Short ${(r.meal?.required??0)-(r.meal?.covered??0)}`}</span></button>;
+        return <button key={c.creatureId} className={s.resident} aria-pressed={selected?.creatureId===c.creatureId} aria-label={`Meal for ${c.nickname}`} onClick={()=>{setResidentId(c.creatureId);setFocus('selected');}}><span><img src={getVariantDefinition(c.variantId).portraitPath} alt=""/><b>{c.nickname}</b></span><span>Lv {c.level}</span><span>{status}</span><span data-good={full}>{r.away?'With Rhea':full?'Fully fed':`Short ${(r.meal?.required??0)-(r.meal?.covered??0)}`}</span></button>;
        })}/>{!residents.length&&<p>No creatures at the ranch.</p>}
       </section>
       <section className={s.inspector} data-shown={focus==='selected'} aria-label="Selected creature meal">
-       {selected?<><div className={s.identity}><img src={getVariantDefinition(selected.variantId).profilePath} alt={selected.nickname}/><div><h2>{selected.nickname} · Level {selected.level}</h2><p>{creatureDiet(selected)} · {getCreatureManagementStatus(save,selected).primaryStatus}</p></div></div><div className={s.meal}><h3>Planned meal</h3><div className={s.mealFoods}>{!resident.away&&Object.keys(meal?.used??{}).map(id=><img key={id} src={getResourceArt(id as ResourceId)} alt=""/>)}<p>{resident.away?'Eats with Rhea':mealText||'No food allocated'}</p></div>{!resident.away&&<strong>{meal?.covered??0} / {meal?.required??0} food units</strong>}<p className={resident.away||meal&&meal.covered>=meal.required?s.good:s.warning}>{fed}</p></div><p className={s.note}>Away creatures eat with Rhea and are excluded. Food is consumed at sleep.</p></>:<p>No resident selected.</p>}
+       {selected?<><div className={s.identity}><img src={getVariantDefinition(selected.variantId).portraitPath} alt={selected.nickname}/><div><h2>{selected.nickname} · Level {selected.level}</h2><p>{creatureDiet(selected)} · {getCreatureManagementStatus(save,selected).primaryStatus}</p></div></div><div className={s.meal}><h3>Planned meal</h3><div className={s.mealFoods}>{!resident.away&&Object.keys(meal?.used??{}).map(id=><img key={id} src={getResourceArt(id as ResourceId)} alt=""/>)}<p>{resident.away?'Eats with Rhea':mealText||'No food allocated'}</p></div>{!resident.away&&<strong>{meal?.covered??0} / {meal?.required??0} food units</strong>}<p className={resident.away||meal&&meal.covered>=meal.required?s.good:s.warning}>{fed}</p></div><p className={s.note}>Away creatures eat with Rhea and are excluded. Food is consumed at sleep.</p></>:<p>No resident selected.</p>}
       </section>
      </>:<>
       <section className={`${s.gallery} ${s.foodGallery}`} data-shown={focus==='list'} aria-label="Food supplies">

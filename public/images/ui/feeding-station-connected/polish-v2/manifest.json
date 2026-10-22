@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "generator": "scripts/build-feeding-polish-assets.py",
+  "surfaces": {
+    "window.svg": {
+      "slice": 44,
+      "purpose": "window"
+    },
+    "panel.svg": {
+      "slice": 38,
+      "purpose": "panel"
+    },
+    "portrait.svg": {
+      "slice": 32,
+      "purpose": "portrait"
+    },
+    "action.svg": {
+      "slice": 24,
+      "purpose": "action"
+    },
+    "button.svg": {
+      "slice": 20,
+      "purpose": "button"
+    },
+    "primary.svg": {
+      "slice": 20,
+      "purpose": "primary"
+    },
+    "selected.svg": {
+      "slice": 24,
+      "purpose": "selected"
+    },
+    "hover.svg": {
+      "slice": 24,
+      "purpose": "hover"
+    },
+    "disabled.svg": {
+      "slice": 20,
+      "purpose": "disabled"
+    },
+    "field.svg": {
+      "slice": 20,
+      "purpose": "field"
+    },
+    "stat.svg": {
+      "slice": 20,
+      "purpose": "stat"
+    },
+    "divider.svg": {
+      "purpose": "header ornament"
+    },
+    "badge-fed.svg": {
+      "slice": 8,
+      "purpose": "fed state"
+    },
+    "badge-warning.svg": {
+      "slice": 8,
+      "purpose": "shortage state"
+    }
+  },
+  "icons": [
+    "meals.webp",
+    "supplies.webp",
+    "cooking.webp"
+  ],
+  "fonts": "Tinos Regular 400 / Bold 700 from forge-slate-v2/fonts"
+}
