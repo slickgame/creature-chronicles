@@ -6,6 +6,7 @@ import { GameDialog } from '@/features/ui/GameDialog';
 import { IngredientCounter } from '@/features/builder/IngredientCounter';
 import { ResourceShelf } from './ResourceShelf';
 import { ProductionBook } from './ProductionBook';
+import { FeedingStation } from './FeedingStation';
 import { getFoodBudget } from '@/data/economyBudget';
 import { getNightCareReview } from '@/data/nightCareReview';
 import { getFarmSecurity } from '@/data/farmSecurity';
@@ -50,7 +51,7 @@ export function FarmCareBook({ initialSection, onBack }: { initialSection: Secti
  function show(next:typeof popup){busy.current=false;setDetail(0);if(next==='feeding'){setDraftRaw(!!farm.ingredientFeeding);setDraftExcluded(farm.excludedFoods??[]);policySnapshot.current=JSON.stringify(save);}setPopup(next);}
  function confirmPolicy(){if(!save)return;if(policySnapshot.current!==JSON.stringify(save)){setMessage('Your ranch changed. Review feeding permissions again.');setPopup('receipt');return;}apply(current=>{let result=setIngredientFeeding(current,draftRaw);for(const id of AUTOMATIC_FOODS)result=setAutomaticFood(result.save,id,!draftExcluded.includes(id));return {...result,message:'Feeding permissions saved. Food stays in shared inventory until sleep.'};});}
  function apply(action:(save:GameSave)=>FarmResult){if(!save||busy.current)return;busy.current=true;const result=action(save);let text=result.message;if(result.ok){const persisted=saveCurrentGame(result.save),g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;const a=getFarmState(persisted).stock,b=getFarmState(result.save).stock;const bonus=Object.fromEntries(RESOURCE_IDS.map(id=>[id,(a[id]??0)-(b[id]??0)]).filter(([,n])=>Number(n)>0));const reward=[g?`${g} Gold`:'',gp?`${gp} GP`:'',resourceList(bonus)].filter(Boolean);if(reward.length)text+=` Goal rewards: ${reward.join(' + ')}.`;}setMessage(text);setPopup('receipt');}
- return <main className={s.screen} data-farm-care-book>
+ const legacy = <main className={s.screen} data-farm-care-book>
   <header><button onClick={onBack}>‹ Resources</button><h1>{section==='Budget'?'Food planning':section==='Feeding'?'Feeding Station':section}</h1><select aria-label="Care section" value={section} onChange={e=>{setSection(e.target.value as Section);setPage(0);}}><option>Feeding</option><option>Security</option><option>Budget</option></select></header>
   <section className={s.sheet}>
    <div className={s.pager}><button disabled={current===0} onClick={()=>setPage(current-1)}>Previous page</button><span>{current+1} / {count}</span><button disabled={current+1===count} onClick={()=>setPage(current+1)}>Next page</button></div>
@@ -66,4 +67,5 @@ export function FarmCareBook({ initialSection, onBack }: { initialSection: Secti
   {route==='kitchen'&&<GameDialog fullScreen title="Kitchen" onClose={()=>setRoute(null)}><ProductionBook section={productionSection} initialSelection="rations" onSection={setProductionSection} onBack={()=>setRoute(null)}/></GameDialog>}
   {route==='rations'&&<IngredientCounter resourceId="rations" needed={Math.max(1,section==='Budget'?budget.shortage:tonight.shortage)} onClose={()=>setRoute(null)}/>}
  </main>;
+ return section==='Feeding'?<FeedingStation key={save.saveId} onBack={onBack} onSection={setSection}/>:legacy;
 }
