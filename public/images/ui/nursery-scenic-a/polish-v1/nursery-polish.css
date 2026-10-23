@@ -1,0 +1,12 @@
+/* Standalone kit; import explicitly during runtime integration. */
+.nursery-polish{--np-root:url('./surfaces/panel.svg');--np-gold:#d5b36b;--np-ink:#f5e7c5;color:var(--np-ink);font-family:Georgia,serif}
+.np-panel{border:18px solid transparent;border-image:url('./surfaces/panel.svg') 44 fill / 18px / 0 stretch;background:#061d2c;padding:12px}
+.np-button{color:inherit;font:inherit;border:7px solid transparent;border-image:url('./surfaces/button.svg') 16 fill / 7px / 0 stretch;background:#061d2c;padding:8px 16px;min-height:44px;cursor:pointer}
+.np-button:hover{border-image-source:url('./surfaces/button-hover.svg')}.np-button:focus-visible{outline:2px solid #fff0b9;outline-offset:3px}
+.np-button.primary{border-image-source:url('./surfaces/button-primary.svg')}.np-button:disabled{border-image-source:url('./surfaces/button-disabled.svg');color:#a4a9a7;cursor:default}
+.np-card{position:relative;display:grid;gap:8px;text-align:center;align-content:start;min-width:0}.np-card[aria-pressed=true]{border-image-source:url('./surfaces/card-selected.svg');box-shadow:0 0 12px #58bd7e66}.np-selected{position:absolute;right:0;top:0;width:32px;height:32px}
+.np-progress{height:10px;border:1px solid var(--np-gold);border-radius:99px;background:#03131f;padding:2px;box-shadow:inset 0 1px 3px #000}.np-progress>span{display:block;height:100%;border-radius:99px;background:linear-gradient(#7ddca3,#0c8a60);max-width:100%}
+.np-stage{position:relative;isolation:isolate}.np-halo{position:absolute;inset:-9%;width:118%;height:118%;object-fit:contain;opacity:.28;pointer-events:none;z-index:0}.np-egg{position:relative;z-index:1;width:100%;height:100%;object-fit:contain}.np-cracks{position:absolute;inset:0;z-index:2;background:center/contain no-repeat url('./effects/cracks.svg');mask:var(--egg-mask) center/contain no-repeat;pointer-events:none;opacity:.9}
+.np-hatching .np-halo{animation:np-glow 1.1s ease-in-out both}.np-hatching .np-cracks{animation:np-crack 1.1s ease-in both}.np-egg-enter{animation:np-enter .16s ease-out both}
+@keyframes np-glow{0%{opacity:0;transform:scale(.95)}60%{opacity:.38}100%{opacity:0;transform:scale(1.04)}}@keyframes np-crack{0%,35%{opacity:0}75%{opacity:.95}100%{opacity:0}}@keyframes np-enter{from{opacity:.35}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.np-hatching .np-halo,.np-hatching .np-cracks{display:none}.np-egg-enter{animation:none}}

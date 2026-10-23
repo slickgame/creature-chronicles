@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "runtimeIntegrated": true,
+  "haloPrompt": "Transparent warm gold oval hatch halo; open center, restrained particles; no egg, cradle, text or background.",
+  "assets": [
+    {
+      "path": "README.md",
+      "sha256": "831c1e0baa4ae5c448459f413e831ae1ce85aaa9b42b2b2f747459f42ba2ef16"
+    },
+    {
+      "path": "catalog.html",
+      "sha256": "51de12cf109672935fd7cfef8fe7c66c7f83980d0ddd798a4406a1dde8fdabf4"
+    },
+    {
+      "path": "effects/cracks.svg",
+      "sha256": "57723be15c0ebb41f7f1707b9e15ebf93f3d2d99ed0d9849ed071d557cfdae4d"
+    },
+    {
+      "path": "effects/hatch-halo.webp",
+      "sha256": "9b6a46a04546c27b50795b0f60ca49733d3cc692d86e4d2407f193302334e48a"
+    },
+    {
+      "path": "nursery-polish.css",
+      "sha256": "b1a7f261242dbd2e20ec6af394fc5115dce8d6cb0131b530d688bd104f5074c3"
+    },
+    {
+      "path": "references/approved-layout.png",
+      "sha256": "a6a3a72ee2ecd19dcb120c27922debb4bcb8bae3da9cd32662936ab0e7597c76"
+    },
+    {
+      "path": "references/approved-windows.png",
+      "sha256": "5129d25dfdae37edde8a0e85372d7612a9f50d7aabaab6e7818fc638b16f99fb"
+    },
+    {
+      "path": "source/hatch-halo-prompt.txt",
+      "sha256": "45d5c42379e6115adf630d5f543ba40e4e6eb94c0805201d9e32faf3b0dccdad"
+    },
+    {
+      "path": "source/hatch-halo.png",
+      "sha256": "7879ea30e0537de5e62da472887b8f0f14271e9fffce185b82a80d4ff8dd93dc"
+    },
+    {
+      "path": "surfaces/button-disabled.svg",
+      "sha256": "3fd75e3ab4d9271c4891033ae262fcdc8a8cdea3f2b16cd3b0ab91b41240cdfd"
+    },
+    {
+      "path": "surfaces/button-hover.svg",
+      "sha256": "fda6af4fbd936b0103dd42a426d7bfddec041790b1cec6bea3414836418ddaa4"
+    },
+    {
+      "path": "surfaces/button-primary.svg",
+      "sha256": "e6f0d14e3913113593f131f4626970223967fd041658533f594a2f5a87f8981b"
+    },
+    {
+      "path": "surfaces/button.svg",
+      "sha256": "02345a74aa2b9e71713f06b5951410afc30c1db6c2c49c2dfdd43c3fef6fc312"
+    },
+    {
+      "path": "surfaces/card-selected.svg",
+      "sha256": "44416e23a6730b58bb37756463a6cd49f94163978c447c8de74fe16bd5237793"
+    },
+    {
+      "path": "surfaces/divider.svg",
+      "sha256": "68baba94766d183c76fc45d351995a9c846f9e6f7e8fffaa6ce27b1c97d25bc1"
+    },
+    {
+      "path": "surfaces/field.svg",
+      "sha256": "02345a74aa2b9e71713f06b5951410afc30c1db6c2c49c2dfdd43c3fef6fc312"
+    },
+    {
+      "path": "surfaces/panel.svg",
+      "sha256": "db2a014c79ac6efddda5b554bf1360a0a4e71b9b6ac126174083ef4bffc41441"
+    },
+    {
+      "path": "surfaces/portrait.svg",
+      "sha256": "3710fe562de0a214d67baf947dfe130a241a029d6d5fd5d7f1db4fbaa12af55c"
+    },
+    {
+      "path": "surfaces/timer.svg",
+      "sha256": "0afe843b9e087fe33a732b7a5a80ae3b7acf4c70a75edb6893234f4ec2654349"
+    },
+    {
+      "path": "surfaces/window.svg",
+      "sha256": "6b3ac4d52d4859e78adcc664a841c47ba14a61a4c56c911044c78828dec875f4"
+    },
+    {
+      "path": "symbols/close.svg",
+      "sha256": "820a25c4b0af42955d4dada93b4c3316d2f0f8aefdcc0389c93179bce9a31a1e"
+    },
+    {
+      "path": "symbols/incubation.svg",
+      "sha256": "7237c6ca65697bb133a060d939190d71dd2479884744f5d7e4ab0926d111322c"
+    },
+    {
+      "path": "symbols/information.svg",
+      "sha256": "ef35ea9cf778ef75122b2c7f8cb7d9422d64d7b83f751ac5042354e839abdd82"
+    },
+    {
+      "path": "symbols/next.svg",
+      "sha256": "629ce5e1e3f1226916d193c82e8d3873a05e0288fefcda793f55280483e6e8b6"
+    },
+    {
+      "path": "symbols/previous.svg",
+      "sha256": "16a355f3c53fd021021e5565a5b7b08fdf7bd8ddf2b218b0348a67f002230a47"
+    },
+    {
+      "path": "symbols/selection-medallion.svg",
+      "sha256": "524ce8b63e9a00aebc9f7c809eac11e545338ccab70230c73a7834695d175eb8"
+    },
+    {
+      "path": "symbols/skip.svg",
+      "sha256": "fe29249a94294dd3c4d2120bf11573ccd71c8a3fbe08e71969bb937203b76c24"
+    },
+    {
+      "path": "symbols/status-recorded.svg",
+      "sha256": "0f38a617b3afe26dcd5830a1c50404a78cad614d17d069abf194cb4f070c858b"
+    }
+  ],
+  "reusedFrom": "day-cycle-v1 native SVG family; no new font or creature artwork"
+}

@@ -1,0 +1,25 @@
+{
+  "hashes": 28,
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1200
+      },
+      "imagesDecode": true,
+      "horizontalOverflow": false,
+      "selection": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "imagesDecode": true,
+      "horizontalOverflow": false,
+      "selection": true
+    }
+  ],
+  "reducedMotion": true,
+  "errors": []
+}
