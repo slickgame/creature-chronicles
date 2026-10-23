@@ -1,0 +1,53 @@
+{
+  "generator": "Built-in image generation; original PNGs preserved. WebP encoding only.",
+  "assets": [
+    {
+      "name": "eggs/feline",
+      "source": "public/images/ui/nursery-scenic-a/source/eggs-feline.png",
+      "sha256": "f342bfed0b9d410668f069cc5749afe075af6fa031ad10f9b7ed6a962f918cf8",
+      "alpha": true
+    },
+    {
+      "name": "eggs/canine",
+      "source": "public/images/ui/nursery-scenic-a/source/eggs-canine.png",
+      "sha256": "f64805c0fe99948be1e8a70cd1ecf94d0d1b0c6ab78e0b0a6207011569a4c72f",
+      "alpha": true
+    },
+    {
+      "name": "eggs/bovine",
+      "source": "public/images/ui/nursery-scenic-a/source/eggs-bovine.png",
+      "sha256": "dc58018d1df2b30007e0799d6aa72d5d425cf6a1989732bbfcf97c132b0fab9a",
+      "alpha": true
+    },
+    {
+      "name": "eggs/lapine",
+      "source": "public/images/ui/nursery-scenic-a/source/eggs-lapine.png",
+      "sha256": "6220efa409ebc8053cadcd08c64adc7efc1024eda886f99ec0fed9850d0c4cca",
+      "alpha": true
+    },
+    {
+      "name": "eggs/equine",
+      "source": "public/images/ui/nursery-scenic-a/source/eggs-equine.png",
+      "sha256": "ab7fc6caffbd2b47c1ff4094e203c76e9a5fe078e13f9f7f3db01dbe74a4cad4",
+      "alpha": true
+    },
+    {
+      "name": "room",
+      "source": "public/images/ui/nursery-scenic-a/source/room.png",
+      "sha256": "2ebc781470b7d4941aad0f339a110dd4dd88570a548542a86216fcb6bdf6808b",
+      "alpha": false
+    },
+    {
+      "name": "cradle",
+      "source": "public/images/ui/nursery-scenic-a/source/cradle.png",
+      "sha256": "5417a37a07d94e5f10bf72d8bf9d75396e53dae9d3f66914d8481195584fe6cc",
+      "alpha": true
+    },
+    {
+      "name": "approved-concept",
+      "source": "public/images/ui/nursery-scenic-a/source/approved-concept.png",
+      "sha256": "d9221cb51e64444480522e58914b1b3f3ac557cafb6aebf341740cff9f9130a7",
+      "alpha": false
+    }
+  ]
+}
