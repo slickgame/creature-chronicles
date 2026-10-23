@@ -1,5 +1,11 @@
 # Approved nursery finishing pass
 
+## Latest: painted glowing hatch fractures
+
+The user rejected the basic vector crack effect. Live NurseryScene now consumes hatch-v2/painted-fractures.webp, derived from a new transparent painted master with its exact prompt preserved. Shell-alpha clipping and screen blending retain the original species pattern; a separate blurred layer adds soft bloom and sparse SVG motes drift upward. Fractures reveal downward during the existing 1.8-second presentation. No hatch logic, costs, save state or timing rules change. The previous cracks.svg remains archived only.
+
+The optimized production build/TypeScript and both nursery data tests pass. scripts/validate-nursery-hatch-v2.mjs passes all 76 browser checks at the same seven viewports, including the painted fracture, one child/birth, automatic reveal, Skip, reduced motion and reload persistence. No application runtime errors. Changed-component lint has zero errors and four image-optimization advisories. Actual effect screenshots/results are under docs/validation/nursery-hatch-v2; prior screenshots below show the superseded vector treatment. A brief execution-workspace disconnect occurred after testing; files were retained and screenshots reviewed after recovery.
+
 The user approved both nursery mockups, requested the necessary production kit, then authorized integration and asked for clearer cracks. This integrates the existing polish-v1 kit into Scenic Nursery A without replacing the room, cradle, five shells or registered creature portraits.
 
 The scene and care panel show singular/plural timer wording, actual elapsed/total progress and the Sleep advancement hint. A content-sized desktop picker shows illustrated egg cards; phones and short screens page compact cards. Draft selection has an emerald border plus gold checkmark. Cancel and browsing do not write. Parent details resolve actual registered portraitPath images when the parent still exists; unavailable records retain names and roles.

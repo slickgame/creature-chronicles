@@ -1,0 +1,13 @@
+import {mkdirSync,copyFileSync,readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import sharp from 'sharp';
+const root='public/images/ui/nursery-scenic-a/hatch-v2';mkdirSync(root+'/source',{recursive:true});
+if(!process.argv[2])throw Error('Pass original painted fracture PNG');
+copyFileSync(process.argv[2],root+'/source/painted-fractures.png');
+const image=sharp(process.argv[2]),meta=await image.metadata(),stats=await image.stats();
+if(!meta.hasAlpha||stats.channels[3].min!==0||stats.channels[3].max<128)throw Error('Transparent effect alpha is required');
+await image.resize({width:900,withoutEnlargement:true}).webp({quality:95,alphaQuality:100}).toFile(root+'/painted-fractures.webp');
+const motes=[[19,19,1],[72,15,.8],[25,40,.6],[82,37,.8],[12,60,.6],[77,62,.5],[31,79,.7],[66,85,.6],[54,9,.5]];
+writeFileSync(root+'/motes.svg',`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="m"><stop stop-color="#fffbe4"/><stop offset=".2" stop-color="#ffe5a0"/><stop offset="1" stop-color="#eab550" stop-opacity="0"/></radialGradient></defs>${motes.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r*3}" fill="url(#m)"/><circle cx="${x}" cy="${y}" r="${r*.4}" fill="#fff7df"/>`).join('')}</svg>`);
+const files=['source/painted-fractures.png','painted-fractures.webp','motes.svg'];writeFileSync(root+'/manifest.json',JSON.stringify({generator:'Built-in image generation; original PNG preserved, WebP encoding only. Editable SVG motes match the warm VFX palette.',alpha:{min:stats.channels[3].min,max:stats.channels[3].max},assets:files.map(path=>({path,sha256:createHash('sha256').update(readFileSync(root+'/'+path)).digest('hex')}))},null,2));
+console.log('Prepared painted fractures, editable motes and SHA-256 manifest; alpha verified.');

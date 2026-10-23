@@ -1,0 +1,21 @@
+{
+  "generator": "Built-in image generation; original PNG preserved, WebP encoding only. Editable SVG motes match the warm VFX palette.",
+  "alpha": {
+    "min": 0,
+    "max": 254
+  },
+  "assets": [
+    {
+      "path": "source/painted-fractures.png",
+      "sha256": "ab6d078819c9172bf0d8c26e8ba322974f036a551ded1dadd9e7831821e4f344"
+    },
+    {
+      "path": "painted-fractures.webp",
+      "sha256": "6b7cd36d54c9b75795dcc70d6484ec1da497e5c637ed86a9843ee7b933023624"
+    },
+    {
+      "path": "motes.svg",
+      "sha256": "075c4f662edb19d86b982be36529c5401b1dc81e748ebc96ccd71dfce1867c5d"
+    }
+  ]
+}
