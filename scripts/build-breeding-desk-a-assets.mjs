@@ -25,3 +25,6 @@ if(process.argv[2])copyFileSync(process.argv[2],root+'/references/approved-a.png
 function files(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(dir+'/'+e.name):[dir+'/'+e.name]);}
 const list=files(root).filter(p=>!p.endsWith('manifest.json'));writeFileSync(root+'/manifest.json',JSON.stringify({runtimeIntegrated:true,approvedDirection:'A, full-body profiles, persistent Back, empty/partial/selected states',canonicalArt:canonical,provenance:'Native vector derivatives extend day-cycle-v1; existing painted/sculpted icons and canonical scenery/art reused unchanged. No replacement characters or paid service.',assets:list.map(path=>({path:path.slice(root.length+1),sha256:createHash('sha256').update(readFileSync(path)).digest('hex')}))},null,2));
 console.log('Prepared '+list.length+' assets, preview sources and references.');
+
+// Apply the approved concept-fidelity finish after preparing the base kit.
+await import('./build-breeding-desk-fidelity.mjs');

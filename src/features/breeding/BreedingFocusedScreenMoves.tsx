@@ -81,7 +81,7 @@ export function BreedingFocusedScreen() {
     [currentSave, pair.giverId, pair.receiverId],
   );
 
-  const panel = preview ? <><button type="button" style={{order:-1}} onClick={()=>setShowMoves(true)}><img src="/images/ui/breeding-desk-a/icons/inheritance.webp" alt=""/>Inheritance</button>{showMoves&&currentSave?<BreedingInheritanceBook save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} onClose={()=>setShowMoves(false)}/>:null}</> : null;
+  const panel = preview ? <><button type="button" style={{order:-1}} onClick={()=>setShowMoves(true)}><img src="/images/ui/breeding-desk-a/fidelity-v2/inheritance.svg" alt=""/>Inheritance</button>{showMoves&&currentSave?<BreedingInheritanceBook save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} onClose={()=>setShowMoves(false)}/>:null}</> : null;
 
   return (
     <>

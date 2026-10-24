@@ -5,7 +5,7 @@
     "canine": "public/images/creatures/canine/daisy/daisy_01.webp",
     "feline": "public/images/creatures/feline/nyla/nyla_01_full_body.png"
   },
-  "provenance": "Native vector derivatives extend day-cycle-v1; existing painted/sculpted icons and canonical scenery/art reused unchanged. No replacement characters or paid service.",
+  "provenance": "Fidelity v2: generated pavilion from approved environment reference; native editable gold surfaces and icons. Canonical character art reused unchanged. Sources, prompts and generator retained.",
   "assets": [
     {
       "path": "README.md",
@@ -30,6 +30,82 @@
     {
       "path": "art/wood.webp",
       "sha256": "d985970bd6420863f815849526a598fcc03249febf4289776d0dc4cbb9712295"
+    },
+    {
+      "path": "fidelity-v2/README.md",
+      "sha256": "db8094be273529552093eb988797ce2dece91e79461bd60ad839da2a7d0764a8"
+    },
+    {
+      "path": "fidelity-v2/button.svg",
+      "sha256": "3ccc6b59135fe4192a3cbb79f9759e70c889bef4adaf8d62e8ac1168000ecc9b"
+    },
+    {
+      "path": "fidelity-v2/choose.svg",
+      "sha256": "2566cc0f03d11da69a3d0ade0f602f9fb6b28161ec6a4f862e3e05535ab8fe63"
+    },
+    {
+      "path": "fidelity-v2/cream.svg",
+      "sha256": "2b2929e160462ce60bed04ae67fc732c69e891cd2bb8d4e58e937c4152baa555"
+    },
+    {
+      "path": "fidelity-v2/disabled.svg",
+      "sha256": "87708803b15ac16e1b39b3f6cf31157e84bff20d634aa2836b45a44e0bc07474"
+    },
+    {
+      "path": "fidelity-v2/divider.svg",
+      "sha256": "53efcbd783f18c78c4b0d455ab3dbb174eeca2f33758d7157408855ab8de031a"
+    },
+    {
+      "path": "fidelity-v2/empty.svg",
+      "sha256": "c9cd6574281712b853e89fe56b857b332f07df7e0929aef4506c5b5637082df6"
+    },
+    {
+      "path": "fidelity-v2/frame.svg",
+      "sha256": "3049e63bd2a11032904f8803da67a09d5ea22f0a505a894f741da1fa04ef635a"
+    },
+    {
+      "path": "fidelity-v2/header.svg",
+      "sha256": "3049e63bd2a11032904f8803da67a09d5ea22f0a505a894f741da1fa04ef635a"
+    },
+    {
+      "path": "fidelity-v2/hover.svg",
+      "sha256": "77827d99cccff35dd9a714a39fe9be951ba26325ade4b946dca01be2cea32295"
+    },
+    {
+      "path": "fidelity-v2/inheritance.svg",
+      "sha256": "e107fd1b746844e502f3b876f7348b3972be76ee184cf6615dac99f1bfafc401"
+    },
+    {
+      "path": "fidelity-v2/nameplate.svg",
+      "sha256": "ae1f490ee72012bb316582255584b42a6f3cb2403ff9e4ad107224bcace6944e"
+    },
+    {
+      "path": "fidelity-v2/options.svg",
+      "sha256": "d2e971be276b8919acc5dcb9aa5df9642883367a56ba42a39fe9935b795c5a9b"
+    },
+    {
+      "path": "fidelity-v2/panel.svg",
+      "sha256": "7fd4cf5a43ffb15df8ee35e53915240d8d914a1833574433e6b36daa2fe8f8bd"
+    },
+    {
+      "path": "fidelity-v2/pavilion.webp",
+      "sha256": "0451bd508dac19cc7325399f6cc95f06f46ee2648f7b1f7033971a652edfcfb6"
+    },
+    {
+      "path": "fidelity-v2/primary.svg",
+      "sha256": "77827d99cccff35dd9a714a39fe9be951ba26325ade4b946dca01be2cea32295"
+    },
+    {
+      "path": "fidelity-v2/source/pavilion-master.png",
+      "sha256": "525283ea985183cb752acc0c7708441917d91bdfe565afe8ec3df385e13179e4"
+    },
+    {
+      "path": "fidelity-v2/source/prompt.txt",
+      "sha256": "018bed06c344dd2c58158adaabfc1e2774f0381995d55e32c76b19887c38deeb"
+    },
+    {
+      "path": "fidelity-v2/support.svg",
+      "sha256": "e40b336a02a498c1a6e0b4154d911ab25bc2169860543ab40f6b42c921b34065"
     },
     {
       "path": "fonts/OFL.txt",
@@ -93,15 +169,15 @@
     },
     {
       "path": "preview.css",
-      "sha256": "4681b34ca1cad9a0cd5a75db05e16802e056e5d4465669048c99f0f9e0faf027"
+      "sha256": "9dd644ea277debf067b02c92f78d870d7fc635e868005f894329148581b2d4de"
     },
     {
       "path": "preview.html",
-      "sha256": "031a4ea88419e26c9bf52f988ac2f5d5751f3bc55f48c7afb0d4d73e13b2c745"
+      "sha256": "0adff51a621107d309b670cd927b089a646f40005d07e705ac84514935e86e5f"
     },
     {
       "path": "preview.js",
-      "sha256": "6200d0da4b22139c3c1bc93ca14e82ae9d74b8236bbfe2cf0baa7694f18f4957"
+      "sha256": "ee72376bd56c976b84f75622978b6b6bc5d2488119f54a8053779816b95626d5"
     },
     {
       "path": "references/approved-a.png",
