@@ -2,7 +2,7 @@
 
 User request: reduce unnecessary pages in the eight newly updated Breeding Pen windows, beginning with Inspect Overview, and establish this as a future-menu rule.
 
-Status: source audit and proposed information architecture. The approved A visual design remains. This document and AGENTS.md establish the rule; the simplifications below have not yet been integrated into runtime.
+Status: Inspect’s five compact tabs and contextual help are implemented; see docs/BREEDING_INSPECT_COMPACT_RUNTIME.md. The remaining seven windows below retain their current runtime and are the next density pass. The approved A visual design remains. This document and AGENTS.md establish the standing rule.
 
 ## Why page counts grew
 

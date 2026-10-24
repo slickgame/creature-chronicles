@@ -1,0 +1,13 @@
+# Compact Breeding Inspect
+
+The user approved keeping Overview, Stats, Work, Talents and Lineage while removing the explanatory page carousel inside each tab. This implements that Inspect pass; other Breeding Pen windows remain mapped for the next pass in BREEDING_WINDOWS_INFORMATION_DENSITY.md.
+
+- Overview groups identity, six vitals, current conditions and role badges. Duplicate role labels are condensed in the badge preview; All roles retains every category and contributing reason. Long identity, participant and ranch notes open read-only details.
+- Stats shows all six current base values, innate grades and growth progress together. Hover/focus a stat for its exact projection; tap/click for the full text. Growth forecast contains the complete six-stat projection and maximum Energy/young-growth information.
+- Work groups Farm/Domestic skill rows with level and XP. Active/planned status remains visible; description, aptitude, natural baseline and work rules are contextual help. The skill engine remains authoritative.
+- Talents show name, grade and full effect together. Source/category/tags and inheritance-origin metadata are available through help. Only actual talent collections page when needed.
+- Lineage keeps the actual risk label, recorded parents and marker summary visible. Full ancestry retains all assessment notes, markers, origin and ranch notes, including long legacy records. Missing assessment is labeled Not assessed rather than inventing a risk result.
+
+BreedingHelpA reuses the existing DetailButton for mouse/keyboard previews and GameDialog for explicit tap/click read-only access. Popups preserve the underlying tab and selection; long full records may scroll inside their focused popup. Main Inspect sections fit the viewport without scrolling. Phones open Inspect details immediately and retain a separate Creature art view. The approved pavilion, native navy/gold/emerald surfaces and canonical complete figures are reused. No new character art, gameplay writes, RNG, transaction or balance changes.
+
+Validation artifacts: docs/validation/breeding-inspect-compact. Production build/TypeScript and scoped ESLint pass. Browser validation covers five tabs at seven sizes from 360×740 and 390×500 through 2560×1440, main-content fit and persistent footer, no explanatory page selector, Farm/Domestic switching, hover/focus/Escape/top-layer help, click-accessible full text, all forecast rows, role and ancestry records, player fallback/source return, long saved notes/markers and a nine-talent short-phone collection. Read-only inspection preserves the serialized save. Synthetic local fixture only; hosted UI verification is separate.

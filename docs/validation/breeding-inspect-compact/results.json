@@ -1,0 +1,17 @@
+{
+  "reports": [
+    "844x390: all five sections fit; no explanatory page carousel",
+    "390x500: all five sections fit; no explanatory page carousel",
+    "1440x900: all five sections fit; no explanatory page carousel",
+    "1920x720: all five sections fit; no explanatory page carousel",
+    "2560x1440: all five sections fit; no explanatory page carousel",
+    "390x844: all five sections fit; no explanatory page carousel",
+    "360x740: all five sections fit; no explanatory page carousel",
+    "hover and keyboard focus show active-dialog help; Escape dismisses only help; click opens full touch-accessible explanation",
+    "all six forecasts, complete role reasons, identity, source notes and ancestry remain accessible; complete save unchanged",
+    "player inspection retains honest artwork fallback and returns to draft picker",
+    "long complete notes and all 12 markers retained; visible lineage risk; all nine talent entries reachable on short phone; save unchanged"
+  ],
+  "saveUnchanged": true,
+  "errors": []
+}
