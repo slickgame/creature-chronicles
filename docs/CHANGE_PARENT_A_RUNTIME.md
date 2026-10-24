@@ -1,0 +1,9 @@
+# Change Parent A — focused chooser
+
+Approved reference: docs/previews/change-parent-a/option-a-desktop.jpg (user supplied the same reference on approval). Implemented in BreedingParentPicker and its scoped CSS. No shared window default changes.
+
+Assets reused: fidelity-v2 pavilion, wood header, gold panel/button borders, emerald selection/primary surface and cream Inspect surface; licensed bundled Tinos regular/bold; inspect-dossier-a heart/affection symbols and native exact-value progress; painted creature-overview-a-v2/sculpted/energy.webp. Canonical registered profilePath artwork remains unchanged, with named player/missing-image fallbacks. Existing production assets reproduce this direction without another raster-generation pass or paid plugin.
+
+Gallery collection paging remains. Search/filter/sort are now a single visible form, including every existing filter/sort mode. One candidate view groups identity, resources, eligibility, pregnancy and pair before/after costs/chance. Complete candidate description, all base stats/grades, all talents and complete readiness notes remain in explicit hover/focus/tap records; Inspect opens the existing five-tab dossier and returns to the candidate. Select remains explicit and uses the original role/duplicate/unavailability blocker. No transactions or chance/cost calculations changed.
+
+Validation: TypeScript noEmit passed; ESLint zero errors (native image performance warnings); breeding-selection-preview regression 3/3 passed. Actual Next dev browser captures at1440x900,1920x720,390x844,360x740 under docs/validation/change-parent-a. Browsing/cancel/full records/nested Inspect return leaves serialized save unchanged. No hosted deployment claim: these are local runtime captures. Sparse checkout uses an ignored scene manifest reconstructed from tracked scene filenames for local checks; production scene assets unchanged.
