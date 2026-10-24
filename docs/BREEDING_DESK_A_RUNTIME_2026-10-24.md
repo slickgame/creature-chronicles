@@ -11,3 +11,5 @@ Validation: direct production Next build and TypeScript pass; scoped ESLint has 
 Runner: scripts/validate-breeding-desk-a-runtime.mjs uses the installed Playwright runtime, /tmp/chromium and an established synthetic QA save at BREEDING_QA_SAVE_PATH; run from repository root after production build. It clears only its new isolated browser context, never a user's browser. Quick Results is selected for transaction verification.
 
 PR21 remains draft/unmerged. Local browser verification is distinct from hosted verification; deployment status alone does not prove hosted gameplay.
+
+Hosted verification: deployment ac7d2de succeeded. The authorized shared preview opens the new desk, selects canonical Rook and Mira profiles, displays 11% / 53 Energy / 1 Heart, opens exact-cost review and cancels back to the selected pair. No hosted attempt was confirmed. Final follow-up improves short-phone stat rows, filter contrast and persistent detail actions.
