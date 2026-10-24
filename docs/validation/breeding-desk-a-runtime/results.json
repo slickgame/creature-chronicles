@@ -1,0 +1,209 @@
+{
+  "checks": [
+    {
+      "state": "selected",
+      "w": 1440,
+      "h": 900,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "selected",
+      "w": 1920,
+      "h": 720,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "selected",
+      "w": 2560,
+      "h": 1440,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "selected",
+      "w": 390,
+      "h": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "selected",
+      "w": 360,
+      "h": 740,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "selected",
+      "w": 390,
+      "h": 500,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "selected",
+      "w": 844,
+      "h": 390,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 1440,
+      "h": 900,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 1920,
+      "h": 720,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 2560,
+      "h": 1440,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 390,
+      "h": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 360,
+      "h": 740,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 390,
+      "h": 500,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "empty",
+      "w": 844,
+      "h": 390,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 1440,
+      "h": 900,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 1920,
+      "h": 720,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 2560,
+      "h": 1440,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 390,
+      "h": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 360,
+      "h": 740,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 390,
+      "h": 500,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "giver",
+      "w": 844,
+      "h": 390,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 1440,
+      "h": 900,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 1920,
+      "h": 720,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 2560,
+      "h": 1440,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 390,
+      "h": 844,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 360,
+      "h": 740,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 390,
+      "h": 500,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "state": "receiver",
+      "w": 844,
+      "h": 390,
+      "overflow": false,
+      "images": true
+    },
+    {
+      "confirmedAttemptOnce": true,
+      "exactRecordedCosts": true,
+      "warningCancelReadOnly": true,
+      "backNavigation": true
+    }
+  ],
+  "errors": [],
+  "readOnlyCancellation": true,
+  "partialPairReviewDisabled": true
+}

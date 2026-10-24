@@ -10,11 +10,11 @@ export function BreedingFocusedScreen() {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
         const workspace = document.querySelector<HTMLElement>(
-          'section[aria-label="Focused breeding pair preview"]',
+          'section[aria-label="Breeding pairing desk"]',
         );
         if (workspace) workspace.dataset.tutorialId = "tutorial-breeding-attempt";
         const attempt = Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find(
-          (button) => button.textContent?.trim() === "Attempt Breeding",
+          (button) => button.textContent?.trim() === "Review attempt",
         );
         if (attempt) attempt.dataset.tutorialAction = "attempt-breeding";
       });

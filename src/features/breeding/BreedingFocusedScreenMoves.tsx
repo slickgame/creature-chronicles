@@ -23,7 +23,7 @@ function readPair(saveId: string): PairMemory {
       window.localStorage.getItem(pairMemoryKey(saveId)) ?? "null",
     ) as PairMemory | null;
     return {
-      giverId: parsed?.giverId ?? "player",
+      giverId: parsed && "giverId" in parsed ? parsed.giverId : "player",
       receiverId: parsed?.receiverId ?? null,
     };
   } catch {
@@ -81,7 +81,7 @@ export function BreedingFocusedScreen() {
     [currentSave, pair.giverId, pair.receiverId],
   );
 
-  const panel = preview ? <><button type="button" style={{order:-1}} onClick={()=>setShowMoves(true)}><img src="/images/ui/icons/icon_collection_book.png" alt=""/>Inheritance</button>{showMoves&&currentSave?<BreedingInheritanceBook save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} onClose={()=>setShowMoves(false)}/>:null}</> : null;
+  const panel = preview ? <><button type="button" style={{order:-1}} onClick={()=>setShowMoves(true)}><img src="/images/ui/breeding-desk-a/icons/inheritance.webp" alt=""/>Inheritance</button>{showMoves&&currentSave?<BreedingInheritanceBook save={currentSave} giverId={pair.giverId} receiverId={pair.receiverId} onClose={()=>setShowMoves(false)}/>:null}</> : null;
 
   return (
     <>

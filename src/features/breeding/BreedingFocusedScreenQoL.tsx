@@ -19,7 +19,6 @@ import {
 } from "@/data/breedingSceneImages";
 import { CREATURE_PLACEHOLDER_IMAGE } from "@/data/creatures";
 import { BreedingInspectBook } from "./BreedingInspectBook";
-import { formatEnergy } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type {
   BreedingAttemptRecord,
@@ -28,14 +27,10 @@ import type {
 } from "@/types/breeding";
 import type { CreatureRecord } from "@/types/creature";
 import styles from "./BreedingFocusedScreenQoL.module.css";
-import scenic from "./BreedingScenic.module.css";
-import ui from "@/features/ui/InteriorShell.module.css";
-import { GameDialog } from "@/features/ui/GameDialog";
-import { ScreenNavigation } from "@/features/navigation/ScreenNavigation";
+import { BreedingDeskA } from "./BreedingDeskA";
 import { BreedingParentPicker } from "./BreedingParentPicker";
 import { BreedingPreviewBook, BREEDING_BOOK_ART } from "./BreedingPreviewBook";
 import { getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
-import { RanchIcon } from "@/features/ui/RanchIcon";
 
 type SelectorRole = "giver" | "receiver";
 type SortMode = "name" | "level" | "energy" | "affection" | "fertility";
@@ -76,16 +71,6 @@ function pairMemoryKey(saveId: string): string {
 
 function getParticipantImage(participant: BreedingParticipant | null): string {
   return participant?.profilePath || participant?.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
-}
-
-function participantStatus(participant: BreedingParticipant | null): string {
-  if (!participant) return "Choose participant";
-  if (participant.isInjured) return participant.unavailableReason ?? "Injured";
-  if (participant.isPregnant) {
-    return `Pregnant${participant.pregnancyDaysRemaining ? ` · ${participant.pregnancyDaysRemaining}d` : ""}`;
-  }
-  if (!participant.canBreed) return participant.unavailableReason ?? "Unavailable";
-  return "Ready";
 }
 
 function sortParticipants(
@@ -215,6 +200,7 @@ export function BreedingFocusedScreen() {
     currentSave,
     goToNursery,
     goToRanch,
+    goBack,
   } = useGameContext();
   const [giverId, setGiverId] = useState<string | null>(PLAYER_PARTICIPANT_ID);
   const [receiverId, setReceiverId] = useState<string | null>(null);
@@ -227,6 +213,8 @@ export function BreedingFocusedScreen() {
   const [isAttempting, setIsAttempting] = useState(false);
   const [warningItems, setWarningItems] = useState<ResourceWarning[]>([]);
   const [showChanceBreakdown, setShowChanceBreakdown] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewQuote, setReviewQuote] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const [sceneMode, setSceneMode] = useState<SceneMode>("full");
   const restoredSaveRef = useRef<string | null>(null);
@@ -253,6 +241,7 @@ export function BreedingFocusedScreen() {
     () => getBlockedReasons(giver, receiver, preview),
     [giver, receiver, preview],
   );
+  const quote = JSON.stringify([currentSave?.saveId,currentSave?.dayState.dayNumber,giver,receiver,preview]);
   const chanceRows = useMemo(
     () => getChanceRows(giver, receiver, preview),
     [giver, receiver, preview],
@@ -282,12 +271,12 @@ export function BreedingFocusedScreen() {
         const parsed = JSON.parse(handoff) as {
           creatureId?: string;
           preferredRole?: SelectorRole;
-          giverId?: string;
-          receiverId?: string;
+          giverId?: string | null;
+          receiverId?: string | null;
         };
-        if (parsed.giverId || parsed.receiverId) {
+        if ("giverId" in parsed || "receiverId" in parsed) {
           next = {
-            giverId: parsed.giverId && participantIds.has(parsed.giverId) ? parsed.giverId : PLAYER_PARTICIPANT_ID,
+            giverId: parsed.giverId === null ? null : parsed.giverId && participantIds.has(parsed.giverId) ? parsed.giverId : PLAYER_PARTICIPANT_ID,
             receiverId: parsed.receiverId && participantIds.has(parsed.receiverId) ? parsed.receiverId : null,
           };
         } else if (parsed.creatureId && participantIds.has(parsed.creatureId)) {
@@ -304,7 +293,7 @@ export function BreedingFocusedScreen() {
         try {
           const parsed = JSON.parse(remembered) as PairMemory;
           next = {
-            giverId: parsed.giverId && participantIds.has(parsed.giverId) ? parsed.giverId : PLAYER_PARTICIPANT_ID,
+            giverId: parsed.giverId === null ? null : parsed.giverId && participantIds.has(parsed.giverId) ? parsed.giverId : PLAYER_PARTICIPANT_ID,
             receiverId: parsed.receiverId && participantIds.has(parsed.receiverId) ? parsed.receiverId : null,
           };
         } catch {
@@ -410,6 +399,7 @@ export function BreedingFocusedScreen() {
   }
 
   function executeAttempt() {
+    if (reviewQuote !== quote) {setWarningItems([]);setReviewOpen(false);setMessage("The pair or costs changed. Review the attempt again.");return;}
     if (attemptLockRef.current || !giverId || !receiverId || !preview?.canAttempt) return;
     attemptLockRef.current = true;
     setIsAttempting(true);
@@ -428,7 +418,14 @@ export function BreedingFocusedScreen() {
     }
   }
 
+  function openAttemptReview() {
+    if (!giver || !receiver || !preview?.canAttempt || isAttempting) return;
+    setReviewQuote(quote);setResult(null);setReviewOpen(true);
+  }
+
   function requestAttempt() {
+    if (reviewQuote !== quote) {setReviewOpen(false);setMessage("The pair or costs changed. Review the attempt again.");return;}
+    setReviewOpen(false);
     if (attemptLockRef.current || isAttempting) return;
     if (!giver || !receiver || !preview?.canAttempt) {
       setMessage(blockedReasons[0] ?? "Select a valid giver and receiver first.");
@@ -453,24 +450,12 @@ export function BreedingFocusedScreen() {
   const canSwap = Boolean(giver && receiver && giver.roleTags.includes("receiver") && receiver.roleTags.includes("giver"));
 
   return (
-    <main className={`${ui.interior} ${scenic.interior}`}>
-      <div className={`${ui.page} ${scenic.page}`}>
-        <header className={ui.heading}><h1>Breeding Pen</h1><ScreenNavigation><button type="button" onClick={() => window.dispatchEvent(new Event("creature-chronicles:open-breeding-ledger"))}>Breeding Ledger</button><button type="button" onClick={goToNursery}>Nursery</button></ScreenNavigation></header>
-        <section data-scenic className={scenic.workspace} aria-label="Focused breeding pair preview">
-          <div className={scenic.pairGrid}>
-            <FocusedPairCard role="Giver" participant={giver} disabled={isAttempting} onChoose={() => setSelectorRole("giver")} onInfo={setInfoParticipant} />
-            <FocusedPairCard role="Receiver" participant={receiver} disabled={isAttempting} onChoose={() => setSelectorRole("receiver")} onInfo={setInfoParticipant} />
-          </div>
-          <aside className={scenic.secondary} aria-label="Breeding preview details">
-            <button type="button" onClick={() => setShowOptions(true)}><RanchIcon name="gear" />Pair Options</button>
-          </aside>
-          <section className={`${ui.paper} ${scenic.ledger}`} aria-label="Attempt review">
-            <div className={scenic.chance}><strong>{preview ? `${preview.pregnancyChance}%` : "—"}</strong><span>Pregnancy chance</span><button type="button" onClick={() => setShowChanceBreakdown(true)}>Details</button></div>
-            <div className={scenic.costs}><h2>After attempt</h2><table><thead><tr><th scope="col">Participant</th><th scope="col">Energy</th><th scope="col">Hearts</th></tr></thead><tbody>{[giver,receiver].filter((p): p is BreedingParticipant => Boolean(p)).map(p => <tr key={p.participantId}><th scope="row">{p.displayName}</th><td>{p.energy} → {preview ? Math.max(0,p.energy-preview.energyCost) : "—"}</td><td>{p.hearts} → {preview ? Math.max(0,p.hearts-preview.heartCost) : "—"}</td></tr>)}</tbody></table><p>{preview ? `Cost each: ${preview.energyCost} Energy · ${preview.heartCost} Heart${preview.heartCost === 1 ? "" : "s"}` : "Select a complete pair."}</p></div>
-            <div className={scenic.attempt}><button type="button" className={scenic.readiness} onClick={() => setShowChanceBreakdown(true)}>{blockedReasons.length || preview?.pregnancyBlockedReason ? "Review readiness" : preview ? "✓ Pair is ready" : "Choose a pair"}</button><button type="button" className={ui.primary} disabled={!preview?.canAttempt || isAttempting} onClick={requestAttempt}>{isAttempting ? "Processing..." : blockedReasons.length ? "Attempt Blocked" : "Attempt Breeding"}</button></div>
-          </section>
-        </section>
-      </div>
+    <main>
+      <BreedingDeskA giver={giver} receiver={receiver} preview={preview} disabled={isAttempting} status={message.startsWith("The pair or costs changed")?message:statusText} onChoose={setSelectorRole} onInspect={setInfoParticipant} onBack={goBack} onNursery={goToNursery} onOptions={()=>setShowOptions(true)} onDetails={()=>setShowChanceBreakdown(true)} onReview={openAttemptReview}/>
+      {reviewOpen&&preview&&giver&&receiver?<BreedingPreviewBook title="Review attempt" marker="attempt-review" onClose={()=>setReviewOpen(false)} pages={[
+        {key:"summary",title:`${giver.displayName} × ${receiver.displayName}`,content:<><h3>{preview.pregnancyChance}% pregnancy chance</h3><p>{statusText}</p><p>Confirming spends {preview.energyCost} Energy and {preview.heartCost} Heart{preview.heartCost===1?"":"s"} from each parent.</p>{reviewQuote!==quote&&<p>The pair or costs changed. Close this review and review again.</p>}</>},
+        ...[giver,receiver].map(p=>({key:p.participantId,title:`${p.displayName} · Exact costs`,content:<CostRow participant={p} preview={preview}/>}))
+      ]} footer={<><button onClick={()=>setReviewOpen(false)}>Cancel</button><button disabled={isAttempting||!preview.canAttempt||reviewQuote!==quote} onClick={requestAttempt}>Confirm attempt</button></>}/>:null}
       {showOptions ? <BreedingPreviewBook title="Pair Options" marker="pair-options" onClose={()=>setShowOptions(false)} pages={[
         {key:'swap',title:'Swap roles',content:<><p>{giver?.displayName??'No giver'} → {receiver?.displayName??'No receiver'}</p><p>Exchange giver and receiver. Both participants must support their new role. Selection spends nothing.</p><button disabled={!canSwap||isAttempting} onClick={()=>{swapRoles();setShowOptions(false);}}>Swap Roles</button></>},
         {key:'random',title:'Random eligible pair',content:<><p>Choose a complete eligible creature pair from the current ranch. This changes selection only and does not run an attempt.</p><button disabled={isAttempting} onClick={()=>{randomPair();setShowOptions(false);}}>Random Pair</button></>},
@@ -526,7 +511,7 @@ export function BreedingFocusedScreen() {
           sceneMode={sceneMode}
           canBreedAgain={Boolean(preview?.canAttempt)}
           breedAgainReason={blockedReasons[0] ?? null}
-          onBreedAgain={requestAttempt}
+          onBreedAgain={openAttemptReview}
           onKeepGiverChooseReceiver={keepGiverChooseReceiver}
           onChangePair={() => {
             setResult(null);
@@ -538,31 +523,6 @@ export function BreedingFocusedScreen() {
       ) : null}
     </main>
   );
-}
-
-function FocusedPairCard({
-  role,
-  participant,
-  disabled,
-  onChoose,
-  onInfo,
-}: {
-  role: SelectorRole extends never ? never : "Giver" | "Receiver";
-  participant: BreedingParticipant | null;
-  disabled: boolean;
-  onChoose: () => void;
-  onInfo: (participant: BreedingParticipant) => void;
-}) {
-  const [showArtwork,setShowArtwork] = useState(false);
-  return <article className={scenic.pairCard}>
-    {participant ? <button type="button" className={scenic.art} onClick={() => setShowArtwork(true)} aria-label={`View full image of ${participant.displayName}`}><img src={getParticipantImage(participant)} alt={`${participant.displayName} full body`} onError={event => {event.currentTarget.onerror=null;event.currentTarget.src=CREATURE_PLACEHOLDER_IMAGE;}} /></button> : <div className={scenic.emptyArt}>Choose {role}</div>}
-    <div className={`${ui.paper} ${scenic.pairInfo}`}><h2>{participant?.displayName ?? `Choose ${role}`}</h2><span className={scenic.role}>{role}</span><div className={scenic.readouts}><MiniStat label="Energy" value={participant ? formatEnergy(participant.energy,participant.maxEnergy) : "—"}/><MiniStat label="Hearts" value={participant ? `${participant.hearts}/${participant.maxHearts}` : "—"}/><MiniStat label="Status" value={participantStatus(participant)}/></div><div className={scenic.pairActions}><button type="button" disabled={disabled} onClick={onChoose} aria-label={`Choose ${role}`}>Change</button><button type="button" disabled={disabled || !participant} onClick={() => participant && onInfo(participant)} aria-label={participant ? `Inspect ${participant.displayName}` : `Inspect ${role}`}>Inspect</button></div></div>
-    {showArtwork && participant ? <GameDialog title={participant.displayName} onClose={() => setShowArtwork(false)}><img className={scenic.fullArt} src={getParticipantImage(participant)} alt={`${participant.displayName} full body`} /></GameDialog> : null}
-  </article>;
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return <div className={styles.miniStat}><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function CostRow({ participant, preview }: { participant: BreedingParticipant; preview: BreedingPreview }) {

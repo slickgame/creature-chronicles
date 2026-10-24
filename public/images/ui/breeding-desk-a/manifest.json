@@ -1,5 +1,5 @@
 {
-  "runtimeIntegrated": false,
+  "runtimeIntegrated": true,
   "approvedDirection": "A, full-body profiles, persistent Back, empty/partial/selected states",
   "canonicalArt": {
     "canine": "public/images/creatures/canine/daisy/daisy_01.webp",
