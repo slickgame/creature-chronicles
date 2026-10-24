@@ -7,6 +7,7 @@ import styles from "./GameDialog.module.css";
 /** Native modal semantics provide focus containment, Escape and an inert background. */
 export function GameDialog({
   title,
+  dialogClassName = "",
   titleIcon,
   onClose,
   children,
@@ -15,6 +16,7 @@ export function GameDialog({
   fullScreen = false,
 }: {
   title: string;
+  dialogClassName?: string;
   titleIcon?: ReactNode;
   onClose: () => void;
   children: ReactNode;
@@ -45,7 +47,7 @@ export function GameDialog({
     <dialog
       role="dialog"
       ref={ref}
-      className={`${styles.dialog} ${wide ? styles.wide : ""} ${side ? styles.side : ""} ${fullScreen ? styles.fullScreen : ""}`}
+      className={`${styles.dialog} ${wide ? styles.wide : ""} ${side ? styles.side : ""} ${fullScreen ? styles.fullScreen : ""} ${dialogClassName}`}
       aria-labelledby={titleId}
       onKeyDown={(event) => {
         if (event.key === "Escape") {

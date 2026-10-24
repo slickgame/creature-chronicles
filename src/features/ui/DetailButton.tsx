@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import styles from "./DetailButton.module.css";
 
 /** Quick read on hover/focus; the existing click action opens full touch-accessible details. */
-export function DetailButton({ hint, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { hint: string }) {
+export function DetailButton({ hint, tooltipClassName = "", children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { hint: string; tooltipClassName?: string }) {
   const id = useId();
   const anchor = useRef<HTMLButtonElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -34,7 +34,7 @@ export function DetailButton({ hint, children, ...props }: ButtonHTMLAttributes<
     onFocus={event => { props.onFocus?.(event); if (event.currentTarget.matches(":focus-visible")) show(); }}
     onBlur={event => { props.onBlur?.(event); close(); }}
     onClick={event => { close(); props.onClick?.(event); }}>{children}</button>
-    {position ? createPortal(<div id={id} role="tooltip" className={styles.tooltip}
+    {position ? createPortal(<div id={id} role="tooltip" className={`${styles.tooltip} ${tooltipClassName}`}
       style={{ left: position.left, top: position.above ? undefined : position.top, bottom: position.above ? position.bottom : undefined }}
       onPointerEnter={() => { if (timer.current) clearTimeout(timer.current); }} onPointerLeave={close}>{hint}</div>, position.host) : null}</>;
 }

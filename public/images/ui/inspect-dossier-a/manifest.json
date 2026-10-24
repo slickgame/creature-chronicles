@@ -1,0 +1,389 @@
+{
+  "direction": "Approved A Illustrated Dossier",
+  "new": [
+    {
+      "path": "public/images/ui/inspect-dossier-a/gold-botanical-corner.webp",
+      "bytes": 32842,
+      "sha256": "18b1b9588d765567b663ea8f73ae2128e5d0ee898269108c424c11b9a8a36083",
+      "size": [
+        320,
+        320
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/affection.svg",
+      "bytes": 484,
+      "sha256": "438043ce84748be70bba5ed8221afe0cdd4df1f25cc6c695cde2921c0b759d1e"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/check.svg",
+      "bytes": 376,
+      "sha256": "8fb98beaa30eca25ff9368cb153b9a844d9119489b49c853ca9584734b22b1d9"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/egg.svg",
+      "bytes": 394,
+      "sha256": "6477ad32a02daf284128a3e673ade913a2d3dd528004d32bdbc370699489ab52"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/heart.svg",
+      "bytes": 404,
+      "sha256": "513553e35a94550f8b32ec454b19b13b12c03cfccfcd996e2c7264d41dae8689"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/info.svg",
+      "bytes": 471,
+      "sha256": "e65b2f7a470fe3c674c6cd8bbbfa44cc054872ac140e3d3ae945f244c7771bd4"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/leaf.svg",
+      "bytes": 487,
+      "sha256": "6eb1a730df1222f170a7c85e924cb4c73952449ff594f45310ae7a9cf6bdbc2b"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/level.svg",
+      "bytes": 397,
+      "sha256": "f3caa73eb41c66ec2be0e1f031f3e5c03414dc834d7315bd2aa7bc30f99db428"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/lineage.svg",
+      "bytes": 533,
+      "sha256": "e3cc01ece12e80f9ecd11266b3a890f63c015279e1027b4b866733e84e814059"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/lock.svg",
+      "bytes": 495,
+      "sha256": "a5b3ff5564316edef7b84a3f782135e3e29946984996fd31ec4d0618fd51e75d"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/mug.svg",
+      "bytes": 448,
+      "sha256": "2731098a48f5bf1c69f4a40b0b8e18dd71149f44417c21c6c7cc056dfde072a0"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/overview.svg",
+      "bytes": 414,
+      "sha256": "db575312721d917c33af2ef1c531d09af54c953886bcf6ee2680603934d63ce0"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/paw.svg",
+      "bytes": 596,
+      "sha256": "6ce97a7c37e64f5750be18c924e844a18fa0aeb027898f184f73bb1d4e04ef65"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/pickaxe.svg",
+      "bytes": 412,
+      "sha256": "1ca9140484958be486eaaebae011abf458f0e379083a77d2dbfe00c4cd4951ae"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/scroll.svg",
+      "bytes": 419,
+      "sha256": "da05fe13d2ae7342ff2e74376195e19c9144a57304a6af800bb15430d7ac90d4"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/shield.svg",
+      "bytes": 421,
+      "sha256": "334b3bb7f1ae67f41b8effe1f5e89885c24411b4d809391d178f5bbc2aec8c4f"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/stats.svg",
+      "bytes": 391,
+      "sha256": "0e164a7b138b081a3ff3ffe53ea3db55a8c093995555977048b81254f7574f83"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/talents.svg",
+      "bytes": 397,
+      "sha256": "4cad10166a9dc073dab411b1f888b86d064950c2b0befb81e9e4401ed649c502"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/icons/work.svg",
+      "bytes": 435,
+      "sha256": "8c509496f525421ced26a2ec3011cada1d94b5485576b4e8a4115de48fe68606"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/masters/gold-botanical-corner.png",
+      "bytes": 586667,
+      "sha256": "d34f49c495fdf931704b0565fc99115e4b493e6bfb0e7f1ca04a680caf396fab",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/masters/gold-botanical-corner.prompt.txt",
+      "bytes": 1182,
+      "sha256": "54ebb15635e52dbceaa9d780c09db323a769d4759678cb89accf0477f16ad2cd"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/references/approved-a.jpg",
+      "bytes": 909356,
+      "sha256": "ee74b5b605c1ffa22da1dcb32aa8def2f9711f455dd6ccf692e11743ed05826d",
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "public/images/ui/inspect-dossier-a/vital.svg",
+      "bytes": 576,
+      "sha256": "70b8828c587ac5c7fc3fb19ae56cf19aba14d0b2c01a421af14f96aa7490f413"
+    }
+  ],
+  "reused": [
+    {
+      "path": "public/images/ui/breeding-desk-a/fidelity-v2/pavilion.webp",
+      "bytes": 632836,
+      "sha256": "0451bd508dac19cc7325399f6cc95f06f46ee2648f7b1f7033971a652edfcfb6",
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/fidelity-v2/panel.svg",
+      "bytes": 3509,
+      "sha256": "7fd4cf5a43ffb15df8ee35e53915240d8d914a1833574433e6b36daa2fe8f8bd"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/fidelity-v2/button.svg",
+      "bytes": 1539,
+      "sha256": "3ccc6b59135fe4192a3cbb79f9759e70c889bef4adaf8d62e8ac1168000ecc9b"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/fidelity-v2/primary.svg",
+      "bytes": 1540,
+      "sha256": "77827d99cccff35dd9a714a39fe9be951ba26325ade4b946dca01be2cea32295"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/fidelity-v2/cream.svg",
+      "bytes": 1540,
+      "sha256": "2b2929e160462ce60bed04ae67fc732c69e891cd2bb8d4e58e937c4152baa555"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/art/wood.webp",
+      "bytes": 118168,
+      "sha256": "d985970bd6420863f815849526a598fcc03249febf4289776d0dc4cbb9712295",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/fonts/Tinos-Regular.woff",
+      "bytes": 274860,
+      "sha256": "d7931b9002ecfd8daa5c8c307a57efa574b37facc8dfb9bca838dba9f5efd412"
+    },
+    {
+      "path": "public/images/ui/breeding-desk-a/fonts/Tinos-Bold.woff",
+      "bytes": 298896,
+      "sha256": "00881fa43c0c06720439ce020258525aeaea619f4a54620c71802c5c56d9c398"
+    },
+    {
+      "path": "public/images/ui/creature-overview-a-v2/sculpted/energy.webp",
+      "bytes": 16512,
+      "sha256": "1fc4b8a110cd4e773d657d2d0c9a9a0ae645cadaf985ca578c9351128efd35bc",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/creature-overview-a-v2/sculpted/heart.webp",
+      "bytes": 26158,
+      "sha256": "edac81b97b7a006ca503dff5c8dcecfd30f034071e57c650d6d12af50a621a2f",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/creature-overview-a-v2/sculpted/experience.webp",
+      "bytes": 29372,
+      "sha256": "9d49b27350c3ec734947900a7e1928703528aaef43cae3ad35d70458ffc19e0f",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/work-skills-a/skill-atlas.webp",
+      "bytes": 377814,
+      "sha256": "ed4ed7f8af70ce99c742c852f9c528387fd9c7936408a78250252a2a1265d71b",
+      "size": [
+        896,
+        448
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/stats-growth-b/strength.webp",
+      "bytes": 28970,
+      "sha256": "a7a4bf74511115670514b676998fd2d146b7f2b869564d89f801b11fc326b196",
+      "size": [
+        256,
+        171
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/stats-growth-b/dexterity.webp",
+      "bytes": 45448,
+      "sha256": "db350e2db753e6d049cd6e7aa0a560e5c724ba332b0a47c1835e23ea6c2f4af3",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/stats-growth-b/stamina.webp",
+      "bytes": 36872,
+      "sha256": "a3b7e802cce6e3a0b14c1392306b2c473ca36fe4d19ee976ec84c5194f9a270c",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/stats-growth-b/charm.webp",
+      "bytes": 25588,
+      "sha256": "21038945ea28c5a582bcbcf9fac091ecc91c5a918e5a60a5d0067d15b2b33d1e",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/stats-growth-b/willpower.webp",
+      "bytes": 27296,
+      "sha256": "ab3495b3d6c97d040adc4556373185b1d72ec6225920aee4b4c341133dd16b42",
+      "size": [
+        256,
+        171
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/stats-growth-b/fertility.webp",
+      "bytes": 44036,
+      "sha256": "c375cc231d84ccd3efa56faf1389dc295d4f91d154a809e392b180113125bd71",
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/diligent.webp",
+      "bytes": 33542,
+      "sha256": "61bafbb98c988480aa6369a45666a39a6c8b71781ee110d8bda9df2322b8b759",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/eager_learner.webp",
+      "bytes": 31296,
+      "sha256": "ff788851a06e309be53a0a8e564c4d1c10c4c2bc42cd1440681612c44cbcd208",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/efficient_worker.webp",
+      "bytes": 28636,
+      "sha256": "13d809567e056d0dacb488cbcaeccb235cbf5788e08a5d3fb39350c8399fc74f",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/guard_dog.webp",
+      "bytes": 26826,
+      "sha256": "c2670507c77494ef05c86a21139cf4fc1cc5237c903f95e86d57038e77889e87",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/hot_blooded.webp",
+      "bytes": 23222,
+      "sha256": "58e99f7105e29efbc651f8b277433e63dadccec69d03224df2779ab54b4f3e4a",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/lasting_vigor.webp",
+      "bytes": 34300,
+      "sha256": "2e3b843d7007dac06b66b8a164b105622368526f7ec181366cc97cb61ca7fcf7",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/light_footed.webp",
+      "bytes": 26132,
+      "sha256": "81e4d754a50557d130610aa9f02e17d800020c493c7c50f8a291bd6b6fb35123",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/sound_sleeper.webp",
+      "bytes": 20326,
+      "sha256": "df4d7c4d7a8a26460e1e3760da15fb8cf7f34e5be77e90c9e48c7c4f69e69a20",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/sure_strike.webp",
+      "bytes": 27426,
+      "sha256": "096e2f149a00c981f81bf1071151a4cb4454725755328c7c567582e98d69bfb1",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    },
+    {
+      "path": "public/images/ui/talents-c/icons/thick_hide.webp",
+      "bytes": 32336,
+      "sha256": "969ffc094117484eee42ca0e5d1944bcd4ed98479eb0b2ad3634b796631cd19b",
+      "size": [
+        192,
+        192
+      ],
+      "mode": "RGBA"
+    }
+  ],
+  "characterArt": "Unchanged canonical profilePath; no new character imagery",
+  "generator": "Built-in image generation: transparent gold corner; native SVG builder for symbols and vital surface"
+}
