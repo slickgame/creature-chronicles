@@ -1,0 +1,900 @@
+{
+  "supportQuotes": {
+    "energy_snack": {
+      "creature_starter_canine": {
+        "ok": false,
+        "message": "Rook's Energy is already full."
+      },
+      "creature_starter_feline": {
+        "ok": false,
+        "message": "Mira's Energy is already full."
+      }
+    },
+    "energy_meal": {
+      "creature_starter_canine": {
+        "ok": false,
+        "message": "Rook's Energy is already full."
+      },
+      "creature_starter_feline": {
+        "ok": false,
+        "message": "Mira's Energy is already full."
+      }
+    },
+    "fertility_tonic": {
+      "creature_starter_canine": {
+        "ok": true,
+        "message": "Fertility Tonic armed. Arms +12% pregnancy chance for the next valid breeding attempt. The effect is consumed by that attempt, whether pregnancy succeeds or fails."
+      },
+      "creature_starter_feline": {
+        "ok": true,
+        "message": "Fertility Tonic armed. Arms +12% pregnancy chance for the next valid breeding attempt. The effect is consumed by that attempt, whether pregnancy succeeds or fails."
+      }
+    },
+    "affection_treat": {
+      "creature_starter_canine": {
+        "ok": true,
+        "message": "Used Affection Treat on Rook; Affection increased by 8."
+      },
+      "creature_starter_feline": {
+        "ok": true,
+        "message": "Used Affection Treat on Mira; Affection increased by 8."
+      }
+    },
+    "recovery_balm": {
+      "creature_starter_canine": {
+        "ok": false,
+        "message": "Rook has full Hearts and no active injury."
+      },
+      "creature_starter_feline": {
+        "ok": false,
+        "message": "Mira has full Hearts and no active injury."
+      }
+    },
+    "trait_stabilizer": {
+      "creature_starter_canine": {
+        "ok": true,
+        "message": "Trait Stabilizer armed. Arms the next successful conception with +12 inheritance stability, -4% grade-downgrade chance, and +8% parent-ability inheritance chance. Failed attempts do not consume the armed effect."
+      },
+      "creature_starter_feline": {
+        "ok": true,
+        "message": "Trait Stabilizer armed. Arms the next successful conception with +12 inheritance stability, -4% grade-downgrade chance, and +8% parent-ability inheritance chance. Failed attempts do not consume the armed effect."
+      }
+    },
+    "mutation_catalyst": {
+      "creature_starter_canine": {
+        "ok": true,
+        "message": "Mutation Catalyst armed. Arms the next successful conception with +5% beneficial stat mutation chance, +3% new-ability mutation chance, and +3% rare-variant chance. Failed attempts do not consume the armed effect."
+      },
+      "creature_starter_feline": {
+        "ok": true,
+        "message": "Mutation Catalyst armed. Arms the next successful conception with +5% beneficial stat mutation chance, +3% new-ability mutation chance, and +3% rare-variant chance. Failed attempts do not consume the armed effect."
+      }
+    },
+    "gestation_tonic": {
+      "creature_starter_canine": {
+        "ok": false,
+        "message": "Choose an active pregnancy before using Gestation Tonic."
+      },
+      "creature_starter_feline": {
+        "ok": false,
+        "message": "Choose an active pregnancy before using Gestation Tonic."
+      }
+    }
+  },
+  "participants": [
+    {
+      "participantId": "player",
+      "kind": "player",
+      "displayName": "Nursery A QA",
+      "familyLabel": "Player",
+      "sceneFamily": "player",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 500,
+      "maxEnergy": 500,
+      "hearts": 4,
+      "maxHearts": 4,
+      "affection": 65,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 115,
+      "stats": {
+        "STR": 5,
+        "DEX": 5,
+        "STA": 5,
+        "CHA": 5,
+        "WIL": 5,
+        "FER": 5
+      },
+      "statGrades": {
+        "STR": "D",
+        "DEX": "D",
+        "STA": "D",
+        "CHA": "D",
+        "WIL": "D",
+        "FER": "D"
+      },
+      "isPregnant": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "The breeder relies on stronger raw stat growth because player characters do not inherit creature talents.",
+      "portraitPath": "/images/ui/icons/icon_breeder_level.png",
+      "profilePath": "/images/ui/icons/icon_breeder_level.png"
+    },
+    {
+      "participantId": "creature_starter_feline",
+      "kind": "creature",
+      "creatureId": "creature_starter_feline",
+      "displayName": "Mira",
+      "familyLabel": "Base Feline Feline",
+      "sceneFamily": "feline",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 91,
+      "maxEnergy": 91,
+      "hearts": 4,
+      "maxHearts": 4,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 3,
+        "DEX": 8,
+        "STA": 6,
+        "CHA": 11,
+        "WIL": 5,
+        "FER": 5
+      },
+      "statGrades": {
+        "STR": "D",
+        "DEX": "C",
+        "STA": "B",
+        "CHA": "S",
+        "WIL": "C",
+        "FER": "D"
+      },
+      "abilities": [
+        {
+          "id": "eager_learner",
+          "name": "Eager Learner",
+          "grade": "C",
+          "source": "general",
+          "description": "+10% work-skill XP."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A balanced starter feline with reliable bonding, strong agility, and flexible ranch utility.",
+      "portraitPath": "/images/creatures/feline/nyla/nyla_02_bust_portrait.png",
+      "profilePath": "/images/creatures/feline/nyla/nyla_01_full_body.png"
+    },
+    {
+      "participantId": "creature_starter_canine",
+      "kind": "creature",
+      "creatureId": "creature_starter_canine",
+      "displayName": "Rook",
+      "familyLabel": "Base Canine Canine",
+      "sceneFamily": "canine",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 104,
+      "maxEnergy": 104,
+      "hearts": 5,
+      "maxHearts": 5,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 8,
+        "DEX": 4,
+        "STA": 8,
+        "CHA": 6,
+        "WIL": 9,
+        "FER": 6
+      },
+      "statGrades": {
+        "STR": "B",
+        "DEX": "D",
+        "STA": "C",
+        "CHA": "B",
+        "WIL": "A",
+        "FER": "B"
+      },
+      "abilities": [
+        {
+          "id": "guard_dog",
+          "name": "Guard Dog",
+          "source": "species",
+          "grade": "C",
+          "description": "+3 farm Security while resident. Only the strongest Guard Dog applies; no Energy cost."
+        },
+        {
+          "id": "sure_strike",
+          "name": "Sure Strike",
+          "grade": "C",
+          "source": "general",
+          "description": "+3 Physical Power in battle."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A balanced starter canine with dependable stamina, loyalty, and everyday ranch utility.",
+      "portraitPath": "/images/creatures/canine/daisy/daisy_02.webp",
+      "profilePath": "/images/creatures/canine/daisy/daisy_01.webp"
+    },
+    {
+      "participantId": "creature_starter_bovine",
+      "kind": "creature",
+      "creatureId": "creature_starter_bovine",
+      "displayName": "Bruna",
+      "familyLabel": "Cow Bovine",
+      "sceneFamily": "bovine",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 111,
+      "maxEnergy": 111,
+      "hearts": 5,
+      "maxHearts": 5,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 8,
+        "DEX": 3,
+        "STA": 9,
+        "CHA": 6,
+        "WIL": 9,
+        "FER": 6
+      },
+      "statGrades": {
+        "STR": "B",
+        "DEX": "D",
+        "STA": "C",
+        "CHA": "B",
+        "WIL": "A",
+        "FER": "B"
+      },
+      "abilities": [
+        {
+          "id": "diligent",
+          "name": "Diligent",
+          "grade": "C",
+          "source": "general",
+          "description": "+3 resources per work action."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A gentle base bovine with strong stamina and reliable future production utility.",
+      "portraitPath": "/images/creatures/bovine/cow_portrait.png",
+      "profilePath": "/images/creatures/bovine/cow_profile.png"
+    },
+    {
+      "participantId": "creature_starter_lapine",
+      "kind": "creature",
+      "creatureId": "creature_starter_lapine",
+      "displayName": "Pip",
+      "familyLabel": "Bunny Lapine",
+      "sceneFamily": "lapine",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 84,
+      "maxEnergy": 84,
+      "hearts": 4,
+      "maxHearts": 4,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 3,
+        "DEX": 12,
+        "STA": 4,
+        "CHA": 7,
+        "WIL": 6,
+        "FER": 12
+      },
+      "statGrades": {
+        "STR": "B",
+        "DEX": "A",
+        "STA": "D",
+        "CHA": "C",
+        "WIL": "B",
+        "FER": "B"
+      },
+      "abilities": [
+        {
+          "id": "hot_blooded",
+          "name": "Hot-Blooded",
+          "grade": "C",
+          "source": "general",
+          "description": "+3 Fertility during breeding."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A quick, fertile base lapine with bright garden-ranch energy and fast-growth potential.",
+      "portraitPath": "/images/creatures/lapine/gameplay/lapine_02.webp",
+      "profilePath": "/images/creatures/lapine/gameplay/lapine_01.webp"
+    },
+    {
+      "participantId": "creature_starter_equine",
+      "kind": "creature",
+      "creatureId": "creature_starter_equine",
+      "displayName": "Marlow",
+      "familyLabel": "Horse Equine",
+      "sceneFamily": "equine",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 124,
+      "maxEnergy": 124,
+      "hearts": 5,
+      "maxHearts": 5,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 8,
+        "DEX": 6,
+        "STA": 12,
+        "CHA": 8,
+        "WIL": 6,
+        "FER": 3
+      },
+      "statGrades": {
+        "STR": "D",
+        "DEX": "C",
+        "STA": "B",
+        "CHA": "A",
+        "WIL": "D",
+        "FER": "D"
+      },
+      "abilities": [
+        {
+          "id": "sound_sleeper",
+          "name": "Sound Sleeper",
+          "grade": "C",
+          "source": "general",
+          "description": "Recover an extra 10% of maximum Energy each day."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A sturdy base equine built for field work, hauling, and future travel support.",
+      "portraitPath": "/images/creatures/equine/gameplay/equine_02_bust_portrait.png",
+      "profilePath": "/images/creatures/equine/gameplay/equine_01_full_body.png"
+    }
+  ],
+  "giver": {
+    "participantId": "creature_starter_canine",
+    "kind": "creature",
+    "creatureId": "creature_starter_canine",
+    "displayName": "Rook",
+    "familyLabel": "Base Canine Canine",
+    "sceneFamily": "canine",
+    "roleTags": [
+      "giver",
+      "receiver"
+    ],
+    "energy": 104,
+    "maxEnergy": 104,
+    "hearts": 5,
+    "maxHearts": 5,
+    "affection": 50,
+    "level": 1,
+    "xp": 0,
+    "xpToNext": 75,
+    "stats": {
+      "STR": 8,
+      "DEX": 4,
+      "STA": 8,
+      "CHA": 6,
+      "WIL": 9,
+      "FER": 6
+    },
+    "statGrades": {
+      "STR": "B",
+      "DEX": "D",
+      "STA": "C",
+      "CHA": "B",
+      "WIL": "A",
+      "FER": "B"
+    },
+    "abilities": [
+      {
+        "id": "guard_dog",
+        "name": "Guard Dog",
+        "source": "species",
+        "grade": "C",
+        "description": "+3 farm Security while resident. Only the strongest Guard Dog applies; no Energy cost."
+      },
+      {
+        "id": "sure_strike",
+        "name": "Sure Strike",
+        "grade": "C",
+        "source": "general",
+        "description": "+3 Physical Power in battle."
+      }
+    ],
+    "isPregnant": false,
+    "isInjured": false,
+    "canBreed": true,
+    "unavailableReason": null,
+    "description": "A balanced starter canine with dependable stamina, loyalty, and everyday ranch utility.",
+    "portraitPath": "/images/creatures/canine/daisy/daisy_02.webp",
+    "profilePath": "/images/creatures/canine/daisy/daisy_01.webp"
+  },
+  "receiver": {
+    "participantId": "creature_starter_feline",
+    "kind": "creature",
+    "creatureId": "creature_starter_feline",
+    "displayName": "Mira",
+    "familyLabel": "Base Feline Feline",
+    "sceneFamily": "feline",
+    "roleTags": [
+      "giver",
+      "receiver"
+    ],
+    "energy": 91,
+    "maxEnergy": 91,
+    "hearts": 4,
+    "maxHearts": 4,
+    "affection": 50,
+    "level": 1,
+    "xp": 0,
+    "xpToNext": 75,
+    "stats": {
+      "STR": 3,
+      "DEX": 8,
+      "STA": 6,
+      "CHA": 11,
+      "WIL": 5,
+      "FER": 5
+    },
+    "statGrades": {
+      "STR": "D",
+      "DEX": "C",
+      "STA": "B",
+      "CHA": "S",
+      "WIL": "C",
+      "FER": "D"
+    },
+    "abilities": [
+      {
+        "id": "eager_learner",
+        "name": "Eager Learner",
+        "grade": "C",
+        "source": "general",
+        "description": "+10% work-skill XP."
+      }
+    ],
+    "isPregnant": false,
+    "isInjured": false,
+    "canBreed": true,
+    "unavailableReason": null,
+    "description": "A balanced starter feline with reliable bonding, strong agility, and flexible ranch utility.",
+    "portraitPath": "/images/creatures/feline/nyla/nyla_02_bust_portrait.png",
+    "profilePath": "/images/creatures/feline/nyla/nyla_01_full_body.png"
+  },
+  "preview": {
+    "pairKey": "creature_starter_canine__creature_starter_feline",
+    "pregnancyChance": 11,
+    "baseChance": 12,
+    "streakBonus": 0,
+    "affectionBonus": 2,
+    "abilityBonus": -8,
+    "energyDiscount": -18,
+    "streakCount": 0,
+    "energyCost": 53,
+    "heartCost": 1,
+    "xpGain": 11,
+    "breederXpGain": 0,
+    "abilityTriggers": [],
+    "canAttempt": true,
+    "blockedReason": null,
+    "receiverCanBecomePregnant": true,
+    "receiverPregnant": false,
+    "pregnancyBlockedReason": null,
+    "giverEnergyAfter": 51,
+    "receiverEnergyAfter": 38,
+    "readinessNotes": [
+      "Rook: ready.",
+      "Mira: ready.",
+      "Mira can become pregnant if the roll succeeds.",
+      "Pair streak adds 3% per failed attempt, caps at 15%, and resets after pregnancy.",
+      "Possible offspring (feline): STR 2-10 · DEX 5-13 · STA 4-12 · CHA 6-14 · WIL 4-12 · FER 3-11. Unpredictable inheritance; grade upgrade 4%, ability inheritance 21%, rare variant 5%, mutation 2%, shiny 0.7%. Outcomes are not guaranteed.",
+      "Feline lineage favors Dexterity and Charm.",
+      "Trained parent stats contribute only 10%; inherited grades and innate potential matter most."
+    ]
+  },
+  "inheritance": {
+    "giver": {
+      "participantId": "creature_starter_canine",
+      "kind": "creature",
+      "creatureId": "creature_starter_canine",
+      "displayName": "Rook",
+      "familyLabel": "Base Canine Canine",
+      "sceneFamily": "canine",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 104,
+      "maxEnergy": 104,
+      "hearts": 5,
+      "maxHearts": 5,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 8,
+        "DEX": 4,
+        "STA": 8,
+        "CHA": 6,
+        "WIL": 9,
+        "FER": 6
+      },
+      "statGrades": {
+        "STR": "B",
+        "DEX": "D",
+        "STA": "C",
+        "CHA": "B",
+        "WIL": "A",
+        "FER": "B"
+      },
+      "abilities": [
+        {
+          "id": "guard_dog",
+          "name": "Guard Dog",
+          "source": "species",
+          "grade": "C",
+          "description": "+3 farm Security while resident. Only the strongest Guard Dog applies; no Energy cost."
+        },
+        {
+          "id": "sure_strike",
+          "name": "Sure Strike",
+          "grade": "C",
+          "source": "general",
+          "description": "+3 Physical Power in battle."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A balanced starter canine with dependable stamina, loyalty, and everyday ranch utility.",
+      "portraitPath": "/images/creatures/canine/daisy/daisy_02.webp",
+      "profilePath": "/images/creatures/canine/daisy/daisy_01.webp"
+    },
+    "receiver": {
+      "participantId": "creature_starter_feline",
+      "kind": "creature",
+      "creatureId": "creature_starter_feline",
+      "displayName": "Mira",
+      "familyLabel": "Base Feline Feline",
+      "sceneFamily": "feline",
+      "roleTags": [
+        "giver",
+        "receiver"
+      ],
+      "energy": 91,
+      "maxEnergy": 91,
+      "hearts": 4,
+      "maxHearts": 4,
+      "affection": 50,
+      "level": 1,
+      "xp": 0,
+      "xpToNext": 75,
+      "stats": {
+        "STR": 3,
+        "DEX": 8,
+        "STA": 6,
+        "CHA": 11,
+        "WIL": 5,
+        "FER": 5
+      },
+      "statGrades": {
+        "STR": "D",
+        "DEX": "C",
+        "STA": "B",
+        "CHA": "S",
+        "WIL": "C",
+        "FER": "D"
+      },
+      "abilities": [
+        {
+          "id": "eager_learner",
+          "name": "Eager Learner",
+          "grade": "C",
+          "source": "general",
+          "description": "+10% work-skill XP."
+        }
+      ],
+      "isPregnant": false,
+      "isInjured": false,
+      "canBreed": true,
+      "unavailableReason": null,
+      "description": "A balanced starter feline with reliable bonding, strong agility, and flexible ranch utility.",
+      "portraitPath": "/images/creatures/feline/nyla/nyla_02_bust_portrait.png",
+      "profilePath": "/images/creatures/feline/nyla/nyla_01_full_body.png"
+    },
+    "valid": true,
+    "odds": {
+      "first": 21,
+      "second": 1,
+      "mutation": 1
+    },
+    "moves": {
+      "childSpeciesId": "species_feline",
+      "canProduceOffspring": true,
+      "reason": "These are possible move-lineage outcomes. Exact rolls occur only after a successful conception.",
+      "contextBonus": 0,
+      "directCandidates": [
+        {
+          "moveId": "chase",
+          "moveName": "Chase",
+          "baseChance": 15,
+          "finalChance": 15,
+          "knownByBothParents": false,
+          "knownAsEquippedMove": false,
+          "rarityPenalty": 0,
+          "compatibilityBonus": 0,
+          "reasons": [
+            "Known in a parent learned move library.",
+            "Known by one parent.",
+            "Child species has basic compatibility.",
+            "No rarity penalty.",
+            "No pair-quality move-inheritance bonus applies."
+          ]
+        }
+      ],
+      "combinationCandidates": [
+        {
+          "recipeId": "recipe_predator_pursuit",
+          "recipeName": "Predator Pursuit",
+          "outputMoveId": "predator_pursuit",
+          "outputMoveName": "Predator Pursuit",
+          "chance": 17,
+          "parentAContributingMoveId": "focused_stare",
+          "parentBContributingMoveId": "chase",
+          "contributingMoveNames": [
+            "Focused Stare",
+            "Chase"
+          ],
+          "reasons": [
+            "Recipe base chance is 12%.",
+            "Pair quality adds +0%.",
+            "Equipped contributing techniques add +5%.",
+            "Focused Stare and Chase satisfy the recipe."
+          ]
+        }
+      ]
+    }
+  },
+  "items": [
+    {
+      "itemId": "energy_snack",
+      "name": "Energy Snack",
+      "category": "Energy",
+      "rarity": "Common",
+      "description": "A compact snack for restoring enough Energy to extend a ranch work session.",
+      "exactEffect": "Restores exactly 12 Energy to the player or one creature, up to the target's maximum.",
+      "target": "player-or-creature",
+      "stockFlag": "energySnackStock",
+      "iconPath": "/images/items/supply_depot/energy_snack.png",
+      "confirmationRequired": false,
+      "count": 1
+    },
+    {
+      "itemId": "energy_meal",
+      "name": "Hearty Energy Meal",
+      "category": "Energy",
+      "rarity": "Uncommon",
+      "description": "A more substantial prepared meal for demanding ranch days.",
+      "exactEffect": "Restores exactly 30 Energy to the player or one creature, up to the target's maximum.",
+      "target": "player-or-creature",
+      "stockFlag": "energyMealStock",
+      "iconPath": "/images/items/supply_depot/energy_meal.webp",
+      "confirmationRequired": false,
+      "count": 2
+    },
+    {
+      "itemId": "fertility_tonic",
+      "name": "Fertility Tonic",
+      "category": "Breeding",
+      "rarity": "Uncommon",
+      "description": "A measured breeding support tonic that is armed before a session instead of being consumed automatically from storage.",
+      "exactEffect": "Arms +12% pregnancy chance for the next valid breeding attempt. The effect is consumed by that attempt, whether pregnancy succeeds or fails.",
+      "target": "breeding-pair",
+      "stockFlag": "breedingFertilityTonics",
+      "activeFlag": "breedingFertilityTonicArmed",
+      "iconPath": "/images/items/supply_depot/fertility_tonic.png",
+      "confirmationRequired": false,
+      "count": 3
+    },
+    {
+      "itemId": "affection_treat",
+      "name": "Affection Treat",
+      "category": "Care",
+      "rarity": "Common",
+      "description": "A favorite ranch treat used to strengthen a creature's comfort and trust.",
+      "exactEffect": "Adds exactly 8 Affection to one creature, up to 100.",
+      "target": "creature",
+      "stockFlag": "affectionTreatStock",
+      "iconPath": "/images/items/supply_depot/affection_treat.webp",
+      "confirmationRequired": false,
+      "count": 1
+    },
+    {
+      "itemId": "recovery_balm",
+      "name": "Recovery Balm",
+      "category": "Care",
+      "rarity": "Uncommon",
+      "description": "A restorative balm for minor injury recovery and depleted Hearts.",
+      "exactEffect": "Restores 1 Heart and shortens an active injury by 1 in-game day. At least one of those effects must apply.",
+      "target": "creature",
+      "stockFlag": "recoveryBalmStock",
+      "iconPath": "/images/items/supply_depot/recovery_balm.webp",
+      "confirmationRequired": false,
+      "count": 2
+    },
+    {
+      "itemId": "trait_stabilizer",
+      "name": "Trait Stabilizer",
+      "category": "Breeding",
+      "rarity": "Rare",
+      "description": "A rare pre-conception treatment intended to make inherited traits more consistent.",
+      "exactEffect": "Arms the next successful conception with +12 inheritance stability, -4% grade-downgrade chance, and +8% parent-ability inheritance chance. Failed attempts do not consume the armed effect.",
+      "target": "breeding-pair",
+      "stockFlag": "traitStabilizerStock",
+      "activeFlag": "traitStabilizerArmed",
+      "iconPath": "/images/items/supply_depot/trait_stabilizer.webp",
+      "confirmationRequired": true,
+      "count": 3
+    },
+    {
+      "itemId": "mutation_catalyst",
+      "name": "Mutation Catalyst",
+      "category": "Breeding",
+      "rarity": "Epic",
+      "description": "A very rare catalyst that deliberately raises unusual inheritance outcomes.",
+      "exactEffect": "Arms the next successful conception with +5% beneficial stat mutation chance, +3% new-ability mutation chance, and +3% rare-variant chance. Failed attempts do not consume the armed effect.",
+      "target": "breeding-pair",
+      "stockFlag": "mutationCatalystStock",
+      "activeFlag": "mutationCatalystArmed",
+      "iconPath": "/images/items/supply_depot/mutation_catalyst.webp",
+      "confirmationRequired": true,
+      "count": 1
+    },
+    {
+      "itemId": "gestation_tonic",
+      "name": "Gestation Tonic",
+      "category": "Pregnancy",
+      "rarity": "Rare",
+      "description": "A carefully controlled tonic for shortening an established pregnancy without skipping delivery handling.",
+      "exactEffect": "Reduces one active pregnancy's remaining duration by exactly 1 in-game day, but never below 1 day remaining.",
+      "target": "pregnancy",
+      "stockFlag": "gestationTonicStock",
+      "iconPath": "/images/items/supply_depot/gestation_tonic.webp",
+      "confirmationRequired": true,
+      "count": 2
+    }
+  ],
+  "attempt": {
+    "attemptId": "breeding_1_1792814202460",
+    "dayNumber": 1,
+    "giverId": "creature_starter_canine",
+    "receiverId": "creature_starter_feline",
+    "giverName": "Rook",
+    "receiverName": "Mira",
+    "giverFamily": "canine",
+    "receiverFamily": "feline",
+    "pregnancyChance": 11,
+    "energyCost": 53,
+    "heartCost": 1,
+    "xpGain": 11,
+    "breederXpGain": 0,
+    "streakBefore": 0,
+    "streakAfter": 1,
+    "outcome": "failed",
+    "resultText": "No pregnancy this time. The pair still gained experience and familiarity.",
+    "processText": "Rook and Mira spent time together in the Breeding Pen. Energy was spent, XP was gained, and pair familiarity increased.",
+    "outcomeFlavorText": "The session ended without pregnancy signs, but the pair left more familiar with each other's rhythm.",
+    "receiverWasPregnant": false,
+    "pregnancyBlockedReason": null,
+    "giverEnergyBefore": 104,
+    "giverEnergyAfter": 51,
+    "receiverEnergyBefore": 91,
+    "receiverEnergyAfter": 38,
+    "pairingImagePath": "/images/breeding-scenes/canine_to_feline_pairing_01.png",
+    "outcomeImagePath": "/images/breeding-scenes/canine_to_feline_outcome_failed_01.png",
+    "progressionEvents": [
+      {
+        "participantId": "creature_starter_feline",
+        "displayName": "Mira",
+        "kind": "creature",
+        "xpBefore": 0,
+        "xpAfter": 11,
+        "xpToNextBefore": 75,
+        "xpToNextAfter": 75,
+        "levelBefore": 1,
+        "levelAfter": 1,
+        "levelUps": 0,
+        "statGrowth": {},
+        "abilityTriggers": []
+      },
+      {
+        "participantId": "creature_starter_canine",
+        "displayName": "Rook",
+        "kind": "creature",
+        "xpBefore": 0,
+        "xpAfter": 11,
+        "xpToNextBefore": 75,
+        "xpToNextAfter": 75,
+        "levelBefore": 1,
+        "levelAfter": 1,
+        "levelUps": 0,
+        "statGrowth": {},
+        "abilityTriggers": []
+      }
+    ],
+    "createdAt": "2026-10-24T03:56:42.461Z",
+    "giverSnapshot": {
+      "participantId": "creature_starter_canine",
+      "creatureId": "creature_starter_canine",
+      "kind": "creature",
+      "displayName": "Rook",
+      "family": "canine",
+      "speciesId": "species_canine",
+      "speciesName": "Canine",
+      "variantId": "variant_base_canine",
+      "variantName": "Base Canine",
+      "rarity": "Common",
+      "sex": "male",
+      "shiny": false,
+      "portraitPath": "/images/creatures/canine/daisy/daisy_02.webp"
+    },
+    "receiverSnapshot": {
+      "participantId": "creature_starter_feline",
+      "creatureId": "creature_starter_feline",
+      "kind": "creature",
+      "displayName": "Mira",
+      "family": "feline",
+      "speciesId": "species_feline",
+      "speciesName": "Feline",
+      "variantId": "variant_base_feline",
+      "variantName": "Base Feline",
+      "rarity": "Common",
+      "sex": "female",
+      "shiny": false,
+      "portraitPath": "/images/creatures/feline/nyla/nyla_02_bust_portrait.png"
+    }
+  }
+}

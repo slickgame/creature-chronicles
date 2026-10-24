@@ -1,0 +1,17 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {getBreedingParticipants,getBreedingPreview,performBreedingAttempt} from '@/data/breeding';
+import {getBreedingInheritancePreview} from '@/data/breedingSelectionPreview';
+import {BREEDING_SUPPORT_ITEMS,useBreedingSupportItem} from '@/data/breedingItems';
+import type {GameSave} from '@/types/save';
+const fixture=JSON.parse(readFileSync('/workspace/scratch/nursery-hosted-test-save.json','utf8')) as GameSave;
+for(const [i,item] of BREEDING_SUPPORT_ITEMS.entries())fixture.flags[item.stockFlag]=i%3+1;
+const giverId='creature_starter_canine',receiverId='creature_starter_feline';
+const attempt=performBreedingAttempt(structuredClone(fixture),giverId,receiverId)?.attempt;
+if(attempt)fixture.breeding.attempts=[attempt];
+writeFileSync('/workspace/scratch/b64a124b9ec0/breeding-windows-fixture.json',JSON.stringify(fixture));
+const participants=getBreedingParticipants(fixture),giver=participants.find(x=>x.participantId===giverId)!,receiver=participants.find(x=>x.participantId===receiverId)!;
+const supportQuotes=Object.fromEntries(BREEDING_SUPPORT_ITEMS.map(item=>[item.itemId,Object.fromEntries([giverId,receiverId].map(targetId=>{const result=useBreedingSupportItem(structuredClone(fixture),item.itemId,{source:'inventory',targetId:item.target==='pregnancy'?undefined:targetId});return [targetId,{ok:result.ok,message:result.message}];}))]));
+const model={supportQuotes,participants,giver,receiver,preview:getBreedingPreview(fixture,giverId,receiverId),inheritance:getBreedingInheritancePreview(fixture,giverId,receiverId),items:BREEDING_SUPPORT_ITEMS.map((x,i)=>({...x,count:i%3+1})),attempt};
+writeFileSync('docs/previews/breeding-windows/model.json',JSON.stringify(model,null,2));
+writeFileSync('public/previews/breeding-windows/model.json',JSON.stringify(model,null,2));
+console.log('Prepared isolated frozen sample model; no user saves changed.');

@@ -1,0 +1,11 @@
+{
+  "layouts": 48,
+  "viewportAndPanelBounds": true,
+  "allImages": true,
+  "candidateBlocker": true,
+  "inspectCandidateIdentity": true,
+  "noEffectItemBlocked": true,
+  "pairSupportReviewAvailable": true,
+  "storageUnchanged": true,
+  "nonReadRequests": 0
+}
