@@ -17,7 +17,6 @@ import {
   BREEDING_SCENE_FALLBACK_PATH,
   getBreedingSceneImagePath,
 } from "@/data/breedingSceneImages";
-import { CREATURE_PLACEHOLDER_IMAGE } from "@/data/creatures";
 import { BreedingInspectBook } from "./BreedingInspectBook";
 import { useGameContext } from "@/state/GameProvider";
 import type {
@@ -28,8 +27,9 @@ import type {
 import type { CreatureRecord } from "@/types/creature";
 import styles from "./BreedingFocusedScreenQoL.module.css";
 import { BreedingDeskA } from "./BreedingDeskA";
+import {PairOptionsA,ChanceWindowA,AttemptReviewA} from "./BreedingPairWindowsA";
 import { BreedingParentPicker } from "./BreedingParentPicker";
-import { BreedingPreviewBook, BREEDING_BOOK_ART } from "./BreedingPreviewBook";
+import { BreedingPreviewBook } from "./BreedingPreviewBook";
 import { getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
 
 type SelectorRole = "giver" | "receiver";
@@ -67,10 +67,6 @@ const SCENE_MODE_KEY = "creature_chronicles_breeding_scene_mode";
 
 function pairMemoryKey(saveId: string): string {
   return `creature_chronicles_breeding_pair_${saveId}`;
-}
-
-function getParticipantImage(participant: BreedingParticipant | null): string {
-  return participant?.profilePath || participant?.portraitPath || CREATURE_PLACEHOLDER_IMAGE;
 }
 
 function sortParticipants(
@@ -452,17 +448,9 @@ export function BreedingFocusedScreen() {
   return (
     <main>
       <BreedingDeskA giver={giver} receiver={receiver} preview={preview} disabled={isAttempting} status={message.startsWith("The pair or costs changed")?message:statusText} onChoose={setSelectorRole} onInspect={setInfoParticipant} onBack={goBack} onNursery={goToNursery} onOptions={()=>setShowOptions(true)} onDetails={()=>setShowChanceBreakdown(true)} onReview={openAttemptReview}/>
-      {reviewOpen&&preview&&giver&&receiver?<BreedingPreviewBook title="Review attempt" marker="attempt-review" onClose={()=>setReviewOpen(false)} pages={[
-        {key:"summary",title:`${giver.displayName} × ${receiver.displayName}`,content:<><h3>{preview.pregnancyChance}% pregnancy chance</h3><p>{statusText}</p><p>Confirming spends {preview.energyCost} Energy and {preview.heartCost} Heart{preview.heartCost===1?"":"s"} from each parent.</p>{reviewQuote!==quote&&<p>The pair or costs changed. Close this review and review again.</p>}</>},
-        ...[giver,receiver].map(p=>({key:p.participantId,title:`${p.displayName} · Exact costs`,content:<CostRow participant={p} preview={preview}/>}))
-      ]} footer={<><button onClick={()=>setReviewOpen(false)}>Cancel</button><button disabled={isAttempting||!preview.canAttempt||reviewQuote!==quote} onClick={requestAttempt}>Confirm attempt</button></>}/>:null}
-      {showOptions ? <BreedingPreviewBook title="Pair Options" marker="pair-options" onClose={()=>setShowOptions(false)} pages={[
-        {key:'swap',title:'Swap roles',content:<><p>{giver?.displayName??'No giver'} → {receiver?.displayName??'No receiver'}</p><p>Exchange giver and receiver. Both participants must support their new role. Selection spends nothing.</p><button disabled={!canSwap||isAttempting} onClick={()=>{swapRoles();setShowOptions(false);}}>Swap Roles</button></>},
-        {key:'random',title:'Random eligible pair',content:<><p>Choose a complete eligible creature pair from the current ranch. This changes selection only and does not run an attempt.</p><button disabled={isAttempting} onClick={()=>{randomPair();setShowOptions(false);}}>Random Pair</button></>},
-        {key:'clear',title:'Clear selected pair',content:<><p>Remove both selections. Creatures and saved attempts remain unchanged.</p><button disabled={isAttempting||(!giverId&&!receiverId)} onClick={()=>{clearPair();setShowOptions(false);}}>Clear Pair</button></>},
-        {key:'scenes',title:'Result presentation',content:<><label>Scene Mode<select aria-label="Scene Mode" value={sceneMode} onChange={event=>{const mode=event.target.value as SceneMode;setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode);}}><option value="full">Full Scenes</option><option value="quick">Quick Results</option></select></label><p>Full opens the recorded Attempt view, then Outcome. Quick opens Outcome directly. Both views stay available. This preference is saved on this device.</p></>}
-      ]}/> : null}
-      {showChanceBreakdown ? <BreedingPreviewBook title="Chance & Readiness" marker="chance-readiness" onClose={()=>setShowChanceBreakdown(false)} art={receiver?.kind==="creature"?getParticipantImage(receiver):BREEDING_BOOK_ART} pages={[
+      {reviewOpen&&preview&&giver&&receiver?<AttemptReviewA giver={giver} receiver={receiver} preview={preview} onClose={()=>setReviewOpen(false)} onConfirm={requestAttempt} stale={reviewQuote!==quote} disabled={isAttempting} warnings={getWarnings(giver,receiver,preview).map(w=>`${w.participantName} · ${w.resource}: ${w.before} → ${w.after}. ${w.consequence}`)}/>:null}
+      {showOptions?<PairOptionsA giver={giver} receiver={receiver} preview={preview} onClose={()=>setShowOptions(false)} onSwap={()=>{swapRoles();setShowOptions(false)}} onRandom={()=>{randomPair();setShowOptions(false)}} onClear={()=>{clearPair();setShowOptions(false)}} canSwap={canSwap} disabled={isAttempting} sceneMode={sceneMode} onSceneMode={mode=>{setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode)}}/>:null}
+      {showChanceBreakdown ? <ChanceWindowA giver={giver} receiver={receiver} preview={preview} onClose={()=>setShowChanceBreakdown(false)} rows={chanceRows} blockedReasons={blockedReasons} status={statusText} message={message} onReview={()=>{setShowChanceBreakdown(false);openAttemptReview()}} pages={[
         {key:'summary',title:'Pair readiness',content:<><h3>Pregnancy chance: {preview?`${preview.pregnancyChance}%`:'—'}</h3><p>{statusText}</p><p>{message}</p></>},
         ...chanceRows.map(([label,amount],i)=>({key:`chance-${i}`,title:label,content:<h3>{amount>0?'+':''}{amount}%</h3>})),
         ...blockedReasons.map((reason,i)=>({key:`blocked-${i}`,title:`Readiness blocker ${i+1}`,content:<p>{reason}</p>})),
@@ -542,7 +530,7 @@ function ParticipantInfoModal(props: { participant: BreedingParticipant; creatur
 }
 
 function WarningModal({ warnings, participants, preview, onCancel, onConfirm }: { warnings: ResourceWarning[]; participants: BreedingParticipant[]; preview: BreedingPreview | null; onCancel: () => void; onConfirm: () => void }) {
-  return <BreedingPreviewBook title="Resource Warning" marker="attempt-warning" onClose={onCancel} pages={[
+  return <BreedingPreviewBook title="Resource Warning" marker="attempt-warning" layout="single" onClose={onCancel} pages={[
     {key:"review",title:"Continue with this attempt?",content:<><p>Review {warnings.length} low-resource {warnings.length===1?"warning":"warnings"} before confirming.</p><p>Confirmation spends the displayed attempt costs. Cancel returns to the pen without spending anything.</p></>},
     ...(preview?participants.map((participant,index)=>({key:`cost-${index}`,title:`${participant.displayName} · Exact costs`,content:<CostRow participant={participant} preview={preview}/>})):[]),
     ...warnings.map((warning,index)=>({key:`warning-${index}`,title:`${warning.participantName} · ${warning.resource}`,content:<><h3>{warning.resource}: {warning.before} → {warning.after}</h3><p>Cost: {warning.cost}</p><p>{warning.consequence}</p></>}))

@@ -1,0 +1,15 @@
+{
+  "reports": [
+    "draft selection, opposite-parent blocker, nested inspect and Cancel",
+    "complete Inspect and Inheritance sections remain read-only",
+    "Swap/Clear/partial pair and both-role selection spend nothing",
+    "Full inventory returns to the same support selection and filters",
+    "no-effect recipient and item use blocked",
+    "support review Cancel is read-only; duplicate confirmation consumes one treat",
+    "one tonic consumed, one next-attempt effect armed; stacking blocked",
+    "review/warning cancellation read-only; one attempt, exact costs and armed effect consumed once",
+    "saved complete records, filters and recorded-role source return",
+    "reload persists exact attempts, stock and armed effects"
+  ],
+  "errors": []
+}
