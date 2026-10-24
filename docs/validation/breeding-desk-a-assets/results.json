@@ -1,0 +1,289 @@
+{
+  "manifestHashes": 37,
+  "states": 28,
+  "viewports": 7,
+  "storageWrites": 0,
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 720
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 720
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 720
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 720
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 2560,
+        "height": 1440
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 500
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 500
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 500
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 500
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "selected",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "empty",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "giver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "state": "receiver",
+      "fit": true,
+      "images": true,
+      "fullBodyContain": true
+    }
+  ],
+  "errors": []
+}

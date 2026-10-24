@@ -1,0 +1,159 @@
+{
+  "runtimeIntegrated": false,
+  "approvedDirection": "A, full-body profiles, persistent Back, empty/partial/selected states",
+  "canonicalArt": {
+    "canine": "public/images/creatures/canine/daisy/daisy_01.webp",
+    "feline": "public/images/creatures/feline/nyla/nyla_01_full_body.png"
+  },
+  "provenance": "Native vector derivatives extend day-cycle-v1; existing painted/sculpted icons and canonical scenery/art reused unchanged. No replacement characters or paid service.",
+  "assets": [
+    {
+      "path": "README.md",
+      "sha256": "12f3e49d45fd0aa5f80948006b1c6bb2ed99ddf07a5de7e6c94360aacbe4ba4b"
+    },
+    {
+      "path": "art/canine-profile.webp",
+      "sha256": "4aad86b22668bc879959b7806332c9b941b6e51cec59f5d6a3f613b5c247f5b1"
+    },
+    {
+      "path": "art/feline-profile.png",
+      "sha256": "b8bd02a11f1c9f19a05690c8a9c7e8303c3bef57ad8cbd1470e5d0221ff9fb75"
+    },
+    {
+      "path": "art/parchment.webp",
+      "sha256": "d9b3eb3d4081709b71859df319fb34465cce93d12f959a4ea405b3d693ae504a"
+    },
+    {
+      "path": "art/pavilion.webp",
+      "sha256": "5a50a48b8696100d5589a2f58542beffc3bea10932a745861d5933ec8c7c5a79"
+    },
+    {
+      "path": "art/wood.webp",
+      "sha256": "d985970bd6420863f815849526a598fcc03249febf4289776d0dc4cbb9712295"
+    },
+    {
+      "path": "fonts/OFL.txt",
+      "sha256": "cb3382d4643e8b02c12e322c220a3c76a5020d667e4fd4e7c75e744cca6caa6b"
+    },
+    {
+      "path": "fonts/Tinos-Bold.woff",
+      "sha256": "00881fa43c0c06720439ce020258525aeaea619f4a54620c71802c5c56d9c398"
+    },
+    {
+      "path": "fonts/Tinos-Regular.woff",
+      "sha256": "d7931b9002ecfd8daa5c8c307a57efa574b37facc8dfb9bca838dba9f5efd412"
+    },
+    {
+      "path": "icons/back.svg",
+      "sha256": "48255ca96cd67e71a9af8836dcca1aacf6a06cf0a83ee49b109ef2a04cd61c0f"
+    },
+    {
+      "path": "icons/choose.svg",
+      "sha256": "e15cc03ccd783ade55521d0db9d488a6564d9c292b0e0e89867b6c5c2928f4c8"
+    },
+    {
+      "path": "icons/close.svg",
+      "sha256": "1c4a684df543cbc903f897399fe62ece7651fb5e0b644ca38f3788677e1d0657"
+    },
+    {
+      "path": "icons/energy.webp",
+      "sha256": "1fc4b8a110cd4e773d657d2d0c9a9a0ae645cadaf985ca578c9351128efd35bc"
+    },
+    {
+      "path": "icons/heart.webp",
+      "sha256": "edac81b97b7a006ca503dff5c8dcecfd30f034071e57c650d6d12af50a621a2f"
+    },
+    {
+      "path": "icons/information.svg",
+      "sha256": "eb8ea15ccf233175a3b72381a702e33819c037b95104ff6904d58b1263654e55"
+    },
+    {
+      "path": "icons/inheritance.webp",
+      "sha256": "a7e0df2c22ae34335af49efd0c8310ab4de8a0fa85847e08ed7cd5ea3e831298"
+    },
+    {
+      "path": "icons/inspect.svg",
+      "sha256": "4fa5f13ae8d6fad3a41e1f4759e19dda1d7b17752c896f5640ac261d057d4912"
+    },
+    {
+      "path": "icons/menu.svg",
+      "sha256": "ef3d0b3aece64a02c331625f63d9c0d0c8301319deeba4ebf785144c66231cdb"
+    },
+    {
+      "path": "icons/options.svg",
+      "sha256": "9c1729444dc4c06ac50001a54841c93552872a0b591eda8aca2322826729c286"
+    },
+    {
+      "path": "icons/selected.svg",
+      "sha256": "5c0e2946923c939c5f46c4edb534c42dfe2967bf0b17d6bc95eac438a46ce52a"
+    },
+    {
+      "path": "icons/support.webp",
+      "sha256": "f10b9b3af2e8c70a56b64e909545f80b82ff315227336d5fc71c81fda0f13952"
+    },
+    {
+      "path": "preview.css",
+      "sha256": "4681b34ca1cad9a0cd5a75db05e16802e056e5d4465669048c99f0f9e0faf027"
+    },
+    {
+      "path": "preview.html",
+      "sha256": "031a4ea88419e26c9bf52f988ac2f5d5751f3bc55f48c7afb0d4d73e13b2c745"
+    },
+    {
+      "path": "preview.js",
+      "sha256": "6200d0da4b22139c3c1bc93ca14e82ae9d74b8236bbfe2cf0baa7694f18f4957"
+    },
+    {
+      "path": "references/approved-a.png",
+      "sha256": "5e1c9a34c16a3a33fb85b8536eb70e8e912966729e3c46e0773f0e329a69663b"
+    },
+    {
+      "path": "surfaces/button-disabled.svg",
+      "sha256": "3fd75e3ab4d9271c4891033ae262fcdc8a8cdea3f2b16cd3b0ab91b41240cdfd"
+    },
+    {
+      "path": "surfaces/button-hover.svg",
+      "sha256": "fda6af4fbd936b0103dd42a426d7bfddec041790b1cec6bea3414836418ddaa4"
+    },
+    {
+      "path": "surfaces/button-primary.svg",
+      "sha256": "e6f0d14e3913113593f131f4626970223967fd041658533f594a2f5a87f8981b"
+    },
+    {
+      "path": "surfaces/button.svg",
+      "sha256": "02345a74aa2b9e71713f06b5951410afc30c1db6c2c49c2dfdd43c3fef6fc312"
+    },
+    {
+      "path": "surfaces/divider.svg",
+      "sha256": "68baba94766d183c76fc45d351995a9c846f9e6f7e8fffaa6ce27b1c97d25bc1"
+    },
+    {
+      "path": "surfaces/empty-slot.svg",
+      "sha256": "077e0bbf6aaafd2a3a94f4d739dc6626cad546e4c9c7b8b710f04bf05fe5d1d3"
+    },
+    {
+      "path": "surfaces/field.svg",
+      "sha256": "02345a74aa2b9e71713f06b5951410afc30c1db6c2c49c2dfdd43c3fef6fc312"
+    },
+    {
+      "path": "surfaces/nameplate.svg",
+      "sha256": "9bb3aff152236fd164e71174fb34bdadac8e1af1d568b49dbaa406fcb80d37d6"
+    },
+    {
+      "path": "surfaces/panel.svg",
+      "sha256": "db2a014c79ac6efddda5b554bf1360a0a4e71b9b6ac126174083ef4bffc41441"
+    },
+    {
+      "path": "surfaces/portrait.svg",
+      "sha256": "3710fe562de0a214d67baf947dfe130a241a029d6d5fd5d7f1db4fbaa12af55c"
+    },
+    {
+      "path": "surfaces/slot-selected.svg",
+      "sha256": "eefbcafc79bfdcd979206c53b971a78eefdae5c74f0b3f66ea7e4175c9712a3a"
+    },
+    {
+      "path": "surfaces/window.svg",
+      "sha256": "6b3ac4d52d4859e78adcc664a841c47ba14a61a4c56c911044c78828dec875f4"
+    }
+  ]
+}
