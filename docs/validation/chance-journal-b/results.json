@@ -1,0 +1,10 @@
+{
+  "allSixViewportsFit": true,
+  "fullNotesAndHoverTapHelp": true,
+  "reviewCancelReturn": true,
+  "fullProfileReadOnly": true,
+  "capVisible": true,
+  "emptyAndResourceBlockers": true,
+  "saveUnchanged": true,
+  "errors": []
+}

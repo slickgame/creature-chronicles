@@ -1,0 +1,82 @@
+@font-face{font-family:ChanceTinos;src:url('/images/ui/breeding-desk-a/fonts/Tinos-Regular.woff');font-weight:400;font-display:swap}
+@font-face{font-family:ChanceTinos;src:url('/images/ui/breeding-desk-a/fonts/Tinos-Bold.woff');font-weight:700;font-display:swap}
+.shell,.recordShell{height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:8px;background:linear-gradient(#39231422,#39231422),url('/images/ui/pair-options-journal-b/fidelity-v2/ranch.webp') center/cover;color:#301b0c;font:16px/1.15 ChanceTinos,Georgia,serif;overflow:hidden}
+.shell *,.recordShell *{box-sizing:border-box;min-width:0}
+.shell :is(h1,h2,h3,p),.recordShell :is(h2,h3,p){margin:0;color:inherit;text-shadow:none}
+.shell p{line-height:1.2}
+.book{height:min(970px,calc(100dvh - 16px));width:min(550px,100%);padding:36px 61px 33px;display:flex;flex-direction:column;gap:8px;background:url('/images/ui/chance-journal-b/journal.webp') center/100% 100% no-repeat;filter:drop-shadow(0 7px 14px #1e100a99)}
+.shell button,.recordShell button{font:700 17px/1.1 ChanceTinos,Georgia,serif;color:#37200d;border:5px solid transparent;border-image:url('/images/ui/chance-journal-b/cream.svg') 16 fill / 9px stretch;background:none;min-height:37px;padding:5px 10px;cursor:pointer;text-shadow:none}
+.shell button:hover:not(:disabled),.recordShell button:hover:not(:disabled){filter:brightness(1.08)}
+.shell button[data-primary],.shell button[aria-pressed=true]{border-image-source:url('/images/ui/chance-journal-b/emerald.svg');color:#fff1d1;text-shadow:0 1px 2px #173c22}
+.shell button:disabled{opacity:.6;filter:grayscale(.65);cursor:default}
+.shell button:focus-visible,.recordShell button:focus-visible{outline:2px solid #855525;outline-offset:2px}
+.header{display:flex;align-items:center;gap:10px;flex:none;border-bottom:1px solid #936a4166;padding-bottom:10px;position:relative;height:46px}
+.header:after{content:'❧';position:absolute;bottom:-8px;left:50%;background:#f1d9ad;color:#68401b;padding:0 9px;font-size:19px;line-height:14px}
+.header h1{font-size:31px;line-height:1;letter-spacing:-.8px;white-space:nowrap}
+.header>span{font-size:22px;color:#855122}
+.header button{font-size:16px;min-height:36px;padding:4px 8px}
+.body{display:flex;flex-direction:column;gap:7px;min-height:0;flex:1}
+.scene{display:grid;grid-template-columns:1fr 1fr;gap:1px;flex:1 1 160px;min-height:120px;max-height:210px;position:relative;background:url('/images/ui/pair-options-journal-b/fidelity-v2/ranch.webp') center 45%/cover;border:7px solid transparent;border-image:url('/images/ui/chance-journal-b/engraved-frame.svg') 32 fill / 15px stretch;padding:2px 1px}
+.parent{display:flex;flex-direction:column;align-items:center;min-height:0;position:relative}
+.shell .art{flex:1;position:relative;min-height:0;width:100%;padding:0;border:0;border-image:none;background:none;overflow:hidden;filter:none}
+.art>img{position:absolute;width:112%;height:auto;max-width:none;max-height:none;left:-6%;top:0;filter:drop-shadow(0 3px 2px #3a251544)}
+.name{font-size:15px;line-height:1.05;flex:none;width:86%;text-align:center;margin-top:-3px;position:relative;padding:4px 1px;border:5px solid transparent;border-image:url('/images/ui/chance-journal-b/nameplate.svg') 16 fill / 9px stretch;color:#37200d}
+.noArt{display:grid;place-content:center;text-align:center;flex:1;width:100%;color:#563b22;font-size:16px;padding:8px}
+.chance{height:77px;flex:none;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;background:url('/images/ui/chance-journal-b/chance-plaque.webp') center/100% 100% no-repeat;padding:5px 70px}
+.chance h2{font-size:20px;font-weight:bold;line-height:1.05;white-space:nowrap}
+.chance>strong{font-size:45px;line-height:.98;letter-spacing:-1px}
+.factors{flex:none;padding:5px 8px;border:7px solid transparent;border-image:url('/images/ui/chance-journal-b/engraved-frame.svg') 32 fill / 14px stretch}
+.factors h2,.costs h2{font-size:21px;text-align:center;line-height:1.05;margin:0 0 5px}
+.factors table{width:100%;border-collapse:collapse;table-layout:fixed}
+.factors th{font-weight:400;text-align:left}
+.factors td{text-align:right;font-weight:bold;font-size:19px;width:56px;white-space:nowrap}
+.factors :is(th,td){padding:4px 0;border-bottom:1px solid #b58b5766;height:30px}
+.factors tr:last-child :is(th,td){border-bottom:0}
+.factors td[data-sign=positive]{color:#166733}.factors td[data-sign=negative]{color:#a13323}
+.icon{width:25px;height:25px;object-fit:contain;flex:none;vertical-align:middle}
+.shell .factorHelp{display:flex;align-items:center;gap:10px;min-height:0;width:100%;border:0;border-image:none;padding:0;background:none;font-size:15px;font-weight:400;text-align:left;line-height:1.08}
+.factorHelp>span{font-size:10px;border:1px solid #8f6436;border-radius:50%;width:13px;height:13px;display:grid;place-content:center;flex:none;margin-left:auto;opacity:.25}
+.factorHelp:hover>span,.factorHelp:focus-visible>span{opacity:1}
+.status{display:flex;align-items:center;gap:10px;padding:7px 11px;border:1px solid #81985d;border-radius:5px;background:linear-gradient(110deg,#ccd6a385,#e5db9e8c);flex:none}
+.status>.icon{width:35px;height:35px}
+.status>div{flex:1}
+.status strong{font-size:21px;line-height:1.08;display:block}
+.status p{font-size:13px;margin-top:2px}
+.status[data-warning]{border-color:#a67639;background:#e9c48c99}
+.status[data-warning] strong{font-size:17px}
+.shell .info{border:0;border-image:none;border-radius:50%;background:#2e663a;color:#f7e8bf;width:19px;height:19px;min-height:19px;padding:0;display:grid;place-content:center;font-size:13px;flex:none}
+.costs{flex:none}
+.costTable{width:100%;border-collapse:collapse;border:1px solid #ac7f4c;border-radius:5px;background:#f3d8a966;table-layout:fixed;text-align:center}
+.costTable :is(th,td){padding:5px 3px;border:1px solid #ac7f4c77;font-size:16px;line-height:1.1;overflow-wrap:anywhere}
+.costTable thead th{font-weight:400;font-size:15px;background:#e6c28e88}
+.costTable tbody th{font-weight:400;width:29%}
+.costTable .icon{width:20px;height:20px;margin-right:6px}
+.links{display:flex;justify-content:center;align-items:center;gap:24px;flex:none}
+.shell .help{display:flex;align-items:center;justify-content:center;gap:7px;border:0;border-image:none;padding:0;min-height:23px;background:none;font-size:14px;font-weight:400;text-decoration:underline}
+.help>span{font-weight:bold;border:1px solid #614020;border-radius:50%;width:15px;height:15px;display:grid;place-content:center;font-size:11px;text-decoration:none}
+.tooltip{border:1px solid #9b6a36;background:#fae7c2;color:#3c2511;font:14px/1.3 ChanceTinos,Georgia,serif;box-shadow:0 5px 16px #25120855}
+.footer{display:grid;gap:6px;flex:none;text-align:center}
+.footer button{min-height:42px;font-size:22px;width:85%;justify-self:center}
+.footer small{font-size:12px;background:#f2d9adeb;padding:0 4px;justify-self:center}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;flex:none}
+.tabs button{font-size:15px;min-height:33px;padding:4px}
+.issues{display:grid;gap:5px;padding:8px;border:1px solid #a57944;background:#efd1a3;flex:none}
+.issues p{font-size:14px;line-height:1.2}
+.issues nav{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.issues button{font-size:12px;min-height:25px;padding:2px 5px}
+.empty{font-size:15px;text-align:center;padding:12px}
+.shell[data-focused=true] .body{justify-content:center}
+.shell[data-focused=true] .chance{height:70px}
+.record{width:min(800px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;padding:22px;border:double 5px #8e6233;border-radius:7px;background:#f1dbb2 url('/images/ui/inheritance-journal-b/paper.webp') center/cover;box-shadow:0 7px 30px #29160e88;overflow:hidden}
+.record>header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding-bottom:14px;border-bottom:1px solid #ad844e;flex:none}
+.record h2{font-size:25px}.recordBody{overflow:auto;min-height:0;padding-top:14px;font-size:17px;line-height:1.4;display:grid;gap:12px}.recordBody section{display:grid;gap:8px;padding:8px 0;border-bottom:1px solid #ae844c77}.recordBody h3{font-size:21px}.recordBody p{line-height:1.4}.recordBody .warning{background:#e6c08d;border:1px solid #a36c35;padding:9px}
+.fullArt{height:70dvh;display:flex;justify-content:center;min-height:0}.fullArt img{width:100%;height:100%;object-fit:contain}
+@media(max-width:700px){.shell{padding:0}.book{width:min(430px,100%);height:100dvh;padding:29px 44px 25px;gap:7px}.header{gap:6px;height:39px;padding-bottom:8px}.header h1{font-size:26px}.header>span{font-size:19px}.header button{font-size:14px;min-height:32px;padding:4px 7px}.body{gap:6px}.scene{min-height:110px;max-height:170px}.name{width:95%;font-size:12px;padding:3px 0}.art>img{width:130%;left:-15%}.chance{height:63px;padding-left:43px;padding-right:43px}.chance h2{font-size:18px}.chance>strong{font-size:38px}.factors{padding:4px 6px;border-width:5px;border-image-width:10px}.factors h2,.costs h2{font-size:19px;margin-bottom:4px}.factors :is(th,td){height:28px;padding:3px 0}.factors td{font-size:17px;width:44px}.shell .factorHelp{font-size:13px;gap:6px}.factorHelp>.icon{width:21px;height:21px}.factorHelp>span{width:10px;height:10px;font-size:8px}.status{padding:6px 8px;gap:7px}.status>.icon{width:29px;height:29px}.status strong{font-size:18px}.status p{font-size:11px}.status[data-warning] strong{font-size:15px}.shell .info{width:16px;height:16px;min-height:16px;font-size:11px}.costTable :is(th,td){font-size:13px;padding:5px 2px}.costTable thead th{font-size:12px}.costTable .icon{width:16px;height:16px;margin-right:3px}.links{gap:20px}.shell .help{font-size:12px;gap:5px;min-height:21px}.help>span{width:13px;height:13px;font-size:10px}.footer button{min-height:38px;font-size:20px;width:90%}.footer small{font-size:10px}.recordShell{padding:9px}.record{max-height:calc(100dvh - 18px);padding:13px}.record>header{flex-direction:column;gap:10px}.record h2{font-size:22px}.recordBody{font-size:15px}.recordBody h3{font-size:19px}.issues p{font-size:12px}.empty{font-size:13px;padding:9px}}
+@media(max-height:800px){.shell[data-focused=true] .book{padding-top:32px;padding-bottom:29px;gap:7px}.shell[data-focused=true] .body{gap:12px}.shell[data-focused=true] .chance{height:70px}.shell[data-focused=true] .factors :is(th,td){height:34px}.shell[data-focused=true] .scene{display:none}}
+@media(max-height:600px){.book,.shell[data-focused=true] .book{padding:21px 60px 20px;gap:5px}.header{height:32px;padding-bottom:6px;gap:7px}.header h1{font-size:25px}.header button{font-size:13px;min-height:28px}.header>span{font-size:18px}.tabs button{font-size:12px;min-height:27px}.shell[data-focused=true] .body{gap:7px}.shell[data-focused=true] .chance{height:48px}.chance h2{font-size:17px}.chance>strong{font-size:31px}.shell[data-focused=true] .factors :is(th,td){height:24px;padding:2px 0}.factors h2,.costs h2{font-size:18px}.shell .factorHelp{font-size:13px;gap:6px}.factorHelp>.icon{width:20px;height:20px}.factors td{font-size:16px}.factors{padding:3px 6px}.status{padding:5px 7px}.status>.icon{width:24px;height:24px}.status strong{font-size:16px}.status p{font-size:11px}.status[data-warning] strong{font-size:13px}.footer button{min-height:31px;font-size:18px}.footer small{font-size:10px}.record{max-height:calc(100dvh - 16px);padding:10px}.recordShell{padding:8px}.record>header{padding-bottom:7px}.record h2{font-size:20px}.recordShell button{font-size:13px;min-height:29px}.recordBody{font-size:14px;padding-top:8px}.fullArt{height:64dvh}.issues{padding:5px;gap:4px}.issues p{font-size:12px}.issues button{min-height:22px;font-size:11px}.costTable :is(th,td){padding:3px;font-size:14px}.costTable .icon{width:17px;height:17px}.shell .help{font-size:12px;min-height:20px}.footer{gap:4px}}
+@media(max-width:700px) and (max-height:600px){.book,.shell[data-focused=true] .book{padding:20px 43px 20px}.header h1{font-size:23px}.header{gap:4px}.header button{font-size:12px;padding:3px 5px}.header>span{font-size:16px}.shell .factorHelp{font-size:12px}.factorHelp>.icon{width:18px;height:18px}.costTable :is(th,td){font-size:12px}.costTable .icon{width:14px;height:14px;margin-right:1px}.status p{font-size:10px}.shell .help{font-size:11px}.links{gap:12px}}
+@media(min-width:701px) and (max-height:500px){.book,.shell[data-focused=true] .book{width:min(760px,100%);padding:18px 83px;gap:5px}.header{justify-content:flex-start}.shell[data-focused=true] .body{display:grid;grid-template-columns:180px 1fr;grid-template-rows:auto minmax(0,1fr);gap:8px 15px;align-items:center}.chance{grid-column:1;grid-row:1}.status{grid-column:1;grid-row:2;align-self:start;flex-wrap:wrap;position:relative}.status .info{position:absolute;right:5px;top:5px}.status>.icon{width:22px;height:22px}.status strong{font-size:15px;padding-right:10px}.status p{font-size:11px}.factors{grid-column:2;grid-row:1/span 2}.costs{grid-column:2;grid-row:1}.links{grid-column:2;grid-row:2;align-self:start;gap:15px}.issues{grid-column:1;grid-row:3}.shell[data-view='Readiness & costs']:has(.issues) .body{grid-template-rows:auto auto 1fr}.issues p{font-size:10px}.issues button{font-size:10px}.footer button{width:58%}.record>header{flex-direction:row}.shell .factorHelp{font-size:13px}.factors td{width:48px}.costTable :is(th,td){font-size:14px}}
+@media(min-width:701px) and (min-height:800px){.factors :is(th,td){padding:1px 0;height:28px}.costTable :is(th,td){padding:3px}.scene{min-height:155px}}
+.shell .footer button[data-primary]{border:1px solid #97743b;border-image:none;border-radius:9px;background:linear-gradient(#158249,#00482a);box-shadow:inset 0 0 0 2px #c6b16d,inset 0 0 0 3px #11603c,0 2px 3px #502c1b44;color:#fff1d0}
+.chance>strong{white-space:nowrap}
+@media(min-width:701px) and (max-height:500px){.shell[data-focused=true] .chance{height:66px;padding:4px 10px}.chance h2{font-size:15px}}

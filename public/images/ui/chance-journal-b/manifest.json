@@ -1,0 +1,104 @@
+{
+  "assets": [
+    {
+      "path": "README.md",
+      "bytes": 4345,
+      "sha256": "2f0905d9a216118abfd596c561e15473bb16d01a2a76f15b76a397a1749e7f98"
+    },
+    {
+      "path": "cap.svg",
+      "bytes": 239,
+      "sha256": "694bd4c8ca57f6b3aa94db17db0a6b34fc9d234afe50d8058727b16745d68571"
+    },
+    {
+      "path": "chance-plaque.webp",
+      "bytes": 149948,
+      "sha256": "d7f1580653e1749e15f6b7c0ab4a1d96b420b8209d1a73f4bb1914928b0217ed"
+    },
+    {
+      "path": "cream.svg",
+      "bytes": 554,
+      "sha256": "e35a8111922b4ce449484e01b5397660fef3e60e2b1885f6ba0731c806aa3209"
+    },
+    {
+      "path": "dice.svg",
+      "bytes": 601,
+      "sha256": "16651e85dd5ce65749beff667b10de8b44ac6ab1754225cc8b4850a3ceb91be2"
+    },
+    {
+      "path": "effects.svg",
+      "bytes": 1753,
+      "sha256": "dac9a74b9e72d0173a6d1d2cb660343288a68dc32ac73f1b440facda76a4773e"
+    },
+    {
+      "path": "emerald.svg",
+      "bytes": 554,
+      "sha256": "9908d5fd2cd3e0cbfd9f7752d3f114dd87fd281a221563d30e321df56241825a"
+    },
+    {
+      "path": "energy.svg",
+      "bytes": 319,
+      "sha256": "1b42acff4af5cf9b1cf344c30f9a083a5350415c5d66c49d3e304e517c0050fb"
+    },
+    {
+      "path": "engraved-frame.svg",
+      "bytes": 1240,
+      "sha256": "1e571ddc6a408f6084f236faf6871f5fed8898e01f37bc0a5a1734e1de1cf3c4"
+    },
+    {
+      "path": "fertility.svg",
+      "bytes": 300,
+      "sha256": "d762a226fc09cffb708892f13ca272eb5b49ca4ad534b94e7d2b27df06106e52"
+    },
+    {
+      "path": "heart-ink.svg",
+      "bytes": 208,
+      "sha256": "be510d8d7692d04205f875c5c4a559def64b02266dd1ad997ce72b1c90740ad4"
+    },
+    {
+      "path": "heart.svg",
+      "bytes": 479,
+      "sha256": "1200352f8d815f1ef625750b5b958feef01a3b0ccc007148f7af1c3321ad1eb9"
+    },
+    {
+      "path": "journal.webp",
+      "bytes": 222326,
+      "sha256": "275020313ce3fa6b6e284529069dcacefb59ffc44555a5481502d857fa9d092e"
+    },
+    {
+      "path": "nameplate.svg",
+      "bytes": 484,
+      "sha256": "fbe4693a1518a7bf94a170ceaff9a4460350c40e60af429550e1797a25b42456"
+    },
+    {
+      "path": "ready.svg",
+      "bytes": 272,
+      "sha256": "9de522c4f4996aa6719c56b6d0dfed2b650ee26e79c9b27da381889e271f3c73"
+    },
+    {
+      "path": "source/approved-concept-board.png",
+      "bytes": 3778555,
+      "sha256": "cf2a6faef812d248a14e85a8bc70dc62c533ac9b10ae8891abe69aa08821045e"
+    },
+    {
+      "path": "source/chance-plaque-master.png",
+      "bytes": 2482059,
+      "sha256": "089d71de78d3853f55925183085b3eef24e4e00bbd5deee8cf9288cd4b93f843"
+    },
+    {
+      "path": "source/journal-master.png",
+      "bytes": 2366899,
+      "sha256": "0efdc296cb12d492c51490a22cc1a1d3f8be682e922f3392a7a0f1ab180c6c7b"
+    },
+    {
+      "path": "star.svg",
+      "bytes": 188,
+      "sha256": "45116a15b55b655de0b7381b4376ff28d7a6981aa9e87b3f465b7514b4e774e4"
+    },
+    {
+      "path": "warning.svg",
+      "bytes": 289,
+      "sha256": "66d4ebb61ded4b8118eac5a98344bfb951bf5f54fb9397246651b645b1840151"
+    }
+  ]
+}

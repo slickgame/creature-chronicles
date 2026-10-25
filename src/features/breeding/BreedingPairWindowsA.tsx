@@ -1,6 +1,6 @@
 "use client";
-import {useState} from 'react';
 import {PairOptionsJournal} from './PairOptionsJournal';
+import {ChanceJournalB} from './ChanceJournalB';
 import type{BreedingParticipant,BreedingPreview}from'@/types/breeding';
 import type{NurseryPage}from'@/features/nursery/NurseryBook';
 import{WindowA,PanelA,PagesA,useShortWindow,PairSummaryA,CostTableA,breedingWindowStyles as s}from'./BreedingWindowA';
@@ -9,11 +9,7 @@ export function PairOptionsA({giver,receiver,preview,onClose,onSwap,onRandom,onC
  return <PairOptionsJournal {...{giver,receiver,preview,onClose,onSwap,onRandom,onClear,canSwap,disabled,sceneMode,onSceneMode}}/>;
 }
 export function ChanceWindowA({giver,receiver,preview,onClose,rows,blockedReasons,status,message,pages,onReview}:{giver:BreedingParticipant|null;receiver:BreedingParticipant|null;preview:BreedingPreview|null;onClose:()=>void;rows:[string,number][];blockedReasons:string[];status:string;message:string;pages:NurseryPage[];onReview:()=>void}){
- const[tab,setTab]=useState('Chance');const parents=[giver,receiver].filter((p):p is BreedingParticipant=>!!p);
- const summary:NurseryPage={key:'breakdown',title:'Chance contributions',content:<table className={s.table}><thead><tr><th>Contribution</th><th>Chance</th></tr></thead><tbody>{rows.map(([label,n])=><tr key={label}><th>{label}</th><td>{n>0?'+':''}{n}%</td></tr>)}</tbody></table>};
- const costs:NurseryPage={key:'cost-table',title:'After attempt',content:preview?<><CostTableA participants={parents} preview={preview}/><p>Cost each: {preview.energyCost} Energy · {preview.heartCost} Hearts.</p></>:<p>Choose a complete pair to see costs.</p>};
- const visible=tab==='Chance'?[summary,...pages.filter(p=>p.key.startsWith('chance-')||p.key==='progress')]:tab==='Costs'?[costs,...pages.filter(p=>p.key.startsWith('cost-'))]:pages.filter(p=>p.key==='summary'||p.key.startsWith('blocked-')||p.key.startsWith('note-'));
- return <WindowA title="Chance & Readiness" marker="chance-readiness" onClose={onClose} lead={<PanelA><h2>Chance breakdown</h2><nav className={s.tabs}>{['Chance','Readiness','Costs'].map(t=><button key={t} aria-pressed={tab===t} onClick={()=>setTab(t)}>{t}</button>)}</nav><PagesA pages={visible}/></PanelA>}><PanelA><h2>Pair readiness</h2><PairSummaryA giver={giver} receiver={receiver}/><strong className={s.chance}>{preview?`${preview.pregnancyChance}%`:'—'}</strong><p>Pregnancy chance</p><div className={s.stats}><div><dt>Energy each</dt><dd>{preview?.energyCost??'—'}</dd></div><div><dt>Hearts each</dt><dd>{preview?.heartCost??'—'}</dd></div></div><p className={blockedReasons.length?s.warning:s.good}>{status}</p>{message.startsWith('The pair or costs changed')&&<p className={s.warning}>{message}</p>}<p className={s.note}>Pregnancy and talent/move inheritance use separate checks. Viewing never rolls an outcome.</p><footer className={s.actions}><button data-primary disabled={!preview?.canAttempt} onClick={onReview}>Review attempt</button></footer></PanelA></WindowA>;
+ return <ChanceJournalB {...{giver,receiver,preview,onClose,rows,blockedReasons,status,message,pages,onReview}}/>;
 }
 export function AttemptReviewA({giver,receiver,preview,onClose,onConfirm,stale,disabled,warnings}:{giver:BreedingParticipant;receiver:BreedingParticipant;preview:BreedingPreview;onClose:()=>void;onConfirm:()=>void;stale:boolean;disabled:boolean;warnings:string[]}){
  const short=useShortWindow();const parents=[giver,receiver];const content=<><CostTableA participants={parents} preview={preview}/><p>Cost each: <strong>{preview.energyCost} Energy · {preview.heartCost} Heart{preview.heartCost===1?'':'s'}</strong></p><p>Pregnancy chance: <strong>{preview.pregnancyChance}%</strong></p></>;
