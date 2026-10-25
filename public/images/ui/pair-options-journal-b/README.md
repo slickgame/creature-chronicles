@@ -9,3 +9,5 @@ Live UI text, controls, parent names and current chance are separate from art. I
 ## Superseding fidelity pass
 
 The user rejected the initial wide flat-paper presentation. `fidelity-v2/README.md` documents its replacement assets, exact generation prompts, retained masters and editable surfaces. PairOptionsJournal now uses the tall centered leather-bound journal composition with its own inset header; the old SVGs above are retained only as historical source, not runtime styling.
+
+The closer-concept follow-up uses `fidelity-v3/README.md`: close framing from canonical profilePath with an explicit full-figure read-only view, stronger engraved surfaces, fitted name slips, inset directional arrow and true-alpha ranch-illustrated folio. The old v2 assets remain source history; its alpine scenery is still reused.

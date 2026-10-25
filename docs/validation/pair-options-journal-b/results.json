@@ -11,5 +11,6 @@
   "saveUnchanged": true,
   "sceneModePersists": true,
   "selectionToolsReturn": true,
+  "fullProfileReadOnly": true,
   "errors": []
 }
