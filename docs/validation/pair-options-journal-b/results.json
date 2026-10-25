@@ -1,0 +1,15 @@
+{
+  "viewports": [
+    "1440x900",
+    "1920x720",
+    "390x844",
+    "360x740",
+    "390x500",
+    "844x390"
+  ],
+  "allSectionsFit": true,
+  "saveUnchanged": true,
+  "sceneModePersists": true,
+  "selectionToolsReturn": true,
+  "errors": []
+}
