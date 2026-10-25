@@ -1,0 +1,28 @@
+{
+  "viewports": [
+    "1440x900",
+    "1920x720",
+    "390x844",
+    "360x740",
+    "390x500",
+    "844x390"
+  ],
+  "sections": [
+    "Stats",
+    "Talents",
+    "Moves",
+    "Family"
+  ],
+  "checks": [
+    "Six current base-stat rows",
+    "No explanatory Detail page selector",
+    "Hover and click-accessible stat help",
+    "Complete rules records retained",
+    "Nested Inspect returns to journal",
+    "Serialized save unchanged"
+  ],
+  "regressions": "breeding-selection-preview: 3/3 passed",
+  "typescript": "passed",
+  "lint": "zero errors; native img performance warnings",
+  "notes": "Standard viewports and short landscape verified in separate final browser passes. Short talent effects use explicit full-effect help; canine restriction stays visible."
+}
