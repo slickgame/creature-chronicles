@@ -1,0 +1,55 @@
+.review .book{height:min(970px,calc(100dvh - 16px));gap:10px}
+.review .header{gap:7px}
+.review .header h1{font-size:30px}
+.review .header button{font-size:15px;padding:4px 7px}
+.body{display:flex;flex-direction:column;min-height:0;flex:1;gap:10px}
+.review .scene{min-height:135px;flex:1 1 170px;max-height:215px}
+.review .chance{height:99px;padding:8px 70px;gap:2px}
+.chance>p{font-size:15px;line-height:1.08;white-space:nowrap}
+.costs{flex:none}
+.costs>h2{text-align:center;font-size:23px;line-height:1.05;margin-bottom:7px}
+.review .costs table{border:7px solid transparent;border-image:url('/images/ui/chance-journal-b/engraved-frame.svg') 32 fill / 13px stretch}
+.review .costs :is(th,td){font-size:18px;padding:7px 3px}
+.costEach{text-align:center;padding:6px;margin-top:8px!important;border:5px solid transparent;border-image:url('/images/ui/chance-journal-b/nameplate.svg') 16 fill / 8px stretch;font-size:17px;line-height:1.05!important}
+.warnings{display:flex;align-items:center;gap:13px;padding:14px 17px;flex:none;background:#efc47b url('/images/ui/review-attempt-journal-b/warning-panel.webp') center/100% 100% no-repeat;border:1px solid #9c652d;border-radius:5px;color:#3b1f0a}
+.warnings>img{width:49px;height:49px;object-fit:contain;flex:none}
+.warnings>div{flex:1}
+.warnings h2{font-size:25px;line-height:1.05;margin-bottom:8px}
+.warnings ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.warnings li{font-size:16px;line-height:1.22}
+.warnings nav{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:8px;font-size:12px}
+.review .warnings nav button{font-size:12px;min-height:27px;padding:2px 5px}
+.restriction{border:1px solid #a66e32;border-radius:4px;padding:8px;background:#e8c18d;flex:none}
+.restriction p{font-size:15px;line-height:1.2}
+.before{display:grid;gap:8px;text-align:center;flex:none;justify-items:center;margin-top:2px}
+.before>p{font-size:16px}
+.review .before button{font-size:16px;min-height:24px}
+.footer{display:grid;gap:10px;text-align:center;flex:none}
+.footer>div{display:grid;grid-template-columns:.85fr 1.2fr;gap:12px}
+.review .footer button{font-size:22px;min-height:48px;padding:6px}
+.review .footer button[data-primary]{border:1px solid #99743b;border-image:none;border-radius:9px;background:linear-gradient(#18844a,#00472a);box-shadow:inset 0 0 0 2px #c6b16d,inset 0 0 0 3px #13623c,0 2px 3px #502c1b44;color:#fff1d0}
+.footer small{font-size:12px;line-height:1.15;background:#f2d9adeb;padding:0 3px;justify-self:center}
+.pairNames{text-align:center;font-size:16px;border-bottom:1px solid #a4784766;padding:3px;flex:none}
+.pairNames span{padding:0 6px}
+.review[data-compact=true] .body{justify-content:center}
+@media(max-width:700px){.review .book{height:100dvh;gap:9px}.review .header h1{font-size:25px}.review .header{gap:5px}.review .header button{font-size:12px;padding:4px}.review .header>span{font-size:17px}.body{gap:9px}.review .scene{min-height:120px;max-height:190px;flex-basis:160px}.review .chance{height:84px;padding:6px 40px}.chance>p{font-size:12px}.costs>h2{font-size:21px;margin-bottom:6px}.review .costs :is(th,td){font-size:14px;padding:6px 2px}.costEach{font-size:14px;padding:5px;margin-top:6px!important}.warnings{padding:11px 12px;gap:9px}.warnings>img{width:36px;height:42px}.warnings h2{font-size:22px;margin-bottom:6px}.warnings li{font-size:14px;line-height:1.18}.warnings ul{gap:5px}.before{gap:6px}.before>p{font-size:13px}.review .before button{font-size:14px;min-height:22px}.footer>div{gap:8px}.review .footer button{font-size:19px;min-height:43px}.footer small{font-size:10px}.footer{gap:8px}.restriction p{font-size:13px}.pairNames{font-size:13px}}
+@media(min-height:700px) and (max-height:800px){.review .book{padding-top:30px;padding-bottom:29px;gap:7px}.body{gap:7px}.review .chance{height:87px}.review .scene{min-height:110px}.review .costs :is(th,td){padding:4px 2px;font-size:16px}.costEach{margin-top:5px!important;padding:4px;font-size:15px}.warnings{padding:11px}.warnings h2{font-size:23px;margin-bottom:5px}.warnings li{font-size:14px}.before{gap:5px}.before>p{font-size:14px}.review .before button{font-size:14px}.footer{gap:6px}.review .footer button{min-height:40px;font-size:20px}}
+@media(max-height:699px){.review .book{padding-top:24px;padding-bottom:23px;gap:6px}.body{gap:7px}.review .chance{height:72px;padding:5px 50px;gap:1px}.review .chance h2{font-size:18px}.review .chance>strong{font-size:34px}.chance>p{font-size:12px}.review .header{height:34px;padding-bottom:7px}.review .header h1{font-size:25px}.review .header button{font-size:13px;min-height:29px}.review .header>span{font-size:18px}.costs>h2{font-size:20px;margin-bottom:4px}.review .costs :is(th,td){font-size:15px;padding:4px 2px}.review .costs table img{width:18px;height:18px}.costEach{font-size:14px;margin-top:5px!important;padding:3px}.warnings{padding:9px 12px;gap:9px}.warnings>img{width:35px;height:40px}.warnings h2{font-size:21px;margin-bottom:5px}.warnings li{font-size:13px;line-height:1.18}.warnings ul{gap:4px}.before{gap:5px}.before>p{font-size:13px}.review .before button{font-size:13px;min-height:20px}.footer{gap:5px}.review .footer button{font-size:18px;min-height:36px}.footer small{font-size:10px}.pairNames{font-size:14px;padding:2px}.restriction{padding:6px}.restriction p{font-size:12px}}
+@media(max-height:550px){.review .book{padding-top:19px;padding-bottom:19px;gap:4px}.body{gap:5px}.review .header{height:30px}.review .header h1{font-size:24px}.review .chance{height:59px;padding-top:3px;padding-bottom:3px}.review .chance h2{font-size:16px}.review .chance>strong{font-size:29px}.chance>p{font-size:10px}.costs>h2{font-size:18px;margin-bottom:3px}.review .costs :is(th,td){font-size:13px;padding:3px 2px}.review .costs table img{width:16px;height:16px}.costEach{font-size:12px;margin-top:3px!important;padding:2px}.warnings{padding:8px 10px;gap:7px}.warnings>img{width:30px;height:34px}.warnings h2{font-size:19px;margin-bottom:4px}.warnings li{font-size:12px;line-height:1.15}.before{gap:3px;margin:0}.before>p{font-size:12px}.review .before button{font-size:12px;min-height:18px}.review .footer button{font-size:17px;min-height:32px}.footer small{font-size:9px}.pairNames{font-size:12px}.review .warnings nav button{font-size:10px;min-height:22px}.warnings nav{font-size:10px;margin-top:5px}}
+@media(max-width:700px) and (max-height:699px){.review .header{gap:3px}.review .header h1{font-size:22px}.review .header button{font-size:11px;padding:3px}.review .header>span{font-size:16px}.review .chance{padding-left:30px;padding-right:30px}.review .costs :is(th,td){font-size:12px}.review .costs table img{width:14px;height:14px}.warnings li{font-size:12px}.warnings h2{font-size:19px}.before>p{font-size:11px}.footer>div{gap:7px}.footer small{font-size:9px}}
+@media(min-width:701px) and (max-height:500px){.review .book{width:min(800px,100%);padding:18px 78px;gap:5px}.review .header{justify-content:center}.body{display:grid;grid-template-columns:1fr 1.18fr;grid-template-areas:'names names' 'chance warnings' 'costs warnings' 'before before';gap:6px 16px;align-content:center}.pairNames{grid-area:names}.review .chance{grid-area:chance;height:65px;padding:3px 25px}.costs{grid-area:costs}.warnings{grid-area:warnings;align-self:center;min-height:124px;padding:12px}.warnings li{font-size:13px}.warnings h2{font-size:22px}.before{grid-area:before;display:flex;align-items:center;justify-content:center;gap:18px}.footer>div{width:75%;justify-self:center}.review .footer button{min-height:34px;font-size:18px}.restriction{grid-column:1/-1}.review:has(.restriction) .body{grid-template-areas:'names names' 'chance warnings' 'costs warnings' 'before before';gap:4px 13px}.review:has(.restriction) .warnings{min-height:90px}.review .costs :is(th,td){font-size:13px;padding:3px}.costEach{font-size:12px}.review .chance>strong{font-size:31px}.chance>p{font-size:11px}.review .chance h2{font-size:16px}}
+.clear{display:flex;align-items:center;gap:12px;padding:15px;border:1px solid #80945d;border-radius:5px;background:#ced59e88;flex:none}
+.clear>img{width:38px;height:38px}.clear h2{font-size:23px;margin-bottom:5px}.clear p{font-size:15px}
+@media(max-width:700px){.clear{padding:11px;gap:9px}.clear>img{width:30px;height:30px}.clear h2{font-size:20px}.clear p{font-size:13px}}
+@media(max-height:699px){.clear{padding:9px}.clear h2{font-size:19px}.clear p{font-size:12px}.clear>img{width:28px;height:28px}}
+@media(min-width:701px) and (max-height:500px){.clear{grid-area:warnings;align-self:center}.clear h2{font-size:21px}}
+/* Fit all three chance lines inside the plaque's quiet center. */
+.review .chance{height:107px;padding:9px 65px 19px;gap:1px}.review .chance h2{font-size:19px}.review .chance>strong{font-size:42px}.chance>p{font-size:13px}
+.review .costs table{border-collapse:separate;border-spacing:0;border:1px solid #a97d46;border-image:none;border-radius:4px;overflow:hidden}
+.review .costs :is(th,td){border:0;border-right:1px solid #ad824d77;border-bottom:1px solid #ad824d77}
+.review .costs tr>:last-child{border-right:0}.review .costs tbody tr:last-child>*{border-bottom:0}
+@media(max-width:700px){.review .chance{height:92px;padding:7px 35px 16px}.review .chance h2{font-size:18px}.review .chance>strong{font-size:36px}.chance>p{font-size:11px}.warnings{padding-top:14px;padding-bottom:16px}.warnings h2{font-size:21px}.warnings li{font-size:13px}}
+@media(max-height:699px){.review .chance{height:77px;padding:5px 35px 13px}.review .chance h2{font-size:17px}.review .chance>strong{font-size:32px}.chance>p{font-size:11px}}
+@media(max-height:550px){.review .chance{height:67px;padding:3px 30px 11px;gap:0}.review .chance h2{font-size:15px}.review .chance>strong{font-size:26px}.chance>p{font-size:9px}.warnings{padding-top:10px;padding-bottom:12px}.warnings li{font-size:12px}}
+@media(min-width:701px) and (max-height:500px){.review .chance{height:76px;padding:4px 35px 13px}.review .chance h2{font-size:15px}.review .chance>strong{font-size:29px}.chance>p{font-size:10px}}
+.review .chance{background-image:url('/images/ui/review-attempt-journal-b/chance-plaque.webp')}

@@ -19,17 +19,17 @@ const hints:Record<string,string>={
  '90% chance cap':'Pregnancy chance is capped at 90%. This adjustment removes any amount above that limit.',
 };
 function Icon({name}:{name:string}){return <img className={s.icon} src={`${asset}${name}.svg`} alt=""/>}
-function RecordDialog({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){
- return <GameDialog title={title} fullScreen onClose={onClose}><main className={s.recordShell}><article className={s.record}><header><button onClick={onClose}>← Back to Chance Details</button><h2>{title}</h2></header><div className={s.recordBody}>{children}</div></article></main></GameDialog>;
+function RecordDialog({title,children,onClose,returnTo='Chance Details'}:{title:string;children:ReactNode;onClose:()=>void;returnTo?:string}){
+ return <GameDialog title={title} fullScreen onClose={onClose}><main className={s.recordShell}><article className={s.record}><header><button onClick={onClose}>← Back to {returnTo}</button><h2>{title}</h2></header><div className={s.recordBody}>{children}</div></article></main></GameDialog>;
 }
 function Help({label,hint,children,iconOnly=false,trigger}:{label:string;hint:string;children?:ReactNode;iconOnly?:boolean;trigger?:ReactNode}){
  const[open,setOpen]=useState(false);
  return <><DetailButton className={iconOnly?s.info:trigger?s.factorHelp:s.help} tooltipClassName={s.tooltip} aria-label={label} hint={hint} onClick={()=>setOpen(true)}>{!iconOnly&&(trigger??label)}<span aria-hidden="true">i</span></DetailButton>{open&&<RecordDialog title={label} onClose={()=>setOpen(false)}>{children??<p>{hint}</p>}</RecordDialog>}</>;
 }
-function Parent({parent,role}:{parent:BreedingParticipant|null;role:string}){
+function Parent({parent,role,returnTo='Chance Details'}:{parent:BreedingParticipant|null;role:string;returnTo?:string}){
  const[failed,setFailed]=useState(''),[open,setOpen]=useState(false);
  const source=parent?.kind==='creature'&&parent.profilePath&&failed!==parent.profilePath?parent.profilePath:null;
- return <div className={s.parent}>{source?<button className={s.art} aria-label={`View ${parent?.displayName} full profile`} onClick={()=>setOpen(true)}><img src={source} alt={`${parent?.displayName} profile`} onError={()=>setFailed(source)}/></button>:<div className={s.noArt}>{parent?.displayName??`Choose ${role.toLowerCase()}`}</div>}<div className={s.name}><strong>{parent?.displayName??`Choose ${role.toLowerCase()}`}</strong> · {role}</div>{open&&source&&<RecordDialog title={`${parent?.displayName} full profile`} onClose={()=>setOpen(false)}><div className={s.fullArt}><img src={source} alt={`${parent?.displayName} complete full-body profile`}/></div></RecordDialog>}</div>;
+ return <div className={s.parent}>{source?<button className={s.art} aria-label={`View ${parent?.displayName} full profile`} onClick={()=>setOpen(true)}><img src={source} alt={`${parent?.displayName} profile`} onError={()=>setFailed(source)}/></button>:<div className={s.noArt}>{parent?.displayName??`Choose ${role.toLowerCase()}`}</div>}<div className={s.name}><strong>{parent?.displayName??`Choose ${role.toLowerCase()}`}</strong> · {role}</div>{open&&source&&<RecordDialog title={`${parent?.displayName} full profile`} returnTo={returnTo} onClose={()=>setOpen(false)}><div className={s.fullArt}><img src={source} alt={`${parent?.displayName} complete full-body profile`}/></div></RecordDialog>}</div>;
 }
 function ResourceTable({giver,receiver,preview}:{giver:BreedingParticipant|null;receiver:BreedingParticipant|null;preview:BreedingPreview|null}){
  const parents=[giver,receiver].filter((p):p is BreedingParticipant=>!!p);
@@ -65,3 +65,5 @@ export function ChanceJournalB({giver,receiver,preview,onClose,rows,blockedReaso
  <footer className={s.footer}><button data-primary disabled={!preview?.canAttempt} onClick={onReview}>Review attempt</button><small>Viewing spends nothing. Review before confirming.</small></footer>
  </article></main></GameDialog>;
 }
+
+export {Parent as JournalParent,ResourceTable as JournalResourceTable,RecordDialog as JournalRecord};

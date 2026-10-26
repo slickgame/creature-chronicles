@@ -1,0 +1,39 @@
+{
+  "assets": [
+    {
+      "path": "README.md",
+      "bytes": 3862,
+      "sha256": "2c21b02ee3f4dd1e5b80380894a6d44fc1a7823420054a3114caa6c753b4b736"
+    },
+    {
+      "path": "chance-plaque.webp",
+      "bytes": 156164,
+      "sha256": "fe31d14fbf18e1cfd89e9c6677380eb5e3619072e5c2dc178d58e9d750825539"
+    },
+    {
+      "path": "source/approved-concept-board.png",
+      "bytes": 3736185,
+      "sha256": "9c071e830ba1d19e7034daa2b14d99aa017b70c6af22e293a0538a0203aefcd6"
+    },
+    {
+      "path": "source/chance-plaque-master.png",
+      "bytes": 2051623,
+      "sha256": "6d942825d5062dd6ef89a8a4431f16a6d48f9a5c50059244bfd8b0d46f39312b"
+    },
+    {
+      "path": "source/warning-panel-master.png",
+      "bytes": 2310119,
+      "sha256": "2d340b1a5596e3f342b9f8caaf168208b07363c2a11d10204b4e7df105186dd8"
+    },
+    {
+      "path": "warning-panel.webp",
+      "bytes": 98220,
+      "sha256": "18df039cc18116fdb4b46e5e9df9055419f410e16e2ba9491751803e1cf0c96b"
+    },
+    {
+      "path": "warning.svg",
+      "bytes": 437,
+      "sha256": "2d57b01a960e90a6beaa7389f3a125066336236604f99c3c55f51d0e633845fd"
+    }
+  ]
+}
