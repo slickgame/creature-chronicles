@@ -69,3 +69,19 @@
 .metrics>div{min-width:0}.metrics dt,.metrics dd{max-width:100%;overflow-wrap:anywhere}.comparison{table-layout:fixed}
 .tableHeader,.shell .row[data-attempt=true]{column-gap:0;padding-left:6px;padding-right:6px}
 @media(max-width:700px){.tableHeader,.shell .row[data-attempt=true]{padding-left:5px;padding-right:5px}}
+
+/* B rounded-edge reference pass: equal paper gutters and soft engraved corners. */
+.shell button{border-image-source:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/cream.svg')}
+.shell .tabs button,.counts>div{border-image-source:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/tab.svg')}
+.shell .tabs button[aria-pressed=true]{border-image-source:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/tab-active.svg')}
+.shell .profile,.shell .link,.shell .row,.shell button[data-primary]{border-image:none}
+.filters :is(input,select){border-radius:6px;outline:none;box-shadow:inset 0 0 0 2px #f6d79c88,0 0 0 1px #b28b5933}
+.list{margin-inline:19px;border-radius:8px;flex-shrink:0}
+.shell .row[aria-pressed=true]{border-radius:6px}
+.summary dl{border-radius:6px;overflow:hidden}
+.content dl>div,.metrics>div{border-radius:6px}
+.actions button[data-primary]{border-radius:8px}
+.tableHeader,.shell .row[data-attempt=true]{grid-template-columns:52px minmax(0,1fr) 119px 8px}
+@media(max-width:700px){.list{margin-inline:14px}.tableHeader,.shell .row[data-attempt=true]{grid-template-columns:40px minmax(0,1fr) 94px 7px}.shell .row[data-attempt=true]>strong{padding-left:3px;padding-right:3px}}
+@media(max-height:600px){.list{margin-inline:8px}}
+@media(min-width:701px) and (max-height:500px){.list{margin-inline:0}.tableHeader,.shell .row[data-attempt=true]{grid-template-columns:43px minmax(0,1fr) 98px 7px}}

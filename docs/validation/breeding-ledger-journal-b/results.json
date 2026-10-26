@@ -225,6 +225,8 @@
       "bounds": true
     }
   ],
+  "roundedPanels": true,
+  "historyMatchesFilterGutters": true,
   "alignedTableRules": true,
   "parentFrames": true,
   "textRangesInsideControlsAndCells": true,

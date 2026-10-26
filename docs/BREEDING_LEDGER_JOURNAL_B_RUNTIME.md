@@ -14,3 +14,9 @@ User compared the next actual capture with B again. Fidelity-v3 adds visibly age
 
 ## Fourth pass: physical containment
 The user explicitly requested no content extending outside borders or lines. Fidelity-v4 removes the misleading painted inset rectangle, while retaining aged paper/leather. Native header/button heights, illustration frame insets, summary numeric columns and table separators now describe the actual content area. QA checks direct children against physical parent frames and direct text ranges against controls/cells, including real long-name short views; intentional scenic crops remain clipped and open full canonical figures on tap.
+
+## Rounded edges and history inset — October 26, 2026
+
+The user identified square-edged boxes and an overly wide Day / Parents / Outcome table. `fidelity-v5` refines existing editable SVG controls with curved double rules, preserving the etched corner details and paper/active colors. Filters, selected summary and record cards now have 6px corners; the history has an 8px outer corner. History is inset 19px on desktop and 14px on phones, sharing the actual filter-input edges, with shared narrower header/body columns. Short landscape retains its separate compact composition. No folio, character sources, data, callbacks or save behavior changed.
+
+Validation adds explicit rounded-control and equal history/filter-gutter assertions, retaining six viewport, parent-frame, actual text-range, aligned-column, long-name, archived/empty and all-eight read-only navigation checks. The history fixture is regenerated through the actual engine; its expected chance is read from the saved record rather than hardcoded to a previous randomized fixture.
