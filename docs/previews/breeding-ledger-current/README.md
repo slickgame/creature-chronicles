@@ -1,0 +1,11 @@
+# Breeding Ledger — concept baseline
+
+Actual production UI at commit2c0fe3e. These captures use an isolated engine-generated sample history, not the user's save. Six attempts: two pregnancies, three no-pregnancy records and one pregnancy-blocked session, with zero hatched offspring. Each sample is generated through performBreedingAttempt from an independent fixture clone. Historical createdAt dates are assigned to the fixture days for clear chronological display. The most recent selected sample is Day12 Rook/Mira,12% recorded chance, familiarity0→0, one explicit linked pregnancy,53Energy/1Heart each, recorded Energy100→47 and87→34.
+
+Opening the ledger, inspecting full records/filters, visiting its five section tabs and taking screenshots leave save serialization unchanged. No user save or live hosted game is edited. Scene-image requests are replaced with a transparent test pixel in the capture browser; no pairing/outcome scene page is selected or captured. Canonical menu creature profiles remain actual files.
+
+Current UI: Overview/Attempts/Pairs/Creatures/Family Tree; five desktop list rows with collection paging; selected record summary; four separate filter pages. This selected linked-pregnancy record has25 complete-record pages, including separate stats/notes/talents/moves and scene records. Concepts should retain every record, exact links, archived/missing-player handling and source-return selection while grouping the primary summaries and related filter fields.
+
+A/B/C board is proposal-only. Main collection paging remains appropriate. Complete history/growth, saved offspring values versus current parent stats, talents/moves, family tree and explicit saved scenes must stay accessible through meaningful grouped record sections; short definitions belong in hover/focus/tap help. Use This Pair only restores the recorded roles/selection and never attempts or spends. Linked Nursery navigation must use explicit IDs, never guessed parent names. PR21 remains draft/unmerged; no new runtime direction is implemented during this review.
+
+Reproduction: scripts/prepare-ledger-review-fixture.ts followed by scripts/capture-breeding-ledger-baseline.mjs, at baseline commit2c0fe3e.

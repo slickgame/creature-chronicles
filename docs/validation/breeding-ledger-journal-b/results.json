@@ -1,0 +1,238 @@
+{
+  "results": [
+    {
+      "name": "attempts-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "overview-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "pairs-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "creatures-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "attempts-390-844",
+      "bounds": true
+    },
+    {
+      "name": "overview-390-844",
+      "bounds": true
+    },
+    {
+      "name": "pairs-390-844",
+      "bounds": true
+    },
+    {
+      "name": "creatures-390-844",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-390-844",
+      "bounds": true
+    },
+    {
+      "name": "attempts-360-740",
+      "bounds": true
+    },
+    {
+      "name": "selected-360-740",
+      "bounds": true
+    },
+    {
+      "name": "overview-360-740",
+      "bounds": true
+    },
+    {
+      "name": "pairs-360-740",
+      "bounds": true
+    },
+    {
+      "name": "pairs-selected-360-740",
+      "bounds": true
+    },
+    {
+      "name": "creatures-360-740",
+      "bounds": true
+    },
+    {
+      "name": "creatures-selected-360-740",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-360-740",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-selected-360-740",
+      "bounds": true
+    },
+    {
+      "name": "attempts-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "selected-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "overview-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "pairs-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "pairs-selected-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "creatures-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "creatures-selected-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-selected-1920-720",
+      "bounds": true
+    },
+    {
+      "name": "attempts-390-500",
+      "bounds": true
+    },
+    {
+      "name": "selected-390-500",
+      "bounds": true
+    },
+    {
+      "name": "overview-390-500",
+      "bounds": true
+    },
+    {
+      "name": "pairs-390-500",
+      "bounds": true
+    },
+    {
+      "name": "pairs-selected-390-500",
+      "bounds": true
+    },
+    {
+      "name": "creatures-390-500",
+      "bounds": true
+    },
+    {
+      "name": "creatures-selected-390-500",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-390-500",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-selected-390-500",
+      "bounds": true
+    },
+    {
+      "name": "attempts-844-390",
+      "bounds": true
+    },
+    {
+      "name": "selected-844-390",
+      "bounds": true
+    },
+    {
+      "name": "overview-844-390",
+      "bounds": true
+    },
+    {
+      "name": "pairs-844-390",
+      "bounds": true
+    },
+    {
+      "name": "pairs-selected-844-390",
+      "bounds": true
+    },
+    {
+      "name": "creatures-844-390",
+      "bounds": true
+    },
+    {
+      "name": "creatures-selected-844-390",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-844-390",
+      "bounds": true
+    },
+    {
+      "name": "family-tree-selected-844-390",
+      "bounds": true
+    },
+    {
+      "name": "archived-desktop",
+      "bounds": true
+    },
+    {
+      "name": "long-records-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "long-selected-1440-900",
+      "bounds": true
+    },
+    {
+      "name": "long-records-390-844",
+      "bounds": true
+    },
+    {
+      "name": "long-selected-390-844",
+      "bounds": true
+    },
+    {
+      "name": "long-records-390-500",
+      "bounds": true
+    },
+    {
+      "name": "long-selected-390-500",
+      "bounds": true
+    },
+    {
+      "name": "long-records-844-390",
+      "bounds": true
+    },
+    {
+      "name": "long-selected-844-390",
+      "bounds": true
+    },
+    {
+      "name": "empty-phone-short",
+      "bounds": true
+    }
+  ],
+  "readOnly": true,
+  "groupedFilters": true,
+  "completeFourSections": true,
+  "exactNurseryReturn": true,
+  "selectionOnlyHandoff": true,
+  "allEightWindows": true,
+  "archivedFallback": true,
+  "longNames": true,
+  "empty": true,
+  "errors": []
+}
