@@ -11,3 +11,6 @@ User again compared actual screen against B. Fidelity-v2 now uses a500px desktop
 
 ## Third fidelity pass
 User compared the next actual capture with B again. Fidelity-v3 adds visibly aged/flecked amber parchment, transparent paper control faces, regular tab/count lettering, visible engraved scene corners, botanical selected-record rules and matching search/dropdown symbols. Tall desktop shifts a little space into the selected illustration and recorded values while preserving the grouped filters/history/summary/actions composition. Complete canonical figures remain reachable by tapping the close scene. Native assets, generated master, exact prompt and hashes are retained.
+
+## Fourth pass: physical containment
+The user explicitly requested no content extending outside borders or lines. Fidelity-v4 removes the misleading painted inset rectangle, while retaining aged paper/leather. Native header/button heights, illustration frame insets, summary numeric columns and table separators now describe the actual content area. QA checks direct children against physical parent frames and direct text ranges against controls/cells, including real long-name short views; intentional scenic crops remain clipped and open full canonical figures on tap.

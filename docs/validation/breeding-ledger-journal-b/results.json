@@ -225,6 +225,9 @@
       "bounds": true
     }
   ],
+  "alignedTableRules": true,
+  "parentFrames": true,
+  "textRangesInsideControlsAndCells": true,
   "readOnly": true,
   "groupedFilters": true,
   "completeFourSections": true,
