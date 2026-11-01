@@ -1,0 +1,963 @@
+{
+  "reports": [
+    {
+      "name": "inspect-overview",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inspect-stats",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inspect-work",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inspect-talents",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inspect-lineage",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inspect-overview",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inspect-stats",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inspect-work",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inspect-talents",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inspect-lineage",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inspect-overview",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inspect-stats",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inspect-work",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inspect-talents",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inspect-lineage",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inspect-overview",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inspect-stats",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inspect-work",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inspect-talents",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inspect-lineage",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inspect-overview",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inspect-stats",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inspect-work",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inspect-talents",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inspect-lineage",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inspect-overview",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inspect-stats",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inspect-work",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inspect-talents",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inspect-lineage",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "change",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "change",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "change-browse-parents",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "change-selected-parent",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "change",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "change-browse-parents",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "change-selected-parent",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "change",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "change",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "change-browse-parents",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "change-selected-parent",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "change",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "support",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "support",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "support-browse-supplies",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "support-selected-item",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "support",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "support-browse-supplies",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "support-selected-item",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "support",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "support",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "support-browse-supplies",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "support-selected-item",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "support",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inheritance-stats",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inheritance-talents",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inheritance-moves",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inheritance-family",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inheritance-stats",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inheritance-talents",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inheritance-moves",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inheritance-family",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inheritance-stats",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inheritance-talents",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inheritance-moves",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inheritance-family",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "inheritance-stats",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inheritance-talents",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inheritance-moves",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inheritance-family",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "inheritance-stats",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inheritance-talents",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inheritance-moves",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inheritance-family",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "inheritance-stats",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inheritance-talents",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inheritance-moves",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "inheritance-family",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "pair",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "pair",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "pair",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "pair-tools",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "pair-current-pair",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "pair-presentation",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "pair",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "pair",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "pair-tools",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "pair-current-pair",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "pair-presentation",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "pair",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "pair-tools",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "pair-current-pair",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "pair-presentation",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "chance",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "chance",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "chance",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "chance-chance",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "chance-readiness-costs",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "chance",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "chance-chance",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "chance-readiness-costs",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "chance",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "chance-chance",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "chance-readiness-costs",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "chance",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "chance-chance",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "chance-readiness-costs",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "review",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "review",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "review",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "review",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "review",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "review",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "candidate-record",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "candidate-inspect",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "support-record",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "support-review",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "inheritance-record",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "chance-readiness-notes",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "chance-attempt-rewards",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "review-record",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "candidate-record",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "candidate-inspect",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "support-record",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "support-review",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "inheritance-record",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "chance-readiness-notes",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "chance-attempt-rewards",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "review-record",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "ledger-attempts",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "ledger-overview",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "ledger-pairs",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "ledger-creatures",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "ledger-family-tree",
+      "w": 1440,
+      "h": 900,
+      "issues": []
+    },
+    {
+      "name": "ledger-attempts",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "ledger-overview",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "ledger-pairs",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "ledger-creatures",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "ledger-family-tree",
+      "w": 390,
+      "h": 844,
+      "issues": []
+    },
+    {
+      "name": "ledger-attempts",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "ledger-overview",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "ledger-pairs",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "ledger-creatures",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "ledger-family-tree",
+      "w": 360,
+      "h": 740,
+      "issues": []
+    },
+    {
+      "name": "ledger-attempts",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "ledger-overview",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "ledger-pairs",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "ledger-creatures",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "ledger-family-tree",
+      "w": 1920,
+      "h": 720,
+      "issues": []
+    },
+    {
+      "name": "ledger-attempts",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "ledger-overview",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "ledger-pairs",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "ledger-creatures",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "ledger-family-tree",
+      "w": 390,
+      "h": 500,
+      "issues": []
+    },
+    {
+      "name": "ledger-attempts",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "ledger-overview",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "ledger-pairs",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "ledger-creatures",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    },
+    {
+      "name": "ledger-family-tree",
+      "w": 844,
+      "h": 390,
+      "issues": []
+    }
+  ],
+  "errors": [],
+  "readOnlyBrowsing": true,
+  "nestedReturns": true,
+  "exactlyOnceAttempt": true,
+  "attemptToLedger": true
+}

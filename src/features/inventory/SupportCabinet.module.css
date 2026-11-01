@@ -5,3 +5,12 @@
 .summary>.effect{font-size:21px;font-weight:bold;color:#d4e6b2!important}.summary>.warning{font-size:15px;font-weight:normal}.dialog :is(h2,button){color:#fff1d2}@media(max-width:700px){.summary>.effect{font-size:17px}.summary>.warning{font-size:13px}}@media(max-height:550px){.summary>.effect{font-size:14px}.summary>.warning{font-size:12px}}
 @media(max-height:550px){.cabinet .summary .heading button{min-height:22px;width:24px;height:24px;padding:1px;border-width:2px}.summary{gap:4px}.summary>.warning{padding:5px;font-size:11px;line-height:1.2}.summary>.effect{font-size:13px;line-height:1.2}.costs>div{padding:4px}.selected{gap:5px}}
 .cabinet .help{border:1px solid #c3a169;border-image:none;border-radius:50%;width:24px;height:24px;min-height:24px;padding:0;font-size:14px;background:#0c2937}.tooltip{border:1px solid #c3a169;background:#0b2837;color:#fff1d2;font:15px/1.4 WindowTinos,Georgia,serif;padding:12px;border-radius:5px}
+
+.cabinet .cream{border-image-source:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/cream.svg')}
+.costs>div,.changes span,.warning{border-radius:6px}
+
+/* Keep nested-record Close readable against the wooden header. */
+.dialog>header button{color:#fff0bd;background:none;border:4px solid transparent;border-image:url('/images/ui/breeding-desk-a/fidelity-v2/button.svg') 18 fill / 9px stretch;min-height:34px;padding:4px 10px;font:700 14px WindowTinos,Georgia,serif;text-shadow:none;white-space:nowrap}
+.record button{border-radius:6px}
+
+.dialog>header button{flex-shrink:0}

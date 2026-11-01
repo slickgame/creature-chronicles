@@ -13,3 +13,8 @@
 @media(max-height:600px){.panel .statTable :is(th,td){padding:1px 3px}.statTable .grade{font-size:12px;padding:1px 4px}}
 @media(max-height:600px){.content[data-inspect-section=Lineage]{gap:4px}.lineageRisk{padding:5px;gap:3px}.parentNodes>span,.markers>span{padding:2px 7px}}
 @media(min-width:701px) and (min-height:601px) and (max-height:800px){.panel.panel{padding:18px;gap:11px}.content{gap:10px}.nameHeading{gap:4px}.vital{padding:9px 10px;gap:6px}.vital dt>img,.vital dt>.symbol{width:20px;height:20px}.vital dd{font-size:25px}.roles{padding-top:7px;gap:7px}.panel .statTable :is(th,td){padding:8px 5px}.skillList{gap:5px}.skill{padding:6px 8px}.skillName .help{min-height:20px;padding:0;font-size:15px}.skillName small{font-size:11px}.workArt,.skillName>.symbol{width:30px;height:30px}}
+
+/* Rounded cream role chips follow the same control family as the journal windows. */
+.panel .help[data-kind=chip]{border-image-source:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/cream.svg')}
+
+.helpDialog>header button{flex-shrink:0}

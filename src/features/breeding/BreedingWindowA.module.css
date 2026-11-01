@@ -8,3 +8,7 @@
 .ledgerArt{height:110px;min-height:0;flex:none;display:flex;justify-content:center}.ledgerArt .profile{height:100%;width:100%}.ledgerArt .profile>img{max-height:100%;width:100%;object-fit:contain}@media(max-width:700px){.ledgerArt{height:95px}}@media(max-height:550px){.ledgerArt{height:60px}}
 .shell .record{flex:0 1 90px;max-height:90px}.list{justify-content:flex-start}@media(max-width:700px){.shell .record{flex-basis:75px;max-height:75px}}@media(max-height:550px){.shell .record{flex-basis:55px;max-height:55px}.shell[data-breeding-book=attempt-review] .pageLabel{font-size:0;gap:0}.shell[data-breeding-book=attempt-review] .miniParent small:last-child{display:none}.shell[data-breeding-book=attempt-review] .miniParent{min-height:44px}.shell[data-breeding-book=attempt-review] .miniParent img{height:36px}}
 .shell :is(dd,td,strong){overflow-wrap:anywhere}@media(max-width:700px){.shell[data-layout=standard][data-minimized=false] .headerActions>button:last-child{display:none}}
+
+/* Shared finishing pass: consistent corners without changing the approved navy/gold frames. */
+.shell :is(input,select){border-radius:6px}
+.stats>div,.miniParent,.note,.good,.warning,.countStrip>div,.optionCard,.namedFallback{border-radius:6px}

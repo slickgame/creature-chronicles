@@ -9,3 +9,11 @@
 @media(max-height:600px){.table :is(td,th){padding:1px 3px}.journal .card h3{font-size:16px}.card p{font-size:12px;line-height:1.2}.card{gap:4px}.caveat{font-size:10px}.ruleHint{font-size:10px}}
 @media(max-height:450px){.heading small{display:none}.heading h2{font-size:18px}.heading{padding-bottom:3px}.journal .table :is(td,th){padding:0 3px}.journal .table td{font-size:15px}.journal .table thead th{font-size:11px}.journal .table .help{width:16px;height:16px;min-height:16px;font-size:10px}.statLabel img{width:14px;height:14px}.journal .grade{font-size:10px;padding:1px 3px}.section{gap:4px}.note,.warning{padding:4px;font-size:11px}}
 @media(max-height:450px){.journal .card{padding:4px;gap:3px}.journal .card h3{font-size:14px}.journal .card .warning{font-size:10px;padding:3px;line-height:1.1}.journal .card .help,.journal .ruleHint .help{width:16px;height:16px;min-height:16px;font-size:10px}.odds>div{padding:3px 5px}.odds dt{font-size:9px}.odds dd{font-size:16px}.journal .section>footer button{min-height:20px;font-size:10px;padding:1px 5px}.journal .section>footer{font-size:10px}.caveat{font-size:10px}.ruleHint{font-size:10px}.journal .content{gap:5px}.card p{font-size:10px;line-height:1.1}}
+
+.journal .tabs button,.journal .content>footer button,.journal .parents footer button{border-image-source:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/cream.svg')}
+.journal .tabs button[aria-pressed=true]{border-image-source:url('/images/ui/pair-options-journal-b/fidelity-v3/emerald.svg')}
+.odds>div,.note,.warning,.modifier,.card,.family{border-radius:6px}
+
+.recordDialog>header button{color:#392b1c;background:none;border:4px solid transparent;border-image:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/cream.svg') 16 fill / 8px stretch;min-height:34px;padding:4px 10px;font:700 14px WindowTinos,Georgia,serif;white-space:nowrap}
+
+.recordDialog>header button{flex-shrink:0}

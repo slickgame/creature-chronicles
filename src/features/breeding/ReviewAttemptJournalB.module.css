@@ -53,3 +53,8 @@
 @media(max-height:550px){.review .chance{height:67px;padding:3px 30px 11px;gap:0}.review .chance h2{font-size:15px}.review .chance>strong{font-size:26px}.chance>p{font-size:9px}.warnings{padding-top:10px;padding-bottom:12px}.warnings li{font-size:12px}}
 @media(min-width:701px) and (max-height:500px){.review .chance{height:76px;padding:4px 35px 13px}.review .chance h2{font-size:15px}.review .chance>strong{font-size:29px}.chance>p{font-size:10px}}
 .review .chance{background-image:url('/images/ui/review-attempt-journal-b/chance-plaque.webp')}
+
+.review .costs table,.warnings,.restriction,.clear{border-radius:6px}
+@media(max-width:380px) and (min-height:700px){.review .header h1{font-size:22px}.review .header{gap:4px}.review .header>span{font-size:17px}}
+
+@media(max-height:550px){.review .header{height:36px;min-height:36px;padding-bottom:4px}}
