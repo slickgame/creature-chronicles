@@ -39,8 +39,8 @@
 .footer{display:flex;flex-direction:column;gap:20px;flex:none;margin-top:auto;padding-bottom:0}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
 .actions button{display:flex;align-items:center;justify-content:center;gap:9px;font-size:20px;min-height:48px;padding:6px 5px}
-.actions button[data-primary] .icon{filter:brightness(0) invert(.93) sepia(.6)}
-.footer>small{font-size:15px;font-style:italic;text-align:center;align-self:center;background:#f0d5a9d9;padding:1px 5px}
+.actions button[data-primary] .icon{filter:drop-shadow(0 1px 1px #012d1b)}
+.footer>small{font-size:15px;font-style:italic;text-align:center;align-self:center;background:transparent;padding:1px 5px}
 .unavailable{font-size:14px;text-align:center;color:#6c3a1a!important}
 .changes>small{font-size:12px;text-align:center}
 .focusTabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:none}.focusTabs button{font-size:14px;min-height:30px;padding:3px}

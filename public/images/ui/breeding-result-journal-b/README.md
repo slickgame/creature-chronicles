@@ -18,3 +18,5 @@ PNG masters were alpha-trimmed with sharp threshold 8, resized to height 1600 (f
 Real immutable attempt values drive names/day/chance, Energy and progression. Immediate receipt captures pre/post Hearts once; an unavailable historical snapshot shows the exact recorded cost with an explicit explanation. No costs, odds, rolls, save schema or transaction rules change. Scenes are optional even with Full Scenes selected. Open Ledger selects the exact attempt; Open Nursery follows the explicit care ID and offers return to this receipt. No repeated attempt button exists on the main receipt; further attempts require a fresh guarded review.
 
 See `docs/BREEDING_RESULT_JOURNAL_B_RUNTIME.md` and `docs/validation/breeding-result-journal-b/results.json` for runtime proof. PR21 remains draft/unmerged.
+
+Icon refinement: six original transparent 64px SVG illustrations now use filled parchment/brass/copper silhouettes (scene frame, sealed record, open ledger, egg nest, gold XP star and copper heart). No icon font dependency. The footer is plain “Results saved” on a transparent background; the redundant paid/viewing sentence is removed.

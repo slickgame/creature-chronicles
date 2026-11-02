@@ -19,3 +19,5 @@ PR21 stays draft/unmerged. Publish the feature-branch Vercel preview only; no pr
 Final local production verification: optimized build and TypeScript PASS; focused lint 0 errors (7 image/hook advisories); 7/7 care/selection data tests PASS; dedicated browser suite 30 captures/states, zero frame/text/viewport findings and zero page errors. See validation/results.json.
 
 Broader eight-window production regression: 159 states, zero layout findings; original choose → guarded review → exactly one attempt → saved Ledger record flow PASS. Final landscape heading uses a parchment backing so the engraved barn never interferes with the live title.
+
+November 2 icon/text refinement: six distinct filled brass/copper/ivory SVG icons replace the thin outline symbols. The footer now reads only “Results saved” with a transparent background. Removed the main paid/viewing sentence. Production build and all 30 receipt browser states pass, including decoded icon assets, exact footer text and computed transparent background.
