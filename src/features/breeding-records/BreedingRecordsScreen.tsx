@@ -9,6 +9,7 @@ import {useGameContext} from '@/state/GameProvider';
 import {useNavigation,type BreedingLedgerSelection} from '@/features/navigation/NavigationContext';
 import type {NurseryPage} from '@/features/nursery/NurseryBook';
 import {JournalRecord} from '@/features/breeding/ChanceJournalB';
+import {SavedScenesFolioA} from '@/features/breeding/SavedScenesFolioA';
 import {DetailButton} from '@/features/ui/DetailButton';
 import {breedingWindowStyles as s} from '@/features/breeding/BreedingWindowA';
 import type {BreedingAttemptRecord} from '@/types/breeding';
@@ -30,6 +31,7 @@ export function BreedingRecordsScreen({onClose}:{onClose:()=>void;embedded?:bool
  // Reopen nested records only after the archive dialog has entered the native top layer.
  const [mounted,setMounted]=useState(false);
  useEffect(()=>{const frame=requestAnimationFrame(()=>setMounted(true));return()=>cancelAnimationFrame(frame);},[]);
+ const [sceneAttempt,setSceneAttempt]=useState<{record:BreedingAttemptRecord;scene:'process'|'outcome'}|null>(null);
  const [rowPage,setRowPage]=useState<number|null>(null);
  const [compact,setCompact]=useState(false),[focused,setFocused]=useState(false),[focus,setFocus]=useState<'Records'|'Selected attempt'>('Records');
  useEffect(()=>{const update=()=>{setFocused(innerHeight<780);setCompact(innerHeight<600&&innerWidth<=700)};const id=requestAnimationFrame(update);addEventListener('resize',update);return()=>{cancelAnimationFrame(id);removeEventListener('resize',update)}},[]);
@@ -58,7 +60,7 @@ export function BreedingRecordsScreen({onClose}:{onClose:()=>void;embedded?:bool
   {key:'notes',title:'Saved session notes',content:<>{[a.processText,a.outcomeFlavorText,a.pregnancyBlockedReason].filter(Boolean).map((text,i)=><p key={i}>{text}</p>)}</>},
   ...a.progressionEvents.flatMap((e,i)=>[{key:`progress-${i}`,title:`${e.displayName} · Growth`,content:<><Metrics values={[["XP",`${e.xpBefore} → ${e.xpAfter}`],['Level',`${e.levelBefore} → ${e.levelAfter}`],['Level ups',e.levelUps]]}/><p>{Object.entries(e.statGrowth).map(([key,n])=>`${key} +${n}`).join(' · ')||'No numeric stat growth.'}</p><p>{Object.entries(e.gradeChanges??{}).map(([key,g])=>`${key}: ${g}`).join(' · ')||'Innate grades unchanged.'}</p></>},...e.abilityTriggers.map((text,j)=>({key:`trigger-${i}-${j}`,title:`${e.displayName} · Talent`,content:<p>{text}</p>}))]),
   ...care.flatMap(c=>[{key:`care-${c.id}`,title:`${c.name} · Nursery`,content:<><p>{c.stage}</p><button onClick={()=>visit(c)}>Open matching Nursery record</button></>},...comparison(a,c).map(p=>({...p,key:`${c.id}-${p.key}`}))]),
-  ...([['pairing','Pairing scene',a.pairingImagePath],['outcome','Outcome scene',a.outcomeImagePath]]as const).map(([key,title,path])=>({key,title,content:path?<img className={local.scene} src={path} alt={title}/>:<p>No scene saved.</p>})),
+  ...([['pairing','Pairing scene',a.pairingImagePath],['outcome','Outcome scene',a.outcomeImagePath]]as const).map(([key,title,path])=>({key,title,content:path?<button onClick={()=>setSceneAttempt({record:a,scene:key==='pairing'?'process':'outcome'})}>View {title.toLowerCase()}</button>:<p>No scene saved.</p>})),
   ...(!care.length?[{key:'no-care',title:'Offspring records',content:<p>No linked active pregnancy, egg or birth record. Older records without explicit IDs are not guessed from parent names.</p>}]:[])];
  };
  const treeChoices=[...(save.creatures??[]).map(c=>({id:c.creatureId,name:c.nickname})),...(save.birthHistory??[]).filter(b=>!save.creatures?.some(c=>c.creatureId===b.creatureId)).map(b=>({id:b.creatureId,name:`${b.nickname} · Archived`}))];
@@ -99,6 +101,7 @@ export function BreedingRecordsScreen({onClose}:{onClose:()=>void;embedded?:bool
  <footer className={local.footer}>{activeAttempt&&<><div className={local.actions}><button onClick={()=>patch({detail:activeAttempt.attemptId,detailPage:'Summary'})}>Complete record</button><button data-primary disabled={!canSelect(activeAttempt.giverId)||!canSelect(activeAttempt.receiverId)} onClick={()=>focusPair(activeAttempt.giverId,activeAttempt.receiverId)}>Use This Pair</button></div>{(!canSelect(activeAttempt.giverId)||!canSelect(activeAttempt.receiverId))&&<small>A participant is archived or no longer available.</small>}</>}<small>Saved history. Use This Pair restores selection only.</small></footer>
  </article></main>
  {mounted&&selectedAttempt&&<JournalRecord title="Complete Attempt Record" returnTo="Breeding Ledger" onClose={()=>patch({detail:undefined,detailPage:undefined})}><nav className={local.recordTabs} aria-label="Complete record sections">{recordGroups.map(g=><button key={g} aria-pressed={recordGroup===g} onClick={()=>patch({detailPage:g})}>{g}</button>)}</nav>{recordPages.length?recordPages.map(p=><section key={p.key}><h3>{p.title}</h3>{p.content}</section>):<p>No saved records in this section.</p>}</JournalRecord>}
+ {sceneAttempt&&<SavedScenesFolioA result={sceneAttempt.record} initialScene={sceneAttempt.scene} returnLabel="Back to record" onClose={()=>setSceneAttempt(null)}/>}
  {popup&&<JournalRecord title={popup.title} returnTo="Breeding Ledger" onClose={()=>setPopup(null)}>{popup.pages.map(p=><section key={p.key}><h3>{p.title}</h3>{p.content}</section>)}</JournalRecord>}
  </>;
 }

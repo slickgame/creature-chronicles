@@ -1,0 +1,127 @@
+{
+  "reports": [
+    {
+      "name": "folio-1440-900-Attempt",
+      "issues": []
+    },
+    {
+      "name": "folio-1440-900-Outcome",
+      "issues": []
+    },
+    {
+      "name": "notes-1440-900",
+      "issues": []
+    },
+    {
+      "name": "fullscreen-1440-900",
+      "issues": []
+    },
+    {
+      "name": "folio-390-844-Attempt",
+      "issues": []
+    },
+    {
+      "name": "folio-390-844-Outcome",
+      "issues": []
+    },
+    {
+      "name": "notes-390-844",
+      "issues": []
+    },
+    {
+      "name": "fullscreen-390-844",
+      "issues": []
+    },
+    {
+      "name": "folio-360-740-Attempt",
+      "issues": []
+    },
+    {
+      "name": "folio-360-740-Outcome",
+      "issues": []
+    },
+    {
+      "name": "notes-360-740",
+      "issues": []
+    },
+    {
+      "name": "fullscreen-360-740",
+      "issues": []
+    },
+    {
+      "name": "folio-1920-720-Attempt",
+      "issues": []
+    },
+    {
+      "name": "folio-1920-720-Outcome",
+      "issues": []
+    },
+    {
+      "name": "notes-1920-720",
+      "issues": []
+    },
+    {
+      "name": "fullscreen-1920-720",
+      "issues": []
+    },
+    {
+      "name": "folio-390-500-Attempt",
+      "issues": []
+    },
+    {
+      "name": "folio-390-500-Outcome",
+      "issues": []
+    },
+    {
+      "name": "notes-390-500",
+      "issues": []
+    },
+    {
+      "name": "fullscreen-390-500",
+      "issues": []
+    },
+    {
+      "name": "folio-844-390-Attempt",
+      "issues": []
+    },
+    {
+      "name": "folio-844-390-Outcome",
+      "issues": []
+    },
+    {
+      "name": "notes-844-390",
+      "issues": []
+    },
+    {
+      "name": "fullscreen-844-390",
+      "issues": []
+    },
+    {
+      "name": "fallback-art",
+      "issues": []
+    },
+    {
+      "name": "missing-art",
+      "issues": []
+    },
+    {
+      "name": "long-names-1440-900",
+      "issues": []
+    },
+    {
+      "name": "long-names-390-844",
+      "issues": []
+    },
+    {
+      "name": "long-names-390-500",
+      "issues": []
+    }
+  ],
+  "errors": [],
+  "readOnlyBrowsing": true,
+  "uncroppedArt": true,
+  "previousNext": true,
+  "notes": true,
+  "fullscreenEscapeReturn": true,
+  "exactResultReturn": true
+}
