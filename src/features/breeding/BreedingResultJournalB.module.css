@@ -1,0 +1,70 @@
+@font-face{font-family:ResultTinos;src:url('/images/ui/breeding-desk-a/fonts/Tinos-Regular.woff');font-weight:400;font-display:swap}
+@font-face{font-family:ResultTinos;src:url('/images/ui/breeding-desk-a/fonts/Tinos-Bold.woff');font-weight:700;font-display:swap}
+@font-face{font-family:ResultTinos;src:url('/images/ui/breeding-result-journal-b/fonts/Tinos-BoldItalic.woff');font-weight:700;font-style:italic;font-display:swap}
+@font-face{font-family:ResultTinos;src:url('/images/ui/breeding-result-journal-b/fonts/Tinos-Italic.woff');font-weight:400;font-style:italic;font-display:swap}
+.shell,.recordShell{height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:8px;background:linear-gradient(#51371911,#51371911),url('/images/ui/pair-options-journal-b/fidelity-v2/ranch.webp') center/cover;color:#34200d;font:18px/1.15 ResultTinos,Georgia,serif;overflow:hidden}
+.shell *,.recordShell *{box-sizing:border-box;min-width:0}
+.shell :is(h1,h2,p),.recordShell :is(h2,h3,p){margin:0;color:inherit;text-shadow:none}
+.shell button,.recordShell button{font:700 18px/1.1 ResultTinos,Georgia,serif;color:#41250f;border:6px solid transparent;border-image:url('/images/ui/breeding-result-journal-b/cream.svg') 16 fill / 10px stretch;background:none;min-height:42px;padding:5px 8px;cursor:pointer;text-shadow:0 1px #fff6}
+.shell button:hover:not(:disabled),.recordShell button:hover:not(:disabled){filter:brightness(1.06)}
+.shell button:disabled,.recordShell button:disabled{opacity:.58;cursor:default;filter:grayscale(.7)}
+.shell button:focus-visible,.recordShell button:focus-visible{outline:2px solid #6b4122;outline-offset:2px}
+.shell button[data-primary],.shell button[aria-pressed=true],.recordShell button[aria-pressed=true]{border-image-source:url('/images/ui/breeding-result-journal-b/emerald.svg');color:#fff2d2;text-shadow:0 1px 2px #12351f}
+.book{width:min(555px,100%);height:min(940px,calc(100dvh - 16px));padding:48px 37px 65px 75px;background:url('/images/ui/breeding-result-journal-b/folio.webp') center/100% 100% no-repeat;filter:drop-shadow(0 7px 12px #20100599);display:flex;flex-direction:column;gap:12px}
+.header{height:36px;min-height:36px;display:flex;align-items:center;flex:none}
+.header button{font-size:17px;min-height:34px;padding:3px 8px}
+.title{text-align:center;flex:none;padding-top:19px}
+.title h1{font-size:43px;font-style:italic;font-weight:700;line-height:1.05;letter-spacing:-.8px;white-space:nowrap}
+.title>img{height:22px;width:65%;margin-top:7px}
+.outcome{position:relative;height:123px;flex:none;display:flex;align-items:center;padding-left:38px}
+.banner{height:64px;width:100%;background-size:100% 100%;background-repeat:no-repeat;display:flex;align-items:center;justify-content:center;padding:7px 18px 7px 60px}
+.banner strong{font-size:30px;font-style:italic;line-height:1.05;color:#fff0cf;text-shadow:0 2px 1px #193a20;white-space:nowrap}
+.seal{position:absolute;left:0;top:0;width:116px;height:139px;object-fit:contain;filter:drop-shadow(0 2px 2px #66301d66)}
+.identity{text-align:center;flex:none;padding:0 6px}
+.identity h2{font-size:34px;font-weight:700;line-height:1.08;overflow-wrap:anywhere}
+.identity p{font-size:19px;margin-top:8px}
+.changes{display:grid;gap:13px;flex:none}
+.tableFrame{border:1px solid #91632e;border-radius:6px;box-shadow:inset 0 0 0 2px #f5d7a066;background:#f8ddb029;padding:1px}
+.table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:center;font-size:21px}
+.table col:nth-child(1){width:25%}.table col:nth-child(2){width:32%}.table col:nth-child(3){width:27%}.table col:nth-child(4){width:16%}
+.table :is(th,td){padding:9px 3px;border-right:1px solid #a0774566;border-bottom:1px solid #a0774566;line-height:1.1;overflow-wrap:anywhere}
+.table thead th{font-weight:700;background:#d9ac6c44;padding-top:6px;padding-bottom:6px;font-size:20px}
+.table tbody th{font-weight:700}.table tbody td{white-space:nowrap}
+.table tr>:last-child{border-right:0}.table tbody tr:last-child>*{border-bottom:0}
+.progress{display:grid;grid-template-columns:1.15fr 1fr;align-items:center;border:1px solid #a77c3d;border-radius:6px;padding:8px 5px;font-size:17px;gap:4px;background:#f6d8a333}
+.progress>span{display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}
+.progress>span+span{border-left:1px solid #9a703c88}
+.icon{width:24px;height:24px;object-fit:contain;vertical-align:middle;flex:none}
+.paid{text-align:center;font-size:19px;font-style:italic;line-height:1.25;flex:none;margin:2px 0!important}
+.footer{display:flex;flex-direction:column;gap:20px;flex:none;margin-top:auto;padding-bottom:0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
+.actions button{display:flex;align-items:center;justify-content:center;gap:9px;font-size:20px;min-height:48px;padding:6px 5px}
+.actions button[data-primary] .icon{filter:brightness(0) invert(.93) sepia(.6)}
+.footer>small{font-size:15px;font-style:italic;text-align:center;align-self:center;background:#f0d5a9d9;padding:1px 5px}
+.unavailable{font-size:14px;text-align:center;color:#6c3a1a!important}
+.changes>small{font-size:12px;text-align:center}
+.focusTabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;flex:none}.focusTabs button{font-size:14px;min-height:30px;padding:3px}
+.compactOutcome{font-weight:700;text-align:center;padding:5px;border:1px solid #a88143;border-radius:5px;background:#cfd29b99;flex:none}
+.paidSummary{border:1px solid #9b723c;border-radius:5px;padding:10px;text-align:center;display:grid;gap:6px;flex:none}.paidSummary span{font-size:14px}
+.record{width:min(800px,100%);max-height:calc(100dvh - 26px);padding:20px;background:#f2d9ac url('/images/ui/inheritance-journal-b/paper.webp') center/cover;border:double 5px #8b6033;border-radius:8px;box-shadow:0 8px 25px #2c180b77;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.record>header{display:flex;align-items:center;gap:20px;padding-bottom:12px;border-bottom:1px solid #9d7646;flex:none}.record>header button{flex:none;font-size:16px;min-height:36px}.record h2{font-size:26px}
+.recordBody{overflow:auto;min-height:0;display:flex;flex-direction:column;gap:15px;padding-top:14px;line-height:1.4;overflow-wrap:anywhere}.recordBody section{display:grid;gap:9px;border-bottom:1px solid #b28c5466;padding-bottom:12px}.recordBody h3{font-size:23px}.recordBody p{font-size:17px}
+.recordTabs{display:flex;gap:7px;flex-wrap:wrap;flex:none}.recordTabs button{font-size:15px;min-height:34px;padding:4px 8px}
+.nextActions{display:grid;gap:10px}.nextActions button{align-self:start}
+.sceneImage{width:100%;height:56dvh;object-fit:contain;flex:none;background:#2e251b}
+@media(max-width:700px){.shell{padding:0}.book{width:min(430px,100%);height:100dvh;max-height:940px;padding:35px 28px 50px 55px;gap:12px}.header{height:33px;min-height:33px}.header button{font-size:14px;min-height:31px}.title{padding-top:28px}.title h1{font-size:34px}.title>img{height:18px;margin-top:5px}.outcome{height:103px;padding-left:28px}.banner{height:54px;padding-left:46px;padding-right:13px}.banner strong{font-size:23px}.seal{width:92px;height:117px}.identity h2{font-size:29px}.identity p{font-size:16px;margin-top:6px}.table{font-size:17px}.table thead th{font-size:16px}.table :is(th,td){padding:9px 2px}.changes{gap:12px}.progress{font-size:12px;padding:8px 3px}.progress .icon{width:19px;height:19px}.progress>span{gap:4px}.paid{font-size:16px}.actions{gap:10px 7px}.actions button{min-height:42px;font-size:16px;gap:5px;padding:5px 2px}.actions .icon{width:21px;height:21px}.footer{gap:17px}.footer>small{font-size:12px}.record{padding:12px}.record>header{gap:10px;flex-wrap:wrap}.record h2{font-size:22px}.recordBody p{font-size:15px}.recordBody .table{font-size:14px}.recordBody .table thead th{font-size:14px}.recordBody .table :is(th,td){padding:7px 1px}.recordTabs button{font-size:13px}}
+@media(min-height:651px) and (max-height:800px){.book{padding-top:35px;padding-bottom:49px;gap:9px}.title{padding-top:13px}.title h1{font-size:37px}.title>img{height:17px;margin-top:3px}.outcome{height:99px}.seal{height:115px;width:95px}.banner{height:53px}.banner strong{font-size:26px}.identity h2{font-size:29px}.identity p{margin-top:5px;font-size:16px}.table :is(th,td){padding:7px 2px}.table{font-size:18px}.table thead th{font-size:17px}.progress{font-size:14px;padding:6px 3px}.paid{font-size:17px}.footer{gap:15px}.actions button{font-size:18px;min-height:42px}}
+@media(max-width:380px) and (min-height:651px){.book{padding-left:50px;padding-right:25px}.title h1{font-size:30px}.banner strong{font-size:21px}.banner{padding-left:45px}.table{font-size:15px}.table thead th{font-size:14px}.progress{font-size:11px}.progress .icon{width:17px;height:17px}.actions button{font-size:14px}.actions .icon{width:18px;height:18px}.paid{font-size:15px}}
+@media(max-height:650px){.book{padding:24px 38px 32px 70px;gap:8px}.header{height:28px;min-height:28px}.header button{font-size:13px;min-height:27px;padding:2px 6px}.title{padding-top:0}.title h1{font-size:31px}.title>img{height:12px;margin-top:2px}.outcome{height:77px}.seal{height:92px;width:77px}.banner{height:46px;padding-left:40px}.banner strong{font-size:24px}.identity h2{font-size:25px}.identity p{font-size:14px;margin-top:3px}.table{font-size:16px}.table thead th{font-size:15px}.table :is(th,td){padding:7px 2px}.progress{font-size:13px;padding:6px 3px}.progress .icon{width:18px;height:18px}.changes{gap:8px}.paid{font-size:14px}.footer{gap:9px}.footer>small{font-size:11px}.actions{gap:7px}.actions button{min-height:34px;font-size:16px;padding:3px 2px}.actions .icon{width:18px;height:18px}.paidSummary{padding:7px;font-size:16px}.paidSummary span{font-size:12px}.unavailable{font-size:12px}.record{padding:10px;max-height:calc(100dvh - 16px)}.recordShell{padding:8px}.record h2{font-size:20px}.recordBody p{font-size:14px}.recordBody h3{font-size:20px}.recordBody{gap:10px}.recordTabs button{font-size:12px;min-height:29px}.record>header button{font-size:13px;min-height:29px}.record>header{padding-bottom:7px}.sceneImage{height:48dvh}}
+@media(max-width:700px) and (max-height:650px){.book{padding:24px 27px 32px 51px;gap:7px}.title h1{font-size:28px}.outcome{height:71px;padding-left:23px}.banner strong{font-size:21px}.seal{height:83px;width:68px}.banner{height:41px;padding-left:37px}.identity h2{font-size:22px}.paid{font-size:13px}.actions button{font-size:14px}.focusTabs button{font-size:12px;min-height:28px}.progress{font-size:11px}.table{font-size:14px}.table thead th{font-size:13px}.footer{gap:8px}}
+@media(min-width:701px) and (max-height:500px){.book{width:min(800px,100%);padding:18px 65px 24px 100px;gap:6px}.header{position:absolute;top:22px;left:100px}.title{padding:0;text-align:center;min-height:37px}.title h1{font-size:29px}.title>img{display:none}.focusTabs{align-self:center;width:70%}.outcome{height:73px;width:70%;align-self:center}.identity h2{font-size:24px}.identity p{font-size:13px}.identity{padding:0}.footer{gap:7px}.actions{width:80%;align-self:center;gap:7px}.actions button{min-height:30px;font-size:15px}.paidSummary{padding:6px;width:80%;align-self:center}.paidSummary span{font-size:11px}.changes{width:80%;align-self:center;gap:6px}.table :is(th,td){padding:4px}.progress{padding:4px}.paid{font-size:12px}.compactOutcome{font-size:14px;padding:3px}.footer>small{font-size:10px}}
+/* The wax tails stay within the outcome band's physical bounds. */
+.seal{height:100%;width:27%}
+
+.book{background-image:url('/images/ui/breeding-result-journal-b/folio-v2.webp')}
+@media(max-height:650px){.shell[data-focused=true] .title>img{display:none}.book{gap:6px}.identity p{line-height:1.15}.progress{gap:2px}}
+@media(min-width:701px) and (max-height:500px){.actions{grid-template-columns:repeat(4,minmax(0,1fr));width:100%}.actions button{font-size:13px;gap:4px}.actions .icon{width:16px;height:16px}.outcome{height:58px}.banner{height:42px}.banner strong{font-size:21px}.identity h2{font-size:21px}.paidSummary{padding:4px}.footer{gap:5px}}
+.shell[data-long-names=true] .table tbody th{font-size:15px}
+@media(max-width:700px){.shell[data-long-names=true] .table tbody th{font-size:12px}.shell[data-long-names=true] .identity h2{font-size:23px}}
+@media(max-height:650px){.shell[data-long-names=true] .identity h2{font-size:17px}.shell[data-long-names=true] .table tbody th{font-size:11px}.shell[data-long-names=true] .table :is(th,td){padding-top:4px;padding-bottom:4px}}
+@media(min-width:701px) and (max-height:500px){.title h1{display:inline-block;padding:0 12px;background:linear-gradient(90deg,transparent,#f3d5a2 8%,#f3d5a2 92%,transparent);border-radius:6px}}

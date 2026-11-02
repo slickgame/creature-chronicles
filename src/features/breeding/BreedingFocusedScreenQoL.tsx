@@ -12,8 +12,6 @@ import {
   PLAYER_PARTICIPANT_ID,
 } from "@/data/breeding";
 import {
-  BREEDING_OUTCOME_FAILURE_FALLBACK_PATH,
-  BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH,
   BREEDING_SCENE_FALLBACK_PATH,
   getBreedingSceneImagePath,
 } from "@/data/breedingSceneImages";
@@ -29,6 +27,8 @@ import styles from "./BreedingFocusedScreenQoL.module.css";
 import { BreedingDeskA } from "./BreedingDeskA";
 import {PairOptionsA,ChanceWindowA,AttemptReviewA} from "./BreedingPairWindowsA";
 import { BreedingParentPicker } from "./BreedingParentPicker";
+import {BreedingResultJournalB,type ResultHeartSnapshot} from "./BreedingResultJournalB";
+import {useNavigation} from "@/features/navigation/NavigationContext";
 import { BreedingPreviewBook } from "./BreedingPreviewBook";
 import { getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
 
@@ -45,7 +45,7 @@ type FilterMode =
   | "bovine"
   | "lapine"
   | "equine";
-type ResultPage = "process" | "outcome";
+
 type SceneMode = "full" | "quick";
 
 type PairMemory = {
@@ -205,6 +205,16 @@ export function BreedingFocusedScreen() {
   const [sortMode, setSortMode] = useState<SortMode>("name");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
   const [result, setResult] = useState<BreedingAttemptRecord | null>(null);
+  const [receiptHearts,setReceiptHearts]=useState<ResultHeartSnapshot|null>(null);
+  const resultNavigation=useNavigation();
+  const resultReturn=resultNavigation.breedingResultReturn;
+  useEffect(()=>{
+    if(!currentSave||!resultReturn?.returning||resultReturn.saveId!==currentSave.saveId)return;
+    const saved=currentSave.breeding?.attempts.find(a=>a.attemptId===resultReturn.attemptId);
+    const frame=requestAnimationFrame(()=>{if(saved){setResult(saved);setReceiptHearts(resultReturn.hearts);}
+      resultNavigation.setBreedingResultReturn(value=>value?{...value,returning:false}:null);});
+    return()=>cancelAnimationFrame(frame);
+  },[currentSave,resultReturn,resultNavigation.setBreedingResultReturn]);
   const [message, setMessage] = useState("Choose a giver and receiver, then review the chance and resource costs.");
   const [isAttempting, setIsAttempting] = useState(false);
   const [warningItems, setWarningItems] = useState<ResourceWarning[]>([]);
@@ -406,6 +416,7 @@ export function BreedingFocusedScreen() {
         setMessage("Breeding attempt could not be completed. Review the pair status and resources.");
         return;
       }
+      setReceiptHearts(giver&&receiver?{giver:{before:giver.hearts,after:Math.max(0,giver.hearts-attempt.heartCost)},receiver:{before:receiver.hearts,after:Math.max(0,receiver.hearts-attempt.heartCost)}}:null);
       setResult(attempt);
       setMessage(attempt.resultText);
     } finally {
@@ -494,8 +505,9 @@ export function BreedingFocusedScreen() {
       ) : null}
 
       {result ? (
-        <BreedingResultModal
+        <BreedingResultJournalB
           result={result}
+          hearts={receiptHearts}
           sceneMode={sceneMode}
           canBreedAgain={Boolean(preview?.canAttempt)}
           breedAgainReason={blockedReasons[0] ?? null}
@@ -505,8 +517,7 @@ export function BreedingFocusedScreen() {
             setResult(null);
             setSelectorRole("receiver");
           }}
-          onViewPregnancy={goToNursery}
-          onClose={() => setResult(null)}
+          onClose={() => {setResult(null);resultNavigation.setBreedingResultReturn(null);}}
         />
       ) : null}
     </main>
@@ -535,56 +546,4 @@ function WarningModal({ warnings, participants, preview, onCancel, onConfirm }: 
     ...(preview?participants.map((participant,index)=>({key:`cost-${index}`,title:`${participant.displayName} · Exact costs`,content:<CostRow participant={participant} preview={preview}/>})):[]),
     ...warnings.map((warning,index)=>({key:`warning-${index}`,title:`${warning.participantName} · ${warning.resource}`,content:<><h3>{warning.resource}: {warning.before} → {warning.after}</h3><p>Cost: {warning.cost}</p><p>{warning.consequence}</p></>}))
   ]} footer={<><button onClick={onCancel}>Cancel</button><button className={styles.dangerButton} onClick={onConfirm}>Continue Anyway</button></>}/>;
-}
-
-function BreedingResultModal({
-  result,
-  sceneMode,
-  canBreedAgain,
-  breedAgainReason,
-  onBreedAgain,
-  onKeepGiverChooseReceiver,
-  onChangePair,
-  onViewPregnancy,
-  onClose,
-}: {
-  result: BreedingAttemptRecord;
-  sceneMode: SceneMode;
-  canBreedAgain: boolean;
-  breedAgainReason: string | null;
-  onBreedAgain: () => void;
-  onKeepGiverChooseReceiver: () => void;
-  onChangePair: () => void;
-  onViewPregnancy: () => void;
-  onClose: () => void;
-}) {
-  const [page, setPage] = useState<ResultPage>(sceneMode === "quick" ? "outcome" : "process");
-  const success = result.outcome === "pregnancy";
-  const blocked = Boolean(result.pregnancyBlockedReason);
-  const imagePath = page === "process" ? result.pairingImagePath : result.outcomeImagePath;
-  const fallback = page === "process" ? BREEDING_SCENE_FALLBACK_PATH : success ? BREEDING_OUTCOME_SUCCESS_FALLBACK_PATH : BREEDING_OUTCOME_FAILURE_FALLBACK_PATH;
-  const outcomeTitle = success ? "Pregnancy Signs" : blocked ? "Pregnancy Blocked" : "No Pregnancy";
-  return <BreedingPreviewBook key={result.attemptId+page} title={page==="process"?"Attempt Recorded":outcomeTitle} marker="attempt-result" onClose={onClose} art={imagePath} fallbackArt={fallback}
-    controls={<nav aria-label="Attempt views"><button aria-pressed={page==="process"} onClick={()=>setPage("process")}>Attempt</button><button aria-pressed={page==="outcome"} onClick={()=>setPage("outcome")}>Outcome</button></nav>}
-    pages={page==="process"?[
-      {key:"record",title:`${result.giverName} × ${result.receiverName}`,content:<><p>Day {result.dayNumber} · Recorded attempt</p><p>{result.processText}</p></>},
-      {key:"cost",title:"Costs already paid",content:<><h3>{result.energyCost} Energy + {result.heartCost} Hearts per parent</h3><p>These costs belong to the recorded attempt. Reviewing it spends nothing.</p><p>Chance used: {result.pregnancyChance}%</p></>},
-      {key:"giver-energy",title:`${result.giverName} · Energy`,content:<><h3>{result.giverEnergyBefore} → {result.giverEnergyAfter}</h3><p>Recorded before and after the attempt.</p></>},
-      {key:"receiver-energy",title:`${result.receiverName} · Energy`,content:<><h3>{result.receiverEnergyBefore} → {result.receiverEnergyAfter}</h3><p>Recorded before and after the attempt.</p></>},
-      {key:"growth",title:"Recorded progression",content:<><p>Creature XP: +{result.xpGain}</p><p>Breeder XP: +{result.breederXpGain}</p><p>Pair streak: {result.streakBefore} → {result.streakAfter}</p></>},
-      ...result.progressionEvents.flatMap((event,index)=>[
-        {key:`progress-${index}`,title:`${event.displayName} · Progression`,content:<><p>Level: {event.levelBefore} → {event.levelAfter} ({event.levelUps} gained)</p><p>XP: {event.xpBefore}/{event.xpToNextBefore} → {event.xpAfter}/{event.xpToNextAfter}</p></>},
-        ...Object.entries(event.statGrowth).map(([stat,growth])=>({key:`growth-${index}-${stat}`,title:`${event.displayName} · ${stat}`,content:<><p>Stat growth: +{growth}</p><p>Grade change: {event.gradeChanges?.[stat as keyof typeof event.statGrowth]??"Unchanged"}</p></>})),
-        ...event.abilityTriggers.map((note,noteIndex)=>({key:`trigger-${index}-${noteIndex}`,title:`${event.displayName} · Talent note ${noteIndex+1}`,content:<p>{note}</p>}))
-      ])
-    ]:[
-      {key:"outcome",title:outcomeTitle,content:<><p>{result.resultText}</p><p>Receiver: {success?"Pregnant":"Not pregnant"}</p></>},
-      {key:"notes",title:"Outcome notes",content:<><p>{result.outcomeFlavorText}</p>{result.pregnancyBlockedReason&&<p>{result.pregnancyBlockedReason}</p>}</>},
-      ...(success?[
-        {key:"pregnancy",title:"Care for this pregnancy",content:<><p>Open Nursery to review the pregnancy and its care.</p><button onClick={onViewPregnancy}>View Pregnancy</button></>},
-        {key:"new-receiver",title:"Choose another receiver",content:<><p>Keep the selected giver and review another receiver before a new attempt.</p><button onClick={onKeepGiverChooseReceiver}>Keep Giver, Choose New Receiver</button></>}
-      ]:[{key:"again",title:"Another attempt",content:<><p>{canBreedAgain?"Review the current pair and costs before a new attempt.":`Breed again unavailable: ${breedAgainReason??"Review readiness in the pen."}`}</p><button disabled={!canBreedAgain} onClick={onBreedAgain}>Breed Again</button></>}]),
-      {key:"change",title:"Change the pair",content:<><p>Return to parent selection. This recorded attempt stays in the ledger.</p><button onClick={onChangePair}>Change Pair</button></>}
-    ]}
-    footer={page==="process"?<button onClick={()=>setPage("outcome")}>Next: Outcome</button>:<button onClick={onClose}>Close</button>}/>;
 }

@@ -1,0 +1,132 @@
+{
+  "reports": [
+    {
+      "name": "success-1440-900-All",
+      "issues": []
+    },
+    {
+      "name": "success-390-844-All",
+      "issues": []
+    },
+    {
+      "name": "success-360-740-All",
+      "issues": []
+    },
+    {
+      "name": "success-1920-720-All",
+      "issues": []
+    },
+    {
+      "name": "success-390-500-Result",
+      "issues": []
+    },
+    {
+      "name": "success-390-500-Resource-changes",
+      "issues": []
+    },
+    {
+      "name": "success-844-390-Result",
+      "issues": []
+    },
+    {
+      "name": "success-844-390-Resource-changes",
+      "issues": []
+    },
+    {
+      "name": "record-1440-900-Summary",
+      "issues": []
+    },
+    {
+      "name": "record-1440-900-Costs",
+      "issues": []
+    },
+    {
+      "name": "record-1440-900-Next",
+      "issues": []
+    },
+    {
+      "name": "record-390-844-Summary",
+      "issues": []
+    },
+    {
+      "name": "record-390-844-Costs",
+      "issues": []
+    },
+    {
+      "name": "record-390-844-Next",
+      "issues": []
+    },
+    {
+      "name": "scenes-read-only",
+      "issues": []
+    },
+    {
+      "name": "nursery-return",
+      "issues": []
+    },
+    {
+      "name": "failed-1440-900",
+      "issues": []
+    },
+    {
+      "name": "failed-390-844",
+      "issues": []
+    },
+    {
+      "name": "failed-390-500",
+      "issues": []
+    },
+    {
+      "name": "blocked-1440-900",
+      "issues": []
+    },
+    {
+      "name": "blocked-390-844",
+      "issues": []
+    },
+    {
+      "name": "blocked-390-500",
+      "issues": []
+    },
+    {
+      "name": "long-1440-900-Result",
+      "issues": []
+    },
+    {
+      "name": "long-1440-900-Resource-changes",
+      "issues": []
+    },
+    {
+      "name": "long-390-844-Result",
+      "issues": []
+    },
+    {
+      "name": "long-390-844-Resource-changes",
+      "issues": []
+    },
+    {
+      "name": "long-390-500-Result",
+      "issues": []
+    },
+    {
+      "name": "long-390-500-Resource-changes",
+      "issues": []
+    },
+    {
+      "name": "long-844-390-Result",
+      "issues": []
+    },
+    {
+      "name": "long-844-390-Resource-changes",
+      "issues": []
+    }
+  ],
+  "errors": [],
+  "exactlyOnce": true,
+  "readOnlyBrowsing": true,
+  "fullModeResultFirst": true,
+  "exactNurseryLinkAndReturn": true,
+  "ledgerReturn": true,
+  "allThreeOutcomes": true,
+  "longNames": true
+}
