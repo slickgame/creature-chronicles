@@ -1,0 +1,28 @@
+"use client";
+import {useState} from 'react';
+import {GameDialog} from '@/features/ui/GameDialog';
+import {getBattleMove} from '@/data/battleMoves';
+import type {NurseryInheritanceModel,NurseryInheritanceTab} from '@/data/nurseryInheritanceLedger';
+import s from './NurseryLedgerC.module.css';
+export function NurseryLedgerFrame({title,back,onClose,children}:{title:string;back:string;onClose:()=>void;children:React.ReactNode}){
+ return <GameDialog title={title} onClose={onClose} fullScreen dialogClassName={s.dialog}><main className={s.book}><header className={s.header}><button onClick={onClose}>‹ {back}</button><h1>{title}</h1></header>{children}</main></GameDialog>;
+}
+const labels={STR:'Strength',DEX:'Dexterity',STA:'Stamina',CHA:'Charm',WIL:'Willpower',FER:'Fertility'};
+const tabs:NurseryInheritanceTab[]=['Stats & Grades','Talents','Combat Moves','Lineage'];
+export function NurseryInheritanceLedgerC({record,initialTab='Stats & Grades',onClose}:{record:NurseryInheritanceModel;initialTab?:NurseryInheritanceTab;onClose:()=>void}){
+ const [tab,setTab]=useState(initialTab),[notes,setNotes]=useState(false),[category,setCategory]=useState<'Inherited'|'Combinations'|'Starting library'>('Inherited'),[page,setPage]=useState(0);
+ const ids=category==='Inherited'?record.direct:category==='Combinations'?record.combinations:record.library;
+ const change=(next:NurseryInheritanceTab)=>{setTab(next);setPage(0);};
+ return <NurseryLedgerFrame title="Inheritance details" back="Back to Nursery" onClose={onClose}>
+ <nav className={s.tabs} aria-label="Inheritance sections">{tabs.map(t=><button key={t} aria-pressed={tab===t} onClick={()=>change(t)}>{t}</button>)}</nav>
+ <div className={s.spread}><aside className={s.identity}><img src={record.art} alt={`${record.species} egg`} className={s.egg}/><h2>{record.name}</h2><p>Species: {record.species} · Type: {record.type}</p><span className={s.badge}>{record.rarity} · {record.status}</span><div className={s.parents}><small>Parents</small><strong>{record.parents.giver.displayName} × {record.parents.receiver.displayName}</strong></div></aside>
+ <section className={s.detail} key={`${tab}-${category}-${page}`} aria-label={tab}>
+ {tab==='Stats & Grades'?<><h2>{record.stage==='Hatched'?'Recorded stats':'Projected stats'}</h2><table><thead><tr><th>Stat</th><th>Value</th><th>Grade</th></tr></thead><tbody>{Object.entries(labels).map(([key,label])=><tr key={key}><th>{label}</th><td>{record.stats?.[key as keyof typeof labels]??'—'}</td><td>{record.grades[key as keyof typeof labels]}</td></tr>)}</tbody></table>{!record.stats&&<p className={s.note}>Original numeric stats were not retained in this older birth record.</p>}</>:null}
+ {tab==='Talents'?<><h2>Saved talent outcomes</h2>{record.talents.length?record.talents.slice(page*2,page*2+2).map((t,i)=><article className={s.card} key={`${t.id}-${i}`}><h3>{t.name}<span>Grade {t.grade}</span></h3><p>{t.description}</p><small>{t.inheritanceOrigin?.kind==='parent'?`Inherited${t.inheritanceOrigin.parentName?` from ${t.inheritanceOrigin.parentName}`:''}`:t.inheritanceOrigin?.kind==='mutation'?'Mutation':'Recorded at conception'}</small></article>):<p>No inherited talents recorded.</p>}{record.talents.length>2&&<Pager page={page} count={Math.ceil(record.talents.length/2)} change={setPage}/>}</>:null}
+ {tab==='Combat Moves'?<><h2>Combat moves</h2><div className={s.filters}>{(['Inherited','Combinations','Starting library'] as const).map((c,i)=><button key={c} aria-pressed={category===c} onClick={()=>{setCategory(c);setPage(0);}}>{c} ({[record.direct.length,record.combinations.length,record.library.length][i]})</button>)}</div>{!record.movesRecorded?<p>This older record has no saved move-inheritance snapshot.</p>:!ids.length?<p>No {category.toLowerCase()} moves recorded.{category!=='Starting library'?' Check the starting library for the offspring’s saved moves.':''}</p>:ids.slice(page*2,page*2+2).map(id=>{let move;try{move=getBattleMove(id);}catch{}return <article className={s.card} key={id}><h3>{move?.name??id}</h3><p>{move?.description??'Saved move identifier. Details unavailable in the current catalogue.'}</p>{move&&<small>{move.category} · Energy {move.battleEnergyCost} · Cooldown {move.cooldown}</small>}<small>{category}{record.equipped.includes(id)?' · Starting equipped move':''}</small></article>;})}{ids.length>2&&<Pager page={page} count={Math.ceil(ids.length/2)} change={setPage}/>}</>:null}
+ {tab==='Lineage'?<><h2>Parents & lineage</h2><article className={s.card}><h3>{record.parents.giver.displayName}</h3><p>Giver</p></article><article className={s.card}><h3>{record.parents.receiver.displayName}</h3><p>Receiver</p></article><p>{record.lineageRisk}</p>{record.traits.length?<p>{record.traits.join(' · ')}</p>:null}</>:null}
+ </section></div><footer className={s.footer}><em>{record.stage==='Hatched'?'Saved inheritance':'Projected inheritance'}</em><button onClick={()=>setNotes(true)}>▾ Inheritance notes</button></footer>
+ {notes&&<GameDialog title="Inheritance notes" onClose={()=>setNotes(false)} wide><div className={s.notes}>{record.notes.map(group=><section key={group.title}><h3>{group.title}</h3>{group.lines.length?group.lines.map((line,i)=><p key={i}>{line}</p>):<p>None recorded.</p>}</section>)}{record.moveRecord&&<details><summary>Saved move rolls and parent snapshots</summary><pre>{JSON.stringify(record.moveRecord,null,2)}</pre></details>}</div></GameDialog>}
+ </NurseryLedgerFrame>;
+}
+function Pager({page,count,change}:{page:number;count:number;change:(n:number)=>void}){return <div className={s.pager}><button disabled={!page} onClick={()=>change(page-1)}>‹ Previous</button><span>{page+1} / {count}</span><button disabled={page>=count-1} onClick={()=>change(page+1)}>Next ›</button></div>;}
