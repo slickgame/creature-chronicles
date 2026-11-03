@@ -50,3 +50,8 @@
 @media(min-width:701px) and (min-height:800px){
 .shell{color:#2e190b}.header h1{font-size:37px}.header>button{font-size:15px}.tabs button{font-size:18px;min-height:35px}.spread{padding-top:48px;gap:42px}.identity h2{font-size:35px}.identity p{font-size:18px}.left,.right{gap:16px}.costs table{font-size:20px}.costs thead th{font-size:18px;padding:8px 1px}.costs :is(th,td){padding:10px 2px}.growthCards{gap:15px}.growthCard{padding:13px 13px 12px}.growthCard h3{font-size:23px}.growthCard h3>span{font-size:20px}.growthCard p{font-size:18px;margin:9px 0!important}.growthCard progress{height:13px}.familiarity{font-size:19px;padding:12px;gap:8px}.notice{font-size:18px}.statTitle h3{font-size:24px}.statTable{font-size:20px}.statTable :is(th,td){padding:9px 3px}
 }
+@media(min-width:701px) and (min-height:651px){
+.book{padding-bottom:92px}.spread{padding-top:clamp(45px,calc(16dvh - 45px),105px)}.pager{margin-bottom:0}.header>button{top:15px}
+}
+@media(min-width:701px) and (min-height:800px){.statTable{font-size:18px}.statTable :is(th,td){padding:6px 3px}}
+@media(min-width:701px) and (min-height:651px){.book{padding-left:80px;padding-right:80px}.tabs{transform:translateY(18px)}}
