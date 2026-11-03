@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect,useState,type ReactNode} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import type {BreedingAttemptRecord,BreedingProgressionEvent} from '@/types/breeding';
 import {GameDialog} from '@/features/ui/GameDialog';
 import {DetailButton} from '@/features/ui/DetailButton';
@@ -20,6 +20,28 @@ export function RecordDetailsC({title,onClose,children}:{title:string;onClose:()
 export function CompleteRecordLedgerC({result:a,hearts,onClose,returnLabel='Back to result',actions,initialTab,onTabChange}:Props){
  const [tab,setTab]=useState<Tab>(normalizeTab(initialTab));
  const [page,setPage]=useState(0),[short,setShort]=useState(false);
+ const [turn,setTurn]=useState<{direction:'next'|'previous';phase:'cover'|'reveal'}|null>(null);
+ const turning=useRef(false),turnTimers=useRef<number[]>([]),pendingTurn=useRef<(()=>void)|null>(null);
+ function finishTurn(){
+  pendingTurn.current?.();pendingTurn.current=null;
+  turnTimers.current.forEach(id=>window.clearTimeout(id));turnTimers.current=[];
+  turning.current=false;setTurn(null);
+ }
+ function beginTurn(direction:'next'|'previous',commit:()=>void){
+  if(turning.current)return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){commit();return;}
+  turning.current=true;pendingTurn.current=commit;setTurn({direction,phase:'cover'});
+  turnTimers.current=[window.setTimeout(()=>{
+   pendingTurn.current?.();pendingTurn.current=null;
+   setTurn({direction,phase:'reveal'});
+  },310),window.setTimeout(finishTurn,720)];
+ }
+ useEffect(()=>{
+  const motion=matchMedia('(prefers-reduced-motion: reduce)');
+  const stopMotion=()=>{if(motion.matches&&turning.current){pendingTurn.current?.();pendingTurn.current=null;turnTimers.current.forEach(id=>window.clearTimeout(id));turnTimers.current=[];turning.current=false;setTurn(null);}};
+  motion.addEventListener('change',stopMotion);
+  return()=>{motion.removeEventListener('change',stopMotion);turnTimers.current.forEach(id=>window.clearTimeout(id));turning.current=false;pendingTurn.current=null;};
+ },[]);
  const [detail,setDetail]=useState<{title:string;content:ReactNode}|null>(null);
  const longNames=a.giverName.length+a.receiverName.length>48;
  useEffect(()=>{const query=matchMedia('(max-height:650px)'),phone=matchMedia('(max-width:700px)');const update=()=>setShort(query.matches||(phone.matches&&longNames));const frame=requestAnimationFrame(update);query.addEventListener('change',update);phone.addEventListener('change',update);return()=>{cancelAnimationFrame(frame);query.removeEventListener('change',update);phone.removeEventListener('change',update)}},[longNames]);
@@ -40,13 +62,23 @@ export function CompleteRecordLedgerC({result:a,hearts,onClose,returnLabel='Back
  const familiarity=<div className={s.familiarity}><span>Familiarity {help('Familiarity','The saved pair familiarity before and after this attempt. Later sessions do not rewrite this record.')}<b>{a.streakBefore} → {a.streakAfter}</b></span><span>Breeder XP {help('Breeder XP','The player Breeder XP award saved with this attempt.')}<b>+{a.breederXpGain}</b></span></div>;
  const notice=events.length===0?'No progression events recorded.':events.some(e=>e.levelUps>0)?`${events.reduce((n,e)=>n+e.levelUps,0)} level${events.reduce((n,e)=>n+e.levelUps,0)===1?'':'s'} gained in this attempt.`:'No level gained in this attempt.';
  function statRecord(e:BreedingProgressionEvent){const stats=Object.entries(e.statGrowth);const grades=Object.entries(e.gradeChanges??{});return <><div className={s.statTitle}><div className={s.statHeading}><h3>{short?'Recorded growth':`${e.displayName} · Recorded growth`}</h3>{e.abilityTriggers.length>0&&<button onClick={()=>showDetail(`${e.displayName} · Saved talent notes`,<>{e.abilityTriggers.map((text,i)=><p key={i}>{text}</p>)}</>)}>Saved talent notes ({e.abilityTriggers.length})</button>}</div><p>Level {e.levelBefore} → {e.levelAfter} · {e.levelUps} gained</p></div><table className={s.statTable}><thead><tr><th>Stat</th><th>Increase</th><th>Grade change</th></tr></thead><tbody>{stats.map(([key,n])=><tr key={key}><th>{STAT_NAMES[key]??key}</th><td>{Number(n)<0?'':'+'}{n}</td><td>{e.gradeChanges?.[key as keyof typeof e.statGrowth]??'Unchanged'}</td></tr>)}{!stats.length&&<tr><td colSpan={3}>No numeric stat increases recorded.</td></tr>}</tbody></table>{grades.filter(([key])=>!(key in e.statGrowth)).map(([key,value])=><p key={key}>{STAT_NAMES[key]??key} grade: {value}</p>)}</>;}
- const switchTab=(next:Tab)=>{setTab(next);onTabChange?.(next)};
- return <><GameDialog title="Complete record" fullScreen onClose={onClose}><main className={s.shell} data-complete-record-c data-tab={tab} data-growth-page={current} data-short={short} data-detail={Boolean(growth)} data-long={a.giverName.length+a.receiverName.length>48}><article className={s.book}>
+ const switchTab=(next:Tab)=>{
+  if(next===tab)return;
+  const order:Tab[]=['Summary','Costs & Growth','Next Actions'];
+  beginTurn(order.indexOf(next)>order.indexOf(tab)?'next':'previous',()=>{setTab(next);onTabChange?.(next)});
+ };
+ const goToPage=(next:number)=>{
+  const target=Math.max(0,Math.min(pages-1,next));
+  if(target!==current)beginTurn(target>current?'next':'previous',()=>setPage(target));
+ };
+ return <><GameDialog title="Complete record" fullScreen onClose={onClose}><main className={s.shell} data-complete-record-c data-page-turn={turn?.direction??'idle'} data-turn-phase={turn?.phase} data-tab={tab} data-growth-page={current} data-short={short} data-detail={Boolean(growth)} data-long={a.giverName.length+a.receiverName.length>48}><article className={s.book}>
   <header className={s.header}><button onClick={onClose}>‹ {returnLabel}</button><h1><img src={`${kit}sprig.svg`} alt=""/>Complete record<img src={`${kit}sprig.svg`} alt=""/></h1></header>
-  <nav className={s.tabs} aria-label="Complete record sections">{(['Summary','Costs & Growth','Next Actions'] as Tab[]).map(value=><button key={value} aria-pressed={value===tab} onClick={()=>switchTab(value)}>{value}</button>)}</nav>
-  <div className={s.spread}>
+  <nav className={s.tabs} aria-label="Complete record sections">{(['Summary','Costs & Growth','Next Actions'] as Tab[]).map(value=><button key={value} aria-disabled={Boolean(turn)} aria-pressed={value===tab} onClick={()=>switchTab(value)}>{value}</button>)}</nav>
+  <div className={s.spread} aria-busy={Boolean(turn)} inert={Boolean(turn)}>
    {tab==='Costs & Growth'?(growth?<><section className={s.left}>{identity}{statRecord(growth)}</section><section className={s.right}>{growthCard(growth.participantId,growth.displayName)}{familiarity}<p className={s.notice}>Saved increases from this attempt.</p></section></>:<><section className={`${s.left} ${short&&current===1?s.hidden:''}`}>{identity}{resourceTable}<img className={s.botanical} src={`${kit}sprig.svg`} alt=""/></section><section className={`${s.right} ${short&&current===0?s.hidden:''}`}>{growthCards}{familiarity}<p className={s.notice}>{notice}</p></section></>):tab==='Summary'?<><section className={s.left}>{identity}<div className={s.outcome}><h3>{outcome}</h3><p>Recorded chance <strong>{a.pregnancyChance}%</strong></p>{a.pregnancyBlockedReason&&<button onClick={()=>showDetail('Recorded pregnancy blocker',<p>{a.pregnancyBlockedReason}</p>)}>Read recorded blocker</button>}</div><img className={s.botanical} src={`${kit}sprig.svg`} alt=""/></section><section className={s.right}><h3>Saved session record</h3>{a.resultText.length<=180?<p>{a.resultText}</p>:null}<button onClick={()=>showDetail('Complete saved result',<p>{a.resultText}</p>)}>Read complete result</button><button onClick={()=>showDetail('Saved session notes',<><h3>Attempt notes</h3><p>{a.processText}</p><h3>Outcome notes</h3><p>{a.outcomeFlavorText}</p>{a.pregnancyBlockedReason&&<p>{a.pregnancyBlockedReason}</p>}<p>Attempt ID: {a.attemptId}</p><p>Pregnancy record: {a.pregnancyId??'None'}</p><p>Recorded: {a.createdAt}</p></>)}>Saved session notes</button><small>Recorded {a.createdAt?new Date(a.createdAt).toLocaleDateString():'date unavailable'}</small></section></>:<><section className={s.left}>{identity}<h3>Next actions</h3><img className={s.botanical} src={`${kit}sprig.svg`} alt=""/></section><section className={s.right}><div className={s.actions}>{actions}</div></section></>}
+   {turn&&<div className={s.turnLeaf} data-direction={turn.direction} aria-hidden="true" onAnimationEnd={event=>{if(event.target===event.currentTarget)finishTurn();}}><div className={s.leafFront}/><div className={s.leafBack}/></div>}
   </div>
-  {tab==='Costs & Growth'&&pages>1&&<nav className={s.pager} aria-label="Costs and growth pages"><button disabled={current===0} onClick={()=>setPage(value=>Math.max(0,value-1))}>‹ Previous</button><span aria-live="polite">{current+1} / {pages} · {growth?`${growth.displayName} growth`:short?(current===0?'Resources':'XP & familiarity'):'Overview'}</span><button disabled={current===pages-1} onClick={()=>setPage(value=>Math.min(pages-1,value+1))}>Next ›</button></nav>}
+  {tab==='Costs & Growth'&&pages>1&&<nav className={s.pager} aria-label="Costs and growth pages"><button disabled={current===0} aria-disabled={Boolean(turn)||current===0} onClick={()=>goToPage(current-1)}>‹ Previous</button><span aria-live="polite">{current+1} / {pages} · {growth?`${growth.displayName} growth`:short?(current===0?'Resources':'XP & familiarity'):'Overview'}</span><button disabled={current===pages-1} aria-disabled={Boolean(turn)||current===pages-1} onClick={()=>goToPage(current+1)}>Next ›</button></nav>}
  </article></main></GameDialog>{detail&&<RecordDetailsC title={detail.title} onClose={()=>setDetail(null)}>{detail.content}</RecordDetailsC>}</>;
 }
+
