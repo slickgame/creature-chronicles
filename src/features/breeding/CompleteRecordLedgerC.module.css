@@ -62,5 +62,5 @@
 }
 /* Shared header/footer alignment for overview and saved growth pages. */
 @media(min-width:701px) and (min-height:651px){
-.header>button{top:29px}.header h1{transform:translateY(14px)}.tabs{transform:translateY(24px)}.pager{transform:translateY(-12px)}.shell[data-detail=true] .left{margin-bottom:12px}
+.header>button{top:29px}.header h1{transform:translateY(14px)}.tabs{transform:translateY(24px)}.pager{transform:translateY(-12px)}
 }
