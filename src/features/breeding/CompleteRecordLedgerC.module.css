@@ -47,3 +47,6 @@
 .costs thead th{background:#d5a36340}.growthCard h3{justify-content:center}.growthCard h3>.info{margin-left:6px}.growthCard p{text-align:center}.familiarity{font-weight:700}
 .statTable{border-collapse:separate;border-spacing:0;border-radius:9px;overflow:hidden}.statTable thead tr:first-child th:first-child{border-top-left-radius:9px}.statTable thead tr:first-child th:last-child{border-top-right-radius:9px}
 @media(max-width:700px){.tabs{padding:1px}.tabs button{min-height:29px}.shell .info{box-shadow:none}.growthCard{border-radius:9px}.familiarity{border-radius:7px}.header h1{font-size:26px}}
+@media(min-width:701px) and (min-height:800px){
+.shell{color:#2e190b}.header h1{font-size:37px}.header>button{font-size:15px}.tabs button{font-size:18px;min-height:35px}.spread{padding-top:48px;gap:42px}.identity h2{font-size:35px}.identity p{font-size:18px}.left,.right{gap:16px}.costs table{font-size:20px}.costs thead th{font-size:18px;padding:8px 1px}.costs :is(th,td){padding:10px 2px}.growthCards{gap:15px}.growthCard{padding:13px 13px 12px}.growthCard h3{font-size:23px}.growthCard h3>span{font-size:20px}.growthCard p{font-size:18px;margin:9px 0!important}.growthCard progress{height:13px}.familiarity{font-size:19px;padding:12px;gap:8px}.notice{font-size:18px}.statTitle h3{font-size:24px}.statTable{font-size:20px}.statTable :is(th,td){padding:9px 3px}
+}
