@@ -1,0 +1,223 @@
+{
+  "reports": [
+    {
+      "name": "fresh-1440-900-Summary",
+      "issues": []
+    },
+    {
+      "name": "fresh-1440-900-Costs",
+      "issues": []
+    },
+    {
+      "name": "fresh-1440-900-Next",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-844-Summary",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-844-Costs",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-844-Next",
+      "issues": []
+    },
+    {
+      "name": "fresh-360-740-Summary",
+      "issues": []
+    },
+    {
+      "name": "fresh-360-740-Costs",
+      "issues": []
+    },
+    {
+      "name": "fresh-360-740-Next",
+      "issues": []
+    },
+    {
+      "name": "fresh-1920-720-Summary",
+      "issues": []
+    },
+    {
+      "name": "fresh-1920-720-Costs",
+      "issues": []
+    },
+    {
+      "name": "fresh-1920-720-Next",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-500-Summary",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-500-Costs",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-500-XP",
+      "issues": []
+    },
+    {
+      "name": "fresh-390-500-Next",
+      "issues": []
+    },
+    {
+      "name": "fresh-844-390-Summary",
+      "issues": []
+    },
+    {
+      "name": "fresh-844-390-Costs",
+      "issues": []
+    },
+    {
+      "name": "fresh-844-390-XP",
+      "issues": []
+    },
+    {
+      "name": "fresh-844-390-Next",
+      "issues": []
+    },
+    {
+      "name": "energy-help",
+      "issues": []
+    },
+    {
+      "name": "saved-notes",
+      "issues": []
+    },
+    {
+      "name": "level-1440-900-page-0",
+      "issues": []
+    },
+    {
+      "name": "level-1440-900-page-1",
+      "issues": []
+    },
+    {
+      "name": "level-1440-900-page-2",
+      "issues": []
+    },
+    {
+      "name": "level-390-844-page-0",
+      "issues": []
+    },
+    {
+      "name": "level-390-844-page-1",
+      "issues": []
+    },
+    {
+      "name": "level-390-844-page-2",
+      "issues": []
+    },
+    {
+      "name": "level-390-500-page-0",
+      "issues": []
+    },
+    {
+      "name": "level-390-500-page-1",
+      "issues": []
+    },
+    {
+      "name": "level-390-500-page-2",
+      "issues": []
+    },
+    {
+      "name": "level-390-500-page-3",
+      "issues": []
+    },
+    {
+      "name": "level-844-390-page-0",
+      "issues": []
+    },
+    {
+      "name": "level-844-390-page-1",
+      "issues": []
+    },
+    {
+      "name": "level-844-390-page-2",
+      "issues": []
+    },
+    {
+      "name": "level-844-390-page-3",
+      "issues": []
+    },
+    {
+      "name": "legacy-1440-900-page-0",
+      "issues": []
+    },
+    {
+      "name": "legacy-390-844-page-0",
+      "issues": []
+    },
+    {
+      "name": "legacy-390-500-page-0",
+      "issues": []
+    },
+    {
+      "name": "legacy-390-500-page-1",
+      "issues": []
+    },
+    {
+      "name": "legacy-844-390-page-0",
+      "issues": []
+    },
+    {
+      "name": "legacy-844-390-page-1",
+      "issues": []
+    },
+    {
+      "name": "long-1440-900-page-0",
+      "issues": []
+    },
+    {
+      "name": "long-390-844-page-0",
+      "issues": []
+    },
+    {
+      "name": "long-390-844-page-1",
+      "issues": []
+    },
+    {
+      "name": "long-390-500-page-0",
+      "issues": []
+    },
+    {
+      "name": "long-390-500-page-1",
+      "issues": []
+    },
+    {
+      "name": "long-844-390-page-0",
+      "issues": []
+    },
+    {
+      "name": "long-844-390-page-1",
+      "issues": []
+    },
+    {
+      "name": "six-stats-844-390",
+      "issues": []
+    },
+    {
+      "name": "progression-notes-844-390",
+      "issues": []
+    },
+    {
+      "name": "six-stats-390-500",
+      "issues": []
+    },
+    {
+      "name": "progression-notes-390-500",
+      "issues": []
+    }
+  ],
+  "errors": [],
+  "readOnly": true,
+  "realLevelUps": true,
+  "legacyHeartsHonest": true,
+  "shortViews": true,
+  "sourceReturn": true,
+  "helpAndNotes": true
+}

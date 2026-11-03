@@ -16,7 +16,7 @@ export type CreatureRosterSection = 'overview'|'stats'|'work'|'talents'|'lineage
 export type CreatureRosterSelection = {saveId:string;creatureId:string;section:CreatureRosterSection};
 export type NurserySelection = {saveId:string;tab:"eggs"|"pregnancies"|"births";id:string;small:boolean};
 export type BreedingLedgerSelection = {saveId:string;tab:'overview'|'attempts'|'pairs'|'creatures'|'tree';entry:string;query:string;outcome:'all'|'pregnancy'|'failed'|'blocked';participant:string;role:'either'|'giver'|'receiver';newest:boolean;small:boolean;treeId:string;detail?:string;detailPage?:string;returning:boolean};
-export type BreedingResultReturn = {saveId:string;attemptId:string;returning:boolean;hearts:{giver:{before:number;after:number};receiver:{before:number;after:number}}|null};
+export type BreedingResultReturn = {saveId:string;attemptId:string;returning:boolean;recordOpen?:boolean;hearts:{giver:{before:number;after:number};receiver:{before:number;after:number}}|null};
 const Context = createContext<{
   breedingResultReturn:BreedingResultReturn|null;setBreedingResultReturn:Dispatch<SetStateAction<BreedingResultReturn|null>>;
   creatureRoster:CreatureRosterSelection|null;setCreatureRoster:Dispatch<SetStateAction<CreatureRosterSelection|null>>;

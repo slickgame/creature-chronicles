@@ -1,22 +1,22 @@
 "use client";
 
-import {useEffect,useState,type ReactNode} from 'react';
+import {useEffect,useState} from 'react';
 import type {BreedingAttemptRecord} from '@/types/breeding';
 import {useGameContext} from '@/state/GameProvider';
 import {useNavigation} from '@/features/navigation/NavigationContext';
 import {GameDialog} from '@/features/ui/GameDialog';
 import {getAttemptCareRecords} from '@/data/breedingLedgerCare';
 import {SavedScenesFolioA} from './SavedScenesFolioA';
+import {CompleteRecordLedgerC} from './CompleteRecordLedgerC';
 import s from './BreedingResultJournalB.module.css';
 
 export type ResultHeartSnapshot={giver:{before:number;after:number};receiver:{before:number;after:number}};
 type Props={result:BreedingAttemptRecord;hearts:ResultHeartSnapshot|null;sceneMode:'full'|'quick';canBreedAgain:boolean;breedAgainReason:string|null;onBreedAgain:()=>void;onKeepGiverChooseReceiver:()=>void;onChangePair:()=>void;onClose:()=>void};
 const asset='/images/ui/breeding-result-journal-b/';
 function Icon({name}:{name:string}){return <img className={s.icon} src={`${asset}${name}.svg`} alt=""/>;}
-function RecordWindow({title,onClose,children}:{title:string;onClose:()=>void;children:ReactNode}){return <GameDialog title={title} fullScreen onClose={onClose}><main className={s.recordShell}><article className={s.record}><header><button onClick={onClose}>← Back to result</button><h2>{title}</h2></header><div className={s.recordBody}>{children}</div></article></main></GameDialog>;}
 export function BreedingResultJournalB({result:a,hearts,sceneMode,canBreedAgain,breedAgainReason,onBreedAgain,onKeepGiverChooseReceiver,onChangePair,onClose}:Props){
  const game=useGameContext(),nav=useNavigation(),save=game.currentSave;
- const [short,setShort]=useState(false),[focus,setFocus]=useState('Result'),[record,setRecord]=useState(false),[group,setGroup]=useState('Summary'),[scenes,setScenes]=useState(false);
+ const [short,setShort]=useState(false),[focus,setFocus]=useState('Result'),[record,setRecord]=useState(Boolean(nav.breedingResultReturn?.recordOpen&&nav.breedingResultReturn.attemptId===a.attemptId)),[scenes,setScenes]=useState(false);
  useEffect(()=>{const update=()=>setShort(innerHeight<650);const frame=requestAnimationFrame(update);addEventListener('resize',update);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',update)}},[]);
  const blocked=Boolean(a.pregnancyBlockedReason),success=a.outcome==='pregnancy'&&!blocked;
  const kind=blocked?'blocked':success?'success':'failed';
@@ -27,7 +27,7 @@ export function BreedingResultJournalB({result:a,hearts,sceneMode,canBreedAgain,
  const xp=(id:string)=>{const event=a.progressionEvents.find(e=>e.participantId===id);return event?event.kind==='player'?a.breederXpGain:a.xpGain:null;};
  const resourceTable=<div className={s.tableFrame}><table className={s.table} aria-label="Recorded resource changes"><colgroup><col/><col/><col/><col/></colgroup><thead><tr><th>Parent</th><th>Energy</th><th>Hearts</th><th>XP</th></tr></thead><tbody>{rows.map(r=><tr key={r.id}><th scope="row">{r.name}</th><td>{r.before} → {r.after}</td><td>{r.heart?`${r.heart.before} → ${r.heart.after}`:`−${a.heartCost}`}</td><td>{xp(r.id)===null?'—':`+${xp(r.id)}`}</td></tr>)}</tbody></table></div>;
  function openLedger(){if(!save)return;nav.setBreedingLedger({saveId:save.saveId,tab:'attempts',entry:a.attemptId,query:'',outcome:'all',participant:'all',role:'either',newest:true,small:false,treeId:'',returning:false});window.dispatchEvent(new Event('creature-chronicles:open-breeding-ledger'));}
- function openNursery(){if(!save||!care[0])return;nav.setBreedingResultReturn({saveId:save.saveId,attemptId:a.attemptId,hearts,returning:true});nav.setBreedingLedger(value=>value?{...value,returning:false}:null);nav.setNurserySelection({saveId:save.saveId,tab:care[0].tab,id:care[0].id,small:false});game.goToNursery();}
+ function openNursery(){if(!save||!care[0])return;nav.setBreedingResultReturn({saveId:save.saveId,attemptId:a.attemptId,hearts,returning:true,recordOpen:record});nav.setBreedingLedger(value=>value?{...value,returning:false}:null);nav.setNurserySelection({saveId:save.saveId,tab:care[0].tab,id:care[0].id,small:false});game.goToNursery();}
  return <><GameDialog title="Attempt recorded" fullScreen onClose={onClose}><main className={s.shell} data-breeding-book="attempt-result" data-result-journal-b data-focused={focused} data-focus={focus} data-long-names={a.giverName.length+a.receiverName.length>36} data-outcome={kind}><article className={s.book}>
  <header className={s.header}><button onClick={onClose}>◀ Back to pair</button></header>
  <div className={s.title}><h1>Attempt recorded</h1><img src={`${asset}ornament.svg`} alt=""/></div>
@@ -38,7 +38,7 @@ export function BreedingResultJournalB({result:a,hearts,sceneMode,canBreedAgain,
  {success&&!care.length&&<p className={s.unavailable}>The linked care record is no longer available.</p>}
  <footer className={s.footer}><div className={s.actions}><button onClick={()=>setScenes(true)}><Icon name="film"/>View scenes</button><button onClick={()=>setRecord(true)}><Icon name="record"/>Complete record</button><button onClick={openLedger}><Icon name="book"/>Open Ledger</button>{success?<button data-primary disabled={!care.length} onClick={openNursery}><Icon name="nursery"/>Open Nursery</button>:<button data-primary onClick={onClose}>Back to pair</button>}</div><small>Results saved</small></footer>
  </article></main></GameDialog>
- {record&&<RecordWindow title="Complete result record" onClose={()=>setRecord(false)}><nav className={s.recordTabs} aria-label="Complete result sections">{['Summary','Costs & growth','Next actions'].map(v=><button key={v} aria-pressed={group===v} onClick={()=>setGroup(v)}>{v}</button>)}</nav>{group==='Summary'?<><h3>{outcome}</h3><p>{a.giverName} × {a.receiverName} · Day {a.dayNumber} · Chance used {a.pregnancyChance}%</p><p>{a.resultText}</p><h3>Saved session notes</h3><p>{a.processText}</p><p>{a.outcomeFlavorText}</p>{a.pregnancyBlockedReason&&<p>{a.pregnancyBlockedReason}</p>}<p>Attempt ID: {a.attemptId}<br/>Recorded: {a.createdAt}</p></>:group==='Costs & growth'?<>{resourceTable}<p>Paid per parent: {a.energyCost} Energy · {a.heartCost} Hearts. Familiarity {a.streakBefore} → {a.streakAfter}. Breeder XP +{a.breederXpGain}.</p>{!hearts&&<p>Historical Hearts before/after was not saved. The exact saved Heart cost is shown instead.</p>}{a.progressionEvents.map((e,i)=><section key={`${e.participantId}-${i}`}><h3>{e.displayName} · Recorded progression</h3><p>Level {e.levelBefore} → {e.levelAfter} · {e.levelUps} gained.</p><p>XP {e.xpBefore}/{e.xpToNextBefore} → {e.xpAfter}/{e.xpToNextAfter}</p>{Object.entries(e.statGrowth).map(([stat,value])=><p key={stat}>{stat}: +{value} · Grade change: {e.gradeChanges?.[stat as keyof typeof e.statGrowth]??'Unchanged'}</p>)}{e.abilityTriggers.map((note,n)=><p key={n}>{note}</p>)}</section>)}</>:<><h3>Continue from this saved result</h3><p>No action here repeats the recorded attempt. Another attempt must go through a fresh review.</p><div className={s.nextActions}><button disabled={!canBreedAgain} onClick={onBreedAgain}>Review another attempt</button>{!canBreedAgain&&<p>{breedAgainReason??'Review the current pair in the pen.'}</p>}<button onClick={onKeepGiverChooseReceiver}>Keep giver, choose new receiver</button><button onClick={onChangePair}>Change pair</button></div>{care.length>0&&<section><h3>Explicitly linked care records</h3>{care.map(c=><p key={c.id}>{c.name} · {c.stage} · {c.id}</p>)}</section>}</>}</RecordWindow>}
- {scenes&&<SavedScenesFolioA result={a} initialScene={sceneMode==='full'?'process':'outcome'} onClose={()=>setScenes(false)}/>}
+ {record&&<CompleteRecordLedgerC result={a} hearts={hearts} initialTab={nav.breedingResultReturn?.recordOpen&&nav.breedingResultReturn.attemptId===a.attemptId?'Next Actions':undefined} onClose={()=>setRecord(false)} actions={<><button disabled={!canBreedAgain} onClick={onBreedAgain}>Review another attempt</button>{!canBreedAgain&&<p>{breedAgainReason??'Review the current pair in the pen.'}</p>}<button onClick={onKeepGiverChooseReceiver}>Keep giver, choose new receiver</button><button onClick={onChangePair}>Change pair</button><button onClick={openLedger}>Open Ledger</button>{success&&<button disabled={!care.length} onClick={openNursery}>Open Nursery</button>}{success&&!care.length&&<p>The linked care record is no longer available.</p>}<button onClick={()=>setScenes(true)}>View scenes</button>{care.length>0&&<small>{care.map(c=>`${c.name} · ${c.stage}`).join(' · ')}</small>}</>}/>}
+ {scenes&&<SavedScenesFolioA result={a} initialScene={sceneMode==='full'?'process':'outcome'} returnLabel={record?'Back to record':'Back to result'} onClose={()=>setScenes(false)}/>}
  </>;
 }
