@@ -22,3 +22,23 @@ test('pregnancy uses conception snapshots and the offspring identity',()=>{
  const pregnancy={pregnancyId:'p_test',status:'pregnant',daysRemaining:2,giver:egg.parents.giver,receiver:egg.parents.receiver,inheritance:{projectedSpeciesId:egg.speciesId,projectedVariantId:egg.variantId,projectedStats:stats,projectedStatGrades:grades,projectedAbilities:egg.projectedAbilities,suggestedName:'Melin',statRollNotes:[],abilityRollNotes:[],lineageNotes:[],lineageTraits:[],lineageRiskLabel:'No Risk'}} as unknown as PregnancyRecord;
  const before=JSON.stringify(pregnancy),model=pregnancyInheritanceModel(pregnancy);assert.equal(model.name,'Melin');assert.equal(model.stage,'Pregnancy');assert.equal(model.talents.length,1);assert.equal(JSON.stringify(pregnancy),before);
 });
+
+// Render the actual production windows; rendering and changing sections must not resolve RNG or transact.
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {NurseryInheritanceLedgerC} from '@/features/nursery/NurseryInheritanceLedgerC';
+import {EggCareReviewLedgerC} from '@/features/egg-atelier/EggCareReviewLedgerC';
+test('every inheritance section renders saved outcomes, including unknown legacy move identifiers',()=>{
+ const record=eggInheritanceModel(egg);record.direct=['legacy_unknown_move'];record.movesRecorded=true;const before=JSON.stringify(record);
+ for(const tab of ['Stats & Grades','Talents','Combat Moves','Lineage'] as const){const html=renderToStaticMarkup(createElement(NurseryInheritanceLedgerC,{record,initialTab:tab,onClose(){}}));assert.ok(html.includes('Inheritance details'));if(tab==='Combat Moves')assert.ok(html.includes('legacy_unknown_move'));}
+ assert.equal(JSON.stringify(record),before);
+});
+test('care review displays exact quote and disables confirmation for stale or blocked terms',()=>{
+ const props={egg,title:'Accelerated Incubation',description:'Reduce incubation',icon:'hourglass',gold:100,kits:1,balanceGold:1100,balanceKits:1,chance:null,valid:false,onCancel(){},onConfirm(){throw Error('render must not transact');}};
+ const stale=renderToStaticMarkup(createElement(EggCareReviewLedgerC,props));assert.ok(stale.includes('disabled=""'));assert.ok(stale.includes('terms changed'));assert.ok(stale.includes('3 → 2 days'));assert.ok(stale.includes('1,100'));
+ const valid=renderToStaticMarkup(createElement(EggCareReviewLedgerC,{...props,valid:true}));assert.ok(!valid.includes('disabled=""'));
+ const blocked=renderToStaticMarkup(createElement(EggCareReviewLedgerC,{...props,valid:true,block:'Already used on this egg.'}));assert.ok(blocked.includes('disabled=""'));assert.ok(blocked.includes('Already used on this egg.'));
+});
+test('uncertain care visibly discloses consumption on failure',()=>{
+ const html=renderToStaticMarkup(createElement(EggCareReviewLedgerC,{egg,title:'Ability Polish',description:'Raise the first projected talent',icon:'polish',gold:200,kits:1,balanceGold:1000,balanceKits:1,chance:45,valid:true,onCancel(){},onConfirm(){throw Error('render must not transact');}}));assert.ok(html.includes('45%'));assert.ok(html.includes('consumed even if no improvement occurs'));
+});
