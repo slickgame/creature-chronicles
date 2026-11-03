@@ -55,3 +55,8 @@
 }
 @media(min-width:701px) and (min-height:800px){.statTable{font-size:18px}.statTable :is(th,td){padding:6px 3px}}
 @media(min-width:701px) and (min-height:651px){.book{padding-left:80px;padding-right:80px}.tabs{transform:translateY(18px)}}
+/* Growth data gets its own opaque paper inset so printed florals never cross text. */
+@media(min-width:701px) and (min-height:651px){
+.shell[data-detail=true] .left{padding:16px;border:1px solid #b08852;border-radius:11px;background:#f1d5a8 url('/images/ui/inheritance-journal-b/paper.webp') center/cover;box-shadow:inset 0 0 0 2px #fff0ce66}
+.shell[data-detail=true] .identity{display:none}.statHeading{flex-direction:column;gap:8px}.statHeading h3{font-size:23px}.statHeading>button{align-self:center}
+}
