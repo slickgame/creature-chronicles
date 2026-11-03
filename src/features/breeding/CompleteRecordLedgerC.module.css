@@ -28,3 +28,22 @@
 @media(max-height:650px){.statHeading{gap:7px}.statHeading h3{font-size:16px}.statHeading>button{font-size:11px;min-height:26px;padding:1px 4px}}
 @media(min-width:701px) and (max-height:650px){.shell[data-long=true] .identity h2{font-size:18px}.shell[data-long=true] .costs table{font-size:14px}.shell[data-long=true] .costs tbody th{font-size:13px}.shell[data-long=true] .costs :is(th,td){padding:4px 2px}.shell[data-long=true] .growthCard{padding:7px 10px}.shell[data-long=true] .growthCard h3{font-size:15px}.shell[data-long=true] .growthCard h3>span{font-size:13px}.shell[data-long=true] .growthCard p{font-size:13px}}
 @media(max-height:650px){.statTable :is(th,td){padding:1px 2px}}
+/* Fidelity pass: compact C composition, rounded engraved controls and paper panels. */
+@media(min-width:701px) and (min-height:651px){
+.book{width:min(980px,calc((100dvh - 36px)*1.2),calc(100vw - 32px));height:min(816px,calc(100dvh - 36px));padding:34px 61px 61px;background-image:url('/images/ui/complete-record-ledger-c/open-ledger-v2.webp');gap:10px}
+.header{min-height:72px;align-items:flex-end}.header h1{font-size:31px;margin-bottom:2px;gap:8px}.header h1 img{visibility:hidden;width:34px}.header>button{top:0;font-size:13px;min-height:29px}
+.tabs{width:82%}.tabs button{font-size:16px;min-height:32px}
+.spread{padding:40px 0 2px;gap:48px}.left,.right{gap:13px}.identity h2{font-size:28px}.identity p{font-size:15px;margin-top:5px}
+.costs table{font-size:17px}.costs thead th{font-size:15px;padding:6px 1px}.costs :is(th,td){padding:7px 2px}.growthCards{gap:11px}.growthCard{padding:10px 12px}.growthCard h3{font-size:18px}.growthCard h3>span{font-size:16px}.growthCard p{font-size:15px;margin:7px 0!important}.growthCard progress{height:11px}
+.familiarity{font-size:16px;padding:8px 12px;gap:6px}.notice{font-size:15px}.notice:after{content:'⟡';display:block;color:#ae7d36;font-style:normal;line-height:1.1;margin:5px auto 0;background:linear-gradient(#ad814266,#ad814266) center/90px 1px no-repeat}.botanical{visibility:hidden;height:90px}
+.pager{gap:12px;margin-bottom:-5px}.pager button{font-size:13px;min-height:29px}.pager>span{font-size:14px}.statTitle h3{font-size:21px}.statTable{font-size:16px}.statTable :is(th,td){padding:6px 3px}
+}
+.shell button{border:1px solid #91602f;border-image:none;border-radius:7px;background:linear-gradient(180deg,#fff0cf 0%,#f1d4a0 80%,#e5bd81 100%);box-shadow:inset 0 0 0 2px #fce9c1,inset 0 0 0 3px #bd915b,0 2px 2px #75421d45}
+.shell button[aria-pressed=true]{border-image:none;border-color:#8d692e;background:linear-gradient(#31653f,#12452b);box-shadow:inset 0 0 0 2px #a9bc79,inset 0 0 0 3px #37653c,0 2px 3px #42270e66}
+.shell .info{border-radius:50%;background:transparent;box-shadow:none}
+.tabs{border:1px solid #ad7d42;border-radius:8px;padding:2px;gap:1px;background:#f0d4a1;box-shadow:0 2px 3px #653a2250}
+.tabs button{border-radius:6px;box-shadow:inset 0 0 0 1px #fce9c1;min-height:30px}
+.costs,.growthCard,.familiarity,.outcome{border-radius:10px;border-color:#b08852;box-shadow:inset 0 0 0 2px #fff0ce66,0 1px 1px #6d421f20;background:linear-gradient(120deg,#f8dfb333,#e6bb7b22)}
+.costs thead th{background:#d5a36340}.growthCard h3{justify-content:center}.growthCard h3>.info{margin-left:6px}.growthCard p{text-align:center}.familiarity{font-weight:700}
+.statTable{border-collapse:separate;border-spacing:0;border-radius:9px;overflow:hidden}.statTable thead tr:first-child th:first-child{border-top-left-radius:9px}.statTable thead tr:first-child th:last-child{border-top-right-radius:9px}
+@media(max-width:700px){.tabs{padding:1px}.tabs button{min-height:29px}.shell .info{box-shadow:none}.growthCard{border-radius:9px}.familiarity{border-radius:7px}.header h1{font-size:26px}}
