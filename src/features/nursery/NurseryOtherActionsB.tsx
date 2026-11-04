@@ -27,7 +27,7 @@ export function NurseryOtherActionsB({egg,name,onClose,onReview}:{
             <div className={s.copy}><h2>Donate</h2><p>Receive 75 Gold + 1 GP.</p><button className={s.primary} onClick={()=>onReview('donate')}>Review donation</button></div>
           </article>
           <article className={`${s.card} ${s.release}`}>
-            <div className={s.illustration}><img src="/images/ui/nursery-other-actions-b/release.webp" alt=""/></div>
+            <div className={s.illustration}><img src="/images/ui/nursery-other-actions-b/release-gate-c.webp" alt=""/></div>
             <div className={s.copy}><h2>Release</h2><p>No reward.</p><button className={s.danger} onClick={()=>onReview('release')}>Review release</button></div>
           </article>
         </section>
