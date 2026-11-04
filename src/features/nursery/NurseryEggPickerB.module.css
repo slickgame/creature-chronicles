@@ -94,3 +94,8 @@
   .footer{flex-basis:30px}
   .footer button{font-size:14px}
 }
+@media(min-width:651px) and (max-height:500px){
+  .egg{height:clamp(45px,14dvh,70px)}
+  /* These values remain visible in the adjacent table; omit only the duplicates. */
+  .identity p,.badge{display:none}
+}
