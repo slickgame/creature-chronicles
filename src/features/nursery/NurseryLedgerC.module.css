@@ -19,7 +19,7 @@
 .header{flex:0 0 12%;min-height:0}
 .header h1{padding:18px 100px 0;margin:0;line-height:1.12;font-size:clamp(20px,4cqw,34px);text-align:center;overflow-wrap:anywhere}
 .header>button{font-size:clamp(11px,1.5cqw,13px)}
-.tabs{flex:0 0 9%;min-height:0;padding:0;align-items:center;gap:8px}
+.tabs{flex:0 0 9%;min-height:0;padding:0 0 20px;align-items:center;gap:8px}
 .tabs button{font-size:clamp(12px,1.9cqw,17px)}
 .spread{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8%;padding:4% 0 0}
 .identity h2{overflow-wrap:anywhere;line-height:1.12;margin:5px 0 8px}
@@ -38,8 +38,8 @@
 .card{padding:8px 10px}
 .filters{flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .filters button{font-size:clamp(11px,1.45cqw,12px);padding:5px 7px}
-.footer{flex:0 0 7%;min-height:44px;padding:0;gap:12px;font-size:clamp(12px,2cqw,17px)}
-.footer button{flex-shrink:0}
+.footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);flex:0 0 7%;min-height:44px;padding:0;gap:8%;font-size:clamp(12px,2cqw,17px)}
+.footer button{flex-shrink:0;justify-self:start}
 .pager{margin-top:12px;justify-content:flex-start}
 .focusTabs{display:none}
 .careBook{width:min(960px,96vw,calc(94dvh * 1.4))}
@@ -69,7 +69,7 @@
   .parents strong{font-size:14px}
   .detail h2{font-size:21px;margin-bottom:10px}
   .detail table{font-size:15px}
-  .footer{flex:0 0 44px;min-height:44px;gap:8px;font-size:12px;padding:0}
+  .footer{display:flex;flex:0 0 44px;min-height:44px;gap:8px;font-size:12px;padding:0}
   .filters{gap:5px;margin-bottom:8px}
   .filters button{font-size:11px;padding:5px}
   .dialog.dialog>div>main.book.careBook{height:min(720px,94dvh)!important}
@@ -118,7 +118,7 @@
   .header{flex-basis:18%}
   .book .header h1{font-size:20px;padding:15px 80px 0}
   .header>button{font-size:10px;padding:4px 6px;min-height:25px!important}
-  .tabs{flex-basis:12%;gap:5px}
+  .tabs{flex-basis:12%;gap:5px;padding:0}
   .tabs button,.filters button{font-size:10px;padding:4px 5px;min-height:26px!important}
   .spread{padding-top:3%;gap:8%}
   .book .detail th,.book .detail td{padding:3px 5px;font-size:12px}
