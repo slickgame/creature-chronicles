@@ -237,3 +237,6 @@ The user selected B and explicitly required that Choose egg never sit on the cen
 
 ## Game-update delivery
 The user requires actual in-game screenshots displayed directly, a verified playable link, and a brief next-update goal with every game update. Keep concept proposals clearly identified as proposals. If verification is blocked, state the specific limitation instead of presenting a concept as a runtime result.
+
+## Approved Other Actions B Open Ledger
+The user selected B and requested close concept fidelity. NurseryOtherActionsB uses a dedicated blank stitched leather/brass open-book skin, painted coin and release-leaf icons, canonical egg art, bundled Tinos, cream navigation, amber removal warning and stacked emerald/burgundy review cards. Keep the title on the right page, all controls inside the paper gutters, and Keep egg on the left. Live names/species/rarity and existing 75 Gold + 1 GP donation are authoritative. Browsing/review/cancel must never remove an egg; original separate confirmations and guarded provider removal remain authoritative. No single-page carousel or page selector. See docs/NURSERY_OTHER_ACTIONS_B.md. PR21 stays draft/unmerged.

@@ -10,6 +10,7 @@ import { useNavigation } from '@/features/navigation/NavigationContext';
 import type { CreatureRecord } from '@/types/creature';
 import type { EggRecord } from '@/types/save';
 import {NurseryInheritanceLedgerC} from './NurseryInheritanceLedgerC';
+import {NurseryOtherActionsB} from './NurseryOtherActionsB';
 import {NurseryEggPickerB} from './NurseryEggPickerB';
 import {eggInheritanceModel,pregnancyInheritanceModel,birthInheritanceModel,type NurseryInheritanceModel,type NurseryInheritanceTab} from '@/data/nurseryInheritanceLedger';
 import { NurseryBook, type NurseryPage } from './NurseryBook';
@@ -39,7 +40,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
   const tab=remembered?.tab??'eggs',small=remembered?.small??false;
   const [hatchName,setHatchName]=useState('');
   const [inheritance,setInheritance]=useState<{record:NurseryInheritanceModel;tab?:NurseryInheritanceTab}|null>(null);
-  const [detail,setDetail]=useState<{title:string;pages:NurseryPage[]}|null>(null);
+  const [actionsEgg,setActionsEgg]=useState<EggRecord|null>(null);
   const [pending,setPending]=useState<{egg:EggRecord;mode:'release'|'donate'}|null>(null);
   const [result,setResult]=useState<HatchResult|null>(null),[rename,setRename]=useState('');
   const [revealed,setRevealed]=useState(false);
@@ -93,7 +94,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
       {selected.status!=='ready'&&<NurseryTimer egg={selected}/>}
       {selected.status==='ready'&&readiness?.canHatch&&<label className={s.name}>Hatchling name<input aria-label="Hatchling name" value={hatchName} onChange={e=>setHatchName(e.target.value)} placeholder={eggName(selected)} maxLength={24}/></label>}
       <div className={s.actions}><button data-primary disabled={!readiness?.canHatch} onClick={()=>hatch(selected)}>Hatch</button>{selected.status==='ready'&&!readiness?.canHatch&&<button onClick={visitPetra}>Petra · Housing</button>}</div></div>
-      <div className={s.actionStack}><button onClick={game.goToEggAtelier}><Icon name="care"/>Egg care</button><button onClick={()=>setInheritance({record:eggInheritanceModel(selected)})}><Icon name="growth"/>Stats & Abilities</button><button onClick={()=>setInheritance({record:eggInheritanceModel(selected),tab:'Lineage'})}><Icon name="lineage"/>Lineage</button><button onClick={()=>setDetail({title:'Other Actions',pages:[{key:'remove',title:'Remove this egg',content:<><p>Donation gives 75 Gold and 1 GP. Release gives no reward. Both remove the egg permanently.</p><div className={s.actions}>{(['release','donate'] as const).map(mode=><button key={mode} onClick={()=>{setDetail(null);setPending({egg:selected,mode});}}>{mode==='donate'?'Donate':'Release'}</button>)}</div></>}]})}>Other Actions</button></div>
+      <div className={s.actionStack}><button onClick={game.goToEggAtelier}><Icon name="care"/>Egg care</button><button onClick={()=>setInheritance({record:eggInheritanceModel(selected)})}><Icon name="growth"/>Stats & Abilities</button><button onClick={()=>setInheritance({record:eggInheritanceModel(selected),tab:'Lineage'})}><Icon name="lineage"/>Lineage</button><button onClick={()=>setActionsEgg(selected)}>Other Actions</button></div>
       <div className={s.pager}><button aria-label="Previous selected egg" disabled={!selectedIndex} onClick={()=>change('eggs',eggs[selectedIndex-1].eggId)}>‹</button><button onClick={()=>setPicker(selected.eggId)}>Egg {selectedIndex+1} of {eggs.length} · Choose</button><button aria-label="Next selected egg" disabled={selectedIndex===eggs.length-1} onClick={()=>change('eggs',eggs[selectedIndex+1].eggId)}>›</button></div><button className={s.mobileBack} onClick={()=>setFocus('scene')}>Back to eggs</button>
     </>:<div className={s.empty}><h2>A new beginning awaits</h2><p>Successful breeding starts a pregnancy. Sleep until delivery, then care for the egg until it is ready.</p><button onClick={game.goToBreeding}>Visit Breeding</button></div>):record?<>
       <label className={s.name}>{tab==='pregnancies'?'Pregnancy':'Birth record'}<select aria-label={tab==='pregnancies'?'Pregnancy':'Birth record'} value={record.key} onChange={e=>change(tab,e.target.value)}>{records.map(r=><option key={r.key} value={r.key}>{r.title}</option>)}</select></label><div className={s.entry}><h2>{record.title}</h2>{record.content}</div><div className={s.pager}><button disabled={!recordIndex} onClick={()=>change(tab,records[recordIndex-1].key)}>‹ Previous</button><span>{recordIndex+1} / {records.length}</span><button disabled={recordIndex===records.length-1} onClick={()=>change(tab,records[recordIndex+1].key)}>Next ›</button></div>
@@ -101,7 +102,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
     </article></section></div>
     {picker!==null&&<NurseryEggPickerB eggs={eggs} draft={picker} onDraft={setPicker} onCancel={()=>setPicker(null)} onSelect={()=>{change('eggs',picker);setPicker(null);}} name={eggName}/>}
     {inheritance&&<NurseryInheritanceLedgerC record={inheritance.record} initialTab={inheritance.tab} onClose={()=>setInheritance(null)}/>}
-    {detail&&<NurseryBook scenic art={art} title={detail.title} onClose={()=>setDetail(null)} pages={detail.pages}/>}
+    {actionsEgg&&<NurseryOtherActionsB egg={actionsEgg} name={eggName(actionsEgg)} onClose={()=>setActionsEgg(null)} onReview={mode=>{setActionsEgg(null);setPending({egg:actionsEgg,mode});}}/>}
     {pending&&<NurseryBook scenic art={nurseryIdentity(pending.egg).art} title={pending.mode==='donate'?'Donate Egg?':'Release Egg?'} onClose={()=>setPending(null)} pages={[{key:'confirm',title:eggName(pending.egg),content:<><p>This permanently removes the egg from your Nursery.</p><p>{pending.mode==='donate'?'Receive exactly 75 Gold and 1 GP.':'No reward is granted.'}</p></>}]} footer={<><button onClick={()=>setPending(null)}>Cancel</button><button onClick={remove}>{pending.mode==='donate'?'Confirm Donation':'Confirm Release'}</button></>}/>}
     {notice&&<NurseryBook scenic art={art} title="Nursery Notice" onClose={()=>setNotice('')} pages={[{key:'notice',title:'Nursery update',content:<p role="status">{notice}</p>}]}/>}
     {result&&!revealed&&<NurseryHatchMoment egg={result.egg} onReveal={reveal}/>}

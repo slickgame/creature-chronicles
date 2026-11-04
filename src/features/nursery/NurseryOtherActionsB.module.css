@@ -1,0 +1,93 @@
+@font-face{font-family:ActionsTinos;src:url('/images/ui/breeding-desk-a/fonts/Tinos-Regular.woff');font-display:swap}
+@font-face{font-family:ActionsTinos;src:url('/images/ui/breeding-desk-a/fonts/Tinos-Bold.woff');font-weight:700;font-display:swap}
+.dialog{padding:0!important;background:transparent!important;border:0!important;border-image:none!important;box-shadow:none!important;overflow:hidden!important}
+.dialog>header{display:none!important}
+.dialog>div{height:100%;padding:0!important;display:grid;place-items:center}
+.dialog.dialog>div>main.book{height:auto!important;min-height:0!important;max-height:94dvh}
+.book{width:min(1020px,96vw,calc(94dvh * 1.27));aspect-ratio:1.27;box-sizing:border-box;container-type:inline-size;display:flex;flex-direction:column;padding:5.2% 5.2% 6%;color:#3d210e;font:20px/1.25 ActionsTinos,Georgia,serif;background:url('/images/ui/nursery-other-actions-b/open-ledger.webp') center/100% 100% no-repeat;filter:drop-shadow(0 14px 25px #160b06aa)}
+/* Percentages below track the physical paper, not the dialog viewport. */
+.book{padding:min(4.2vw,44px,5.17dvh) min(5.8vw,61px,7.16dvh) min(5.7vw,60px,7.05dvh)}
+.book *{box-sizing:border-box;min-width:0}
+.book button{font:700 clamp(12px,2.2cqw,21px)/1.1 ActionsTinos,Georgia,serif;color:#44260f;border:1px solid #a47b42;border-radius:10px;min-height:44px;padding:10px 16px;background:linear-gradient(#fff2d1,#e6c184);box-shadow:inset 0 0 0 2px #fff3d2b3,0 2px 3px #58320b40;cursor:pointer}
+.book button:hover{filter:brightness(1.07)}
+.book button:focus-visible{outline:3px solid #176c47;outline-offset:3px}
+.header{display:grid;grid-template-columns:1fr 1fr;gap:8%;align-items:start;flex:0 0 14%}
+.header>button{justify-self:start;margin:10px 0 0 18px;min-height:48px;padding:11px 20px;font-size:19px}
+.header h1{margin:10px 0 0;text-align:center;font-size:clamp(23px,4.15cqw,39px);line-height:1.15}
+.spread{display:grid;grid-template-columns:1fr 1fr;gap:8%;flex:1;min-height:0}
+.identity{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:32px;padding-bottom:25px}
+.egg{width:72%;height:52%;max-height:270px;min-height:0;object-fit:contain}
+.identity h2{font-size:clamp(22px,4cqw,37px);line-height:1.1;margin:12px 0 12px;overflow-wrap:anywhere;max-width:100%}
+.badge{padding:5px 18px;border:1px solid #b4823f;border-radius:999px;background:#f4d597b3;font-size:clamp(13px,2.1cqw,19px)}
+.options{display:flex;flex-direction:column;gap:14px}
+.warning{margin:0 0 4px;padding:10px 9px;text-align:center;font-size:clamp(12px,1.95cqw,18px);font-weight:700;border:1px solid #c88c3e;border-radius:13px;background:linear-gradient(#ffe5a8e6,#f6c675b3);box-shadow:inset 0 0 0 2px #ffedc17d}
+.card{display:grid;grid-template-columns:25% 1fr;gap:15px;border:1px solid;border-radius:17px;padding:18px 16px 18px 10px;min-height:18.5cqw;box-shadow:inset 0 0 0 2px #fff4d08c}
+.donate{border-color:#7a8751;background:linear-gradient(115deg,#e8dfa284,#fff1c68c)}
+.release{border-color:#a06854;background:linear-gradient(115deg,#edc8a880,#ffe6c68c)}
+.illustration{border-right:1px solid #ab875880;display:flex;align-items:flex-start;justify-content:center;padding:10px 10px 0 0}
+.illustration img{width:100%;aspect-ratio:1;object-fit:contain}
+.copy{align-self:center}
+.copy h2{font-size:clamp(23px,3.5cqw,32px);line-height:1;margin:0 0 8px}
+.donate h2{color:#173d22}.release h2{color:#61211e}
+.copy p{margin:0 0 11px;font-size:clamp(13px,2.2cqw,20px)}
+.copy button{width:100%;min-height:44px}
+.book .primary{color:#fff1ce;background:linear-gradient(#378153,#0e4b2d);border-color:#8b8c43}
+.book .danger{color:#fff0d7;background:linear-gradient(#a34c43,#631b20);border-color:#7c3b29}
+.footer{display:grid;grid-template-columns:1fr 1fr;gap:8%;flex:0 0 48px;margin-top:14px}
+.footer button{width:87%;justify-self:center;font-size:24px}
+@media(max-width:650px){
+ .dialog.dialog>div>main.book{height:min(760px,94dvh)!important;aspect-ratio:auto}
+ .book{width:98vw;padding:32px 25px 42px}
+ .header{flex-basis:16%;gap:10%}
+ .header>button{font-size:13px;min-height:44px;margin:10px 0 0;padding:8px}
+ .header h1{font-size:24px;margin-top:12px}
+ .spread{gap:10%}
+ .identity{padding:10px 0 20px}
+ .egg{width:100%;height:38%;max-height:190px}
+ .identity h2{font-size:23px}
+ .badge{font-size:13px;padding:6px 8px}
+ .options{gap:12px}
+ .warning{font-size:13px;padding:9px 6px}
+ .card{min-height:0;display:flex;flex-direction:column;gap:5px;padding:9px}
+ .illustration{border:0;padding:0;height:38px}
+ .illustration img{width:42px;height:38px}
+ .copy h2{font-size:24px;margin-bottom:7px}
+ .copy p{font-size:14px;margin-bottom:9px}
+ .copy button{font-size:14px;padding:8px 5px;min-height:42px}
+ .footer{flex-basis:44px;margin-top:12px}
+ .footer button{width:100%;font-size:18px;padding:8px}
+}
+@media(max-height:650px) and (min-width:651px){
+ .book button{min-height:30px;font-size:13px;padding:6px 9px}
+ .header>button{margin:4px 0 0 8px;min-height:32px;font-size:13px;padding:7px 10px}
+ .header h1{margin-top:3px;font-size:25px}
+ .identity{padding:12px 0}
+ .identity h2{font-size:25px;margin:5px 0 8px}
+ .egg{max-height:170px}
+ .badge{font-size:13px;padding:4px 10px}
+ .options{gap:8px}
+ .warning{font-size:12px;padding:6px}
+ .card{min-height:0;gap:9px;padding:9px 10px 9px 7px;border-radius:11px}
+ .copy h2{font-size:23px;margin-bottom:5px}
+ .copy p{font-size:13px;margin-bottom:7px}
+ .copy button{min-height:30px}
+ .footer{flex-basis:32px;margin-top:8px}
+ .footer button{font-size:17px}
+}
+@media(max-width:650px) and (max-height:650px){
+ .book{padding:27px 23px 34px}
+ .header{flex-basis:16%}
+ .header h1{font-size:20px}
+ .header>button{font-size:12px;padding:7px;min-height:38px}
+ .warning{font-size:12px;padding:6px}
+ .options{gap:8px}
+ .card{padding:8px;gap:4px}
+ .illustration{display:none}
+ .copy h2{font-size:21px;margin-bottom:5px}
+ .copy p{font-size:13px;margin-bottom:7px}
+ .copy button{font-size:13px;min-height:36px}
+ .identity h2{font-size:20px}
+ .badge{font-size:12px}
+ .footer{flex-basis:38px;margin-top:8px}
+ .footer button{min-height:38px;font-size:16px}
+}
