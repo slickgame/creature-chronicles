@@ -14,7 +14,7 @@
 .dialog{border-image:none!important}
 .book{
   container-type:inline-size;
-  padding:min(3.5vw,35px,3.3dvh) min(6.4vw,64px,6dvh) min(5.8vw,58px,5.4dvh);
+  padding:min(4.4vw,44px,5.17dvh) min(8vw,80px,9.4dvh) min(8.2vw,82px,9.64dvh);
 }
 .header{flex:0 0 12%;min-height:0}
 .header h1{padding:18px 100px 0;margin:0;line-height:1.12;font-size:clamp(20px,4cqw,34px);text-align:center;overflow-wrap:anywhere}
