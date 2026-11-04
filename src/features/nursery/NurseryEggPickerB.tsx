@@ -49,9 +49,9 @@ export function NurseryEggPickerB({ eggs, draft, onDraft, onCancel, onSelect, na
         </select>
       </label>}
       <nav className={s.pager} aria-label="Nursery eggs pages">
-        <button disabled={index <= 0} onClick={() => onDraft(eggs[index - 1].eggId)}>‹ Previous</button>
-        <span aria-live="polite">{index < 0 ? '—' : index + 1} / {eggs.length}</span>
-        <button disabled={!eggs.length || index >= eggs.length - 1} onClick={() => onDraft(eggs[index + 1].eggId)}>Next ›</button>
+        <button aria-label="Previous egg" disabled={index <= 0} onClick={() => onDraft(eggs[index - 1].eggId)}><span aria-hidden="true">‹</span><span className={s.pageLabel}> Previous</span></button>
+        <span className={s.pageCount} aria-live="polite">{index < 0 ? '—' : index + 1} / {eggs.length}</span>
+        <button aria-label="Next egg" disabled={!eggs.length || index >= eggs.length - 1} onClick={() => onDraft(eggs[index + 1].eggId)}><span className={s.pageLabel}>Next </span><span aria-hidden="true">›</span></button>
       </nav>
       <footer className={s.footer}>
         <button onClick={onCancel}>Cancel</button>
