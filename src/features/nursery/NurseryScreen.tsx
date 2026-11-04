@@ -10,12 +10,12 @@ import { useNavigation } from '@/features/navigation/NavigationContext';
 import type { CreatureRecord } from '@/types/creature';
 import type { EggRecord } from '@/types/save';
 import {NurseryInheritanceLedgerC} from './NurseryInheritanceLedgerC';
+import {NurseryEggPickerB} from './NurseryEggPickerB';
 import {eggInheritanceModel,pregnancyInheritanceModel,birthInheritanceModel,type NurseryInheritanceModel,type NurseryInheritanceTab} from '@/data/nurseryInheritanceLedger';
 import { NurseryBook, type NurseryPage } from './NurseryBook';
 import { NurseryScene } from './NurseryScene';
 import { nurseryIdentity } from '@/data/nurseryPresentation';
-import { GameDialog } from '@/features/ui/GameDialog';
-import {NURSERY_POLISH,NurseryEggPicker,NurseryHatchMoment,NurseryTimer,eggTimerLabel} from './NurseryPolish';
+import {NURSERY_POLISH,NurseryHatchMoment,NurseryTimer,eggTimerLabel} from './NurseryPolish';
 import { getCreatureManagementStatus } from '@/data/creatureManagement';
 import s from './NurseryScenic.module.css';
 
@@ -99,7 +99,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
       <label className={s.name}>{tab==='pregnancies'?'Pregnancy':'Birth record'}<select aria-label={tab==='pregnancies'?'Pregnancy':'Birth record'} value={record.key} onChange={e=>change(tab,e.target.value)}>{records.map(r=><option key={r.key} value={r.key}>{r.title}</option>)}</select></label><div className={s.entry}><h2>{record.title}</h2>{record.content}</div><div className={s.pager}><button disabled={!recordIndex} onClick={()=>change(tab,records[recordIndex-1].key)}>‹ Previous</button><span>{recordIndex+1} / {records.length}</span><button disabled={recordIndex===records.length-1} onClick={()=>change(tab,records[recordIndex+1].key)}>Next ›</button></div>
     </>:<div className={s.empty}><h2>{tab==='pregnancies'?'No active pregnancies':'No births recorded yet'}</h2><p>{tab==='pregnancies'?'Successful breeding creates a pregnancy. Delivery advances when you sleep.':'Hatched offspring appear here with their parents and inherited grades.'}</p><button onClick={game.goToBreeding}>Visit Breeding</button></div>}
     </article></section></div>
-    {picker!==null&&<GameDialog title="Choose egg" onClose={()=>setPicker(null)} fullScreen><main className={s.shell} data-nursery-picker><NurseryEggPicker eggs={eggs} draft={picker} onDraft={setPicker} onCancel={()=>setPicker(null)} onSelect={()=>{change('eggs',picker);setPicker(null);}} name={eggName}/></main></GameDialog>}
+    {picker!==null&&<NurseryEggPickerB eggs={eggs} draft={picker} onDraft={setPicker} onCancel={()=>setPicker(null)} onSelect={()=>{change('eggs',picker);setPicker(null);}} name={eggName}/>}
     {inheritance&&<NurseryInheritanceLedgerC record={inheritance.record} initialTab={inheritance.tab} onClose={()=>setInheritance(null)}/>}
     {detail&&<NurseryBook scenic art={art} title={detail.title} onClose={()=>setDetail(null)} pages={detail.pages}/>}
     {pending&&<NurseryBook scenic art={nurseryIdentity(pending.egg).art} title={pending.mode==='donate'?'Donate Egg?':'Release Egg?'} onClose={()=>setPending(null)} pages={[{key:'confirm',title:eggName(pending.egg),content:<><p>This permanently removes the egg from your Nursery.</p><p>{pending.mode==='donate'?'Receive exactly 75 Gold and 1 GP.':'No reward is granted.'}</p></>}]} footer={<><button onClick={()=>setPending(null)}>Cancel</button><button onClick={remove}>{pending.mode==='donate'?'Confirm Donation':'Confirm Release'}</button></>}/>}
@@ -108,4 +108,3 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
     {result&&revealed&&<NurseryBook scenic title={`${result.creature.nickname} hatched!`} art={getVariantDefinition(result.creature.variantId).portraitPath} artAlt={`${result.creature.nickname} portrait`} onClose={confirmHatch} pages={[{key:'welcome',title:'Welcome to the ranch',content:<><p>{result.egg.parents.giver.displayName} × {result.egg.parents.receiver.displayName}</p><p className={s.good}>Joined {nurseryIdentity(result.creature).species} housing · Birth recorded</p><label className={s.name}>Hatchling name<input value={rename} onChange={e=>setRename(e.target.value)} maxLength={24} placeholder={result.creature.nickname}/></label></>},statsPage(result.creature.stats,result.creature.statGrades),{key:'care',title:'First-day care',content:<dl className={s.stats}><div><dt>Energy</dt><dd>{result.creature.energy}/{result.creature.maxEnergy}</dd></div><div><dt>Hearts</dt><dd>{result.creature.hearts}/{result.creature.maxHearts}</dd></div><div><dt>Affection</dt><dd>{result.creature.affection}</dd></div></dl>},...abilityPages(result.creature.abilities),...notePages([...(result.egg.lineageNotes??[]),...result.egg.statRollNotes,...result.egg.abilityRollNotes,...(result.egg.geneticsNotes??[])])]} footer={<button onClick={confirmHatch}>Confirm Hatchling</button>}/>}
   </main>;
 }
-

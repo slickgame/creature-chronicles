@@ -230,3 +230,10 @@ Use SavedScenesFolioA with saved-scenes-folio-a/folio-v2.webp for result and Led
 
 ## Approved Complete Record C Open Ledger
 The user revised the selection from A to C on November3,2026. Use CompleteRecordLedgerC for immediate and archived Complete Record windows, with the generated open-ledger paper spread, native cream/emerald three tabs and existing licensed Tinos. Costs & Growth begins with exact saved costs/XP/levels/familiarity; bounded Previous/Next appears for meaningful recorded progression events. Short or long-name phone layouts may separate Resources / XP focus. Never invent historical Hearts or before-stat snapshots. Keep full result/process/flavor/blocker/progression notes and explicit offspring/inheritance/source links reachable. Preserve all original guards, read-only browsing and exact source return. Verify scripts/validate-complete-record-ledger-c.mjs, including six-stat and long-name short views. See docs/COMPLETE_RECORD_LEDGER_C_RUNTIME.md. PR21 stays draft/unmerged.
+
+
+## Approved Choose Egg B Open Ledger
+The user selected B and explicitly required that Choose egg never sit on the center crease. NurseryEggPickerB keeps Back in the left header cell and the title entirely in the right page cell, including compact layouts. Reuse the approved nursery-ledger-c open-book frame, canonical species egg artwork and Tinos. Retain the original sorted collection, local draft preview, explicit Select egg, Cancel/source-return semantics and readiness. Browsing/paging must not hatch, spend, reroll or write game state. Empty or removed drafts cannot confirm. See docs/NURSERY_EGG_PICKER_B.md. PR21 stays draft/unmerged.
+
+## Game-update delivery
+The user requires actual in-game screenshots displayed directly, a verified playable link, and a brief next-update goal with every game update. Keep concept proposals clearly identified as proposals. If verification is blocked, state the specific limitation instead of presenting a concept as a runtime result.
