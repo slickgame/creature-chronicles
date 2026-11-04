@@ -45,7 +45,7 @@ export function NurseryEggPickerB({ eggs, draft, onDraft, onCancel, onSelect, na
       {eggs.length > 1 && <label className={s.chooser}>Browse Nursery eggs
         <select aria-label="Browse Nursery eggs" value={egg ? draft : ''} onChange={event => onDraft(event.target.value)}>
           <option value="" disabled>Choose an egg</option>
-          {eggs.map(item => <option key={item.eggId} value={item.eggId}>{name(item)} · {nurseryIdentity(item).species} · {item.status === 'ready' ? 'Ready to hatch' : `${item.daysRemaining} days remaining`}</option>)}
+          {eggs.map(item => <option key={item.eggId} value={item.eggId}>{name(item)} · {nurseryIdentity(item).species} · {item.status === 'ready' ? 'Ready to hatch' : `${item.daysRemaining} day${item.daysRemaining === 1 ? '' : 's'} remaining`}</option>)}
         </select>
       </label>}
       <nav className={s.pager} aria-label="Nursery eggs pages">
