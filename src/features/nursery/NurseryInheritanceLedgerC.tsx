@@ -14,13 +14,15 @@ export function NurseryInheritanceLedgerC({record,initialTab='Stats & Grades',on
  const [help,setHelp]=useState<{title:string;text:string}|null>(null);
  const [tab,setTab]=useState(initialTab),[notes,setNotes]=useState(false),[category,setCategory]=useState<'Inherited'|'Combinations'|'Starting library'>('Inherited'),[page,setPage]=useState(0);
  const [capacity,setCapacity]=useState(2);
+ const [focus,setFocus]=useState<'egg'|'details'>('details');
  useEffect(()=>{const query=window.matchMedia('(max-width: 650px) and (max-height: 740px), (max-height: 600px)');const update=()=>setCapacity(query.matches?1:2);const frame=requestAnimationFrame(update);query.addEventListener('change',update);return()=>{cancelAnimationFrame(frame);query.removeEventListener('change',update);};},[]);
  const ids=category==='Inherited'?record.direct:category==='Combinations'?record.combinations:record.library;
  const total=tab==='Talents'?record.talents.length:ids.length;const currentPage=Math.min(page,Math.max(0,Math.ceil(total/capacity)-1));
- const change=(next:NurseryInheritanceTab)=>{setTab(next);setPage(0);};
+ const change=(next:NurseryInheritanceTab)=>{setTab(next);setPage(0);setFocus('details');};
  return <NurseryLedgerFrame title="Inheritance details" back="Back to Nursery" onClose={onClose}>
  <nav className={s.tabs} aria-label="Inheritance sections">{tabs.map(t=><button key={t} aria-pressed={tab===t} onClick={()=>change(t)}>{t}</button>)}</nav>
- <div className={s.spread}><aside className={s.identity}><img src={record.art} alt={`${record.species} egg`} className={s.egg}/><h2>{record.name}</h2><p>Species: {record.species} · Type: {record.type}</p><span className={s.badge}>{record.rarity} · {record.status}</span><div className={s.parents}><small>Parents</small><strong>{record.parents.giver.displayName} × {record.parents.receiver.displayName}</strong></div></aside>
+ <nav className={s.focusTabs} aria-label="Compact inheritance view"><button aria-pressed={focus==='egg'} onClick={()=>setFocus('egg')}>Egg &amp; parents</button><button aria-pressed={focus==='details'} onClick={()=>setFocus('details')}>{tab}</button></nav>
+ <div className={s.spread} data-focus={focus}><aside className={s.identity}><img src={record.art} alt={`${record.species} egg`} className={s.egg}/><h2>{record.name}</h2><p>Species: {record.species} · Type: {record.type}</p><span className={s.badge}>{record.rarity} · {record.status}</span><div className={s.parents}><small>Parents</small><strong>{record.parents.giver.displayName} × {record.parents.receiver.displayName}</strong></div></aside>
  <section className={s.detail} aria-label={tab}>
  {tab==='Stats & Grades'?<><h2>{record.stage==='Hatched'?'Egg stat projection':'Projected stats'}</h2><table><thead><tr><th>Stat</th><th>Value</th><th>Grade</th></tr></thead><tbody>{Object.entries(labels).map(([key,label])=><tr key={key}><th>{label}</th><td>{record.stats?.[key as keyof typeof labels]??'—'}</td><td>{record.grades[key as keyof typeof labels]}</td></tr>)}</tbody></table>{record.stage==='Hatched'&&record.stats&&<p className={s.note}>Original egg projection. Hatch bonuses are not included.</p>}{!record.stats&&<p className={s.note}>Original numeric stats were not retained in this older birth record.</p>}</>:null}
  {tab==='Talents'?<><h2>Saved talent outcomes</h2>{record.talents.length?record.talents.slice(currentPage*capacity,(currentPage+1)*capacity).map((t,i)=><article className={s.card} key={`${t.id}-${i}`}><h3>{t.name}<span>Grade {t.grade}</span></h3><p className={s.excerpt}>{t.description}</p><button className={s.help} title={t.description} aria-label={`${t.name} details`} onClick={()=>setHelp({title:t.name,text:t.description})}>ⓘ Details</button><small>{t.inheritanceOrigin?.kind==='parent'?`Inherited${t.inheritanceOrigin.parentName?` from ${t.inheritanceOrigin.parentName}`:''}`:t.inheritanceOrigin?.kind==='mutation'?'Mutation':'Recorded at conception'}</small></article>):<p>No inherited talents recorded.</p>}{record.talents.length>capacity&&<Pager page={currentPage} count={Math.ceil(record.talents.length/capacity)} change={setPage}/>}</>:null}
@@ -32,3 +34,4 @@ export function NurseryInheritanceLedgerC({record,initialTab='Stats & Grades',on
  </NurseryLedgerFrame>;
 }
 function Pager({page,count,change}:{page:number;count:number;change:(n:number)=>void}){return <div className={s.pager}><button disabled={!page} onClick={()=>change(page-1)}>‹ Previous</button><span>{page+1} / {count}</span><button disabled={page>=count-1} onClick={()=>change(page+1)}>Next ›</button></div>;}
+

@@ -7,4 +7,140 @@
 .careSpread{margin-top:7%}@media(max-width:650px){.careSpread{margin-top:3%}}
 
 .excerpt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.book button.help{float:right;font-size:12px;padding:2px 6px;min-height:25px!important;margin:0 0 4px 6px}.card:after{content:"";display:block;clear:both}@media(min-width:651px) and (max-height:650px){.book .detail th,.book .detail td{padding:3px 6px;font-size:15px}.book .card{padding:6px;margin-bottom:5px}.book .card h3{font-size:16px}.book .card p,.book .card small{font-size:12px;line-height:1.2}.book .detail h2{font-size:20px;margin-bottom:6px}.book .identity p,.book .badge{font-size:12px}.book .parents{margin-top:8px}.book .parents strong{font-size:16px}.book .header h1{font-size:25px}.book .tabs button{font-size:12px;padding:4px 8px}.book .footer{font-size:13px}}
-.book .footer{position:relative;top:-20px}.book.careBook{aspect-ratio:1.4}.careBook .careSpread{margin-top:2%}.costIcon{width:36px;height:36px;object-fit:contain;vertical-align:middle;margin-right:7px}.careCost{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.careCost strong{font-size:inherit}.book .careFooter{top:-15px}@media(max-width:650px){.dialog.dialog>div>main.book.careBook{height:min(720px,94dvh)!important}.careBook .careSpread{margin-top:0}.book .footer{top:-12px}}
+.book.careBook{aspect-ratio:1.4}.costIcon{width:36px;height:36px;object-fit:contain;vertical-align:middle;margin-right:7px}.careCost{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.careCost strong{font-size:inherit}
+
+/* The book's inner rules, seam and flower margin define the layout safe area.
+   Keep footer controls in flow; never compensate with negative top offsets. */
+.dialog{border-image:none!important}
+.book{
+  container-type:inline-size;
+  padding:min(3.5vw,35px,3.3dvh) min(6.4vw,64px,6dvh) min(5.8vw,58px,5.4dvh);
+}
+.header{flex:0 0 12%;min-height:0}
+.header h1{padding:18px 100px 0;margin:0;line-height:1.12;font-size:clamp(20px,4cqw,34px);text-align:center;overflow-wrap:anywhere}
+.header>button{font-size:clamp(11px,1.5cqw,13px)}
+.tabs{flex:0 0 9%;min-height:0;padding:0;align-items:center;gap:8px}
+.tabs button{font-size:clamp(12px,1.9cqw,17px)}
+.spread{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8%;padding:4% 0 0}
+.identity h2{overflow-wrap:anywhere;line-height:1.12;margin:5px 0 8px}
+.identity p{line-height:1.3}
+.egg{height:39%;flex-shrink:0}
+.parents{width:100%}
+.parents strong{overflow-wrap:anywhere}
+.detail h2{font-size:clamp(20px,3.2cqw,27px);line-height:1.15;margin-bottom:14px}
+.detail table{font-size:clamp(14px,2.35cqw,20px)}
+.detail thead th:not(:first-child){text-align:center}
+.detail td,.pager{font-variant-numeric:tabular-nums}
+.card{background:#fff2d3b0}
+.card h3{font-size:clamp(15px,2.4cqw,20px);line-height:1.15;margin-bottom:4px}
+.card p{font-size:clamp(13px,1.8cqw,15px);margin:4px 0}
+.card small{font-size:12px;line-height:1.25}
+.card{padding:8px 10px}
+.filters{flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.filters button{font-size:clamp(11px,1.45cqw,12px);padding:5px 7px}
+.footer{flex:0 0 7%;min-height:44px;padding:0;gap:12px;font-size:clamp(12px,2cqw,17px)}
+.footer button{flex-shrink:0}
+.pager{margin-top:12px;justify-content:flex-start}
+.focusTabs{display:none}
+.careBook{width:min(960px,96vw,calc(94dvh * 1.4))}
+.careBook .header{flex-basis:17%}
+.careBook .careSpread{margin:0;padding-top:6%}
+.service{font-size:clamp(16px,2.6cqw,22px);line-height:1.2;overflow-wrap:anywhere}
+.service img{flex-shrink:0;width:clamp(32px,7.6cqw,64px);height:clamp(38px,7.6cqw,64px)}
+.careCost{font-size:clamp(14px,2.5cqw,21px);gap:8px 12px}
+.careCost>span{display:inline-flex;align-items:center;gap:4px}
+.costIcon{flex-shrink:0;margin-right:0;width:clamp(24px,4.2cqw,36px);height:clamp(24px,4.2cqw,36px)}
+.effect{padding:14px 12px}
+.effect h2{font-size:clamp(20px,3.2cqw,27px);margin:8px 0 0}
+.balance{font-size:clamp(15px,2.4cqw,20px);line-height:1.45}
+.warning{font-size:clamp(13px,1.8cqw,15px);line-height:1.4}
+.careFooter{display:grid;grid-template-columns:1fr 1fr;gap:8%;flex-basis:9%}
+.careFooter button{width:100%;font-size:clamp(16px,2.5cqw,21px)}
+.blocked{font-size:clamp(12px,1.8cqw,15px);line-height:1.3}
+@media(max-width:650px){
+  .dialog.dialog>div>main.book{padding:32px 29px 40px}
+  .header{flex:0 0 76px;min-height:0}
+  .header h1{padding:36px 0 0;font-size:24px}
+  .header>button{top:0}
+  .tabs{flex:0 0 90px;min-height:0;padding:10px 0;gap:6px}
+  .tabs button{font-size:13px}
+  .spread{padding:16px 0 0;gap:14px}
+  .parents{grid-column:1/-1;display:flex;align-items:baseline;justify-content:center;gap:8px;margin-top:8px;padding-top:7px}
+  .parents strong{font-size:14px}
+  .detail h2{font-size:21px;margin-bottom:10px}
+  .detail table{font-size:15px}
+  .footer{flex:0 0 44px;min-height:44px;gap:8px;font-size:12px;padding:0}
+  .filters{gap:5px;margin-bottom:8px}
+  .filters button{font-size:11px;padding:5px}
+  .dialog.dialog>div>main.book.careBook{height:min(720px,94dvh)!important}
+  .careBook .header{flex:0 0 76px}
+  .careBook .careSpread{padding-top:22px;margin:0;gap:14px}
+  .service{font-size:19px}
+  .careCost{font-size:17px;padding:10px 0;margin-top:12px}
+  .effect{padding:10px}
+  .effect h2{font-size:22px;margin:0}
+  .balance{font-size:17px;margin:10px 0;padding-top:8px}
+  .careFooter{display:grid;gap:12px}
+  .careFooter button{font-size:17px}
+  .warning{font-size:14px;margin:9px 0}
+}
+@media(max-width:650px) and (max-height:740px){
+  .dialog.dialog>div>main.book{padding:26px 29px 34px}
+  .header{flex-basis:66px}
+  .header h1{font-size:22px}
+  .tabs{flex-basis:82px;padding-block:8px}
+  .focusTabs{display:flex;justify-content:center;gap:6px;padding-top:6px}
+  .focusTabs button{font-size:12px;padding:5px 9px}
+  .spread{padding-top:12px}
+  .spread[data-focus='details'] .identity,.spread[data-focus='egg'] .detail{display:none}
+  .spread[data-focus='egg'] .identity{display:grid;grid-template-columns:64px minmax(0,1fr);text-align:left;column-gap:10px}
+  .spread[data-focus='egg'] .egg{width:64px;height:78px;max-height:78px}
+  .spread[data-focus='egg'] .identity h2{font-size:19px}
+  .spread[data-focus='egg'] .parents{width:100%}
+  .detail h2{font-size:19px;margin-bottom:8px}
+  .detail table{font-size:14px}
+  .detail th,.detail td{padding:4px 6px}
+  .footer{flex-basis:42px;min-height:42px}
+  .careBook .header{flex-basis:66px}
+  .careBook .careSpread{gap:8px;padding-top:14px}
+  .service{font-size:15px;gap:8px}
+  .service img{width:28px;height:34px}
+  .careCost{font-size:14px;margin-top:8px;padding:7px 0;gap:4px 8px}
+  .costIcon{width:22px;height:22px}
+  .warning,.blocked{font-size:12px;line-height:1.3;margin:7px 0}
+  .effect{padding:6px 8px;margin-bottom:6px}
+  .effect img{width:28px;height:28px}
+  .effect h2{font-size:17px}
+  .balance{font-size:14px;margin:6px 0;padding-top:6px}
+  .careFooter button{font-size:15px;padding:7px}
+}
+@media(min-width:651px) and (max-height:650px){
+  .header{flex-basis:18%}
+  .book .header h1{font-size:20px;padding:15px 80px 0}
+  .header>button{font-size:10px;padding:4px 6px;min-height:25px!important}
+  .tabs{flex-basis:12%;gap:5px}
+  .tabs button,.filters button{font-size:10px;padding:4px 5px;min-height:26px!important}
+  .spread{padding-top:3%;gap:8%}
+  .book .detail th,.book .detail td{padding:3px 5px;font-size:12px}
+  .book .detail h2{font-size:17px;margin-bottom:6px}
+  .book .card h3,.card h3 span{font-size:13px}
+  .book .card p,.book .card small{font-size:11px;line-height:1.2}
+  .identity h2{font-size:20px}
+  .book .identity p,.book .badge{font-size:11px}
+  .book .parents strong{font-size:13px}
+  .footer{min-height:32px}
+  .book .footer{font-size:11px}
+  .footer button,.pager button{font-size:10px;padding:4px 6px;min-height:26px!important}
+  .pager{gap:6px;margin-top:6px;font-size:11px}
+  .filters{margin-bottom:6px;gap:4px}
+  .careBook .header{flex-basis:20%}
+  .service{font-size:14px;gap:6px}
+  .careCost{padding:7px 0;margin-top:8px;font-size:13px;gap:4px}
+  .costIcon{width:22px;height:22px}
+  .warning,.blocked{font-size:11px;line-height:1.25}
+  .effect{padding:8px}
+  .effect h2{font-size:18px}
+  .effect img{width:32px;height:32px}
+  .balance{font-size:13px;margin:8px 0;padding-top:8px}
+  .careFooter button{font-size:15px;padding:6px}
+}
