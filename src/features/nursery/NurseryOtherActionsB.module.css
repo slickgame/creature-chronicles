@@ -33,7 +33,7 @@
 .copy button{width:100%;min-height:44px}
 .book .primary{color:#fff1ce;background:linear-gradient(#378153,#0e4b2d);border-color:#8b8c43}
 .book .danger{color:#fff0d7;background:linear-gradient(#a34c43,#631b20);border-color:#7c3b29}
-.footer{display:grid;grid-template-columns:1fr 1fr;gap:8%;flex:0 0 48px;margin-top:14px}
+.footer{display:grid;grid-template-columns:1fr 1fr;gap:8%;flex:0 0 48px;margin-top:14px;margin-bottom:2.3cqw}
 .footer button{width:87%;justify-self:center;font-size:24px}
 @media(max-width:650px){
  .dialog.dialog>div>main.book{height:min(760px,94dvh)!important;aspect-ratio:auto}
