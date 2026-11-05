@@ -1,5 +1,6 @@
 import { getAffectionAfterBreeding } from "./breedingCore";
 import { GENERAL_ABILITY_POOL } from "./talents/generalTalents";
+import { normalizeTalentInstance } from "./talents/talentDefinitions";
 import {
   STAT_KEYS,
   applyStatGrades,
@@ -76,7 +77,18 @@ const FAMILY_STAT_BONUSES: Record<
   },
 };
 
-export const TALENT_INHERITANCE_GRADES = ["S", "A", "B", "C", "D", "F"] as const satisfies readonly AbilityGrade[];
+export const TALENT_INHERITANCE_GRADES = ["S", "A", "B", "C", "D"] as const satisfies readonly AbilityGrade[];
+type InheritedTalentGrade = (typeof TALENT_INHERITANCE_GRADES)[number];
+
+// Grade chances after the talent and contributing parent have been selected.
+// Legacy F talents retain their selection weight and use the D grade profile.
+const TALENT_GRADE_CHANCES: Record<InheritedTalentGrade, readonly [number, number, number, number, number]> = {
+  S: [60, 28, 9, 2, 1],
+  A: [12, 57, 22, 7, 2],
+  B: [3, 14, 56, 22, 5],
+  C: [1, 4, 15, 58, 22],
+  D: [1, 2, 5, 22, 70],
+};
 
 const ABILITY_GRADE_WEIGHT: Record<AbilityGrade, number> = {
   F: 1,
@@ -562,6 +574,28 @@ function getParentTalentEntries(
   );
 }
 
+function talentGradeChances(source: AbilityGrade) {
+  return TALENT_GRADE_CHANCES[source === "F" ? "D" : source];
+}
+
+function inheritTalentGrade(seed: string, ability: CreatureAbility): CreatureAbility {
+  // Mix a dedicated grade seed so the new roll does not reuse the parent-pick
+  // hash or change the existing inheritance, parent selection, or mutation rolls.
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = Math.imul(hash ^ seed.charCodeAt(index), 16777619);
+  }
+  hash = Math.imul(hash ^ (hash >>> 16), 0x7feb352d);
+  hash = Math.imul(hash ^ (hash >>> 15), 0x846ca68b);
+  let roll = ((hash ^ (hash >>> 16)) >>> 0) / 4294967296 * 100;
+  const chances = talentGradeChances(ability.grade);
+  for (const [index, grade] of TALENT_INHERITANCE_GRADES.entries()) {
+    if (roll < chances[index]) return normalizeTalentInstance({ ...ability, grade });
+    roll -= chances[index];
+  }
+  return normalizeTalentInstance({ ...ability, grade: "D" });
+}
+
 /** Nominal parent-roll odds after conception. Mutation and support-item checks are separate. */
 export function getParentTalentPreview(save: GameSave, giver: BreedingParticipant, receiver: BreedingParticipant) {
   const afterSession = (parent: BreedingParticipant) => parent.kind === "creature"
@@ -600,22 +634,17 @@ export function getParentTalentPreview(save: GameSave, giver: BreedingParticipan
       }
     }
     const chance = firstPick + secondPick;
-    const gradeWeights = new Map<AbilityGrade, number>();
-    for (const source of sources) {
-      const grade = source.ability.grade;
-      gradeWeights.set(grade, (gradeWeights.get(grade) ?? 0) + (source.eligible ? source.weight : 0));
-    }
-    // Both picks keep the chosen parent's grade. Removing other talent IDs
-    // changes the chance of this talent, but preserves its internal grade mix.
-    const grades = [...gradeWeights]
-      .sort(([a], [b]) => ABILITY_GRADE_WEIGHT[b] - ABILITY_GRADE_WEIGHT[a])
-      .map(([grade, gradeWeight]) => {
-        const share = weight ? gradeWeight / weight : 0;
-        return { grade, chance: chance * share, share: share * 100 };
-      });
-    return { talent: sources[0].ability, sources, firstPick, secondPick, chance, grades };
+    // Removing other talent IDs changes the chance of this talent, but
+    // preserves its mix of parent sources and their grade distributions.
+    const grades = TALENT_INHERITANCE_GRADES.map((grade, index) => {
+      const weightedChance = sources.reduce((sum, source) =>
+        sum + (source.eligible ? source.weight * talentGradeChances(source.ability.grade)[index] : 0), 0);
+      const share = weight ? weightedChance / weight : 0;
+      return { grade, chance: chance * share / 100, share };
+    });
+    return { talent: sources[0].ability, sources, firstPick, secondPick, chance, grades, notInheritedChance: 100 - chance };
   });
-  const anyGrade = new Map(TALENT_INHERITANCE_GRADES.map(grade => {
+  const anyGrade = new Map<AbilityGrade, number>(TALENT_INHERITANCE_GRADES.map(grade => {
     // The sum counts an attempt twice if both distinct picks have this grade.
     const gradeWeights = candidates.map(candidate => {
       const groupWeight = weights.get(candidate.talent.id) ?? 0;
@@ -661,9 +690,10 @@ function buildInheritedAbilities(
   ) {
     const first = weightedAbilityPick(`${seed}_ability_first_pick`, entries);
     if (first) {
-      inherited.push({ ...first.ability, inheritanceOrigin: { kind: "parent", parentName: first.parentName } });
+      const ability = inheritTalentGrade(`${seed}_ability_first_grade`, first.ability);
+      inherited.push({ ...ability, inheritanceOrigin: { kind: "parent", parentName: first.parentName } });
       notes.push(
-        `${first.ability.name} (${first.ability.grade}) was inherited from ${first.parentName}.`,
+        `${ability.name} (${ability.grade}) was inherited from ${first.parentName}.`,
       );
     }
   }
@@ -682,9 +712,10 @@ function buildInheritedAbilities(
       remainingEntries,
     );
     if (second) {
-      inherited.push({ ...second.ability, inheritanceOrigin: { kind: "parent", parentName: second.parentName } });
+      const ability = inheritTalentGrade(`${seed}_ability_second_grade`, second.ability);
+      inherited.push({ ...ability, inheritanceOrigin: { kind: "parent", parentName: second.parentName } });
       notes.push(
-        `${second.ability.name} also carried through from ${second.parentName}.`,
+        `${ability.name} (${ability.grade}) also carried through from ${second.parentName}.`,
       );
     }
   }

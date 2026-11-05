@@ -58,3 +58,28 @@
 @media(max-width:380px) and (min-height:700px){.review .header h1{font-size:22px}.review .header{gap:4px}.review .header>span{font-size:17px}}
 
 @media(max-height:550px){.review .header{height:36px;min-height:36px;padding-bottom:4px}}
+
+.target {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px 10px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  border: 1px solid #839064;
+  border-radius: 5px;
+  background: #e7e8cb;
+  color: #243b2a;
+  font-size: 16px;
+  line-height: 1.1;
+}
+.target > div { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.target small { font-size: 11px; color: #4b5a3b; }
+.targetOdds { text-align: right; }
+.targetOdds strong { font-size: 21px; font-variant-numeric: tabular-nums; }
+.review:has(.target) .scene { min-height: 95px; }
+@media (max-width: 700px), (max-height: 550px) {
+  .target { gap: 4px 7px; margin-top: 4px; padding: 4px 6px; font-size: 13px; }
+  .target small { font-size: 9px; }
+  .targetOdds strong { font-size: 17px; }
+}

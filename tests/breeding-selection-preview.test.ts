@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createNewGameSave} from './helpers/establishedSave';
 import {getBreedingParticipants} from '@/data/breeding';
 import {createGeneralTalent} from '@/data/talents/generalTalents';
-import {getInheritancePairBlocker,getInheritancePartnerPreviews,rankInheritancePartners} from '@/data/breedingPartnerRanking';
+import {getInheritancePairBlocker,getInheritanceReviewTarget,getInheritancePartnerPreviews,rankInheritancePartners} from '@/data/breedingPartnerRanking';
 import {getTalentInheritanceOdds} from '@/data/genetics';
 import {getBattleMoveInheritancePreview} from '@/data/battleMoveInheritance';
 import {getBreedingInheritancePreview,getBreedingSelectionBlocker} from '@/data/breedingSelectionPreview';
@@ -40,7 +40,16 @@ test('partner rankings use exact grades and exclude partners who cannot afford t
   const b = rankInheritancePartners(previews, { kind: 'grade', grade: 'B' });
   assert.deepEqual(s.map(row => row.partner.participantId), [source.creatureId, second.creatureId]);
   assert.deepEqual(b.map(row => row.partner.participantId), [second.creatureId, source.creatureId]);
-  assert.ok(s[0].chance > 0 && s[1].chance === 0 && b[0].chance > 0 && b[1].chance === 0);
+  assert.ok(s[0].chance > s[1].chance && s[1].chance > 0);
+  assert.ok(b[0].chance > b[1].chance && b[1].chance > 0);
+  const participants = getBreedingParticipants(save);
+  const giver = participants.find(p => p.participantId === fixed.creatureId)!;
+  const receiver = participants.find(p => p.participantId === source.creatureId)!;
+  const focus = { target: { kind: 'talent', id: 'light_footed', grade: 'S' }, label: 'Light-Footed · Grade S' } as const;
+  assert.deepEqual(getInheritanceReviewTarget(save, giver, receiver, focus), { ...focus, chance: s[0].chance });
+  assert.equal(getInheritanceReviewTarget(save, giver, receiver, {
+    target: { kind: 'move', id: 'parent-missing' }, label: 'Unavailable move',
+  }).chance, 0);
   assert.deepEqual(save, before);
 });
 

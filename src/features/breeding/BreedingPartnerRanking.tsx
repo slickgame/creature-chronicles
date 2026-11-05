@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getInheritancePartnerPreviews, rankInheritancePartners } from "@/data/breedingPartnerRanking";
+import { getInheritancePartnerPreviews, rankInheritancePartners, type NamedInheritanceTarget } from "@/data/breedingPartnerRanking";
 import { TALENT_INHERITANCE_GRADES } from "@/data/genetics";
 import { GameDialog } from "@/features/ui/GameDialog";
 import type { BreedingParticipant, BreedingRole } from "@/types/breeding";
@@ -20,7 +20,7 @@ export function BreedingPartnerRanking({
   giver?: BreedingParticipant;
   receiver?: BreedingParticipant;
   initialMode: "Talents" | "Moves";
-  onSelectPartner: (fixedRole: BreedingRole, fixedId: string, partnerId: string) => string | null;
+  onSelectPartner: (fixedRole: BreedingRole, fixedId: string, partnerId: string, selection: NamedInheritanceTarget) => string | null;
   onClose: () => void;
 }) {
   const [fixedRole, setFixedRole] = useState<BreedingRole>(giver ? "giver" : "receiver");
@@ -46,6 +46,15 @@ export function BreedingPartnerRanking({
     : activeTalent
       ? { kind: "talent" as const, id: activeTalent, grade: grade || undefined }
       : grade && { kind: "grade" as const, grade };
+  function selectPartner(partnerId: string) {
+    if (!target) return;
+    const label = target.kind === "move"
+      ? moves.find(([id]) => id === target.id)?.[1] ?? "Combat move"
+      : target.kind === "grade"
+        ? `Any Grade ${target.grade} talent`
+        : `${talents.find(([id]) => id === target.id)?.[1] ?? "Talent"}${target.grade ? ` · Grade ${target.grade}` : ""}`;
+    setSelectionError(onSelectPartner(fixedRole, fixedId, partnerId, { target, label }));
+  }
   const results = target ? rankInheritancePartners(previews, target) : [];
   const pageCount = Math.ceil(results.length / RESULTS_PER_PAGE);
   const position = Math.min(page, Math.max(0, pageCount - 1));
@@ -53,7 +62,8 @@ export function BreedingPartnerRanking({
 
   return (
     <GameDialog title="Rank partners" onClose={onClose} dialogClassName={`${j.recordDialog} ${j.planningDialog}`} wide>
-      <div className={j.comparison}>
+      <div className={`${j.comparison} ${j.rankPlanner}`}>
+        <div className={j.planningControls}>
         <label>Keep one parent fixed
           <select value={fixedRole} onChange={event => { setFixedRole(event.target.value as BreedingRole); setPage(0); }}>
             {giver && <option value="giver">Giver · {giver.displayName}</option>}
@@ -92,6 +102,8 @@ export function BreedingPartnerRanking({
             </select>
           </label>
         )}
+        </div>
+        <div className={j.planningResults}>
         {selectionError && <p className={j.warning} role="alert">{selectionError}</p>}
         {!previews.length ? <p className={j.note}>No eligible partners for this parent right now.</p>
           : !target ? <p className={j.note}>{mode === "Talents" ? "Choose a talent or a specific grade to rank partners." : "No eligible pairing has a compatible bonus move."}</p>
@@ -107,15 +119,13 @@ export function BreedingPartnerRanking({
                 return (
                   <li key={partner.participantId} data-selected={selected}>
                     <span className={j.rankNumber}>#{start + index + 1}</span>
-                    <div><strong>{partner.displayName}</strong><small>{partner.familyLabel}</small></div>
+                    <div><strong>{partner.displayName}</strong><small>{selected ? "Current partner" : partner.familyLabel}</small></div>
                     <strong className={j.rankChance} data-zero={chance === 0}>{formatInheritancePercent(chance)}</strong>
-                    {selected
-                      ? <span className={j.rankSelected}>Selected</span>
-                      : <button type="button" className={j.rankSelect}
-                          aria-label={`Select ${partner.displayName} as ${fixedRole === "giver" ? "receiver" : "giver"}`}
-                          onClick={() => setSelectionError(onSelectPartner(fixedRole, fixedId, partner.participantId))}>
-                          Select
-                        </button>}
+                    <button type="button" className={selected ? j.rankSelected : j.rankSelect}
+                      aria-label={selected ? `Keep target with ${partner.displayName}` : `Select ${partner.displayName} as ${fixedRole === "giver" ? "receiver" : "giver"}`}
+                      onClick={() => selectPartner(partner.participantId)}>
+                      {selected ? "Keep" : "Select"}
+                    </button>
                   </li>
                 );
               })}
@@ -123,11 +133,12 @@ export function BreedingPartnerRanking({
             {pageCount > 1 && <PagerA index={position} total={pageCount} onChange={setPage} />}
           </>}
         <p className={j.planningNote}>
-          {results.length > 0 && <strong>Select returns you to the pairing desk. </strong>}
+          {results.length > 0 && <strong>Select or Keep carries this target to Review Attempt. </strong>}
           {mode === "Talents"
             ? "Base odds after conception. Mutation and item checks are separate."
             : "Roll odds after conception with a slot open. Species starting moves are separate."}
         </p>
+        </div>
       </div>
     </GameDialog>
   );

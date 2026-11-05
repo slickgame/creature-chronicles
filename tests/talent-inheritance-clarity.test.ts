@@ -2,8 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { getBreedingParticipants } from "../src/data/breedingTutorial.ts";
-import { createStrategicInheritancePreview, getStrategicGeneticsPreview, getTalentInheritanceOdds, getParentTalentPreview } from "../src/data/genetics.ts";
+import { createStrategicInheritancePreview, getStrategicGeneticsPreview, getTalentInheritanceOdds, getParentTalentPreview, TALENT_INHERITANCE_GRADES } from "../src/data/genetics.ts";
 import { createGeneralTalent } from "../src/data/talents/generalTalents.ts";
+import { getTalentDescription } from "../src/data/talents/talentDefinitions.ts";
 import { hatchEgg } from "../src/data/nurseryMoveInheritanceLifecycle.ts";
 import type { EggRecord } from "../src/types/save.ts";
 
@@ -30,7 +31,9 @@ test("each inherited result names its immediate parent and mutations have a dist
    if(talent.inheritanceOrigin?.kind==="parent") {
     inherited++;const parent=talent.inheritanceOrigin.parentName===a.displayName?a:b;
     assert.ok([a.displayName,b.displayName].includes(talent.inheritanceOrigin.parentName!));
-    assert.ok(parent.abilities!.some(t=>t.id===talent.id&&t.grade===talent.grade));
+    assert.ok(parent.abilities!.some(t=>t.id===talent.id));
+    assert.ok(TALENT_INHERITANCE_GRADES.some(grade=>grade===talent.grade));
+    assert.equal(talent.description,getTalentDescription(talent.id,talent.grade));
    }else {assert.equal(talent.inheritanceOrigin?.kind,"mutation");mutated++;}
   }
  }
@@ -64,9 +67,10 @@ test("per-talent estimates combine two distinct parent picks and group shared so
   const secondPick = preview.first * 15 / 40 * preview.second / 100;
   assert.deepEqual(shared.sources.map(source => source.role), ["Giver", "Receiver"]);
   assert.equal(shared.firstPick, firstPick);
-  assert.deepEqual(shared.grades.map(row => [row.grade, row.share]), [["A", 64], ["C", 36]]);
-  assert.ok(Math.abs(shared.grades[0].chance - shared.chance * 0.64) < 1e-10);
-  assert.ok(Math.abs(shared.grades[1].chance - shared.chance * 0.36) < 1e-10);
+  assert.deepEqual(shared.grades.map(row => [row.grade, row.share]),
+    [["S", 8.04], ["A", 37.92], ["B", 19.48], ["C", 25.36], ["D", 9.2]]);
+  assert.ok(Math.abs(shared.grades.reduce((sum, row) => sum + row.chance, 0) - shared.chance) < 1e-10);
+  assert.equal(shared.notInheritedChance, 100 - shared.chance);
   assert.ok(Math.abs(shared.secondPick - secondPick) < 1e-10);
   assert.ok(Math.abs(shared.chance - firstPick - secondPick) < 1e-10);
   assert.deepEqual({ save, giver, receiver }, before);
@@ -81,11 +85,13 @@ test("normal talent preview excludes canine-only talent from other offspring", (
   assert.equal(preview.first, 0);
   assert.equal(preview.second, 0);
   assert.equal(preview.candidates[0].chance, 0);
-  assert.deepEqual(preview.candidates[0].grades, [{ grade: "A", chance: 0, share: 0 }]);
+  assert.deepEqual(preview.candidates[0].grades,
+    TALENT_INHERITANCE_GRADES.map(grade => ({ grade, chance: 0, share: 0 })));
+  assert.equal(preview.candidates[0].notInheritedChance, 100);
 });
 
 
-test("same-grade parents add their weight to one grade outcome", () => {
+test("same-grade parents increase the pass chance without changing the grade mix", () => {
   const { save, parents: [giver, receiver] } = fixture();
   giver.affection = receiver.affection = 50;
   const single = getParentTalentPreview(save, giver, receiver)
@@ -94,20 +100,25 @@ test("same-grade parents add their weight to one grade outcome", () => {
   const shared = getParentTalentPreview(save, giver, receiver)
     .candidates.find(row => row.talent.id === "hot_blooded")!;
   assert.ok(shared.chance > single.chance);
-  assert.deepEqual(shared.grades, [{ grade: "A", chance: shared.chance, share: 100 }]);
+  assert.deepEqual(shared.grades.map(row => row.share), single.grades.map(row => row.share));
+  assert.ok(shared.grades.every((row, index) => row.chance > single.grades[index].chance));
 });
 
 
-test("S, B and D parent copies are all possible inherited grades", () => {
+test("a stronger parent shifts the grade distribution while leaving every outcome possible", () => {
   const { save, parents: [giver, receiver] } = fixture();
-  giver.abilities = [createGeneralTalent("light_footed", "S"), createGeneralTalent("diligent", "D")];
-  receiver.abilities = [createGeneralTalent("light_footed", "B")];
-  const preview = getParentTalentPreview(save, giver, receiver);
-  assert.deepEqual(preview.candidates[0].grades.map(row => row.grade), ["S", "B"]);
-  assert.ok(preview.candidates[0].grades[0].chance > 0);
-  assert.ok(preview.candidates[0].grades[1].chance > 0);
-  assert.ok((preview.anyGrade.get("D") ?? 0) > 0);
-  assert.equal(preview.anyGrade.get("A"), 0);
+  receiver.abilities = [];
+  const preview = (grade: "S" | "D") => getParentTalentPreview(save, {
+    ...giver,
+    abilities: [createGeneralTalent("light_footed", grade)],
+  }, receiver).candidates[0];
+  const strong = preview("S"), weak = preview("D");
+  assert.deepEqual(strong.grades.map(row => row.grade), TALENT_INHERITANCE_GRADES);
+  assert.ok(strong.grades.every(row => row.chance > 0));
+  assert.ok(weak.grades.every(row => row.chance > 0));
+  assert.ok(strong.grades[0].chance > weak.grades[0].chance);
+  assert.ok(strong.grades[4].chance < weak.grades[4].chance);
+  assert.equal(strong.chance, weak.chance);
 });
 
 test("a grade-only target counts a hatchling once when both talent picks match", () => {
@@ -116,6 +127,28 @@ test("a grade-only target counts a hatchling once when both talent picks match",
   receiver.abilities = [createGeneralTalent("diligent", "B")];
   const preview = getParentTalentPreview(save, giver, receiver);
   assert.ok(preview.second > 0);
-  assert.ok(Math.abs((preview.anyGrade.get("B") ?? 0) - preview.first) < 1e-10);
-  assert.ok(preview.candidates.reduce((sum, talent) => sum + talent.chance, 0) > preview.first);
+  // B sources roll grade B 56% of the time. A second B only contributes
+  // to "any B" when the first inherited talent rolled some other grade.
+  const expected = preview.first * (0.56 + 0.44 * preview.second / 100 * 0.56);
+  assert.ok(Math.abs((preview.anyGrade.get("B") ?? 0) - expected) < 1e-10);
+});
+
+test("legacy F remains on the parent but rolls offspring grades S through D", () => {
+  const { save, parents: [giver, receiver] } = fixture();
+  giver.abilities = [createGeneralTalent("light_footed", "F")];
+  receiver.abilities = [];
+  const legacy = getParentTalentPreview(save, giver, receiver).candidates[0];
+  const modern = getParentTalentPreview(save, {
+    ...giver,
+    abilities: [createGeneralTalent("light_footed", "D")],
+  }, receiver).candidates[0];
+  assert.deepEqual(legacy.grades, modern.grades);
+  const actual = new Set<string>();
+  for (let index = 0; index < 4000; index += 1) {
+    const result = createStrategicInheritancePreview(save, giver, receiver, `legacy-grade-${index}`);
+    const inherited = result.projectedAbilities.find(talent => talent.inheritanceOrigin?.kind === "parent");
+    if (inherited) actual.add(inherited.grade);
+  }
+  assert.deepEqual(actual, new Set(TALENT_INHERITANCE_GRADES));
+  assert.equal(giver.abilities[0].grade, "F");
 });

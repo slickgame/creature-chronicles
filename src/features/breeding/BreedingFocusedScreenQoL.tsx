@@ -15,7 +15,7 @@ import {
   BREEDING_SCENE_FALLBACK_PATH,
   getBreedingSceneImagePath,
 } from "@/data/breedingSceneImages";
-import { getInheritancePairBlocker } from "@/data/breedingPartnerRanking";
+import { getInheritancePairBlocker, getInheritanceReviewTarget, type NamedInheritanceTarget } from "@/data/breedingPartnerRanking";
 import { BreedingInheritanceBook } from "./BreedingInheritanceBook";
 import { BreedingInspectBook } from "./BreedingInspectBook";
 import { useGameContext } from "@/state/GameProvider";
@@ -225,6 +225,7 @@ export function BreedingFocusedScreen() {
   const [reviewQuote, setReviewQuote] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const [showInheritance, setShowInheritance] = useState(false);
+  const [rankedTarget, setRankedTarget] = useState<(NamedInheritanceTarget & { saveId: string; giverId: string; receiverId: string }) | null>(null);
   const [sceneMode, setSceneMode] = useState<SceneMode>("full");
   const restoredSaveRef = useRef<string | null>(null);
   const attemptLockRef = useRef(false);
@@ -250,7 +251,15 @@ export function BreedingFocusedScreen() {
     () => getBlockedReasons(giver, receiver, preview),
     [giver, receiver, preview],
   );
-  const quote = JSON.stringify([currentSave?.saveId,currentSave?.dayState.dayNumber,giver,receiver,preview]);
+  const reviewTarget = useMemo(() => {
+    if (!currentSave || !giver || !receiver || !rankedTarget) return null;
+    if (rankedTarget.saveId !== String(currentSave.saveId) ||
+        rankedTarget.giverId !== giver.participantId || rankedTarget.receiverId !== receiver.participantId) return null;
+    return getInheritanceReviewTarget(currentSave, giver, receiver, {
+      target: rankedTarget.target, label: rankedTarget.label,
+    });
+  }, [currentSave, giver, receiver, rankedTarget]);
+  const quote = JSON.stringify([currentSave?.saveId,currentSave?.dayState.dayNumber,giver,receiver,preview,reviewTarget]);
   const chanceRows = useMemo(
     () => getChanceRows(giver, receiver, preview),
     [giver, receiver, preview],
@@ -358,9 +367,10 @@ export function BreedingFocusedScreen() {
     }
     setSelectorRole(null);
     setResult(null);
+    setRankedTarget(null);
   }
 
-  function selectRankedPartner(fixedRole: SelectorRole, fixedId: string, partnerId: string): string | null {
+  function selectRankedPartner(fixedRole: SelectorRole, fixedId: string, partnerId: string, selection: NamedInheritanceTarget): string | null {
     if (!currentSave || attemptLockRef.current || isAttempting) return "Wait until the current attempt finishes.";
     if ((fixedRole === "giver" ? giverId : receiverId) !== fixedId) {
       return "The fixed parent changed. Reopen the rankings to choose a partner.";
@@ -373,6 +383,12 @@ export function BreedingFocusedScreen() {
     if (blocker) return blocker;
 
     choose(fixedRole === "giver" ? "receiver" : "giver", partnerId);
+    setRankedTarget({
+      ...selection,
+      saveId: String(currentSave.saveId),
+      giverId: fixedRole === "giver" ? fixedId : partnerId,
+      receiverId: fixedRole === "receiver" ? fixedId : partnerId,
+    });
     setWarningItems([]);
     setReviewQuote(null);
     setReviewOpen(false);
@@ -386,6 +402,7 @@ export function BreedingFocusedScreen() {
       setMessage("This pair cannot swap roles.");
       return;
     }
+    setRankedTarget(null);
     setGiverId(receiver.participantId);
     setReceiverId(giver.participantId);
     setWarningItems([]);
@@ -395,6 +412,7 @@ export function BreedingFocusedScreen() {
 
   function clearPair() {
     if (isAttempting) return;
+    setRankedTarget(null);
     setGiverId(null);
     setReceiverId(null);
     setResult(null);
@@ -421,6 +439,7 @@ export function BreedingFocusedScreen() {
       return;
     }
     const [nextGiver, nextReceiver] = pool[Math.floor(Math.random() * pool.length)];
+    setRankedTarget(null);
     setGiverId(nextGiver.participantId);
     setReceiverId(nextReceiver.participantId);
     setResult(null);
@@ -471,6 +490,7 @@ export function BreedingFocusedScreen() {
 
   function keepGiverChooseReceiver() {
     setResult(null);
+    setRankedTarget(null);
     setReceiverId(null);
     setSelectorRole("receiver");
     setMessage("Giver kept. Choose a new receiver.");
@@ -483,7 +503,7 @@ export function BreedingFocusedScreen() {
     <main>
       <BreedingDeskA giver={giver} receiver={receiver} preview={preview} disabled={isAttempting} status={message.startsWith("The pair or costs changed")?message:statusText} onChoose={setSelectorRole} onInspect={setInfoParticipant} onBack={goBack} onNursery={goToNursery} onOptions={()=>setShowOptions(true)} onInheritance={()=>setShowInheritance(true)} onDetails={()=>setShowChanceBreakdown(true)} onReview={openAttemptReview}/>
       {showInheritance && <BreedingInheritanceBook save={currentSave} giverId={giverId} receiverId={receiverId} onSelectPartner={selectRankedPartner} onClose={()=>setShowInheritance(false)} />}
-      {reviewOpen&&preview&&giver&&receiver?<AttemptReviewA giver={giver} receiver={receiver} preview={preview} onClose={()=>setReviewOpen(false)} onConfirm={requestAttempt} stale={reviewQuote!==quote} disabled={isAttempting} warnings={getWarnings(giver,receiver,preview)}/>:null}
+      {reviewOpen&&preview&&giver&&receiver?<AttemptReviewA giver={giver} receiver={receiver} preview={preview} inheritanceTarget={reviewTarget} onClose={()=>setReviewOpen(false)} onConfirm={requestAttempt} stale={reviewQuote!==quote} disabled={isAttempting} warnings={getWarnings(giver,receiver,preview)}/>:null}
       {showOptions?<PairOptionsA giver={giver} receiver={receiver} preview={preview} onClose={()=>setShowOptions(false)} onSwap={()=>{swapRoles();setShowOptions(false)}} onRandom={()=>{randomPair();setShowOptions(false)}} onClear={()=>{clearPair();setShowOptions(false)}} canSwap={canSwap} disabled={isAttempting} sceneMode={sceneMode} onSceneMode={mode=>{setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode)}}/>:null}
       {showChanceBreakdown ? <ChanceWindowA giver={giver} receiver={receiver} preview={preview} onClose={()=>setShowChanceBreakdown(false)} rows={chanceRows} blockedReasons={blockedReasons} status={statusText} message={message} onReview={()=>{setShowChanceBreakdown(false);openAttemptReview()}} pages={[
         {key:'summary',title:'Pair readiness',content:<><h3>Pregnancy chance: {preview?`${preview.pregnancyChance}%`:'—'}</h3><p>{statusText}</p><p>{message}</p></>},

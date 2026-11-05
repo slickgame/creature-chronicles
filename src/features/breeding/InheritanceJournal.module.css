@@ -274,3 +274,209 @@
 @media (max-height: 450px) {
   .journal .card .journalMetric { padding: 1px 5px; font-size: 11px; }
 }
+
+/* Share the illustrated open ledger with Nursery Records. Keep the spine clear
+   on wide screens and retain the single-pane focus controls on phones. */
+.journal,
+.planningDialog {
+  --open-ledger: url('/images/ui/nursery-records-b/open-ledger.webp');
+  --ledger-ink: #3d2516;
+  --ledger-rule: #a3773977;
+  --ledger-card: #fff2d2c7;
+}
+
+.journal .parents > h2,
+.journal .heading {
+  border-color: var(--ledger-rule);
+}
+.journal .content > footer,
+.journal .parents > footer {
+  padding-top: 5px;
+}
+.journal .card,
+.planningDialog .compareCard,
+.planningDialog .rankList li {
+  background: var(--ledger-card);
+  box-shadow: 0 1px 2px #623f151c;
+}
+
+.gradeOdds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px 6px;
+}
+.gradeOdds li {
+  min-width: 0;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 2px 5px 2px 2px;
+}
+.gradeOdds strong,
+.gradeOdds .grade {
+  white-space: nowrap;
+}
+.gradeOdds .grade {
+  padding: 2px 4px;
+}
+.gradeOdds .grade[data-grade="S"] { background: #80551b; }
+.gradeOdds .grade[data-grade="A"] { background: #2c6040; }
+.gradeOdds .grade[data-grade="B"] { background: #325c79; }
+.gradeOdds .grade[data-grade="C"] { background: #665048; }
+.gradeOdds .grade[data-grade="D"] { background: #8b4936; }
+.gradeOdds .grade[data-grade="none"] { background: #544638; }
+
+.planningDialog .planningControls,
+.planningDialog .planningResults {
+  display: grid;
+  gap: 11px;
+  align-content: start;
+  min-width: 0;
+}
+.planningDialog .planningResults > p {
+  margin: 0;
+}
+.planningDialog .comparison > footer span {
+  padding: 2px 9px;
+  border: 1px solid #b38e55;
+  border-radius: 12px;
+  background: #f8e9c3;
+}
+.planningDialog .planningResults > footer button {
+  min-height: 33px;
+  padding: 4px 8px;
+  border-color: #ab8a52;
+  border-radius: 5px;
+  background: #efe0bb;
+  color: #483622;
+  font: inherit;
+  font-weight: 700;
+}
+.planningDialog .planningResults > footer button:not(:disabled):hover { background: #e5c997; }
+
+@media (min-width: 701px) {
+  .journal[data-minimized="false"] > section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(1240px, 100%);
+    gap: clamp(32px, 4.5vw, 70px);
+    padding: clamp(17px, 4.1dvh, 42px) clamp(40px, 6vw, 86px) clamp(21px, 5.4dvh, 57px);
+    background: var(--open-ledger) center / 100% 100% no-repeat;
+    filter: drop-shadow(0 9px 17px #150c08a8);
+  }
+  .journal[data-minimized="false"] .parents,
+  .journal[data-minimized="false"] .content {
+    border: 0;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+  }
+  .journal[data-minimized="false"] .figures {
+    max-height: none;
+  }
+  .journal[data-minimized="false"] .figures > div {
+    border-color: #9d7947;
+    box-shadow: inset 0 0 0 2px #fff0ce;
+  }
+
+  .planningDialog.planningDialog {
+    --ledger-edge: clamp(42px, 7vw, 80px);
+    --ledger-gap: clamp(30px, 5vw, 58px);
+    width: min(1080px, calc(100vw - 28px));
+    min-height: min(500px, calc(100dvh - 32px));
+    padding: clamp(18px, 5dvh, 39px) var(--ledger-edge) clamp(24px, 6dvh, 44px);
+    border: 0;
+    border-image: none;
+    border-radius: 0;
+    background: var(--open-ledger) center / 100% 100% no-repeat;
+    box-shadow: none;
+    filter: drop-shadow(0 14px 20px #150c08bd);
+  }
+  .planningDialog > header {
+    position: static;
+    padding: 0 0 11px;
+    border-color: var(--ledger-rule);
+    background: none;
+    color: var(--ledger-ink);
+  }
+  .planningDialog > header h2 {
+    text-shadow: none;
+  }
+  .planningDialog > div {
+    padding: 0;
+  }
+  .planningDialog .comparison {
+    padding: 12px 0 0;
+  }
+  .planningDialog .comparison:not(.rankPlanner) :is(.compareControls, .compareModes, .compareSides) {
+    column-gap: var(--ledger-gap);
+  }
+  .planningDialog .comparison:not(.rankPlanner) .compareModes {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+  .planningDialog .comparison:not(.rankPlanner) .compareModes button:not([aria-pressed="true"]) {
+    border-color: #b38e55;
+    background: #f7e4b9;
+  }
+  .planningDialog .comparison:not(.rankPlanner) > label {
+    width: calc((100% - var(--ledger-gap)) / 2);
+    justify-self: end;
+  }
+  .planningDialog .rankPlanner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--ledger-gap);
+    align-items: start;
+  }
+  .planningDialog .planningNote,
+  .planningDialog .comparison > .note {
+    padding: 6px 8px;
+    border: 1px solid #b38e5577;
+    border-radius: 5px;
+    background: #fff1cfd9;
+  }
+  .planningDialog .rankList li {
+    grid-template-columns: 1.75em minmax(0, 1fr) auto 4.5em;
+  }
+  .planningDialog .rankLegend {
+    grid-template-columns: minmax(0, 1fr) auto 4.5em;
+  }
+}
+@media (max-width: 900px) {
+  .gradeOdds li {
+    font-size: .78em;
+  }
+}
+@media (max-width: 700px) {
+  .planningDialog .planningControls,
+  .planningDialog .planningResults {
+    gap: 7px;
+  }
+  .planningDialog .compareCard .gradeOdds {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .planningDialog .compareCard .gradeOdds li {
+    display: grid;
+    justify-content: stretch;
+    justify-items: center;
+    gap: 1px;
+    padding: 2px;
+  }
+  .planningDialog .compareCard .gradeOdds .grade {
+    font-size: .95em;
+  }
+}
+@media (max-height: 450px) {
+  .gradeOdds li {
+    gap: 3px;
+    padding: 1px 3px 1px 1px;
+    line-height: 1;
+  }
+  .gradeOdds .grade {
+    padding: 1px 3px;
+  }
+  .planningDialog .planningControls,
+  .planningDialog .planningResults {
+    gap: 6px;
+  }
+}

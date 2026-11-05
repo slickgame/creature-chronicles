@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { getBreedingParticipants } from "@/data/breeding";
 import { getBreedingInheritancePreview, getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
+import { TALENT_INHERITANCE_GRADES } from "@/data/genetics";
 import { GameDialog } from "@/features/ui/GameDialog";
 import type { GameSave } from "@/types/save";
 import { PagerA } from "./BreedingWindowA";
@@ -17,17 +18,17 @@ export function formatInheritancePercent(value: number): string {
   return value > 0 && value < 0.1 ? "<0.1%" : `${Number(value.toFixed(1))}%`;
 }
 
-export function TalentGradeOdds({ talent }: { talent: Talent }) {
-  const eligibleGrades = talent.grades.filter(grade => grade.chance > 0);
-  if (!eligibleGrades.length) return null;
+export function TalentGradeOdds({ talent }: { talent?: Talent }) {
+  const grades = talent?.grades ?? TALENT_INHERITANCE_GRADES.map(grade => ({ grade, chance: 0 }));
   return (
-    <ul className={j.gradeOdds} aria-label="Chance by talent grade">
-      {eligibleGrades.map(({ grade, chance }) => (
+    <ul className={j.gradeOdds} aria-label="Talent outcomes after conception">
+      {grades.map(({ grade, chance }) => (
         <li key={grade}>
           <span className={j.grade} data-grade={grade}>Grade {grade}</span>
           <strong>{formatInheritancePercent(chance)}</strong>
         </li>
       ))}
+      <li><span className={j.grade} data-grade="none">Doesn’t pass</span><strong>{formatInheritancePercent(talent?.notInheritedChance ?? 100)}</strong></li>
     </ul>
   );
 }
@@ -114,10 +115,8 @@ export function BreedingInheritanceComparison({
                     <strong className={j.compareChance} data-zero={!result?.chance}>{formatInheritancePercent(result?.chance ?? 0)}</strong>
                     <span>{!result ? (mode === "Talents" ? "No parent roll" : "No bonus roll") : mode === "Talents" ? "Total chance" : "Roll chance"}</span>
                   </div>
-                  {result && <>
-                    {result.talent && <TalentGradeOdds talent={result.talent} />}
-                    {result.talent && <p className={j.compareSources}>{result.talent.sources.map(source => `${source.parentName} (${source.ability.grade})`).join(" · ")}</p>}
-                  </>}
+                  {mode === "Talents" && <TalentGradeOdds talent={result?.talent} />}
+                  {result?.talent && <p className={j.compareSources}>{result.talent.sources.map(source => `${source.parentName} (${source.ability.grade})`).join(" · ")}</p>}
                 </article>
               ))}
             </div>
@@ -125,7 +124,7 @@ export function BreedingInheritanceComparison({
           </>
         ) : <p className={j.note}>Neither pairing has a {mode === "Talents" ? "parent talent" : "bonus move"} to compare.</p>}
         <p className={j.planningNote}>{mode === "Talents"
-          ? "Base odds after conception. Grade odds add up to the talent’s total before rounding. Mutation and item checks are separate."
+          ? "Base odds after conception. “Doesn’t pass” refers to this talent’s parent rolls. Mutation and item checks are separate."
           : "Roll odds after conception with a slot open. Species starting moves are separate."}</p>
       </div>
     </GameDialog>

@@ -11,6 +11,9 @@ export type InheritanceTarget =
   | { kind: "grade"; grade: AbilityGrade }
   | { kind: "move"; id: string };
 
+export type NamedInheritanceTarget = { target: InheritanceTarget; label: string };
+export type InheritanceReviewTarget = NamedInheritanceTarget & { chance: number };
+
 export function getInheritancePairBlocker(
   save: GameSave,
   giver: BreedingParticipant | null | undefined,
@@ -34,37 +37,47 @@ export function getInheritancePartnerPreviews(save: GameSave, fixedId: string, f
   return participants.flatMap(partner => {
     const [giver, receiver] = fixedRole === "giver" ? [fixed, partner] : [partner, fixed];
     if (getInheritancePairBlocker(save, giver, receiver)) return [];
-    const moves = getBattleMoveInheritancePreview(save, giver.participantId, receiver.participantId);
-    return [{
-      partner,
-      talents: getParentTalentPreview(save, giver, receiver),
-      moves: [
-        ...moves.directCandidates.map(move => ({
-          id: `parent-${move.moveId}`, name: move.moveName, chance: move.finalChance,
-        })),
-        ...moves.combinationCandidates.map(move => ({
-          id: `recipe-${move.recipeId}`, name: `${move.outputMoveName} · Combination`, chance: move.chance,
-        })),
-      ],
-    }];
+    return { partner, ...getPairInheritanceOdds(save, giver, receiver) };
   });
+}
+
+function getPairInheritanceOdds(save: GameSave, giver: BreedingParticipant, receiver: BreedingParticipant) {
+  const moves = getBattleMoveInheritancePreview(save, giver.participantId, receiver.participantId);
+  return {
+    talents: getParentTalentPreview(save, giver, receiver),
+    moves: [
+      ...moves.directCandidates.map(move => ({
+        id: `parent-${move.moveId}`, name: move.moveName, chance: move.finalChance,
+      })),
+      ...moves.combinationCandidates.map(move => ({
+        id: `recipe-${move.recipeId}`, name: `${move.outputMoveName} · Combination`, chance: move.chance,
+      })),
+    ],
+  };
+}
+
+type PairInheritanceOdds = ReturnType<typeof getPairInheritanceOdds>;
+
+function getTargetChance({ moves, talents }: PairInheritanceOdds, target: InheritanceTarget) {
+  if (target.kind === "move") return moves.find(move => move.id === target.id)?.chance ?? 0;
+  if (target.kind === "grade") return talents.anyGrade.get(target.grade) ?? 0;
+  const talent = talents.candidates.find(candidate => candidate.talent.id === target.id);
+  return (target.grade ? talent?.grades.find(row => row.grade === target.grade)?.chance : talent?.chance) ?? 0;
+}
+
+export function getInheritanceReviewTarget(
+  save: GameSave,
+  giver: BreedingParticipant,
+  receiver: BreedingParticipant,
+  selection: NamedInheritanceTarget,
+): InheritanceReviewTarget {
+  return { ...selection, chance: getTargetChance(getPairInheritanceOdds(save, giver, receiver), selection.target) };
 }
 
 type PartnerPreview = ReturnType<typeof getInheritancePartnerPreviews>[number];
 
 export function rankInheritancePartners(previews: PartnerPreview[], target: InheritanceTarget) {
-  return previews.map(({ partner, moves, talents }) => {
-    if (target.kind === "move") {
-      return { partner, chance: moves.find(move => move.id === target.id)?.chance ?? 0 };
-    }
-    if (target.kind === "grade") {
-      return { partner, chance: talents.anyGrade.get(target.grade) ?? 0 };
-    }
-    const talent = talents.candidates.find(candidate => candidate.talent.id === target.id);
-    const chance = target.grade
-      ? talent?.grades.find(row => row.grade === target.grade)?.chance
-      : talent?.chance;
-    return { partner, chance: chance ?? 0 };
-  }).sort((a, b) => b.chance - a.chance || a.partner.displayName.localeCompare(b.partner.displayName)
-    || a.partner.participantId.localeCompare(b.partner.participantId));
+  return previews.map(preview => ({ partner: preview.partner, chance: getTargetChance(preview, target) }))
+    .sort((a, b) => b.chance - a.chance || a.partner.displayName.localeCompare(b.partner.displayName)
+      || a.partner.participantId.localeCompare(b.partner.participantId));
 }
