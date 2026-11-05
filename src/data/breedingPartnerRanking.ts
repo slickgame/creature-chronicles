@@ -2,8 +2,12 @@ import { getBreedingParticipants, getBreedingPreview } from "@/data/breeding";
 import { getBattleMoveInheritancePreview } from "@/data/battleMoveInheritance";
 import { getParentTalentPreview } from "@/data/genetics";
 import { getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
-import type { BreedingParticipant, BreedingRole } from "@/types/breeding";
-import type { AbilityGrade } from "@/types/creature";
+import type {
+  BreedingParticipant,
+  BreedingRole,
+  InheritanceTarget,
+  InheritanceTargetSelection,
+} from "@/types/breeding";
 import type { GameSave } from "@/types/save";
 
 export type InheritanceTarget =

@@ -24,7 +24,7 @@ import { formatGameDate } from "@/lib/formatters";
 import { createNewGameSave, deleteSaveSlot, findFirstEmptySlot, getActiveSaveId, loadAllSaves, loadSaveFromSlot, saveGameToSlot, setActiveSaveId } from "@/lib/save/localSave";
 import type { BattleOutfitterResult } from "@/data/battleOutfitter";
 import type { TrainingFocusId, TrainingResult, TrainingUpgradeId } from "@/data/trainingGrounds";
-import type { BreedingAttemptRecord } from "@/types/breeding";
+import type { BreedingAttemptRecord, InheritanceTargetSelection } from "@/types/breeding";
 import type { CreatureFamily, CreatureRecord, CreatureStatKey } from "@/types/creature";
 import type { CreatureId, EggId } from "@/types/ids";
 import type { RanchJobAssignmentResult, RanchJobId, RanchJobResult } from "@/types/ranchJobs";
@@ -98,7 +98,7 @@ type GameContextValue = {
   releaseCreature: (creatureId: CreatureId) => string;
   donateCreature: (creatureId: CreatureId) => string;
   confirmCreatureRemovalReview: (quote: CreatureRemovalQuote) => {ok: boolean; message: string};
-  attemptBreeding: (giverId: string, receiverId: string) => BreedingAttemptRecord | null;
+  attemptBreeding: (giverId: string, receiverId: string, inheritanceTarget?: InheritanceTargetSelection) => BreedingAttemptRecord | null;
   hatchReadyEgg: (eggId: EggId, nickname?: string) => CreatureRecord | null;
   removeNurseryEgg: (eggId: EggId, mode: "release" | "donate") => void;
   buyMarketCreature: (listingId: string) => string;
@@ -288,9 +288,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return {ok: result.ok, message: result.message};
   }, [saveCurrentGame]);
 
-  const attemptBreeding = useCallback((giverId: string, receiverId: string) => {
+  const attemptBreeding = useCallback((giverId: string, receiverId: string, inheritanceTarget?: InheritanceTargetSelection) => {
     if (!currentSave) return null;
-    const result = performBreedingAttempt(currentSave, giverId, receiverId);
+    const result = performBreedingAttempt(currentSave, giverId, receiverId, inheritanceTarget);
     if (!result) return null;
     saveCurrentGame(result.save);
     return result.attempt;

@@ -5,8 +5,13 @@ import { createStrategicInheritancePreview } from "./genetics";
 import { applyGeneticsPowerCurve } from "./geneticsBalance";
 import { getBreedingSceneImagePath } from "./breedingSceneImages";
 import { isChapterOneGuidedTutorialActive } from "./chapterOneGuidedTutorial";
-import type { BreedingAttemptRecord, BreedingPreview } from "@/types/breeding";
-import type { GameSave, PregnancyRecord } from "@/types/save";
+import type {
+  BreedingAttemptRecord,
+  BreedingPreview,
+  InheritanceTargetOutcome,
+  InheritanceTargetSelection,
+} from "@/types/breeding";
+import type { GameSave, InheritancePreview, PregnancyRecord } from "@/types/save";
 
 export * from "./breeding";
 
@@ -29,6 +34,51 @@ function replaceAttempt(save: GameSave, attempt: BreedingAttemptRecord): GameSav
       ),
     },
   };
+}
+
+export function resolveInheritanceTargetOutcome(
+  selection: InheritanceTargetSelection,
+  inheritance?: InheritancePreview,
+): InheritanceTargetOutcome {
+  const target = { ...selection.target };
+  const result = { ...selection, target };
+  if (!inheritance) return { ...result, status: "no-conception" };
+
+  if (target.kind === "move") {
+    const passed = inheritance.battleMoveInheritance?.rolls.some(roll =>
+      roll.inherited && target.id === (roll.recipeId ? `recipe-${roll.recipeId}` : `parent-${roll.moveId}`),
+    );
+    return { ...result, status: passed ? "passed" : "missed" };
+  }
+
+  const talent = inheritance.projectedAbilities.find(ability =>
+    target.kind === "talent" ? ability.id === target.id : ability.grade === target.grade,
+  );
+  return {
+    ...result,
+    status: talent && (!target.grade || talent.grade === target.grade) ? "passed" : "missed",
+    ...(talent && { actualTalent: { name: talent.name, grade: talent.grade, origin: talent.inheritanceOrigin?.kind } }),
+  };
+}
+
+function recordInheritanceTarget(
+  result: { save: GameSave; attempt: BreedingAttemptRecord },
+  selection: InheritanceTargetSelection,
+): { save: GameSave; attempt: BreedingAttemptRecord } {
+  const pregnancy = result.attempt.outcome === "pregnancy"
+    ? result.save.pregnancies?.find(record => record.pregnancyId === result.attempt.pregnancyId)
+    : undefined;
+  const inheritanceTargetOutcome = resolveInheritanceTargetOutcome(selection, pregnancy?.inheritance);
+  const attempt = { ...result.attempt, inheritanceTargetOutcome };
+  const save = pregnancy ? {
+    ...result.save,
+    pregnancies: result.save.pregnancies?.map(record =>
+      record.pregnancyId === pregnancy.pregnancyId
+        ? { ...record, inheritance: { ...record.inheritance, inheritanceTargetOutcome } }
+        : record,
+    ),
+  } : result.save;
+  return { save: replaceAttempt(save, attempt), attempt };
 }
 
 function shouldGuaranteeTutorialPregnancy(
@@ -197,19 +247,19 @@ export function performBreedingAttempt(
   save: GameSave,
   giverId: string,
   receiverId: string,
+  inheritanceTarget?: InheritanceTargetSelection,
 ): { save: GameSave; attempt: BreedingAttemptRecord } | null {
   const guarantee = shouldGuaranteeTutorialPregnancy(save, giverId, receiverId);
   const result = base.performBreedingAttempt(save, giverId, receiverId);
-  if (!result || !guarantee) return result;
-  if (result.attempt.outcome === "pregnancy" && result.attempt.pregnancyId) {
-    return shortenTutorialPregnancy(result.save, result.attempt);
+  if (!result) return null;
+
+  let completed = result;
+  if (guarantee) {
+    if (result.attempt.outcome === "pregnancy" && result.attempt.pregnancyId) {
+      completed = shortenTutorialPregnancy(result.save, result.attempt);
+    } else if (!result.attempt.receiverWasPregnant && !result.attempt.pregnancyBlockedReason) {
+      completed = createGuaranteedTutorialPregnancy(save, result.save, result.attempt, giverId, receiverId);
+    }
   }
-  if (result.attempt.receiverWasPregnant || result.attempt.pregnancyBlockedReason) return result;
-  return createGuaranteedTutorialPregnancy(
-    save,
-    result.save,
-    result.attempt,
-    giverId,
-    receiverId,
-  );
+  return inheritanceTarget ? recordInheritanceTarget(completed, inheritanceTarget) : completed;
 }

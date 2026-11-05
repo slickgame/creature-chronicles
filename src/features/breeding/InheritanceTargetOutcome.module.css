@@ -1,0 +1,60 @@
+.card {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #b39157;
+  border-radius: 6px;
+  background: #f8e7bd;
+  color: #412b18;
+  font-family: inherit;
+  text-align: left;
+  flex: none;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.target {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.target small {
+  color: #694b2b;
+  font-size: 12px;
+}
+.target strong {
+  font-size: 16px;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+.badge {
+  flex: none;
+  padding: 3px 7px;
+  border: 1px solid #a98143;
+  border-radius: 12px;
+  background: #edcf96;
+  color: #583815;
+  font-size: 12px;
+  font-weight: 700;
+}
+.card[data-outcome="passed"] { border-color: #83966b; background: #e4e8c9; }
+.card[data-outcome="passed"] .badge { border-color: #59754d; background: #315e43; color: #fff3d5; }
+.card[data-outcome="no-conception"] .badge { border-color: #8a7760; background: #e7d8b8; color: #514432; }
+.card .detail {
+  margin: 0;
+  color: #5e472b;
+  font-size: 13px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px), (max-height: 650px) {
+  .card { gap: 3px; padding: 5px 7px; }
+  .header { gap: 4px; }
+  .target strong { font-size: 13px; }
+  .target small, .badge, .card .detail { font-size: 11px; }
+  .badge { padding: 2px 5px; }
+}

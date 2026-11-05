@@ -1,5 +1,6 @@
 "use client";
 
+import { LedgerPageTurn, useLedgerPageTurn } from "@/features/ui/LedgerPageTurn";
 import type { EggRecord } from '@/types/save';
 import { nurseryIdentity } from '@/data/nurseryPresentation';
 import { GameDialog } from '@/features/ui/GameDialog';
@@ -14,6 +15,7 @@ export function NurseryEggPickerB({ eggs, draft, onDraft, onCancel, onSelect, na
   onSelect: () => void;
   name: (egg: EggRecord) => string;
 }) {
+  const { direction, turning, turnPage, finishTurn } = useLedgerPageTurn();
   const index = eggs.findIndex(egg => egg.eggId === draft);
   const egg = eggs[index];
   const identity = egg ? nurseryIdentity(egg) : null;
@@ -24,7 +26,7 @@ export function NurseryEggPickerB({ eggs, draft, onDraft, onCancel, onSelect, na
         <button onClick={onCancel}>‹ Back to Nursery</button>
         <h1>Choose egg</h1>
       </header>
-      <div className={s.spread}>
+      <div className={s.spread} style={{ position: 'relative' }} aria-busy={turning}>
         {egg && identity ? <>
           <section className={s.identity} aria-label="Previewed egg">
             <img className={s.egg} src={identity.art} alt={`${identity.species} egg`} />
@@ -41,21 +43,22 @@ export function NurseryEggPickerB({ eggs, draft, onDraft, onCancel, onSelect, na
             </dl>
           </section>
         </> : <p className={s.empty} role="status">{eggs.length ? 'This egg is no longer available. Browse to another egg.' : 'Your Nursery has no eggs to select.'}</p>}
+        <LedgerPageTurn direction={direction} onFinish={finishTurn} />
       </div>
       {eggs.length > 1 && <label className={s.chooser}>Browse Nursery eggs
-        <select aria-label="Browse Nursery eggs" value={egg ? draft : ''} onChange={event => onDraft(event.target.value)}>
+        <select aria-label="Browse Nursery eggs" disabled={turning} value={egg ? draft : ''} onChange={event => onDraft(event.target.value)}>
           <option value="" disabled>Choose an egg</option>
           {eggs.map(item => <option key={item.eggId} value={item.eggId}>{name(item)} · {nurseryIdentity(item).species} · {item.status === 'ready' ? 'Ready to hatch' : `${item.daysRemaining} day${item.daysRemaining === 1 ? '' : 's'} remaining`}</option>)}
         </select>
       </label>}
       <nav className={s.pager} aria-label="Nursery eggs pages">
-        <button aria-label="Previous egg" disabled={index <= 0} onClick={() => onDraft(eggs[index - 1].eggId)}><span aria-hidden="true">‹</span><span className={s.pageLabel}> Previous</span></button>
+        <button aria-label="Previous egg" disabled={index <= 0} aria-disabled={turning || index <= 0} onClick={() => { const next = eggs[index - 1]; if (next) turnPage("previous", () => onDraft(next.eggId)); }}><span aria-hidden="true">‹</span><span className={s.pageLabel}> Previous</span></button>
         <span className={s.pageCount} aria-live="polite">{index < 0 ? '—' : index + 1} / {eggs.length}</span>
-        <button aria-label="Next egg" disabled={!eggs.length || index >= eggs.length - 1} onClick={() => onDraft(eggs[index + 1].eggId)}><span className={s.pageLabel}>Next </span><span aria-hidden="true">›</span></button>
+        <button aria-label="Next egg" disabled={!eggs.length || index >= eggs.length - 1} aria-disabled={turning || !eggs.length || index >= eggs.length - 1} onClick={() => { const next = eggs[index + 1]; if (next) turnPage("next", () => onDraft(next.eggId)); }}><span className={s.pageLabel}>Next </span><span aria-hidden="true">›</span></button>
       </nav>
       <footer className={s.footer}>
         <button onClick={onCancel}>Cancel</button>
-        <button className={s.primary} disabled={!egg} onClick={onSelect}>Select egg</button>
+        <button className={s.primary} disabled={!egg || turning} onClick={onSelect}>Select egg</button>
       </footer>
     </main>
   </GameDialog>;

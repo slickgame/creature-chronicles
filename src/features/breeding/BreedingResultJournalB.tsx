@@ -8,6 +8,7 @@ import {GameDialog} from '@/features/ui/GameDialog';
 import {getAttemptCareRecords} from '@/data/breedingLedgerCare';
 import {SavedScenesFolioA} from './SavedScenesFolioA';
 import {CompleteRecordLedgerC} from './CompleteRecordLedgerC';
+import {InheritanceTargetOutcomeCard} from './InheritanceTargetOutcome';
 import s from './BreedingResultJournalB.module.css';
 
 export type ResultHeartSnapshot={giver:{before:number;after:number};receiver:{before:number;after:number}};
@@ -16,8 +17,9 @@ const asset='/images/ui/breeding-result-journal-b/';
 function Icon({name}:{name:string}){return <img className={s.icon} src={`${asset}${name}.svg`} alt=""/>;}
 export function BreedingResultJournalB({result:a,hearts,sceneMode,canBreedAgain,breedAgainReason,onBreedAgain,onKeepGiverChooseReceiver,onChangePair,onClose}:Props){
  const game=useGameContext(),nav=useNavigation(),save=game.currentSave;
+ const targetOutcome=a.inheritanceTargetOutcome;
  const [short,setShort]=useState(false),[focus,setFocus]=useState('Result'),[record,setRecord]=useState(Boolean(nav.breedingResultReturn?.recordOpen&&nav.breedingResultReturn.attemptId===a.attemptId)),[scenes,setScenes]=useState(false);
- useEffect(()=>{const update=()=>setShort(innerHeight<650);const frame=requestAnimationFrame(update);addEventListener('resize',update);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',update)}},[]);
+ useEffect(()=>{const update=()=>setShort(innerHeight<(targetOutcome?760:650));const frame=requestAnimationFrame(update);addEventListener('resize',update);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',update)}},[targetOutcome]);
  const blocked=Boolean(a.pregnancyBlockedReason),success=a.outcome==='pregnancy'&&!blocked;
  const kind=blocked?'blocked':success?'success':'failed';
  const outcome=blocked?'Pregnancy blocked':success?'Pregnancy recorded':'No pregnancy';
@@ -34,6 +36,7 @@ export function BreedingResultJournalB({result:a,hearts,sceneMode,canBreedAgain,
  {focused&&<nav className={s.focusTabs} aria-label="Result sections">{['Result','Resource changes'].map(v=><button key={v} aria-pressed={v===focus} onClick={()=>setFocus(v)}>{v}</button>)}</nav>}
  {(!focused||focus==='Result')?<section className={s.outcome} aria-label="Recorded outcome"><div className={s.banner} style={{backgroundImage:`url('${asset}banner-${kind}.svg')`}}><strong>{outcome}</strong></div><img className={s.seal} src={`${asset}seal.webp`} alt=""/></section>:null}
  <section className={s.identity}>{(!focused||focus==='Result')&&<h2>{a.giverName} × {a.receiverName}</h2>}<p>{focused&&focus==='Resource changes'?`${outcome} · `:''}Day {a.dayNumber} · Chance used {a.pregnancyChance}%</p></section>
+ {targetOutcome&&(!focused||focus==='Result')&&<div className={s.targetOutcome}><InheritanceTargetOutcomeCard outcome={targetOutcome}/></div>}
  {(!focused||focus==='Resource changes')?<section className={s.changes} aria-label="Saved changes">{resourceTable}<div className={s.progress}><span><Icon name="heart"/>Familiarity {a.streakBefore} → {a.streakAfter}</span><span><Icon name="star"/>Breeder XP +{a.breederXpGain}</span></div>{!hearts&&<small>Hearts shows the recorded cost; before/after was not saved.</small>}</section>:<div className={s.paidSummary}><strong>{a.energyCost} Energy · {a.heartCost} Heart{a.heartCost===1?'':'s'}</strong><span>Paid per parent · Resource changes shows the saved values.</span></div>}
  {success&&!care.length&&<p className={s.unavailable}>The linked care record is no longer available.</p>}
  <footer className={s.footer}><div className={s.actions}><button onClick={()=>setScenes(true)}><Icon name="film"/>View scenes</button><button onClick={()=>setRecord(true)}><Icon name="record"/>Complete record</button><button onClick={openLedger}><Icon name="book"/>Open Ledger</button>{success?<button data-primary disabled={!care.length} onClick={openNursery}><Icon name="nursery"/>Open Nursery</button>:<button data-primary onClick={onClose}>Back to pair</button>}</div><small>Results saved</small></footer>

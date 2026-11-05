@@ -68,3 +68,6 @@
 @media(max-width:700px){.shell[data-long-names=true] .table tbody th{font-size:12px}.shell[data-long-names=true] .identity h2{font-size:23px}}
 @media(max-height:650px){.shell[data-long-names=true] .identity h2{font-size:17px}.shell[data-long-names=true] .table tbody th{font-size:11px}.shell[data-long-names=true] .table :is(th,td){padding-top:4px;padding-bottom:4px}}
 @media(min-width:701px) and (max-height:500px){.title h1{display:inline-block;padding:0 12px;background:linear-gradient(90deg,transparent,#f3d5a2 8%,#f3d5a2 92%,transparent);border-radius:6px}}
+
+.targetOutcome{flex:none}
+@media(min-width:701px) and (max-height:500px){.targetOutcome{width:80%;align-self:center}}

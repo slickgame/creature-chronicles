@@ -6,6 +6,7 @@ import type {
   VariantId,
 } from "./ids";
 import type {
+  AbilityGrade,
   CreatureAbility,
   CreatureSex,
   CreatureStats,
@@ -97,6 +98,22 @@ export type BreedingStreakRecord = {
   lastOutcome: BreedingOutcomeType;
 };
 
+export type InheritanceTarget =
+  | { kind: "talent"; id: string; grade?: AbilityGrade }
+  | { kind: "grade"; grade: AbilityGrade }
+  | { kind: "move"; id: string };
+
+export type InheritanceTargetSelection = {
+  target: InheritanceTarget;
+  label: string;
+  chance: number;
+};
+
+export type InheritanceTargetOutcome = InheritanceTargetSelection & {
+  status: "passed" | "missed" | "no-conception";
+  actualTalent?: { name: string; grade: AbilityGrade; origin?: "parent" | "mutation" };
+};
+
 export type BreedingAttemptRecord = {
   attemptId: BreedingAttemptId;
   dayNumber: number;
@@ -109,6 +126,7 @@ export type BreedingAttemptRecord = {
   giverSnapshot?: BreedingParticipantSnapshot;
   receiverSnapshot?: BreedingParticipantSnapshot;
   pregnancyId?: PregnancyId;
+  inheritanceTargetOutcome?: InheritanceTargetOutcome;
   pregnancyChance: number;
   energyCost: number;
   heartCost: number;

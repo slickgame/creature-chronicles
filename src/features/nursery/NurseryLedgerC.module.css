@@ -144,3 +144,15 @@
   .balance{font-size:13px;margin:8px 0;padding-top:8px}
   .careFooter button{font-size:15px;padding:6px}
 }
+
+.turnSpread { position: relative; }
+.targetSummary { width: 100%; margin-top: 10px; }
+@media (max-width: 650px), (max-height: 650px) {
+  .targetSummary { display: none; }
+}
+@media (max-width: 650px) and (max-height: 740px) {
+  .spread[data-focus="egg"] .targetSummary {
+    display: block;
+    grid-column: 1 / -1;
+  }
+}

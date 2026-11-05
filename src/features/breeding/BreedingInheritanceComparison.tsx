@@ -1,5 +1,6 @@
 "use client";
 
+import { LedgerPageTurn, useLedgerPageTurn } from "@/features/ui/LedgerPageTurn";
 import { useState } from "react";
 import { getBreedingParticipants } from "@/data/breeding";
 import { getBreedingInheritancePreview, getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
@@ -57,6 +58,7 @@ export function BreedingInheritanceComparison({
   initialMode: Mode;
   onClose: () => void;
 }) {
+  const { direction, turning, turnPage, finishTurn } = useLedgerPageTurn();
   const [giverId, setGiverId] = useState(current.giver?.participantId ?? "");
   const [receiverId, setReceiverId] = useState(current.receiver?.participantId ?? "");
   const [mode, setMode] = useState(initialMode);
@@ -77,16 +79,16 @@ export function BreedingInheritanceComparison({
 
   return (
     <GameDialog title="Compare inheritance" onClose={onClose} dialogClassName={`${j.recordDialog} ${j.planningDialog}`} wide>
-      <div className={j.comparison}>
+      <div className={j.comparison} style={{ position: 'relative' }} aria-busy={turning}>
         <div className={j.compareControls}>
           <label>Candidate giver
-            <select value={giverId} onChange={event => { setGiverId(event.target.value); setIndex(0); }}>
+            <select disabled={turning} value={giverId} onChange={event => { setGiverId(event.target.value); setIndex(0); }}>
               {participants.filter(p => p.participantId === giverId || !getBreedingSelectionBlocker(p, "giver", receiverId))
                 .map(p => <option key={p.participantId} value={p.participantId}>{p.displayName}</option>)}
             </select>
           </label>
           <label>Candidate receiver
-            <select value={receiverId} onChange={event => { setReceiverId(event.target.value); setIndex(0); }}>
+            <select disabled={turning} value={receiverId} onChange={event => { setReceiverId(event.target.value); setIndex(0); }}>
               {participants.filter(p => p.kind === "creature" && (p.participantId === receiverId || !getBreedingSelectionBlocker(p, "receiver", giverId)))
                 .map(p => <option key={p.participantId} value={p.participantId}>{p.displayName}</option>)}
             </select>
@@ -94,13 +96,15 @@ export function BreedingInheritanceComparison({
         </div>
         <nav className={j.compareModes} aria-label="Compare inheritance views">
           {(["Talents", "Moves"] as const).map(next => (
-            <button key={next} type="button" aria-pressed={mode === next} onClick={() => { setMode(next); setIndex(0); }}>{next}</button>
+            <button key={next} type="button" aria-pressed={mode === next} aria-disabled={turning} onClick={() => {
+              if (mode !== next) turnPage(next === "Moves" ? "next" : "previous", () => { setMode(next); setIndex(0); });
+            }}>{next}</button>
           ))}
         </nav>
         {!candidate ? <p className={j.note}>Choose a different giver or receiver to compare against your selected pairing.</p> : row ? (
           <>
             <label>{mode === "Talents" ? "Talent" : "Move"}
-              <select value={row.id} onChange={event => setIndex(rows.findIndex(item => item.id === event.target.value))}>
+              <select disabled={turning} value={row.id} onChange={event => setIndex(rows.findIndex(item => item.id === event.target.value))}>
                 {rows.map(item => <option key={item.id} value={item.id}>{item.name}{item.kind ? ` · ${item.kind}` : ""}</option>)}
               </select>
             </label>
@@ -120,12 +124,13 @@ export function BreedingInheritanceComparison({
                 </article>
               ))}
             </div>
-            {rows.length > 1 && <PagerA index={position} total={rows.length} onChange={setIndex} />}
+            {rows.length > 1 && <PagerA index={position} total={rows.length} busy={turning} onChange={next => turnPage(next > position ? "next" : "previous", () => setIndex(next))} />}
           </>
         ) : <p className={j.note}>Neither pairing has a {mode === "Talents" ? "parent talent" : "bonus move"} to compare.</p>}
         <p className={j.planningNote}>{mode === "Talents"
           ? "Base odds after conception. “Doesn’t pass” refers to this talent’s parent rolls. Mutation and item checks are separate."
           : "Roll odds after conception with a slot open. Species starting moves are separate."}</p>
+        <LedgerPageTurn direction={direction} onFinish={finishTurn} />
       </div>
     </GameDialog>
   );

@@ -47,3 +47,8 @@
 @media(prefers-reduced-motion:reduce){.book{animation:none}.book button{transition:none}}
 
 @media(min-width:651px) and (max-height:500px){.summary{gap:7px}.summary h1{font-size:23px}.parents{font-size:14px}.note{font-size:14px}.incubation{font-size:11px}.right{padding:13px 0 20px}.rule{font-size:12px}}
+
+.book {
+  position: relative;
+  --ledger-turn-inset: 9% 6% 9%;
+}

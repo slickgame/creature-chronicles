@@ -3,7 +3,7 @@ import type {
   BattleMoveInheritanceResult,
   BattleMoveLoadout,
 } from "./battle";
-import type { BreedingState } from "./breeding";
+import type { BreedingState, InheritanceTargetOutcome } from "./breeding";
 import type {
   CreatureAbility,
   CreatureFamily,
@@ -115,6 +115,7 @@ export type InheritancePreview = {
   abilityRollNotes: string[];
   geneticsNotes?: string[];
   battleMoveInheritance?: BattleMoveInheritanceResult;
+  inheritanceTargetOutcome?: InheritanceTargetOutcome;
   lineageRisk: CreatureLineageRisk;
   lineageRiskLabel: string;
   lineageNotes: string[];
@@ -154,6 +155,7 @@ export type EggRecord = {
   projectedStatGrades: StatGrades;
   projectedAbilities: CreatureAbility[];
   battleMoveInheritance?: BattleMoveInheritanceResult;
+  inheritanceTargetOutcome?: InheritanceTargetOutcome;
   shiny?: boolean;
   statRollNotes: string[];
   abilityRollNotes: string[];

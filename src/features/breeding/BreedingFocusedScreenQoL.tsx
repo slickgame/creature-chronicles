@@ -453,7 +453,7 @@ export function BreedingFocusedScreen() {
     setIsAttempting(true);
     setWarningItems([]);
     try {
-      const attempt = attemptBreeding(giverId, receiverId);
+      const attempt = attemptBreeding(giverId, receiverId, reviewTarget ?? undefined);
       if (!attempt) {
         setMessage("Breeding attempt could not be completed. Review the pair status and resources.");
         return;

@@ -480,3 +480,10 @@
     gap: 6px;
   }
 }
+
+.journal > section {
+  --ledger-turn-inset: 6% 6.5% 7%;
+}
+@media (max-width: 700px) {
+  .journal > section { --ledger-turn-inset: 0; }
+}

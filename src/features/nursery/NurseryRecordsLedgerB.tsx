@@ -1,4 +1,5 @@
 "use client";
+import { LedgerPageTurn, useLedgerPageTurn } from "@/features/ui/LedgerPageTurn";
 import { GameDialog } from '@/features/ui/GameDialog';
 import s from './NurseryRecordsLedgerB.module.css';
 
@@ -14,13 +15,14 @@ export function NurseryRecordsLedgerB({kind,records,selectedId,onSelect,onBack,o
   onSelect:(id:string)=>void; onBack:()=>void;
   onDetails:(id:string)=>void; onVisitBreeding:()=>void;
 }) {
+  const { direction, turning, turnPage, finishTurn } = useLedgerPageTurn();
   const index=Math.max(0,records.findIndex(r=>r.id===selectedId));
   const record=records[index];
   const pregnancy=kind==='pregnancies';
   const emptyTitle=pregnancy?'No active pregnancies':'No births recorded yet';
   const title=record?(pregnancy?'Expected egg delivery':record.name):emptyTitle;
   return <GameDialog title={pregnancy?'Pregnancy records':'Birth records'} onClose={onBack} fullScreen dialogClassName={s.dialog}>
-    <main className={s.book} data-nursery-records-b data-kind={kind} data-empty={!record}>
+    <main className={s.book} aria-busy={turning} data-nursery-records-b data-kind={kind} data-empty={!record}>
       <section className={s.left} aria-label={record?'Record identity':'Nursery archive'}>
         <button className={s.back} onClick={onBack}>‹ Back to Nursery</button>
         <div className={s.identity}>
@@ -33,9 +35,9 @@ export function NurseryRecordsLedgerB({kind,records,selectedId,onSelect,onBack,o
           <h2 className={s.ribbon}>{record?.name??(pregnancy?'A new beginning':'Ranch memories')}</h2>
         </div>
         {record&&<nav className={s.pager} aria-label={pregnancy?'Pregnancy records pages':'Birth records pages'}>
-          <button aria-label="Previous record" disabled={index===0} onClick={()=>onSelect(records[index-1].id)}>‹</button>
+          <button aria-label="Previous record" disabled={index===0} aria-disabled={turning || index===0} onClick={()=>{ const previous=records[index-1]; if(previous) turnPage("previous",()=>onSelect(previous.id)); }}>‹</button>
           <span aria-live="polite">{index+1} of {records.length}</span>
-          <button aria-label="Next record" disabled={index===records.length-1} onClick={()=>onSelect(records[index+1].id)}>›</button>
+          <button aria-label="Next record" disabled={index===records.length-1} aria-disabled={turning || index===records.length-1} onClick={()=>{ const next=records[index+1]; if(next) turnPage("next",()=>onSelect(next.id)); }}>›</button>
         </nav>}
       </section>
       <section className={s.right} aria-label="Selected record summary">
@@ -60,9 +62,10 @@ export function NurseryRecordsLedgerB({kind,records,selectedId,onSelect,onBack,o
             </>}
           </>:<p className={s.emptyNote}>{pregnancy?'Successful breeding starts a pregnancy. Sleep advances egg delivery.':'Hatched offspring appear here with their parents and inherited grades.'}</p>}
           <div className={s.rule} aria-hidden="true">✦</div>
-          <button className={s.primary} onClick={()=>record?onDetails(record.id):onVisitBreeding()}>{record?(pregnancy?'Inheritance details':'Birth details'):'Visit Breeding'}</button>
+          <button className={s.primary} disabled={turning} onClick={()=>record?onDetails(record.id):onVisitBreeding()}>{record?(pregnancy?'Inheritance details':'Birth details'):'Visit Breeding'}</button>
         </div>
       </section>
+      <LedgerPageTurn direction={direction} onFinish={finishTurn} />
     </main>
   </GameDialog>;
 }
