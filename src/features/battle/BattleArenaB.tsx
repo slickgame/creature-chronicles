@@ -6,6 +6,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds } from "@/data/battleEngine";
+import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
@@ -39,11 +40,15 @@ function artwork(source: CreatureRecord | undefined, full = false) {
 }
 function Meter({ label, value, max, after }: { label: "HP" | "BE"; value: number; max: number; after?: number }) {
   const percent = (amount: number) => Math.max(0, Math.min(100, amount / Math.max(1, max) * 100));
-  const projected = after !== undefined && after < value ? after : value;
+  const projected = Math.max(0, Math.min(max, after ?? value));
+  const isLoss = projected < value;
+  const isGain = label === "HP" && projected > value;
+  const solid = isLoss ? projected : value;
+  const segmentEnd = isGain ? projected : value;
   return <span className={s.meter} data-kind={label}>
-    <i style={{ width: `${percent(projected)}%` }} />
-    {projected < value && <i className={s.meterLoss} style={{ left: `${percent(projected)}%`, width: `${percent(value)-percent(projected)}%` }} />}
-    <b>{label} {value}{projected < value ? ` → ${projected}` : ""}/{max}</b>
+    <i style={{ width: `${percent(solid)}%` }} />
+    {(isLoss || isGain) && <i className={isGain ? s.meterGain : s.meterLoss} style={{ left: `${percent(solid)}%`, width: `${percent(segmentEnd) - percent(solid)}%` }} />}
+    <b>{label} {value}{isLoss || isGain ? ` → ${projected}` : ""}/{max}</b>
   </span>;
 }
 
@@ -176,7 +181,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         <h2>{draftActor ? `${draftActor.name} · Choose a move` : resolving ? "Resolving action…" : finished ? "Battle complete" : "Waiting for next turn"}</h2>
         <div className={s.turnCards}>{turnOptions.slice(turnPage * 4, turnPage * 4 + 4).map(option => {
           const tooltip = hoverMove === option.move.id;
-          const effects = tooltip ? projectedEffects : [];
+          const effect = tooltip ? projectedEffects.find(entry => entry.targetId === target?.battleCombatantId) ?? projectedEffects[0] : undefined;
           return <div key={option.move.id} className={s.turnTile} onMouseEnter={() => setHoverMove(option.move.id)} onMouseLeave={() => setHoverMove(null)}>
             <button aria-pressed={selectedMove?.move.id === option.move.id} data-turn-move data-usable={option.usable}
               onFocus={() => setHoverMove(option.move.id)} onBlur={() => setHoverMove(null)}
@@ -191,7 +196,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
             </button>
             {tooltip && <div className={s.moveTooltip} id={`move-tip-${option.move.id}`} role="tooltip">
               <strong>{option.move.name}</strong><span>{getBattleTargetTypeLabel(option.move.targetType)} · {option.move.battleEnergyCost} BE</span>
-              <span>{effects[0] ? `Est. ${effects[0].description} · ${effects[0].hitChance}% hit${effects[0].effectChance < 100 ? ` · ${effects[0].effectChance}% effect` : ""}` : option.reasons[0] ?? option.move.description}</span>
+              <span>{effect ? `Est. ${effect.description} · ${effect.hitChance}% hit${effect.effectChance < 100 ? ` · ${effect.effectChance}% effect` : ""}` : option.reasons[0] ?? option.move.description}</span>
             </div>}
           </div>;
         })}</div>
@@ -230,7 +235,32 @@ export function BattleArenaB(props: BattleArenaBProps) {
     {popup==="statuses"&&statusCreature&&<GameDialog title={`${statusCreature.name} · Active Effects`} onClose={()=>setPopup(null)}><p>Durations are remaining rounds. During playback, inspecting effects pauses the action. Close this panel, then select Resume to continue.</p>{statusCreature.statuses.filter(e=>e.duration>0).map((effect,i)=><section className={s.statusDetail} key={i}><h3><StatusIcon status={effect.status}/>{statusLabel(effect)}</h3><p><strong>{effect.duration} rounds · {effect.stacks??1} stack(s)</strong>{effect.amount!==undefined?` · Amount ${effect.amount}`:""}</p><p>{getBattleStatusGlossary(effect.status).mechanics}</p>{effect.sourceCombatantId&&<p>Source: {state.combatants[effect.sourceCombatantId]?.name??"Unknown"}</p>}</section>)}{!statusCreature.statuses.some(e=>e.duration>0)&&<p>No active effects.</p>}</GameDialog>}
     {popup==="order"&&<GameDialog title="Turn Order" onClose={()=>setPopup(null)}>{individual ? <p>Effective Speed sets the order at the start of each round. Each creature acts on its own turn.</p> : <><p>During planning this is an estimate: effective Speed + 10 × the queued move’s Priority. Unplanned allies and hidden enemy choices use zero Priority in this preview. Ties use the engine’s seeded initiative rule.</p><p>During resolution the strip follows the recorded action order and highlights the creature whose action is being shown. Enemy moves remain hidden during planning.</p><p>Allies plan one move per round. The bottom slots show your plans, not execution order.</p></>}</GameDialog>}
     {popup==="inspect"&&selectedInspect&&<GameDialog title={`${selectedInspect.name} · Battle Profile`} onClose={()=>setPopup(null)} wide><div className={s.profile}><img src={artwork(sourceById.get(String(selectedInspect.sourceCreatureId)),true)} alt={`${selectedInspect.name}, full body`}/><div><p>Level {selectedInspect.level} · HP {selectedInspect.currentHp}/{selectedInspect.maxHp} · Battle Energy {selectedInspect.currentBattleEnergy}/{selectedInspect.maxBattleEnergy}</p><h3>Current battle numbers</h3><dl className={s.stats}>{Object.entries(getEffectiveBattleStats(selectedInspect)).map(([key,value])=><div key={key}><dt>{BATTLE_STAT_LABELS[key as BattleStatKey]}</dt><dd>{value}</dd></div>)}</dl><h3>Statuses</h3>{selectedInspect.statuses.length?selectedInspect.statuses.map((status,i)=><p key={i}><strong>{getBattleStatusGlossary(status.status).label} · {status.duration} rounds{(status.stacks??1)>1?` · ${status.stacks} stacks`:""}</strong><br/>{getBattleStatusGlossary(status.status).mechanics}</p>):<p>No status effects.</p>}{(()=>{const source=sourceById.get(String(selectedInspect.sourceCreatureId));return source?<><h3>Base numbers · Innate grades</h3><dl className={s.stats}>{STAT_KEYS.map(key=><div key={key}><dt>{key}</dt><dd>{source.stats[key]} · {source.statGrades[key]}</dd></div>)}</dl><p>Equipment and battle effects change numeric battle values; innate grades stay unchanged.</p></>:null;})()}</div></div></GameDialog>}
-    {popup==="items"&&<GameDialog title="Support Items" onClose={()=>setPopup(null)}><p role="status">{props.message}</p><p>{props.aidRestricted?"Restricted Aid: Field Tonics and Revival Salves cannot be used in this challenge.":"Each item type can be used once per battle. Select a ranch creature below before using an item."}</p><div className={s.itemTargets}>{players.map(c=><button key={c.battleCombatantId} aria-pressed={itemTarget?.battleCombatantId===c.battleCombatantId} disabled={resolving} onClick={()=>props.onTarget({kind:"combatant",combatantId:c.battleCombatantId})}>{c.name} · {c.isFainted?"K.O.":`${c.currentHp}/${c.maxHp} HP`}</button>)}</div><div className={s.itemCards}><section><img src="/images/ui/outfitter-v1/field_tonic.webp" alt=""/><h3>Field Tonic ({props.tonicStock})</h3><p>Restore 30% maximum HP and 20% maximum Battle Energy to a living ally.</p><button disabled={!canTonic} onClick={()=>props.onItem("tonic")}>{props.usedTonic?"Used this battle":"Use Field Tonic"}</button></section><section><img src="/images/ui/outfitter-v1/revival_salve.webp" alt=""/><h3>Revival Salve ({props.revivalStock})</h3><p>Revive a fainted ally at 35% HP and 10% Battle Energy, clearing statuses.</p><button disabled={!canRevive} onClick={()=>props.onItem("revival")}>{props.usedRevival?"Used this battle":"Use Revival Salve"}</button></section></div></GameDialog>}
+    {popup === "items" && <GameDialog title="Support Items" onClose={() => setPopup(null)}>
+      <p role="status">{props.message}</p>
+      <p>{props.aidRestricted ? "Restricted Aid: Field Tonics and Revival Salves cannot be used in this challenge." : "Each item type can be used once per battle. Select a ranch creature below before using an item."}</p>
+      <div className={s.itemTargets}>{players.map(c => <button key={c.battleCombatantId} aria-pressed={itemTarget?.battleCombatantId === c.battleCombatantId} disabled={resolving} onClick={() => props.onTarget({kind:"combatant",combatantId:c.battleCombatantId})}>{c.name} · {c.isFainted ? "K.O." : `${c.currentHp}/${c.maxHp} HP`}</button>)}</div>
+      <div className={s.itemCards}>
+        <section>
+          <img src="/images/ui/outfitter-v1/field_tonic.webp" alt="" />
+          <h3>Field Tonic ({props.tonicStock})</h3>
+          <p>Restore 30% maximum HP and 20% maximum Battle Energy to a living ally.</p>
+          {canTonic && itemTarget && <div className={s.itemHealthPreview}>
+            <Meter label="HP" value={itemTarget.currentHp} max={itemTarget.maxHp} after={getSupportItemVitals(itemTarget, "tonic").currentHp} />
+            {itemTarget.currentHp === itemTarget.maxHp && <small>Already at full HP</small>}
+          </div>}
+          <button disabled={!canTonic} onClick={() => props.onItem("tonic")}>{props.usedTonic ? "Used this battle" : "Use Field Tonic"}</button>
+        </section>
+        <section>
+          <img src="/images/ui/outfitter-v1/revival_salve.webp" alt="" />
+          <h3>Revival Salve ({props.revivalStock})</h3>
+          <p>Revive a fainted ally at 35% HP and 10% Battle Energy, clearing statuses.</p>
+          {canRevive && itemTarget && <div className={s.itemHealthPreview}>
+            <Meter label="HP" value={itemTarget.currentHp} max={itemTarget.maxHp} after={getSupportItemVitals(itemTarget, "revival").currentHp} />
+          </div>}
+          <button disabled={!canRevive} onClick={() => props.onItem("revival")}>{props.usedRevival ? "Used this battle" : "Use Revival Salve"}</button>
+        </section>
+      </div>
+    </GameDialog>}
     {popup==="log"&&<GameDialog title="Battle Log" onClose={()=>setPopup(null)} wide><p>Turn-by-turn record. {resolving?"Playback in progress. The action log appears when playback finishes.":""}</p>{resolving?<p>{actionCaption} · {currentEvent?.label}</p>:state.log.map((line,i)=><p key={i}>{line}</p>)}</GameDialog>}
     {popup==="menu"&&<GameDialog title="Battle Menu" onClose={()=>setPopup(null)}><p role="status">{props.message}</p><div className={s.menuButtons}><button onClick={()=>{setPopup(null);open("menu");}}>Game Menu</button><button onClick={()=>presentation.setSpeed(presentation.speed===1?2:1)}>Animation speed · {presentation.speed}×</button><button aria-pressed={presentation.reducedMotion} onClick={()=>presentation.setReducedMotion(!presentation.reducedMotion)}>Reduced motion · {presentation.reducedMotion?"On":"Off"}</button><button disabled={resolving||recording||complete} onClick={()=>setPopup("forfeit")}>Forfeit & Record Loss</button><button disabled={resolving||recording} onClick={()=>setPopup("leave")}>Leave Without Record</button></div>{props.rules}</GameDialog>}
     {popup==="leave"&&<GameDialog title="Leave Without Record?" onClose={()=>setPopup("menu")}><p>This match grants no result, XP or rewards. Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording} onClick={props.onReturn}>Confirm Leave</button></GameDialog>}

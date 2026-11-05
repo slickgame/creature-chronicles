@@ -147,6 +147,30 @@
 .arena[data-individual=true] .meter[data-kind=BE] .meterLoss {
   background: repeating-linear-gradient(135deg, #9a531a 0 3px, #efb150 3px 5px);
 }
+.arena .meter[data-kind=HP] .meterGain {
+  background: repeating-linear-gradient(135deg, #24714c 0 3px, #a0f1bd 3px 5px);
+}
+.arena .meter[data-kind=HP]:has(.meterGain) b {
+  text-shadow: 0 1px 2px #142b22, 0 0 3px #142b22, 0 0 5px #142b22;
+}
+.arena[data-individual=true] .effect[data-kind=heal] {
+  top: auto;
+  bottom: 3px;
+  color: #b7ffca;
+  font-size: clamp(15px, 2vw, 28px);
+}
+.itemHealthPreview {
+  display: grid;
+  gap: 3px;
+  margin: 6px 0;
+}
+.arena .itemHealthPreview .meter {
+  height: 18px;
+  text-align: center;
+}
+.arena .itemHealthPreview .meter b {
+  font: bold 12px/16px Georgia, serif;
+}
 .turnDock {
   grid-row: 3;
   grid-column: 1;

@@ -652,7 +652,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       if (nextState !== before || log.length > logStart) {
         input.onFrame?.({state:nextState, actorId:input.actor.battleCombatantId, targetIds:[currentTarget.battleCombatantId], moveId:input.move.id,
           kind:hp<0?"damage":hp>0?"heal":energy!==0?"energy":"status",
-          label:hp<0?`${hp} HP`:hp>0?`+${hp} HP`:energy!==0?`${energy>0?"+":""}${energy} BE`:nextState===before?"Resisted":`${(input.effect.status??input.effect.stat??input.effect.type).replaceAll("_"," ")}${input.effect.duration?` · ${input.effect.duration}r`:""}`});
+          label:hp<0?`${hp} HP`:hp>0?`+${hp} HP`:energy!==0?`${energy>0?"+":""}${energy} BE`:nextState===before?"Resisted":input.effect.type==="heal"?"Full HP":`${(input.effect.status??input.effect.stat??input.effect.type).replaceAll("_"," ")}${input.effect.duration?` · ${input.effect.duration}r`:""}`});
         if(after.isFainted&&!currentTarget.isFainted) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
       }
     }
@@ -1031,7 +1031,9 @@ export function previewBattleAction(state: BattleState, action: BattleAction) {
       if(effect.type==="damage") {
         const damage=previewBattleDamage(getEffectiveBattleStats(paidActor),getEffectiveBattleStats(before),move,getDamageModifier(paidActor,before,move).modifier).finalDamage;
         description=`${damage} damage if hit · HP ${before.currentHp} → ${after.currentHp}`;
-      } else if(effect.type==="heal") description=`Restore ${after.currentHp-before.currentHp} HP · ${before.currentHp} → ${after.currentHp}`;
+      } else if(effect.type==="heal") description=after.currentHp>before.currentHp
+        ? `Restore ${after.currentHp-before.currentHp} HP · ${before.currentHp} → ${after.currentHp}`
+        : "Already at full HP";
       else if(effect.type==="restore_battle_energy") description=`Restore ${after.currentBattleEnergy-before.currentBattleEnergy} BE · ${before.currentBattleEnergy} → ${after.currentBattleEnergy} (after move cost)`;
       else if(effect.type==="cleanse_status") description=`Remove ${effect.status??"all statuses"}`;
       else description=`${effect.status??effect.type.replaceAll("_"," ")}${effect.stat?` · ${effect.stat}`:""}${effect.amount!==undefined?` · ${effect.amount}`:""} · ${effect.duration??1} round(s)`;

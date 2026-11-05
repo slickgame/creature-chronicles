@@ -219,6 +219,16 @@ export function applyTeamTacticsKit(
   };
 }
 
+export function getSupportItemVitals(target: BattleCombatant, item: "tonic" | "revival") {
+  const reviving = item === "revival";
+  const hp = Math.max(1, Math.round(target.maxHp * (reviving ? 0.35 : 0.3)));
+  const energy = Math.max(1, Math.round(target.maxBattleEnergy * (reviving ? 0.1 : 0.2)));
+  return {
+    currentHp: reviving ? hp : Math.min(target.maxHp, target.currentHp + hp),
+    currentBattleEnergy: reviving ? energy : Math.min(target.maxBattleEnergy, target.currentBattleEnergy + energy),
+  };
+}
+
 export function useFieldTonic(
   save: GameSave,
   state: BattleState,
@@ -243,16 +253,8 @@ export function useFieldTonic(
     return { save, state, ok: false, message: "No Field Tonic is available." };
   }
 
-  const hpRestored = Math.max(1, Math.round(target.maxHp * 0.3));
-  const energyRestored = Math.max(1, Math.round(target.maxBattleEnergy * 0.2));
-  const nextTarget = {
-    ...target,
-    currentHp: Math.min(target.maxHp, target.currentHp + hpRestored),
-    currentBattleEnergy: Math.min(
-      target.maxBattleEnergy,
-      target.currentBattleEnergy + energyRestored,
-    ),
-  };
+  const nextTarget = { ...target, ...getSupportItemVitals(target, "tonic") };
+  const hpGain = nextTarget.currentHp - target.currentHp;
 
   return {
     save: nextSave,
@@ -265,7 +267,7 @@ export function useFieldTonic(
       ],
     },
     ok: true,
-    message: `Field Tonic restored ${target.name}.`,
+    message: `Field Tonic restored ${target.name}.${hpGain > 0 ? ` +${hpGain} HP` : ""}`,
   };
 }
 
@@ -289,8 +291,7 @@ export function useRevivalSalve(
 
   const nextTarget = {
     ...target,
-    currentHp: Math.max(1, Math.round(target.maxHp * 0.35)),
-    currentBattleEnergy: Math.max(1, Math.round(target.maxBattleEnergy * 0.1)),
+    ...getSupportItemVitals(target, "revival"),
     statuses: [],
     isFainted: false,
   };
@@ -307,6 +308,6 @@ export function useRevivalSalve(
       ],
     },
     ok: true,
-    message: `${target.name} returned to the battle.`,
+    message: `${target.name} returned to the battle. +${nextTarget.currentHp - target.currentHp} HP`,
   };
 }
