@@ -10,6 +10,7 @@ import { useNavigation } from '@/features/navigation/NavigationContext';
 import type { CreatureRecord } from '@/types/creature';
 import type { EggRecord } from '@/types/save';
 import {NurseryInheritanceLedgerC} from './NurseryInheritanceLedgerC';
+import {NurseryCompletionLedgerB,type NurseryCompletion} from './NurseryCompletionLedgerB';
 import {NurseryRemovalLedgerB} from './NurseryRemovalLedgerB';
 import {NurseryOtherActionsB} from './NurseryOtherActionsB';
 import {NurseryEggPickerB} from './NurseryEggPickerB';
@@ -47,6 +48,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
   const [revealed,setRevealed]=useState(false);
   const reveal=useCallback(()=>setRevealed(true),[]);
   const [notice,setNotice]=useState('');
+  const [completion,setCompletion]=useState<NurseryCompletion|null>(null);
   const [focus,setFocus]=useState<'scene'|'care'>('scene');
   const [picker,setPicker]=useState<string|null>(null);
   const [carePage,setCarePage]=useState<'care'|'actions'>('care');
@@ -61,7 +63,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
   const visitPetra=()=>{if(selected)window.localStorage.setItem('creature-chronicles-builder-family-v1',getSpeciesDefinition(selected.speciesId).family);window.localStorage.setItem('creature-chronicles-open-builder-yard','1');game.goToTown();};
   const hatch=(egg:EggRecord)=>{if(busy.current)return;busy.current=true;const creature=game.hatchReadyEgg(egg.eggId,hatchName.trim()||egg.suggestedName||suggestHatchlingName(egg));if(!creature){busy.current=false;setNotice('This egg cannot hatch yet. Check incubation and its target habitat.');return;}setRevealed(window.matchMedia('(prefers-reduced-motion: reduce)').matches);setResult({egg,creature});setRename(creature.nickname);setHatchName('');};
   const confirmHatch=()=>{if(result&&rename.trim()&&rename.trim()!==result.creature.nickname)game.renameCreature(result.creature.creatureId,rename.trim());setResult(null);busy.current=false;};
-  const remove=()=>{if(!pending||busy.current)return;busy.current=true;game.removeNurseryEgg(pending.egg.eggId,pending.mode);setNotice(pending.mode==='donate'?'Egg donated. Added 75 Gold and 1 GP.':'Egg released from the nursery.');setPending(null);busy.current=false;};
+  const remove=()=>{if(!pending||busy.current)return;const egg=eggs.find(e=>e.eggId===pending.egg.eggId);if(!egg){setPending(null);setNotice('This egg is no longer available in the Nursery.');return;}busy.current=true;game.removeNurseryEgg(egg.eggId,pending.mode);setCompletion({egg,name:eggName(egg),mode:pending.mode});setPending(null);};
   const eggName=(e:EggRecord)=>e.suggestedName||suggestHatchlingName(e);
   const selectedIndex=Math.max(0,eggs.findIndex(e=>e.eggId===selected?.eggId));
   const pregnancy=pregnancies.find(p=>p.pregnancyId===remembered?.id)??pregnancies[0];
@@ -105,6 +107,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
     {inheritance&&<NurseryInheritanceLedgerC record={inheritance.record} initialTab={inheritance.tab} onClose={()=>setInheritance(null)}/>}
     {actionsEgg&&<NurseryOtherActionsB egg={actionsEgg} name={eggName(actionsEgg)} onClose={()=>setActionsEgg(null)} onReview={mode=>{setActionsEgg(null);setPending({egg:actionsEgg,mode});}}/>}
     {pending&&<NurseryRemovalLedgerB key={`${pending.egg.eggId}:${pending.mode}`} egg={pending.egg} name={eggName(pending.egg)} mode={pending.mode} onBack={()=>{setActionsEgg(pending.egg);setPending(null);}} onKeep={()=>setPending(null)} onConfirm={remove}/>}
+    {completion&&<NurseryCompletionLedgerB receipt={completion} onClose={()=>{setCompletion(null);busy.current=false;}}/>}
     {notice&&<NurseryBook scenic art={art} title="Nursery Notice" onClose={()=>setNotice('')} pages={[{key:'notice',title:'Nursery update',content:<p role="status">{notice}</p>}]}/>}
     {result&&!revealed&&<NurseryHatchMoment egg={result.egg} onReveal={reveal}/>}
     {result&&revealed&&<NurseryBook scenic title={`${result.creature.nickname} hatched!`} art={getVariantDefinition(result.creature.variantId).portraitPath} artAlt={`${result.creature.nickname} portrait`} onClose={confirmHatch} pages={[{key:'welcome',title:'Welcome to the ranch',content:<><p>{result.egg.parents.giver.displayName} × {result.egg.parents.receiver.displayName}</p><p className={s.good}>Joined {nurseryIdentity(result.creature).species} housing · Birth recorded</p><label className={s.name}>Hatchling name<input value={rename} onChange={e=>setRename(e.target.value)} maxLength={24} placeholder={result.creature.nickname}/></label></>},statsPage(result.creature.stats,result.creature.statGrades),{key:'care',title:'First-day care',content:<dl className={s.stats}><div><dt>Energy</dt><dd>{result.creature.energy}/{result.creature.maxEnergy}</dd></div><div><dt>Hearts</dt><dd>{result.creature.hearts}/{result.creature.maxHearts}</dd></div><div><dt>Affection</dt><dd>{result.creature.affection}</dd></div></dl>},...abilityPages(result.creature.abilities),...notePages([...(result.egg.lineageNotes??[]),...result.egg.statRollNotes,...result.egg.abilityRollNotes,...(result.egg.geneticsNotes??[])])]} footer={<button onClick={confirmHatch}>Confirm Hatchling</button>}/>}
