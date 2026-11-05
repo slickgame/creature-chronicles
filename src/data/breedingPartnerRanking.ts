@@ -10,13 +10,9 @@ import type {
 } from "@/types/breeding";
 import type { GameSave } from "@/types/save";
 
-export type InheritanceTarget =
-  | { kind: "talent"; id: string; grade?: AbilityGrade }
-  | { kind: "grade"; grade: AbilityGrade }
-  | { kind: "move"; id: string };
-
-export type NamedInheritanceTarget = { target: InheritanceTarget; label: string };
-export type InheritanceReviewTarget = NamedInheritanceTarget & { chance: number };
+export type { InheritanceTarget } from "@/types/breeding";
+export type NamedInheritanceTarget = Pick<InheritanceTargetSelection, "target" | "label">;
+export type InheritanceReviewTarget = InheritanceTargetSelection;
 
 export function getInheritancePairBlocker(
   save: GameSave,
