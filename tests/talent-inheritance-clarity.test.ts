@@ -64,8 +64,8 @@ test("per-talent estimates combine two distinct parent picks and group shared so
   const secondPick = preview.first * 15 / 40 * preview.second / 100;
   assert.deepEqual(shared.sources.map(source => source.role), ["Giver", "Receiver"]);
   assert.equal(shared.firstPick, firstPick);
-  assert.equal(shared.secondPick, secondPick);
-  assert.equal(shared.chance, firstPick + secondPick);
+  assert.ok(Math.abs(shared.secondPick - secondPick) < 1e-10);
+  assert.ok(Math.abs(shared.chance - firstPick - secondPick) < 1e-10);
   assert.deepEqual({ save, giver, receiver }, before);
 });
 

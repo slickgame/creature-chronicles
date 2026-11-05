@@ -5,6 +5,7 @@ const {
   MAX_COMBINATION_INHERITED_MOVES,
   MAX_DIRECT_INHERITED_MOVES,
   getBattleMoveInheritancePreview,
+  getCombinationMoveContributors,
   getParentBattleMoveSource,
   rollBattleMoveInheritance,
 } = await import("@/data/battleMoveInheritance");
@@ -260,4 +261,13 @@ test("a ready egg applies its stored move lineage to the hatchling and birth his
   assert.ok(birth);
   assert.deepEqual(birth.combinationMoveIds, inheritance.combinationMoveIds);
   assert.deepEqual(birth.startingBattleMoveLoadout, inheritance.projectedLoadout);
+});
+
+
+test("symmetric recipe input order still identifies each parent", () => {
+  const calm = { learnedMoveIds: ["calming_neigh" as const], equippedMoveIds: [] };
+  const rally = { learnedMoveIds: ["rally" as const], equippedMoveIds: [] };
+  assert.deepEqual(getCombinationMoveContributors("rally", "calming_neigh", calm, rally), ["receiver", "giver"]);
+  assert.deepEqual(getCombinationMoveContributors("rally", "calming_neigh", rally, calm), ["giver", "receiver"]);
+  assert.equal(getCombinationMoveContributors("rally", "calming_neigh", undefined, calm), undefined);
 });
