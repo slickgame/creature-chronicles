@@ -1,3 +1,5 @@
+/* Keep the completion heading and result card together, below the upper paper rule. */
+.title,.outcome{transform:translateY(clamp(10px,2.2cqw,20px))}
 .title{grid-column:2;overflow-wrap:anywhere}
 .identity.identity{transform:translateY(-30px)}
 .outcome{padding-top:30px;min-height:0}
