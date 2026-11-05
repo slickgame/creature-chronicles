@@ -16,7 +16,7 @@ import {NurseryOtherActionsB} from './NurseryOtherActionsB';
 import {NurseryEggPickerB} from './NurseryEggPickerB';
 import {NurseryRecordsLedgerB,type NurseryLedgerRecord} from './NurseryRecordsLedgerB';
 import {eggInheritanceModel,pregnancyInheritanceModel,birthInheritanceModel,type NurseryInheritanceModel,type NurseryInheritanceTab} from '@/data/nurseryInheritanceLedger';
-import { NurseryBook } from './NurseryBook';
+import { NurseryBook, type NurseryPage } from './NurseryBook';
 import { NurseryHatchWelcomeC } from './NurseryHatchWelcomeC';
 import { NurseryScene } from './NurseryScene';
 import { nurseryIdentity } from '@/data/nurseryPresentation';
