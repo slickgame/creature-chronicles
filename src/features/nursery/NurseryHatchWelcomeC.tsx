@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { getVariantDefinition } from '@/data/creatures';
-import { eggInheritanceModel } from '@/data/nurseryInheritanceLedger';
+import { eggInheritanceModel, getHatchlingMoveDetails } from '@/data/nurseryInheritanceLedger';
 import type { CreatureRecord } from '@/types/creature';
 import type { EggRecord } from '@/types/save';
 import { GameDialog } from '@/features/ui/GameDialog';
@@ -18,7 +18,7 @@ const statLabels = {
   FER: 'Fertility',
 } as const;
 
-type DetailSection = 'care' | 'inheritance';
+type DetailSection = 'care' | 'inheritance' | 'moves';
 
 export function NurseryHatchWelcomeC({ creature, egg, name, onNameChange, onConfirm }: {
   creature: CreatureRecord;
@@ -104,6 +104,7 @@ function HatchlingDetails({ creature, egg, initialSection, onClose }: {
       <nav className={styles.detailTabs} aria-label="Hatchling details sections">
         <button aria-pressed={section === 'care'} onClick={() => setSection('care')}>Stats &amp; care</button>
         <button aria-pressed={section === 'inheritance'} onClick={() => setSection('inheritance')}>Talents &amp; inheritance</button>
+        <button aria-pressed={section === 'moves'} onClick={() => setSection('moves')}>Combat moves</button>
       </nav>
       {section === 'care' ? <>
         <p className={styles.parentage}>{egg.parents.giver.displayName} × {egg.parents.receiver.displayName}</p>
@@ -120,11 +121,13 @@ function HatchlingDetails({ creature, egg, initialSection, onClose }: {
             return <tr key={stat}><th scope="row">{label}</th><td>{creature.stats[stat]}</td><td>{creature.statGrades[stat]}</td></tr>;
           })}</tbody>
         </table>
-      </> : <>
+      </> : section === 'moves' ? <HatchlingMoves creature={creature} egg={egg} /> : <>
         {creature.abilities.length ? creature.abilities.map((ability, index) => (
           <article className={styles.talent} key={`${ability.id}-${index}`}>
             <strong>{ability.name}</strong>
-            <small>Grade {ability.grade} · {ability.source}</small>
+            <small>Grade {ability.grade} · {ability.inheritanceOrigin?.kind === 'parent'
+              ? `Inherited from ${ability.inheritanceOrigin.parentName || 'a parent'}`
+              : ability.inheritanceOrigin?.kind === 'mutation' ? 'New mutation' : ability.source}</small>
             <p>{ability.description}</p>
           </article>
         )) : <p>No inherited ability recorded.</p>}
@@ -136,5 +139,31 @@ function HatchlingDetails({ creature, egg, initialSection, onClose }: {
         ))}
       </>}
     </GameDialog>
+  );
+}
+
+function HatchlingMoves({ creature, egg }: { creature: CreatureRecord; egg: EggRecord }) {
+  const { groups, hasInheritanceRecord } = getHatchlingMoveDetails(egg, creature);
+  return (
+    <div className={styles.moveGroups}>
+      {!hasInheritanceRecord && <p>This egg has no saved parent-move record.</p>}
+      {hasInheritanceRecord && !groups['Inherited from parents'].length && !groups['Breeding combinations'].length
+        && <p>No bonus moves carried through.</p>}
+      {Object.entries(groups).filter(([, rows]) => rows.length > 0).map(([label, rows]) => (
+        <section key={label}>
+          <h3>{label}</h3>
+          <ul>
+            {rows.map(move => (
+              <li key={move.id}>
+                <strong>{move.name}</strong>
+                {move.equipped && <span className={styles.equipped}>Equipped at hatch</span>}
+                {move.source && <small>{move.source}</small>}
+                {move.description && <p>{move.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
   );
 }

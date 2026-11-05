@@ -332,3 +332,53 @@
   .scene .actions button { min-height: 43px; padding: 6px; font-size: 18px; }
   .scene .actions .confirm { min-height: 48px; }
 }
+
+.detailTabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detailTabs button {
+  min-width: 0;
+  padding-inline: 5px;
+}
+
+.moveGroups {
+  margin-top: 12px;
+}
+
+.moveGroups h3 {
+  margin: 14px 0 6px;
+}
+
+.moveGroups ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.moveGroups li {
+  padding: 8px;
+  margin-bottom: 6px;
+  border: 1px solid #b38a4f;
+  border-radius: 7px;
+  background: #fff4d8;
+}
+
+.moveGroups small {
+  display: block;
+  margin-top: 4px;
+}
+
+.moveGroups p {
+  margin: 4px 0 0;
+}
+
+.equipped {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #e4eed9;
+  color: #23533d;
+  font-size: 0.78rem;
+}

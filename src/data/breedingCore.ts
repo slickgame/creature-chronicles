@@ -38,6 +38,10 @@ import type { GameSave, PlayerProfile } from "@/types/save";
 
 export const PLAYER_PARTICIPANT_ID = "player";
 
+export function getAffectionAfterBreeding(affection: number): number {
+  return Math.min(100, affection + 2);
+}
+
 const DEFAULT_PLAYER_STATS: CreatureStats = {
   STR: 5,
   DEX: 5,
@@ -550,7 +554,7 @@ function applyCreatureProgression(
     }),
     energy: Math.max(0, normalized.energy - energyCost),
     hearts: Math.max(0, normalized.hearts - heartCost),
-    affection: Math.min(100, normalized.affection + 2),
+    affection: getAffectionAfterBreeding(normalized.affection),
   };
 
   return {

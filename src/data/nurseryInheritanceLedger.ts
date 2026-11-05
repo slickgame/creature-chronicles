@@ -1,7 +1,9 @@
+import {buildBredCreatureStartingMoveLoadout} from './battleLoadouts';
+import {BATTLE_MOVES_BY_ID} from './battleMoves';
 import {getVariantDefinition} from './creatures';
 import {nurseryIdentity} from './nurseryPresentation';
 import type {BirthRecord,EggRecord,PregnancyRecord,ParentSnapshot} from '@/types/save';
-import type {CreatureAbility,CreatureStats,StatGrades} from '@/types/creature';
+import type {CreatureAbility,CreatureRecord,CreatureStats,StatGrades} from '@/types/creature';
 import type {BattleMoveInheritanceResult,BattleMoveLoadout} from '@/types/battle';
 
 export type NurseryInheritanceTab='Stats & Grades'|'Talents'|'Combat Moves'|'Lineage';
@@ -35,3 +37,56 @@ export function birthInheritanceModel(b:BirthRecord,egg?:EggRecord):NurseryInher
  return {id:b.birthId,name:b.nickname,stage:'Hatched',status:`Hatched on Day ${b.hatchedAtDayNumber}`,rarity:b.rarity,...nurseryIdentity(b),parents:b.parents,stats:source?.projectedStats??null,grades:b.inheritedStatGrades,talents:[...(b.inheritedAbilities??[])],...moveFields(undefined,b.startingBattleMoveLoadout,b.inheritedMoveIds,b.combinationMoveIds),lineageRisk:b.lineageRiskLabel||'No recorded lineage assessment',traits:[...(b.lineageTraits??[])],
  notes:source?eggInheritanceModel(source).notes:[{title:'Birth record',lines:[`Hatched on Ranch Day ${b.hatchedAtDayNumber}.`,...(!source?['Original numeric birth stats were not retained in this record. Saved inherited grades are shown.']:[])]}]};
 }
+
+/** Present the moves the hatch transaction actually gave this creature. */
+export function getHatchlingMoveDetails(egg: EggRecord, creature: CreatureRecord) {
+  const inheritance = egg.battleMoveInheritance;
+  const baseline = buildBredCreatureStartingMoveLoadout(creature.speciesId);
+  const loadout = creature.battleMoveLoadout ?? inheritance?.projectedLoadout ?? baseline;
+  const { direct, combinations } = moveFields(inheritance);
+  const parents = {
+    giver: egg.parents.giver.displayName,
+    receiver: egg.parents.receiver.displayName,
+  };
+  const groups = {
+    'Inherited from parents': [] as HatchlingMoveDetail[],
+    'Breeding combinations': [] as HatchlingMoveDetail[],
+    'Species starting moves': [] as HatchlingMoveDetail[],
+    'Source unrecorded': [] as HatchlingMoveDetail[],
+  };
+  for (const id of unique(loadout.learnedMoveIds)) {
+    const move = BATTLE_MOVES_BY_ID[id];
+    const roll = inheritance?.rolls?.find(result => result.moveId === id && result.inherited);
+    const row: HatchlingMoveDetail = {
+      id,
+      name: move?.name ?? id,
+      description: move?.description,
+      equipped: loadout.equippedMoveIds.includes(id),
+    };
+    if (combinations.includes(id)) {
+      const inputs = roll?.source === 'combination' ? roll.contributingMoveIds : [];
+      row.source = inputs.length === 2
+        ? `${parents.giver}: ${BATTLE_MOVES_BY_ID[inputs[0]]?.name ?? inputs[0]} + ${parents.receiver}: ${BATTLE_MOVES_BY_ID[inputs[1]]?.name ?? inputs[1]}`
+        : 'Combination recipe';
+      groups['Breeding combinations'].push(row);
+    } else if (direct.includes(id)) {
+      row.source = roll?.source === 'both' ? `${parents.giver} and ${parents.receiver}`
+        : roll?.source === 'giver' || roll?.source === 'receiver' ? parents[roll.source]
+        : 'Parent source unrecorded';
+      groups['Inherited from parents'].push(row);
+    } else if (baseline.learnedMoveIds.includes(id)) {
+      groups['Species starting moves'].push(row);
+    } else {
+      groups['Source unrecorded'].push(row);
+    }
+  }
+  return { groups, hasInheritanceRecord: Boolean(inheritance) };
+}
+
+type HatchlingMoveDetail = {
+  id: string;
+  name: string;
+  description?: string;
+  equipped: boolean;
+  source?: string;
+};

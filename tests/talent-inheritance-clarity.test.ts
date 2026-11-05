@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
 import { getBreedingParticipants } from "../src/data/breedingTutorial.ts";
-import { createStrategicInheritancePreview, getStrategicGeneticsPreview, getTalentInheritanceOdds } from "../src/data/genetics.ts";
+import { createStrategicInheritancePreview, getStrategicGeneticsPreview, getTalentInheritanceOdds, getParentTalentPreview } from "../src/data/genetics.ts";
 import { createGeneralTalent } from "../src/data/talents/generalTalents.ts";
 import { hatchEgg } from "../src/data/nurseryMoveInheritanceLifecycle.ts";
 import type { EggRecord } from "../src/types/save.ts";
@@ -46,4 +46,36 @@ test("talent provenance survives hatching and birth history",()=>{
  assert.ok(hatched);
  assert.deepEqual(hatched.creature.abilities.map(t=>t.inheritanceOrigin),egg.projectedAbilities.map(t=>t.inheritanceOrigin));
  assert.deepEqual(hatched.save.birthHistory!.at(-1)!.inheritedAbilities.map(t=>t.inheritanceOrigin),egg.projectedAbilities.map(t=>t.inheritanceOrigin));
+});
+
+test("per-talent estimates combine two distinct parent picks and group shared sources", () => {
+  const { save, parents: [giver, receiver] } = fixture();
+  giver.affection = 23;
+  receiver.affection = 48;
+  receiver.abilities = [
+    ...receiver.abilities!,
+    createGeneralTalent("hot_blooded", "C"),
+  ];
+  const before = structuredClone({ save, giver, receiver });
+  const preview = getParentTalentPreview(save, giver, receiver);
+  const shared = preview.candidates.find(row => row.talent.id === "hot_blooded")!;
+  // Session affection reaches 25 and 50. A and C sources weigh 16 and 9, versus 15 for B.
+  const firstPick = preview.first * 25 / 40;
+  const secondPick = preview.first * 15 / 40 * preview.second / 100;
+  assert.deepEqual(shared.sources.map(source => source.role), ["Giver", "Receiver"]);
+  assert.equal(shared.firstPick, firstPick);
+  assert.equal(shared.secondPick, secondPick);
+  assert.equal(shared.chance, firstPick + secondPick);
+  assert.deepEqual({ save, giver, receiver }, before);
+});
+
+test("normal talent preview excludes canine-only talent from other offspring", () => {
+  const { save, parents: [giver, receiver] } = fixture();
+  giver.abilities = [{ ...createGeneralTalent("hot_blooded", "A"), id: "guard_dog" }];
+  receiver.abilities = [];
+  receiver.sceneFamily = "feline";
+  const preview = getParentTalentPreview(save, giver, receiver);
+  assert.equal(preview.first, 0);
+  assert.equal(preview.second, 0);
+  assert.equal(preview.candidates[0].chance, 0);
 });

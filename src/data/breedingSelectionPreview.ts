@@ -1,5 +1,5 @@
 import {getBreedingParticipants} from '@/data/breeding';
-import {getTalentInheritanceOdds} from '@/data/genetics';
+import {getTalentInheritanceOdds,getParentTalentPreview} from '@/data/genetics';
 import {getBattleMoveInheritancePreview} from '@/data/battleMoveInheritance';
 import type {BreedingParticipant,BreedingRole} from '@/types/breeding';
 import type {GameSave} from '@/types/save';
@@ -16,5 +16,7 @@ export function getBreedingSelectionBlocker(participant:BreedingParticipant|unde
 export function getBreedingInheritancePreview(save:GameSave,giverId:string|null,receiverId:string|null){
  const participants=getBreedingParticipants(save),giver=participants.find(p=>p.participantId===giverId),receiver=participants.find(p=>p.participantId===receiverId);
  const valid=Boolean(giver&&receiver&&giver.kind==='creature'&&receiver.kind==='creature'&&giverId!==receiverId);
- return {giver,receiver,valid,odds:valid&&giver&&receiver?getTalentInheritanceOdds(save,giver,receiver):null,moves:getBattleMoveInheritancePreview(save,giverId,receiverId)};
+ const talentPreview=giver&&receiver&&receiver.kind==='creature'&&giverId!==receiverId
+  ?getParentTalentPreview(save,giver,receiver):null;
+ return {giver,receiver,valid,talentPreview,odds:valid&&giver&&receiver?getTalentInheritanceOdds(save,giver,receiver):null,moves:getBattleMoveInheritancePreview(save,giverId,receiverId)};
 }

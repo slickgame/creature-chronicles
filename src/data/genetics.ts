@@ -1,3 +1,4 @@
+import { getAffectionAfterBreeding } from "./breedingCore";
 import { GENERAL_ABILITY_POOL } from "./talents/generalTalents";
 import {
   STAT_KEYS,
@@ -205,8 +206,8 @@ function buildContext(
   save: GameSave,
   giver: BreedingParticipant,
   receiver: BreedingParticipant,
+  pairStreak = getPairStreak(save, giver, receiver),
 ): GeneticsContext {
-  const pairStreak = getPairStreak(save, giver, receiver);
   const breedingTier = clamp(
     getRanchUpgrades(save).breeding_pen_comfort ?? 0,
     0,
@@ -543,6 +544,69 @@ export function getTalentInheritanceOdds(save: GameSave, giver: BreedingParticip
   };
 }
 
+function getParentTalentEntries(
+  giver: BreedingParticipant,
+  receiver: BreedingParticipant,
+  offspringFamily: CreatureFamily,
+) {
+  return ([["Giver", giver], ["Receiver", receiver]] as const).flatMap(([role, participant]) =>
+    (participant.abilities ?? []).map(ability => ({
+      ability,
+      role,
+      parentName: participant.displayName,
+      weight: ABILITY_GRADE_WEIGHT[ability.grade] * (1 + Math.floor(participant.affection / 25)),
+      eligible: ability.id !== "guard_dog" || offspringFamily === "canine",
+    })),
+  );
+}
+
+/** Nominal parent-roll odds after conception. Mutation and support-item checks are separate. */
+export function getParentTalentPreview(save: GameSave, giver: BreedingParticipant, receiver: BreedingParticipant) {
+  const afterSession = (parent: BreedingParticipant) => parent.kind === "creature"
+    ? { ...parent, affection: getAffectionAfterBreeding(parent.affection) }
+    : parent;
+  const nextGiver = afterSession(giver);
+  const nextReceiver = afterSession(receiver);
+  const completedStreak = Math.max(1, getPairStreak(save, giver, receiver) + 1);
+  const context = buildContext(save, nextGiver, nextReceiver, completedStreak);
+  const entries = getParentTalentEntries(nextGiver, nextReceiver, context.family);
+  const groups = new Map<string, typeof entries>();
+  for (const entry of entries) {
+    const group = groups.get(entry.ability.id) ?? [];
+    group.push(entry);
+    groups.set(entry.ability.id, group);
+  }
+  const weights = new Map(
+    [...groups].map(([id, sources]) => [
+      id, sources.reduce((sum, source) => sum + (source.eligible ? source.weight : 0), 0),
+    ]),
+  );
+  const totalWeight = [...weights.values()].reduce((sum, weight) => sum + weight, 0);
+  const eligibleCount = [...weights.values()].filter(weight => weight > 0).length;
+  const first = eligibleCount ? context.abilityInheritanceChance : 0;
+  const second = eligibleCount > 1 ? context.secondAbilityChance : 0;
+  const candidates = [...groups].map(([id, sources]) => {
+    const weight = weights.get(id) ?? 0;
+    const firstPick = weight ? first * weight / totalWeight : 0;
+    // A successful first pick removes every entry with that talent ID.
+    let secondPick = 0;
+    if (weight && second) {
+      for (const [otherId, otherWeight] of weights) {
+        if (otherId === id || !otherWeight) continue;
+        secondPick += (first * otherWeight / totalWeight) * (second / 100)
+          * (weight / (totalWeight - otherWeight));
+      }
+    }
+    return { talent: sources[0].ability, sources, firstPick, secondPick, chance: firstPick + secondPick };
+  });
+  return {
+    first,
+    second,
+    mutation: getTalentMutationChance(context.breedingTier, context.pairStreak),
+    candidates,
+  };
+}
+
 function buildInheritedAbilities(
   seed: string,
   giver: BreedingParticipant,
@@ -552,23 +616,8 @@ function buildInheritedAbilities(
 ): { abilities: CreatureAbility[]; notes: string[] } {
   const notes: string[] = [];
   const inherited: CreatureAbility[] = [];
-  const entries: Array<{
-    ability: CreatureAbility;
-    weight: number;
-    parentName: string;
-  }> = [];
-
-  for (const participant of [giver, receiver]) {
-    for (const ability of participant.abilities ?? []) {
-      if (ability.id === "guard_dog" && getVariantDefinition(variantId).family !== "canine") continue;
-      const affectionWeight = 1 + Math.floor(participant.affection / 25);
-      entries.push({
-        ability,
-        weight: ABILITY_GRADE_WEIGHT[ability.grade] * affectionWeight,
-        parentName: participant.displayName,
-      });
-    }
-  }
+  const entries = getParentTalentEntries(giver, receiver, getVariantDefinition(variantId).family)
+    .filter(entry => entry.eligible);
 
   if (
     entries.length &&
