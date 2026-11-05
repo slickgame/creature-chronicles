@@ -45,9 +45,9 @@ type DeskProps = {
   preview: BreedingPreview | null; disabled: boolean; status: string;
   onChoose: (role: Role) => void; onInspect: (parent: BreedingParticipant) => void;
   onBack: () => void; onNursery: () => void; onOptions: () => void;
-  onDetails: () => void; onReview: () => void;
+  onInheritance?: () => void; onDetails: () => void; onReview: () => void;
 };
-export function BreedingDeskA({ giver, receiver, preview, disabled, status, onChoose, onInspect, onBack, onNursery, onOptions, onDetails, onReview }: DeskProps) {
+export function BreedingDeskA({ giver, receiver, preview, disabled, status, onChoose, onInspect, onBack, onNursery, onOptions, onInheritance, onDetails, onReview }: DeskProps) {
   const [view, setView] = useState("pair");
   const [more, setMore] = useState(false);
   const nav = useNavigation();
@@ -91,6 +91,6 @@ export function BreedingDeskA({ giver, receiver, preview, disabled, status, onCh
       {complete ? <div className={s.summaryCosts}>{values.map(v => <span key={v.label}><Icon name={v.icon} /><b>{v.value}</b><small>{v.label}</small></span>)}</div> : <p className={s.summaryGuidance}>{guidance}</p>}
       {complete && !preview?.canAttempt && <p className={s.summaryGuidance}>{guidance}</p>}{review}
     </section>
-    <aside className={s.footer} aria-label="Breeding preview details"><button onClick={onOptions}><Icon name="options.svg" /><span data-full-label>Pair Options</span><span data-short-label>Options</span></button></aside>
+    <aside className={s.footer} aria-label="Breeding preview details">{onInheritance && <button type="button" style={{ order: -1 }} disabled={disabled} onClick={onInheritance}><img src={`${fidelity}inheritance.svg`} alt="" />Inheritance</button>}<button onClick={onOptions}><Icon name="options.svg" /><span data-full-label>Pair Options</span><span data-short-label>Options</span></button></aside>
   </div>;
 }

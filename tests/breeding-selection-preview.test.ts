@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createNewGameSave} from './helpers/establishedSave';
 import {getBreedingParticipants} from '@/data/breeding';
 import {createGeneralTalent} from '@/data/talents/generalTalents';
-import {getInheritancePartnerPreviews,rankInheritancePartners} from '@/data/breedingPartnerRanking';
+import {getInheritancePairBlocker,getInheritancePartnerPreviews,rankInheritancePartners} from '@/data/breedingPartnerRanking';
 import {getTalentInheritanceOdds} from '@/data/genetics';
 import {getBattleMoveInheritancePreview} from '@/data/battleMoveInheritance';
 import {getBreedingInheritancePreview,getBreedingSelectionBlocker} from '@/data/breedingSelectionPreview';
@@ -42,4 +42,19 @@ test('partner rankings use exact grades and exclude partners who cannot afford t
   assert.deepEqual(b.map(row => row.partner.participantId), [second.creatureId, source.creatureId]);
   assert.ok(s[0].chance > 0 && s[1].chance === 0 && b[0].chance > 0 && b[1].chance === 0);
   assert.deepEqual(save, before);
+});
+
+
+test("ranked selection rechecks a pair after the roster or resources change", () => {
+  const save = createNewGameSave("Selection", 0);
+  const [a, b] = save.creatures!;
+  a.energy = b.energy = 100;
+  a.hearts = b.hearts = 5;
+  const parents = () => getBreedingParticipants(save).filter(p => p.kind === "creature");
+  const [giver, receiver] = parents();
+  assert.equal(getInheritancePairBlocker(save, giver, receiver), null);
+  assert.match(getInheritancePairBlocker(save, giver, giver)!, /other role/);
+  assert.ok(getInheritancePairBlocker(save, giver, undefined));
+  b.energy = 0;
+  assert.ok(getInheritancePairBlocker(save, giver, parents()[1]));
 });

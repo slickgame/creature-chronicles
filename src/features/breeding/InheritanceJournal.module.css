@@ -95,7 +95,7 @@
 .rankList { display: grid; gap: 5px; list-style: none; margin: 0; padding: 0; }
 .rankList li {
   display: grid;
-  grid-template-columns: 2em minmax(0, 1fr) auto;
+  grid-template-columns: 2em minmax(0, 1fr) auto 6em;
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
@@ -107,3 +107,25 @@
 .rankList small { display: block; color: #6f593a; }
 .rankNumber { color: #6f593a; font-weight: 700; }
 .rankChance { color: #20543b; font-size: 1.2em; }
+
+.rankList li[data-selected="true"] { border-color: #527956; }
+.rankList .rankSelect, .rankSelected {
+  justify-self: stretch;
+  text-align: center;
+  font: 700 .9em/1.2 WindowTinos, Georgia, serif;
+}
+.rankList .rankSelect {
+  min-height: 34px;
+  padding: 5px 7px;
+  border: 1px solid #ac874c;
+  border-radius: 5px;
+  color: #fff1cf;
+  background: linear-gradient(#33654b, #20543b);
+  text-shadow: none;
+}
+.rankList .rankSelect:hover { background: #174831; }
+.rankSelected { color: #20543b; }
+@media (max-width: 600px) {
+  .rankList li { grid-template-columns: 1.5em minmax(0, 1fr) auto 4.1em; gap: 5px; padding: 5px; }
+  .rankList .rankSelect { min-height: 32px; padding-inline: 4px; }
+}

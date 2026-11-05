@@ -15,6 +15,8 @@ import {
   BREEDING_SCENE_FALLBACK_PATH,
   getBreedingSceneImagePath,
 } from "@/data/breedingSceneImages";
+import { getInheritancePairBlocker } from "@/data/breedingPartnerRanking";
+import { BreedingInheritanceBook } from "./BreedingInheritanceBook";
 import { BreedingInspectBook } from "./BreedingInspectBook";
 import { useGameContext } from "@/state/GameProvider";
 import type {
@@ -222,6 +224,7 @@ export function BreedingFocusedScreen() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewQuote, setReviewQuote] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
+  const [showInheritance, setShowInheritance] = useState(false);
   const [sceneMode, setSceneMode] = useState<SceneMode>("full");
   const restoredSaveRef = useRef<string | null>(null);
   const attemptLockRef = useRef(false);
@@ -357,6 +360,26 @@ export function BreedingFocusedScreen() {
     setResult(null);
   }
 
+  function selectRankedPartner(fixedRole: SelectorRole, fixedId: string, partnerId: string): string | null {
+    if (!currentSave || attemptLockRef.current || isAttempting) return "Wait until the current attempt finishes.";
+    if ((fixedRole === "giver" ? giverId : receiverId) !== fixedId) {
+      return "The fixed parent changed. Reopen the rankings to choose a partner.";
+    }
+
+    const partner = participants.find(parent => parent.participantId === partnerId);
+    const blocker = fixedRole === "giver"
+      ? getInheritancePairBlocker(currentSave, giver, partner)
+      : getInheritancePairBlocker(currentSave, partner, receiver);
+    if (blocker) return blocker;
+
+    choose(fixedRole === "giver" ? "receiver" : "giver", partnerId);
+    setWarningItems([]);
+    setReviewQuote(null);
+    setReviewOpen(false);
+    setShowInheritance(false);
+    return null;
+  }
+
   function swapRoles() {
     if (!giver || !receiver || isAttempting) return;
     if (!giver.roleTags.includes("receiver") || !receiver.roleTags.includes("giver")) {
@@ -458,7 +481,8 @@ export function BreedingFocusedScreen() {
 
   return (
     <main>
-      <BreedingDeskA giver={giver} receiver={receiver} preview={preview} disabled={isAttempting} status={message.startsWith("The pair or costs changed")?message:statusText} onChoose={setSelectorRole} onInspect={setInfoParticipant} onBack={goBack} onNursery={goToNursery} onOptions={()=>setShowOptions(true)} onDetails={()=>setShowChanceBreakdown(true)} onReview={openAttemptReview}/>
+      <BreedingDeskA giver={giver} receiver={receiver} preview={preview} disabled={isAttempting} status={message.startsWith("The pair or costs changed")?message:statusText} onChoose={setSelectorRole} onInspect={setInfoParticipant} onBack={goBack} onNursery={goToNursery} onOptions={()=>setShowOptions(true)} onInheritance={()=>setShowInheritance(true)} onDetails={()=>setShowChanceBreakdown(true)} onReview={openAttemptReview}/>
+      {showInheritance && <BreedingInheritanceBook save={currentSave} giverId={giverId} receiverId={receiverId} onSelectPartner={selectRankedPartner} onClose={()=>setShowInheritance(false)} />}
       {reviewOpen&&preview&&giver&&receiver?<AttemptReviewA giver={giver} receiver={receiver} preview={preview} onClose={()=>setReviewOpen(false)} onConfirm={requestAttempt} stale={reviewQuote!==quote} disabled={isAttempting} warnings={getWarnings(giver,receiver,preview)}/>:null}
       {showOptions?<PairOptionsA giver={giver} receiver={receiver} preview={preview} onClose={()=>setShowOptions(false)} onSwap={()=>{swapRoles();setShowOptions(false)}} onRandom={()=>{randomPair();setShowOptions(false)}} onClear={()=>{clearPair();setShowOptions(false)}} canSwap={canSwap} disabled={isAttempting} sceneMode={sceneMode} onSceneMode={mode=>{setSceneMode(mode);window.localStorage.setItem(SCENE_MODE_KEY,mode)}}/>:null}
       {showChanceBreakdown ? <ChanceWindowA giver={giver} receiver={receiver} preview={preview} onClose={()=>setShowChanceBreakdown(false)} rows={chanceRows} blockedReasons={blockedReasons} status={statusText} message={message} onReview={()=>{setShowChanceBreakdown(false);openAttemptReview()}} pages={[

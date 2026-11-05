@@ -14,12 +14,13 @@ import j from "./InheritanceJournal.module.css";
 const RESULTS_PER_PAGE = 3;
 
 export function BreedingPartnerRanking({
-  save, giver, receiver, initialMode, onClose,
+  save, giver, receiver, initialMode, onSelectPartner, onClose,
 }: {
   save: GameSave;
   giver?: BreedingParticipant;
   receiver?: BreedingParticipant;
   initialMode: "Talents" | "Moves";
+  onSelectPartner: (fixedRole: BreedingRole, fixedId: string, partnerId: string) => string | null;
   onClose: () => void;
 }) {
   const [fixedRole, setFixedRole] = useState<BreedingRole>(giver ? "giver" : "receiver");
@@ -28,6 +29,7 @@ export function BreedingPartnerRanking({
   const [moveId, setMoveId] = useState("");
   const [grade, setGrade] = useState<AbilityGrade | "">("");
   const [page, setPage] = useState(0);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
   const fixed = fixedRole === "giver" ? giver : receiver;
   const selectedPartner = fixedRole === "giver" ? receiver : giver;
   const fixedId = fixed?.participantId ?? "";
@@ -90,24 +92,34 @@ export function BreedingPartnerRanking({
             </select>
           </label>
         )}
+        {selectionError && <p className={j.warning} role="alert">{selectionError}</p>}
         {!previews.length ? <p className={j.note}>No eligible partners for this parent right now.</p>
           : !target ? <p className={j.note}>{mode === "Talents" ? "Choose a talent or a specific grade to rank partners." : "No eligible pairing has a compatible bonus move."}</p>
           : <>
             <p className={j.rankSummary}><strong>{previews.length} eligible {previews.length === 1 ? "partner" : "partners"}</strong>
               {results[0]?.chance === 0 && " · None can pass down this target."}</p>
             <ol className={j.rankList} start={start + 1}>
-              {results.slice(start, start + RESULTS_PER_PAGE).map(({ partner, chance }, index) => (
-                <li key={partner.participantId}>
-                  <span className={j.rankNumber}>#{start + index + 1}</span>
-                  <div><strong>{partner.displayName}</strong>
-                    <small>{partner.participantId === selectedPartner?.participantId ? "Selected partner" : partner.familyLabel}</small>
-                  </div>
-                  <strong className={j.rankChance}>{formatInheritancePercent(chance)}</strong>
-                </li>
-              ))}
+              {results.slice(start, start + RESULTS_PER_PAGE).map(({ partner, chance }, index) => {
+                const selected = partner.participantId === selectedPartner?.participantId;
+                return (
+                  <li key={partner.participantId} data-selected={selected}>
+                    <span className={j.rankNumber}>#{start + index + 1}</span>
+                    <div><strong>{partner.displayName}</strong><small>{partner.familyLabel}</small></div>
+                    <strong className={j.rankChance}>{formatInheritancePercent(chance)}</strong>
+                    {selected
+                      ? <span className={j.rankSelected}>Selected</span>
+                      : <button type="button" className={j.rankSelect}
+                          aria-label={`Select ${partner.displayName} as ${fixedRole === "giver" ? "receiver" : "giver"}`}
+                          onClick={() => setSelectionError(onSelectPartner(fixedRole, fixedId, partner.participantId))}>
+                          Select
+                        </button>}
+                  </li>
+                );
+              })}
             </ol>
             {pageCount > 1 && <PagerA index={position} total={pageCount} onChange={setPage} />}
           </>}
+        {results.length > 0 && <p className={j.rankSummary}>Select a partner to return to the desk and review the pairing.</p>}
         <p className={j.caveat}>{mode === "Talents"
           ? "Base odds after conception. Grade comes from a parent’s copy. Mutation and item checks are separate."
           : "Roll odds after conception with a slot open. Species starting moves are separate."}</p>

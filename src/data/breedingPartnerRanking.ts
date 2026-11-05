@@ -2,7 +2,7 @@ import { getBreedingParticipants, getBreedingPreview } from "@/data/breeding";
 import { getBattleMoveInheritancePreview } from "@/data/battleMoveInheritance";
 import { getParentTalentPreview } from "@/data/genetics";
 import { getBreedingSelectionBlocker } from "@/data/breedingSelectionPreview";
-import type { BreedingRole } from "@/types/breeding";
+import type { BreedingParticipant, BreedingRole } from "@/types/breeding";
 import type { AbilityGrade } from "@/types/creature";
 import type { GameSave } from "@/types/save";
 
@@ -11,18 +11,29 @@ export type InheritanceTarget =
   | { kind: "grade"; grade: AbilityGrade }
   | { kind: "move"; id: string };
 
+export function getInheritancePairBlocker(
+  save: GameSave,
+  giver: BreedingParticipant | null | undefined,
+  receiver: BreedingParticipant | null | undefined,
+): string | null {
+  if (!giver || !receiver) return "Choose both parents to review the pairing.";
+  if (receiver.kind !== "creature") return "The receiver must be a creature.";
+  const blocker = getBreedingSelectionBlocker(giver, "giver", receiver.participantId)
+    ?? getBreedingSelectionBlocker(receiver, "receiver", giver.participantId);
+  if (blocker) return blocker;
+  const readiness = getBreedingPreview(save, giver.participantId, receiver.participantId);
+  if (!readiness?.canAttempt) return readiness?.blockedReason ?? "This pairing is no longer available.";
+  return readiness.pregnancyBlockedReason ?? null;
+}
+
 export function getInheritancePartnerPreviews(save: GameSave, fixedId: string, fixedRole: BreedingRole) {
   const participants = getBreedingParticipants(save);
   const fixed = participants.find(parent => parent.participantId === fixedId);
   if (!fixed || getBreedingSelectionBlocker(fixed, fixedRole, null)) return [];
-  const partnerRole = fixedRole === "giver" ? "receiver" : "giver";
 
   return participants.flatMap(partner => {
-    if (getBreedingSelectionBlocker(partner, partnerRole, fixedId)) return [];
     const [giver, receiver] = fixedRole === "giver" ? [fixed, partner] : [partner, fixed];
-    if (receiver.kind !== "creature") return [];
-    const readiness = getBreedingPreview(save, giver.participantId, receiver.participantId);
-    if (!readiness?.canAttempt || readiness.pregnancyBlockedReason) return [];
+    if (getInheritancePairBlocker(save, giver, receiver)) return [];
     const moves = getBattleMoveInheritancePreview(save, giver.participantId, receiver.participantId);
     return [{
       partner,
