@@ -2,6 +2,7 @@ import { getSpeciesDefinition, getVariantDefinition } from "./creatures";
 import type {
   BreedingAttemptRecord,
   BreedingParticipantSnapshot,
+  InheritanceTargetOutcome,
 } from "@/types/breeding";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
@@ -9,6 +10,12 @@ import type { BirthRecord, GameSave, ParentSnapshot } from "@/types/save";
 
 export type BreedingRecordOutcome = "pregnancy" | "failed" | "blocked";
 export type BreedingRecordOutcomeFilter = "all" | BreedingRecordOutcome;
+
+export type BreedingTargetFilterOption = {
+  value: string;
+  label: string;
+  group: "Talents" | "Grades" | "Moves";
+};
 
 export type BreedingLedgerOverview = {
   totalAttempts: number;
@@ -199,6 +206,50 @@ function birthRecordsForAttempt(
   });
 }
 
+function targetFilterEntries(outcome: InheritanceTargetOutcome): BreedingTargetFilterOption[] {
+  const { target, label } = outcome;
+  if (target.kind === "move") {
+    return [{ value: `move:${target.id}`, label, group: "Moves" }];
+  }
+
+  const options: BreedingTargetFilterOption[] = [];
+  if (target.grade) {
+    options.push({
+      value: `grade-all:${target.grade}`,
+      label: `Grade ${target.grade} · All targets`,
+      group: "Grades",
+    });
+  }
+  if (target.kind === "grade") {
+    options.push({ value: `grade:${target.grade}`, label, group: "Grades" });
+  } else {
+    const gradeSuffix = target.grade ? ` · Grade ${target.grade}` : "";
+    const name = gradeSuffix && label.endsWith(gradeSuffix)
+      ? label.slice(0, -gradeSuffix.length)
+      : label;
+    options.push(
+      { value: `talent-all:${target.id}`, label: `${name} · All target grades`, group: "Talents" },
+      {
+        value: `talent:${target.id}:${target.grade ?? "any"}`,
+        label: target.grade ? label : `${label} · Any grade`,
+        group: "Talents",
+      },
+    );
+  }
+  return options;
+}
+
+export function getBreedingTargetFilterOptions(save: GameSave): BreedingTargetFilterOption[] {
+  const options = new Map<string, BreedingTargetFilterOption>();
+  for (const attempt of save.breeding?.attempts ?? []) {
+    if (!attempt.inheritanceTargetOutcome) continue;
+    for (const option of targetFilterEntries(attempt.inheritanceTargetOutcome)) {
+      if (!options.has(option.value)) options.set(option.value, option);
+    }
+  }
+  return [...options.values()].sort((a, b) => a.label.localeCompare(b.label));
+}
+
 export function filterBreedingAttempts(
   save: GameSave,
   options: {
@@ -207,6 +258,7 @@ export function filterBreedingAttempts(
     outcome?: BreedingRecordOutcomeFilter;
     role?: "either" | "giver" | "receiver";
     newestFirst?: boolean;
+    target?: string;
   } = {},
 ): BreedingAttemptRecord[] {
   const query = options.query?.trim().toLowerCase() ?? "";
@@ -214,10 +266,19 @@ export function filterBreedingAttempts(
   const outcome = options.outcome ?? "all";
   const role = options.role ?? "either";
   const newestFirst = options.newestFirst ?? true;
+  const target = options.target ?? "all";
 
   return [...(save.breeding?.attempts ?? [])]
     .filter((attempt) => {
       if (outcome !== "all" && getAttemptOutcome(attempt) !== outcome) return false;
+      if (target !== "all") {
+        const recordedTarget = attempt.inheritanceTargetOutcome;
+        if (target === "none") {
+          if (recordedTarget) return false;
+        } else if (!recordedTarget || !targetFilterEntries(recordedTarget).some(option => option.value === target)) {
+          return false;
+        }
+      }
       if (creatureId) {
         if (role === "giver" && attempt.giverId !== creatureId) return false;
         if (role === "receiver" && attempt.receiverId !== creatureId) return false;
