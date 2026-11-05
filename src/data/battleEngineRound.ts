@@ -975,6 +975,42 @@ export function resolveBattleRound(
   };
 }
 
+/** Resolve one initiative slot, applying round recovery only after the last living actor. */
+export function resolveBattleTurn(
+  state: BattleState,
+  remaining: readonly BattleCombatantId[],
+  requested?: BattleAction,
+) {
+  const actor = remaining[0] ? state.combatants[remaining[0]] : undefined;
+  if (!actor || actor.isFainted || state.outcome !== "ongoing") return null;
+  const frames: BattlePlaybackFrame[] = [];
+  const onFrame = (frame: BattlePlaybackFrame) => frames.push(frame);
+  const turn = resolveAction(
+    cloneBattleState(state),
+    normalizeRequestedAction(state, actor, requested),
+    Object.keys(state.combatants).length - remaining.length,
+    onFrame,
+  );
+  if (!turn.resolvedAction.success) {
+    onFrame({ state: turn.state, actorId: actor.battleCombatantId, targetIds: [actor.battleCombatantId],
+      kind: "status", label: turn.resolvedAction.log.at(-1) ?? "Cannot act" });
+  }
+  const nextActors = remaining.slice(1).filter(id => !turn.state.combatants[id].isFainted);
+  const roundEnded = !nextActors.length || core.getBattleOutcome(turn.state) !== "ongoing";
+  const recovery = roundEnded && core.getBattleOutcome(turn.state) === "ongoing"
+    ? tickEndOfRound(turn.state, onFrame) : { state: turn.state, log: [] };
+  const outcome = core.getBattleOutcome(recovery.state);
+  const log = [...turn.resolvedAction.log, ...recovery.log];
+  if (outcome !== "ongoing") log.push(`Battle ends: ${outcome}.`);
+  const result: BattleRoundResult = { roundNumber: state.roundNumber, actions: [turn.resolvedAction], log, outcome };
+  return {
+    state: { ...recovery.state, outcome, roundNumber: state.roundNumber + Number(roundEnded), log: [...state.log, ...log] },
+    remaining: roundEnded ? [] : nextActors,
+    result,
+    frames,
+  };
+}
+
 /** Conditional-on-hit estimates, using the same targeting, stat and modifier functions as resolution. */
 export function previewBattleAction(state: BattleState, action: BattleAction) {
   const actor = state.combatants[action.actorId], move = getBattleMove(action.moveId);
@@ -982,7 +1018,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction) {
   const ids = normalizeTargetIds(state, actor, move, action.targetIds);
   const paidActor = spendMoveResources(actor,move);
   let projected = replaceCombatant(state,paidActor);
-  const entries: {targetId:string;name:string;hitChance:number;effectChance:number;description:string}[]=[];
+  const entries: {targetId:string;name:string;hitChance:number;effectChance:number;description:string;hpAfter:number}[]=[];
   // Project successful effects in their real order, without consulting hidden rolls or enemy choices.
   for(const effect of move.effects) {
     const result=resolveEffect({state:projected,actor:paidActor,move,targetIds:ids,effect:{...effect,chance:undefined},effectIndex:0,actionSeed:"preview",hitTargetIds:new Set(Object.keys(state.combatants)),onFrame:frame=>{
@@ -999,7 +1035,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction) {
       else if(effect.type==="restore_battle_energy") description=`Restore ${after.currentBattleEnergy-before.currentBattleEnergy} BE · ${before.currentBattleEnergy} → ${after.currentBattleEnergy} (after move cost)`;
       else if(effect.type==="cleanse_status") description=`Remove ${effect.status??"all statuses"}`;
       else description=`${effect.status??effect.type.replaceAll("_"," ")}${effect.stat?` · ${effect.stat}`:""}${effect.amount!==undefined?` · ${effect.amount}`:""} · ${effect.duration??1} round(s)`;
-      entries.push({targetId:id,name:before.name,hitChance,effectChance,description});
+      entries.push({targetId:id,name:before.name,hitChance,effectChance,description,hpAfter:after.currentHp});
       projected=frame.state;
     }});
     projected=result.state;

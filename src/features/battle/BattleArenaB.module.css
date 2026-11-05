@@ -114,3 +114,138 @@
 /* Stable sprite layer: animation cleanup never remounts or duplicates a creature image. */
 .spriteMotion{display:flex;align-items:flex-end;justify-content:center;width:100%;height:100%;min-height:0;transform:translate(0,0)}
 .spriteMotion img[data-facing=left]{scale:-1 1}
+
+/* Individual turns: parchment cards in a fixed, carved-wood command dock. */
+.arena[data-individual=true] {
+  grid-template-rows: 82px minmax(0, 1fr) auto;
+  padding: 10px;
+  gap: 7px;
+}
+.arena[data-individual=true] .order {
+  width: 61%;
+  max-width: 900px;
+  border: 2px solid #946338;
+  border-radius: 10px;
+  background: linear-gradient(#f7dfad, #ddae6e);
+  color: #37200d;
+}
+.arena[data-individual=true] .header h1,
+.arena[data-individual=true] .header > strong { width: 19%; min-width: 0; }
+.arena[data-individual=true] .header h1 { font-size: clamp(15px, 1.6vw, 26px); }
+.arena[data-individual=true] .figure[data-selected=true][data-side=enemy] .art img {
+  filter: drop-shadow(2px 0 #ff5237) drop-shadow(-2px 0 #ff5237) drop-shadow(0 0 4px #e72e0f);
+}
+.arena[data-individual=true] .targetMarker { background: #852819; border-color: #ebad5d; color: #fff0cb; }
+.arena[data-individual=true] .meter { height: 15px; background: #362d21; }
+.arena[data-individual=true] .meter b { font: bold clamp(8px, 1vw, 13px)/13px Georgia, serif; text-align: center; }
+.arena[data-individual=true] .meter i { transition: none; background: linear-gradient(#559429, #254d13); }
+.arena[data-individual=true] .meter[data-kind=BE] i { background: linear-gradient(#367bb0, #163d6a); }
+.arena[data-individual=true] .meter .meterLoss {
+  background: repeating-linear-gradient(135deg, #a84330 0 3px, #f08761 3px 5px);
+}
+.arena[data-individual=true] .meter[data-kind=BE] .meterLoss {
+  background: repeating-linear-gradient(135deg, #9a531a 0 3px, #efb150 3px 5px);
+}
+.turnDock {
+  grid-row: 3;
+  grid-column: 1;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr) minmax(0, 1.25fr);
+  gap: 9px;
+  padding: 9px;
+  border: 3px double #b88145;
+  border-radius: 15px;
+  background: repeating-linear-gradient(2deg, #4c2b18, #613918 6px, #4c2b18 13px);
+  box-shadow: inset 0 0 0 3px #2f1a0d, 0 3px 9px #28120899;
+}
+.turnDock > * {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #a47546;
+  border-radius: 9px;
+  background: #3f2316a8;
+}
+.arena .turnDock h2 {
+  padding: 3px 8px;
+  border: 2px solid #b88844;
+  border-radius: 8px;
+  background: linear-gradient(#4c4a28, #292b18);
+  color: #ffe9b7;
+  font-size: clamp(13px, 1.5vw, 22px);
+}
+.arena .turnTarget h2 { background: linear-gradient(#8a3c29, #581e17); }
+.arena .turnDock button {
+  min-height: 34px;
+  color: #382010;
+  border: 2px solid #a4723a;
+  background: linear-gradient(#f5d9a4, #e4b77a);
+  box-shadow: inset 0 0 0 1px #fbe7ba;
+}
+.arena .turnDock button[aria-pressed=true] {
+  border-color: #ffe198;
+  box-shadow: inset 0 0 0 1px #c07e2e, 0 0 9px #ffc94b;
+}
+.arena .turnDock button.primary { color: #fff0bd; background: linear-gradient(#4e692d, #2c411a); }
+.turnNav button { display: flex; align-items: center; gap: 9px; text-align: left; }
+.turnNav svg { width: 24px; height: 24px; color: #59331a; flex: none; }
+.turnCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.turnTile { position: relative; }
+.turnTile > button { display: flex; width: 100%; align-items: center; gap: 8px; text-align: left; }
+.turnTile > button[data-usable=false] { filter: saturate(.46); }
+.turnTile img { width: 27px; height: 27px; object-fit: contain; }
+.turnTile small { display: block; font-size: 11px; margin-top: 3px; }
+.moveTooltip {
+  position: absolute; bottom: calc(100% + 5px); left: 0; right: 0; z-index: 4;
+  display: grid; gap: 2px; padding: 6px 8px; border: 2px solid #aa743b;
+  border-radius: 7px; background: #ffe3b2; color: #422411;
+  box-shadow: 0 3px 8px #27130599; font-size: 12px; pointer-events: none;
+}
+.turnTargetVitals {
+  display: grid; grid-template-columns: 55px minmax(0, 1fr); align-items: center;
+  gap: 6px; padding: 4px; border-radius: 6px; background: #edc38d;
+}
+.turnTargetVitals img { width: 55px; height: 46px; object-fit: contain; }
+.turnTargetVitals > div { display: grid; gap: 4px; }
+.arena .turnDetailButton { min-height: 24px; padding: 2px 5px; font-size: 11px; }
+.turnPager { display: flex; justify-content: center; gap: 5px; }
+.arena .turnPager button { min-height: 22px; padding: 1px 8px; }
+@media (max-width: 1100px) {
+  .arena[data-individual=true] { grid-template-rows: 108px minmax(0, 1fr) auto; }
+  .arena[data-individual=true] .header h1 { width: auto; }
+}
+@media (max-width: 600px) {
+  .arena[data-individual=true] { grid-template-rows: 97px minmax(0, 1fr) auto; padding: 5px; }
+  .arena[data-individual=true] .order { width: 100%; }
+  .turnDock { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 4px; padding: 4px; }
+  .turnDock > * { padding: 4px; gap: 4px; }
+  .turnNav { grid-column: 1/-1; grid-template-columns: repeat(3, 1fr); }
+  .turnNav h2 { display: none; }
+  .arena .turnDock button { padding: 3px; font-size: 11px; }
+  .turnNav svg { width: 16px; height: 16px; }
+  .turnTile img { display: none; }
+  .turnTile small { font-size: 9px; }
+  .turnTargetVitals { grid-template-columns: 25px minmax(0, 1fr); }
+  .turnTargetVitals img { width: 25px; height: 30px; }
+}
+@media (max-height: 480px) and (min-width: 601px) {
+  .arena[data-individual=true] { grid-template-rows: 58px minmax(0, 1fr) auto; padding: 5px; gap: 4px; }
+  .turnDock, .turnDock > * { padding: 3px; gap: 4px; }
+  .arena .turnDock h2 { font-size: 12px; padding: 1px 4px; }
+  .arena .turnDock button { min-height: 24px; padding: 2px 4px; font-size: 11px; }
+  .turnNav svg, .turnTile img { width: 16px; height: 16px; }
+  .turnTargetVitals img { height: 24px; }
+}
+@media (min-width: 1101px) {
+  .arena[data-individual=true] .header { position: relative; }
+  .arena[data-individual=true] .header::before {
+    content: ""; position: absolute; z-index: -1; inset: 0 auto 0 0; width: 19%;
+    border: 3px double #c48b48; border-radius: 11px;
+    background: linear-gradient(#263d28, #152619);
+    box-shadow: inset 0 0 0 2px #3c2a17, 0 3px 6px #39210f90;
+  }
+  .arena[data-individual=true] .header h1,
+  .arena[data-individual=true] .header > strong { width: 21%; padding-inline: 8px; text-align: center; }
+}

@@ -6,7 +6,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds } from "@/data/battleEngine";
-import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
+import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
@@ -25,9 +25,9 @@ type Presentation = ReturnType<typeof useBattlePresentationController>;
 export type BattleArenaBProps = {
   title: string; battleState: BattleState; sourceById: ReadonlyMap<string, CreatureRecord>;
   selectedTarget: BattleUiTarget | null; activeActorId: BattleCombatantId | null;
-  queuedActions: ReadonlyMap<BattleCombatantId, BattleAction>; presentation: Presentation;
-  onTarget: (target: BattleUiTarget) => void; onPlan: (id: BattleCombatantId) => void;
-  onQueue: (moveId: string) => void; onConfirm: () => void; onReturn: () => void; onForfeit: () => void;
+  queuedActions?: ReadonlyMap<BattleCombatantId, BattleAction>; individualOrder?: readonly BattleCombatantId[]; presentation: Presentation;
+  onTarget: (target: BattleUiTarget) => void; onPlan?: (id: BattleCombatantId) => void;
+  onQueue: (moveId: string) => void; onConfirm?: () => void; onReturn: () => void; onForfeit: () => void;
   onItem: (item: "tonic" | "revival") => void; tonicStock: number; revivalStock: number;
   usedTonic: boolean; usedRevival: boolean; aidRestricted?: boolean;
   resultLedger?: BattleResultLedgerData; complete: boolean; recording: boolean; result: ReactNode; message: string; rules?: ReactNode;
@@ -37,8 +37,22 @@ function artwork(source: CreatureRecord | undefined, full = false) {
   if (!source) return FALLBACK;
   return gameplayArt(source,!full);
 }
-function Meter({ label, value, max }: { label: "HP" | "BE"; value: number; max: number }) {
-  return <span className={s.meter} data-kind={label}><i style={{ width: `${Math.max(0,Math.min(100,value/Math.max(1,max)*100))}%` }} /><b>{label} {value}/{max}</b></span>;
+function Meter({ label, value, max, after }: { label: "HP" | "BE"; value: number; max: number; after?: number }) {
+  const percent = (amount: number) => Math.max(0, Math.min(100, amount / Math.max(1, max) * 100));
+  const projected = after !== undefined && after < value ? after : value;
+  return <span className={s.meter} data-kind={label}>
+    <i style={{ width: `${percent(projected)}%` }} />
+    {projected < value && <i className={s.meterLoss} style={{ left: `${percent(projected)}%`, width: `${percent(value)-percent(projected)}%` }} />}
+    <b>{label} {value}{projected < value ? ` → ${projected}` : ""}/{max}</b>
+  </span>;
+}
+
+function TurnIcon({ kind }: { kind: "moves" | "items" | "inspect" }) {
+  return <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    {kind === "moves" && <><path fill="currentColor" d="m9 21 13-15 7-3-2 8-14 14z"/><path d="m5 18 9 9M8 23l-5 6 2 2 6-5"/></>}
+    {kind === "items" && <><path d="M12 3h8v4h-8zM13 7v7a10 10 0 1 0 6 0V7"/><path fill="currentColor" d="M9 21c1-2 4-2 7-1s5 1 7-1a8 8 0 1 1-14 2Z"/></>}
+    {kind === "inspect" && <><circle cx="20" cy="12" r="8"/><path strokeWidth="5" d="m14 18-10 10"/></>}
+  </svg>;
 }
 function MoveDetails({ move }: { move: BattleMove }) {
   return <><h3>{move.name}</h3><p>{move.description}</p><p>Power {move.power} · Move accuracy {move.accuracy}% · Energy {move.battleEnergyCost} · Cooldown {move.cooldown} rounds · Priority {move.priority}</p><p>Targets: {getBattleTargetTypeLabel(move.targetType)}. Move accuracy is a base value; actual hit chance also depends on combat stats and effects.</p>{move.effects.map((effect,i)=>{const entry=getBattleEffectGlossary(effect.type);return <section key={i}><h4>{entry.label}{effect.status?` · ${getBattleStatusGlossary(effect.status).label}`:""}</h4><p>{entry.mechanics}</p><p>{effect.amount!==undefined?`Amount: ${effect.amount}. `:""}{effect.chance!==undefined?`Base chance: ${effect.chance}%. `:""}{effect.duration!==undefined?`Duration: ${effect.duration} rounds. `:""}{effect.target?`Recipient: ${effect.target.replaceAll("_"," ")}. `:""}{effect.note}</p></section>;})}</>;
@@ -72,7 +86,9 @@ function MoveMenu({ state, actorId, target, resolving, onQueue, onTarget, onSele
 }
 
 export function BattleArenaB(props: BattleArenaBProps) {
-  const { battleState:resolvedState, sourceById, activeActorId, selectedTarget, queuedActions:queue, presentation, complete, recording }=props;
+  const { battleState:resolvedState, sourceById, activeActorId, selectedTarget, queuedActions, individualOrder, presentation, complete, recording }=props;
+  const queue = queuedActions ?? new Map<BattleCombatantId, BattleAction>();
+  const individual = individualOrder !== undefined;
   const state=presentation.displayState??resolvedState;
   const { open }=useNavigation();
   const [popup,setPopup]=useState<"planning"|"statuses"|"inspect"|"items"|"log"|"menu"|"order"|"result"|"leave"|"forfeit"|null>(null);
@@ -80,6 +96,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const [movesOpen,setMovesOpen]=useState(false);
   const [draft,setDraft]=useState<{actorId:string;moveId:string}|null>(null);
   const [tappedTarget,setTappedTarget]=useState<string|null>(null);
+  const [hoverMove, setHoverMove] = useState<string | null>(null);
+  const [movePage, setMovePage] = useState(0);
+  const [turnDetails, setTurnDetails] = useState(false);
   const [statusId,setStatusId]=useState<string|null>(null);
   const [inspectId,setInspectId]=useState<string|null>(null);
   const combatants=Object.values(state.combatants);
@@ -89,20 +108,32 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const selectedInspect=inspectId?state.combatants[inspectId]:target;
   const preview=getBattleOrderPreview(state,queue);
   const actionIndex=presentation.activeEvent?.actorId?presentation.actionOrder.indexOf(presentation.activeEvent.actorId):-1;
-  const order=resolving?(actionIndex>=0?presentation.actionOrder.slice(actionIndex):[]):preview.map(entry=>entry.actorId);
+  const order=individualOrder ? [...new Set([...(presentation.activeEvent?.actorId ? [presentation.activeEvent.actorId] : []), ...individualOrder])] : resolving?(actionIndex>=0?presentation.actionOrder.slice(actionIndex):[]):preview.map(entry=>entry.actorId);
   const currentEvent=presentation.activeEvent;
   const actionCaption=currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
   const highlight=resolving?presentation.activeEvent?.actorId:activeActorId;
   function inspect(id?:string){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup("inspect");}
-  function clearDraft(){setDraft(null);setTappedTarget(null);}
+  function clearDraft(){setDraft(null);setTappedTarget(null);setHoverMove(null);setMovePage(0);}
   function queueMove(id:string){props.onQueue(id);clearDraft();setMovesOpen(false);setPopup(null);}
   const draftMove=movesOpen&&draft?.actorId===activeActorId&&!resolving&&!complete?getBattleMove(draft.moveId):null;
   const draftActor=activeActorId?state.combatants[activeActorId]:null;
   const validTargets=draftMove&&draftActor?getLegalBattleTargetIds(state,draftActor,draftMove):[];
   const draftAvailability=draftMove&&activeActorId&&selectedTarget?getBattleUiMoveAvailability(state,activeActorId,draftMove.id,selectedTarget):null;
   const highlightedTargets=draftAvailability?.compatible?draftAvailability.normalizedTargetIds:[];
+  const turnOptions = individual && !resolving && !complete ? getBattleMenuOptions(state, activeActorId, selectedTarget) : [];
+  const turnPage = Math.min(movePage, Math.max(0, Math.ceil(turnOptions.length / 4) - 1));
+  const selectedMove = turnOptions.find(option => draft?.actorId === activeActorId && option.move.id === draft.moveId);
+  const previewMove = turnOptions.find(option => option.move.id === hoverMove) ?? selectedMove;
+  const effectsFor = (option: typeof previewMove) => option?.usable && activeActorId && selectedTarget
+    ? previewBattleAction(state, { actorId: activeActorId, moveId: option.move.id,
+      targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
+  const projectedEffects = effectsFor(previewMove);
+  function hpAfter(id: string) {
+    return projectedEffects.findLast(effect => effect.targetId === id)?.hpAfter;
+  }
   function selectTarget(next:BattleUiTarget){
     if(resolving)return;
+    if (individual) { props.onTarget(next); return; }
     const key=next.kind==="field"?"field":next.combatantId;
     const sameSelection=selectedTarget?.kind===next.kind&&(next.kind==="field"||selectedTarget?.kind==="combatant"&&selectedTarget.combatantId===next.combatantId);
     if(draftMove&&activeActorId&&tappedTarget===key&&sameSelection&&getBattleUiMoveAvailability(state,activeActorId,draftMove.id,next).usable){queueMove(draftMove.id);return;}
@@ -119,41 +150,88 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const canTonic=!!itemTarget&&!itemTarget.isFainted&&!props.usedTonic&&props.tonicStock>0&&!complete&&!resolving&&!props.aidRestricted;
   const canRevive=!!itemTarget&&itemTarget.isFainted&&!props.usedRevival&&props.revivalStock>0&&(!complete||state.outcome==="enemy_won")&&!resolving&&!props.aidRestricted;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={state.log}/>;
-  return <main className={s.arena} data-battle-b data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion}>
-    <header className={s.header}><strong>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
-    <section className={s.order} aria-label={resolving?"Resolution order":"Order preview"}><button className={s.orderHeading} onClick={()=>setPopup("order")}><strong>{resolving?currentEvent?.actorId?"ACTING NOW → UP NEXT":"ROUND RECOVERY":"ORDER PREVIEW"}</strong><small>{resolving?"":"Estimate · changes with moves"}</small></button><div className={s.tokens}>{order.map((id,index)=>{const c=state.combatants[id];if(!c)return null;return <button key={id} data-side={c.sideId} data-rank={index} data-active={resolving&&index===0} aria-label={`Inspect ${c.name} in turn order`} onClick={()=>inspect(id)}><img src={artwork(sourceById.get(String(c.sourceCreatureId)))} alt=""/><span><small>{index===0?resolving?"ACTING NOW":"FIRST":index===1?resolving?"UP NEXT":"NEXT":`${index+1}`}</small><strong>{c.name}</strong>{index===0&&resolving&&currentEvent?.moveName&&<em>{currentEvent.moveName}</em>}</span></button>;})}</div></section>
-    <section className={s.field} aria-label="3 versus 3 battle stage"><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span>{combatants.map(c=>{
+  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion}>
+    <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
+    <section className={s.order} aria-label={resolving?"Resolution order":"Order preview"}><button className={s.orderHeading} onClick={()=>setPopup("order")}><strong>{resolving?currentEvent?.actorId?"ACTING NOW → UP NEXT":"ROUND RECOVERY":"ORDER PREVIEW"}</strong><small>{resolving?"":"Estimate · changes with moves"}</small></button><div className={s.tokens}>{order.map((id,index)=>{const c=state.combatants[id];if(!c)return null;return <button key={id} data-side={c.sideId} data-rank={index} data-active={(individual||resolving)&&index===0} aria-label={`Inspect ${c.name} in turn order`} onClick={()=>inspect(id)}><img src={artwork(sourceById.get(String(c.sourceCreatureId)))} alt=""/><span><small>{index===0?individual?"NOW":resolving?"ACTING NOW":"FIRST":index===1?resolving&&!individual?"UP NEXT":"NEXT":`${index+1}`}</small><strong>{c.name}</strong>{index===0&&resolving&&currentEvent?.moveName&&<em>{currentEvent.moveName}</em>}</span></button>;})}</div></section>
+    <section className={s.field} aria-label="3 versus 3 battle stage">{!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
       const event=presentation.activeEvent,affected=event?.targetIds.includes(c.battleCombatantId);
       return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&validTargets.includes(c.battleCombatantId)} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>TARGET</b>}{affected&&event&&event.kind!=="attack"&&<b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
-          <span className={s.nameplate}><strong title={c.name}>{c.name}</strong><Meter label="HP" value={c.currentHp} max={c.maxHp}/><Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy}/>{c.isFainted&&<small>K.O.</small>}</span>
+          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected&&event&&event.kind!=="attack"&&<b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
+          <span className={s.nameplate}><strong title={c.name}>{c.name}</strong><Meter label="HP" value={c.currentHp} max={c.maxHp} after={hpAfter(c.battleCombatantId)}/><Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={acting && previewMove?.usable ? c.currentBattleEnergy - previewMove.move.battleEnergyCost : undefined}/>{c.isFainted&&<small>K.O.</small>}</span>
         </button>
         <BattleStatusBadges name={c.name} effects={c.statuses} onOpen={()=>openStatuses(c.battleCombatantId)}/>
       </article>;
     })}</section>
     <div className={s.playback} aria-live="polite">{resolving&&<><strong>{actionCaption}</strong><span>{currentEvent?.kind==="attack"?"Preparing action…":currentEvent?.label}</span><div><button onClick={()=>presentation.setPaused(!presentation.paused)}>{presentation.paused?"Resume":"Pause"}</button><button disabled={!presentation.paused} onClick={presentation.step}>Next beat</button><button onClick={()=>presentation.setSpeed(presentation.speed===1?2:1)}>{presentation.speed}×</button></div></>}</div>
-    <footer className={s.queue} aria-label="Planned ranch actions">
+    {individual ? <footer className={s.turnDock} aria-label="Turn options">
+      <nav className={s.turnNav} aria-label="Turn commands">
+        <h2>Turn Options</h2>
+        <button aria-pressed={popup === null} onClick={() => setPopup(null)}><TurnIcon kind="moves"/>Moves</button>
+        <button onClick={() => setPopup("items")}><TurnIcon kind="items"/>Items</button>
+        <button onClick={() => inspect()}><TurnIcon kind="inspect"/>Inspect</button>
+      </nav>
+      <section className={s.turnMoves} aria-label="Choose a move">
+        <h2>{draftActor ? `${draftActor.name} · Choose a move` : resolving ? "Resolving action…" : finished ? "Battle complete" : "Waiting for next turn"}</h2>
+        <div className={s.turnCards}>{turnOptions.slice(turnPage * 4, turnPage * 4 + 4).map(option => {
+          const tooltip = hoverMove === option.move.id;
+          const effects = tooltip ? projectedEffects : [];
+          return <div key={option.move.id} className={s.turnTile} onMouseEnter={() => setHoverMove(option.move.id)} onMouseLeave={() => setHoverMove(null)}>
+            <button aria-pressed={selectedMove?.move.id === option.move.id} data-turn-move data-usable={option.usable}
+              onFocus={() => setHoverMove(option.move.id)} onBlur={() => setHoverMove(null)}
+              aria-describedby={tooltip ? `move-tip-${option.move.id}` : undefined}
+              onClick={() => {
+                if (!activeActorId) return;
+                setDraft({ actorId: activeActorId, moveId: option.move.id });
+                if (option.move.targetType === "field") props.onTarget({ kind: "field" });
+              }}>
+              <img src={ART + option.category.toLowerCase() + ".webp"} alt=""/>
+              <span><strong>{option.move.name}</strong><small>{option.move.battleEnergyCost} BE · {option.reasons[0] ?? "Ready"}</small></span>
+            </button>
+            {tooltip && <div className={s.moveTooltip} id={`move-tip-${option.move.id}`} role="tooltip">
+              <strong>{option.move.name}</strong><span>{getBattleTargetTypeLabel(option.move.targetType)} · {option.move.battleEnergyCost} BE</span>
+              <span>{effects[0] ? `Est. ${effects[0].description} · ${effects[0].hitChance}% hit${effects[0].effectChance < 100 ? ` · ${effects[0].effectChance}% effect` : ""}` : option.reasons[0] ?? option.move.description}</span>
+            </div>}
+          </div>;
+        })}</div>
+        {turnOptions.length > 4 && <div className={s.turnPager}><button aria-label="Previous moves" disabled={turnPage === 0} onClick={() => setMovePage(turnPage - 1)}>‹</button><button aria-label="Next moves" disabled={(turnPage+1)*4 >= turnOptions.length} onClick={() => setMovePage(turnPage + 1)}>›</button></div>}
+      </section>
+      <section className={s.turnTarget} aria-label="Target and action">
+        <h2>{target ? `Target · ${target.name}` : selectedTarget?.kind === "field" ? "Target · Battlefield" : "Choose a target"}</h2>
+        {target && <div className={s.turnTargetVitals}>
+          <img src={artwork(sourceById.get(String(target.sourceCreatureId)))} alt=""/>
+          <div><Meter label="HP" value={target.currentHp} max={target.maxHp} after={hpAfter(target.battleCombatantId)}/>
+            <Meter label="BE" value={target.currentBattleEnergy} max={target.maxBattleEnergy} after={target.battleCombatantId === activeActorId && previewMove?.usable ? target.currentBattleEnergy - previewMove.move.battleEnergyCost : undefined}/></div>
+        </div>}
+        {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
+          : <button className={s.primary} disabled={!selectedMove?.usable} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
+        {selectedMove && <button className={s.turnDetailButton} onClick={() => setTurnDetails(true)}>Move details</button>}
+      </section>
+    </footer> :     <footer className={s.queue} aria-label="Planned ranch actions">
       <section className={s.planLedger} aria-label="Round ledger">
         <div className={s.planHead}><span>Creature</span><span>Move</span><span>Target</span><span>Energy</span><span/></div>
-        {players.map(c=>{const action=queue.get(c.battleCombatantId),move=action?getBattleMove(action.moveId):null;const names=action? action.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield":"—";return <button className={s.planRow} key={c.battleCombatantId} aria-label={`Plan ${c.name}`} aria-pressed={activeActorId===c.battleCombatantId} disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan(c.battleCombatantId);setMovesOpen(true);}}>
+        {players.map(c=>{const action=queue.get(c.battleCombatantId),move=action?getBattleMove(action.moveId):null;const names=action? action.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield":"—";return <button className={s.planRow} key={c.battleCombatantId} aria-label={`Plan ${c.name}`} aria-pressed={activeActorId===c.battleCombatantId} disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan?.(c.battleCombatantId);setMovesOpen(true);}}>
           <span className={s.planCreature}><img src={artwork(sourceById.get(String(c.sourceCreatureId)))} alt=""/><strong>{c.name}</strong></span>
           <span title={move?.name}>{c.isFainted?"K.O.":move?.name??"Choose a move"}</span><span title={names}>{names}</span><span>{move?`${move.battleEnergyCost} BE`:"—"}</span><span aria-hidden="true">{c.isFainted?"—":action?"✎":"+"}</span>
         </button>})}
         <button className={s.planNotice} onClick={()=>setPopup("planning")} disabled={resolving||complete}>{sharedTargets.length?`${sharedTargets.map(([id,actors])=>`${state.combatants[id]?.name}: ${actors.length} planned actions`).join(" · ")} · Review`:"Round ledger · Review plans"}</button>
       </section>
-      <div className={s.planControls}><div className={s.confirm}><small aria-live="polite">{resolving?"Resolving…":`${living.filter(c=>queue.has(c.battleCombatantId)).length}/${living.length} ready`}</small>{finished?<button className={s.primary} disabled={recording} onClick={()=>{setReviewClosed(false);if(!props.resultLedger)setPopup("result");}}>Review Result</button>:<button className={s.primary} disabled={!canConfirm} onClick={()=>{clearDraft();setMovesOpen(false);props.onConfirm();}}>Confirm Round</button>}</div>
+      <div className={s.planControls}><div className={s.confirm}><small aria-live="polite">{resolving?"Resolving…":`${living.filter(c=>queue.has(c.battleCombatantId)).length}/${living.length} ready`}</small>{finished?<button className={s.primary} disabled={recording} onClick={()=>{setReviewClosed(false);if(!props.resultLedger)setPopup("result");}}>Review Result</button>:<button className={s.primary} disabled={!canConfirm} onClick={()=>{clearDraft();setMovesOpen(false);props.onConfirm?.();}}>Confirm Round</button>}</div>
       <div className={s.dockTools}><button disabled={resolving||finished||!activeActorId} aria-expanded={movesOpen} aria-controls="battle-move-dock" onClick={()=>{clearDraft();setMovesOpen(!movesOpen);}}>{movesOpen?"Collapse":"Moves"}</button><button onClick={()=>setPopup("items")}>Items</button><button onClick={()=>inspect()}>Inspect</button></div></div>
-    </footer>
-    {popup==="planning"&&<GameDialog title="Round Ledger" onClose={()=>setPopup(null)}><p>Plans can be edited until you confirm. Shared targets are allowed; estimates do not guarantee hits or effects.</p>{players.map(c=>{const a=queue.get(c.battleCombatantId),m=a?getBattleMove(a.moveId):null;return <section className={s.statusDetail} key={c.battleCombatantId}><h3>{c.name}</h3><p>{c.isFainted?"K.O. · No action required":m&&a?`${m.name} → ${a.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield"} · ${m.battleEnergyCost} BE (currently ${c.currentBattleEnergy})`:"Action needed"}</p><button disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan(c.battleCombatantId);setMovesOpen(true);setPopup(null);}}>Edit {c.name}</button></section>})}</GameDialog>}
+    </footer>}
+    {turnDetails && selectedMove && <GameDialog title="Move Details" onClose={() => setTurnDetails(false)}>
+      <MoveDetails move={selectedMove.move}/>
+      {effectsFor(selectedMove).map((effect, index) => <p key={index}>{effect.name} · {effect.description} · {effect.hitChance}% hit</p>)}
+    </GameDialog>}
+    {popup==="planning"&&<GameDialog title="Round Ledger" onClose={()=>setPopup(null)}><p>Plans can be edited until you confirm. Shared targets are allowed; estimates do not guarantee hits or effects.</p>{players.map(c=>{const a=queue.get(c.battleCombatantId),m=a?getBattleMove(a.moveId):null;return <section className={s.statusDetail} key={c.battleCombatantId}><h3>{c.name}</h3><p>{c.isFainted?"K.O. · No action required":m&&a?`${m.name} → ${a.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield"} · ${m.battleEnergyCost} BE (currently ${c.currentBattleEnergy})`:"Action needed"}</p><button disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan?.(c.battleCombatantId);setMovesOpen(true);setPopup(null);}}>Edit {c.name}</button></section>})}</GameDialog>}
 
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}
     {popup==="statuses"&&statusCreature&&<GameDialog title={`${statusCreature.name} · Active Effects`} onClose={()=>setPopup(null)}><p>Durations are remaining rounds. During playback, inspecting effects pauses the action. Close this panel, then select Resume to continue.</p>{statusCreature.statuses.filter(e=>e.duration>0).map((effect,i)=><section className={s.statusDetail} key={i}><h3><StatusIcon status={effect.status}/>{statusLabel(effect)}</h3><p><strong>{effect.duration} rounds · {effect.stacks??1} stack(s)</strong>{effect.amount!==undefined?` · Amount ${effect.amount}`:""}</p><p>{getBattleStatusGlossary(effect.status).mechanics}</p>{effect.sourceCombatantId&&<p>Source: {state.combatants[effect.sourceCombatantId]?.name??"Unknown"}</p>}</section>)}{!statusCreature.statuses.some(e=>e.duration>0)&&<p>No active effects.</p>}</GameDialog>}
-    {popup==="order"&&<GameDialog title="Turn Order" onClose={()=>setPopup(null)}><p>During planning this is an estimate: effective Speed + 10 × the queued move’s Priority. Unplanned allies and hidden enemy choices use zero Priority in this preview. Ties use the engine’s seeded initiative rule.</p><p>During resolution the strip follows the recorded action order and highlights the creature whose action is being shown. Enemy moves remain hidden during planning.</p><p>Allies plan one move per round. The bottom slots show your plans, not execution order.</p></GameDialog>}
+    {popup==="order"&&<GameDialog title="Turn Order" onClose={()=>setPopup(null)}>{individual ? <p>Effective Speed sets the order at the start of each round. Each creature acts on its own turn.</p> : <><p>During planning this is an estimate: effective Speed + 10 × the queued move’s Priority. Unplanned allies and hidden enemy choices use zero Priority in this preview. Ties use the engine’s seeded initiative rule.</p><p>During resolution the strip follows the recorded action order and highlights the creature whose action is being shown. Enemy moves remain hidden during planning.</p><p>Allies plan one move per round. The bottom slots show your plans, not execution order.</p></>}</GameDialog>}
     {popup==="inspect"&&selectedInspect&&<GameDialog title={`${selectedInspect.name} · Battle Profile`} onClose={()=>setPopup(null)} wide><div className={s.profile}><img src={artwork(sourceById.get(String(selectedInspect.sourceCreatureId)),true)} alt={`${selectedInspect.name}, full body`}/><div><p>Level {selectedInspect.level} · HP {selectedInspect.currentHp}/{selectedInspect.maxHp} · Battle Energy {selectedInspect.currentBattleEnergy}/{selectedInspect.maxBattleEnergy}</p><h3>Current battle numbers</h3><dl className={s.stats}>{Object.entries(getEffectiveBattleStats(selectedInspect)).map(([key,value])=><div key={key}><dt>{BATTLE_STAT_LABELS[key as BattleStatKey]}</dt><dd>{value}</dd></div>)}</dl><h3>Statuses</h3>{selectedInspect.statuses.length?selectedInspect.statuses.map((status,i)=><p key={i}><strong>{getBattleStatusGlossary(status.status).label} · {status.duration} rounds{(status.stacks??1)>1?` · ${status.stacks} stacks`:""}</strong><br/>{getBattleStatusGlossary(status.status).mechanics}</p>):<p>No status effects.</p>}{(()=>{const source=sourceById.get(String(selectedInspect.sourceCreatureId));return source?<><h3>Base numbers · Innate grades</h3><dl className={s.stats}>{STAT_KEYS.map(key=><div key={key}><dt>{key}</dt><dd>{source.stats[key]} · {source.statGrades[key]}</dd></div>)}</dl><p>Equipment and battle effects change numeric battle values; innate grades stay unchanged.</p></>:null;})()}</div></div></GameDialog>}
     {popup==="items"&&<GameDialog title="Support Items" onClose={()=>setPopup(null)}><p role="status">{props.message}</p><p>{props.aidRestricted?"Restricted Aid: Field Tonics and Revival Salves cannot be used in this challenge.":"Each item type can be used once per battle. Select a ranch creature below before using an item."}</p><div className={s.itemTargets}>{players.map(c=><button key={c.battleCombatantId} aria-pressed={itemTarget?.battleCombatantId===c.battleCombatantId} disabled={resolving} onClick={()=>props.onTarget({kind:"combatant",combatantId:c.battleCombatantId})}>{c.name} · {c.isFainted?"K.O.":`${c.currentHp}/${c.maxHp} HP`}</button>)}</div><div className={s.itemCards}><section><img src="/images/ui/outfitter-v1/field_tonic.webp" alt=""/><h3>Field Tonic ({props.tonicStock})</h3><p>Restore 30% maximum HP and 20% maximum Battle Energy to a living ally.</p><button disabled={!canTonic} onClick={()=>props.onItem("tonic")}>{props.usedTonic?"Used this battle":"Use Field Tonic"}</button></section><section><img src="/images/ui/outfitter-v1/revival_salve.webp" alt=""/><h3>Revival Salve ({props.revivalStock})</h3><p>Revive a fainted ally at 35% HP and 10% Battle Energy, clearing statuses.</p><button disabled={!canRevive} onClick={()=>props.onItem("revival")}>{props.usedRevival?"Used this battle":"Use Revival Salve"}</button></section></div></GameDialog>}
-    {popup==="log"&&<GameDialog title="Battle Log" onClose={()=>setPopup(null)} wide><p>Turn-by-turn record. {resolving?"Playback in progress; the complete round log appears when playback finishes.":""}</p>{resolving?<p>{actionCaption} · {currentEvent?.label}</p>:state.log.map((line,i)=><p key={i}>{line}</p>)}</GameDialog>}
+    {popup==="log"&&<GameDialog title="Battle Log" onClose={()=>setPopup(null)} wide><p>Turn-by-turn record. {resolving?"Playback in progress. The action log appears when playback finishes.":""}</p>{resolving?<p>{actionCaption} · {currentEvent?.label}</p>:state.log.map((line,i)=><p key={i}>{line}</p>)}</GameDialog>}
     {popup==="menu"&&<GameDialog title="Battle Menu" onClose={()=>setPopup(null)}><p role="status">{props.message}</p><div className={s.menuButtons}><button onClick={()=>{setPopup(null);open("menu");}}>Game Menu</button><button onClick={()=>presentation.setSpeed(presentation.speed===1?2:1)}>Animation speed · {presentation.speed}×</button><button aria-pressed={presentation.reducedMotion} onClick={()=>presentation.setReducedMotion(!presentation.reducedMotion)}>Reduced motion · {presentation.reducedMotion?"On":"Off"}</button><button disabled={resolving||recording||complete} onClick={()=>setPopup("forfeit")}>Forfeit & Record Loss</button><button disabled={resolving||recording} onClick={()=>setPopup("leave")}>Leave Without Record</button></div>{props.rules}</GameDialog>}
     {popup==="leave"&&<GameDialog title="Leave Without Record?" onClose={()=>setPopup("menu")}><p>This match grants no result, XP or rewards. Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording} onClick={props.onReturn}>Confirm Leave</button></GameDialog>}
     {popup==="forfeit"&&<GameDialog title="Record a Loss?" onClose={()=>setPopup("menu")}><p>End this match as a defeat and record its result? Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording||complete} onClick={props.onForfeit}>Confirm Forfeit</button></GameDialog>}

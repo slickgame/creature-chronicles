@@ -41,10 +41,7 @@ function getEnemyTargetButton(): HTMLButtonElement | null {
 }
 
 function getEnabledMoveButton(): HTMLButtonElement | null {
-  return Array.from(document.querySelectorAll<HTMLButtonElement>("button")).find((button) => {
-    const text = button.textContent ?? "";
-    return !button.disabled && text.includes("PWR ") && text.includes("ACC ") && text.includes("BE ");
-  }) ?? null;
+  return document.querySelector<HTMLButtonElement>('button[data-turn-move][data-usable="true"]');
 }
 
 function inferCoachState(): CoachState {
@@ -62,28 +59,26 @@ function inferCoachState(): CoachState {
     };
   }
 
-  const roundHeading = Array.from(document.querySelectorAll<HTMLElement>("h1")).find((element) =>
-    /^Round \d+$/.test(element.textContent?.trim() ?? ""),
-  );
+  const roundHeading = document.querySelector<HTMLElement>("[data-battle-round]");
   if (roundHeading) {
     const round = Number(roundHeading.textContent?.match(/\d+/)?.[0] ?? 1);
     if (round >= 2) {
       return {
         key: `finish-round-${round}`,
         title: "First Round Complete",
-        body: "You have used target-first planning, queued three actions, and resolved a round. Finish the match using the same rhythm.",
+        body: "You completed the first round. Finish the match by choosing a target and move on each ally’s turn.",
         target: null,
         showHelp: false,
       };
     }
 
-    const confirmRound = buttonByText((text) => text === "Confirm Round");
-    if (confirmRound && !confirmRound.disabled) {
+    const useMove = document.querySelector<HTMLButtonElement>('section[aria-label="Target and action"] button:not(:disabled)');
+    if (useMove?.textContent?.startsWith("Use ")) {
       return {
-        key: "confirm-first-round",
-        title: "Resolve the Round",
-        body: "All three actions are queued. Confirm the round to reveal enemy actions, resolve Speed order, apply damage and statuses, and tick cooldowns.",
-        target: confirmRound,
+        key: "use-first-move",
+        title: "Use the Move",
+        body: "Check the HP and Battle Energy previews, then use the move to resolve this creature’s action.",
+        target: useMove,
         showHelp: true,
       };
     }
@@ -103,7 +98,7 @@ function inferCoachState(): CoachState {
     return {
       key: "select-target",
       title: "Target First",
-      body: "Select one living enemy before choosing a move. After queuing the action, repeat target then move for each remaining ranch creature.",
+      body: "Select one living enemy before choosing a move. Then choose a compatible move and use it. The next creature acts after this turn resolves.",
       target,
       showHelp: Boolean(target),
     };
