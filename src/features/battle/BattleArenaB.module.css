@@ -131,7 +131,8 @@
 }
 .arena[data-individual=true] .header h1,
 .arena[data-individual=true] .header > strong { width: 19%; min-width: 0; }
-.arena[data-individual=true] .header h1 { font-size: clamp(15px, 1.6vw, 26px); }
+.arena[data-individual=true] .header h1 { font-size: clamp(15px, 1.35vw, 23px); }
+.arena[data-individual=true] .figureButton { grid-template-rows: minmax(0, 1fr) 57px; }
 .arena[data-individual=true] .figure[data-selected=true][data-side=enemy] .art img {
   filter: drop-shadow(2px 0 #ff5237) drop-shadow(-2px 0 #ff5237) drop-shadow(0 0 4px #e72e0f);
 }
@@ -247,7 +248,11 @@
     box-shadow: inset 0 0 0 2px #3c2a17, 0 3px 6px #39210f90;
   }
   .arena[data-individual=true] .header h1,
-  .arena[data-individual=true] .header > strong { width: 21%; padding-inline: 8px; text-align: center; }
+  .arena[data-individual=true] .header > strong { width: 19vw; padding-inline: 8px; text-align: center; }
+  .arena[data-individual=true] .header h1 {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    white-space: normal; line-height: 1.05;
+  }
 }
 
 .arena[data-individual=true] :is(.marker,.targetMarker) {
