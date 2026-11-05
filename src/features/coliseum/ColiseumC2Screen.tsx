@@ -264,6 +264,17 @@ export function ColiseumBattle({
   const effectiveSelection = selectedCreatureIds !== null ? selectedCreatureIds : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
   const enemyPreview = useMemo(() => getColiseumEnemyPreview(encounter), [encounter]);
 
+  useEffect(() => {
+    if (!currentSave || phase !== "battle" || presentation.isPlaying || !battleState || !turnActor || activeActorId) return;
+    const timer = window.setTimeout(() => {
+      const action = turnActor.sideId === "enemy"
+        ? buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty).actions.find(entry => entry.actorId === turnActor.battleCombatantId)
+        : undefined;
+      takeTurn(action);
+    }, 240);
+    return () => window.clearTimeout(timer);
+  });
+
   if (!currentSave) return null;
 
   const save = currentSave;
@@ -353,17 +364,6 @@ export function ColiseumBattle({
     setTurnOrder(resolved.remaining.length ? resolved.remaining : getBattleOrderPreview(resolved.state, new Map()).map(entry => entry.actorId));
     setMessage("Select a target and move for the active creature.");
   }
-
-  useEffect(() => {
-    if (phase !== "battle" || presentation.isPlaying || !battleState || !turnActor || activeActorId) return;
-    const timer = window.setTimeout(() => {
-      const action = turnActor.sideId === "enemy"
-        ? buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty).actions.find(entry => entry.actorId === turnActor.battleCombatantId)
-        : undefined;
-      takeTurn(action);
-    }, 240);
-    return () => window.clearTimeout(timer);
-  });
 
   function finalize(outcome?: BattleOutcome) {
     if (recording || presentation.isPlaying || !battleState) return;

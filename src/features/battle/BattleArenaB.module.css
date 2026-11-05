@@ -249,3 +249,18 @@
   .arena[data-individual=true] .header h1,
   .arena[data-individual=true] .header > strong { width: 21%; padding-inline: 8px; text-align: center; }
 }
+
+.arena[data-individual=true] :is(.marker,.targetMarker) {
+  top: 2px;
+  bottom: auto;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.arena[data-individual=true] .figure[data-active=true][data-selected=true] .targetMarker { top: 21px; }
+@media (max-width: 600px), (max-height: 560px) {
+  .arena[data-individual=true] .figureButton { grid-template-rows: minmax(0,1fr) 41px; }
+  .arena[data-individual=true] .meter { height: 12px; }
+  .arena[data-individual=true] .meter b { font-size: 9px; line-height: 10px; }
+}
