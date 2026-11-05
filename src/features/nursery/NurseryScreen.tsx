@@ -16,7 +16,8 @@ import {NurseryOtherActionsB} from './NurseryOtherActionsB';
 import {NurseryEggPickerB} from './NurseryEggPickerB';
 import {NurseryRecordsLedgerB,type NurseryLedgerRecord} from './NurseryRecordsLedgerB';
 import {eggInheritanceModel,pregnancyInheritanceModel,birthInheritanceModel,type NurseryInheritanceModel,type NurseryInheritanceTab} from '@/data/nurseryInheritanceLedger';
-import { NurseryBook, type NurseryPage } from './NurseryBook';
+import { NurseryBook } from './NurseryBook';
+import { NurseryHatchWelcomeC } from './NurseryHatchWelcomeC';
 import { NurseryScene } from './NurseryScene';
 import { nurseryIdentity } from '@/data/nurseryPresentation';
 import {NURSERY_POLISH,NurseryHatchMoment,NurseryTimer,eggTimerLabel} from './NurseryPolish';
@@ -26,17 +27,7 @@ import s from './NurseryScenic.module.css';
 const EGG_ART = '/images/ui/nursery-scenic-a/eggs/equine.webp';
 const ICONS='/images/ui/creature-overview-a-v2/painted-r4/';
 function Icon({name}:{name:string}){return <img className={s.icon} src={`${ICONS}${name}.webp`} alt=""/>;}
-const STAT_LABELS = { STR:'Strength', DEX:'Dexterity', STA:'Stamina', CHA:'Charm', WIL:'Willpower', FER:'Fertility' } as const;
 type HatchResult = {egg:EggRecord;creature:CreatureRecord};
-function statsPage(stats: Record<string,number>, grades: Record<string,string>): NurseryPage {
-  return {key:'stats',title:'Stats & grades',content:<dl className={s.stats}>{Object.entries(stats).map(([key,value])=><div key={key}><dt>{STAT_LABELS[key as keyof typeof STAT_LABELS] ?? key}</dt><dd>{value} <small>Grade {grades[key]}</small></dd></div>)}</dl>};
-}
-function abilityPages(abilities: EggRecord['projectedAbilities']): NurseryPage[] {
-  return abilities.length ? abilities.map((a,i)=>({key:`ability-${i}`,title:a.name,content:<><p>Grade {a.grade} · {a.source}</p><p>{a.description}</p></>})) : [{key:'abilities-empty',title:'Abilities',content:<p>No inherited ability recorded.</p>}];
-}
-function notePages(notes: string[]): NurseryPage[] {
-  return notes.flatMap((note,i)=>{const parts:string[]=[];let part='';for(const word of note.match(/\S+\s*/g)??[]){if(part.length+word.length>210&&part){parts.push(part);part='';}part+=word;}if(part||!parts.length)parts.push(part);return parts.map((text,j)=>({key:`note-${i}-${j}`,title:`Inheritance note ${i+1}${parts.length>1?` · ${j+1}/${parts.length}`:''}`,content:<p>{text}</p>}));});
-}
 export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
   const game=useGameContext(),nav=useNavigation(),save=game.currentSave;
   const remembered=nav.nurserySelection?.saveId===save?.saveId?nav.nurserySelection:null;
@@ -120,6 +111,14 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
     {completion&&<NurseryCompletionLedgerB receipt={completion} onClose={()=>{setCompletion(null);busy.current=false;}}/>}
     {notice&&<NurseryBook scenic art={art} title="Nursery Notice" onClose={()=>setNotice('')} pages={[{key:'notice',title:'Nursery update',content:<p role="status">{notice}</p>}]}/>}
     {result&&!revealed&&<NurseryHatchMoment egg={result.egg} onReveal={reveal}/>}
-    {result&&revealed&&<NurseryBook scenic title={`${result.creature.nickname} hatched!`} art={getVariantDefinition(result.creature.variantId).portraitPath} artAlt={`${result.creature.nickname} portrait`} onClose={confirmHatch} pages={[{key:'welcome',title:'Welcome to the ranch',content:<><p>{result.egg.parents.giver.displayName} × {result.egg.parents.receiver.displayName}</p><p className={s.good}>Joined {nurseryIdentity(result.creature).species} housing · Birth recorded</p><label className={s.name}>Hatchling name<input value={rename} onChange={e=>setRename(e.target.value)} maxLength={24} placeholder={result.creature.nickname}/></label></>},statsPage(result.creature.stats,result.creature.statGrades),{key:'care',title:'First-day care',content:<dl className={s.stats}><div><dt>Energy</dt><dd>{result.creature.energy}/{result.creature.maxEnergy}</dd></div><div><dt>Hearts</dt><dd>{result.creature.hearts}/{result.creature.maxHearts}</dd></div><div><dt>Affection</dt><dd>{result.creature.affection}</dd></div></dl>},...abilityPages(result.creature.abilities),...notePages([...(result.egg.lineageNotes??[]),...result.egg.statRollNotes,...result.egg.abilityRollNotes,...(result.egg.geneticsNotes??[])])]} footer={<button onClick={confirmHatch}>Confirm Hatchling</button>}/>}
+    {result && revealed && (
+      <NurseryHatchWelcomeC
+        creature={result.creature}
+        egg={result.egg}
+        name={rename}
+        onNameChange={setRename}
+        onConfirm={confirmHatch}
+      />
+    )}
   </main>;
 }

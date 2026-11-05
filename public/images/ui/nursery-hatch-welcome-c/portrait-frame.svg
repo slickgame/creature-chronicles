@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 375">
+ <defs>
+  <linearGradient id="gold" x2=".83" y2="1"><stop stop-color="#ffe9a4"/><stop offset=".28" stop-color="#ffce55"/><stop offset=".54" stop-color="#a55b15"/><stop offset=".75" stop-color="#ffdb6f"/><stop offset="1" stop-color="#945015"/></linearGradient>
+  <g id="crest" fill="url(#gold)" stroke="#66350d" stroke-width="2.4" stroke-linejoin="round">
+   <path d="M150 57C145 37 133 35 125 38c0-11 12-14 19-4-6-14-3-23 6-32 9 9 12 18 6 32 7-10 19-7 19 4-8-3-20-1-25 19Z"/>
+   <path d="M150 48c-3-20-4-26 0-37 4 11 3 17 0 37Z" fill="#ffea9f"/>
+   <path d="M126 40c-8-6-15-5-21 2 5-1 10 1 14 4m55-6c8-6 15-5 21 2-5-1-10 1-14 4" fill="none"/>
+  </g>
+  <g id="flank" fill="url(#gold)" stroke="#66350d" stroke-width="2"><path d="M14 172Q9 181 1 187q9 6 13 15 3-10 11-15-8-5-11-15Z"/><path d="m14 178-6 9 6 5 4-5Z" fill="#ffe79a"/></g>
+ </defs>
+ <ellipse cx="150" cy="187.5" rx="133" ry="157" fill="none" stroke="#65380e" stroke-width="12"/>
+ <ellipse cx="150" cy="187.5" rx="133" ry="157" fill="none" stroke="url(#gold)" stroke-width="8"/>
+ <ellipse cx="150" cy="187.5" rx="128" ry="152" fill="none" stroke="#6b380e" stroke-width="2.5"/>
+ <ellipse cx="150" cy="187.5" rx="136" ry="160" fill="none" stroke="#ffe28b" stroke-width="1.6"/>
+ <path d="M27 137c-2-18 14-31 20-41M253 96c6 10 22 23 20 41M27 238c-2 18 14 31 20 41m206 0c6-10 22-23 20-41" fill="none" stroke="#f6b94c" stroke-width="3"/>
+ <use href="#crest"/><use href="#crest" transform="translate(0 375) scale(1 -1)"/><use href="#flank"/><use href="#flank" transform="translate(300 0) scale(-1 1)"/>
+</svg>

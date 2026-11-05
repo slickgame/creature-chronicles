@@ -1,0 +1,315 @@
+@font-face {
+  font-family: HatchWelcomeTinos;
+  src: url('/images/ui/breeding-desk-a/fonts/Tinos-Regular.woff');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: HatchWelcomeTinos;
+  src: url('/images/ui/breeding-desk-a/fonts/Tinos-Bold.woff');
+  font-weight: 700;
+  font-display: swap;
+}
+
+.dialog.dialog {
+  background: #6b4525;
+  border: 0;
+  border-image: none;
+}
+
+.scene {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow: auto;
+  color: #34200e;
+  font: 20px/1.25 HatchWelcomeTinos, Georgia, serif;
+  background: #6b4525 url('/images/ui/nursery-hatch-welcome-c/room.webp') center / cover no-repeat;
+}
+
+.composition {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: 34% minmax(0, 1fr);
+  align-items: center;
+}
+
+.portrait {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  margin: 0;
+  filter: drop-shadow(0 6px 7px #3a210c88);
+  pointer-events: none;
+}
+
+.creature {
+  position: absolute;
+  inset: 8.2% 5.4%;
+  width: 89.2%;
+  height: 83.6%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 16%;
+  background: url('/images/ui/nursery-hatch-welcome-c/room.webp') left center / auto 115% no-repeat;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  min-width: 0;
+  position: relative;
+  display: grid;
+  gap: 19px;
+  margin: 24px 0 0 -12%;
+  padding: 0 5% 26px 16%;
+  border: 4px solid #9a571a;
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 45% 28%, #fff0c6c7, transparent 76%),
+    repeating-linear-gradient(117deg, #a16b2509 0 1px, transparent 1px 4px),
+    #f3d297;
+  box-shadow: inset 0 0 0 3px #ffe3a0, inset 0 0 0 6px #c78631, inset 0 0 22px #a457253e, 0 4px 0 #5a2c0f, 0 9px 20px #49280b80;
+}
+
+.plaque {
+  display: grid;
+  place-items: center;
+  min-height: 98px;
+  margin: -43px -5% -8px -3%;
+  padding: 13px 15%;
+  box-sizing: border-box;
+  background: url('/images/ui/nursery-hatch-welcome-c/title-plaque.svg') center / 100% 100% no-repeat;
+  color: #fff4d5;
+  font-size: clamp(27px, 3.6vw, 48px);
+  line-height: 1.04;
+  text-align: center;
+  text-shadow: 0 2px 2px #070d18;
+  overflow-wrap: anywhere;
+  filter: drop-shadow(0 3px 1px #7441166b);
+}
+
+.name {
+  display: grid;
+  gap: 5px;
+  padding-inline: 6%;
+  font-weight: 700;
+}
+
+.inputWrap {
+  position: relative;
+  display: block;
+}
+
+.inputWrap input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 42px 5px 13px;
+  border: 2px solid #a38a5b;
+  border-radius: 7px;
+  box-shadow: inset 0 1px 4px #72522b3b;
+  background: #fff3d5;
+  color: #34200e;
+  font: 700 clamp(20px, 2.4vw, 32px)/1.1 HatchWelcomeTinos, Georgia, serif;
+}
+
+.inputWrap svg {
+  position: absolute;
+  width: 21px;
+  height: 21px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #204732;
+  pointer-events: none;
+}
+
+.careStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  border: 1px solid #c5914b;
+  border-radius: 8px;
+  padding: 4px 9px 4px 4px;
+  background: #ffe7b47d;
+  font-size: clamp(14px, 1.8vw, 20px);
+}
+
+.careStrip b {
+  background: linear-gradient(#ffebbf, #e9b965);
+  padding: 6px 17px 6px 10px;
+  clip-path: polygon(0 0, 91% 0, 100% 50%, 91% 100%, 0 100%);
+}
+
+.careStrip span {
+  font-style: italic;
+  text-align: center;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  align-items: center;
+  gap: 18px;
+  padding-top: 3px;
+}
+
+.scene .actions button {
+  min-height: 58px;
+  padding: 8px 12px;
+  border: 2px solid #ad8b4f;
+  border-radius: 13px;
+  background: linear-gradient(#fff4d7, #eace96);
+  color: #183022;
+  box-shadow: inset 0 0 0 2px #fff6da, 0 3px 4px #663a2260;
+  font: 700 clamp(17px, 2.2vw, 28px)/1.05 HatchWelcomeTinos, Georgia, serif;
+  cursor: pointer;
+}
+
+.scene .actions .confirm {
+  min-height: 70px;
+  border: 3px solid #e8b64a;
+  background: linear-gradient(#226939, #074129);
+  color: #fff4d7;
+  box-shadow: inset 0 0 0 2px #7dab58, 0 0 0 1px #6f421a, 0 4px 5px #663a2260;
+  text-shadow: 0 2px 2px #0a2d22;
+}
+
+.scene .actions button:hover {
+  filter: brightness(1.08);
+}
+
+.details.details {
+  font-family: HatchWelcomeTinos, Georgia, serif;
+}
+
+.detailTabs, .vitals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.detailTabs button[aria-pressed="true"] {
+  background: #235d3d;
+  color: #fff2d2;
+}
+
+.parentage {
+  margin: 9px 0;
+  text-align: center;
+}
+
+.vitals {
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+}
+
+.vitals div, .talent, .notes {
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #b38a4f;
+  border-radius: 7px;
+  background: #fff4d8;
+}
+
+.vitals dd {
+  margin: 3px 0 0;
+  font-weight: 700;
+}
+
+.stats {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stats :is(th, td) {
+  padding: 4px;
+  border-bottom: 1px solid #d3b57f;
+  text-align: center;
+}
+
+.stats th[scope="row"] {
+  text-align: left;
+}
+
+.talent {
+  margin-top: 10px;
+}
+
+.talent small {
+  display: block;
+  margin-top: 3px;
+}
+
+.talent p, .notes p {
+  margin: 5px 0;
+}
+
+.notes summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+@media (max-width: 650px) and (min-height: 501px) {
+  .scene {
+    padding: 13px;
+    background-position: 42% center;
+  }
+
+  .composition {
+    width: min(430px, 100%);
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .portrait {
+    width: min(55%, 205px, 29dvh);
+    margin-bottom: 12px;
+  }
+
+  .panel {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    gap: 13px;
+    padding: 0 13px 17px;
+    border-radius: 17px;
+  }
+
+  .plaque {
+    min-height: 65px;
+    margin: -21px -9px -4px;
+    padding: 11px 14%;
+    font-size: clamp(22px, 6vw, 32px);
+  }
+
+  .name { padding-inline: 4%; font-size: 17px; }
+  .careStrip { gap: 5px; font-size: 14px; }
+  .careStrip b { padding-right: 12px; }
+  .actions { gap: 9px; }
+  .scene .actions button { min-height: 46px; padding: 6px; }
+  .scene .actions .confirm { min-height: 53px; }
+}
+
+@media (max-height: 500px) {
+  .scene { padding: 12px; }
+  .composition { width: min(850px, 100%); }
+  .portrait { width: min(100%, 58dvh); justify-self: end; }
+  .panel { gap: 9px; margin-top: 22px; padding-bottom: 13px; }
+  .plaque { min-height: 60px; margin-top: -26px; font-size: clamp(21px, 3.5vw, 34px); }
+  .name { font-size: 16px; padding-inline: 1%; }
+  .inputWrap input { font-size: 19px; }
+  .careStrip { font-size: 14px; }
+  .careStrip b { padding: 3px 12px 3px 6px; }
+  .actions { gap: 8px; }
+  .scene .actions button { min-height: 43px; padding: 6px; font-size: 18px; }
+  .scene .actions .confirm { min-height: 48px; }
+}

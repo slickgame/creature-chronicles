@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 108" preserveAspectRatio="none">
+ <defs><linearGradient id="g" x2="0" y2="1"><stop stop-color="#fff0a5"/><stop offset=".22" stop-color="#eea337"/><stop offset=".52" stop-color="#ffe38c"/><stop offset=".78" stop-color="#b57520"/><stop offset="1" stop-color="#ffdc73"/></linearGradient><linearGradient id="n" x2="0" y2="1"><stop stop-color="#24394d"/><stop offset="1" stop-color="#101d2e"/></linearGradient></defs>
+ <path d="M12 54Q36 46 40 24Q43 8 70 9Q300 2 530 9Q557 8 560 24Q564 46 588 54Q564 62 560 84Q557 100 530 99Q300 106 70 99Q43 100 40 84Q36 62 12 54Z" fill="url(#n)" stroke="#63370d" stroke-width="12"/>
+ <path d="M12 54Q36 46 40 24Q43 8 70 9Q300 2 530 9Q557 8 560 24Q564 46 588 54Q564 62 560 84Q557 100 530 99Q300 106 70 99Q43 100 40 84Q36 62 12 54Z" fill="none" stroke="url(#g)" stroke-width="7"/>
+ <path d="M29 54Q47 44 48 27Q51 17 71 17Q300 10 529 17Q549 17 552 27Q553 44 571 54Q553 64 552 81Q549 91 529 91Q300 98 71 91Q51 91 48 81Q47 64 29 54Z" fill="none" stroke="#d69435" stroke-width="2"/>
+ <g fill="#f7c55a"><path id="leaf" d="M42 54q13-8 27 0-15 7-27 0Zm15 0q-3-12 8-13 3 8-8 13Zm0 0q-3 12 8 13 3-8-8-13Zm13 0q10-10 17 0-8 9-17 0Z"/><use href="#leaf" transform="translate(600 0) scale(-1 1)"/></g>
+</svg>
