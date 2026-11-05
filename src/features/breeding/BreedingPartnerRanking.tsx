@@ -52,7 +52,7 @@ export function BreedingPartnerRanking({
   const start = position * RESULTS_PER_PAGE;
 
   return (
-    <GameDialog title="Rank partners" onClose={onClose} dialogClassName={j.recordDialog} wide>
+    <GameDialog title="Rank partners" onClose={onClose} dialogClassName={`${j.recordDialog} ${j.planningDialog}`} wide>
       <div className={j.comparison}>
         <label>Keep one parent fixed
           <select value={fixedRole} onChange={event => { setFixedRole(event.target.value as BreedingRole); setPage(0); }}>
@@ -96,8 +96,11 @@ export function BreedingPartnerRanking({
         {!previews.length ? <p className={j.note}>No eligible partners for this parent right now.</p>
           : !target ? <p className={j.note}>{mode === "Talents" ? "Choose a talent or a specific grade to rank partners." : "No eligible pairing has a compatible bonus move."}</p>
           : <>
-            <p className={j.rankSummary}><strong>{previews.length} eligible {previews.length === 1 ? "partner" : "partners"}</strong>
-              {results[0]?.chance === 0 && " · None can pass down this target."}</p>
+            <div className={j.rankLegend}>
+              <strong>{previews.length} eligible {previews.length === 1 ? "partner" : "partners"}</strong>
+              <span>{mode === "Talents" ? "Chance" : "Roll odds"}</span>
+            </div>
+            {results[0]?.chance === 0 && <p className={j.rankSummary}>None can pass down this target.</p>}
             <ol className={j.rankList} start={start + 1}>
               {results.slice(start, start + RESULTS_PER_PAGE).map(({ partner, chance }, index) => {
                 const selected = partner.participantId === selectedPartner?.participantId;
@@ -105,7 +108,7 @@ export function BreedingPartnerRanking({
                   <li key={partner.participantId} data-selected={selected}>
                     <span className={j.rankNumber}>#{start + index + 1}</span>
                     <div><strong>{partner.displayName}</strong><small>{partner.familyLabel}</small></div>
-                    <strong className={j.rankChance}>{formatInheritancePercent(chance)}</strong>
+                    <strong className={j.rankChance} data-zero={chance === 0}>{formatInheritancePercent(chance)}</strong>
                     {selected
                       ? <span className={j.rankSelected}>Selected</span>
                       : <button type="button" className={j.rankSelect}
@@ -119,10 +122,12 @@ export function BreedingPartnerRanking({
             </ol>
             {pageCount > 1 && <PagerA index={position} total={pageCount} onChange={setPage} />}
           </>}
-        {results.length > 0 && <p className={j.rankSummary}>Select a partner to return to the desk and review the pairing.</p>}
-        <p className={j.caveat}>{mode === "Talents"
-          ? "Base odds after conception. Grade comes from a parent’s copy. Mutation and item checks are separate."
-          : "Roll odds after conception with a slot open. Species starting moves are separate."}</p>
+        <p className={j.planningNote}>
+          {results.length > 0 && <strong>Select returns you to the pairing desk. </strong>}
+          {mode === "Talents"
+            ? "Base odds after conception. Mutation and item checks are separate."
+            : "Roll odds after conception with a slot open. Species starting moves are separate."}
+        </p>
       </div>
     </GameDialog>
   );

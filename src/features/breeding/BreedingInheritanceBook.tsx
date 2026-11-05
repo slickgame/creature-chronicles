@@ -55,7 +55,7 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onSelectPartner
      key:`talent-${candidate.talent.id}`,
      title:candidate.talent.name,
      content:<>
-       <p><strong>{percent(candidate.chance)}</strong> · Base parent estimate after conception</p>
+       <div className={j.journalMetric}><strong data-zero={candidate.chance===0}>{percent(candidate.chance)}</strong><span>Total chance after conception</span></div>
        <TalentGradeOdds talent={candidate}/>
        <p>{candidate.sources.map(source=>`${source.parentName} (${source.role}, grade ${source.ability.grade})`).join(' · ')}</p>
        {!candidate.sources.some(source=>source.eligible)&&<p className={s.warning}>Canine offspring only in normal parent rolls.</p>}
@@ -74,7 +74,7 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onSelectPartner
      });
      return [
        {key:`direct-${index}`,title:candidate.moveName,content:<>
-         <p><strong>{candidate.finalChance}%</strong> · Parent roll with a slot open</p>
+         <div className={j.journalMetric}><strong>{candidate.finalChance}%</strong><span>Parent roll · slot open</span></div>
          <p>{sources.join(' · ')}</p>
        </>},
        {key:`direct-${index}-notes`,title:`${candidate.moveName} · Roll factors`,content:<ul>{candidate.reasons.map((reason,i)=><li key={i}>{reason}</li>)}</ul>},
@@ -87,7 +87,7 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onSelectPartner
      const inputs=roles ? `${names[roles[0]]}: ${first} + ${names[roles[1]]}: ${second}` : `${first} + ${second}`;
      return [
      {key:`combo-${index}`,title:candidate.outputMoveName,content:<>
-       <p><strong>{candidate.chance}%</strong> · Combination roll with a slot open</p>
+       <div className={j.journalMetric}><strong>{candidate.chance}%</strong><span>Combination roll · slot open</span></div>
        <p>{inputs}</p>
      </>},
      {key:`combo-${index}-notes`,title:candidate.recipeName,content:<ul>{candidate.reasons.map((reason,i)=><li key={i}>{reason}</li>)}</ul>},
@@ -112,5 +112,5 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onSelectPartner
  {activeTalent.grades.filter(row=>row.chance>0).map(row=><p key={row.grade}><strong>Grade {row.grade}</strong> · {percent(row.chance)} after conception · {percent(row.share)} of inherited copies</p>)}
  {activeTalent.sources.map((source,index)=><section key={index}><h3>{source.parentName} · Grade {source.ability.grade}</h3><p>{source.ability.description}</p></section>)}
  </JournalHelp>}{tab==='Moves'&&<JournalHelp label={`${collection[activeIndex].title} · Chance details`} hint="Read the complete chance contributions and compatibility notes.">{pages.filter(p=>p.key.startsWith(collection[activeIndex].key+'-')).map(p=><section key={p.key}><h3>{p.title}</h3>{p.content}</section>)}</JournalHelp>}</article>:<p className={j.note}>{tab==='Moves'?'No bonus moves available to preview.':'No parent talents available.'}</p>}{collection.length>1&&<PagerA index={activeIndex} total={collection.length} onChange={setCollectionIndex}/>}<div className={j.ruleHint}><span>Final results are stored at conception.</span><JournalHelp label={`${tab} rules`} hint="Read full selection, eligibility and inheritance rules.">{rules.map(p=><section key={p.key}><h3>{p.title}</h3>{p.content}</section>)}</JournalHelp></div></>}
- </div><footer className={s.actions}><button onClick={onClose}>Back to pairing desk</button>{odds&&<button type="button" onClick={()=>setCompare(true)}>Compare pairings</button>}{(giver||receiver?.kind==='creature')&&<button type="button" onClick={()=>setRanking(true)}>Rank partners</button>}</footer></PanelA></WindowA>{compare&&<BreedingInheritanceComparison save={save} current={model} initialMode={tab==='Moves'?'Moves':'Talents'} onClose={()=>setCompare(false)}/>}{ranking&&<BreedingPartnerRanking save={save} giver={giver} receiver={receiver} initialMode={tab==='Moves'?'Moves':'Talents'} onSelectPartner={onSelectPartner} onClose={()=>setRanking(false)}/>} {inspect&&<BreedingInspectBook participant={inspect} creature={(save.creatures??[]).find(c=>c.creatureId===inspect.creatureId)??null} dayNumber={save.dayState.dayNumber} onClose={()=>setInspect(null)}/>}</>;
+ </div><footer className={s.actions}><button onClick={onClose}>Back to pairing desk</button>{odds&&<button type="button" onClick={()=>setCompare(true)}>Compare pairings</button>}{(giver||receiver?.kind==='creature')&&<button type="button" className={j.primaryAction} onClick={()=>setRanking(true)}>Rank partners</button>}</footer></PanelA></WindowA>{compare&&<BreedingInheritanceComparison save={save} current={model} initialMode={tab==='Moves'?'Moves':'Talents'} onClose={()=>setCompare(false)}/>}{ranking&&<BreedingPartnerRanking save={save} giver={giver} receiver={receiver} initialMode={tab==='Moves'?'Moves':'Talents'} onSelectPartner={onSelectPartner} onClose={()=>setRanking(false)}/>} {inspect&&<BreedingInspectBook participant={inspect} creature={(save.creatures??[]).find(c=>c.creatureId===inspect.creatureId)??null} dayNumber={save.dayState.dayNumber} onClose={()=>setInspect(null)}/>}</>;
 }

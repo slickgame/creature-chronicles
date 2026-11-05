@@ -75,7 +75,7 @@ export function BreedingInheritanceComparison({
   ];
 
   return (
-    <GameDialog title="Compare inheritance" onClose={onClose} dialogClassName={j.recordDialog} wide>
+    <GameDialog title="Compare inheritance" onClose={onClose} dialogClassName={`${j.recordDialog} ${j.planningDialog}`} wide>
       <div className={j.comparison}>
         <div className={j.compareControls}>
           <label>Candidate giver
@@ -104,22 +104,27 @@ export function BreedingInheritanceComparison({
               </select>
             </label>
             <div className={j.compareSides}>
-              {sides.map(({ label, preview, result }) => (
-                <article key={label} className={j.compareCard}>
-                  <h3>{label}</h3>
-                  <p>{preview?.giver?.displayName} × {preview?.receiver?.displayName}</p>
-                  {result ? <>
-                    <strong className={j.compareChance}>{formatInheritancePercent(result.chance)}</strong>
+              {sides.map(({ label, preview, result }, index) => (
+                <article key={label} className={j.compareCard} data-candidate={index === 1}>
+                  <header className={j.comparePair}>
+                    <h3>{label}</h3>
+                    <p>{preview?.giver?.displayName} × {preview?.receiver?.displayName}</p>
+                  </header>
+                  <div className={j.compareMetric}>
+                    <strong className={j.compareChance} data-zero={!result?.chance}>{formatInheritancePercent(result?.chance ?? 0)}</strong>
+                    <span>{!result ? (mode === "Talents" ? "No parent roll" : "No bonus roll") : mode === "Talents" ? "Total chance" : "Roll chance"}</span>
+                  </div>
+                  {result && <>
                     {result.talent && <TalentGradeOdds talent={result.talent} />}
                     {result.talent && <p className={j.compareSources}>{result.talent.sources.map(source => `${source.parentName} (${source.ability.grade})`).join(" · ")}</p>}
-                  </> : <p className={j.compareSources}>{mode === "Talents" ? "No parent roll" : "No bonus roll"}</p>}
+                  </>}
                 </article>
               ))}
             </div>
             {rows.length > 1 && <PagerA index={position} total={rows.length} onChange={setIndex} />}
           </>
         ) : <p className={j.note}>Neither pairing has a {mode === "Talents" ? "parent talent" : "bonus move"} to compare.</p>}
-        <p className={j.caveat}>{mode === "Talents"
+        <p className={j.planningNote}>{mode === "Talents"
           ? "Base odds after conception. Grade odds add up to the talent’s total before rounding. Mutation and item checks are separate."
           : "Roll odds after conception with a slot open. Species starting moves are separate."}</p>
       </div>
