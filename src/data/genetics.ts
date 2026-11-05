@@ -76,6 +76,8 @@ const FAMILY_STAT_BONUSES: Record<
   },
 };
 
+export const TALENT_INHERITANCE_GRADES = ["S", "A", "B", "C", "D", "F"] as const satisfies readonly AbilityGrade[];
+
 const ABILITY_GRADE_WEIGHT: Record<AbilityGrade, number> = {
   F: 1,
   D: 2,
@@ -613,11 +615,30 @@ export function getParentTalentPreview(save: GameSave, giver: BreedingParticipan
       });
     return { talent: sources[0].ability, sources, firstPick, secondPick, chance, grades };
   });
+  const anyGrade = new Map(TALENT_INHERITANCE_GRADES.map(grade => {
+    // The sum counts an attempt twice if both distinct picks have this grade.
+    const gradeWeights = candidates.map(candidate => {
+      const groupWeight = weights.get(candidate.talent.id) ?? 0;
+      const gradeShare = candidate.grades.find(row => row.grade === grade)?.share ?? 0;
+      return groupWeight * gradeShare / 100;
+    });
+    const totalGradeWeight = gradeWeights.reduce((sum, weight) => sum + weight, 0);
+    const both = second ? candidates.reduce((sum, candidate, index) => {
+      const remaining = totalWeight - (weights.get(candidate.talent.id) ?? 0);
+      const gradeWeight = gradeWeights[index];
+      return sum + (remaining ? first * gradeWeight / totalWeight * second / 100
+        * (totalGradeWeight - gradeWeight) / remaining : 0);
+    }, 0) : 0;
+    const sum = candidates.reduce((total, candidate) =>
+      total + (candidate.grades.find(row => row.grade === grade)?.chance ?? 0), 0);
+    return [grade, Math.max(0, sum - both)] as const;
+  }));
   return {
     first,
     second,
     mutation: getTalentMutationChance(context.breedingTier, context.pairStreak),
     candidates,
+    anyGrade,
   };
 }
 

@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createNewGameSave} from './helpers/establishedSave';
 import {getBreedingParticipants} from '@/data/breeding';
+import {createGeneralTalent} from '@/data/talents/generalTalents';
+import {getInheritancePartnerPreviews,rankInheritancePartners} from '@/data/breedingPartnerRanking';
 import {getTalentInheritanceOdds} from '@/data/genetics';
 import {getBattleMoveInheritancePreview} from '@/data/battleMoveInheritance';
 import {getBreedingInheritancePreview,getBreedingSelectionBlocker} from '@/data/breedingSelectionPreview';
@@ -15,4 +17,29 @@ test('inheritance previews are read-only and match actual talent and move probab
 });
 test('incomplete, duplicate and player pairs do not claim creature-to-creature inheritance odds',()=>{
  const save=createNewGameSave('Incomplete',0),id=save.creatures![0].creatureId;for(const pair of [[null,null],[id,id],['player',id],[id,null]]as const){const model=getBreedingInheritancePreview(save,...pair);assert.equal(model.valid,false);assert.equal(model.odds,null);}
+});
+
+
+test('partner rankings use exact grades and exclude partners who cannot afford the attempt', () => {
+  const save = createNewGameSave('Ranking', 0);
+  const [fixed, source] = save.creatures!;
+  fixed.energy = source.energy = 100;
+  fixed.hearts = source.hearts = 5;
+  fixed.affection = source.affection = 50;
+  fixed.abilities = [];
+  source.abilities = [createGeneralTalent('light_footed', 'S')];
+  const second = { ...source, creatureId: 'rank_b' as typeof source.creatureId, nickname: 'Second',
+    abilities: [createGeneralTalent('light_footed', 'B')] };
+  const exhausted = { ...source, creatureId: 'rank_exhausted' as typeof source.creatureId,
+    energy: 0, nickname: 'Exhausted' };
+  save.creatures = [fixed, source, second, exhausted];
+  const before = structuredClone(save);
+  const previews = getInheritancePartnerPreviews(save, fixed.creatureId, 'giver');
+  assert.deepEqual(previews.map(row => row.partner.participantId), [source.creatureId, second.creatureId]);
+  const s = rankInheritancePartners(previews, { kind: 'talent', id: 'light_footed', grade: 'S' });
+  const b = rankInheritancePartners(previews, { kind: 'grade', grade: 'B' });
+  assert.deepEqual(s.map(row => row.partner.participantId), [source.creatureId, second.creatureId]);
+  assert.deepEqual(b.map(row => row.partner.participantId), [second.creatureId, source.creatureId]);
+  assert.ok(s[0].chance > 0 && s[1].chance === 0 && b[0].chance > 0 && b[1].chance === 0);
+  assert.deepEqual(save, before);
 });

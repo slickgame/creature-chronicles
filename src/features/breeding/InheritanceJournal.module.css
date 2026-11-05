@@ -90,3 +90,20 @@
   .journal .gradeOdds { gap: 3px 5px; }
   .journal .gradeOdds li { gap: 4px; font-size: 12px; padding: 1px 4px 1px 2px; }
 }
+
+.rankSummary { color: #6f593a; font-size: .9em; }
+.rankList { display: grid; gap: 5px; list-style: none; margin: 0; padding: 0; }
+.rankList li {
+  display: grid;
+  grid-template-columns: 2em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #b18b50;
+  border-radius: 5px;
+  background: #fff1d399;
+}
+.rankList[start="1"] li:first-child { background: #f8ebcc; }
+.rankList small { display: block; color: #6f593a; }
+.rankNumber { color: #6f593a; font-weight: 700; }
+.rankChance { color: #20543b; font-size: 1.2em; }

@@ -96,3 +96,26 @@ test("same-grade parents add their weight to one grade outcome", () => {
   assert.ok(shared.chance > single.chance);
   assert.deepEqual(shared.grades, [{ grade: "A", chance: shared.chance, share: 100 }]);
 });
+
+
+test("S, B and D parent copies are all possible inherited grades", () => {
+  const { save, parents: [giver, receiver] } = fixture();
+  giver.abilities = [createGeneralTalent("light_footed", "S"), createGeneralTalent("diligent", "D")];
+  receiver.abilities = [createGeneralTalent("light_footed", "B")];
+  const preview = getParentTalentPreview(save, giver, receiver);
+  assert.deepEqual(preview.candidates[0].grades.map(row => row.grade), ["S", "B"]);
+  assert.ok(preview.candidates[0].grades[0].chance > 0);
+  assert.ok(preview.candidates[0].grades[1].chance > 0);
+  assert.ok((preview.anyGrade.get("D") ?? 0) > 0);
+  assert.equal(preview.anyGrade.get("A"), 0);
+});
+
+test("a grade-only target counts a hatchling once when both talent picks match", () => {
+  const { save, parents: [giver, receiver] } = fixture();
+  giver.abilities = [createGeneralTalent("light_footed", "B")];
+  receiver.abilities = [createGeneralTalent("diligent", "B")];
+  const preview = getParentTalentPreview(save, giver, receiver);
+  assert.ok(preview.second > 0);
+  assert.ok(Math.abs((preview.anyGrade.get("B") ?? 0) - preview.first) < 1e-10);
+  assert.ok(preview.candidates.reduce((sum, talent) => sum + talent.chance, 0) > preview.first);
+});
