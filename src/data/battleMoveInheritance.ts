@@ -55,6 +55,22 @@ export function getParentBattleMoveSource(creature?: CreatureRecord): ParentBatt
   };
 }
 
+export function getCombinationMoveContributors(
+  first: BattleMoveId,
+  second: BattleMoveId,
+  giver?: ParentBattleMoveSource,
+  receiver?: ParentBattleMoveSource,
+): ["giver", "receiver"] | ["receiver", "giver"] | undefined {
+  // Recipe inputs are stored in recipe order. Symmetric recipes try the giver first.
+  if (giver?.learnedMoveIds.includes(first) && receiver?.learnedMoveIds.includes(second)) {
+    return ["giver", "receiver"];
+  }
+  if (receiver?.learnedMoveIds.includes(first) && giver?.learnedMoveIds.includes(second)) {
+    return ["receiver", "giver"];
+  }
+  return undefined;
+}
+
 function getPairKey(a: string, b: string): string {
   return [a, b].sort().join("__");
 }

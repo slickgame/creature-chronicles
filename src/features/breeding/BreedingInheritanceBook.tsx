@@ -8,7 +8,7 @@ import {getBreedingPreview} from '@/data/breeding';
 import {getSpeciesDefinition} from '@/data/creatures';
 import {getBattleMove} from '@/data/battleMoves';
 import {buildBredCreatureStartingMoveLoadout} from '@/data/battleLoadouts';
-import {getParentBattleMoveSource,MAX_DIRECT_INHERITED_MOVES,MAX_COMBINATION_INHERITED_MOVES} from '@/data/battleMoveInheritance';
+import {getCombinationMoveContributors,getParentBattleMoveSource,MAX_DIRECT_INHERITED_MOVES,MAX_COMBINATION_INHERITED_MOVES} from '@/data/battleMoveInheritance';
 import {isBreedingSupportItemArmed,TRAIT_STABILIZER_ABILITY_BONUS,MUTATION_CATALYST_ABILITY_MUTATION_BONUS} from '@/data/breedingItems';
 import type {GameSave} from '@/types/save';
 import type {NurseryPage} from '@/features/nursery/NurseryBook';
@@ -76,13 +76,19 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onClose}:{save:
        {key:`direct-${index}-notes`,title:`${candidate.moveName} · Roll factors`,content:<ul>{candidate.reasons.map((reason,i)=><li key={i}>{reason}</li>)}</ul>},
      ];
    }),
-   ...moves.combinationCandidates.flatMap((candidate,index)=>[
+   ...moves.combinationCandidates.flatMap((candidate,index)=>{
+     const [first,second]=candidate.contributingMoveNames;
+     const roles=getCombinationMoveContributors(candidate.parentAContributingMoveId,candidate.parentBContributingMoveId,moveSources[0].source,moveSources[1].source);
+     const names={giver:giver?.displayName,receiver:receiver?.displayName};
+     const inputs=roles ? `${names[roles[0]]}: ${first} + ${names[roles[1]]}: ${second}` : `${first} + ${second}`;
+     return [
      {key:`combo-${index}`,title:candidate.outputMoveName,content:<>
        <p><strong>{candidate.chance}%</strong> · Combination roll with a slot open</p>
-       <p>{giver?.displayName}: {candidate.contributingMoveNames[0]} + {receiver?.displayName}: {candidate.contributingMoveNames[1]}</p>
+       <p>{inputs}</p>
      </>},
      {key:`combo-${index}-notes`,title:candidate.recipeName,content:<ul>{candidate.reasons.map((reason,i)=><li key={i}>{reason}</li>)}</ul>},
-   ]),
+     ];
+   }),
    {key:'native',title:'Species starting library',content:<><p>{nativeMoveNames.join(' · ')}</p><p>This is the baseline library before inherited moves are added. The final loadout follows the hatchling’s species and move limits.</p></>},
  ]:[{key:'no-pair',title:'Choose two creatures',content:<p>Parent-move and combination rolls require two tracked creatures. Hatchlings receive their species starting library.</p>}];
  const talents=tab==='Talents'?pages.filter(p=>p.key.startsWith('talent-')):[];

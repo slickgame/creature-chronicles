@@ -1,5 +1,6 @@
 import {buildBredCreatureStartingMoveLoadout} from './battleLoadouts';
-import {BATTLE_MOVES_BY_ID} from './battleMoves';
+import {BATTLE_MOVES_BY_ID} from '@/data/battleMoves';
+import {getCombinationMoveContributors} from './battleMoveInheritance';
 import {getVariantDefinition} from './creatures';
 import {nurseryIdentity} from './nurseryPresentation';
 import type {BirthRecord,EggRecord,PregnancyRecord,ParentSnapshot} from '@/types/save';
@@ -65,9 +66,17 @@ export function getHatchlingMoveDetails(egg: EggRecord, creature: CreatureRecord
     };
     if (combinations.includes(id)) {
       const inputs = roll?.source === 'combination' ? roll.contributingMoveIds : [];
-      row.source = inputs.length === 2
-        ? `${parents.giver}: ${BATTLE_MOVES_BY_ID[inputs[0]]?.name ?? inputs[0]} + ${parents.receiver}: ${BATTLE_MOVES_BY_ID[inputs[1]]?.name ?? inputs[1]}`
-        : 'Combination recipe';
+      if (inputs.length === 2) {
+        const [first, second] = inputs;
+        const roles = getCombinationMoveContributors(first, second, inheritance?.giverMoveSnapshot, inheritance?.receiverMoveSnapshot);
+        const firstName = BATTLE_MOVES_BY_ID[first]?.name ?? first;
+        const secondName = BATTLE_MOVES_BY_ID[second]?.name ?? second;
+        row.source = roles
+          ? `${parents[roles[0]]}: ${firstName} + ${parents[roles[1]]}: ${secondName}`
+          : `${firstName} + ${secondName}`;
+      } else {
+        row.source = 'Combination recipe';
+      }
       groups['Breeding combinations'].push(row);
     } else if (direct.includes(id)) {
       row.source = roll?.source === 'both' ? `${parents.giver} and ${parents.receiver}`
