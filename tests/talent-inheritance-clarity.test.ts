@@ -64,6 +64,9 @@ test("per-talent estimates combine two distinct parent picks and group shared so
   const secondPick = preview.first * 15 / 40 * preview.second / 100;
   assert.deepEqual(shared.sources.map(source => source.role), ["Giver", "Receiver"]);
   assert.equal(shared.firstPick, firstPick);
+  assert.deepEqual(shared.grades.map(row => [row.grade, row.share]), [["A", 64], ["C", 36]]);
+  assert.ok(Math.abs(shared.grades[0].chance - shared.chance * 0.64) < 1e-10);
+  assert.ok(Math.abs(shared.grades[1].chance - shared.chance * 0.36) < 1e-10);
   assert.ok(Math.abs(shared.secondPick - secondPick) < 1e-10);
   assert.ok(Math.abs(shared.chance - firstPick - secondPick) < 1e-10);
   assert.deepEqual({ save, giver, receiver }, before);
@@ -78,4 +81,18 @@ test("normal talent preview excludes canine-only talent from other offspring", (
   assert.equal(preview.first, 0);
   assert.equal(preview.second, 0);
   assert.equal(preview.candidates[0].chance, 0);
+  assert.deepEqual(preview.candidates[0].grades, [{ grade: "A", chance: 0, share: 0 }]);
+});
+
+
+test("same-grade parents add their weight to one grade outcome", () => {
+  const { save, parents: [giver, receiver] } = fixture();
+  giver.affection = receiver.affection = 50;
+  const single = getParentTalentPreview(save, giver, receiver)
+    .candidates.find(row => row.talent.id === "hot_blooded")!;
+  receiver.abilities = [...receiver.abilities!, createGeneralTalent("hot_blooded", "A")];
+  const shared = getParentTalentPreview(save, giver, receiver)
+    .candidates.find(row => row.talent.id === "hot_blooded")!;
+  assert.ok(shared.chance > single.chance);
+  assert.deepEqual(shared.grades, [{ grade: "A", chance: shared.chance, share: 100 }]);
 });

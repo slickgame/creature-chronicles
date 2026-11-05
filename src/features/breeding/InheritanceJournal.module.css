@@ -17,3 +17,76 @@
 .recordDialog>header button{color:#392b1c;background:none;border:4px solid transparent;border-image:url('/images/ui/breeding-ledger-journal-b/fidelity-v5/cream.svg') 16 fill / 8px stretch;min-height:34px;padding:4px 10px;font:700 14px WindowTinos,Georgia,serif;white-space:nowrap}
 
 .recordDialog>header button{flex-shrink:0}
+
+.gradeOdds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gradeOdds li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px 2px 3px;
+  border: 1px solid #b18b5077;
+  border-radius: 5px;
+  background: #fff1cf;
+  font-size: .9em;
+}
+.gradeOdds .grade { margin: 0; font-size: .85em; padding: 2px 5px; }
+
+.comparison {
+  display: grid;
+  gap: 12px;
+  padding: clamp(12px, 2vw, 22px);
+  color: #392b1c;
+  font: 16px/1.35 WindowTinos, Georgia, serif;
+}
+.compareControls, .compareSides, .compareModes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.comparison label { display: grid; gap: 4px; min-width: 0; font-weight: 700; }
+.comparison select, .compareModes button {
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 1px solid #a07a41;
+  border-radius: 5px;
+  background: #fcf0d4;
+  color: #392b1c;
+  font: inherit;
+}
+.compareModes button { font-weight: 700; }
+.compareModes button[aria-pressed=true] { background: #20543b; color: #fff1cf; }
+.compareCard {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #b18b50;
+  border-radius: 6px;
+  background: #fff1d399;
+  overflow-wrap: anywhere;
+}
+.compareCard :is(h3,p), .comparison > p { margin: 0; }
+.compareCard h3 { font-size: 17px; }
+.compareChance { color: #20543b; font-size: 27px; line-height: 1.15; }
+.compareSources { color: #6f593a; font-size: .9em; }
+
+@media (max-width: 600px), (max-height: 600px) {
+  .comparison { gap: 7px; font-size: 14px; }
+  .compareControls, .compareSides, .compareModes { gap: 6px; }
+  .comparison select, .compareModes button { min-height: 32px; }
+  .compareCard { padding: 7px; gap: 4px; }
+  .compareCard h3 { font-size: 15px; }
+  .compareChance { font-size: 22px; }
+  .journal .gradeOdds { gap: 3px 5px; }
+  .journal .gradeOdds li { gap: 4px; font-size: 12px; padding: 1px 4px 1px 2px; }
+}

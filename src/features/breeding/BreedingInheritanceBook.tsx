@@ -14,13 +14,14 @@ import type {GameSave} from '@/types/save';
 import type {NurseryPage} from '@/features/nursery/NurseryBook';
 
 import {WindowA,PanelA,ProfileA,PagerA,useShortWindow,breedingWindowStyles as s} from './BreedingWindowA';
+import {BreedingInheritanceComparison,TalentGradeOdds,formatInheritancePercent as percent} from './BreedingInheritanceComparison';
 import {BreedingInspectBook} from './BreedingInspectBook';
 import type {BreedingParticipant} from '@/types/breeding';
 function JournalHelp({label,hint,children}:{label:string;hint:string;children?:ReactNode}){const[open,setOpen]=useState(false);return <><DetailButton className={j.help} tooltipClassName={j.tooltip} hint={hint} aria-label={label} onClick={()=>setOpen(true)}>i</DetailButton>{open&&<GameDialog title={label} dialogClassName={j.recordDialog} onClose={()=>setOpen(false)} wide><div className={j.fullRecord}>{children??<p>{hint}</p>}</div></GameDialog>}</>}
-const percent = (value: number) => value > 0 && value < 0.1 ? '<0.1%' : `${Number(value.toFixed(1))}%`;
 const STATS={STR:'Strength',DEX:'Dexterity',STA:'Stamina',CHA:'Charm',WIL:'Willpower',FER:'Fertility'} as const;
 export function BreedingInheritanceBook({save,giverId,receiverId,onClose}:{save:GameSave;giverId:string|null;receiverId:string|null;onClose:()=>void}){
  const [tab,setTab]=useState('Stats'),[collectionIndex,setCollectionIndex]=useState(0);
+ const [compare,setCompare]=useState(false);
  const short=useShortWindow();
  const [inspect,setInspect]=useState<BreedingParticipant|null>(null);
  const model=getBreedingInheritancePreview(save,giverId,receiverId);
@@ -45,7 +46,7 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onClose}:{save:
    </dl>:<p>Choose a creature receiver and a different giver.</p>},
    {key:'rules',title:'How parent talent odds work',content:<>
      <p>Each estimate combines the chance of getting that talent on the first or second parent pick, assuming conception succeeds. A talent shared by both parents appears once, with both sources listed.</p>
-     <p>The standard session uses affection and familiarity earned by completing the pairing. A guided tutorial rescue uses the parents’ pre-session affection. Higher grades and affection increase a parent’s selection weight. The second pick must be a different talent.</p>
+     <p>The standard session uses affection and familiarity earned by completing the pairing. A guided tutorial rescue uses the parents’ pre-session affection. Higher grades and affection increase a parent’s selection weight. The second pick must be a different talent. When both parents have the same talent, their eligible copies add to its selection weight. The inherited grade comes from the selected copy.</p>
      <p>Mutation and armed item checks are separate. Guard Dog is canine-only in normal parent rolls.</p>
    </>},
    ...(odds?.candidates ?? []).map(candidate=>({
@@ -53,6 +54,7 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onClose}:{save:
      title:candidate.talent.name,
      content:<>
        <p><strong>{percent(candidate.chance)}</strong> · Base parent estimate after conception</p>
+       <TalentGradeOdds talent={candidate}/>
        <p>{candidate.sources.map(source=>`${source.parentName} (${source.role}, grade ${source.ability.grade})`).join(' · ')}</p>
        {!candidate.sources.some(source=>source.eligible)&&<p className={s.warning}>Canine offspring only in normal parent rolls.</p>}
      </>,
@@ -105,7 +107,8 @@ export function BreedingInheritanceBook({save,giverId,receiverId,onClose}:{save:
  {tab==='Moves'&&<><p className={model.valid?j.note:j.warning}>{model.valid?`Pair-quality bonus: +${moves.contextBonus}%. After conception, up to ${MAX_DIRECT_INHERITED_MOVES} parent moves and ${MAX_COMBINATION_INHERITED_MOVES} combination can pass through.`:'Move inheritance requires two tracked creatures.'}</p><p className={j.caveat}>Species starting moves follow the hatchling’s species.</p></>}
  {(tab==='Talents'||tab==='Moves')&&<>{collection[activeIndex]?<article className={j.card}><h3>{collection[activeIndex].title}</h3>{collection[activeIndex].content}{activeTalent&&<JournalHelp label={`${activeTalent.talent.name} · Chance details`} hint="Read the first and second pick odds, talent effects and sources.">
  <p>First pick: {percent(activeTalent.firstPick)} · Second pick: {percent(activeTalent.secondPick)}.</p>
+ {activeTalent.grades.filter(row=>row.chance>0).map(row=><p key={row.grade}><strong>Grade {row.grade}</strong> · {percent(row.chance)} after conception · {percent(row.share)} of inherited copies</p>)}
  {activeTalent.sources.map((source,index)=><section key={index}><h3>{source.parentName} · Grade {source.ability.grade}</h3><p>{source.ability.description}</p></section>)}
  </JournalHelp>}{tab==='Moves'&&<JournalHelp label={`${collection[activeIndex].title} · Chance details`} hint="Read the complete chance contributions and compatibility notes.">{pages.filter(p=>p.key.startsWith(collection[activeIndex].key+'-')).map(p=><section key={p.key}><h3>{p.title}</h3>{p.content}</section>)}</JournalHelp>}</article>:<p className={j.note}>{tab==='Moves'?'No bonus moves available to preview.':'No parent talents available.'}</p>}{collection.length>1&&<PagerA index={activeIndex} total={collection.length} onChange={setCollectionIndex}/>}<div className={j.ruleHint}><span>Final results are stored at conception.</span><JournalHelp label={`${tab} rules`} hint="Read full selection, eligibility and inheritance rules.">{rules.map(p=><section key={p.key}><h3>{p.title}</h3>{p.content}</section>)}</JournalHelp></div></>}
- </div><footer className={s.actions}><button onClick={onClose}>Back to pairing desk</button></footer></PanelA></WindowA>{inspect&&<BreedingInspectBook participant={inspect} creature={(save.creatures??[]).find(c=>c.creatureId===inspect.creatureId)??null} dayNumber={save.dayState.dayNumber} onClose={()=>setInspect(null)}/>}</>;
+ </div><footer className={s.actions}><button onClick={onClose}>Back to pairing desk</button>{odds&&<button type="button" onClick={()=>setCompare(true)}>Compare pairings</button>}</footer></PanelA></WindowA>{compare&&<BreedingInheritanceComparison save={save} current={model} initialMode={tab==='Moves'?'Moves':'Talents'} onClose={()=>setCompare(false)}/>} {inspect&&<BreedingInspectBook participant={inspect} creature={(save.creatures??[]).find(c=>c.creatureId===inspect.creatureId)??null} dayNumber={save.dayState.dayNumber} onClose={()=>setInspect(null)}/>}</>;
 }

@@ -597,7 +597,21 @@ export function getParentTalentPreview(save: GameSave, giver: BreedingParticipan
           * (weight / (totalWeight - otherWeight));
       }
     }
-    return { talent: sources[0].ability, sources, firstPick, secondPick, chance: firstPick + secondPick };
+    const chance = firstPick + secondPick;
+    const gradeWeights = new Map<AbilityGrade, number>();
+    for (const source of sources) {
+      const grade = source.ability.grade;
+      gradeWeights.set(grade, (gradeWeights.get(grade) ?? 0) + (source.eligible ? source.weight : 0));
+    }
+    // Both picks keep the chosen parent's grade. Removing other talent IDs
+    // changes the chance of this talent, but preserves its internal grade mix.
+    const grades = [...gradeWeights]
+      .sort(([a], [b]) => ABILITY_GRADE_WEIGHT[b] - ABILITY_GRADE_WEIGHT[a])
+      .map(([grade, gradeWeight]) => {
+        const share = weight ? gradeWeight / weight : 0;
+        return { grade, chance: chance * share, share: share * 100 };
+      });
+    return { talent: sources[0].ability, sources, firstPick, secondPick, chance, grades };
   });
   return {
     first,
