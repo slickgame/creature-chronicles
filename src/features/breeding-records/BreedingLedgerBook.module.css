@@ -87,6 +87,7 @@
 @media(min-width:701px) and (max-height:500px){.list{margin-inline:0}.tableHeader,.shell .row[data-attempt=true]{grid-template-columns:43px minmax(0,1fr) 98px 7px}}
 
 .filters select{text-overflow:ellipsis}
+.filters input,.filters .targetFilter{grid-column:1/-1}
 .filters .targetFilter[data-active=true]{border-color:#597540;background-color:#dce3ab88}
 .filters :is(input,select):focus-visible{outline:2px solid #42623c;outline-offset:1px}
 .summary dl>.targetMetric{grid-template-columns:max-content minmax(0,1fr)}
