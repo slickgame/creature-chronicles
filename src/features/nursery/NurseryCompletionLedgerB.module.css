@@ -41,3 +41,5 @@
  .summary p{font-size:13px}
  .returnButton.returnButton{font-size:15px}
 }
+
+@media(max-height:570px){.title,.outcome{transform:translateY(8px)}}
