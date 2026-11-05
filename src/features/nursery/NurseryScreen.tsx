@@ -14,6 +14,7 @@ import {NurseryCompletionLedgerB,type NurseryCompletion} from './NurseryCompleti
 import {NurseryRemovalLedgerB} from './NurseryRemovalLedgerB';
 import {NurseryOtherActionsB} from './NurseryOtherActionsB';
 import {NurseryEggPickerB} from './NurseryEggPickerB';
+import {NurseryRecordsLedgerB,type NurseryLedgerRecord} from './NurseryRecordsLedgerB';
 import {eggInheritanceModel,pregnancyInheritanceModel,birthInheritanceModel,type NurseryInheritanceModel,type NurseryInheritanceTab} from '@/data/nurseryInheritanceLedger';
 import { NurseryBook, type NurseryPage } from './NurseryBook';
 import { NurseryScene } from './NurseryScene';
@@ -80,6 +81,14 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
   // Selection persists across source visits; each book starts at the remembered record.
   const recordIndex=Math.max(0,records.findIndex(r=>r.key===remembered?.id));
   const record=records[recordIndex];
+  const ledgerRecords:NurseryLedgerRecord[]=tab==='pregnancies'?pregnancies.map(p=>{
+    const receiver=save.creatures?.find(c=>c.creatureId===p.receiver.creatureId);
+    return {id:p.pregnancyId,name:p.receiver.displayName,art:receiver?getVariantDefinition(receiver.variantId).portraitPath:p.receiver.portraitPath??(p.receiver.variantId?getVariantDefinition(p.receiver.variantId).portraitPath:undefined),parents:`${p.giver.displayName} × ${p.receiver.displayName}`,daysRemaining:p.daysRemaining,progress:getPregnancyProgressPercent(p),expected:getEstimatedDeliveryDateLabel(save.dayState,p.daysRemaining)};
+  }):[...births.map(b=>({id:b.birthId,name:b.nickname,art:getVariantDefinition(b.variantId).portraitPath,badge:`${b.rarity} · ${nurseryIdentity(b).species}`,parents:`${b.parents.giver.displayName} × ${b.parents.receiver.displayName}`,hatchedDay:b.hatchedAtDayNumber})),...legacy.map(e=>({id:e.eggId,name:eggName(e),art:getVariantDefinition(e.variantId).portraitPath,badge:`${e.rarity} · ${nurseryIdentity(e).species}`,parents:`${e.parents.giver.displayName} × ${e.parents.receiver.displayName}`,legacy:true}))];
+  const openRecordDetails=(id:string)=>{
+    if(tab==='pregnancies'){const p=pregnancies.find(p=>p.pregnancyId===id);if(p)setInheritance({record:pregnancyInheritanceModel(p)});}
+    else {const b=births.find(b=>b.birthId===id);if(b)setInheritance({record:birthInheritanceModel(b,save.eggs?.find(e=>e.eggId===b.eggId))});else{const e=legacy.find(e=>e.eggId===id);if(e)setInheritance({record:eggInheritanceModel(e)});}}
+  };
   return <main className={`${s.shell} ${small?s.compact:''}`} data-nursery>
     <div className={s.frame}>
     <header className={s.header}><h1>Egg Nursery</h1><ScreenNavigation>{headerLinks}</ScreenNavigation><button aria-expanded={!small} onClick={()=>{change(tab,remembered?.id??'',!small);if(!small)setFocus('care');}}>{small?'Expand art':'Minimize art'}</button></header>
@@ -103,6 +112,7 @@ export function NurseryScreen({headerLinks}:{headerLinks?:ReactNode}) {
       <label className={s.name}>{tab==='pregnancies'?'Pregnancy':'Birth record'}<select aria-label={tab==='pregnancies'?'Pregnancy':'Birth record'} value={record.key} onChange={e=>change(tab,e.target.value)}>{records.map(r=><option key={r.key} value={r.key}>{r.title}</option>)}</select></label><div className={s.entry}><h2>{record.title}</h2>{record.content}</div><div className={s.pager}><button disabled={!recordIndex} onClick={()=>change(tab,records[recordIndex-1].key)}>‹ Previous</button><span>{recordIndex+1} / {records.length}</span><button disabled={recordIndex===records.length-1} onClick={()=>change(tab,records[recordIndex+1].key)}>Next ›</button></div>
     </>:<div className={s.empty}><h2>{tab==='pregnancies'?'No active pregnancies':'No births recorded yet'}</h2><p>{tab==='pregnancies'?'Successful breeding creates a pregnancy. Delivery advances when you sleep.':'Hatched offspring appear here with their parents and inherited grades.'}</p><button onClick={game.goToBreeding}>Visit Breeding</button></div>}
     </article></section></div>
+    {tab!=='eggs'&&<NurseryRecordsLedgerB kind={tab} records={ledgerRecords} selectedId={remembered?.id} onSelect={id=>change(tab,id)} onBack={()=>change('eggs')} onDetails={openRecordDetails} onVisitBreeding={game.goToBreeding}/>}
     {picker!==null&&<NurseryEggPickerB eggs={eggs} draft={picker} onDraft={setPicker} onCancel={()=>setPicker(null)} onSelect={()=>{change('eggs',picker);setPicker(null);}} name={eggName}/>}
     {inheritance&&<NurseryInheritanceLedgerC record={inheritance.record} initialTab={inheritance.tab} onClose={()=>setInheritance(null)}/>}
     {actionsEgg&&<NurseryOtherActionsB egg={actionsEgg} name={eggName(actionsEgg)} onClose={()=>setActionsEgg(null)} onReview={mode=>{setActionsEgg(null);setPending({egg:actionsEgg,mode});}}/>}
