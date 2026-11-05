@@ -92,6 +92,24 @@
  .footer button{min-height:38px;font-size:16px}
 }
 
+/* Short landscape pages need a wider spread and content-sized action cards. */
+@media(min-width:651px) and (max-height:500px){
+ .book{width:min(960px,96vw,calc(94dvh * 1.8));aspect-ratio:1.8}
+ .header{flex-basis:12%}
+ .header h1{font-size:24px}
+ .identity{padding:6px 0}
+ .egg{max-height:130px}
+ .identity h2{font-size:23px;margin:5px 0}
+ .options{gap:6px}
+ .warning{font-size:12px;line-height:1.2;padding:5px 6px;margin-bottom:0}
+ .card{gap:8px;padding:5px 8px;min-height:0}
+ .illustration{padding:4px 8px 0 0}
+ .copy h2{font-size:20px;margin-bottom:2px}
+ .copy p{font-size:12px;line-height:1.2;margin-bottom:4px}
+ .copy button{font-size:12px;min-height:27px;padding:5px 7px}
+ .footer{flex-basis:32px;margin-top:8px;margin-bottom:0}
+}
+
 /* Shared finishing behavior for the approved nursery ledgers. */
 .book{animation:nurseryLedgerEnter 160ms ease-out both}
 .book button{transition:filter 120ms ease,box-shadow 120ms ease}
