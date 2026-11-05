@@ -130,10 +130,9 @@
   pointer-events: none;
 }
 
-.careStrip {
+.talentStrip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   min-width: 0;
   border: 1px solid #c5914b;
@@ -143,15 +142,35 @@
   font-size: clamp(14px, 1.8vw, 20px);
 }
 
-.careStrip b {
+.talentStrip b {
+  flex: none;
   background: linear-gradient(#ffebbf, #e9b965);
   padding: 6px 17px 6px 10px;
   clip-path: polygon(0 0, 91% 0, 100% 50%, 91% 100%, 0 100%);
 }
 
-.careStrip span {
-  font-style: italic;
-  text-align: center;
+.talentStrip span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.scene .talentStrip button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 9px;
+  border: 1px solid #a47b3d;
+  border-radius: 7px;
+  background: linear-gradient(#fff4d7, #eace96);
+  color: #183022;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scene .talentStrip button:hover {
+  filter: brightness(1.08);
 }
 
 .actions {
@@ -292,8 +311,8 @@
   }
 
   .name { padding-inline: 4%; font-size: 17px; }
-  .careStrip { gap: 5px; font-size: 14px; }
-  .careStrip b { padding-right: 12px; }
+  .talentStrip { gap: 5px; font-size: 14px; }
+  .talentStrip b { padding-right: 12px; }
   .actions { gap: 9px; }
   .scene .actions button { min-height: 46px; padding: 6px; }
   .scene .actions .confirm { min-height: 53px; }
@@ -307,8 +326,8 @@
   .plaque { min-height: 60px; margin-top: -26px; font-size: clamp(21px, 3.5vw, 34px); }
   .name { font-size: 16px; padding-inline: 1%; }
   .inputWrap input { font-size: 19px; }
-  .careStrip { font-size: 14px; }
-  .careStrip b { padding: 3px 12px 3px 6px; }
+  .talentStrip { font-size: 14px; }
+  .talentStrip b { padding: 3px 12px 3px 6px; }
   .actions { gap: 8px; }
   .scene .actions button { min-height: 43px; padding: 6px; font-size: 18px; }
   .scene .actions .confirm { min-height: 48px; }

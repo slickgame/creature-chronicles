@@ -18,6 +18,8 @@ const statLabels = {
   FER: 'Fertility',
 } as const;
 
+type DetailSection = 'care' | 'inheritance';
+
 export function NurseryHatchWelcomeC({ creature, egg, name, onNameChange, onConfirm }: {
   creature: CreatureRecord;
   egg: EggRecord;
@@ -25,7 +27,9 @@ export function NurseryHatchWelcomeC({ creature, egg, name, onNameChange, onConf
   onNameChange: (name: string) => void;
   onConfirm: () => void;
 }) {
-  const [details, setDetails] = useState(false);
+  const [details, setDetails] = useState<DetailSection | null>(null);
+  const firstTalent = creature.abilities[0];
+  const additionalTalentCount = creature.abilities.length - 1;
   const title = `${name.trim() || creature.nickname} hatched!`;
 
   return (
@@ -60,28 +64,40 @@ export function NurseryHatchWelcomeC({ creature, egg, name, onNameChange, onConf
                 </svg>
               </span>
             </label>
-            <div className={styles.careStrip}>
-              <b>First-day care</b>
-              <span>Energy · Hearts · Affection</span>
+            <div className={styles.talentStrip}>
+              <b>Talents</b>
+              <span>{firstTalent?.name ?? 'No talents yet'}</span>
+              {additionalTalentCount > 0 && (
+                <button
+                  type="button"
+                  aria-label={`View all ${creature.abilities.length} talents`}
+                  onClick={() => setDetails('inheritance')}
+                >
+                  +{additionalTalentCount}
+                </button>
+              )}
             </div>
             <div className={styles.actions}>
-              <button type="button" onClick={() => setDetails(true)}>View details</button>
+              <button type="button" onClick={() => setDetails('care')}>View details</button>
               <button type="submit" className={styles.confirm}>Confirm Hatchling</button>
             </div>
           </form>
         </div>
-        {details && <HatchlingDetails creature={creature} egg={egg} onClose={() => setDetails(false)} />}
+        {details && (
+          <HatchlingDetails creature={creature} egg={egg} initialSection={details} onClose={() => setDetails(null)} />
+        )}
       </main>
     </GameDialog>
   );
 }
 
-function HatchlingDetails({ creature, egg, onClose }: {
+function HatchlingDetails({ creature, egg, initialSection, onClose }: {
   creature: CreatureRecord;
   egg: EggRecord;
+  initialSection: DetailSection;
   onClose: () => void;
 }) {
-  const [section, setSection] = useState<'care' | 'inheritance'>('care');
+  const [section, setSection] = useState(initialSection);
   const record = eggInheritanceModel(egg);
   return (
     <GameDialog title="Hatchling details" onClose={onClose} dialogClassName={styles.details}>
