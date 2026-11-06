@@ -93,6 +93,15 @@ function getStatusStacks(status: BattleStatusStack): number {
   return Math.max(1, status.stacks ?? 1);
 }
 
+export function getBattleBleedDamage(status: BattleStatusStack): number {
+  return Math.max(1, status.amount ?? 5) * getStatusStacks(status);
+}
+
+export function getBattleSlowedPenalties(status: BattleStatusStack): { speed: number; evasion: number } {
+  const speed = (Math.abs(status.amount ?? 0) || 6) * getStatusStacks(status);
+  return { speed, evasion: Math.ceil(speed / 2) };
+}
+
 export function hasBattleStatus(combatant: BattleCombatant, status: BattleStatusId): boolean {
   return combatant.statuses.some((entry) => entry.status === status && entry.duration > 0);
 }
@@ -134,9 +143,9 @@ export function getEffectiveBattleStats(combatant: BattleCombatant): BattleStats
       nextStats.physicalPower -= weakenedAmount;
       nextStats.specialPower -= weakenedAmount;
     } else if (statusStack.status === "slowed") {
-      const slowedAmount = (Math.abs(amount) || 6) * stacks;
-      nextStats.speed -= slowedAmount;
-      nextStats.evasion -= Math.ceil(slowedAmount / 2);
+      const { speed, evasion } = getBattleSlowedPenalties(statusStack);
+      nextStats.speed -= speed;
+      nextStats.evasion -= evasion;
     } else if (statusStack.status === "exhausted") {
       nextStats.speed -= (Math.abs(amount) || 3) * stacks;
     }
@@ -516,6 +525,8 @@ function replaceCombatant(state: BattleState, combatant: BattleCombatant): Battl
   };
 }
 
+type AppliedBattleStatus = Pick<BattleStatusApplicationResult, "mode" | "status">;
+
 type ResolveEffectInput = {
   state: BattleState;
   actor: BattleCombatant;
@@ -525,7 +536,7 @@ type ResolveEffectInput = {
   effectIndex: number;
   actionSeed: string;
   hitTargetIds: ReadonlySet<BattleCombatantId>;
-  onFrame?: (frame: BattlePlaybackFrame) => void;
+  onFrame?: (frame: BattlePlaybackFrame, appliedStatus?: AppliedBattleStatus) => void;
 };
 
 function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: string[] } {
@@ -541,6 +552,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
 
     const before = nextState;
     const logStart = log.length;
+    let appliedStatus: AppliedBattleStatus | undefined;
     try {
     if (input.effect.chance !== undefined) {
       const chance = hostile
@@ -628,6 +640,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
         sourceCombatantId: input.actor.battleCombatantId,
         maxStacks: input.effect.maxStacks,
       });
+      appliedStatus = applied;
       nextState = replaceCombatant(nextState, applied.combatant);
       const stackLabel = (applied.status.stacks ?? 1) > 1 ? ` (${applied.status.stacks} stacks)` : "";
       log.push(`${currentTarget.name} is ${status}${stackLabel}; the effect was ${applied.mode}.`);
@@ -656,6 +669,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
         sourceCombatantId: input.actor.battleCombatantId,
         maxStacks: input.effect.maxStacks ?? 2,
       });
+      appliedStatus = applied;
       nextState = replaceCombatant(nextState, applied.combatant);
       log.push(`${currentTarget.name} ${amount > 0 ? "gains" : "loses"} ${Math.abs(amount)} ${input.effect.stat ?? "power"} (${applied.mode}).`);
     }
@@ -666,7 +680,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       if (nextState !== before || log.length > logStart) {
         input.onFrame?.({state:nextState, actorId:input.actor.battleCombatantId, targetIds:[currentTarget.battleCombatantId], moveId:input.move.id,
           kind:hp<0?"damage":hp>0?"heal":energy!==0?"energy":"status",
-          label:hp<0?`${hp} HP`:hp>0?`+${hp} HP`:energy!==0?`${energy>0?"+":""}${energy} BE`:nextState===before?"Resisted":input.effect.type==="heal"?"Full HP":`${(input.effect.status??input.effect.stat??input.effect.type).replaceAll("_"," ")}${input.effect.duration?` · ${input.effect.duration}r`:""}`});
+          label:hp<0?`${hp} HP`:hp>0?`+${hp} HP`:energy!==0?`${energy>0?"+":""}${energy} BE`:nextState===before?"Resisted":input.effect.type==="heal"?"Full HP":`${(input.effect.status??input.effect.stat??input.effect.type).replaceAll("_"," ")}${input.effect.duration?` · ${input.effect.duration}r`:""}`}, appliedStatus);
         if(after.isFainted&&!currentTarget.isFainted) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
       }
     }
@@ -850,7 +864,7 @@ export function advanceBattleCombatantEndOfRound(
   statusesBeforeTick.forEach((statusStack) => {
     if (statusStack.status !== "bleed" || nextCombatant.isFainted) return;
     const stacks = getStatusStacks(statusStack);
-    const bleedDamage = Math.max(1, statusStack.amount ?? 5) * stacks;
+    const bleedDamage = getBattleBleedDamage(statusStack);
     const hpBefore = nextCombatant.currentHp;
     nextCombatant = applyDamage(nextCombatant, bleedDamage);
     onChange?.(nextCombatant,"damage",`−${hpBefore-nextCombatant.currentHp} HP · Bleed`);
@@ -1025,6 +1039,15 @@ export function resolveBattleTurn(
   };
 }
 
+export type BattleStatusApplicationPreview = {
+  stack: BattleStatusStack;
+  mode: BattleStatusApplicationResult["mode"];
+  requiresHit: boolean;
+  hitChance: number;
+  /** Chance of applying the effect after any required hit. */
+  effectChance: number;
+};
+
 export type BattleActionEffectPreview = {
   targetId: BattleCombatantId;
   name: string;
@@ -1034,6 +1057,8 @@ export type BattleActionEffectPreview = {
   hpAfter: number;
   battleEnergyAfter: number;
   guardedAfter: BattleGuardedStatus | null;
+  /** A status applied by this effect that remains on a living target after the move. */
+  statusApplication?: BattleStatusApplicationPreview;
 };
 
 /** Estimates assuming effects hit and apply. The last row per target reflects its final state. */
@@ -1045,7 +1070,12 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
   const paidActor = spendMoveResources(actor, move);
   let projected = replaceCombatant(state, paidActor);
   const entries: BattleActionEffectPreview[] = [];
-  const hitTargetIds = new Set(Object.keys(state.combatants));
+  const actorStats = getEffectiveBattleStats(paidActor);
+  const hostileHitChances = new Map(hostileTargetsForMove(projected, paidActor, move, ids).map(target => [
+    target.battleCombatantId,
+    calculateBattleMoveHitChance(actorStats, getEffectiveBattleStats(target), move),
+  ]));
+  const hitTargetIds = new Set(hostileHitChances.size ? hostileHitChances.keys() : ids);
   // Project successful effects in their real order, without consulting hidden rolls or enemy choices.
   move.effects.forEach((effect, effectIndex) => {
     let previousFrame = projected;
@@ -1058,18 +1088,24 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
       effectIndex,
       actionSeed: "preview",
       hitTargetIds,
-      onFrame: (frame) => {
+      onFrame: (frame, appliedStatus) => {
         if (frame.kind === "knockout") return;
         const targetId = frame.targetIds[0];
         const before = previousFrame.combatants[targetId];
         const after = frame.state.combatants[targetId];
-        const actorStats = getEffectiveBattleStats(paidActor);
         const targetStats = getEffectiveBattleStats(before);
         const hostile = isHostileEffect(paidActor, before, effect);
-        const hitChance = hostile && ["single_enemy", "all_enemies"].includes(move.targetType)
-          ? calculateBattleMoveHitChance(actorStats, targetStats, move) : 100;
+        const hostileHitChance = hostile ? hostileHitChances.get(targetId) : undefined;
+        const hitChance = hostileHitChance ?? 100;
         const effectChance = effect.chance === undefined ? 100 : hostile
           ? calculateBattleSecondaryEffectChance(actorStats, targetStats, effect.chance) : clamp(effect.chance, 0, 100);
+        const statusApplication = appliedStatus && !after.isFainted && effectChance > 0 ? {
+          stack: appliedStatus.status,
+          mode: appliedStatus.mode,
+          requiresHit: hostileHitChance !== undefined,
+          hitChance,
+          effectChance,
+        } : undefined;
         const guardedAfter = getBattleGuardedStatus(after);
         let description: string;
         if (effect.type === "damage") {
@@ -1101,11 +1137,19 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
           hpAfter: after.currentHp,
           battleEnergyAfter: after.currentBattleEnergy,
           guardedAfter,
+          statusApplication,
         });
         previousFrame = frame.state;
       },
     });
     projected = result.state;
   });
+  for (const entry of entries) {
+    if (!entry.statusApplication) continue;
+    const target = projected.combatants[entry.targetId];
+    if (target.isFainted || !target.statuses.includes(entry.statusApplication.stack)) {
+      delete entry.statusApplication;
+    }
+  }
   return entries;
 }

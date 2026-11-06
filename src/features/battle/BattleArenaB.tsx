@@ -16,6 +16,7 @@ import type { CreatureRecord } from "@/types/creature";
 import type { useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
 import { BattleStatusBadges, StatusIcon, statusLabel } from "./BattleStatusBadges";
+import { BattleEffectTray, getEffectTraySlots } from "./BattleEffectTray";
 import {BattleCreatureImage} from "./BattleCreatureImage";
 import {gameplayArt} from "@/data/creatureGameplayArt";
 import s from "./BattleArenaB.module.css";
@@ -127,7 +128,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const [movesOpen,setMovesOpen]=useState(false);
   const [draft,setDraft]=useState<{actorId:string;moveId:string}|null>(null);
   const [tappedTarget,setTappedTarget]=useState<string|null>(null);
-  const [hoverMove, setHoverMove] = useState<string | null>(null);
+  const [hoverMove, setHoverMove] = useState<{ id: string; via: "pointer" | "focus" } | null>(null);
   const [movePage, setMovePage] = useState(0);
   const [turnDetails, setTurnDetails] = useState(false);
   const [statusId,setStatusId]=useState<string|null>(null);
@@ -154,15 +155,19 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const turnOptions = individual && !resolving && !complete ? getBattleMenuOptions(state, activeActorId, selectedTarget) : [];
   const turnPage = Math.min(movePage, Math.max(0, Math.ceil(turnOptions.length / 4) - 1));
   const selectedMove = turnOptions.find(option => draft?.actorId === activeActorId && option.move.id === draft.moveId);
-  const previewMove = turnOptions.find(option => option.move.id === hoverMove) ?? selectedMove;
+  const hoverOption = turnOptions.find(option => option.move.id === hoverMove?.id);
+  const previewMove = hoverOption?.usable && (hoverMove?.via === "pointer" || !selectedMove) ? hoverOption : selectedMove;
   const effectsFor = (option: typeof previewMove) => option?.usable && activeActorId && selectedTarget
     ? previewBattleAction(state, { actorId: activeActorId, moveId: option.move.id,
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
   const projectedEffects = effectsFor(previewMove);
   const projectionById = new Map(projectedEffects.map(effect => [effect.targetId, effect]));
   const dockTarget = target ?? (individual
-    ? currentEvent?.targetIds.map(id => state.combatants[id]).find(c => c && !c.isFainted && getBattleGuardedStatus(c))
+    ? currentEvent?.targetIds.map(id => state.combatants[id]).find(c => c && !c.isFainted && (getBattleGuardedStatus(c) || getEffectTraySlots(c.statuses) > 0))
     : undefined);
+  const effectTraySlots = dockTarget && !dockTarget.isFainted
+    ? getEffectTraySlots(dockTarget.statuses, turnOptions.filter(option => option.usable).map(option => option.move))
+    : 0;
   function energyAfter(id: string) {
     return projectionById.get(id)?.battleEnergyAfter ??
       (id === activeActorId && previewMove?.usable ? state.combatants[id].currentBattleEnergy - previewMove.move.battleEnergyCost : undefined);
@@ -224,11 +229,15 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <section className={s.turnMoves} aria-label="Choose a move">
         <h2>{draftActor ? `${draftActor.name} · Choose a move` : resolving ? "Resolving action…" : finished ? "Battle complete" : "Waiting for next turn"}</h2>
         <div className={s.turnCards}>{turnOptions.slice(turnPage * 4, turnPage * 4 + 4).map(option => {
-          const tooltip = hoverMove === option.move.id;
-          const effect = tooltip ? projectedEffects.find(entry => entry.targetId === target?.battleCombatantId) ?? projectedEffects[0] : undefined;
-          return <div key={option.move.id} className={s.turnTile} onMouseEnter={() => setHoverMove(option.move.id)} onMouseLeave={() => setHoverMove(null)}>
+          const tooltip = hoverMove?.id === option.move.id;
+          const details = !tooltip ? [] : option === previewMove ? projectedEffects : effectsFor(option);
+          const effect = details.find(entry => entry.targetId === target?.battleCombatantId) ?? details[0];
+          return <div key={option.move.id} className={s.turnTile}
+            onPointerEnter={event => { if (event.pointerType === "mouse") setHoverMove({ id: option.move.id, via: "pointer" }); }}
+            onPointerLeave={event => { if (event.pointerType === "mouse") setHoverMove(current => current?.via === "pointer" ? null : current); }}>
             <button aria-pressed={selectedMove?.move.id === option.move.id} data-turn-move data-usable={option.usable}
-              onFocus={() => setHoverMove(option.move.id)} onBlur={() => setHoverMove(null)}
+              onFocus={event => { if (event.currentTarget.matches(":focus-visible")) setHoverMove({ id: option.move.id, via: "focus" }); }}
+              onBlur={() => setHoverMove(current => current?.via === "focus" ? null : current)}
               aria-describedby={tooltip ? `move-tip-${option.move.id}` : undefined}
               onClick={() => {
                 if (!activeActorId) return;
@@ -254,10 +263,15 @@ export function BattleArenaB(props: BattleArenaBProps) {
             <HealthMeter value={dockTarget.currentHp} max={dockTarget.maxHp} after={projectionById.get(dockTarget.battleCombatantId)?.hpAfter} guard={guardFor(dockTarget.battleCombatantId)} details />
             <Meter label="BE" value={dockTarget.currentBattleEnergy} max={dockTarget.maxBattleEnergy} after={energyAfter(dockTarget.battleCombatantId)}/>
           </div>
+          {effectTraySlots > 0 && <div className={s.effectTraySlot} data-slots={effectTraySlots}>
+            <BattleEffectTray key={dockTarget.battleCombatantId} statuses={dockTarget.statuses} applications={projectedEffects.flatMap(effect =>
+              effect.targetId === dockTarget.battleCombatantId && effect.statusApplication ? [effect.statusApplication] : [])} />
+          </div>}
         </div>}
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
           : <button className={s.primary} disabled={!selectedMove?.usable} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
-        {selectedMove && <button className={s.turnDetailButton} onClick={() => setTurnDetails(true)}>Move details</button>}
+        {selectedMove ? <button className={s.turnDetailButton} onClick={() => setTurnDetails(true)}>Move details</button>
+          : effectTraySlots > 0 && turnOptions.length > 0 && <span className={s.turnDetailSpace} aria-hidden="true"/>}
       </section>
     </footer> :     <footer className={s.queue} aria-label="Planned ranch actions">
       <section className={s.planLedger} aria-label="Round ledger">
