@@ -153,6 +153,82 @@
 .arena .meter[data-kind=HP]:has(.meterGain) b {
   text-shadow: 0 1px 2px #142b22, 0 0 3px #142b22, 0 0 5px #142b22;
 }
+.arena[data-individual=true] .meter[data-kind=BE] .meterGain {
+  background: repeating-linear-gradient(135deg, #2a5e93 0 3px, #94d7f8 3px 5px);
+}
+.guardVitals {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.brassGuardMeter {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  min-width: 0;
+  padding-inline: 5px;
+}
+.brassGuardMeter::before,
+.brassGuardMeter::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -1px auto -1px 0;
+  width: 8px;
+  background:
+    radial-gradient(circle at 42% 22%, #f9deb1 0 1px, #54402d 1.5px 2px, transparent 2.5px),
+    radial-gradient(circle at 42% 78%, #f9deb1 0 1px, #54402d 1.5px 2px, transparent 2.5px),
+    linear-gradient(110deg, #fff0c8, #b88d55 28%, #6e5138 50%, #e5c693 72%, #815837);
+  clip-path: polygon(100% 0, 52% 30%, 52% 70%, 100% 100%, 43% 100%, 0 77%, 0 23%, 43% 0);
+  pointer-events: none;
+}
+.brassGuardMeter::after {
+  inset-inline: auto 0;
+  transform: scaleX(-1);
+}
+.guardShield {
+  display: grid;
+  place-items: center;
+  padding-inline: 3px;
+  background: linear-gradient(#26372e, #151d17);
+  border: 1px solid #c9974e;
+  border-radius: 3px 0 0 3px;
+}
+.guardShield svg { width: 11px; height: 11px; }
+.guardShield path:first-child { fill: #34627e; stroke: #e2e9ec; stroke-width: 1.8; }
+.guardShield path + path { fill: #91bdd5; }
+.guardVitals[data-guard-mode=preview] .guardShield path:first-child {
+  fill: none;
+  stroke-dasharray: 3 2;
+}
+.guardVitals[data-guard-mode=preview] .guardShield path + path { display: none; }
+.arena[data-individual=true] .brassGuardMeter .meter {
+  border-radius: 0 3px 3px 0;
+  border-color: #c9974e;
+}
+.turnTargetVitals .brassGuardMeter { padding-inline: 7px; }
+.turnTargetVitals .brassGuardMeter::before,
+.turnTargetVitals .brassGuardMeter::after { width: 11px; }
+.turnTargetVitals .guardShield { padding-inline: 5px; }
+.turnTargetVitals .guardShield svg { width: 14px; height: 14px; }
+.guardDetails {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 2px;
+  font-size: clamp(9px, .85vw, 12px);
+  line-height: 1.2;
+  color: #422811;
+}
+.guardDetails strong {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #253f52;
+  color: #fff1cf;
+}
+.guardDetails em { flex-basis: 100%; color: #762c20; font-style: normal; }
 .arena[data-individual=true] .effect[data-kind=heal] {
   top: auto;
   bottom: 3px;

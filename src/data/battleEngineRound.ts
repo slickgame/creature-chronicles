@@ -97,6 +97,20 @@ export function hasBattleStatus(combatant: BattleCombatant, status: BattleStatus
   return combatant.statuses.some((entry) => entry.status === status && entry.duration > 0);
 }
 
+export type BattleGuardedStatus = {
+  damageReductionPercent: number;
+  duration: number;
+};
+
+export function getBattleGuardedStatus(combatant: BattleCombatant): BattleGuardedStatus | null {
+  const guarded = combatant.statuses.find((status) => status.status === "guarded" && status.duration > 0);
+  if (!guarded) return null;
+  return {
+    damageReductionPercent: clamp(guarded.amount ?? 25, 5, 65),
+    duration: guarded.duration,
+  };
+}
+
 export function getEffectiveBattleStats(combatant: BattleCombatant): BattleStats {
   const nextStats: BattleStats = { ...combatant.battleStats };
 
@@ -461,9 +475,9 @@ export function getDamageModifier(
   modifier *= tagModifier.modifier;
   notes.push(...tagModifier.notes);
 
-  const guarded = defender.statuses.find((status) => status.status === "guarded" && status.duration > 0);
+  const guarded = getBattleGuardedStatus(defender);
   if (guarded) {
-    const guardPercent = clamp(guarded.amount ?? 25, 5, 65);
+    const guardPercent = guarded.damageReductionPercent;
     modifier *= 1 - guardPercent / 100;
     notes.push(`Guarded reduces damage by ${guardPercent}%.`);
   }
@@ -1011,36 +1025,87 @@ export function resolveBattleTurn(
   };
 }
 
-/** Conditional-on-hit estimates, using the same targeting, stat and modifier functions as resolution. */
-export function previewBattleAction(state: BattleState, action: BattleAction) {
-  const actor = state.combatants[action.actorId], move = getBattleMove(action.moveId);
-  if(!actor) return [];
+export type BattleActionEffectPreview = {
+  targetId: BattleCombatantId;
+  name: string;
+  hitChance: number;
+  effectChance: number;
+  description: string;
+  hpAfter: number;
+  battleEnergyAfter: number;
+  guardedAfter: BattleGuardedStatus | null;
+};
+
+/** Estimates assuming effects hit and apply. The last row per target reflects its final state. */
+export function previewBattleAction(state: BattleState, action: BattleAction): BattleActionEffectPreview[] {
+  const actor = state.combatants[action.actorId];
+  if (!actor) return [];
+  const move = getBattleMove(action.moveId);
   const ids = normalizeTargetIds(state, actor, move, action.targetIds);
-  const paidActor = spendMoveResources(actor,move);
-  let projected = replaceCombatant(state,paidActor);
-  const entries: {targetId:string;name:string;hitChance:number;effectChance:number;description:string;hpAfter:number}[]=[];
+  const paidActor = spendMoveResources(actor, move);
+  let projected = replaceCombatant(state, paidActor);
+  const entries: BattleActionEffectPreview[] = [];
+  const hitTargetIds = new Set(Object.keys(state.combatants));
   // Project successful effects in their real order, without consulting hidden rolls or enemy choices.
-  for(const effect of move.effects) {
-    const result=resolveEffect({state:projected,actor:paidActor,move,targetIds:ids,effect:{...effect,chance:undefined},effectIndex:0,actionSeed:"preview",hitTargetIds:new Set(Object.keys(state.combatants)),onFrame:frame=>{
-      if(frame.kind==="knockout") return;
-      const id=frame.targetIds[0], before=projected.combatants[id], after=frame.state.combatants[id];
-      const hostile=isHostileEffect(paidActor,before,effect);
-      const hitChance=hostile&&["single_enemy","all_enemies"].includes(move.targetType)?calculateBattleMoveHitChance(getEffectiveBattleStats(paidActor),getEffectiveBattleStats(before),move):100;
-      const effectChance=effect.chance===undefined?100:hostile?calculateBattleSecondaryEffectChance(getEffectiveBattleStats(paidActor),getEffectiveBattleStats(before),effect.chance):clamp(effect.chance,0,100);
-      let description="";
-      if(effect.type==="damage") {
-        const damage=previewBattleDamage(getEffectiveBattleStats(paidActor),getEffectiveBattleStats(before),move,getDamageModifier(paidActor,before,move).modifier).finalDamage;
-        description=`${damage} damage if hit · HP ${before.currentHp} → ${after.currentHp}`;
-      } else if(effect.type==="heal") description=after.currentHp>before.currentHp
-        ? `Restore ${after.currentHp-before.currentHp} HP · ${before.currentHp} → ${after.currentHp}`
-        : "Already at full HP";
-      else if(effect.type==="restore_battle_energy") description=`Restore ${after.currentBattleEnergy-before.currentBattleEnergy} BE · ${before.currentBattleEnergy} → ${after.currentBattleEnergy} (after move cost)`;
-      else if(effect.type==="cleanse_status") description=`Remove ${effect.status??"all statuses"}`;
-      else description=`${effect.status??effect.type.replaceAll("_"," ")}${effect.stat?` · ${effect.stat}`:""}${effect.amount!==undefined?` · ${effect.amount}`:""} · ${effect.duration??1} round(s)`;
-      entries.push({targetId:id,name:before.name,hitChance,effectChance,description,hpAfter:after.currentHp});
-      projected=frame.state;
-    }});
-    projected=result.state;
-  }
+  move.effects.forEach((effect, effectIndex) => {
+    let previousFrame = projected;
+    const result = resolveEffect({
+      state: projected,
+      actor: paidActor,
+      move,
+      targetIds: ids,
+      effect: { ...effect, chance: undefined },
+      effectIndex,
+      actionSeed: "preview",
+      hitTargetIds,
+      onFrame: (frame) => {
+        if (frame.kind === "knockout") return;
+        const targetId = frame.targetIds[0];
+        const before = previousFrame.combatants[targetId];
+        const after = frame.state.combatants[targetId];
+        const actorStats = getEffectiveBattleStats(paidActor);
+        const targetStats = getEffectiveBattleStats(before);
+        const hostile = isHostileEffect(paidActor, before, effect);
+        const hitChance = hostile && ["single_enemy", "all_enemies"].includes(move.targetType)
+          ? calculateBattleMoveHitChance(actorStats, targetStats, move) : 100;
+        const effectChance = effect.chance === undefined ? 100 : hostile
+          ? calculateBattleSecondaryEffectChance(actorStats, targetStats, effect.chance) : clamp(effect.chance, 0, 100);
+        const guardedAfter = getBattleGuardedStatus(after);
+        let description: string;
+        if (effect.type === "damage") {
+          const { modifier } = getDamageModifier(paidActor, before, move);
+          const damage = previewBattleDamage(actorStats, targetStats, move, modifier).finalDamage;
+          const breaksGuard = !guardedAfter && getBattleGuardedStatus(before);
+          description = `${damage} damage if hit · HP ${before.currentHp} → ${after.currentHp}${breaksGuard ? " · Breaks Guarded" : ""}`;
+        } else if (effect.type === "heal") {
+          description = after.currentHp > before.currentHp
+            ? `Restore ${after.currentHp - before.currentHp} HP · ${before.currentHp} → ${after.currentHp}`
+            : "Already at full HP";
+        } else if (effect.type === "restore_battle_energy") {
+          description = `Restore ${after.currentBattleEnergy - before.currentBattleEnergy} BE · ${before.currentBattleEnergy} → ${after.currentBattleEnergy} (after move cost)`;
+        } else if (effect.type === "cleanse_status") {
+          description = `Remove ${effect.status ?? "all statuses"}`;
+        } else if (guardedAfter && (effect.type === "guard" || effect.type === "apply_status") &&
+          (effect.status ?? "guarded") === "guarded") {
+          const { damageReductionPercent, duration } = guardedAfter;
+          description = `Guarded · −${damageReductionPercent}% damage · ${duration} ${duration === 1 ? "round" : "rounds"}`;
+        } else {
+          description = `${effect.status ?? effect.type.replaceAll("_", " ")}${effect.stat ? ` · ${effect.stat}` : ""}${effect.amount !== undefined ? ` · ${effect.amount}` : ""} · ${effect.duration ?? 1} round(s)`;
+        }
+        entries.push({
+          targetId,
+          name: before.name,
+          hitChance,
+          effectChance,
+          description,
+          hpAfter: after.currentHp,
+          battleEnergyAfter: after.currentBattleEnergy,
+          guardedAfter,
+        });
+        previousFrame = frame.state;
+      },
+    });
+    projected = result.state;
+  });
   return entries;
 }

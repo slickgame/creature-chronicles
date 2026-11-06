@@ -5,7 +5,7 @@ import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, ty
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
-import { getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds } from "@/data/battleEngine";
+import { getBattleGuardedStatus, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, type BattleGuardedStatus } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
@@ -42,13 +42,39 @@ function Meter({ label, value, max, after }: { label: "HP" | "BE"; value: number
   const percent = (amount: number) => Math.max(0, Math.min(100, amount / Math.max(1, max) * 100));
   const projected = Math.max(0, Math.min(max, after ?? value));
   const isLoss = projected < value;
-  const isGain = label === "HP" && projected > value;
+  const isGain = projected > value;
   const solid = isLoss ? projected : value;
   const segmentEnd = isGain ? projected : value;
   return <span className={s.meter} data-kind={label}>
     <i style={{ width: `${percent(solid)}%` }} />
     {(isLoss || isGain) && <i className={isGain ? s.meterGain : s.meterLoss} style={{ left: `${percent(solid)}%`, width: `${percent(segmentEnd) - percent(solid)}%` }} />}
     <b>{label} {value}{isLoss || isGain ? ` → ${projected}` : ""}/{max}</b>
+  </span>;
+}
+
+type GuardDisplay = BattleGuardedStatus & { mode: "preview" | "active" | "breaking" };
+
+function HealthMeter({ value, max, after, guard, details = false }: {
+  value: number; max: number; after?: number; guard?: GuardDisplay; details?: boolean;
+}) {
+  if (!guard) return <Meter label="HP" value={value} max={max} after={after} />;
+
+  const label = guard.mode === "preview" ? "Guard preview" : "Guarded";
+  const effect = `−${guard.damageReductionPercent}% damage · ${guard.duration} round${guard.duration === 1 ? "" : "s"}`;
+  return <span className={s.guardVitals} data-guard-mode={guard.mode}>
+    <span className={s.brassGuardMeter} aria-label={`${label} · ${effect}`}>
+      <span className={s.guardShield} aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M12 2.5 20 6v5.6c0 4.8-3.2 8.3-8 10-4.8-1.7-8-5.2-8-10V6l8-3.5Z" />
+          <path d="M12 4.5v14.7c3.9-1.8 5.8-4.4 5.8-8V7.4Z" />
+        </svg>
+      </span>
+      <Meter label="HP" value={value} max={max} after={after} />
+    </span>
+    {details && <small className={s.guardDetails}>
+      <strong>{label}</strong> <span>{effect}</span>
+      {guard.mode === "breaking" && <em>Guard Break removes Guarded on hit</em>}
+    </small>}
   </span>;
 }
 
@@ -133,8 +159,26 @@ export function BattleArenaB(props: BattleArenaBProps) {
     ? previewBattleAction(state, { actorId: activeActorId, moveId: option.move.id,
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
   const projectedEffects = effectsFor(previewMove);
-  function hpAfter(id: string) {
-    return projectedEffects.findLast(effect => effect.targetId === id)?.hpAfter;
+  const projectionById = new Map(projectedEffects.map(effect => [effect.targetId, effect]));
+  const dockTarget = target ?? (individual
+    ? currentEvent?.targetIds.map(id => state.combatants[id]).find(c => c && !c.isFainted && getBattleGuardedStatus(c))
+    : undefined);
+  function energyAfter(id: string) {
+    return projectionById.get(id)?.battleEnergyAfter ??
+      (id === activeActorId && previewMove?.usable ? state.combatants[id].currentBattleEnergy - previewMove.move.battleEnergyCost : undefined);
+  }
+  function guardFor(id: string): GuardDisplay | undefined {
+    if (!individual || state.combatants[id].isFainted) return undefined;
+    const active = getBattleGuardedStatus(state.combatants[id]);
+    const projected = projectionById.get(id)?.guardedAfter;
+    if (projected && (!active || projected.damageReductionPercent !== active.damageReductionPercent || projected.duration !== active.duration)) {
+      return { ...projected, mode: "preview" };
+    }
+    if (active) {
+      const breaksOnHit = projected === null && previewMove?.move.tags.includes("guard_break");
+      return { ...active, mode: breaksOnHit ? "breaking" : "active" };
+    }
+    return undefined;
   }
   function selectTarget(next:BattleUiTarget){
     if(resolving)return;
@@ -164,7 +208,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
       return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&validTargets.includes(c.battleCombatantId)} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
           <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected&&event&&event.kind!=="attack"&&<b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
-          <span className={s.nameplate}><strong title={c.name}>{c.name}</strong><Meter label="HP" value={c.currentHp} max={c.maxHp} after={hpAfter(c.battleCombatantId)}/><Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={acting && previewMove?.usable ? c.currentBattleEnergy - previewMove.move.battleEnergyCost : undefined}/>{c.isFainted&&<small>K.O.</small>}</span>
+          <span className={s.nameplate}><strong title={c.name}>{c.name}</strong><HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guardFor(c.battleCombatantId)}/><Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)}/>{c.isFainted&&<small>K.O.</small>}</span>
         </button>
         <BattleStatusBadges name={c.name} effects={c.statuses} onOpen={()=>openStatuses(c.battleCombatantId)}/>
       </article>;
@@ -203,11 +247,13 @@ export function BattleArenaB(props: BattleArenaBProps) {
         {turnOptions.length > 4 && <div className={s.turnPager}><button aria-label="Previous moves" disabled={turnPage === 0} onClick={() => setMovePage(turnPage - 1)}>‹</button><button aria-label="Next moves" disabled={(turnPage+1)*4 >= turnOptions.length} onClick={() => setMovePage(turnPage + 1)}>›</button></div>}
       </section>
       <section className={s.turnTarget} aria-label="Target and action">
-        <h2>{target ? `Target · ${target.name}` : selectedTarget?.kind === "field" ? "Target · Battlefield" : "Choose a target"}</h2>
-        {target && <div className={s.turnTargetVitals}>
-          <img src={artwork(sourceById.get(String(target.sourceCreatureId)))} alt=""/>
-          <div><Meter label="HP" value={target.currentHp} max={target.maxHp} after={hpAfter(target.battleCombatantId)}/>
-            <Meter label="BE" value={target.currentBattleEnergy} max={target.maxBattleEnergy} after={target.battleCombatantId === activeActorId && previewMove?.usable ? target.currentBattleEnergy - previewMove.move.battleEnergyCost : undefined}/></div>
+        <h2>{dockTarget ? `Target · ${dockTarget.name}` : selectedTarget?.kind === "field" ? "Target · Battlefield" : "Choose a target"}</h2>
+        {dockTarget && <div className={s.turnTargetVitals}>
+          <img src={artwork(sourceById.get(String(dockTarget.sourceCreatureId)))} alt=""/>
+          <div>
+            <HealthMeter value={dockTarget.currentHp} max={dockTarget.maxHp} after={projectionById.get(dockTarget.battleCombatantId)?.hpAfter} guard={guardFor(dockTarget.battleCombatantId)} details />
+            <Meter label="BE" value={dockTarget.currentBattleEnergy} max={dockTarget.maxBattleEnergy} after={energyAfter(dockTarget.battleCombatantId)}/>
+          </div>
         </div>}
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
           : <button className={s.primary} disabled={!selectedMove?.usable} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
