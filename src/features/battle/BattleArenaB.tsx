@@ -5,7 +5,7 @@ import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, ty
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
-import { BATTLE_OUTCOME_FADE_MS, BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText } from "@/data/battlePresentation";
+import { BATTLE_OUTCOME_FADE_MS, BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
 import { getBattleGuardedStatus, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, type BattleGuardedStatus, type BattleStatusApplicationPreview } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
@@ -64,6 +64,20 @@ function Meter({ label, value, max, after, forecast }: {
 
 type GuardDisplay = BattleGuardedStatus & { mode: "preview" | "active" | "breaking" };
 
+function GuardShieldIcon() {
+  return <svg className={s.shieldIcon} viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+    <path d="M12 2.5 20 6v5.6c0 4.8-3.2 8.3-8 10-4.8-1.7-8-5.2-8-10V6l8-3.5Z" />
+    <path d="M12 4.5v14.7c3.9-1.8 5.8-4.4 5.8-8V7.4Z" />
+  </svg>;
+}
+
+function CleanseIcon() {
+  return <svg className={s.cleanseIcon} viewBox="0 0 16 16" aria-hidden="true">
+    <circle cx="8" cy="8" r="5.5" fill="#ebdbf2" stroke="currentColor" strokeWidth="1.5"/>
+    <path d="m3 13 10-10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+  </svg>;
+}
+
 function HealthMeter({ value, max, after, guard, details = false, forecast, allyGuard }: {
   value: number; max: number; after?: number; guard?: GuardDisplay; details?: boolean;
   forecast?: HealthForecast; allyGuard?: boolean;
@@ -76,10 +90,7 @@ function HealthMeter({ value, max, after, guard, details = false, forecast, ally
   return <span className={s.guardVitals} data-guard-mode={guard.mode}>
     <span className={s.brassGuardMeter} data-ally-guard-meter={allyGuard ? "" : undefined} aria-label={`${label} · ${effect}`}>
       <span className={s.guardShield} aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M12 2.5 20 6v5.6c0 4.8-3.2 8.3-8 10-4.8-1.7-8-5.2-8-10V6l8-3.5Z" />
-          <path d="M12 4.5v14.7c3.9-1.8 5.8-4.4 5.8-8V7.4Z" />
-        </svg>
+        <GuardShieldIcon/>
       </span>
       {meter}
     </span>
@@ -112,10 +123,7 @@ function AllyForecastEffects({ id, cleanses, guard, rows }: {
     style={{ minHeight: `calc(${rows} * max(1.2em, 13px) + ${rows + 5}px)` }}>
     {guard && <span data-ally-guard>Guarded · −{guard.damageReductionPercent}% damage · <span className={s.guardRound}>{guard.duration} {guard.duration === 1 ? "round" : "rounds"}</span></span>}
     {[...cleanses].map(([status, chance]) => <span key={status} data-clears-status={status}>
-      <svg className={s.cleanseIcon} viewBox="0 0 16 16" aria-hidden="true">
-        <circle cx="8" cy="8" r="5.5" fill="#ebdbf2" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="m3 13 10-10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
-      </svg>
+      <CleanseIcon/>
       <span>{chance === 100 ? "Clears" : `${chance}% to clear`} {getBattleStatusGlossary(status).label}</span>
     </span>)}
   </span>;
@@ -129,11 +137,11 @@ function effectForecastText(effect: ReturnType<typeof previewBattleAction>[numbe
   ].filter(Boolean).join(" · ");
 }
 
-function TargetOutcome({ event, staggerIndex, presentation, knockedOut }: {
+function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
   event: NonNullable<Presentation["activeEvent"]>;
   staggerIndex?: number;
   presentation: Presentation;
-  knockedOut?: boolean;
+  grouped?: BattleTargetOutcome;
 }) {
   const node = useRef<HTMLSpanElement>(null);
   const fade = useRef<Animation | null>(null);
@@ -167,21 +175,31 @@ function TargetOutcome({ event, staggerIndex, presentation, knockedOut }: {
 
   const outcome = event.statusOutcome;
   const staggered = staggerIndex !== undefined;
+  const supportStatuses = grouped?.supportStatuses;
   const shownStatus = outcome && (staggered || outcome.status === "bleed" || outcome.status === "slowed") ? outcome : undefined;
-  if (!shownStatus && event.kind !== "damage" && event.kind !== "miss") {
+  if (!supportStatuses && !shownStatus && event.kind !== "damage" && event.kind !== "miss") {
     return <b className={s.effect} data-kind={event.kind}>{event.label}</b>;
   }
 
   const damage = event.kind === "damage" ? event.label : event.precedingDamage;
   return <span ref={node} className={s.targetOutcome} data-kind={event.kind}
     data-staggered-outcome={staggered ? staggerIndex : undefined}
+    data-support-outcome={supportStatuses ? "" : undefined}
     data-outcome-fade={animateFade ? "" : undefined}>
     {damage && <strong>{damage.replace(/^-/, "−")}</strong>}
     {event.kind === "miss" && <strong>Miss</strong>}
     {shownStatus && <span className={s.outcomeChip} data-status={shownStatus.status} data-result={shownStatus.result}>
       <StatusIcon status={shownStatus.status}/>{getBattleOutcomeStatusText(shownStatus)}
     </span>}
-    {knockedOut && <span className={s.outcomeChip} data-result="failed">K.O.</span>}
+    {supportStatuses && event.kind === "heal" && <span className={s.outcomeChip} data-result="healed">{event.label}</span>}
+    {supportStatuses?.map(status => {
+      const guarded = status.status === "guarded" && status.result !== "cleared";
+      return <span key={`${status.status}-${status.result}`} className={s.outcomeChip} data-status={status.status} data-result={status.result}>
+        {guarded ? <GuardShieldIcon/> : <CleanseIcon/>}
+        {guarded && status.result !== "failed" ? "Guarded" : getBattleOutcomeStatusText(status)}
+      </span>;
+    })}
+    {grouped?.knockedOut && <span className={s.outcomeChip} data-result="failed">K.O.</span>}
   </span>;
 }
 
@@ -372,14 +390,16 @@ export function BattleArenaB(props: BattleArenaBProps) {
         precedingDamage: undefined,
       } : currentEvent;
       const affected=event?.targetIds.includes(c.battleCombatantId);
+      const supportOutcome = grouped?.supportStatuses;
+      const guardResult = supportOutcome?.some(status => status.status === "guarded" && status.result !== "failed" && status.result !== "cleared");
       return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={healthForecast ? [healthForecast.id, forecast || showAllyEffects ? forecastId : null].filter(Boolean).join(" ") : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected && event && event.kind !== "attack" && (individual
-            ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} knockedOut={grouped?.knockedOut}/>
+          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected&&!supportOutcome:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected && event && event.kind !== "attack" && (individual
+            ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} grouped={grouped}/>
             : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>)}</span>
           <span className={s.nameplate}>
             <strong title={c.name}>{c.name}</strong>
-            <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!allyGuard}/>
+            <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!(allyGuard || guardResult)}/>
             {forecast && <TargetForecastOdds id={forecastId} forecast={forecast}/>}
             {allyForecast && allyForecastRows > 0 && <AllyForecastEffects id={forecastId} cleanses={allyForecast.cleanses} guard={allyGuard} rows={allyForecastRows}/>}
             <Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)}/>

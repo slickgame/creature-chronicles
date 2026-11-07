@@ -536,6 +536,7 @@ type ResolveEffectInput = {
   effectIndex: number;
   actionSeed: string;
   hitTargetIds: ReadonlySet<BattleCombatantId>;
+  includeNoopCleanses?: boolean;
   onFrame?: (frame: BattlePlaybackFrame, appliedStatus?: AppliedBattleStatus) => void;
 };
 
@@ -553,6 +554,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
     const before = nextState;
     const logStart = log.length;
     let appliedStatus: AppliedBattleStatus | undefined;
+    let clearedStatus: BattleStatusId | undefined;
     try {
     if (input.effect.chance !== undefined) {
       const chance = hostile
@@ -649,9 +651,11 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
 
     if (input.effect.type === "cleanse_status") {
       const cleansed = cleanseBattleStatus(currentTarget, input.effect.status);
+      if (cleansed.removed === 0 && !input.includeNoopCleanses) return;
       nextState = replaceCombatant(nextState, cleansed.combatant);
       if (input.effect.status && cleansed.removed > 0) {
-        log.push(`${currentTarget.name} cleanses ${input.effect.status}.`);
+        clearedStatus = input.effect.status;
+        log.push(`${currentTarget.name} cleanses ${clearedStatus}.`);
       }
       return;
     }
@@ -678,14 +682,30 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       const hp = after.currentHp - currentTarget.currentHp;
       const energy = after.currentBattleEnergy - currentTarget.currentBattleEnergy;
       if (nextState !== before || log.length > logStart) {
-        input.onFrame?.({state:nextState, actorId:input.actor.battleCombatantId, targetIds:[currentTarget.battleCombatantId], moveId:input.move.id,
-          kind:hp<0?"damage":hp>0?"heal":energy!==0?"energy":"status",
+        const { effect } = input;
+        const kind = hp < 0 ? "damage" : hp > 0 ? "heal" : energy !== 0 ? "energy" : "status";
+        const effectLabel = (effect.status ?? effect.stat ?? effect.type).replaceAll("_", " ");
+        let label = effect.duration ? `${effectLabel} · ${effect.duration}r` : effectLabel;
+        if (hp !== 0) label = `${hp > 0 ? "+" : ""}${hp} HP`;
+        else if (energy !== 0) label = `${energy > 0 ? "+" : ""}${energy} BE`;
+        else if (clearedStatus) label = `${effectLabel} cleared`;
+        else if (nextState === before) label = "Resisted";
+        else if (effect.type === "heal") label = "Full HP";
+        input.onFrame?.({
+          state: nextState,
+          actorId: input.actor.battleCombatantId,
+          targetIds: [currentTarget.battleCombatantId],
+          moveId: input.move.id,
+          kind,
+          label,
           statusOutcome: appliedStatus
             ? { status: appliedStatus.status.status, result: appliedStatus.mode }
-            : nextState === before && input.effect.type === "apply_status" && input.effect.status
-              ? { status: input.effect.status, result: "failed" }
-              : undefined,
-          label:hp<0?`${hp} HP`:hp>0?`+${hp} HP`:energy!==0?`${energy>0?"+":""}${energy} BE`:nextState===before?"Resisted":input.effect.type==="heal"?"Full HP":`${(input.effect.status??input.effect.stat??input.effect.type).replaceAll("_"," ")}${input.effect.duration?` · ${input.effect.duration}r`:""}`}, appliedStatus);
+            : clearedStatus
+              ? { status: clearedStatus, result: "cleared" }
+              : nextState === before && effect.type === "apply_status" && effect.status
+                ? { status: effect.status, result: "failed" }
+                : undefined,
+        }, appliedStatus);
         if(after.isFainted&&!currentTarget.isFainted) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
       }
     }
@@ -1098,6 +1118,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
       effectIndex,
       actionSeed: "preview",
       hitTargetIds,
+      includeNoopCleanses: true,
       onFrame: (frame, appliedStatus) => {
         if (frame.kind === "knockout") return;
         const targetId = frame.targetIds[0];

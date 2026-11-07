@@ -47,9 +47,10 @@ export type BattlePresentationEvent = {
 
 export type BattleTargetOutcome = {
   targetId: BattleCombatantId;
-  kind: "damage" | "miss" | "status";
+  kind: "damage" | "miss" | "status" | "heal";
   label: string;
   statusOutcome?: BattlePlaybackFrame["statusOutcome"];
+  supportStatuses?: NonNullable<BattlePlaybackFrame["statusOutcome"]>[];
   knockedOut?: boolean;
 };
 
@@ -309,6 +310,52 @@ export function getBattleOutcomeStatusText(outcome: NonNullable<BattleTargetOutc
   return `${status} ${outcome.result === "failed" ? "didn’t apply" : outcome.result}`;
 }
 
+function groupedOutcomeEvent(latest: BattlePresentationEvent, targetOutcomes: BattleTargetOutcome[]): BattlePresentationEvent {
+  return {
+    ...latest,
+    kind: "status",
+    targetIds: targetOutcomes.map(outcome => outcome.targetId),
+    targetOutcomes,
+    label: targetOutcomes.map(outcome => {
+      const statuses = outcome.supportStatuses ?? (outcome.statusOutcome ? [outcome.statusOutcome] : []);
+      const result = [
+        outcome.kind === "status" ? "" : outcome.label,
+        ...statuses.map(getBattleOutcomeStatusText),
+        outcome.knockedOut ? "K.O." : "",
+      ].filter(Boolean).join(" · ");
+      return `${latest.state?.combatants[outcome.targetId]?.name}: ${result}`;
+    }).join(" | "),
+    durationMs: BATTLE_OUTCOME_FADE_MS + (targetOutcomes.length - 1) * BATTLE_OUTCOME_STAGGER_MS,
+  };
+}
+
+function groupSupportOutcomes(attack: BattlePresentationEvent, results: BattlePresentationEvent[]): BattlePresentationEvent | null {
+  const latest = results.at(-1);
+  if (!latest?.state) return null;
+  const outcomes = new Map<BattleCombatantId, BattleTargetOutcome>();
+  for (const result of results) {
+    const [targetId] = result.targetIds;
+    if (result.targetIds.length !== 1 || !attack.targetIds.includes(targetId)) return null;
+    const status = result.statusOutcome;
+    if (result.kind === "status" && !status && result.label === "Full HP") continue;
+    const outcome = outcomes.get(targetId) ?? { targetId, kind: "status", label: "", supportStatuses: [] };
+    if (result.kind === "heal" && outcome.kind !== "heal") {
+      outcome.kind = "heal";
+      outcome.label = result.label;
+    } else if (result.kind === "status" && status && (status.result === "cleared" || status.status === "guarded")) {
+      outcome.supportStatuses?.push(status);
+    } else {
+      return null;
+    }
+    outcomes.set(targetId, outcome);
+  }
+  const targetOutcomes = attack.targetIds.flatMap(id => {
+    const outcome = outcomes.get(id);
+    return outcome ? [outcome] : [];
+  });
+  return targetOutcomes.length ? groupedOutcomeEvent(latest, targetOutcomes) : null;
+}
+
 function groupTargetOutcomes(attack: BattlePresentationEvent, results: BattlePresentationEvent[]): BattlePresentationEvent | null {
   const latest = results.at(-1);
   if (!latest?.state) return null;
@@ -335,20 +382,7 @@ function groupTargetOutcomes(attack: BattlePresentationEvent, results: BattlePre
     const outcome = outcomes.get(id);
     return outcome ? [outcome] : [];
   });
-  if (targetOutcomes.length < 2) return null;
-
-  return {
-    ...latest,
-    kind: "status",
-    targetIds: targetOutcomes.map(outcome => outcome.targetId),
-    targetOutcomes,
-    label: targetOutcomes.map(outcome => {
-      const status = outcome.statusOutcome ? getBattleOutcomeStatusText(outcome.statusOutcome) : "";
-      const result = outcome.kind === "status" ? status : [outcome.label, status].filter(Boolean).join(" · ");
-      return `${latest.state?.combatants[outcome.targetId]?.name}: ${result}${outcome.knockedOut ? " · K.O." : ""}`;
-    }).join(" | "),
-    durationMs: BATTLE_OUTCOME_FADE_MS + (targetOutcomes.length - 1) * BATTLE_OUTCOME_STAGGER_MS,
-  };
+  return targetOutcomes.length >= 2 ? groupedOutcomeEvent(latest, targetOutcomes) : null;
 }
 
 export function buildBattlePlaybackEvents(
@@ -377,7 +411,8 @@ export function buildBattlePlaybackEvents(
   for (let index = 0; index < events.length; index += 1) {
     const attack = events[index];
     playback.push(attack);
-    if (attack.kind !== "attack" || attack.targetIds.length < 2 || !attack.moveId) continue;
+    const teamSupport = attack.moveId === "restorative_rhythm" || attack.moveId === "unyielding_aura";
+    if (attack.kind !== "attack" || !attack.moveId || (!teamSupport && attack.targetIds.length < 2)) continue;
     let end = index + 1;
     while (end < events.length) {
       const next = events[end];
@@ -385,7 +420,7 @@ export function buildBattlePlaybackEvents(
       end += 1;
     }
     const results = events.slice(index + 1, end);
-    const grouped = groupTargetOutcomes(attack, results);
+    const grouped = teamSupport ? groupSupportOutcomes(attack, results) : groupTargetOutcomes(attack, results);
     playback.push(...(grouped ? [grouped] : results));
     index = end - 1;
   }

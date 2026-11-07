@@ -354,7 +354,7 @@ export type BattlePlaybackFrame = {
   moveId?: BattleMoveId;
   statusOutcome?: {
     status: BattleStatusId;
-    result: "applied" | "stacked" | "refreshed" | "failed";
+    result: "applied" | "stacked" | "refreshed" | "failed" | "cleared";
   };
   label: string;
 };
