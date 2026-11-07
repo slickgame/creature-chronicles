@@ -14,7 +14,7 @@ export function getEffectTraySlots(statuses: readonly BattleStatusStack[], moves
   ).length), active.length);
 }
 
-function EffectIcon({ status }: { status: TrayStatus }) {
+export function EffectIcon({ status }: { status: TrayStatus }) {
   return <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
     {status === "bleed"
       ? <path d="M12 2C9.5 6.6 5 11.4 5 15.6a7 7 0 1 0 14 0C19 11.4 14.5 6.6 12 2Zm-4.4 13c.4 2.1 1.3 3.5 3.1 4.5C8 19.5 6.8 17.3 7.6 15Z"/>

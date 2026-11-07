@@ -184,11 +184,13 @@
   font: 700 clamp(9px, .9vw, 12px)/1.2 Georgia, serif;
 }
 .targetForecast > span { display: inline-flex; align-items: center; justify-content: center; gap: 2px; }
-.targetForecast .statusIcon { width: 13px; height: 13px; }
+.targetForecast > span + span::before { content: "·"; margin-inline-end: 2px; }
+.targetForecast svg { flex: none; width: 13px; height: 13px; color: #126963; }
 @media (max-width: 600px) {
   .figure[data-area-forecast] .nameplate { width: 96%; }
   .targetForecast { flex-direction: column; }
-  .targetForecast .statusIcon { width: 11px; height: 11px; }
+  .targetForecast > span + span::before { content: none; }
+  .targetForecast svg { width: 11px; height: 11px; }
 }
 .arena .meter[data-kind=HP] .meterGain {
   background: repeating-linear-gradient(135deg, #24714c 0 3px, #a0f1bd 3px 5px);

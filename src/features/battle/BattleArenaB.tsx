@@ -17,7 +17,7 @@ import type { CreatureRecord } from "@/types/creature";
 import type { useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
 import { BattleStatusBadges, StatusIcon, statusLabel } from "./BattleStatusBadges";
-import { BattleEffectTray, getEffectTraySlots } from "./BattleEffectTray";
+import { BattleEffectTray, EffectIcon, getEffectTraySlots } from "./BattleEffectTray";
 import {BattleCreatureImage} from "./BattleCreatureImage";
 import {gameplayArt} from "@/data/creatureGameplayArt";
 import s from "./BattleArenaB.module.css";
@@ -90,7 +90,7 @@ function TargetForecastOdds({ id, forecast }: { id: string; forecast: TargetFore
   return <span className={s.targetForecast} id={id} data-target-forecast>
     <span>{forecast.hitChance}% hit</span>
     {forecast.statuses.map(({ stack, effectChance, requiresHit }) => <span key={`${stack.status}-${stack.stat ?? ""}`}>
-      <StatusIcon status={stack.status}/>
+      {(stack.status === "slowed" || stack.status === "bleed") && <EffectIcon status={stack.status}/>}
       <span>{effectChance}% {getBattleStatusGlossary(stack.status).label}{requiresHit ? " if hit" : ""}</span>
     </span>)}
   </span>;
