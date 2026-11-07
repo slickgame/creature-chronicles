@@ -12,7 +12,12 @@ export function useBattlePresentationController() {
   const [paused, setPaused] = useState(false);
   const [actionOrder, setActionOrder] = useState<string[]>([]);
   const [events, setEvents] = useState<BattlePresentationEvent[]>([]);
-  const step = useCallback(() => setEvents(queue => queue.slice(1)), []);
+  const [steppedEvent, setSteppedEvent] = useState<BattlePresentationEvent | null>(null);
+  const advance = useCallback(() => setEvents(queue => queue.slice(1)), []);
+  const step = useCallback(() => {
+    setSteppedEvent(events[1] ?? null);
+    advance();
+  }, [events, advance]);
   const [speed, setSpeedState] = useState<BattlePresentationSpeed>(1);
   const [reducedMotion, setReducedMotionState] = useState(false);
   const resultClock = useRef<{ event: BattlePresentationEvent; elapsed: number; reducedMotion: boolean } | null>(null);
@@ -37,8 +42,8 @@ export function useBattlePresentationController() {
       if (paused) return;
       const clock = resultClock.current;
       const started = performance.now();
-      const duration = reducedMotion ? BATTLE_OUTCOME_FADE_MS : current.durationMs;
-      const timer = window.setTimeout(step, Math.max(0, (duration - clock.elapsed) / speed));
+      const duration = reducedMotion || current === steppedEvent ? BATTLE_OUTCOME_FADE_MS : current.durationMs;
+      const timer = window.setTimeout(advance, Math.max(0, (duration - clock.elapsed) / speed));
       return () => {
         window.clearTimeout(timer);
         clock.elapsed += (performance.now() - started) * speed;
@@ -47,17 +52,21 @@ export function useBattlePresentationController() {
     resultClock.current = null;
     if (!current || paused) return;
     const duration = reducedMotion ? 300 : Math.max(80, Math.round(current.durationMs / speed));
-    const timer = window.setTimeout(step, duration);
+    const timer = window.setTimeout(advance, duration);
     return () => window.clearTimeout(timer);
-  }, [events, reducedMotion, speed, paused, step]);
+  }, [events, reducedMotion, speed, paused, advance, steppedEvent]);
 
   const play = useCallback((nextEvents: BattlePresentationEvent[], resolvedActorIds?: readonly string[]) => {
     setPaused(false);
+    setSteppedEvent(null);
     setActionOrder([...new Set(resolvedActorIds ?? nextEvents.flatMap(event => event.actorId ? [event.actorId] : []))]);
     setEvents(nextEvents);
   }, []);
 
-  const clear = useCallback(() => setEvents([]), []);
+  const clear = useCallback(() => {
+    setSteppedEvent(null);
+    setEvents([]);
+  }, []);
 
   const setSpeed = useCallback((nextSpeed: BattlePresentationSpeed) => {
     setSpeedState(nextSpeed);
@@ -73,6 +82,7 @@ export function useBattlePresentationController() {
     activeEvent: events[0] ?? null,
     displayState: events[0]?.state ?? null,
     paused, setPaused, step,
+    manualBeat: events[0] === steppedEvent,
     actionOrder,
     queuedEventCount: events.length,
     isPlaying: events.length > 0,
@@ -82,6 +92,6 @@ export function useBattlePresentationController() {
     clear,
     setSpeed,
     setReducedMotion,
-  }), [events, actionOrder, paused, step, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
+  }), [events, actionOrder, paused, step, steppedEvent, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
 }
 

@@ -503,8 +503,8 @@
   margin-inline: auto;
   padding-inline: 3px;
 }
-.figure .targetOutcome[data-staggered-outcome="1"] { inset-block-start: clamp(30px, 32%, 100px); }
-.figure .targetOutcome[data-staggered-outcome="2"] { inset-block-start: clamp(40px, 43%, 130px); }
+.figure .targetOutcome[data-staggered-outcome="1"] { inset-block-start: clamp(48px, 40%, 124px); }
+.figure .targetOutcome[data-staggered-outcome="2"] { inset-block-start: clamp(74px, 54%, 155px); }
 .targetOutcome[data-staggered-outcome] > strong { font-size: clamp(16px, 2.25vw, 36px); }
 .targetOutcome[data-outcome-fade] { opacity: 0; }
 .targetOutcome[data-staggered-outcome]::after {

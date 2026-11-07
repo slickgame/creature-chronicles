@@ -88,9 +88,10 @@ function TargetOutcome({ event, staggerIndex, presentation, knockedOut }: {
 }) {
   const node = useRef<HTMLSpanElement>(null);
   const fade = useRef<Animation | null>(null);
-  const { paused, reducedMotion, speed } = presentation;
+  const { paused, reducedMotion, speed, manualBeat } = presentation;
+  const animateFade = staggerIndex !== undefined && !reducedMotion && !manualBeat;
   useEffect(() => {
-    if (staggerIndex === undefined || reducedMotion || !node.current) return;
+    if (!animateFade || staggerIndex === undefined || !node.current) return;
     const animation = node.current.animate([
       { opacity: 0 },
       { opacity: 1, offset: 0.16 },
@@ -106,14 +107,14 @@ function TargetOutcome({ event, staggerIndex, presentation, knockedOut }: {
       animation.cancel();
       fade.current = null;
     };
-  }, [staggerIndex, reducedMotion]);
+  }, [animateFade, staggerIndex]);
   useEffect(() => {
     const animation = fade.current;
-    if (!animation) return;
+    if (!animation || animation.playState === "finished") return;
     animation.updatePlaybackRate(speed);
     if (paused) animation.pause();
     else animation.play();
-  }, [paused, reducedMotion, speed, staggerIndex]);
+  }, [paused, animateFade, speed, staggerIndex]);
 
   const outcome = event.statusOutcome;
   const staggered = staggerIndex !== undefined;
@@ -125,7 +126,7 @@ function TargetOutcome({ event, staggerIndex, presentation, knockedOut }: {
   const damage = event.kind === "damage" ? event.label : event.precedingDamage;
   return <span ref={node} className={s.targetOutcome} data-kind={event.kind}
     data-staggered-outcome={staggered ? staggerIndex : undefined}
-    data-outcome-fade={staggered && !reducedMotion ? "" : undefined}>
+    data-outcome-fade={animateFade ? "" : undefined}>
     {damage && <strong>{damage.replace(/^-/, "−")}</strong>}
     {event.kind === "miss" && <strong>Miss</strong>}
     {shownStatus && <span className={s.outcomeChip} data-status={shownStatus.status} data-result={shownStatus.result}>
