@@ -1057,6 +1057,8 @@ export type BattleActionEffectPreview = {
   targetId: BattleCombatantId;
   name: string;
   hitChance: number;
+  /** Whether the target must be hit before this effect can resolve. */
+  requiresHit: boolean;
   effectChance: number;
   description: string;
   hpAfter: number;
@@ -1102,12 +1104,13 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         const hostile = isHostileEffect(paidActor, before, effect);
         const hostileHitChance = hostile ? hostileHitChances.get(targetId) : undefined;
         const hitChance = hostileHitChance ?? 100;
+        const requiresHit = hostileHitChance !== undefined;
         const effectChance = effect.chance === undefined ? 100 : hostile
           ? calculateBattleSecondaryEffectChance(actorStats, targetStats, effect.chance) : clamp(effect.chance, 0, 100);
         const statusApplication = appliedStatus && !after.isFainted && effectChance > 0 ? {
           stack: appliedStatus.status,
           mode: appliedStatus.mode,
-          requiresHit: hostileHitChance !== undefined,
+          requiresHit,
           hitChance,
           effectChance,
         } : undefined;
@@ -1137,6 +1140,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
           targetId,
           name: before.name,
           hitChance,
+          requiresHit,
           effectChance,
           description,
           hpAfter: after.currentHp,

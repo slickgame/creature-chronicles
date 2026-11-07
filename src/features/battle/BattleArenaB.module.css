@@ -147,6 +147,49 @@
 .arena[data-individual=true] .meter[data-kind=BE] .meterLoss {
   background: repeating-linear-gradient(135deg, #9a531a 0 3px, #efb150 3px 5px);
 }
+.arena[data-individual=true] .meter[data-forecast-hp] {
+  height: 17px;
+  border-color: #c79955;
+}
+.arena[data-individual=true] .meter[data-forecast-hp] .meterLoss {
+  background: repeating-linear-gradient(135deg, #a45c19 0 2px, #f5bb4b 2px 6px);
+}
+.arena[data-individual=true] .meter[data-forecast-hp] b {
+  line-height: 15px;
+  text-shadow: 0 1px 2px #271a0c, 0 0 4px #271a0c;
+}
+.arena[data-individual=true] .figure[data-area-forecast] .figureButton {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.figure[data-area-forecast] .nameplate { width: 86%; max-width: 215px; }
+.figure[data-area-forecast] .nameplate > strong {
+  justify-self: center;
+  max-width: 100%;
+  padding: 0 7px;
+  border: 1px solid #ab7536;
+  border-radius: 5px;
+  background: linear-gradient(#ffe8b9, #deb376);
+}
+.targetForecast {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1px 6px;
+  padding: 2px 3px;
+  border: 1px solid #ae793b;
+  border-radius: 5px;
+  background: linear-gradient(#ffebc5, #ebc58b);
+  color: #392311;
+  font: 700 clamp(9px, .9vw, 12px)/1.2 Georgia, serif;
+}
+.targetForecast > span { display: inline-flex; align-items: center; justify-content: center; gap: 2px; }
+.targetForecast .statusIcon { width: 13px; height: 13px; }
+@media (max-width: 600px) {
+  .figure[data-area-forecast] .nameplate { width: 96%; }
+  .targetForecast { flex-direction: column; }
+  .targetForecast .statusIcon { width: 11px; height: 11px; }
+}
 .arena .meter[data-kind=HP] .meterGain {
   background: repeating-linear-gradient(135deg, #24714c 0 3px, #a0f1bd 3px 5px);
 }
