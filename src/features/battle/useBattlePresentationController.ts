@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { BattlePresentationEvent } from "@/data/battlePresentation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BATTLE_OUTCOME_FADE_MS, type BattlePresentationEvent } from "@/data/battlePresentation";
 
 export type BattlePresentationSpeed = 1 | 2;
 
@@ -15,6 +15,7 @@ export function useBattlePresentationController() {
   const step = useCallback(() => setEvents(queue => queue.slice(1)), []);
   const [speed, setSpeedState] = useState<BattlePresentationSpeed>(1);
   const [reducedMotion, setReducedMotionState] = useState(false);
+  const resultClock = useRef<{ event: BattlePresentationEvent; elapsed: number; reducedMotion: boolean } | null>(null);
 
   useEffect(() => {
     const storedSpeed = window.localStorage.getItem(SPEED_KEY);
@@ -28,12 +29,27 @@ export function useBattlePresentationController() {
   }, []);
 
   useEffect(() => {
-    if (!events.length || paused) return;
     const current = events[0];
+    if (current?.targetOutcomes) {
+      if (resultClock.current?.event !== current || resultClock.current.reducedMotion !== reducedMotion) {
+        resultClock.current = { event: current, elapsed: 0, reducedMotion };
+      }
+      if (paused) return;
+      const clock = resultClock.current;
+      const started = performance.now();
+      const duration = reducedMotion ? BATTLE_OUTCOME_FADE_MS : current.durationMs;
+      const timer = window.setTimeout(step, Math.max(0, (duration - clock.elapsed) / speed));
+      return () => {
+        window.clearTimeout(timer);
+        clock.elapsed += (performance.now() - started) * speed;
+      };
+    }
+    resultClock.current = null;
+    if (!current || paused) return;
     const duration = reducedMotion ? 300 : Math.max(80, Math.round(current.durationMs / speed));
-    const timer = window.setTimeout(() => setEvents((queue) => queue.slice(1)), duration);
+    const timer = window.setTimeout(step, duration);
     return () => window.clearTimeout(timer);
-  }, [events, reducedMotion, speed, paused]);
+  }, [events, reducedMotion, speed, paused, step]);
 
   const play = useCallback((nextEvents: BattlePresentationEvent[], resolvedActorIds?: readonly string[]) => {
     setPaused(false);
@@ -68,3 +84,4 @@ export function useBattlePresentationController() {
     setReducedMotion,
   }), [events, actionOrder, paused, step, speed, reducedMotion, play, clear, setSpeed, setReducedMotion]);
 }
+

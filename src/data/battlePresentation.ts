@@ -1,4 +1,5 @@
 import { getBattleMove } from "@/data/battleMoves";
+import { getBattleStatusGlossary } from "@/data/battleGlossary";
 import type {
   BattleCombatantId,
   BattlePlaybackFrame,
@@ -39,9 +40,21 @@ export type BattlePresentationEvent = {
   amount?: number;
   statusOutcome?: BattlePlaybackFrame["statusOutcome"];
   precedingDamage?: string;
+  targetOutcomes?: BattleTargetOutcome[];
   preset: BattleEffectPreset;
   durationMs: number;
 };
+
+export type BattleTargetOutcome = {
+  targetId: BattleCombatantId;
+  kind: "damage" | "miss" | "status";
+  label: string;
+  statusOutcome?: BattlePlaybackFrame["statusOutcome"];
+  knockedOut?: boolean;
+};
+
+export const BATTLE_OUTCOME_FADE_MS = 1050;
+export const BATTLE_OUTCOME_STAGGER_MS = 150;
 
 export type BattlePortraitConfig = {
   scale: number;
@@ -291,9 +304,59 @@ export function buildBattlePresentationEvents(
   return events;
 }
 
-export function buildBattlePlaybackEvents(frames: BattlePlaybackFrame[]): BattlePresentationEvent[] {
+export function getBattleOutcomeStatusText(outcome: NonNullable<BattleTargetOutcome["statusOutcome"]>) {
+  const status = getBattleStatusGlossary(outcome.status).label;
+  return `${status} ${outcome.result === "failed" ? "didn’t apply" : outcome.result}`;
+}
+
+function groupTargetOutcomes(attack: BattlePresentationEvent, results: BattlePresentationEvent[]): BattlePresentationEvent | null {
+  const latest = results.at(-1);
+  if (!latest?.state) return null;
+  const outcomes = new Map<BattleCombatantId, BattleTargetOutcome>();
+  for (const result of results) {
+    const [targetId] = result.targetIds;
+    if (result.targetIds.length !== 1 || !attack.targetIds.includes(targetId)) return null;
+    const outcome = outcomes.get(targetId);
+    if (!outcome && (result.kind === "damage" || result.kind === "miss")) {
+      outcomes.set(targetId, { targetId, kind: result.kind, label: result.label });
+    } else if (result.kind === "status" && result.statusOutcome && (!outcome || (outcome.kind === "damage" && !outcome.statusOutcome))) {
+      outcomes.set(targetId, {
+        ...(outcome ?? { targetId, kind: "status", label: result.label }),
+        statusOutcome: result.statusOutcome,
+      });
+    } else if (result.kind === "knockout" && outcome?.kind === "damage") {
+      outcome.knockedOut = true;
+    } else {
+      // Keep the original beats if the move has other effects or repeated hits.
+      return null;
+    }
+  }
+  const targetOutcomes = attack.targetIds.flatMap(id => {
+    const outcome = outcomes.get(id);
+    return outcome ? [outcome] : [];
+  });
+  if (targetOutcomes.length < 2) return null;
+
+  return {
+    ...latest,
+    kind: "status",
+    targetIds: targetOutcomes.map(outcome => outcome.targetId),
+    targetOutcomes,
+    label: targetOutcomes.map(outcome => {
+      const status = outcome.statusOutcome ? getBattleOutcomeStatusText(outcome.statusOutcome) : "";
+      const result = outcome.kind === "status" ? status : [outcome.label, status].filter(Boolean).join(" · ");
+      return `${latest.state?.combatants[outcome.targetId]?.name}: ${result}${outcome.knockedOut ? " · K.O." : ""}`;
+    }).join(" | "),
+    durationMs: BATTLE_OUTCOME_FADE_MS + (targetOutcomes.length - 1) * BATTLE_OUTCOME_STAGGER_MS,
+  };
+}
+
+export function buildBattlePlaybackEvents(
+  frames: BattlePlaybackFrame[],
+  { staggerMultiTarget = false }: { staggerMultiTarget?: boolean } = {},
+): BattlePresentationEvent[] {
   const damageByTarget = new Map<BattleCombatantId, string>();
-  return frames.map((frame, index) => {
+  const events = frames.map((frame, index) => {
     if (frame.kind === "attack" || !frame.moveId) damageByTarget.clear();
     const [targetId] = frame.targetIds;
     if (frame.kind === "damage" && frame.moveId && targetId) {
@@ -308,4 +371,23 @@ export function buildBattlePlaybackEvents(frames: BattlePlaybackFrame[]): Battle
       precedingDamage: frame.statusOutcome && targetId ? damageByTarget.get(targetId) : undefined,
     };
   });
+  if (!staggerMultiTarget) return events;
+
+  const playback: BattlePresentationEvent[] = [];
+  for (let index = 0; index < events.length; index += 1) {
+    const attack = events[index];
+    playback.push(attack);
+    if (attack.kind !== "attack" || attack.targetIds.length < 2 || !attack.moveId) continue;
+    let end = index + 1;
+    while (end < events.length) {
+      const next = events[end];
+      if (next.kind === "attack" || next.actorId !== attack.actorId || next.moveId !== attack.moveId) break;
+      end += 1;
+    }
+    const results = events.slice(index + 1, end);
+    const grouped = groupTargetOutcomes(attack, results);
+    playback.push(...(grouped ? [grouped] : results));
+    index = end - 1;
+  }
+  return playback;
 }

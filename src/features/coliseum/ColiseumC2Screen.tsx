@@ -350,7 +350,7 @@ export function ColiseumBattle({
     if (!battleState || presentation.isPlaying || phase !== "battle") return;
     const resolved = resolveBattleTurn(battleState, turnOrder, action);
     if (!resolved) return;
-    presentation.play(buildBattlePlaybackEvents(resolved.frames), [turnOrder[0]]);
+    presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [turnOrder[0]]);
     setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, resolved.result));
     setBattleState(resolved.state);
     setSelectedTarget(null);

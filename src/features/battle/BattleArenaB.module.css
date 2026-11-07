@@ -495,3 +495,51 @@
 @media (max-width: 600px) {
   .figure .targetOutcome, .figure[data-slot="2"] .targetOutcome { inset: 25% 0 auto; margin-inline: auto; }
 }
+
+.figure .targetOutcome[data-staggered-outcome] {
+  inset: clamp(20px, 21%, 70px) 0 auto;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 3px;
+}
+.figure .targetOutcome[data-staggered-outcome="1"] { inset-block-start: clamp(30px, 32%, 100px); }
+.figure .targetOutcome[data-staggered-outcome="2"] { inset-block-start: clamp(40px, 43%, 130px); }
+.targetOutcome[data-staggered-outcome] > strong { font-size: clamp(16px, 2.25vw, 36px); }
+.targetOutcome[data-outcome-fade] { opacity: 0; }
+.targetOutcome[data-staggered-outcome]::after {
+  content: "";
+  width: 13px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to left, #ffeac0, #b9823e);
+  box-shadow: 0 1px 2px #422311;
+  transform: translate(-4px, 2px) rotate(-44deg);
+}
+.dockPlayback {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  min-height: 68px;
+  align-content: start;
+  color: #fff1d2;
+  font-size: clamp(11px, 1.1vw, 14px);
+}
+.dockPlayback > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.resultAnnouncement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+@media (max-width: 600px), (max-height: 560px) {
+  .figure .targetOutcome[data-staggered-outcome] { inset-block-start: 24%; }
+  .figure .targetOutcome[data-staggered-outcome="1"] { inset-block-start: 34%; }
+  .figure .targetOutcome[data-staggered-outcome="2"] { inset-block-start: 44%; }
+}
