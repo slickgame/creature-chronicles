@@ -12,7 +12,7 @@ import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
-import type { BattleAction, BattleCombatantId, BattleMove, BattleState, BattleStatKey } from "@/types/battle";
+import type { BattleAction, BattleCombatantId, BattleMove, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
@@ -40,8 +40,10 @@ function artwork(source: CreatureRecord | undefined, full = false) {
   if (!source) return FALLBACK;
   return gameplayArt(source,!full);
 }
-function Meter({ label, value, max, after, forecastId }: {
-  label: "HP" | "BE"; value: number; max: number; after?: number; forecastId?: string;
+type HealthForecast = { id: string; kind: "attack" | "heal" | "support" };
+
+function Meter({ label, value, max, after, forecast }: {
+  label: "HP" | "BE"; value: number; max: number; after?: number; forecast?: HealthForecast;
 }) {
   const percent = (amount: number) => Math.max(0, Math.min(100, amount / Math.max(1, max) * 100));
   const projected = Math.max(0, Math.min(max, after ?? value));
@@ -50,25 +52,29 @@ function Meter({ label, value, max, after, forecastId }: {
   const solid = isLoss ? projected : value;
   const segmentEnd = isGain ? projected : value;
   const amount = isLoss || isGain ? `${value} → ${projected}` : value;
-  return <span className={s.meter} data-kind={label} data-forecast-hp={forecastId ? "" : undefined} id={forecastId}>
+  let caption = `${label} ${amount}/${max}`;
+  if (forecast?.kind === "attack") caption = `${amount} HP if hit`;
+  if (forecast?.kind === "heal") caption = value === max && projected === max ? "Full HP" : `${amount} HP`;
+  return <span className={s.meter} data-kind={label} data-forecast-hp={forecast?.kind} id={forecast?.id}>
     <i style={{ width: `${percent(solid)}%` }} />
     {(isLoss || isGain) && <i className={isGain ? s.meterGain : s.meterLoss} style={{ left: `${percent(solid)}%`, width: `${percent(segmentEnd) - percent(solid)}%` }} />}
-    <b>{forecastId ? `${amount} HP if hit` : `${label} ${amount}/${max}`}</b>
+    <b>{caption}</b>
   </span>;
 }
 
 type GuardDisplay = BattleGuardedStatus & { mode: "preview" | "active" | "breaking" };
 
-function HealthMeter({ value, max, after, guard, details = false, forecastId }: {
-  value: number; max: number; after?: number; guard?: GuardDisplay; details?: boolean; forecastId?: string;
+function HealthMeter({ value, max, after, guard, details = false, forecast, allyGuard }: {
+  value: number; max: number; after?: number; guard?: GuardDisplay; details?: boolean;
+  forecast?: HealthForecast; allyGuard?: boolean;
 }) {
-  const meter = <Meter label="HP" value={value} max={max} after={after} forecastId={forecastId}/>;
+  const meter = <Meter label="HP" value={value} max={max} after={after} forecast={forecast}/>;
   if (!guard) return meter;
 
   const label = guard.mode === "preview" ? "Guard preview" : "Guarded";
   const effect = `−${guard.damageReductionPercent}% damage · ${guard.duration} round${guard.duration === 1 ? "" : "s"}`;
   return <span className={s.guardVitals} data-guard-mode={guard.mode}>
-    <span className={s.brassGuardMeter} aria-label={`${label} · ${effect}`}>
+    <span className={s.brassGuardMeter} data-ally-guard-meter={allyGuard ? "" : undefined} aria-label={`${label} · ${effect}`}>
       <span className={s.guardShield} aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false">
           <path d="M12 2.5 20 6v5.6c0 4.8-3.2 8.3-8 10-4.8-1.7-8-5.2-8-10V6l8-3.5Z" />
@@ -85,6 +91,7 @@ function HealthMeter({ value, max, after, guard, details = false, forecastId }: 
 }
 
 type TargetForecast = { hitChance: number; statuses: BattleStatusApplicationPreview[] };
+type AllyForecast = { heals: boolean; guarded: boolean; cleanses: Map<BattleStatusId, number> };
 
 function TargetForecastOdds({ id, forecast }: { id: string; forecast: TargetForecast }) {
   return <span className={s.targetForecast} id={id} data-target-forecast>
@@ -94,6 +101,32 @@ function TargetForecastOdds({ id, forecast }: { id: string; forecast: TargetFore
       <span>{effectChance}% {getBattleStatusGlossary(stack.status).label}{requiresHit ? " if hit" : ""}</span>
     </span>)}
   </span>;
+}
+
+function AllyForecastEffects({ id, cleanses, guard, rows }: {
+  id: string; cleanses: ReadonlyMap<BattleStatusId, number>; guard?: BattleGuardedStatus; rows: number;
+}) {
+  const empty = !guard && !cleanses.size;
+  return <span className={`${s.targetForecast} ${s.allyForecastEffects}`} id={empty ? undefined : id}
+    aria-hidden={empty || undefined} data-empty={empty ? "" : undefined}
+    style={{ minHeight: `calc(${rows} * max(1.2em, 13px) + ${rows + 5}px)` }}>
+    {guard && <span data-ally-guard>Guarded · −{guard.damageReductionPercent}% damage · <span className={s.guardRound}>{guard.duration} {guard.duration === 1 ? "round" : "rounds"}</span></span>}
+    {[...cleanses].map(([status, chance]) => <span key={status} data-clears-status={status}>
+      <svg className={s.cleanseIcon} viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="8" cy="8" r="5.5" fill="#ebdbf2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="m3 13 10-10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+      </svg>
+      <span>{chance === 100 ? "Clears" : `${chance}% to clear`} {getBattleStatusGlossary(status).label}</span>
+    </span>)}
+  </span>;
+}
+
+function effectForecastText(effect: ReturnType<typeof previewBattleAction>[number]) {
+  return [
+    effect.description,
+    effect.requiresHit ? `${effect.hitChance}% hit` : "",
+    effect.effectChance < 100 ? `${effect.effectChance}% effect${effect.requiresHit ? " if hit" : ""}` : "",
+  ].filter(Boolean).join(" · ");
 }
 
 function TargetOutcome({ event, staggerIndex, presentation, knockedOut }: {
@@ -236,6 +269,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const projectedEffects = effectsFor(previewMove);
   const projectionById = new Map(projectedEffects.map(effect => [effect.targetId, effect]));
   const forecastById = new Map<BattleCombatantId, TargetForecast>();
+  const allyForecastById = new Map<BattleCombatantId, AllyForecast>();
   if (previewMove?.move.targetType === "all_enemies") {
     for (const effect of projectedEffects) {
       if (!effect.requiresHit) continue;
@@ -244,6 +278,22 @@ export function BattleArenaB(props: BattleArenaBProps) {
       forecastById.set(effect.targetId, forecast);
     }
   }
+  if (previewMove?.move.targetType === "all_allies") {
+    for (const effect of projectedEffects) {
+      const heals = effect.effectType === "heal";
+      const guarded = effect.statusApplication?.stack.status === "guarded";
+      const cleanses = effect.effectChance > 0 ? effect.cleansedStatuses ?? [] : [];
+      if (!heals && !guarded && !cleanses.length) continue;
+      const forecast: AllyForecast = allyForecastById.get(effect.targetId) ??
+        { heals: false, guarded: false, cleanses: new Map() };
+      forecast.heals ||= heals;
+      forecast.guarded ||= guarded;
+      for (const status of cleanses) forecast.cleanses.set(status, effect.effectChance);
+      allyForecastById.set(effect.targetId, forecast);
+    }
+  }
+  const allyForecastRows = Math.max(0, ...Array.from(allyForecastById.values(), forecast =>
+    forecast.cleanses.size + Number(forecast.guarded)));
   const dockTarget = target ?? (individual
     ? currentEvent?.targetIds.map(id => state.combatants[id]).find(c => c && !c.isFainted && (getBattleGuardedStatus(c) || getEffectTraySlots(c.statuses) > 0))
     : undefined);
@@ -304,6 +354,13 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
       const forecast = forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
       const forecastId = `forecast-${c.battleCombatantId}`;
+      const allyForecast = allyForecastById.get(c.battleCombatantId);
+      const guard = guardFor(c.battleCombatantId);
+      const allyGuard = allyForecast?.guarded ? guard : undefined;
+      const showAllyEffects = allyForecast && (allyGuard || allyForecast.cleanses.size > 0);
+      const healthForecast: HealthForecast | undefined = forecast || allyForecast
+        ? { id: `${forecastId}-hp`, kind: forecast ? "attack" : allyForecast?.heals ? "heal" : "support" }
+        : undefined;
       const groupedIndex = currentEvent?.targetOutcomes?.findIndex(outcome => outcome.targetId === c.battleCombatantId) ?? -1;
       const grouped = groupedIndex >= 0 ? currentEvent?.targetOutcomes?.[groupedIndex] : undefined;
       const event = grouped && currentEvent ? {
@@ -315,15 +372,16 @@ export function BattleArenaB(props: BattleArenaBProps) {
         precedingDamage: undefined,
       } : currentEvent;
       const affected=event?.targetIds.includes(c.battleCombatantId);
-      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!forecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={forecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
-        <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={forecast ? `${forecastId}-hp ${forecastId}` : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
+      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
+        <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={healthForecast ? [healthForecast.id, forecast || showAllyEffects ? forecastId : null].filter(Boolean).join(" ") : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
           <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected && event && event.kind !== "attack" && (individual
             ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} knockedOut={grouped?.knockedOut}/>
             : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>)}</span>
           <span className={s.nameplate}>
             <strong title={c.name}>{c.name}</strong>
-            <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guardFor(c.battleCombatantId)} forecastId={forecast ? `${forecastId}-hp` : undefined}/>
+            <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!allyGuard}/>
             {forecast && <TargetForecastOdds id={forecastId} forecast={forecast}/>}
+            {allyForecast && allyForecastRows > 0 && <AllyForecastEffects id={forecastId} cleanses={allyForecast.cleanses} guard={allyGuard} rows={allyForecastRows}/>}
             <Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)}/>
             {c.isFainted&&<small>K.O.</small>}
           </span>
@@ -363,7 +421,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
             </button>
             {tooltip && <div className={s.moveTooltip} id={`move-tip-${option.move.id}`} role="tooltip">
               <strong>{option.move.name}</strong><span>{getBattleTargetTypeLabel(option.move.targetType)} · {option.move.battleEnergyCost} BE</span>
-              <span>{effect ? `Est. ${effect.description} · ${effect.hitChance}% hit${effect.effectChance < 100 ? ` · ${effect.effectChance}% effect` : ""}` : option.reasons[0] ?? option.move.description}</span>
+              <span>{effect ? `Est. ${effectForecastText(effect)}` : option.reasons[0] ?? option.move.description}</span>
             </div>}
           </div>;
         })}</div>
@@ -383,7 +441,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
           </div>}
         </div>}
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
-          : <button className={s.primary} disabled={!selectedMove?.usable} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
+          : <button className={s.primary} disabled={!selectedMove?.usable} onFocus={() => setHoverMove(null)} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
         {selectedMove ? <button className={s.turnDetailButton} onClick={() => setTurnDetails(true)}>Move details</button>
           : effectTraySlots > 0 && turnOptions.length > 0 && <span className={s.turnDetailSpace} aria-hidden="true"/>}
       </section>
@@ -401,7 +459,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     </footer>}
     {turnDetails && selectedMove && <GameDialog title="Move Details" onClose={() => setTurnDetails(false)}>
       <MoveDetails move={selectedMove.move}/>
-      {effectsFor(selectedMove).map((effect, index) => <p key={index}>{effect.name} · {effect.description} · {effect.hitChance}% hit</p>)}
+      {effectsFor(selectedMove).map((effect, index) => <p key={index}>{effect.name} · {effectForecastText(effect)}</p>)}
     </GameDialog>}
     {popup==="planning"&&<GameDialog title="Round Ledger" onClose={()=>setPopup(null)}><p>Plans can be edited until you confirm. Shared targets are allowed; estimates do not guarantee hits or effects.</p>{players.map(c=>{const a=queue.get(c.battleCombatantId),m=a?getBattleMove(a.moveId):null;return <section className={s.statusDetail} key={c.battleCombatantId}><h3>{c.name}</h3><p>{c.isFainted?"K.O. · No action required":m&&a?`${m.name} → ${a.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield"} · ${m.battleEnergyCost} BE (currently ${c.currentBattleEnergy})`:"Action needed"}</p><button disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan?.(c.battleCombatantId);setMovesOpen(true);setPopup(null);}}>Edit {c.name}</button></section>})}</GameDialog>}
 

@@ -186,6 +186,12 @@
 .targetForecast > span { display: inline-flex; align-items: center; justify-content: center; gap: 2px; }
 .targetForecast > span + span::before { content: "·"; margin-inline-end: 2px; }
 .targetForecast svg { flex: none; width: 13px; height: 13px; color: #126963; }
+.allyForecastEffects { flex-direction: column; }
+.allyForecastEffects[data-empty] { visibility: hidden; }
+.allyForecastEffects > span + span::before { content: none; }
+.allyForecastEffects [data-ally-guard] { display: block; }
+.guardRound { white-space: nowrap; }
+.allyForecastEffects .cleanseIcon { color: #6b386e; }
 @media (max-width: 600px) {
   .figure[data-area-forecast] .nameplate { width: 96%; }
   .targetForecast { flex-direction: column; }
@@ -251,6 +257,16 @@
 .arena[data-individual=true] .brassGuardMeter .meter {
   border-radius: 0 3px 3px 0;
   border-color: #c9974e;
+}
+.brassGuardMeter[data-ally-guard-meter] { grid-template-columns: minmax(0, 1fr) auto; }
+.brassGuardMeter[data-ally-guard-meter] .guardShield {
+  grid-area: 1 / 2;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(#346c94, #142e45);
+}
+.arena[data-individual=true] .brassGuardMeter[data-ally-guard-meter] .meter {
+  grid-area: 1 / 1;
+  border-radius: 3px 0 0 3px;
 }
 .turnTargetVitals .brassGuardMeter { padding-inline: 7px; }
 .turnTargetVitals .brassGuardMeter::before,

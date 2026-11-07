@@ -1056,6 +1056,7 @@ export type BattleStatusApplicationPreview = {
 export type BattleActionEffectPreview = {
   targetId: BattleCombatantId;
   name: string;
+  effectType: BattleMoveEffect["type"];
   hitChance: number;
   /** Whether the target must be hit before this effect can resolve. */
   requiresHit: boolean;
@@ -1066,6 +1067,8 @@ export type BattleActionEffectPreview = {
   guardedAfter: BattleGuardedStatus | null;
   /** A status applied by this effect that remains on a living target after the move. */
   statusApplication?: BattleStatusApplicationPreview;
+  /** Status IDs this cleanse removes if it applies. Empty when none are removed. */
+  cleansedStatuses?: BattleStatusId[];
 };
 
 /** Estimates assuming effects hit and apply. The last row per target reflects its final state. */
@@ -1116,6 +1119,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         } : undefined;
         const guardedAfter = getBattleGuardedStatus(after);
         let description: string;
+        let cleansedStatuses: BattleStatusId[] | undefined;
         if (effect.type === "damage") {
           const { modifier } = getDamageModifier(paidActor, before, move);
           const damage = previewBattleDamage(actorStats, targetStats, move, modifier).finalDamage;
@@ -1128,7 +1132,10 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         } else if (effect.type === "restore_battle_energy") {
           description = `Restore ${after.currentBattleEnergy - before.currentBattleEnergy} BE · ${before.currentBattleEnergy} → ${after.currentBattleEnergy} (after move cost)`;
         } else if (effect.type === "cleanse_status") {
-          description = `Remove ${effect.status ?? "all statuses"}`;
+          const remainingStatuses = new Set(after.statuses.map(stack => stack.status));
+          cleansedStatuses = [...new Set(before.statuses.map(stack => stack.status))]
+            .filter(status => !remainingStatuses.has(status));
+          description = cleansedStatuses.length ? `Clear ${cleansedStatuses.join(", ")}` : "No matching status to clear";
         } else if (guardedAfter && (effect.type === "guard" || effect.type === "apply_status") &&
           (effect.status ?? "guarded") === "guarded") {
           const { damageReductionPercent, duration } = guardedAfter;
@@ -1139,6 +1146,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         entries.push({
           targetId,
           name: before.name,
+          effectType: effect.type,
           hitChance,
           requiresHit,
           effectChance,
@@ -1147,6 +1155,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
           battleEnergyAfter: after.currentBattleEnergy,
           guardedAfter,
           statusApplication,
+          cleansedStatuses,
         });
         previousFrame = frame.state;
       },
