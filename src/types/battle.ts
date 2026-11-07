@@ -352,5 +352,9 @@ export type BattlePlaybackFrame = {
   actorId?: BattleCombatantId;
   targetIds: BattleCombatantId[];
   moveId?: BattleMoveId;
+  statusOutcome?: {
+    status: BattleStatusId;
+    result: "applied" | "stacked" | "refreshed" | "failed";
+  };
   label: string;
 };

@@ -79,6 +79,25 @@ function HealthMeter({ value, max, after, guard, details = false }: {
   </span>;
 }
 
+function TargetOutcome({ event }: { event: NonNullable<Presentation["activeEvent"]> }) {
+  const outcome = event.statusOutcome;
+  const tracked = outcome?.status === "bleed" || outcome?.status === "slowed";
+  if (!tracked && event.kind !== "damage" && event.kind !== "miss") {
+    return <b className={s.effect} data-kind={event.kind}>{event.label}</b>;
+  }
+
+  const damage = event.kind === "damage" ? event.label : event.precedingDamage;
+  const statusLabel = tracked ? getBattleStatusGlossary(outcome.status).label : undefined;
+  const statusResult = outcome?.result === "failed" ? "didn’t apply" : outcome?.result;
+  return <span className={s.targetOutcome} data-kind={event.kind}>
+    {damage && <strong>{damage.replace(/^-/, "−")}</strong>}
+    {event.kind === "miss" && <strong>Miss</strong>}
+    {tracked && <span className={s.outcomeChip} data-status={outcome.status} data-result={outcome.result}>
+      <StatusIcon status={outcome.status}/>{statusLabel} {statusResult}
+    </span>}
+  </span>;
+}
+
 function TurnIcon({ kind }: { kind: "moves" | "items" | "inspect" }) {
   return <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     {kind === "moves" && <><path fill="currentColor" d="m9 21 13-15 7-3-2 8-14 14z"/><path d="m5 18 9 9M8 23l-5 6 2 2 6-5"/></>}
@@ -212,7 +231,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const event=presentation.activeEvent,affected=event?.targetIds.includes(c.battleCombatantId);
       return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&validTargets.includes(c.battleCombatantId)} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected&&event&&event.kind!=="attack"&&<b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
+          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected&&event&&event.kind!=="attack"&&individual ? <TargetOutcome key={event.eventId} event={event}/> : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>}</span>
           <span className={s.nameplate}><strong title={c.name}>{c.name}</strong><HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guardFor(c.battleCombatantId)}/><Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)}/>{c.isFainted&&<small>K.O.</small>}</span>
         </button>
         <BattleStatusBadges name={c.name} effects={c.statuses} onOpen={()=>openStatuses(c.battleCombatantId)}/>

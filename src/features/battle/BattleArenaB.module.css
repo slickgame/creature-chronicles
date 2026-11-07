@@ -453,3 +453,45 @@
   .arena[data-individual=true] .meter { height: 12px; }
   .arena[data-individual=true] .meter b { font-size: 9px; line-height: 10px; }
 }
+
+.targetOutcome {
+  position: absolute;
+  z-index: 3;
+  inset: 26% auto auto 47%;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  width: max-content;
+  max-width: min(145px, 100%);
+  pointer-events: none;
+  text-align: center;
+}
+.figure[data-slot="2"] .targetOutcome { inset-inline: auto 38%; }
+.targetOutcome > strong {
+  color: #fff1d2;
+  font: italic 900 clamp(18px, 2.7vw, 42px)/1 Georgia, serif;
+  text-shadow: 1px 2px #791c11, -1px -1px #791c11, 0 2px 7px #a41e12;
+  white-space: nowrap;
+}
+.targetOutcome[data-kind=miss] > strong {
+  color: #fff3cd;
+  text-shadow: 1px 2px #3d2918, -1px -1px #3d2918, 0 2px 6px #322414;
+}
+.outcomeChip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 5px;
+  border: 1px solid #e2b775;
+  border-radius: 6px;
+  background: linear-gradient(#22596c, #10353f);
+  box-shadow: 0 2px 4px #321e13a0;
+  color: #fff3d6;
+  font: bold clamp(10px, 1vw, 14px)/1.15 Georgia, serif;
+}
+.outcomeChip[data-status=bleed] { background: linear-gradient(#902d24, #531915); }
+.outcomeChip[data-result=failed] { color: #4e3021; background: #fae2b5; }
+.outcomeChip .statusIcon { width: 17px; height: 17px; }
+@media (max-width: 600px) {
+  .figure .targetOutcome, .figure[data-slot="2"] .targetOutcome { inset: 25% 0 auto; margin-inline: auto; }
+}

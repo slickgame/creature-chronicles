@@ -680,6 +680,11 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       if (nextState !== before || log.length > logStart) {
         input.onFrame?.({state:nextState, actorId:input.actor.battleCombatantId, targetIds:[currentTarget.battleCombatantId], moveId:input.move.id,
           kind:hp<0?"damage":hp>0?"heal":energy!==0?"energy":"status",
+          statusOutcome: appliedStatus
+            ? { status: appliedStatus.status.status, result: appliedStatus.mode }
+            : nextState === before && input.effect.type === "apply_status" && input.effect.status
+              ? { status: input.effect.status, result: "failed" }
+              : undefined,
           label:hp<0?`${hp} HP`:hp>0?`+${hp} HP`:energy!==0?`${energy>0?"+":""}${energy} BE`:nextState===before?"Resisted":input.effect.type==="heal"?"Full HP":`${(input.effect.status??input.effect.stat??input.effect.type).replaceAll("_"," ")}${input.effect.duration?` · ${input.effect.duration}r`:""}`}, appliedStatus);
         if(after.isFainted&&!currentTarget.isFainted) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
       }

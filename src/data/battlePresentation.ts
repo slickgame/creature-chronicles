@@ -37,6 +37,8 @@ export type BattlePresentationEvent = {
   moveName?: string;
   label: string;
   amount?: number;
+  statusOutcome?: BattlePlaybackFrame["statusOutcome"];
+  precedingDamage?: string;
   preset: BattleEffectPreset;
   durationMs: number;
 };
@@ -290,5 +292,20 @@ export function buildBattlePresentationEvents(
 }
 
 export function buildBattlePlaybackEvents(frames: BattlePlaybackFrame[]): BattlePresentationEvent[] {
-  return frames.map((frame,index)=>({...frame,eventId:`frame-${index}`,moveName:frame.moveId?getBattleMove(frame.moveId).name:undefined,preset:frame.moveId?getBattleMoveEffectPreset(getBattleMove(frame.moveId)):"status",durationMs:frame.kind==="attack"?600:frame.kind==="status"?650:800}));
+  const damageByTarget = new Map<BattleCombatantId, string>();
+  return frames.map((frame, index) => {
+    if (frame.kind === "attack" || !frame.moveId) damageByTarget.clear();
+    const [targetId] = frame.targetIds;
+    if (frame.kind === "damage" && frame.moveId && targetId) {
+      damageByTarget.set(targetId, frame.label);
+    }
+    return {
+      ...frame,
+      eventId: `frame-${index}`,
+      moveName: frame.moveId ? getBattleMove(frame.moveId).name : undefined,
+      preset: frame.moveId ? getBattleMoveEffectPreset(getBattleMove(frame.moveId)) : "status",
+      durationMs: frame.kind === "attack" ? 600 : frame.kind === "status" ? 650 : 800,
+      precedingDamage: frame.statusOutcome && targetId ? damageByTarget.get(targetId) : undefined,
+    };
+  });
 }
