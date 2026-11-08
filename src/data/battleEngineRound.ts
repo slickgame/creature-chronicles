@@ -934,7 +934,11 @@ export function advanceBattleCombatantEndOfRound(
   nextCombatant = applyBattleEnergy(nextCombatant, requestedRegen);
   const energyRecovered = nextCombatant.currentBattleEnergy - beforeEnergy;
   if (energyRecovered > 0) {
-    onChange?.(nextCombatant, "energy", `+${energyRecovered} BE · Recovery`);
+    onChange?.(nextCombatant, "energy", `+${energyRecovered} BE · Recovery`, {
+      kind: "energy",
+      before: beforeEnergy,
+      after: nextCombatant.currentBattleEnergy,
+    });
     log.push(`${nextCombatant.name} regenerates ${energyRecovered} Battle Energy.`);
   }
 

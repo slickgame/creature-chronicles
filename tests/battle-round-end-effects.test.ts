@@ -3,7 +3,7 @@ import test from "node:test";
 import { createBattleState, resolveBattleTurn } from "@/data/battleEngine";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
 
-test("round-end playback records clamped Bleed damage and only fully expired statuses", () => {
+test("round-end playback records actual Bleed damage, expiries, and Battle Energy recovery in order", () => {
   const [caster, affected, persistent, enemy] = createNewGameSave("Recovery", 0).creatures!;
   const state = createBattleState({
     battleId: "round-end-effect-playback",
@@ -13,15 +13,18 @@ test("round-end playback records clamped Bleed damage and only fully expired sta
   const [actorId, affectedId, persistentId] = state.teams.player.combatantIds;
   const [targetId] = state.teams.enemy.combatantIds;
   state.combatants[affectedId].currentHp = 7;
+  state.combatants[affectedId].currentBattleEnergy = 0;
   state.combatants[affectedId].statuses = [
     { status: "bleed", duration: 1, amount: 5, stacks: 3 },
     { status: "slowed", duration: 1 },
     { status: "weakened", stat: "physicalPower", duration: 1 },
     { status: "weakened", stat: "specialPower", duration: 2 },
   ];
-  state.combatants[persistentId].currentBattleEnergy = 0;
+  const maxBattleEnergy = state.combatants[persistentId].maxBattleEnergy;
+  state.combatants[persistentId].currentBattleEnergy = maxBattleEnergy - 1;
   state.combatants[persistentId].statuses = [
     { status: "bleed", duration: 2, amount: 4, stacks: 2 },
+    { status: "inspired", duration: 1 },
   ];
 
   const resolved = resolveBattleTurn(state, [actorId], { actorId, moveId: "strike", targetIds: [targetId] });
@@ -42,8 +45,15 @@ test("round-end playback records clamped Bleed damage and only fully expired sta
   const persistentFrames = resolved.frames.filter(frame => frame.targetIds.includes(persistentId));
   assert.deepEqual(persistentFrames.map(({ kind, roundEndEffect }) => [kind, roundEndEffect]), [
     ["damage", { kind: "bleed", stacks: 2, hpLost: 8 }],
-    ["energy", undefined],
+    ["status", { kind: "expiry", statuses: ["inspired"] }],
+    ["energy", { kind: "energy", before: maxBattleEnergy - 1, after: maxBattleEnergy }],
   ]);
-  assert.equal(persistentFrames[1].state.combatants[persistentId].statuses[0].duration, 1);
+  assert.equal(persistentFrames[1].state.combatants[persistentId].currentBattleEnergy, maxBattleEnergy - 1);
+  assert.equal(persistentFrames[2].state.combatants[persistentId].currentBattleEnergy, maxBattleEnergy);
+  assert.equal(persistentFrames[2].state.combatants[persistentId].statuses[0].duration, 1);
+  assert.equal(persistentFrames[2].label, "+1 BE · Recovery");
+  assert.equal(resolved.frames.filter(frame => frame.roundEndEffect?.kind === "energy").length, 1);
+  assert.equal(resolved.state.combatants[affectedId].currentBattleEnergy, 0);
+  assert.ok(resolved.result.log.some(line => line.endsWith("regenerates 1 Battle Energy.")));
   assert.equal(resolved.state.roundNumber, state.roundNumber + 1);
 });

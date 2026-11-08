@@ -347,7 +347,8 @@ export type BattleState = {
 
 export type BattleRoundEndEffect =
   | { kind: "bleed"; stacks: number; hpLost: number }
-  | { kind: "expiry"; statuses: BattleStatusId[] };
+  | { kind: "expiry"; statuses: BattleStatusId[] }
+  | { kind: "energy"; before: number; after: number };
 
 /** Immutable, ID-addressed display state after one resolved effect. Never stored in saves. */
 export type BattlePlaybackFrame = {

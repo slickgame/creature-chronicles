@@ -207,6 +207,13 @@
 .arena[data-individual=true] .meter[data-kind=BE] .meterGain {
   background: repeating-linear-gradient(135deg, #2a5e93 0 3px, #94d7f8 3px 5px);
 }
+.arena[data-individual=true] .meter[data-kind=BE] [data-energy-surge] {
+  background: linear-gradient(#ccfaff, #63d9ff 48%, #2e9de1);
+  box-shadow: inset 0 0 3px #dbfdff;
+}
+.meter[data-kind=BE]:has([data-energy-surge]) b {
+  text-shadow: 0 1px 2px #10294a, 0 0 4px #10294a;
+}
 .guardVitals {
   display: grid;
   min-width: 0;
@@ -612,6 +619,10 @@
   color: #fff3cd;
   text-shadow: 1px 2px #3d2918, -1px -1px #3d2918, 0 2px 6px #322414;
 }
+.targetOutcome[data-energy-recovery] > strong {
+  color: #e0fbff;
+  text-shadow: 1px 2px #084664, -1px -1px #084664, 0 0 9px #0b7ba0;
+}
 .outcomeChip {
   display: flex;
   align-items: center;
@@ -629,6 +640,7 @@
 .outcomeChip .statusIcon { width: 17px; height: 17px; }
 @media (max-width: 600px) {
   .figure .targetOutcome, .figure[data-slot="2"] .targetOutcome { inset: 25% 0 auto; margin-inline: auto; }
+  .figure .targetOutcome[data-energy-recovery] { inset-block-start: 12%; }
 }
 
 .figure .targetOutcome[data-staggered-outcome] {

@@ -14,7 +14,7 @@ import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
 import type { BattleAction, BattleCombatantId, BattleMove, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
-import { useBattleOutcomeFade, type useBattlePresentationController } from "./useBattlePresentationController";
+import { useBattleOutcomeFade, type BattlePlaybackMotion, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
 import { BattleStatusBadges, StatusIcon, statusLabel } from "./BattleStatusBadges";
 import { BattleEffectTray, EffectIcon, getEffectTraySlots } from "./BattleEffectTray";
@@ -41,9 +41,16 @@ function artwork(source: CreatureRecord | undefined, full = false) {
   return gameplayArt(source,!full);
 }
 type HealthForecast = { id: string; kind: "attack" | "heal" | "support" };
+type EnergyRecovery = { before: number; after: number; eventId: string; durationMs: number; playback: BattlePlaybackMotion };
+const ENERGY_SURGE_FADE: Keyframe[] = [{ opacity: 1 }, { opacity: 1, offset: 0.65 }, { opacity: 0 }];
 
-function Meter({ label, value, max, after, forecast }: {
-  label: "HP" | "BE"; value: number; max: number; after?: number; forecast?: HealthForecast;
+function EnergyRecoverySegment({ start, end, recovery }: { start: number; end: number; recovery: EnergyRecovery }) {
+  const { node } = useBattleOutcomeFade<HTMLElement>(recovery.playback, ENERGY_SURGE_FADE, 0, recovery.durationMs);
+  return <i ref={node} aria-hidden="true" data-energy-surge style={{ left: `${start}%`, width: `${end - start}%` }}/>;
+}
+
+function Meter({ label, value, max, after, forecast, recovery }: {
+  label: "HP" | "BE"; value: number; max: number; after?: number; forecast?: HealthForecast; recovery?: EnergyRecovery;
 }) {
   const percent = (amount: number) => Math.max(0, Math.min(100, amount / Math.max(1, max) * 100));
   const projected = Math.max(0, Math.min(max, after ?? value));
@@ -58,6 +65,7 @@ function Meter({ label, value, max, after, forecast }: {
   return <span className={s.meter} data-kind={label} data-forecast-hp={forecast?.kind} id={forecast?.id}>
     <i style={{ width: `${percent(solid)}%` }} />
     {(isLoss || isGain) && <i className={isGain ? s.meterGain : s.meterLoss} style={{ left: `${percent(solid)}%`, width: `${percent(segmentEnd) - percent(solid)}%` }} />}
+    {recovery && <EnergyRecoverySegment key={recovery.eventId} start={percent(recovery.before)} end={percent(recovery.after)} recovery={recovery}/>}
     <b>{caption}</b>
   </span>;
 }
@@ -150,14 +158,16 @@ function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
   presentation: Presentation;
   grouped?: BattleTargetOutcome;
 }) {
+  const energy = event.roundEndEffect?.kind === "energy" ? event.roundEndEffect : undefined;
   const { node, animateFade } = useBattleOutcomeFade<HTMLSpanElement>(presentation, TARGET_OUTCOME_FADE,
-    staggerIndex === undefined ? undefined : staggerIndex * BATTLE_OUTCOME_STAGGER_MS);
+    energy ? 0 : staggerIndex === undefined ? undefined : staggerIndex * BATTLE_OUTCOME_STAGGER_MS,
+    energy ? event.durationMs : undefined);
 
   const outcome = event.statusOutcome;
   const staggered = staggerIndex !== undefined;
   const supportStatuses = grouped?.supportStatuses;
   const shownStatus = outcome && (staggered || outcome.status === "bleed" || outcome.status === "slowed") ? outcome : undefined;
-  if (!supportStatuses && !shownStatus && event.kind !== "damage" && event.kind !== "miss") {
+  if (!energy && !supportStatuses && !shownStatus && event.kind !== "damage" && event.kind !== "miss") {
     return <b className={s.effect} data-kind={event.kind}>{event.label}</b>;
   }
 
@@ -167,8 +177,10 @@ function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
     data-staggered-outcome={staggered ? staggerIndex : undefined}
     data-support-outcome={supportStatuses ? "" : undefined}
     data-bleed-tick={bleed ? "" : undefined}
+    data-energy-recovery={energy ? "" : undefined}
     data-outcome-fade={animateFade ? "" : undefined}>
     {damage && <strong>{damage.replace(/^-/, "−")}</strong>}
+    {energy && <strong>+{energy.after - energy.before} BE</strong>}
     {event.kind === "miss" && <strong>Miss</strong>}
     {shownStatus && <span className={s.outcomeChip} data-status={shownStatus.status} data-result={shownStatus.result}>
       <StatusIcon status={shownStatus.status}/>{getBattleOutcomeStatusText(shownStatus)}
@@ -249,6 +261,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const order=individualOrder ? [...new Set([...(presentation.activeEvent?.actorId ? [presentation.activeEvent.actorId] : []), ...individualOrder])] : resolving?(actionIndex>=0?presentation.actionOrder.slice(actionIndex):[]):preview.map(entry=>entry.actorId);
   const currentEvent=presentation.activeEvent;
   const roundEndEffect = individual ? currentEvent?.roundEndEffect : undefined;
+  const energyRecovery = roundEndEffect?.kind === "energy" && currentEvent
+    ? { ...roundEndEffect, eventId: currentEvent.eventId, durationMs: currentEvent.durationMs, playback: presentation }
+    : undefined;
   const actionCaption=currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
   const highlight=resolving?presentation.activeEvent?.actorId:activeActorId;
   function inspect(id?:string){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup("inspect");}
@@ -386,7 +401,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
             <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!(allyGuard || guardResult)}/>
             {forecast && <TargetForecastOdds id={forecastId} forecast={forecast}/>}
             {allyForecast && allyForecastRows > 0 && <AllyForecastEffects id={forecastId} cleanses={allyForecast.cleanses} guard={allyGuard} rows={allyForecastRows}/>}
-            <Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)}/>
+            <Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)} recovery={affected ? energyRecovery : undefined}/>
             {c.isFainted&&<small>K.O.</small>}
           </span>
         </button>
@@ -437,10 +452,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
           <img src={artwork(sourceById.get(String(dockTarget.sourceCreatureId)))} alt=""/>
           <div>
             <HealthMeter value={dockTarget.currentHp} max={dockTarget.maxHp} after={projectionById.get(dockTarget.battleCombatantId)?.hpAfter} guard={guardFor(dockTarget.battleCombatantId)} details />
-            <Meter label="BE" value={dockTarget.currentBattleEnergy} max={dockTarget.maxBattleEnergy} after={energyAfter(dockTarget.battleCombatantId)}/>
+            <Meter label="BE" value={dockTarget.currentBattleEnergy} max={dockTarget.maxBattleEnergy} after={energyAfter(dockTarget.battleCombatantId)} recovery={recoveryTarget ? energyRecovery : undefined}/>
           </div>
           {(effectTraySlots > 0 || roundEndEffect?.kind === "expiry") && <div className={s.effectTraySlot} data-slots={effectTraySlots}>
-            <BattleEffectTray key={dockTarget.battleCombatantId} statuses={dockTarget.statuses} recovery={roundEndEffect ? { effect: roundEndEffect, playback: presentation } : undefined} applications={projectedEffects.flatMap(effect =>
+            <BattleEffectTray key={dockTarget.battleCombatantId} statuses={dockTarget.statuses} recovery={roundEndEffect && roundEndEffect.kind !== "energy" ? { effect: roundEndEffect, playback: presentation } : undefined} applications={projectedEffects.flatMap(effect =>
               effect.targetId === dockTarget.battleCombatantId && effect.statusApplication ? [effect.statusApplication] : [])} />
           </div>}
         </div>}

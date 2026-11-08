@@ -19,6 +19,7 @@ export function useBattleOutcomeFade<T extends HTMLElement>(
   { paused, reducedMotion, speed, manualBeat }: BattlePlaybackMotion,
   keyframes: Keyframe[],
   delayMs?: number,
+  durationMs = BATTLE_OUTCOME_FADE_MS,
 ) {
   const node = useRef<T>(null);
   const fade = useRef<Animation | null>(null);
@@ -26,13 +27,13 @@ export function useBattleOutcomeFade<T extends HTMLElement>(
 
   useEffect(() => {
     if (!animateFade || !node.current) return;
-    const animation = node.current.animate(keyframes, { delay: delayMs, duration: BATTLE_OUTCOME_FADE_MS, fill: "both" });
+    const animation = node.current.animate(keyframes, { delay: delayMs, duration: durationMs, fill: "both" });
     fade.current = animation;
     return () => {
       animation.cancel();
       fade.current = null;
     };
-  }, [animateFade, delayMs, keyframes]);
+  }, [animateFade, delayMs, durationMs, keyframes]);
 
   useEffect(() => {
     const animation = fade.current;
@@ -40,7 +41,7 @@ export function useBattleOutcomeFade<T extends HTMLElement>(
     animation.updatePlaybackRate(speed);
     if (paused) animation.pause();
     else animation.play();
-  }, [paused, animateFade, speed, delayMs, keyframes]);
+  }, [paused, animateFade, speed, delayMs, durationMs, keyframes]);
 
   return { node, animateFade };
 }
@@ -72,14 +73,17 @@ export function useBattlePresentationController() {
 
   useEffect(() => {
     const current = events[0];
-    if (current && (current.targetOutcomes || current.roundEndEffect?.kind === "expiry")) {
+    const energyRecovery = current?.roundEndEffect?.kind === "energy";
+    if (current && (current.targetOutcomes || current.roundEndEffect?.kind === "expiry" || energyRecovery)) {
       if (resultClock.current?.event !== current || resultClock.current.reducedMotion !== reducedMotion) {
         resultClock.current = { event: current, elapsed: 0, reducedMotion };
       }
       if (paused) return;
       const clock = resultClock.current;
       const started = performance.now();
-      const duration = reducedMotion || current === steppedEvent ? BATTLE_OUTCOME_FADE_MS : current.durationMs;
+      const duration = energyRecovery
+        ? reducedMotion ? 300 : current.durationMs
+        : reducedMotion || current === steppedEvent ? BATTLE_OUTCOME_FADE_MS : current.durationMs;
       const timer = window.setTimeout(advance, Math.max(0, (duration - clock.elapsed) / speed));
       return () => {
         window.clearTimeout(timer);
