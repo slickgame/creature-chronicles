@@ -9,7 +9,7 @@ import {
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
 import { createBattleState, hasBattleStatus, resolveBattleTurn } from "@/data/battleEngine";
-import { getBattleOrderPreview } from "@/data/battleInterface";
+import { getBattleOrderPreview, updateBattleCooldownNotices } from "@/data/battleInterface";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
 import {
   FIELD_TONIC_ID,
@@ -53,6 +53,7 @@ import { useGameContext } from "@/state/GameProvider";
 import type {
   BattleAction,
   BattleCombatantId,
+  BattleMoveId,
   BattleOutcome,
   BattleState,
 } from "@/types/battle";
@@ -248,6 +249,7 @@ export function ColiseumBattle({
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
   const [turnOrder, setTurnOrder] = useState<BattleCombatantId[]>([]);
+  const [cooldownNotices, setCooldownNotices] = useState<ReadonlyMap<BattleCombatantId, readonly BattleMoveId[]>>(() => new Map());
   const turnActor = battleState?.combatants[turnOrder[0]];
   const activeActorId = turnActor?.sideId === "player" && !hasBattleStatus(turnActor, "stun") ? turnActor.battleCombatantId : null;
   const [selectedTarget, setSelectedTarget] = useState<BattleUiTarget | null>(null);
@@ -314,6 +316,7 @@ export function ColiseumBattle({
     setPlayerSources(team);
     setEnemySources(enemies);
     setBattleState(state);
+    setCooldownNotices(new Map());
     setTurnOrder(getBattleOrderPreview(state, new Map()).map(entry => entry.actorId));
     setSelectedTarget(null);
     setUsedItems({ ...EMPTY_USED_ITEMS, tacticsKit: tacticsUsed });
@@ -351,6 +354,7 @@ export function ColiseumBattle({
     const resolved = resolveBattleTurn(battleState, turnOrder, action);
     if (!resolved) return;
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [turnOrder[0]]);
+    setCooldownNotices(current => updateBattleCooldownNotices(current, battleState, resolved.state, activeActorId));
     setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, resolved.result));
     setBattleState(resolved.state);
     setSelectedTarget(null);
@@ -381,5 +385,7 @@ export function ColiseumBattle({
   const xpPreview = phase === "result" ? previewColiseumCombatXp(save, encounter, battleState.outcome, playerSources.map((creature) => creature.creatureId), performance) : [];
   const receipt = phase === "result" ? recordColiseumC2BattleResult(save, encounter.encounterId, battleState.outcome, completedRounds || 1, playerSources.map(c=>c.creatureId), performance, battleState.battleId) : null;
   const firstClearAvailable = !getColiseumC2Progress(save).claimedFirstClearEncounterIds.includes(encounter.encounterId);
-  return <BattleArenaB resultLedger={receipt?{rewards:getColiseumC2RewardLabel(receipt.reward),summaries:receipt.xpSummaries,performance,onRecord:()=>finalize(),recordLabel:"Record & Return to Coliseum"}:undefined} title={encounter.name} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId} individualOrder={turnOrder} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
+  return <BattleArenaB resultLedger={receipt?{rewards:getColiseumC2RewardLabel(receipt.reward),summaries:receipt.xpSummaries,performance,onRecord:()=>finalize(),recordLabel:"Record & Return to Coliseum"}:undefined} title={encounter.name} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId}
+    completedCooldowns={activeActorId ? cooldownNotices.get(activeActorId) : undefined}
+    individualOrder={turnOrder} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
 }

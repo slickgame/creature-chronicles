@@ -12,7 +12,7 @@ import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
-import type { BattleAction, BattleCombatantId, BattleMove, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
+import type { BattleAction, BattleCombatantId, BattleMove, BattleMoveId, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { useBattleOutcomeFade, type BattlePlaybackMotion, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
@@ -28,6 +28,7 @@ type Presentation = ReturnType<typeof useBattlePresentationController>;
 export type BattleArenaBProps = {
   title: string; battleState: BattleState; sourceById: ReadonlyMap<string, CreatureRecord>;
   selectedTarget: BattleUiTarget | null; activeActorId: BattleCombatantId | null;
+  completedCooldowns?: readonly BattleMoveId[];
   queuedActions?: ReadonlyMap<BattleCombatantId, BattleAction>; individualOrder?: readonly BattleCombatantId[]; presentation: Presentation;
   onTarget: (target: BattleUiTarget) => void; onPlan?: (id: BattleCombatantId) => void;
   onQueue: (moveId: string) => void; onConfirm?: () => void; onReturn: () => void; onForfeit: () => void;
@@ -275,6 +276,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const draftAvailability=draftMove&&activeActorId&&selectedTarget?getBattleUiMoveAvailability(state,activeActorId,draftMove.id,selectedTarget):null;
   const highlightedTargets=draftAvailability?.compatible?draftAvailability.normalizedTargetIds:[];
   const turnOptions = individual && !resolving && !complete ? getBattleMenuOptions(state, activeActorId, selectedTarget) : [];
+  const completedMoves = turnOptions.filter(option => option.cooldown === 0 && props.completedCooldowns?.includes(option.move.id));
   const turnPage = Math.min(movePage, Math.max(0, Math.ceil(turnOptions.length / 4) - 1));
   const selectedMove = turnOptions.find(option => draft?.actorId === activeActorId && option.move.id === draft.moveId);
   const hoverOption = turnOptions.find(option => option.move.id === hoverMove?.id);
@@ -419,14 +421,18 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <section className={s.turnMoves} aria-label="Choose a move">
         <h2>{draftActor ? `${draftActor.name} · Choose a move` : resolving ? "Resolving action…" : finished ? "Battle complete" : "Waiting for next turn"}</h2>
         {playback}
+        <span className={s.resultAnnouncement} role="status">
+          {completedMoves.map(({ move }) => `${move.name} cooldown complete.`).join(" ")}
+        </span>
         <div className={s.turnCards}>{turnOptions.slice(turnPage * 4, turnPage * 4 + 4).map(option => {
           const tooltip = hoverMove?.id === option.move.id;
+          const cooldownComplete = completedMoves.includes(option);
           const details = !tooltip ? [] : option === previewMove ? projectedEffects : effectsFor(option);
           const effect = details.find(entry => entry.targetId === target?.battleCombatantId) ?? details[0];
-          return <div key={option.move.id} className={s.turnTile}
+          return <div key={`${activeActorId}:${option.move.id}`} className={s.turnTile}
             onPointerEnter={event => { if (event.pointerType === "mouse") setHoverMove({ id: option.move.id, via: "pointer" }); }}
             onPointerLeave={event => { if (event.pointerType === "mouse") setHoverMove(current => current?.via === "pointer" ? null : current); }}>
-            <button aria-pressed={selectedMove?.move.id === option.move.id} data-turn-move data-usable={option.usable}
+            <button aria-pressed={selectedMove?.move.id === option.move.id} data-turn-move data-usable={option.usable} data-cooldown-complete={cooldownComplete ? "" : undefined}
               onFocus={event => { if (event.currentTarget.matches(":focus-visible")) setHoverMove({ id: option.move.id, via: "focus" }); }}
               onBlur={() => setHoverMove(current => current?.via === "focus" ? null : current)}
               aria-describedby={tooltip ? `move-tip-${option.move.id}` : undefined}
@@ -436,7 +442,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
                 if (option.move.targetType === "field") props.onTarget({ kind: "field" });
               }}>
               <img src={ART + option.category.toLowerCase() + ".webp"} alt=""/>
-              <span><strong>{option.move.name}</strong><small>{option.move.battleEnergyCost} BE · {option.reasons[0] ?? "Ready"}</small></span>
+              <span>
+                <strong>{option.move.name}</strong><small>{option.move.battleEnergyCost} BE · {option.reasons[0] ?? "Ready"}</small>
+                {cooldownComplete && <span className={s.cooldownBadge}>Cooldown complete</span>}
+              </span>
             </button>
             {tooltip && <div className={s.moveTooltip} id={`move-tip-${option.move.id}`} role="tooltip">
               <strong>{option.move.name}</strong><span>{getBattleTargetTypeLabel(option.move.targetType)} · {option.move.battleEnergyCost} BE</span>

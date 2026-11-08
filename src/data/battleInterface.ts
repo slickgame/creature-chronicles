@@ -2,7 +2,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { deterministicBattleRoll, getEffectiveBattleStats } from "@/data/battleEngine";
 import { getBattleTurnScore } from "@/data/battleStats";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
-import type { BattleAction, BattleCombatantId, BattleMove, BattleState } from "@/types/battle";
+import type { BattleAction, BattleCombatantId, BattleMove, BattleMoveId, BattleState } from "@/types/battle";
 
 export const BATTLE_MENU_CATEGORIES = ["All", "Attack", "Support", "Recovery"] as const;
 export type BattleMenuCategory = typeof BATTLE_MENU_CATEGORIES[number];
@@ -40,4 +40,28 @@ export function getBattleOrderPreview(state: BattleState, queued: ReadonlyMap<Ba
     return { actorId: c.battleCombatantId, score: action ? getBattleTurnScore(stats, getBattleMove(action.moveId)) : stats.speed,
       tie: deterministicBattleRoll(`${state.battleId}_${state.roundNumber}_${c.battleCombatantId}_initiative`, 100000) };
   }).sort((a,b) => b.score-a.score || b.tie-a.tie || a.actorId.localeCompare(b.actorId));
+}
+
+/** Notices follow the settled round state and survive until their owner's playable turn resolves. */
+export function updateBattleCooldownNotices(
+  pending: ReadonlyMap<BattleCombatantId, readonly BattleMoveId[]>,
+  before: BattleState,
+  after: BattleState,
+  actedPlayerId: BattleCombatantId | null,
+): ReadonlyMap<BattleCombatantId, readonly BattleMoveId[]> {
+  const next = new Map<BattleCombatantId, readonly BattleMoveId[]>();
+  if (before.battleId !== after.battleId || before.outcome !== "ongoing" || after.outcome !== "ongoing") return next;
+
+  const roundAdvanced = after.roundNumber > before.roundNumber;
+  for (const id of after.teams.player.combatantIds) {
+    const actor = after.combatants[id];
+    if (!actor || actor.isFainted) continue;
+    const retained = id === actedPlayerId ? undefined : pending.get(id);
+    const priorCooldowns = roundAdvanced ? before.combatants[id]?.cooldowns : undefined;
+    const ready = actor.loadout.equippedMoveIds.filter(moveId =>
+      (actor.cooldowns[moveId] ?? 0) <= 0 &&
+      (retained?.includes(moveId) || (priorCooldowns?.[moveId] ?? 0) > 0));
+    if (ready.length > 0) next.set(id, ready);
+  }
+  return next;
 }

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview } from "../src/data/battleInterface.ts";
-import { createBattleState, resolveBattleRound } from "@/data/battleEngine";
+import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { createBattleState, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { buildBattleUiAction } from "@/data/battleUi";
 import { createNewGameSave } from "@/lib/save/localSave";
@@ -109,4 +109,60 @@ test("playback separates bleed, recovery and KO, and skipped actors do not spend
   assert.equal(bleed.state.combatants[id].currentHp,0);
   assert(result.frames.some(f=>f.kind==="knockout"&&f.targetIds[0]===id));
   assert(result.frames.some(f=>!f.actorId&&f.kind==="energy"));
+});
+
+test("cooldown notices use round advancement even when full BE produces no recovery frame", () => {
+  const before = fixture();
+  const [ownerId] = before.teams.player.combatantIds;
+  const [enemyId] = before.teams.enemy.combatantIds;
+  for (const actor of Object.values(before.combatants)) {
+    actor.currentBattleEnergy = actor.maxBattleEnergy;
+    actor.currentHp = actor.maxHp = 1000;
+  }
+  before.combatants[ownerId].cooldowns = { first_aid: 1, defend: 2, evasive_step: 1 };
+  before.combatants[enemyId].cooldowns = { first_aid: 1 };
+  const pending = new Map([[ownerId, ["resonant_bark"]]]);
+  const turn = resolveBattleTurn(before, [ownerId], { actorId: ownerId, moveId: "strike", targetIds: [enemyId] });
+  assert.ok(turn);
+  assert.equal(turn.state.roundNumber, before.roundNumber + 1);
+  assert.ok(turn.frames.every(frame => !frame.roundEndEffect));
+  assert.deepEqual(updateBattleCooldownNotices(pending, before, turn.state, ownerId),
+    new Map([[ownerId, ["first_aid"]]]));
+  assert.deepEqual(updateBattleCooldownNotices(pending, before, { ...turn.state, roundNumber: before.roundNumber }, ownerId),
+    new Map());
+  assert.deepEqual(pending.get(ownerId), ["resonant_bark"]);
+});
+
+test("cooldown notices survive skipped and unrelated turns, then clear on a playable turn or battle reset", () => {
+  const before = fixture();
+  const [ownerId, allyId, faintedId] = before.teams.player.combatantIds;
+  const [enemyId] = before.teams.enemy.combatantIds;
+  before.combatants[ownerId].statuses = [{ status: "stun", duration: 1 }];
+  before.combatants[ownerId].cooldowns = { strike: 1 };
+  before.combatants[faintedId].isFainted = true;
+  before.combatants[faintedId].currentHp = 0;
+  before.combatants[enemyId].currentHp = before.combatants[enemyId].maxHp = 1000;
+  const pending = new Map([
+    [ownerId, ["strike", "first_aid", "evasive_step"]],
+    [allyId, ["defend"]],
+    [faintedId, ["defend"]],
+    [enemyId, ["first_aid"]],
+  ]);
+  const skip = resolveBattleTurn(before, [ownerId, allyId, enemyId]);
+  assert.ok(skip && !skip.result.actions[0].success);
+  const afterSkip = updateBattleCooldownNotices(pending, before, skip.state, null);
+  assert.deepEqual(afterSkip, new Map([[ownerId, ["first_aid"]], [allyId, ["defend"]]]));
+  const allyTurn = resolveBattleTurn(skip.state, skip.remaining, { actorId: allyId, moveId: "strike", targetIds: [enemyId] });
+  assert.ok(allyTurn);
+  const afterAlly = updateBattleCooldownNotices(afterSkip, skip.state, allyTurn.state, allyId);
+  assert.deepEqual(afterAlly, new Map([[ownerId, ["first_aid"]]]));
+  const playable = structuredClone(allyTurn.state);
+  playable.combatants[ownerId].statuses = [];
+  const ownerTurn = resolveBattleTurn(playable, [ownerId, ...allyTurn.remaining], {
+    actorId: ownerId, moveId: "defend", targetIds: [ownerId],
+  });
+  assert.ok(ownerTurn?.result.actions[0].success);
+  assert.deepEqual(updateBattleCooldownNotices(afterAlly, playable, ownerTurn.state, ownerId), new Map());
+  assert.deepEqual(updateBattleCooldownNotices(afterAlly, allyTurn.state, { ...allyTurn.state, outcome: "player_won" }, null), new Map());
+  assert.deepEqual(updateBattleCooldownNotices(afterAlly, allyTurn.state, { ...allyTurn.state, battleId: "new-battle" }, null), new Map());
 });
