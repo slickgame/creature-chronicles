@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
@@ -94,7 +94,10 @@ test("order preview matches engine weighted speed and seeded ties without exposi
 test("opening order shifts compare shared creatures and ignore empty slots from knockouts or revivals", () => {
   const previous = ["briar", "knocked-out", "lilt", "moss"];
   const unchanged = ["briar", "revived", "lilt", "moss"];
-  assert.equal(getBattleRoundOrderShift(previous, unchanged, 4), undefined);
+  const noShift = getBattleRoundOrderShift(previous, unchanged, 4);
+  assert.equal(noShift, undefined);
+  const state = fixture();
+  assert.equal(recordBattleOrderShift(state, noShift), state);
   assert.deepEqual(getBattleRoundOrderShift(previous, ["briar", "revived", "moss", "lilt"], 4), {
     roundNumber: 4,
     before: ["briar", "lilt", "moss"],
@@ -132,11 +135,28 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   const settledOrder = getBattleOrderPreview(turn.state, new Map());
   assert.deepEqual(result.slowed.map(({ actorId, speed }) => ({ actorId, score: speed })),
     settledOrder.map(({ actorId, score }) => ({ actorId, score })));
-  assert.deepEqual(getBattleRoundOrderShift(openingOrder, settledOrder.map(entry => entry.actorId), turn.state.roundNumber), {
+  const nextOrder = settledOrder.map(entry => entry.actorId);
+  const shift = getBattleRoundOrderShift(openingOrder, nextOrder, turn.state.roundNumber);
+  assert.deepEqual(shift, {
     roundNumber: 4,
     before: [willow, briar, lilt, rowan, moss, bramble],
     after: [willow, briar, rowan, moss, lilt, bramble],
   });
+  const logIndex = turn.state.log.length;
+  const loggedState = recordBattleOrderShift(turn.state, shift);
+  assert.deepEqual(loggedState.orderShiftLog, [{
+    logIndex,
+    roundNumber: 4,
+    moves: [{ actorId: rowan, from: 4, to: 3 }, { actorId: moss, from: 5, to: 4 }, { actorId: lilt, from: 3, to: 5 }],
+  }]);
+  assert.deepEqual(loggedState.log.slice(0, logIndex), turn.state.log);
+  assert.equal(loggedState.log[logIndex], "Round 4 · Order shift · p3 4 → 3 · e1 5 → 4 · e3 3 → 5");
+  assert.equal(recordBattleOrderShift(loggedState, shift), loggedState);
+
+  const nextTurn = resolveBattleTurn(loggedState, nextOrder, { actorId: willow, moveId: "defend", targetIds: [willow] });
+  assert(nextTurn);
+  assert.equal(nextTurn.state.orderShiftLog, loggedState.orderShiftLog);
+  assert.deepEqual(nextTurn.state.log.slice(logIndex, logIndex + 2), [loggedState.log[logIndex], "p1 uses Defend."]);
   assert.deepEqual(state, before);
 });
 

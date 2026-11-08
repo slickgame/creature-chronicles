@@ -12,6 +12,7 @@ import { createBattleState, hasBattleStatus, resolveBattleTurn } from "@/data/ba
 import {
   getBattleOrderPreview,
   getBattleRoundOrderShift,
+  recordBattleOrderShift,
   updateBattleCooldownNotices,
   type BattleRoundOrderShift,
 } from "@/data/battleInterface";
@@ -294,9 +295,11 @@ export function ColiseumBattle({
 
   function setOpeningTurnOrder(state: BattleState, showShift = false) {
     const order = getBattleOrderPreview(state, new Map()).map(entry => entry.actorId);
-    setRoundOrderShift(showShift ? getBattleRoundOrderShift(roundOpeningOrder.current, order, state.roundNumber) : undefined);
+    const shift = showShift ? getBattleRoundOrderShift(roundOpeningOrder.current, order, state.roundNumber) : undefined;
+    setRoundOrderShift(shift);
     roundOpeningOrder.current = order;
     setTurnOrder(order);
+    return shift;
   }
 
   function startBattle() {
@@ -369,7 +372,10 @@ export function ColiseumBattle({
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [turnOrder[0]]);
     setCooldownNotices(current => updateBattleCooldownNotices(current, battleState, resolved.state, activeActorId));
     setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, resolved.result));
-    setBattleState(resolved.state);
+    const shift = resolved.state.outcome === "ongoing" && !resolved.remaining.length
+      ? setOpeningTurnOrder(resolved.state, true)
+      : undefined;
+    setBattleState(recordBattleOrderShift(resolved.state, shift));
     setSelectedTarget(null);
     setCompletedRounds(resolved.result.roundNumber);
     if (resolved.state.outcome !== "ongoing") {
@@ -380,7 +386,6 @@ export function ColiseumBattle({
       return;
     }
     if (resolved.remaining.length) setTurnOrder(resolved.remaining);
-    else setOpeningTurnOrder(resolved.state, true);
     setMessage("Select a target and move for the active creature.");
   }
 

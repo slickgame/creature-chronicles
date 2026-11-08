@@ -1,0 +1,95 @@
+.shiftCard {
+  box-sizing: border-box;
+  width: min(100%, 32rem);
+  margin: 12px 0;
+  padding: 3px;
+  border: 4px double #ae7536;
+  border-radius: 9px;
+  background: linear-gradient(110deg, #fae9c3, #f1d39a 55%, #f6e1b6);
+  box-shadow: 0 2px 5px #492c154d, inset 0 0 0 1px #ffefc5;
+  color: #392815;
+  font-family: Georgia, serif;
+}
+.shiftCard .shiftTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid #d1a45c;
+  border-radius: 5px;
+  background: linear-gradient(#315033, #182e24);
+  color: #fff0ce;
+  font-size: clamp(12px, 2.5vw, 16px);
+  letter-spacing: .045em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+.shiftTitle::before, .shiftTitle::after {
+  content: "";
+  flex: 0 1 2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #dfb865, transparent);
+}
+.shiftCard ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 10px 10px 18px;
+  list-style: none;
+}
+.shiftRow {
+  --row-ink: #233c22;
+  --row-edge: #7b8849;
+  --row-fill: #dbe0b1;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) max-content;
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 10px 0 0;
+  border: 1px solid var(--row-edge);
+  border-radius: 20px 6px 6px 20px;
+  background: linear-gradient(100deg, #fff0ca, var(--row-fill));
+  color: var(--row-ink);
+  font-size: clamp(14px, 3vw, 18px);
+  line-height: 1.15;
+}
+.shiftRow[data-order-shift-row="down"] {
+  --row-ink: #592c17;
+  --row-edge: #ac6c41;
+  --row-fill: #f2c69b;
+}
+.portrait {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin: -3px 0 -3px -10px;
+  overflow: hidden;
+  border: 3px double #dbb269;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 36%, #c9a568, #70502b);
+  color: #fff0ce;
+  box-shadow: 0 1px 3px #4c2d1a8c;
+}
+.portrait img { width: 100%; height: 100%; object-fit: cover; }
+.slots {
+  min-width: 5ch;
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid var(--row-edge);
+  font-weight: 700;
+  text-align: end;
+  white-space: nowrap;
+}
+.slotDescription { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+@media (max-width: 450px) {
+  .shiftCard ul { gap: 6px; padding: 8px 5px 8px 14px; }
+  .shiftRow { grid-template-columns: 28px minmax(0, 1fr) max-content; gap: 6px; padding-inline-end: 7px; }
+  .portrait { width: 36px; height: 36px; }
+  .slots { padding-inline-start: 7px; }
+}

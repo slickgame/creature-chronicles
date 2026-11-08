@@ -337,6 +337,13 @@ export type BattleRoundResult = {
   outcome: BattleOutcome;
 };
 
+export type BattleOrderShiftLogEntry = {
+  logIndex: number;
+  roundNumber: number;
+  /** One-based positions among creatures present in both rounds. */
+  moves: readonly { actorId: BattleCombatantId; from: number; to: number }[];
+};
+
 export type BattleState = {
   battleId: BattleId;
   roundNumber: number;
@@ -344,6 +351,7 @@ export type BattleState = {
   teams: Record<BattleSideId, BattleTeam>;
   combatants: Record<BattleCombatantId, BattleCombatant>;
   log: string[];
+  orderShiftLog?: readonly BattleOrderShiftLogEntry[];
 };
 
 export type BattleRoundEndEffect =

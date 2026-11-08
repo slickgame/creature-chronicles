@@ -9,7 +9,7 @@ import {
 } from "@/data/battleEngine";
 import { getBattleTurnScore } from "@/data/battleStats";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
-import type { BattleAction, BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleState, BattleStatusStack } from "@/types/battle";
+import type { BattleAction, BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatusStack } from "@/types/battle";
 
 export const BATTLE_MENU_CATEGORIES = ["All", "Attack", "Support", "Recovery"] as const;
 export type BattleMenuCategory = typeof BATTLE_MENU_CATEGORIES[number];
@@ -98,6 +98,26 @@ export function getBattleRoundOrderShift(
   const before = previousOrder.filter(id => nextActors.has(id));
   const after = nextOrder.filter(id => previousActors.has(id));
   return before.some((id, index) => id !== after[index]) ? { roundNumber, before, after } : undefined;
+}
+
+/** Append one settled shift after recovery and before the first action of the new round. */
+export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOrderShift): BattleState {
+  if (!shift || state.outcome !== "ongoing" || state.roundNumber !== shift.roundNumber ||
+      state.orderShiftLog?.some(entry => entry.roundNumber === shift.roundNumber)) return state;
+
+  const moves = shift.after.flatMap((actorId, to) => {
+    const from = shift.before.indexOf(actorId);
+    return from >= 0 && from !== to ? [{ actorId, from: from + 1, to: to + 1 }] : [];
+  });
+  if (!moves.length) return state;
+
+  const entry: BattleOrderShiftLogEntry = { logIndex: state.log.length, roundNumber: shift.roundNumber, moves };
+  const summary = moves.map(({ actorId, from, to }) => `${state.combatants[actorId].name} ${from} → ${to}`).join(" · ");
+  return {
+    ...state,
+    log: [...state.log, `Round ${shift.roundNumber} · Order shift · ${summary}`],
+    orderShiftLog: [...(state.orderShiftLog ?? []), entry],
+  };
 }
 
 export type BattleSlowedOrderEntry = {
