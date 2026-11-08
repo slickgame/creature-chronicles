@@ -81,6 +81,25 @@ export function getBattleOrderPreview(state: BattleState, queued: ReadonlyMap<Ba
   }).sort((a,b) => b.score-a.score || b.tie-a.tie || a.actorId.localeCompare(b.actorId));
 }
 
+export type BattleRoundOrderShift = {
+  roundNumber: number;
+  before: readonly BattleCombatantId[];
+  after: readonly BattleCombatantId[];
+};
+
+/** Compare opening orders among creatures present in both rounds. */
+export function getBattleRoundOrderShift(
+  previousOrder: readonly BattleCombatantId[],
+  nextOrder: readonly BattleCombatantId[],
+  roundNumber: number,
+): BattleRoundOrderShift | undefined {
+  const previousActors = new Set(previousOrder);
+  const nextActors = new Set(nextOrder);
+  const before = previousOrder.filter(id => nextActors.has(id));
+  const after = nextOrder.filter(id => previousActors.has(id));
+  return before.some((id, index) => id !== after[index]) ? { roundNumber, before, after } : undefined;
+}
+
 export type BattleSlowedOrderEntry = {
   actorId: BattleCombatantId;
   slot: number;

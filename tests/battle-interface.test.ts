@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleSlowedOrderForecast, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
@@ -91,6 +91,17 @@ test("order preview matches engine weighted speed and seeded ties without exposi
   assert(!getBattleOrderPreview(state,queue).some(p=>p.actorId===ids[2]));
 });
 
+test("opening order shifts compare shared creatures and ignore empty slots from knockouts or revivals", () => {
+  const previous = ["briar", "knocked-out", "lilt", "moss"];
+  const unchanged = ["briar", "revived", "lilt", "moss"];
+  assert.equal(getBattleRoundOrderShift(previous, unchanged, 4), undefined);
+  assert.deepEqual(getBattleRoundOrderShift(previous, ["briar", "revived", "moss", "lilt"], 4), {
+    roundNumber: 4,
+    before: ["briar", "lilt", "moss"],
+    after: ["briar", "moss", "lilt"],
+  });
+});
+
 test("Slowed compares next-round slots and Speed without modifying the live round", () => {
   const state = fixture();
   const [willow, briar, rowan] = state.teams.player.combatantIds;
@@ -107,6 +118,7 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   state.combatants[rowan].statuses = [{ status: "exhausted", duration: 1, amount: 10 }];
   const action = { actorId: briar, moveId: "checking_blow", targetIds: [lilt] };
   const before = structuredClone(state);
+  const openingOrder = getBattleOrderPreview(state, new Map()).map(entry => entry.actorId);
   const effects = previewBattleAction(state, action);
   const result = getBattleSlowedOrderForecast(state, effects);
   assert(result);
@@ -117,8 +129,14 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   assert.deepEqual(result.slowed[4], { actorId: lilt, slot: 5, speed: 19 });
   const turn = resolveBattleTurn(state, [briar], action);
   assert(turn);
+  const settledOrder = getBattleOrderPreview(turn.state, new Map());
   assert.deepEqual(result.slowed.map(({ actorId, speed }) => ({ actorId, score: speed })),
-    getBattleOrderPreview(turn.state, new Map()).map(({ actorId, score }) => ({ actorId, score })));
+    settledOrder.map(({ actorId, score }) => ({ actorId, score })));
+  assert.deepEqual(getBattleRoundOrderShift(openingOrder, settledOrder.map(entry => entry.actorId), turn.state.roundNumber), {
+    roundNumber: 4,
+    before: [willow, briar, lilt, rowan, moss, bramble],
+    after: [willow, briar, rowan, moss, lilt, bramble],
+  });
   assert.deepEqual(state, before);
 });
 

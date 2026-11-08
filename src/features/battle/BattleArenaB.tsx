@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, getBattleSlowedOrderForecast, type BattleMenuCategory, type BattleMoveBlocker, type BattleSlowedOrderForecast } from "@/data/battleInterface";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, getBattleSlowedOrderForecast, type BattleMenuCategory, type BattleMoveBlocker, type BattleRoundOrderShift, type BattleSlowedOrderForecast } from "@/data/battleInterface";
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
@@ -30,6 +30,7 @@ export type BattleArenaBProps = {
   selectedTarget: BattleUiTarget | null; activeActorId: BattleCombatantId | null;
   completedCooldowns?: readonly BattleMoveId[];
   queuedActions?: ReadonlyMap<BattleCombatantId, BattleAction>; individualOrder?: readonly BattleCombatantId[]; presentation: Presentation;
+  roundOrderShift?: BattleRoundOrderShift;
   onTarget: (target: BattleUiTarget) => void; onPlan?: (id: BattleCombatantId) => void;
   onQueue: (moveId: string) => void; onConfirm?: () => void; onReturn: () => void; onForfeit: () => void;
   onItem: (item: "tonic" | "revival") => void; tonicStock: number; revivalStock: number;
@@ -314,6 +315,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const [tappedTarget,setTappedTarget]=useState<string|null>(null);
   const [moveTip, setMoveTip] = useState<{ id: BattleMoveId; via: "pointer" | "focus" | "tap" } | null>(null);
   const turnCardsRef = useRef<HTMLDivElement>(null);
+  const orderTokensRef = useRef<HTMLDivElement>(null);
   const [movePage, setMovePage] = useState(0);
   const [turnDetails, setTurnDetails] = useState(false);
   const [statusId,setStatusId]=useState<string|null>(null);
@@ -325,8 +327,55 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const selectedInspect=inspectId?state.combatants[inspectId]:target;
   const preview=getBattleOrderPreview(state,queue);
   const actionIndex=presentation.activeEvent?.actorId?presentation.actionOrder.indexOf(presentation.activeEvent.actorId):-1;
-  const order=individualOrder ? [...new Set([...(presentation.activeEvent?.actorId ? [presentation.activeEvent.actorId] : []), ...individualOrder])] : resolving?(actionIndex>=0?presentation.actionOrder.slice(actionIndex):[]):preview.map(entry=>entry.actorId);
   const currentEvent=presentation.activeEvent;
+  const roundShift = individual ? props.roundOrderShift : undefined;
+  const settledShift = roundShift?.roundNumber === state.roundNumber ? roundShift : undefined;
+  const pendingShift = roundShift && roundShift.roundNumber > state.roundNumber ? roundShift : undefined;
+  const currentActionOrder = currentEvent?.actorId ? [currentEvent.actorId] : [];
+  const order = pendingShift
+    ? currentActionOrder.length ? currentActionOrder : pendingShift.before
+    : individualOrder ? [...new Set([...currentActionOrder, ...individualOrder])]
+      : resolving ? (actionIndex >= 0 ? presentation.actionOrder.slice(actionIndex) : []) : preview.map(entry => entry.actorId);
+  const orderMoves = useMemo(() => {
+    const moves = new Map<BattleCombatantId, { from: number; to: number }>();
+    settledShift?.after.forEach((id, to) => {
+      const from = settledShift.before.indexOf(id);
+      if (from >= 0 && from !== to) moves.set(id, { from, to });
+    });
+    return moves;
+  }, [settledShift]);
+  const reducedMotion = presentation.reducedMotion;
+  useLayoutEffect(() => {
+    if (!settledShift || !orderTokensRef.current || reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const portraits = new Map<BattleCombatantId, HTMLImageElement>();
+    for (const token of orderTokensRef.current.querySelectorAll<HTMLButtonElement>("[data-order-actor]")) {
+      const portrait = token.querySelector("img");
+      if (token.dataset.orderActor && portrait) portraits.set(token.dataset.orderActor, portrait);
+    }
+    // Map the former slots onto the current strip before animating any portrait.
+    const positions = settledShift.after.map(id => portraits.get(id)?.getBoundingClientRect());
+    const animations: Animation[] = [];
+    for (const [id, { from, to }] of orderMoves) {
+      const portrait = portraits.get(id);
+      const start = positions[from];
+      const end = positions[to];
+      if (!portrait || !start || !end || !end.width) continue;
+      const x = start.x + start.width / 2 - end.x - end.width / 2;
+      const y = start.y + start.height / 2 - end.y - end.height / 2;
+      const earlier = from > to;
+      const arc = Math.min(10, end.height / 3) * (earlier ? -1 : 1);
+      const accent = `0 0 0 2px ${earlier ? "#69a64e" : "#cf7135"}`;
+      const animation = portrait.animate([
+        { transform: `translate(${x}px, ${y}px) scale(${start.width / end.width})`, boxShadow: accent },
+        { transform: `translate(${x / 2}px, ${y / 2 + arc}px)`, boxShadow: accent, offset: 0.5 },
+        { transform: "none", boxShadow: accent, offset: 0.85 },
+        { transform: "none", boxShadow: "0 0 0 transparent" },
+      ], { duration: 460, easing: "ease-in-out" });
+      animation.id = "coliseum-order-slide";
+      animations.push(animation);
+    }
+    return () => animations.forEach(animation => animation.cancel());
+  }, [settledShift, orderMoves, reducedMotion]);
   const skippedActorId = individual && currentEvent?.skipReason === "stun" ? currentEvent.actorId : undefined;
   const nextSlotId = individualOrder?.[0];
   const nextSlot = nextSlotId ? state.combatants[nextSlotId] : undefined;
@@ -468,27 +517,36 @@ export function BattleArenaB(props: BattleArenaBProps) {
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={state.log}/>;
   return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
-    <section className={s.order} aria-label={resolving ? "Resolution order" : "Order preview"}>
+    <section className={s.order} aria-label={resolving ? "Resolution order" : "Order preview"} data-round-order-shift={settledShift?.roundNumber}>
       <button className={s.orderHeading} onClick={() => setPopup("order")}>
-        <strong>{skippedActorId ? "TURN SKIPPED" : resolving ? currentEvent?.actorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : "ORDER PREVIEW"}</strong>
+        <strong>{skippedActorId ? "TURN SKIPPED" : resolving ? currentEvent?.actorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : settledShift ? `ROUND ${settledShift.roundNumber} ORDER` : "ORDER PREVIEW"}</strong>
         <small>{resolving ? "" : individual ? "Individual actions" : "Estimate · changes with moves"}</small>
       </button>
-      <div className={s.tokens}>{order.map((id, index) => {
+      <span className={s.resultAnnouncement} role="status">
+        {settledShift && `Round ${settledShift.roundNumber}. ${Array.from(orderMoves, ([id, { from, to }]) =>
+          `${state.combatants[id].name} moves ${from > to ? "up" : "down"} ${Math.abs(from - to)} in the order.`).join(" ")}`}
+      </span>
+      <div className={s.tokens} ref={orderTokensRef}>{order.map((id, index) => {
         const combatant = state.combatants[id];
         if (!combatant) return null;
         const skipped = id === skippedActorId;
         const now = id === orderActiveId;
         const handoff = id === handoffActorId;
+        const change = orderMoves.get(id);
+        const direction = change ? (change.from > change.to ? "up" : "down") : undefined;
         let rankLabel = `${index + 1}`;
         if (skipped) rankLabel = "Skipped · Stun";
         else if (now) rankLabel = individual ? "NOW" : "ACTING NOW";
         else if (!individual && index === 0) rankLabel = "FIRST";
         else if (index === nextOrderIndex) rankLabel = resolving && !individual ? "UP NEXT" : "NEXT";
-        return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={now}
+        return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={now} data-order-actor={id}
           data-skipped-turn={skipped ? "stun" : undefined} data-turn-handoff={handoff ? "" : undefined}
           aria-label={`Inspect ${combatant.name} in turn order${skipped ? ". Turn skipped due to Stun." : handoff ? ". Now." : ""}`}
           onClick={() => inspect(id)}>
-          <img src={artwork(sourceById.get(String(combatant.sourceCreatureId)))} alt=""/>
+          <img src={artwork(sourceById.get(String(combatant.sourceCreatureId)))} alt="" data-order-slide={direction}/>
+          {change && <b className={s.orderSlideFallback} data-order-slide-fallback={direction} aria-hidden="true">
+            {direction === "up" ? "↑" : "↓"}{Math.abs(change.from - change.to)}
+          </b>}
           <span><small>{rankLabel}</small><strong>{combatant.name}</strong>
             {index === 0 && resolving && !skipped && currentEvent?.moveName && <em>{currentEvent.moveName}</em>}
           </span>
