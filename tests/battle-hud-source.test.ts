@@ -31,11 +31,13 @@ test("portrait battlefield uses horizontal formations and projected order contro
 });
 
 test("both active battle modes share categorized commands and actual resolution order", async () => {
-  for (const path of ["src/features/coliseum/ColiseumC2Screen.tsx", "src/features/coliseum/ColiseumC4Battle.tsx"]) {
-    const screen = await source(path);
-    assert.match(screen, /<BattleArenaB/);
-    assert.match(screen, /resolved.result.actions.map\(action => action.actorId\)/);
-  }
+  const individual = await source("src/features/coliseum/ColiseumC2Screen.tsx");
+  const round = await source("src/features/coliseum/ColiseumC4Battle.tsx");
+  assert.match(individual, /<BattleArenaB/);
+  assert.match(individual, /individualOrder=\{turnOrder\}/);
+  assert.match(individual, /presentation\.play\([^\n]*, \[turnOrder\[0\]\]\)/);
+  assert.match(round, /<BattleArenaB/);
+  assert.match(round, /resolved\.result\.actions\.map\(action => action\.actorId\)/);
   const arena = await source("src/features/battle/BattleArenaB.tsx");
   assert.match(arena, /BATTLE_MENU_CATEGORIES.map/);
   assert.match(arena, /Queue Move/);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, type BattleMenuCategory, type BattleMoveBlocker } from "@/data/battleInterface";
+import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, getBattleSlowedOrderForecast, type BattleMenuCategory, type BattleMoveBlocker, type BattleSlowedOrderForecast } from "@/data/battleInterface";
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
@@ -40,6 +40,47 @@ export type BattleArenaBProps = {
 function artwork(source: CreatureRecord | undefined, full = false) {
   if (!source) return FALLBACK;
   return gameplayArt(source,!full);
+}
+
+function SlowedOrderComparison({ forecast, moveName, state, sourceById }: {
+  forecast: BattleSlowedOrderForecast;
+  moveName: string;
+  state: BattleState;
+  sourceById: BattleArenaBProps["sourceById"];
+}) {
+  const changedSlots = forecast.baseline.filter((entry, index) => entry.actorId !== forecast.slowed[index]?.actorId);
+  const slowedIds = new Set(forecast.targets.map(entry => entry.actorId));
+  return <section className={s.slowOrderCompare} data-slow-order-forecast data-slots={changedSlots.length} aria-label={`Round ${forecast.roundNumber} order forecast for ${moveName}`}>
+    <h2>Round {forecast.roundNumber} Forecast <span>· {moveName}</span></h2>
+    {changedSlots.length > 0 ? (["baseline", "slowed"] as const).map(branch =>
+      <div key={branch} className={s.slowOrderRow} data-order-forecast-row={branch}>
+        <strong>{branch === "baseline" ? "Baseline" : slowedIds.size > 1 ? "If all Slowed effects apply" : "If Slowed applies"}</strong>
+        {changedSlots.map(({ slot }) => {
+          const entry = forecast[branch][slot - 1];
+          if (!entry) return <span key={slot}>—</span>;
+          const creature = state.combatants[entry.actorId];
+          return <span key={slot} className={s.slowOrderEntry} data-order-slot={slot}>
+            <img src={artwork(sourceById.get(String(creature.sourceCreatureId)))} alt=""/>
+            <span><b>{slot} ·</b> {creature.name}</span>
+            {branch === "slowed" && slowedIds.has(entry.actorId) && <EffectIcon status="slowed"/>}
+          </span>;
+        })}
+      </div>) : <p className={s.slowSameOrder}>Same turn order {slowedIds.size > 1 ? "if all Slowed effects apply." : "if Slowed applies."}</p>}
+  </section>;
+}
+
+function SlowedTargetDetail({ forecast, targetId }: { forecast: BattleSlowedOrderForecast; targetId: BattleCombatantId }) {
+  const application = forecast.targets.find(entry => entry.actorId === targetId);
+  const before = forecast.baseline.find(entry => entry.actorId === targetId);
+  const after = forecast.slowed.find(entry => entry.actorId === targetId);
+  if (!application || !before || !after) return null;
+  return <section className={s.slowTargetDetail} data-slow-target-forecast aria-label="Target's next-round Slowed forecast">
+    <h3><EffectIcon status="slowed"/> Round {forecast.roundNumber} · {forecast.targets.length > 1 ? "If all Slowed effects apply" : "If Slowed applies"}</h3>
+    <dl>
+      <div><dt>Turn slot</dt><dd>{before.slot === after.slot ? `${before.slot} (same)` : `${before.slot} → ${after.slot}`}</dd></div>
+      <div><dt>Speed</dt><dd>{before.speed === after.speed ? `${before.speed} (same)` : `${before.speed} → ${after.speed}`}</dd></div>
+    </dl>
+  </section>;
 }
 type HealthForecast = { id: string; kind: "attack" | "heal" | "support" };
 type EnergyRecovery = { before: number; after: number; eventId: string; durationMs: number; playback: BattlePlaybackMotion };
@@ -337,6 +378,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
     ? previewBattleAction(state, { actorId: activeActorId, moveId: option.move.id,
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
   const projectedEffects = effectsFor(previewMove);
+  const slowedForecast = selectedMove?.usable && selectedMove.move.effects.some(effect => effect.status === "slowed")
+    ? getBattleSlowedOrderForecast(state, previewMove === selectedMove ? projectedEffects : effectsFor(selectedMove))
+    : null;
   const projectionById = new Map(projectedEffects.map(effect => [effect.targetId, effect]));
   const forecastById = new Map<BattleCombatantId, TargetForecast>();
   const allyForecastById = new Map<BattleCombatantId, AllyForecast>();
@@ -422,7 +466,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     </div>
   </div>;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={state.log}/>;
-  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined}>
+  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
     <section className={s.order} aria-label={resolving ? "Resolution order" : "Order preview"}>
       <button className={s.orderHeading} onClick={() => setPopup("order")}>
@@ -451,6 +495,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         </button>;
       })}</div>
     </section>
+    {slowedForecast && selectedMove && <SlowedOrderComparison forecast={slowedForecast} moveName={selectedMove.move.name} state={state} sourceById={sourceById}/>}
     <section className={s.field} aria-label="3 versus 3 battle stage">{!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
       const forecast = forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
@@ -562,6 +607,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
             <HealthMeter value={dockTarget.currentHp} max={dockTarget.maxHp} after={projectionById.get(dockTarget.battleCombatantId)?.hpAfter} guard={guardFor(dockTarget.battleCombatantId)} details />
             <Meter label="BE" value={dockTarget.currentBattleEnergy} max={dockTarget.maxBattleEnergy} after={energyAfter(dockTarget.battleCombatantId)} recovery={recoveryTarget ? energyRecovery : undefined}/>
           </div>
+          {slowedForecast && <SlowedTargetDetail forecast={slowedForecast} targetId={dockTarget.battleCombatantId}/>}
           {(effectTraySlots > 0 || roundEndEffect?.kind === "expiry") && <div className={s.effectTraySlot} data-slots={effectTraySlots}>
             <BattleEffectTray key={dockTarget.battleCombatantId} statuses={dockTarget.statuses} recovery={roundEndEffect && roundEndEffect.kind !== "energy" ? { effect: roundEndEffect, playback: presentation } : undefined} applications={projectedEffects.flatMap(effect =>
               effect.targetId === dockTarget.battleCombatantId && effect.statusApplication ? [effect.statusApplication] : [])} />

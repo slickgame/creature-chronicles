@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
-import { createBattleState, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
+import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleSlowedOrderForecast, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
 import { buildBattleUiAction } from "@/data/battleUi";
@@ -91,6 +91,68 @@ test("order preview matches engine weighted speed and seeded ties without exposi
   assert(!getBattleOrderPreview(state,queue).some(p=>p.actorId===ids[2]));
 });
 
+test("Slowed compares next-round slots and Speed without modifying the live round", () => {
+  const state = fixture();
+  const [willow, briar, rowan] = state.teams.player.combatantIds;
+  const [moss, bramble, lilt] = state.teams.enemy.combatantIds;
+  state.roundNumber = 3;
+  const speeds = new Map([[willow, 42], [briar, 39], [rowan, 33], [lilt, 25], [moss, 22], [bramble, 4]]);
+  for (const [id, speed] of speeds) {
+    state.combatants[id].battleStats.speed = speed;
+    state.combatants[id].currentHp = state.combatants[id].maxHp = 1000;
+  }
+  state.combatants[briar].battleStats.accuracy = 1000;
+  state.combatants[briar].battleStats.statusPower = 1000;
+  state.combatants[briar].loadout.equippedMoveIds = ["strike", "checking_blow"];
+  state.combatants[rowan].statuses = [{ status: "exhausted", duration: 1, amount: 10 }];
+  const action = { actorId: briar, moveId: "checking_blow", targetIds: [lilt] };
+  const before = structuredClone(state);
+  const effects = previewBattleAction(state, action);
+  const result = getBattleSlowedOrderForecast(state, effects);
+  assert(result);
+  assert.equal(result.roundNumber, 4);
+  assert.deepEqual(result.targets, [{ actorId: lilt, requiresHit: true, hitChance: 100, effectChance: 95 }]);
+  assert.deepEqual(result.baseline.map(entry => entry.actorId), [willow, briar, rowan, lilt, moss, bramble]);
+  assert.deepEqual(result.baseline[3], { actorId: lilt, slot: 4, speed: 25 });
+  assert.deepEqual(result.slowed[4], { actorId: lilt, slot: 5, speed: 19 });
+  const turn = resolveBattleTurn(state, [briar], action);
+  assert(turn);
+  assert.deepEqual(result.slowed.map(({ actorId, speed }) => ({ actorId, score: speed })),
+    getBattleOrderPreview(turn.state, new Map()).map(({ actorId, score }) => ({ actorId, score })));
+  assert.deepEqual(state, before);
+});
+
+test("Slowed uses projected stack and recovery rules and excludes both direct and bleed knockouts", () => {
+  const state = fixture();
+  const [actorId, , bleedId] = state.teams.player.combatantIds;
+  const [slowedId, directId, otherId] = state.teams.enemy.combatantIds;
+  const target = state.combatants[slowedId];
+  target.battleStats.speed = 25;
+  target.statuses = [{ status: "slowed", duration: 1 }];
+  state.combatants[directId].currentHp = 1;
+  state.combatants[bleedId].currentHp = 1;
+  state.combatants[bleedId].statuses = [{ status: "bleed", duration: 1, amount: 5 }];
+  const action = { actorId, moveId: "thunder_tread", targetIds: [slowedId, directId, otherId] };
+  const forecast = getBattleSlowedOrderForecast(state, previewBattleAction(state, action));
+  assert(forecast);
+  assert.deepEqual(new Set(forecast.targets.map(entry => entry.actorId)), new Set([slowedId, otherId]));
+  assert.equal(forecast.baseline.find(entry => entry.actorId === slowedId)?.speed, 25);
+  assert.equal(forecast.slowed.find(entry => entry.actorId === slowedId)?.speed, 13);
+  for (const row of [forecast.baseline, forecast.slowed]) {
+    assert(!row.some(entry => entry.actorId === directId || entry.actorId === bleedId));
+  }
+
+  target.statuses = [{ status: "slowed", duration: 2, stacks: 2 }];
+  const checkingBlow = { actorId, moveId: "checking_blow", targetIds: [slowedId] };
+  const refresh = getBattleSlowedOrderForecast(state, previewBattleAction(state, checkingBlow));
+  assert(refresh);
+  assert.deepEqual(refresh.baseline, refresh.slowed);
+
+  target.statuses.push({ status: "bleed", duration: 1, amount: target.currentHp });
+  assert.equal(getBattleSlowedOrderForecast(state, previewBattleAction(state, checkingBlow)), null);
+  assert.equal(getBattleSlowedOrderForecast(state, previewBattleAction(state, { ...checkingBlow, targetIds: [directId] })), null);
+});
+
 test("playback snapshots show each hit separately and use IDs with duplicate names", ()=>{
   const state=fixture(),target=state.teams.enemy.combatantIds[0];
   for(const c of Object.values(state.combatants)) {
@@ -111,8 +173,7 @@ test("playback snapshots show each hit separately and use IDs with duplicate nam
   assert.deepEqual(state,before,"resolution and playback do not mutate input");
 });
 
-test("target preview matches damage after guard modifiers and healing caps without mutation",async()=>{
-  const { previewBattleAction }=await import("@/data/battleEngine");
+test("target preview matches damage after guard modifiers and healing caps without mutation",()=>{
   const state=fixture(),actor=state.teams.player.combatantIds[0],target=state.teams.enemy.combatantIds[0];
   state.combatants[actor].battleStats.speed=1000;state.combatants[actor].battleStats.accuracy=1000;
   state.combatants[target].statuses=[{status:"guarded",duration:2,amount:25}];

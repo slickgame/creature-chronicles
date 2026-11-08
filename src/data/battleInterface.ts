@@ -1,8 +1,15 @@
 import { getBattleMove } from "@/data/battleMoves";
-import { deterministicBattleRoll, getEffectiveBattleStats } from "@/data/battleEngine";
+import {
+  advanceBattleCombatantEndOfRound,
+  deterministicBattleRoll,
+  getBattleOutcome,
+  getEffectiveBattleStats,
+  type BattleActionEffectPreview,
+  type BattleStatusApplicationPreview,
+} from "@/data/battleEngine";
 import { getBattleTurnScore } from "@/data/battleStats";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
-import type { BattleAction, BattleCombatantId, BattleMove, BattleMoveId, BattleState } from "@/types/battle";
+import type { BattleAction, BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleState, BattleStatusStack } from "@/types/battle";
 
 export const BATTLE_MENU_CATEGORIES = ["All", "Attack", "Support", "Recovery"] as const;
 export type BattleMenuCategory = typeof BATTLE_MENU_CATEGORIES[number];
@@ -72,6 +79,86 @@ export function getBattleOrderPreview(state: BattleState, queued: ReadonlyMap<Ba
     return { actorId: c.battleCombatantId, score: action ? getBattleTurnScore(stats, getBattleMove(action.moveId)) : stats.speed,
       tie: deterministicBattleRoll(`${state.battleId}_${state.roundNumber}_${c.battleCombatantId}_initiative`, 100000) };
   }).sort((a,b) => b.score-a.score || b.tie-a.tie || a.actorId.localeCompare(b.actorId));
+}
+
+export type BattleSlowedOrderEntry = {
+  actorId: BattleCombatantId;
+  slot: number;
+  speed: number;
+};
+
+export type BattleSlowedOrderForecast = {
+  roundNumber: number;
+  baseline: BattleSlowedOrderEntry[];
+  slowed: BattleSlowedOrderEntry[];
+  targets: (Pick<BattleStatusApplicationPreview, "requiresHit" | "hitChance" | "effectChance"> & {
+    actorId: BattleCombatantId;
+  })[];
+};
+
+function withProjectedStatus(combatant: BattleCombatant, stack: BattleStatusStack): BattleCombatant {
+  const otherStacks = combatant.statuses.filter(status => status.status !== stack.status || status.stat !== stack.stat);
+  return { ...combatant, statuses: [...otherStacks, stack] };
+}
+
+/** Compare the same projected move results with and without the new Slowed effects. */
+export function getBattleSlowedOrderForecast(
+  state: BattleState,
+  effects: readonly BattleActionEffectPreview[],
+): BattleSlowedOrderForecast | null {
+  if (state.outcome !== "ongoing") return null;
+
+  const applications = new Map<BattleCombatantId, BattleStatusApplicationPreview>();
+  for (const effect of effects) {
+    const application = effect.statusApplication;
+    if (application?.stack.status === "slowed" && application.stack.duration > 1 &&
+        application.effectChance > 0 && (!application.requiresHit || application.hitChance > 0)) {
+      applications.set(effect.targetId, application);
+    }
+  }
+  if (!applications.size) return null;
+
+  const afterMove = { ...state, combatants: { ...state.combatants } };
+  for (const effect of effects) {
+    const combatant = afterMove.combatants[effect.targetId];
+    const { statusApplication, cleansedStatuses } = effect;
+    const projected = {
+      ...combatant,
+      currentHp: effect.hpAfter,
+      isFainted: combatant.isFainted || effect.hpAfter <= 0,
+      statuses: cleansedStatuses?.length
+        ? combatant.statuses.filter(status => !cleansedStatuses.includes(status.status))
+        : combatant.statuses,
+    };
+    afterMove.combatants[effect.targetId] = statusApplication && statusApplication.stack.status !== "slowed"
+      ? withProjectedStatus(projected, statusApplication.stack)
+      : projected;
+  }
+  if (getBattleOutcome(afterMove) !== "ongoing") return null;
+
+  const roundNumber = state.roundNumber + 1;
+  const baseline = { ...afterMove, roundNumber, combatants: { ...afterMove.combatants } };
+  for (const combatant of Object.values(afterMove.combatants)) {
+    baseline.combatants[combatant.battleCombatantId] = advanceBattleCombatantEndOfRound(combatant).combatant;
+  }
+  if (getBattleOutcome(baseline) !== "ongoing") return null;
+
+  const slowed = { ...baseline, combatants: { ...baseline.combatants } };
+  const targets: BattleSlowedOrderForecast["targets"] = [];
+  for (const [actorId, { stack, requiresHit, hitChance, effectChance }] of applications) {
+    if (baseline.combatants[actorId].isFainted) continue;
+    const combatant = withProjectedStatus(afterMove.combatants[actorId], stack);
+    slowed.combatants[actorId] = advanceBattleCombatantEndOfRound(combatant).combatant;
+    targets.push({ actorId, requiresHit, hitChance, effectChance });
+  }
+  if (!targets.length) return null;
+
+  const order = (branch: BattleState) => getBattleOrderPreview(branch, new Map()).map(({ actorId, score }, index) => ({
+    actorId,
+    slot: index + 1,
+    speed: score,
+  }));
+  return { roundNumber, baseline: order(baseline), slowed: order(slowed), targets };
 }
 
 /** Notices follow the settled round state and survive until their owner's playable turn resolves. */
