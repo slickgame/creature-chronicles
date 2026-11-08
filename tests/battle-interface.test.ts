@@ -40,6 +40,41 @@ test("all four equipped moves remain inspectable with no target and unavailable 
     for(const o of options) assert.equal(o.usable,!!buildBattleUiAction(state,id,o.move.id,target));
   }
 });
+
+test("move badges keep target, cooldown, and energy blockers in order with complete reasons", () => {
+  const state = fixture();
+  const [actorId] = state.teams.player.combatantIds;
+  const [tauntSourceId, otherEnemyId] = state.teams.enemy.combatantIds;
+  const actor = state.combatants[actorId];
+  actor.loadout.equippedMoveIds = ["strike", "defend", "unyielding_aura"];
+  actor.cooldowns.unyielding_aura = 1;
+  actor.currentBattleEnergy = 8;
+  const option = (moveId: string, target: Parameters<typeof getBattleMenuOptions>[2]) =>
+    getBattleMenuOptions(state, actorId, target).find(entry => entry.move.id === moveId)!;
+  const enemy = { kind: "combatant", combatantId: otherEnemyId } as const;
+  const self = { kind: "combatant", combatantId: actorId } as const;
+
+  const aura = option("unyielding_aura", enemy);
+  assert.deepEqual(aura.blockers, [
+    { kind: "target", label: "Select ally", detail: "Select a all allies target." },
+    { kind: "cooldown", label: "1 round left", detail: "Cooldown: 1 round." },
+    { kind: "energy", label: "Need 16 BE", detail: "Need 16 Battle Energy." },
+  ]);
+  assert.deepEqual(aura.reasons, aura.blockers.map(blocker => blocker.detail));
+  assert.equal(aura.usable, false);
+  assert.deepEqual(option("unyielding_aura", self).blockers, aura.blockers.slice(1));
+  assert.equal(option("unyielding_aura", null).blockers[0].label, "Choose target");
+  assert.equal(option("defend", enemy).blockers[0].label, "Select self");
+  assert.equal(option("strike", self).blockers[0].label, "Select enemy");
+  assert.equal(option("strike", enemy).usable, true);
+  assert.deepEqual(option("strike", enemy).blockers, []);
+
+  actor.statuses = [{ status: "taunted", duration: 1, sourceCombatantId: tauntSourceId }];
+  assert.deepEqual(option("strike", enemy).blockers, [
+    { kind: "target", label: "Taunt target", detail: `Taunted: select ${state.combatants[tauntSourceId].name}.` },
+  ]);
+});
+
 test("order preview matches engine weighted speed and seeded ties without exposing enemy priorities",()=>{
   const state=fixture(),ids=state.teams.player.combatantIds;
   for(const c of Object.values(state.combatants)) c.battleStats.speed=40;

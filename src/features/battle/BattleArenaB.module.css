@@ -362,16 +362,39 @@
 .turnNav svg { width: 24px; height: 24px; color: #59331a; flex: none; }
 .turnCards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .turnTile { position: relative; }
-.turnTile > button { display: flex; width: 100%; align-items: center; gap: 8px; text-align: left; }
-.turnTile > button[data-usable=false] { filter: saturate(.46); }
-.turnTile img { width: 27px; height: 27px; object-fit: contain; }
-.turnTile small { display: block; font-size: 11px; margin-top: 3px; }
-.turnTile > button[data-cooldown-complete] { position: relative; }
-.arena .turnTile > button[data-cooldown-complete][data-usable=false] {
-  filter: none;
-  background: linear-gradient(#eadac0, #d1b892);
+.turnTile > button { display: flex; width: 100%; height: 100%; align-items: center; gap: 8px; text-align: left; }
+.arena .turnTile > button[data-usable=false] { background: linear-gradient(#eadac0, #d1b892); }
+.turnTile > button[data-usable=false] > img { filter: saturate(.46); }
+.turnTile img { width: 27px; height: 27px; flex: none; object-fit: contain; }
+.turnTile small { font-size: 11px; white-space: nowrap; }
+.turnTileLabel { min-width: 0; overflow-wrap: anywhere; }
+.moveCostRow { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 6px; margin-top: 2px; }
+.moveAvailabilityBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 1px 5px 1px 2px;
+  border: 1px solid var(--availability-ink);
+  border-radius: 999px;
+  background: var(--availability-paper);
+  color: var(--availability-ink);
+  font: bold clamp(10px, 1vw, 12px)/1.15 Georgia, serif;
 }
-.turnTile > button[data-cooldown-complete][data-usable=false] > img { filter: saturate(.46); }
+.moveAvailabilityBadge[data-move-availability=ready] { --availability-ink: #315a26; --availability-paper: #e5efca; }
+.moveAvailabilityBadge[data-move-availability=cooldown], .moveBlockers [data-move-blocker=cooldown] { --availability-ink: #754519; --availability-paper: #f5e5cb; }
+.moveAvailabilityBadge[data-move-availability=energy], .moveBlockers [data-move-blocker=energy] { --availability-ink: #1e4c7b; --availability-paper: #e1edf7; }
+.moveAvailabilityBadge[data-move-availability=target], .moveBlockers [data-move-blocker=target] { --availability-ink: #71354b; --availability-paper: #f3e0e5; }
+.moveAvailabilityBadge svg, .moveBlockers svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  padding: 1px;
+  border-radius: 50%;
+  background: var(--availability-ink);
+  color: #fff7dd;
+}
+.turnTile > button[data-cooldown-complete] { position: relative; }
 .turnTile > button[data-cooldown-complete]::after {
   content: "";
   position: absolute;
@@ -414,6 +437,35 @@
   border-radius: 7px; background: #ffe3b2; color: #422411;
   box-shadow: 0 3px 8px #27130599; font-size: 12px; pointer-events: none;
 }
+.moveTooltip[data-blocked] {
+  right: auto;
+  width: max(100%, 164px);
+  max-width: min(250px, calc(100vw - 16px));
+  pointer-events: auto;
+}
+.turnTile:nth-child(even) .moveTooltip[data-blocked] { left: auto; right: 0; }
+.moveTooltip[data-blocked]::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  height: 9px;
+}
+.moveTooltip[data-blocked]::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  bottom: -6px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #aa743b;
+  border-bottom: 2px solid #aa743b;
+  background: #ffe3b2;
+  transform: rotate(45deg);
+}
+.turnTile:nth-child(even) .moveTooltip[data-blocked]::after { left: auto; right: 18px; }
+.moveBlockers { display: grid; gap: 4px; margin: 3px 0 0; padding: 5px 0 0; border-top: 1px solid #bd8c50; }
+.moveBlockers li { display: flex; align-items: flex-start; gap: 5px; overflow-wrap: anywhere; }
 .turnTargetVitals {
   container-type: inline-size;
   display: grid; grid-template-columns: 55px minmax(0, 1fr); align-items: center;

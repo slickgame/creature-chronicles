@@ -7,6 +7,21 @@ import type { BattleAction, BattleCombatantId, BattleMove, BattleMoveId, BattleS
 export const BATTLE_MENU_CATEGORIES = ["All", "Attack", "Support", "Recovery"] as const;
 export type BattleMenuCategory = typeof BATTLE_MENU_CATEGORIES[number];
 
+export type BattleMoveBlocker = {
+  kind: "target" | "cooldown" | "energy";
+  label: string;
+  detail: string;
+};
+
+const TARGET_BLOCKER_LABELS: Record<BattleMove["targetType"], string> = {
+  self: "Select self",
+  single_enemy: "Select enemy",
+  all_enemies: "Select enemy",
+  single_ally: "Select ally",
+  all_allies: "Select ally",
+  field: "Select field",
+};
+
 /** Exclusive groups: damaging hybrids remain attacks; defensive moves stay Support despite small energy refunds. */
 export function getBattleMenuCategory(move: BattleMove): Exclude<BattleMenuCategory, "All"> {
   if (move.effects.some(effect => effect.type === "damage") || move.category === "physical" || move.category === "special") return "Attack";
@@ -22,13 +37,30 @@ export function getBattleMenuOptions(state: BattleState, actorId: BattleCombatan
   return actor.loadout.equippedMoveIds.map(id => {
     const move = getBattleMove(id);
     const availability = target ? getBattleUiMoveAvailability(state, actor.battleCombatantId, id, target) : null;
-    const reasons: string[] = [];
-    if (!target) reasons.push("Choose a target.");
-    else if (!availability?.compatible && availability?.reason) reasons.push(availability.reason);
+    const blockers: BattleMoveBlocker[] = [];
+    if (!target) {
+      blockers.push({ kind: "target", label: "Choose target", detail: "Choose a target." });
+    } else if (availability && !availability.compatible && availability.reason) {
+      blockers.push({
+        kind: "target",
+        label: availability.reason.startsWith("Taunted:") ? "Taunt target" : TARGET_BLOCKER_LABELS[move.targetType],
+        detail: availability.reason,
+      });
+    }
     const cooldown = actor.cooldowns[id] ?? 0;
-    if (cooldown > 0) reasons.push(`Cooldown: ${cooldown} round${cooldown === 1 ? "" : "s"}.`);
-    if (actor.currentBattleEnergy < move.battleEnergyCost) reasons.push(`Need ${move.battleEnergyCost} Battle Energy.`);
-    return { move, category: getBattleMenuCategory(move), usable: availability?.usable ?? false, reasons, cooldown };
+    if (cooldown > 0) {
+      const remaining = `${cooldown} round${cooldown === 1 ? "" : "s"}`;
+      blockers.push({ kind: "cooldown", label: `${remaining} left`, detail: `Cooldown: ${remaining}.` });
+    }
+    if (actor.currentBattleEnergy < move.battleEnergyCost) {
+      blockers.push({
+        kind: "energy",
+        label: `Need ${move.battleEnergyCost} BE`,
+        detail: `Need ${move.battleEnergyCost} Battle Energy.`,
+      });
+    }
+    const reasons = blockers.map(blocker => blocker.detail);
+    return { move, category: getBattleMenuCategory(move), usable: availability?.usable ?? false, reasons, blockers, cooldown };
   });
 }
 

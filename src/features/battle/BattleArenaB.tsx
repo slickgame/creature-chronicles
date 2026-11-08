@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, type BattleMenuCategory } from "@/data/battleInterface";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, type BattleMenuCategory, type BattleMoveBlocker } from "@/data/battleInterface";
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
@@ -205,6 +205,16 @@ function TurnIcon({ kind }: { kind: "moves" | "items" | "inspect" }) {
     {kind === "inspect" && <><circle cx="20" cy="12" r="8"/><path strokeWidth="5" d="m14 18-10 10"/></>}
   </svg>;
 }
+
+function MoveAvailabilityIcon({ kind }: { kind: BattleMoveBlocker["kind"] | "ready" }) {
+  return <svg viewBox="0 0 20 20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+    {kind === "ready" && <path d="m4.5 10.5 3.6 3.6 7.4-8"/>}
+    {kind === "target" && <><circle cx="10" cy="10" r="5.3"/><path d="M10 2v4m0 8v4M2 10h4m8 0h4"/></>}
+    {kind === "cooldown" && <path d="M5 3h10M5 17h10M6.5 3v2.5c0 2 1.3 3.3 3.5 4.5-2.2 1.2-3.5 2.5-3.5 4.5V17m7-14v2.5c0 2-1.3 3.3-3.5 4.5 2.2 1.2 3.5 2.5 3.5 4.5V17"/>}
+    {kind === "energy" && <path fill="currentColor" stroke="none" d="m11.7 1.8-7.5 9.5h5l-.9 6.9 7.5-9.7h-5l.9-6.7Z"/>}
+  </svg>;
+}
+
 function MoveDetails({ move }: { move: BattleMove }) {
   return <><h3>{move.name}</h3><p>{move.description}</p><p>Power {move.power} · Move accuracy {move.accuracy}% · Energy {move.battleEnergyCost} · Cooldown {move.cooldown} rounds · Priority {move.priority}</p><p>Targets: {getBattleTargetTypeLabel(move.targetType)}. Move accuracy is a base value; actual hit chance also depends on combat stats and effects.</p>{move.effects.map((effect,i)=>{const entry=getBattleEffectGlossary(effect.type);return <section key={i}><h4>{entry.label}{effect.status?` · ${getBattleStatusGlossary(effect.status).label}`:""}</h4><p>{entry.mechanics}</p><p>{effect.amount!==undefined?`Amount: ${effect.amount}. `:""}{effect.chance!==undefined?`Base chance: ${effect.chance}%. `:""}{effect.duration!==undefined?`Duration: ${effect.duration} rounds. `:""}{effect.target?`Recipient: ${effect.target.replaceAll("_"," ")}. `:""}{effect.note}</p></section>;})}</>;
 }
@@ -247,7 +257,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const [movesOpen,setMovesOpen]=useState(false);
   const [draft,setDraft]=useState<{actorId:string;moveId:string}|null>(null);
   const [tappedTarget,setTappedTarget]=useState<string|null>(null);
-  const [hoverMove, setHoverMove] = useState<{ id: string; via: "pointer" | "focus" } | null>(null);
+  const [moveTip, setMoveTip] = useState<{ id: BattleMoveId; via: "pointer" | "focus" | "tap" } | null>(null);
+  const turnCardsRef = useRef<HTMLDivElement>(null);
   const [movePage, setMovePage] = useState(0);
   const [turnDetails, setTurnDetails] = useState(false);
   const [statusId,setStatusId]=useState<string|null>(null);
@@ -268,7 +279,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const actionCaption=currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
   const highlight=resolving?presentation.activeEvent?.actorId:activeActorId;
   function inspect(id?:string){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup("inspect");}
-  function clearDraft(){setDraft(null);setTappedTarget(null);setHoverMove(null);setMovePage(0);}
+  function clearDraft(){setDraft(null);setTappedTarget(null);setMoveTip(null);setMovePage(0);}
   function queueMove(id:string){props.onQueue(id);clearDraft();setMovesOpen(false);setPopup(null);}
   const draftMove=movesOpen&&draft?.actorId===activeActorId&&!resolving&&!complete?getBattleMove(draft.moveId):null;
   const draftActor=activeActorId?state.combatants[activeActorId]:null;
@@ -279,8 +290,25 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const completedMoves = turnOptions.filter(option => option.cooldown === 0 && props.completedCooldowns?.includes(option.move.id));
   const turnPage = Math.min(movePage, Math.max(0, Math.ceil(turnOptions.length / 4) - 1));
   const selectedMove = turnOptions.find(option => draft?.actorId === activeActorId && option.move.id === draft.moveId);
-  const hoverOption = turnOptions.find(option => option.move.id === hoverMove?.id);
-  const previewMove = hoverOption?.usable && (hoverMove?.via === "pointer" || !selectedMove) ? hoverOption : selectedMove;
+  const tipOption = !popup && !turnDetails ? turnOptions.find(option => option.move.id === moveTip?.id) : undefined;
+  const tooltipMove = moveTip?.via === "tap" && tipOption?.usable ? undefined : tipOption;
+  const tooltipOpen = Boolean(tooltipMove);
+  useEffect(() => {
+    if (!tooltipOpen) return;
+    function dismissOutside(event: PointerEvent) {
+      if (event.target instanceof Node && !turnCardsRef.current?.contains(event.target)) setMoveTip(null);
+    }
+    function dismissOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMoveTip(null);
+    }
+    document.addEventListener("pointerdown", dismissOutside);
+    document.addEventListener("keydown", dismissOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", dismissOutside);
+      document.removeEventListener("keydown", dismissOnEscape);
+    };
+  }, [tooltipOpen]);
+  const previewMove = tooltipMove?.usable && (moveTip?.via === "pointer" || !selectedMove) ? tooltipMove : selectedMove;
   const effectsFor = (option: typeof previewMove) => option?.usable && activeActorId && selectedTarget
     ? previewBattleAction(state, { actorId: activeActorId, moveId: option.move.id,
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
@@ -338,7 +366,11 @@ export function BattleArenaB(props: BattleArenaBProps) {
   }
   function selectTarget(next:BattleUiTarget){
     if(resolving)return;
-    if (individual) { props.onTarget(next); return; }
+    if (individual) {
+      setMoveTip(null);
+      props.onTarget(next);
+      return;
+    }
     const key=next.kind==="field"?"field":next.combatantId;
     const sameSelection=selectedTarget?.kind===next.kind&&(next.kind==="field"||selectedTarget?.kind==="combatant"&&selectedTarget.combatantId===next.combatantId);
     if(draftMove&&activeActorId&&tappedTarget===key&&sameSelection&&getBattleUiMoveAvailability(state,activeActorId,draftMove.id,next).usable){queueMove(draftMove.id);return;}
@@ -424,32 +456,47 @@ export function BattleArenaB(props: BattleArenaBProps) {
         <span className={s.resultAnnouncement} role="status">
           {completedMoves.map(({ move }) => `${move.name} cooldown complete.`).join(" ")}
         </span>
-        <div className={s.turnCards}>{turnOptions.slice(turnPage * 4, turnPage * 4 + 4).map(option => {
-          const tooltip = hoverMove?.id === option.move.id;
+        <div ref={turnCardsRef} className={s.turnCards}>{turnOptions.slice(turnPage * 4, turnPage * 4 + 4).map(option => {
+          const tooltip = tooltipMove === option;
+          const blocker = option.blockers[0];
+          const availabilityKind = blocker?.kind ?? "ready";
           const cooldownComplete = completedMoves.includes(option);
           const details = !tooltip ? [] : option === previewMove ? projectedEffects : effectsFor(option);
           const effect = details.find(entry => entry.targetId === target?.battleCombatantId) ?? details[0];
           return <div key={`${activeActorId}:${option.move.id}`} className={s.turnTile}
-            onPointerEnter={event => { if (event.pointerType === "mouse") setHoverMove({ id: option.move.id, via: "pointer" }); }}
-            onPointerLeave={event => { if (event.pointerType === "mouse") setHoverMove(current => current?.via === "pointer" ? null : current); }}>
+            onPointerEnter={event => { if (event.pointerType === "mouse") setMoveTip(current => current?.id === option.move.id ? current : { id: option.move.id, via: "pointer" }); }}
+            onPointerLeave={event => { if (event.pointerType === "mouse") setMoveTip(current => current?.id === option.move.id && current.via === "pointer" ? null : current); }}>
             <button aria-pressed={selectedMove?.move.id === option.move.id} data-turn-move data-usable={option.usable} data-cooldown-complete={cooldownComplete ? "" : undefined}
-              onFocus={event => { if (event.currentTarget.matches(":focus-visible")) setHoverMove({ id: option.move.id, via: "focus" }); }}
-              onBlur={() => setHoverMove(current => current?.via === "focus" ? null : current)}
+              onFocus={event => { if (event.currentTarget.matches(":focus-visible")) setMoveTip({ id: option.move.id, via: "focus" }); }}
+              onBlur={() => setMoveTip(current => current?.id === option.move.id && current.via !== "pointer" ? null : current)}
               aria-describedby={tooltip ? `move-tip-${option.move.id}` : undefined}
               onClick={() => {
                 if (!activeActorId) return;
                 setDraft({ actorId: activeActorId, moveId: option.move.id });
                 if (option.move.targetType === "field") props.onTarget({ kind: "field" });
+                setMoveTip(current => blocker
+                  ? current?.id === option.move.id && current.via === "tap" ? null : { id: option.move.id, via: "tap" }
+                  : current?.via === "tap" ? null : current);
               }}>
               <img src={ART + option.category.toLowerCase() + ".webp"} alt=""/>
-              <span>
-                <strong>{option.move.name}</strong><small>{option.move.battleEnergyCost} BE · {option.reasons[0] ?? "Ready"}</small>
+              <span className={s.turnTileLabel}>
+                <strong>{option.move.name}</strong>
+                <span className={s.moveCostRow}>
+                  <small>{option.move.battleEnergyCost} BE</small>
+                  <span className={s.moveAvailabilityBadge} data-move-availability={availabilityKind}>
+                    <MoveAvailabilityIcon kind={availabilityKind}/>{blocker?.label ?? "Ready"}
+                  </span>
+                </span>
                 {cooldownComplete && <span className={s.cooldownBadge}>Cooldown complete</span>}
               </span>
             </button>
-            {tooltip && <div className={s.moveTooltip} id={`move-tip-${option.move.id}`} role="tooltip">
+            {tooltip && <div className={s.moveTooltip} id={`move-tip-${option.move.id}`} role="tooltip" data-blocked={blocker ? "" : undefined}>
               <strong>{option.move.name}</strong><span>{getBattleTargetTypeLabel(option.move.targetType)} · {option.move.battleEnergyCost} BE</span>
-              <span>{effect ? `Est. ${effectForecastText(effect)}` : option.reasons[0] ?? option.move.description}</span>
+              {blocker ? <ul className={s.moveBlockers} aria-label="Move requirements">
+                {option.blockers.map(({ kind, detail }) => <li key={kind} data-move-blocker={kind}>
+                  <MoveAvailabilityIcon kind={kind}/><span>{detail}{kind === "energy" && draftActor ? ` You have ${draftActor.currentBattleEnergy} BE.` : ""}</span>
+                </li>)}
+              </ul> : <span>{effect ? `Est. ${effectForecastText(effect)}` : option.move.description}</span>}
             </div>}
           </div>;
         })}</div>
@@ -469,7 +516,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
           </div>}
         </div>}
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
-          : <button className={s.primary} disabled={!selectedMove?.usable} onFocus={() => setHoverMove(null)} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
+          : <button className={s.primary} disabled={!selectedMove?.usable} onFocus={() => setMoveTip(null)} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
         {selectedMove ? <button className={s.turnDetailButton} onClick={() => setTurnDetails(true)}>Move details</button>
           : effectTraySlots > 0 && turnOptions.length > 0 && <span className={s.turnDetailSpace} aria-hidden="true"/>}
       </section>
