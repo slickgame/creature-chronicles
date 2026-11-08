@@ -1,7 +1,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { getBattleBleedDamage, getBattleSlowedPenalties, type BattleStatusApplicationPreview } from "@/data/battleEngine";
 import { getBattleStatusGlossary } from "@/data/battleGlossary";
-import type { BattleMove, BattleStatusStack } from "@/types/battle";
+import type { BattleMove, BattleRoundEndEffect, BattleStatusId, BattleStatusStack } from "@/types/battle";
+import { StatusIcon } from "./BattleStatusBadges";
+import { useBattleOutcomeFade, type BattlePlaybackMotion } from "./useBattlePresentationController";
 import s from "./BattleArenaB.module.css";
 
 const trayStatuses = ["bleed", "slowed"] as const;
@@ -34,9 +36,22 @@ function effectDescription(status: TrayStatus, effect: BattleStatusStack) {
 
 type OpenTip = { badge: TrayStatus; trigger: "hover" | "focus" | "click" };
 
-export function BattleEffectTray({ statuses, applications }: {
+const EXPIRY_FADE: Keyframe[] = [{ opacity: 1 }, { opacity: 1, offset: 0.69 }, { opacity: 0 }];
+
+function ExpiredEffects({ statuses, playback }: { statuses: readonly BattleStatusId[]; playback: BattlePlaybackMotion }) {
+  const { node } = useBattleOutcomeFade<HTMLDivElement>(playback, EXPIRY_FADE, 0);
+  return <div ref={node} className={s.expiredEffectChips} data-expired-effects>
+    {statuses.map(status => <div key={status} className={s.effectChip} data-expired-status={status}>
+      {status === "bleed" || status === "slowed" ? <EffectIcon status={status}/> : <StatusIcon status={status}/>}
+      <strong>{getBattleStatusGlossary(status).label} expired</strong>
+    </div>)}
+  </div>;
+}
+
+export function BattleEffectTray({ statuses, applications, recovery }: {
   statuses: readonly BattleStatusStack[];
   applications: readonly BattleStatusApplicationPreview[];
+  recovery?: { effect: BattleRoundEndEffect; playback: BattlePlaybackMotion };
 }) {
   const id = useId();
   const tray = useRef<HTMLDivElement>(null);
@@ -48,6 +63,7 @@ export function BattleEffectTray({ statuses, applications }: {
     return effect ? [{ status, active, preview, effect }] : [];
   });
   const open = badges.some(badge => badge.status === tip?.badge);
+  const roundEndEffect = recovery?.effect;
 
   useEffect(() => {
     if (!open) return;
@@ -68,16 +84,17 @@ export function BattleEffectTray({ statuses, applications }: {
     };
   }, [open]);
 
-  if (!badges.length) return null;
+  if (!badges.length && roundEndEffect?.kind !== "expiry") return null;
 
-  return <div className={s.effectTray} ref={tray} role="group" aria-label="Status effects">
+  return <div className={s.effectTray} data-recovery-tray={roundEndEffect?.kind} ref={tray} role="group" aria-label="Status effects">
     {badges.map(({ status, active, preview, effect }) => {
       const { label } = getBattleStatusGlossary(status);
       const duration = rounds(effect.duration);
       const chance = preview ? `${preview.effectChance}%${preview.requiresHit ? " if hit" : " chance"}` : null;
       const showing = tip?.badge === status;
       const tooltipId = `${id}-${status}`;
-      const stacks = effect.stacks ?? 1;
+      const ticking = status === "bleed" && roundEndEffect?.kind === "bleed";
+      const stacks = ticking ? roundEndEffect.stacks : effect.stacks ?? 1;
       const change = preview?.mode === "stacked" ? "add a stack of" : preview?.mode === "refreshed" ? "reapply" : "apply";
 
       return <div className={s.effectChip} key={status} data-status={status}
@@ -95,7 +112,7 @@ export function BattleEffectTray({ statuses, applications }: {
           onBlur={() => setTip(current => current?.badge === status && current.trigger !== "hover" ? null : current)}
           onClick={() => setTip(current => current?.badge === status && current.trigger === "click" ? null : { badge: status, trigger: "click" })}>
           <EffectIcon status={status}/>
-          <span><strong>{label}</strong><small>{chance ? `${chance} · ${duration}` : `${duration} left`}</small></span>
+          <span><strong>{ticking ? `${label} ×${stacks}` : label}</strong><small>{chance ? `${chance} · ${duration}` : `${duration} left`}</small></span>
         </button>
         {showing && <div id={tooltipId} className={s.effectTooltip} role="tooltip">
           <strong>{label}{preview ? " · Preview" : " · Active"}</strong>
@@ -106,5 +123,6 @@ export function BattleEffectTray({ statuses, applications }: {
         </div>}
       </div>;
     })}
+    {recovery?.effect.kind === "expiry" && <ExpiredEffects statuses={recovery.effect.statuses} playback={recovery.playback}/>}
   </div>;
 }

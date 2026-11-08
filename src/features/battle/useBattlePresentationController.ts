@@ -8,6 +8,43 @@ export type BattlePresentationSpeed = 1 | 2;
 const SPEED_KEY = "creature-chronicles:battle-presentation-speed";
 const REDUCED_MOTION_KEY = "creature-chronicles:battle-reduced-motion";
 
+export type BattlePlaybackMotion = {
+  paused: boolean;
+  reducedMotion: boolean;
+  speed: BattlePresentationSpeed;
+  manualBeat: boolean;
+};
+
+export function useBattleOutcomeFade<T extends HTMLElement>(
+  { paused, reducedMotion, speed, manualBeat }: BattlePlaybackMotion,
+  keyframes: Keyframe[],
+  delayMs?: number,
+) {
+  const node = useRef<T>(null);
+  const fade = useRef<Animation | null>(null);
+  const animateFade = delayMs !== undefined && !reducedMotion && !manualBeat;
+
+  useEffect(() => {
+    if (!animateFade || !node.current) return;
+    const animation = node.current.animate(keyframes, { delay: delayMs, duration: BATTLE_OUTCOME_FADE_MS, fill: "both" });
+    fade.current = animation;
+    return () => {
+      animation.cancel();
+      fade.current = null;
+    };
+  }, [animateFade, delayMs, keyframes]);
+
+  useEffect(() => {
+    const animation = fade.current;
+    if (!animation || animation.playState === "finished") return;
+    animation.updatePlaybackRate(speed);
+    if (paused) animation.pause();
+    else animation.play();
+  }, [paused, animateFade, speed, delayMs, keyframes]);
+
+  return { node, animateFade };
+}
+
 export function useBattlePresentationController() {
   const [paused, setPaused] = useState(false);
   const [actionOrder, setActionOrder] = useState<string[]>([]);
@@ -35,7 +72,7 @@ export function useBattlePresentationController() {
 
   useEffect(() => {
     const current = events[0];
-    if (current?.targetOutcomes) {
+    if (current && (current.targetOutcomes || current.roundEndEffect?.kind === "expiry")) {
       if (resultClock.current?.event !== current || resultClock.current.reducedMotion !== reducedMotion) {
         resultClock.current = { event: current, elapsed: 0, reducedMotion };
       }

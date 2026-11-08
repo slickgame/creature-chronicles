@@ -39,6 +39,7 @@ export type BattlePresentationEvent = {
   label: string;
   amount?: number;
   statusOutcome?: BattlePlaybackFrame["statusOutcome"];
+  roundEndEffect?: BattlePlaybackFrame["roundEndEffect"];
   precedingDamage?: string;
   targetOutcomes?: BattleTargetOutcome[];
   preset: BattleEffectPreset;
@@ -396,12 +397,15 @@ export function buildBattlePlaybackEvents(
     if (frame.kind === "damage" && frame.moveId && targetId) {
       damageByTarget.set(targetId, frame.label);
     }
+    const expiry = frame.roundEndEffect?.kind === "expiry" ? frame.roundEndEffect : undefined;
     return {
       ...frame,
       eventId: `frame-${index}`,
       moveName: frame.moveId ? getBattleMove(frame.moveId).name : undefined,
       preset: frame.moveId ? getBattleMoveEffectPreset(getBattleMove(frame.moveId)) : "status",
-      durationMs: frame.kind === "attack" ? 600 : frame.kind === "status" ? 650 : 800,
+      label: expiry ? expiry.statuses.map(status => `${getBattleStatusGlossary(status).label} expired`).join(" · ") : frame.label,
+      durationMs: expiry ? BATTLE_OUTCOME_FADE_MS
+        : frame.kind === "attack" ? 600 : frame.kind === "status" ? 650 : 800,
       precedingDamage: frame.statusOutcome && targetId ? damageByTarget.get(targetId) : undefined,
     };
   });

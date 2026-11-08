@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, type BattleMenuCategory } from "@/data/battleInterface";
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
-import { BATTLE_OUTCOME_FADE_MS, BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
+import { BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
 import { getBattleGuardedStatus, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, type BattleGuardedStatus, type BattleStatusApplicationPreview } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
@@ -14,7 +14,7 @@ import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
 import type { BattleAction, BattleCombatantId, BattleMove, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
-import type { useBattlePresentationController } from "./useBattlePresentationController";
+import { useBattleOutcomeFade, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
 import { BattleStatusBadges, StatusIcon, statusLabel } from "./BattleStatusBadges";
 import { BattleEffectTray, EffectIcon, getEffectTraySlots } from "./BattleEffectTray";
@@ -137,41 +137,21 @@ function effectForecastText(effect: ReturnType<typeof previewBattleAction>[numbe
   ].filter(Boolean).join(" · ");
 }
 
+const TARGET_OUTCOME_FADE: Keyframe[] = [
+  { opacity: 0 },
+  { opacity: 1, offset: 0.16 },
+  { opacity: 1, offset: 0.73 },
+  { opacity: 0 },
+];
+
 function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
   event: NonNullable<Presentation["activeEvent"]>;
   staggerIndex?: number;
   presentation: Presentation;
   grouped?: BattleTargetOutcome;
 }) {
-  const node = useRef<HTMLSpanElement>(null);
-  const fade = useRef<Animation | null>(null);
-  const { paused, reducedMotion, speed, manualBeat } = presentation;
-  const animateFade = staggerIndex !== undefined && !reducedMotion && !manualBeat;
-  useEffect(() => {
-    if (!animateFade || staggerIndex === undefined || !node.current) return;
-    const animation = node.current.animate([
-      { opacity: 0 },
-      { opacity: 1, offset: 0.16 },
-      { opacity: 1, offset: 0.73 },
-      { opacity: 0 },
-    ], {
-      delay: staggerIndex * BATTLE_OUTCOME_STAGGER_MS,
-      duration: BATTLE_OUTCOME_FADE_MS,
-      fill: "both",
-    });
-    fade.current = animation;
-    return () => {
-      animation.cancel();
-      fade.current = null;
-    };
-  }, [animateFade, staggerIndex]);
-  useEffect(() => {
-    const animation = fade.current;
-    if (!animation || animation.playState === "finished") return;
-    animation.updatePlaybackRate(speed);
-    if (paused) animation.pause();
-    else animation.play();
-  }, [paused, animateFade, speed, staggerIndex]);
+  const { node, animateFade } = useBattleOutcomeFade<HTMLSpanElement>(presentation, TARGET_OUTCOME_FADE,
+    staggerIndex === undefined ? undefined : staggerIndex * BATTLE_OUTCOME_STAGGER_MS);
 
   const outcome = event.statusOutcome;
   const staggered = staggerIndex !== undefined;
@@ -181,10 +161,12 @@ function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
     return <b className={s.effect} data-kind={event.kind}>{event.label}</b>;
   }
 
-  const damage = event.kind === "damage" ? event.label : event.precedingDamage;
+  const bleed = event.roundEndEffect?.kind === "bleed" ? event.roundEndEffect : undefined;
+  const damage = bleed ? `−${bleed.hpLost} HP` : event.kind === "damage" ? event.label : event.precedingDamage;
   return <span ref={node} className={s.targetOutcome} data-kind={event.kind}
     data-staggered-outcome={staggered ? staggerIndex : undefined}
     data-support-outcome={supportStatuses ? "" : undefined}
+    data-bleed-tick={bleed ? "" : undefined}
     data-outcome-fade={animateFade ? "" : undefined}>
     {damage && <strong>{damage.replace(/^-/, "−")}</strong>}
     {event.kind === "miss" && <strong>Miss</strong>}
@@ -266,6 +248,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const actionIndex=presentation.activeEvent?.actorId?presentation.actionOrder.indexOf(presentation.activeEvent.actorId):-1;
   const order=individualOrder ? [...new Set([...(presentation.activeEvent?.actorId ? [presentation.activeEvent.actorId] : []), ...individualOrder])] : resolving?(actionIndex>=0?presentation.actionOrder.slice(actionIndex):[]):preview.map(entry=>entry.actorId);
   const currentEvent=presentation.activeEvent;
+  const roundEndEffect = individual ? currentEvent?.roundEndEffect : undefined;
   const actionCaption=currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
   const highlight=resolving?presentation.activeEvent?.actorId:activeActorId;
   function inspect(id?:string){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup("inspect");}
@@ -312,10 +295,11 @@ export function BattleArenaB(props: BattleArenaBProps) {
   }
   const allyForecastRows = Math.max(0, ...Array.from(allyForecastById.values(), forecast =>
     forecast.cleanses.size + Number(forecast.guarded)));
-  const dockTarget = target ?? (individual
+  const recoveryTarget = roundEndEffect && currentEvent ? state.combatants[currentEvent.targetIds[0]] : undefined;
+  const dockTarget = recoveryTarget ?? target ?? (individual
     ? currentEvent?.targetIds.map(id => state.combatants[id]).find(c => c && !c.isFainted && (getBattleGuardedStatus(c) || getEffectTraySlots(c.statuses) > 0))
     : undefined);
-  const effectTraySlots = dockTarget && !dockTarget.isFainted
+  const effectTraySlots = dockTarget && (!dockTarget.isFainted || roundEndEffect)
     ? getEffectTraySlots(dockTarget.statuses, turnOptions.filter(option => option.usable).map(option => option.move))
     : 0;
   function energyAfter(id: string) {
@@ -355,7 +339,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const canRevive=!!itemTarget&&itemTarget.isFainted&&!props.usedRevival&&props.revivalStock>0&&(!complete||state.outcome==="enemy_won")&&!resolving&&!props.aidRestricted;
   const playback = resolving && <div className={individual ? s.dockPlayback : s.playback} aria-live="polite">
     <strong>{actionCaption}</strong>
-    <span className={currentEvent?.targetOutcomes ? s.resultAnnouncement : undefined}>
+    <span className={currentEvent?.targetOutcomes || roundEndEffect ? s.resultAnnouncement : undefined}>
       {currentEvent?.kind === "attack" ? "Preparing action…" : currentEvent?.label}
     </span>
     <div>
@@ -365,7 +349,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     </div>
   </div>;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={state.log}/>;
-  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion}>
+  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
     <section className={s.order} aria-label={resolving?"Resolution order":"Order preview"}><button className={s.orderHeading} onClick={()=>setPopup("order")}><strong>{resolving?currentEvent?.actorId?"ACTING NOW → UP NEXT":"ROUND RECOVERY":"ORDER PREVIEW"}</strong><small>{resolving?"":individual?"Individual actions":"Estimate · changes with moves"}</small></button><div className={s.tokens}>{order.map((id,index)=>{const c=state.combatants[id];if(!c)return null;return <button key={id} data-side={c.sideId} data-rank={index} data-active={(individual||resolving)&&index===0} aria-label={`Inspect ${c.name} in turn order`} onClick={()=>inspect(id)}><img src={artwork(sourceById.get(String(c.sourceCreatureId)))} alt=""/><span><small>{index===0?individual?"NOW":resolving?"ACTING NOW":"FIRST":index===1?resolving&&!individual?"UP NEXT":"NEXT":`${index+1}`}</small><strong>{c.name}</strong>{index===0&&resolving&&currentEvent?.moveName&&<em>{currentEvent.moveName}</em>}</span></button>;})}</div></section>
     <section className={s.field} aria-label="3 versus 3 battle stage">{!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
@@ -392,9 +376,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const affected=event?.targetIds.includes(c.battleCombatantId);
       const supportOutcome = grouped?.supportStatuses;
       const guardResult = supportOutcome?.some(status => status.status === "guarded" && status.result !== "failed" && status.result !== "cleared");
-      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
+      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected&&!roundEndEffect:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={healthForecast ? [healthForecast.id, forecast || showAllyEffects ? forecastId : null].filter(Boolean).join(" ") : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected&&!supportOutcome:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected && event && event.kind !== "attack" && (individual
+          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected&&!supportOutcome&&!roundEndEffect:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected && event && event.kind !== "attack" && roundEndEffect?.kind !== "expiry" && (individual
             ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} grouped={grouped}/>
             : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>)}</span>
           <span className={s.nameplate}>
@@ -448,15 +432,15 @@ export function BattleArenaB(props: BattleArenaBProps) {
         {turnOptions.length > 4 && <div className={s.turnPager}><button aria-label="Previous moves" disabled={turnPage === 0} onClick={() => setMovePage(turnPage - 1)}>‹</button><button aria-label="Next moves" disabled={(turnPage+1)*4 >= turnOptions.length} onClick={() => setMovePage(turnPage + 1)}>›</button></div>}
       </section>
       <section className={s.turnTarget} aria-label="Target and action">
-        <h2>{dockTarget ? `Target · ${dockTarget.name}` : selectedTarget?.kind === "field" ? "Target · Battlefield" : "Choose a target"}</h2>
+        <h2>{recoveryTarget ? `Recovery · ${recoveryTarget.name}` : dockTarget ? `Target · ${dockTarget.name}` : selectedTarget?.kind === "field" ? "Target · Battlefield" : "Choose a target"}</h2>
         {dockTarget && <div className={s.turnTargetVitals}>
           <img src={artwork(sourceById.get(String(dockTarget.sourceCreatureId)))} alt=""/>
           <div>
             <HealthMeter value={dockTarget.currentHp} max={dockTarget.maxHp} after={projectionById.get(dockTarget.battleCombatantId)?.hpAfter} guard={guardFor(dockTarget.battleCombatantId)} details />
             <Meter label="BE" value={dockTarget.currentBattleEnergy} max={dockTarget.maxBattleEnergy} after={energyAfter(dockTarget.battleCombatantId)}/>
           </div>
-          {effectTraySlots > 0 && <div className={s.effectTraySlot} data-slots={effectTraySlots}>
-            <BattleEffectTray key={dockTarget.battleCombatantId} statuses={dockTarget.statuses} applications={projectedEffects.flatMap(effect =>
+          {(effectTraySlots > 0 || roundEndEffect?.kind === "expiry") && <div className={s.effectTraySlot} data-slots={effectTraySlots}>
+            <BattleEffectTray key={dockTarget.battleCombatantId} statuses={dockTarget.statuses} recovery={roundEndEffect ? { effect: roundEndEffect, playback: presentation } : undefined} applications={projectedEffects.flatMap(effect =>
               effect.targetId === dockTarget.battleCombatantId && effect.statusApplication ? [effect.statusApplication] : [])} />
           </div>}
         </div>}

@@ -25,6 +25,7 @@ import type {
   BattleMoveEffect,
   BattleMoveId,
   BattleResolvedAction,
+  BattleRoundEndEffect,
   BattleRoundResult,
   BattleSideId,
   BattleState,
@@ -880,7 +881,12 @@ export function tickBattleCooldowns(cooldowns: BattleCooldowns): BattleCooldowns
 
 export function advanceBattleCombatantEndOfRound(
   combatant: BattleCombatant,
-  onChange?: (combatant: BattleCombatant, kind: BattlePlaybackFrame["kind"], label:string) => void,
+  onChange?: (
+    combatant: BattleCombatant,
+    kind: BattlePlaybackFrame["kind"],
+    label: string,
+    roundEndEffect?: BattleRoundEndEffect,
+  ) => void,
 ): { combatant: BattleCombatant; log: string[]; energyRecovered: number } {
   let nextCombatant = cloneCombatant(combatant);
   const log: string[] = [];
@@ -892,8 +898,11 @@ export function advanceBattleCombatantEndOfRound(
     const bleedDamage = getBattleBleedDamage(statusStack);
     const hpBefore = nextCombatant.currentHp;
     nextCombatant = applyDamage(nextCombatant, bleedDamage);
-    onChange?.(nextCombatant,"damage",`−${hpBefore-nextCombatant.currentHp} HP · Bleed`);
-    if(nextCombatant.isFainted) onChange?.(nextCombatant,"knockout","K.O.");
+    const hpLost = hpBefore - nextCombatant.currentHp;
+    if (hpLost > 0) {
+      onChange?.(nextCombatant, "damage", `−${hpLost} HP · Bleed`, { kind: "bleed", stacks, hpLost });
+    }
+    if (nextCombatant.isFainted) onChange?.(nextCombatant, "knockout", "K.O.");
     log.push(`${nextCombatant.name} takes ${bleedDamage} bleed damage${stacks > 1 ? ` from ${stacks} stacks` : ""}.`);
     if (nextCombatant.isFainted) log.push(`${nextCombatant.name} fainted.`);
   });
@@ -906,7 +915,16 @@ export function advanceBattleCombatantEndOfRound(
       .filter((statusStack) => statusStack.duration > 0),
   };
 
-  if (statusesBeforeTick.length) onChange?.(nextCombatant,"status","Status durations updated");
+  const remainingStatuses = new Set(nextCombatant.statuses.map(statusStack => statusStack.status));
+  const expiredStatuses = [...new Set(statusesBeforeTick
+    .filter(statusStack => statusStack.duration > 0 && !remainingStatuses.has(statusStack.status))
+    .map(statusStack => statusStack.status))];
+  if (expiredStatuses.length > 0) {
+    onChange?.(nextCombatant, "status", `${expiredStatuses.join(", ")} expired`, {
+      kind: "expiry",
+      statuses: expiredStatuses,
+    });
+  }
   const requestedRegen = calculateBattleRoundEnergyRegen(
     nextCombatant.maxBattleEnergy,
     statusesBeforeTick,
@@ -916,7 +934,7 @@ export function advanceBattleCombatantEndOfRound(
   nextCombatant = applyBattleEnergy(nextCombatant, requestedRegen);
   const energyRecovered = nextCombatant.currentBattleEnergy - beforeEnergy;
   if (energyRecovered > 0) {
-    onChange?.(nextCombatant,"energy",`+${energyRecovered} BE · Recovery`);
+    onChange?.(nextCombatant, "energy", `+${energyRecovered} BE · Recovery`);
     log.push(`${nextCombatant.name} regenerates ${energyRecovered} Battle Energy.`);
   }
 
@@ -929,9 +947,9 @@ function tickEndOfRound(state: BattleState, onFrame?: (frame: BattlePlaybackFram
   Object.values(nextState.combatants)
     .sort((left, right) => left.sideId.localeCompare(right.sideId) || left.slotIndex - right.slotIndex)
     .forEach((combatant) => {
-      const result = advanceBattleCombatantEndOfRound(combatant,(updated,kind,label)=>{
-        nextState=replaceCombatant(nextState,updated);
-        onFrame?.({state:nextState,targetIds:[updated.battleCombatantId],kind,label});
+      const result = advanceBattleCombatantEndOfRound(combatant, (updated, kind, label, roundEndEffect) => {
+        nextState = replaceCombatant(nextState, updated);
+        onFrame?.({ state: nextState, targetIds: [updated.battleCombatantId], kind, label, roundEndEffect });
       });
       nextState = replaceCombatant(nextState, result.combatant);
       log.push(...result.log);
