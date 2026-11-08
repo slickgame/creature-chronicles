@@ -74,14 +74,14 @@ export function useBattlePresentationController() {
   useEffect(() => {
     const current = events[0];
     const energyRecovery = current?.roundEndEffect?.kind === "energy";
-    if (current && (current.targetOutcomes || current.roundEndEffect?.kind === "expiry" || energyRecovery)) {
+    if (current && (current.targetOutcomes || current.roundEndEffect?.kind === "expiry" || energyRecovery || current.skipReason)) {
       if (resultClock.current?.event !== current || resultClock.current.reducedMotion !== reducedMotion) {
         resultClock.current = { event: current, elapsed: 0, reducedMotion };
       }
       if (paused) return;
       const clock = resultClock.current;
       const started = performance.now();
-      const duration = energyRecovery
+      const duration = energyRecovery || current.skipReason
         ? reducedMotion ? 300 : current.durationMs
         : reducedMotion || current === steppedEvent ? BATTLE_OUTCOME_FADE_MS : current.durationMs;
       const timer = window.setTimeout(advance, Math.max(0, (duration - clock.elapsed) / speed));

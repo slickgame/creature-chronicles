@@ -129,6 +129,84 @@
   background: linear-gradient(#f7dfad, #ddae6e);
   color: #37200d;
 }
+.arena .tokens button[data-skipped-turn],
+.arena .tokens button[data-turn-handoff] {
+  align-items: center;
+}
+.tokens [data-skipped-turn] img,
+.tokens [data-turn-handoff] img {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tokens [data-skipped-turn] img {
+  border-color: #765286;
+  background: #8e7591;
+  filter: saturate(.4) brightness(.83);
+}
+.tokens [data-skipped-turn] small,
+.tokens [data-turn-handoff] small {
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid #cda263;
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: #fff3d6;
+  background: linear-gradient(#693b75, #43244f);
+  font: 700 clamp(8px, .82vw, 11px)/1.1 Georgia, serif;
+  letter-spacing: 0;
+}
+.tokens [data-turn-handoff] small {
+  background: linear-gradient(#46603a, #243f29);
+}
+.skippedTurnCallout {
+  position: absolute;
+  inset: clamp(10px, 34%, 190px) 0 auto;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 4px 8px;
+  border: 3px double #79417e;
+  border-radius: 7px;
+  background: linear-gradient(#fff0cb, #e8bf83);
+  box-shadow: 0 0 0 1px #ffdf9e, 0 3px 8px #38201b94;
+  color: #321e17;
+  font: 700 clamp(11px, 1.25vw, 19px)/1.07 Georgia, serif;
+  text-align: center;
+  pointer-events: none;
+}
+.skippedTurnCallout::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + 1px);
+  left: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border: solid #79417e;
+  border-width: 0 2px 2px 0;
+  background: #e8bf83;
+  transform: rotate(45deg);
+}
+.skippedTurnCallout > svg {
+  width: 1.05em;
+  height: 1.05em;
+  flex: 0 0 auto;
+  color: #703181;
+}
+.skippedTurnCallout > span { display: grid; gap: 2px; }
+.skippedTurnCallout em { color: #60276a; font-size: .88em; }
+@media (min-width: 1101px) and (min-height: 561px) {
+  .skippedTurnCallout { inset-inline-start: 25%; }
+  .figure[data-side=enemy] .skippedTurnCallout { inset-inline: 0 25%; }
+}
+@media (max-width: 600px), (max-height: 560px) {
+  .tokens [data-skipped-turn] small,
+  .tokens [data-turn-handoff] small { padding: 1px 3px; }
+  .skippedTurnCallout { inset-block-start: clamp(4px, 9%, 24px); padding: 3px 4px; gap: 3px; }
+}
 .arena[data-individual=true] .header h1,
 .arena[data-individual=true] .header > strong { width: 19%; min-width: 0; }
 .arena[data-individual=true] .header h1 { font-size: clamp(15px, 1.35vw, 23px); }

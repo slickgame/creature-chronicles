@@ -790,6 +790,7 @@ function resolveAction(
         targetNames: [],
         turnScore: getBattleTurnScore(getEffectiveBattleStats(initialActor), initialMove),
         success: false,
+        skipReason: "stun",
         log: actionLog,
         usedFallback: queued.usedFallback,
         validationIssues: queued.validationIssues,
@@ -1017,7 +1018,17 @@ export function resolveBattleRound(
   actionQueue.forEach((queued, actionIndex) => {
     if (core.getBattleOutcome(nextState) !== "ongoing") return;
     const result = resolveAction(nextState, queued, actionIndex, onFrame);
-    if(!result.resolvedAction.success) onFrame({state:result.state,actorId:queued.action.actorId,targetIds:[queued.action.actorId],moveId:result.resolvedAction.moveId,kind:"status",label:result.resolvedAction.log.at(-1)??"Cannot act"});
+    if (!result.resolvedAction.success) {
+      onFrame({
+        state: result.state,
+        actorId: queued.action.actorId,
+        targetIds: [queued.action.actorId],
+        moveId: result.resolvedAction.moveId,
+        kind: "status",
+        skipReason: result.resolvedAction.skipReason,
+        label: result.resolvedAction.log.at(-1) ?? "Cannot act",
+      });
+    }
     nextState = result.state;
     resolvedActions.push(result.resolvedAction);
     roundLog.push(...result.resolvedAction.log);
@@ -1067,8 +1078,14 @@ export function resolveBattleTurn(
     onFrame,
   );
   if (!turn.resolvedAction.success) {
-    onFrame({ state: turn.state, actorId: actor.battleCombatantId, targetIds: [actor.battleCombatantId],
-      kind: "status", label: turn.resolvedAction.log.at(-1) ?? "Cannot act" });
+    onFrame({
+      state: turn.state,
+      actorId: actor.battleCombatantId,
+      targetIds: [actor.battleCombatantId],
+      kind: "status",
+      skipReason: turn.resolvedAction.skipReason,
+      label: turn.resolvedAction.log.at(-1) ?? "Cannot act",
+    });
   }
   const nextActors = remaining.slice(1).filter(id => !turn.state.combatants[id].isFainted);
   const roundEnded = !nextActors.length || core.getBattleOutcome(turn.state) !== "ongoing";

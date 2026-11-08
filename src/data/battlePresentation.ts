@@ -38,6 +38,7 @@ export type BattlePresentationEvent = {
   moveName?: string;
   label: string;
   amount?: number;
+  skipReason?: BattlePlaybackFrame["skipReason"];
   statusOutcome?: BattlePlaybackFrame["statusOutcome"];
   roundEndEffect?: BattlePlaybackFrame["roundEndEffect"];
   precedingDamage?: string;
@@ -156,6 +157,7 @@ export function buildBattlePresentationEvents(
         moveId: action.moveId,
         moveName: action.moveName,
         label: action.log.at(-1) ?? `${action.actorName} cannot act.`,
+        skipReason: action.skipReason,
         preset: "status",
       });
     }
@@ -405,7 +407,7 @@ export function buildBattlePlaybackEvents(
       preset: frame.moveId ? getBattleMoveEffectPreset(getBattleMove(frame.moveId)) : "status",
       label: expiry ? expiry.statuses.map(status => `${getBattleStatusGlossary(status).label} expired`).join(" · ") : frame.label,
       durationMs: expiry ? BATTLE_OUTCOME_FADE_MS
-        : frame.kind === "attack" ? 600 : frame.kind === "status" ? 650 : 800,
+        : frame.skipReason === "stun" ? 900 : frame.kind === "attack" ? 600 : frame.kind === "status" ? 650 : 800,
       precedingDamage: frame.statusOutcome && targetId ? damageByTarget.get(targetId) : undefined,
     };
   });

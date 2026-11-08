@@ -322,6 +322,7 @@ export type BattleResolvedAction = {
   targetNames: string[];
   turnScore: number;
   success: boolean;
+  skipReason?: "stun";
   log: string[];
   usedFallback?: boolean;
   validationIssues?: string[];
@@ -357,6 +358,7 @@ export type BattlePlaybackFrame = {
   actorId?: BattleCombatantId;
   targetIds: BattleCombatantId[];
   moveId?: BattleMoveId;
+  skipReason?: BattleResolvedAction["skipReason"];
   statusOutcome?: {
     status: BattleStatusId;
     result: "applied" | "stacked" | "refreshed" | "failed" | "cleared";

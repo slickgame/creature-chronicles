@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
+import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
 import { buildBattleUiAction } from "@/data/battleUi";
 import { createNewGameSave } from "@/lib/save/localSave";
 function fixture() {
@@ -90,8 +91,7 @@ test("order preview matches engine weighted speed and seeded ties without exposi
   assert(!getBattleOrderPreview(state,queue).some(p=>p.actorId===ids[2]));
 });
 
-test("playback snapshots show each hit separately and use IDs with duplicate names", async()=>{
-  const { buildBattlePlaybackEvents }=await import("@/data/battlePresentation");
+test("playback snapshots show each hit separately and use IDs with duplicate names", ()=>{
   const state=fixture(),target=state.teams.enemy.combatantIds[0];
   for(const c of Object.values(state.combatants)) {
     c.name="Same name";c.currentHp=c.maxHp=2000;c.currentBattleEnergy=c.maxBattleEnergy;
@@ -140,10 +140,37 @@ test("playback separates bleed, recovery and KO, and skipped actors do not spend
   const result=resolveBattleRound(state,actions);
   const skip=result.frames.find(f=>f.actorId===id)!;
   assert.match(skip.label,/stunned/);assert.equal(skip.state.combatants[id].currentBattleEnergy,10);
+  assert.equal(skip.skipReason, "stun");
   const bleed=result.frames.find(f=>!f.actorId&&f.kind==="damage"&&f.targetIds[0]===id)!;
   assert.equal(bleed.state.combatants[id].currentHp,0);
   assert(result.frames.some(f=>f.kind==="knockout"&&f.targetIds[0]===id));
   assert(result.frames.some(f=>!f.actorId&&f.kind==="energy"));
+});
+
+test("an individual Stun skip has a dedicated playback cue and leaves the next living turn intact", () => {
+  const before = fixture();
+  const [actorId, faintedId, nextActorId] = before.teams.player.combatantIds;
+  const actor = before.combatants[actorId];
+  actor.statuses = [{ status: "stun", duration: 1 }];
+  before.combatants[faintedId].isFainted = true;
+  before.combatants[faintedId].currentHp = 0;
+  const turn = resolveBattleTurn(before, [actorId, faintedId, nextActorId], {
+    actorId, moveId: "first_aid", targetIds: [nextActorId],
+  });
+  assert.ok(turn);
+  assert.equal(turn.result.actions[0].success, false);
+  assert.equal(turn.result.actions[0].skipReason, "stun");
+  assert.deepEqual(turn.remaining, [nextActorId]);
+  assert.equal(turn.state.roundNumber, before.roundNumber);
+  assert.deepEqual(turn.state.combatants[actorId], actor);
+  const [event, ...rest] = buildBattlePlaybackEvents(turn.frames, { staggerMultiTarget: true });
+  assert.deepEqual(rest, []);
+  assert.equal(event.kind, "status");
+  assert.equal(event.skipReason, "stun");
+  assert.equal(event.actorId, actorId);
+  assert.deepEqual(event.targetIds, [actorId]);
+  assert.equal(event.label, `${actor.name} is stunned and cannot act.`);
+  assert.equal(event.durationMs, 900);
 });
 
 test("cooldown notices use round advancement even when full BE produces no recovery frame", () => {

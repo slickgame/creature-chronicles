@@ -6,7 +6,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
-import { getBattleGuardedStatus, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, type BattleGuardedStatus, type BattleStatusApplicationPreview } from "@/data/battleEngine";
+import { getBattleGuardedStatus, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleStatusApplicationPreview } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
@@ -152,6 +152,20 @@ const TARGET_OUTCOME_FADE: Keyframe[] = [
   { opacity: 1, offset: 0.73 },
   { opacity: 0 },
 ];
+const SKIPPED_TURN_FADE: Keyframe[] = [{ opacity: 1 }, { opacity: 1, offset: 0.72 }, { opacity: 0 }];
+
+function SkippedTurnCallout({ event, presentation }: {
+  event: NonNullable<Presentation["activeEvent"]>;
+  presentation: Presentation;
+}) {
+  const { node } = useBattleOutcomeFade<HTMLSpanElement>(presentation, SKIPPED_TURN_FADE, 0, event.durationMs);
+  return <span ref={node} className={s.skippedTurnCallout} data-skipped-turn-callout aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="m12 1 2.1 5.4 5.7-2.1-2.1 5.6L23 12l-5.3 2.1 2.1 5.6-5.7-2.1L12 23l-2.1-5.4-5.7 2.1 2.1-5.6L1 12l5.3-2.1-2.1-5.6 5.7 2.1L12 1Zm0 6-1.4 3.6L7 12l3.6 1.4L12 17l1.4-3.6L17 12l-3.6-1.4L12 7Z"/>
+    </svg>
+    <span><strong>Turn skipped</strong><em>Stun</em></span>
+  </span>;
+}
 
 function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
   event: NonNullable<Presentation["activeEvent"]>;
@@ -272,12 +286,22 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const actionIndex=presentation.activeEvent?.actorId?presentation.actionOrder.indexOf(presentation.activeEvent.actorId):-1;
   const order=individualOrder ? [...new Set([...(presentation.activeEvent?.actorId ? [presentation.activeEvent.actorId] : []), ...individualOrder])] : resolving?(actionIndex>=0?presentation.actionOrder.slice(actionIndex):[]):preview.map(entry=>entry.actorId);
   const currentEvent=presentation.activeEvent;
+  const skippedActorId = individual && currentEvent?.skipReason === "stun" ? currentEvent.actorId : undefined;
+  const nextSlotId = individualOrder?.[0];
+  const nextSlot = nextSlotId ? state.combatants[nextSlotId] : undefined;
+  const nextSlotCanAct = nextSlot && !nextSlot.isFainted && !hasBattleStatus(nextSlot, "stun");
+  const handoffActorId = skippedActorId && state.roundNumber === resolvedState.roundNumber && nextSlotCanAct
+    ? nextSlotId : undefined;
+  let orderActiveId = (individual || resolving) ? order[0] : undefined;
+  if (skippedActorId) orderActiveId = handoffActorId;
+  else if (individual && !currentEvent?.actorId && (resolving || !nextSlotCanAct)) orderActiveId = undefined;
+  const nextOrderIndex = !individual || orderActiveId || skippedActorId ? 1 : 0;
   const roundEndEffect = individual ? currentEvent?.roundEndEffect : undefined;
   const energyRecovery = roundEndEffect?.kind === "energy" && currentEvent
     ? { ...roundEndEffect, eventId: currentEvent.eventId, durationMs: currentEvent.durationMs, playback: presentation }
     : undefined;
-  const actionCaption=currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
-  const highlight=resolving?presentation.activeEvent?.actorId:activeActorId;
+  const actionCaption=skippedActorId ? state.combatants[skippedActorId]?.name : currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
+  const highlight=resolving ? (skippedActorId ? undefined : currentEvent?.actorId) : activeActorId;
   function inspect(id?:string){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup("inspect");}
   function clearDraft(){setDraft(null);setTappedTarget(null);setMoveTip(null);setMovePage(0);}
   function queueMove(id:string){props.onQueue(id);clearDraft();setMovesOpen(false);setPopup(null);}
@@ -398,9 +422,35 @@ export function BattleArenaB(props: BattleArenaBProps) {
     </div>
   </div>;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={state.log}/>;
-  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind}>
+  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
-    <section className={s.order} aria-label={resolving?"Resolution order":"Order preview"}><button className={s.orderHeading} onClick={()=>setPopup("order")}><strong>{resolving?currentEvent?.actorId?"ACTING NOW → UP NEXT":"ROUND RECOVERY":"ORDER PREVIEW"}</strong><small>{resolving?"":individual?"Individual actions":"Estimate · changes with moves"}</small></button><div className={s.tokens}>{order.map((id,index)=>{const c=state.combatants[id];if(!c)return null;return <button key={id} data-side={c.sideId} data-rank={index} data-active={(individual||resolving)&&index===0} aria-label={`Inspect ${c.name} in turn order`} onClick={()=>inspect(id)}><img src={artwork(sourceById.get(String(c.sourceCreatureId)))} alt=""/><span><small>{index===0?individual?"NOW":resolving?"ACTING NOW":"FIRST":index===1?resolving&&!individual?"UP NEXT":"NEXT":`${index+1}`}</small><strong>{c.name}</strong>{index===0&&resolving&&currentEvent?.moveName&&<em>{currentEvent.moveName}</em>}</span></button>;})}</div></section>
+    <section className={s.order} aria-label={resolving ? "Resolution order" : "Order preview"}>
+      <button className={s.orderHeading} onClick={() => setPopup("order")}>
+        <strong>{skippedActorId ? "TURN SKIPPED" : resolving ? currentEvent?.actorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : "ORDER PREVIEW"}</strong>
+        <small>{resolving ? "" : individual ? "Individual actions" : "Estimate · changes with moves"}</small>
+      </button>
+      <div className={s.tokens}>{order.map((id, index) => {
+        const combatant = state.combatants[id];
+        if (!combatant) return null;
+        const skipped = id === skippedActorId;
+        const now = id === orderActiveId;
+        const handoff = id === handoffActorId;
+        let rankLabel = `${index + 1}`;
+        if (skipped) rankLabel = "Skipped · Stun";
+        else if (now) rankLabel = individual ? "NOW" : "ACTING NOW";
+        else if (!individual && index === 0) rankLabel = "FIRST";
+        else if (index === nextOrderIndex) rankLabel = resolving && !individual ? "UP NEXT" : "NEXT";
+        return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={now}
+          data-skipped-turn={skipped ? "stun" : undefined} data-turn-handoff={handoff ? "" : undefined}
+          aria-label={`Inspect ${combatant.name} in turn order${skipped ? ". Turn skipped due to Stun." : handoff ? ". Now." : ""}`}
+          onClick={() => inspect(id)}>
+          <img src={artwork(sourceById.get(String(combatant.sourceCreatureId)))} alt=""/>
+          <span><small>{rankLabel}</small><strong>{combatant.name}</strong>
+            {index === 0 && resolving && !skipped && currentEvent?.moveName && <em>{currentEvent.moveName}</em>}
+          </span>
+        </button>;
+      })}</div>
+    </section>
     <section className={s.field} aria-label="3 versus 3 battle stage">{!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
       const forecast = forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
@@ -423,11 +473,13 @@ export function BattleArenaB(props: BattleArenaBProps) {
         precedingDamage: undefined,
       } : currentEvent;
       const affected=event?.targetIds.includes(c.battleCombatantId);
+      const skipped = c.battleCombatantId === skippedActorId;
+      const resolvingTarget = affected && !roundEndEffect && !skipped;
       const supportOutcome = grouped?.supportStatuses;
       const guardResult = supportOutcome?.some(status => status.status === "guarded" && status.result !== "failed" && status.result !== "cleared");
-      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!affected&&!roundEndEffect:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
+      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!resolvingTarget:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={healthForecast ? [healthForecast.id, forecast || showAllyEffects ? forecastId : null].filter(Boolean).join(" ") : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?affected&&!supportOutcome&&!roundEndEffect:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{affected && event && event.kind !== "attack" && roundEndEffect?.kind !== "expiry" && (individual
+          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?resolvingTarget&&!supportOutcome:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{skipped && event && <SkippedTurnCallout key={event.eventId} event={event} presentation={presentation}/>}{!skipped && affected && event && event.kind !== "attack" && roundEndEffect?.kind !== "expiry" && (individual
             ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} grouped={grouped}/>
             : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>)}</span>
           <span className={s.nameplate}>
@@ -451,7 +503,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         <button onClick={() => inspect()}><TurnIcon kind="inspect"/>Inspect</button>
       </nav>
       <section className={s.turnMoves} aria-label="Choose a move">
-        <h2>{draftActor ? `${draftActor.name} · Choose a move` : resolving ? "Resolving action…" : finished ? "Battle complete" : "Waiting for next turn"}</h2>
+        <h2>{skippedActorId ? "Turn skipped" : draftActor ? `${draftActor.name} · Choose a move` : resolving ? "Resolving action…" : finished ? "Battle complete" : "Waiting for next turn"}</h2>
         {playback}
         <span className={s.resultAnnouncement} role="status">
           {completedMoves.map(({ move }) => `${move.name} cooldown complete.`).join(" ")}
