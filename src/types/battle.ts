@@ -401,6 +401,8 @@ export type BattleOrderShiftReason =
     result: "applied" | "changed" | "cleared" | "wore-off" | "stack-wore-off";
     /** Move log entries for the verified modifier changes, in resolution order. */
     sourceMoveLogIndexes?: readonly number[];
+    /** Net surviving modifier change attributed to each verified move log entry. */
+    sourceMoveSpeedDeltas?: Readonly<Partial<Record<number, number>>>;
     /** Retained for records made before multiple sources were supported. */
     sourceMoveLogIndex?: number;
   };

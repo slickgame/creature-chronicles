@@ -5,7 +5,7 @@ import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleCombatantId, BattleLogEventCategory, BattleMoveLogGroup, BattleMoveLogTarget, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
-import { BattleLogTargetCards } from "./BattleLogTargetCards";
+import { BattleLogTargetCards, signedDelta } from "./BattleLogTargetCards";
 import s from "./BattleLogEntries.module.css";
 
 const BOOKMARKS_PER_GROUP = 6;
@@ -53,11 +53,15 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
         {sources.length > 0 && <>{" "}<span className={multipleSources ? s.shiftSourceList : undefined}>
           {sources.map(({ group, target }) => {
             const returnFocus = selected && match.focusSourceIndex === group.logIndex;
+            const delta = detail.sourceMoveSpeedDeltas?.[group.logIndex];
+            const amount = delta === undefined ? undefined : signedDelta(delta);
             return <button key={group.logIndex} type="button" className={s.shiftSource} data-order-shift-source={group.logIndex}
               id={returnFocus ? `${match.targetId}-source` : undefined} data-order-shift-return-focus={returnFocus ? "" : undefined}
-              aria-label={`View ${group.moveName}${multipleSources ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log`}
+              aria-label={`View ${group.moveName}${multipleSources ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log${amount ? `, Speed modifier ${amount}` : ""}`}
               onClick={() => onViewSource(group, target, detail.id)}>
-              {multipleSources ? `${group.actorName} · ` : ""}{group.moveName} <span aria-hidden="true">›</span>
+              {multipleSources ? `${group.actorName} · ` : ""}{group.moveName}
+              {amount && <span className={s.shiftSourceAmount} data-order-shift-source-delta={delta}>{amount} Speed modifier</span>}
+              {" "}<span aria-hidden="true">›</span>
             </button>;
           })}
         </span></>}

@@ -20,7 +20,7 @@ function countLabel(count: number, singular: string, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
 }
 
-function signedDelta(delta: number) {
+export function signedDelta(delta: number) {
   return `${delta > 0 ? "+" : "−"}${Math.abs(delta)}`;
 }
 

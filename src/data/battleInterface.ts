@@ -112,7 +112,7 @@ type BattleOrderShiftContext = {
 function getSpeedEffectSources(
   moves: readonly BattleMoveLogGroup[], actorId: BattleCombatantId, status: BattleStatusId, before: number, after: number,
 ) {
-  const sources: { before: number; logIndex: number }[] = [];
+  const sources: { before: number; delta: number; logIndex: number }[] = [];
   let current = before;
   for (const move of moves) {
     const target = move.targets.find(target => target.targetId === actorId);
@@ -131,10 +131,16 @@ function getSpeedEffectSources(
       // Returning to an earlier modifier cancels that portion of the trace.
       const cancelledAt = sources.findIndex(source => source.before === change.after);
       if (cancelledAt >= 0) sources.length = cancelledAt;
-      else sources.push({ before: change.before, logIndex: move.logIndex });
+      else sources.push({ before: change.before, delta: change.after - change.before, logIndex: move.logIndex });
     }
   }
-  return current === after && sources.length ? [...new Set(sources.map(source => source.logIndex))] : undefined;
+  if (current !== after || !sources.length) return undefined;
+
+  const speedDeltas = new Map<number, number>();
+  for (const { logIndex, delta } of sources) {
+    speedDeltas.set(logIndex, (speedDeltas.get(logIndex) ?? 0) + delta);
+  }
+  return { sourceMoveLogIndexes: [...speedDeltas.keys()], sourceMoveSpeedDeltas: Object.fromEntries(speedDeltas) };
 }
 
 function getSettledSpeedEffectReasons(
@@ -153,8 +159,8 @@ function getSettledSpeedEffectReasons(
     if (before !== mid) {
       const result = !hasBattleStatus(previous, status) ? "applied"
         : !hasBattleStatus(beforeRecovery, status) ? "cleared" : "changed";
-      const sourceMoveLogIndexes = getSpeedEffectSources(moves, previous.battleCombatantId, status, before, mid);
-      reasons.push({ kind: "speed-effect", status, result, ...(sourceMoveLogIndexes ? { sourceMoveLogIndexes } : {}) });
+      const sources = getSpeedEffectSources(moves, previous.battleCombatantId, status, before, mid);
+      reasons.push({ kind: "speed-effect", status, result, ...sources });
     }
     if (mid !== after) {
       reasons.push({ kind: "speed-effect", status, result: hasBattleStatus(settled, status) ? "stack-wore-off" : "wore-off" });

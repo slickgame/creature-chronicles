@@ -434,7 +434,8 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
       actorId: moss, from: 5, to: 4, reasons: [{ kind: "passed", actorId: lilt }],
     }, {
       actorId: lilt, from: 3, to: 5, speed: { before: 25, after: 19 },
-      reasons: [{ kind: "speed-effect", status: "slowed", result: "applied", sourceMoveLogIndexes: [checkingBlow.logIndex] },
+      reasons: [{ kind: "speed-effect", status: "slowed", result: "applied", sourceMoveLogIndexes: [checkingBlow.logIndex],
+        sourceMoveSpeedDeltas: { [checkingBlow.logIndex]: -6 } },
         { kind: "passed-by", actorId: rowan }, { kind: "passed-by", actorId: moss }],
     }],
   }]);
@@ -484,12 +485,19 @@ test("settled Speed reasons link to the recorded cleanse and leave unproven effe
   assert(move);
   assert.deepEqual(move.reasons?.[0], {
     kind: "speed-effect", status: "slowed", result: "cleared", sourceMoveLogIndexes: [cleanse.logIndex],
+    sourceMoveSpeedDeltas: { [cleanse.logIndex]: 6 },
   });
   assert.deepEqual(getOrderShiftDetails(move, turn.state.combatants)[1], {
     id: "reason-0", kind: "speed-effect", text: "Slowed was cleared", sourceMoveLogIndexes: [cleanse.logIndex],
+    sourceMoveSpeedDeltas: { [cleanse.logIndex]: 6 },
   });
-  const oldMove = { ...move, reasons: [{ kind: "speed-effect", status: "slowed", result: "cleared", sourceMoveLogIndex: 0 }] } as const;
-  assert.deepEqual(getOrderShiftDetails(oldMove, turn.state.combatants)[1].sourceMoveLogIndexes, [0]);
+  const oldReason = { kind: "speed-effect", status: "slowed", result: "cleared" } as const;
+  for (const source of [{ sourceMoveLogIndex: 0 }, { sourceMoveLogIndexes: [0, 0] }]) {
+    const oldMove = { ...move, reasons: [{ ...oldReason, ...source }] };
+    assert.deepEqual(getOrderShiftDetails(oldMove, turn.state.combatants)[1], {
+      id: "reason-0", kind: "speed-effect", text: "Slowed was cleared", sourceMoveLogIndexes: [0],
+    });
+  }
   const unprovenStatus = { status: "slowed", result: "cleared" } as const;
   const legacy = { ...turn.state, moveLog: [{ ...cleanse, targets: [{ ...cleanse.targets[0], statuses: [unprovenStatus] }] }] };
   const plain = recordBattleOrderShift(legacy, shift, context).orderShiftLog?.[0].moves.find(({ actorId }) => actorId === runner);
@@ -539,10 +547,13 @@ test("settled Speed reasons retain only the moves in a verified modifier trace",
   assert.deepEqual(secondEffect.speedModifierChange, { before: -6, after: -12 });
   const reason = { kind: "speed-effect", status: "slowed", result: "applied" };
   const sources = [firstMove.logIndex, secondMove.logIndex];
+  const sourceMoveSpeedDeltas = { [firstMove.logIndex]: -6, [secondMove.logIndex]: -6 };
   const move = shiftMove(turn.state);
   assert(move);
-  assert.deepEqual(move.reasons?.[0], { ...reason, sourceMoveLogIndexes: sources });
-  assert.deepEqual(getOrderShiftDetails(move, turn.state.combatants)[1].sourceMoveLogIndexes, sources);
+  assert.deepEqual(move.reasons?.[0], { ...reason, sourceMoveLogIndexes: sources, sourceMoveSpeedDeltas });
+  assert.deepEqual(getOrderShiftDetails(move, turn.state.combatants)[1], {
+    id: "reason-0", kind: "speed-effect", text: "Slowed was applied", sourceMoveLogIndexes: sources, sourceMoveSpeedDeltas,
+  });
   assert.deepEqual(shiftMove({ ...turn.state, moveLog: [secondMove] })?.reasons?.[0], reason);
 
   const transientMove = { ...firstMove, targets: [{ ...firstTarget, statuses: [
@@ -555,6 +566,7 @@ test("settled Speed reasons retain only the moves in a verified modifier trace",
   ] }] };
   assert.deepEqual(shiftMove({ ...turn.state, moveLog: [transientMove, laterMove] })?.reasons?.[0], {
     ...reason, sourceMoveLogIndexes: [secondMove.logIndex],
+    sourceMoveSpeedDeltas: { [secondMove.logIndex]: -12 },
   });
 
   const netZeroIndex = turn.state.log.length;
@@ -565,7 +577,7 @@ test("settled Speed reasons retain only the moves in a verified modifier trace",
       secondEffect,
     ] }] };
   assert.deepEqual(shiftMove({ ...turn.state, log: [...turn.state.log, "Slowed was restored."],
-    moveLog: [...moveLog, netZeroMove] })?.reasons?.[0], { ...reason, sourceMoveLogIndexes: sources });
+    moveLog: [...moveLog, netZeroMove] })?.reasons?.[0], { ...reason, sourceMoveLogIndexes: sources, sourceMoveSpeedDeltas });
 });
 
 test("settled shifts preserve survivor ranks and distinguish a partial expiry from a Speed tie", () => {
