@@ -395,7 +395,15 @@ export type BattleRoundResult = {
 
 export type BattleOrderShiftReason =
   | { kind: "passed" | "passed-by"; actorId: BattleCombatantId; tied?: true }
-  | { kind: "speed-effect"; status: BattleStatusId; result: "applied" | "changed" | "cleared" | "wore-off" | "stack-wore-off"; sourceMoveLogIndex?: number };
+  | {
+    kind: "speed-effect";
+    status: BattleStatusId;
+    result: "applied" | "changed" | "cleared" | "wore-off" | "stack-wore-off";
+    /** Move log entries for the verified modifier changes, in resolution order. */
+    sourceMoveLogIndexes?: readonly number[];
+    /** Retained for records made before multiple sources were supported. */
+    sourceMoveLogIndex?: number;
+  };
 
 export type BattleOrderShiftLogEntry = {
   logIndex: number;

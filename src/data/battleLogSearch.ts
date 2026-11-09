@@ -21,7 +21,7 @@ type OrderShiftDetail = {
   id: string;
   kind: "speed" | BattleOrderShiftReason["kind"];
   text: string;
-  sourceMoveLogIndex?: number;
+  sourceMoveLogIndexes?: readonly number[];
 };
 
 export function getOrderShiftDetails(
@@ -36,8 +36,9 @@ export function getOrderShiftDetails(
     const id = `reason-${index}`;
     if (reason.kind === "speed-effect") {
       const label = getBattleStatusGlossary(reason.status).label;
+      const sources = reason.sourceMoveLogIndexes ?? (reason.sourceMoveLogIndex === undefined ? [] : [reason.sourceMoveLogIndex]);
       details.push({ id, kind: reason.kind, text: `${label} ${SPEED_EFFECT_RESULTS[reason.result]}`,
-        ...(reason.sourceMoveLogIndex !== undefined ? { sourceMoveLogIndex: reason.sourceMoveLogIndex } : {}) });
+        ...(sources.length ? { sourceMoveLogIndexes: [...new Set(sources)] } : {}) });
       return;
     }
     const other = combatants[reason.actorId]?.name;

@@ -16,19 +16,19 @@ const LOG_FILTERS: ReadonlyArray<{ category: BattleLogEventCategory; label: stri
 ];
 
 type OrderShiftOrigin = NonNullable<BattleLogSearchResult["orderShiftDetail"]> & { index: number; roundNumber: number };
-type OrderShiftReturn = OrderShiftOrigin & { filters: BattleLogEventCategory[] };
+type OrderShiftReturn = OrderShiftOrigin & { filters: BattleLogEventCategory[]; sourceMoveLogIndex: number };
 type BattleLogJump = Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & {
   query: string;
   sourceTargetId?: BattleCombatantId;
   returnTo?: OrderShiftReturn;
-  focusSource?: true;
+  focusSourceIndex?: number;
 };
 
 function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }: {
   move: BattleOrderShiftLogEntry["moves"][number];
   combatants: BattleState["combatants"];
   moveGroups: ReadonlyMap<number, BattleMoveLogGroup>;
-  match?: { detailId: string; query: string; targetId: string; focusSource?: true };
+  match?: { detailId: string; query: string; targetId: string; focusSourceIndex?: number };
   onViewSource: (group: BattleMoveLogGroup, target: BattleMoveLogTarget, detailId: string) => void;
 }) {
   const details = getOrderShiftDetails(move, combatants);
@@ -37,9 +37,12 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
   return <ul className={s.shiftReasons} role="list" aria-label={`${name} shift details`}>
     {details.map(detail => {
       const selected = match?.detailId === detail.id;
-      const returnFocus = selected && match.focusSource;
-      const source = detail.sourceMoveLogIndex === undefined ? undefined : moveGroups.get(detail.sourceMoveLogIndex);
-      const sourceTarget = source?.targets.find(target => target.targetId === move.actorId);
+      const sources = (detail.sourceMoveLogIndexes ?? []).flatMap(index => {
+        const group = moveGroups.get(index);
+        const target = group?.targets.find(target => target.targetId === move.actorId);
+        return group && target ? [{ group, target }] : [];
+      });
+      const multipleSources = sources.length > 1;
       return <li key={detail.id} id={selected ? match.targetId : undefined} tabIndex={selected ? -1 : undefined}
         aria-label={selected ? `${name} · ${detail.text}` : undefined}
         data-search-jump={selected && match.query ? "" : undefined}
@@ -47,12 +50,17 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
         data-order-shift-speed={detail.kind === "speed" ? "" : undefined}
         data-order-shift-reason={detail.kind === "speed" ? undefined : detail.kind}>
         {selected ? <BattleLogSearchText text={detail.text} query={match.query}/> : detail.text}
-        {source && sourceTarget && <>{" "}<button type="button" className={s.shiftSource} data-order-shift-source={source.logIndex}
-          id={returnFocus ? `${match.targetId}-source` : undefined} data-order-shift-return-focus={returnFocus ? "" : undefined}
-          aria-label={`View ${source.moveName} in Round ${source.roundNumber} Battle Log`}
-          onClick={() => onViewSource(source, sourceTarget, detail.id)}>
-          {source.moveName} <span aria-hidden="true">›</span>
-        </button></>}
+        {sources.length > 0 && <>{" "}<span className={multipleSources ? s.shiftSourceList : undefined}>
+          {sources.map(({ group, target }) => {
+            const returnFocus = selected && match.focusSourceIndex === group.logIndex;
+            return <button key={group.logIndex} type="button" className={s.shiftSource} data-order-shift-source={group.logIndex}
+              id={returnFocus ? `${match.targetId}-source` : undefined} data-order-shift-return-focus={returnFocus ? "" : undefined}
+              aria-label={`View ${group.moveName}${multipleSources ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log`}
+              onClick={() => onViewSource(group, target, detail.id)}>
+              {multipleSources ? `${group.actorName} · ` : ""}{group.moveName} <span aria-hidden="true">›</span>
+            </button>;
+          })}
+        </span></>}
       </li>;
     })}
   </ul>;
@@ -100,7 +108,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
     const frame = requestAnimationFrame(() => {
       const targetId = `${entryId}-${jump.index}`;
       const detail = jump.orderShiftDetail ? document.getElementById(`${targetId}-detail`) : null;
-      const source = jump.focusSource ? document.getElementById(`${targetId}-detail-source`) : null;
+      const source = jump.focusSourceIndex !== undefined ? document.getElementById(`${targetId}-detail-source`) : null;
       const target = source ?? detail ?? document.getElementById(targetId);
       target?.focus({ preventScroll: true });
       target?.scrollIntoView({ block: jump.sourceTargetId === undefined ? "nearest" : "start" });
@@ -139,14 +147,15 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
     setSelectedRound(group.roundNumber);
     setOpenPanel(undefined);
     setOpenMoves(current => ({ ...current, [group.logIndex]: true }));
-    setJump({ index: group.logIndex, query: "", sourceTargetId: target.targetId, returnTo: { ...origin, filters } });
+    setJump({ index: group.logIndex, query: "", sourceTargetId: target.targetId,
+      returnTo: { ...origin, filters, sourceMoveLogIndex: group.logIndex } });
   }
 
-  function returnToOrderShift({ index, roundNumber, actorId, detailId, filters }: OrderShiftReturn) {
+  function returnToOrderShift({ index, roundNumber, actorId, detailId, filters, sourceMoveLogIndex }: OrderShiftReturn) {
     setSelectedRound(roundNumber);
     setFilters(filters);
     setOpenPanel(undefined);
-    setJump({ index, query: returnSearchQuery, orderShiftDetail: { actorId, detailId }, focusSource: true });
+    setJump({ index, query: returnSearchQuery, orderShiftDetail: { actorId, detailId }, focusSourceIndex: sourceMoveLogIndex });
   }
 
   function logEntryProps(index: number) {
@@ -177,7 +186,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
     }
     const title = `Round ${shift.roundNumber} · Order Shift`;
     const detailJump = selected && jump.orderShiftDetail
-      ? { ...jump.orderShiftDetail, query: jump.query, targetId: `${entryProps.id}-detail`, focusSource: jump.focusSource }
+      ? { ...jump.orderShiftDetail, query: jump.query, targetId: `${entryProps.id}-detail`, focusSourceIndex: jump.focusSourceIndex }
       : undefined;
     return <section key={index} className={s.shiftCard} aria-label={title} data-order-shift-card={shift.roundNumber} {...entryProps}>
       <h3 className={s.shiftTitle}>{title}</h3>

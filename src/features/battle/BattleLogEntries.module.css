@@ -455,6 +455,19 @@
   cursor: pointer;
 }
 .logRows .shiftSource:hover { background: #dce4b2; }
+.shiftReasons:has(.shiftSourceList) { align-items: start; }
+.shiftSourceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-block-start: 3px;
+}
+.logRows .shiftSourceList > .shiftSource {
+  max-width: 100%;
+  margin-inline-start: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .logRows .shiftReturn {
   min-height: 32px;
   margin: 6px 8px;
