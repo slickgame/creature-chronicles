@@ -1117,6 +1117,8 @@ export type BattleRoundEndForecast = {
   knockedOut: boolean;
   expiredStatuses: BattleStatusId[];
   energy?: { before: number; after: number };
+  /** Equipped moves whose cooldown ends if the creature and battle continue. */
+  clearedCooldowns?: BattleMoveId[];
 };
 
 type ProjectedRecoveryTarget = Pick<BattleRoundEndForecast, "expiredStatuses" | "energy"> & {
@@ -1154,13 +1156,30 @@ function projectNextRecovery(state: BattleState) {
 export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndForecast[] {
   const recovery = projectNextRecovery(state);
   if (!recovery) return [];
-  return Array.from(recovery.targets, ([targetId, { bleedTicks, expiredStatuses, energy }]) => ({
+  const forecasts: BattleRoundEndForecast[] = Array.from(recovery.targets, ([targetId, { bleedTicks, expiredStatuses, energy }]) => ({
     targetId,
     hpLost: bleedTicks.reduce((total, tick) => total + tick.damage, 0),
     knockedOut: bleedTicks.some(tick => tick.knockedOut),
     expiredStatuses,
     ...(energy ? { energy } : {}),
   }));
+  if (recovery.endsBattle) return forecasts;
+
+  const forecastsByTarget = new Map(forecasts.map(row => [row.targetId, row]));
+  for (const after of Object.values(recovery.combatants)) {
+    const targetId = after.battleCombatantId;
+    const before = state.combatants[targetId];
+    if (!before || before.isFainted || after.isFainted) continue;
+    const clearedCooldowns = after.loadout.equippedMoveIds.filter(moveId =>
+      Object.hasOwn(BATTLE_MOVES_BY_ID, moveId) &&
+      (before.cooldowns[moveId] ?? 0) > 0 &&
+      (after.cooldowns[moveId] ?? 0) <= 0);
+    if (!clearedCooldowns.length) continue;
+    const forecast = forecastsByTarget.get(targetId);
+    if (forecast) forecast.clearedCooldowns = clearedCooldowns;
+    else forecasts.push({ targetId, hpLost: 0, knockedOut: false, expiredStatuses: [], clearedCooldowns });
+  }
+  return forecasts;
 }
 
 function getStatusTimingFromRecovery(

@@ -1455,6 +1455,7 @@
 .roundEndForecastList [data-side="enemy"] small,
 .roundEndForecastList [data-round-end-bleed] strong { color: #882b20; }
 .roundEndForecastList [data-round-end-energy] strong { color: #245177; }
+.roundEndForecastList [data-round-end-cooldowns] strong { color: #31513b; }
 
 /* Individual move windup cues, anchored clear of the vitals. */
 :is(.actionRibbon, .figure[data-action-source]) {
