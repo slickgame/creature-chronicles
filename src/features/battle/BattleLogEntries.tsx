@@ -1,8 +1,9 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getBattleLogEventCategory } from "@/data/battleInterface";
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleLogEventCategory, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
+import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
 import s from "./BattleLogEntries.module.css";
 
 const BOOKMARKS_PER_GROUP = 6;
@@ -19,7 +20,10 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
 }) {
   const [selectedRound, setSelectedRound] = useState<number>();
   const [filters, setFilters] = useState<BattleLogEventCategory[]>([]);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [openPanel, setOpenPanel] = useState<"filters" | "search">();
+  const [jump, setJump] = useState<{ index: number; query: string }>();
+  const filtersOpen = openPanel === "filters";
+  const entryId = useId();
   const filterControl = useRef<HTMLDivElement>(null);
   const filterTrigger = useRef<HTMLButtonElement>(null);
   const filterPanelId = useId();
@@ -28,25 +32,36 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
     if (!filtersOpen || playback) return;
     const closeOnOutsideClick = (event: MouseEvent) => {
       if (event.target instanceof Node && !filterControl.current?.contains(event.target)) {
-        setFiltersOpen(false);
+        setOpenPanel(current => current === "filters" ? undefined : current);
       }
     };
     document.addEventListener("click", closeOnOutsideClick);
     return () => document.removeEventListener("click", closeOnOutsideClick);
   }, [filtersOpen, playback]);
 
+  const closeSearch = useCallback(() => {
+    setOpenPanel(current => current === "search" ? undefined : current);
+  }, []);
+
+  useEffect(() => {
+    if (!jump || playback) return;
+    const target = document.getElementById(`${entryId}-${jump.index}`);
+    target?.focus({ preventScroll: true });
+    target?.scrollIntoView({ block: "nearest" });
+  }, [entryId, jump, playback]);
+
   if (playback) return null;
 
   function closeFilters() {
     filterTrigger.current?.focus();
-    setFiltersOpen(false);
+    setOpenPanel(undefined);
   }
 
   const boundaries = state.roundLogBoundaries ?? [];
   const selection = boundaries.findIndex(entry => entry.roundNumber === selectedRound);
   const activeIndex = selection >= 0 ? selection : boundaries.length - 1;
   const activeRound = boundaries[activeIndex];
-  const start = activeRound?.logIndex ?? 0;
+  const start = activeIndex <= 0 ? 0 : activeRound.logIndex;
   const end = boundaries[activeIndex + 1]?.logIndex ?? state.log.length;
   const shifts = new Map(state.orderShiftLog?.map(entry => [entry.logIndex, entry]));
   const entries = state.log.slice(start, end).flatMap((line, offset) => {
@@ -54,12 +69,22 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
     const category = getBattleLogEventCategory(state, index);
     if (filters.length && (!category || !filters.includes(category))) return [];
 
+    const selected = jump?.index === index;
+    const entryProps = {
+      id: `${entryId}-${index}`,
+      "data-battle-log-entry": index,
+      "data-battle-log-event": category,
+      "data-search-jump": selected ? "" : undefined,
+      tabIndex: selected ? -1 : undefined,
+    };
     const shift = shifts.get(index);
     if (!shift || !shift.moves.length || shift.moves.some(({ actorId }) => !state.combatants[actorId])) {
-      return <p key={index} data-battle-log-event={category}>{line}</p>;
+      return <p key={index} {...entryProps}>
+        {selected ? <BattleLogSearchText text={line} query={jump.query}/> : line}
+      </p>;
     }
     const title = `Round ${shift.roundNumber} · Order Shift`;
-    return <section key={index} className={s.shiftCard} aria-label={title} data-order-shift-card={shift.roundNumber} data-battle-log-event={category}>
+    return <section key={index} className={s.shiftCard} aria-label={title} data-order-shift-card={shift.roundNumber} {...entryProps}>
       <h3 className={s.shiftTitle}>{title}</h3>
       <ul>
         {shift.moves.map(({ actorId, from, to }) => {
@@ -69,7 +94,7 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
             <span className={s.portrait} aria-hidden="true">
               {source ? <img src={gameplayArt(source, true)} alt=""/> : creature.name.slice(0, 1)}
             </span>
-            <strong>{creature.name}</strong>
+            <strong>{selected ? <BattleLogSearchText text={creature.name} query={jump.query}/> : creature.name}</strong>
             <span className={s.slots}>
               <span data-order-shift-slots aria-hidden="true">{from} → {to}</span>
               <span className={s.slotDescription}>Slot {from} to slot {to}</span>
@@ -83,13 +108,18 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
   const groupStart = Math.floor(activeIndex / BOOKMARKS_PER_GROUP) * BOOKMARKS_PER_GROUP;
   const groupEnd = Math.min(groupStart + BOOKMARKS_PER_GROUP, boundaries.length);
   const shiftRounds = new Set(state.orderShiftLog?.map(entry => entry.roundNumber));
+  function browseRound(roundNumber: number) {
+    setSelectedRound(roundNumber);
+    setJump(undefined);
+  }
   return <div className={s.logContainer}>
     <div className={s.logLayout} data-filters-open={filtersOpen}
       onKeyDown={event => {
-        if (filtersOpen && event.key === "Escape") {
+        if (openPanel && event.key === "Escape" && !event.nativeEvent.isComposing) {
           event.preventDefault();
           event.stopPropagation();
-          closeFilters();
+          if (filtersOpen) closeFilters();
+          else closeSearch();
         }
       }}>
       {activeRound && <nav className={s.roundNav} aria-label="Round bookmarks" data-round-bookmarks>
@@ -99,7 +129,7 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
             return <button key={roundNumber} type="button" className={s.bookmarkButton}
               data-round-bookmark={roundNumber} data-order-shift-bookmark={hasShift ? "" : undefined}
               aria-label={`Round ${roundNumber}${hasShift ? ", order shift" : ""}`}
-              aria-pressed={activeRound.roundNumber === roundNumber} onClick={() => setSelectedRound(roundNumber)}>
+              aria-pressed={activeRound.roundNumber === roundNumber} onClick={() => browseRound(roundNumber)}>
               {roundNumber}{hasShift && <span className={s.shiftMark} aria-hidden="true"/>}
             </button>;
           })}
@@ -107,16 +137,16 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
         {shiftRounds.size > 0 && <span className={s.shiftLegend}><span className={s.shiftMark} aria-hidden="true"/> Order shift</span>}
         {boundaries.length > BOOKMARKS_PER_GROUP && <div className={s.roundPager}>
           <button type="button" className={s.bookmarkButton} aria-label="Previous round bookmarks" disabled={groupStart === 0}
-            onClick={() => setSelectedRound(boundaries[groupStart - BOOKMARKS_PER_GROUP].roundNumber)}>‹</button>
+            onClick={() => browseRound(boundaries[groupStart - BOOKMARKS_PER_GROUP].roundNumber)}>‹</button>
           <span>{boundaries[groupStart].roundNumber}–{boundaries[groupEnd - 1].roundNumber} of {boundaries.length}</span>
           <button type="button" className={s.bookmarkButton} aria-label="Next round bookmarks" disabled={groupEnd === boundaries.length}
-            onClick={() => setSelectedRound(boundaries[groupEnd].roundNumber)}>›</button>
+            onClick={() => browseRound(boundaries[groupEnd].roundNumber)}>›</button>
         </div>}
       </nav>}
       <div className={s.filterControl} ref={filterControl}>
         <button type="button" className={s.filterTrigger} ref={filterTrigger} data-battle-log-filter-trigger
           aria-expanded={filtersOpen} aria-controls={filterPanelId}
-          onClick={() => setFiltersOpen(open => !open)}>
+          onClick={() => setOpenPanel(current => current === "filters" ? undefined : "filters")}>
           Filters{filters.length > 0 ? ` · ${filters.length}` : ""}
           <span className={s.filterCaret} aria-hidden="true"/>
         </button>
@@ -135,6 +165,12 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
           </div>
         </fieldset>
       </div>
+      <BattleLogQuickFind state={state} filters={filters} open={openPanel === "search"}
+        onOpen={() => setOpenPanel("search")} onClose={closeSearch} onClear={() => setJump(undefined)}
+        onJump={(result, query) => {
+          setSelectedRound(result.roundNumber ?? boundaries[0]?.roundNumber);
+          setJump({ index: result.index, query });
+        }}/>
       <section className={s.logRows} aria-label={activeRound ? `Round ${activeRound.roundNumber} log` : "Battle events"}
         data-round-log={activeRound?.roundNumber}>
         <span className={s.srOnly} role="status">

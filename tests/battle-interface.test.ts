@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getBattleLogEventCategory, getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
+import { getBattleLogSearchTextParts, searchBattleLog } from "@/data/battleLogSearch";
 import { getBattleMove } from "@/data/battleMoves";
 import { useRevivalSalve } from "@/data/battleOutfitterIntegration";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
@@ -17,6 +18,57 @@ function fixture() {
   }
   return state;
 }
+
+test("battle log search returns chronological entries across rounds and intersects event filters", () => {
+  const state = fixture();
+  state.log = [
+    "Briar uses Checking Blow.",
+    "Lilt is slowed.",
+    "Round 2 · Order shift · Lilt 5 → 4",
+    "Moss uses Peck.",
+    "Checking Blow hits Lilt for 12.",
+    "Lilt fainted.",
+  ];
+  state.roundLogBoundaries = [{ roundNumber: 1, logIndex: 0 }, { roundNumber: 2, logIndex: 2 }, { roundNumber: 3, logIndex: 4 }];
+  state.orderShiftLog = [{ logIndex: 2, roundNumber: 2, moves: [] }];
+  state.logEventCategories = { 1: "status-changes", 5: "knockouts" };
+
+  assert.deepEqual(searchBattleLog(state, "  CHECKING   blo "), [
+    { index: 0, roundNumber: 1, text: state.log[0] },
+    { index: 4, roundNumber: 3, text: state.log[4] },
+  ]);
+  assert.deepEqual(searchBattleLog(state, "lilt", ["order-shifts", "knockouts"]), [
+    { index: 2, roundNumber: 2, text: state.log[2] },
+    { index: 5, roundNumber: 3, text: state.log[5] },
+  ]);
+  assert.deepEqual(searchBattleLog(state, "lilt", ["status-changes"]).map(result => result.index), [1]);
+  assert.deepEqual(searchBattleLog(state, "\n "), []);
+});
+
+test("battle log search keeps pre-round and legacy entries addressable by their log indexes", () => {
+  const state = fixture();
+  state.log = ["Lilt enters the arena.", "Lilt uses Peck."];
+  assert.deepEqual(searchBattleLog(state, "lil").map(result => [result.index, result.roundNumber]), [[0, undefined], [1, undefined]]);
+  state.roundLogBoundaries = [{ roundNumber: 1, logIndex: 1 }];
+  assert.deepEqual(searchBattleLog(state, "lil").map(result => [result.index, result.roundNumber]), [[0, undefined], [1, 1]]);
+});
+
+test("battle log search highlights literal punctuation and preserves the displayed spacing and case", () => {
+  const state = fixture();
+  state.log = ["Lilt [Jr.] uses Checking  Blow against LILT [JR.]."];
+  assert.deepEqual(searchBattleLog(state, "[Jr.]").map(result => result.index), [0]);
+  assert.deepEqual(searchBattleLog(state, ".*"), []);
+  assert.deepEqual(getBattleLogSearchTextParts(state.log[0], "lilt [jr.]"), [
+    { text: "Lilt [Jr.]", matched: true },
+    { text: " uses Checking  Blow against ", matched: false },
+    { text: "LILT [JR.]", matched: true },
+    { text: ".", matched: false },
+  ]);
+  assert.deepEqual(getBattleLogSearchTextParts(state.log[0], "Checking Blow").filter(part => part.matched), [
+    { text: "Checking  Blow", matched: true },
+  ]);
+});
+
 test("move categories partition attacks, protection and recovery including hybrids",()=>{
   assert.equal(getBattleMenuCategory(getBattleMove("strike")),"Attack");
   assert.equal(getBattleMenuCategory(getBattleMove("defend")),"Support");
