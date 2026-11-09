@@ -470,10 +470,12 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   const refreshedState = recordBattleOrderShift(refreshedTurn.state, refreshedShift, {
     previous: withExpiringSlow, beforeRecovery: refreshedTurn.beforeRecovery,
   });
+  const [refreshingMove] = refreshedTurn.state.moveLog ?? [];
+  assert(refreshingMove);
   const refreshedMove = refreshedState.orderShiftLog?.[0].moves.find(({ actorId }) => actorId === lilt);
   assert.deepEqual(refreshedMove?.reasons?.filter(reason => reason.kind === "speed-effect"), [{
-    kind: "speed-effect", status: "slowed", result: "changed", sourceMoveLogIndexes: [checkingBlow.logIndex],
-    sourceMoveSpeedDeltas: { [checkingBlow.logIndex]: -11 },
+    kind: "speed-effect", status: "slowed", result: "changed", sourceMoveLogIndexes: [refreshingMove.logIndex],
+    sourceMoveSpeedDeltas: { [refreshingMove.logIndex]: -1 },
   }]);
 });
 
