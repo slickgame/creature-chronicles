@@ -458,6 +458,23 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   assert.equal(getBattleLogEventCategory(restored, appliedIndex), "status-changes");
   assert.equal(getBattleLogEventCategory(restored, logIndex), "order-shifts");
   assert.deepEqual(state, before);
+
+  const withExpiringSlow = structuredClone(state);
+  withExpiringSlow.combatants[lilt].statuses = [{ status: "slowed", duration: 1, amount: 1 }];
+  const beforeRefresh = getBattleOrderPreview(withExpiringSlow, new Map()).map(entry => entry.actorId);
+  const refreshedTurn = resolveBattleTurn(withExpiringSlow, [briar], action);
+  assert(refreshedTurn?.beforeRecovery);
+  const afterRefresh = getBattleOrderPreview(refreshedTurn.state, new Map()).map(entry => entry.actorId);
+  const refreshedShift = getBattleRoundOrderShift(beforeRefresh, afterRefresh, refreshedTurn.state.roundNumber);
+  assert(refreshedShift);
+  const refreshedState = recordBattleOrderShift(refreshedTurn.state, refreshedShift, {
+    previous: withExpiringSlow, beforeRecovery: refreshedTurn.beforeRecovery,
+  });
+  const refreshedMove = refreshedState.orderShiftLog?.[0].moves.find(({ actorId }) => actorId === lilt);
+  assert.deepEqual(refreshedMove?.reasons?.filter(reason => reason.kind === "speed-effect"), [{
+    kind: "speed-effect", status: "slowed", result: "changed", sourceMoveLogIndexes: [checkingBlow.logIndex],
+    sourceMoveSpeedDeltas: { [checkingBlow.logIndex]: -11 },
+  }]);
 });
 
 test("settled Speed reasons link to the recorded cleanse and leave unproven effects plain", () => {
@@ -466,7 +483,7 @@ test("settled Speed reasons link to the recorded cleanse and leave unproven effe
   const [rival, otherRival, slowRival] = previous.teams.enemy.combatantIds;
   const speeds = new Map([[runner, 30], [ally, 45], [otherAlly, 40], [rival, 26], [otherRival, 20], [slowRival, 10]]);
   for (const [id, speed] of speeds) previous.combatants[id].battleStats.speed = speed;
-  previous.combatants[runner].statuses = [{ status: "slowed", duration: 2 }];
+  previous.combatants[runner].statuses = [{ status: "slowed", duration: 1 }];
   previous.combatants[runner].loadout.equippedMoveIds = ["strike", "steady_trot"];
   const before = getBattleOrderPreview(previous, new Map()).map(({ actorId }) => actorId);
   const turn = resolveBattleTurn(previous, [runner], { actorId: runner, moveId: "steady_trot", targetIds: [runner] });
@@ -589,6 +606,7 @@ test("settled shifts preserve survivor ranks and distinguish a partial expiry fr
   previous.combatants[recovering].statuses = [
     { status: "slowed", duration: 1, amount: 10 },
     { status: "slowed", duration: 2, amount: 4 },
+    { status: "exhausted", duration: 1, amount: 2 },
     { status: "inspired", duration: 1 },
   ];
   previous.combatants[bleeding].statuses = [{ status: "bleed", duration: 1 }];
@@ -603,9 +621,13 @@ test("settled shifts preserve survivor ranks and distinguish a partial expiry fr
   const record = recordBattleOrderShift(turn.state, shift, { previous, beforeRecovery: turn.beforeRecovery }).orderShiftLog?.[0];
   assert(record);
   assert.deepEqual(record.moves[0], {
-    actorId: recovering, from: 4, to: 1, speed: { before: 36, after: 46 },
-    reasons: [{ kind: "speed-effect", status: "slowed", result: "stack-wore-off" },
+    actorId: recovering, from: 4, to: 1, speed: { before: 34, after: 46 },
+    reasons: [{ kind: "speed-effect", status: "slowed", result: "stack-wore-off", recoveredSpeed: 10 },
+      { kind: "speed-effect", status: "exhausted", result: "wore-off" },
       ...shift.before.slice(0, 3).map(actorId => ({ kind: "passed", actorId }))],
+  });
+  assert.deepEqual(getOrderShiftDetails(record.moves[0], turn.state.combatants)[1], {
+    id: "reason-0", kind: "speed-effect", text: "Slowed stack wore off", recoveredSpeed: 10,
   });
   const tieCrossing = record.moves.flatMap(({ reasons }) => reasons ?? [])
     .find(reason => reason.kind !== "speed-effect" && reason.tied);
@@ -613,6 +635,38 @@ test("settled shifts preserve survivor ranks and distinguish a partial expiry fr
   assert([tieFirst, tieSecond].includes(tieCrossing.actorId));
   assert(record.moves.every(move => move.actorId !== bleeding && !move.reasons?.some(reason =>
     reason.kind !== "speed-effect" && reason.actorId === bleeding)));
+});
+
+test("Slowed expiry records only the Speed recovered above the minimum", () => {
+  const previous = fixture();
+  const [runner, defender, ally] = previous.teams.player.combatantIds;
+  const [firstRival, secondRival, thirdRival] = previous.teams.enemy.combatantIds;
+  const speeds = new Map([[runner, 4], [defender, 40], [ally, 30], [firstRival, 20], [secondRival, 3], [thirdRival, 2]]);
+  for (const [id, speed] of speeds) previous.combatants[id].battleStats.speed = speed;
+  previous.combatants[runner].statuses = [{ status: "slowed", duration: 1 }];
+  const opening = getBattleOrderPreview(previous, new Map()).map(({ actorId }) => actorId);
+  const turn = resolveBattleTurn(previous, [defender], { actorId: defender, moveId: "defend", targetIds: [defender] });
+  assert(turn?.beforeRecovery);
+  const settled = getBattleOrderPreview(turn.state, new Map()).map(({ actorId }) => actorId);
+  const shift = getBattleRoundOrderShift(opening, settled, turn.state.roundNumber);
+  assert(shift);
+  const logged = recordBattleOrderShift(turn.state, shift, { previous, beforeRecovery: turn.beforeRecovery });
+  const record = logged.orderShiftLog?.[0];
+  const move = record?.moves.find(({ actorId }) => actorId === runner);
+  assert(record && move);
+  assert.deepEqual(move.speed, { before: 1, after: 4 });
+  assert.deepEqual(move.reasons?.[0], { kind: "speed-effect", status: "slowed", result: "wore-off", recoveredSpeed: 3 });
+  const restored = JSON.parse(JSON.stringify(logged)) as typeof logged;
+  assert.deepEqual(restored.orderShiftLog, logged.orderShiftLog);
+  assert.deepEqual(searchBattleLog(restored, "slowed wore off", ["order-shifts"]), [{
+    index: record.logIndex, roundNumber: turn.state.roundNumber, text: "p1 · Slowed wore off",
+    orderShiftDetail: { actorId: runner, detailId: "reason-0" },
+  }]);
+
+  const legacyMove = { ...move, reasons: [{ kind: "speed-effect", status: "slowed", result: "wore-off" }] } as const;
+  assert.deepEqual(getOrderShiftDetails(legacyMove, turn.state.combatants)[1], {
+    id: "reason-0", kind: "speed-effect", text: "Slowed wore off",
+  });
 });
 
 test("a resisted secondary effect stays in the full log without a status change", () => {

@@ -442,6 +442,17 @@
   overflow-wrap: anywhere;
 }
 .shiftReasons > [data-order-shift-speed] { font-weight: 700; }
+.shiftRecoveryAmount {
+  display: inline-block;
+  margin-inline-start: 3px;
+  padding: 0 4px;
+  border: 1px solid #8e9e6d;
+  border-radius: 3px;
+  background: #e4edcb;
+  color: #26452d;
+  font-weight: 700;
+  white-space: nowrap;
+}
 .logRows .shiftSource {
   min-height: 24px;
   margin-inline-start: 4px;

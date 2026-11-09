@@ -143,6 +143,18 @@ function getSpeedEffectSources(
   return { sourceMoveLogIndexes: [...speedDeltas.keys()], sourceMoveSpeedDeltas: Object.fromEntries(speedDeltas) };
 }
 
+function getSlowedExpirySpeed(beforeRecovery: BattleCombatant, settled: BattleCombatant, priorModifier: number) {
+  const expiredStacks = beforeRecovery.statuses.filter(stack =>
+    stack.status === "slowed" && stack.duration > 0 && stack.duration <= 1);
+  if (!expiredStacks.length) return undefined;
+
+  // Keep the rest of recovery settled so only Slowed's expiry contributes to the difference.
+  const withoutExpiry = { ...settled, statuses: [...settled.statuses, ...expiredStacks] };
+  if ((getBattleSpeedStatusModifiers(withoutExpiry).get("slowed") ?? 0) !== priorModifier) return undefined;
+  const recoveredSpeed = getEffectiveBattleStats(settled).speed - getEffectiveBattleStats(withoutExpiry).speed;
+  return Number.isFinite(recoveredSpeed) && recoveredSpeed > 0 ? recoveredSpeed : undefined;
+}
+
 function getSettledSpeedEffectReasons(
   previous: BattleCombatant, beforeRecovery: BattleCombatant, settled: BattleCombatant, moves: readonly BattleMoveLogGroup[],
 ) {
@@ -163,7 +175,9 @@ function getSettledSpeedEffectReasons(
       reasons.push({ kind: "speed-effect", status, result, ...sources });
     }
     if (mid !== after) {
-      reasons.push({ kind: "speed-effect", status, result: hasBattleStatus(settled, status) ? "stack-wore-off" : "wore-off" });
+      const recoveredSpeed = status === "slowed" ? getSlowedExpirySpeed(beforeRecovery, settled, mid) : undefined;
+      reasons.push({ kind: "speed-effect", status, result: hasBattleStatus(settled, status) ? "stack-wore-off" : "wore-off",
+        ...(recoveredSpeed !== undefined ? { recoveredSpeed } : {}) });
     }
   }
   return reasons;

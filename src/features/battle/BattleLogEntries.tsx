@@ -37,6 +37,7 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
   return <ul className={s.shiftReasons} role="list" aria-label={`${name} shift details`}>
     {details.map(detail => {
       const selected = match?.detailId === detail.id;
+      const recovery = detail.recoveredSpeed === undefined ? undefined : `${signedDelta(detail.recoveredSpeed)} Speed`;
       const sources = (detail.sourceMoveLogIndexes ?? []).flatMap(index => {
         const group = moveGroups.get(index);
         const target = group?.targets.find(target => target.targetId === move.actorId);
@@ -44,12 +45,13 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
       });
       const multipleSources = sources.length > 1;
       return <li key={detail.id} id={selected ? match.targetId : undefined} tabIndex={selected ? -1 : undefined}
-        aria-label={selected ? `${name} · ${detail.text}` : undefined}
+        aria-label={selected ? `${name} · ${detail.text}${recovery ? ` · ${recovery}` : ""}` : undefined}
         data-search-jump={selected && match.query ? "" : undefined}
         data-order-shift-detail-match={selected && match.query ? "" : undefined}
         data-order-shift-speed={detail.kind === "speed" ? "" : undefined}
         data-order-shift-reason={detail.kind === "speed" ? undefined : detail.kind}>
         {selected ? <BattleLogSearchText text={detail.text} query={match.query}/> : detail.text}
+        {recovery && <>{" "}<span className={s.shiftRecoveryAmount} data-order-shift-recovered-speed={detail.recoveredSpeed}>{recovery}</span></>}
         {sources.length > 0 && <>{" "}<span className={multipleSources ? s.shiftSourceList : undefined}>
           {sources.map(({ group, target }) => {
             const returnFocus = selected && match.focusSourceIndex === group.logIndex;

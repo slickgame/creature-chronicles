@@ -403,6 +403,8 @@ export type BattleOrderShiftReason =
     sourceMoveLogIndexes?: readonly number[];
     /** Net surviving modifier change attributed to each verified move log entry. */
     sourceMoveSpeedDeltas?: Readonly<Partial<Record<number, number>>>;
+    /** Effective Speed regained from the Slowed stacks that expired at round end. */
+    recoveredSpeed?: number;
     /** Retained for records made before multiple sources were supported. */
     sourceMoveLogIndex?: number;
   };
