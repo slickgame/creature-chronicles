@@ -6,13 +6,13 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
-import { getBattleGuardedStatus, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleStatusApplicationPreview } from "@/data/battleEngine";
+import { getBattleGuardedStatus, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
-import type { BattleAction, BattleCombatantId, BattleGuardImpact, BattleMove, BattleMoveId, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
+import type { BattleAction, BattleCombatant, BattleCombatantId, BattleGuardImpact, BattleMove, BattleMoveId, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { useBattleOutcomeFade, type BattlePlaybackMotion, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
@@ -246,10 +246,21 @@ function HitChanceBreakdown({ breakdown, effects, name, targetId }: {
   </section>;
 }
 
+function StatusTimingRows({ timing }: { timing: BattleStatusTimingForecast }) {
+  const { nextBleed, expiresAfterRound } = timing;
+  return <>
+    {nextBleed && <div data-status-timing="bleed">
+      <dt>Next Bleed tick <small>· Round {nextBleed.roundNumber} end</small></dt>
+      <dd data-direction="down">−{nextBleed.damage} HP{nextBleed.knockedOut && <small>· K.O.</small>}</dd>
+    </div>}
+    {expiresAfterRound !== undefined && <div data-status-timing="expiry">
+      <dt>Expires</dt><dd>Round {expiresAfterRound} end</dd>
+    </div>}
+  </>;
+}
+
 function StatusApplicationForecast({ application }: { application: BattleStatusApplicationPreview }) {
   const { mode, previousStack, stack, timing } = application;
-  const nextBleed = timing?.nextBleed;
-  const expiresAfterRound = timing?.expiresAfterRound;
   const stacks = stack.stacks ?? 1;
   const previousStacks = previousStack ? Math.max(1, previousStack.stacks ?? 1) : 0;
   const durationChanged = previousStack && previousStack.duration !== stack.duration;
@@ -264,14 +275,36 @@ function StatusApplicationForecast({ application }: { application: BattleStatusA
       <dt>{changeLabel} <small>· {stackLabel}</small></dt>
       <dd>{durationChanged && `${previousStack.duration} → `}{stack.duration} {stack.duration === 1 ? "round" : "rounds"}</dd>
     </div>
-    {nextBleed && <div data-status-timing="bleed">
-      <dt>Next Bleed tick <small>· Round {nextBleed.roundNumber} end</small></dt>
-      <dd data-direction="down">−{nextBleed.damage} HP{nextBleed.knockedOut && <small>· K.O.</small>}</dd>
-    </div>}
-    {expiresAfterRound !== undefined && <div data-status-timing="expiry">
-      <dt>Expires</dt><dd>Round {expiresAfterRound} end</dd>
-    </div>}
+    {timing && <StatusTimingRows timing={timing}/>}
   </>;
+}
+
+function ActiveEffectsDialog({ creature, state, resolving, onClose }: {
+  creature: BattleCombatant;
+  state: BattleState;
+  resolving: boolean;
+  onClose: () => void;
+}) {
+  const effects = creature.statuses.filter(effect => effect.duration > 0);
+  return <GameDialog title={`${creature.name} · Active Effects`} onClose={onClose}>
+    <p>{resolving
+      ? "Timing updates after playback. Close this panel, then select Resume to continue."
+      : "Durations count the current round. Timing assumes each effect stays active."}</p>
+    {effects.map((effect, index) => {
+      // Playback snapshots may already contain some of this round's recovery.
+      const timing = resolving ? undefined : getBattleStatusTimingForecast(state, creature.battleCombatantId, effect);
+      const stacks = effect.stacks ?? 1;
+      return <section className={s.statusDetail} key={index} data-active-effect={effect.status}>
+        <h3><StatusIcon status={effect.status}/>{statusLabel(effect)}</h3>
+        <p><strong>{effect.duration} {effect.duration === 1 ? "round" : "rounds"} · {stacks} {stacks === 1 ? "stack" : "stacks"}</strong>
+          {effect.amount !== undefined ? ` · Amount ${effect.amount}` : ""}</p>
+        {timing && <dl className={s.damageBreakdownSteps}><StatusTimingRows timing={timing}/></dl>}
+        <p>{getBattleStatusGlossary(effect.status).mechanics}</p>
+        {effect.sourceCombatantId && <p>Source: {state.combatants[effect.sourceCombatantId]?.name ?? "Unknown"}</p>}
+      </section>;
+    })}
+    {!effects.length && <p>No active effects.</p>}
+  </GameDialog>;
 }
 
 function EffectRollSteps({ breakdown }: { breakdown: NonNullable<EffectForecast["effectChanceBreakdown"]> }) {
@@ -996,7 +1029,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     {popup==="planning"&&<GameDialog title="Round Ledger" onClose={()=>setPopup(null)}><p>Plans can be edited until you confirm. Shared targets are allowed; estimates do not guarantee hits or effects.</p>{players.map(c=>{const a=queue.get(c.battleCombatantId),m=a?getBattleMove(a.moveId):null;return <section className={s.statusDetail} key={c.battleCombatantId}><h3>{c.name}</h3><p>{c.isFainted?"K.O. · No action required":m&&a?`${m.name} → ${a.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield"} · ${m.battleEnergyCost} BE (currently ${c.currentBattleEnergy})`:"Action needed"}</p><button disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan?.(c.battleCombatantId);setMovesOpen(true);setPopup(null);}}>Edit {c.name}</button></section>})}</GameDialog>}
 
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}
-    {popup==="statuses"&&statusCreature&&<GameDialog title={`${statusCreature.name} · Active Effects`} onClose={()=>setPopup(null)}><p>Durations are remaining rounds. During playback, inspecting effects pauses the action. Close this panel, then select Resume to continue.</p>{statusCreature.statuses.filter(e=>e.duration>0).map((effect,i)=><section className={s.statusDetail} key={i}><h3><StatusIcon status={effect.status}/>{statusLabel(effect)}</h3><p><strong>{effect.duration} rounds · {effect.stacks??1} stack(s)</strong>{effect.amount!==undefined?` · Amount ${effect.amount}`:""}</p><p>{getBattleStatusGlossary(effect.status).mechanics}</p>{effect.sourceCombatantId&&<p>Source: {state.combatants[effect.sourceCombatantId]?.name??"Unknown"}</p>}</section>)}{!statusCreature.statuses.some(e=>e.duration>0)&&<p>No active effects.</p>}</GameDialog>}
+    {popup==="statuses"&&statusCreature&&<ActiveEffectsDialog creature={statusCreature} state={state} resolving={resolving} onClose={()=>setPopup(null)}/>}
     {(popup === "order" || popup === "order-inspect") && <GameDialog title="Turn Order" onClose={() => setPopup(null)}>
       {individual ? <>
         <h3>Round {state.roundNumber} · Remaining turns</h3>
