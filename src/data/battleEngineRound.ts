@@ -1116,6 +1116,8 @@ export type BattleRoundEndForecast = {
   /** Whether this recovery knocks the target out. */
   knockedOut: boolean;
   expiredStatuses: BattleStatusId[];
+  /** Settled BE, including when recovery emits no energy event. */
+  battleEnergyAfter: number;
   energy?: { before: number; after: number };
   /** Equipped moves whose cooldown ends if the creature and battle continue. */
   clearedCooldowns?: BattleMoveId[];
@@ -1161,6 +1163,7 @@ export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndFor
     hpLost: bleedTicks.reduce((total, tick) => total + tick.damage, 0),
     knockedOut: bleedTicks.some(tick => tick.knockedOut),
     expiredStatuses,
+    battleEnergyAfter: recovery.combatants[targetId].currentBattleEnergy,
     ...(energy ? { energy } : {}),
   }));
   if (recovery.endsBattle) return forecasts;
@@ -1177,7 +1180,14 @@ export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndFor
     if (!clearedCooldowns.length) continue;
     const forecast = forecastsByTarget.get(targetId);
     if (forecast) forecast.clearedCooldowns = clearedCooldowns;
-    else forecasts.push({ targetId, hpLost: 0, knockedOut: false, expiredStatuses: [], clearedCooldowns });
+    else forecasts.push({
+      targetId,
+      hpLost: 0,
+      knockedOut: false,
+      expiredStatuses: [],
+      battleEnergyAfter: after.currentBattleEnergy,
+      clearedCooldowns,
+    });
   }
   return forecasts;
 }

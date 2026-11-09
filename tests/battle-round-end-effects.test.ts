@@ -116,12 +116,13 @@ test("battlefield recovery forecasts group Bleed loss and emitted expiry for all
       hpLost: 5,
       knockedOut: false,
       expiredStatuses: ["bleed", "marked"],
+      battleEnergyAfter: 84,
       energy: { before: 82, after: 84 },
       clearedCooldowns: ["heavy_shove"],
     },
-    { targetId: recoveringId, hpLost: 0, knockedOut: false, expiredStatuses: [], energy: { before: 0, after: 9 } },
-    { targetId: allyId, hpLost: 8, knockedOut: true, expiredStatuses: ["slowed"] },
-    { targetId: guardedId, hpLost: 0, knockedOut: false, expiredStatuses: ["guarded", "exhausted"], energy: { before: 40, after: 45 } },
+    { targetId: recoveringId, hpLost: 0, knockedOut: false, expiredStatuses: [], battleEnergyAfter: 9, energy: { before: 0, after: 9 } },
+    { targetId: allyId, hpLost: 8, knockedOut: true, expiredStatuses: ["slowed"], battleEnergyAfter: 0 },
+    { targetId: guardedId, hpLost: 0, knockedOut: false, expiredStatuses: ["guarded", "exhausted"], battleEnergyAfter: 45, energy: { before: 40, after: 45 } },
   ]);
   assert.deepEqual(state, before);
 
@@ -159,7 +160,7 @@ test("battlefield recovery includes energy-only gains and suppresses completed c
   assert.deepEqual(getBattleRoundEndForecast(state), []);
   Object.assign(actor, { currentBattleEnergy: 0, maxBattleEnergy: 72 });
   assert.deepEqual(getBattleRoundEndForecast(state), [
-    { targetId: actorId, hpLost: 0, knockedOut: false, expiredStatuses: [], energy: { before: 0, after: 9 } },
+    { targetId: actorId, hpLost: 0, knockedOut: false, expiredStatuses: [], battleEnergyAfter: 9, energy: { before: 0, after: 9 } },
   ]);
 
   target.currentHp = 2;
@@ -169,8 +170,8 @@ test("battlefield recovery includes energy-only gains and suppresses completed c
   actor.loadout = { ...actor.loadout, equippedMoveIds: ["focus", "checking_blow"], learnedMoveIds: ["focus", "checking_blow"] };
   actor.cooldowns = { checking_blow: 1 };
   assert.deepEqual(getBattleRoundEndForecast(state), [
-    { targetId, hpLost: 2, knockedOut: true, expiredStatuses: ["bleed"] },
-    { targetId: actorId, hpLost: 0, knockedOut: false, expiredStatuses: ["inspired"], energy: { before: 0, after: 11 } },
+    { targetId, hpLost: 2, knockedOut: true, expiredStatuses: ["bleed"], battleEnergyAfter: 0 },
+    { targetId: actorId, hpLost: 0, knockedOut: false, expiredStatuses: ["inspired"], battleEnergyAfter: 11, energy: { before: 0, after: 11 } },
   ]);
   assert.deepEqual(getBattleRoundEndForecast({ ...state, outcome: "player_won" }), []);
   Object.assign(target, { currentHp: 0, isFainted: true });
@@ -189,7 +190,14 @@ test("battlefield recovery reports only known equipped cooldowns that complete t
   const before = structuredClone(state);
 
   assert.deepEqual(getBattleRoundEndForecast(state), [
-    { targetId: actorId, hpLost: 0, knockedOut: false, expiredStatuses: [], clearedCooldowns: ["checking_blow", "quick_step"] },
+    {
+      targetId: actorId,
+      hpLost: 0,
+      knockedOut: false,
+      expiredStatuses: [],
+      battleEnergyAfter: actor.maxBattleEnergy,
+      clearedCooldowns: ["checking_blow", "quick_step"],
+    },
   ]);
   assert.deepEqual(state, before);
 
@@ -199,6 +207,50 @@ test("battlefield recovery reports only known equipped cooldowns that complete t
   assert.equal(actualCooldowns.checking_blow, undefined);
   assert.equal(actualCooldowns.quick_step, undefined);
   assert.equal(actualCooldowns.thunder_tread, 1);
+});
+
+test("battlefield recovery forecasts settled BE when cooldowns clear, even without an energy event", () => {
+  const { state, actorId, targetId } = createTimingFixture();
+  const actor = state.combatants[actorId];
+  const target = state.combatants[targetId];
+  const equippedMoveIds = ["strike", "checking_blow", "thunder_tread"];
+  actor.loadout = { ...actor.loadout, equippedMoveIds, learnedMoveIds: equippedMoveIds };
+  actor.cooldowns = { checking_blow: 1, thunder_tread: 1 };
+  actor.statuses = [{ status: "exhausted", duration: 1 }];
+  Object.assign(actor, { currentBattleEnergy: 4, maxBattleEnergy: 72 });
+  target.loadout = { ...target.loadout, equippedMoveIds: ["heavy_shove"], learnedMoveIds: ["heavy_shove"] };
+  target.cooldowns = { heavy_shove: 1 };
+  Object.assign(target, { currentBattleEnergy: 80, maxBattleEnergy: 72 });
+  const before = structuredClone(state);
+
+  const forecast = getBattleRoundEndForecast(state);
+  assert.deepEqual(forecast, [
+    {
+      targetId: actorId,
+      hpLost: 0,
+      knockedOut: false,
+      expiredStatuses: ["exhausted"],
+      battleEnergyAfter: 8,
+      energy: { before: 4, after: 8 },
+      clearedCooldowns: ["checking_blow", "thunder_tread"],
+    },
+    {
+      targetId,
+      hpLost: 0,
+      knockedOut: false,
+      expiredStatuses: [],
+      battleEnergyAfter: 72,
+      clearedCooldowns: ["heavy_shove"],
+    },
+  ]);
+  assert.deepEqual(state, before);
+
+  const actual = resolveBattleTurn(state, [actorId], { actorId, moveId: "strike", targetIds: [targetId] });
+  assert.ok(actual);
+  for (const row of forecast) {
+    assert.equal(actual.state.combatants[row.targetId].currentBattleEnergy, row.battleEnergyAfter);
+  }
+  assert.ok(!actual.frames.some(frame => frame.targetIds.includes(targetId) && frame.roundEndEffect?.kind === "energy"));
 });
 
 test("status timing counts this round and preserves legacy duration and Bleed defaults", () => {

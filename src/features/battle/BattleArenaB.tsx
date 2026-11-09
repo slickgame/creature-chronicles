@@ -315,7 +315,7 @@ function RoundEndForecast({ state }: { state: BattleState }) {
     {rows.length > 0 ? <>
       <p>Based on current HP, BE, statuses, and cooldowns.</p>
       <ul className={s.roundEndForecastList}>
-        {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses, energy, clearedCooldowns }) => {
+        {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses, energy, battleEnergyAfter, clearedCooldowns }) => {
           const creature = state.combatants[targetId];
           return <li key={targetId} data-round-end-target={targetId} data-side={creature.sideId}>
             <span className={s.roundEndForecastName}>
@@ -326,8 +326,21 @@ function RoundEndForecast({ state }: { state: BattleState }) {
               {hpLost > 0 && <span data-round-end-bleed>Bleed <strong>−{hpLost} HP{knockedOut && " · K.O."}</strong></span>}
               {expiredStatuses.length > 0 && <span data-round-end-expiry>Expires <strong>{expiredStatuses.map(status => getBattleStatusGlossary(status).label).join(", ")}</strong></span>}
               {energy && <span data-round-end-energy>Recovery <strong>+{energy.after - energy.before} BE</strong> · {energy.before} → {energy.after}</span>}
-              {clearedCooldowns?.length ? <span data-round-end-cooldowns>
-                {clearedCooldowns.length === 1 ? "Cooldown clears" : "Cooldowns clear"} <strong>{clearedCooldowns.map(moveId => getBattleMove(moveId).name).join(", ")}</strong>
+              {clearedCooldowns?.length ? <span className={s.roundEndCooldowns} data-round-end-cooldowns>
+                <span>
+                  {clearedCooldowns.length === 1 ? "Cooldown clears" : "Cooldowns clear"}
+                  {!energy && <small> · {battleEnergyAfter} BE after recovery</small>}
+                </span>
+                {clearedCooldowns.map(moveId => {
+                  const move = getBattleMove(moveId);
+                  const shortfall = move.battleEnergyCost - battleEnergyAfter;
+                  return <span key={moveId} data-round-end-move={moveId}>
+                    <strong>{move.name}</strong>{" "}
+                    <small data-round-end-energy-check={shortfall > 0 ? "short" : "covered"}>
+                      {move.battleEnergyCost} BE · {shortfall > 0 ? `${shortfall} BE short` : "Covered"}
+                    </small>
+                  </span>;
+                })}
               </span> : null}
             </span>
           </li>;
