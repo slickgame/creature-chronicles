@@ -332,7 +332,7 @@
 .arena[data-individual=true] .header > strong { width: 19%; min-width: 0; }
 .arena[data-individual=true] .header h1 { font-size: clamp(15px, 1.35vw, 23px); }
 .arena[data-individual=true] .figureButton { grid-template-rows: minmax(0, 1fr) 57px; }
-.arena[data-individual=true] .figure[data-selected=true][data-side=enemy] .art img {
+.arena[data-individual=true] .figure[data-selected=true][data-side=enemy]:not([data-action-target]) .art img {
   filter: drop-shadow(2px 0 #ff5237) drop-shadow(-2px 0 #ff5237) drop-shadow(0 0 4px #e72e0f);
 }
 .arena[data-individual=true] .targetMarker { background: #852819; border-color: #ebad5d; color: #fff0cb; }
@@ -1433,3 +1433,125 @@
   text-align: center;
 }
 .fullOrderEntry > em { color: #583a23; font-size: 12px; font-style: normal; white-space: nowrap; }
+
+/* Individual move windup cues, anchored clear of the vitals. */
+:is(.actionRibbon, .figure[data-action-source]) {
+  --action-edge: #49613a;
+  --action-ink: #273b22;
+}
+:is(.actionRibbon, .figure[data-action-source])[data-side="enemy"] {
+  --action-edge: #86382b;
+  --action-ink: #61251b;
+}
+:is(.actionRibbon, .actionMovePlaque) {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px double var(--action-edge);
+  border-radius: 8px 4px;
+  background: linear-gradient(110deg, #edc589, #fff0cb 48%, #f2d3a0);
+  box-shadow: 0 0 0 1px #d4a464, 0 3px 6px #38231b90;
+  color: var(--action-ink);
+  font: bold clamp(12px, 1.2vw, 18px)/1.12 Georgia, serif;
+  pointer-events: none;
+  animation: actionCueReveal 130ms ease-out both;
+}
+.actionMovePlaque {
+  inset: clamp(3px, 28%, 185px) 0 auto;
+  width: max-content;
+  max-width: 96%;
+  margin-inline: auto;
+  padding: 4px 9px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.actionMovePlaque::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  inset-inline-start: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border: solid var(--action-edge);
+  border-width: 0 2px 2px 0;
+  background: #f9e1b4;
+  transform: translateY(-3px) rotate(45deg);
+}
+.actionRibbon {
+  inset: clamp(3px, 5%, 27px) auto auto 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(52%, 380px);
+  gap: 6px;
+  padding: 2px 7px;
+  text-align: center;
+}
+.actionRibbon > span { overflow-wrap: anywhere; }
+.actionRibbon > img {
+  flex: none;
+  width: 27px;
+  height: 27px;
+  border: 1px solid #a4743e;
+  border-radius: 50%;
+  background: #795237;
+  object-fit: cover;
+}
+.order[data-turn-queue] .tokens > button[data-order-role="now"] > span > em[data-action-move] {
+  padding: 1px 4px;
+  border: 1px solid var(--queue-gilt);
+  border-radius: 4px;
+  background: linear-gradient(var(--queue-side), var(--queue-side-shadow));
+  color: #fff1cf;
+  font-weight: bold;
+}
+.order[data-turn-queue] .tokens > button > span:has(> em[data-action-move]) > i { display: none; }
+.actionFloorCue {
+  position: absolute;
+  inset: auto 9% 1px;
+  z-index: -1;
+  height: clamp(8px, 1.4vw, 17px);
+  border: 2px solid #ffe6a0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #fff1b633 35%, #fbb6388c 72%);
+  box-shadow: 0 0 0 1px #9c5f21, 0 0 8px #ffb93a;
+  pointer-events: none;
+}
+.figure:is([data-action-source], [data-action-target]) .art::after { display: none; }
+.figure[data-action-target="hostile"] .actionFloorCue {
+  border-color: #ffcaad;
+  background: #9f2c246b;
+  box-shadow: 0 0 0 1px #841e17, 0 0 8px #e24325;
+}
+.figure[data-action-target="support"]:not([data-action-source]) .actionFloorCue {
+  border: 2px dashed #e8ffd4;
+  background: #36733966;
+  box-shadow: 0 0 0 1px #335b2c, 0 0 8px #62a552;
+}
+.figure[data-action-source][data-action-target="support"] .actionFloorCue {
+  outline: 1px dashed #417038;
+  outline-offset: 2px;
+}
+.arena[data-individual=true] .figure[data-action-target="hostile"] .art img {
+  filter: drop-shadow(1px 0 #ff6a4b) drop-shadow(-1px 0 #ff6a4b) drop-shadow(0 0 4px #b93122);
+}
+.arena[data-individual=true] .figure[data-action-target="support"] .art img {
+  filter: drop-shadow(0 2px 4px #45673c80);
+}
+.arena[data-individual=true] .targetMarker[data-action-target="support"] { background: #355c30; }
+@keyframes actionCueReveal { from { opacity: .65; } to { opacity: 1; } }
+.arena[data-reduced-motion=true] :is(.actionRibbon, .actionMovePlaque) { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.actionRibbon, .actionMovePlaque) { animation: none; }
+}
+@media (max-width: 600px), (max-height: 560px) {
+  :is(.actionRibbon, .actionMovePlaque) { font-size: 12px; }
+  .actionMovePlaque { inset-block-start: clamp(1px, 8%, 16px); padding: 2px 4px; }
+  .actionRibbon { max-width: min(80%, 280px); gap: 4px; padding: 1px 4px; }
+  .actionRibbon > img { width: 18px; height: 18px; }
+}
+@media (max-width: 600px) {
+  .actionRibbon { inset-block-start: 53%; transform: translate(-50%, -50%); }
+  .actionMovePlaque { font-size: 11px; }
+}

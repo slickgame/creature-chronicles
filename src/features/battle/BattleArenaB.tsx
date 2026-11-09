@@ -418,6 +418,14 @@ export function BattleArenaB(props: BattleArenaBProps) {
     : undefined;
   const actionCaption=skippedActorId ? state.combatants[skippedActorId]?.name : currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
   const highlight=resolving ? (skippedActorId ? undefined : currentEvent?.actorId) : activeActorId;
+  const windup = individual && currentEvent?.kind === "attack" && currentEvent.moveName ? currentEvent : undefined;
+  const cueActor = windup?.actorId ? state.combatants[windup.actorId] : undefined;
+  const cueTargets = windup?.targetIds.map(id => state.combatants[id]).filter(Boolean) ?? [];
+  const singleCueTarget = cueTargets.length === 1 ? cueTargets[0] : undefined;
+  const cueIsSelf = !!singleCueTarget && singleCueTarget.battleCombatantId === cueActor?.battleCombatantId;
+  const cueTargetLabel = singleCueTarget ? (cueIsSelf ? "Self" : singleCueTarget.name)
+    : cueTargets.length ? `${cueTargets.length} ${cueTargets.every(recipient => recipient.sideId === cueActor?.sideId) ? "allies" : "targets"}`
+      : "Battlefield";
   function inspect(id?:string, fromOrder = false){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup(fromOrder ? "order-inspect" : "inspect");}
   function clearDraft(){setDraft(null);setTappedTarget(null);setMoveTip(null);setMovePage(0);}
   function queueMove(id:string){props.onQueue(id);clearDraft();setMovesOpen(false);setPopup(null);}
@@ -566,7 +574,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
             {direction === "up" ? "↑" : "↓"}{Math.abs(change.from - change.to)}
           </b>}
           <span><small>{rankLabel}</small><strong>{combatant.name}</strong>
-            {id === currentActorId && role !== "skipped" && currentEvent?.moveName && <em>{currentEvent.moveName}</em>}
+            {id === currentActorId && role !== "skipped" && currentEvent?.moveName && <em data-action-move={windup ? "" : undefined}>{currentEvent.moveName}</em>}
             {individual && <i>{stunned ? `${sideLabel} · Stunned` : sideLabel}</i>}
           </span>
           {individual && <OrderCrest ally={ally}/>}
@@ -574,7 +582,13 @@ export function BattleArenaB(props: BattleArenaBProps) {
       })}{individual && !orderEntries.length && <span className={s.orderEmpty} role="status">{emptyOrderLabel}</span>}</div>
     </section>
     {slowedForecast && selectedMove && <SlowedOrderComparison forecast={slowedForecast} moveName={selectedMove.move.name} state={state} sourceById={sourceById}/>}
-    <section className={s.field} aria-label="3 versus 3 battle stage">{!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
+    <section className={s.field} aria-label="3 versus 3 battle stage">
+      {cueActor && <div className={s.actionRibbon} data-action-cue data-side={cueActor.sideId} aria-hidden="true">
+        <img src={artwork(sourceById.get(String(cueActor.sourceCreatureId)))} alt=""/>
+        <span>{cueActor.name} <b>→</b> {cueTargetLabel}</span>
+        {singleCueTarget && !cueIsSelf && <img src={artwork(sourceById.get(String(singleCueTarget.sourceCreatureId)))} alt=""/>}
+      </div>}
+      {!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
       const forecast = forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
       const forecastId = `forecast-${c.battleCombatantId}`;
@@ -598,11 +612,22 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const affected=event?.targetIds.includes(c.battleCombatantId);
       const skipped = c.battleCombatantId === skippedActorId;
       const resolvingTarget = affected && !roundEndEffect && !skipped;
+      const actionSource = c.battleCombatantId === cueActor?.battleCombatantId;
+      const actionTarget = cueActor && windup?.targetIds.includes(c.battleCombatantId)
+        ? (c.sideId === cueActor.sideId ? "support" : "hostile") : undefined;
       const supportOutcome = grouped?.supportStatuses;
       const guardResult = supportOutcome?.some(status => status.status === "guarded" && status.result !== "failed" && status.result !== "cleared");
-      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!resolvingTarget:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}>
+      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving?!!resolvingTarget:draftMove?highlightedTargets.includes(c.battleCombatantId):selected} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}
+        data-action-source={actionSource ? "" : undefined} data-action-target={actionTarget}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={healthForecast ? [healthForecast.id, forecast || showAllyEffects ? forecastId : null].filter(Boolean).join(" ") : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
-          <span className={s.art}><BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving?event:null} reducedMotion={presentation.reducedMotion}/>{acting&&<b className={s.marker}>{resolving?"ACTING":individual?"ACTIVE TURN":"PLANNING"}</b>}{(resolving?resolvingTarget&&!supportOutcome:draftMove?highlightedTargets.includes(c.battleCombatantId):selected)&&<b className={s.targetMarker}>{individual ? `TARGET · ${c.name}` : "TARGET"}</b>}{skipped && event && <SkippedTurnCallout key={event.eventId} event={event} presentation={presentation}/>}{!skipped && affected && event && event.kind !== "attack" && roundEndEffect?.kind !== "expiry" && (individual
+          <span className={s.art}>
+            <BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving ? event : null} playback={presentation}/>
+            {(actionSource || actionTarget) && <span className={s.actionFloorCue} aria-hidden="true"/>}
+            {actionSource ? <span className={s.actionMovePlaque} data-action-plaque><strong>{windup?.moveName}</strong></span>
+              : acting && <b className={s.marker}>{resolving ? "ACTING" : individual ? "ACTIVE TURN" : "PLANNING"}</b>}
+            {!actionSource && (resolving ? resolvingTarget && !supportOutcome : draftMove ? highlightedTargets.includes(c.battleCombatantId) : selected) &&
+              <b className={s.targetMarker} data-action-target={actionTarget}>{individual ? `${actionTarget === "support" ? "ALLY" : "TARGET"} · ${c.name}` : "TARGET"}</b>}
+            {skipped && event && <SkippedTurnCallout key={event.eventId} event={event} presentation={presentation}/>}{!skipped && affected && event && event.kind !== "attack" && roundEndEffect?.kind !== "expiry" && (individual
             ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} grouped={grouped}/>
             : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>)}</span>
           <span className={s.nameplate}>

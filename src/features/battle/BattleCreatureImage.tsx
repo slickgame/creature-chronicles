@@ -6,18 +6,22 @@ import {getBattleMove} from '@/data/battleMoves';
 import type {BattlePresentationEvent} from '@/data/battlePresentation';
 import type {BattleCombatant} from '@/types/battle';
 import type {CreatureRecord} from '@/types/creature';
+import type {BattlePlaybackMotion} from './useBattlePresentationController';
 import s from './BattleArenaB.module.css';
 const FALLBACK='/images/ui/icons/icon_paw_crest.png';
 /** A persistent image node per combatant. Effects animate its wrapper and clean up per beat. */
-export function BattleCreatureImage({source,combatant,event,reducedMotion}:{source?:CreatureRecord;combatant:BattleCombatant;event:BattlePresentationEvent|null;reducedMotion:boolean}){
+export function BattleCreatureImage({source,combatant,event,playback}:{source?:CreatureRecord;combatant:BattleCombatant;event:BattlePresentationEvent|null;playback:BattlePlaybackMotion}){
  const motion=useRef<HTMLSpanElement>(null);
+ const motionAnimation=useRef<Animation|null>(null);
+ const {paused,reducedMotion,speed,manualBeat}=playback;
  const actor=event?.actorId===combatant.battleCombatantId;
  const target=event?.targetIds.includes(combatant.battleCombatantId)??false;
  const move=actor&&event?.kind==='attack'&&event.moveId?getBattleMove(event.moveId):null;
  const src=getCreatureCombatArt(source,{fainted:combatant.isFainted,actor,target,eventKind:event?.kind,effectPreset:event?.preset,specialAttack:!!move&&(move.category==='special'||move.rarity==='signature')})??(source?gameplayArt(source):FALLBACK);
  const art=getGameplayArtSet(source);
- const eventId=event&&(actor||target)?event.eventId:null;
- const kind=event&&(actor||target)?event.kind:null;
+ const eventId=event?.eventId;
+ const eventKind=event?.kind;
+ const kind=eventKind==='attack'&&actor ? eventKind : target&&(eventKind==='damage'||eventKind==='miss') ? eventKind : null;
  const side=combatant.sideId;
  useEffect(()=>{
   if(!art)return;
@@ -27,11 +31,20 @@ export function BattleCreatureImage({source,combatant,event,reducedMotion}:{sour
   }
  },[art]);
  useEffect(()=>{
-  const node=motion.current;if(!node||!eventId||reducedMotion)return;
+  const node=motion.current;if(!node||!eventId||reducedMotion||manualBeat)return;
   const frames:Keyframe[]|null=kind==='attack'?[{transform:'translate(0,0)'},{transform:`translate(${side==='enemy'?-12:12}px,-8px)`},{transform:'translate(0,0)'}]:kind==='damage'?[{transform:'translateX(0)'},{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}]:kind==='miss'?[{transform:'translateY(0)'},{transform:'translateY(-10px)'},{transform:'translateY(0)'}]:null;
   if(!frames)return;
   const animation=node.animate(frames,{duration:kind==='attack'?500:400,easing:'ease-in-out'});
-  return ()=>animation.cancel();
- },[eventId,kind,side,reducedMotion]);
+  animation.id=`coliseum-sprite-${kind}`;
+  motionAnimation.current=animation;
+  return ()=>{animation.cancel();motionAnimation.current=null;};
+ },[eventId,kind,side,reducedMotion,manualBeat]);
+ useEffect(()=>{
+  const animation=motionAnimation.current;
+  if(!animation||animation.playState==='finished')return;
+  animation.updatePlaybackRate(speed);
+  if(paused)animation.pause();
+  else animation.play();
+ },[eventId,kind,side,reducedMotion,manualBeat,paused,speed]);
  return <span ref={motion} className={s.spriteMotion} data-battle-sprite={combatant.battleCombatantId}><img src={src} data-facing={art&&side==='enemy'?'left':'right'} alt={`${combatant.name}, full body`} onError={e=>{if(!e.currentTarget.src.endsWith(FALLBACK))e.currentTarget.src=FALLBACK;}}/></span>;
 }
