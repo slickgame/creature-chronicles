@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createBattleState, previewBattleAction, resolveBattleTurn } from "@/data/battleEngine";
 import { calculateBattleSecondaryEffectChance, getBattleSecondaryEffectChanceBreakdown } from "@/data/battleRoundRules";
+import type { BattleStatusStack } from "@/types/battle";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
 
 function createEffectFixture() {
@@ -81,4 +82,54 @@ test("friendly cleanses use the authored chance without a hostile matchup or hit
   const inspired = preview.find(row => row.targetId === allyId && row.effectType === "apply_status");
   assert.equal(inspired?.effectChance, 100);
   assert.equal(inspired?.effectChanceBreakdown, undefined);
+});
+
+test("a status forecast preserves its previous stack and matches applied, stacked, and capped outcomes", () => {
+  const { state, actorId, allyId, weakId, resistantId } = createEffectFixture();
+  const action = { actorId, moveId: "thunder_tread", targetIds: [weakId] };
+  const order = [actorId, allyId, weakId, resistantId];
+  const cases = [
+    { previous: undefined, mode: "applied", stacks: 1, duration: 2 },
+    { previous: { status: "slowed", stacks: 1, duration: 1 }, mode: "stacked", stacks: 2, duration: 2 },
+    { previous: { status: "slowed", stacks: 2, duration: 1 }, mode: "refreshed", stacks: 2, duration: 2 },
+    { previous: { status: "slowed", stacks: 2, duration: 3 }, mode: "refreshed", stacks: 2, duration: 3 },
+  ] satisfies { previous?: BattleStatusStack; mode: string; stacks: number; duration: number }[];
+
+  for (const { previous, mode, stacks, duration } of cases) {
+    state.combatants[weakId].statuses = previous ? [previous] : [];
+    const forecast = previewBattleAction(state, action).find(row => row.targetId === weakId && row.effectStatus === "slowed")?.statusApplication;
+    assert.ok(forecast);
+    assert.deepEqual(forecast.previousStack, previous);
+    assert.deepEqual([forecast.mode, forecast.stack.stacks, forecast.stack.duration, forecast.stack.maxStacks], [mode, stacks, duration, 2]);
+
+    const result = resolveBattleTurn(state, order, action);
+    const frame = result?.frames.find(frame => frame.targetIds[0] === weakId && frame.statusOutcome?.status === "slowed");
+    assert.equal(frame?.statusOutcome?.result, mode);
+    assert.deepEqual(frame?.state.combatants[weakId].statuses.find(status => status.status === "slowed"), forecast.stack);
+  }
+});
+
+test("status forecasts match existing stacks by both status and stat", () => {
+  const { state, allyId } = createEffectFixture();
+  const ally = state.combatants[allyId];
+  const action = { actorId: allyId, moveId: "evasive_step", targetIds: [allyId] };
+  ally.statuses = [
+    { status: "inspired", stacks: 1, duration: 5 },
+    { status: "inspired", stat: "defense", stacks: 2, duration: 4 },
+  ];
+  function evasionForecast() {
+    const forecast = previewBattleAction(state, action).find(row => row.statusApplication?.stack.stat === "evasion")?.statusApplication;
+    assert.ok(forecast);
+    return forecast;
+  }
+
+  const fresh = evasionForecast();
+  assert.equal(fresh.previousStack, undefined);
+  assert.deepEqual([fresh.mode, fresh.stack.stacks, fresh.stack.duration], ["applied", 1, 2]);
+
+  const previous: BattleStatusStack = { status: "inspired", stat: "evasion", amount: 10, stacks: 1, duration: 1 };
+  ally.statuses.push(previous);
+  const stacked = evasionForecast();
+  assert.deepEqual(stacked.previousStack, previous);
+  assert.deepEqual([stacked.mode, stacked.stack.stat, stacked.stack.stacks, stacked.stack.duration], ["stacked", "evasion", 2, 2]);
 });

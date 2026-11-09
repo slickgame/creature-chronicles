@@ -184,7 +184,6 @@ function AllyForecastEffects({ id, cleanses, guard, rows }: {
 
 type EffectForecast = ReturnType<typeof previewBattleAction>[number];
 type DamageForecast = EffectForecast & Required<Pick<EffectForecast, "damageBreakdown">>;
-type SecondaryEffectForecast = EffectForecast & Required<Pick<EffectForecast, "effectChanceBreakdown">>;
 type HitChanceForecast = NonNullable<EffectForecast["hitBreakdown"]>;
 const FORECAST_VIEWS = [
   { id: "damage", label: "Damage", title: "Damage breakdown" },
@@ -202,10 +201,14 @@ function effectForecastText(effect: EffectForecast) {
 }
 
 function effectForecastLabel(effect: EffectForecast) {
-  const status = effect.effectStatus ?? effect.statusApplication?.stack.status;
-  if (!status) return getBattleEffectGlossary(effect.effectType).label;
-  const label = getBattleStatusGlossary(status).label;
+  if (effect.statusApplication) return statusLabel(effect.statusApplication.stack);
+  if (!effect.effectStatus) return getBattleEffectGlossary(effect.effectType).label;
+  const label = getBattleStatusGlossary(effect.effectStatus).label;
   return effect.effectType === "cleanse_status" ? `Clear ${label}` : label;
+}
+
+function hasEffectForecast(effect: EffectForecast) {
+  return Boolean(effect.effectChanceBreakdown || effect.statusApplication);
 }
 
 function ChanceChange({ before, after }: { before: number; after: number }) {
@@ -243,9 +246,47 @@ function HitChanceBreakdown({ breakdown, effects, name, targetId }: {
   </section>;
 }
 
-function EffectChanceBreakdown({ effect }: { effect: SecondaryEffectForecast }) {
-  const { baseChance, effectChance, unclampedChance, matchup, bounds } = effect.effectChanceBreakdown;
+function StatusApplicationForecast({ application }: { application: BattleStatusApplicationPreview }) {
+  const { mode, previousStack, stack } = application;
+  const stacks = stack.stacks ?? 1;
+  const previousStacks = previousStack ? Math.max(1, previousStack.stacks ?? 1) : 0;
+  const durationChanged = previousStack && previousStack.duration !== stack.duration;
+  const changeLabel = mode === "applied" ? "Applies"
+    : mode === "stacked" ? "Adds a stack"
+    : durationChanged ? "Refreshes duration" : "Reapplies at cap";
+  const stackLabel = previousStack && stacks !== previousStacks ? `${previousStacks} → ${stacks} stacks`
+    : mode === "refreshed" ? `${stacks}/${stack.maxStacks ?? stacks} stacks`
+    : `${stacks} ${stacks === 1 ? "stack" : "stacks"}`;
+  return <div data-status-forecast={mode}>
+    <dt>{changeLabel} <small>· {stackLabel}</small></dt>
+    <dd>{durationChanged && `${previousStack.duration} → `}{stack.duration} {stack.duration === 1 ? "round" : "rounds"}</dd>
+  </div>;
+}
+
+function EffectRollSteps({ breakdown }: { breakdown: NonNullable<EffectForecast["effectChanceBreakdown"]> }) {
+  const { baseChance, effectChance, unclampedChance, matchup, bounds } = breakdown;
   const rawMatchupChance = baseChance + (matchup?.rawAdjustment ?? 0);
+  return <>
+    <div><dt>Base effect chance</dt><dd>{baseChance}%</dd></div>
+    {matchup && <div data-effect-modifier="matchup">
+      <dt>Status power vs. resistance <small>· {matchup.statusPower} vs. {matchup.statusResist}</small></dt>
+      <ChanceChange before={baseChance} after={rawMatchupChance}/>
+    </div>}
+    {matchup && matchup.rawAdjustment !== matchup.adjustment && <div data-effect-modifier="matchup-limit">
+      <dt>Status matchup limit <small>· ±{matchup.max} pts</small></dt>
+      <ChanceChange before={rawMatchupChance} after={unclampedChance}/>
+    </div>}
+    {bounds && unclampedChance !== effectChance && <div data-effect-modifier="bounds">
+      <dt>{unclampedChance < bounds.min || unclampedChance > bounds.max
+        ? <>Effect chance limit <small>· {bounds.min}–{bounds.max}%</small></>
+        : "Effect chance rounding"}</dt>
+      <ChanceChange before={unclampedChance} after={effectChance}/>
+    </div>}
+  </>;
+}
+
+function EffectChanceBreakdown({ effect }: { effect: EffectForecast }) {
+  const { effectChance, effectChanceBreakdown, statusApplication } = effect;
   const chanceLabel = effect.requiresHit ? "Effect chance if hit" : "Effect chance";
   const combinedChance = effect.requiresHit && effect.cleansedStatuses?.length !== 0
     ? (effect.hitChance * effectChance) / 100
@@ -253,31 +294,23 @@ function EffectChanceBreakdown({ effect }: { effect: SecondaryEffectForecast }) 
   return <section className={s.damageBreakdown} data-effect-breakdown data-target-id={effect.targetId}>
     <h3 className={s.damageBreakdownTitle}>{effectForecastLabel(effect)} · {effect.name}</h3>
     <dl className={s.damageBreakdownSteps}>
-      <div><dt>Base effect chance</dt><dd>{baseChance}%</dd></div>
-      {matchup && <div data-effect-modifier="matchup">
-        <dt>Status power vs. resistance <small>· {matchup.statusPower} vs. {matchup.statusResist}</small></dt>
-        <ChanceChange before={baseChance} after={rawMatchupChance}/>
-      </div>}
-      {matchup && matchup.rawAdjustment !== matchup.adjustment && <div data-effect-modifier="matchup-limit">
-        <dt>Status matchup limit <small>· ±{matchup.max} pts</small></dt>
-        <ChanceChange before={rawMatchupChance} after={unclampedChance}/>
-      </div>}
-      {bounds && unclampedChance !== effectChance && <div data-effect-modifier="bounds">
-        <dt>{unclampedChance < bounds.min || unclampedChance > bounds.max
-          ? <>Effect chance limit <small>· {bounds.min}–{bounds.max}%</small></>
-          : "Effect chance rounding"}</dt>
-        <ChanceChange before={unclampedChance} after={effectChance}/>
-      </div>}
+      {statusApplication && <StatusApplicationForecast application={statusApplication}/>}
+      {effectChanceBreakdown && <EffectRollSteps breakdown={effectChanceBreakdown}/>}
     </dl>
-    {combinedChance === undefined && <p className={s.damageBreakdownFinal}><span>{chanceLabel}</span><strong>{effectChance}%</strong></p>}
-    <div className={s.damageBreakdownVitals}>
-      {effect.requiresHit ? <span><strong>Hit chance</strong> {effect.hitChance}%</span> : <span>Independent of a hit</span>}
-      {combinedChance !== undefined && <span><strong>{chanceLabel}</strong> {effectChance}%</span>}
-      {effect.cleansedStatuses?.length === 0 && <span>No matching status to clear</span>}
-    </div>
-    {combinedChance !== undefined && <p className={s.damageBreakdownFinal} data-hit-and-apply>
-      <span>Hit and apply</span><strong>{combinedChance}%</strong>
-    </p>}
+    {!effectChanceBreakdown ? <p className={s.damageBreakdownFinal}>
+      <span>{effect.requiresHit ? "Applies on hit" : "Effect chance"}</span>
+      <strong>{effect.requiresHit ? `${effect.hitChance}% hit` : "Guaranteed"}</strong>
+    </p> : <>
+      {combinedChance === undefined && <p className={s.damageBreakdownFinal}><span>{chanceLabel}</span><strong>{effectChance}%</strong></p>}
+      <div className={s.damageBreakdownVitals}>
+        {effect.requiresHit ? <span><strong>Hit chance</strong> {effect.hitChance}%</span> : <span>Independent of a hit</span>}
+        {combinedChance !== undefined && <span><strong>{chanceLabel}</strong> {effectChance}%</span>}
+        {effect.cleansedStatuses?.length === 0 && <span>No matching status to clear</span>}
+      </div>
+      {combinedChance !== undefined && <p className={s.damageBreakdownFinal} data-hit-and-apply>
+        <span>Hit and apply</span><strong>{combinedChance}%</strong>
+      </p>}
+    </>}
   </section>;
 }
 
@@ -294,11 +327,13 @@ function ForecastBreakdownDialog({ move, effects, targetId, onClose }: {
   const targetEffects = effects.filter(effect => effect.targetId === activeId);
   const hits = targetEffects.filter((effect): effect is DamageForecast => !!effect.damageBreakdown);
   const hitBreakdown = targetEffects.find(effect => effect.hitBreakdown)?.hitBreakdown;
-  const effectRolls = targetEffects.filter((effect): effect is SecondaryEffectForecast => !!effect.effectChanceBreakdown);
-  const availableViews = { damage: hits.length > 0, hit: Boolean(hitBreakdown), effects: effectRolls.length > 0 };
+  const effectRolls = targetEffects.filter(effect => effect.effectChanceBreakdown);
+  const effectsWithoutRoll = targetEffects.filter(effect => effect.statusApplication && !effect.effectChanceBreakdown);
+  const availableViews = { damage: hits.length > 0, hit: Boolean(hitBreakdown), effects: effectRolls.length + effectsWithoutRoll.length > 0 };
   const views = FORECAST_VIEWS.filter(option => availableViews[option.id]);
   const activeView = views.find(option => option.id === view) ?? views[0];
-  return <GameDialog title={activeView.title} dialogClassName={s.damageBreakdownDialog} onClose={onClose}>
+  const title = activeView.id === "effects" && effectRolls.length === 0 ? "Effect forecast" : activeView.title;
+  return <GameDialog title={title} dialogClassName={s.damageBreakdownDialog} onClose={onClose}>
     <p className={s.damageBreakdownMove}><strong>{move.name}</strong> · Current matchup</p>
     {views.length > 1 && <div className={`${s.damageBreakdownTargets} ${s.forecastBreakdownViews}`} role="group" aria-label="Forecast view">
       {views.map(option => <button key={option.id} type="button" aria-pressed={option.id === activeView.id}
@@ -309,7 +344,7 @@ function ForecastBreakdownDialog({ move, effects, targetId, onClose }: {
         aria-pressed={id === activeId} onClick={() => setVisibleTargetId(id)}>{name}</button>)}
     </div>}
     {activeView.id === "hit" && hitBreakdown && <HitChanceBreakdown breakdown={hitBreakdown} effects={targetEffects} name={targetEffects[0].name} targetId={activeId}/>}
-    {activeView.id === "effects" && effectRolls.map((effect, index) => <EffectChanceBreakdown key={index} effect={effect}/>)}
+    {activeView.id === "effects" && [...effectRolls, ...effectsWithoutRoll].map((effect, index) => <EffectChanceBreakdown key={index} effect={effect}/>)}
     {activeView.id === "damage" && hits.map(({ name, hitChance, requiresHit, effectChance, hpAfter, damageBreakdown }, index) => {
       const { baseDamage, modifiers, finalDamage, hpLost } = damageBreakdown;
       const breaksGuard = modifiers.some(modifier => modifier.kind === "guard-break");
@@ -653,9 +688,11 @@ export function BattleArenaB(props: BattleArenaBProps) {
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
   const projectedEffects = effectsFor(previewMove);
   const selectedEffects = previewMove === selectedMove ? projectedEffects : effectsFor(selectedMove);
-  const selectedForecast = selectedEffects.filter(effect => effect.damageBreakdown || effect.hitBreakdown || effect.effectChanceBreakdown);
+  const selectedForecast = selectedEffects.filter(effect => effect.damageBreakdown || effect.hitBreakdown || hasEffectForecast(effect));
   const forecastLabel = selectedForecast.some(effect => effect.damageBreakdown) ? "Damage"
-    : selectedForecast.some(effect => effect.hitBreakdown) ? "Hit chance" : "Effect chance";
+    : selectedForecast.some(effect => effect.hitBreakdown) ? "Hit chance"
+    : selectedForecast.some(effect => effect.effectChanceBreakdown) ? "Effect chance" : "Effect";
+  const forecastAction = forecastLabel === "Effect" ? "forecast" : "breakdown";
   const slowedForecast = selectedMove?.usable && selectedMove.move.effects.some(effect => effect.status === "slowed")
     ? getBattleSlowedOrderForecast(state, selectedEffects)
     : null;
@@ -921,8 +958,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
           : <button className={s.primary} disabled={!selectedMove?.usable} onFocus={() => setMoveTip(null)} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
         {selectedMove ? selectedForecast.length > 0 ? <div className={s.forecastBreakdownActions}>
-          <button type="button" className={s.forecastBreakdownButton} aria-label={`${forecastLabel} breakdown`}
-            aria-haspopup="dialog" onClick={() => setTurnDetails("forecast")}><span>{forecastLabel} </span>breakdown</button>
+          <button type="button" className={s.forecastBreakdownButton} aria-label={`${forecastLabel} ${forecastAction}`}
+            aria-haspopup="dialog" onClick={() => setTurnDetails("forecast")}><span>{forecastLabel} </span>{forecastAction}</button>
           <button type="button" className={s.turnDetailButton} aria-label="Move details" aria-haspopup="dialog" onClick={() => setTurnDetails("move")}>Details</button>
         </div> : <button type="button" className={s.turnDetailButton} onClick={() => setTurnDetails("move")}>Move details</button>
           : effectTraySlots > 0 && turnOptions.length > 0 && <span className={s.turnDetailSpace} aria-hidden="true"/>}

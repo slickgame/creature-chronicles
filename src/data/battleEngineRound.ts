@@ -384,6 +384,7 @@ export type BattleStatusApplicationResult = {
   combatant: BattleCombatant;
   mode: "applied" | "stacked" | "refreshed";
   status: BattleStatusStack;
+  previousStack?: BattleStatusStack;
 };
 
 export function applyBattleStatusStack(
@@ -427,6 +428,7 @@ export function applyBattleStatusStack(
     combatant: { ...target, statuses },
     mode: nextStacks > currentStacks ? "stacked" : "refreshed",
     status,
+    previousStack: existing,
   };
 }
 
@@ -541,7 +543,7 @@ function replaceCombatant(state: BattleState, combatant: BattleCombatant): Battl
   };
 }
 
-type AppliedBattleStatus = Pick<BattleStatusApplicationResult, "mode" | "status">;
+type AppliedBattleStatus = Pick<BattleStatusApplicationResult, "mode" | "status" | "previousStack">;
 type ResolvedDamage = BattleDamagePreview & { factors: BattleDamageModifierFactor[] };
 
 type MoveLogEffect = Pick<
@@ -1245,6 +1247,7 @@ export function resolveBattleTurn(
 
 export type BattleStatusApplicationPreview = {
   stack: BattleStatusStack;
+  previousStack?: BattleStatusStack;
   mode: BattleStatusApplicationResult["mode"];
   requiresHit: boolean;
   hitChance: number;
@@ -1339,6 +1342,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         const effectChance = effectChanceBreakdown?.effectChance ?? 100;
         const statusApplication = appliedStatus && !after.isFainted && effectChance > 0 ? {
           stack: appliedStatus.status,
+          previousStack: appliedStatus.previousStack,
           mode: appliedStatus.mode,
           requiresHit,
           hitChance,
