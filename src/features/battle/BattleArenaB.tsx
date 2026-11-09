@@ -184,6 +184,7 @@ function AllyForecastEffects({ id, cleanses, guard, rows }: {
 
 type EffectForecast = ReturnType<typeof previewBattleAction>[number];
 type DamageForecast = EffectForecast & Required<Pick<EffectForecast, "damageBreakdown">>;
+type HitChanceForecast = NonNullable<EffectForecast["hitBreakdown"]>;
 
 function effectForecastText(effect: EffectForecast) {
   return [
@@ -193,23 +194,63 @@ function effectForecastText(effect: EffectForecast) {
   ].filter(Boolean).join(" · ");
 }
 
-function DamageBreakdownDialog({ move, effects, targetId, onClose }: {
+function HitChanceBreakdown({ breakdown, effects, name, targetId }: {
+  breakdown: HitChanceForecast;
+  effects: EffectForecast[];
+  name: string;
+  targetId: BattleCombatantId;
+}) {
+  const conditionalEffects = effects.filter(effect => effect.requiresHit && effect.effectChance < 100);
+  return <section className={s.damageBreakdown} data-hit-breakdown data-target-id={targetId}>
+    <h3 className={s.damageBreakdownTitle}>{name}</h3>
+    <dl className={s.damageBreakdownSteps}>
+      <div><dt>Base move accuracy</dt><dd>{breakdown.baseAccuracy}%</dd></div>
+      {breakdown.modifiers.map(({ kind, label, points, before, after }) => <div key={kind} data-hit-modifier={kind}>
+        <dt>{label}{kind === "accuracy" && <small> · {breakdown.attackerAccuracy}</small>}
+          {kind === "evasion" && <small> · {breakdown.targetEvasion}</small>}</dt>
+        <dd data-direction={points > 0 ? "up" : points < 0 ? "down" : undefined}>
+          <small>{points < 0 ? "−" : points > 0 ? "+" : ""}{Math.abs(points)} {Math.abs(points) === 1 ? "pt" : "pts"}</small>
+          <span>{before}% → {after}%</span>
+        </dd>
+      </div>)}
+    </dl>
+    <p className={s.damageBreakdownFinal}><span>Hit chance</span><strong>{breakdown.hitChance}%</strong></p>
+    {conditionalEffects.length > 0 && <dl className={`${s.damageBreakdownSteps} ${s.hitConditionalEffects}`} aria-label="Effects if the move hits">
+      {conditionalEffects.map((effect, index) => <div key={index}>
+        <dt>{effect.statusApplication ? getBattleStatusGlossary(effect.statusApplication.stack.status).label
+          : getBattleEffectGlossary(effect.effectType).label}</dt>
+        <dd>{effect.effectChance}% if hit</dd>
+      </div>)}
+    </dl>}
+  </section>;
+}
+
+function ForecastBreakdownDialog({ move, effects, targetId, onClose }: {
   move: BattleMove;
-  effects: DamageForecast[];
+  effects: EffectForecast[];
   targetId?: BattleCombatantId;
   onClose: () => void;
 }) {
   const targets = new Map(effects.map(({ targetId, name }) => [targetId, name]));
   const [visibleTargetId, setVisibleTargetId] = useState(targetId);
+  const [view, setView] = useState<"damage" | "hit">("damage");
   const activeId = visibleTargetId && targets.has(visibleTargetId) ? visibleTargetId : effects[0].targetId;
-  const hits = effects.filter(effect => effect.targetId === activeId);
-  return <GameDialog title="Damage breakdown" dialogClassName={s.damageBreakdownDialog} onClose={onClose}>
+  const targetEffects = effects.filter(effect => effect.targetId === activeId);
+  const hits = targetEffects.filter((effect): effect is DamageForecast => !!effect.damageBreakdown);
+  const hitBreakdown = targetEffects.find(effect => effect.hitBreakdown)?.hitBreakdown;
+  const activeHitBreakdown = view === "hit" || hits.length === 0 ? hitBreakdown : undefined;
+  return <GameDialog title={activeHitBreakdown ? "Hit chance breakdown" : "Damage breakdown"} dialogClassName={s.damageBreakdownDialog} onClose={onClose}>
     <p className={s.damageBreakdownMove}><strong>{move.name}</strong> · Current matchup</p>
+    {hitBreakdown && hits.length > 0 && <div className={`${s.damageBreakdownTargets} ${s.forecastBreakdownViews}`} role="group" aria-label="Forecast view">
+      <button type="button" aria-pressed={!activeHitBreakdown} onClick={() => setView("damage")}>Damage</button>
+      <button type="button" aria-pressed={Boolean(activeHitBreakdown)} onClick={() => setView("hit")}>Hit chance</button>
+    </div>}
     {targets.size > 1 && <div className={s.damageBreakdownTargets} role="group" aria-label="Forecast target">
       {[...targets].map(([id, name]) => <button key={id} type="button" data-damage-forecast-target={id}
         aria-pressed={id === activeId} onClick={() => setVisibleTargetId(id)}>{name}</button>)}
     </div>}
-    {hits.map(({ name, hitChance, requiresHit, effectChance, hpAfter, damageBreakdown }, index) => {
+    {activeHitBreakdown ? <HitChanceBreakdown breakdown={activeHitBreakdown} effects={targetEffects} name={targetEffects[0].name} targetId={activeId}/>
+      : hits.map(({ name, hitChance, requiresHit, effectChance, hpAfter, damageBreakdown }, index) => {
       const { baseDamage, modifiers, finalDamage, hpLost } = damageBreakdown;
       const breaksGuard = modifiers.some(modifier => modifier.kind === "guard-break");
       return <section key={index} className={s.damageBreakdown} data-damage-breakdown data-target-id={activeId}>
@@ -417,7 +458,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const turnCardsRef = useRef<HTMLDivElement>(null);
   const orderTokensRef = useRef<HTMLDivElement>(null);
   const [movePage, setMovePage] = useState(0);
-  const [turnDetails, setTurnDetails] = useState<"move" | "damage" | null>(null);
+  const [turnDetails, setTurnDetails] = useState<"move" | "forecast" | null>(null);
   const [statusId,setStatusId]=useState<string|null>(null);
   const [inspectId,setInspectId]=useState<string|null>(null);
   const combatants=Object.values(state.combatants);
@@ -552,7 +593,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
   const projectedEffects = effectsFor(previewMove);
   const selectedEffects = previewMove === selectedMove ? projectedEffects : effectsFor(selectedMove);
-  const selectedDamage = selectedEffects.filter((effect): effect is DamageForecast => !!effect.damageBreakdown);
+  const selectedForecast = selectedEffects.filter(effect => effect.damageBreakdown || effect.hitBreakdown);
+  const hasDamageForecast = selectedForecast.some(effect => effect.damageBreakdown);
   const slowedForecast = selectedMove?.usable && selectedMove.move.effects.some(effect => effect.status === "slowed")
     ? getBattleSlowedOrderForecast(state, selectedEffects)
     : null;
@@ -817,8 +859,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
         </div>}
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
           : <button className={s.primary} disabled={!selectedMove?.usable} onFocus={() => setMoveTip(null)} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
-        {selectedMove ? selectedDamage.length > 0 ? <div className={s.forecastBreakdownActions}>
-          <button type="button" className={s.forecastBreakdownButton} aria-label="Damage breakdown" aria-haspopup="dialog" onClick={() => setTurnDetails("damage")}><span>Damage </span>breakdown</button>
+        {selectedMove ? selectedForecast.length > 0 ? <div className={s.forecastBreakdownActions}>
+          <button type="button" className={s.forecastBreakdownButton} aria-label={hasDamageForecast ? "Damage breakdown" : "Hit chance breakdown"}
+            aria-haspopup="dialog" onClick={() => setTurnDetails("forecast")}><span>{hasDamageForecast ? "Damage " : "Hit chance "}</span>breakdown</button>
           <button type="button" className={s.turnDetailButton} aria-label="Move details" aria-haspopup="dialog" onClick={() => setTurnDetails("move")}>Details</button>
         </div> : <button type="button" className={s.turnDetailButton} onClick={() => setTurnDetails("move")}>Move details</button>
           : effectTraySlots > 0 && turnOptions.length > 0 && <span className={s.turnDetailSpace} aria-hidden="true"/>}
@@ -839,8 +882,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <MoveDetails move={selectedMove.move}/>
       {selectedEffects.map((effect, index) => <p key={index}>{effect.name} · {effectForecastText(effect)}</p>)}
     </GameDialog>}
-    {turnDetails === "damage" && selectedMove && selectedDamage.length > 0 && <DamageBreakdownDialog
-      move={selectedMove.move} effects={selectedDamage} targetId={target?.battleCombatantId} onClose={() => setTurnDetails(null)}/>}
+    {turnDetails === "forecast" && selectedMove && selectedForecast.length > 0 && <ForecastBreakdownDialog
+      move={selectedMove.move} effects={selectedForecast} targetId={target?.battleCombatantId} onClose={() => setTurnDetails(null)}/>}
     {popup==="planning"&&<GameDialog title="Round Ledger" onClose={()=>setPopup(null)}><p>Plans can be edited until you confirm. Shared targets are allowed; estimates do not guarantee hits or effects.</p>{players.map(c=>{const a=queue.get(c.battleCombatantId),m=a?getBattleMove(a.moveId):null;return <section className={s.statusDetail} key={c.battleCombatantId}><h3>{c.name}</h3><p>{c.isFainted?"K.O. · No action required":m&&a?`${m.name} → ${a.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield"} · ${m.battleEnergyCost} BE (currently ${c.currentBattleEnergy})`:"Action needed"}</p><button disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan?.(c.battleCombatantId);setMovesOpen(true);setPopup(null);}}>Edit {c.name}</button></section>})}</GameDialog>}
 
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}

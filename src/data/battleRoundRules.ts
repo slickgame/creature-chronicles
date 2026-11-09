@@ -1,6 +1,8 @@
 import { getBattleSpeciesProfile } from "@/data/battleProfiles";
 import type {
   BattleDamageModifierStep,
+  BattleHitChanceBreakdown,
+  BattleHitChanceModifier,
   BattleMove,
   BattleStats,
   BattleStatusId,
@@ -32,19 +34,52 @@ export function getBattleStatusStackLimit(status: BattleStatusId, requestedMaxSt
   return Math.max(1, Math.round(requestedMaxStacks ?? STATUS_STACK_LIMITS[status] ?? 1));
 }
 
-export function calculateBattleMoveHitChance(
+function calculateHitChance(
   attackerStats: BattleStats,
   defenderStats: BattleStats,
   move: BattleMove,
-): number {
+  modifiers?: BattleHitChanceModifier[],
+) {
   let chance = move.accuracy;
-  chance += Math.round((attackerStats.accuracy - 90) * 0.45);
-  chance -= Math.round(defenderStats.evasion * 0.65);
-  if (move.tags.includes("precision")) chance += 5;
-  if (move.category === "status") {
-    chance += clamp(Math.round((attackerStats.statusPower - defenderStats.statusResist) * 0.35), -15, 15);
+  function addModifier(kind: BattleHitChanceModifier["kind"], label: string, points: number) {
+    const before = chance;
+    chance += points;
+    modifiers?.push({ kind, label, points: points === 0 ? 0 : points, before, after: chance });
   }
-  return clamp(chance, 5, 100);
+
+  addModifier("accuracy", "Attacker accuracy", Math.round((attackerStats.accuracy - 90) * 0.45));
+  addModifier("evasion", "Target evasion", -Math.round(defenderStats.evasion * 0.65));
+  if (move.tags.includes("precision")) addModifier("precision", "Precision", 5);
+  if (move.category === "status") {
+    const matchup = clamp(Math.round((attackerStats.statusPower - defenderStats.statusResist) * 0.35), -15, 15);
+    addModifier("status-matchup", "Status power vs. resistance", matchup);
+  }
+
+  const hitChance = clamp(chance, 5, 100);
+  if (hitChance !== chance) {
+    const label = chance < 5 || chance > 100 ? "Hit chance limit" : "Hit chance rounding";
+    modifiers?.push({ kind: "bounds", label, points: hitChance - chance, before: chance, after: hitChance });
+  }
+  return { unclampedChance: chance, hitChance };
+}
+
+export function calculateBattleMoveHitChance(attackerStats: BattleStats, defenderStats: BattleStats, move: BattleMove): number {
+  return calculateHitChance(attackerStats, defenderStats, move).hitChance;
+}
+
+export function getBattleMoveHitChanceBreakdown(
+  attackerStats: BattleStats,
+  defenderStats: BattleStats,
+  move: BattleMove,
+): BattleHitChanceBreakdown {
+  const modifiers: BattleHitChanceModifier[] = [];
+  return {
+    baseAccuracy: move.accuracy,
+    attackerAccuracy: attackerStats.accuracy,
+    targetEvasion: defenderStats.evasion,
+    modifiers,
+    ...calculateHitChance(attackerStats, defenderStats, move, modifiers),
+  };
 }
 
 export function calculateBattleSecondaryEffectChance(

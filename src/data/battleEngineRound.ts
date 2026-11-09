@@ -6,6 +6,7 @@ import {
   calculateBattleMoveHitChance,
   calculateBattleRoundEnergyRegen,
   calculateBattleSecondaryEffectChance,
+  getBattleMoveHitChanceBreakdown,
   getBattleMoveTagModifier,
   getBattleStatusStackLimit,
   type BattleDamageModifierFactor,
@@ -26,6 +27,7 @@ import type {
   BattleCooldowns,
   BattleDamageBreakdown,
   BattleDamagePreview,
+  BattleHitChanceBreakdown,
   BattleMove,
   BattleMoveEffect,
   BattleMoveId,
@@ -1260,6 +1262,8 @@ export type BattleActionEffectPreview = {
   hpAfter: number;
   battleEnergyAfter: number;
   guardedAfter: BattleGuardedStatus | null;
+  /** The move's accuracy roll for this target, separate from any secondary effect chance. */
+  hitBreakdown?: BattleHitChanceBreakdown;
   /** Actual damage calculation for this effect if it hits. */
   damageBreakdown?: BattleDamageBreakdown;
   /** A status applied by this effect that remains on a living target after the move. */
@@ -1294,11 +1298,11 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
   let projected = replaceCombatant(state, paidActor);
   const entries: BattleActionEffectPreview[] = [];
   const actorStats = getEffectiveBattleStats(paidActor);
-  const hostileHitChances = new Map(hostileTargetsForMove(projected, paidActor, move, ids).map(target => [
+  const hostileHitBreakdowns = new Map(hostileTargetsForMove(projected, paidActor, move, ids).map(target => [
     target.battleCombatantId,
-    calculateBattleMoveHitChance(actorStats, getEffectiveBattleStats(target), move),
+    getBattleMoveHitChanceBreakdown(actorStats, getEffectiveBattleStats(target), move),
   ]));
-  const hitTargetIds = new Set(hostileHitChances.size ? hostileHitChances.keys() : ids);
+  const hitTargetIds = new Set(hostileHitBreakdowns.size ? hostileHitBreakdowns.keys() : ids);
   // Project successful effects in their real order, without consulting hidden rolls or enemy choices.
   move.effects.forEach((effect, effectIndex) => {
     let previousFrame = projected;
@@ -1319,9 +1323,9 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         const after = frame.state.combatants[targetId];
         const targetStats = getEffectiveBattleStats(before);
         const hostile = isHostileEffect(paidActor, before, effect);
-        const hostileHitChance = hostile ? hostileHitChances.get(targetId) : undefined;
-        const hitChance = hostileHitChance ?? 100;
-        const requiresHit = hostileHitChance !== undefined;
+        const hitBreakdown = hostile ? hostileHitBreakdowns.get(targetId) : undefined;
+        const hitChance = hitBreakdown?.hitChance ?? 100;
+        const requiresHit = hitBreakdown !== undefined;
         const effectChance = effect.chance === undefined ? 100 : hostile
           ? calculateBattleSecondaryEffectChance(actorStats, targetStats, effect.chance) : clamp(effect.chance, 0, 100);
         const statusApplication = appliedStatus && !after.isFainted && effectChance > 0 ? {
@@ -1368,6 +1372,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
           hpAfter: after.currentHp,
           battleEnergyAfter: after.currentBattleEnergy,
           guardedAfter,
+          ...(hitBreakdown ? { hitBreakdown } : {}),
           ...(damageBreakdown ? { damageBreakdown } : {}),
           statusApplication,
           cleansedStatuses,

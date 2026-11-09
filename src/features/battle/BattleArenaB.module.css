@@ -1684,6 +1684,7 @@
   color: #fff3d4;
   box-shadow: none;
 }
+.arena .forecastBreakdownViews > button { min-height: 34px; font-size: 13px; }
 
 .damageBreakdown {
   display: grid;
@@ -1720,6 +1721,7 @@
 }
 .damageBreakdownSteps > div { padding: 5px 4px; border-block-end: 1px solid #c5a473; }
 .damageBreakdownSteps dt { overflow-wrap: anywhere; }
+.damageBreakdownSteps dt small { color: #62462f; font-size: .86em; white-space: nowrap; }
 .damageBreakdownSteps dd {
   display: flex;
   flex-wrap: wrap;
@@ -1734,6 +1736,7 @@
 .damageBreakdownSteps dd small { font-size: .82em; }
 .damageBreakdownSteps [data-direction="up"] { color: #305726; }
 .damageBreakdownSteps [data-direction="down"] { color: #882b20; }
+.hitConditionalEffects { font-size: clamp(12px, 1.3vw, 14px); color: #62462f; }
 .arena dialog .damageBreakdownFinal {
   margin: 0;
   padding: 5px 7px;
@@ -1765,4 +1768,8 @@
   .arena .damageBreakdownDialog > header,
   .arena .damageBreakdownDialog > div { padding-block: 8px; }
   .arena .damageBreakdownTargets > button { min-height: 30px; }
+  .arena .forecastBreakdownViews > button { min-height: 26px; }
+  .damageBreakdownTargets { margin-block-start: 5px; }
+  .damageBreakdown { gap: 4px; margin-block-start: 6px; }
+  .damageBreakdownSteps > div { padding-block: 3px; }
 }

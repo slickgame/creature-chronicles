@@ -257,6 +257,24 @@ export type BattleDamageBreakdown = {
   hpLost: number;
 };
 
+export type BattleHitChanceModifier = {
+  kind: "accuracy" | "evasion" | "precision" | "status-matchup" | "bounds";
+  label: string;
+  /** Signed percentage points applied to the running hit chance. */
+  points: number;
+  before: number;
+  after: number;
+};
+
+export type BattleHitChanceBreakdown = {
+  baseAccuracy: number;
+  attackerAccuracy: number;
+  targetEvasion: number;
+  modifiers: BattleHitChanceModifier[];
+  unclampedChance: number;
+  hitChance: number;
+};
+
 export type BattleHealingPreview = {
   baseHealing: number;
   scalingBonus: number;
