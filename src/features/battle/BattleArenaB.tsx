@@ -246,6 +246,10 @@ function HitChanceBreakdown({ breakdown, effects, name, targetId }: {
 function EffectChanceBreakdown({ effect }: { effect: SecondaryEffectForecast }) {
   const { baseChance, effectChance, unclampedChance, matchup, bounds } = effect.effectChanceBreakdown;
   const rawMatchupChance = baseChance + (matchup?.rawAdjustment ?? 0);
+  const chanceLabel = effect.requiresHit ? "Effect chance if hit" : "Effect chance";
+  const combinedChance = effect.requiresHit && effect.cleansedStatuses?.length !== 0
+    ? (effect.hitChance * effectChance) / 100
+    : undefined;
   return <section className={s.damageBreakdown} data-effect-breakdown data-target-id={effect.targetId}>
     <h3 className={s.damageBreakdownTitle}>{effectForecastLabel(effect)} · {effect.name}</h3>
     <dl className={s.damageBreakdownSteps}>
@@ -265,11 +269,15 @@ function EffectChanceBreakdown({ effect }: { effect: SecondaryEffectForecast }) 
         <ChanceChange before={unclampedChance} after={effectChance}/>
       </div>}
     </dl>
-    <p className={s.damageBreakdownFinal}><span>Effect chance{effect.requiresHit ? " if hit" : ""}</span><strong>{effectChance}%</strong></p>
+    {combinedChance === undefined && <p className={s.damageBreakdownFinal}><span>{chanceLabel}</span><strong>{effectChance}%</strong></p>}
     <div className={s.damageBreakdownVitals}>
       {effect.requiresHit ? <span><strong>Hit chance</strong> {effect.hitChance}%</span> : <span>Independent of a hit</span>}
+      {combinedChance !== undefined && <span><strong>{chanceLabel}</strong> {effectChance}%</span>}
       {effect.cleansedStatuses?.length === 0 && <span>No matching status to clear</span>}
     </div>
+    {combinedChance !== undefined && <p className={s.damageBreakdownFinal} data-hit-and-apply>
+      <span>Hit and apply</span><strong>{combinedChance}%</strong>
+    </p>}
   </section>;
 }
 
