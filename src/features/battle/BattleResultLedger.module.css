@@ -6,4 +6,4 @@
 .screen :is(h1,h2,h3,p,strong,span){color:inherit;text-shadow:none}
 .screen .ledger,.screen .ledger :is(h2,p,strong,span){color:#3d2c18;text-shadow:none}
 .screen .ledger h2{color:#3d2c18!important;text-shadow:none!important}
-.screen dialog :is(h2,h3,p){color:#3d2c18!important;text-shadow:none!important}
+.screen dialog :is(h2,h3,p):not([data-order-shift-card] > h3){color:#3d2c18!important;text-shadow:none!important}
