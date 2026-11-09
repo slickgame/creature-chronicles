@@ -39,6 +39,7 @@ export type BattlePresentationEvent = {
   label: string;
   amount?: number;
   skipReason?: BattlePlaybackFrame["skipReason"];
+  guardImpact?: BattlePlaybackFrame["guardImpact"];
   statusOutcome?: BattlePlaybackFrame["statusOutcome"];
   roundEndEffect?: BattlePlaybackFrame["roundEndEffect"];
   precedingDamage?: string;
@@ -51,6 +52,7 @@ export type BattleTargetOutcome = {
   targetId: BattleCombatantId;
   kind: "damage" | "miss" | "status" | "heal";
   label: string;
+  guardImpact?: BattlePlaybackFrame["guardImpact"];
   statusOutcome?: BattlePlaybackFrame["statusOutcome"];
   supportStatuses?: NonNullable<BattlePlaybackFrame["statusOutcome"]>[];
   knockedOut?: boolean;
@@ -317,6 +319,7 @@ function groupedOutcomeEvent(latest: BattlePresentationEvent, targetOutcomes: Ba
   return {
     ...latest,
     kind: "status",
+    guardImpact: undefined,
     targetIds: targetOutcomes.map(outcome => outcome.targetId),
     targetOutcomes,
     label: targetOutcomes.map(outcome => {
@@ -368,7 +371,11 @@ function groupTargetOutcomes(attack: BattlePresentationEvent, results: BattlePre
     if (result.targetIds.length !== 1 || !attack.targetIds.includes(targetId)) return null;
     const outcome = outcomes.get(targetId);
     if (!outcome && (result.kind === "damage" || result.kind === "miss")) {
-      outcomes.set(targetId, { targetId, kind: result.kind, label: result.label });
+      const guardImpact = result.kind === "damage" ? result.guardImpact : undefined;
+      outcomes.set(targetId, {
+        targetId, kind: result.kind, label: result.label,
+        ...(guardImpact ? { guardImpact } : {}),
+      });
     } else if (result.kind === "status" && result.statusOutcome && (!outcome || (outcome.kind === "damage" && !outcome.statusOutcome))) {
       outcomes.set(targetId, {
         ...(outcome ?? { targetId, kind: "status", label: result.label }),

@@ -12,7 +12,7 @@ import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
-import type { BattleAction, BattleCombatantId, BattleMove, BattleMoveId, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
+import type { BattleAction, BattleCombatantId, BattleGuardImpact, BattleMove, BattleMoveId, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { useBattleOutcomeFade, type BattlePlaybackMotion, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
@@ -197,6 +197,35 @@ const TARGET_OUTCOME_FADE: Keyframe[] = [
   { opacity: 0 },
 ];
 const SKIPPED_TURN_FADE: Keyframe[] = [{ opacity: 1 }, { opacity: 1, offset: 0.72 }, { opacity: 0 }];
+const GUARD_IMPACT_LABELS: Record<BattleGuardImpact, string> = { held: "Guard held", broken: "Guard broken" };
+const GUARD_IMPACT_FADE: Keyframe[] = [
+  { opacity: 0, scale: ".84" },
+  { opacity: 1, scale: "1", offset: 0.15 },
+  { opacity: 0.85, scale: "1.04", offset: 0.54 },
+  { opacity: 0, scale: "1.13" },
+];
+
+function GuardImpactFlare({ impact, staggerIndex = 0, presentation }: {
+  impact: BattleGuardImpact;
+  staggerIndex?: number;
+  presentation: BattlePlaybackMotion;
+}) {
+  const { node, animateFade } = useBattleOutcomeFade<HTMLSpanElement>(presentation, GUARD_IMPACT_FADE,
+    staggerIndex * BATTLE_OUTCOME_STAGGER_MS, 500);
+  if (!animateFade) return null;
+  const broken = impact === "broken";
+  return <span ref={node} className={s.guardImpactFlare} data-guard-flare data-guard-impact={impact} data-outcome-fade="" aria-hidden="true">
+    <svg viewBox="0 0 96 96" fill="none" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 22a34 34 0 0 1 56 16M18 58a34 34 0 0 0 55 18" stroke="var(--guard-flare-light)" strokeWidth="1.5" opacity=".7"/>
+      <path d="M48 15 71 24v17c0 15-9 27-23 34-14-7-23-19-23-34V24Z" stroke="currentColor" strokeWidth="2.5" fill="var(--guard-flare-fill)"/>
+      <path d="m48 21 17 7v13c0 12-6 21-17 28-11-7-17-16-17-28V28Z" stroke="var(--guard-flare-light)" strokeWidth="1.25"/>
+      {broken ? <>
+        <path d="m51 15-8 21 12 7-12 11 5 21m-5-39-18 5m30 2 15-10" stroke="var(--guard-flare-light)" strokeWidth="2.5"/>
+        <path d="m78 40 8-4-3 9Zm-4 14 9 1-5 6Zm-59-15-7-3 2 8Z" fill="var(--guard-flare-spark)"/>
+      </> : <path d="m76 39 11-6m-10 14 13 1m-16 6 8 6" stroke="var(--guard-flare-spark)" strokeWidth="2"/>}
+    </svg>
+  </span>;
+}
 
 function SkippedTurnCallout({ event, presentation }: {
   event: NonNullable<Presentation["activeEvent"]>;
@@ -232,13 +261,22 @@ function TargetOutcome({ event, staggerIndex, presentation, grouped }: {
 
   const bleed = event.roundEndEffect?.kind === "bleed" ? event.roundEndEffect : undefined;
   const damage = bleed ? `−${bleed.hpLost} HP` : event.kind === "damage" ? event.label : event.precedingDamage;
+  const guardImpact = event.guardImpact;
   return <span ref={node} className={s.targetOutcome} data-kind={event.kind}
+    data-guard-impact={guardImpact}
     data-staggered-outcome={staggered ? staggerIndex : undefined}
     data-support-outcome={supportStatuses ? "" : undefined}
     data-bleed-tick={bleed ? "" : undefined}
     data-energy-recovery={energy ? "" : undefined}
     data-outcome-fade={animateFade ? "" : undefined}>
     {damage && <strong>{damage.replace(/^-/, "−")}</strong>}
+    {guardImpact && <span className={s.guardImpactBadge} data-guard-impact-badge>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+        <path d="m12 2.5 8 3.6v5.5c0 4.8-3.2 8.3-8 10-4.8-1.7-8-5.2-8-10V6.1Z" fill="var(--guard-badge-icon)"/>
+        {guardImpact === "broken" && <path d="m13 3-3 7 4 2-4 4 2 5.4" strokeWidth="2"/>}
+      </svg>
+      {GUARD_IMPACT_LABELS[guardImpact]}
+    </span>}
     {energy && <strong>+{energy.after - energy.before} BE</strong>}
     {event.kind === "miss" && <strong>Miss</strong>}
     {shownStatus && <span className={s.outcomeChip} data-status={shownStatus.status} data-result={shownStatus.result}>
@@ -537,11 +575,15 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const itemTarget=target?.sideId==="player"?target:null;
   const canTonic=!!itemTarget&&!itemTarget.isFainted&&!props.usedTonic&&props.tonicStock>0&&!complete&&!resolving&&!props.aidRestricted;
   const canRevive=!!itemTarget&&itemTarget.isFainted&&!props.usedRevival&&props.revivalStock>0&&(!complete||state.outcome==="enemy_won")&&!resolving&&!props.aidRestricted;
+  const guardFeedback = currentEvent?.targetOutcomes?.flatMap(outcome => outcome.guardImpact
+    ? [`${state.combatants[outcome.targetId].name}: ${GUARD_IMPACT_LABELS[outcome.guardImpact]}`] : []).join(". ")
+    ?? (currentEvent?.guardImpact && GUARD_IMPACT_LABELS[currentEvent.guardImpact]);
   const playback = resolving && <div className={individual ? s.dockPlayback : s.playback} aria-live="polite">
     <strong>{actionCaption}</strong>
     <span className={currentEvent?.targetOutcomes || roundEndEffect ? s.resultAnnouncement : undefined}>
       {currentEvent?.kind === "attack" ? "Preparing action…" : currentEvent?.label}
     </span>
+    {individual && guardFeedback && <span className={s.resultAnnouncement}>{guardFeedback}</span>}
     <div>
       <button onClick={() => presentation.setPaused(!presentation.paused)}>{presentation.paused ? "Resume" : "Pause"}</button>
       <button disabled={!presentation.paused} onClick={presentation.step}>Next beat</button>
@@ -607,6 +649,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         label: grouped.label,
         targetIds: [grouped.targetId],
         statusOutcome: grouped.statusOutcome,
+        guardImpact: grouped.guardImpact,
         precedingDamage: undefined,
       } : currentEvent;
       const affected=event?.targetIds.includes(c.battleCombatantId);
@@ -622,6 +665,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
         <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-describedby={healthForecast ? [healthForecast.id, forecast || showAllyEffects ? forecastId : null].filter(Boolean).join(" ") : undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"} onClick={()=>selectTarget({kind:"combatant",combatantId:c.battleCombatantId})}>
           <span className={s.art}>
             <BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving ? event : null} playback={presentation}/>
+            {individual && affected && event?.guardImpact && <GuardImpactFlare key={`guard-flare-${event.eventId}`}
+              impact={event.guardImpact} staggerIndex={grouped ? groupedIndex : undefined} presentation={presentation}/>}
             {(actionSource || actionTarget) && <span className={s.actionFloorCue} aria-hidden="true"/>}
             {actionSource ? <span className={s.actionMovePlaque} data-action-plaque><strong>{windup?.moveName}</strong></span>
               : acting && <b className={s.marker}>{resolving ? "ACTING" : individual ? "ACTIVE TURN" : "PLANNING"}</b>}

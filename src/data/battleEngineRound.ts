@@ -739,6 +739,9 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
           }, logStart, log.length);
         }
         const kind = hp < 0 ? "damage" : hp > 0 ? "heal" : energy !== 0 ? "energy" : "status";
+        const guardImpact = kind === "damage" && hasBattleStatus(currentTarget, "guarded")
+          ? (brokeGuard ? "broken" : "held")
+          : undefined;
         const effectLabel = (effect.status ?? effect.stat ?? effect.type).replaceAll("_", " ");
         let label = effect.duration ? `${effectLabel} · ${effect.duration}r` : effectLabel;
         if (hp !== 0) label = `${hp > 0 ? "+" : ""}${hp} HP`;
@@ -753,6 +756,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
           moveId: input.move.id,
           kind,
           label,
+          ...(guardImpact ? { guardImpact } : {}),
           statusOutcome: appliedStatus
             ? { status: appliedStatus.status.status, result: appliedStatus.mode }
             : clearedStatus

@@ -1555,3 +1555,79 @@
   .actionRibbon { inset-block-start: 53%; transform: translate(-50%, -50%); }
   .actionMovePlaque { font-size: 11px; }
 }
+
+/* Shield reaction on impact and its result beneath the damage number. */
+.guardImpactFlare {
+  --guard-flare-fill: #58bfff38;
+  --guard-flare-light: #e6f9ff;
+  --guard-flare-spark: #ffdb9e;
+  position: absolute;
+  z-index: 2;
+  inset: auto auto clamp(8px, 28%, 164px) 57%;
+  width: clamp(46px, 7.1vw, 104px);
+  aspect-ratio: 1;
+  translate: -50% 0;
+  pointer-events: none;
+  color: #97dcff;
+  background: radial-gradient(ellipse, #71c9ff4a, #56aeff0f 52%, transparent 73%);
+}
+.figure[data-side="enemy"] .guardImpactFlare { inset-inline-start: 43%; }
+.guardImpactFlare[data-guard-impact="broken"] {
+  --guard-flare-fill: #3f9ce729;
+  --guard-flare-light: #e9f9ff;
+  --guard-flare-spark: #ffbd7b;
+  color: #83ceff;
+}
+.guardImpactFlare[data-outcome-fade] { opacity: 0; }
+.guardImpactFlare > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 0 3px #4aafff) drop-shadow(0 0 7px #3a83cf8c);
+}
+.guardImpactBadge {
+  --guard-badge-icon: #8ed4ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 1px 6px;
+  border: 3px double #d7b172;
+  border-radius: 8px 5px;
+  background: linear-gradient(#255680, #102d48);
+  box-shadow: 0 2px 4px #26160da0;
+  color: #fff2d7;
+  font: bold clamp(11px, 1.1vw, 16px)/1.1 Georgia, serif;
+  white-space: nowrap;
+}
+.targetOutcome[data-guard-impact="broken"] .guardImpactBadge {
+  --guard-badge-icon: #ffc482;
+  border-color: #e2a36c;
+  background: linear-gradient(#7b3723, #4b2018);
+}
+.guardImpactBadge > svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+@media (max-width: 1000px), (max-height: 560px) {
+  .figure .targetOutcome[data-guard-impact]:not([data-staggered-outcome]) {
+    inset-inline: 0;
+    margin-inline: auto;
+  }
+}
+@media (max-width: 600px), (max-height: 560px) {
+  .guardImpactFlare { width: clamp(42px, 9vw, 68px); }
+  .guardImpactBadge { gap: 3px; padding-inline: 4px; border-width: 2px; font-size: 11px; }
+  .guardImpactBadge > svg { width: 15px; height: 15px; }
+}
+@media (max-width: 600px) {
+  .guardImpactFlare { inset-inline-start: 54%; }
+  .figure[data-side="enemy"] .guardImpactFlare { inset-inline-start: 46%; }
+}
+.arena[data-reduced-motion=true] .guardImpactFlare { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .guardImpactFlare { display: none; }
+}

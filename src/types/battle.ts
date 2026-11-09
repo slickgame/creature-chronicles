@@ -406,6 +406,8 @@ export type BattleRoundEndEffect =
   | { kind: "expiry"; statuses: BattleStatusId[] }
   | { kind: "energy"; before: number; after: number };
 
+export type BattleGuardImpact = "held" | "broken";
+
 /** Immutable, ID-addressed display state after one resolved effect. Never stored in saves. */
 export type BattlePlaybackFrame = {
   state: BattleState;
@@ -414,6 +416,8 @@ export type BattlePlaybackFrame = {
   targetIds: BattleCombatantId[];
   moveId?: BattleMoveId;
   skipReason?: BattleResolvedAction["skipReason"];
+  /** The state of an existing Guarded shield after a damaging move lands. */
+  guardImpact?: BattleGuardImpact;
   statusOutcome?: {
     status: BattleStatusId;
     result: "applied" | "stacked" | "refreshed" | "failed" | "cleared";
