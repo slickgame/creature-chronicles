@@ -1651,6 +1651,8 @@
 }
 .arena .turnDock .forecastBreakdownButton:hover { background: linear-gradient(#fff6d9, #f1d4a1); }
 @media (max-width: 420px), (max-height: 480px) {
+  .arena .turnDock .forecastBreakdownActions > button { padding-inline: 2px; }
+  .forecastBreakdownActions > .forecastBreakdownButton { flex: 1.5; }
   .forecastBreakdownButton > span { display: none; }
   .forecastBreakdownButton { text-transform: capitalize; }
 }
