@@ -74,7 +74,7 @@ function TargetCard({ target, source, highlighted }: {
 }
 
 export function BattleLogTargetCards({
-  group, targets, combatants, sourceById, heading, headingProps,
+  group, targets, combatants, sourceById, heading, headingProps, orderShiftReturn,
   expanded, onToggle, notesOpen, onToggleNotes, highlightedTargetId, children,
 }: {
   group: BattleMoveLogGroup;
@@ -83,6 +83,7 @@ export function BattleLogTargetCards({
   sourceById: ReadonlyMap<string, CreatureRecord>;
   heading?: ReactNode;
   headingProps?: HeadingProps;
+  orderShiftReturn?: ReactNode;
   expanded: boolean;
   onToggle: () => void;
   notesOpen: boolean;
@@ -107,6 +108,7 @@ export function BattleLogTargetCards({
       <span className={s.summary}>{summary || targetSummary}</span>
       <span className={s.chevron} aria-hidden="true"/>
     </button>
+    {orderShiftReturn}
     <div id={contentId} className={s.details} hidden={!expanded}>
       {expanded && <>
         {targets.length > 0 && <ul className={s.targetCards} aria-label="Target outcomes">

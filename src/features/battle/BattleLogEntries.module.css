@@ -316,7 +316,7 @@
 .resultChevron { font-size: 21px; line-height: 1; }
 .searchHighlight { background: #f6ce77; color: #332314; }
 .quickFind .searchEmpty { margin: 7px 5px; font-weight: 400; }
-.logRows :is([data-search-jump], [data-order-shift-jump], [data-order-shift-source-jump]) {
+.logRows :is([data-search-jump], [data-order-shift-jump], [data-order-shift-source-jump], [data-order-shift-return-focus]) {
   outline: 2px solid #a9782c;
   outline-offset: 2px;
   border-radius: 4px;
@@ -455,6 +455,12 @@
   cursor: pointer;
 }
 .logRows .shiftSource:hover { background: #dce4b2; }
+.logRows .shiftReturn {
+  min-height: 32px;
+  margin: 6px 8px;
+  padding-inline: 8px;
+  font-size: clamp(12px, 1.4vw, 14px);
+}
 .portrait {
   box-sizing: border-box;
   display: grid;
