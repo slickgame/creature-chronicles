@@ -344,6 +344,11 @@ export type BattleOrderShiftLogEntry = {
   moves: readonly { actorId: BattleCombatantId; from: number; to: number }[];
 };
 
+export type BattleRoundLogBoundary = {
+  roundNumber: number;
+  logIndex: number;
+};
+
 export type BattleState = {
   battleId: BattleId;
   roundNumber: number;
@@ -351,6 +356,7 @@ export type BattleState = {
   teams: Record<BattleSideId, BattleTeam>;
   combatants: Record<BattleCombatantId, BattleCombatant>;
   log: string[];
+  roundLogBoundaries?: readonly BattleRoundLogBoundary[];
   orderShiftLog?: readonly BattleOrderShiftLogEntry[];
 };
 

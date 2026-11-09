@@ -13,6 +13,7 @@ import {
   getBattleOrderPreview,
   getBattleRoundOrderShift,
   recordBattleOrderShift,
+  recordBattleRoundStart,
   updateBattleCooldownNotices,
   type BattleRoundOrderShift,
 } from "@/data/battleInterface";
@@ -331,7 +332,7 @@ export function ColiseumBattle({
     }
     setPlayerSources(team);
     setEnemySources(enemies);
-    setBattleState(state);
+    setBattleState(recordBattleRoundStart(state, 0));
     setCooldownNotices(new Map());
     setOpeningTurnOrder(state);
     setSelectedTarget(null);
@@ -354,12 +355,13 @@ export function ColiseumBattle({
     if (!battleState || selectedTarget?.kind !== "combatant") { setMessage("Select a ranch-team creature before using a support item."); return; }
     const result = item === "tonic" ? applyFieldTonic(save, battleState, selectedTarget.combatantId) : applyRevivalSalve(save, battleState, selectedTarget.combatantId);
     if (!result.ok) { setMessage(result.message); return; }
+    const resumesBattle = item === "revival" && phase === "result";
     saveCurrentGame(result.save);
-    setBattleState(result.state);
+    setBattleState(resumesBattle ? recordBattleRoundStart(result.state, battleState.log.length) : result.state);
     setSelectedTarget(null);
     setUsedItems((current) => ({ ...current, fieldTonic: current.fieldTonic || item === "tonic", revivalSalve: current.revivalSalve || item === "revival" }));
     setMessage(result.message);
-    if (item === "revival" && phase === "result") {
+    if (resumesBattle) {
       setPhase("battle");
       setOpeningTurnOrder(result.state);
     }
@@ -372,10 +374,10 @@ export function ColiseumBattle({
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [turnOrder[0]]);
     setCooldownNotices(current => updateBattleCooldownNotices(current, battleState, resolved.state, activeActorId));
     setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, resolved.result));
-    const shift = resolved.state.outcome === "ongoing" && !resolved.remaining.length
-      ? setOpeningTurnOrder(resolved.state, true)
-      : undefined;
-    setBattleState(recordBattleOrderShift(resolved.state, shift));
+    const opensNextRound = resolved.state.outcome === "ongoing" && !resolved.remaining.length;
+    const shift = opensNextRound ? setOpeningTurnOrder(resolved.state, true) : undefined;
+    const nextState = opensNextRound ? recordBattleRoundStart(resolved.state) : resolved.state;
+    setBattleState(recordBattleOrderShift(nextState, shift));
     setSelectedTarget(null);
     setCompletedRounds(resolved.result.roundNumber);
     if (resolved.state.outcome !== "ongoing") {

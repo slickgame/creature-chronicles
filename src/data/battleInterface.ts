@@ -100,6 +100,16 @@ export function getBattleRoundOrderShift(
   return before.some((id, index) => id !== after[index]) ? { roundNumber, before, after } : undefined;
 }
 
+/** Mark the opening of an individual Coliseum round in its existing battle log. */
+export function recordBattleRoundStart(state: BattleState, logIndex = state.log.length): BattleState {
+  const boundaries = state.roundLogBoundaries ?? [];
+  if (state.outcome !== "ongoing" || boundaries.at(-1)?.roundNumber === state.roundNumber) return state;
+  return {
+    ...state,
+    roundLogBoundaries: [...boundaries, { roundNumber: state.roundNumber, logIndex }],
+  };
+}
+
 /** Append one settled shift after recovery and before the first action of the new round. */
 export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOrderShift): BattleState {
   if (!shift || state.outcome !== "ongoing" || state.roundNumber !== shift.roundNumber ||

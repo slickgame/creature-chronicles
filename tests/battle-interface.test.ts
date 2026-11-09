@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
+import { useRevivalSalve } from "@/data/battleOutfitterIntegration";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
 import { buildBattleUiAction } from "@/data/battleUi";
 import { createNewGameSave } from "@/lib/save/localSave";
@@ -105,6 +106,48 @@ test("opening order shifts compare shared creatures and ignore empty slots from 
   });
 });
 
+test("round log boundaries include recovery, omit terminal phantom rounds, and resume on revival", () => {
+  const initial = fixture();
+  const [playerId, ...otherPlayers] = initial.teams.player.combatantIds;
+  const [enemyId] = initial.teams.enemy.combatantIds;
+  initial.combatants[playerId].currentBattleEnergy = 0;
+  const started = recordBattleRoundStart(initial, 0);
+  assert.deepEqual(started.roundLogBoundaries, [{ roundNumber: 1, logIndex: 0 }]);
+  assert.equal(recordBattleRoundStart(started), started);
+  assert.equal(started.log, initial.log);
+
+  const turn = resolveBattleTurn(started, [playerId], { actorId: playerId, moveId: "defend", targetIds: [playerId] });
+  assert(turn);
+  assert(turn.state.log.some(line => line.includes("regenerates")));
+  const second = recordBattleRoundStart(turn.state);
+  assert.deepEqual(second.roundLogBoundaries, [
+    { roundNumber: 1, logIndex: 0 },
+    { roundNumber: 2, logIndex: turn.state.log.length },
+  ]);
+  assert.equal(second.log, turn.state.log);
+
+  for (const actorId of otherPlayers) {
+    second.combatants[actorId].isFainted = true;
+    second.combatants[actorId].currentHp = 0;
+  }
+  second.combatants[playerId].currentHp = 1;
+  second.combatants[enemyId].battleStats.accuracy = 1000;
+  const finalTurn = resolveBattleTurn(second, [enemyId], { actorId: enemyId, moveId: "strike", targetIds: [playerId] });
+  assert(finalTurn);
+  assert.equal(finalTurn.state.outcome, "enemy_won");
+  assert.equal(finalTurn.state.roundNumber, 3);
+  assert.equal(recordBattleRoundStart(finalTurn.state), finalTurn.state);
+  assert.equal(finalTurn.state.roundLogBoundaries, second.roundLogBoundaries);
+
+  const save = createNewGameSave("Revival round", 0);
+  const stockedSave = { ...save, flags: { ...save.flags, battleItem_revivalSalves: 1 } };
+  const revived = useRevivalSalve(stockedSave, finalTurn.state, playerId);
+  assert(revived.ok);
+  const resumed = recordBattleRoundStart(revived.state, finalTurn.state.log.length);
+  assert.deepEqual(resumed.roundLogBoundaries?.at(-1), { roundNumber: 3, logIndex: finalTurn.state.log.length });
+  assert.match(resumed.log[resumed.roundLogBoundaries!.at(-1)!.logIndex], /revived with a Revival Salve/);
+});
+
 test("Slowed compares next-round slots and Speed without modifying the live round", () => {
   const state = fixture();
   const [willow, briar, rowan] = state.teams.player.combatantIds;
@@ -143,7 +186,8 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
     after: [willow, briar, rowan, moss, lilt, bramble],
   });
   const logIndex = turn.state.log.length;
-  const loggedState = recordBattleOrderShift(turn.state, shift);
+  const loggedState = recordBattleOrderShift(recordBattleRoundStart(turn.state), shift);
+  assert.deepEqual(loggedState.roundLogBoundaries, [{ roundNumber: 4, logIndex }]);
   assert.deepEqual(loggedState.orderShiftLog, [{
     logIndex,
     roundNumber: 4,
