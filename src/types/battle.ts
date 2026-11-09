@@ -236,6 +236,27 @@ export type BattleDamagePreview = {
   notes: string[];
 };
 
+export type BattleDamageModifierStep = {
+  kind: "affinity" | "vulnerability" | "resistance" | "guarded" | "marked" | "pursuit-exhausted" |
+    "pursuit-slowed" | "finisher" | "guard-break" | "spread" | "cap" | "minimum";
+  label: string;
+  operation: "additive" | "multiply" | "limit";
+  /** Signed percentage. Additive steps are relative to the original species multiplier of 1. */
+  percent?: number;
+  /** Running estimates rounded for display. The engine does not round between modifiers. */
+  damageBefore: number;
+  damageAfter: number;
+};
+
+export type BattleDamageBreakdown = {
+  baseDamage: number;
+  modifiers: BattleDamageModifierStep[];
+  modifierTotal: number;
+  /** On-hit damage before limiting it to the target's remaining HP. */
+  finalDamage: number;
+  hpLost: number;
+};
+
 export type BattleHealingPreview = {
   baseHealing: number;
   scalingBonus: number;

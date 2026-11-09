@@ -182,12 +182,64 @@ function AllyForecastEffects({ id, cleanses, guard, rows }: {
   </span>;
 }
 
-function effectForecastText(effect: ReturnType<typeof previewBattleAction>[number]) {
+type EffectForecast = ReturnType<typeof previewBattleAction>[number];
+type DamageForecast = EffectForecast & Required<Pick<EffectForecast, "damageBreakdown">>;
+
+function effectForecastText(effect: EffectForecast) {
   return [
     effect.description,
     effect.requiresHit ? `${effect.hitChance}% hit` : "",
     effect.effectChance < 100 ? `${effect.effectChance}% effect${effect.requiresHit ? " if hit" : ""}` : "",
   ].filter(Boolean).join(" · ");
+}
+
+function DamageBreakdownDialog({ move, effects, targetId, onClose }: {
+  move: BattleMove;
+  effects: DamageForecast[];
+  targetId?: BattleCombatantId;
+  onClose: () => void;
+}) {
+  const targets = new Map(effects.map(({ targetId, name }) => [targetId, name]));
+  const [visibleTargetId, setVisibleTargetId] = useState(targetId);
+  const activeId = visibleTargetId && targets.has(visibleTargetId) ? visibleTargetId : effects[0].targetId;
+  const hits = effects.filter(effect => effect.targetId === activeId);
+  return <GameDialog title="Damage breakdown" dialogClassName={s.damageBreakdownDialog} onClose={onClose}>
+    <p className={s.damageBreakdownMove}><strong>{move.name}</strong> · Current matchup</p>
+    {targets.size > 1 && <div className={s.damageBreakdownTargets} role="group" aria-label="Forecast target">
+      {[...targets].map(([id, name]) => <button key={id} type="button" data-damage-forecast-target={id}
+        aria-pressed={id === activeId} onClick={() => setVisibleTargetId(id)}>{name}</button>)}
+    </div>}
+    {hits.map(({ name, hitChance, requiresHit, effectChance, hpAfter, damageBreakdown }, index) => {
+      const { baseDamage, modifiers, finalDamage, hpLost } = damageBreakdown;
+      const breaksGuard = modifiers.some(modifier => modifier.kind === "guard-break");
+      return <section key={index} className={s.damageBreakdown} data-damage-breakdown data-target-id={activeId}>
+        <h3 className={s.damageBreakdownTitle}>{name}{hits.length > 1 ? ` · Hit ${index + 1}` : ""}</h3>
+        <dl className={s.damageBreakdownSteps}>
+          <div><dt>Base damage</dt><dd>{baseDamage} HP</dd></div>
+          {modifiers.map(({ kind, label, operation, percent, damageBefore, damageAfter }) => {
+            const change = percent ?? damageAfter - damageBefore;
+            return <div key={`${kind}:${label}`} data-damage-modifier={kind}>
+              <dt>{label}</dt>
+              <dd data-direction={change > 0 ? "up" : change < 0 ? "down" : undefined}>
+                {percent !== undefined && <small>{percent < 0 ? "−" : "+"}{Math.abs(percent)}{operation === "additive" ? " pts" : "%"}</small>}
+                <span>{damageBefore} → {damageAfter} HP</span>
+              </dd>
+            </div>;
+          })}
+        </dl>
+        <p className={s.damageBreakdownFinal}><span>Estimated damage{requiresHit ? " if hit" : ""}</span><strong>{finalDamage} HP</strong></p>
+        <div className={s.damageBreakdownVitals}>
+          <span><strong>Target HP{requiresHit ? " if hit" : ""}</strong> {hpAfter + hpLost} → {hpAfter}</span>
+          {requiresHit && <span><strong>Hit chance</strong> {hitChance}%</span>}
+          {effectChance < 100 && <span><strong>Effect chance{requiresHit ? " if hit" : ""}</strong> {effectChance}%</span>}
+        </div>
+        {hpLost < finalDamage && <p>HP loss is capped at {hpLost}.</p>}
+        {breaksGuard && <p>Removes Guarded on hit.</p>}
+        {modifiers.length > 0 && <p>Step values are rounded for display.{modifiers.some(modifier => modifier.operation === "additive") &&
+          " Species adjustments add percentage points to the damage multiplier."}</p>}
+      </section>;
+    })}
+  </GameDialog>;
 }
 
 const TARGET_OUTCOME_FADE: Keyframe[] = [
@@ -365,7 +417,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const turnCardsRef = useRef<HTMLDivElement>(null);
   const orderTokensRef = useRef<HTMLDivElement>(null);
   const [movePage, setMovePage] = useState(0);
-  const [turnDetails, setTurnDetails] = useState(false);
+  const [turnDetails, setTurnDetails] = useState<"move" | "damage" | null>(null);
   const [statusId,setStatusId]=useState<string|null>(null);
   const [inspectId,setInspectId]=useState<string|null>(null);
   const combatants=Object.values(state.combatants);
@@ -465,7 +517,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     : cueTargets.length ? `${cueTargets.length} ${cueTargets.every(recipient => recipient.sideId === cueActor?.sideId) ? "allies" : "targets"}`
       : "Battlefield";
   function inspect(id?:string, fromOrder = false){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup(fromOrder ? "order-inspect" : "inspect");}
-  function clearDraft(){setDraft(null);setTappedTarget(null);setMoveTip(null);setMovePage(0);}
+  function clearDraft(){setDraft(null);setTappedTarget(null);setMoveTip(null);setMovePage(0);setTurnDetails(null);}
   function queueMove(id:string){props.onQueue(id);clearDraft();setMovesOpen(false);setPopup(null);}
   const draftMove=movesOpen&&draft?.actorId===activeActorId&&!resolving&&!complete?getBattleMove(draft.moveId):null;
   const draftActor=activeActorId?state.combatants[activeActorId]:null;
@@ -499,8 +551,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
     ? previewBattleAction(state, { actorId: activeActorId, moveId: option.move.id,
       targetIds: selectedTarget.kind === "combatant" ? [selectedTarget.combatantId] : [] }) : [];
   const projectedEffects = effectsFor(previewMove);
+  const selectedEffects = previewMove === selectedMove ? projectedEffects : effectsFor(selectedMove);
+  const selectedDamage = selectedEffects.filter((effect): effect is DamageForecast => !!effect.damageBreakdown);
   const slowedForecast = selectedMove?.usable && selectedMove.move.effects.some(effect => effect.status === "slowed")
-    ? getBattleSlowedOrderForecast(state, previewMove === selectedMove ? projectedEffects : effectsFor(selectedMove))
+    ? getBattleSlowedOrderForecast(state, selectedEffects)
     : null;
   const projectionById = new Map(projectedEffects.map(effect => [effect.targetId, effect]));
   const forecastById = new Map<BattleCombatantId, TargetForecast>();
@@ -763,7 +817,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
         </div>}
         {finished ? <button className={s.primary} disabled={recording} onClick={() => { setReviewClosed(false); if (!props.resultLedger) setPopup("result"); }}>Review Result</button>
           : <button className={s.primary} disabled={!selectedMove?.usable} onFocus={() => setMoveTip(null)} onClick={() => { if (selectedMove?.usable) queueMove(selectedMove.move.id); }}>{selectedMove ? `Use ${selectedMove.move.name}` : "Use Move"}</button>}
-        {selectedMove ? <button className={s.turnDetailButton} onClick={() => setTurnDetails(true)}>Move details</button>
+        {selectedMove ? selectedDamage.length > 0 ? <div className={s.forecastBreakdownActions}>
+          <button type="button" className={s.forecastBreakdownButton} aria-label="Damage breakdown" aria-haspopup="dialog" onClick={() => setTurnDetails("damage")}><span>Damage </span>breakdown</button>
+          <button type="button" className={s.turnDetailButton} aria-label="Move details" aria-haspopup="dialog" onClick={() => setTurnDetails("move")}>Details</button>
+        </div> : <button type="button" className={s.turnDetailButton} onClick={() => setTurnDetails("move")}>Move details</button>
           : effectTraySlots > 0 && turnOptions.length > 0 && <span className={s.turnDetailSpace} aria-hidden="true"/>}
       </section>
     </footer> :     <footer className={s.queue} aria-label="Planned ranch actions">
@@ -778,10 +835,12 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <div className={s.planControls}><div className={s.confirm}><small aria-live="polite">{resolving?"Resolving…":`${living.filter(c=>queue.has(c.battleCombatantId)).length}/${living.length} ready`}</small>{finished?<button className={s.primary} disabled={recording} onClick={()=>{setReviewClosed(false);if(!props.resultLedger)setPopup("result");}}>Review Result</button>:<button className={s.primary} disabled={!canConfirm} onClick={()=>{clearDraft();setMovesOpen(false);props.onConfirm?.();}}>Confirm Round</button>}</div>
       <div className={s.dockTools}><button disabled={resolving||finished||!activeActorId} aria-expanded={movesOpen} aria-controls="battle-move-dock" onClick={()=>{clearDraft();setMovesOpen(!movesOpen);}}>{movesOpen?"Collapse":"Moves"}</button><button onClick={()=>setPopup("items")}>Items</button><button onClick={()=>inspect()}>Inspect</button></div></div>
     </footer>}
-    {turnDetails && selectedMove && <GameDialog title="Move Details" onClose={() => setTurnDetails(false)}>
+    {turnDetails === "move" && selectedMove && <GameDialog title="Move Details" onClose={() => setTurnDetails(null)}>
       <MoveDetails move={selectedMove.move}/>
-      {effectsFor(selectedMove).map((effect, index) => <p key={index}>{effect.name} · {effectForecastText(effect)}</p>)}
+      {selectedEffects.map((effect, index) => <p key={index}>{effect.name} · {effectForecastText(effect)}</p>)}
     </GameDialog>}
+    {turnDetails === "damage" && selectedMove && selectedDamage.length > 0 && <DamageBreakdownDialog
+      move={selectedMove.move} effects={selectedDamage} targetId={target?.battleCombatantId} onClose={() => setTurnDetails(null)}/>}
     {popup==="planning"&&<GameDialog title="Round Ledger" onClose={()=>setPopup(null)}><p>Plans can be edited until you confirm. Shared targets are allowed; estimates do not guarantee hits or effects.</p>{players.map(c=>{const a=queue.get(c.battleCombatantId),m=a?getBattleMove(a.moveId):null;return <section className={s.statusDetail} key={c.battleCombatantId}><h3>{c.name}</h3><p>{c.isFainted?"K.O. · No action required":m&&a?`${m.name} → ${a.targetIds.map(id=>state.combatants[id]?.name??"Unknown").join(", ")||"Battlefield"} · ${m.battleEnergyCost} BE (currently ${c.currentBattleEnergy})`:"Action needed"}</p><button disabled={resolving||complete||c.isFainted} onClick={()=>{clearDraft();props.onPlan?.(c.battleCombatantId);setMovesOpen(true);setPopup(null);}}>Edit {c.name}</button></section>})}</GameDialog>}
 
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}

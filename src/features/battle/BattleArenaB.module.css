@@ -1631,3 +1631,136 @@
 @media (prefers-reduced-motion: reduce) {
   .guardImpactFlare { display: none; }
 }
+
+/* Damage forecast detail keeps the arithmetic off the battle stage. */
+.forecastBreakdownActions {
+  display: flex;
+  gap: 4px;
+}
+.forecastBreakdownActions > button { flex: 1; }
+.arena .turnDock .forecastBreakdownButton {
+  min-height: 28px;
+  padding: 2px 5px;
+  border-color: #c59656;
+  border-radius: 6px;
+  background: linear-gradient(#fff0cb, #e9c38d);
+  box-shadow: inset 0 0 0 1px #fff6d5;
+  color: #4a2a18;
+  font-size: clamp(11px, 1.05vw, 14px);
+  line-height: 1.1;
+}
+.arena .turnDock .forecastBreakdownButton:hover { background: linear-gradient(#fff6d9, #f1d4a1); }
+@media (max-width: 420px), (max-height: 480px) {
+  .forecastBreakdownButton > span { display: none; }
+  .forecastBreakdownButton { text-transform: capitalize; }
+}
+
+.arena .damageBreakdownDialog { width: min(520px, calc(100vw - 24px)); }
+.arena .damageBreakdownDialog .damageBreakdownMove {
+  margin: 0;
+  color: #5d432b;
+  font-size: 15px;
+}
+.damageBreakdownTargets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-block-start: 8px;
+}
+.arena .damageBreakdownTargets > button {
+  flex: 1;
+  min-height: 40px;
+  padding: 3px 8px;
+  border-color: #b2834c;
+  border-radius: 6px;
+  background: #f4e5c6;
+  overflow-wrap: anywhere;
+}
+.arena .damageBreakdownTargets > button[aria-pressed="true"] {
+  border-color: #b68b4d;
+  background: linear-gradient(#485d37, #273b23);
+  color: #fff3d4;
+  box-shadow: none;
+}
+
+.damageBreakdown {
+  display: grid;
+  gap: 6px;
+  margin-block-start: 8px;
+  padding: clamp(6px, 2vw, 12px);
+  border: 3px double #a87941;
+  border-radius: 9px;
+  background: linear-gradient(114deg, #fff3d7, #f6e1b7 69%, #ebce9d);
+  box-shadow: inset 0 0 0 1px #fff8df;
+  color: #402715;
+}
+.arena dialog .damageBreakdownTitle {
+  margin: 0;
+  padding: 4px 7px;
+  border: 1px solid #ba8c4f;
+  border-radius: 5px;
+  background: linear-gradient(#f9dfad, #edc88b);
+  font-size: clamp(15px, 2vw, 20px);
+  overflow-wrap: anywhere;
+}
+.damageBreakdownSteps {
+  display: grid;
+  margin: 0;
+  font-size: clamp(13px, 1.45vw, 16px);
+  line-height: 1.25;
+}
+.damageBreakdownSteps > div,
+.damageBreakdownFinal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: 8px;
+}
+.damageBreakdownSteps > div { padding: 5px 4px; border-block-end: 1px solid #c5a473; }
+.damageBreakdownSteps dt { overflow-wrap: anywhere; }
+.damageBreakdownSteps dd {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin: 0;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.damageBreakdownSteps dd small { font-size: .82em; }
+.damageBreakdownSteps [data-direction="up"] { color: #305726; }
+.damageBreakdownSteps [data-direction="down"] { color: #882b20; }
+.arena dialog .damageBreakdownFinal {
+  margin: 0;
+  padding: 5px 7px;
+  border: 2px solid #c79853;
+  border-radius: 6px;
+  background: linear-gradient(#3b5030, #22331f);
+  color: #fff0c8;
+  font-size: clamp(14px, 1.6vw, 18px);
+  font-weight: bold;
+  line-height: 1.2;
+}
+.damageBreakdownFinal > strong:last-child { text-align: end; }
+.damageBreakdownVitals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.damageBreakdownVitals strong { margin-inline-end: 3px; }
+.arena dialog .damageBreakdown > p:not(.damageBreakdownFinal) {
+  margin: 0;
+  color: #62462f;
+  font-size: 13px;
+  line-height: 1.3;
+}
+@media (max-height: 480px) {
+  .arena .damageBreakdownDialog > header,
+  .arena .damageBreakdownDialog > div { padding-block: 8px; }
+  .arena .damageBreakdownTargets > button { min-height: 30px; }
+}

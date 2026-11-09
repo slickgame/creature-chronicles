@@ -1,5 +1,6 @@
 import { getBattleSpeciesProfile } from "@/data/battleProfiles";
 import type {
+  BattleDamageModifierStep,
   BattleMove,
   BattleStats,
   BattleStatusId,
@@ -60,9 +61,15 @@ export function calculateBattleSecondaryEffectChance(
   return clamp(baseChance + statusAdjustment, 5, 95);
 }
 
+export type BattleDamageModifierFactor = Omit<BattleDamageModifierStep, "damageBefore" | "damageAfter"> & {
+  factorBefore: number;
+  factorAfter: number;
+};
+
 export type BattleTagModifier = {
   modifier: number;
   notes: string[];
+  factors: BattleDamageModifierFactor[];
   affinityTags: string[];
   vulnerabilityTags: string[];
   resistanceTags: string[];
@@ -84,23 +91,34 @@ export function getBattleMoveTagModifier(
   const resistanceTags = matchingTags(move, defenderProfile.resistanceTags);
   let modifier = 1;
   const notes: string[] = [];
+  const factors: BattleDamageModifierFactor[] = [];
+
+  function addModifier(kind: BattleDamageModifierFactor["kind"], label: string, amount: number, note: string) {
+    const factorBefore = modifier;
+    modifier += amount;
+    factors.push({ kind, label, operation: "additive", percent: Math.round(amount * 100), factorBefore, factorAfter: modifier });
+    notes.push(note);
+  }
 
   if (affinityTags.length) {
-    modifier += 0.1;
-    notes.push(`Attacker affinity: ${affinityTags.join(", ")} (+10%).`);
+    addModifier("affinity", "Species affinity", 0.1, `Attacker affinity: ${affinityTags.join(", ")} (+10%).`);
   }
   if (vulnerabilityTags.length) {
-    modifier += 0.2;
-    notes.push(`Target vulnerability: ${vulnerabilityTags.join(", ")} (+20%).`);
+    addModifier("vulnerability", "Target vulnerability", 0.2, `Target vulnerability: ${vulnerabilityTags.join(", ")} (+20%).`);
   }
   if (resistanceTags.length) {
-    modifier -= 0.2;
-    notes.push(`Target resistance: ${resistanceTags.join(", ")} (-20%).`);
+    addModifier("resistance", "Target resistance", -0.2, `Target resistance: ${resistanceTags.join(", ")} (-20%).`);
+  }
+
+  const cappedModifier = Math.max(0.6, Math.min(1.4, modifier));
+  if (cappedModifier !== modifier) {
+    factors.push({ kind: "cap", label: "Species modifier cap", operation: "limit", factorBefore: modifier, factorAfter: cappedModifier });
   }
 
   return {
-    modifier: Math.max(0.6, Math.min(1.4, modifier)),
+    modifier: cappedModifier,
     notes,
+    factors,
     affinityTags,
     vulnerabilityTags,
     resistanceTags,

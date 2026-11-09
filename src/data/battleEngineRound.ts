@@ -8,6 +8,7 @@ import {
   calculateBattleSecondaryEffectChance,
   getBattleMoveTagModifier,
   getBattleStatusStackLimit,
+  type BattleDamageModifierFactor,
 } from "@/data/battleRoundRules";
 import {
   getBattleTurnScore,
@@ -23,6 +24,8 @@ import type {
   BattleCombatant,
   BattleCombatantId,
   BattleCooldowns,
+  BattleDamageBreakdown,
+  BattleDamagePreview,
   BattleMove,
   BattleMoveEffect,
   BattleMoveId,
@@ -483,45 +486,48 @@ export function getDamageModifier(
   attacker: BattleCombatant,
   defender: BattleCombatant,
   move: BattleMove,
-): { modifier: number; notes: string[] } {
-  let modifier = 1;
-  const notes: string[] = [];
+): { modifier: number; notes: string[]; factors: BattleDamageModifierFactor[] } {
   const tagModifier = getBattleMoveTagModifier(attacker.speciesId, defender.speciesId, move);
-  modifier *= tagModifier.modifier;
-  notes.push(...tagModifier.notes);
+  let modifier = tagModifier.modifier;
+  const notes = [...tagModifier.notes];
+  const factors = [...tagModifier.factors];
+
+  function multiply(kind: BattleDamageModifierFactor["kind"], label: string, factor: number, note: string) {
+    const factorBefore = modifier;
+    modifier *= factor;
+    factors.push({ kind, label, operation: "multiply", percent: Math.round((factor - 1) * 100), factorBefore, factorAfter: modifier });
+    notes.push(note);
+  }
 
   const guarded = getBattleGuardedStatus(defender);
   if (guarded) {
     const guardPercent = guarded.damageReductionPercent;
-    modifier *= 1 - guardPercent / 100;
-    notes.push(`Guarded reduces damage by ${guardPercent}%.`);
+    multiply("guarded", "Guarded", 1 - guardPercent / 100, `Guarded reduces damage by ${guardPercent}%.`);
   }
   if (hasBattleStatus(defender, "marked")) {
-    modifier *= 1.15;
-    notes.push("Marked increases incoming damage by 15%.");
+    multiply("marked", "Marked", 1.15, "Marked increases incoming damage by 15%.");
   }
   if (hasBattleStatus(defender, "exhausted") && move.tags.includes("pursuit")) {
-    modifier *= 1.1;
-    notes.push("Pursuit gains 10% against Exhausted targets.");
+    multiply("pursuit-exhausted", "Pursuit vs. Exhausted", 1.1, "Pursuit gains 10% against Exhausted targets.");
   }
   if (hasBattleStatus(defender, "slowed") && move.tags.includes("pursuit")) {
-    modifier *= 1.1;
-    notes.push("Pursuit gains 10% against Slowed targets.");
+    multiply("pursuit-slowed", "Pursuit vs. Slowed", 1.1, "Pursuit gains 10% against Slowed targets.");
   }
   if (move.tags.includes("finisher") && defender.currentHp <= defender.maxHp * 0.35) {
-    modifier *= 1.2;
-    notes.push("Finisher gains 20% against a low-HP target.");
+    multiply("finisher", "Finisher", 1.2, "Finisher gains 20% against a low-HP target.");
   }
   if (move.tags.includes("guard_break") && guarded) {
-    modifier *= 1.25;
-    notes.push("Guard Break gains 25% against Guarded targets.");
+    multiply("guard-break", "Guard Break", 1.25, "Guard Break gains 25% against Guarded targets.");
   }
   if (move.targetType === "all_enemies") {
-    modifier *= 0.85;
-    notes.push("Area damage uses a 0.85x spread modifier.");
+    multiply("spread", "Area spread", 0.85, "Area damage uses a 0.85x spread modifier.");
   }
 
-  return { modifier: Math.max(0.35, Math.min(1.85, modifier)), notes };
+  const cappedModifier = Math.max(0.35, Math.min(1.85, modifier));
+  if (cappedModifier !== modifier) {
+    factors.push({ kind: "cap", label: "Damage modifier cap", operation: "limit", factorBefore: modifier, factorAfter: cappedModifier });
+  }
+  return { modifier: cappedModifier, notes, factors };
 }
 
 function replaceCombatant(state: BattleState, combatant: BattleCombatant): BattleState {
@@ -532,6 +538,7 @@ function replaceCombatant(state: BattleState, combatant: BattleCombatant): Battl
 }
 
 type AppliedBattleStatus = Pick<BattleStatusApplicationResult, "mode" | "status">;
+type ResolvedDamage = BattleDamagePreview & { factors: BattleDamageModifierFactor[] };
 
 type MoveLogEffect = Pick<
   BattleMoveLogTarget,
@@ -548,7 +555,7 @@ type ResolveEffectInput = {
   actionSeed: string;
   hitTargetIds: ReadonlySet<BattleCombatantId>;
   includeNoopCleanses?: boolean;
-  onFrame?: (frame: BattlePlaybackFrame, appliedStatus?: AppliedBattleStatus) => void;
+  onFrame?: (frame: BattlePlaybackFrame, appliedStatus?: AppliedBattleStatus, damage?: ResolvedDamage) => void;
   onLogEffect?: (target: BattleCombatant, effect: MoveLogEffect, start: number, end: number) => void;
 };
 
@@ -568,6 +575,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
     let appliedStatus: AppliedBattleStatus | undefined;
     let clearedStatus: BattleStatusId | undefined;
     let brokeGuard = false;
+    let damage: ResolvedDamage | undefined;
     try {
     if (input.effect.chance !== undefined) {
       const chance = hostile
@@ -591,6 +599,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
         input.move,
         damageModifier.modifier,
       );
+      damage = { ...preview, factors: damageModifier.factors };
       let updatedTarget = applyDamage(currentTarget, preview.finalDamage);
       brokeGuard = input.move.tags.includes("guard_break") && hasBattleStatus(currentTarget, "guarded");
       if (brokeGuard) {
@@ -764,7 +773,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
               : nextState === before && effect.type === "apply_status" && effect.status
                 ? { status: effect.status, result: "failed" }
                 : undefined,
-        }, appliedStatus);
+        }, appliedStatus, damage);
         if(knockedOut) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
       }
     }
@@ -1251,11 +1260,29 @@ export type BattleActionEffectPreview = {
   hpAfter: number;
   battleEnergyAfter: number;
   guardedAfter: BattleGuardedStatus | null;
+  /** Actual damage calculation for this effect if it hits. */
+  damageBreakdown?: BattleDamageBreakdown;
   /** A status applied by this effect that remains on a living target after the move. */
   statusApplication?: BattleStatusApplicationPreview;
   /** Status IDs this cleanse removes if it applies. Empty when none are removed. */
   cleansedStatuses?: BattleStatusId[];
 };
+
+function getDamageBreakdown(damage: ResolvedDamage, hpLost: number): BattleDamageBreakdown {
+  const { finalDamage, modifierTotal } = damage;
+  const baseDamage = finalDamage > 0 ? damage.baseDamage : 0;
+  const roundedDamage = (factor: number) => Math.round(baseDamage * factor);
+  const modifiers: BattleDamageBreakdown["modifiers"] = damage.factors.map(({ factorBefore, factorAfter, ...step }) => ({
+    ...step,
+    damageBefore: roundedDamage(factorBefore),
+    damageAfter: roundedDamage(factorAfter),
+  }));
+  const roundedTotal = roundedDamage(modifierTotal);
+  if (finalDamage > roundedTotal) {
+    modifiers.push({ kind: "minimum", label: "Minimum damage", operation: "limit", damageBefore: roundedTotal, damageAfter: finalDamage });
+  }
+  return { baseDamage, modifiers, modifierTotal, finalDamage, hpLost };
+}
 
 /** Estimates assuming effects hit and apply. The last row per target reflects its final state. */
 export function previewBattleAction(state: BattleState, action: BattleAction): BattleActionEffectPreview[] {
@@ -1285,7 +1312,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
       actionSeed: "preview",
       hitTargetIds,
       includeNoopCleanses: true,
-      onFrame: (frame, appliedStatus) => {
+      onFrame: (frame, appliedStatus, damage) => {
         if (frame.kind === "knockout") return;
         const targetId = frame.targetIds[0];
         const before = previousFrame.combatants[targetId];
@@ -1306,12 +1333,12 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
         } : undefined;
         const guardedAfter = getBattleGuardedStatus(after);
         let description: string;
+        let damageBreakdown: BattleDamageBreakdown | undefined;
         let cleansedStatuses: BattleStatusId[] | undefined;
-        if (effect.type === "damage") {
-          const { modifier } = getDamageModifier(paidActor, before, move);
-          const damage = previewBattleDamage(actorStats, targetStats, move, modifier).finalDamage;
+        if (damage) {
+          damageBreakdown = getDamageBreakdown(damage, before.currentHp - after.currentHp);
           const breaksGuard = !guardedAfter && getBattleGuardedStatus(before);
-          description = `${damage} damage if hit · HP ${before.currentHp} → ${after.currentHp}${breaksGuard ? " · Breaks Guarded" : ""}`;
+          description = `${damage.finalDamage} damage if hit · HP ${before.currentHp} → ${after.currentHp}${breaksGuard ? " · Breaks Guarded" : ""}`;
         } else if (effect.type === "heal") {
           description = after.currentHp > before.currentHp
             ? `Restore ${after.currentHp - before.currentHp} HP · ${before.currentHp} → ${after.currentHp}`
@@ -1341,6 +1368,7 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
           hpAfter: after.currentHp,
           battleEnergyAfter: after.currentBattleEnergy,
           guardedAfter,
+          ...(damageBreakdown ? { damageBreakdown } : {}),
           statusApplication,
           cleansedStatuses,
         });
