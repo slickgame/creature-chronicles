@@ -16,7 +16,7 @@ const LOG_FILTERS: ReadonlyArray<{ category: BattleLogEventCategory; label: stri
 ];
 
 type OrderShiftOrigin = NonNullable<BattleLogSearchResult["orderShiftDetail"]> & { index: number; roundNumber: number };
-type OrderShiftReturn = OrderShiftOrigin & { filters: BattleLogEventCategory[]; query: string };
+type OrderShiftReturn = OrderShiftOrigin & { filters: BattleLogEventCategory[] };
 type BattleLogJump = Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & {
   query: string;
   sourceTargetId?: BattleCombatantId;
@@ -72,6 +72,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
   );
   const [openMoves, setOpenMoves] = useState<Partial<Record<number, boolean>>>({});
   const [openNotes, setOpenNotes] = useState<Partial<Record<number, boolean>>>({});
+  const [returnSearchQuery, setReturnSearchQuery] = useState("");
   const filtersOpen = openPanel === "filters";
   const entryId = useId();
   const filterControl = useRef<HTMLDivElement>(null);
@@ -133,18 +134,19 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
   function viewOrderShiftSource(group: BattleMoveLogGroup, target: BattleMoveLogTarget, origin: OrderShiftOrigin) {
     const query = jump?.index === origin.index && jump.orderShiftDetail?.actorId === origin.actorId
       && jump.orderShiftDetail.detailId === origin.detailId ? jump.query : "";
+    setReturnSearchQuery(query);
     if (isFiltered && !target.logIndexes.some(matchesEventFilter)) setFilters([]);
     setSelectedRound(group.roundNumber);
     setOpenPanel(undefined);
     setOpenMoves(current => ({ ...current, [group.logIndex]: true }));
-    setJump({ index: group.logIndex, query: "", sourceTargetId: target.targetId, returnTo: { ...origin, filters, query } });
+    setJump({ index: group.logIndex, query: "", sourceTargetId: target.targetId, returnTo: { ...origin, filters } });
   }
 
-  function returnToOrderShift({ index, roundNumber, actorId, detailId, filters, query }: OrderShiftReturn) {
+  function returnToOrderShift({ index, roundNumber, actorId, detailId, filters }: OrderShiftReturn) {
     setSelectedRound(roundNumber);
     setFilters(filters);
     setOpenPanel(undefined);
-    setJump({ index, query, orderShiftDetail: { actorId, detailId }, focusSource: true });
+    setJump({ index, query: returnSearchQuery, orderShiftDetail: { actorId, detailId }, focusSource: true });
   }
 
   function logEntryProps(index: number) {
@@ -316,9 +318,10 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
       </div>
       <BattleLogQuickFind state={state} filters={filters} open={openPanel === "search"}
         onOpen={() => setOpenPanel("search")} onClose={closeSearch}
-        onClear={() => setJump(current => current?.returnTo
-          ? { ...current, returnTo: { ...current.returnTo, query: "" } }
-          : undefined)}
+        onClear={() => {
+          if (jump?.returnTo) setReturnSearchQuery("");
+          else setJump(undefined);
+        }}
         onJump={(result, query) => {
           setSelectedRound(result.roundNumber ?? boundaries[0]?.roundNumber);
           const group = state.moveLog?.find(move => result.index >= move.logIndex && result.index < move.endLogIndex);
