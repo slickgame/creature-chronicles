@@ -387,7 +387,13 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, #dfb865, transparent);
 }
-.shiftCard ul {
+.shiftCard .shiftCaption {
+  margin: 7px 10px 0;
+  color: #62462f;
+  font-size: clamp(12px, 1.4vw, 14px);
+  line-height: 1.3;
+}
+.shiftCard > ul {
   display: grid;
   gap: 8px;
   margin: 0;
@@ -415,6 +421,25 @@
   --row-ink: #592c17;
   --row-edge: #ac6c41;
   --row-fill: #f2c69b;
+}
+.shiftRow:has(> .shiftReasons) { row-gap: 4px; padding-block: 5px; }
+.shiftReasons {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 2 / -1;
+  gap: 3px 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #553b26;
+  font-size: clamp(12px, 1.4vw, 14px);
+}
+.shiftReasons > li {
+  padding: 2px 5px;
+  border: 1px solid #b8955e;
+  border-radius: 4px;
+  background: #fff1d4;
+  overflow-wrap: anywhere;
 }
 .portrait {
   box-sizing: border-box;
@@ -447,7 +472,7 @@
   .roundNav .bookmarkButton { gap: 4px; min-inline-size: 35px; min-block-size: 36px; padding: 4px 5px; }
   .shiftLegend { padding-inline-start: 0; border-inline-start: 0; }
   .roundPager { margin-inline-start: 0; }
-  .shiftCard ul { gap: 6px; padding: 8px 5px 8px 14px; }
+  .shiftCard > ul { gap: 6px; padding: 8px 5px 8px 14px; }
   .shiftRow { grid-template-columns: 28px minmax(0, 1fr) max-content; gap: 6px; padding-inline-end: 7px; }
   .portrait { width: 36px; height: 36px; }
   .slots { padding-inline-start: 7px; }

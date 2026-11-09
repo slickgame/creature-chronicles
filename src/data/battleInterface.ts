@@ -3,11 +3,14 @@ import {
   advanceBattleCombatantEndOfRound,
   getBattleOrderPreview,
   getBattleOutcome,
+  getBattleSpeedStatusModifiers,
+  getEffectiveBattleStats,
+  hasBattleStatus,
   type BattleActionEffectPreview,
   type BattleStatusApplicationPreview,
 } from "@/data/battleEngine";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
-import type { BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatusStack } from "@/types/battle";
+import type { BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState, BattleStatusStack } from "@/types/battle";
 
 export { getBattleLogEventCategory } from "@/data/battleLog";
 export { getBattleOrderPreview, getBattleRoundEndForecastWithOrder } from "@/data/battleEngine";
@@ -101,14 +104,59 @@ export function recordBattleRoundStart(state: BattleState, logIndex = state.log.
   };
 }
 
+type BattleOrderShiftContext = {
+  previous: BattleState;
+  beforeRecovery: BattleState;
+};
+
+function getSettledSpeedEffectReasons(previous: BattleCombatant, beforeRecovery: BattleCombatant, settled: BattleCombatant) {
+  const opening = getBattleSpeedStatusModifiers(previous);
+  const interim = getBattleSpeedStatusModifiers(beforeRecovery);
+  const recovered = getBattleSpeedStatusModifiers(settled);
+  const reasons: BattleOrderShiftReason[] = [];
+
+  for (const status of new Set([...opening.keys(), ...recovered.keys()])) {
+    const before = opening.get(status) ?? 0;
+    const mid = interim.get(status) ?? 0;
+    const after = recovered.get(status) ?? 0;
+    if (before === after) continue;
+    if (before !== mid) {
+      const result = !hasBattleStatus(previous, status) ? "applied"
+        : !hasBattleStatus(beforeRecovery, status) ? "cleared" : "changed";
+      reasons.push({ kind: "speed-effect", status, result });
+    }
+    if (mid !== after) {
+      reasons.push({ kind: "speed-effect", status, result: hasBattleStatus(settled, status) ? "stack-wore-off" : "wore-off" });
+    }
+  }
+  return reasons;
+}
+
 /** Append one settled shift after recovery and before the first action of the new round. */
-export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOrderShift): BattleState {
+export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOrderShift, context?: BattleOrderShiftContext): BattleState {
   if (!shift || state.outcome !== "ongoing" || state.roundNumber !== shift.roundNumber ||
       state.orderShiftLog?.some(entry => entry.roundNumber === shift.roundNumber)) return state;
 
-  const moves = shift.after.flatMap((actorId, to) => {
+  const settledSpeeds = context && new Map(shift.after.map(actorId => [actorId, getEffectiveBattleStats(state.combatants[actorId]).speed]));
+  const moves: BattleOrderShiftLogEntry["moves"] = shift.after.flatMap((actorId, to) => {
     const from = shift.before.indexOf(actorId);
-    return from >= 0 && from !== to ? [{ actorId, from: from + 1, to: to + 1 }] : [];
+    if (from < 0 || from === to) return [];
+    const move = { actorId, from: from + 1, to: to + 1 };
+    const previous = context?.previous.combatants[actorId];
+    const beforeRecovery = context?.beforeRecovery.combatants[actorId];
+    const afterSpeed = settledSpeeds?.get(actorId);
+    if (!previous || !beforeRecovery || afterSpeed === undefined) return [move];
+
+    const beforeSpeed = getEffectiveBattleStats(previous).speed;
+    const speed = beforeSpeed !== afterSpeed ? { before: beforeSpeed, after: afterSpeed } : undefined;
+    const reasons = speed ? getSettledSpeedEffectReasons(previous, beforeRecovery, state.combatants[actorId]) : [];
+    for (const [previousIndex, otherId] of shift.before.entries()) {
+      const wasAhead = previousIndex < from;
+      if (wasAhead === (shift.after.indexOf(otherId) < to)) continue;
+      reasons.push({ kind: wasAhead ? "passed" : "passed-by", actorId: otherId,
+        ...(settledSpeeds?.get(otherId) === afterSpeed ? { tied: true } : {}) });
+    }
+    return [{ ...move, ...(speed ? { speed } : {}), reasons }];
   });
   if (!moves.length) return state;
 

@@ -256,7 +256,7 @@ export function ColiseumBattle({
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
   const [turnOrder, setTurnOrder] = useState<BattleCombatantId[]>([]);
-  const roundOpeningOrder = useRef<readonly BattleCombatantId[]>([]);
+  const roundOpening = useRef<{ order: readonly BattleCombatantId[]; state: BattleState }>(undefined);
   const [roundOrderShift, setRoundOrderShift] = useState<BattleRoundOrderShift>();
   const [cooldownNotices, setCooldownNotices] = useState<ReadonlyMap<BattleCombatantId, readonly BattleMoveId[]>>(() => new Map());
   const turnActor = battleState?.combatants[turnOrder[0]];
@@ -296,9 +296,9 @@ export function ColiseumBattle({
 
   function setOpeningTurnOrder(state: BattleState, showShift = false) {
     const order = getBattleOrderPreview(state, new Map()).map(entry => entry.actorId);
-    const shift = showShift ? getBattleRoundOrderShift(roundOpeningOrder.current, order, state.roundNumber) : undefined;
+    const shift = showShift ? getBattleRoundOrderShift(roundOpening.current?.order ?? [], order, state.roundNumber) : undefined;
     setRoundOrderShift(shift);
-    roundOpeningOrder.current = order;
+    roundOpening.current = { order, state };
     setTurnOrder(order);
     return shift;
   }
@@ -375,9 +375,11 @@ export function ColiseumBattle({
     setCooldownNotices(current => updateBattleCooldownNotices(current, battleState, resolved.state, activeActorId));
     setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, resolved.result));
     const opensNextRound = resolved.state.outcome === "ongoing" && !resolved.remaining.length;
+    const previous = roundOpening.current?.state;
     const shift = opensNextRound ? setOpeningTurnOrder(resolved.state, true) : undefined;
     const nextState = opensNextRound ? recordBattleRoundStart(resolved.state) : resolved.state;
-    setBattleState(recordBattleOrderShift(nextState, shift));
+    const context = previous && resolved.beforeRecovery ? { previous, beforeRecovery: resolved.beforeRecovery } : undefined;
+    setBattleState(recordBattleOrderShift(nextState, shift, context));
     setSelectedTarget(null);
     setCompletedRounds(resolved.result.roundNumber);
     if (resolved.state.outcome !== "ongoing") {

@@ -115,6 +115,24 @@ export function getBattleSlowedPenalties(status: BattleStatusStack): { speed: nu
   return { speed, evasion: Math.ceil(speed / 2) };
 }
 
+function getBattleStatusSpeedModifier(status: BattleStatusStack): number {
+  const amount = status.amount ?? 0;
+  if (status.stat) return status.stat === "speed" ? amount * getStatusStacks(status) : 0;
+  if (status.status === "slowed") return -getBattleSlowedPenalties(status).speed;
+  if (status.status === "exhausted") return -(Math.abs(amount) || 3) * getStatusStacks(status);
+  return 0;
+}
+
+export function getBattleSpeedStatusModifiers(combatant: BattleCombatant): ReadonlyMap<BattleStatusId, number> {
+  const modifiers = new Map<BattleStatusId, number>();
+  for (const status of combatant.statuses) {
+    if (status.duration <= 0) continue;
+    const speed = getBattleStatusSpeedModifier(status);
+    if (speed !== 0) modifiers.set(status.status, (modifiers.get(status.status) ?? 0) + speed);
+  }
+  return modifiers;
+}
+
 export function hasBattleStatus(combatant: BattleCombatant, status: BattleStatusId): boolean {
   return combatant.statuses.some((entry) => entry.status === status && entry.duration > 0);
 }
@@ -140,9 +158,11 @@ export function getEffectiveBattleStats(combatant: BattleCombatant): BattleStats
     if (statusStack.duration <= 0) return;
     const stacks = getStatusStacks(statusStack);
     const amount = statusStack.amount ?? 0;
+    const speedModifier = getBattleStatusSpeedModifier(statusStack);
+    nextStats.speed += speedModifier;
 
     if (statusStack.stat) {
-      nextStats[statusStack.stat] += amount * stacks;
+      if (statusStack.stat !== "speed") nextStats[statusStack.stat] += amount * stacks;
       return;
     }
 
@@ -156,11 +176,7 @@ export function getEffectiveBattleStats(combatant: BattleCombatant): BattleStats
       nextStats.physicalPower -= weakenedAmount;
       nextStats.specialPower -= weakenedAmount;
     } else if (statusStack.status === "slowed") {
-      const { speed, evasion } = getBattleSlowedPenalties(statusStack);
-      nextStats.speed -= speed;
-      nextStats.evasion -= evasion;
-    } else if (statusStack.status === "exhausted") {
-      nextStats.speed -= (Math.abs(amount) || 3) * stacks;
+      nextStats.evasion -= Math.ceil(-speedModifier / 2);
     }
   });
 
@@ -1234,10 +1250,8 @@ export type BattleRoundEndForecastWithOrder = {
 
 function getExpiringSpeedStatuses(before: BattleCombatant, after: BattleCombatant): BattleOpeningOrderEntry["expiredSpeedStatuses"] {
   const statuses = new Set<BattleStatusId>();
-  for (const { duration, stat, status, amount } of before.statuses) {
-    if (!(duration > 0 && duration <= 1)) continue;
-    const affectsSpeed = stat ? stat === "speed" && Boolean(amount) : status === "slowed" || status === "exhausted";
-    if (affectsSpeed) statuses.add(status);
+  for (const stack of before.statuses) {
+    if (stack.duration > 0 && stack.duration <= 1 && getBattleStatusSpeedModifier(stack)) statuses.add(stack.status);
   }
   return Array.from(statuses, status => ({ status, remains: hasBattleStatus(after, status) }));
 }
@@ -1444,9 +1458,10 @@ export function resolveBattleTurn(
     });
   }
   const nextActors = remaining.slice(1).filter(id => !turn.state.combatants[id].isFainted);
-  const roundEnded = !nextActors.length || core.getBattleOutcome(turn.state) !== "ongoing";
-  const recovery = roundEnded && core.getBattleOutcome(turn.state) === "ongoing"
-    ? tickEndOfRound(turn.state, onFrame) : { state: turn.state, entries: [] };
+  const turnOutcome = core.getBattleOutcome(turn.state);
+  const roundEnded = !nextActors.length || turnOutcome !== "ongoing";
+  const beforeRecovery = roundEnded && turnOutcome === "ongoing" ? turn.state : undefined;
+  const recovery = beforeRecovery ? tickEndOfRound(beforeRecovery, onFrame) : { state: turn.state, entries: [] };
   const outcome = core.getBattleOutcome(recovery.state);
   const entries = [...turn.entries, ...recovery.entries];
   if (outcome !== "ongoing") entries.push(`Battle ends: ${outcome}.`);
@@ -1462,6 +1477,7 @@ export function resolveBattleTurn(
     remaining: roundEnded ? [] : nextActors,
     result,
     frames,
+    beforeRecovery,
   };
 }
 

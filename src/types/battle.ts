@@ -393,11 +393,21 @@ export type BattleRoundResult = {
   outcome: BattleOutcome;
 };
 
+export type BattleOrderShiftReason =
+  | { kind: "passed" | "passed-by"; actorId: BattleCombatantId; tied?: true }
+  | { kind: "speed-effect"; status: BattleStatusId; result: "applied" | "changed" | "cleared" | "wore-off" | "stack-wore-off" };
+
 export type BattleOrderShiftLogEntry = {
   logIndex: number;
   roundNumber: number;
   /** One-based positions among creatures present in both rounds. */
-  moves: readonly { actorId: BattleCombatantId; from: number; to: number }[];
+  moves: readonly {
+    actorId: BattleCombatantId;
+    from: number;
+    to: number;
+    speed?: { before: number; after: number };
+    reasons?: readonly BattleOrderShiftReason[];
+  }[];
 };
 
 export type BattleRoundLogBoundary = {

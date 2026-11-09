@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { getBattleLogEventCategory } from "@/data/battleInterface";
+import { getBattleStatusGlossary } from "@/data/battleGlossary";
 import { gameplayArt } from "@/data/creatureGameplayArt";
-import type { BattleLogEventCategory, BattleState } from "@/types/battle";
+import type { BattleLogEventCategory, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
 import { BattleLogTargetCards } from "./BattleLogTargetCards";
@@ -13,6 +14,38 @@ const LOG_FILTERS: ReadonlyArray<{ category: BattleLogEventCategory; label: stri
   { category: "status-changes", label: "Status changes" },
   { category: "order-shifts", label: "Order shifts" },
 ];
+
+const SPEED_EFFECT_RESULTS = {
+  applied: "was applied",
+  changed: "changed",
+  cleared: "was cleared",
+  "wore-off": "wore off",
+  "stack-wore-off": "stack wore off",
+} as const;
+
+function OrderShiftDetails({ move, combatants }: {
+  move: BattleOrderShiftLogEntry["moves"][number];
+  combatants: BattleState["combatants"];
+}) {
+  const { actorId, speed, reasons } = move;
+  if (!speed && !reasons?.length) return null;
+  return <ul className={s.shiftReasons} role="list" aria-label={`${combatants[actorId].name} shift details`}>
+    {speed && <li data-order-shift-speed>Speed <strong>{speed.before} → {speed.after}</strong></li>}
+    {reasons?.map(reason => {
+      if (reason.kind === "speed-effect") {
+        return <li key={`${reason.status}-${reason.result}`} data-order-shift-reason={reason.kind}>
+          {getBattleStatusGlossary(reason.status).label} {SPEED_EFFECT_RESULTS[reason.result]}
+        </li>;
+      }
+      const other = combatants[reason.actorId]?.name;
+      if (!other) return null;
+      const comparison = reason.tied ? "on a Speed tie" : "on Speed";
+      return <li key={reason.actorId} data-order-shift-reason={reason.kind}>
+        {reason.kind === "passed" ? `Passed ${other} ${comparison}` : `${other} moved ahead ${comparison}`}
+      </li>;
+    })}
+  </ul>;
+}
 
 export function BattleLogEntries({ state, sourceById, playback = false }: {
   state: BattleState;
@@ -100,11 +133,15 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
     const title = `Round ${shift.roundNumber} · Order Shift`;
     return <section key={index} className={s.shiftCard} aria-label={title} data-order-shift-card={shift.roundNumber} {...entryProps}>
       <h3 className={s.shiftTitle}>{title}</h3>
+      {shift.moves.some(move => move.speed || move.reasons?.length) && <p className={s.shiftCaption}>
+        Slots compare creatures present at the start of both rounds.
+      </p>}
       <ul>
-        {shift.moves.map(({ actorId, from, to }) => {
+        {shift.moves.map(move => {
+          const { actorId, from, to } = move;
           const creature = state.combatants[actorId];
           const source = sourceById.get(String(creature.sourceCreatureId));
-          return <li key={actorId} className={s.shiftRow} data-order-shift-row={from > to ? "up" : "down"}>
+          return <li key={actorId} className={s.shiftRow} data-order-shift-row={from > to ? "up" : "down"} data-order-shift-actor={actorId}>
             <span className={s.portrait} aria-hidden="true">
               {source ? <img src={gameplayArt(source, true)} alt=""/> : creature.name.slice(0, 1)}
             </span>
@@ -113,6 +150,7 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
               <span data-order-shift-slots aria-hidden="true">{from} → {to}</span>
               <span className={s.slotDescription}>Slot {from} to slot {to}</span>
             </span>
+            <OrderShiftDetails move={move} combatants={state.combatants}/>
           </li>;
         })}
       </ul>

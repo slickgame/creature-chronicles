@@ -360,12 +360,27 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
     after: [willow, briar, rowan, moss, lilt, bramble],
   });
   const logIndex = turn.state.log.length;
-  const loggedState = recordBattleOrderShift(recordBattleRoundStart(turn.state), shift);
+  assert(turn.beforeRecovery);
+  const openingState = recordBattleRoundStart(turn.state);
+  const legacyState = recordBattleOrderShift(openingState, shift);
+  assert.deepEqual(legacyState.orderShiftLog?.[0].moves, [
+    { actorId: rowan, from: 4, to: 3 }, { actorId: moss, from: 5, to: 4 }, { actorId: lilt, from: 3, to: 5 },
+  ]);
+  const loggedState = recordBattleOrderShift(openingState, shift, { previous: state, beforeRecovery: turn.beforeRecovery });
   assert.deepEqual(loggedState.roundLogBoundaries, [{ roundNumber: 4, logIndex }]);
   assert.deepEqual(loggedState.orderShiftLog, [{
     logIndex,
     roundNumber: 4,
-    moves: [{ actorId: rowan, from: 4, to: 3 }, { actorId: moss, from: 5, to: 4 }, { actorId: lilt, from: 3, to: 5 }],
+    moves: [{
+      actorId: rowan, from: 4, to: 3, speed: { before: 23, after: 33 },
+      reasons: [{ kind: "speed-effect", status: "exhausted", result: "wore-off" }, { kind: "passed", actorId: lilt }],
+    }, {
+      actorId: moss, from: 5, to: 4, reasons: [{ kind: "passed", actorId: lilt }],
+    }, {
+      actorId: lilt, from: 3, to: 5, speed: { before: 25, after: 19 },
+      reasons: [{ kind: "speed-effect", status: "slowed", result: "applied" },
+        { kind: "passed-by", actorId: rowan }, { kind: "passed-by", actorId: moss }],
+    }],
   }]);
   assert.deepEqual(loggedState.log.slice(0, logIndex), turn.state.log);
   assert.equal(loggedState.log[logIndex], "Round 4 · Order shift · p3 4 → 3 · e1 5 → 4 · e3 3 → 5");
@@ -378,12 +393,49 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   assert.deepEqual(nextTurn.state.log.slice(logIndex, logIndex + 2), [loggedState.log[logIndex], "p1 uses Defend."]);
   const appliedIndex = nextTurn.state.log.findIndex(line => line === "e3 is slowed; the effect was applied.");
   assert(appliedIndex >= 0 && appliedIndex < logIndex);
+  assert.equal(nextTurn.beforeRecovery, undefined);
   assert.equal(getBattleLogEventCategory(nextTurn.state, appliedIndex), "status-changes");
   assert.equal(getBattleLogEventCategory(nextTurn.state, logIndex + 2), "status-changes");
   const restored = JSON.parse(JSON.stringify(nextTurn.state)) as typeof nextTurn.state;
+  assert.deepEqual(restored.orderShiftLog, loggedState.orderShiftLog);
   assert.equal(getBattleLogEventCategory(restored, appliedIndex), "status-changes");
   assert.equal(getBattleLogEventCategory(restored, logIndex), "order-shifts");
   assert.deepEqual(state, before);
+});
+
+test("settled shifts preserve survivor ranks and distinguish a partial expiry from a Speed tie", () => {
+  const previous = fixture();
+  const [recovering, defender, bleeding] = previous.teams.player.combatantIds;
+  const [tieFirst, tieSecond, rival] = previous.teams.enemy.combatantIds;
+  const speeds = new Map([[recovering, 50], [defender, 43], [bleeding, 45], [tieFirst, 40], [tieSecond, 40], [rival, 12]]);
+  for (const [id, speed] of speeds) previous.combatants[id].battleStats.speed = speed;
+  previous.combatants[recovering].statuses = [
+    { status: "slowed", duration: 1, amount: 10 },
+    { status: "slowed", duration: 2, amount: 4 },
+    { status: "inspired", duration: 1 },
+  ];
+  previous.combatants[bleeding].statuses = [{ status: "bleed", duration: 1 }];
+  previous.combatants[bleeding].currentHp = 2;
+  const before = getBattleOrderPreview(previous, new Map()).map(({ actorId }) => actorId);
+  const turn = resolveBattleTurn(previous, [defender], { actorId: defender, moveId: "defend", targetIds: [defender] });
+  assert(turn?.beforeRecovery);
+  assert(turn.state.combatants[bleeding].isFainted);
+  const after = getBattleOrderPreview(turn.state, new Map()).map(({ actorId }) => actorId);
+  const shift = getBattleRoundOrderShift(before, after, turn.state.roundNumber);
+  assert(shift);
+  const record = recordBattleOrderShift(turn.state, shift, { previous, beforeRecovery: turn.beforeRecovery }).orderShiftLog?.[0];
+  assert(record);
+  assert.deepEqual(record.moves[0], {
+    actorId: recovering, from: 4, to: 1, speed: { before: 36, after: 46 },
+    reasons: [{ kind: "speed-effect", status: "slowed", result: "stack-wore-off" },
+      ...shift.before.slice(0, 3).map(actorId => ({ kind: "passed", actorId }))],
+  });
+  const tieCrossing = record.moves.flatMap(({ reasons }) => reasons ?? [])
+    .find(reason => reason.kind !== "speed-effect" && reason.tied);
+  assert(tieCrossing && tieCrossing.kind !== "speed-effect");
+  assert([tieFirst, tieSecond].includes(tieCrossing.actorId));
+  assert(record.moves.every(move => move.actorId !== bleeding && !move.reasons?.some(reason =>
+    reason.kind !== "speed-effect" && reason.actorId === bleeding)));
 });
 
 test("a resisted secondary effect stays in the full log without a status change", () => {
