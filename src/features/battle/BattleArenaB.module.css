@@ -1434,6 +1434,27 @@
 }
 .fullOrderEntry > em { color: #583a23; font-size: 12px; font-style: normal; white-space: nowrap; }
 
+.roundEndForecastList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(13px, 1.55vw, 16px);
+}
+.roundEndForecastList > li {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-block-start: 1px solid #c5a473;
+  overflow-wrap: anywhere;
+}
+.roundEndForecastName,
+.roundEndForecastEffects { display: grid; gap: 2px; }
+.roundEndForecastName small { color: #31513b; }
+.roundEndForecastList [data-side="enemy"] small,
+.roundEndForecastList [data-round-end-bleed] strong { color: #882b20; }
+
 /* Individual move windup cues, anchored clear of the vitals. */
 :is(.actionRibbon, .figure[data-action-source]) {
   --action-edge: #49613a;

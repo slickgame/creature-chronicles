@@ -1110,25 +1110,54 @@ export type BattleStatusTimingForecast = {
   nextBleed?: BattleBleedTickForecast;
 };
 
+export type BattleRoundEndForecast = {
+  targetId: BattleCombatantId;
+  hpLost: number;
+  /** Whether this recovery knocks the target out. */
+  knockedOut: boolean;
+  expiredStatuses: BattleStatusId[];
+};
+
+type ProjectedRecoveryTarget = {
+  bleedTicks: BattleBleedTickForecast[];
+  expiredStatuses: BattleStatusId[];
+};
+
 function projectNextRecovery(state: BattleState) {
   if (state.outcome !== "ongoing" || core.getBattleOutcome(state) !== "ongoing") return undefined;
-  const bleedTicks = new Map<BattleCombatantId, BattleBleedTickForecast[]>();
+  const targets = new Map<BattleCombatantId, ProjectedRecoveryTarget>();
   const recovery = tickEndOfRound(state, frame => {
     const effect = frame.roundEndEffect;
-    if (effect?.kind !== "bleed") return;
+    if (effect?.kind !== "bleed" && effect?.kind !== "expiry") return;
     const [targetId] = frame.targetIds;
-    const after = frame.state.combatants[targetId];
-    const ticks = bleedTicks.get(targetId) ?? [];
-    ticks.push({
-      roundNumber: state.roundNumber,
-      damage: effect.hpLost,
-      hpBefore: after.currentHp + effect.hpLost,
-      hpAfter: after.currentHp,
-      knockedOut: after.isFainted,
-    });
-    bleedTicks.set(targetId, ticks);
+    const target: ProjectedRecoveryTarget = targets.get(targetId) ?? { bleedTicks: [], expiredStatuses: [] };
+    if (effect.kind === "expiry") {
+      target.expiredStatuses.push(...effect.statuses);
+    } else {
+      const after = frame.state.combatants[targetId];
+      target.bleedTicks.push({
+        roundNumber: state.roundNumber,
+        damage: effect.hpLost,
+        hpBefore: after.currentHp + effect.hpLost,
+        hpAfter: after.currentHp,
+        knockedOut: after.isFainted,
+      });
+    }
+    targets.set(targetId, target);
   });
-  return { combatants: recovery.state.combatants, endsBattle: core.getBattleOutcome(recovery.state) !== "ongoing", bleedTicks };
+  return { combatants: recovery.state.combatants, endsBattle: core.getBattleOutcome(recovery.state) !== "ongoing", targets };
+}
+
+/** Summarize the next recovery if no intervening actions change the battlefield. */
+export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndForecast[] {
+  const recovery = projectNextRecovery(state);
+  if (!recovery) return [];
+  return Array.from(recovery.targets, ([targetId, { bleedTicks, expiredStatuses }]) => ({
+    targetId,
+    hpLost: bleedTicks.reduce((total, tick) => total + tick.damage, 0),
+    knockedOut: bleedTicks.some(tick => tick.knockedOut),
+    expiredStatuses,
+  }));
 }
 
 function getStatusTimingFromRecovery(
@@ -1147,7 +1176,7 @@ function getStatusTimingFromRecovery(
   const timing: BattleStatusTimingForecast = {};
   if (active.status === "bleed") {
     const bleedIndex = target.statuses.slice(0, index).filter(entry => entry.status === "bleed").length;
-    const tick = recovery.bleedTicks.get(targetId)?.[bleedIndex];
+    const tick = recovery.targets.get(targetId)?.bleedTicks[bleedIndex];
     if (tick) timing.nextBleed = tick;
   }
   const roundsRemaining = Math.ceil(active.duration);

@@ -6,7 +6,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
-import { getBattleGuardedStatus, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
+import { getBattleGuardedStatus, getBattleRoundEndForecast, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
@@ -305,6 +305,32 @@ function ActiveEffectsDialog({ creature, state, resolving, onClose }: {
     })}
     {!effects.length && <p>No active effects.</p>}
   </GameDialog>;
+}
+
+function RoundEndForecast({ state }: { state: BattleState }) {
+  const rows = getBattleRoundEndForecast(state);
+  const heading = `Round ${state.roundNumber} end`;
+  return <section className={s.damageBreakdown} aria-label={`${heading} forecast`} data-round-end-forecast>
+    <h3 className={s.damageBreakdownTitle}>{heading}</h3>
+    {rows.length > 0 ? <>
+      <p>If current effects stay active.</p>
+      <ul className={s.roundEndForecastList}>
+        {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses }) => {
+          const creature = state.combatants[targetId];
+          return <li key={targetId} data-round-end-target={targetId} data-side={creature.sideId}>
+            <span className={s.roundEndForecastName}>
+              <strong>{creature.name}</strong>
+              <small>{creature.sideId === "player" ? "Ally" : "Rival"}</small>
+            </span>
+            <span className={s.roundEndForecastEffects}>
+              {hpLost > 0 && <span data-round-end-bleed>Bleed <strong>−{hpLost} HP{knockedOut && " · K.O."}</strong></span>}
+              {expiredStatuses.length > 0 && <span data-round-end-expiry>Expires <strong>{expiredStatuses.map(status => getBattleStatusGlossary(status).label).join(", ")}</strong></span>}
+            </span>
+          </li>;
+        })}
+      </ul>
+    </> : <p>No Bleed damage or status expiries expected.</p>}
+  </section>;
 }
 
 function EffectRollSteps({ breakdown }: { breakdown: NonNullable<EffectForecast["effectChanceBreakdown"]> }) {
@@ -1031,6 +1057,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}
     {popup==="statuses"&&statusCreature&&<ActiveEffectsDialog creature={statusCreature} state={state} resolving={resolving} onClose={()=>setPopup(null)}/>}
     {(popup === "order" || popup === "order-inspect") && <GameDialog title="Turn Order" onClose={() => setPopup(null)}>
+      {!complete && !resolving && state.outcome === "ongoing" && <RoundEndForecast state={state}/>}
       {individual ? <>
         <h3>Round {state.roundNumber} · Remaining turns</h3>
         {orderEntries.length ? <ol className={s.fullOrderList} data-full-turn-order aria-label="Remaining turns">

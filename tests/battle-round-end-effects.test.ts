@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createBattleState, getBattleStatusTimingForecast, previewBattleAction, resolveBattleTurn } from "@/data/battleEngine";
+import { createBattleState, getBattleRoundEndForecast, getBattleStatusTimingForecast, previewBattleAction, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleLogEventCategory } from "@/data/battleLog";
 import type { BattleStatusStack } from "@/types/battle";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
@@ -73,6 +73,47 @@ test("round-end playback records actual Bleed damage, expiries, and Battle Energ
   assert.equal(state.logEventCategories, undefined);
 });
 
+test("battlefield recovery forecasts group Bleed loss and emitted expiry for allies and rivals", () => {
+  const [caster, ally, guarded, rival, recovering] = createNewGameSave("Recovery forecast", 0).creatures!;
+  const state = createBattleState({
+    battleId: "battlefield-recovery-forecast",
+    playerCreatures: [caster, ally, guarded],
+    enemyCreatures: [rival, recovering],
+  });
+  const [actorId, allyId, guardedId] = state.teams.player.combatantIds;
+  const [rivalId, recoveringId] = state.teams.enemy.combatantIds;
+  state.combatants[allyId].currentHp = 8;
+  state.combatants[allyId].statuses = [
+    { status: "bleed", duration: 1, amount: 3, stacks: 2 },
+    { status: "bleed", stat: "defense", duration: 2, amount: 4 },
+    { status: "slowed", duration: 1 },
+  ];
+  state.combatants[guardedId].statuses = [
+    { status: "guarded", duration: 1 },
+    { status: "weakened", stat: "physicalPower", duration: 1 },
+    { status: "weakened", stat: "specialPower", duration: 2 },
+  ];
+  state.combatants[rivalId].currentHp = 20;
+  state.combatants[rivalId].statuses = [{ status: "bleed", duration: 1 }, { status: "marked", duration: 1 }];
+  state.combatants[recoveringId].currentBattleEnergy = 0;
+  const casterLoadout = state.combatants[actorId].loadout;
+  state.combatants[actorId].loadout = { ...casterLoadout, equippedMoveIds: ["focus"], learnedMoveIds: ["focus"] };
+  const before = structuredClone(state);
+
+  assert.deepEqual(getBattleRoundEndForecast(state), [
+    { targetId: rivalId, hpLost: 5, knockedOut: false, expiredStatuses: ["bleed", "marked"] },
+    { targetId: allyId, hpLost: 8, knockedOut: true, expiredStatuses: ["slowed"] },
+    { targetId: guardedId, hpLost: 0, knockedOut: false, expiredStatuses: ["guarded"] },
+  ]);
+  assert.deepEqual(state, before);
+
+  const actual = resolveBattleTurn(state, [actorId], { actorId, moveId: "focus", targetIds: [actorId] });
+  assert.ok(actual);
+  assert.deepEqual(actual.frames.flatMap(frame => frame.targetIds[0] === allyId && frame.roundEndEffect?.kind === "bleed"
+    ? [frame.roundEndEffect.hpLost] : []), [6, 2]);
+  assert.ok(actual.frames.some(frame => frame.targetIds[0] === recoveringId && frame.roundEndEffect?.kind === "energy"));
+});
+
 function createTimingFixture() {
   const [caster, defender] = createNewGameSave("Status timing", 0).creatures!;
   const state = createBattleState({
@@ -85,6 +126,26 @@ function createTimingFixture() {
   const [targetId] = state.teams.enemy.combatantIds;
   return { state, actorId, targetId };
 }
+
+test("battlefield recovery is empty after battle ends and for BE-only recovery", () => {
+  const { state, actorId, targetId } = createTimingFixture();
+  const actor = state.combatants[actorId];
+  const target = state.combatants[targetId];
+  actor.currentBattleEnergy = 0;
+  target.statuses = [{ status: "guarded", duration: 2 }];
+  assert.deepEqual(getBattleRoundEndForecast(state), []);
+
+  target.currentHp = 2;
+  target.statuses = [{ status: "bleed", duration: 1 }];
+  actor.statuses = [{ status: "inspired", duration: 1 }];
+  assert.deepEqual(getBattleRoundEndForecast(state), [
+    { targetId, hpLost: 2, knockedOut: true, expiredStatuses: ["bleed"] },
+    { targetId: actorId, hpLost: 0, knockedOut: false, expiredStatuses: ["inspired"] },
+  ]);
+  assert.deepEqual(getBattleRoundEndForecast({ ...state, outcome: "player_won" }), []);
+  Object.assign(target, { currentHp: 0, isFainted: true });
+  assert.deepEqual(getBattleRoundEndForecast(state), []);
+});
 
 test("status timing counts this round and preserves legacy duration and Bleed defaults", () => {
   const { state, targetId } = createTimingFixture();
