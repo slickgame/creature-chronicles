@@ -1116,11 +1116,11 @@ export type BattleRoundEndForecast = {
   /** Whether this recovery knocks the target out. */
   knockedOut: boolean;
   expiredStatuses: BattleStatusId[];
+  energy?: { before: number; after: number };
 };
 
-type ProjectedRecoveryTarget = {
+type ProjectedRecoveryTarget = Pick<BattleRoundEndForecast, "expiredStatuses" | "energy"> & {
   bleedTicks: BattleBleedTickForecast[];
-  expiredStatuses: BattleStatusId[];
 };
 
 function projectNextRecovery(state: BattleState) {
@@ -1128,11 +1128,13 @@ function projectNextRecovery(state: BattleState) {
   const targets = new Map<BattleCombatantId, ProjectedRecoveryTarget>();
   const recovery = tickEndOfRound(state, frame => {
     const effect = frame.roundEndEffect;
-    if (effect?.kind !== "bleed" && effect?.kind !== "expiry") return;
+    if (!effect) return;
     const [targetId] = frame.targetIds;
     const target: ProjectedRecoveryTarget = targets.get(targetId) ?? { bleedTicks: [], expiredStatuses: [] };
     if (effect.kind === "expiry") {
       target.expiredStatuses.push(...effect.statuses);
+    } else if (effect.kind === "energy") {
+      target.energy = { before: effect.before, after: effect.after };
     } else {
       const after = frame.state.combatants[targetId];
       target.bleedTicks.push({
@@ -1152,11 +1154,12 @@ function projectNextRecovery(state: BattleState) {
 export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndForecast[] {
   const recovery = projectNextRecovery(state);
   if (!recovery) return [];
-  return Array.from(recovery.targets, ([targetId, { bleedTicks, expiredStatuses }]) => ({
+  return Array.from(recovery.targets, ([targetId, { bleedTicks, expiredStatuses, energy }]) => ({
     targetId,
     hpLost: bleedTicks.reduce((total, tick) => total + tick.damage, 0),
     knockedOut: bleedTicks.some(tick => tick.knockedOut),
     expiredStatuses,
+    ...(energy ? { energy } : {}),
   }));
 }
 

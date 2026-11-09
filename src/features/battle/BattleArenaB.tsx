@@ -313,9 +313,9 @@ function RoundEndForecast({ state }: { state: BattleState }) {
   return <section className={s.damageBreakdown} aria-label={`${heading} forecast`} data-round-end-forecast>
     <h3 className={s.damageBreakdownTitle}>{heading}</h3>
     {rows.length > 0 ? <>
-      <p>If current effects stay active.</p>
+      <p>Based on current HP, BE, and statuses.</p>
       <ul className={s.roundEndForecastList}>
-        {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses }) => {
+        {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses, energy }) => {
           const creature = state.combatants[targetId];
           return <li key={targetId} data-round-end-target={targetId} data-side={creature.sideId}>
             <span className={s.roundEndForecastName}>
@@ -325,11 +325,12 @@ function RoundEndForecast({ state }: { state: BattleState }) {
             <span className={s.roundEndForecastEffects}>
               {hpLost > 0 && <span data-round-end-bleed>Bleed <strong>−{hpLost} HP{knockedOut && " · K.O."}</strong></span>}
               {expiredStatuses.length > 0 && <span data-round-end-expiry>Expires <strong>{expiredStatuses.map(status => getBattleStatusGlossary(status).label).join(", ")}</strong></span>}
+              {energy && <span data-round-end-energy>Recovery <strong>+{energy.after - energy.before} BE</strong> · {energy.before} → {energy.after}</span>}
             </span>
           </li>;
         })}
       </ul>
-    </> : <p>No Bleed damage or status expiries expected.</p>}
+    </> : <p>No Bleed damage, status expiries, or BE recovery expected.</p>}
   </section>;
 }
 
