@@ -273,6 +273,14 @@ function MoveAvailabilityIcon({ kind }: { kind: BattleMoveBlocker["kind"] | "rea
   </svg>;
 }
 
+function OrderCrest({ ally }: { ally: boolean }) {
+  return <svg className={s.orderCrest} viewBox="0 0 24 28" aria-hidden="true">
+    <path d="M2 2h20v15l-10 9L2 17Z" fill="var(--order-banner)" stroke="#e6bd70" strokeWidth="1.5"/>
+    {ally ? <path d="M12 19v-8m0 3C7 14 5 11 5 7c4 1 6 3 7 7Zm0 0c5 0 7-3 7-7-4 1-6 3-7 7Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      : <path d="m7 18 10-11m-10 0 10 11M6 14l4 4m4 0 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>}
+  </svg>;
+}
+
 function MoveDetails({ move }: { move: BattleMove }) {
   return <><h3>{move.name}</h3><p>{move.description}</p><p>Power {move.power} · Move accuracy {move.accuracy}% · Energy {move.battleEnergyCost} · Cooldown {move.cooldown} rounds · Priority {move.priority}</p><p>Targets: {getBattleTargetTypeLabel(move.targetType)}. Move accuracy is a base value; actual hit chance also depends on combat stats and effects.</p>{move.effects.map((effect,i)=>{const entry=getBattleEffectGlossary(effect.type);return <section key={i}><h4>{entry.label}{effect.status?` · ${getBattleStatusGlossary(effect.status).label}`:""}</h4><p>{entry.mechanics}</p><p>{effect.amount!==undefined?`Amount: ${effect.amount}. `:""}{effect.chance!==undefined?`Base chance: ${effect.chance}%. `:""}{effect.duration!==undefined?`Duration: ${effect.duration} rounds. `:""}{effect.target?`Recipient: ${effect.target.replaceAll("_"," ")}. `:""}{effect.note}</p></section>;})}</>;
 }
@@ -310,7 +318,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const individual = individualOrder !== undefined;
   const state=presentation.displayState??resolvedState;
   const { open }=useNavigation();
-  const [popup,setPopup]=useState<"planning"|"statuses"|"inspect"|"items"|"log"|"menu"|"order"|"result"|"leave"|"forfeit"|null>(null);
+  const [popup,setPopup]=useState<"planning"|"statuses"|"inspect"|"order-inspect"|"items"|"log"|"menu"|"order"|"result"|"leave"|"forfeit"|null>(null);
   const [reviewClosed,setReviewClosed]=useState(false);
   const [movesOpen,setMovesOpen]=useState(false);
   const [draft,setDraft]=useState<{actorId:string;moveId:string}|null>(null);
@@ -332,12 +340,13 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const currentEvent=presentation.activeEvent;
   const roundShift = individual ? props.roundOrderShift : undefined;
   const settledShift = roundShift?.roundNumber === state.roundNumber ? roundShift : undefined;
-  const pendingShift = roundShift && roundShift.roundNumber > state.roundNumber ? roundShift : undefined;
-  const currentActionOrder = currentEvent?.actorId ? [currentEvent.actorId] : [];
-  const order = pendingShift
-    ? currentActionOrder.length ? currentActionOrder : pendingShift.before
-    : individualOrder ? [...new Set([...currentActionOrder, ...individualOrder])]
-      : resolving ? (actionIndex >= 0 ? presentation.actionOrder.slice(actionIndex) : []) : preview.map(entry => entry.actorId);
+  const currentActorId = currentEvent?.actorId;
+  // The controller already holds next round's queue while the previous round's last action and recovery are playing.
+  const sameRound = state.roundNumber === resolvedState.roundNumber;
+  const remainingOrder = sameRound && !finished ? individualOrder?.filter(id => state.combatants[id] && !state.combatants[id].isFainted) ?? [] : [];
+  const order = individual
+    ? [...new Set([...(currentActorId ? [currentActorId] : []), ...remainingOrder])]
+    : resolving ? (actionIndex >= 0 ? presentation.actionOrder.slice(actionIndex) : []) : preview.map(entry => entry.actorId);
   const orderMoves = useMemo(() => {
     const moves = new Map<BattleCombatantId, { from: number; to: number }>();
     settledShift?.after.forEach((id, to) => {
@@ -361,7 +370,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const portrait = portraits.get(id);
       const start = positions[from];
       const end = positions[to];
-      if (!portrait || !start || !end || !end.width) continue;
+      if (!portrait || !start?.width || !end?.width) continue;
       const x = start.x + start.width / 2 - end.x - end.width / 2;
       const y = start.y + start.height / 2 - end.y - end.height / 2;
       const earlier = from > to;
@@ -378,23 +387,38 @@ export function BattleArenaB(props: BattleArenaBProps) {
     }
     return () => animations.forEach(animation => animation.cancel());
   }, [settledShift, orderMoves, reducedMotion]);
-  const skippedActorId = individual && currentEvent?.skipReason === "stun" ? currentEvent.actorId : undefined;
-  const nextSlotId = individualOrder?.[0];
+  const skippedActorId = individual && currentEvent?.skipReason === "stun" ? currentActorId : undefined;
+  const nextSlotId = remainingOrder[0];
   const nextSlot = nextSlotId ? state.combatants[nextSlotId] : undefined;
-  const nextSlotCanAct = nextSlot && !nextSlot.isFainted && !hasBattleStatus(nextSlot, "stun");
-  const handoffActorId = skippedActorId && state.roundNumber === resolvedState.roundNumber && nextSlotCanAct
-    ? nextSlotId : undefined;
-  let orderActiveId = (individual || resolving) ? order[0] : undefined;
-  if (skippedActorId) orderActiveId = handoffActorId;
-  else if (individual && !currentEvent?.actorId && (resolving || !nextSlotCanAct)) orderActiveId = undefined;
-  const nextOrderIndex = !individual || orderActiveId || skippedActorId ? 1 : 0;
+  const nextSlotCanAct = nextSlot && !hasBattleStatus(nextSlot, "stun");
+  const handoffActorId = skippedActorId && nextSlotCanAct ? nextSlotId : undefined;
+  const orderActiveId = individual
+    ? skippedActorId ? handoffActorId : currentActorId ?? (!resolving && nextSlotCanAct ? nextSlotId : undefined)
+    : resolving ? order[0] : undefined;
+  const nextOrderId = individual
+    ? remainingOrder.find(id => id !== orderActiveId && id !== skippedActorId && !hasBattleStatus(state.combatants[id], "stun"))
+    : order[1];
+  const orderEntries = order.flatMap((id, index) => {
+    const combatant = state.combatants[id];
+    if (!combatant) return [];
+    const role = id === skippedActorId ? "skipped" : id === orderActiveId ? "now" : id === nextOrderId ? "next" : "later";
+    const stunned = individual && role === "later" && hasBattleStatus(combatant, "stun");
+    const rankLabel = role === "skipped" ? "Skipped · Stun" : role === "now" ? (individual ? "Now" : "ACTING NOW")
+      : role === "next" ? (individual ? "Next" : resolving ? "UP NEXT" : "NEXT")
+        : !individual && index === 0 ? "FIRST" : `${index + 1}`;
+    const ally = combatant.sideId === "player";
+    const sideLabel = ally ? (role === "now" && !resolving ? "Your turn" : "Ally") : "Rival";
+    const accessibleRank = role === "later" ? `Slot ${rankLabel}${stunned ? " · Stunned" : ""}` : rankLabel;
+    return [{ id, index, combatant, role, stunned, rankLabel, ally, sideLabel, accessibleRank, change: orderMoves.get(id) }];
+  });
+  const emptyOrderLabel = finished ? "Battle complete" : "Round recovery";
   const roundEndEffect = individual ? currentEvent?.roundEndEffect : undefined;
   const energyRecovery = roundEndEffect?.kind === "energy" && currentEvent
     ? { ...roundEndEffect, eventId: currentEvent.eventId, durationMs: currentEvent.durationMs, playback: presentation }
     : undefined;
   const actionCaption=skippedActorId ? state.combatants[skippedActorId]?.name : currentEvent?`${currentEvent.actorId?state.combatants[currentEvent.actorId]?.name:"End of round"}${currentEvent.moveName?` · ${currentEvent.moveName}`:""}${currentEvent.targetIds.length?` → ${currentEvent.targetIds.map(id=>state.combatants[id]?.name).join(", ")}`:""}`:"";
   const highlight=resolving ? (skippedActorId ? undefined : currentEvent?.actorId) : activeActorId;
-  function inspect(id?:string){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup("inspect");}
+  function inspect(id?:string, fromOrder = false){setInspectId(id??target?.battleCombatantId??activeActorId??players[0]?.battleCombatantId??null);setPopup(fromOrder ? "order-inspect" : "inspect");}
   function clearDraft(){setDraft(null);setTappedTarget(null);setMoveTip(null);setMovePage(0);}
   function queueMove(id:string){props.onQueue(id);clearDraft();setMovesOpen(false);setPopup(null);}
   const draftMove=movesOpen&&draft?.actorId===activeActorId&&!resolving&&!complete?getBattleMove(draft.moveId):null;
@@ -519,41 +543,35 @@ export function BattleArenaB(props: BattleArenaBProps) {
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={<BattleLogEntries state={state} sourceById={sourceById}/>}/>;
   return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
-    <section className={s.order} aria-label={resolving ? "Resolution order" : "Order preview"} data-round-order-shift={settledShift?.roundNumber}>
-      <button className={s.orderHeading} onClick={() => setPopup("order")}>
-        <strong>{skippedActorId ? "TURN SKIPPED" : resolving ? currentEvent?.actorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : settledShift ? `ROUND ${settledShift.roundNumber} ORDER` : "ORDER PREVIEW"}</strong>
-        <small>{resolving ? "" : individual ? "Individual actions" : "Estimate · changes with moves"}</small>
+    <section className={s.order} aria-label={individual ? "Turn order" : resolving ? "Resolution order" : "Order preview"}
+      data-turn-queue={individual ? "" : undefined} data-round-order-shift={settledShift?.roundNumber}>
+      <button className={s.orderHeading} aria-haspopup="dialog" onClick={() => setPopup("order")}>
+        <strong>{individual ? "Full order" : resolving ? currentActorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : "ORDER PREVIEW"}</strong>
+        <small>{individual ? `Round ${state.roundNumber}${settledShift ? " · Shift" : ""}` : resolving ? "" : "Estimate · changes with moves"}</small>
       </button>
       <span className={s.resultAnnouncement} role="status">
         {settledShift && `Round ${settledShift.roundNumber}. ${Array.from(orderMoves, ([id, { from, to }]) =>
           `${state.combatants[id].name} moves ${from > to ? "up" : "down"} ${Math.abs(from - to)} in the order.`).join(" ")}`}
       </span>
-      <div className={s.tokens} ref={orderTokensRef}>{order.map((id, index) => {
-        const combatant = state.combatants[id];
-        if (!combatant) return null;
-        const skipped = id === skippedActorId;
-        const now = id === orderActiveId;
-        const handoff = id === handoffActorId;
-        const change = orderMoves.get(id);
+      <div className={s.tokens} ref={orderTokensRef}>{orderEntries.map(({ id, index, combatant, role, rankLabel, accessibleRank, ally, sideLabel, change, stunned }) => {
         const direction = change ? (change.from > change.to ? "up" : "down") : undefined;
-        let rankLabel = `${index + 1}`;
-        if (skipped) rankLabel = "Skipped · Stun";
-        else if (now) rankLabel = individual ? "NOW" : "ACTING NOW";
-        else if (!individual && index === 0) rankLabel = "FIRST";
-        else if (index === nextOrderIndex) rankLabel = resolving && !individual ? "UP NEXT" : "NEXT";
-        return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={now} data-order-actor={id}
-          data-skipped-turn={skipped ? "stun" : undefined} data-turn-handoff={handoff ? "" : undefined}
-          aria-label={`Inspect ${combatant.name} in turn order${skipped ? ". Turn skipped due to Stun." : handoff ? ". Now." : ""}`}
+        return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={role === "now"} data-order-actor={id}
+          data-order-role={individual ? role : undefined} data-order-stunned={stunned ? "" : undefined}
+          data-skipped-turn={role === "skipped" ? "stun" : undefined} data-turn-handoff={id === handoffActorId ? "" : undefined}
+          aria-current={role === "now" ? "step" : undefined} aria-haspopup="dialog"
+          aria-label={`Inspect ${combatant.name} in turn order${individual ? ` · ${accessibleRank} · ${sideLabel}` : ""}`}
           onClick={() => inspect(id)}>
           <img src={artwork(sourceById.get(String(combatant.sourceCreatureId)))} alt="" data-order-slide={direction}/>
           {change && <b className={s.orderSlideFallback} data-order-slide-fallback={direction} aria-hidden="true">
             {direction === "up" ? "↑" : "↓"}{Math.abs(change.from - change.to)}
           </b>}
           <span><small>{rankLabel}</small><strong>{combatant.name}</strong>
-            {index === 0 && resolving && !skipped && currentEvent?.moveName && <em>{currentEvent.moveName}</em>}
+            {id === currentActorId && role !== "skipped" && currentEvent?.moveName && <em>{currentEvent.moveName}</em>}
+            {individual && <i>{stunned ? `${sideLabel} · Stunned` : sideLabel}</i>}
           </span>
+          {individual && <OrderCrest ally={ally}/>}
         </button>;
-      })}</div>
+      })}{individual && !orderEntries.length && <span className={s.orderEmpty} role="status">{emptyOrderLabel}</span>}</div>
     </section>
     {slowedForecast && selectedMove && <SlowedOrderComparison forecast={slowedForecast} moveName={selectedMove.move.name} state={state} sourceById={sourceById}/>}
     <section className={s.field} aria-label="3 versus 3 battle stage">{!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
@@ -698,8 +716,28 @@ export function BattleArenaB(props: BattleArenaBProps) {
 
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}
     {popup==="statuses"&&statusCreature&&<GameDialog title={`${statusCreature.name} · Active Effects`} onClose={()=>setPopup(null)}><p>Durations are remaining rounds. During playback, inspecting effects pauses the action. Close this panel, then select Resume to continue.</p>{statusCreature.statuses.filter(e=>e.duration>0).map((effect,i)=><section className={s.statusDetail} key={i}><h3><StatusIcon status={effect.status}/>{statusLabel(effect)}</h3><p><strong>{effect.duration} rounds · {effect.stacks??1} stack(s)</strong>{effect.amount!==undefined?` · Amount ${effect.amount}`:""}</p><p>{getBattleStatusGlossary(effect.status).mechanics}</p>{effect.sourceCombatantId&&<p>Source: {state.combatants[effect.sourceCombatantId]?.name??"Unknown"}</p>}</section>)}{!statusCreature.statuses.some(e=>e.duration>0)&&<p>No active effects.</p>}</GameDialog>}
-    {popup==="order"&&<GameDialog title="Turn Order" onClose={()=>setPopup(null)}>{individual ? <p>Effective Speed sets the order at the start of each round. Each creature acts on its own turn.</p> : <><p>During planning this is an estimate: effective Speed + 10 × the queued move’s Priority. Unplanned allies and hidden enemy choices use zero Priority in this preview. Ties use the engine’s seeded initiative rule.</p><p>During resolution the strip follows the recorded action order and highlights the creature whose action is being shown. Enemy moves remain hidden during planning.</p><p>Allies plan one move per round. The bottom slots show your plans, not execution order.</p></>}</GameDialog>}
-    {popup==="inspect"&&selectedInspect&&<GameDialog title={`${selectedInspect.name} · Battle Profile`} onClose={()=>setPopup(null)} wide><div className={s.profile}><img src={artwork(sourceById.get(String(selectedInspect.sourceCreatureId)),true)} alt={`${selectedInspect.name}, full body`}/><div><p>Level {selectedInspect.level} · HP {selectedInspect.currentHp}/{selectedInspect.maxHp} · Battle Energy {selectedInspect.currentBattleEnergy}/{selectedInspect.maxBattleEnergy}</p><h3>Current battle numbers</h3><dl className={s.stats}>{Object.entries(getEffectiveBattleStats(selectedInspect)).map(([key,value])=><div key={key}><dt>{BATTLE_STAT_LABELS[key as BattleStatKey]}</dt><dd>{value}</dd></div>)}</dl><h3>Statuses</h3>{selectedInspect.statuses.length?selectedInspect.statuses.map((status,i)=><p key={i}><strong>{getBattleStatusGlossary(status.status).label} · {status.duration} rounds{(status.stacks??1)>1?` · ${status.stacks} stacks`:""}</strong><br/>{getBattleStatusGlossary(status.status).mechanics}</p>):<p>No status effects.</p>}{(()=>{const source=sourceById.get(String(selectedInspect.sourceCreatureId));return source?<><h3>Base numbers · Innate grades</h3><dl className={s.stats}>{STAT_KEYS.map(key=><div key={key}><dt>{key}</dt><dd>{source.stats[key]} · {source.statGrades[key]}</dd></div>)}</dl><p>Equipment and battle effects change numeric battle values; innate grades stay unchanged.</p></>:null;})()}</div></div></GameDialog>}
+    {(popup === "order" || popup === "order-inspect") && <GameDialog title="Turn Order" onClose={() => setPopup(null)}>
+      {individual ? <>
+        <h3>Round {state.roundNumber} · Remaining turns</h3>
+        {orderEntries.length ? <ol className={s.fullOrderList} data-full-turn-order aria-label="Remaining turns">
+          {orderEntries.map(({ id, combatant, role, rankLabel, accessibleRank, sideLabel, stunned, change }) => <li key={id}>
+            <button className={s.fullOrderEntry} data-side={combatant.sideId} data-order-role={role}
+              aria-current={role === "now" ? "step" : undefined} aria-haspopup="dialog"
+              aria-label={`Inspect ${combatant.name} in turn order · ${accessibleRank} · ${sideLabel}`}
+              onClick={() => inspect(id, true)}>
+              <img src={artwork(sourceById.get(String(combatant.sourceCreatureId)))} alt=""/>
+              <span><strong>{combatant.name}</strong><small>{sideLabel}{stunned ? " · Stunned" : ""}</small></span>
+              <b>{rankLabel}</b>
+              {change && <em aria-label={`Moved from slot ${change.from + 1} to slot ${change.to + 1}`}>
+                {change.from > change.to ? "↑" : "↓"}{Math.abs(change.from - change.to)}
+              </em>}
+            </button>
+          </li>)}
+        </ol> : <p>{emptyOrderLabel}</p>}
+        <p>Effective Speed sets the order at the start of each round. Select a portrait to inspect that creature.</p>
+      </> : <><p>During planning this is an estimate: effective Speed + 10 × the queued move’s Priority. Unplanned allies and hidden enemy choices use zero Priority in this preview. Ties use the engine’s seeded initiative rule.</p><p>During resolution the strip follows the recorded action order and highlights the creature whose action is being shown. Enemy moves remain hidden during planning.</p><p>Allies plan one move per round. The bottom slots show your plans, not execution order.</p></>}
+    </GameDialog>}
+    {(popup==="inspect" || popup==="order-inspect")&&selectedInspect&&<GameDialog title={`${selectedInspect.name} · Battle Profile`} onClose={()=>setPopup(popup === "order-inspect" ? "order" : null)} wide><div className={s.profile}><img src={artwork(sourceById.get(String(selectedInspect.sourceCreatureId)),true)} alt={`${selectedInspect.name}, full body`}/><div><p>Level {selectedInspect.level} · HP {selectedInspect.currentHp}/{selectedInspect.maxHp} · Battle Energy {selectedInspect.currentBattleEnergy}/{selectedInspect.maxBattleEnergy}</p><h3>Current battle numbers</h3><dl className={s.stats}>{Object.entries(getEffectiveBattleStats(selectedInspect)).map(([key,value])=><div key={key}><dt>{BATTLE_STAT_LABELS[key as BattleStatKey]}</dt><dd>{value}</dd></div>)}</dl><h3>Statuses</h3>{selectedInspect.statuses.length?selectedInspect.statuses.map((status,i)=><p key={i}><strong>{getBattleStatusGlossary(status.status).label} · {status.duration} rounds{(status.stacks??1)>1?` · ${status.stacks} stacks`:""}</strong><br/>{getBattleStatusGlossary(status.status).mechanics}</p>):<p>No status effects.</p>}{(()=>{const source=sourceById.get(String(selectedInspect.sourceCreatureId));return source?<><h3>Base numbers · Innate grades</h3><dl className={s.stats}>{STAT_KEYS.map(key=><div key={key}><dt>{key}</dt><dd>{source.stats[key]} · {source.statGrades[key]}</dd></div>)}</dl><p>Equipment and battle effects change numeric battle values; innate grades stay unchanged.</p></>:null;})()}</div></div></GameDialog>}
     {popup === "items" && <GameDialog title="Support Items" onClose={() => setPopup(null)}>
       <p role="status">{props.message}</p>
       <p>{props.aidRestricted ? "Restricted Aid: Field Tonics and Revival Salves cannot be used in this challenge." : "Each item type can be used once per battle. Select a ranch creature below before using an item."}</p>
