@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { getBattleLogEventCategory, getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleMove } from "@/data/battleMoves";
 import { useRevivalSalve } from "@/data/battleOutfitterIntegration";
@@ -138,6 +138,10 @@ test("round log boundaries include recovery, omit terminal phantom rounds, and r
   assert.equal(finalTurn.state.roundNumber, 3);
   assert.equal(recordBattleRoundStart(finalTurn.state), finalTurn.state);
   assert.equal(finalTurn.state.roundLogBoundaries, second.roundLogBoundaries);
+  const knockoutIndex = finalTurn.state.log.indexOf("p1 fainted.");
+  assert(knockoutIndex >= second.roundLogBoundaries![1].logIndex);
+  assert.equal(getBattleLogEventCategory(finalTurn.state, knockoutIndex), "knockouts");
+  assert.equal(getBattleLogEventCategory(finalTurn.state, knockoutIndex - 1), undefined);
 
   const save = createNewGameSave("Revival round", 0);
   const stockedSave = { ...save, flags: { ...save.flags, battleItem_revivalSalves: 1 } };
@@ -195,13 +199,44 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
   }]);
   assert.deepEqual(loggedState.log.slice(0, logIndex), turn.state.log);
   assert.equal(loggedState.log[logIndex], "Round 4 · Order shift · p3 4 → 3 · e1 5 → 4 · e3 3 → 5");
+  assert.equal(getBattleLogEventCategory(loggedState, logIndex), "order-shifts");
   assert.equal(recordBattleOrderShift(loggedState, shift), loggedState);
 
   const nextTurn = resolveBattleTurn(loggedState, nextOrder, { actorId: willow, moveId: "defend", targetIds: [willow] });
   assert(nextTurn);
   assert.equal(nextTurn.state.orderShiftLog, loggedState.orderShiftLog);
   assert.deepEqual(nextTurn.state.log.slice(logIndex, logIndex + 2), [loggedState.log[logIndex], "p1 uses Defend."]);
+  const appliedIndex = nextTurn.state.log.findIndex(line => line === "e3 is slowed; the effect was applied.");
+  assert(appliedIndex >= 0 && appliedIndex < logIndex);
+  assert.equal(getBattleLogEventCategory(nextTurn.state, appliedIndex), "status-changes");
+  assert.equal(getBattleLogEventCategory(nextTurn.state, logIndex + 2), "status-changes");
+  const restored = JSON.parse(JSON.stringify(nextTurn.state)) as typeof nextTurn.state;
+  assert.equal(getBattleLogEventCategory(restored, appliedIndex), "status-changes");
+  assert.equal(getBattleLogEventCategory(restored, logIndex), "order-shifts");
   assert.deepEqual(state, before);
+});
+
+test("a resisted secondary effect stays in the full log without a status change", () => {
+  const state = fixture();
+  const [actorId] = state.teams.player.combatantIds;
+  const [targetId] = state.teams.enemy.combatantIds;
+  const actor = state.combatants[actorId];
+  actor.battleStats.accuracy = 1000;
+  actor.battleStats.statusPower = 0;
+  actor.loadout.equippedMoveIds = ["strike", "checking_blow"];
+  state.combatants[targetId].battleStats.statusResist = 1000;
+  const action = { actorId, moveId: "checking_blow", targetIds: [targetId] };
+
+  for (let seed = 0; seed < 20; seed += 1) {
+    const attempt = resolveBattleTurn({ ...state, battleId: `resisted-effect-${seed}` }, [actorId, targetId], action);
+    assert(attempt);
+    const resistedIndex = attempt.state.log.findIndex(line => line.includes("resisted the secondary effect"));
+    if (resistedIndex < 0) continue;
+    assert.equal(getBattleLogEventCategory(attempt.state, resistedIndex), undefined);
+    assert.deepEqual(attempt.state.logEventCategories, {});
+    return;
+  }
+  assert.fail("Expected at least one resisted Checking Blow across the chosen seeds");
 });
 
 test("Slowed uses projected stack and recovery rules and excludes both direct and bleed knockouts", () => {

@@ -22,6 +22,7 @@ import { BattleEffectTray, EffectIcon, getEffectTraySlots } from "./BattleEffect
 import {BattleCreatureImage} from "./BattleCreatureImage";
 import {gameplayArt} from "@/data/creatureGameplayArt";
 import s from "./BattleArenaB.module.css";
+import logStyles from "./BattleLogEntries.module.css";
 
 const ART = "/images/ui/battle-v1/";
 const FALLBACK = "/images/ui/coliseum-v1/circuit.webp";
@@ -725,7 +726,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         </section>
       </div>
     </GameDialog>}
-    {popup==="log"&&<GameDialog title="Battle Log" onClose={()=>setPopup(null)} wide><p>Turn-by-turn record. {resolving?"Playback in progress. The action log appears when playback finishes.":""}</p>{resolving&&<p>{actionCaption} · {currentEvent?.label}</p>}<BattleLogEntries state={state} sourceById={sourceById} playback={resolving}/></GameDialog>}
+    {popup==="log"&&<GameDialog title="Battle Log" dialogClassName={logStyles.logDialog} onClose={()=>setPopup(null)} wide>{resolving&&<p>Playback in progress. The action log appears when playback finishes.</p>}{resolving&&<p>{actionCaption} · {currentEvent?.label}</p>}<BattleLogEntries state={state} sourceById={sourceById} playback={resolving}/></GameDialog>}
     {popup==="menu"&&<GameDialog title="Battle Menu" onClose={()=>setPopup(null)}><p role="status">{props.message}</p><div className={s.menuButtons}><button onClick={()=>{setPopup(null);open("menu");}}>Game Menu</button><button onClick={()=>presentation.setSpeed(presentation.speed===1?2:1)}>Animation speed · {presentation.speed}×</button><button aria-pressed={presentation.reducedMotion} onClick={()=>presentation.setReducedMotion(!presentation.reducedMotion)}>Reduced motion · {presentation.reducedMotion?"On":"Off"}</button><button disabled={resolving||recording||complete} onClick={()=>setPopup("forfeit")}>Forfeit & Record Loss</button><button disabled={resolving||recording} onClick={()=>setPopup("leave")}>Leave Without Record</button></div>{props.rules}</GameDialog>}
     {popup==="leave"&&<GameDialog title="Leave Without Record?" onClose={()=>setPopup("menu")}><p>This match grants no result, XP or rewards. Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording} onClick={props.onReturn}>Confirm Leave</button></GameDialog>}
     {popup==="forfeit"&&<GameDialog title="Record a Loss?" onClose={()=>setPopup("menu")}><p>End this match as a defeat and record its result? Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording||complete} onClick={props.onForfeit}>Confirm Forfeit</button></GameDialog>}

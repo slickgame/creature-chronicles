@@ -1,4 +1,6 @@
 import * as core from "./battleEngine";
+import { getBattleStatusGlossary } from "@/data/battleGlossary";
+import { appendBattleLog, getBattleLogEntryText, type BattleLogEntry } from "@/data/battleLog";
 import { BATTLE_MOVES_BY_ID, getBattleMove } from "@/data/battleMoves";
 import {
   calculateBattleMoveHitChance,
@@ -541,9 +543,9 @@ type ResolveEffectInput = {
   onFrame?: (frame: BattlePlaybackFrame, appliedStatus?: AppliedBattleStatus) => void;
 };
 
-function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: string[] } {
+function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: BattleLogEntry[] } {
   let nextState = input.state;
-  const log: string[] = [];
+  const log: BattleLogEntry[] = [];
   const targets = getEffectTargets(nextState, input.actor, input.targetIds, input.effect);
 
   targets.forEach((target, targetIndex) => {
@@ -587,9 +589,11 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       log.push(`${input.move.name} hits ${currentTarget.name} for ${preview.finalDamage} damage.`);
       damageModifier.notes.forEach((note) => log.push(note));
       if (input.move.tags.includes("guard_break") && hasBattleStatus(currentTarget, "guarded")) {
-        log.push(`${currentTarget.name}'s Guarded status was broken.`);
+        log.push({ text: `${currentTarget.name}'s Guarded status was broken.`, category: "status-changes" });
       }
-      if (updatedTarget.isFainted) log.push(`${currentTarget.name} fainted.`);
+      if (updatedTarget.isFainted && !currentTarget.isFainted) {
+        log.push({ text: `${currentTarget.name} fainted.`, category: "knockouts" });
+      }
       return;
     }
 
@@ -646,7 +650,10 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       appliedStatus = applied;
       nextState = replaceCombatant(nextState, applied.combatant);
       const stackLabel = (applied.status.stacks ?? 1) > 1 ? ` (${applied.status.stacks} stacks)` : "";
-      log.push(`${currentTarget.name} is ${status}${stackLabel}; the effect was ${applied.mode}.`);
+      log.push({
+        text: `${currentTarget.name} is ${status}${stackLabel}; the effect was ${applied.mode}.`,
+        category: "status-changes",
+      });
       return;
     }
 
@@ -656,7 +663,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       nextState = replaceCombatant(nextState, cleansed.combatant);
       if (input.effect.status && cleansed.removed > 0) {
         clearedStatus = input.effect.status;
-        log.push(`${currentTarget.name} cleanses ${clearedStatus}.`);
+        log.push({ text: `${currentTarget.name} cleanses ${clearedStatus}.`, category: "status-changes" });
       }
       return;
     }
@@ -676,7 +683,10 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: st
       });
       appliedStatus = applied;
       nextState = replaceCombatant(nextState, applied.combatant);
-      log.push(`${currentTarget.name} ${amount > 0 ? "gains" : "loses"} ${Math.abs(amount)} ${input.effect.stat ?? "power"} (${applied.mode}).`);
+      log.push({
+        text: `${currentTarget.name} ${amount > 0 ? "gains" : "loses"} ${Math.abs(amount)} ${input.effect.stat ?? "power"} (${applied.mode}).`,
+        category: "status-changes",
+      });
     }
     } finally {
       const after = nextState.combatants[currentTarget.battleCombatantId];
@@ -750,17 +760,18 @@ function resolveAction(
   queued: NormalizedRoundAction,
   actionIndex: number,
   onFrame?: (frame: BattlePlaybackFrame) => void,
-): { state: BattleState; resolvedAction: BattleResolvedAction } {
+): { state: BattleState; resolvedAction: BattleResolvedAction; entries: BattleLogEntry[] } {
   let nextState = state;
   const initialActor = nextState.combatants[queued.action.actorId];
   const initialMove = BATTLE_MOVES_BY_ID[queued.action.moveId] ?? getBattleMove(REQUIRED_BASIC_BATTLE_MOVE_ID);
   const actorName = initialActor?.name ?? "Unknown";
-  const actionLog: string[] = [...queued.validationIssues];
+  const actionLog: BattleLogEntry[] = [...queued.validationIssues];
 
   if (!initialActor || initialActor.isFainted) {
     actionLog.push(`${actorName} cannot act.`);
     return {
       state: nextState,
+      entries: actionLog,
       resolvedAction: {
         actorId: queued.action.actorId,
         actorName,
@@ -770,7 +781,7 @@ function resolveAction(
         targetNames: [],
         turnScore: 0,
         success: false,
-        log: actionLog,
+        log: actionLog.map(getBattleLogEntryText),
         usedFallback: queued.usedFallback,
         validationIssues: queued.validationIssues,
       },
@@ -781,6 +792,7 @@ function resolveAction(
     actionLog.push(`${initialActor.name} is stunned and cannot act.`);
     return {
       state: nextState,
+      entries: actionLog,
       resolvedAction: {
         actorId: initialActor.battleCombatantId,
         actorName: initialActor.name,
@@ -791,7 +803,7 @@ function resolveAction(
         turnScore: getBattleTurnScore(getEffectiveBattleStats(initialActor), initialMove),
         success: false,
         skipReason: "stun",
-        log: actionLog,
+        log: actionLog.map(getBattleLogEntryText),
         usedFallback: queued.usedFallback,
         validationIssues: queued.validationIssues,
       },
@@ -854,6 +866,7 @@ function resolveAction(
 
   return {
     state: nextState,
+    entries: actionLog,
     resolvedAction: {
       actorId: initialActor.battleCombatantId,
       actorName: initialActor.name,
@@ -863,7 +876,7 @@ function resolveAction(
       targetNames,
       turnScore: getBattleTurnScore(getEffectiveBattleStats(initialActor), move),
       success: true,
-      log: actionLog,
+      log: actionLog.map(getBattleLogEntryText),
       usedFallback,
       validationIssues: queued.validationIssues,
       hitTargetIds: Array.from(hitTargetIds),
@@ -880,17 +893,19 @@ export function tickBattleCooldowns(cooldowns: BattleCooldowns): BattleCooldowns
   }, {} as BattleCooldowns);
 }
 
-export function advanceBattleCombatantEndOfRound(
+type BattleRoundEndCallback = (
   combatant: BattleCombatant,
-  onChange?: (
-    combatant: BattleCombatant,
-    kind: BattlePlaybackFrame["kind"],
-    label: string,
-    roundEndEffect?: BattleRoundEndEffect,
-  ) => void,
-): { combatant: BattleCombatant; log: string[]; energyRecovered: number } {
+  kind: BattlePlaybackFrame["kind"],
+  label: string,
+  roundEndEffect?: BattleRoundEndEffect,
+) => void;
+
+function tickBattleCombatant(
+  combatant: BattleCombatant,
+  onChange?: BattleRoundEndCallback,
+): { combatant: BattleCombatant; entries: BattleLogEntry[]; energyRecovered: number } {
   let nextCombatant = cloneCombatant(combatant);
-  const log: string[] = [];
+  const entries: BattleLogEntry[] = [];
   const statusesBeforeTick = nextCombatant.statuses.map((status) => ({ ...status }));
 
   statusesBeforeTick.forEach((statusStack) => {
@@ -904,8 +919,10 @@ export function advanceBattleCombatantEndOfRound(
       onChange?.(nextCombatant, "damage", `−${hpLost} HP · Bleed`, { kind: "bleed", stacks, hpLost });
     }
     if (nextCombatant.isFainted) onChange?.(nextCombatant, "knockout", "K.O.");
-    log.push(`${nextCombatant.name} takes ${bleedDamage} bleed damage${stacks > 1 ? ` from ${stacks} stacks` : ""}.`);
-    if (nextCombatant.isFainted) log.push(`${nextCombatant.name} fainted.`);
+    entries.push(`${nextCombatant.name} takes ${bleedDamage} bleed damage${stacks > 1 ? ` from ${stacks} stacks` : ""}.`);
+    if (nextCombatant.isFainted) {
+      entries.push({ text: `${nextCombatant.name} fainted.`, category: "knockouts" });
+    }
   });
 
   nextCombatant = {
@@ -925,6 +942,8 @@ export function advanceBattleCombatantEndOfRound(
       kind: "expiry",
       statuses: expiredStatuses,
     });
+    const labels = expiredStatuses.map(status => getBattleStatusGlossary(status).label);
+    entries.push({ text: `${nextCombatant.name}: ${labels.join(", ")} expired.`, category: "status-changes" });
   }
   const requestedRegen = calculateBattleRoundEnergyRegen(
     nextCombatant.maxBattleEnergy,
@@ -940,26 +959,31 @@ export function advanceBattleCombatantEndOfRound(
       before: beforeEnergy,
       after: nextCombatant.currentBattleEnergy,
     });
-    log.push(`${nextCombatant.name} regenerates ${energyRecovered} Battle Energy.`);
+    entries.push(`${nextCombatant.name} regenerates ${energyRecovered} Battle Energy.`);
   }
 
-  return { combatant: nextCombatant, log, energyRecovered };
+  return { combatant: nextCombatant, entries, energyRecovered };
 }
 
-function tickEndOfRound(state: BattleState, onFrame?: (frame: BattlePlaybackFrame) => void): { state: BattleState; log: string[] } {
+export function advanceBattleCombatantEndOfRound(combatant: BattleCombatant, onChange?: BattleRoundEndCallback) {
+  const { combatant: updated, entries, energyRecovered } = tickBattleCombatant(combatant, onChange);
+  return { combatant: updated, log: entries.map(getBattleLogEntryText), energyRecovered };
+}
+
+function tickEndOfRound(state: BattleState, onFrame?: (frame: BattlePlaybackFrame) => void): { state: BattleState; entries: BattleLogEntry[] } {
   let nextState = state;
-  const log: string[] = [];
+  const entries: BattleLogEntry[] = [];
   Object.values(nextState.combatants)
     .sort((left, right) => left.sideId.localeCompare(right.sideId) || left.slotIndex - right.slotIndex)
     .forEach((combatant) => {
-      const result = advanceBattleCombatantEndOfRound(combatant, (updated, kind, label, roundEndEffect) => {
+      const result = tickBattleCombatant(combatant, (updated, kind, label, roundEndEffect) => {
         nextState = replaceCombatant(nextState, updated);
         onFrame?.({ state: nextState, targetIds: [updated.battleCombatantId], kind, label, roundEndEffect });
       });
       nextState = replaceCombatant(nextState, result.combatant);
-      log.push(...result.log);
+      entries.push(...result.entries);
     });
-  return { state: nextState, log };
+  return { state: nextState, entries };
 }
 
 function buildActionQueue(
@@ -1013,7 +1037,7 @@ export function resolveBattleRound(
   const resolvedActions: BattleResolvedAction[] = [];
   const frames: BattlePlaybackFrame[] = [];
   const onFrame = (frame: BattlePlaybackFrame) => frames.push(frame);
-  const roundLog: string[] = [`Round ${roundNumber} begins.`];
+  const roundLog: BattleLogEntry[] = [`Round ${roundNumber} begins.`];
 
   actionQueue.forEach((queued, actionIndex) => {
     if (core.getBattleOutcome(nextState) !== "ongoing") return;
@@ -1031,22 +1055,21 @@ export function resolveBattleRound(
     }
     nextState = result.state;
     resolvedActions.push(result.resolvedAction);
-    roundLog.push(...result.resolvedAction.log);
+    roundLog.push(...result.entries);
   });
 
   if (core.getBattleOutcome(nextState) === "ongoing") {
     const endOfRound = tickEndOfRound(nextState, onFrame);
     nextState = endOfRound.state;
-    roundLog.push(...endOfRound.log);
+    roundLog.push(...endOfRound.entries);
   }
 
   const outcome = core.getBattleOutcome(nextState);
   if (outcome !== "ongoing") roundLog.push(`Battle ends: ${outcome}.`);
   nextState = {
-    ...nextState,
+    ...appendBattleLog(nextState, roundLog),
     roundNumber: roundNumber + 1,
     outcome,
-    log: [...nextState.log, ...roundLog],
   };
 
   return {
@@ -1055,7 +1078,7 @@ export function resolveBattleRound(
     result: {
       roundNumber,
       actions: resolvedActions,
-      log: roundLog,
+      log: roundLog.map(getBattleLogEntryText),
       outcome,
     },
   };
@@ -1090,13 +1113,14 @@ export function resolveBattleTurn(
   const nextActors = remaining.slice(1).filter(id => !turn.state.combatants[id].isFainted);
   const roundEnded = !nextActors.length || core.getBattleOutcome(turn.state) !== "ongoing";
   const recovery = roundEnded && core.getBattleOutcome(turn.state) === "ongoing"
-    ? tickEndOfRound(turn.state, onFrame) : { state: turn.state, log: [] };
+    ? tickEndOfRound(turn.state, onFrame) : { state: turn.state, entries: [] };
   const outcome = core.getBattleOutcome(recovery.state);
-  const log = [...turn.resolvedAction.log, ...recovery.log];
-  if (outcome !== "ongoing") log.push(`Battle ends: ${outcome}.`);
+  const entries = [...turn.entries, ...recovery.entries];
+  if (outcome !== "ongoing") entries.push(`Battle ends: ${outcome}.`);
+  const log = entries.map(getBattleLogEntryText);
   const result: BattleRoundResult = { roundNumber: state.roundNumber, actions: [turn.resolvedAction], log, outcome };
   return {
-    state: { ...recovery.state, outcome, roundNumber: state.roundNumber + Number(roundEnded), log: [...state.log, ...log] },
+    state: { ...appendBattleLog(recovery.state, entries), outcome, roundNumber: state.roundNumber + Number(roundEnded) },
     remaining: roundEnded ? [] : nextActors,
     result,
     frames,

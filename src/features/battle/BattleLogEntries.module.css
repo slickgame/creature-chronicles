@@ -1,10 +1,23 @@
+.logContainer {
+  container-type: inline-size;
+}
+.logLayout {
+  --filter-button-width: 7.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px 14px;
+}
 .roundNav {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 14px;
-  margin-block-end: 12px;
+  grid-area: 1 / 1 / 2 / -1;
+  min-height: 52px;
+  box-sizing: border-box;
   padding-block: 3px 9px;
+  padding-inline-end: calc(var(--filter-button-width) + 14px);
   border-block-end: 1px solid #ad8553;
   color: #422d1b;
   font: 700 14px/1.15 Georgia, serif;
@@ -60,6 +73,147 @@
 }
 .roundPager { margin-inline-start: auto; }
 .roundPager > span { white-space: nowrap; }
+
+.filterControl {
+  display: contents;
+}
+.logLayout .filterTrigger {
+  grid-area: 1 / 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-inline-size: var(--filter-button-width);
+  min-block-size: 40px;
+  margin-block-start: 3px;
+  padding: 5px 9px;
+  border: 3px double #d0a451;
+  border-radius: 7px;
+  background: linear-gradient(#335238, #192f22);
+  box-shadow: inset 0 0 0 1px #f4cf7538, 0 2px 4px #5d3a2366;
+  color: #fff0d0;
+  font: 700 16px/1.1 Georgia, serif;
+  cursor: pointer;
+}
+.logLayout .filterTrigger:hover,
+.logLayout .filterTrigger[aria-expanded="true"] {
+  background: linear-gradient(#476840, #213e29);
+}
+.filterCaret {
+  width: 0;
+  height: 0;
+  border-inline: 4px solid transparent;
+  border-block-start: 5px solid #f5dca6;
+}
+.filterTrigger[aria-expanded="true"] .filterCaret { transform: rotate(180deg); }
+.filterPanel {
+  grid-area: 2 / 2;
+  justify-self: end;
+  position: relative;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  width: min(14rem, 100cqi);
+  margin: 0;
+  padding: 6px 10px 8px;
+  border: 4px double #a57941;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f9e9c6, #efcf95 72%, #fae6bb);
+  box-shadow: inset 0 0 0 1px #fff2cd, 0 3px 7px #5e3c2844;
+  color: #382719;
+  font: 700 16px/1.2 Georgia, serif;
+}
+.filterPanel::before {
+  content: "";
+  position: absolute;
+  inset-block-start: -9px;
+  inset-inline-end: calc(var(--filter-button-width) / 2 - 8px);
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border-block-start: 2px solid #a57941;
+  border-inline-start: 2px solid #a57941;
+  background: #f9e7bf;
+}
+.filterOption {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-block-size: 40px;
+  padding-inline: 3px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.filterOption:hover, .filterOption:focus-within {
+  background: #fcf1d4a6;
+}
+.filterOption > input[type="checkbox"] {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  flex: 0 0 19px;
+  inline-size: 19px;
+  block-size: 19px;
+  min-height: 0;
+  margin: 0;
+  border: 1px solid #8d673a;
+  border-radius: 4px;
+  background: #fff3d7;
+  box-shadow: inset 0 1px 2px #704a2738;
+  cursor: pointer;
+}
+.filterOption > input[type="checkbox"]:checked {
+  border-color: #1f3929;
+  background: #2b5134;
+}
+.filterOption > input[type="checkbox"]:checked::before {
+  content: "";
+  width: 8px;
+  height: 4px;
+  transform: translateY(-1px) rotate(-45deg);
+  border-left: 2px solid #fff2cf;
+  border-bottom: 2px solid #fff2cf;
+}
+.filterFooter {
+  display: flex;
+  justify-content: center;
+  margin-block-start: 3px;
+  padding-block-start: 7px;
+  border-block-start: 1px solid #b28e58;
+}
+.filterFooter button, .filterEmpty button {
+  min-inline-size: 90px;
+  min-block-size: 36px;
+  padding: 5px 10px;
+  border: 3px double #8a784b;
+  border-radius: 6px;
+  background: linear-gradient(#f5efcc, #d7cf98);
+  color: #332819;
+  font: 700 15px/1.2 Georgia, serif;
+  cursor: pointer;
+}
+.logRows {
+  grid-area: 2 / 1 / 3 / -1;
+  min-width: 0;
+}
+.logLayout[data-filters-open="true"] .logRows { grid-column-end: 2; }
+.logRows > :nth-child(2) { margin-block-start: 0; }
+.filterEmpty {
+  padding: 10px 12px;
+  border: 1px solid #b99b63;
+  border-radius: 7px;
+  background: #fff5da;
+  font-family: Georgia, serif;
+}
+.filterEmpty p { margin: 0 0 6px; }
+
+@container (max-width: 34rem) {
+  .logLayout[data-filters-open="true"] .logRows { grid-area: 3 / 1 / 4 / -1; }
+}
+@media (forced-colors: active) {
+  .filterOption > input[type="checkbox"] { appearance: auto; }
+  .filterOption > input[type="checkbox"]:checked::before { content: none; }
+}
 
 .shiftCard {
   box-sizing: border-box;
@@ -148,7 +302,7 @@
   text-align: end;
   white-space: nowrap;
 }
-.slotDescription { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.slotDescription, .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
 @media (max-width: 450px) {
   .roundNav { gap: 7px 10px; }
@@ -160,4 +314,53 @@
   .shiftRow { grid-template-columns: 28px minmax(0, 1fr) max-content; gap: 6px; padding-inline-end: 7px; }
   .portrait { width: 36px; height: 36px; }
   .slots { padding-inline-start: 7px; }
+}
+
+.logDialog.logDialog {
+  border: 4px double #c39851;
+  border-radius: 12px;
+  background: linear-gradient(116deg, #fff1d3, #f3dfb8 76%, #edd1a2);
+  box-shadow: 0 0 0 2px #57351e, 0 0 0 3px #af7a3c, 0 12px 50px #23150ea1;
+}
+.logDialog.logDialog > header {
+  gap: 12px;
+  padding: 10px 16px;
+  border-block-end: 3px double #bc8e48;
+  background:
+    linear-gradient(105deg, #3b2314ad, #5c341859, #341e14b8),
+    url('/images/ui/breeding-desk-a/art/wood.webp') center / cover,
+    #6a3d24;
+}
+.logDialog.logDialog > header h2 {
+  padding: 6px 16px;
+  border: 3px double #a6773f;
+  border-radius: 6px;
+  background: linear-gradient(#fff0ca, #e8c68a);
+  box-shadow: 0 2px 3px #2e1a12b3;
+  color: #362415;
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
+  line-height: 1.1;
+}
+.logDialog.logDialog > header button {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 5px 10px;
+  border: 1px solid #9c7543;
+  border-radius: 6px;
+  background: linear-gradient(#fff0ce, #e6c998);
+  color: #382518;
+  font: 700 14px/1.2 Georgia, serif;
+}
+.logDialog.logDialog > div { padding: 14px 16px 16px; }
+.logDialog .logRows > :nth-child(2) { margin-block-start: 0; }
+
+@container (max-width: 26rem) {
+  .logLayout { --filter-button-width: 6.1rem; gap: 9px; }
+  .roundNav { min-height: 48px; padding-inline-end: calc(var(--filter-button-width) + 9px); }
+  .logLayout .filterTrigger { min-block-size: 36px; font-size: 15px; gap: 5px; }
+}
+@media (max-width: 450px) {
+  .logDialog.logDialog > header { padding: 8px 9px; }
+  .logDialog.logDialog > header h2 { padding-inline: 10px; }
+  .logDialog.logDialog > div { padding: 10px 10px 12px; }
 }

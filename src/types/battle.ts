@@ -349,6 +349,8 @@ export type BattleRoundLogBoundary = {
   logIndex: number;
 };
 
+export type BattleLogEventCategory = "knockouts" | "status-changes" | "order-shifts";
+
 export type BattleState = {
   battleId: BattleId;
   roundNumber: number;
@@ -356,6 +358,8 @@ export type BattleState = {
   teams: Record<BattleSideId, BattleTeam>;
   combatants: Record<BattleCombatantId, BattleCombatant>;
   log: string[];
+  /** Categories keyed to the original log index, independent of round and filter selection. */
+  logEventCategories?: Readonly<Partial<Record<number, Exclude<BattleLogEventCategory, "order-shifts">>>>;
   roundLogBoundaries?: readonly BattleRoundLogBoundary[];
   orderShiftLog?: readonly BattleOrderShiftLogEntry[];
 };

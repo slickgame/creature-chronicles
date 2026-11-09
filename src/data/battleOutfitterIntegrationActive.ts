@@ -3,6 +3,7 @@ import {
   BATTLE_OUTFITTER_ITEMS,
   getBattleOutfitterStock,
 } from "@/data/battleOutfitter";
+import { appendBattleLog } from "@/data/battleLog";
 import type { BattleState, BattleStatusStack } from "@/types/battle";
 import type { GameSave } from "@/types/save";
 
@@ -69,14 +70,10 @@ export function applyTeamTacticsKit(
 
   return {
     save: nextSave,
-    state: {
-      ...state,
-      combatants,
-      log: [
-        ...state.log,
-        "Team Tactics Kit activated: the ranch team starts Inspired and gains 10 current and maximum Battle Energy.",
-      ],
-    },
+    state: appendBattleLog({ ...state, combatants }, [{
+      text: "Team Tactics Kit activated: the ranch team starts Inspired and gains 10 current and maximum Battle Energy.",
+      category: "status-changes",
+    }]),
     ok: true,
     message: "Team Tactics Kit activated for this battle.",
   };

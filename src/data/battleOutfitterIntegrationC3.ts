@@ -2,6 +2,7 @@ import {getEquipmentSet,equipmentSetProgress,equipmentSetRates,type EquipmentSet
 import { getEquippedCopy } from "./equipmentInstances";
 import { equipmentStats } from "./equipmentEnhancement";
 import * as active from "./battleOutfitterIntegrationActive";
+import { appendBattleLog, type BattleLogEntry } from "@/data/battleLog";
 import {
   BATTLE_OUTFITTER_ITEMS,
   getBattleLoadout,
@@ -135,15 +136,19 @@ export function applyBattleOutfitterLoadouts(save: GameSave, state: BattleState)
 
 /** Called at battle creation, after gauntlet carryover when applicable. Never reapplied per round. */
 export function applyEquipmentOpeningPassives(save: GameSave, state: BattleState): BattleState {
-  const log = [...state.log];
+  const logged = new Set(state.log);
+  const entries: BattleLogEntry[] = [];
   const combatants = Object.fromEntries(Object.entries(state.combatants).map(([id, combatant]) => {
     if (combatant.sideId !== "player" || !Object.values(getBattleLoadout(save, combatant.sourceCreatureId).equipment).includes("champion_harness")) return [id, combatant];
     const existing = combatant.statuses.find(s => s.status === "guarded");
     const message = `${combatant.name}: Champion’s Resolve grants Guarded for the opening round.`;
-    if (!log.includes(message)) log.push(message);
+    if (!logged.has(message)) {
+      logged.add(message);
+      entries.push({ text: message, category: "status-changes" });
+    }
     return [id, { ...combatant, statuses: [...combatant.statuses.filter(s => s.status !== "guarded"), { ...existing, status: "guarded" as const, duration: Math.max(existing?.duration ?? 0, 1) }] }];
   })) as BattleState["combatants"];
-  return { ...state, combatants, log };
+  return appendBattleLog({ ...state, combatants }, entries);
 }
 
 export const TEAM_TACTICS_KIT_ID = active.TEAM_TACTICS_KIT_ID;

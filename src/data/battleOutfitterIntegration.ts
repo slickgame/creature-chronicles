@@ -5,6 +5,8 @@ import {
   type BattleOutfitterItem,
   type BattleOutfitterItemId,
 } from "@/data/battleOutfitter";
+import { getBattleStatusGlossary } from "@/data/battleGlossary";
+import { appendBattleLog, type BattleLogEntry } from "@/data/battleLog";
 import type {
   BattleCombatant,
   BattleCombatantId,
@@ -206,14 +208,10 @@ export function applyTeamTacticsKit(
 
   return {
     save: nextSave,
-    state: {
-      ...state,
-      combatants,
-      log: [
-        ...state.log,
-        "Team Tactics Kit activated: the ranch team starts Inspired and gains 10 Battle Energy.",
-      ],
-    },
+    state: appendBattleLog({ ...state, combatants }, [{
+      text: "Team Tactics Kit activated: the ranch team starts Inspired and gains 10 Battle Energy.",
+      category: "status-changes",
+    }]),
     ok: true,
     message: "Team Tactics Kit activated for this battle.",
   };
@@ -295,18 +293,20 @@ export function useRevivalSalve(
     statuses: [],
     isFainted: false,
   };
+  const entries: BattleLogEntry[] = [`${target.name} was revived with a Revival Salve at 35% HP.`];
+  const clearedStatuses = [...new Set(target.statuses.filter(status => status.duration > 0).map(status => status.status))];
+  if (clearedStatuses.length) {
+    const labels = clearedStatuses.map(status => getBattleStatusGlossary(status).label);
+    entries.push({ text: `${target.name}: Revival Salve cleared ${labels.join(", ")}.`, category: "status-changes" });
+  }
 
   return {
     save: nextSave,
-    state: {
+    state: appendBattleLog({
       ...state,
       outcome: "ongoing",
       combatants: { ...state.combatants, [targetId]: nextTarget },
-      log: [
-        ...state.log,
-        `${target.name} was revived with a Revival Salve at 35% HP.`,
-      ],
-    },
+    }, entries),
     ok: true,
     message: `${target.name} returned to the battle. +${nextTarget.currentHp - target.currentHp} HP`,
   };

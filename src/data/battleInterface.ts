@@ -11,6 +11,8 @@ import { getBattleTurnScore } from "@/data/battleStats";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatusStack } from "@/types/battle";
 
+export { getBattleLogEventCategory } from "@/data/battleLog";
+
 export const BATTLE_MENU_CATEGORIES = ["All", "Attack", "Support", "Recovery"] as const;
 export type BattleMenuCategory = typeof BATTLE_MENU_CATEGORIES[number];
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createBattleState, resolveBattleTurn } from "@/data/battleEngine";
+import { getBattleLogEventCategory } from "@/data/battleLog";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
 
 test("round-end playback records actual Bleed damage, expiries, and Battle Energy recovery in order", () => {
@@ -56,4 +57,17 @@ test("round-end playback records actual Bleed damage, expiries, and Battle Energ
   assert.equal(resolved.state.combatants[affectedId].currentBattleEnergy, 0);
   assert.ok(resolved.result.log.some(line => line.endsWith("regenerates 1 Battle Energy.")));
   assert.equal(resolved.state.roundNumber, state.roundNumber + 1);
+
+  const { state: settled } = resolved;
+  const affectedName = state.combatants[affectedId].name;
+  const persistentName = state.combatants[persistentId].name;
+  assert.deepEqual(settled.log.flatMap((line, index) => {
+    const category = getBattleLogEventCategory(settled, index);
+    return category ? [[category, line]] : [];
+  }), [
+    ["knockouts", `${affectedName} fainted.`],
+    ["status-changes", `${affectedName}: Bleed, Slowed expired.`],
+    ["status-changes", `${persistentName}: Inspired expired.`],
+  ]);
+  assert.equal(state.logEventCategories, undefined);
 });
