@@ -395,7 +395,7 @@ export type BattleRoundResult = {
 
 export type BattleOrderShiftReason =
   | { kind: "passed" | "passed-by"; actorId: BattleCombatantId; tied?: true }
-  | { kind: "speed-effect"; status: BattleStatusId; result: "applied" | "changed" | "cleared" | "wore-off" | "stack-wore-off" };
+  | { kind: "speed-effect"; status: BattleStatusId; result: "applied" | "changed" | "cleared" | "wore-off" | "stack-wore-off"; sourceMoveLogIndex?: number };
 
 export type BattleOrderShiftLogEntry = {
   logIndex: number;
@@ -425,6 +425,8 @@ export type BattleMoveLogStatus = {
   stat?: BattleStatKey;
   amount?: number;
   attemptedClear?: true;
+  /** This status's contribution to Speed before and after a resolved move effect. */
+  speedModifierChange?: { before: number; after: number };
 };
 
 export type BattleMoveLogTarget = {

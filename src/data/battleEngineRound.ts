@@ -758,6 +758,11 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
               ...(effect.type === "cleanse_status" ? { attemptedClear: true } : {}),
             };
           }
+          if (status && status.result !== "failed") {
+            const beforeSpeed = getBattleSpeedStatusModifiers(currentTarget).get(status.status) ?? 0;
+            const afterSpeed = getBattleSpeedStatusModifiers(after).get(status.status) ?? 0;
+            if (beforeSpeed !== afterSpeed) status.speedModifierChange = { before: beforeSpeed, after: afterSpeed };
+          }
           input.onLogEffect(currentTarget, {
             hpDelta: hp,
             battleEnergyDelta: energy,

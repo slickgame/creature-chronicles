@@ -10,7 +10,7 @@ import {
   type BattleStatusApplicationPreview,
 } from "@/data/battleEngine";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
-import type { BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState, BattleStatusStack } from "@/types/battle";
+import type { BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleMoveLogGroup, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState, BattleStatusId, BattleStatusStack } from "@/types/battle";
 
 export { getBattleLogEventCategory } from "@/data/battleLog";
 export { getBattleOrderPreview, getBattleRoundEndForecastWithOrder } from "@/data/battleEngine";
@@ -109,7 +109,27 @@ type BattleOrderShiftContext = {
   beforeRecovery: BattleState;
 };
 
-function getSettledSpeedEffectReasons(previous: BattleCombatant, beforeRecovery: BattleCombatant, settled: BattleCombatant) {
+function getSpeedEffectSource(
+  moves: readonly BattleMoveLogGroup[], actorId: BattleCombatantId, status: BattleStatusId, before: number, after: number,
+) {
+  let source: number | undefined;
+  let current = before;
+  for (const move of moves) {
+    const target = move.targets.find(target => target.targetId === actorId);
+    for (const effect of target?.statuses ?? []) {
+      const change = effect.speedModifierChange;
+      if (effect.status !== status || effect.result === "failed" || !change || change.before === change.after) continue;
+      if (change.before !== current || (source !== undefined && source !== move.logIndex)) return undefined;
+      current = change.after;
+      source = move.logIndex;
+    }
+  }
+  return current === after ? source : undefined;
+}
+
+function getSettledSpeedEffectReasons(
+  previous: BattleCombatant, beforeRecovery: BattleCombatant, settled: BattleCombatant, moves: readonly BattleMoveLogGroup[],
+) {
   const opening = getBattleSpeedStatusModifiers(previous);
   const interim = getBattleSpeedStatusModifiers(beforeRecovery);
   const recovered = getBattleSpeedStatusModifiers(settled);
@@ -123,7 +143,8 @@ function getSettledSpeedEffectReasons(previous: BattleCombatant, beforeRecovery:
     if (before !== mid) {
       const result = !hasBattleStatus(previous, status) ? "applied"
         : !hasBattleStatus(beforeRecovery, status) ? "cleared" : "changed";
-      reasons.push({ kind: "speed-effect", status, result });
+      const sourceMoveLogIndex = getSpeedEffectSource(moves, previous.battleCombatantId, status, before, mid);
+      reasons.push({ kind: "speed-effect", status, result, ...(sourceMoveLogIndex !== undefined ? { sourceMoveLogIndex } : {}) });
     }
     if (mid !== after) {
       reasons.push({ kind: "speed-effect", status, result: hasBattleStatus(settled, status) ? "stack-wore-off" : "wore-off" });
@@ -138,6 +159,8 @@ export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOr
       state.orderShiftLog?.some(entry => entry.roundNumber === shift.roundNumber)) return state;
 
   const settledSpeeds = context && new Map(shift.after.map(actorId => [actorId, getEffectiveBattleStats(state.combatants[actorId]).speed]));
+  const roundMoves = context && state.moveLog?.filter(move => move.roundNumber === context.previous.roundNumber
+    && move.logIndex >= context.previous.log.length && move.endLogIndex <= state.log.length);
   const moves: BattleOrderShiftLogEntry["moves"] = shift.after.flatMap((actorId, to) => {
     const from = shift.before.indexOf(actorId);
     if (from < 0 || from === to) return [];
@@ -149,7 +172,7 @@ export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOr
 
     const beforeSpeed = getEffectiveBattleStats(previous).speed;
     const speed = beforeSpeed !== afterSpeed ? { before: beforeSpeed, after: afterSpeed } : undefined;
-    const reasons = speed ? getSettledSpeedEffectReasons(previous, beforeRecovery, state.combatants[actorId]) : [];
+    const reasons = speed ? getSettledSpeedEffectReasons(previous, beforeRecovery, state.combatants[actorId], roundMoves ?? []) : [];
     for (const [previousIndex, otherId] of shift.before.entries()) {
       const wasAhead = previousIndex < from;
       if (wasAhead === (shift.after.indexOf(otherId) < to)) continue;

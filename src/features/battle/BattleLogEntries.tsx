@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 
 import { getBattleLogEventCategory } from "@/data/battleInterface";
 import { getOrderShiftDetails, type BattleLogSearchResult } from "@/data/battleLogSearch";
 import { gameplayArt } from "@/data/creatureGameplayArt";
-import type { BattleLogEventCategory, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
+import type { BattleCombatantId, BattleLogEventCategory, BattleMoveLogGroup, BattleMoveLogTarget, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
 import { BattleLogTargetCards } from "./BattleLogTargetCards";
@@ -15,10 +15,14 @@ const LOG_FILTERS: ReadonlyArray<{ category: BattleLogEventCategory; label: stri
   { category: "order-shifts", label: "Order shifts" },
 ];
 
-function OrderShiftDetails({ move, combatants, match }: {
+type BattleLogJump = Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & { query: string; sourceTargetId?: BattleCombatantId };
+
+function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }: {
   move: BattleOrderShiftLogEntry["moves"][number];
   combatants: BattleState["combatants"];
+  moveGroups: ReadonlyMap<number, BattleMoveLogGroup>;
   match?: { detailId: string; query: string; targetId: string };
+  onViewSource: (group: BattleMoveLogGroup, target: BattleMoveLogTarget) => void;
 }) {
   const details = getOrderShiftDetails(move, combatants);
   if (!details.length) return null;
@@ -26,12 +30,19 @@ function OrderShiftDetails({ move, combatants, match }: {
   return <ul className={s.shiftReasons} role="list" aria-label={`${name} shift details`}>
     {details.map(detail => {
       const selected = match?.detailId === detail.id;
+      const source = detail.sourceMoveLogIndex === undefined ? undefined : moveGroups.get(detail.sourceMoveLogIndex);
+      const sourceTarget = source?.targets.find(target => target.targetId === move.actorId);
       return <li key={detail.id} id={selected ? match.targetId : undefined} tabIndex={selected ? -1 : undefined}
         aria-label={selected ? `${name} · ${detail.text}` : undefined}
         data-search-jump={selected ? "" : undefined} data-order-shift-detail-match={selected ? "" : undefined}
         data-order-shift-speed={detail.kind === "speed" ? "" : undefined}
         data-order-shift-reason={detail.kind === "speed" ? undefined : detail.kind}>
         {selected ? <BattleLogSearchText text={detail.text} query={match.query}/> : detail.text}
+        {source && sourceTarget && <>{" "}<button type="button" className={s.shiftSource} data-order-shift-source={source.logIndex}
+          aria-label={`View ${source.moveName} in Round ${source.roundNumber} Battle Log`}
+          onClick={() => onViewSource(source, sourceTarget)}>
+          {source.moveName} <span aria-hidden="true">›</span>
+        </button></>}
       </li>;
     })}
   </ul>;
@@ -46,7 +57,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
   const [selectedRound, setSelectedRound] = useState(initialOrderShift?.roundNumber);
   const [filters, setFilters] = useState<BattleLogEventCategory[]>([]);
   const [openPanel, setOpenPanel] = useState<"filters" | "search">();
-  const [jump, setJump] = useState<(Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & { query: string }) | undefined>(
+  const [jump, setJump] = useState<BattleLogJump | undefined>(
     () => initialOrderShift ? { index: initialOrderShift.logIndex, query: "" } : undefined,
   );
   const [openMoves, setOpenMoves] = useState<Partial<Record<number, boolean>>>({});
@@ -80,7 +91,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
       const detail = jump.orderShiftDetail ? document.getElementById(`${targetId}-detail`) : null;
       const target = detail ?? document.getElementById(targetId);
       target?.focus({ preventScroll: true });
-      target?.scrollIntoView({ block: "nearest" });
+      target?.scrollIntoView({ block: jump.sourceTargetId === undefined ? "nearest" : "start" });
     });
     return () => cancelAnimationFrame(frame);
   }, [entryId, jump, playback]);
@@ -108,15 +119,25 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
     return category !== undefined && filters.includes(category);
   }
 
+  function viewOrderShiftSource(group: BattleMoveLogGroup, target: BattleMoveLogTarget) {
+    if (isFiltered && !target.logIndexes.some(matchesEventFilter)) setFilters([]);
+    setSelectedRound(group.roundNumber);
+    setOpenPanel(undefined);
+    setOpenMoves(current => ({ ...current, [group.logIndex]: true }));
+    setJump({ index: group.logIndex, query: "", sourceTargetId: target.targetId });
+  }
+
   function logEntryProps(index: number) {
     const selected = jump?.index === index;
-    const orderShiftJump = selected && !jump.query;
+    const sourceJump = selected && jump.sourceTargetId !== undefined;
+    const orderShiftJump = selected && !jump.query && !sourceJump;
     return {
       id: `${entryId}-${index}`,
       "data-battle-log-entry": index,
       "data-battle-log-event": getBattleLogEventCategory(state, index),
       "data-search-jump": selected && jump.query && !jump.orderShiftDetail ? "" : undefined,
       "data-order-shift-jump": orderShiftJump ? "" : undefined,
+      "data-order-shift-source-jump": sourceJump ? "" : undefined,
       "data-initial-focus": orderShiftJump ? "" : undefined,
       tabIndex: selected ? -1 : undefined,
     };
@@ -155,7 +176,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
               <span data-order-shift-slots aria-hidden="true">{from} → {to}</span>
               <span className={s.slotDescription}>Slot {from} to slot {to}</span>
             </span>
-            <OrderShiftDetails move={move} combatants={state.combatants}
+            <OrderShiftDetails move={move} combatants={state.combatants} moveGroups={moveGroups} onViewSource={viewOrderShiftSource}
               match={detailJump?.actorId === actorId ? detailJump : undefined}/>
           </li>;
         })}
@@ -190,7 +211,9 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
       : group.targets;
     const expanded = openMoves[moveIndex] ?? isFiltered;
     const notesOpen = openNotes[moveIndex] ?? isFiltered;
-    const highlightedTarget = jump && targets.find(target => target.logIndexes.includes(jump.index));
+    const highlightedTarget = jump && (jump.sourceTargetId && jump.index === moveIndex
+      ? targets.find(target => target.targetId === jump.sourceTargetId)
+      : targets.find(target => target.logIndexes.includes(jump.index)));
 
     entries.push(
       <BattleLogTargetCards key={moveIndex} group={group} targets={targets} combatants={state.combatants}

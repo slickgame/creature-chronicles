@@ -17,7 +17,12 @@ const SPEED_EFFECT_RESULTS = {
   "stack-wore-off": "stack wore off",
 } as const;
 
-type OrderShiftDetail = { id: string; kind: "speed" | BattleOrderShiftReason["kind"]; text: string };
+type OrderShiftDetail = {
+  id: string;
+  kind: "speed" | BattleOrderShiftReason["kind"];
+  text: string;
+  sourceMoveLogIndex?: number;
+};
 
 export function getOrderShiftDetails(
   move: BattleOrderShiftLogEntry["moves"][number],
@@ -31,7 +36,8 @@ export function getOrderShiftDetails(
     const id = `reason-${index}`;
     if (reason.kind === "speed-effect") {
       const label = getBattleStatusGlossary(reason.status).label;
-      details.push({ id, kind: reason.kind, text: `${label} ${SPEED_EFFECT_RESULTS[reason.result]}` });
+      details.push({ id, kind: reason.kind, text: `${label} ${SPEED_EFFECT_RESULTS[reason.result]}`,
+        ...(reason.sourceMoveLogIndex !== undefined ? { sourceMoveLogIndex: reason.sourceMoveLogIndex } : {}) });
       return;
     }
     const other = combatants[reason.actorId]?.name;

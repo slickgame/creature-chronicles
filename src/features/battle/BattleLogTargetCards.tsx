@@ -13,6 +13,7 @@ type HeadingProps = Pick<ComponentPropsWithoutRef<"button">, "id" | "tabIndex"> 
   "data-battle-log-entry"?: number;
   "data-battle-log-event"?: string;
   "data-search-jump"?: string;
+  "data-order-shift-source-jump"?: string;
 };
 
 function countLabel(count: number, singular: string, plural = `${singular}s`) {
