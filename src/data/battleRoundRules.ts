@@ -1,6 +1,7 @@
 import { getBattleSpeciesProfile } from "@/data/battleProfiles";
 import type {
   BattleDamageModifierStep,
+  BattleEffectChanceBreakdown,
   BattleHitChanceBreakdown,
   BattleHitChanceModifier,
   BattleMove,
@@ -87,13 +88,31 @@ export function calculateBattleSecondaryEffectChance(
   defenderStats: BattleStats,
   baseChance: number,
 ): number {
-  if (baseChance >= 100) return 100;
-  const statusAdjustment = clamp(
-    Math.round((attackerStats.statusPower - defenderStats.statusResist) * 0.5),
-    -20,
-    20,
-  );
-  return clamp(baseChance + statusAdjustment, 5, 95);
+  return getBattleSecondaryEffectChanceBreakdown(baseChance, {
+    statusPower: attackerStats.statusPower,
+    statusResist: defenderStats.statusResist,
+  }).effectChance;
+}
+
+export function getBattleSecondaryEffectChanceBreakdown(
+  baseChance: number,
+  matchupStats?: Pick<BattleStats, "statusPower" | "statusResist">,
+): BattleEffectChanceBreakdown {
+  if (baseChance >= 100) {
+    return { mode: "guaranteed", baseChance, unclampedChance: baseChance, effectChance: 100 };
+  }
+  if (!matchupStats) {
+    const bounds = { min: 0, max: 100 };
+    return { mode: "friendly", baseChance, unclampedChance: baseChance, effectChance: clamp(baseChance, bounds.min, bounds.max), bounds };
+  }
+  const rawAdjustment = Math.round((matchupStats.statusPower - matchupStats.statusResist) * 0.5);
+  const matchup = { ...matchupStats, rawAdjustment, adjustment: clamp(rawAdjustment, -20, 20), min: -20, max: 20 };
+  const bounds = { min: 5, max: 95 };
+  const unclampedChance = baseChance + matchup.adjustment;
+  return {
+    mode: "hostile", baseChance, unclampedChance,
+    effectChance: clamp(unclampedChance, bounds.min, bounds.max), bounds, matchup,
+  };
 }
 
 export type BattleDamageModifierFactor = Omit<BattleDamageModifierStep, "damageBefore" | "damageAfter"> & {

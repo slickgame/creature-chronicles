@@ -275,6 +275,23 @@ export type BattleHitChanceBreakdown = {
   hitChance: number;
 };
 
+export type BattleEffectChanceBreakdown = {
+  mode: "hostile" | "friendly" | "guaranteed";
+  baseChance: number;
+  effectChance: number;
+  unclampedChance: number;
+  bounds?: { min: number; max: number };
+  matchup?: {
+    statusPower: number;
+    statusResist: number;
+    /** The rounded adjustment in percentage points before its own cap. */
+    rawAdjustment: number;
+    adjustment: number;
+    min: number;
+    max: number;
+  };
+};
+
 export type BattleHealingPreview = {
   baseHealing: number;
   scalingBonus: number;
