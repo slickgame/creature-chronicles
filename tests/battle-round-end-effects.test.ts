@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createBattleState, resolveBattleTurn } from "@/data/battleEngine";
+import { createBattleState, getBattleStatusTimingForecast, previewBattleAction, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleLogEventCategory } from "@/data/battleLog";
+import type { BattleStatusStack } from "@/types/battle";
 import { createNewGameSave } from "./helpers/establishedSave.ts";
 
 test("round-end playback records actual Bleed damage, expiries, and Battle Energy recovery in order", () => {
@@ -70,4 +71,85 @@ test("round-end playback records actual Bleed damage, expiries, and Battle Energ
     ["status-changes", `${persistentName}: Inspired expired.`],
   ]);
   assert.equal(state.logEventCategories, undefined);
+});
+
+function createTimingFixture() {
+  const [caster, defender] = createNewGameSave("Status timing", 0).creatures!;
+  const state = createBattleState({
+    battleId: "status-timing-20",
+    playerCreatures: [{ ...caster, creatureId: "timing-caster" }],
+    enemyCreatures: [{ ...defender, creatureId: "timing-defender" }],
+  });
+  state.roundNumber = 4;
+  const [actorId] = state.teams.player.combatantIds;
+  const [targetId] = state.teams.enemy.combatantIds;
+  return { state, actorId, targetId };
+}
+
+test("status timing counts this round and preserves legacy duration and Bleed defaults", () => {
+  const { state, targetId } = createTimingFixture();
+  const target = state.combatants[targetId];
+  target.currentHp = 20;
+  const bleed: BattleStatusStack = { status: "bleed", duration: 2.5 };
+  const short: BattleStatusStack = { status: "weakened", stat: "physicalPower", duration: 1 };
+  const long: BattleStatusStack = { status: "weakened", stat: "specialPower", duration: 2 };
+  const inactive: BattleStatusStack = { status: "marked", duration: 0 };
+  target.statuses = [bleed, long, short, inactive];
+  const before = structuredClone(state);
+
+  assert.deepEqual(getBattleStatusTimingForecast(state, targetId, bleed), {
+    expiresAfterRound: 6,
+    nextBleed: { roundNumber: 4, damage: 5, hpBefore: 20, hpAfter: 15, knockedOut: false },
+  });
+  assert.deepEqual(getBattleStatusTimingForecast(state, targetId, { ...short }), { expiresAfterRound: 4 });
+  assert.deepEqual(getBattleStatusTimingForecast(state, targetId, long), { expiresAfterRound: 5 });
+  assert.equal(getBattleStatusTimingForecast(state, targetId, inactive), undefined);
+  assert.deepEqual(state, before);
+});
+
+test("a move forecasts its Bleed tick from final projected HP and omits expiry on a knockout", () => {
+  const { state, actorId, targetId } = createTimingFixture();
+  const actor = state.combatants[actorId];
+  actor.loadout = { ...actor.loadout, equippedMoveIds: ["strike", "razor_swipe"], learnedMoveIds: ["strike", "razor_swipe"] };
+  Object.assign(actor.battleStats, { accuracy: 1000, statusPower: 1000, physicalPower: 30 });
+  const action = { actorId, moveId: "razor_swipe", targetIds: [targetId] };
+  const damage = previewBattleAction(state, action).find(row => row.effectType === "damage")?.damageBreakdown;
+  assert.ok(damage);
+  state.combatants[targetId].currentHp = damage.finalDamage + 2;
+  const projected = previewBattleAction(state, action).find(row => row.statusApplication?.stack.status === "bleed");
+  assert.equal(projected?.hpAfter, 2);
+  assert.deepEqual(projected?.statusApplication?.timing, {
+    nextBleed: { roundNumber: 4, damage: 2, hpBefore: 2, hpAfter: 0, knockedOut: true },
+  });
+  const differentSeed = previewBattleAction({ ...state, battleId: "status-timing-0" }, action).find(row => row.statusApplication);
+  assert.deepEqual(differentSeed?.statusApplication?.timing, projected?.statusApplication?.timing);
+
+  const resolved = resolveBattleTurn(state, [actorId], action);
+  assert.ok(resolved);
+  assert.deepEqual(resolved.frames.find(frame => frame.roundEndEffect?.kind === "bleed")?.roundEndEffect, { kind: "bleed", stacks: 1, hpLost: 2 });
+  assert.equal(resolved.state.outcome, "player_won");
+
+  state.combatants[targetId].currentHp = 1;
+  assert.ok(previewBattleAction(state, action).every(row => !row.statusApplication));
+});
+
+test("ending battle during recovery allows same-round expiry but prevents a later one", () => {
+  const { state, actorId, targetId } = createTimingFixture();
+  const actor = state.combatants[actorId];
+  const short: BattleStatusStack = { status: "inspired", duration: 1 };
+  const long: BattleStatusStack = { status: "guarded", duration: 2 };
+  actor.statuses = [short, long];
+  const target = state.combatants[targetId];
+  target.currentHp = 2;
+  target.statuses = [{ status: "bleed", duration: 2 }];
+
+  assert.deepEqual(getBattleStatusTimingForecast(state, actorId, short), { expiresAfterRound: 4 });
+  assert.equal(getBattleStatusTimingForecast(state, actorId, long), undefined);
+
+  actor.battleStats.accuracy = 1000;
+  const directVictory = previewBattleAction(state, { actorId, moveId: "protective_lunge", targetIds: [targetId] });
+  assert.equal(directVictory.find(row => row.effectType === "damage")?.hpAfter, 0);
+  const guard = directVictory.find(row => row.statusApplication?.stack.status === "guarded")?.statusApplication;
+  assert.ok(guard);
+  assert.equal(guard.timing, undefined);
 });

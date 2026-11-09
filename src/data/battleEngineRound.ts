@@ -1095,6 +1095,78 @@ function tickEndOfRound(state: BattleState, onFrame?: (frame: BattlePlaybackFram
   return { state: nextState, entries };
 }
 
+type BattleBleedTickForecast = {
+  roundNumber: number;
+  /** HP lost on the tick, capped by the target's remaining HP. */
+  damage: number;
+  hpBefore: number;
+  hpAfter: number;
+  knockedOut: boolean;
+};
+
+export type BattleStatusTimingForecast = {
+  /** Scheduled expiry, counting the current round, if the battle and target permit it. */
+  expiresAfterRound?: number;
+  nextBleed?: BattleBleedTickForecast;
+};
+
+function projectNextRecovery(state: BattleState) {
+  if (state.outcome !== "ongoing" || core.getBattleOutcome(state) !== "ongoing") return undefined;
+  const bleedTicks = new Map<BattleCombatantId, BattleBleedTickForecast[]>();
+  const recovery = tickEndOfRound(state, frame => {
+    const effect = frame.roundEndEffect;
+    if (effect?.kind !== "bleed") return;
+    const [targetId] = frame.targetIds;
+    const after = frame.state.combatants[targetId];
+    const ticks = bleedTicks.get(targetId) ?? [];
+    ticks.push({
+      roundNumber: state.roundNumber,
+      damage: effect.hpLost,
+      hpBefore: after.currentHp + effect.hpLost,
+      hpAfter: after.currentHp,
+      knockedOut: after.isFainted,
+    });
+    bleedTicks.set(targetId, ticks);
+  });
+  return { combatants: recovery.state.combatants, endsBattle: core.getBattleOutcome(recovery.state) !== "ongoing", bleedTicks };
+}
+
+function getStatusTimingFromRecovery(
+  state: BattleState,
+  targetId: BattleCombatantId,
+  stack: BattleStatusStack,
+  recovery: NonNullable<ReturnType<typeof projectNextRecovery>>,
+): BattleStatusTimingForecast | undefined {
+  const target = state.combatants[targetId];
+  if (!target || target.isFainted) return undefined;
+  const exactIndex = target.statuses.indexOf(stack);
+  const index = exactIndex >= 0 ? exactIndex : target.statuses.findIndex(entry => entry.status === stack.status && entry.stat === stack.stat);
+  const active = target.statuses[index];
+  if (!active || !Number.isFinite(active.duration) || active.duration <= 0) return undefined;
+
+  const timing: BattleStatusTimingForecast = {};
+  if (active.status === "bleed") {
+    const bleedIndex = target.statuses.slice(0, index).filter(entry => entry.status === "bleed").length;
+    const tick = recovery.bleedTicks.get(targetId)?.[bleedIndex];
+    if (tick) timing.nextBleed = tick;
+  }
+  const roundsRemaining = Math.ceil(active.duration);
+  if (!recovery.combatants[targetId].isFainted && (roundsRemaining === 1 || !recovery.endsBattle)) {
+    timing.expiresAfterRound = state.roundNumber + roundsRemaining - 1;
+  }
+  return timing.nextBleed || timing.expiresAfterRound !== undefined ? timing : undefined;
+}
+
+/** Project the next recovery without assuming any intervening actions or rolling any odds. */
+export function getBattleStatusTimingForecast(
+  state: BattleState,
+  targetId: BattleCombatantId,
+  stack: BattleStatusStack,
+): BattleStatusTimingForecast | undefined {
+  const recovery = projectNextRecovery(state);
+  return recovery ? getStatusTimingFromRecovery(state, targetId, stack, recovery) : undefined;
+}
+
 function buildActionQueue(
   state: BattleState,
   requestedActions: readonly BattleAction[],
@@ -1248,6 +1320,7 @@ export function resolveBattleTurn(
 export type BattleStatusApplicationPreview = {
   stack: BattleStatusStack;
   previousStack?: BattleStatusStack;
+  timing?: BattleStatusTimingForecast;
   mode: BattleStatusApplicationResult["mode"];
   requiresHit: boolean;
   hitChance: number;
@@ -1396,11 +1469,15 @@ export function previewBattleAction(state: BattleState, action: BattleAction): B
     });
     projected = result.state;
   });
+  const recovery = entries.some(entry => entry.statusApplication) ? projectNextRecovery(projected) : undefined;
   for (const entry of entries) {
     if (!entry.statusApplication) continue;
     const target = projected.combatants[entry.targetId];
     if (target.isFainted || !target.statuses.includes(entry.statusApplication.stack)) {
       delete entry.statusApplication;
+    } else if (recovery) {
+      const timing = getStatusTimingFromRecovery(projected, entry.targetId, entry.statusApplication.stack, recovery);
+      if (timing) entry.statusApplication.timing = timing;
     }
   }
   return entries;

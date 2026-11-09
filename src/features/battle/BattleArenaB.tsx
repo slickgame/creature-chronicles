@@ -247,7 +247,9 @@ function HitChanceBreakdown({ breakdown, effects, name, targetId }: {
 }
 
 function StatusApplicationForecast({ application }: { application: BattleStatusApplicationPreview }) {
-  const { mode, previousStack, stack } = application;
+  const { mode, previousStack, stack, timing } = application;
+  const nextBleed = timing?.nextBleed;
+  const expiresAfterRound = timing?.expiresAfterRound;
   const stacks = stack.stacks ?? 1;
   const previousStacks = previousStack ? Math.max(1, previousStack.stacks ?? 1) : 0;
   const durationChanged = previousStack && previousStack.duration !== stack.duration;
@@ -257,10 +259,19 @@ function StatusApplicationForecast({ application }: { application: BattleStatusA
   const stackLabel = previousStack && stacks !== previousStacks ? `${previousStacks} → ${stacks} stacks`
     : mode === "refreshed" ? `${stacks}/${stack.maxStacks ?? stacks} stacks`
     : `${stacks} ${stacks === 1 ? "stack" : "stacks"}`;
-  return <div data-status-forecast={mode}>
-    <dt>{changeLabel} <small>· {stackLabel}</small></dt>
-    <dd>{durationChanged && `${previousStack.duration} → `}{stack.duration} {stack.duration === 1 ? "round" : "rounds"}</dd>
-  </div>;
+  return <>
+    <div data-status-forecast={mode}>
+      <dt>{changeLabel} <small>· {stackLabel}</small></dt>
+      <dd>{durationChanged && `${previousStack.duration} → `}{stack.duration} {stack.duration === 1 ? "round" : "rounds"}</dd>
+    </div>
+    {nextBleed && <div data-status-timing="bleed">
+      <dt>Next Bleed tick <small>· Round {nextBleed.roundNumber} end</small></dt>
+      <dd data-direction="down">−{nextBleed.damage} HP{nextBleed.knockedOut && <small>· K.O.</small>}</dd>
+    </div>}
+    {expiresAfterRound !== undefined && <div data-status-timing="expiry">
+      <dt>Expires</dt><dd>Round {expiresAfterRound} end</dd>
+    </div>}
+  </>;
 }
 
 function EffectRollSteps({ breakdown }: { breakdown: NonNullable<EffectForecast["effectChanceBreakdown"]> }) {
