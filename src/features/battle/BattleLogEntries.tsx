@@ -37,15 +37,18 @@ function OrderShiftDetails({ move, combatants, match }: {
   </ul>;
 }
 
-export function BattleLogEntries({ state, sourceById, playback = false }: {
+export function BattleLogEntries({ state, sourceById, playback = false, initialOrderShift }: {
   state: BattleState;
   sourceById: ReadonlyMap<string, CreatureRecord>;
   playback?: boolean;
+  initialOrderShift?: Pick<BattleOrderShiftLogEntry, "roundNumber" | "logIndex">;
 }) {
-  const [selectedRound, setSelectedRound] = useState<number>();
+  const [selectedRound, setSelectedRound] = useState(initialOrderShift?.roundNumber);
   const [filters, setFilters] = useState<BattleLogEventCategory[]>([]);
   const [openPanel, setOpenPanel] = useState<"filters" | "search">();
-  const [jump, setJump] = useState<Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & { query: string }>();
+  const [jump, setJump] = useState<(Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & { query: string }) | undefined>(
+    () => initialOrderShift ? { index: initialOrderShift.logIndex, query: "" } : undefined,
+  );
   const [openMoves, setOpenMoves] = useState<Partial<Record<number, boolean>>>({});
   const [openNotes, setOpenNotes] = useState<Partial<Record<number, boolean>>>({});
   const filtersOpen = openPanel === "filters";
@@ -71,11 +74,15 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
 
   useEffect(() => {
     if (!jump || playback) return;
-    const targetId = `${entryId}-${jump.index}`;
-    const detail = jump.orderShiftDetail ? document.getElementById(`${targetId}-detail`) : null;
-    const target = detail ?? document.getElementById(targetId);
-    target?.focus({ preventScroll: true });
-    target?.scrollIntoView({ block: "nearest" });
+    // On initial entry, let the parent dialog open and reset its scroll position first.
+    const frame = requestAnimationFrame(() => {
+      const targetId = `${entryId}-${jump.index}`;
+      const detail = jump.orderShiftDetail ? document.getElementById(`${targetId}-detail`) : null;
+      const target = detail ?? document.getElementById(targetId);
+      target?.focus({ preventScroll: true });
+      target?.scrollIntoView({ block: "nearest" });
+    });
+    return () => cancelAnimationFrame(frame);
   }, [entryId, jump, playback]);
 
   if (playback) return null;
@@ -103,11 +110,14 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
 
   function logEntryProps(index: number) {
     const selected = jump?.index === index;
+    const orderShiftJump = selected && !jump.query;
     return {
       id: `${entryId}-${index}`,
       "data-battle-log-entry": index,
       "data-battle-log-event": getBattleLogEventCategory(state, index),
-      "data-search-jump": selected && !jump.orderShiftDetail ? "" : undefined,
+      "data-search-jump": selected && jump.query && !jump.orderShiftDetail ? "" : undefined,
+      "data-order-shift-jump": orderShiftJump ? "" : undefined,
+      "data-initial-focus": orderShiftJump ? "" : undefined,
       tabIndex: selected ? -1 : undefined,
     };
   }

@@ -12,7 +12,7 @@ import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
-import type { BattleAction, BattleCombatant, BattleCombatantId, BattleGuardImpact, BattleMove, BattleMoveId, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
+import type { BattleAction, BattleCombatant, BattleCombatantId, BattleGuardImpact, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { useBattleOutcomeFade, type BattlePlaybackMotion, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
@@ -711,6 +711,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const state=presentation.displayState??resolvedState;
   const { open }=useNavigation();
   const [popup,setPopup]=useState<"planning"|"statuses"|"inspect"|"order-inspect"|"items"|"log"|"menu"|"order"|"result"|"leave"|"forfeit"|null>(null);
+  const [logShiftTarget, setLogShiftTarget] = useState<Pick<BattleOrderShiftLogEntry, "roundNumber" | "logIndex">>();
   const [reviewClosed,setReviewClosed]=useState(false);
   const [movesOpen,setMovesOpen]=useState(false);
   const [draft,setDraft]=useState<{actorId:string;moveId:string}|null>(null);
@@ -732,6 +733,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const currentEvent=presentation.activeEvent;
   const roundShift = individual ? props.roundOrderShift : undefined;
   const settledShift = roundShift?.roundNumber === state.roundNumber ? roundShift : undefined;
+  const shiftLogEntry = settledShift && !complete
+    ? state.orderShiftLog?.find(entry => entry.roundNumber === settledShift.roundNumber)
+    : undefined;
   const currentActorId = currentEvent?.actorId;
   // The controller already holds next round's queue while the previous round's last action and recovery are playing.
   const sameRound = state.roundNumber === resolvedState.roundNumber;
@@ -956,13 +960,25 @@ export function BattleArenaB(props: BattleArenaBProps) {
     : undefined;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={<BattleLogEntries state={state} sourceById={sourceById}/>}/>;
   return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
-    <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
+    <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>{setLogShiftTarget(undefined);setPopup("log");}}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
     <section className={s.order} aria-label={individual ? "Turn order" : resolving ? "Resolution order" : "Order preview"}
       data-turn-queue={individual ? "" : undefined} data-round-order-shift={settledShift?.roundNumber}>
-      <button className={s.orderHeading} aria-haspopup="dialog" onClick={() => setPopup("order")}>
-        <strong>{individual ? "Full order" : resolving ? currentActorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : "ORDER PREVIEW"}</strong>
-        <small>{individual ? `Round ${state.roundNumber}${settledShift ? " · Shift" : ""}` : resolving ? "" : "Estimate · changes with moves"}</small>
-      </button>
+      <div className={s.orderControls}>
+        <button className={s.orderHeading} aria-haspopup="dialog" onClick={() => setPopup("order")}>
+          <strong>{individual ? "Full order" : resolving ? currentActorId ? "ACTING NOW → UP NEXT" : "ROUND RECOVERY" : "ORDER PREVIEW"}</strong>
+          {!shiftLogEntry && <small>{individual ? `Round ${state.roundNumber}${settledShift ? " · Shift" : ""}` : resolving ? "" : "Estimate · changes with moves"}</small>}
+        </button>
+        {shiftLogEntry && <button type="button" className={s.orderShiftLink} data-order-shift-log-link={shiftLogEntry.roundNumber}
+          aria-label={`View Round ${shiftLogEntry.roundNumber} Order Shift in Battle Log`} aria-haspopup="dialog" aria-disabled={resolving}
+          onClick={event => {
+            if (resolving) return;
+            event.currentTarget.focus({ preventScroll: true });
+            setLogShiftTarget(shiftLogEntry);
+            setPopup("log");
+          }}>
+          Order shift <span aria-hidden="true">›</span>
+        </button>}
+      </div>
       <span className={s.resultAnnouncement} role="status">
         {settledShift && `Round ${settledShift.roundNumber}. ${Array.from(orderMoves, ([id, { from, to }]) =>
           `${state.combatants[id].name} moves ${from > to ? "up" : "down"} ${Math.abs(from - to)} in the order.`).join(" ")}`}
@@ -1206,7 +1222,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         </section>
       </div>
     </GameDialog>}
-    {popup==="log"&&<GameDialog title="Battle Log" dialogClassName={logStyles.logDialog} onClose={()=>setPopup(null)} wide>{resolving&&<p>Playback in progress. The action log appears when playback finishes.</p>}{resolving&&<p>{actionCaption} · {currentEvent?.label}</p>}<BattleLogEntries state={state} sourceById={sourceById} playback={resolving}/></GameDialog>}
+    {popup==="log"&&<GameDialog title="Battle Log" dialogClassName={logStyles.logDialog} onClose={()=>setPopup(null)} wide>{resolving&&<p>Playback in progress. The action log appears when playback finishes.</p>}{resolving&&<p>{actionCaption} · {currentEvent?.label}</p>}<BattleLogEntries state={state} sourceById={sourceById} playback={resolving} initialOrderShift={logShiftTarget}/></GameDialog>}
     {popup==="menu"&&<GameDialog title="Battle Menu" onClose={()=>setPopup(null)}><p role="status">{props.message}</p><div className={s.menuButtons}><button onClick={()=>{setPopup(null);open("menu");}}>Game Menu</button><button onClick={()=>presentation.setSpeed(presentation.speed===1?2:1)}>Animation speed · {presentation.speed}×</button><button aria-pressed={presentation.reducedMotion} onClick={()=>presentation.setReducedMotion(!presentation.reducedMotion)}>Reduced motion · {presentation.reducedMotion?"On":"Off"}</button><button disabled={resolving||recording||complete} onClick={()=>setPopup("forfeit")}>Forfeit & Record Loss</button><button disabled={resolving||recording} onClick={()=>setPopup("leave")}>Leave Without Record</button></div>{props.rules}</GameDialog>}
     {popup==="leave"&&<GameDialog title="Leave Without Record?" onClose={()=>setPopup("menu")}><p>This match grants no result, XP or rewards. Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording} onClick={props.onReturn}>Confirm Leave</button></GameDialog>}
     {popup==="forfeit"&&<GameDialog title="Record a Loss?" onClose={()=>setPopup("menu")}><p>End this match as a defeat and record its result? Items already used remain spent.</p><button onClick={()=>setPopup(null)}>Keep Playing</button><button disabled={resolving||recording||complete} onClick={props.onForfeit}>Confirm Forfeit</button></GameDialog>}
