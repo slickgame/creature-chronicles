@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BATTLE_MENU_CATEGORIES, getBattleMenuOptions, getBattleOrderPreview, getBattleSlowedOrderForecast, type BattleMenuCategory, type BattleMoveBlocker, type BattleRoundOrderShift, type BattleSlowedOrderForecast } from "@/data/battleInterface";
 import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
@@ -308,45 +308,64 @@ function ActiveEffectsDialog({ creature, state, resolving, onClose }: {
 }
 
 function RoundEndForecast({ state }: { state: BattleState }) {
+  const detailsId = useId();
+  const [expanded, setExpanded] = useState(() =>
+    typeof window !== "undefined" && !window.matchMedia("(max-width: 720px), (max-height: 800px)").matches);
   const rows = getBattleRoundEndForecast(state);
+  const knockouts = rows.filter(row => row.knockedOut).length;
   const heading = `Round ${state.roundNumber} end`;
+  const summary = rows.length ? `${rows.length} ${rows.length === 1 ? "creature" : "creatures"} affected` : "No changes forecast";
   return <section className={s.damageBreakdown} aria-label={`${heading} forecast`} data-round-end-forecast>
-    <h3 className={s.damageBreakdownTitle}>{heading}</h3>
-    {rows.length > 0 ? <>
-      <p>Based on current HP, BE, statuses, and cooldowns.</p>
-      <ul className={s.roundEndForecastList}>
-        {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses, energy, battleEnergyAfter, clearedCooldowns }) => {
-          const creature = state.combatants[targetId];
-          return <li key={targetId} data-round-end-target={targetId} data-side={creature.sideId}>
-            <span className={s.roundEndForecastName}>
-              <strong>{creature.name}</strong>
-              <small>{creature.sideId === "player" ? "Ally" : "Rival"}</small>
-            </span>
-            <span className={s.roundEndForecastEffects}>
-              {hpLost > 0 && <span data-round-end-bleed>Bleed <strong>−{hpLost} HP{knockedOut && " · K.O."}</strong></span>}
-              {expiredStatuses.length > 0 && <span data-round-end-expiry>Expires <strong>{expiredStatuses.map(status => getBattleStatusGlossary(status).label).join(", ")}</strong></span>}
-              {energy && <span data-round-end-energy>Recovery <strong>+{energy.after - energy.before} BE</strong> · {energy.before} → {energy.after}</span>}
-              {clearedCooldowns?.length ? <span className={s.roundEndCooldowns} data-round-end-cooldowns>
-                <span>
-                  {clearedCooldowns.length === 1 ? "Cooldown clears" : "Cooldowns clear"}
-                  {!energy && <small> · {battleEnergyAfter} BE after recovery</small>}
-                </span>
-                {clearedCooldowns.map(moveId => {
-                  const move = getBattleMove(moveId);
-                  const shortfall = move.battleEnergyCost - battleEnergyAfter;
-                  return <span key={moveId} data-round-end-move={moveId}>
-                    <strong>{move.name}</strong>{" "}
-                    <small data-round-end-energy-check={shortfall > 0 ? "short" : "covered"}>
-                      {move.battleEnergyCost} BE · {shortfall > 0 ? `${shortfall} BE short` : "Covered"}
-                    </small>
-                  </span>;
-                })}
-              </span> : null}
-            </span>
-          </li>;
-        })}
-      </ul>
-    </> : <p>No Bleed damage, status expiries, BE recovery, or cooldown clears expected.</p>}
+    <h3 className={s.roundEndForecastHeading}>
+      <button type="button" className={`${s.damageBreakdownTitle} ${s.roundEndForecastToggle}`}
+        aria-expanded={expanded} aria-controls={detailsId} data-round-end-toggle
+        onClick={() => setExpanded(current => !current)}>
+        <span className={s.roundEndForecastSummary}>
+          <span>{heading}</span>
+          <small>{summary}{knockouts > 0 && <> · <strong>{knockouts} possible K.O.{knockouts === 1 ? "" : "s"}</strong></>}</small>
+        </span>
+        <span className={s.roundEndForecastAction}>
+          {expanded ? "Hide details" : "Show details"} <span aria-hidden="true">{expanded ? "▴" : "▾"}</span>
+        </span>
+      </button>
+    </h3>
+    <div id={detailsId} hidden={!expanded} data-round-end-details>
+      {rows.length > 0 ? <>
+        <p className={s.roundEndForecastCaption}>Based on current HP, BE, statuses, and cooldowns.</p>
+        <ul className={s.roundEndForecastList}>
+          {rows.map(({ targetId, hpLost, knockedOut, expiredStatuses, energy, battleEnergyAfter, clearedCooldowns }) => {
+            const creature = state.combatants[targetId];
+            return <li key={targetId} data-round-end-target={targetId} data-side={creature.sideId}>
+              <span className={s.roundEndForecastName}>
+                <strong>{creature.name}</strong>
+                <small>{creature.sideId === "player" ? "Ally" : "Rival"}</small>
+              </span>
+              <span className={s.roundEndForecastEffects}>
+                {hpLost > 0 && <span data-round-end-bleed>Bleed <strong>−{hpLost} HP{knockedOut && " · K.O."}</strong></span>}
+                {expiredStatuses.length > 0 && <span data-round-end-expiry>Expires <strong>{expiredStatuses.map(status => getBattleStatusGlossary(status).label).join(", ")}</strong></span>}
+                {energy && <span data-round-end-energy>Recovery <strong>+{energy.after - energy.before} BE</strong> · {energy.before} → {energy.after}</span>}
+                {clearedCooldowns?.length ? <span className={s.roundEndCooldowns} data-round-end-cooldowns>
+                  <span>
+                    {clearedCooldowns.length === 1 ? "Cooldown clears" : "Cooldowns clear"}
+                    {!energy && <small> · {battleEnergyAfter} BE after recovery</small>}
+                  </span>
+                  {clearedCooldowns.map(moveId => {
+                    const move = getBattleMove(moveId);
+                    const shortfall = move.battleEnergyCost - battleEnergyAfter;
+                    return <span key={moveId} data-round-end-move={moveId}>
+                      <strong>{move.name}</strong>{" "}
+                      <small data-round-end-energy-check={shortfall > 0 ? "short" : "covered"}>
+                        {move.battleEnergyCost} BE · {shortfall > 0 ? `${shortfall} BE short` : "Covered"}
+                      </small>
+                    </span>;
+                  })}
+                </span> : null}
+              </span>
+            </li>;
+          })}
+        </ul>
+      </> : <p className={s.roundEndForecastCaption}>No Bleed damage, status expiries, BE recovery, or cooldown clears expected.</p>}
+    </div>
   </section>;
 }
 

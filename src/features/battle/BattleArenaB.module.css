@@ -1733,6 +1733,36 @@
   font-size: clamp(15px, 2vw, 20px);
   overflow-wrap: anywhere;
 }
+.arena dialog .roundEndForecastHeading { margin: 0; }
+.arena dialog .roundEndForecastToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 5px 8px;
+  text-align: start;
+}
+.arena dialog .roundEndForecastToggle:hover { background: linear-gradient(#fbe7bd, #f1ce93); }
+.roundEndForecastSummary { display: grid; min-width: 0; gap: 2px; }
+.roundEndForecastSummary small {
+  color: #62462f;
+  font-size: clamp(12px, 1.35vw, 14px);
+  font-weight: normal;
+}
+.roundEndForecastSummary small strong { color: #882b20; }
+.roundEndForecastAction {
+  flex-shrink: 0;
+  color: #62462f;
+  font-size: clamp(12px, 1.35vw, 14px);
+}
+.arena dialog .roundEndForecastCaption {
+  margin: 0 0 6px;
+  color: #62462f;
+  font-size: 13px;
+  line-height: 1.3;
+}
 .damageBreakdownSteps {
   display: grid;
   margin: 0;
