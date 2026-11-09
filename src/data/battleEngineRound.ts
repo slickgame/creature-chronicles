@@ -1212,10 +1212,35 @@ export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndFor
   return getBattleRoundEndForecastRows(state, projectNextRecovery(state));
 }
 
+type BattleOpeningOrderCrossing = {
+  actorId: BattleCombatantId;
+  kind: "passed" | "passed-by" | "knocked-out";
+  tied?: boolean;
+};
+
+type BattleOpeningOrderEntry = {
+  actorId: BattleCombatantId;
+  speed: number;
+  beforeSlot: number;
+  speedBefore: number;
+  expiredSpeedStatuses: { status: BattleStatusId; remains: boolean }[];
+  crossings: BattleOpeningOrderCrossing[];
+};
+
 export type BattleRoundEndForecastWithOrder = {
   rows: BattleRoundEndForecast[];
-  nextRound?: { roundNumber: number; entries: { actorId: BattleCombatantId; speed: number }[] };
+  nextRound?: { roundNumber: number; entries: BattleOpeningOrderEntry[] };
 };
+
+function getExpiringSpeedStatuses(before: BattleCombatant, after: BattleCombatant): BattleOpeningOrderEntry["expiredSpeedStatuses"] {
+  const statuses = new Set<BattleStatusId>();
+  for (const { duration, stat, status, amount } of before.statuses) {
+    if (!(duration > 0 && duration <= 1)) continue;
+    const affectsSpeed = stat ? stat === "speed" && Boolean(amount) : status === "slowed" || status === "exhausted";
+    if (affectsSpeed) statuses.add(status);
+  }
+  return Array.from(statuses, status => ({ status, remains: hasBattleStatus(after, status) }));
+}
 
 /** Forecast recovery and the following opening order from a single settled projection. */
 export function getBattleRoundEndForecastWithOrder(state: BattleState): BattleRoundEndForecastWithOrder {
@@ -1225,7 +1250,32 @@ export function getBattleRoundEndForecastWithOrder(state: BattleState): BattleRo
 
   const roundNumber = state.roundNumber + 1;
   const opening = { ...state, roundNumber, combatants: recovery.combatants };
-  const entries = getBattleOrderPreview(opening, new Map()).map(({ actorId, score }) => ({ actorId, speed: score }));
+  const currentOrder = getBattleOrderPreview(state, new Map());
+  const nextOrder = getBattleOrderPreview(opening, new Map());
+  const nextByActor = new Map(nextOrder.map(({ actorId, score }, index) => [actorId, { index, score }]));
+  const entries = nextOrder.map(({ actorId, score: speed }, nextIndex): BattleOpeningOrderEntry => {
+    const currentIndex = currentOrder.findIndex(entry => entry.actorId === actorId);
+    const speedBefore = currentOrder[currentIndex].score;
+    const crossings: BattleOpeningOrderCrossing[] = [];
+    currentOrder.forEach(({ actorId: otherId }, otherIndex) => {
+      const wasAhead = otherIndex < currentIndex;
+      const next = nextByActor.get(otherId);
+      if (!next) {
+        if (wasAhead) crossings.push({ actorId: otherId, kind: "knocked-out" });
+      } else if (wasAhead !== (next.index < nextIndex)) {
+        crossings.push({ actorId: otherId, kind: wasAhead ? "passed" : "passed-by", ...(next.score === speed ? { tied: true } : {}) });
+      }
+    });
+
+    return {
+      actorId,
+      speed,
+      beforeSlot: currentIndex + 1,
+      speedBefore,
+      expiredSpeedStatuses: speedBefore === speed ? [] : getExpiringSpeedStatuses(state.combatants[actorId], recovery.combatants[actorId]),
+      crossings,
+    };
+  });
   return { rows, nextRound: { roundNumber, entries } };
 }
 

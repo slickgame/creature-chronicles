@@ -1481,8 +1481,39 @@
   color: #fff1d0;
   text-align: center;
 }
-.nextRoundOrderList .roundEndForecastName small { color: var(--slot-side); }
+.nextRoundOrderMeta { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 6px; }
+.nextRoundOrderMeta > small:first-child { color: var(--slot-side); }
+.nextRoundOrderMeta [data-next-round-slot-change] {
+  padding: 1px 5px;
+  border: 1px solid #89975b;
+  border-radius: 4px;
+  background: #e5e8c3;
+  color: #31513b;
+  font-weight: 700;
+}
+.nextRoundOrderMeta [data-next-round-slot-change="later"] {
+  border-color: #ba8c61;
+  background: #f5d9b1;
+  color: #80372c;
+}
 .nextRoundSpeed { color: #62462f; white-space: nowrap; }
+.nextRoundReasons {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 2 / -1;
+  gap: 3px 6px;
+  margin: -4px 0 0;
+  padding: 0;
+  list-style: none;
+  color: #62462f;
+  font-size: clamp(12px, 1.3vw, 14px);
+}
+.nextRoundReasons > li {
+  padding: 1px 5px;
+  border: 1px solid #c5a473;
+  border-radius: 4px;
+  background: #fff1d4;
+}
 .roundEndCooldowns { display: grid; gap: 2px; }
 .roundEndForecastList [data-round-end-cooldowns] strong { color: #31513b; }
 .roundEndCooldowns small { font-size: clamp(12px, 1.35vw, 14px); }

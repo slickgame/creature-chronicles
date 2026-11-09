@@ -393,17 +393,35 @@ function NextRoundOrderForecast({ state, forecast }: {
       </button>
     </h3>
     <div id={detailsId} hidden={!expanded} data-next-round-details>
-      <p className={s.roundEndForecastCaption}>Assumes current HP, effects, and lineup hold until recovery.</p>
+      <p className={s.roundEndForecastCaption}>Slot changes compare the current Speed order with the projected opening order. Assumes current HP, effects, and lineup hold until recovery.</p>
       <ol className={s.nextRoundOrderList} role="list" aria-label={`Projected round ${roundNumber} order`}>
-        {entries.map(({ actorId, speed }, index) => {
+        {entries.map(({ actorId, beforeSlot, speedBefore, speed, expiredSpeedStatuses, crossings }, index) => {
           const creature = state.combatants[actorId];
-          return <li key={actorId} data-next-round-actor={actorId} data-slot={index + 1} data-side={creature.sideId}>
-            <b>{index + 1}</b>
+          const slot = index + 1;
+          return <li key={actorId} data-next-round-actor={actorId} data-before-slot={beforeSlot} data-slot={slot} data-side={creature.sideId}>
+            <b>{slot}</b>
             <span className={s.roundEndForecastName}>
               <strong>{creature.name}</strong>
-              <small>{creature.sideId === "player" ? "Ally" : "Rival"}</small>
+              <span className={s.nextRoundOrderMeta}>
+                <small>{creature.sideId === "player" ? "Ally" : "Rival"}</small>
+                {beforeSlot !== slot && <small data-next-round-slot-change={slot < beforeSlot ? "earlier" : "later"}>
+                  Slot {beforeSlot} → {slot}
+                </small>}
+              </span>
             </span>
-            <span className={s.nextRoundSpeed}>Speed <strong>{speed}</strong></span>
+            <span className={s.nextRoundSpeed} data-next-round-speed>Speed <strong>{speedBefore !== speed && `${speedBefore} → `}{speed}</strong></span>
+            {(expiredSpeedStatuses.length > 0 || crossings.length > 0) && <ul className={s.nextRoundReasons} role="list" aria-label={`${creature.name} order details`}>
+              {expiredSpeedStatuses.map(({ status, remains }) => <li key={status} data-next-round-reason="expiry">
+                {getBattleStatusGlossary(status).label}{remains && " stack"} wears off
+              </li>)}
+              {crossings.map(({ actorId: otherId, kind, tied }) => {
+                const other = state.combatants[otherId].name;
+                const comparison = tied ? "on a Speed tie" : "on Speed";
+                const reason = kind === "knocked-out" ? `${other} drops out (Bleed K.O.)`
+                  : kind === "passed" ? `Passes ${other} ${comparison}` : `${other} moves ahead ${comparison}`;
+                return <li key={otherId} data-next-round-reason={kind}>{reason}</li>;
+              })}
+            </ul>}
           </li>;
         })}
       </ol>
