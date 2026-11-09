@@ -1,17 +1,16 @@
 import { getBattleMove } from "@/data/battleMoves";
 import {
   advanceBattleCombatantEndOfRound,
-  deterministicBattleRoll,
+  getBattleOrderPreview,
   getBattleOutcome,
-  getEffectiveBattleStats,
   type BattleActionEffectPreview,
   type BattleStatusApplicationPreview,
 } from "@/data/battleEngine";
-import { getBattleTurnScore } from "@/data/battleStats";
 import { getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
-import type { BattleAction, BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatusStack } from "@/types/battle";
+import type { BattleCombatant, BattleCombatantId, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatusStack } from "@/types/battle";
 
 export { getBattleLogEventCategory } from "@/data/battleLog";
+export { getBattleOrderPreview, getBattleRoundEndForecastWithOrder } from "@/data/battleEngine";
 
 export const BATTLE_MENU_CATEGORIES = ["All", "Attack", "Support", "Recovery"] as const;
 export type BattleMenuCategory = typeof BATTLE_MENU_CATEGORIES[number];
@@ -71,16 +70,6 @@ export function getBattleMenuOptions(state: BattleState, actorId: BattleCombatan
     const reasons = blockers.map(blocker => blocker.detail);
     return { move, category: getBattleMenuCategory(move), usable: availability?.usable ?? false, reasons, blockers, cooldown };
   });
-}
-
-/** Always an estimate: unknown actions use priority zero; never read an enemy's requested move. */
-export function getBattleOrderPreview(state: BattleState, queued: ReadonlyMap<BattleCombatantId, BattleAction>) {
-  return Object.values(state.combatants).filter(c => !c.isFainted).map(c => {
-    const action = c.sideId === "player" ? queued.get(c.battleCombatantId) : undefined;
-    const stats = getEffectiveBattleStats(c);
-    return { actorId: c.battleCombatantId, score: action ? getBattleTurnScore(stats, getBattleMove(action.moveId)) : stats.speed,
-      tie: deterministicBattleRoll(`${state.battleId}_${state.roundNumber}_${c.battleCombatantId}_initiative`, 100000) };
-  }).sort((a,b) => b.score-a.score || b.tie-a.tie || a.actorId.localeCompare(b.actorId));
 }
 
 export type BattleRoundOrderShift = {

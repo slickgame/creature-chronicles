@@ -1455,6 +1455,34 @@
 .roundEndForecastList [data-side="enemy"] .roundEndForecastName small,
 .roundEndForecastList [data-round-end-bleed] strong { color: #882b20; }
 .roundEndForecastList [data-round-end-energy] strong { color: #245177; }
+.nextRoundOrderList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(13px, 1.55vw, 16px);
+}
+.nextRoundOrderList > li {
+  --slot-side: #31513b;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 4px;
+  border-block-start: 1px solid #c5a473;
+  overflow-wrap: anywhere;
+}
+.nextRoundOrderList > li[data-side="enemy"] { --slot-side: #80372c; }
+.nextRoundOrderList > li > b {
+  min-width: 24px;
+  padding: 2px 5px;
+  border: 1px solid #b28449;
+  border-radius: 5px;
+  background: var(--slot-side);
+  color: #fff1d0;
+  text-align: center;
+}
+.nextRoundOrderList .roundEndForecastName small { color: var(--slot-side); }
+.nextRoundSpeed { color: #62462f; white-space: nowrap; }
 .roundEndCooldowns { display: grid; gap: 2px; }
 .roundEndForecastList [data-round-end-cooldowns] strong { color: #31513b; }
 .roundEndCooldowns small { font-size: clamp(12px, 1.35vw, 14px); }

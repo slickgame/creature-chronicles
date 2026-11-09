@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getBattleLogEventCategory, getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
-import { createBattleState, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
+import { getBattleLogEventCategory, getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundEndForecastWithOrder, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
+import { createBattleState, getBattleRoundEndForecast, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
 import { getBattleLogSearchTextParts, searchBattleLog } from "@/data/battleLogSearch";
 import { getBattleMove } from "@/data/battleMoves";
 import { useRevivalSalve } from "@/data/battleOutfitterIntegration";
@@ -142,6 +142,66 @@ test("order preview matches engine weighted speed and seeded ties without exposi
   assert.deepEqual(getBattleOrderPreview(state,queue),preview,"enemy requested moves must not leak into the estimate");
   state.combatants[ids[2]].isFainted=true;
   assert(!getBattleOrderPreview(state,queue).some(p=>p.actorId===ids[2]));
+});
+
+test("next-round opening forecast matches settled recovery speeds, K.O.s, and next-round ties", () => {
+  const state = fixture();
+  const [fast, stunned, bleeding] = state.teams.player.combatantIds;
+  const [rival, otherRival, slowedRival] = state.teams.enemy.combatantIds;
+  for (const combatant of Object.values(state.combatants)) {
+    combatant.battleStats.speed = 40;
+    combatant.currentHp = combatant.maxHp = 1000;
+    combatant.currentBattleEnergy = combatant.maxBattleEnergy;
+  }
+  state.combatants[fast].battleStats.speed = 43;
+  state.combatants[fast].statuses = [{ status: "slowed", duration: 1, amount: 12 }];
+  state.combatants[stunned].statuses = [{ status: "stun", duration: 2 }];
+  state.combatants[bleeding].currentHp = 2;
+  state.combatants[bleeding].statuses = [{ status: "bleed", duration: 1 }];
+  state.combatants[slowedRival].battleStats.speed = 45;
+  state.combatants[slowedRival].statuses = [{ status: "slowed", duration: 2, amount: 10 }];
+  const before = structuredClone(state);
+
+  const forecast = getBattleRoundEndForecastWithOrder(state);
+  assert.deepEqual(forecast.rows, getBattleRoundEndForecast(state));
+  assert.ok(forecast.rows.some(row => row.targetId === bleeding && row.knockedOut));
+  assert.deepEqual(forecast.nextRound, {
+    roundNumber: 2,
+    entries: [
+      { actorId: fast, speed: 43 },
+      { actorId: stunned, speed: 40 },
+      { actorId: otherRival, speed: 40 },
+      { actorId: rival, speed: 40 },
+      { actorId: slowedRival, speed: 35 },
+    ],
+  });
+  assert.deepEqual(state, before);
+
+  const settled = resolveBattleTurn(state, [fast], { actorId: fast, moveId: "strike", targetIds: [rival] });
+  assert(settled);
+  const actualEntries = getBattleOrderPreview(settled.state, new Map()).map(({ actorId, score }) => ({ actorId, speed: score }));
+  assert.deepEqual(forecast.nextRound, { roundNumber: settled.state.roundNumber, entries: actualEntries });
+  const oldSeedEntries = getBattleOrderPreview({ ...settled.state, roundNumber: state.roundNumber }, new Map());
+  assert.notDeepEqual(actualEntries.map(entry => entry.actorId), oldSeedEntries.map(entry => entry.actorId));
+});
+
+test("next-round opening forecast handles empty recovery and omits a terminal next round", () => {
+  const state = fixture();
+  const [lastRival, ...otherRivals] = state.teams.enemy.combatantIds;
+  for (const combatant of Object.values(state.combatants)) combatant.currentBattleEnergy = combatant.maxBattleEnergy;
+  const quiet = getBattleRoundEndForecastWithOrder(state);
+  assert.deepEqual(quiet.rows, []);
+  assert.equal(quiet.nextRound?.roundNumber, 2);
+  assert.equal(quiet.nextRound?.entries.length, 6);
+
+  for (const id of otherRivals) Object.assign(state.combatants[id], { currentHp: 0, isFainted: true });
+  Object.assign(state.combatants[lastRival], { currentHp: 2, statuses: [{ status: "bleed", duration: 1 }] });
+  const terminal = getBattleRoundEndForecastWithOrder(state);
+  assert.deepEqual(terminal.rows.map(({ targetId, knockedOut }) => ({ targetId, knockedOut })), [{ targetId: lastRival, knockedOut: true }]);
+  assert.equal(terminal.nextRound, undefined);
+  assert.deepEqual(getBattleRoundEndForecastWithOrder({ ...state, outcome: "player_won" }), { rows: [] });
+  Object.assign(state.combatants[lastRival], { currentHp: 0, isFainted: true });
+  assert.deepEqual(getBattleRoundEndForecastWithOrder(state), { rows: [] });
 });
 
 test("opening order shifts compare shared creatures and ignore empty slots from knockouts or revivals", () => {

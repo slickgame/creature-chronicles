@@ -1127,6 +1127,20 @@ type ProjectedRecoveryTarget = Pick<BattleRoundEndForecast, "expiredStatuses" | 
   bleedTicks: BattleBleedTickForecast[];
 };
 
+/** Use priority zero for unknown actions and enemy requests. */
+export function getBattleOrderPreview(state: BattleState, queued: ReadonlyMap<BattleCombatantId, BattleAction>) {
+  return Object.values(state.combatants).filter(combatant => !combatant.isFainted).map(combatant => {
+    const actorId = combatant.battleCombatantId;
+    const action = combatant.sideId === "player" ? queued.get(actorId) : undefined;
+    const stats = getEffectiveBattleStats(combatant);
+    return {
+      actorId,
+      score: action ? getBattleTurnScore(stats, getBattleMove(action.moveId)) : stats.speed,
+      tie: deterministicBattleRoll(`${state.battleId}_${state.roundNumber}_${actorId}_initiative`, 100000),
+    };
+  }).sort((left, right) => right.score - left.score || right.tie - left.tie || left.actorId.localeCompare(right.actorId));
+}
+
 function projectNextRecovery(state: BattleState) {
   if (state.outcome !== "ongoing" || core.getBattleOutcome(state) !== "ongoing") return undefined;
   const targets = new Map<BattleCombatantId, ProjectedRecoveryTarget>();
@@ -1154,9 +1168,10 @@ function projectNextRecovery(state: BattleState) {
   return { combatants: recovery.state.combatants, endsBattle: core.getBattleOutcome(recovery.state) !== "ongoing", targets };
 }
 
-/** Summarize the next recovery if no intervening actions change the battlefield. */
-export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndForecast[] {
-  const recovery = projectNextRecovery(state);
+function getBattleRoundEndForecastRows(
+  state: BattleState,
+  recovery: ReturnType<typeof projectNextRecovery>,
+): BattleRoundEndForecast[] {
   if (!recovery) return [];
   const forecasts: BattleRoundEndForecast[] = Array.from(recovery.targets, ([targetId, { bleedTicks, expiredStatuses, energy }]) => ({
     targetId,
@@ -1190,6 +1205,28 @@ export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndFor
     });
   }
   return forecasts;
+}
+
+/** Summarize the next recovery if no intervening actions change the battlefield. */
+export function getBattleRoundEndForecast(state: BattleState): BattleRoundEndForecast[] {
+  return getBattleRoundEndForecastRows(state, projectNextRecovery(state));
+}
+
+export type BattleRoundEndForecastWithOrder = {
+  rows: BattleRoundEndForecast[];
+  nextRound?: { roundNumber: number; entries: { actorId: BattleCombatantId; speed: number }[] };
+};
+
+/** Forecast recovery and the following opening order from a single settled projection. */
+export function getBattleRoundEndForecastWithOrder(state: BattleState): BattleRoundEndForecastWithOrder {
+  const recovery = projectNextRecovery(state);
+  const rows = getBattleRoundEndForecastRows(state, recovery);
+  if (!recovery || recovery.endsBattle) return { rows };
+
+  const roundNumber = state.roundNumber + 1;
+  const opening = { ...state, roundNumber, combatants: recovery.combatants };
+  const entries = getBattleOrderPreview(opening, new Map()).map(({ actorId, score }) => ({ actorId, speed: score }));
+  return { rows, nextRound: { roundNumber, entries } };
 }
 
 function getStatusTimingFromRecovery(

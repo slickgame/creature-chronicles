@@ -6,7 +6,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
-import { getBattleGuardedStatus, getBattleRoundEndForecast, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
+import { getBattleGuardedStatus, getBattleRoundEndForecast, getBattleRoundEndForecastWithOrder, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleRoundEndForecast, type BattleRoundEndForecastWithOrder, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
@@ -307,11 +307,10 @@ function ActiveEffectsDialog({ creature, state, resolving, onClose }: {
   </GameDialog>;
 }
 
-function RoundEndForecast({ state }: { state: BattleState }) {
+function RoundEndForecast({ state, rows }: { state: BattleState; rows: BattleRoundEndForecast[] }) {
   const detailsId = useId();
   const [expanded, setExpanded] = useState(() =>
     typeof window !== "undefined" && !window.matchMedia("(max-width: 720px), (max-height: 800px)").matches);
-  const rows = getBattleRoundEndForecast(state);
   const knockouts = rows.filter(row => row.knockedOut).length;
   const heading = `Round ${state.roundNumber} end`;
   const summary = rows.length ? `${rows.length} ${rows.length === 1 ? "creature" : "creatures"} affected` : "No changes forecast";
@@ -365,6 +364,49 @@ function RoundEndForecast({ state }: { state: BattleState }) {
           })}
         </ul>
       </> : <p className={s.roundEndForecastCaption}>No Bleed damage, status expiries, BE recovery, or cooldown clears expected.</p>}
+    </div>
+  </section>;
+}
+
+function NextRoundOrderForecast({ state, forecast }: {
+  state: BattleState;
+  forecast: NonNullable<BattleRoundEndForecastWithOrder["nextRound"]>;
+}) {
+  const detailsId = useId();
+  const [expanded, setExpanded] = useState(false);
+  const { roundNumber, entries } = forecast;
+  const firstActor = entries[0];
+  if (!firstActor) return null;
+  const heading = `Round ${roundNumber} · Opening order`;
+  return <section className={s.damageBreakdown} aria-label={`${heading} forecast`} data-next-round-forecast>
+    <h3 className={s.roundEndForecastHeading}>
+      <button type="button" className={`${s.damageBreakdownTitle} ${s.roundEndForecastToggle}`}
+        aria-expanded={expanded} aria-controls={detailsId} data-next-round-toggle
+        onClick={() => setExpanded(current => !current)}>
+        <span className={s.roundEndForecastSummary}>
+          <span>{heading}</span>
+          <small>{state.combatants[firstActor.actorId].name} projected to open</small>
+        </span>
+        <span className={s.roundEndForecastAction}>
+          {expanded ? "Hide details" : "Show details"} <span aria-hidden="true">{expanded ? "▴" : "▾"}</span>
+        </span>
+      </button>
+    </h3>
+    <div id={detailsId} hidden={!expanded} data-next-round-details>
+      <p className={s.roundEndForecastCaption}>Assumes current HP, effects, and lineup hold until recovery.</p>
+      <ol className={s.nextRoundOrderList} role="list" aria-label={`Projected round ${roundNumber} order`}>
+        {entries.map(({ actorId, speed }, index) => {
+          const creature = state.combatants[actorId];
+          return <li key={actorId} data-next-round-actor={actorId} data-slot={index + 1} data-side={creature.sideId}>
+            <b>{index + 1}</b>
+            <span className={s.roundEndForecastName}>
+              <strong>{creature.name}</strong>
+              <small>{creature.sideId === "player" ? "Ally" : "Rival"}</small>
+            </span>
+            <span className={s.nextRoundSpeed}>Speed <strong>{speed}</strong></span>
+          </li>;
+        })}
+      </ol>
     </div>
   </section>;
 }
@@ -890,6 +932,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <button onClick={() => presentation.setSpeed(presentation.speed === 1 ? 2 : 1)}>{presentation.speed}×</button>
     </div>
   </div>;
+  const orderDialogOpen = popup === "order" || popup === "order-inspect";
+  const roundEndForecast: BattleRoundEndForecastWithOrder | undefined = orderDialogOpen && !complete && !resolving && state.outcome === "ongoing"
+    ? individual ? getBattleRoundEndForecastWithOrder(state) : { rows: getBattleRoundEndForecast(state) }
+    : undefined;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={<BattleLogEntries state={state} sourceById={sourceById}/>}/>;
   return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>setPopup("log")}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
@@ -1092,8 +1138,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
 
     {movesOpen&&!resolving&&!complete&&<section id="battle-move-dock" className={s.expandedDock} aria-label="Choose a move">{menu}</section>}
     {popup==="statuses"&&statusCreature&&<ActiveEffectsDialog creature={statusCreature} state={state} resolving={resolving} onClose={()=>setPopup(null)}/>}
-    {(popup === "order" || popup === "order-inspect") && <GameDialog title="Turn Order" onClose={() => setPopup(null)}>
-      {!complete && !resolving && state.outcome === "ongoing" && <RoundEndForecast state={state}/>}
+    {orderDialogOpen && <GameDialog title="Turn Order" onClose={() => setPopup(null)}>
+      {roundEndForecast && <RoundEndForecast state={state} rows={roundEndForecast.rows}/>}
       {individual ? <>
         <h3>Round {state.roundNumber} · Remaining turns</h3>
         {orderEntries.length ? <ol className={s.fullOrderList} data-full-turn-order aria-label="Remaining turns">
@@ -1111,6 +1157,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
             </button>
           </li>)}
         </ol> : <p>{emptyOrderLabel}</p>}
+        {roundEndForecast?.nextRound && <NextRoundOrderForecast state={state} forecast={roundEndForecast.nextRound}/>}
         <p>Effective Speed sets the order at the start of each round. Select a portrait to inspect that creature.</p>
       </> : <><p>During planning this is an estimate: effective Speed + 10 × the queued move’s Priority. Unplanned allies and hidden enemy choices use zero Priority in this preview. Ties use the engine’s seeded initiative rule.</p><p>During resolution the strip follows the recorded action order and highlights the creature whose action is being shown. Enemy moves remain hidden during planning.</p><p>Allies plan one move per round. The bottom slots show your plans, not execution order.</p></>}
     </GameDialog>}
