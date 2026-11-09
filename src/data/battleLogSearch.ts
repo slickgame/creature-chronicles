@@ -1,11 +1,65 @@
-import type { BattleLogEventCategory, BattleState } from "@/types/battle";
+import type { BattleCombatantId, BattleLogEventCategory, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState } from "@/types/battle";
+import { getBattleStatusGlossary } from "./battleGlossary";
 import { getBattleLogEventCategory } from "./battleLog";
 
 export type BattleLogSearchResult = {
   index: number;
   roundNumber: number | undefined;
   text: string;
+  orderShiftDetail?: { actorId: BattleCombatantId; detailId: string };
 };
+
+const SPEED_EFFECT_RESULTS = {
+  applied: "was applied",
+  changed: "changed",
+  cleared: "was cleared",
+  "wore-off": "wore off",
+  "stack-wore-off": "stack wore off",
+} as const;
+
+type OrderShiftDetail = { id: string; kind: "speed" | BattleOrderShiftReason["kind"]; text: string };
+
+export function getOrderShiftDetails(
+  move: BattleOrderShiftLogEntry["moves"][number],
+  combatants: BattleState["combatants"],
+): OrderShiftDetail[] {
+  const details: OrderShiftDetail[] = [];
+  if (move.speed) {
+    details.push({ id: "speed", kind: "speed", text: `Speed ${move.speed.before} → ${move.speed.after}` });
+  }
+  move.reasons?.forEach((reason, index) => {
+    const id = `reason-${index}`;
+    if (reason.kind === "speed-effect") {
+      const label = getBattleStatusGlossary(reason.status).label;
+      details.push({ id, kind: reason.kind, text: `${label} ${SPEED_EFFECT_RESULTS[reason.result]}` });
+      return;
+    }
+    const other = combatants[reason.actorId]?.name;
+    if (!other) return;
+    const comparison = reason.tied ? "on a Speed tie" : "on Speed";
+    const text = reason.kind === "passed" ? `Passed ${other} ${comparison}` : `${other} moved ahead ${comparison}`;
+    details.push({ id, kind: reason.kind, text });
+  });
+  return details;
+}
+
+function getOrderShiftSearchMatch(
+  shift: BattleOrderShiftLogEntry,
+  combatants: BattleState["combatants"],
+  matcher: RegExp,
+): Pick<BattleLogSearchResult, "text" | "orderShiftDetail"> | undefined {
+  // A shift with a missing row actor is rendered as its original text log line.
+  if (shift.moves.some(({ actorId }) => !combatants[actorId])) return;
+  for (const move of shift.moves) {
+    const detail = getOrderShiftDetails(move, combatants).find(candidate => matcher.test(candidate.text));
+    if (detail) {
+      return {
+        text: `${combatants[move.actorId].name} · ${detail.text}`,
+        orderShiftDetail: { actorId: move.actorId, detailId: detail.id },
+      };
+    }
+  }
+}
 
 function getSearchPattern(query: string): string {
   return query.trim().split(/\s+/)
@@ -23,11 +77,15 @@ export function searchBattleLog(
 
   const matcher = new RegExp(pattern, "iu");
   const boundaries = state.roundLogBoundaries ?? [];
+  const shifts = new Map(state.orderShiftLog?.map(shift => [shift.logIndex, shift]));
   const matches: BattleLogSearchResult[] = [];
   let boundaryIndex = -1;
 
   for (const [index, text] of state.log.entries()) {
-    if (!matcher.test(text)) continue;
+    const shift = shifts.get(index);
+    const summaryMatches = matcher.test(text);
+    const detail = !summaryMatches && shift ? getOrderShiftSearchMatch(shift, state.combatants, matcher) : undefined;
+    if (!summaryMatches && !detail) continue;
     if (filters.length) {
       const category = getBattleLogEventCategory(state, index);
       if (!category || !filters.includes(category)) continue;
@@ -36,9 +94,8 @@ export function searchBattleLog(
     while (boundaryIndex + 1 < boundaries.length && boundaries[boundaryIndex + 1].logIndex <= index) {
       boundaryIndex++;
     }
-    const roundNumber = boundaries[boundaryIndex]?.roundNumber
-      ?? state.orderShiftLog?.find(shift => shift.logIndex === index)?.roundNumber;
-    matches.push({ index, roundNumber, text });
+    const roundNumber = boundaries[boundaryIndex]?.roundNumber ?? shift?.roundNumber;
+    matches.push({ index, roundNumber, ...(detail ?? { text }) });
   }
 
   return matches;

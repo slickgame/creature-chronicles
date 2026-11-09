@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { getBattleLogEventCategory } from "@/data/battleInterface";
-import { getBattleStatusGlossary } from "@/data/battleGlossary";
+import { getOrderShiftDetails, type BattleLogSearchResult } from "@/data/battleLogSearch";
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleLogEventCategory, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
@@ -15,33 +15,23 @@ const LOG_FILTERS: ReadonlyArray<{ category: BattleLogEventCategory; label: stri
   { category: "order-shifts", label: "Order shifts" },
 ];
 
-const SPEED_EFFECT_RESULTS = {
-  applied: "was applied",
-  changed: "changed",
-  cleared: "was cleared",
-  "wore-off": "wore off",
-  "stack-wore-off": "stack wore off",
-} as const;
-
-function OrderShiftDetails({ move, combatants }: {
+function OrderShiftDetails({ move, combatants, match }: {
   move: BattleOrderShiftLogEntry["moves"][number];
   combatants: BattleState["combatants"];
+  match?: { detailId: string; query: string; targetId: string };
 }) {
-  const { actorId, speed, reasons } = move;
-  if (!speed && !reasons?.length) return null;
-  return <ul className={s.shiftReasons} role="list" aria-label={`${combatants[actorId].name} shift details`}>
-    {speed && <li data-order-shift-speed>Speed <strong>{speed.before} → {speed.after}</strong></li>}
-    {reasons?.map(reason => {
-      if (reason.kind === "speed-effect") {
-        return <li key={`${reason.status}-${reason.result}`} data-order-shift-reason={reason.kind}>
-          {getBattleStatusGlossary(reason.status).label} {SPEED_EFFECT_RESULTS[reason.result]}
-        </li>;
-      }
-      const other = combatants[reason.actorId]?.name;
-      if (!other) return null;
-      const comparison = reason.tied ? "on a Speed tie" : "on Speed";
-      return <li key={reason.actorId} data-order-shift-reason={reason.kind}>
-        {reason.kind === "passed" ? `Passed ${other} ${comparison}` : `${other} moved ahead ${comparison}`}
+  const details = getOrderShiftDetails(move, combatants);
+  if (!details.length) return null;
+  const name = combatants[move.actorId].name;
+  return <ul className={s.shiftReasons} role="list" aria-label={`${name} shift details`}>
+    {details.map(detail => {
+      const selected = match?.detailId === detail.id;
+      return <li key={detail.id} id={selected ? match.targetId : undefined} tabIndex={selected ? -1 : undefined}
+        aria-label={selected ? `${name} · ${detail.text}` : undefined}
+        data-search-jump={selected ? "" : undefined} data-order-shift-detail-match={selected ? "" : undefined}
+        data-order-shift-speed={detail.kind === "speed" ? "" : undefined}
+        data-order-shift-reason={detail.kind === "speed" ? undefined : detail.kind}>
+        {selected ? <BattleLogSearchText text={detail.text} query={match.query}/> : detail.text}
       </li>;
     })}
   </ul>;
@@ -55,7 +45,7 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
   const [selectedRound, setSelectedRound] = useState<number>();
   const [filters, setFilters] = useState<BattleLogEventCategory[]>([]);
   const [openPanel, setOpenPanel] = useState<"filters" | "search">();
-  const [jump, setJump] = useState<{ index: number; query: string }>();
+  const [jump, setJump] = useState<Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & { query: string }>();
   const [openMoves, setOpenMoves] = useState<Partial<Record<number, boolean>>>({});
   const [openNotes, setOpenNotes] = useState<Partial<Record<number, boolean>>>({});
   const filtersOpen = openPanel === "filters";
@@ -81,7 +71,9 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
 
   useEffect(() => {
     if (!jump || playback) return;
-    const target = document.getElementById(`${entryId}-${jump.index}`);
+    const targetId = `${entryId}-${jump.index}`;
+    const detail = jump.orderShiftDetail ? document.getElementById(`${targetId}-detail`) : null;
+    const target = detail ?? document.getElementById(targetId);
     target?.focus({ preventScroll: true });
     target?.scrollIntoView({ block: "nearest" });
   }, [entryId, jump, playback]);
@@ -115,7 +107,7 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
       id: `${entryId}-${index}`,
       "data-battle-log-entry": index,
       "data-battle-log-event": getBattleLogEventCategory(state, index),
-      "data-search-jump": selected ? "" : undefined,
+      "data-search-jump": selected && !jump.orderShiftDetail ? "" : undefined,
       tabIndex: selected ? -1 : undefined,
     };
   }
@@ -131,6 +123,9 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
       </p>;
     }
     const title = `Round ${shift.roundNumber} · Order Shift`;
+    const detailJump = selected && jump.orderShiftDetail
+      ? { ...jump.orderShiftDetail, query: jump.query, targetId: `${entryProps.id}-detail` }
+      : undefined;
     return <section key={index} className={s.shiftCard} aria-label={title} data-order-shift-card={shift.roundNumber} {...entryProps}>
       <h3 className={s.shiftTitle}>{title}</h3>
       {shift.moves.some(move => move.speed || move.reasons?.length) && <p className={s.shiftCaption}>
@@ -145,12 +140,13 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
             <span className={s.portrait} aria-hidden="true">
               {source ? <img src={gameplayArt(source, true)} alt=""/> : creature.name.slice(0, 1)}
             </span>
-            <strong>{selected ? <BattleLogSearchText text={creature.name} query={jump.query}/> : creature.name}</strong>
+            <strong>{selected && !detailJump ? <BattleLogSearchText text={creature.name} query={jump.query}/> : creature.name}</strong>
             <span className={s.slots}>
               <span data-order-shift-slots aria-hidden="true">{from} → {to}</span>
               <span className={s.slotDescription}>Slot {from} to slot {to}</span>
             </span>
-            <OrderShiftDetails move={move} combatants={state.combatants}/>
+            <OrderShiftDetails move={move} combatants={state.combatants}
+              match={detailJump?.actorId === actorId ? detailJump : undefined}/>
           </li>;
         })}
       </ul>
@@ -270,7 +266,7 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
               setOpenNotes(current => ({ ...current, [group.logIndex]: true }));
             }
           }
-          setJump({ index: result.index, query });
+          setJump({ index: result.index, query, orderShiftDetail: result.orderShiftDetail });
         }}/>
       <section className={s.logRows} aria-label={activeRound ? `Round ${activeRound.roundNumber} log` : "Battle events"}
         data-round-log={activeRound?.roundNumber}>

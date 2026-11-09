@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getBattleLogEventCategory, getBattleMenuCategory, getBattleMenuOptions, getBattleOrderPreview, getBattleRoundEndForecastWithOrder, getBattleRoundOrderShift, getBattleSlowedOrderForecast, recordBattleOrderShift, recordBattleRoundStart, updateBattleCooldownNotices } from "../src/data/battleInterface.ts";
 import { createBattleState, getBattleRoundEndForecast, previewBattleAction, resolveBattleRound, resolveBattleTurn } from "@/data/battleEngine";
-import { getBattleLogSearchTextParts, searchBattleLog } from "@/data/battleLogSearch";
+import { getBattleLogSearchTextParts, getOrderShiftDetails, searchBattleLog } from "@/data/battleLogSearch";
 import { getBattleMove } from "@/data/battleMoves";
 import { useRevivalSalve } from "@/data/battleOutfitterIntegration";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
@@ -51,6 +51,58 @@ test("battle log search keeps pre-round and legacy entries addressable by their 
   assert.deepEqual(searchBattleLog(state, "lil").map(result => [result.index, result.roundNumber]), [[0, undefined], [1, undefined]]);
   state.roundLogBoundaries = [{ roundNumber: 1, logIndex: 1 }];
   assert.deepEqual(searchBattleLog(state, "lil").map(result => [result.index, result.roundNumber]), [[0, undefined], [1, 1]]);
+});
+
+test("battle log search targets visible order shift reasons and keeps one match per card", () => {
+  const state = fixture();
+  const [lilt, moss] = state.teams.enemy.combatantIds;
+  state.combatants[lilt].name = "Lilt";
+  state.combatants[moss].name = "Moss";
+  state.log = [
+    "Lilt is slowed.",
+    "Round 2 · Order shift · Lilt 4 → 5 · Moss 5 → 4",
+    "Round 3 · Order shift · Lilt 5 → 4",
+  ];
+  state.logEventCategories = { 0: "status-changes" };
+  state.orderShiftLog = [
+    { logIndex: 1, roundNumber: 2, moves: [
+      { actorId: lilt, from: 4, to: 5, speed: { before: 25, after: 19 }, reasons: [
+        { kind: "speed-effect", status: "slowed", result: "applied" },
+        { kind: "passed-by", actorId: moss, tied: true },
+      ] },
+      { actorId: moss, from: 5, to: 4, reasons: [{ kind: "passed", actorId: lilt, tied: true }] },
+    ] },
+    { logIndex: 2, roundNumber: 3, moves: [{ actorId: lilt, from: 5, to: 4 }] },
+  ];
+
+  assert.deepEqual(getOrderShiftDetails(state.orderShiftLog[0].moves[0], state.combatants), [
+    { id: "speed", kind: "speed", text: "Speed 25 → 19" },
+    { id: "reason-0", kind: "speed-effect", text: "Slowed was applied" },
+    { id: "reason-1", kind: "passed-by", text: "Moss moved ahead on a Speed tie" },
+  ]);
+  assert.deepEqual(searchBattleLog(state, "  SLOWED   WAS applied ", ["order-shifts"]), [{
+    index: 1, roundNumber: 2, text: "Lilt · Slowed was applied",
+    orderShiftDetail: { actorId: lilt, detailId: "reason-0" },
+  }]);
+  assert.deepEqual(searchBattleLog(state, "speed"), [{
+    index: 1, roundNumber: 2, text: "Lilt · Speed 25 → 19",
+    orderShiftDetail: { actorId: lilt, detailId: "speed" },
+  }]);
+  assert.deepEqual(searchBattleLog(state, "Speed tie"), [{
+    index: 1, roundNumber: 2, text: "Lilt · Moss moved ahead on a Speed tie",
+    orderShiftDetail: { actorId: lilt, detailId: "reason-1" },
+  }]);
+  assert.deepEqual(searchBattleLog(state, "slowed", ["status-changes"]), [
+    { index: 0, roundNumber: undefined, text: state.log[0] },
+  ]);
+  assert.deepEqual(searchBattleLog(state, "lilt", ["order-shifts"]), [
+    { index: 1, roundNumber: 2, text: state.log[1] },
+    { index: 2, roundNumber: 3, text: state.log[2] },
+  ]);
+  assert.deepEqual(searchBattleLog(state, "5 → 4").map(result => [result.index, result.orderShiftDetail]), [
+    [1, undefined], [2, undefined],
+  ]);
+  assert.deepEqual(searchBattleLog({ ...state, combatants: {} }, "Slowed was applied"), []);
 });
 
 test("battle log search highlights literal punctuation and preserves the displayed spacing and case", () => {

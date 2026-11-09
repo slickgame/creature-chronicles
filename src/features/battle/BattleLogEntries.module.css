@@ -441,6 +441,7 @@
   background: #fff1d4;
   overflow-wrap: anywhere;
 }
+.shiftReasons > [data-order-shift-speed] { font-weight: 700; }
 .portrait {
   box-sizing: border-box;
   display: grid;

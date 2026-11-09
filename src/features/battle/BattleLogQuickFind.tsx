@@ -86,10 +86,10 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
       <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
         <circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/>
       </svg>
-      <input ref={input} type="text" role="combobox" aria-label="Find a creature or move"
+      <input ref={input} type="text" role="combobox" aria-label="Find in battle log"
         aria-autocomplete="list" aria-expanded={expanded} aria-controls={expanded ? listId : undefined}
         aria-activedescendant={activeId} autoComplete="off" spellCheck={false} enterKeyHint="search"
-        placeholder="Find a creature or move" value={query} data-battle-log-search
+        placeholder="Find in battle log" value={query} data-battle-log-search
         onFocus={showResults} onClick={showResults} onKeyDown={handleSearchKey}
         onChange={event => {
           const value = event.target.value;
@@ -114,7 +114,8 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
       <ul className={s.searchResultList} id={listId} role="listbox" aria-label="Battle log matches">
         {results.map(result => <li key={result.index} id={`${listId}-${result.index}`}
           role="option" aria-selected={result.index === activeIndex} data-battle-log-search-result={result.index}
-          data-search-round={result.roundNumber} onClick={() => jumpTo(result)}>
+          data-search-round={result.roundNumber} data-search-order-shift-detail={result.orderShiftDetail?.detailId}
+          onClick={() => jumpTo(result)}>
           <span className={s.searchRound}>{result.roundNumber === undefined ? "Battle log" : `Round ${result.roundNumber}`}</span>
           <span><BattleLogSearchText text={result.text} query={query}/></span>
           <span className={s.resultChevron} aria-hidden="true">›</span>
