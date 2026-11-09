@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { getBattleLogEventCategory } from "@/data/battleInterface";
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleLogEventCategory, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
+import { BattleLogTargetCards } from "./BattleLogTargetCards";
 import s from "./BattleLogEntries.module.css";
 
 const BOOKMARKS_PER_GROUP = 6;
@@ -22,6 +23,8 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
   const [filters, setFilters] = useState<BattleLogEventCategory[]>([]);
   const [openPanel, setOpenPanel] = useState<"filters" | "search">();
   const [jump, setJump] = useState<{ index: number; query: string }>();
+  const [openMoves, setOpenMoves] = useState<Partial<Record<number, boolean>>>({});
+  const [openNotes, setOpenNotes] = useState<Partial<Record<number, boolean>>>({});
   const filtersOpen = openPanel === "filters";
   const entryId = useId();
   const filterControl = useRef<HTMLDivElement>(null);
@@ -64,19 +67,30 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
   const start = activeIndex <= 0 ? 0 : activeRound.logIndex;
   const end = boundaries[activeIndex + 1]?.logIndex ?? state.log.length;
   const shifts = new Map(state.orderShiftLog?.map(entry => [entry.logIndex, entry]));
-  const entries = state.log.slice(start, end).flatMap((line, offset) => {
-    const index = start + offset;
-    const category = getBattleLogEventCategory(state, index);
-    if (filters.length && (!category || !filters.includes(category))) return [];
+  const moveGroups = new Map(state.moveLog?.map(group => [group.logIndex, group]));
+  const isFiltered = filters.length > 0;
 
+  function matchesEventFilter(index: number) {
+    if (!isFiltered) return true;
+    const category = getBattleLogEventCategory(state, index);
+    return category !== undefined && filters.includes(category);
+  }
+
+  function logEntryProps(index: number) {
     const selected = jump?.index === index;
-    const entryProps = {
+    return {
       id: `${entryId}-${index}`,
       "data-battle-log-entry": index,
-      "data-battle-log-event": category,
+      "data-battle-log-event": getBattleLogEventCategory(state, index),
       "data-search-jump": selected ? "" : undefined,
       tabIndex: selected ? -1 : undefined,
     };
+  }
+
+  function renderLogLine(index: number) {
+    const line = state.log[index];
+    const selected = jump?.index === index;
+    const entryProps = logEntryProps(index);
     const shift = shifts.get(index);
     if (!shift || !shift.moves.length || shift.moves.some(({ actorId }) => !state.combatants[actorId])) {
       return <p key={index} {...entryProps}>
@@ -103,7 +117,49 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
         })}
       </ul>
     </section>;
-  });
+  }
+
+  const entries: ReactNode[] = [];
+  let matchingEventCount = 0;
+  for (let index = start; index < end; index++) {
+    const group = moveGroups.get(index);
+    if (!group || group.endLogIndex <= index || group.endLogIndex > end) {
+      if (matchesEventFilter(index)) {
+        entries.push(renderLogLine(index));
+        matchingEventCount++;
+      }
+      continue;
+    }
+
+    const moveIndex = index;
+    const detailIndexes = [];
+    for (let detail = index + 1; detail < group.endLogIndex; detail++) {
+      if (matchesEventFilter(detail)) detailIndexes.push(detail);
+    }
+    index = group.endLogIndex - 1;
+    const headingMatches = matchesEventFilter(moveIndex);
+    if (!headingMatches && !detailIndexes.length) continue;
+
+    const filteredDetails = new Set(detailIndexes);
+    const targets = isFiltered
+      ? group.targets.filter(target => target.logIndexes.some(logIndex => filteredDetails.has(logIndex)))
+      : group.targets;
+    const expanded = openMoves[moveIndex] ?? isFiltered;
+    const notesOpen = openNotes[moveIndex] ?? isFiltered;
+    const highlightedTarget = jump && targets.find(target => target.logIndexes.includes(jump.index));
+
+    entries.push(
+      <BattleLogTargetCards key={moveIndex} group={group} targets={targets} combatants={state.combatants}
+        sourceById={sourceById} expanded={expanded} onToggle={() => setOpenMoves(current => ({ ...current, [moveIndex]: !expanded }))}
+        headingProps={{ ...logEntryProps(moveIndex), tabIndex: undefined }}
+        heading={jump?.index === moveIndex ? <BattleLogSearchText text={state.log[moveIndex]} query={jump.query}/> : undefined}
+        notesOpen={notesOpen} onToggleNotes={() => setOpenNotes(current => ({ ...current, [moveIndex]: !notesOpen }))}
+        highlightedTargetId={highlightedTarget?.targetId}>
+        {detailIndexes.length ? detailIndexes.map(renderLogLine) : undefined}
+      </BattleLogTargetCards>,
+    );
+    matchingEventCount += detailIndexes.length + Number(headingMatches);
+  }
 
   const groupStart = Math.floor(activeIndex / BOOKMARKS_PER_GROUP) * BOOKMARKS_PER_GROUP;
   const groupEnd = Math.min(groupStart + BOOKMARKS_PER_GROUP, boundaries.length);
@@ -169,12 +225,19 @@ export function BattleLogEntries({ state, sourceById, playback = false }: {
         onOpen={() => setOpenPanel("search")} onClose={closeSearch} onClear={() => setJump(undefined)}
         onJump={(result, query) => {
           setSelectedRound(result.roundNumber ?? boundaries[0]?.roundNumber);
+          const group = state.moveLog?.find(move => result.index >= move.logIndex && result.index < move.endLogIndex);
+          if (group) {
+            setOpenMoves(current => ({ ...current, [group.logIndex]: true }));
+            if (result.index > group.logIndex) {
+              setOpenNotes(current => ({ ...current, [group.logIndex]: true }));
+            }
+          }
           setJump({ index: result.index, query });
         }}/>
       <section className={s.logRows} aria-label={activeRound ? `Round ${activeRound.roundNumber} log` : "Battle events"}
         data-round-log={activeRound?.roundNumber}>
         <span className={s.srOnly} role="status">
-          {filters.length ? `${entries.length} matching ${entries.length === 1 ? "event" : "events"}` : ""}
+          {isFiltered ? `${matchingEventCount} matching ${matchingEventCount === 1 ? "event" : "events"}` : ""}
         </span>
         {entries.length ? entries : filters.length ? <div className={s.filterEmpty}>
           <p>No matching events{activeRound ? ` in Round ${activeRound.roundNumber}` : ""}.</p>

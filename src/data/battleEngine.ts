@@ -133,7 +133,7 @@ export function createBattleState(input: CreateBattleStateInput): BattleState {
       (combatants, combatant) => ({ ...combatants, [combatant.battleCombatantId]: combatant }),
       {} as Record<BattleCombatantId, BattleCombatant>,
     ),
-    log: [`Battle ${input.battleId} begins: ${input.playerTeamName ?? "Ranch Team"} vs ${input.enemyTeamName ?? "Enemy Team"}.`],
+    log: [`Battle begins: ${input.playerTeamName ?? "Ranch Team"} vs ${input.enemyTeamName ?? "Enemy Team"}.`],
   };
 }
 

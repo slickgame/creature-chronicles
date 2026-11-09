@@ -351,6 +351,42 @@ export type BattleRoundLogBoundary = {
 
 export type BattleLogEventCategory = "knockouts" | "status-changes" | "order-shifts";
 
+export type BattleMoveLogStatus = {
+  status: BattleStatusId;
+  result: "applied" | "stacked" | "refreshed" | "failed" | "cleared";
+  duration?: number;
+  stacks?: number;
+  stat?: BattleStatKey;
+  amount?: number;
+  attemptedClear?: true;
+};
+
+export type BattleMoveLogTarget = {
+  targetId: BattleCombatantId;
+  targetName: string;
+  /** Only hostile targets roll for accuracy. */
+  hit?: boolean;
+  hpDelta: number;
+  battleEnergyDelta: number;
+  hpWasFull?: true;
+  battleEnergyWasFull?: true;
+  knockedOut: boolean;
+  statuses: readonly BattleMoveLogStatus[];
+  logIndexes: readonly number[];
+};
+
+export type BattleMoveLogGroup = {
+  /** The move-use line and the exclusive end of its effects in the original log. */
+  logIndex: number;
+  endLogIndex: number;
+  roundNumber: number;
+  actorId: BattleCombatantId;
+  actorName: string;
+  moveId: BattleMoveId;
+  moveName: string;
+  targets: readonly BattleMoveLogTarget[];
+};
+
 export type BattleState = {
   battleId: BattleId;
   roundNumber: number;
@@ -362,6 +398,7 @@ export type BattleState = {
   logEventCategories?: Readonly<Partial<Record<number, Exclude<BattleLogEventCategory, "order-shifts">>>>;
   roundLogBoundaries?: readonly BattleRoundLogBoundary[];
   orderShiftLog?: readonly BattleOrderShiftLogEntry[];
+  moveLog?: readonly BattleMoveLogGroup[];
 };
 
 export type BattleRoundEndEffect =

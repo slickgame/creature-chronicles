@@ -26,6 +26,9 @@ import type {
   BattleMove,
   BattleMoveEffect,
   BattleMoveId,
+  BattleMoveLogGroup,
+  BattleMoveLogStatus,
+  BattleMoveLogTarget,
   BattleResolvedAction,
   BattleRoundEndEffect,
   BattleRoundResult,
@@ -530,6 +533,11 @@ function replaceCombatant(state: BattleState, combatant: BattleCombatant): Battl
 
 type AppliedBattleStatus = Pick<BattleStatusApplicationResult, "mode" | "status">;
 
+type MoveLogEffect = Pick<
+  BattleMoveLogTarget,
+  "hpDelta" | "battleEnergyDelta" | "hpWasFull" | "battleEnergyWasFull" | "knockedOut"
+> & { status?: BattleMoveLogStatus };
+
 type ResolveEffectInput = {
   state: BattleState;
   actor: BattleCombatant;
@@ -541,6 +549,7 @@ type ResolveEffectInput = {
   hitTargetIds: ReadonlySet<BattleCombatantId>;
   includeNoopCleanses?: boolean;
   onFrame?: (frame: BattlePlaybackFrame, appliedStatus?: AppliedBattleStatus) => void;
+  onLogEffect?: (target: BattleCombatant, effect: MoveLogEffect, start: number, end: number) => void;
 };
 
 function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: BattleLogEntry[] } {
@@ -558,6 +567,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
     const logStart = log.length;
     let appliedStatus: AppliedBattleStatus | undefined;
     let clearedStatus: BattleStatusId | undefined;
+    let brokeGuard = false;
     try {
     if (input.effect.chance !== undefined) {
       const chance = hostile
@@ -582,13 +592,14 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
         damageModifier.modifier,
       );
       let updatedTarget = applyDamage(currentTarget, preview.finalDamage);
-      if (input.move.tags.includes("guard_break") && hasBattleStatus(currentTarget, "guarded")) {
+      brokeGuard = input.move.tags.includes("guard_break") && hasBattleStatus(currentTarget, "guarded");
+      if (brokeGuard) {
         updatedTarget = cleanseBattleStatus(updatedTarget, "guarded").combatant;
       }
       nextState = replaceCombatant(nextState, updatedTarget);
       log.push(`${input.move.name} hits ${currentTarget.name} for ${preview.finalDamage} damage.`);
       damageModifier.notes.forEach((note) => log.push(note));
-      if (input.move.tags.includes("guard_break") && hasBattleStatus(currentTarget, "guarded")) {
+      if (brokeGuard) {
         log.push({ text: `${currentTarget.name}'s Guarded status was broken.`, category: "status-changes" });
       }
       if (updatedTarget.isFainted && !currentTarget.isFainted) {
@@ -694,6 +705,39 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
       const energy = after.currentBattleEnergy - currentTarget.currentBattleEnergy;
       if (nextState !== before || log.length > logStart) {
         const { effect } = input;
+        const knockedOut = after.isFainted && !currentTarget.isFainted;
+        if (input.onLogEffect) {
+          let status: BattleMoveLogStatus | undefined;
+          if (appliedStatus) {
+            const { status: stack, mode } = appliedStatus;
+            status = {
+              status: stack.status,
+              result: mode,
+              duration: stack.duration,
+              stacks: stack.stacks,
+              stat: stack.stat,
+              amount: stack.amount,
+            };
+          } else if (clearedStatus || brokeGuard) {
+            status = { status: clearedStatus ?? "guarded", result: "cleared" };
+          } else if (nextState === before && effect.status) {
+            status = {
+              status: effect.status,
+              result: "failed",
+              ...(effect.type === "cleanse_status" ? { attemptedClear: true } : {}),
+            };
+          }
+          input.onLogEffect(currentTarget, {
+            hpDelta: hp,
+            battleEnergyDelta: energy,
+            hpWasFull: effect.type === "heal" && hp === 0 && nextState !== before ? true : undefined,
+            battleEnergyWasFull: effect.type === "restore_battle_energy" && energy === 0 && nextState !== before
+              ? true
+              : undefined,
+            knockedOut,
+            status,
+          }, logStart, log.length);
+        }
         const kind = hp < 0 ? "damage" : hp > 0 ? "heal" : energy !== 0 ? "energy" : "status";
         const effectLabel = (effect.status ?? effect.stat ?? effect.type).replaceAll("_", " ");
         let label = effect.duration ? `${effectLabel} · ${effect.duration}r` : effectLabel;
@@ -717,7 +761,7 @@ function resolveEffect(input: ResolveEffectInput): { state: BattleState; log: Ba
                 ? { status: effect.status, result: "failed" }
                 : undefined,
         }, appliedStatus);
-        if(after.isFainted&&!currentTarget.isFainted) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
+        if(knockedOut) input.onFrame?.({state:nextState,actorId:input.actor.battleCombatantId,targetIds:[after.battleCombatantId],moveId:input.move.id,kind:"knockout",label:"K.O."});
       }
     }
 
@@ -755,12 +799,18 @@ function hostileTargetsForMove(
     .filter((target): target is BattleCombatant => Boolean(target) && !target.isFainted && target.sideId !== actor.sideId);
 }
 
+type MoveLogTargetDraft = Omit<BattleMoveLogTarget, "statuses" | "logIndexes"> & {
+  statuses: BattleMoveLogStatus[];
+  logIndexes: number[];
+};
+
 function resolveAction(
   state: BattleState,
   queued: NormalizedRoundAction,
   actionIndex: number,
+  logOffset: number,
   onFrame?: (frame: BattlePlaybackFrame) => void,
-): { state: BattleState; resolvedAction: BattleResolvedAction; entries: BattleLogEntry[] } {
+): { state: BattleState; resolvedAction: BattleResolvedAction; entries: BattleLogEntry[]; moveLog?: BattleMoveLogGroup } {
   let nextState = state;
   const initialActor = nextState.combatants[queued.action.actorId];
   const initialMove = BATTLE_MOVES_BY_ID[queued.action.moveId] ?? getBattleMove(REQUIRED_BASIC_BATTLE_MOVE_ID);
@@ -822,33 +872,51 @@ function resolveAction(
   const targetNames = targetIds.map((targetId) => nextState.combatants[targetId]?.name ?? "Unknown");
   const actorAfterCost = spendMoveResources(initialActor, move);
   nextState = replaceCombatant(nextState, actorAfterCost);
+  const moveLogIndex = logOffset + actionLog.length;
   actionLog.push(`${initialActor.name} uses ${move.name}.`);
   onFrame?.({state:nextState,actorId:initialActor.battleCombatantId,targetIds,moveId:move.id,kind:"attack",label:move.name});
+
+  const logTargets = new Map<BattleCombatantId, MoveLogTargetDraft>();
+  function getLogTarget(target: BattleCombatant): MoveLogTargetDraft {
+    const { battleCombatantId: targetId, name: targetName } = target;
+    let result = logTargets.get(targetId);
+    if (!result) {
+      result = { targetId, targetName, hpDelta: 0, battleEnergyDelta: 0, knockedOut: false, statuses: [], logIndexes: [] };
+      logTargets.set(targetId, result);
+    }
+    return result;
+  }
+  targetIds.forEach(targetId => getLogTarget(state.combatants[targetId]));
 
   const actionSeed = `${nextState.battleId}_${nextState.roundNumber}_${initialActor.battleCombatantId}_${move.id}_${actionIndex}`;
   const hitTargetIds = new Set<BattleCombatantId>();
   const missedTargetIds: BattleCombatantId[] = [];
-  hostileTargetsForMove(nextState, actorAfterCost, move, targetIds).forEach((target) => {
+  const hostileTargets = hostileTargetsForMove(nextState, actorAfterCost, move, targetIds);
+  hostileTargets.forEach((target) => {
     const chance = calculateBattleMoveHitChance(
       getEffectiveBattleStats(actorAfterCost),
       getEffectiveBattleStats(target),
       move,
     );
-    if (chanceSucceeds(chance, `${actionSeed}_accuracy_${target.battleCombatantId}`)) {
+    const logTarget = getLogTarget(target);
+    logTarget.hit = chanceSucceeds(chance, `${actionSeed}_accuracy_${target.battleCombatantId}`);
+    if (logTarget.hit) {
       hitTargetIds.add(target.battleCombatantId);
     } else {
       missedTargetIds.push(target.battleCombatantId);
       onFrame?.({state:nextState,actorId:initialActor.battleCombatantId,targetIds:[target.battleCombatantId],moveId:move.id,kind:"miss",label:"Miss"});
+      logTarget.logIndexes.push(logOffset + actionLog.length);
       actionLog.push(`${move.name} misses ${target.name} (${chance}% hit chance).`);
     }
   });
 
   // Friendly and self-targeted effects do not use hostile hit rolls.
-  if (!hostileTargetsForMove(nextState, actorAfterCost, move, targetIds).length) {
+  if (!hostileTargets.length) {
     targetIds.forEach((targetId) => hitTargetIds.add(targetId));
   }
 
   move.effects.forEach((effect, effectIndex) => {
+    const effectLogOffset = logOffset + actionLog.length;
     const result = resolveEffect({
       state: nextState,
       actor: actorAfterCost,
@@ -859,6 +927,18 @@ function resolveAction(
       actionSeed,
       hitTargetIds,
       onFrame,
+      onLogEffect: (target, result, start, end) => {
+        const entry = getLogTarget(target);
+        entry.hpDelta += result.hpDelta;
+        entry.battleEnergyDelta += result.battleEnergyDelta;
+        if (result.hpWasFull) entry.hpWasFull = true;
+        if (result.battleEnergyWasFull) entry.battleEnergyWasFull = true;
+        if (result.knockedOut) entry.knockedOut = true;
+        if (result.status) entry.statuses.push(result.status);
+        for (let index = start; index < end; index += 1) {
+          entry.logIndexes.push(effectLogOffset + index);
+        }
+      },
     });
     nextState = result.state;
     actionLog.push(...result.log);
@@ -867,6 +947,16 @@ function resolveAction(
   return {
     state: nextState,
     entries: actionLog,
+    moveLog: {
+      logIndex: moveLogIndex,
+      endLogIndex: logOffset + actionLog.length,
+      roundNumber: state.roundNumber,
+      actorId: initialActor.battleCombatantId,
+      actorName: initialActor.name,
+      moveId: move.id,
+      moveName: move.name,
+      targets: [...logTargets.values()],
+    },
     resolvedAction: {
       actorId: initialActor.battleCombatantId,
       actorName: initialActor.name,
@@ -1035,13 +1125,14 @@ export function resolveBattleRound(
   const roundNumber = nextState.roundNumber;
   const actionQueue = buildActionQueue(nextState, requestedActions);
   const resolvedActions: BattleResolvedAction[] = [];
+  const moveLog: BattleMoveLogGroup[] = [];
   const frames: BattlePlaybackFrame[] = [];
   const onFrame = (frame: BattlePlaybackFrame) => frames.push(frame);
   const roundLog: BattleLogEntry[] = [`Round ${roundNumber} begins.`];
 
   actionQueue.forEach((queued, actionIndex) => {
     if (core.getBattleOutcome(nextState) !== "ongoing") return;
-    const result = resolveAction(nextState, queued, actionIndex, onFrame);
+    const result = resolveAction(nextState, queued, actionIndex, state.log.length + roundLog.length, onFrame);
     if (!result.resolvedAction.success) {
       onFrame({
         state: result.state,
@@ -1055,6 +1146,7 @@ export function resolveBattleRound(
     }
     nextState = result.state;
     resolvedActions.push(result.resolvedAction);
+    if (result.moveLog) moveLog.push(result.moveLog);
     roundLog.push(...result.entries);
   });
 
@@ -1068,6 +1160,7 @@ export function resolveBattleRound(
   if (outcome !== "ongoing") roundLog.push(`Battle ends: ${outcome}.`);
   nextState = {
     ...appendBattleLog(nextState, roundLog),
+    ...(moveLog.length ? { moveLog: [...(state.moveLog ?? []), ...moveLog] } : {}),
     roundNumber: roundNumber + 1,
     outcome,
   };
@@ -1098,6 +1191,7 @@ export function resolveBattleTurn(
     cloneBattleState(state),
     normalizeRequestedAction(state, actor, requested),
     Object.keys(state.combatants).length - remaining.length,
+    state.log.length,
     onFrame,
   );
   if (!turn.resolvedAction.success) {
@@ -1120,7 +1214,12 @@ export function resolveBattleTurn(
   const log = entries.map(getBattleLogEntryText);
   const result: BattleRoundResult = { roundNumber: state.roundNumber, actions: [turn.resolvedAction], log, outcome };
   return {
-    state: { ...appendBattleLog(recovery.state, entries), outcome, roundNumber: state.roundNumber + Number(roundEnded) },
+    state: {
+      ...appendBattleLog(recovery.state, entries),
+      ...(turn.moveLog ? { moveLog: [...(state.moveLog ?? []), turn.moveLog] } : {}),
+      outcome,
+      roundNumber: state.roundNumber + Number(roundEnded),
+    },
     remaining: roundEnded ? [] : nextActors,
     result,
     frames,
