@@ -31,13 +31,16 @@ test("portrait battlefield uses horizontal formations and projected order contro
 });
 
 test("both active battle modes share categorized commands and actual resolution order", async () => {
-  const individual = await source("src/features/coliseum/ColiseumC2Screen.tsx");
-  const round = await source("src/features/coliseum/ColiseumC4Battle.tsx");
-  assert.match(individual, /<BattleArenaB/);
-  assert.match(individual, /individualOrder=\{turnOrder\}/);
-  assert.match(individual, /presentation\.play\([^\n]*, \[turnOrder\[0\]\]\)/);
-  assert.match(round, /<BattleArenaB/);
-  assert.match(round, /resolved\.result\.actions\.map\(action => action\.actorId\)/);
+  const circuit = await source("src/features/coliseum/ColiseumC2Screen.tsx");
+  const challenges = await source("src/features/coliseum/ColiseumC4Battle.tsx");
+  const individualTurns = await source("src/features/coliseum/useColiseumIndividualTurns.ts");
+  assert.match(circuit, /<BattleArenaB/);
+  assert.match(circuit, /individualOrder=\{turns\.order\}/);
+  assert.match(individualTurns, /presentation\.play\([^\n]*, \[actorId\]\)/);
+  assert.match(challenges, /<BattleArenaB/);
+  assert.match(challenges, /individual = challenge\.mode === "daily"/);
+  assert.match(challenges, /individualOrder: turns\.order/);
+  assert.match(challenges, /resolved\.result\.actions\.map\(action => action\.actorId\)/);
   const arena = await source("src/features/battle/BattleArenaB.tsx");
   assert.match(arena, /BATTLE_MENU_CATEGORIES.map/);
   assert.match(arena, /Queue Move/);

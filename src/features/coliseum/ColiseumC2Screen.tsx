@@ -1,23 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { BattleArenaB } from "@/features/battle/BattleArenaB";
 import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
 import {
-  buildBattleAiPlan,
   getBattleAiDifficultyDescription,
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
-import { createBattleState, hasBattleStatus, resolveBattleTurn } from "@/data/battleEngine";
-import {
-  getBattleOrderPreview,
-  getBattleRoundOrderShift,
-  recordBattleOrderShift,
-  recordBattleRoundStart,
-  updateBattleCooldownNotices,
-  type BattleRoundOrderShift,
-} from "@/data/battleInterface";
-import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
+import { createBattleState } from "@/data/battleEngine";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -58,15 +48,14 @@ import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { formatGold, formatGuildPoints } from "@/lib/formatters";
 import { useGameContext } from "@/state/GameProvider";
 import type {
-  BattleAction,
-  BattleCombatantId,
-  BattleMoveId,
   BattleOutcome,
+  BattleRoundResult,
   BattleState,
 } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import { useBattlePresentationController } from "@/features/battle/useBattlePresentationController";
+import { useColiseumIndividualTurns } from "./useColiseumIndividualTurns";
 import styles from "./ColiseumProgressionScreen.module.css";
 
 const COLISEUM_ICON = "/images/ui/icons/icon_ability_trigger.png";
@@ -255,12 +244,6 @@ export function ColiseumBattle({
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
-  const [turnOrder, setTurnOrder] = useState<BattleCombatantId[]>([]);
-  const roundOpening = useRef<{ order: readonly BattleCombatantId[]; state: BattleState }>(undefined);
-  const [roundOrderShift, setRoundOrderShift] = useState<BattleRoundOrderShift>();
-  const [cooldownNotices, setCooldownNotices] = useState<ReadonlyMap<BattleCombatantId, readonly BattleMoveId[]>>(() => new Map());
-  const turnActor = battleState?.combatants[turnOrder[0]];
-  const activeActorId = turnActor?.sideId === "player" && !hasBattleStatus(turnActor, "stun") ? turnActor.battleCombatantId : null;
   const [selectedTarget, setSelectedTarget] = useState<BattleUiTarget | null>(null);
   const [armTacticsKit, setArmTacticsKit] = useState(false);
   const [usedItems, setUsedItems] = useState<UsedCombatItems>(EMPTY_USED_ITEMS);
@@ -269,22 +252,19 @@ export function ColiseumBattle({
   const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState(`Choose exactly three available creatures for ${encounter.name}.`);
   const presentation = useBattlePresentationController();
+  const turns = useColiseumIndividualTurns({
+    state: battleState,
+    enabled: !!currentSave && phase === "battle",
+    aiDifficulty: encounter.aiDifficulty,
+    presentation,
+    onResolved: settleTurn,
+  });
+  const { activeActorId } = turns;
 
   const roster = currentSave?.creatures ?? [];
   const availableRoster = useMemo(() => currentSave ? roster.filter((creature) => !getUnavailableReason(currentSave, creature)) : [], [currentSave, roster]);
   const effectiveSelection = selectedCreatureIds !== null ? selectedCreatureIds : availableRoster.slice(0, 3).map((creature) => creature.creatureId);
   const enemyPreview = useMemo(() => getColiseumEnemyPreview(encounter), [encounter]);
-
-  useEffect(() => {
-    if (!currentSave || phase !== "battle" || presentation.isPlaying || !battleState || !turnActor || activeActorId) return;
-    const timer = window.setTimeout(() => {
-      const action = turnActor.sideId === "enemy"
-        ? buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty).actions.find(entry => entry.actorId === turnActor.battleCombatantId)
-        : undefined;
-      takeTurn(action);
-    }, 240);
-    return () => window.clearTimeout(timer);
-  });
 
   if (!currentSave) return null;
 
@@ -293,15 +273,6 @@ export function ColiseumBattle({
   const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
   const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
-
-  function setOpeningTurnOrder(state: BattleState, showShift = false) {
-    const order = getBattleOrderPreview(state, new Map()).map(entry => entry.actorId);
-    const shift = showShift ? getBattleRoundOrderShift(roundOpening.current?.order ?? [], order, state.roundNumber) : undefined;
-    setRoundOrderShift(shift);
-    roundOpening.current = { order, state };
-    setTurnOrder(order);
-    return shift;
-  }
 
   function startBattle() {
     const team = effectiveSelection.map((id) => roster.find((creature) => creature.creatureId === id)).filter((creature): creature is CreatureRecord => Boolean(creature));
@@ -332,9 +303,7 @@ export function ColiseumBattle({
     }
     setPlayerSources(team);
     setEnemySources(enemies);
-    setBattleState(recordBattleRoundStart(state, 0));
-    setCooldownNotices(new Map());
-    setOpeningTurnOrder(state);
+    setBattleState(turns.openRound(state, 0));
     setSelectedTarget(null);
     setUsedItems({ ...EMPTY_USED_ITEMS, tacticsKit: tacticsUsed });
     setCompletedRounds(0);
@@ -347,7 +316,7 @@ export function ColiseumBattle({
     if (presentation.isPlaying || !battleState || !activeActorId || !selectedTarget) return;
     const action = buildBattleUiAction(battleState, activeActorId, moveId, selectedTarget);
     if (!action) { setMessage("That move cannot be used on the selected target."); return; }
-    takeTurn(action);
+    turns.takeTurn(action);
   }
 
   function handleSupportItem(item: "tonic" | "revival") {
@@ -357,39 +326,24 @@ export function ColiseumBattle({
     if (!result.ok) { setMessage(result.message); return; }
     const resumesBattle = item === "revival" && phase === "result";
     saveCurrentGame(result.save);
-    setBattleState(resumesBattle ? recordBattleRoundStart(result.state, battleState.log.length) : result.state);
+    setBattleState(resumesBattle ? turns.openRound(result.state, battleState.log.length) : result.state);
     setSelectedTarget(null);
     setUsedItems((current) => ({ ...current, fieldTonic: current.fieldTonic || item === "tonic", revivalSalve: current.revivalSalve || item === "revival" }));
     setMessage(result.message);
-    if (resumesBattle) {
-      setPhase("battle");
-      setOpeningTurnOrder(result.state);
-    }
+    if (resumesBattle) setPhase("battle");
   }
 
-  function takeTurn(action?: BattleAction) {
-    if (!battleState || presentation.isPlaying || phase !== "battle") return;
-    const resolved = resolveBattleTurn(battleState, turnOrder, action);
-    if (!resolved) return;
-    presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [turnOrder[0]]);
-    setCooldownNotices(current => updateBattleCooldownNotices(current, battleState, resolved.state, activeActorId));
-    setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, resolved.result));
-    const opensNextRound = resolved.state.outcome === "ongoing" && !resolved.remaining.length;
-    const previous = roundOpening.current?.state;
-    const shift = opensNextRound ? setOpeningTurnOrder(resolved.state, true) : undefined;
-    const nextState = opensNextRound ? recordBattleRoundStart(resolved.state) : resolved.state;
-    const context = previous && resolved.beforeRecovery ? { previous, beforeRecovery: resolved.beforeRecovery } : undefined;
-    setBattleState(recordBattleOrderShift(nextState, shift, context));
+  function settleTurn(nextState: BattleState, result: BattleRoundResult) {
+    if (!battleState) return;
+    setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, result));
+    setBattleState(nextState);
     setSelectedTarget(null);
-    setCompletedRounds(resolved.result.roundNumber);
-    if (resolved.state.outcome !== "ongoing") {
-      setTurnOrder([]);
-      setRoundOrderShift(undefined);
+    setCompletedRounds(result.roundNumber);
+    if (nextState.outcome !== "ongoing") {
       setPhase("result");
-      setMessage(`${outcomeLabel(resolved.state.outcome)} in ${resolved.result.roundNumber} rounds. Review the purse and combat XP before recording.`);
+      setMessage(`${outcomeLabel(nextState.outcome)} in ${result.roundNumber} rounds. Review the purse and combat XP before recording.`);
       return;
     }
-    if (resolved.remaining.length) setTurnOrder(resolved.remaining);
     setMessage("Select a target and move for the active creature.");
   }
 
@@ -410,6 +364,6 @@ export function ColiseumBattle({
   const receipt = phase === "result" ? recordColiseumC2BattleResult(save, encounter.encounterId, battleState.outcome, completedRounds || 1, playerSources.map(c=>c.creatureId), performance, battleState.battleId) : null;
   const firstClearAvailable = !getColiseumC2Progress(save).claimedFirstClearEncounterIds.includes(encounter.encounterId);
   return <BattleArenaB resultLedger={receipt?{rewards:getColiseumC2RewardLabel(receipt.reward),summaries:receipt.xpSummaries,performance,onRecord:()=>finalize(),recordLabel:"Record & Return to Coliseum"}:undefined} title={encounter.name} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId}
-    completedCooldowns={activeActorId ? cooldownNotices.get(activeActorId) : undefined}
-    individualOrder={turnOrder} roundOrderShift={roundOrderShift} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
+    completedCooldowns={turns.completedCooldowns}
+    individualOrder={turns.order} roundOrderShift={turns.roundOrderShift} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
 }
