@@ -15,6 +15,77 @@
 .panel .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
 @media(max-height:560px) and (min-width:761px){.panel{padding:4px;gap:4px}.choices{gap:3px}.choice{min-height:36px!important}.panel .actions button{font-size:11px;padding:4px}}
 
+@media (max-width: 760px) and (max-height: 700px) and (orientation: portrait),
+       (max-width: 760px) and (max-height: 450px) and (orientation: landscape) {
+  .courtyard[data-coliseum="entrance"] {
+    grid-template-rows: 44px minmax(0, 1fr) 62px;
+    gap: 6px;
+  }
+  .courtyard[data-coliseum="entrance"] > .layout {
+    grid-template-rows: auto minmax(min-content, 1fr) auto;
+    gap: 6px;
+  }
+  [data-coliseum="entrance"] > .layout > .panel {
+    border-width: 7px;
+    padding: 5px;
+    gap: 5px;
+  }
+  [data-coliseum="entrance"] > .layout > .panel h2 { font-size: 17px; }
+  [data-coliseum="entrance"] > .layout > .panel button { padding: 5px; font-size: 13px; }
+  [data-coliseum="entrance"] > .layout .choice {
+    min-height: 66px !important;
+    padding: 4px !important;
+    align-content: center;
+    gap: 3px;
+  }
+  [data-coliseum="entrance"] > .layout .choice img { width: 25px; height: 25px; }
+  [data-coliseum="entrance"] > .layout .choice:only-child { grid-column: 1 / -1; }
+  [data-coliseum="entrance"] > .layout > .panel:first-child:has(> .actions + .primary) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+  [data-coliseum="entrance"] > .layout > .panel:first-child > :is(h2, .choices, .pager) {
+    grid-column: 1 / -1;
+  }
+  [data-coliseum="entrance"] > .layout > .panel:last-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-coliseum="entrance"] > .layout > .panel:last-child > :is(h2, p) { grid-column: 1 / -1; }
+  [data-coliseum="entrance"] > .layout > .sign {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  [data-coliseum="entrance"] > .layout > .sign h2 { font-size: 16px; margin: 0; padding: 5px 8px; }
+  [data-coliseum="entrance"] > .layout > .sign p { margin: 0; padding: 4px 6px; }
+  [data-coliseum="entrance"] > .dock img { width: 30px; height: 28px; }
+}
+
+@media (max-width: 760px) and (max-height: 450px) and (orientation: landscape) {
+  .courtyard[data-coliseum="entrance"] {
+    grid-template-rows: 42px minmax(0, 1fr) 46px;
+    padding: 6px 8px;
+  }
+  .courtyard[data-coliseum="entrance"] > .layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    grid-template-rows: minmax(min-content, 1fr) auto;
+    align-items: stretch;
+  }
+  [data-coliseum="entrance"] > .layout > .panel:first-child { grid-area: 1 / 1 / -1 / 2; }
+  [data-coliseum="entrance"] > .layout > .panel { border-width: 6px; gap: 4px; }
+  [data-coliseum="entrance"] > .layout .choice { min-height: 58px !important; font-size: 12px !important; }
+  [data-coliseum="entrance"] > .layout .choice img { width: 22px; height: 22px; }
+  [data-coliseum="entrance"] > .layout > .sign { grid-area: 1 / 2; }
+  [data-coliseum="entrance"] > .layout > .panel:last-child { grid-area: 2 / 2; }
+  [data-coliseum="entrance"] > .dock button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  [data-coliseum="entrance"] > .dock img { width: 25px; height: 24px; }
+}
+
 /* Team staging: one formation, clear numbered positions and quiet nameplates. */
 .team{grid-template-columns:180px minmax(0,1fr) 235px;gap:14px}.stage{gap:14px;padding:8px 0 4px}.team .plinth{border-radius:8px;background:linear-gradient(#f5e9cdee,#ddc79bee);box-shadow:0 3px 8px #39271540;border:1px solid #ae8c52;padding:10px 5px}.slotNumber{display:block;font:700 10px/1.3 system-ui;letter-spacing:2px;color:#76603c;margin-bottom:4px}.team .slotActions button{flex:1;max-width:125px}.team .body{position:relative}.team .body:after{content:"";position:absolute;bottom:0;width:85%;height:15px;border-radius:50%;background:#49382225;z-index:0}.team .body img{position:relative;z-index:1}.team .panel{border-image:none;border:1px solid #b59a66;border-radius:8px;background:#f0e1bfed;padding:16px;gap:10px}
 @media(max-width:1050px){.team{grid-template-columns:minmax(0,1fr) 225px}.stage{gap:8px}.team .panel{padding:12px}}
