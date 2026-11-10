@@ -1,4 +1,4 @@
-import { createBattleState } from "@/data/battleEngine";
+import { createBattleState, getBattleOrderPreview } from "@/data/battleEngine";
 import {
   applyBattleOutfitterLoadouts,
   applyEquipmentOpeningPassives,
@@ -15,7 +15,7 @@ import {
   type ColiseumC4CarryoverMap,
   type ColiseumC4ModifierId,
 } from "@/data/coliseumC4";
-import type { BattleCombatant, BattleState } from "@/types/battle";
+import type { BattleCombatant, BattleCombatantId } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -35,8 +35,18 @@ export type ColiseumOpeningVitals = Pick<BattleCombatant,
   "currentHp" | "maxHp" | "currentBattleEnergy" | "maxBattleEnergy"
 >;
 
-export function createColiseumBattleId(prefix: string, save: GameSave): string {
-  return `${prefix}_${save.saveId}_${save.dayState.dayNumber}_${Date.now()}`;
+export type ColiseumOpeningOrderEntry = Pick<BattleCombatant, "sourceCreatureId" | "name" | "sideId"> & {
+  actorId: BattleCombatantId;
+  speed: number;
+  variantId: CreatureRecord["variantId"];
+};
+
+export function createColiseumAttemptKey(): string {
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function createColiseumBattleId(prefix: string, save: GameSave, attemptKey: string): string {
+  return `${prefix}_${save.saveId}_${save.dayState.dayNumber}_${attemptKey}`;
 }
 
 export function buildColiseumOpening(
@@ -59,14 +69,21 @@ export function buildColiseumOpening(
   return { state: applyEquipmentOpeningPassives(save, restored), enemies };
 }
 
-export function getColiseumOpeningVitals(
+export function getColiseumOpeningPreview(
   input: ColiseumOpeningInput,
+  battleId: string,
   tacticsArmed: boolean,
-): ReadonlyMap<CreatureId, ColiseumOpeningVitals> {
-  const { state } = buildColiseumOpening(input, "coliseum_opening_preview");
-  const opening: BattleState = tacticsArmed ? applyTeamTacticsOpeningEffect(state) : state;
-  return new Map(opening.teams.player.combatantIds.map((id) => {
+): { vitals: ReadonlyMap<CreatureId, ColiseumOpeningVitals>; order: readonly ColiseumOpeningOrderEntry[] } {
+  const { state, enemies } = buildColiseumOpening(input, battleId);
+  const opening = tacticsArmed ? applyTeamTacticsOpeningEffect(state) : state;
+  const vitals = new Map(opening.teams.player.combatantIds.map((id) => {
     const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = opening.combatants[id];
     return [sourceCreatureId, { currentHp, maxHp, currentBattleEnergy, maxBattleEnergy }];
   }));
+  const order = input.team.length === 3 ? getBattleOrderPreview(opening, new Map()).map(({ actorId, score }) => {
+    const { sourceCreatureId, name, sideId, slotIndex } = opening.combatants[actorId];
+    const source = sideId === "player" ? input.team[slotIndex] : enemies[slotIndex];
+    return { actorId, sourceCreatureId, name, sideId, speed: score, variantId: source.variantId };
+  }) : [];
+  return { vitals, order };
 }

@@ -7,7 +7,7 @@ import {
   getBattleAiDifficultyDescription,
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
-import { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
+import { buildColiseumOpening, createColiseumAttemptKey, createColiseumBattleId, getColiseumOpeningPreview } from "@/data/coliseumBattleOpening";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -237,6 +237,8 @@ export function ColiseumBattle({
 }) {
   const { currentSave, saveCurrentGame } = useGameContext();
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
+  // Initiative ties are seeded by battle ID, so the preview and launch share this attempt.
+  const [attemptKey] = useState(createColiseumAttemptKey);
   const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[] | null>(null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
@@ -272,15 +274,13 @@ export function ColiseumBattle({
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
   const team = effectiveSelection.map((id) => roster.find((creature) => creature.creatureId === id)).filter((creature): creature is CreatureRecord => Boolean(creature));
   const openingInput = { save, encounter, team, playerTeamName: `${save.player.name}'s Ranch Team` };
+  const battleId = createColiseumBattleId(`coliseum_c2_${encounter.encounterId}`, save, attemptKey);
 
   function startBattle() {
     if (team.length !== 3) { setMessage("Select exactly three available creatures before entering the bracket."); return; }
     if (team.some(creature => getUnavailableReason(save, creature))) { setMessage("A selected creature is no longer available for battle."); return; }
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
-    const { state: openingState, enemies } = buildColiseumOpening(
-      openingInput,
-      createColiseumBattleId(`coliseum_c2_${encounter.encounterId}`, save),
-    );
+    const { state: openingState, enemies } = buildColiseumOpening(openingInput, battleId);
     let state = openingState;
     let tacticsUsed = false;
     if (armTacticsKit) {
@@ -345,8 +345,8 @@ export function ColiseumBattle({
   }
 
   if (phase === "team-selection") {
-    const openingVitals = getColiseumOpeningVitals(openingInput, armTacticsKit && tacticsStock > 0);
-    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} openingVitals={openingVitals} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
+    const { vitals, order } = getColiseumOpeningPreview(openingInput, battleId, armTacticsKit && tacticsStock > 0);
+    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} openingVitals={vitals} openingOrder={order} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
   }
 
   if (!battleState) return null;

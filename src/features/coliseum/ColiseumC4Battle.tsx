@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { BattleArenaB } from "@/features/battle/BattleArenaB";
 import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
-import { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
+import { buildColiseumOpening, createColiseumAttemptKey, createColiseumBattleId, getColiseumOpeningPreview } from "@/data/coliseumBattleOpening";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -95,6 +95,8 @@ export function ColiseumC4Battle({
 }: ColiseumC4BattleProps) {
   const { currentSave, saveCurrentGame } = useGameContext();
   const [phase, setPhase] = useState<BattlePhase>("team-selection");
+  // Initiative ties are seeded by battle ID, so the preview and launch share this attempt.
+  const [attemptKey] = useState(createColiseumAttemptKey);
   const [selectedCreatureIds, setSelectedCreatureIds] = useState<CreatureId[] | null>(lockedTeamCreatureIds ?? null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
@@ -147,16 +149,14 @@ export function ColiseumC4Battle({
     playerTeamName: `${save.player.name}'s Challenge Team`,
     challenge: { modifierIds: challenge.modifierIds, carryover },
   };
+  const battleId = createColiseumBattleId(`coliseum_c4_${challenge.challengeKey}_${stageIndex}`, save, attemptKey);
 
   function startBattle() {
     if (team.length !== 3) { setMessage("Select exactly three available creatures before entering the challenge."); return; }
     const unavailable = team.find((creature) => getUnavailableReason(save, creature));
     if (unavailable) { setMessage(`${unavailable.nickname} is no longer available for battle.`); return; }
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
-    const { state: openingState, enemies } = buildColiseumOpening(
-      openingInput,
-      createColiseumBattleId(`coliseum_c4_${challenge.challengeKey}_${stageIndex}`, save),
-    );
+    const { state: openingState, enemies } = buildColiseumOpening(openingInput, battleId);
     let state = openingState;
     let tacticsUsed = false;
     if (armTacticsKit) {
@@ -224,8 +224,8 @@ export function ColiseumC4Battle({
   }
 
   if (phase === "team-selection") {
-    const openingVitals = getColiseumOpeningVitals(openingInput, armTacticsKit && tacticsStock > 0);
-    return <ColiseumTeamStaging title={`${challenge.name} · Stage ${stageIndex + 1}/${challenge.encounterIds.length}`} roster={visibleRoster} selected={effectiveSelection} openingVitals={openingVitals} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c => getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} locked={locked} carryover={carryover} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} battleModifiers={modifiers} rules={<>{modifiers.map(m => <section key={m.modifierId}><h3>{m.name}</h3><p>{m.description}</p></section>)}<p>{challenge.mode === "gauntlet" ? "The same roster continues between stages. Living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP. Previous-stage statuses and cooldowns clear. Opening modifiers apply again each stage. Defeat or a draw ends the run." : "Every participant earns Combat XP after the result is recorded."}</p></>} />;
+    const { vitals, order } = getColiseumOpeningPreview(openingInput, battleId, armTacticsKit && tacticsStock > 0);
+    return <ColiseumTeamStaging title={`${challenge.name} · Stage ${stageIndex + 1}/${challenge.encounterIds.length}`} roster={visibleRoster} selected={effectiveSelection} openingVitals={vitals} openingOrder={order} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c => getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} locked={locked} carryover={carryover} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} battleModifiers={modifiers} rules={<>{modifiers.map(m => <section key={m.modifierId}><h3>{m.name}</h3><p>{m.description}</p></section>)}<p>{challenge.mode === "gauntlet" ? "The same roster continues between stages. Living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP. Previous-stage statuses and cooldowns clear. Opening modifiers apply again each stage. Defeat or a draw ends the run." : "Every participant earns Combat XP after the result is recorded."}</p></>} />;
   }
 
   if (!battleState) return null;

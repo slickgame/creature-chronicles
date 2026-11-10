@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { createBattleState } = await import("@/data/battleEngine");
+const { createBattleState, getBattleOrderPreview } = await import("@/data/battleEngine");
 const { applyTeamTacticsKit } = await import("@/data/battleOutfitterIntegration");
-const { buildColiseumOpening, getColiseumOpeningVitals } = await import("@/data/coliseumBattleOpening");
+const { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningPreview } = await import("@/data/coliseumBattleOpening");
 const { COLISEUM_C2_ENCOUNTERS } = await import("@/data/coliseumC2");
 const { createNewGameSave } = await import("./helpers/establishedSave.ts");
+const TEST_BATTLE_ID = "actual-coliseum-start";
 
 function createFixture() {
   const save = createNewGameSave("Coliseum Opening Tester", 0);
@@ -26,7 +27,7 @@ test("fresh Coliseum forecasts include equipped HP and full starting Battle Ener
   const base = createBattleState({ battleId: "base", playerCreatures: input.team, enemyCreatures: [] });
   const baseCreature = base.combatants[base.teams.player.combatantIds[0]];
 
-  const forecast = getColiseumOpeningVitals(input, false).get(creatureId);
+  const forecast = getColiseumOpeningPreview(input, TEST_BATTLE_ID, false).vitals.get(creatureId);
   assert.deepEqual(forecast, {
     currentHp: baseCreature.maxHp + 12,
     maxHp: baseCreature.maxHp + 12,
@@ -47,7 +48,7 @@ test("a resumed Coliseum forecast scales saved ratios to modified caps before th
       carryover: { [creatureId]: { hpRatio: 0.15, battleEnergyRatio: 0.25 } },
     },
   };
-  const base = getColiseumOpeningVitals(fixture, false).get(creatureId);
+  const base = getColiseumOpeningPreview(fixture, TEST_BATTLE_ID, false).vitals.get(creatureId);
   assert.ok(base);
   const maxHp = Math.round(base.maxHp * 0.85);
   const energyCap = base.maxBattleEnergy + 12;
@@ -57,8 +58,8 @@ test("a resumed Coliseum forecast scales saved ratios to modified caps before th
     currentBattleEnergy: Math.round(energyCap * 0.25),
     maxBattleEnergy: energyCap,
   };
-  assert.deepEqual(getColiseumOpeningVitals(input, false).get(creatureId), expectedWithoutKit);
-  const armed = getColiseumOpeningVitals(input, true);
+  assert.deepEqual(getColiseumOpeningPreview(input, TEST_BATTLE_ID, false).vitals.get(creatureId), expectedWithoutKit);
+  const armed = getColiseumOpeningPreview(input, TEST_BATTLE_ID, true).vitals;
   assert.deepEqual(armed.get(creatureId), {
     ...expectedWithoutKit,
     currentBattleEnergy: expectedWithoutKit.currentBattleEnergy + 10,
@@ -66,7 +67,7 @@ test("a resumed Coliseum forecast scales saved ratios to modified caps before th
   });
   assert.equal(save.flags.battleItem_tacticsKits, 1);
 
-  const { state } = buildColiseumOpening(input, "actual-coliseum-start");
+  const { state } = buildColiseumOpening(input, TEST_BATTLE_ID);
   const actual = applyTeamTacticsKit(save, state);
   assert.equal(actual.ok, true);
   assert.equal(actual.save.flags.battleItem_tacticsKits, 0);
@@ -74,4 +75,36 @@ test("a resumed Coliseum forecast scales saved ratios to modified caps before th
     const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = actual.state.combatants[id];
     assert.deepEqual(armed.get(sourceCreatureId), { currentHp, maxHp, currentBattleEnergy, maxBattleEnergy });
   }
+});
+
+test("opening order shares the launch seed for tied Speed and applies opening Speed modifiers", () => {
+  const fixture = createFixture();
+  const [first, second, third] = fixture.team;
+  const team = [first, { ...first, creatureId: second.creatureId, nickname: second.nickname }, third];
+  const save = { ...fixture.save, saveId: "opening_test", dayState: { ...fixture.save.dayState, dayNumber: 1 } };
+  const input = { ...fixture, save, team, challenge: { modifierIds: ["quickened_field", "exhausting_heat"] as ("quickened_field" | "exhausting_heat")[] } };
+  const prefix = "coliseum_c2_novice_opening_scrimmage";
+
+  const tiedOrders = ["attempt-0", "attempt-3"].map(attemptKey => {
+    const battleId = createColiseumBattleId(prefix, save, attemptKey);
+    const { order } = getColiseumOpeningPreview(input, battleId, false);
+    const { state } = buildColiseumOpening(input, battleId);
+    const actualOrder = getBattleOrderPreview(state, new Map());
+    assert.deepEqual(order.map(({ actorId, speed }) => ({ actorId, score: speed })), actualOrder.map(({ actorId, score }) => ({ actorId, score })));
+    const tied = order.filter(({ sideId, sourceCreatureId }) => sideId === "player" && [first.creatureId, second.creatureId].includes(sourceCreatureId));
+    assert.equal(tied.length, 2);
+    const base = getColiseumOpeningPreview({ ...fixture, save, team }, battleId, false).order.find(entry => entry.sourceCreatureId === first.creatureId);
+    assert.ok(base);
+    assert.equal(tied[0].speed, base.speed + 1);
+    assert.equal(tied[1].speed, base.speed + 1);
+    return tied.map(entry => entry.sourceCreatureId);
+  });
+  assert.deepEqual(tiedOrders, [[first.creatureId, second.creatureId], [second.creatureId, first.creatureId]]);
+});
+
+test("opening vitals remain available for an incomplete team before its full order is known", () => {
+  const fixture = createFixture();
+  const preview = getColiseumOpeningPreview({ ...fixture, team: fixture.team.slice(0, 2) }, TEST_BATTLE_ID, false);
+  assert.equal(preview.vitals.size, 2);
+  assert.deepEqual(preview.order, []);
 });
