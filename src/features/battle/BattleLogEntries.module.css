@@ -229,6 +229,7 @@
 }
 .quickFind .searchField input:focus-visible { outline: none; }
 .searchField input::placeholder { color: #755a3a; font-weight: 400; opacity: 1; }
+.searchActions { display: flex; align-items: center; gap: 2px; }
 .quickFind .searchField .clearSearch {
   display: grid;
   place-items: center;
@@ -243,6 +244,34 @@
   cursor: pointer;
 }
 .quickFind .searchField .clearSearch:hover { background: #ead2a1; }
+
+.quickFind .searchField .searchTipsTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: #3b5230;
+  font: 700 14px/1 Georgia, serif;
+  cursor: pointer;
+}
+.quickFind .searchField .searchTipsTrigger:hover { background: #ead2a1; }
+.quickFind .searchField .searchTipsTrigger[aria-expanded="true"] {
+  border-color: #a8864c;
+  background: linear-gradient(#405832, #25371f);
+  color: #fff1cb;
+}
+.searchTipsTrigger span {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
 
 .searchResults {
   position: relative;
@@ -276,6 +305,36 @@
   font-style: italic;
 }
 .searchResultsHeading span { font-size: .85em; font-weight: 400; }
+.searchTips::before {
+  inset-inline-start: auto;
+  inset-inline-end: 26px;
+}
+.searchTips dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 5px 12px;
+  margin: 7px 5px;
+  font-size: .875em;
+}
+.searchTips dd {
+  margin: 0;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.searchTips kbd {
+  padding: 0 3px;
+  border: 1px solid #c0a574;
+  border-radius: 3px;
+  background: #fff5da;
+  font: inherit;
+}
+.searchTips p {
+  margin: 0 5px 3px;
+  padding-block-start: 5px;
+  border-block-start: 1px solid #b39160;
+  font-size: .85em;
+  font-weight: 400;
+}
 .searchResultList {
   max-block-size: min(12rem, 34dvh);
   margin: 0;
@@ -346,6 +405,10 @@
   .filterPanel { grid-area: 3 / 2; }
   .logLayout[data-filters-open="true"] .quickFind { grid-column-end: -1; }
   .logLayout[data-filters-open="true"] .logRows { grid-area: 4 / 1 / 5 / -1; }
+}
+@container (max-width: 28rem) {
+  .searchTips dl { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .searchTips dd:not(:last-child) { margin-block-end: 4px; }
 }
 @media (forced-colors: active) {
   .filterOption > input[type="checkbox"] { appearance: auto; }

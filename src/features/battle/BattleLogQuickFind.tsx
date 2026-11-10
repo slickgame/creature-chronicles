@@ -3,17 +3,19 @@ import { getBattleLogSearchTextParts, searchBattleLog, type BattleLogSearchConte
 import type { BattleLogEventCategory, BattleState } from "@/types/battle";
 import s from "./BattleLogEntries.module.css";
 
+export type BattleLogQuickFindPanel = "search" | "tips";
+
 export function BattleLogSearchText({ text, query, context }: { text: string; query: string; context?: BattleLogSearchContext }) {
   return getBattleLogSearchTextParts(text, query, context).map((part, index) =>
     part.matched ? <mark className={s.searchHighlight} key={index}>{part.text}</mark> : part.text,
   );
 }
 
-export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJump, onClear }: {
+export function BattleLogQuickFind({ state, filters, panel, onOpen, onClose, onJump, onClear }: {
   state: BattleState;
   filters: readonly BattleLogEventCategory[];
-  open: boolean;
-  onOpen: () => void;
+  panel?: BattleLogQuickFindPanel;
+  onOpen: (panel: BattleLogQuickFindPanel) => void;
   onClose: () => void;
   onJump: (result: BattleLogSearchResult, query: string) => void;
   onClear: () => void;
@@ -22,20 +24,23 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
   const [activeIndex, setActiveIndex] = useState<number>();
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const tipsTrigger = useRef<HTMLButtonElement>(null);
   const listId = useId();
-  const expanded = open && !!query.trim();
+  const tipsId = useId();
+  const tipsOpen = panel === "tips";
+  const expanded = panel === "search" && !!query.trim();
   const results = expanded ? searchBattleLog(state, query, filters) : [];
   const activePosition = results.findIndex(result => result.index === activeIndex);
   const activeId = activePosition >= 0 ? `${listId}-${activeIndex}` : undefined;
 
   useEffect(() => {
-    if (!expanded) return;
+    if (!expanded && !tipsOpen) return;
     const closeOnOutsideClick = (event: MouseEvent) => {
       if (event.target instanceof Node && !root.current?.contains(event.target)) onClose();
     };
     document.addEventListener("click", closeOnOutsideClick);
     return () => document.removeEventListener("click", closeOnOutsideClick);
-  }, [expanded, onClose]);
+  }, [expanded, tipsOpen, onClose]);
 
   useEffect(() => {
     if (activeId) document.getElementById(activeId)?.scrollIntoView({ block: "nearest" });
@@ -44,7 +49,7 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
   function showResults() {
     if (!expanded && query.trim()) {
       setActiveIndex(undefined);
-      onOpen();
+      onOpen("search");
     }
   }
 
@@ -63,7 +68,7 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
       if (!expanded) {
         const reopened = searchBattleLog(state, query, filters);
         setActiveIndex((backwards ? reopened.at(-1) : reopened[0])?.index);
-        onOpen();
+        onOpen("search");
         return;
       }
       if (!results.length) return;
@@ -79,7 +84,16 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
   }
 
   return <div className={s.quickFind} ref={root}
+    onBlur={event => {
+      if (tipsOpen && !event.currentTarget.contains(event.relatedTarget)) onClose();
+    }}
     onKeyDown={event => {
+      if (tipsOpen && event.key === "Escape" && !event.nativeEvent.isComposing) {
+        event.preventDefault();
+        event.stopPropagation();
+        tipsTrigger.current?.focus({ preventScroll: true });
+        onClose();
+      }
       if (event.key === "Tab" && (event.shiftKey === (event.target === input.current))) onClose();
     }}>
     <div className={s.searchField}>
@@ -95,17 +109,38 @@ export function BattleLogQuickFind({ state, filters, open, onOpen, onClose, onJu
           const value = event.target.value;
           setQuery(value);
           setActiveIndex(undefined);
-          if (value.trim()) onOpen();
+          if (value.trim()) onOpen("search");
           else { onClear(); onClose(); }
         }}/>
-      {query && <button type="button" className={s.clearSearch} aria-label="Clear search" onClick={() => {
-        input.current?.focus({ preventScroll: true });
-        setQuery("");
-        setActiveIndex(undefined);
-        onClear();
-        onClose();
-      }}>×</button>}
+      <div className={s.searchActions}>
+        {query && <button type="button" className={s.clearSearch} aria-label="Clear search" onClick={() => {
+          input.current?.focus({ preventScroll: true });
+          setQuery("");
+          setActiveIndex(undefined);
+          onClear();
+          onClose();
+        }}>×</button>}
+        <button type="button" ref={tipsTrigger} className={s.searchTipsTrigger} aria-label="Search tips"
+          aria-expanded={tipsOpen} aria-controls={tipsOpen ? tipsId : undefined}
+          onClick={() => tipsOpen ? onClose() : onOpen("tips")}>
+          <span aria-hidden="true">?</span> Tips
+        </button>
+      </div>
     </div>
+    {tipsOpen && <section className={`${s.searchResults} ${s.searchTips}`} id={tipsId} aria-labelledby={`${tipsId}-title`}>
+      <div className={s.searchResultsHeading}><strong id={`${tipsId}-title`}>Search tips</strong></div>
+      <dl>
+        <dt>Creature, move, or event</dt>
+        <dd><kbd>Lilt</kbd> · <kbd>Checking Blow</kbd> · <kbd>wore off</kbd></dd>
+        <dt>Signed Speed change</dt>
+        <dd><kbd>-6 Speed</kbd> · <kbd>+8 Speed</kbd></dd>
+        <dt>Move and Speed change</dt>
+        <dd><kbd>Checking Blow -6</kbd></dd>
+        <dt>Acting creature and move</dt>
+        <dd><kbd>Willow Glen Checking Blow -6</kbd></dd>
+      </dl>
+      <p>Use the Order shifts filter to find the linked move.</p>
+    </section>}
     {expanded && <div className={s.searchResults} data-battle-log-search-results>
       <div className={s.searchResultsHeading}>
         <strong>Matches in all rounds</strong>

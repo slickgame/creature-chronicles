@@ -5,7 +5,7 @@ import { getOrderShiftDetails, getOrderShiftSources, type BattleLogSearchResult 
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleCombatantId, BattleLogEventCategory, BattleMoveLogGroup, BattleMoveLogTarget, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
-import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
+import { BattleLogQuickFind, BattleLogSearchText, type BattleLogQuickFindPanel } from "./BattleLogQuickFind";
 import { BattleLogTargetCards } from "./BattleLogTargetCards";
 import s from "./BattleLogEntries.module.css";
 
@@ -100,7 +100,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
 }) {
   const [selectedRound, setSelectedRound] = useState(initialOrderShift?.roundNumber);
   const [filters, setFilters] = useState<BattleLogEventCategory[]>([]);
-  const [openPanel, setOpenPanel] = useState<"filters" | "search">();
+  const [openPanel, setOpenPanel] = useState<"filters" | BattleLogQuickFindPanel>();
   const [jump, setJump] = useState<BattleLogJump | undefined>(
     () => initialOrderShift ? { index: initialOrderShift.logIndex, query: "" } : undefined,
   );
@@ -124,8 +124,8 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
     return () => document.removeEventListener("click", closeOnOutsideClick);
   }, [filtersOpen, playback]);
 
-  const closeSearch = useCallback(() => {
-    setOpenPanel(current => current === "search" ? undefined : current);
+  const closeQuickFind = useCallback(() => {
+    setOpenPanel(current => current === "filters" ? current : undefined);
   }, []);
 
   useEffect(() => {
@@ -307,7 +307,7 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
           event.preventDefault();
           event.stopPropagation();
           if (filtersOpen) closeFilters();
-          else closeSearch();
+          else closeQuickFind();
         }
       }}>
       {activeRound && <nav className={s.roundNav} aria-label="Round bookmarks" data-round-bookmarks>
@@ -353,8 +353,8 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
           </div>
         </fieldset>
       </div>
-      <BattleLogQuickFind state={state} filters={filters} open={openPanel === "search"}
-        onOpen={() => setOpenPanel("search")} onClose={closeSearch}
+      <BattleLogQuickFind state={state} filters={filters} panel={openPanel === "filters" ? undefined : openPanel}
+        onOpen={setOpenPanel} onClose={closeQuickFind}
         onClear={() => {
           if (jump?.returnTo) setReturnSearchQuery("");
           else setJump(undefined);
