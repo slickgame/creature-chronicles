@@ -22,4 +22,101 @@
 @media(max-height:560px) and (min-width:761px){.team{grid-template-columns:minmax(0,1fr) 210px}.team .panel{gap:4px;padding:7px}.team .panel>.muted{display:none}.team .plinth{padding:4px}.slotNumber{display:none}.stage{padding:0;gap:8px}}
 
 
+.stage:has(> .bossModifiers) {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.bossModifiers {
+  grid-column: 1 / -1;
+  align-self: start;
+  padding: 7px;
+  border: 1px solid #b59a66;
+  border-radius: 8px;
+  background: #f0e1bff5;
+  color: #352719;
+  box-shadow: 0 3px 8px #39271540;
+}
+.bossModifiers h2 {
+  margin: 0 0 5px;
+  font: bold 15px/1.2 Georgia, serif;
+}
+.bossModifiers ul {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bossModifiers li {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 5px 6px;
+  border: 1px solid #bba06e;
+  border-inline-start: 3px solid #86632e;
+  border-radius: 4px;
+  background: #fff2d3;
+  font: 13px/1.2 Georgia, serif;
+  overflow-wrap: anywhere;
+}
+.bossModifiers li[data-tone="hazard"] { border-inline-start-color: #93432e; }
+.bossModifiers li[data-tone="benefit"] { border-inline-start-color: #4f6e41; }
+@media (max-width: 600px) {
+  .bossModifiers { padding: 5px; }
+  .bossModifiers ul { grid-auto-flow: row; gap: 3px; }
+  .bossModifiers li {
+    grid-template-columns: minmax(86px, 0.75fr) minmax(0, 1.6fr);
+    gap: 5px;
+    padding: 4px 5px;
+    font-size: 12px;
+  }
+}
+@media (max-height: 560px) and (min-width: 601px) {
+  .bossModifiers { padding: 4px; }
+  .bossModifiers h2 { font-size: 13px; margin-bottom: 3px; }
+  .bossModifiers li { padding: 3px 5px; font-size: 12px; }
+}
+@media (max-height: 450px) and (max-width: 760px) and (orientation: landscape) {
+  .courtyard:has(.bossModifiers) {
+    grid-template-rows: min(46px, 12dvh) minmax(0, 1fr) min(62px, 16dvh);
+    gap: 6px;
+  }
+  .courtyard:has(.bossModifiers) .roster > button { height: min(58px, 15dvh); }
+  .courtyard:has(.bossModifiers) .roster img { width: min(32px, 8dvh); height: min(32px, 8dvh); }
+  .team:has(.bossModifiers) .plinth { padding: 4px 3px; }
+  .team:has(.bossModifiers) .mobileActions button { min-height: 36px; }
+  .stage:has(> .bossModifiers) {
+    grid-template-columns: minmax(0, 1.65fr) repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .bossModifiers { grid-column: 1; align-self: center; padding: 4px; }
+  .bossModifiers h2 { font-size: 13px; margin-bottom: 3px; }
+  .bossModifiers ul { grid-auto-flow: row; gap: 3px; }
+  .bossModifiers li {
+    grid-template-columns: none;
+    gap: 1px;
+    padding: 3px 4px;
+    font-size: 11px;
+  }
+}
+@media (max-height: 350px) and (max-width: 760px) and (orientation: landscape) {
+  .team:has(.bossModifiers) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.85fr) repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .stage:has(> .bossModifiers) {
+    grid-area: 1 / 1 / -1 / -1;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+  }
+  .stage:has(> .bossModifiers) > .creature { grid-row: 1; }
+  .bossModifiers { grid-row: 1 / -1; align-self: start; }
+  .team:has(.bossModifiers) .mobileActions { grid-area: 2 / 2 / 3 / -1; }
+  .bossModifiers li { display: block; padding-block: 2px; }
+}
+
 .scouting{background:#f5ead3;color:#342818;padding:18px;border:1px solid #b89a65;border-radius:10px;line-height:1.6;overflow-wrap:anywhere}.scouting h3{margin:18px 0 6px;color:#62471f}.scouting p{margin:6px 0}.scouting ul{padding-left:22px}.scouting li+li{margin-top:8px}.scoutCard{margin:8px 0;padding:10px 12px;background:#e9d9b8;border-left:3px solid #927042;border-radius:4px}.scoutCard p{font-size:13px}.scouting>button{margin-top:14px}

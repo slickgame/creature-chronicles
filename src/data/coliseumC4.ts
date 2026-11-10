@@ -188,13 +188,13 @@ export type ColiseumC4Result = {
 };
 
 export const COLISEUM_C4_MODIFIERS: readonly ColiseumC4ModifierDefinition[] = [
-  { modifierId: "quickened_field", name: "Quickened Field", description: "Every combatant gains +4 Speed. Initiative becomes much less forgiving.", rewardBonusPercent: 10, tone: "mixed" },
-  { modifierId: "deep_reserves", name: "Deep Reserves", description: "Every combatant gains +12 maximum Battle Energy and begins with the additional reserve.", rewardBonusPercent: -5, tone: "benefit" },
-  { modifierId: "fragile_ground", name: "Fragile Ground", description: "Every combatant enters with 15% less maximum HP.", rewardBonusPercent: 15, tone: "hazard" },
-  { modifierId: "enemy_bulwark", name: "Bulwark Opening", description: "Every enemy begins Guarded for two rounds.", rewardBonusPercent: 15, tone: "hazard" },
-  { modifierId: "marked_opening", name: "Marked Opening", description: "Every combatant begins Marked for two rounds and takes increased focused damage.", rewardBonusPercent: 10, tone: "mixed" },
-  { modifierId: "exhausting_heat", name: "Exhausting Heat", description: "The ranch team begins Exhausted for two rounds, reducing Battle Energy recovery.", rewardBonusPercent: 20, tone: "hazard" },
-  { modifierId: "restricted_aid", name: "Restricted Aid", description: "Field Tonics and Revival Salves cannot be used during this challenge.", rewardBonusPercent: 25, tone: "hazard" },
+  { modifierId: "quickened_field", name: "Quickened Field", description: "Every combatant gains +4 Speed.", rewardBonusPercent: 10, tone: "mixed" },
+  { modifierId: "deep_reserves", name: "Deep Reserves", description: "Everyone gains +12 maximum Battle Energy and starts with 12 extra when entering fresh.", rewardBonusPercent: -5, tone: "benefit" },
+  { modifierId: "fragile_ground", name: "Fragile Ground", description: "Every combatant has 15% less maximum HP, rounded to the nearest whole point.", rewardBonusPercent: 15, tone: "hazard" },
+  { modifierId: "enemy_bulwark", name: "Bulwark Opening", description: "Enemies start Guarded for 2 rounds and take 25% less attack damage while Guarded.", rewardBonusPercent: 15, tone: "hazard" },
+  { modifierId: "marked_opening", name: "Marked Opening", description: "Everyone starts Marked for 2 rounds and takes 15% more attack damage while Marked.", rewardBonusPercent: 10, tone: "mixed" },
+  { modifierId: "exhausting_heat", name: "Exhausting Heat", description: "Your team starts Exhausted for 2 rounds with −3 Speed, half base Battle Energy recovery, and 10% more damage taken from Pursuit attacks.", rewardBonusPercent: 20, tone: "hazard" },
+  { modifierId: "restricted_aid", name: "Restricted Aid", description: "Field Tonics and Revival Salves are blocked. Tactics Kits can be armed before battle.", rewardBonusPercent: 25, tone: "hazard" },
   { modifierId: "enemy_focus", name: "Focused Opposition", description: "Enemies gain +6 Accuracy and +6 Effectiveness.", rewardBonusPercent: 15, tone: "hazard" },
   { modifierId: "rallying_start", name: "Rallying Start", description: "The ranch team begins Inspired for two rounds.", rewardBonusPercent: -10, tone: "benefit" },
 ] as const;
