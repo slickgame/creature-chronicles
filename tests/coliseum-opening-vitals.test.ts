@@ -7,7 +7,8 @@ const { createBattleState, getBattleOrderPreview } = await import("@/data/battle
 const { BATTLE_OUTFITTER_ITEMS, previewEquipmentSave } = await import("@/data/battleOutfitter");
 const { applyTeamTacticsKit } = await import("@/data/battleOutfitterIntegration");
 const { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningPreview } = await import("@/data/coliseumBattleOpening");
-const { COLISEUM_C2_ENCOUNTERS } = await import("@/data/coliseumC2");
+const { COLISEUM_C2_ENCOUNTERS, getColiseumEnemyPreview } = await import("@/data/coliseumC2");
+const { buildColiseumC4Encounter, getColiseumC4Gauntlets, getColiseumC4WeeklyBoss } = await import("@/data/coliseumC4");
 const { createEquipmentCopy } = await import("@/data/equipmentEnhancement");
 const { createNewGameSave } = await import("./helpers/establishedSave.ts");
 const TEST_BATTLE_ID = "actual-coliseum-start";
@@ -75,8 +76,8 @@ test("a resumed Coliseum forecast scales saved ratios to modified caps before th
   const actual = applyTeamTacticsKit(save, state);
   assert.equal(actual.ok, true);
   assert.equal(actual.save.flags.battleItem_tacticsKits, 0);
-  for (const id of actual.state.teams.player.combatantIds) {
-    const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = actual.state.combatants[id];
+  for (const combatant of Object.values(actual.state.combatants)) {
+    const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = combatant;
     assert.deepEqual(armed.get(sourceCreatureId), { currentHp, maxHp, currentBattleEnergy, maxBattleEnergy });
   }
 });
@@ -109,8 +110,43 @@ test("opening order shares the launch seed for tied Speed and applies opening Sp
 test("opening vitals remain available for an incomplete team before its full order is known", () => {
   const fixture = createFixture();
   const preview = getColiseumOpeningPreview({ ...fixture, team: fixture.team.slice(0, 2) }, TEST_BATTLE_ID, false);
-  assert.equal(preview.vitals.size, 2);
+  assert.equal(preview.vitals.size, 2 + fixture.encounter.enemyTeam.length);
+  for (const enemy of getColiseumEnemyPreview(fixture.encounter)) assert.ok(preview.vitals.has(enemy.sourceCreatureId));
   assert.deepEqual(preview.order, []);
+});
+
+test("enemy portraits and starting vitals match authored, boss and resumed gauntlet openings", () => {
+  const fixture = createFixture();
+  const save = { ...fixture.save, flags: { ...fixture.save.flags, battleItem_tacticsKits: 1 } };
+  const challenges = [getColiseumC4WeeklyBoss(save), ...getColiseumC4Gauntlets(save)];
+  const carryover = { [fixture.team[0].creatureId]: { hpRatio: 0.15, battleEnergyRatio: 0.25 } };
+  const scenarios = [
+    ...COLISEUM_C2_ENCOUNTERS.map(encounter => ({ ...fixture, save, encounter })),
+    ...challenges.map(challenge => ({
+      ...fixture, save, encounter: buildColiseumC4Encounter(challenge, challenge.mode === "gauntlet" ? 1 : 0),
+      challenge: { modifierIds: [...challenge.modifierIds, "fragile_ground" as const, "deep_reserves" as const], carryover },
+    })),
+  ];
+  for (const scenario of scenarios) {
+    for (const teamSize of [0, 2, 3]) {
+      const input = { ...scenario, team: scenario.team.slice(0, teamSize) };
+      const { state, enemies } = buildColiseumOpening(input, TEST_BATTLE_ID);
+      const previewRows = getColiseumEnemyPreview(input.encounter);
+      assert.deepEqual(previewRows.map(({ sourceCreatureId, variantId }) => [sourceCreatureId, variantId]),
+        enemies.map(({ creatureId, variantId }) => [creatureId, variantId]));
+      for (const armed of [false, true]) {
+        const preview = getColiseumOpeningPreview(input, TEST_BATTLE_ID, armed);
+        const launched = armed ? applyTeamTacticsKit(save, state) : { ok: true, state };
+        assert.ok(launched.ok);
+        assert.equal(preview.vitals.size, teamSize + previewRows.length);
+        for (const combatant of Object.values(launched.state.combatants)) {
+          const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = combatant;
+          assert.deepEqual(preview.vitals.get(sourceCreatureId), { currentHp, maxHp, currentBattleEnergy, maxBattleEnergy },
+            `${input.encounter.name}, ${combatant.name}, ${teamSize} selected, kit ${armed}`);
+        }
+      }
+    }
+  }
 });
 
 test("opening statuses follow equipment, side-specific modifiers, carryover and the armed kit", () => {

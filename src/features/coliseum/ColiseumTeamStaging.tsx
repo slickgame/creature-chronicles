@@ -12,11 +12,11 @@ import { getEquipmentSlots, getBattleReadinessLabel } from "@/data/battleOutfitt
 import type { ColiseumOpeningOrderEntry, ColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
 import type { ColiseumC4CarryoverMap, ColiseumC4ModifierDefinition } from "@/data/coliseumC4";
 import type { CreatureRecord } from "@/types/creature";
-import type { CreatureId } from "@/types/ids";
+import type { CreatureId, VariantId } from "@/types/ids";
 import type { BattleStatusStack } from "@/types/battle";
 import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
-type Enemy = { sourceCreatureId: CreatureId; name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
+type Enemy = { sourceCreatureId: CreatureId; variantId: VariantId; name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
 
 function speedDelta(amount: number): string {
  return amount < 0 ? `−${Math.abs(amount)}` : `+${amount}`;
@@ -177,14 +177,23 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
    <div className={s.opponentGrid}>
      {enemyPreview.map((enemy, index) => {
        const effects = openingStatuses.get(enemy.sourceCreatureId) ?? [];
+       const vitals = openingVitals.get(enemy.sourceCreatureId);
        return <article key={enemy.sourceCreatureId} data-opponent-card={enemy.sourceCreatureId}
          data-selected={opponentIndex === index} aria-label={`${enemy.name} · Opponent`}>
-         <h3>{enemy.name}</h3>
-         <p>Level {enemy.level} · {enemy.variantName} · {enemy.role}</p>
-         <p>{enemy.equipment}</p>
-         <p>{enemy.moves.join(" · ")}</p>
-         {effects.length ? <OpeningStatusChips name={enemy.name} effects={effects}
-           onOpen={() => setStatusCreatureId(enemy.sourceCreatureId)}/> : <p className={s.opponentNeutral}>Starts without status effects.</p>}
+         <div className={s.opponentIdentity}>
+           <img src={gameplayArt(enemy, true)} alt={`${enemy.name}, ${enemy.variantName} portrait`} width={64} height={64}/>
+           <div><h3>{enemy.name}</h3><p>Level {enemy.level} · {enemy.variantName} · {enemy.role}</p></div>
+         </div>
+         {vitals && <dl className={s.opponentVitals} aria-label={`Starting battle vitals for ${enemy.name}`}>
+           <div data-vital="hp"><dt>HP</dt><dd>{vitals.currentHp} / {vitals.maxHp}</dd></div>
+           <div data-vital="be"><dt aria-label="Battle Energy">BE</dt><dd>{vitals.currentBattleEnergy} / {vitals.maxBattleEnergy}</dd></div>
+         </dl>}
+         <div className={s.opponentBrief}>
+           <p>{enemy.equipment}</p>
+           <p>{enemy.moves.join(" · ")}</p>
+           {effects.length ? <OpeningStatusChips name={enemy.name} effects={effects}
+             onOpen={() => setStatusCreatureId(enemy.sourceCreatureId)}/> : <p className={s.opponentNeutral}>Starts without status effects.</p>}
+         </div>
        </article>;
      })}
    </div>

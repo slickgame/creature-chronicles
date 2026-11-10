@@ -446,6 +446,16 @@
 }
 .opponentGrid h3 { margin: 0 0 8px; font: bold 20px/1.2 Georgia, serif; }
 .opponentDialog .opponentGrid p { margin: 7px 0; font-size: 14px; line-height: 1.4; }
+.opponentIdentity { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 9px; }
+.opponentIdentity > img { width: 64px; height: 64px; object-fit: contain; border: 2px solid #ad8a47; border-radius: 50%; background: #dfcba1; }
+.opponentIdentity h3 { margin-bottom: 4px; }
+.opponentDialog .opponentIdentity p { margin: 0; font-size: 12px; }
+.opponentVitals { display: grid; gap: 4px; margin: 10px 0; font-size: 13px; font-variant-numeric: tabular-nums; }
+.opponentVitals > div { display: flex; justify-content: space-between; gap: 8px; padding: 3px 7px; border: 1px solid #98a575; border-radius: 4px; background: #e2e9cc; }
+.opponentVitals > div[data-vital="be"] { border-color: #91a3ad; background: #dce7ed; }
+.opponentVitals dt { font-weight: bold; }
+.opponentVitals dd { margin: 0; font-weight: bold; white-space: nowrap; }
+.opponentBrief > p:first-child { margin-top: 0; }
 .opponentGrid .openingStatuses { justify-content: flex-start; margin-top: 10px; }
 .opponentGrid .openingStatusChip { min-height: 40px; padding: 5px 7px; font-size: 12px; }
 .opponentGrid .openingStatusDuration { font-size: 11px; }
@@ -470,6 +480,11 @@
   .opponentGrid > article[data-selected="false"] { display: none; }
   .opponentGrid h3 { margin-bottom: 5px; font-size: 17px; }
   .opponentDialog .opponentGrid p { margin: 5px 0; font-size: 12px; line-height: 1.3; }
+  .opponentIdentity { grid-template-columns: 52px minmax(0, 1fr); gap: 8px; }
+  .opponentIdentity > img { width: 52px; height: 52px; }
+  .opponentDialog .opponentIdentity p { margin: 0; }
+  .opponentVitals { margin: 7px 0; gap: 3px; font-size: 12px; }
+  .opponentVitals > div { padding-block: 2px; }
   .opponentGrid .openingStatuses { margin-top: 7px; }
   .opponentGrid .openingStatusChip { min-height: 44px; }
   .opponentGrid .openingStatuses[data-multiple="true"] .openingStatusName { display: inline; }
@@ -484,9 +499,15 @@
   .opponentDialog .opponentTitle { display: none; }
   .opponentPicker { margin-bottom: 5px; }
   .opponentGrid > article { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px 12px; padding: 5px 8px; }
-  .opponentGrid h3 { grid-column: 1 / -1; margin: 0; font-size: 15px; }
+  .opponentIdentity { grid-area: 1 / 1; grid-template-columns: 42px minmax(0, 1fr); gap: 6px; }
+  .opponentIdentity > img { width: 42px; height: 42px; }
+  .opponentGrid h3 { margin: 0 0 2px; font-size: 15px; }
   .opponentDialog .opponentGrid p { margin: 0; }
-  .opponentGrid .openingStatuses { grid-column: 2; grid-row: 3; align-self: start; margin-top: 0; }
+  .opponentDialog .opponentIdentity p { font-size: 11px; }
+  .opponentVitals { grid-area: 2 / 1; align-self: start; margin: 0; }
+  .opponentBrief { grid-area: 1 / 2 / 3 / 3; align-self: center; }
+  .opponentBrief > p + p { margin-top: 4px; }
+  .opponentGrid .openingStatuses { margin-top: 4px; }
   .opponentRulesButton { margin-top: 5px; }
   .opponentRulesBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
   .opponentRulesBody > p { grid-column: 1 / -1; margin: 0; }

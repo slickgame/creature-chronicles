@@ -111,8 +111,8 @@ export function getColiseumOpeningPreview(
 } {
   const { state, enemies, base, equipped } = buildColiseumOpening(input, battleId);
   const opening = tacticsArmed ? applyTeamTacticsOpeningEffect(state) : state;
-  const vitals = new Map(opening.teams.player.combatantIds.map((id) => {
-    const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = opening.combatants[id];
+  const vitals = new Map(Object.values(opening.combatants).map((combatant) => {
+    const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = combatant;
     return [sourceCreatureId, { currentHp, maxHp, currentBattleEnergy, maxBattleEnergy }];
   }));
   const statuses = new Map(Object.values(opening.combatants).map(combatant => [
