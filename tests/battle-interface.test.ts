@@ -673,6 +673,26 @@ test("settled Speed reasons retain only the moves in a verified modifier trace",
   }]);
   assert.deepEqual(searchBattleLog({ ...logged, moveLog: [wrongTarget] }, "-6 Speed modifier", ["order-shifts"]), []);
 
+  const focusedStare = { ...secondMove, moveName: "Focused Stare" };
+  const namedSources = { ...logged, moveLog: [firstMove, focusedStare] };
+  for (const group of [firstMove, focusedStare]) {
+    assert.deepEqual(searchBattleLog(namedSources, `${group.moveName} -6 Speed modifier`, ["order-shifts"]), [{
+      index: entry.logIndex, roundNumber: entry.roundNumber,
+      text: `${state.combatants[target].name} · Slowed was applied · ${group.actorName} · ${group.moveName} −6 Speed modifier`,
+      orderShiftDetail: { actorId: target, detailId: "reason-0", matchedSourceIndex: group.logIndex },
+    }]);
+  }
+  for (const query of ["Focused Stare", "Focused Stare +6", "Focused Stare -60", "Unknown Move -6"]) {
+    assert.deepEqual(searchBattleLog(namedSources, query, ["order-shifts"]), []);
+  }
+  const combinedQuery = "stare -6";
+  assert.deepEqual(getBattleLogSearchTextParts("Focused Stare", combinedQuery, { after: " −6 Speed modifier" }), [
+    { text: "Focused ", matched: false }, { text: "Stare", matched: true },
+  ]);
+  assert.deepEqual(getBattleLogSearchTextParts("−6 Speed modifier", combinedQuery, { before: "Focused Stare " }), [
+    { text: "−6", matched: true }, { text: " Speed modifier", matched: false },
+  ]);
+
   const transientMove = { ...firstMove, targets: [{ ...firstTarget, statuses: [
     { ...firstEffect, speedModifierChange: { before: 0, after: -3 } },
   ] }] };

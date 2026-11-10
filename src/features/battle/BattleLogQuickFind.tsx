@@ -1,10 +1,10 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { getBattleLogSearchTextParts, searchBattleLog, type BattleLogSearchResult } from "@/data/battleLogSearch";
+import { getBattleLogSearchTextParts, searchBattleLog, type BattleLogSearchContext, type BattleLogSearchResult } from "@/data/battleLogSearch";
 import type { BattleLogEventCategory, BattleState } from "@/types/battle";
 import s from "./BattleLogEntries.module.css";
 
-export function BattleLogSearchText({ text, query }: { text: string; query: string }) {
-  return getBattleLogSearchTextParts(text, query).map((part, index) =>
+export function BattleLogSearchText({ text, query, context }: { text: string; query: string; context?: BattleLogSearchContext }) {
+  return getBattleLogSearchTextParts(text, query, context).map((part, index) =>
     part.matched ? <mark className={s.searchHighlight} key={index}>{part.text}</mark> : part.text,
   );
 }

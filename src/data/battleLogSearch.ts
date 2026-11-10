@@ -92,14 +92,19 @@ function getOrderShiftSearchMatch(
       // Keep existing reason and expiry matches ahead of the first matching source badge.
       if (sourceMatch) continue;
       const sources = getOrderShiftSources(detail, move.actorId, moveGroups);
-      const source = sources.find(({ modifier }) => modifier && matcher.test(modifier));
-      if (source) {
-        const { group, modifier } = source;
+      for (const { group, modifier } of sources) {
+        if (!modifier) continue;
+        const amountMatches = matcher.test(modifier);
+        const combined = !amountMatches && matcher.exec(`${group.moveName} ${modifier}`);
+        const spansBoth = combined && combined.index < group.moveName.length
+          && combined.index + combined[0].length > group.moveName.length + 1;
+        if (!amountMatches && !spansBoth) continue;
         const moveName = sources.length > 1 ? `${group.actorName} · ${group.moveName}` : group.moveName;
         sourceMatch = {
-          text: `${text} · ${moveName} · ${modifier}`,
+          text: `${text} · ${moveName}${amountMatches ? " · " : " "}${modifier}`,
           orderShiftDetail: { ...orderShiftDetail, matchedSourceIndex: group.logIndex },
         };
+        break;
       }
     }
   }
@@ -151,17 +156,25 @@ export function searchBattleLog(
   return matches;
 }
 
-export function getBattleLogSearchTextParts(text: string, query: string): { text: string; matched: boolean }[] {
+export type BattleLogSearchContext = { before?: string; after?: string };
+
+export function getBattleLogSearchTextParts(
+  text: string,
+  query: string,
+  { before = "", after = "" }: BattleLogSearchContext = {},
+): { text: string; matched: boolean }[] {
   const pattern = getSearchPattern(query);
   if (!pattern) return [{ text, matched: false }];
 
   const parts: { text: string; matched: boolean }[] = [];
   let offset = 0;
-  for (const match of text.matchAll(new RegExp(pattern, "giu"))) {
-    const start = match.index;
+  for (const match of `${before}${text}${after}`.matchAll(new RegExp(pattern, "giu"))) {
+    const start = Math.max(0, match.index - before.length);
+    const end = Math.min(text.length, match.index + match[0].length - before.length);
+    if (end <= start) continue;
     if (start > offset) parts.push({ text: text.slice(offset, start), matched: false });
-    parts.push({ text: match[0], matched: true });
-    offset = start + match[0].length;
+    parts.push({ text: text.slice(start, end), matched: true });
+    offset = end;
   }
   if (offset < text.length) parts.push({ text: text.slice(offset), matched: false });
   return parts;

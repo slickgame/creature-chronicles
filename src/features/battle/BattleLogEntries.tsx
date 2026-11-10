@@ -65,9 +65,14 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
               data-search-jump={sourceMatch && match.query ? "" : undefined}
               aria-label={`View ${group.moveName}${multipleSources ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log${amount ? `, Speed modifier ${amount}` : ""}`}
               onClick={() => onViewSource(group, target, detail.id)}>
-              {multipleSources ? `${group.actorName} · ` : ""}{group.moveName}
+              {multipleSources ? `${group.actorName} · ` : ""}
+              {sourceMatch && modifier
+                ? <BattleLogSearchText text={group.moveName} query={match.query} context={{ after: ` ${modifier}` }}/>
+                : group.moveName}
               {modifier && <span className={s.shiftSourceAmount} data-order-shift-source-delta={delta}>
-                {sourceMatch ? <BattleLogSearchText text={modifier} query={match.query}/> : modifier}
+                {sourceMatch
+                  ? <BattleLogSearchText text={modifier} query={match.query} context={{ before: `${group.moveName} ` }}/>
+                  : modifier}
               </span>}
               {" "}<span aria-hidden="true">›</span>
             </button>;
