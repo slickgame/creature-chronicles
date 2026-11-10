@@ -647,13 +647,31 @@ test("settled Speed reasons retain only the moves in a verified modifier trace",
   const reason = { kind: "speed-effect", status: "slowed", result: "applied" };
   const sources = [firstMove.logIndex, secondMove.logIndex];
   const sourceMoveSpeedDeltas = { [firstMove.logIndex]: -6, [secondMove.logIndex]: -6 };
-  const move = shiftMove(turn.state);
-  assert(move);
+  const logged = recordBattleOrderShift(turn.state, shift, context);
+  const entry = logged.orderShiftLog?.[0];
+  const move = entry?.moves.find(move => move.actorId === target);
+  assert(entry && move);
   assert.deepEqual(move.reasons?.[0], { ...reason, sourceMoveLogIndexes: sources, sourceMoveSpeedDeltas });
   assert.deepEqual(getOrderShiftDetails(move, turn.state.combatants)[1], {
     id: "reason-0", kind: "speed-effect", text: "Slowed was applied", sourceMoveLogIndexes: sources, sourceMoveSpeedDeltas,
   });
   assert.deepEqual(shiftMove({ ...turn.state, moveLog: [secondMove] })?.reasons?.[0], reason);
+
+  for (const query of ["-6 Speed modifier", "−6 speed modifier", "-6"]) {
+    assert.deepEqual(searchBattleLog(logged, query, ["order-shifts"]), [{
+      index: entry.logIndex, roundNumber: entry.roundNumber,
+      text: `${state.combatants[target].name} · Slowed was applied · ${firstMove.actorName} · ${firstMove.moveName} · −6 Speed modifier`,
+      orderShiftDetail: { actorId: target, detailId: "reason-0", matchedSourceIndex: firstMove.logIndex },
+    }]);
+  }
+  assert.deepEqual(searchBattleLog(logged, "+6 Speed modifier", ["order-shifts"]), []);
+  const wrongTarget = { ...firstMove, targets: [{ ...firstTarget, targetId: rival }] };
+  assert.deepEqual(searchBattleLog({ ...logged, moveLog: [wrongTarget, secondMove] }, "-6 Speed modifier", ["order-shifts"]), [{
+    index: entry.logIndex, roundNumber: entry.roundNumber,
+    text: `${state.combatants[target].name} · Slowed was applied · ${secondMove.moveName} · −6 Speed modifier`,
+    orderShiftDetail: { actorId: target, detailId: "reason-0", matchedSourceIndex: secondMove.logIndex },
+  }]);
+  assert.deepEqual(searchBattleLog({ ...logged, moveLog: [wrongTarget] }, "-6 Speed modifier", ["order-shifts"]), []);
 
   const transientMove = { ...firstMove, targets: [{ ...firstTarget, statuses: [
     { ...firstEffect, speedModifierChange: { before: 0, after: -3 } },

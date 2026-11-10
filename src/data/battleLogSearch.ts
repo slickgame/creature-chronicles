@@ -1,4 +1,4 @@
-import type { BattleCombatantId, BattleLogEventCategory, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState } from "@/types/battle";
+import type { BattleCombatantId, BattleLogEventCategory, BattleMoveLogGroup, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState } from "@/types/battle";
 import { getBattleStatusGlossary } from "./battleGlossary";
 import { formatBattleLogDelta, getBattleLogEventCategory } from "./battleLog";
 
@@ -6,7 +6,7 @@ export type BattleLogSearchResult = {
   index: number;
   roundNumber: number | undefined;
   text: string;
-  orderShiftDetail?: { actorId: BattleCombatantId; detailId: string };
+  orderShiftDetail?: { actorId: BattleCombatantId; detailId: string; matchedSourceIndex?: number };
 };
 
 const SPEED_EFFECT_RESULTS = {
@@ -55,28 +55,55 @@ export function getOrderShiftDetails(
   return details;
 }
 
+export function getOrderShiftSources(
+  detail: OrderShiftDetail,
+  actorId: BattleCombatantId,
+  moveGroups: ReadonlyMap<number, BattleMoveLogGroup>,
+) {
+  return (detail.sourceMoveLogIndexes ?? []).flatMap(index => {
+    const group = moveGroups.get(index);
+    const target = group?.targets.find(target => target.targetId === actorId);
+    if (!group || !target) return [];
+    const delta = detail.sourceMoveSpeedDeltas?.[index];
+    const modifier = delta === undefined ? undefined : `${formatBattleLogDelta(delta)} Speed modifier`;
+    return [{ group, target, delta, modifier }];
+  });
+}
+
 function getOrderShiftSearchMatch(
   shift: BattleOrderShiftLogEntry,
   combatants: BattleState["combatants"],
+  moveGroups: ReadonlyMap<number, BattleMoveLogGroup>,
   matcher: RegExp,
 ): Pick<BattleLogSearchResult, "text" | "orderShiftDetail"> | undefined {
   // A shift with a missing row actor is rendered as its original text log line.
   if (shift.moves.some(({ actorId }) => !combatants[actorId])) return;
+  let sourceMatch: Pick<BattleLogSearchResult, "text" | "orderShiftDetail"> | undefined;
   for (const move of shift.moves) {
     for (const detail of getOrderShiftDetails(move, combatants)) {
-      let text = detail.text;
-      if (!matcher.test(text)) {
-        if (detail.expirySpeedDelta === undefined) continue;
-        const amount = `${formatBattleLogDelta(detail.expirySpeedDelta)} Speed`;
-        if (!matcher.test(amount)) continue;
-        text += ` · ${amount}`;
+      const text = `${combatants[move.actorId].name} · ${detail.text}`;
+      const orderShiftDetail = { actorId: move.actorId, detailId: detail.id };
+      if (matcher.test(detail.text)) return { text, orderShiftDetail };
+
+      const expiry = detail.expirySpeedDelta;
+      const amount = expiry === undefined ? undefined : `${formatBattleLogDelta(expiry)} Speed`;
+      if (amount && matcher.test(amount)) return { text: `${text} · ${amount}`, orderShiftDetail };
+
+      // Keep existing reason and expiry matches ahead of the first matching source badge.
+      if (sourceMatch) continue;
+      const sources = getOrderShiftSources(detail, move.actorId, moveGroups);
+      const source = sources.find(({ modifier }) => modifier && matcher.test(modifier));
+      if (source) {
+        const { group, modifier } = source;
+        const moveName = sources.length > 1 ? `${group.actorName} · ${group.moveName}` : group.moveName;
+        sourceMatch = {
+          text: `${text} · ${moveName} · ${modifier}`,
+          orderShiftDetail: { ...orderShiftDetail, matchedSourceIndex: group.logIndex },
+        };
       }
-      return {
-        text: `${combatants[move.actorId].name} · ${text}`,
-        orderShiftDetail: { actorId: move.actorId, detailId: detail.id },
-      };
     }
   }
+  return sourceMatch;
 }
 
 function getSearchPattern(query: string): string {
@@ -100,13 +127,14 @@ export function searchBattleLog(
   const matcher = new RegExp(pattern, "iu");
   const boundaries = state.roundLogBoundaries ?? [];
   const shifts = new Map(state.orderShiftLog?.map(shift => [shift.logIndex, shift]));
+  const moveGroups = new Map(state.moveLog?.map(group => [group.logIndex, group]));
   const matches: BattleLogSearchResult[] = [];
   let boundaryIndex = -1;
 
   for (const [index, text] of state.log.entries()) {
     const shift = shifts.get(index);
     const summaryMatches = matcher.test(text);
-    const detail = !summaryMatches && shift ? getOrderShiftSearchMatch(shift, state.combatants, matcher) : undefined;
+    const detail = !summaryMatches && shift ? getOrderShiftSearchMatch(shift, state.combatants, moveGroups, matcher) : undefined;
     if (!summaryMatches && !detail) continue;
     if (filters.length) {
       const category = getBattleLogEventCategory(state, index);
