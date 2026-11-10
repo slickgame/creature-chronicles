@@ -230,7 +230,7 @@ test("next-round opening forecast matches settled recovery speeds, K.O.s, and ne
   ]);
   assert.equal(entries[0].beforeSlot, 6);
   assert.equal(entries[0].speedBefore, 31);
-  assert.deepEqual(entries[0].expiredSpeedStatuses, [{ status: "slowed", remains: false }]);
+  assert.deepEqual(entries[0].expiredSpeedStatuses, [{ status: "slowed", remains: false, recoveredSpeed: 12 }]);
   const currentOrder = getBattleOrderPreview(state, new Map());
   assert.deepEqual(entries[0].crossings, currentOrder.slice(0, -1).map(({ actorId }) => ({
     actorId,
@@ -280,7 +280,7 @@ test("opening-order explanations identify partial Speed expiry, displaced actors
   const [recovered, displaced, slowed, advanced, unchanged] = nextRound.entries;
   assert.deepEqual(recovered, {
     actorId: recovering, speed: 46, beforeSlot: 3, speedBefore: 39,
-    expiredSpeedStatuses: [{ status: "slowed", remains: true }, { status: "inspired", remains: false }],
+    expiredSpeedStatuses: [{ status: "slowed", remains: true, recoveredSpeed: 10 }, { status: "inspired", remains: false }],
     crossings: [{ actorId: boosted, kind: "passed" }, { actorId: steady, kind: "passed" }],
   });
   assert.deepEqual(displaced, {
@@ -293,6 +293,14 @@ test("opening-order explanations identify partial Speed expiry, displaced actors
   assert.equal(unchanged.actorId, capped);
   assert.equal(unchanged.speedBefore, unchanged.speed);
   assert.deepEqual(unchanged.expiredSpeedStatuses, []);
+
+  const inspired = state.combatants[recovering].statuses.find(stack => stack.status === "inspired");
+  assert(inspired);
+  inspired.amount = 10;
+  const offset = getBattleRoundEndForecastWithOrder(state).nextRound?.entries.find(entry => entry.actorId === recovering);
+  assert(offset);
+  assert.equal(offset.speedBefore, offset.speed);
+  assert.deepEqual(offset.expiredSpeedStatuses, recovered.expiredSpeedStatuses);
 });
 
 test("next-round opening forecast handles empty recovery and omits a terminal next round", () => {
@@ -646,6 +654,8 @@ test("Slowed expiry records only the Speed recovered above the minimum", () => {
   const speeds = new Map([[runner, 4], [defender, 40], [ally, 30], [firstRival, 20], [secondRival, 3], [thirdRival, 2]]);
   for (const [id, speed] of speeds) previous.combatants[id].battleStats.speed = speed;
   previous.combatants[runner].statuses = [{ status: "slowed", duration: 1 }];
+  const projected = getBattleRoundEndForecastWithOrder(previous).nextRound?.entries.find(entry => entry.actorId === runner);
+  assert.deepEqual(projected?.expiredSpeedStatuses, [{ status: "slowed", remains: false, recoveredSpeed: 3 }]);
   const opening = getBattleOrderPreview(previous, new Map()).map(({ actorId }) => actorId);
   const turn = resolveBattleTurn(previous, [defender], { actorId: defender, moveId: "defend", targetIds: [defender] });
   assert(turn?.beforeRecovery);
