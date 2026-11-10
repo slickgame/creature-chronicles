@@ -800,10 +800,14 @@ function xpToNext(level: number): number {
   return 45 + Math.max(1, level) * 30;
 }
 
+function getAuthoredEnemyCreatureId(encounter: ColiseumC2EncounterDefinition, definition: ColiseumEnemySlotDefinition): CreatureId {
+  return `coliseum_c2_${encounter.encounterId}_${definition.slotId}` as CreatureId;
+}
+
 function buildEnemyCreature(saveId: SaveId, encounter: ColiseumC2EncounterDefinition, definition: ColiseumEnemySlotDefinition): CreatureRecord {
   const variant = getVariantDefinition(definition.variantId);
   const species = getSpeciesDefinition(variant.speciesId);
-  const creatureId = `coliseum_c2_${encounter.encounterId}_${definition.slotId}` as CreatureId;
+  const creatureId = getAuthoredEnemyCreatureId(encounter, definition);
   const levelOneStats = buildStats(species.baseStats, variant.statAdjustments, definition.statGrades);
   const maxHearts = getBaseMaxHearts(species.speciesId, variant.variantId);
   const base: CreatureRecord = {
@@ -850,14 +854,14 @@ export function buildAuthoredColiseumEnemyTeam(saveId: SaveId, encounter: Colise
 }
 
 export function applyAuthoredColiseumEquipment(state: BattleState, encounter: ColiseumC2EncounterDefinition): BattleState {
-  const definitionByCreatureId = new Map(encounter.enemyTeam.map((definition) => [`coliseum_c2_${encounter.encounterId}_${definition.slotId}`, definition]));
+  const definitionByCreatureId = new Map(encounter.enemyTeam.map((definition) => [getAuthoredEnemyCreatureId(encounter, definition), definition]));
   const log: string[] = [];
   const combatants = Object.values(state.combatants).reduce((next, combatant) => {
     if (combatant.sideId !== "enemy") {
       next[combatant.battleCombatantId] = combatant;
       return next;
     }
-    const definition = definitionByCreatureId.get(String(combatant.sourceCreatureId));
+    const definition = definitionByCreatureId.get(combatant.sourceCreatureId);
     const equipment = definition?.equipment;
     if (!equipment) {
       next[combatant.battleCombatantId] = combatant;
@@ -883,8 +887,9 @@ export function applyAuthoredColiseumEquipment(state: BattleState, encounter: Co
   return { ...state, combatants, log: [...state.log, ...log] };
 }
 
-export function getColiseumEnemyPreview(encounter: ColiseumC2EncounterDefinition): Array<{ name: string; variantName: string; level: number; role: string; equipment: string; moves: string[] }> {
+export function getColiseumEnemyPreview(encounter: ColiseumC2EncounterDefinition): Array<{ sourceCreatureId: CreatureId; name: string; variantName: string; level: number; role: string; equipment: string; moves: string[] }> {
   return encounter.enemyTeam.map((entry) => ({
+    sourceCreatureId: getAuthoredEnemyCreatureId(encounter, entry),
     name: entry.nickname,
     variantName: getVariantDefinition(entry.variantId).name,
     level: entry.level,

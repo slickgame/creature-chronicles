@@ -433,4 +433,64 @@
   .battleModifiers li { display: block; padding-block: 2px; }
 }
 
+.opponentTitle { margin: 0 0 12px; font: bold 20px/1.2 Georgia, serif; }
+.opponentPicker { display: none; }
+.opponentGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.opponentGrid > article {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #baa172;
+  border-inline-start: 3px solid #88453c;
+  border-radius: 5px;
+  background: #f4e5c9;
+}
+.opponentGrid h3 { margin: 0 0 8px; font: bold 20px/1.2 Georgia, serif; }
+.opponentDialog .opponentGrid p { margin: 7px 0; font-size: 14px; line-height: 1.4; }
+.opponentGrid .openingStatuses { justify-content: flex-start; margin-top: 10px; }
+.opponentGrid .openingStatusChip { min-height: 40px; padding: 5px 7px; font-size: 12px; }
+.opponentGrid .openingStatusDuration { font-size: 11px; }
+.opponentDialog .opponentNeutral { color: #685539; font-size: 12px; }
+.opponentRulesButton { margin-top: 12px; }
+.opponentRulesBody > p { margin: 0 0 12px; }
+.opponentRulesBody > p:last-child { margin-bottom: 0; }
+.opponentRulesBody > section { padding: 8px; margin-bottom: 8px; border: 1px solid #baa172; background: #f4e5c9; }
+.opponentRulesBody h3 { margin: 0 0 4px; font-size: 16px; }
+.opponentRulesBody section p { margin: 0; }
+@media (max-width: 600px), (max-height: 400px) {
+  .courtyard :is(.opponentDialog, .opponentRulesDialog) > header { gap: 8px; padding: 4px 4px 8px; }
+  .courtyard :is(.opponentDialog, .opponentRulesDialog) > header h2 { font-size: 19px; }
+  .courtyard :is(.opponentDialog, .opponentRulesDialog) > header button { padding: 5px 8px; white-space: nowrap; }
+  .courtyard :is(.opponentDialog, .opponentRulesDialog) > div { padding: 8px 4px; }
+  .opponentTitle { margin-bottom: 8px; font-size: 16px; }
+  .opponentPicker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-bottom: 8px; }
+  .opponentPicker button { min-width: 0; padding: 5px 3px; font-size: 12px; overflow-wrap: anywhere; }
+  .opponentPicker button[aria-pressed="true"] { border-color: #6d7644; background: #e1e6c6; box-shadow: inset 0 -2px #6d7644; }
+  .opponentGrid { grid-template-columns: minmax(0, 1fr); }
+  .opponentGrid > article { padding: 8px; }
+  .opponentGrid > article[data-selected="false"] { display: none; }
+  .opponentGrid h3 { margin-bottom: 5px; font-size: 17px; }
+  .opponentDialog .opponentGrid p { margin: 5px 0; font-size: 12px; line-height: 1.3; }
+  .opponentGrid .openingStatuses { margin-top: 7px; }
+  .opponentGrid .openingStatusChip { min-height: 44px; }
+  .opponentGrid .openingStatuses[data-multiple="true"] .openingStatusName { display: inline; }
+  .opponentGrid .openingStatuses[data-multiple="true"] .openingStatusDuration { position: static; background: none; font-size: 11px; }
+  .opponentRulesButton { width: 100%; margin-top: 8px; }
+  .opponentRulesDialog .opponentRulesBody { font-size: 13px; }
+  .opponentRulesDialog .opponentRulesBody p { line-height: 1.3; }
+  .opponentRulesBody > section { padding: 5px 7px; margin-bottom: 5px; }
+  .opponentRulesBody h3 { font-size: 14px; }
+}
+@media (max-height: 400px) and (orientation: landscape) {
+  .opponentDialog .opponentTitle { display: none; }
+  .opponentPicker { margin-bottom: 5px; }
+  .opponentGrid > article { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px 12px; padding: 5px 8px; }
+  .opponentGrid h3 { grid-column: 1 / -1; margin: 0; font-size: 15px; }
+  .opponentDialog .opponentGrid p { margin: 0; }
+  .opponentGrid .openingStatuses { grid-column: 2; grid-row: 3; align-self: start; margin-top: 0; }
+  .opponentRulesButton { margin-top: 5px; }
+  .opponentRulesBody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+  .opponentRulesBody > p { grid-column: 1 / -1; margin: 0; }
+  .opponentRulesBody > section { margin: 0; }
+}
+
 .scouting{background:#f5ead3;color:#342818;padding:18px;border:1px solid #b89a65;border-radius:10px;line-height:1.6;overflow-wrap:anywhere}.scouting h3{margin:18px 0 6px;color:#62471f}.scouting p{margin:6px 0}.scouting ul{padding-left:22px}.scouting li+li{margin-top:8px}.scoutCard{margin:8px 0;padding:10px 12px;background:#e9d9b8;border-left:3px solid #927042;border-radius:4px}.scoutCard p{font-size:13px}.scouting>button{margin-top:14px}

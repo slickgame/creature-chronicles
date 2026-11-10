@@ -16,7 +16,7 @@ import type { CreatureId } from "@/types/ids";
 import type { BattleStatusStack } from "@/types/battle";
 import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
-type Enemy = { name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
+type Enemy = { sourceCreatureId: CreatureId; name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
 
 function speedDelta(amount: number): string {
  return amount < 0 ? `−${Math.abs(amount)}` : `+${amount}`;
@@ -81,12 +81,15 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
  const [slot,setSlot]=useState(0),[page,setPage]=useState(0),[profileId,setProfileId]=useState<CreatureId|null>(null);
  const [speedActorId, setSpeedActorId] = useState<ColiseumOpeningOrderEntry["actorId"] | null>(null);
  const [statusCreatureId, setStatusCreatureId] = useState<CreatureId | null>(null);
+ const [opponentIndex, setOpponentIndex] = useState(0);
+ const [opponentRulesOpen, setOpponentRulesOpen] = useState(false);
  if(!save)return null;
  const team=selected.map(id=>roster.find(c=>c.creatureId===id)).filter((c):c is CreatureRecord=>!!c);
  const pages=Math.max(1,Math.ceil(roster.length/4)),currentPage=Math.min(page,pages-1);
  const profile=roster.find(c=>c.creatureId===profileId);
  const speedEntry = popup === "order" ? openingOrder.find(entry => entry.actorId === speedActorId) : undefined;
- const statusCreature = team.find(creature => creature.creatureId === statusCreatureId);
+ const statusName = team.find(creature => creature.creatureId === statusCreatureId)?.nickname
+   ?? enemyPreview.find(enemy => enemy.sourceCreatureId === statusCreatureId)?.name;
  const inspectedEffects = statusCreatureId ? openingStatuses.get(statusCreatureId) : undefined;
  const canStart=team.length===3&&team.every(c=>!unavailable(c))&&(!armed||tacticsStock>0);
  function choose(c:CreatureRecord,targetSlot=slot){if(locked||unavailable(c))return;const ids=[...selected];const existing=ids.indexOf(c.creatureId);if(existing!==-1){if(targetSlot<ids.length){[ids[targetSlot],ids[existing]]=[ids[existing],ids[targetSlot]];}}else if(targetSlot<ids.length)ids[targetSlot]=c.creatureId;else ids.push(c.creatureId);onChange(ids);setPopup(null);}
@@ -143,7 +146,7 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
      </li>)}
    </ol>
  </GameDialog>}
- {statusCreature && inspectedEffects?.length ? <GameDialog title={`${statusCreature.nickname} · Starting effects`}
+ {statusName && inspectedEffects?.length ? <GameDialog title={`${statusName} · Starting effects`}
    onClose={() => setStatusCreatureId(null)} dialogClassName={s.openingEffectsDialog}>
    <ul className={s.openingEffectsList} role="list">
      {inspectedEffects.map((effect, index) => <li key={`${effect.status}-${effect.stat ?? "all"}-${index}`} data-status={effect.status}>
@@ -164,8 +167,36 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
    {!speedEntry.speedBreakdown.contributions.length && <p className={s.speedEmpty}>This creature opens at base Speed.</p>}
  </GameDialog>}
  {popup==="roster"&&<GameDialog title={`Choose creature · Slot ${slot+1}`} onClose={()=>setPopup(null)} wide><p>Choosing a teammate already selected swaps their position.</p><div className={s.dialogGrid}>{roster.map(c=><article key={c.creatureId}><img src={gameplayArt(c,true)} alt=""/><h3>{c.nickname} · Level {c.level}</h3><p>{unavailable(c)||getBattleReadinessLabel(save,c.creatureId)}</p><button disabled={locked||!!unavailable(c)} onClick={()=>choose(c)}>Choose {c.nickname}</button></article>)}</div>{selected[slot]&&<button onClick={()=>{onChange(selected.filter((_,ix)=>ix!==slot));setPopup(null);}}>Clear Slot {slot+1}</button>}</GameDialog>}
- {popup==="opponent"&&<GameDialog title="Opponent & Rules" onClose={()=>setPopup(null)} wide><h3>{opponent}</h3><p>{strategy}</p><div className={s.dialogGrid}>{enemyPreview.map(e=><article key={e.name}><h3>{e.name}</h3><p>Level {e.level} · {e.variantName} · {e.role}</p><p>{e.equipment}</p><p>{e.moves.join(" · ")}</p></article>)}</div>{rules}</GameDialog>}
- {popup==="rules"&&<GameDialog title="Battle Rules" onClose={()=>setPopup(null)}>{rules}</GameDialog>}
+ {popup === "opponent" && <GameDialog title="Opponent & Rules" dialogClassName={s.opponentDialog}
+   onClose={() => { setOpponentRulesOpen(false); setPopup(null); }} wide>
+   <h3 className={s.opponentTitle}>{opponent}</h3>
+   <nav className={s.opponentPicker} aria-label="Choose opponent">
+     {enemyPreview.map((enemy, index) => <button type="button" key={enemy.sourceCreatureId}
+       aria-pressed={opponentIndex === index} onClick={() => setOpponentIndex(index)}>{enemy.name}</button>)}
+   </nav>
+   <div className={s.opponentGrid}>
+     {enemyPreview.map((enemy, index) => {
+       const effects = openingStatuses.get(enemy.sourceCreatureId) ?? [];
+       return <article key={enemy.sourceCreatureId} data-opponent-card={enemy.sourceCreatureId}
+         data-selected={opponentIndex === index} aria-label={`${enemy.name} · Opponent`}>
+         <h3>{enemy.name}</h3>
+         <p>Level {enemy.level} · {enemy.variantName} · {enemy.role}</p>
+         <p>{enemy.equipment}</p>
+         <p>{enemy.moves.join(" · ")}</p>
+         {effects.length ? <OpeningStatusChips name={enemy.name} effects={effects}
+           onOpen={() => setStatusCreatureId(enemy.sourceCreatureId)}/> : <p className={s.opponentNeutral}>Starts without status effects.</p>}
+       </article>;
+     })}
+   </div>
+   <button type="button" className={s.opponentRulesButton} aria-haspopup="dialog" onClick={event => {
+     event.currentTarget.focus({ preventScroll: true });
+     setOpponentRulesOpen(true);
+   }}>Battle rules & strategy</button>
+ </GameDialog>}
+ {(popup === "rules" || opponentRulesOpen) && <GameDialog title="Battle Rules"
+   dialogClassName={s.opponentRulesDialog} onClose={() => opponentRulesOpen ? setOpponentRulesOpen(false) : setPopup(null)}>
+   <div className={s.opponentRulesBody}><p>{strategy}</p>{rules}</div>
+ </GameDialog>}
  {(popup==="prep"||popup==="gear")&&<TeamPreparation selected={selected} initialCreatureId={popup==="gear"?profileId:null} locked={locked} unavailable={unavailable} message={message} tacticsStock={tacticsStock} armed={armed} onArm={onArm} onClose={()=>setPopup(null)}/>}
  {popup==="profile"&&profile&&<GameDialog title={`${profile.nickname} · Profile`} onClose={()=>setPopup(null)}><p>{getVariantDefinition(profile.variantId).name} · Level {profile.level}</p><p>{unavailable(profile)||getBattleReadinessLabel(save,profile.creatureId)}</p><p>Base numbers · Innate grades</p><dl className={s.stats}>{STAT_KEYS.map(key=><div key={key}><dt>{key}</dt><dd>{profile.stats[key]}<b>{profile.statGrades[key]}</b></dd></div>)}</dl>{carryover?.[profile.creatureId]&&<p>Saved gauntlet condition: HP {Math.round(carryover[profile.creatureId].hpRatio*100)}% · Battle Energy {Math.round(carryover[profile.creatureId].battleEnergyRatio*100)}%.</p>}<button onClick={()=>setPopup("prep")}>Team loadouts</button>{!locked&&<div className={s.actions}>{[0,1,2].map(ix=><button key={ix} disabled={!!unavailable(profile)||ix>selected.length} onClick={()=>choose(profile,ix)}>Choose for slot {ix+1}</button>)}</div>}</GameDialog>}
  </main>;
