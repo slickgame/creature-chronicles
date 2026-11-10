@@ -693,6 +693,31 @@ test("settled Speed reasons retain only the moves in a verified modifier trace",
     { text: "−6", matched: true }, { text: " Speed modifier", matched: false },
   ]);
 
+  const firstActor = { ...firstMove, actorName: "Old Willow Glen" };
+  const secondActor = { ...secondMove, actorName: "Willow Glen" };
+  const sameMove = { ...logged, moveLog: [firstActor, secondActor] };
+  for (const query of ["Willow Glen Checking Blow", "willow   glen checking blow -6", "Willow Glen Checking Blow −6 Speed modifier"]) {
+    assert.deepEqual(searchBattleLog(sameMove, query, ["order-shifts"]), [{
+      index: entry.logIndex, roundNumber: entry.roundNumber,
+      text: `${state.combatants[target].name} · Slowed was applied · Willow Glen Checking Blow −6 Speed modifier`,
+      orderShiftDetail: { actorId: target, detailId: "reason-0", matchedSourceIndex: secondMove.logIndex, matchedSourceActor: true },
+    }]);
+  }
+  assert.equal(searchBattleLog(sameMove, "Old Willow Glen Checking Blow -6", ["order-shifts"])[0]?.orderShiftDetail?.matchedSourceIndex,
+    firstMove.logIndex);
+  for (const query of ["Willow Glen", "Glen Checking Blow -6", "Willow Glen Checking Blow +6", "Willow Glen Checking Blow -60"]) {
+    assert.deepEqual(searchBattleLog(sameMove, query, ["order-shifts"]), []);
+  }
+  const legacySource: typeof logged = { ...sameMove, moveLog: [secondActor], orderShiftLog: [{ ...entry, moves: [{ ...move, reasons: [
+    { kind: "speed-effect", status: "slowed", result: "applied", sourceMoveLogIndex: secondMove.logIndex },
+  ] }] }] };
+  assert.deepEqual(searchBattleLog(legacySource, "Willow Glen Checking Blow", ["order-shifts"]), [{
+    index: entry.logIndex, roundNumber: entry.roundNumber,
+    text: `${state.combatants[target].name} · Slowed was applied · Willow Glen Checking Blow`,
+    orderShiftDetail: { actorId: target, detailId: "reason-0", matchedSourceIndex: secondMove.logIndex, matchedSourceActor: true },
+  }]);
+  assert.deepEqual(searchBattleLog(legacySource, "Willow Glen Checking Blow -6", ["order-shifts"]), []);
+
   const transientMove = { ...firstMove, targets: [{ ...firstTarget, statuses: [
     { ...firstEffect, speedModifierChange: { before: 0, after: -3 } },
   ] }] };

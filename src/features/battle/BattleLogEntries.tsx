@@ -16,7 +16,8 @@ const LOG_FILTERS: ReadonlyArray<{ category: BattleLogEventCategory; label: stri
   { category: "order-shifts", label: "Order shifts" },
 ];
 
-type OrderShiftOrigin = NonNullable<BattleLogSearchResult["orderShiftDetail"]> & { index: number; roundNumber: number };
+type OrderShiftSearchDetail = NonNullable<BattleLogSearchResult["orderShiftDetail"]>;
+type OrderShiftOrigin = OrderShiftSearchDetail & { index: number; roundNumber: number };
 type OrderShiftReturn = OrderShiftOrigin & { filters: BattleLogEventCategory[]; sourceMoveLogIndex: number };
 type BattleLogJump = Pick<BattleLogSearchResult, "index" | "orderShiftDetail"> & {
   query: string;
@@ -29,7 +30,7 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
   move: BattleOrderShiftLogEntry["moves"][number];
   combatants: BattleState["combatants"];
   moveGroups: ReadonlyMap<number, BattleMoveLogGroup>;
-  match?: { detailId: string; query: string; targetId: string; focusSourceIndex?: number; matchedSourceIndex?: number };
+  match?: OrderShiftSearchDetail & { query: string; targetId: string; focusSourceIndex?: number };
   onViewSource: (group: BattleMoveLogGroup, target: BattleMoveLogTarget, detailId: string) => void;
 }) {
   const details = getOrderShiftDetails(move, combatants);
@@ -58,20 +59,28 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
           {sources.map(({ group, target, delta, modifier }) => {
             const returnFocus = selected && match.focusSourceIndex === group.logIndex;
             const sourceMatch = selected && match.matchedSourceIndex === group.logIndex;
+            const actorMatch = sourceMatch && match.matchedSourceActor;
+            const showActor = multipleSources || actorMatch;
+            const actorPrefix = actorMatch ? `${group.actorName} ` : "";
+            const modifierSuffix = modifier ? ` ${modifier}` : "";
             const focusSource = returnFocus || (sourceMatch && match.focusSourceIndex === undefined);
             const amount = delta === undefined ? undefined : formatBattleLogDelta(delta);
             return <button key={group.logIndex} type="button" className={s.shiftSource} data-order-shift-source={group.logIndex}
               id={focusSource ? `${match.targetId}-source` : undefined} data-order-shift-return-focus={returnFocus ? "" : undefined}
               data-search-jump={sourceMatch && match.query ? "" : undefined}
-              aria-label={`View ${group.moveName}${multipleSources ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log${amount ? `, Speed modifier ${amount}` : ""}`}
+              aria-label={`View ${group.moveName}${showActor ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log${amount ? `, Speed modifier ${amount}` : ""}`}
               onClick={() => onViewSource(group, target, detail.id)}>
-              {multipleSources ? `${group.actorName} · ` : ""}
-              {sourceMatch && modifier
-                ? <BattleLogSearchText text={group.moveName} query={match.query} context={{ after: ` ${modifier}` }}/>
+              {showActor && <>
+                {actorMatch
+                  ? <BattleLogSearchText text={group.actorName} query={match.query} context={{ after: ` ${group.moveName}${modifierSuffix}` }}/>
+                  : group.actorName}{" · "}
+              </>}
+              {sourceMatch
+                ? <BattleLogSearchText text={group.moveName} query={match.query} context={{ before: actorPrefix, after: modifierSuffix }}/>
                 : group.moveName}
               {modifier && <span className={s.shiftSourceAmount} data-order-shift-source-delta={delta}>
                 {sourceMatch
-                  ? <BattleLogSearchText text={modifier} query={match.query} context={{ before: `${group.moveName} ` }}/>
+                  ? <BattleLogSearchText text={modifier} query={match.query} context={{ before: `${actorPrefix}${group.moveName} ` }}/>
                   : modifier}
               </span>}
               {" "}<span aria-hidden="true">›</span>
@@ -166,15 +175,15 @@ export function BattleLogEntries({ state, sourceById, playback = false, initialO
     setOpenPanel(undefined);
     setOpenMoves(current => ({ ...current, [group.logIndex]: true }));
     setJump({ index: group.logIndex, query: "", sourceTargetId: target.targetId,
-      returnTo: { ...origin, matchedSourceIndex: fromSearch ? jump.orderShiftDetail?.matchedSourceIndex : undefined,
+      returnTo: { ...origin, ...(fromSearch ? jump.orderShiftDetail : undefined),
         filters, sourceMoveLogIndex: group.logIndex } });
   }
 
-  function returnToOrderShift({ index, roundNumber, actorId, detailId, matchedSourceIndex, filters, sourceMoveLogIndex }: OrderShiftReturn) {
+  function returnToOrderShift({ index, roundNumber, filters, sourceMoveLogIndex, ...orderShiftDetail }: OrderShiftReturn) {
     setSelectedRound(roundNumber);
     setFilters(filters);
     setOpenPanel(undefined);
-    setJump({ index, query: returnSearchQuery, orderShiftDetail: { actorId, detailId, matchedSourceIndex }, focusSourceIndex: sourceMoveLogIndex });
+    setJump({ index, query: returnSearchQuery, orderShiftDetail, focusSourceIndex: sourceMoveLogIndex });
   }
 
   function logEntryProps(index: number) {

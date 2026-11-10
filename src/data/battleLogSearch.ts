@@ -6,7 +6,7 @@ export type BattleLogSearchResult = {
   index: number;
   roundNumber: number | undefined;
   text: string;
-  orderShiftDetail?: { actorId: BattleCombatantId; detailId: string; matchedSourceIndex?: number };
+  orderShiftDetail?: { actorId: BattleCombatantId; detailId: string; matchedSourceIndex?: number; matchedSourceActor?: true };
 };
 
 const SPEED_EFFECT_RESULTS = {
@@ -93,16 +93,21 @@ function getOrderShiftSearchMatch(
       if (sourceMatch) continue;
       const sources = getOrderShiftSources(detail, move.actorId, moveGroups);
       for (const { group, modifier } of sources) {
-        if (!modifier) continue;
-        const amountMatches = matcher.test(modifier);
-        const combined = !amountMatches && matcher.exec(`${group.moveName} ${modifier}`);
+        const moveText = modifier ? `${group.moveName} ${modifier}` : group.moveName;
+        const amountMatches = modifier !== undefined && matcher.test(modifier);
+        const combined = modifier && !amountMatches && matcher.exec(moveText);
         const spansBoth = combined && combined.index < group.moveName.length
           && combined.index + combined[0].length > group.moveName.length + 1;
-        if (!amountMatches && !spansBoth) continue;
+        const qualifiedText = `${group.actorName} ${moveText}`;
+        const qualified = !amountMatches && !spansBoth && matcher.exec(qualifiedText);
+        // A qualifier starts with the full recorded actor name and reaches the move.
+        const actorMatches = qualified && qualified.index === 0 && qualified[0].length > group.actorName.length + 1;
+        if (!amountMatches && !spansBoth && !actorMatches) continue;
         const moveName = sources.length > 1 ? `${group.actorName} · ${group.moveName}` : group.moveName;
+        const sourceText = actorMatches ? qualifiedText : `${moveName}${amountMatches ? " · " : " "}${modifier}`;
         sourceMatch = {
-          text: `${text} · ${moveName}${amountMatches ? " · " : " "}${modifier}`,
-          orderShiftDetail: { ...orderShiftDetail, matchedSourceIndex: group.logIndex },
+          text: `${text} · ${sourceText}`,
+          orderShiftDetail: { ...orderShiftDetail, matchedSourceIndex: group.logIndex, ...(actorMatches ? { matchedSourceActor: true } : {}) },
         };
         break;
       }
