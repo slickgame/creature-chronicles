@@ -599,6 +599,7 @@ export function applyColiseumC4Modifiers(state: BattleState, modifierIds: Colise
   return { ...state, combatants, log: [...state.log, `C4 modifiers active: ${modifierIds.map((id) => getColiseumC4Modifier(id).name).join(" • ")}.`] };
 }
 
+/** Restore saved vitals into the fresh stage while retaining its opening statuses. */
 export function applyColiseumC4Carryover(state: BattleState, carryover?: ColiseumC4CarryoverMap): BattleState {
   if (!carryover) return state;
   const combatants = Object.fromEntries(Object.entries(state.combatants).map(([id, combatant]) => {
@@ -607,7 +608,7 @@ export function applyColiseumC4Carryover(state: BattleState, carryover?: Coliseu
     if (!snapshot) return [id, combatant];
     const currentHp = Math.max(1, Math.min(combatant.maxHp, Math.round(combatant.maxHp * clampRatio(snapshot.hpRatio))));
     const currentBattleEnergy = Math.max(0, Math.min(combatant.maxBattleEnergy, Math.round(combatant.maxBattleEnergy * clampRatio(snapshot.battleEnergyRatio))));
-    return [id, { ...combatant, currentHp, currentBattleEnergy, isFainted: false, statuses: [], cooldowns: {} }];
+    return [id, { ...combatant, currentHp, currentBattleEnergy, isFainted: false, cooldowns: {} }];
   })) as BattleState["combatants"];
   return { ...state, combatants, log: [...state.log, "Gauntlet carryover applied after partial between-stage recovery."] };
 }

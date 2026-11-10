@@ -202,6 +202,32 @@ test("gauntlet carryover gives partial recovery and revives fainted participants
   assert.equal(encounter.enemyTeam.length, 3);
 });
 
+test("Champion's Road renews Marked Opening when a stage restores saved vitals", () => {
+  const { save, teamIds } = fixture();
+  const cleared = grantAllC2Clears(save);
+  const challenge = getColiseumC4Gauntlets(cleared).find(entry => entry.challengeKey === "gauntlet_champions_road");
+  assert.ok(challenge);
+
+  const previous = buildFinalState(cleared, challenge, 0, teamIds);
+  const ally = previous.combatants[previous.teams.player.combatantIds[0]];
+  ally.currentHp = Math.round(ally.maxHp * 0.4);
+  ally.currentBattleEnergy = Math.round(ally.maxBattleEnergy * 0.3);
+  ally.statuses = [{ status: "slowed", duration: 1 }, { status: "marked", duration: 1 }];
+  ally.cooldowns = { checking_blow: 1 };
+  const carryover = createColiseumC4Carryover(previous);
+
+  const fresh = applyColiseumC4Modifiers(buildFinalState(cleared, challenge, 1, teamIds), challenge.modifierIds);
+  const resumed = applyColiseumC4Carryover(fresh, carryover);
+  for (const combatant of Object.values(resumed.combatants)) {
+    assert.deepEqual(combatant.statuses, [{ status: "marked", duration: 2, stacks: 1, maxStacks: 1 }]);
+  }
+  const resumedAlly = resumed.combatants[resumed.teams.player.combatantIds[0]];
+  const savedVitals = carryover[String(ally.sourceCreatureId)];
+  assert.equal(resumedAlly.currentHp, Math.round(resumedAlly.maxHp * savedVitals.hpRatio));
+  assert.equal(resumedAlly.currentBattleEnergy, Math.round(resumedAlly.maxBattleEnergy * savedVitals.battleEnergyRatio));
+  assert.deepEqual(resumedAlly.cooldowns, {});
+});
+
 test("daily victory grants C3 Marks once, ordinary creature XP, and blocks duplicate result IDs", () => {
   const { save, teamIds } = fixture();
   const cleared = grantAllC2Clears(save);

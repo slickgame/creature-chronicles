@@ -126,9 +126,7 @@ export function ColiseumC4Battle({
   const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState(`Choose exactly three available creatures for ${challenge.name}.`);
   const presentation = useBattlePresentationController();
-  const individual = challenge.mode === "daily"
-    || challenge.challengeKey === "gauntlet_rising_circuit"
-    || challenge.challengeKey === "gauntlet_endurance_circuit";
+  const individual = challenge.mode === "daily" || challenge.mode === "gauntlet";
   const turns = useColiseumIndividualTurns({
     state: battleState,
     enabled: individual && !!currentSave && phase === "battle",

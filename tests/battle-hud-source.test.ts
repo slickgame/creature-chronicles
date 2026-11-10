@@ -38,7 +38,7 @@ test("both active battle modes share categorized commands and actual resolution 
   assert.match(circuit, /individualOrder=\{turns\.order\}/);
   assert.match(individualTurns, /presentation\.play\([^\n]*, \[actorId\]\)/);
   assert.match(challenges, /<BattleArenaB/);
-  assert.match(challenges, /individual = challenge\.mode === "daily"\s*\|\| challenge\.challengeKey === "gauntlet_rising_circuit"\s*\|\| challenge\.challengeKey === "gauntlet_endurance_circuit";/);
+  assert.match(challenges, /individual = challenge\.mode === "daily" \|\| challenge\.mode === "gauntlet";/);
   assert.match(challenges, /individualOrder: turns\.order/);
   assert.match(challenges, /resolved\.result\.actions\.map\(action => action\.actorId\)/);
   const arena = await source("src/features/battle/BattleArenaB.tsx");
