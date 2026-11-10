@@ -32,6 +32,8 @@ export type BattleOutfitterCreatureEffectSummaryC3 = {
   battleEnergyBonus: number;
 };
 
+type OutfitterSpeedBonus = { label: string; amount: number };
+
 function getItem(itemId: BattleOutfitterItemId | null) {
   return itemId ? BATTLE_OUTFITTER_ITEMS.find((item) => item.itemId === itemId) ?? null : null;
 }
@@ -44,10 +46,10 @@ export function getBattleOutfitterCombatStock(save: GameSave, itemId: BattleOutf
 export function getBattleOutfitterCreatureEffectSummary(
   save: GameSave,
   creatureId: CreatureId,
-): BattleOutfitterCreatureEffectSummaryC3 {
+): BattleOutfitterCreatureEffectSummaryC3 & { speedBonuses: OutfitterSpeedBonus[] } {
   const loadout = getBattleLoadout(save, creatureId);
   const itemIds = Object.values(loadout.equipment).filter((id): id is BattleOutfitterItemId => Boolean(id));
-  const summary: BattleOutfitterCreatureEffectSummaryC3 = {
+  const summary: BattleOutfitterCreatureEffectSummaryC3 & { speedBonuses: OutfitterSpeedBonus[] } = {
     creatureId,
     labels: itemIds.map((id) => getItem(id)?.name ?? id),
     physicalPowerBonus: 0,
@@ -56,6 +58,7 @@ export function getBattleOutfitterCreatureEffectSummary(
     defenseBonus: 0,
     resistanceBonus: 0,
     speedBonus: 0,
+    speedBonuses: [],
     accuracyBonus: loadout.manualRank * 2,
     statusPowerBonus: loadout.manualRank * 2,
     statusResistBonus: 0,
@@ -75,6 +78,10 @@ export function getBattleOutfitterCreatureEffectSummary(
       summary.defenseBonus += bonuses.defense ?? 0;
       summary.resistanceBonus += bonuses.resistance ?? 0;
       summary.speedBonus += bonuses.speed ?? 0;
+      if (bonuses.speed) {
+        const label = copy?.level ? `${item?.name ?? itemId} +${copy.level}` : item?.name ?? itemId;
+        summary.speedBonuses.push({ label, amount: bonuses.speed });
+      }
       summary.accuracyBonus += bonuses.accuracy ?? 0;
       summary.statusPowerBonus += bonuses.statusPower ?? 0;
       summary.statusResistBonus += bonuses.statusResist ?? 0;

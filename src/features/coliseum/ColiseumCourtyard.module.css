@@ -166,15 +166,60 @@
 .openingOrderList small { font-size: 12px; }
 .openingRank { border-radius: 4px; padding: 2px; text-align: center; background: #e9d6a7; }
 .openingOrderList > li:first-child .openingRank { color: #fff0c2; background: #634720; }
-.openingSpeed { font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.openingOrderList .openingSpeed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 38px;
+  padding: 3px 6px;
+  background: #fff3d8;
+  font-size: 12px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.openingSpeed:hover, .openingSpeed:focus-visible { border-color: #815d2f; }
+.openingSpeed span {
+  display: grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #a4884e;
+  border-radius: 50%;
+  font: italic bold 10px/1 Georgia, serif;
+}
+.courtyard .openingSpeedDialog { width: min(500px, calc(100vw - 16px)); }
+.openingSpeedSources { display: grid; gap: 5px; margin: 0; }
+.openingSpeedSources > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border: 1px solid #c7af7d;
+  border-radius: 4px;
+  background: #f7ebd0;
+  font-size: 14px;
+}
+.openingSpeedSources dd { margin: 0; font-weight: bold; font-variant-numeric: tabular-nums; }
+.openingSpeedSources dd[data-direction="gain"] { color: #315d38; }
+.openingSpeedSources dd[data-direction="loss"] { color: #8a362e; }
+.openingSpeedSources .speedBase { background: #f0dfb9; }
+.openingSpeedSources .speedTotal { border-color: #a1a574; background: #e3e8cb; font-weight: bold; }
+.speedEmpty { margin: 8px 0 0; font-size: 13px; }
 @media (max-width: 600px) and (orientation: portrait) {
   .openingOrderList { grid-template-columns: minmax(0, 1fr); }
+  .openingOrderList .openingSpeed { min-height: 42px; }
 }
 @media (max-height: 400px) and (orientation: landscape) {
   .openingOrderNote { margin-bottom: 6px; font-size: 13px; }
   .openingOrderList { gap: 5px; }
   .openingOrderList > li { grid-template-columns: 19px 29px minmax(0, 1fr) auto; gap: 4px; padding: 3px 4px; }
   .openingOrderList strong { font-size: 13px; }
+  .openingOrderList .openingSpeed { min-height: 32px; padding-inline: 4px; }
+  .openingSpeedSources { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .openingSpeedSources > div { padding: 3px 6px; font-size: 13px; }
+  .openingSpeedSources :is(.speedBase, .speedTotal) { grid-column: 1 / -1; }
 }
 
 .stage:has(> .battleModifiers) {

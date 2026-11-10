@@ -60,6 +60,7 @@ export type ColiseumC4ModifierDefinition = {
   description: string;
   rewardBonusPercent: number;
   tone: "benefit" | "hazard" | "mixed";
+  openingSpeedBonus?: number;
 };
 
 export type ColiseumC4Reward = {
@@ -187,8 +188,10 @@ export type ColiseumC4Result = {
   historyEntry?: ColiseumC4HistoryEntry;
 };
 
+const QUICKENED_FIELD_SPEED_BONUS = 4;
+
 export const COLISEUM_C4_MODIFIERS: readonly ColiseumC4ModifierDefinition[] = [
-  { modifierId: "quickened_field", name: "Quickened Field", description: "Every combatant gains +4 Speed.", rewardBonusPercent: 10, tone: "mixed" },
+  { modifierId: "quickened_field", name: "Quickened Field", description: `Every combatant gains +${QUICKENED_FIELD_SPEED_BONUS} Speed.`, rewardBonusPercent: 10, tone: "mixed", openingSpeedBonus: QUICKENED_FIELD_SPEED_BONUS },
   { modifierId: "deep_reserves", name: "Deep Reserves", description: "Everyone gains +12 maximum Battle Energy and starts with 12 extra when entering fresh.", rewardBonusPercent: -5, tone: "benefit" },
   { modifierId: "fragile_ground", name: "Fragile Ground", description: "Every combatant has 15% less maximum HP, rounded to the nearest whole point.", rewardBonusPercent: 15, tone: "hazard" },
   { modifierId: "enemy_bulwark", name: "Bulwark Opening", description: "Enemies start Guarded for 2 rounds and take 25% less attack damage while Guarded.", rewardBonusPercent: 15, tone: "hazard" },
@@ -451,6 +454,12 @@ export function getColiseumC4Modifier(modifierId: ColiseumC4ModifierId): Coliseu
   return modifier;
 }
 
+export function getColiseumC4OpeningSpeedChanges(modifierIds: readonly ColiseumC4ModifierId[]) {
+  return COLISEUM_C4_MODIFIERS.flatMap(({ modifierId, name, openingSpeedBonus }) =>
+    openingSpeedBonus && modifierIds.includes(modifierId) ? [{ label: name, amount: openingSpeedBonus }] : [],
+  );
+}
+
 export function getColiseumC4RewardMultiplier(modifierIds: ColiseumC4ModifierId[]): number {
   const bonus = modifierIds.reduce((total, id) => total + getColiseumC4Modifier(id).rewardBonusPercent, 0);
   return Math.max(0.5, Math.round((1 + bonus / 100) * 100) / 100);
@@ -558,6 +567,7 @@ function upsertStatus(statuses: BattleStatusStack[], status: BattleStatusId, dur
 
 export function applyColiseumC4Modifiers(state: BattleState, modifierIds: ColiseumC4ModifierId[]): BattleState {
   const modifiers = new Set(modifierIds);
+  const openingSpeedBonus = getColiseumC4OpeningSpeedChanges(modifierIds).reduce((sum, change) => sum + change.amount, 0);
   const combatants = Object.fromEntries(Object.entries(state.combatants).map(([id, combatant]) => {
     const battleStats = { ...combatant.battleStats };
     let statuses = [...combatant.statuses];
@@ -565,7 +575,7 @@ export function applyColiseumC4Modifiers(state: BattleState, modifierIds: Colise
     let currentHp = combatant.currentHp;
     let maxBattleEnergy = combatant.maxBattleEnergy;
     let currentBattleEnergy = combatant.currentBattleEnergy;
-    if (modifiers.has("quickened_field")) battleStats.speed += 4;
+    battleStats.speed += openingSpeedBonus;
     if (modifiers.has("deep_reserves")) {
       battleStats.battleEnergy += 12;
       maxBattleEnergy += 12;

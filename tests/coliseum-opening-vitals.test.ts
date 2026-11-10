@@ -1,10 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import type { ColiseumC2EncounterDefinition } from "@/data/coliseumC2";
 
 const { createBattleState, getBattleOrderPreview } = await import("@/data/battleEngine");
+const { BATTLE_OUTFITTER_ITEMS } = await import("@/data/battleOutfitter");
 const { applyTeamTacticsKit } = await import("@/data/battleOutfitterIntegration");
 const { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningPreview } = await import("@/data/coliseumBattleOpening");
 const { COLISEUM_C2_ENCOUNTERS } = await import("@/data/coliseumC2");
+const { createEquipmentCopy } = await import("@/data/equipmentEnhancement");
 const { createNewGameSave } = await import("./helpers/establishedSave.ts");
 const TEST_BATTLE_ID = "actual-coliseum-start";
 
@@ -107,4 +110,74 @@ test("opening vitals remain available for an incomplete team before its full ord
   const preview = getColiseumOpeningPreview({ ...fixture, team: fixture.team.slice(0, 2) }, TEST_BATTLE_ID, false);
   assert.equal(preview.vitals.size, 2);
   assert.deepEqual(preview.order, []);
+});
+
+test("opening Speed names upgraded equipment, rounded set bonuses, and applied field effects", () => {
+  const input = createFixture();
+  const creatureId = input.team[0].creatureId;
+  const loadout = ["channeling_prism", "focus_circlet", "runner_bands", "focus_emblem"];
+  const copies = loadout.map((itemId, index) => {
+    const item = BATTLE_OUTFITTER_ITEMS.find(candidate => candidate.itemId === itemId);
+    assert.ok(item?.equipmentSlot);
+    input.save.flags[`battleEquipment_${creatureId}_${item.equipmentSlot}`] = itemId;
+    return {
+      ...createEquipmentCopy(`gear_${index + 1}`, item, creatureId),
+      level: itemId === "runner_bands" ? 3 : 0,
+      initialSubstats: itemId === "focus_circlet" ? [{ key: "speed", value: 2 }] : [],
+    };
+  });
+  input.save.flags.equipmentRulesVersion = 3;
+  input.save.flags.equipmentCopiesV1 = JSON.stringify({ version: 1, serial: copies.length, copies });
+  const [firstEnemy, secondEnemy, thirdEnemy] = input.encounter.enemyTeam;
+  const encounter: ColiseumC2EncounterDefinition = {
+    ...input.encounter,
+    enemyTeam: [{ ...firstEnemy, equipment: { name: "Fleet harness", bonuses: { speed: 1.6 } } }, secondEnemy, thirdEnemy],
+  };
+  const fixture = {
+    ...input,
+    encounter,
+    challenge: { modifierIds: ["quickened_field", "exhausting_heat", "quickened_field"] as ("quickened_field" | "exhausting_heat")[] },
+  };
+  const { order } = getColiseumOpeningPreview(fixture, TEST_BATTLE_ID, false);
+  const ally = order.find(entry => entry.sourceCreatureId === creatureId);
+  assert.ok(ally);
+  const base = createBattleState({ battleId: TEST_BATTLE_ID, playerCreatures: input.team, enemyCreatures: [] });
+  const baseSpeed = base.combatants[base.teams.player.combatantIds[0]].battleStats.speed;
+  assert.deepEqual(ally.speedBreakdown, {
+    base: baseSpeed,
+    contributions: [
+      { label: "Focus Circlet", amount: 2 },
+      { label: "Runner Bands +3", amount: 5 },
+      { label: "Swift set", amount: Math.floor(baseSpeed / 10) },
+      { label: "Quickened Field", amount: 4 },
+      { label: "Exhausting Heat", amount: -3 },
+    ],
+  });
+  const enemy = order.find(entry => entry.sideId === "enemy" && entry.name === firstEnemy.nickname);
+  assert.ok(enemy);
+  assert.deepEqual(enemy.speedBreakdown.contributions, [
+    { label: "Fleet harness", amount: 2 },
+    { label: "Quickened Field", amount: 4 },
+  ]);
+  const { state } = buildColiseumOpening(fixture, TEST_BATTLE_ID);
+  const actualOrder = getBattleOrderPreview(state, new Map());
+  assert.deepEqual(order.map(({ actorId, speedBreakdown }) => ({
+    actorId,
+    speed: speedBreakdown.contributions.reduce((total, row) => total + row.amount, speedBreakdown.base),
+  })), actualOrder.map(({ actorId, score }) => ({ actorId, speed: score })));
+});
+
+test("opening Speed explains when Exhausted reaches the combat Speed floor", () => {
+  const fixture = createFixture();
+  const [first, second, third] = fixture.team;
+  const team = [first, { ...second, stats: { ...second.stats, DEX: 1 }, abilities: [] }, third];
+  const input = { ...fixture, team, challenge: { modifierIds: ["exhausting_heat"] as "exhausting_heat"[] } };
+  const { order } = getColiseumOpeningPreview(input, TEST_BATTLE_ID, false);
+  const ally = order.find(entry => entry.sourceCreatureId === second.creatureId);
+  assert.ok(ally);
+  assert.equal(ally.speed, 1);
+  assert.deepEqual(ally.speedBreakdown, {
+    base: 2,
+    contributions: [{ label: "Exhausting Heat", amount: -3 }, { label: "Speed floor", amount: 2 }],
+  });
 });
