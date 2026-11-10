@@ -9,6 +9,10 @@ export function getBattleLogEntryText(entry: BattleLogEntry): string {
   return typeof entry === "string" ? entry : entry.text;
 }
 
+export function formatBattleLogDelta(delta: number): string {
+  return `${delta > 0 ? "+" : "−"}${Math.abs(delta)}`;
+}
+
 /** Keep the text log and its sparse event index in sync. */
 export function appendBattleLog(state: BattleState, entries: readonly BattleLogEntry[]): BattleState {
   if (!entries.length) return state;

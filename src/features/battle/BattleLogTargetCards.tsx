@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useId, type ComponentPropsWithoutRef, type ReactNode } from "react";
 import { getBattleStatGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
+import { formatBattleLogDelta } from "@/data/battleLog";
 import { getBattleOutcomeStatusText } from "@/data/battlePresentation";
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleMoveLogGroup, BattleMoveLogTarget, BattleState } from "@/types/battle";
@@ -18,10 +19,6 @@ type HeadingProps = Pick<ComponentPropsWithoutRef<"button">, "id" | "tabIndex"> 
 
 function countLabel(count: number, singular: string, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`;
-}
-
-export function signedDelta(delta: number) {
-  return `${delta > 0 ? "+" : "−"}${Math.abs(delta)}`;
 }
 
 function TargetCard({ target, source, highlighted }: {
@@ -42,8 +39,8 @@ function TargetCard({ target, source, highlighted }: {
     <div className={s.targetCopy}>
       <strong>{targetName}</strong>
       {(hpDelta !== 0 || battleEnergyDelta !== 0) && <div className={s.deltas}>
-        {hpDelta !== 0 && <b data-vital="hp" data-direction={hpDelta < 0 ? "loss" : "gain"}>{signedDelta(hpDelta)} HP</b>}
-        {battleEnergyDelta !== 0 && <b data-vital="energy">{signedDelta(battleEnergyDelta)} BE</b>}
+        {hpDelta !== 0 && <b data-vital="hp" data-direction={hpDelta < 0 ? "loss" : "gain"}>{formatBattleLogDelta(hpDelta)} HP</b>}
+        {battleEnergyDelta !== 0 && <b data-vital="energy">{formatBattleLogDelta(battleEnergyDelta)} BE</b>}
       </div>}
       {fullHp && <span className={s.badge} data-result="full-hp">Full HP</span>}
       {fullEnergy && <span className={s.badge} data-result="full-energy">Full BE</span>}
@@ -52,7 +49,7 @@ function TargetCard({ target, source, highlighted }: {
         const stacks = status.stacks && status.stacks > 1 ? ` ×${status.stacks}` : "";
         const statusName = getBattleStatusGlossary(status.status).label;
         const modifier = status.stat && status.amount
-          ? ` · ${getBattleStatGlossary(status.stat).label} ${signedDelta(status.amount)}`
+          ? ` · ${getBattleStatGlossary(status.stat).label} ${formatBattleLogDelta(status.amount)}`
           : "";
         let label = status.result === "applied" ? statusName : getBattleOutcomeStatusText(status);
         if (status.attemptedClear) label = `${statusName} cleanse failed`;

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { getBattleLogEventCategory } from "@/data/battleInterface";
+import { formatBattleLogDelta } from "@/data/battleLog";
 import { getOrderShiftDetails, type BattleLogSearchResult } from "@/data/battleLogSearch";
 import { gameplayArt } from "@/data/creatureGameplayArt";
 import type { BattleCombatantId, BattleLogEventCategory, BattleMoveLogGroup, BattleMoveLogTarget, BattleOrderShiftLogEntry, BattleState } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import { BattleLogQuickFind, BattleLogSearchText } from "./BattleLogQuickFind";
-import { BattleLogTargetCards, signedDelta } from "./BattleLogTargetCards";
+import { BattleLogTargetCards } from "./BattleLogTargetCards";
 import s from "./BattleLogEntries.module.css";
 
 const BOOKMARKS_PER_GROUP = 6;
@@ -38,7 +39,7 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
     {details.map(detail => {
       const selected = match?.detailId === detail.id;
       const delta = detail.expirySpeedDelta;
-      const expiryAmount = delta === undefined ? undefined : `${signedDelta(delta)} Speed`;
+      const expiryAmount = delta === undefined ? undefined : `${formatBattleLogDelta(delta)} Speed`;
       const sources = (detail.sourceMoveLogIndexes ?? []).flatMap(index => {
         const group = moveGroups.get(index);
         const target = group?.targets.find(target => target.targetId === move.actorId);
@@ -52,14 +53,16 @@ function OrderShiftDetails({ move, combatants, moveGroups, match, onViewSource }
         data-order-shift-speed={detail.kind === "speed" ? "" : undefined}
         data-order-shift-reason={detail.kind === "speed" ? undefined : detail.kind}>
         {selected ? <BattleLogSearchText text={detail.text} query={match.query}/> : detail.text}
-        {delta !== undefined && <>{" "}<span className={s.shiftRecoveryAmount}
+        {delta !== undefined && expiryAmount && <>{" "}<span className={s.shiftRecoveryAmount}
           data-order-shift-recovered-speed={delta > 0 ? delta : undefined}
-          data-order-shift-lost-speed={delta < 0 ? -delta : undefined}>{expiryAmount}</span></>}
+          data-order-shift-lost-speed={delta < 0 ? -delta : undefined}>
+          {selected ? <BattleLogSearchText text={expiryAmount} query={match.query}/> : expiryAmount}
+        </span></>}
         {sources.length > 0 && <>{" "}<span className={multipleSources ? s.shiftSourceList : undefined}>
           {sources.map(({ group, target }) => {
             const returnFocus = selected && match.focusSourceIndex === group.logIndex;
             const delta = detail.sourceMoveSpeedDeltas?.[group.logIndex];
-            const amount = delta === undefined ? undefined : signedDelta(delta);
+            const amount = delta === undefined ? undefined : formatBattleLogDelta(delta);
             return <button key={group.logIndex} type="button" className={s.shiftSource} data-order-shift-source={group.logIndex}
               id={returnFocus ? `${match.targetId}-source` : undefined} data-order-shift-return-focus={returnFocus ? "" : undefined}
               aria-label={`View ${group.moveName}${multipleSources ? ` by ${group.actorName}` : ""} in Round ${group.roundNumber} Battle Log${amount ? `, Speed modifier ${amount}` : ""}`}

@@ -121,6 +121,40 @@ test("battle log search highlights literal punctuation and preserves the display
   ]);
 });
 
+test("battle log search targets exact signed Speed expiry badges on Order Shift cards", () => {
+  const state = fixture();
+  const [lilt] = state.teams.enemy.combatantIds;
+  state.combatants[lilt].name = "Lilt";
+  state.log = ["Lilt: Inspired expired (−3 Speed).", "Round 2 · Order shift · Lilt 5 → 4", "Round 3 · Order shift · Lilt 4 → 5"];
+  state.roundLogBoundaries = [{ roundNumber: 1, logIndex: 0 }, { roundNumber: 2, logIndex: 1 }, { roundNumber: 3, logIndex: 2 }];
+  state.logEventCategories = { 0: "status-changes" };
+  state.orderShiftLog = [
+    { logIndex: 1, roundNumber: 2, moves: [{ actorId: lilt, from: 5, to: 4, speed: { before: 33, after: 38 }, reasons: [
+      { kind: "speed-effect", status: "slowed", result: "stack-wore-off", recoveredSpeed: 8 },
+      { kind: "speed-effect", status: "inspired", result: "wore-off", expirySpeedDelta: -3 },
+    ] }] },
+    { logIndex: 2, roundNumber: 3, moves: [{ actorId: lilt, from: 4, to: 5, reasons: [
+      { kind: "speed-effect", status: "inspired", result: "wore-off", expirySpeedDelta: -30 },
+    ] }] },
+  ];
+
+  for (const query of ["-3", "−3", "-3 speed", "−3 Speed"]) {
+    assert.deepEqual(searchBattleLog(state, query, ["order-shifts"]), [{
+      index: 1, roundNumber: 2, text: "Lilt · Inspired wore off · −3 Speed",
+      orderShiftDetail: { actorId: lilt, detailId: "reason-1" },
+    }]);
+  }
+  assert.deepEqual(searchBattleLog(state, "+8 Speed", ["order-shifts"]), [{
+    index: 1, roundNumber: 2, text: "Lilt · Slowed stack wore off · +8 Speed",
+    orderShiftDetail: { actorId: lilt, detailId: "reason-0" },
+  }]);
+  assert.deepEqual(searchBattleLog(state, "-3 Speed").map(result => result.index), [0, 1]);
+  assert.deepEqual(searchBattleLog(state, "+3 Speed"), []);
+  assert.deepEqual(getBattleLogSearchTextParts("−3 Speed · −30 Speed · −3.5 Speed", "-3"), [
+    { text: "−3", matched: true }, { text: " Speed · −30 Speed · −3.5 Speed", matched: false },
+  ]);
+});
+
 test("move categories partition attacks, protection and recovery including hybrids",()=>{
   assert.equal(getBattleMenuCategory(getBattleMove("strike")),"Attack");
   assert.equal(getBattleMenuCategory(getBattleMove("defend")),"Support");

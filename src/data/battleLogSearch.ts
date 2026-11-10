@@ -1,6 +1,6 @@
 import type { BattleCombatantId, BattleLogEventCategory, BattleOrderShiftLogEntry, BattleOrderShiftReason, BattleState } from "@/types/battle";
 import { getBattleStatusGlossary } from "./battleGlossary";
-import { getBattleLogEventCategory } from "./battleLog";
+import { formatBattleLogDelta, getBattleLogEventCategory } from "./battleLog";
 
 export type BattleLogSearchResult = {
   index: number;
@@ -63,10 +63,16 @@ function getOrderShiftSearchMatch(
   // A shift with a missing row actor is rendered as its original text log line.
   if (shift.moves.some(({ actorId }) => !combatants[actorId])) return;
   for (const move of shift.moves) {
-    const detail = getOrderShiftDetails(move, combatants).find(candidate => matcher.test(candidate.text));
-    if (detail) {
+    for (const detail of getOrderShiftDetails(move, combatants)) {
+      let text = detail.text;
+      if (!matcher.test(text)) {
+        if (detail.expirySpeedDelta === undefined) continue;
+        const amount = `${formatBattleLogDelta(detail.expirySpeedDelta)} Speed`;
+        if (!matcher.test(amount)) continue;
+        text += ` · ${amount}`;
+      }
       return {
-        text: `${combatants[move.actorId].name} · ${detail.text}`,
+        text: `${combatants[move.actorId].name} · ${text}`,
         orderShiftDetail: { actorId: move.actorId, detailId: detail.id },
       };
     }
@@ -75,7 +81,11 @@ function getOrderShiftSearchMatch(
 
 function getSearchPattern(query: string): string {
   return query.trim().split(/\s+/)
-    .map(word => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .map(word => {
+      const literal = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/[-−](?=\d)/g, "[-−]");
+      // A signed number is an exact amount, even during a search without a unit.
+      return /^[+−-]\d+(?:\.\d+)?$/.test(word) ? `${literal}(?!\\d|\\.\\d)` : literal;
+    })
     .join("\\s+");
 }
 
