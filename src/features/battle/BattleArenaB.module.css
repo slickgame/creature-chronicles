@@ -479,6 +479,10 @@
 .turnTargetVitals .brassGuardMeter::after { width: 11px; }
 .turnTargetVitals .guardShield { padding-inline: 5px; }
 .turnTargetVitals .guardShield svg { width: 14px; height: 14px; }
+.arena[data-individual=true] .turnTargetVitals .brassGuardMeter .meter {
+  height: auto;
+  min-height: 12px;
+}
 .guardDetails {
   display: flex;
   flex-wrap: wrap;
