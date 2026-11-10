@@ -20,7 +20,7 @@ import {
   type ColiseumC4ModifierId,
 } from "@/data/coliseumC4";
 import { EQUIPMENT_SETS } from "@/data/equipmentRules";
-import type { BattleCombatant, BattleCombatantId } from "@/types/battle";
+import type { BattleCombatant, BattleCombatantId, BattleStatusStack } from "@/types/battle";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import type { GameSave } from "@/types/save";
@@ -104,13 +104,21 @@ export function getColiseumOpeningPreview(
   input: ColiseumOpeningInput,
   battleId: string,
   tacticsArmed: boolean,
-): { vitals: ReadonlyMap<CreatureId, ColiseumOpeningVitals>; order: readonly ColiseumOpeningOrderEntry[] } {
+): {
+  vitals: ReadonlyMap<CreatureId, ColiseumOpeningVitals>;
+  statuses: ReadonlyMap<CreatureId, readonly BattleStatusStack[]>;
+  order: readonly ColiseumOpeningOrderEntry[];
+} {
   const { state, enemies, base, equipped } = buildColiseumOpening(input, battleId);
   const opening = tacticsArmed ? applyTeamTacticsOpeningEffect(state) : state;
   const vitals = new Map(opening.teams.player.combatantIds.map((id) => {
     const { sourceCreatureId, currentHp, maxHp, currentBattleEnergy, maxBattleEnergy } = opening.combatants[id];
     return [sourceCreatureId, { currentHp, maxHp, currentBattleEnergy, maxBattleEnergy }];
   }));
+  const statuses = new Map(Object.values(opening.combatants).map(combatant => [
+    combatant.sourceCreatureId,
+    combatant.statuses.filter(effect => effect.duration > 0).map(effect => ({ ...effect })),
+  ]));
   const modifierIds = input.challenge?.modifierIds ?? [];
   const fieldChanges = getColiseumC4OpeningSpeedChanges(modifierIds);
   const exhaustingHeat = modifierIds.includes("exhausting_heat") ? getColiseumC4Modifier("exhausting_heat").name : null;
@@ -138,5 +146,5 @@ export function getColiseumOpeningPreview(
       speedBreakdown: { base: baseSpeed, contributions },
     };
   }) : [];
-  return { vitals, order };
+  return { vitals, statuses, order };
 }

@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { ColiseumC2EncounterDefinition } from "@/data/coliseumC2";
+import type { ColiseumC4ModifierId } from "@/data/coliseumC4";
 
 const { createBattleState, getBattleOrderPreview } = await import("@/data/battleEngine");
-const { BATTLE_OUTFITTER_ITEMS } = await import("@/data/battleOutfitter");
+const { BATTLE_OUTFITTER_ITEMS, previewEquipmentSave } = await import("@/data/battleOutfitter");
 const { applyTeamTacticsKit } = await import("@/data/battleOutfitterIntegration");
 const { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningPreview } = await import("@/data/coliseumBattleOpening");
 const { COLISEUM_C2_ENCOUNTERS } = await import("@/data/coliseumC2");
@@ -110,6 +111,45 @@ test("opening vitals remain available for an incomplete team before its full ord
   const preview = getColiseumOpeningPreview({ ...fixture, team: fixture.team.slice(0, 2) }, TEST_BATTLE_ID, false);
   assert.equal(preview.vitals.size, 2);
   assert.deepEqual(preview.order, []);
+});
+
+test("opening statuses follow equipment, side-specific modifiers, carryover and the armed kit", () => {
+  const fixture = createFixture();
+  const [first, second] = fixture.team;
+  const harness = BATTLE_OUTFITTER_ITEMS.find(item => item.itemId === "champion_harness");
+  assert.ok(harness);
+  const equipped = previewEquipmentSave(fixture.save, first.creatureId, harness);
+  const save = { ...equipped, flags: { ...equipped.flags, battleItem_tacticsKits: 1 } };
+  const fresh = getColiseumOpeningPreview({ ...fixture, save, team: fixture.team.slice(0, 2) }, TEST_BATTLE_ID, false);
+  assert.deepEqual(fresh.statuses.get(first.creatureId), [{ status: "guarded", duration: 1 }]);
+  assert.deepEqual(fresh.statuses.get(second.creatureId), []);
+  assert.deepEqual(fresh.order, []);
+
+  const modifierIds: ColiseumC4ModifierId[] = ["enemy_bulwark", "marked_opening", "exhausting_heat"];
+  const carryover = { [first.creatureId]: { hpRatio: 0.15, battleEnergyRatio: 0.25 } };
+  const resumed = { ...fixture, save, challenge: { modifierIds, carryover } };
+  const unarmed = getColiseumOpeningPreview(resumed, TEST_BATTLE_ID, false).statuses;
+  assert.deepEqual(unarmed.get(first.creatureId)?.map(({ status, duration }) => [status, duration]), [
+    ["marked", 2], ["exhausted", 2], ["guarded", 1],
+  ]);
+  const { state } = buildColiseumOpening(resumed, TEST_BATTLE_ID);
+  const armed = getColiseumOpeningPreview(resumed, TEST_BATTLE_ID, true).statuses;
+  assert.equal(armed.get(first.creatureId)?.find(effect => effect.status === "inspired")?.duration, 1);
+  for (const id of state.teams.enemy.combatantIds) {
+    const enemy = state.combatants[id];
+    assert.deepEqual(armed.get(enemy.sourceCreatureId)?.map(({ status, duration }) => [status, duration]), [
+      ["guarded", 2], ["marked", 2],
+    ]);
+  }
+  const launched = applyTeamTacticsKit(save, state);
+  assert.ok(launched.ok);
+  for (const combatant of Object.values(launched.state.combatants)) {
+    assert.deepEqual(armed.get(combatant.sourceCreatureId), combatant.statuses);
+  }
+
+  const rallying = { ...resumed, challenge: { carryover, modifierIds: [...modifierIds, "rallying_start" as const] } };
+  const rallyingStatuses = getColiseumOpeningPreview(rallying, TEST_BATTLE_ID, true).statuses.get(first.creatureId);
+  assert.equal(rallyingStatuses?.find(effect => effect.status === "inspired")?.duration, 2);
 });
 
 test("opening Speed names upgraded equipment, rounded set bonuses, and applied field effects", () => {

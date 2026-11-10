@@ -132,6 +132,120 @@
   .openingVitals > div { gap: 4px; padding: 1px 3px; }
 }
 
+.openingStatuses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 4px;
+}
+.levelShort { display: none; }
+.openingStatuses .openingStatusChip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 2px 4px;
+  background: #f7ebd0;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.openingStatuses .openingStatusChip[data-status="guarded"],
+.openingStatuses .openingStatusChip[data-status="inspired"] {
+  border-color: #92a06d;
+  background: #e7ebcf;
+}
+.openingStatuses .openingStatusChip[data-status="exhausted"],
+.openingStatuses .openingStatusChip[data-status="marked"] {
+  border-color: #b38864;
+  background: #f2e0c7;
+}
+.openingStatusChip > span[aria-hidden="true"] { width: 17px; height: 17px; }
+.openingStatusDuration { font-size: 9px; font-variant-numeric: tabular-nums; }
+.openingEffectsList { display: grid; gap: 7px; list-style: none; margin: 0; padding: 0; }
+.openingEffectsList > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px 8px;
+  padding: 6px 8px;
+  border: 1px solid #baa172;
+  border-radius: 5px;
+  background: #f6ebce;
+}
+.openingEffectsList h3 { display: flex; align-items: center; gap: 5px; margin: 0; font-size: 15px; }
+.openingEffectsList h3 > span { width: 24px; height: 24px; }
+.openingEffectsList strong { font-size: 12px; }
+.openingEffectsDialog .openingEffectsList p { grid-column: 1 / -1; margin: 0; font-size: 13px; line-height: 1.3; }
+@media (max-width: 600px), (max-height: 400px) {
+  .openingStatuses { margin-top: 3px; }
+  .openingStatuses[data-multiple="true"] .openingStatusName { display: none; }
+  .openingStatuses[data-multiple="true"] .openingStatusDuration {
+    position: absolute;
+    inset-inline-end: 1px;
+    bottom: 0;
+    padding-inline: 1px;
+    border-radius: 2px;
+    background: #fff3d7;
+    font-size: 8px;
+  }
+  .openingEffectsList { gap: 5px; }
+  .openingEffectsList > li { padding: 4px 6px; }
+  .courtyard .openingEffectsDialog > header { padding: 6px 4px 8px; }
+  .courtyard .openingEffectsDialog > header h2 { font-size: 19px; }
+  .courtyard .openingEffectsDialog > div { padding: 8px 6px; }
+  .openingEffectsDialog .openingEffectsList p { font-size: 12px; line-height: 1.25; }
+}
+@media (max-width: 480px), (max-height: 400px) {
+  .courtyard .team .plinth[data-starting-effects="true"] { padding-block: 3px; }
+  .creature:has(.plinth[data-starting-effects="true"]) { gap: 4px; }
+  .plinth[data-starting-effects="true"] .slotHeading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 1px 3px;
+    font: 600 12px/1.15 Georgia, serif;
+  }
+  .plinth[data-starting-effects="true"] .slotNumber {
+    display: inline-block;
+    min-width: 12px;
+    margin: 0;
+    border-radius: 3px;
+    background: #ead9ad;
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+  .plinth[data-starting-effects="true"] .slotNumber > span,
+  .plinth[data-starting-effects="true"] .levelFull { display: none; }
+  .plinth[data-starting-effects="true"] .levelShort { display: inline; }
+  .plinth[data-starting-effects="true"] .slotName { overflow-wrap: anywhere; }
+  .plinth[data-starting-effects="true"] .slotHeading small { margin: 0; font-size: 10px; }
+}
+@media (max-width: 480px) and (orientation: portrait) {
+  .courtyard[data-coliseum="team"] { grid-template-rows: minmax(52px, auto) minmax(0, 1fr) 83px; }
+  .courtyard[data-coliseum="team"] > .header h1 { padding: 4px; font-size: 15px; line-height: 1.15; }
+}
+@media (min-width: 761px) and (max-width: 1050px) and (min-height: 561px) {
+  .courtyard[data-coliseum="team"] { grid-template-rows: minmax(60px, auto) minmax(0, 1fr) 100px; }
+}
+@media (min-width: 1051px) and (min-height: 561px) {
+  .courtyard[data-coliseum="team"] { grid-template-rows: minmax(64px, auto) minmax(0, 1fr) 106px; }
+}
+@media (max-height: 400px) and (orientation: landscape) {
+  .openingStatuses .openingStatusChip { min-height: 23px; }
+  .courtyard .openingEffectsDialog > header { padding-block: 4px; }
+  .courtyard .openingEffectsDialog > div { padding-block: 6px; }
+  .openingEffectsList { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .openingEffectsList > li { gap: 2px 6px; padding-block: 2px; }
+  .openingEffectsList h3 { font-size: 14px; }
+  .openingEffectsList h3 > span { width: 19px; height: 19px; }
+  .openingEffectsDialog .openingEffectsList p { font-size: 11px; line-height: 1.2; }
+}
+
 .openingOrderNote { margin: 0 0 10px; font-size: 14px; }
 .openingOrderList {
   display: grid;

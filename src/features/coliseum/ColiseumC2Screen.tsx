@@ -345,8 +345,8 @@ export function ColiseumBattle({
   }
 
   if (phase === "team-selection") {
-    const { vitals, order } = getColiseumOpeningPreview(openingInput, battleId, armTacticsKit && tacticsStock > 0);
-    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} openingVitals={vitals} openingOrder={order} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
+    const { vitals, statuses, order } = getColiseumOpeningPreview(openingInput, battleId, armTacticsKit && tacticsStock > 0);
+    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} openingVitals={vitals} openingStatuses={statuses} openingOrder={order} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
   }
 
   if (!battleState) return null;

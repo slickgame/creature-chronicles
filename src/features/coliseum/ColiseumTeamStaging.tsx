@@ -1,16 +1,19 @@
 "use client";
 import { gameplayArt } from "@/data/creatureGameplayArt";
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { useGameContext } from "@/state/GameProvider";
+import { StatusIcon, statusLabel } from "@/features/battle/BattleStatusBadges";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { DetailButton } from "@/features/ui/DetailButton";
 import { GameDialog } from "@/features/ui/GameDialog";
+import { getBattleStatusGlossary } from "@/data/battleGlossary";
 import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
 import { getEquipmentSlots, getBattleReadinessLabel } from "@/data/battleOutfitter";
 import type { ColiseumOpeningOrderEntry, ColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
 import type { ColiseumC4CarryoverMap, ColiseumC4ModifierDefinition } from "@/data/coliseumC4";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
+import type { BattleStatusStack } from "@/types/battle";
 import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
 type Enemy = { name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
@@ -28,21 +31,63 @@ function openingSpeedHint(entry: ColiseumOpeningOrderEntry): string {
  return [`Base Speed ${base} → ${entry.speed}`, ...sources].join("\n");
 }
 
-export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message,battleModifiers,openingVitals,openingOrder}: {
+function statusDuration(effect: BattleStatusStack): string {
+ return `${effect.duration} ${effect.duration === 1 ? "round" : "rounds"}`;
+}
+
+function OpeningStatusChips({ name, effects, onOpen }: {
+ name: string;
+ effects: readonly BattleStatusStack[];
+ onOpen: () => void;
+}) {
+ function openDetails(event: MouseEvent<HTMLButtonElement>) {
+   event.currentTarget.focus({ preventScroll: true });
+   onOpen();
+ }
+ const visible = effects.slice(0, 2);
+ const remaining = effects.slice(visible.length);
+ return <div className={s.openingStatuses} data-opening-statuses data-multiple={effects.length > 1}
+   role="group" aria-label={`Starting effects for ${name}`}>
+   {visible.map((effect, index) => {
+     const label = statusLabel(effect);
+     const duration = statusDuration(effect);
+     const [summary] = getBattleStatusGlossary(effect.status).mechanics.split(/(?<=\.)\s/, 1);
+     return <DetailButton key={`${effect.status}-${effect.stat ?? "all"}-${index}`} type="button"
+       className={s.openingStatusChip} data-status={effect.status}
+       aria-label={`${name}: ${label}, ${duration}. View starting effects`} aria-haspopup="dialog"
+       hint={`${label} · ${duration}\n${summary}`} onClick={openDetails}>
+       <StatusIcon status={effect.status}/>
+       <span className={s.openingStatusName}>{label}</span>
+       <span className={s.openingStatusDuration}>{effect.duration}r</span>
+     </DetailButton>;
+   })}
+   {remaining.length > 0 && <DetailButton type="button" className={s.openingStatusChip}
+     aria-label={`View all ${effects.length} starting effects for ${name}`} aria-haspopup="dialog"
+     hint={remaining.map(effect => `${statusLabel(effect)} · ${statusDuration(effect)}`).join("\n")} onClick={openDetails}>
+     +{remaining.length}
+   </DetailButton>}
+ </div>;
+}
+
+export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message,battleModifiers,openingVitals,openingOrder,openingStatuses}: {
  title:string; roster:CreatureRecord[];selected:CreatureId[];onChange:(ids:CreatureId[])=>void;onReturn:()=>void;onStart:()=>void;unavailable:(creature:CreatureRecord)=>string|null;enemyPreview:Enemy[];opponent:string;strategy:string;locked?:boolean;carryover?:ColiseumC4CarryoverMap;tacticsStock:number;armed:boolean;onArm:()=>void;rules:ReactNode;message:string;
  battleModifiers?: readonly ColiseumC4ModifierDefinition[];
  openingVitals: ReadonlyMap<CreatureId, ColiseumOpeningVitals>;
  openingOrder: readonly ColiseumOpeningOrderEntry[];
+ openingStatuses: ReadonlyMap<CreatureId, readonly BattleStatusStack[]>;
 }){
  const {currentSave:save}=useGameContext();const {open}=useNavigation();
  const [popup,setPopup]=useState<"roster"|"opponent"|"rules"|"prep"|"profile"|"gear"|"order"|null>(null);
  const [slot,setSlot]=useState(0),[page,setPage]=useState(0),[profileId,setProfileId]=useState<CreatureId|null>(null);
  const [speedActorId, setSpeedActorId] = useState<ColiseumOpeningOrderEntry["actorId"] | null>(null);
+ const [statusCreatureId, setStatusCreatureId] = useState<CreatureId | null>(null);
  if(!save)return null;
  const team=selected.map(id=>roster.find(c=>c.creatureId===id)).filter((c):c is CreatureRecord=>!!c);
  const pages=Math.max(1,Math.ceil(roster.length/4)),currentPage=Math.min(page,pages-1);
  const profile=roster.find(c=>c.creatureId===profileId);
  const speedEntry = popup === "order" ? openingOrder.find(entry => entry.actorId === speedActorId) : undefined;
+ const statusCreature = team.find(creature => creature.creatureId === statusCreatureId);
+ const inspectedEffects = statusCreatureId ? openingStatuses.get(statusCreatureId) : undefined;
  const canStart=team.length===3&&team.every(c=>!unavailable(c))&&(!armed||tacticsStock>0);
  function choose(c:CreatureRecord,targetSlot=slot){if(locked||unavailable(c))return;const ids=[...selected];const existing=ids.indexOf(c.creatureId);if(existing!==-1){if(targetSlot<ids.length){[ids[targetSlot],ids[existing]]=[ids[existing],ids[targetSlot]];}}else if(targetSlot<ids.length)ids[targetSlot]=c.creatureId;else ids.push(c.creatureId);onChange(ids);setPopup(null);}
  function change(ix:number){setSlot(ix);setPopup("roster");}
@@ -61,16 +106,21 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
      const variant = creature ? getVariantDefinition(creature.variantId) : null;
      const blocked = creature ? unavailable(creature) : null;
      const vitals = creature && !blocked ? openingVitals.get(creature.creatureId) : undefined;
-     return <article className={s.creature} key={ix} data-team-slot={ix + 1}>
+     const effects = creature && !blocked ? openingStatuses.get(creature.creatureId) : undefined;
+     return <article className={s.creature} key={ix} data-team-slot={ix + 1} aria-label={`Team slot ${ix + 1}`}>
        <div className={s.body}>{creature && variant ? <img src={gameplayArt(creature)} alt={`${creature.nickname}, full body`}/> : <span className={s.wood}>Slot {ix + 1}</span>}</div>
-       <div className={s.plinth}>
-         <span className={s.slotNumber}>TEAM {ix + 1}</span>
-         {creature?.nickname ?? "Choose creature"}
-         <small>{creature ? blocked ? "Unavailable" : `Level ${creature.level}` : "Empty"}</small>
+       <div className={s.plinth} data-starting-effects={!!effects?.length}>
+         <div className={s.slotHeading}>
+           <span className={s.slotNumber}><span>TEAM </span>{ix + 1}</span>
+           <span className={s.slotName}>{creature?.nickname ?? "Choose creature"}</span>
+           <small>{creature ? blocked ? "Unavailable" : <><span className={s.levelFull}>Level </span><span className={s.levelShort}>Lv </span>{creature.level}</> : "Empty"}</small>
+         </div>
          {vitals && <dl className={s.openingVitals} aria-label="Starting battle vitals">
            <div><dt>HP</dt><dd>{vitals.currentHp} / {vitals.maxHp}</dd></div>
            <div><dt aria-label="Battle Energy">BE</dt><dd>{vitals.currentBattleEnergy} / {vitals.maxBattleEnergy}</dd></div>
          </dl>}
+         {creature && effects?.length ? <OpeningStatusChips name={creature.nickname} effects={effects}
+           onOpen={() => setStatusCreatureId(creature.creatureId)}/> : null}
        </div>
        <div className={s.slotActions}>
          <button disabled={locked || ix > team.length} onClick={() => change(ix)}>{locked ? "Locked" : "Change"}</button>
@@ -93,6 +143,16 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
      </li>)}
    </ol>
  </GameDialog>}
+ {statusCreature && inspectedEffects?.length ? <GameDialog title={`${statusCreature.nickname} · Starting effects`}
+   onClose={() => setStatusCreatureId(null)} dialogClassName={s.openingEffectsDialog}>
+   <ul className={s.openingEffectsList} role="list">
+     {inspectedEffects.map((effect, index) => <li key={`${effect.status}-${effect.stat ?? "all"}-${index}`} data-status={effect.status}>
+       <h3><StatusIcon status={effect.status}/>{statusLabel(effect)}</h3>
+       <strong>{statusDuration(effect)}{(effect.stacks ?? 1) > 1 ? ` · ${effect.stacks} stacks` : ""}</strong>
+       <p>{getBattleStatusGlossary(effect.status).mechanics}</p>
+     </li>)}
+   </ul>
+ </GameDialog> : null}
  {speedEntry && <GameDialog title={`${speedEntry.name} · Speed breakdown`} dialogClassName={s.openingSpeedDialog} onClose={() => setSpeedActorId(null)}>
    <dl className={s.openingSpeedSources} aria-label="Opening Speed calculation">
      <div className={s.speedBase}><dt>Base Speed</dt><dd>{speedEntry.speedBreakdown.base}</dd></div>
