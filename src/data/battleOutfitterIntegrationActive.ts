@@ -21,6 +21,34 @@ function upsertInspiredStatus(statuses: BattleStatusStack[]): BattleStatusStack[
   return [...statuses.filter((status) => status.status !== "inspired"), next];
 }
 
+export function applyTeamTacticsOpeningEffect(state: BattleState): BattleState {
+  const combatants = Object.values(state.combatants).reduce(
+    (next, combatant) => {
+      if (combatant.sideId !== "player" || combatant.isFainted) {
+        next[combatant.battleCombatantId] = combatant;
+        return next;
+      }
+      next[combatant.battleCombatantId] = {
+        ...combatant,
+        battleStats: {
+          ...combatant.battleStats,
+          battleEnergy: combatant.battleStats.battleEnergy + 10,
+        },
+        maxBattleEnergy: combatant.maxBattleEnergy + 10,
+        currentBattleEnergy: combatant.currentBattleEnergy + 10,
+        statuses: upsertInspiredStatus(combatant.statuses),
+      };
+      return next;
+    },
+    {} as BattleState["combatants"],
+  );
+
+  return appendBattleLog({ ...state, combatants }, [{
+    text: "Team Tactics Kit activated: the ranch team starts Inspired and gains 10 current and maximum Battle Energy.",
+    category: "status-changes",
+  }]);
+}
+
 export function applyTeamTacticsKit(
   save: GameSave,
   state: BattleState,
@@ -47,33 +75,9 @@ export function applyTeamTacticsKit(
     },
   };
 
-  const combatants = Object.values(state.combatants).reduce(
-    (next, combatant) => {
-      if (combatant.sideId !== "player" || combatant.isFainted) {
-        next[combatant.battleCombatantId] = combatant;
-        return next;
-      }
-      next[combatant.battleCombatantId] = {
-        ...combatant,
-        battleStats: {
-          ...combatant.battleStats,
-          battleEnergy: combatant.battleStats.battleEnergy + 10,
-        },
-        maxBattleEnergy: combatant.maxBattleEnergy + 10,
-        currentBattleEnergy: combatant.currentBattleEnergy + 10,
-        statuses: upsertInspiredStatus(combatant.statuses),
-      };
-      return next;
-    },
-    {} as BattleState["combatants"],
-  );
-
   return {
     save: nextSave,
-    state: appendBattleLog({ ...state, combatants }, [{
-      text: "Team Tactics Kit activated: the ranch team starts Inspired and gains 10 current and maximum Battle Energy.",
-      category: "status-changes",
-    }]),
+    state: applyTeamTacticsOpeningEffect(state),
     ok: true,
     message: "Team Tactics Kit activated for this battle.",
   };

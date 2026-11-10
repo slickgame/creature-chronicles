@@ -101,6 +101,37 @@
 @media(max-height:560px) and (min-width:761px){.team{grid-template-columns:minmax(0,1fr) 210px}.team .panel{gap:4px;padding:7px}.team .panel>.muted{display:none}.team .plinth{padding:4px}.slotNumber{display:none}.stage{padding:0;gap:8px}}
 
 
+.openingVitals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px 5px;
+  margin: 5px 0 0;
+  font: bold 12px/1.2 Georgia, serif;
+  font-variant-numeric: tabular-nums;
+}
+.openingVitals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  border: 1px solid #a6ac75;
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: #28412a;
+  background: #e5ebcc;
+  white-space: nowrap;
+}
+.openingVitals > div:last-child {
+  border-color: #9aadb4;
+  color: #233d55;
+  background: #dce7ea;
+}
+.openingVitals dd { margin: 0; }
+@media (max-width: 760px), (max-height: 560px) {
+  .openingVitals { gap: 2px 4px; margin-top: 3px; font-size: 11px; }
+  .openingVitals > div { gap: 4px; padding: 1px 3px; }
+}
+
 .stage:has(> .battleModifiers) {
   grid-template-rows: auto minmax(0, 1fr);
 }

@@ -6,15 +6,17 @@ import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
 import { getEquipmentSlots, getBattleReadinessLabel } from "@/data/battleOutfitter";
+import type { ColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
 import type { ColiseumC4CarryoverMap, ColiseumC4ModifierDefinition } from "@/data/coliseumC4";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId } from "@/types/ids";
 import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
 type Enemy = { name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
-export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message,battleModifiers}: {
+export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message,battleModifiers,openingVitals}: {
  title:string; roster:CreatureRecord[];selected:CreatureId[];onChange:(ids:CreatureId[])=>void;onReturn:()=>void;onStart:()=>void;unavailable:(creature:CreatureRecord)=>string|null;enemyPreview:Enemy[];opponent:string;strategy:string;locked?:boolean;carryover?:ColiseumC4CarryoverMap;tacticsStock:number;armed:boolean;onArm:()=>void;rules:ReactNode;message:string;
  battleModifiers?: readonly ColiseumC4ModifierDefinition[];
+ openingVitals: ReadonlyMap<CreatureId, ColiseumOpeningVitals>;
 }){
  const {currentSave:save}=useGameContext();const {open}=useNavigation();
  const [popup,setPopup]=useState<"roster"|"opponent"|"rules"|"prep"|"profile"|"gear"|null>(null);
@@ -35,7 +37,28 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
        <strong>{modifier.name}</strong>{" "}<span>{modifier.description}</span>
      </li>)}</ul>
    </section> : null}
-   {[0,1,2].map(ix=>{const c=team[ix],v=c?getVariantDefinition(c.variantId):null;return <article className={s.creature} key={ix} data-team-slot={ix+1}><div className={s.body}>{c&&v?<img src={gameplayArt(c)} alt={`${c.nickname}, full body`}/>:<span className={s.wood}>Slot {ix+1}</span>}</div><div className={s.plinth}><span className={s.slotNumber}>TEAM {ix+1}</span>{c?.nickname??"Choose creature"}<small>{c?unavailable(c)?"Unavailable":carryover?.[c.creatureId]?`HP ${Math.round(carryover[c.creatureId].hpRatio*100)}% · BE ${Math.round(carryover[c.creatureId].battleEnergyRatio*100)}%`:`Level ${c.level} · ${gearCount(c)}/5 gear`:"Empty"}</small></div><div className={s.slotActions}><button disabled={locked||ix>team.length} onClick={()=>change(ix)}>{locked?"Locked":"Change"}</button>{c&&<button aria-label={`Gear for ${c.nickname}`} onClick={()=>{setProfileId(c.creatureId);setPopup("gear");}}>Gear · {gearCount(c)}/5</button>}</div></article>;})}</section><aside className={s.panel}>{prep}<button onClick={()=>setPopup("opponent")}>Opponent & Rules</button></aside><div className={s.mobileActions}><button onClick={()=>setPopup("opponent")}>Opponent</button><button onClick={()=>setPopup("prep")}>Prep · {team.length}/3</button><button className={s.primary} disabled={!canStart} onClick={onStart}>Enter Battle</button></div></section><nav className={s.roster} aria-label="Creature roster"><button aria-label="Previous creatures" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>‹</button>{roster.slice(currentPage*4,currentPage*4+4).map(c=><button key={c.creatureId} aria-label={`Inspect ${c.nickname}`} aria-pressed={selected.includes(c.creatureId)} onClick={()=>{setProfileId(c.creatureId);setPopup("profile");}}><img src={gameplayArt(c,true)} alt=""/><span>{c.nickname}</span></button>)}<span className={s.wood}>{currentPage+1}/{pages}</span><button aria-label="Next creatures" disabled={currentPage===pages-1} onClick={()=>setPage(currentPage+1)}>›</button></nav>
+   {[0, 1, 2].map(ix => {
+     const creature = team[ix];
+     const variant = creature ? getVariantDefinition(creature.variantId) : null;
+     const blocked = creature ? unavailable(creature) : null;
+     const vitals = creature && !blocked ? openingVitals.get(creature.creatureId) : undefined;
+     return <article className={s.creature} key={ix} data-team-slot={ix + 1}>
+       <div className={s.body}>{creature && variant ? <img src={gameplayArt(creature)} alt={`${creature.nickname}, full body`}/> : <span className={s.wood}>Slot {ix + 1}</span>}</div>
+       <div className={s.plinth}>
+         <span className={s.slotNumber}>TEAM {ix + 1}</span>
+         {creature?.nickname ?? "Choose creature"}
+         <small>{creature ? blocked ? "Unavailable" : `Level ${creature.level}` : "Empty"}</small>
+         {vitals && <dl className={s.openingVitals} aria-label="Starting battle vitals">
+           <div><dt>HP</dt><dd>{vitals.currentHp} / {vitals.maxHp}</dd></div>
+           <div><dt aria-label="Battle Energy">BE</dt><dd>{vitals.currentBattleEnergy} / {vitals.maxBattleEnergy}</dd></div>
+         </dl>}
+       </div>
+       <div className={s.slotActions}>
+         <button disabled={locked || ix > team.length} onClick={() => change(ix)}>{locked ? "Locked" : "Change"}</button>
+         {creature && <button aria-label={`Gear for ${creature.nickname}`} onClick={() => { setProfileId(creature.creatureId); setPopup("gear"); }}>Gear · {gearCount(creature)}/5</button>}
+       </div>
+     </article>;
+   })}</section><aside className={s.panel}>{prep}<button onClick={()=>setPopup("opponent")}>Opponent & Rules</button></aside><div className={s.mobileActions}><button onClick={()=>setPopup("opponent")}>Opponent</button><button onClick={()=>setPopup("prep")}>Prep · {team.length}/3</button><button className={s.primary} disabled={!canStart} onClick={onStart}>Enter Battle</button></div></section><nav className={s.roster} aria-label="Creature roster"><button aria-label="Previous creatures" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>‹</button>{roster.slice(currentPage*4,currentPage*4+4).map(c=><button key={c.creatureId} aria-label={`Inspect ${c.nickname}`} aria-pressed={selected.includes(c.creatureId)} onClick={()=>{setProfileId(c.creatureId);setPopup("profile");}}><img src={gameplayArt(c,true)} alt=""/><span>{c.nickname}</span></button>)}<span className={s.wood}>{currentPage+1}/{pages}</span><button aria-label="Next creatures" disabled={currentPage===pages-1} onClick={()=>setPage(currentPage+1)}>›</button></nav>
  {popup==="roster"&&<GameDialog title={`Choose creature · Slot ${slot+1}`} onClose={()=>setPopup(null)} wide><p>Choosing a teammate already selected swaps their position.</p><div className={s.dialogGrid}>{roster.map(c=><article key={c.creatureId}><img src={gameplayArt(c,true)} alt=""/><h3>{c.nickname} · Level {c.level}</h3><p>{unavailable(c)||getBattleReadinessLabel(save,c.creatureId)}</p><button disabled={locked||!!unavailable(c)} onClick={()=>choose(c)}>Choose {c.nickname}</button></article>)}</div>{selected[slot]&&<button onClick={()=>{onChange(selected.filter((_,ix)=>ix!==slot));setPopup(null);}}>Clear Slot {slot+1}</button>}</GameDialog>}
  {popup==="opponent"&&<GameDialog title="Opponent & Rules" onClose={()=>setPopup(null)} wide><h3>{opponent}</h3><p>{strategy}</p><div className={s.dialogGrid}>{enemyPreview.map(e=><article key={e.name}><h3>{e.name}</h3><p>Level {e.level} · {e.variantName} · {e.role}</p><p>{e.equipment}</p><p>{e.moves.join(" · ")}</p></article>)}</div>{rules}</GameDialog>}
  {popup==="rules"&&<GameDialog title="Battle Rules" onClose={()=>setPopup(null)}>{rules}</GameDialog>}

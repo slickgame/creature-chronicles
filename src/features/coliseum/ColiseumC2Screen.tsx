@@ -7,12 +7,11 @@ import {
   getBattleAiDifficultyDescription,
   getBattleAiDifficultyLabel,
 } from "@/data/battleAi";
-import { createBattleState } from "@/data/battleEngine";
+import { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
   TEAM_TACTICS_KIT_ID,
-  applyBattleOutfitterLoadouts,
   applyTeamTacticsKit,
   getBattleOutfitterCombatStock,
   useFieldTonic as applyFieldTonic,
@@ -26,8 +25,6 @@ import {
   COLISEUM_C2_DIVISIONS,
   COLISEUM_C2_ENCOUNTERS,
   accumulateColiseumRoundPerformance,
-  applyAuthoredColiseumEquipment,
-  buildAuthoredColiseumEnemyTeam,
   createColiseumPerformance,
   getColiseumC2Access,
   getColiseumC2Division,
@@ -273,26 +270,18 @@ export function ColiseumBattle({
   const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
   const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
+  const team = effectiveSelection.map((id) => roster.find((creature) => creature.creatureId === id)).filter((creature): creature is CreatureRecord => Boolean(creature));
+  const openingInput = { save, encounter, team, playerTeamName: `${save.player.name}'s Ranch Team` };
 
   function startBattle() {
-    const team = effectiveSelection.map((id) => roster.find((creature) => creature.creatureId === id)).filter((creature): creature is CreatureRecord => Boolean(creature));
     if (team.length !== 3) { setMessage("Select exactly three available creatures before entering the bracket."); return; }
     if (team.some(creature => getUnavailableReason(save, creature))) { setMessage("A selected creature is no longer available for battle."); return; }
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
-    const enemies = buildAuthoredColiseumEnemyTeam(save.saveId, encounter);
-    let state = applyAuthoredColiseumEquipment(
-      applyBattleOutfitterLoadouts(
-        save,
-        createBattleState({
-          battleId: `coliseum_c2_${encounter.encounterId}_${save.saveId}_${save.dayState.dayNumber}_${Date.now()}`,
-          playerCreatures: team,
-          enemyCreatures: enemies,
-          playerTeamName: `${save.player.name}'s Ranch Team`,
-          enemyTeamName: encounter.opponentName,
-        }),
-      ),
-      encounter,
+    const { state: openingState, enemies } = buildColiseumOpening(
+      openingInput,
+      createColiseumBattleId(`coliseum_c2_${encounter.encounterId}`, save),
     );
+    let state = openingState;
     let tacticsUsed = false;
     if (armTacticsKit) {
       const result = applyTeamTacticsKit(save, state);
@@ -356,7 +345,8 @@ export function ColiseumBattle({
   }
 
   if (phase === "team-selection") {
-    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
+    const openingVitals = getColiseumOpeningVitals(openingInput, armTacticsKit && tacticsStock > 0);
+    return <ColiseumTeamStaging title={encounter.name} roster={roster} selected={effectiveSelection} openingVitals={openingVitals} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c=>getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} rules={<p>Choose three available creatures. All participants gain Combat XP after a recorded result, including fainted creatures. Overleveled repeat clears receive reduced XP.</p>} />;
   }
 
   if (!battleState) return null;

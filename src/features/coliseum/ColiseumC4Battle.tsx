@@ -3,13 +3,11 @@
 import { useMemo, useState } from "react";
 import { BattleArenaB } from "@/features/battle/BattleArenaB";
 import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
-import { createBattleState } from "@/data/battleEngine";
+import { buildColiseumOpening, createColiseumBattleId, getColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
   TEAM_TACTICS_KIT_ID,
-  applyBattleOutfitterLoadouts,
-  applyEquipmentOpeningPassives,
   applyTeamTacticsKit,
   getBattleOutfitterCombatStock,
   useFieldTonic as applyFieldTonic,
@@ -21,8 +19,6 @@ import {
 } from "@/data/battleUi";
 import {
   accumulateColiseumRoundPerformance,
-  applyAuthoredColiseumEquipment,
-  buildAuthoredColiseumEnemyTeam,
   createColiseumPerformance,
   getColiseumEnemyPreview,
   type ColiseumC2EncounterDefinition,
@@ -30,8 +26,6 @@ import {
 } from "@/data/coliseumC2";
 import {
   recordColiseumC4BattleResult,
-  applyColiseumC4Carryover,
-  applyColiseumC4Modifiers,
   getColiseumC4Modifier,
   isColiseumC4AidRestricted,
   type ColiseumC4CarryoverMap,
@@ -143,36 +137,27 @@ export function ColiseumC4Battle({
   const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
   const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
+  const team = effectiveSelection
+    .map((id) => roster.find((creature) => creature.creatureId === id))
+    .filter((creature): creature is CreatureRecord => Boolean(creature));
+  const openingInput = {
+    save,
+    encounter,
+    team,
+    playerTeamName: `${save.player.name}'s Challenge Team`,
+    challenge: { modifierIds: challenge.modifierIds, carryover },
+  };
 
   function startBattle() {
-    const team = effectiveSelection
-      .map((id) => roster.find((creature) => creature.creatureId === id))
-      .filter((creature): creature is CreatureRecord => Boolean(creature));
     if (team.length !== 3) { setMessage("Select exactly three available creatures before entering the challenge."); return; }
     const unavailable = team.find((creature) => getUnavailableReason(save, creature));
     if (unavailable) { setMessage(`${unavailable.nickname} is no longer available for battle.`); return; }
     if (armTacticsKit && tacticsStock <= 0) { setMessage("No Team Tactics Kit is available."); return; }
-    const enemies = buildAuthoredColiseumEnemyTeam(save.saveId, encounter);
-    let state = applyColiseumC4Carryover(
-      applyColiseumC4Modifiers(
-        applyAuthoredColiseumEquipment(
-          applyBattleOutfitterLoadouts(
-            save,
-            createBattleState({
-              battleId: `coliseum_c4_${challenge.challengeKey}_${stageIndex}_${save.saveId}_${save.dayState.dayNumber}_${Date.now()}`,
-              playerCreatures: team,
-              enemyCreatures: enemies,
-              playerTeamName: `${save.player.name}'s Challenge Team`,
-              enemyTeamName: encounter.opponentName,
-            }),
-          ),
-          encounter,
-        ),
-        challenge.modifierIds,
-      ),
-      carryover,
+    const { state: openingState, enemies } = buildColiseumOpening(
+      openingInput,
+      createColiseumBattleId(`coliseum_c4_${challenge.challengeKey}_${stageIndex}`, save),
     );
-    state = applyEquipmentOpeningPassives(save, state);
+    let state = openingState;
     let tacticsUsed = false;
     if (armTacticsKit) {
       const result = applyTeamTacticsKit(save, state);
@@ -239,7 +224,8 @@ export function ColiseumC4Battle({
   }
 
   if (phase === "team-selection") {
-    return <ColiseumTeamStaging title={`${challenge.name} · Stage ${stageIndex + 1}/${challenge.encounterIds.length}`} roster={visibleRoster} selected={effectiveSelection} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c => getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} locked={locked} carryover={carryover} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} battleModifiers={modifiers} rules={<>{modifiers.map(m => <section key={m.modifierId}><h3>{m.name}</h3><p>{m.description}</p></section>)}<p>{challenge.mode === "gauntlet" ? "The same roster continues between stages. Living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP. Previous-stage statuses and cooldowns clear. Opening modifiers apply again each stage. Defeat or a draw ends the run." : "Every participant earns Combat XP after the result is recorded."}</p></>} />;
+    const openingVitals = getColiseumOpeningVitals(openingInput, armTacticsKit && tacticsStock > 0);
+    return <ColiseumTeamStaging title={`${challenge.name} · Stage ${stageIndex + 1}/${challenge.encounterIds.length}`} roster={visibleRoster} selected={effectiveSelection} openingVitals={openingVitals} onChange={setSelectedCreatureIds} onReturn={onReturn} onStart={startBattle} unavailable={c => getUnavailableReason(save,c)} enemyPreview={enemyPreview} opponent={encounter.opponentName} strategy={encounter.strategyLabel} locked={locked} carryover={carryover} tacticsStock={tacticsStock} armed={armTacticsKit} onArm={()=>setArmTacticsKit(v=>!v)} message={message} battleModifiers={modifiers} rules={<>{modifiers.map(m => <section key={m.modifierId}><h3>{m.name}</h3><p>{m.description}</p></section>)}<p>{challenge.mode === "gauntlet" ? "The same roster continues between stages. Living creatures recover 30% max HP and 25% max Battle Energy; fainted creatures return at 15% HP. Previous-stage statuses and cooldowns clear. Opening modifiers apply again each stage. Defeat or a draw ends the run." : "Every participant earns Combat XP after the result is recorded."}</p></>} />;
   }
 
   if (!battleState) return null;
