@@ -196,7 +196,7 @@ export const COLISEUM_C4_MODIFIERS: readonly ColiseumC4ModifierDefinition[] = [
   { modifierId: "exhausting_heat", name: "Exhausting Heat", description: "Your team starts Exhausted for 2 rounds with −3 Speed, half base Battle Energy recovery, and 10% more damage taken from Pursuit attacks.", rewardBonusPercent: 20, tone: "hazard" },
   { modifierId: "restricted_aid", name: "Restricted Aid", description: "Field Tonics and Revival Salves are blocked. Tactics Kits can be armed before battle.", rewardBonusPercent: 25, tone: "hazard" },
   { modifierId: "enemy_focus", name: "Focused Opposition", description: "Enemies gain +6 Accuracy and +6 Effectiveness.", rewardBonusPercent: 15, tone: "hazard" },
-  { modifierId: "rallying_start", name: "Rallying Start", description: "The ranch team begins Inspired for two rounds.", rewardBonusPercent: -10, tone: "benefit" },
+  { modifierId: "rallying_start", name: "Rallying Start", description: "Your team starts Inspired for 2 rounds, gaining +3 Physical Power, Special Power, and Effectiveness, plus 2 Battle Energy at round end.", rewardBonusPercent: -10, tone: "benefit" },
 ] as const;
 
 const C4_GAUNTLETS: readonly ColiseumC4ChallengeDefinition[] = [

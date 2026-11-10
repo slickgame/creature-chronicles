@@ -12,9 +12,9 @@ import type { CreatureId } from "@/types/ids";
 import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
 type Enemy = { name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
-export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message,bossModifiers}: {
+export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onStart,unavailable,enemyPreview,opponent,strategy,locked=false,carryover,tacticsStock,armed,onArm,rules,message,battleModifiers}: {
  title:string; roster:CreatureRecord[];selected:CreatureId[];onChange:(ids:CreatureId[])=>void;onReturn:()=>void;onStart:()=>void;unavailable:(creature:CreatureRecord)=>string|null;enemyPreview:Enemy[];opponent:string;strategy:string;locked?:boolean;carryover?:ColiseumC4CarryoverMap;tacticsStock:number;armed:boolean;onArm:()=>void;rules:ReactNode;message:string;
- bossModifiers?: readonly ColiseumC4ModifierDefinition[];
+ battleModifiers?: readonly ColiseumC4ModifierDefinition[];
 }){
  const {currentSave:save}=useGameContext();const {open}=useNavigation();
  const [popup,setPopup]=useState<"roster"|"opponent"|"rules"|"prep"|"profile"|"gear"|null>(null);
@@ -29,9 +29,9 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
  const gearCount=(c:CreatureRecord)=>Object.values(getEquipmentSlots(save,c.creatureId)).filter(Boolean).length;
  const prep=<><h2>Your Team · {team.length} / 3</h2><p>{locked?"Roster locked for this run.":"Choose three available creatures."}</p><p className={s.muted}>Select a teammate’s Gear button to compare, buy or equip. Gear is optional.</p><button onClick={()=>setPopup("prep")}>Team preparation</button><button aria-pressed={armed} disabled={tacticsStock===0&&!armed} onClick={onArm}>Tactics Kit · {armed?"On":"Off"} ({tacticsStock})</button><p className={s.muted}>Consumed when battle starts.</p><button className={s.primary} disabled={!canStart} onClick={onStart}>Enter Battle</button></>;
  return <main className={s.courtyard} data-coliseum="team"><header className={s.header}><div><button onClick={onReturn}>‹ Back</button></div><h1>{title}</h1><div><button onClick={()=>open("menu")} data-navigation-launcher>Menu</button></div></header><section className={`${s.layout} ${s.team}`}><aside className={s.panel}><h2>Opponent</h2><p>{opponent}</p><p className={s.desktop}>{strategy}</p><button onClick={()=>setPopup("opponent")}>View team</button><button onClick={()=>setPopup("rules")}>Rules</button></aside><section className={s.stage} aria-label="Selected full-body team">
-   {bossModifiers?.length ? <section className={s.bossModifiers} aria-label="Boss modifiers">
-     <h2>Boss modifiers</h2>
-     <ul>{bossModifiers.map(modifier => <li key={modifier.modifierId} data-tone={modifier.tone}>
+   {battleModifiers?.length ? <section className={s.battleModifiers} aria-label="Battle modifiers">
+     <h2>Battle modifiers</h2>
+     <ul>{battleModifiers.map(modifier => <li key={modifier.modifierId} data-tone={modifier.tone}>
        <strong>{modifier.name}</strong>{" "}<span>{modifier.description}</span>
      </li>)}</ul>
    </section> : null}
