@@ -5,7 +5,7 @@ import {
   getBattleOutcome,
   getBattleSpeedStatusModifiers,
   getEffectiveBattleStats,
-  getSlowedExpirySpeed,
+  getExpiringSpeedStatuses,
   hasBattleStatus,
   type BattleActionEffectPreview,
   type BattleStatusApplicationPreview,
@@ -146,27 +146,30 @@ function getSpeedEffectSources(
 
 function getSettledSpeedEffectReasons(
   previous: BattleCombatant, beforeRecovery: BattleCombatant, settled: BattleCombatant, moves: readonly BattleMoveLogGroup[],
+  speedChanged: boolean,
 ) {
   const opening = getBattleSpeedStatusModifiers(previous);
   const interim = getBattleSpeedStatusModifiers(beforeRecovery);
   const recovered = getBattleSpeedStatusModifiers(settled);
+  const expiries = new Map(getExpiringSpeedStatuses(beforeRecovery, settled).map(expiry => [expiry.status, expiry]));
   const reasons: BattleOrderShiftReason[] = [];
 
-  for (const status of new Set([...opening.keys(), ...recovered.keys()])) {
+  for (const status of new Set([...opening.keys(), ...recovered.keys(), ...expiries.keys()])) {
     const before = opening.get(status) ?? 0;
     const mid = interim.get(status) ?? 0;
     const after = recovered.get(status) ?? 0;
-    if (before === after) continue;
-    if (before !== mid) {
+    const modifierChanged = speedChanged && before !== after;
+    if (modifierChanged && before !== mid) {
       const result = !hasBattleStatus(previous, status) ? "applied"
         : !hasBattleStatus(beforeRecovery, status) ? "cleared" : "changed";
       const sources = getSpeedEffectSources(moves, previous.battleCombatantId, status, before, mid);
       reasons.push({ kind: "speed-effect", status, result, ...sources });
     }
-    if (mid !== after) {
-      const recoveredSpeed = status === "slowed" ? getSlowedExpirySpeed(beforeRecovery, settled) : undefined;
+    const expiry = expiries.get(status);
+    if (expiry || (modifierChanged && mid !== after)) {
+      const speedDelta = expiry?.speedDelta;
       reasons.push({ kind: "speed-effect", status, result: hasBattleStatus(settled, status) ? "stack-wore-off" : "wore-off",
-        ...(recoveredSpeed !== undefined ? { recoveredSpeed } : {}) });
+        ...(speedDelta !== undefined ? { expirySpeedDelta: speedDelta } : {}) });
     }
   }
   return reasons;
@@ -191,7 +194,7 @@ export function recordBattleOrderShift(state: BattleState, shift?: BattleRoundOr
 
     const beforeSpeed = getEffectiveBattleStats(previous).speed;
     const speed = beforeSpeed !== afterSpeed ? { before: beforeSpeed, after: afterSpeed } : undefined;
-    const reasons = speed ? getSettledSpeedEffectReasons(previous, beforeRecovery, state.combatants[actorId], roundMoves ?? []) : [];
+    const reasons = getSettledSpeedEffectReasons(previous, beforeRecovery, state.combatants[actorId], roundMoves ?? [], speed !== undefined);
     for (const [previousIndex, otherId] of shift.before.entries()) {
       const wasAhead = previousIndex < from;
       if (wasAhead === (shift.after.indexOf(otherId) < to)) continue;

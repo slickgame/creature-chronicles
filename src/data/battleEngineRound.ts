@@ -195,19 +195,6 @@ export function getEffectiveBattleStats(combatant: BattleCombatant): BattleStats
   };
 }
 
-export function getSlowedExpirySpeed(beforeRecovery: BattleCombatant, settled: BattleCombatant): number | undefined {
-  const expiredStacks = beforeRecovery.statuses.filter(stack =>
-    stack.status === "slowed" && stack.duration > 0 && stack.duration <= 1);
-  if (!expiredStacks.length) return undefined;
-
-  // Keep the rest of recovery settled so only Slowed's expiry contributes to the difference.
-  const withoutExpiry = { ...settled, statuses: [...settled.statuses, ...expiredStacks] };
-  const priorModifier = getBattleSpeedStatusModifiers(beforeRecovery).get("slowed") ?? 0;
-  if ((getBattleSpeedStatusModifiers(withoutExpiry).get("slowed") ?? 0) !== priorModifier) return undefined;
-  const recoveredSpeed = getEffectiveBattleStats(settled).speed - getEffectiveBattleStats(withoutExpiry).speed;
-  return Number.isFinite(recoveredSpeed) && recoveredSpeed > 0 ? recoveredSpeed : undefined;
-}
-
 export function getUsableBattleMoves(combatant: BattleCombatant): BattleMove[] {
   return combatant.loadout.equippedMoveIds
     .map((moveId) => BATTLE_MOVES_BY_ID[moveId])
@@ -1085,8 +1072,20 @@ function tickBattleCombatant(
       kind: "expiry",
       statuses: expiredStatuses,
     });
-    const labels = expiredStatuses.map(status => getBattleStatusGlossary(status).label);
-    entries.push({ text: `${nextCombatant.name}: ${labels.join(", ")} expired.`, category: "status-changes" });
+  }
+  const speedExpiries = nextCombatant.isFainted ? [] : getExpiringSpeedStatuses(combatant, nextCombatant);
+  const signedExpiries = speedExpiries.flatMap(({ status, remains, speedDelta }) => {
+    if (speedDelta === undefined) return [];
+    const label = getBattleStatusGlossary(status).label;
+    const amount = `${speedDelta < 0 ? "−" : "+"}${Math.abs(speedDelta)} Speed`;
+    return [{ status, text: `${label} ${remains ? "stack wore off" : "expired"} (${amount}).` }];
+  });
+  const labels = expiredStatuses.filter(status => !signedExpiries.some(expiry => expiry.status === status))
+    .map(status => getBattleStatusGlossary(status).label);
+  const expiryNotes = labels.length ? [`${labels.join(", ")} expired.`] : [];
+  expiryNotes.push(...signedExpiries.map(expiry => expiry.text));
+  if (expiryNotes.length) {
+    entries.push({ text: `${nextCombatant.name}: ${expiryNotes.join(" ")}`, category: "status-changes" });
   }
   const requestedRegen = calculateBattleRoundEnergyRegen(
     nextCombatant.maxBattleEnergy,
@@ -1266,20 +1265,21 @@ export type BattleRoundEndForecastWithOrder = {
   nextRound?: { roundNumber: number; entries: BattleOpeningOrderEntry[] };
 };
 
-function getExpiringSpeedStatuses(
-  before: BattleCombatant, after: BattleCombatant, speedBefore: number,
+export function getExpiringSpeedStatuses(
+  before: BattleCombatant, after: BattleCombatant, speedBefore?: number,
 ): BattleOpeningOrderEntry["expiredSpeedStatuses"] {
   const statuses = new Set<BattleStatusId>();
   for (const stack of before.statuses) {
     if (stack.duration > 0 && stack.duration <= 1 && getBattleStatusSpeedModifier(stack)) statuses.add(stack.status);
   }
+  if (!statuses.size) return [];
 
   // Account for rounding and the Speed floor at each step. Applying Slowed last
-  // matches the settled baseline used for its recovery amount in the Battle Log.
+  // preserves its original recovery amount after the other effects have expired.
   const expiryOrder = [...statuses].sort((left, right) => Number(left === "slowed") - Number(right === "slowed"));
   const expired = new Set<BattleStatusId>();
   const deltas = new Map<BattleStatusId, number>();
-  let speed = speedBefore;
+  let speed = speedBefore ?? getEffectiveBattleStats(before).speed;
   for (const status of expiryOrder) {
     expired.add(status);
     const remaining = before.statuses.filter(stack =>

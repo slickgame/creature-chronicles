@@ -453,7 +453,7 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.shiftRecoveryAmount[data-next-round-lost-speed] {
+.shiftRecoveryAmount:is([data-next-round-lost-speed], [data-order-shift-lost-speed]) {
   border-color: #b48472;
   background: #f5dfd6;
   color: #762e28;

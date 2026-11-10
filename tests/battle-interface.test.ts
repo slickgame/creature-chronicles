@@ -475,7 +475,7 @@ test("Slowed compares next-round slots and Speed without modifying the live roun
     roundNumber: 4,
     moves: [{
       actorId: rowan, from: 4, to: 3, speed: { before: 23, after: 33 },
-      reasons: [{ kind: "speed-effect", status: "exhausted", result: "wore-off" }, { kind: "passed", actorId: lilt }],
+      reasons: [{ kind: "speed-effect", status: "exhausted", result: "wore-off", expirySpeedDelta: 10 }, { kind: "passed", actorId: lilt }],
     }, {
       actorId: moss, from: 5, to: 4, reasons: [{ kind: "passed", actorId: lilt }],
     }, {
@@ -655,7 +655,7 @@ test("settled shifts preserve survivor ranks and distinguish a partial expiry fr
     { status: "slowed", duration: 1, amount: 10 },
     { status: "slowed", duration: 2, amount: 4 },
     { status: "exhausted", duration: 1, amount: 2 },
-    { status: "inspired", duration: 1 },
+    { status: "inspired", stat: "speed", duration: 1, amount: 3 },
   ];
   previous.combatants[bleeding].statuses = [{ status: "bleed", duration: 1 }];
   previous.combatants[bleeding].currentHp = 2;
@@ -669,13 +669,17 @@ test("settled shifts preserve survivor ranks and distinguish a partial expiry fr
   const record = recordBattleOrderShift(turn.state, shift, { previous, beforeRecovery: turn.beforeRecovery }).orderShiftLog?.[0];
   assert(record);
   assert.deepEqual(record.moves[0], {
-    actorId: recovering, from: 4, to: 1, speed: { before: 34, after: 46 },
-    reasons: [{ kind: "speed-effect", status: "slowed", result: "stack-wore-off", recoveredSpeed: 10 },
-      { kind: "speed-effect", status: "exhausted", result: "wore-off" },
+    actorId: recovering, from: 4, to: 1, speed: { before: 37, after: 46 },
+    reasons: [{ kind: "speed-effect", status: "slowed", result: "stack-wore-off", expirySpeedDelta: 10 },
+      { kind: "speed-effect", status: "exhausted", result: "wore-off", expirySpeedDelta: 2 },
+      { kind: "speed-effect", status: "inspired", result: "wore-off", expirySpeedDelta: -3 },
       ...shift.before.slice(0, 3).map(actorId => ({ kind: "passed", actorId }))],
   });
+  const forecast = getBattleRoundEndForecastWithOrder(previous).nextRound?.entries.find(entry => entry.actorId === recovering);
+  assert.deepEqual(forecast?.expiredSpeedStatuses.map(({ status, speedDelta }) => [status, speedDelta]),
+    record.moves[0].reasons?.flatMap(reason => reason.kind === "speed-effect" ? [[reason.status, reason.expirySpeedDelta]] : []));
   assert.deepEqual(getOrderShiftDetails(record.moves[0], turn.state.combatants)[1], {
-    id: "reason-0", kind: "speed-effect", text: "Slowed stack wore off", recoveredSpeed: 10,
+    id: "reason-0", kind: "speed-effect", text: "Slowed stack wore off", expirySpeedDelta: 10,
   });
   const tieCrossing = record.moves.flatMap(({ reasons }) => reasons ?? [])
     .find(reason => reason.kind !== "speed-effect" && reason.tied);
@@ -705,7 +709,7 @@ test("Slowed expiry records only the Speed recovered above the minimum", () => {
   const move = record?.moves.find(({ actorId }) => actorId === runner);
   assert(record && move);
   assert.deepEqual(move.speed, { before: 1, after: 4 });
-  assert.deepEqual(move.reasons?.[0], { kind: "speed-effect", status: "slowed", result: "wore-off", recoveredSpeed: 3 });
+  assert.deepEqual(move.reasons?.[0], { kind: "speed-effect", status: "slowed", result: "wore-off", expirySpeedDelta: 3 });
   const restored = JSON.parse(JSON.stringify(logged)) as typeof logged;
   assert.deepEqual(restored.orderShiftLog, logged.orderShiftLog);
   assert.deepEqual(searchBattleLog(restored, "slowed wore off", ["order-shifts"]), [{
@@ -717,6 +721,29 @@ test("Slowed expiry records only the Speed recovered above the minimum", () => {
   assert.deepEqual(getOrderShiftDetails(legacyMove, turn.state.combatants)[1], {
     id: "reason-0", kind: "speed-effect", text: "Slowed wore off",
   });
+  const recoveryOnlyMove = { ...legacyMove, reasons: [{ ...legacyMove.reasons[0], recoveredSpeed: 3 }] };
+  assert.deepEqual(getOrderShiftDetails(recoveryOnlyMove, turn.state.combatants)[1], {
+    id: "reason-0", kind: "speed-effect", text: "Slowed wore off", expirySpeedDelta: 3,
+  });
+});
+
+test("the Battle Log records opposite expiries even when the opening order stays the same", () => {
+  const state = fixture();
+  const [actorId, recovering] = state.teams.player.combatantIds;
+  Object.values(state.combatants).forEach((actor, index) => { actor.battleStats.speed = 40 - index * 5; });
+  state.combatants[recovering].statuses = [
+    { status: "slowed", duration: 1 },
+    { status: "inspired", stat: "speed", duration: 1, amount: 6 },
+  ];
+  const forecast = getBattleRoundEndForecastWithOrder(state).nextRound?.entries.find(entry => entry.actorId === recovering);
+  assert.equal(forecast?.speedBefore, forecast?.speed);
+  const turn = resolveBattleTurn(state, [actorId], { actorId, moveId: "defend", targetIds: [actorId] });
+  assert(turn?.beforeRecovery);
+  assert.deepEqual(getBattleOrderPreview(state, new Map()).map(entry => entry.actorId),
+    getBattleOrderPreview(turn.state, new Map()).map(entry => entry.actorId));
+  const logIndex = turn.state.log.indexOf(`${state.combatants[recovering].name}: Slowed expired (+6 Speed). Inspired expired (−6 Speed).`);
+  assert(logIndex >= 0);
+  assert.equal(getBattleLogEventCategory(turn.state, logIndex), "status-changes");
 });
 
 test("a resisted secondary effect stays in the full log without a status change", () => {
