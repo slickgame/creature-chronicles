@@ -217,8 +217,8 @@
   .openingOrderList > li { grid-template-columns: 19px 29px minmax(0, 1fr) auto; gap: 4px; padding: 3px 4px; }
   .openingOrderList strong { font-size: 13px; }
   .openingOrderList .openingSpeed { min-height: 32px; padding-inline: 4px; }
-  .openingSpeedSources { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .openingSpeedSources > div { padding: 3px 6px; font-size: 13px; }
+  .openingSpeedSources { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; }
+  .openingSpeedSources > div { padding: 2px 6px; font-size: 13px; }
   .openingSpeedSources :is(.speedBase, .speedTotal) { grid-column: 1 / -1; }
 }
 
