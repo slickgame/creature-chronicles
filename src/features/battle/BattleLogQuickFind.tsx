@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState, type KeyboardEvent } from "react";
 import { getBattleLogSearchTextParts, searchBattleLog, type BattleLogSearchContext, type BattleLogSearchResult } from "@/data/battleLogSearch";
 import type { BattleLogEventCategory, BattleState } from "@/types/battle";
 import s from "./BattleLogEntries.module.css";
@@ -33,14 +33,29 @@ export function BattleLogQuickFind({ state, filters, panel, onOpen, onClose, onJ
   const activePosition = results.findIndex(result => result.index === activeIndex);
   const activeId = activePosition >= 0 ? `${listId}-${activeIndex}` : undefined;
 
-  useEffect(() => {
+  const closeOnOutsideClick = useEffectEvent((event: MouseEvent, pointerStartedInside: boolean) => {
     if (!expanded && !tipsOpen) return;
-    const closeOnOutsideClick = (event: MouseEvent) => {
-      if (event.target instanceof Node && !root.current?.contains(event.target)) onClose();
+    if (event.detail > 0 && pointerStartedInside) return;
+    if (event.target instanceof Node && !root.current?.contains(event.target)) onClose();
+  });
+
+  useEffect(() => {
+    // Focusing the input can resize the dialog and retarget the resulting click.
+    let pointerStartedInside = false;
+    function rememberPointerOrigin(event: PointerEvent) {
+      pointerStartedInside = event.target instanceof Node && !!root.current?.contains(event.target);
+    }
+    function handleClick(event: MouseEvent) {
+      closeOnOutsideClick(event, pointerStartedInside);
+      pointerStartedInside = false;
+    }
+    document.addEventListener("pointerdown", rememberPointerOrigin, true);
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("pointerdown", rememberPointerOrigin, true);
+      document.removeEventListener("click", handleClick);
     };
-    document.addEventListener("click", closeOnOutsideClick);
-    return () => document.removeEventListener("click", closeOnOutsideClick);
-  }, [expanded, tipsOpen, onClose]);
+  }, []);
 
   useEffect(() => {
     if (activeId) document.getElementById(activeId)?.scrollIntoView({ block: "nearest" });
@@ -84,9 +99,6 @@ export function BattleLogQuickFind({ state, filters, panel, onOpen, onClose, onJ
   }
 
   return <div className={s.quickFind} ref={root}
-    onBlur={event => {
-      if (tipsOpen && !event.currentTarget.contains(event.relatedTarget)) onClose();
-    }}
     onKeyDown={event => {
       if (tipsOpen && event.key === "Escape" && !event.nativeEvent.isComposing) {
         event.preventDefault();
