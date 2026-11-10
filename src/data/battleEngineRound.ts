@@ -1257,7 +1257,7 @@ type BattleOpeningOrderEntry = {
   speed: number;
   beforeSlot: number;
   speedBefore: number;
-  expiredSpeedStatuses: { status: BattleStatusId; remains: boolean; recoveredSpeed?: number }[];
+  expiredSpeedStatuses: { status: BattleStatusId; remains: boolean; speedDelta?: number }[];
   crossings: BattleOpeningOrderCrossing[];
 };
 
@@ -1267,19 +1267,34 @@ export type BattleRoundEndForecastWithOrder = {
 };
 
 function getExpiringSpeedStatuses(
-  before: BattleCombatant, after: BattleCombatant, speedChanged: boolean,
+  before: BattleCombatant, after: BattleCombatant, speedBefore: number,
 ): BattleOpeningOrderEntry["expiredSpeedStatuses"] {
   const statuses = new Set<BattleStatusId>();
   for (const stack of before.statuses) {
     if (stack.duration > 0 && stack.duration <= 1 && getBattleStatusSpeedModifier(stack)) statuses.add(stack.status);
   }
-  const recoveredSpeed = statuses.has("slowed") ? getSlowedExpirySpeed(before, after) : undefined;
-  if (!speedChanged && recoveredSpeed === undefined) return [];
-  return Array.from(statuses, status => ({
-    status,
-    remains: hasBattleStatus(after, status),
-    ...(status === "slowed" && recoveredSpeed !== undefined ? { recoveredSpeed } : {}),
-  }));
+
+  // Account for rounding and the Speed floor at each step. Applying Slowed last
+  // matches the settled baseline used for its recovery amount in the Battle Log.
+  const expiryOrder = [...statuses].sort((left, right) => Number(left === "slowed") - Number(right === "slowed"));
+  const expired = new Set<BattleStatusId>();
+  const deltas = new Map<BattleStatusId, number>();
+  let speed = speedBefore;
+  for (const status of expiryOrder) {
+    expired.add(status);
+    const remaining = before.statuses.filter(stack =>
+      !expired.has(stack.status) || stack.duration <= 0 || stack.duration > 1);
+    const nextSpeed = getEffectiveBattleStats({ ...before, statuses: remaining }).speed;
+    const delta = nextSpeed - speed;
+    if (Number.isFinite(delta) && delta !== 0) deltas.set(status, delta);
+    speed = nextSpeed;
+  }
+
+  if (!deltas.size) return [];
+  return Array.from(statuses, status => {
+    const speedDelta = deltas.get(status);
+    return { status, remains: hasBattleStatus(after, status), ...(speedDelta !== undefined ? { speedDelta } : {}) };
+  });
 }
 
 /** Forecast recovery and the following opening order from a single settled projection. */
@@ -1312,7 +1327,7 @@ export function getBattleRoundEndForecastWithOrder(state: BattleState): BattleRo
       speed,
       beforeSlot: currentIndex + 1,
       speedBefore,
-      expiredSpeedStatuses: getExpiringSpeedStatuses(state.combatants[actorId], recovery.combatants[actorId], speedBefore !== speed),
+      expiredSpeedStatuses: getExpiringSpeedStatuses(state.combatants[actorId], recovery.combatants[actorId], speedBefore),
       crossings,
     };
   });

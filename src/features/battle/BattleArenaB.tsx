@@ -411,10 +411,13 @@ function NextRoundOrderForecast({ state, forecast }: {
             </span>
             <span className={s.nextRoundSpeed} data-next-round-speed>Speed <strong>{speedBefore !== speed && `${speedBefore} → `}{speed}</strong></span>
             {(expiredSpeedStatuses.length > 0 || crossings.length > 0) && <ul className={s.nextRoundReasons} role="list" aria-label={`${creature.name} order details`}>
-              {expiredSpeedStatuses.map(({ status, remains, recoveredSpeed }) => <li key={status} data-next-round-reason="expiry">
+              {expiredSpeedStatuses.map(({ status, remains, speedDelta }) => <li key={status} data-next-round-reason="expiry">
                 {getBattleStatusGlossary(status).label}{remains && " stack"} wears off
-                {recoveredSpeed !== undefined && <>{" "}<span className={logStyles.shiftRecoveryAmount}
-                  data-next-round-recovered-speed={recoveredSpeed}>+{recoveredSpeed} Speed</span></>}
+                {speedDelta !== undefined && <>{" "}<span className={logStyles.shiftRecoveryAmount}
+                  data-next-round-recovered-speed={speedDelta > 0 ? speedDelta : undefined}
+                  data-next-round-lost-speed={speedDelta < 0 ? -speedDelta : undefined}>
+                  {speedDelta < 0 ? "−" : "+"}{Math.abs(speedDelta)} Speed
+                </span></>}
               </li>)}
               {crossings.map(({ actorId: otherId, kind, tied }) => {
                 const other = state.combatants[otherId].name;
