@@ -3,15 +3,7 @@
 import { useMemo, useState } from "react";
 import { BattleArenaB } from "@/features/battle/BattleArenaB";
 import { ColiseumTeamStaging } from "./ColiseumTeamStaging";
-import {
-  buildBattleAiPlan,
-  formatBattleAiDecision,
-} from "@/data/battleAi";
-import {
-  createBattleState,
-  resolveBattleRound,
-} from "@/data/battleEngine";
-import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
+import { createBattleState } from "@/data/battleEngine";
 import {
   FIELD_TONIC_ID,
   REVIVAL_SALVE_ID,
@@ -25,7 +17,6 @@ import {
 } from "@/data/battleOutfitterIntegration";
 import {
   buildBattleUiAction,
-  getNextUnqueuedPlayerActorId,
   type BattleUiTarget,
 } from "@/data/battleUi";
 import {
@@ -49,8 +40,6 @@ import {
 import { getTrainingUnavailableReason } from "@/data/trainingGrounds";
 import { useGameContext } from "@/state/GameProvider";
 import type {
-  BattleAction,
-  BattleCombatantId,
   BattleOutcome,
   BattleRoundResult,
   BattleState,
@@ -116,8 +105,6 @@ export function ColiseumC4Battle({
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
-  const [queuedActions, setQueuedActions] = useState<Map<BattleCombatantId, BattleAction>>(new Map());
-  const [planningActorId, setPlanningActorId] = useState<BattleCombatantId | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<BattleUiTarget | null>(null);
   const [armTacticsKit, setArmTacticsKit] = useState(false);
   const [usedItems, setUsedItems] = useState<UsedCombatItems>(EMPTY_USED_ITEMS);
@@ -126,15 +113,14 @@ export function ColiseumC4Battle({
   const [recording, setRecording] = useState(false);
   const [message, setMessage] = useState(`Choose exactly three available creatures for ${challenge.name}.`);
   const presentation = useBattlePresentationController();
-  const individual = challenge.mode === "daily" || challenge.mode === "gauntlet";
   const turns = useColiseumIndividualTurns({
     state: battleState,
-    enabled: individual && !!currentSave && phase === "battle",
+    enabled: !!currentSave && phase === "battle",
     aiDifficulty: encounter.aiDifficulty,
     presentation,
     onResolved: settleRoundProgress,
   });
-  const activeActorId = individual ? turns.activeActorId : planningActorId;
+  const { activeActorId } = turns;
 
   const roster = currentSave?.creatures ?? [];
   const availableRoster = useMemo(() => currentSave ? roster.filter((creature) => !getUnavailableReason(currentSave, creature)) : [], [currentSave, roster]);
@@ -156,8 +142,6 @@ export function ColiseumC4Battle({
   const tonicStock = getBattleOutfitterCombatStock(save, FIELD_TONIC_ID);
   const revivalStock = getBattleOutfitterCombatStock(save, REVIVAL_SALVE_ID);
   const sourceById = new Map<string, CreatureRecord>([...playerSources, ...enemySources].map((creature) => [String(creature.creatureId), creature]));
-  const livingPlayerIds = battleState?.teams.player.combatantIds.filter((id) => !battleState.combatants[id].isFainted) ?? [];
-  const allPlayerActionsQueued = Boolean(battleState) && livingPlayerIds.length > 0 && livingPlayerIds.every((id) => queuedActions.has(id));
 
   function startBattle() {
     const team = effectiveSelection
@@ -198,12 +182,7 @@ export function ColiseumC4Battle({
     }
     setPlayerSources(team);
     setEnemySources(enemies);
-    setBattleState(individual ? turns.openRound(state, 0) : state);
-    if (!individual) {
-      const queue = new Map<BattleCombatantId, BattleAction>();
-      setQueuedActions(queue);
-      setPlanningActorId(getNextUnqueuedPlayerActorId(state, queue));
-    }
+    setBattleState(turns.openRound(state, 0));
     setSelectedTarget(null);
     setUsedItems({ ...EMPTY_USED_ITEMS, tacticsKit: tacticsUsed });
     setCompletedRounds(0);
@@ -216,24 +195,7 @@ export function ColiseumC4Battle({
     if (presentation.isPlaying || !battleState || !activeActorId || !selectedTarget) return;
     const action = buildBattleUiAction(battleState, activeActorId, moveId, selectedTarget);
     if (!action) { setMessage("That move cannot be used on the selected target."); return; }
-    if (individual) {
-      turns.takeTurn(action);
-      return;
-    }
-    const nextQueue = new Map(queuedActions);
-    nextQueue.set(activeActorId, action);
-    const nextActor = getNextUnqueuedPlayerActorId(battleState, nextQueue, activeActorId);
-    setQueuedActions(nextQueue);
-    setPlanningActorId(nextActor);
-    setSelectedTarget(null);
-    setMessage(nextActor ? `Action queued. Select a target for ${battleState.combatants[nextActor].name}.` : "All ranch actions are queued. Confirm the round when ready.");
-  }
-
-  function planFor(actorId: BattleCombatantId) {
-    if (presentation.isPlaying || !battleState || battleState.combatants[actorId]?.isFainted) return;
-    setPlanningActorId(actorId);
-    setSelectedTarget(null);
-    setMessage(`Planning ${battleState.combatants[actorId].name}'s action. Select a target first.`);
+    turns.takeTurn(action);
   }
 
   function handleSupportItem(item: "tonic" | "revival") {
@@ -246,27 +208,11 @@ export function ColiseumC4Battle({
     if (!result.ok) { setMessage(result.message); return; }
     const resumesBattle = item === "revival" && phase === "result";
     saveCurrentGame(result.save);
-    setBattleState(individual && resumesBattle ? turns.openRound(result.state, battleState.log.length) : result.state);
+    setBattleState(resumesBattle ? turns.openRound(result.state, battleState.log.length) : result.state);
     setSelectedTarget(null);
     setUsedItems((current) => ({ ...current, fieldTonic: current.fieldTonic || item === "tonic", revivalSalve: current.revivalSalve || item === "revival" }));
     setMessage(result.message);
-    if (resumesBattle) {
-      setPhase("battle");
-      if (!individual) {
-        const nextQueue = new Map<BattleCombatantId, BattleAction>();
-        setQueuedActions(nextQueue);
-        setPlanningActorId(getNextUnqueuedPlayerActorId(result.state, nextQueue));
-      }
-    }
-  }
-
-  function resolveRound() {
-    if (presentation.isPlaying || !battleState || !allPlayerActionsQueued) { setMessage("Queue one action for every living ranch creature."); return; }
-    const aiPlan = buildBattleAiPlan(battleState, "enemy", encounter.aiDifficulty);
-    const stateWithAiPlan: BattleState = { ...battleState, log: [...battleState.log, ...aiPlan.decisions.map(formatBattleAiDecision)] };
-    const resolved = resolveBattleRound(stateWithAiPlan, [...Array.from(queuedActions.values()), ...aiPlan.actions]);
-    presentation.play(buildBattlePlaybackEvents(resolved.frames), resolved.result.actions.map(action => action.actorId));
-    settleRoundProgress(resolved.state, resolved.result);
+    if (resumesBattle) setPhase("battle");
   }
 
   function settleRoundProgress(nextState: BattleState, result: BattleRoundResult) {
@@ -275,21 +221,12 @@ export function ColiseumC4Battle({
     setBattleState(nextState);
     setSelectedTarget(null);
     setCompletedRounds(result.roundNumber);
-    let nextActor: BattleCombatantId | null = null;
-    if (!individual) {
-      const queue = new Map<BattleCombatantId, BattleAction>();
-      nextActor = nextState.outcome === "ongoing" ? getNextUnqueuedPlayerActorId(nextState, queue) : null;
-      setQueuedActions(queue);
-      setPlanningActorId(nextActor);
-    }
     if (nextState.outcome !== "ongoing") {
       setPhase("result");
       setMessage(`${outcomeLabel(nextState.outcome)} in ${result.roundNumber} rounds. Review the challenge result before recording.`);
       return;
     }
-    setMessage(individual
-      ? "Select a target and move for the active creature."
-      : `Round ${result.roundNumber} resolved. Select a target for ${nextActor ? nextState.combatants[nextActor].name : "your next creature"}.`);
+    setMessage("Select a target and move for the active creature.");
   }
 
   function finalize(outcome?: BattleOutcome) {
@@ -307,8 +244,5 @@ export function ColiseumC4Battle({
   if (!battleState) return null;
   const receipt = phase === "result" ? recordColiseumC4BattleResult(save,challenge,stageIndex,battleState.outcome,completedRounds||1,playerSources.map(c=>c.creatureId),performance,battleState.battleId,battleState) : null;
   const reward = receipt?.historyEntry;
-  const turnControls = individual
-    ? { individualOrder: turns.order, roundOrderShift: turns.roundOrderShift, completedCooldowns: turns.completedCooldowns }
-    : { queuedActions, onPlan: planFor, onConfirm: resolveRound };
-  return <BattleArenaB resultLedger={receipt?{rewardIcon:"/images/ui/coliseum-v1/exchange.webp",rewards:reward?`+${reward.marks} Marks · +${reward.materials} Iron ore${reward.itemLabel?` · ${reward.itemLabel}`:""}`:"No purse",summaries:receipt.xpSummaries.map(e=>{const before=save.creatures!.find(c=>c.creatureId===e.creatureId)!,after=receipt.save.creatures!.find(c=>c.creatureId===e.creatureId)!;return {...e,xpBefore:before.xp,xpAfter:after.xp,xpToNextAfter:after.xpToNext,statGrowth:Object.fromEntries(Object.entries(after.stats).map(([key,value])=>[key,value-before.stats[key as keyof typeof before.stats]]).filter(([,gain])=>gain!==0)),notes:[]};}),performance,onRecord:()=>finalize(),recordLabel:"Record Challenge Result",continuation:receipt.state.activeRun?"Next stage unlocks after recording · Recover 30% HP and 25% Battle Energy.":undefined}:undefined} title={`${challenge.name} · Stage ${stageIndex+1}/${challenge.encounterIds.length}`} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId} {...turnControls} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} aidRestricted={aidRestricted} rules={<>{challenge.modifierIds.map(id=>{const m=getColiseumC4Modifier(id);return <p key={id}><strong>{m.name}</strong>: {m.description}</p>;})}</>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{challenge.mode === "gauntlet" && battleState.outcome === "player_won" && stageIndex+1<challenge.encounterIds.length ? "Record this win to lock the same team into the next stage and apply partial recovery." : "Recording saves Combat XP, records, score and eligible challenge rewards."}</p>{battleState.outcome === "enemy_won" && !aidRestricted && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Challenge Result"}</button></>}/>;
+  return <BattleArenaB resultLedger={receipt?{rewardIcon:"/images/ui/coliseum-v1/exchange.webp",rewards:reward?`+${reward.marks} Marks · +${reward.materials} Iron ore${reward.itemLabel?` · ${reward.itemLabel}`:""}`:"No purse",summaries:receipt.xpSummaries.map(e=>{const before=save.creatures!.find(c=>c.creatureId===e.creatureId)!,after=receipt.save.creatures!.find(c=>c.creatureId===e.creatureId)!;return {...e,xpBefore:before.xp,xpAfter:after.xp,xpToNextAfter:after.xpToNext,statGrowth:Object.fromEntries(Object.entries(after.stats).map(([key,value])=>[key,value-before.stats[key as keyof typeof before.stats]]).filter(([,gain])=>gain!==0)),notes:[]};}),performance,onRecord:()=>finalize(),recordLabel:"Record Challenge Result",continuation:receipt.state.activeRun?"Next stage unlocks after recording · Recover 30% HP and 25% Battle Energy.":undefined}:undefined} title={`${challenge.name} · Stage ${stageIndex+1}/${challenge.encounterIds.length}`} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId} individualOrder={turns.order} roundOrderShift={turns.roundOrderShift} completedCooldowns={turns.completedCooldowns} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} aidRestricted={aidRestricted} rules={<>{challenge.modifierIds.map(id=>{const m=getColiseumC4Modifier(id);return <p key={id}><strong>{m.name}</strong>: {m.description}</p>;})}</>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{challenge.mode === "gauntlet" && battleState.outcome === "player_won" && stageIndex+1<challenge.encounterIds.length ? "Record this win to lock the same team into the next stage and apply partial recovery." : "Recording saves Combat XP, records, score and eligible challenge rewards."}</p>{battleState.outcome === "enemy_won" && !aidRestricted && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Challenge Result"}</button></>}/>;
 }
