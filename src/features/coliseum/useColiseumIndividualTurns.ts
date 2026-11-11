@@ -1,6 +1,7 @@
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { buildBattleAiPlan } from "@/data/battleAi";
 import { getLegalBattleTargetIds, hasBattleStatus, resolveBattleTurn } from "@/data/battleEngine";
+import { validateBattleAction } from "@/data/battleEngineRound";
 import { getBattleMove } from "@/data/battleMoves";
 import {
   getBattleOrderPreview,
@@ -33,6 +34,15 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
   const actor = state?.combatants[actorId];
   const activeActorId = actor?.sideId === "player" && !hasBattleStatus(actor, "stun") ? actorId : null;
 
+  const committedEnemyAction = useRef<BattleAction | undefined>(undefined);
+  const nextActorId = order[1];
+  const enemyIntent = useMemo(() => {
+    const nextActor = state?.combatants[nextActorId];
+    if (!enabled || state?.outcome !== "ongoing" || !activeActorId || actor?.isFainted ||
+        nextActor?.sideId !== "enemy" || nextActor.isFainted || hasBattleStatus(nextActor, "stun")) return;
+    return buildBattleAiPlan(state, "enemy", aiDifficulty).actions.find(action => action.actorId === nextActorId);
+  }, [enabled, state, activeActorId, actor, nextActorId, aiDifficulty]);
+
   let targetHandoff: { defeatedId: BattleCombatantId; suggestedId: BattleCombatantId } | undefined;
   if (enabled && state?.outcome === "ongoing" && activeActorId && actor && !actor.isFainted &&
       !presentation.isPlaying && !selectedTarget && defeatedFocusId) {
@@ -52,6 +62,7 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
   }
 
   function openRound(nextState: BattleState, logIndex?: number, beforeRecovery?: BattleState) {
+    committedEnemyAction.current = undefined;
     const nextOrder = getBattleOrderPreview(nextState, new Map()).map(entry => entry.actorId);
     const previous = roundOpening.current;
     const shift = beforeRecovery ? getBattleRoundOrderShift(previous?.order ?? [], nextOrder, nextState.roundNumber) : undefined;
@@ -66,6 +77,8 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     if (!enabled || !state || presentation.isPlaying) return;
     const resolved = resolveBattleTurn(state, order, action);
     if (!resolved) return;
+
+    committedEnemyAction.current = action && activeActorId ? enemyIntent : undefined;
 
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [actorId]);
     setCooldownNotices(current => updateBattleCooldownNotices(current, state, resolved.state, activeActorId));
@@ -93,9 +106,16 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
 
   const takeAutomaticTurn = useEffectEvent(() => {
     if (!state || !actor || activeActorId) return;
-    const action = actor.sideId === "enemy"
-      ? buildBattleAiPlan(state, "enemy", aiDifficulty).actions.find(entry => entry.actorId === actorId)
-      : undefined;
+    let action: BattleAction | undefined;
+    if (actor.sideId === "enemy" && !hasBattleStatus(actor, "stun")) {
+      const committed = committedEnemyAction.current;
+      if (committed?.actorId === actorId) {
+        const validation = validateBattleAction(state, committed);
+        if (validation.valid && validation.normalizedTargetIds.length === committed.targetIds.length &&
+            validation.normalizedTargetIds.every(id => committed.targetIds.includes(id))) action = committed;
+      }
+      action ??= buildBattleAiPlan(state, "enemy", aiDifficulty).actions.find(entry => entry.actorId === actorId);
+    }
     takeTurn(action);
   });
 
@@ -113,6 +133,7 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     selectedTarget,
     setSelectedTarget,
     targetHandoff,
+    enemyIntent: presentation.isPlaying ? undefined : enemyIntent,
     completedCooldowns: activeActorId ? cooldownNotices.get(activeActorId) : undefined,
     openRound,
     takeTurn,

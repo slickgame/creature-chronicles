@@ -31,6 +31,7 @@ export type BattleArenaBProps = {
   title: string; battleState: BattleState; sourceById: ReadonlyMap<string, CreatureRecord>;
   selectedTarget: BattleUiTarget | null; activeActorId: BattleCombatantId | null;
   targetHandoff?: { defeatedId: BattleCombatantId; suggestedId: BattleCombatantId };
+  enemyIntent?: BattleAction;
   completedCooldowns?: readonly BattleMoveId[];
   queuedActions?: ReadonlyMap<BattleCombatantId, BattleAction>; individualOrder?: readonly BattleCombatantId[]; presentation: Presentation;
   roundOrderShift?: BattleRoundOrderShift;
@@ -717,6 +718,8 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const state=presentation.displayState??resolvedState;
   const { open }=useNavigation();
   const [popup,setPopup]=useState<"planning"|"statuses"|"inspect"|"order-inspect"|"items"|"log"|"menu"|"order"|"result"|"leave"|"forfeit"|null>(null);
+  const [intentTip, setIntentTip] = useState<{ action: BattleAction; via: "pointer" | "focus" | "tap" }>();
+  const intentTipId = useId();
   const [logShiftTarget, setLogShiftTarget] = useState<Pick<BattleOrderShiftLogEntry, "roundNumber" | "logIndex">>();
   const [reviewClosed,setReviewClosed]=useState(false);
   const [movesOpen,setMovesOpen]=useState(false);
@@ -989,12 +992,15 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <button onClick={() => presentation.setSpeed(presentation.speed === 1 ? 2 : 1)}>{presentation.speed}×</button>
     </div>
   </div>;
+  const enemyIntent = !popup && !complete && !resolving ? props.enemyIntent : undefined;
   const orderDialogOpen = popup === "order" || popup === "order-inspect";
   const roundEndForecast: BattleRoundEndForecastWithOrder | undefined = orderDialogOpen && !complete && !resolving && state.outcome === "ongoing"
     ? individual ? getBattleRoundEndForecastWithOrder(state) : { rows: getBattleRoundEndForecast(state) }
     : undefined;
   if(finished&&props.resultLedger&&!reviewClosed) return <BattleResultLedger title={props.title} outcome={state.outcome} creatures={players.map(c=>sourceById.get(String(c.sourceCreatureId))).filter((c):c is CreatureRecord=>!!c)} data={props.resultLedger} recording={recording} onBack={()=>setReviewClosed(true)} details={props.result} log={<BattleLogEntries state={state} sourceById={sourceById}/>}/>;
-  return <main className={s.arena} data-battle-b data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-floor-targeting={floorTargeting ? "" : undefined} data-area-scope={areaDraft?.move.targetType === "all_enemies" ? "enemy" : areaDraft ? "player" : undefined} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
+  return <main className={s.arena} data-battle-b onPointerDownCapture={event => {
+    if (!(event.target instanceof Element) || !event.target.closest("[data-order-actor]")) setIntentTip(undefined);
+  }} data-individual={individual} data-moves-open={movesOpen&&!resolving&&!complete} data-resolving={resolving} data-floor-targeting={floorTargeting ? "" : undefined} data-area-scope={areaDraft?.move.targetType === "all_enemies" ? "enemy" : areaDraft ? "player" : undefined} data-reduced-motion={presentation.reducedMotion} data-round-end-effect={roundEndEffect?.kind} data-skipped-turn={skippedActorId ? "stun" : undefined} data-slow-forecast={slowedForecast ? "" : undefined}>
     <header className={s.header}><strong data-battle-round>Round {resolving?state.roundNumber:complete?Math.max(1,state.roundNumber-1):state.roundNumber}</strong><h1>{props.title}</h1><div><button onClick={()=>{setLogShiftTarget(undefined);setPopup("log");}}>Battle Log</button><button onClick={()=>setPopup("menu")} data-navigation-launcher>Menu</button></div></header>
     <section className={s.order} aria-label={individual ? "Turn order" : resolving ? "Resolution order" : "Order preview"}
       data-turn-queue={individual ? "" : undefined} data-round-order-shift={settledShift?.roundNumber}>
@@ -1020,12 +1026,30 @@ export function BattleArenaB(props: BattleArenaBProps) {
       </span>
       <div className={s.tokens} ref={orderTokensRef}>{orderEntries.map(({ id, index, combatant, role, rankLabel, accessibleRank, ally, sideLabel, change, stunned }) => {
         const direction = change ? (change.from > change.to ? "up" : "down") : undefined;
+        const intent = enemyIntent?.actorId === id ? enemyIntent : undefined;
+        const intentOpen = !!intent && intentTip?.action === intent;
         return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={role === "now"} data-order-actor={id}
           data-order-role={individual ? role : undefined} data-order-stunned={stunned ? "" : undefined}
           data-skipped-turn={role === "skipped" ? "stun" : undefined} data-turn-handoff={id === handoffActorId ? "" : undefined}
           aria-current={role === "now" ? "step" : undefined} aria-haspopup="dialog"
           aria-label={`Inspect ${combatant.name} in turn order${individual ? ` · ${accessibleRank} · ${sideLabel}` : ""}`}
-          onClick={() => inspect(id)}>
+          aria-describedby={intent ? intentTipId : undefined}
+          data-intent-open={intentOpen ? "" : undefined}
+          onPointerEnter={event => { if (intent && event.pointerType === "mouse") setIntentTip({ action: intent, via: "pointer" }); }}
+          onPointerLeave={() => setIntentTip(current => current?.via === "pointer" ? undefined : current)}
+          onFocus={event => { if (intent && event.currentTarget.matches(":focus-visible")) setIntentTip({ action: intent, via: "focus" }); }}
+          onBlur={() => setIntentTip(undefined)}
+          onKeyDown={event => {
+            if (intentOpen && event.key === "Escape") {
+              event.stopPropagation();
+              setIntentTip(undefined);
+            }
+          }}
+          onClick={event => {
+            const touch = event.nativeEvent instanceof PointerEvent && ["touch", "pen"].includes(event.nativeEvent.pointerType);
+            if (!intent || !touch) inspect(id);
+            else setIntentTip(current => current?.action === intent && current.via === "tap" ? undefined : { action: intent, via: "tap" });
+          }}>
           <img src={artwork(sourceById.get(String(combatant.sourceCreatureId)))} alt="" data-order-slide={direction}/>
           {change && <b className={s.orderSlideFallback} data-order-slide-fallback={direction} aria-hidden="true">
             {direction === "up" ? "↑" : "↓"}{Math.abs(change.from - change.to)}
@@ -1035,6 +1059,12 @@ export function BattleArenaB(props: BattleArenaBProps) {
             {individual && <i>{stunned ? `${sideLabel} · Stunned` : sideLabel}</i>}
           </span>
           {individual && <OrderCrest ally={ally}/>}
+          {intent && <b className={s.enemyIntentTip} id={intentTipId} role="tooltip" hidden={!intentOpen} data-enemy-intent>
+            {getBattleMove(intent.moveId).name}
+            <small>{intent.targetIds.length
+              ? `Target${intent.targetIds.length > 1 ? "s" : ""} · ${intent.targetIds.map(targetId => state.combatants[targetId].name).join(", ")}`
+              : "Battlefield"}</small>
+          </b>}
         </button>;
       })}{individual && !orderEntries.length && <span className={s.orderEmpty} role="status">{emptyOrderLabel}</span>}</div>
     </section>
