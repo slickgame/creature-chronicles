@@ -1932,13 +1932,20 @@
   --reticle-label: #801f16;
   --reticle-chevron: clamp(7px, 1vw, 14px);
 }
+.targetFloorMarker[data-target-floor="suggestion"] {
+  --reticle-line: #ffdf88;
+  --reticle-edge: #795022;
+  --reticle-fill: #d69b3933;
+  --reticle-label: #654019;
+  --reticle-chevron: clamp(7px, 1vw, 14px);
+}
 .figure[data-side="player"] .targetFloorMarker[data-target-floor="focus"] {
   --reticle-line: #b4e288;
   --reticle-edge: #2b4924;
   --reticle-fill: #5a9c3736;
   --reticle-label: #284c29;
 }
-.targetFloorMarker[data-target-floor="focus"] .targetFloorShape {
+.targetFloorMarker:is([data-target-floor="focus"], [data-target-floor="suggestion"]) .targetFloorShape {
   border: clamp(2px, .2vw, 3px) solid var(--reticle-line);
   background: var(--reticle-fill);
   box-shadow: 0 0 0 1px var(--reticle-edge), inset 0 0 0 1px var(--reticle-edge), 0 2px 4px #3a1a1377;
@@ -1949,8 +1956,8 @@
   background: #b780171a;
   filter: drop-shadow(0 1px 0 #795022);
 }
-.targetFloorMarker[data-target-floor="focus"] .targetFloorShape::before,
-.targetFloorMarker[data-target-floor="focus"] .targetFloorShape::after {
+.targetFloorMarker:is([data-target-floor="focus"], [data-target-floor="suggestion"]) .targetFloorShape::before,
+.targetFloorMarker:is([data-target-floor="focus"], [data-target-floor="suggestion"]) .targetFloorShape::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -1960,11 +1967,11 @@
   transform: translateY(-50%) rotate(45deg);
   filter: drop-shadow(0 1px 0 var(--reticle-edge));
 }
-.targetFloorMarker[data-target-floor="focus"] .targetFloorShape::before {
+.targetFloorMarker:is([data-target-floor="focus"], [data-target-floor="suggestion"]) .targetFloorShape::before {
   inset-inline-start: -5px;
   border-width: 0 0 2px 2px;
 }
-.targetFloorMarker[data-target-floor="focus"] .targetFloorShape::after {
+.targetFloorMarker:is([data-target-floor="focus"], [data-target-floor="suggestion"]) .targetFloorShape::after {
   inset-inline-end: -5px;
   border-width: 2px 2px 0 0;
 }
@@ -1994,6 +2001,24 @@
   box-shadow: 0 1px 2px #30190f99;
   color: #fff1ce;
   font: bold clamp(9px, .85vw, 13px)/1.1 Georgia, serif;
+}
+.arena:not([data-reduced-motion="true"]) .targetFloorMarker[data-target-floor="suggestion"] .targetFloorShape {
+  animation: targetSuggestionArrival 900ms ease-out;
+}
+@keyframes targetSuggestionArrival {
+  0%, 100% { filter: none; }
+  35% { filter: drop-shadow(0 0 5px #ffdf88); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arena:not([data-reduced-motion="true"]) .targetFloorMarker[data-target-floor="suggestion"] .targetFloorShape { animation: none; }
+}
+.arena .targetHandoffMessage {
+  padding: 3px 6px;
+  border: 1px solid #bd8e50;
+  border-radius: 5px;
+  background: #efd19b;
+  color: #442814;
+  font: bold clamp(11px, 1vw, 14px)/1.15 Georgia, serif;
 }
 .arena[data-floor-targeting] .figureButton[aria-pressed="true"] {
   background: none;
@@ -2042,6 +2067,7 @@
   .targetFocusLabel { padding: 1px 4px; }
   .targetMoveScope { justify-content: center; padding: 2px 4px; font-size: 11px; }
   .targetMoveScope > strong { display: none; }
+  .arena .targetHandoffMessage { padding: 2px 4px; }
 }
 @media (max-width: 600px) and (max-height: 650px) {
   .arena[data-individual="true"] .figure,

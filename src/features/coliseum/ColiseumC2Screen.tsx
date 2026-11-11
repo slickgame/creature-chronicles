@@ -19,7 +19,6 @@ import {
 } from "@/data/battleOutfitterIntegration";
 import {
   buildBattleUiAction,
-  type BattleUiTarget,
 } from "@/data/battleUi";
 import {
   COLISEUM_C2_DIVISIONS,
@@ -243,7 +242,6 @@ export function ColiseumBattle({
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [playerSources, setPlayerSources] = useState<CreatureRecord[]>([]);
   const [enemySources, setEnemySources] = useState<CreatureRecord[]>([]);
-  const [selectedTarget, setSelectedTarget] = useState<BattleUiTarget | null>(null);
   const [armTacticsKit, setArmTacticsKit] = useState(false);
   const [usedItems, setUsedItems] = useState<UsedCombatItems>(EMPTY_USED_ITEMS);
   const [completedRounds, setCompletedRounds] = useState(0);
@@ -258,7 +256,7 @@ export function ColiseumBattle({
     presentation,
     onResolved: settleTurn,
   });
-  const { activeActorId } = turns;
+  const { activeActorId, selectedTarget, setSelectedTarget } = turns;
 
   const roster = currentSave?.creatures ?? [];
   const availableRoster = useMemo(() => currentSave ? roster.filter((creature) => !getUnavailableReason(currentSave, creature)) : [], [currentSave, roster]);
@@ -326,7 +324,6 @@ export function ColiseumBattle({
     if (!battleState) return;
     setPerformance(current => accumulateColiseumRoundPerformance(current, battleState, result));
     setBattleState(nextState);
-    setSelectedTarget(null);
     setCompletedRounds(result.roundNumber);
     if (nextState.outcome !== "ongoing") {
       setPhase("result");
@@ -355,5 +352,5 @@ export function ColiseumBattle({
   const firstClearAvailable = !getColiseumC2Progress(save).claimedFirstClearEncounterIds.includes(encounter.encounterId);
   return <BattleArenaB resultLedger={receipt?{rewards:getColiseumC2RewardLabel(receipt.reward),summaries:receipt.xpSummaries,performance,onRecord:()=>finalize(),recordLabel:"Record & Return to Coliseum"}:undefined} title={encounter.name} battleState={battleState} sourceById={sourceById} selectedTarget={selectedTarget} activeActorId={activeActorId}
     completedCooldowns={turns.completedCooldowns}
-    individualOrder={turns.order} roundOrderShift={turns.roundOrderShift} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
+    individualOrder={turns.order} roundOrderShift={turns.roundOrderShift} targetHandoff={turns.targetHandoff} presentation={presentation} onTarget={setSelectedTarget} onQueue={chooseMove} onReturn={onReturn} onForfeit={()=>finalize("enemy_won")} onItem={handleSupportItem} tonicStock={tonicStock} revivalStock={revivalStock} usedTonic={usedItems.fieldTonic} usedRevival={usedItems.revivalSalve} complete={phase==="result"} recording={recording} message={message} rules={<p>{getBattleAiDifficultyDescription(encounter.aiDifficulty)} Enemy actions remain hidden until resolution.</p>} result={<><h3>{outcomeLabel(battleState.outcome)}</h3><p>{battleState.outcome === "player_won" ? firstClearAvailable ? `First-clear purse: ${getColiseumC2RewardLabel(encounter.firstClearReward)}` : "A reward is selected from this encounter’s repeat purse when recorded." : "Defeats and draws grant no purse but still grant reduced Combat XP."}</p>{xpPreview.map(entry=><p key={entry.creatureId}>{entry.name} · +{entry.xp} Combat XP</p>)}{battleState.outcome === "enemy_won" && !usedItems.revivalSalve && revivalStock>0 && <p>You can close this review and use a Revival Salve on a fainted teammate before recording.</p>}<button onClick={()=>finalize()} disabled={recording||presentation.isPlaying}>{recording?"Recording…":"Record Result, XP & Purse"}</button></>}/>;
 }

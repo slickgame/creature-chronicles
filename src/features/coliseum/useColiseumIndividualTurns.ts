@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { buildBattleAiPlan } from "@/data/battleAi";
-import { hasBattleStatus, resolveBattleTurn } from "@/data/battleEngine";
+import { getLegalBattleTargetIds, hasBattleStatus, resolveBattleTurn } from "@/data/battleEngine";
+import { getBattleMove } from "@/data/battleMoves";
 import {
   getBattleOrderPreview,
   getBattleRoundOrderShift,
@@ -10,6 +11,7 @@ import {
   type BattleRoundOrderShift,
 } from "@/data/battleInterface";
 import { buildBattlePlaybackEvents } from "@/data/battlePresentation";
+import type { BattleUiTarget } from "@/data/battleUi";
 import type { useBattlePresentationController } from "@/features/battle/useBattlePresentationController";
 import type { BattleAction, BattleCombatantId, BattleMoveId, BattleRoundResult, BattleState } from "@/types/battle";
 import type { BattleAiDifficulty } from "@/types/battleAi";
@@ -24,10 +26,30 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
   const [order, setOrder] = useState<BattleCombatantId[]>([]);
   const [roundOrderShift, setRoundOrderShift] = useState<BattleRoundOrderShift>();
   const [cooldownNotices, setCooldownNotices] = useState<ReadonlyMap<BattleCombatantId, readonly BattleMoveId[]>>(() => new Map());
+  const [selectedTarget, setTargetSelection] = useState<BattleUiTarget | null>(null);
+  const [defeatedFocusId, setDefeatedFocusId] = useState<BattleCombatantId>();
   const roundOpening = useRef<{ order: readonly BattleCombatantId[]; state: BattleState }>(undefined);
   const actorId = order[0];
   const actor = state?.combatants[actorId];
   const activeActorId = actor?.sideId === "player" && !hasBattleStatus(actor, "stun") ? actorId : null;
+
+  let targetHandoff: { defeatedId: BattleCombatantId; suggestedId: BattleCombatantId } | undefined;
+  if (enabled && state?.outcome === "ongoing" && activeActorId && actor && !actor.isFainted &&
+      !presentation.isPlaying && !selectedTarget && defeatedFocusId) {
+    const formation = state.teams.enemy.combatantIds;
+    const defeatedSlot = formation.indexOf(defeatedFocusId);
+    if (defeatedSlot >= 0 && state.combatants[defeatedFocusId]?.isFainted) {
+      const legalTargets = getLegalBattleTargetIds(state, actor, getBattleMove("strike"));
+      const nextInFormation = [...formation.slice(defeatedSlot + 1), ...formation.slice(0, defeatedSlot)];
+      const suggestedId = nextInFormation.find(id => legalTargets.includes(id));
+      if (suggestedId) targetHandoff = { defeatedId: defeatedFocusId, suggestedId };
+    }
+  }
+
+  function setSelectedTarget(target: BattleUiTarget | null) {
+    setTargetSelection(target);
+    setDefeatedFocusId(undefined);
+  }
 
   function openRound(nextState: BattleState, logIndex?: number, beforeRecovery?: BattleState) {
     const nextOrder = getBattleOrderPreview(nextState, new Map()).map(entry => entry.actorId);
@@ -47,6 +69,16 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
 
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [actorId]);
     setCooldownNotices(current => updateBattleCooldownNotices(current, state, resolved.state, activeActorId));
+    setTargetSelection(null);
+    if (resolved.state.outcome !== "ongoing") {
+      setDefeatedFocusId(undefined);
+    } else if (action && activeActorId) {
+      const focusedEnemy = selectedTarget?.kind === "combatant" ? state.combatants[selectedTarget.combatantId] : undefined;
+      const defeatedId = focusedEnemy?.sideId === "enemy" && !focusedEnemy.isFainted && resolved.result.actions[0]?.success &&
+        resolved.state.combatants[focusedEnemy.battleCombatantId]?.isFainted
+        ? focusedEnemy.battleCombatantId : undefined;
+      setDefeatedFocusId(defeatedId);
+    }
     let nextState = resolved.state;
     if (nextState.outcome !== "ongoing") {
       setOrder([]);
@@ -74,5 +106,15 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     return () => window.clearTimeout(timer);
   }, [automatic, state, actorId]);
 
-  return { order, roundOrderShift, activeActorId, completedCooldowns: activeActorId ? cooldownNotices.get(activeActorId) : undefined, openRound, takeTurn };
+  return {
+    order,
+    roundOrderShift,
+    activeActorId,
+    selectedTarget,
+    setSelectedTarget,
+    targetHandoff,
+    completedCooldowns: activeActorId ? cooldownNotices.get(activeActorId) : undefined,
+    openRound,
+    takeTurn,
+  };
 }

@@ -30,6 +30,7 @@ type Presentation = ReturnType<typeof useBattlePresentationController>;
 export type BattleArenaBProps = {
   title: string; battleState: BattleState; sourceById: ReadonlyMap<string, CreatureRecord>;
   selectedTarget: BattleUiTarget | null; activeActorId: BattleCombatantId | null;
+  targetHandoff?: { defeatedId: BattleCombatantId; suggestedId: BattleCombatantId };
   completedCooldowns?: readonly BattleMoveId[];
   queuedActions?: ReadonlyMap<BattleCombatantId, BattleAction>; individualOrder?: readonly BattleCombatantId[]; presentation: Presentation;
   roundOrderShift?: BattleRoundOrderShift;
@@ -727,6 +728,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const [movePage, setMovePage] = useState(0);
   const [turnDetails, setTurnDetails] = useState<"move" | "forecast" | null>(null);
   const areaScopeId = useId();
+  const handoffAnnouncementId = useId();
   const [statusId,setStatusId]=useState<string|null>(null);
   const [inspectId,setInspectId]=useState<string|null>(null);
   const combatants=Object.values(state.combatants);
@@ -841,6 +843,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const turnPage = Math.min(movePage, Math.max(0, Math.ceil(turnOptions.length / 4) - 1));
   const selectedMove = turnOptions.find(option => draft?.actorId === activeActorId && option.move.id === draft.moveId);
   const floorTargeting = individual && !resolving && !complete && draftActor?.sideId === "player" && !draftActor.isFainted;
+  const targetHandoff = floorTargeting && !selectedTarget && !popup && !turnDetails ? props.targetHandoff : undefined;
+  const defeatedTarget = targetHandoff && state.combatants[targetHandoff.defeatedId];
+  const suggestedTarget = targetHandoff && state.combatants[targetHandoff.suggestedId];
+  const knockoutMessage = defeatedTarget && suggestedTarget ? `${defeatedTarget.name} knocked out` : undefined;
   const areaDraft = floorTargeting && activeActorId && selectedTarget && selectedMove?.usable &&
     (selectedMove.move.targetType === "all_enemies" || selectedMove.move.targetType === "all_allies")
     ? getBattleUiMoveAvailability(state, activeActorId, selectedMove.move.id, selectedTarget)
@@ -1070,10 +1076,11 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const supportOutcome = grouped?.supportStatuses;
       const guardResult = supportOutcome?.some(status => status.status === "guarded" && status.result !== "failed" && status.result !== "cleared");
       const isAreaRecipient = areaRecipientIds.includes(c.battleCombatantId);
-      let floorMarker: "focus" | "coverage" | undefined;
+      let floorMarker: "focus" | "coverage" | "suggestion" | undefined;
       if (floorTargeting && !c.isFainted) {
         if (selected) floorMarker = "focus";
         else if (isAreaRecipient) floorMarker = "coverage";
+        else if (c.battleCombatantId === suggestedTarget?.battleCombatantId) floorMarker = "suggestion";
       }
       const isSelectedTarget = draftMove ? highlightedTargets.includes(c.battleCombatantId) : selected;
       const showTargetMarker = !actionSource && (resolving
@@ -1083,6 +1090,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         healthForecast?.id,
         forecast || showAllyEffects ? forecastId : undefined,
         isAreaRecipient ? areaScopeId : undefined,
+        floorMarker === "suggestion" ? handoffAnnouncementId : undefined,
       ].filter(Boolean).join(" ");
       return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving ? !!resolvingTarget : isSelectedTarget} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}
         data-action-source={actionSource ? "" : undefined} data-action-target={actionTarget}>
@@ -1093,9 +1101,9 @@ export function BattleArenaB(props: BattleArenaBProps) {
             <BattleCreatureImage source={sourceById.get(String(c.sourceCreatureId))} combatant={c} event={resolving ? event : null} playback={presentation}/>
             {floorMarker && <span className={s.targetFloorMarker} data-target-floor={floorMarker} aria-hidden="true">
               <span className={s.targetFloorShape}>
-                {floorMarker === "focus" && <span className={s.targetFloorNotches}/>}
+                {floorMarker !== "coverage" && <span className={s.targetFloorNotches}/>}
               </span>
-              {floorMarker === "focus" && <b className={s.targetFocusLabel}>Focus</b>}
+              {floorMarker !== "coverage" && <b className={s.targetFocusLabel}>{floorMarker === "focus" ? "Focus" : "Next target"}</b>}
             </span>}
             {individual && affected && event?.guardImpact && <GuardImpactFlare key={`guard-flare-${event.eventId}`}
               impact={event.guardImpact} staggerIndex={grouped ? groupedIndex : undefined} presentation={presentation}/>}
@@ -1181,6 +1189,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
       </section>
       <section className={s.turnTarget} aria-label="Target and action">
         <h2>{recoveryTarget ? `Recovery · ${recoveryTarget.name}` : dockTarget ? `${areaDraft ? "Focus" : "Target"} · ${dockTarget.name}` : selectedTarget?.kind === "field" ? "Target · Battlefield" : "Choose a target"}</h2>
+        <span className={s.resultAnnouncement} id={handoffAnnouncementId} role="status">
+          {knockoutMessage && suggestedTarget && `${knockoutMessage}. Suggested target: ${suggestedTarget.name}.`}
+        </span>
+        {knockoutMessage && <p className={s.targetHandoffMessage} data-target-handoff-message>{knockoutMessage}</p>}
         {dockTarget && <div className={s.turnTargetVitals}>
           <img src={artwork(sourceById.get(String(dockTarget.sourceCreatureId)))} alt=""/>
           <div>
