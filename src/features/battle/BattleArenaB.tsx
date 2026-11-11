@@ -6,7 +6,7 @@ import { getBattleMove } from "@/data/battleMoves";
 import { getBattleTargetTypeLabel, getBattleUiMoveAvailability, type BattleUiTarget } from "@/data/battleUi";
 import { getBattleEffectGlossary, getBattleStatusGlossary } from "@/data/battleGlossary";
 import { BATTLE_OUTCOME_STAGGER_MS, getBattleOutcomeStatusText, type BattleTargetOutcome } from "@/data/battlePresentation";
-import { getBattleGuardedStatus, getBattleRoundEndForecast, getBattleRoundEndForecastWithOrder, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleGuardedStatus, type BattleRoundEndForecast, type BattleRoundEndForecastWithOrder, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
+import { getBattleGuardedStatus, getBattleRoundEndForecast, getBattleRoundEndForecastWithOrder, getBattleStatusTimingForecast, getEffectiveBattleStats, previewBattleAction, getLegalBattleTargetIds, hasBattleStatus, type BattleActionEffectPreview, type BattleGuardedStatus, type BattleRoundEndForecast, type BattleRoundEndForecastWithOrder, type BattleStatusApplicationPreview, type BattleStatusTimingForecast } from "@/data/battleEngine";
 import { getSupportItemVitals } from "@/data/battleOutfitterIntegration";
 import { STAT_KEYS } from "@/data/creatures";
 import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
@@ -44,14 +44,21 @@ export type BattleArenaBProps = {
   resultLedger?: BattleResultLedgerData; complete: boolean; recording: boolean; result: ReactNode; message: string; rules?: ReactNode;
 };
 
-function EnemyIntentEffects({ state, action }: { state: BattleState; action: BattleAction }) {
-  const projections = previewBattleAction(state, action);
-  const effectsByTarget = new Map<BattleCombatantId, typeof projections>();
-  for (const effect of projections) {
+function groupEnemyIntentEffects(state: BattleState, action: BattleAction) {
+  const effectsByTarget = new Map<BattleCombatantId, BattleActionEffectPreview[]>();
+  for (const effect of previewBattleAction(state, action)) {
     const targetEffects = effectsByTarget.get(effect.targetId);
     if (targetEffects) targetEffects.push(effect);
     else effectsByTarget.set(effect.targetId, [effect]);
   }
+  return effectsByTarget;
+}
+
+function EnemyIntentEffects({ state, action, effectsByTarget }: {
+  state: BattleState;
+  action: BattleAction;
+  effectsByTarget: ReadonlyMap<BattleCombatantId, BattleActionEffectPreview[]>;
+}) {
   const showTargetNames = effectsByTarget.size > 1 || [...effectsByTarget.keys()].some(id => !action.targetIds.includes(id));
   return <span className={s.enemyIntentEffects} data-enemy-intent-effects>
     {[...effectsByTarget].map(([id, effects]) => <span key={id} className={s.enemyIntentEffectGroup}>
@@ -69,6 +76,18 @@ function EnemyIntentEffects({ state, action }: { state: BattleState; action: Bat
         </span>;
       })}
     </span>)}
+  </span>;
+}
+
+function EnemyIntentBadge({ effects, opposing }: { effects: BattleActionEffectPreview[]; opposing: boolean }) {
+  const kind = opposing || effects.some(effect => effect.damageBreakdown) ? "incoming"
+    : effects.some(effect => effect.effectType === "heal") ? "healing"
+    : effects.some(effect => effect.effectType === "guard" || effect.statusApplication?.stack.status === "guarded") ? "guard"
+    : "support";
+  const labels = { incoming: "Incoming", healing: "Healing", guard: "Guard", support: "Support" };
+  const icons = { incoming: "⚔", healing: "+", guard: "⛨", support: "✦" };
+  return <span className={s.intentBadge} data-enemy-intent-badge={kind}>
+    <span aria-hidden="true">{icons[kind]}</span>{labels[kind]}
   </span>;
 }
 
@@ -1023,6 +1042,11 @@ export function BattleArenaB(props: BattleArenaBProps) {
     </div>
   </div>;
   const enemyIntent = !popup && !complete && !resolving ? props.enemyIntent : undefined;
+  const intentOpen = !!enemyIntent && intentTip?.action === enemyIntent;
+  const intentEffectsByTarget = useMemo(() => enemyIntent && intentOpen
+    ? groupEnemyIntentEffects(state, enemyIntent)
+    : new Map<BattleCombatantId, BattleActionEffectPreview[]>(), [enemyIntent, intentOpen, state]);
+  const intentActorSide = enemyIntent && state.combatants[enemyIntent.actorId]?.sideId;
   const interruptedIntent = !popup && !complete ? props.intentInterruption : undefined;
   const orderDialogOpen = popup === "order" || popup === "order-inspect";
   const roundEndForecast: BattleRoundEndForecastWithOrder | undefined = orderDialogOpen && !complete && !resolving && state.outcome === "ongoing"
@@ -1058,20 +1082,20 @@ export function BattleArenaB(props: BattleArenaBProps) {
       <div className={s.tokens} ref={orderTokensRef}>{orderEntries.map(({ id, index, combatant, role, rankLabel, accessibleRank, ally, sideLabel, change, stunned }) => {
         const direction = change ? (change.from > change.to ? "up" : "down") : undefined;
         const intent = enemyIntent?.actorId === id ? enemyIntent : undefined;
-        const intentOpen = !!intent && intentTip?.action === intent;
+        const portraitIntentOpen = !!intent && intentOpen;
         return <button key={id} data-side={combatant.sideId} data-rank={index} data-active={role === "now"} data-order-actor={id}
           data-order-role={individual ? role : undefined} data-order-stunned={stunned ? "" : undefined}
           data-skipped-turn={role === "skipped" ? "stun" : undefined} data-turn-handoff={id === handoffActorId ? "" : undefined}
           aria-current={role === "now" ? "step" : undefined} aria-haspopup="dialog"
           aria-label={`Inspect ${combatant.name} in turn order${individual ? ` · ${accessibleRank} · ${sideLabel}` : ""}`}
           aria-describedby={intent ? intentTipId : undefined}
-          data-intent-open={intentOpen ? "" : undefined}
+          data-intent-open={portraitIntentOpen ? "" : undefined}
           onPointerEnter={event => { if (intent && event.pointerType === "mouse") setIntentTip({ action: intent, via: "pointer" }); }}
           onPointerLeave={() => setIntentTip(current => current?.via === "pointer" ? undefined : current)}
           onFocus={event => { if (intent && event.currentTarget.matches(":focus-visible")) setIntentTip({ action: intent, via: "focus" }); }}
           onBlur={() => setIntentTip(undefined)}
           onKeyDown={event => {
-            if (intentOpen && event.key === "Escape") {
+            if (portraitIntentOpen && event.key === "Escape") {
               event.stopPropagation();
               setIntentTip(undefined);
             }
@@ -1090,12 +1114,12 @@ export function BattleArenaB(props: BattleArenaBProps) {
             {individual && <i>{stunned ? `${sideLabel} · Stunned` : sideLabel}</i>}
           </span>
           {individual && <OrderCrest ally={ally}/>}
-          {intent && <b className={s.enemyIntentTip} id={intentTipId} role="tooltip" hidden={!intentOpen} data-enemy-intent>
+          {intent && <b className={s.enemyIntentTip} id={intentTipId} role="tooltip" hidden={!portraitIntentOpen} data-enemy-intent>
             {getBattleMove(intent.moveId).name}
             <small>{intent.targetIds.length
               ? `Target${intent.targetIds.length > 1 ? "s" : ""} · ${intent.targetIds.map(targetId => state.combatants[targetId].name).join(", ")}`
               : "Battlefield"}</small>
-            {intentOpen && <EnemyIntentEffects state={state} action={intent}/>}
+            {portraitIntentOpen && <EnemyIntentEffects state={state} action={intent} effectsByTarget={intentEffectsByTarget}/>}
           </b>}
         </button>;
       })}{individual && !orderEntries.length && <span className={s.orderEmpty} role="status">{emptyOrderLabel}</span>}</div>
@@ -1118,6 +1142,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
       const forecast = forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
       const forecastId = `forecast-${c.battleCombatantId}`;
       const allyForecast = allyForecastById.get(c.battleCombatantId);
+      const intentEffects = intentEffectsByTarget.get(c.battleCombatantId);
       const guard = guardFor(c.battleCombatantId);
       const allyGuard = allyForecast?.guarded ? guard : undefined;
       const showAllyEffects = allyForecast && (allyGuard || allyForecast.cleanses.size > 0);
@@ -1184,7 +1209,11 @@ export function BattleArenaB(props: BattleArenaBProps) {
             ? <TargetOutcome key={event.eventId} event={event} presentation={presentation} staggerIndex={grouped ? groupedIndex : undefined} grouped={grouped}/>
             : <b key={event.eventId} className={s.effect} data-kind={event.kind}>{event.label}</b>)}</span>
           <span className={s.nameplate}>
-            <strong title={c.name}>{c.name}</strong>
+            <strong title={c.name}>
+              {c.name}
+              {intentEffects && !c.isFainted &&
+                <EnemyIntentBadge effects={intentEffects} opposing={c.sideId !== intentActorSide}/>}
+            </strong>
             <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!(allyGuard || guardResult)}/>
             {forecast && <TargetForecastOdds id={forecastId} forecast={forecast}/>}
             {allyForecast && allyForecastRows > 0 && <AllyForecastEffects id={forecastId} cleanses={allyForecast.cleanses} guard={allyGuard} rows={allyForecastRows}/>}
