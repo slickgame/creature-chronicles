@@ -2273,7 +2273,12 @@
   .arena[data-individual="true"]:has([data-intent-open]) {
     --enemy-intent-space: 92px;
   }
-  .arena[data-individual="true"]:has([data-intent-open]) > .field { margin-top: var(--enemy-intent-space); }
+  .arena[data-individual="true"]:has(.figure[data-side="enemy"] .intentBadge) > .field {
+    margin-top: var(--enemy-intent-space);
+  }
+  .arena[data-individual="true"]:has([data-intent-open]) .figureButton:has(.intentBadge) .marker {
+    display: none;
+  }
   .enemyIntentTip {
     width: max-content;
     max-width: min(260px, 70vw);
