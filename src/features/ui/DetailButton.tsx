@@ -5,10 +5,11 @@ import { createPortal } from "react-dom";
 import styles from "./DetailButton.module.css";
 
 /** Quick read on hover/focus; the existing click action opens full touch-accessible details. */
-export function DetailButton({ hint, tooltipClassName = "", children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { hint: string; tooltipClassName?: string }) {
+export function DetailButton({ hint, tooltipClassName = "", suppressRestoredFocusHint = false, children, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { hint: string; tooltipClassName?: string; suppressRestoredFocusHint?: boolean }) {
   const id = useId();
   const anchor = useRef<HTMLButtonElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activated = useRef(false);
   const [position, setPosition] = useState<{ left: number; top: number; bottom: number; above: boolean; host: Element } | null>(null);
   function close() { if (timer.current) clearTimeout(timer.current); setPosition(null); }
   function show() {
@@ -31,9 +32,13 @@ export function DetailButton({ hint, tooltipClassName = "", children, ...props }
   return <><button {...props} ref={anchor} aria-describedby={position ? id : props["aria-describedby"]}
     onPointerEnter={event => { props.onPointerEnter?.(event); if (event.pointerType === "mouse") show(); }}
     onPointerLeave={event => { props.onPointerLeave?.(event); timer.current = setTimeout(close, 180); }}
-    onFocus={event => { props.onFocus?.(event); if (event.currentTarget.matches(":focus-visible")) show(); }}
+    onFocus={event => {
+      props.onFocus?.(event);
+      if (suppressRestoredFocusHint && activated.current) { activated.current = false; return; }
+      if (event.currentTarget.matches(":focus-visible")) show();
+    }}
     onBlur={event => { props.onBlur?.(event); close(); }}
-    onClick={event => { close(); props.onClick?.(event); }}>{children}</button>
+    onClick={event => { close(); props.onClick?.(event); if (suppressRestoredFocusHint) activated.current = true; }}>{children}</button>
     {position ? createPortal(<div id={id} role="tooltip" className={`${styles.tooltip} ${tooltipClassName}`}
       style={{ left: position.left, top: position.above ? undefined : position.top, bottom: position.above ? position.bottom : undefined }}
       onPointerEnter={() => { if (timer.current) clearTimeout(timer.current); }} onPointerLeave={close}>{hint}</div>, position.host) : null}</>;

@@ -4,6 +4,7 @@ import {
   getBattleOutfitterStock,
 } from "@/data/battleOutfitter";
 import { getBattleMove } from "@/data/battleMoves";
+import { normalizeBattleMoveLoadout } from "@/data/battleLoadouts";
 import { getColiseumProgress as getLegacyColiseumProgress } from "@/data/coliseum";
 import {
   buildStats,
@@ -23,6 +24,7 @@ import {
 import { resolveTalentEffects } from "@/data/talents/talentEngine";
 import type {
   BattleMoveId,
+  BattleMoveLoadout,
   BattleOutcome,
   BattleRoundResult,
   BattleState,
@@ -804,6 +806,14 @@ function getAuthoredEnemyCreatureId(encounter: ColiseumC2EncounterDefinition, de
   return `coliseum_c2_${encounter.encounterId}_${definition.slotId}` as CreatureId;
 }
 
+function getAuthoredEnemyLoadout(definition: ColiseumEnemySlotDefinition): BattleMoveLoadout {
+  return {
+    learnedMoveIds: Array.from(new Set([...definition.learnedMoveIds, ...definition.equippedMoveIds])).slice(0, 8),
+    equippedMoveIds: Array.from(new Set(definition.equippedMoveIds)).slice(0, 4),
+    version: 1,
+  };
+}
+
 function buildEnemyCreature(saveId: SaveId, encounter: ColiseumC2EncounterDefinition, definition: ColiseumEnemySlotDefinition): CreatureRecord {
   const variant = getVariantDefinition(definition.variantId);
   const species = getSpeciesDefinition(variant.speciesId);
@@ -824,11 +834,7 @@ function buildEnemyCreature(saveId: SaveId, encounter: ColiseumC2EncounterDefini
     statGrades: { ...definition.statGrades },
     growthProgress: { STR: 0, DEX: 0, STA: 0, CHA: 0, WIL: 0, FER: 0 },
     abilities: normalizeTalentInstances(definition.talentGrades.map((entry) => talent(entry.talentId, entry.grade)).filter((entry): entry is CreatureAbility => Boolean(entry))),
-    battleMoveLoadout: {
-      learnedMoveIds: Array.from(new Set([...definition.learnedMoveIds, ...definition.equippedMoveIds])).slice(0, 8),
-      equippedMoveIds: Array.from(new Set(definition.equippedMoveIds)).slice(0, 4),
-      version: 1,
-    },
+    battleMoveLoadout: getAuthoredEnemyLoadout(definition),
     energy: 1,
     maxEnergy: 1,
     hearts: maxHearts,
@@ -887,17 +893,22 @@ export function applyAuthoredColiseumEquipment(state: BattleState, encounter: Co
   return { ...state, combatants, log: [...state.log, ...log] };
 }
 
-export function getColiseumEnemyPreview(encounter: ColiseumC2EncounterDefinition): Array<{ sourceCreatureId: CreatureId; variantId: VariantId; name: string; variantName: string; level: number; role: string; equipment: string; moves: string[] }> {
-  return encounter.enemyTeam.map((entry) => ({
-    sourceCreatureId: getAuthoredEnemyCreatureId(encounter, entry),
-    variantId: entry.variantId,
-    name: entry.nickname,
-    variantName: getVariantDefinition(entry.variantId).name,
-    level: entry.level,
-    role: entry.roleLabel,
-    equipment: entry.equipment?.name ?? "No equipment",
-    moves: entry.equippedMoveIds.map((moveId) => getBattleMove(moveId).name),
-  }));
+export function getColiseumEnemyPreview(encounter: ColiseumC2EncounterDefinition): Array<{ sourceCreatureId: CreatureId; variantId: VariantId; name: string; variantName: string; level: number; role: string; equipment: string; moves: string[]; moveIds: BattleMoveId[] }> {
+  return encounter.enemyTeam.map((entry) => {
+    const variant = getVariantDefinition(entry.variantId);
+    const { equippedMoveIds } = normalizeBattleMoveLoadout(variant.speciesId, getAuthoredEnemyLoadout(entry));
+    return {
+      sourceCreatureId: getAuthoredEnemyCreatureId(encounter, entry),
+      variantId: entry.variantId,
+      name: entry.nickname,
+      variantName: variant.name,
+      level: entry.level,
+      role: entry.roleLabel,
+      equipment: entry.equipment?.name ?? "No equipment",
+      moves: equippedMoveIds.map((moveId) => getBattleMove(moveId).name),
+      moveIds: equippedMoveIds,
+    };
+  });
 }
 
 export function createColiseumPerformance(teamCreatureIds: CreatureId[]): ColiseumCombatPerformanceMap {

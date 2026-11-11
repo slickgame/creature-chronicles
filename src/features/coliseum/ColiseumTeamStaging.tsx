@@ -7,16 +7,19 @@ import { useNavigation } from "@/features/navigation/NavigationContext";
 import { DetailButton } from "@/features/ui/DetailButton";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { getBattleStatusGlossary } from "@/data/battleGlossary";
+import { getBattleMove } from "@/data/battleMoves";
+import { getBattleMoveScoutingHint } from "@/data/battleMoveScouting";
 import { getVariantDefinition, STAT_KEYS } from "@/data/creatures";
 import { getEquipmentSlots, getBattleReadinessLabel } from "@/data/battleOutfitter";
 import type { ColiseumOpeningOrderEntry, ColiseumOpeningVitals } from "@/data/coliseumBattleOpening";
 import type { ColiseumC4CarryoverMap, ColiseumC4ModifierDefinition } from "@/data/coliseumC4";
 import type { CreatureRecord } from "@/types/creature";
 import type { CreatureId, VariantId } from "@/types/ids";
-import type { BattleStatusStack } from "@/types/battle";
+import type { BattleMoveId, BattleStatusStack } from "@/types/battle";
+import { ColiseumMoveDetails } from "./ColiseumMoveDetails";
 import {TeamPreparation} from "./TeamPreparation";
 import s from "./ColiseumCourtyard.module.css";
-type Enemy = { sourceCreatureId: CreatureId; variantId: VariantId; name:string; variantName:string; level:number; role:string; equipment:string; moves:string[] };
+type Enemy = { sourceCreatureId: CreatureId; variantId: VariantId; name:string; variantName:string; level:number; role:string; equipment:string; moves:string[]; moveIds: BattleMoveId[] };
 
 function speedDelta(amount: number): string {
  return amount < 0 ? `−${Math.abs(amount)}` : `+${amount}`;
@@ -83,6 +86,7 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
  const [statusCreatureId, setStatusCreatureId] = useState<CreatureId | null>(null);
  const [opponentIndex, setOpponentIndex] = useState(0);
  const [opponentRulesOpen, setOpponentRulesOpen] = useState(false);
+ const [opponentMove, setOpponentMove] = useState<{ creatureId: CreatureId; moveId: BattleMoveId } | null>(null);
  if(!save)return null;
  const team=selected.map(id=>roster.find(c=>c.creatureId===id)).filter((c):c is CreatureRecord=>!!c);
  const pages=Math.max(1,Math.ceil(roster.length/4)),currentPage=Math.min(page,pages-1);
@@ -91,6 +95,9 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
  const statusName = team.find(creature => creature.creatureId === statusCreatureId)?.nickname
    ?? enemyPreview.find(enemy => enemy.sourceCreatureId === statusCreatureId)?.name;
  const inspectedEffects = statusCreatureId ? openingStatuses.get(statusCreatureId) : undefined;
+ const moveOwner = popup === "opponent" && opponentMove
+   ? enemyPreview.find(enemy => enemy.sourceCreatureId === opponentMove.creatureId && enemy.moveIds.includes(opponentMove.moveId)) : undefined;
+ const inspectedMove = moveOwner && opponentMove ? getBattleMove(opponentMove.moveId) : undefined;
  const canStart=team.length===3&&team.every(c=>!unavailable(c))&&(!armed||tacticsStock>0);
  function choose(c:CreatureRecord,targetSlot=slot){if(locked||unavailable(c))return;const ids=[...selected];const existing=ids.indexOf(c.creatureId);if(existing!==-1){if(targetSlot<ids.length){[ids[targetSlot],ids[existing]]=[ids[existing],ids[targetSlot]];}}else if(targetSlot<ids.length)ids[targetSlot]=c.creatureId;else ids.push(c.creatureId);onChange(ids);setPopup(null);}
  function change(ix:number){setSlot(ix);setPopup("roster");}
@@ -168,7 +175,7 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
  </GameDialog>}
  {popup==="roster"&&<GameDialog title={`Choose creature · Slot ${slot+1}`} onClose={()=>setPopup(null)} wide><p>Choosing a teammate already selected swaps their position.</p><div className={s.dialogGrid}>{roster.map(c=><article key={c.creatureId}><img src={gameplayArt(c,true)} alt=""/><h3>{c.nickname} · Level {c.level}</h3><p>{unavailable(c)||getBattleReadinessLabel(save,c.creatureId)}</p><button disabled={locked||!!unavailable(c)} onClick={()=>choose(c)}>Choose {c.nickname}</button></article>)}</div>{selected[slot]&&<button onClick={()=>{onChange(selected.filter((_,ix)=>ix!==slot));setPopup(null);}}>Clear Slot {slot+1}</button>}</GameDialog>}
  {popup === "opponent" && <GameDialog title="Opponent & Rules" dialogClassName={s.opponentDialog}
-   onClose={() => { setOpponentRulesOpen(false); setPopup(null); }} wide>
+   onClose={() => { setOpponentRulesOpen(false); setOpponentMove(null); setPopup(null); }} wide>
    <h3 className={s.opponentTitle}>{opponent}</h3>
    <nav className={s.opponentPicker} aria-label="Choose opponent">
      {enemyPreview.map((enemy, index) => <button type="button" key={enemy.sourceCreatureId}
@@ -190,7 +197,19 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
          </dl>}
          <div className={s.opponentBrief}>
            <p>{enemy.equipment}</p>
-           <p>{enemy.moves.join(" · ")}</p>
+           <div className={s.opponentMoves} role="group" aria-label={`Moves for ${enemy.name}`}>
+             {enemy.moveIds.map(moveId => {
+               const move = getBattleMove(moveId);
+               return <DetailButton key={moveId} type="button" className={s.opponentMove}
+                 suppressRestoredFocusHint
+                 data-opponent-move={moveId} hint={getBattleMoveScoutingHint(move)}
+                 aria-label={`${enemy.name}: ${move.name}. View move details`} aria-haspopup="dialog"
+                 onClick={event => {
+                   event.currentTarget.focus({ preventScroll: true });
+                   setOpponentMove({ creatureId: enemy.sourceCreatureId, moveId });
+                 }}>{move.name}<span aria-hidden="true">i</span></DetailButton>;
+             })}
+           </div>
            {effects.length ? <OpeningStatusChips name={enemy.name} effects={effects}
              onOpen={() => setStatusCreatureId(enemy.sourceCreatureId)}/> : <p className={s.opponentNeutral}>Starts without status effects.</p>}
          </div>
@@ -202,6 +221,7 @@ export function ColiseumTeamStaging({title,roster,selected,onChange,onReturn,onS
      setOpponentRulesOpen(true);
    }}>Battle rules & strategy</button>
  </GameDialog>}
+ {moveOwner && inspectedMove && <ColiseumMoveDetails owner={moveOwner.name} move={inspectedMove} onClose={() => setOpponentMove(null)}/>}
  {(popup === "rules" || opponentRulesOpen) && <GameDialog title="Battle Rules"
    dialogClassName={s.opponentRulesDialog} onClose={() => opponentRulesOpen ? setOpponentRulesOpen(false) : setPopup(null)}>
    <div className={s.opponentRulesBody}><p>{strategy}</p>{rules}</div>
