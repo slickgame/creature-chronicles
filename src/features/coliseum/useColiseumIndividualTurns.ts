@@ -17,6 +17,20 @@ import type { useBattlePresentationController } from "@/features/battle/useBattl
 import type { BattleAction, BattleCombatantId, BattleMoveId, BattleRoundResult, BattleState } from "@/types/battle";
 import type { BattleAiDifficulty } from "@/types/battleAi";
 
+export type BattleIntentInterruption = {
+  enemyId: BattleCombatantId;
+  moveId: BattleMoveId;
+  playerId: BattleCombatantId;
+};
+
+function canKeepEnemyIntent(state: BattleState, action: BattleAction) {
+  const enemy = state.combatants[action.actorId];
+  if (!enemy || enemy.isFainted || hasBattleStatus(enemy, "stun")) return false;
+  const validation = validateBattleAction(state, action);
+  return validation.valid && validation.normalizedTargetIds.length === action.targetIds.length &&
+    validation.normalizedTargetIds.every(id => action.targetIds.includes(id));
+}
+
 export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, presentation, onResolved }: {
   state: BattleState | null;
   enabled: boolean;
@@ -34,6 +48,7 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
   const actor = state?.combatants[actorId];
   const activeActorId = actor?.sideId === "player" && !hasBattleStatus(actor, "stun") ? actorId : null;
 
+  const [interruption, setInterruption] = useState<BattleIntentInterruption>();
   const committedEnemyAction = useRef<BattleAction | undefined>(undefined);
   const nextActorId = order[1];
   const enemyIntent = useMemo(() => {
@@ -79,6 +94,10 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     if (!resolved) return;
 
     committedEnemyAction.current = action && activeActorId ? enemyIntent : undefined;
+    if (action && activeActorId) {
+      const interrupted = resolved.state.outcome === "ongoing" && enemyIntent && !canKeepEnemyIntent(resolved.state, enemyIntent);
+      setInterruption(interrupted ? { enemyId: enemyIntent.actorId, moveId: enemyIntent.moveId, playerId: activeActorId } : undefined);
+    }
 
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [actorId]);
     setCooldownNotices(current => updateBattleCooldownNotices(current, state, resolved.state, activeActorId));
@@ -109,11 +128,7 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     let action: BattleAction | undefined;
     if (actor.sideId === "enemy" && !hasBattleStatus(actor, "stun")) {
       const committed = committedEnemyAction.current;
-      if (committed?.actorId === actorId) {
-        const validation = validateBattleAction(state, committed);
-        if (validation.valid && validation.normalizedTargetIds.length === committed.targetIds.length &&
-            validation.normalizedTargetIds.every(id => committed.targetIds.includes(id))) action = committed;
-      }
+      if (committed?.actorId === actorId && canKeepEnemyIntent(state, committed)) action = committed;
       action ??= buildBattleAiPlan(state, "enemy", aiDifficulty).actions.find(entry => entry.actorId === actorId);
     }
     takeTurn(action);
@@ -126,6 +141,15 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     return () => window.clearTimeout(timer);
   }, [automatic, state, actorId]);
 
+  const visibleInterruption = interruption && enabled && state?.outcome === "ongoing" &&
+    (!presentation.isPlaying || presentation.actionOrder[0] !== interruption.playerId)
+    ? interruption : undefined;
+  useEffect(() => {
+    if (!visibleInterruption) return;
+    const timer = window.setTimeout(() => setInterruption(undefined), 3200);
+    return () => window.clearTimeout(timer);
+  }, [visibleInterruption]);
+
   return {
     order,
     roundOrderShift,
@@ -134,6 +158,7 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     setSelectedTarget,
     targetHandoff,
     enemyIntent: presentation.isPlaying ? undefined : enemyIntent,
+    intentInterruption: visibleInterruption,
     completedCooldowns: activeActorId ? cooldownNotices.get(activeActorId) : undefined,
     openRound,
     takeTurn,

@@ -2192,3 +2192,45 @@
   .enemyIntentTip { left: auto; right: 0; transform: none; }
   .enemyIntentTip::before { left: auto; right: 24px; }
 }
+
+.arena .tokens .enemyIntentEffects,
+.arena .tokens .enemyIntentEffects span {
+  display: grid;
+  gap: 3px;
+  overflow: visible;
+  white-space: normal;
+  text-align: start;
+}
+.arena .tokens .enemyIntentEffects:not(:empty) {
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid #bc884e;
+  font: 500 12px/1.28 Georgia, serif;
+}
+.arena .tokens .enemyIntentEffects .enemyIntentEffectGroup + .enemyIntentEffectGroup {
+  margin-top: 3px;
+}
+
+.order[data-turn-queue] { position: relative; }
+.intentInterruption {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.intentInterruption[data-enemy-intent-interruption] {
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-width: min(260px, 85vw);
+  padding: 6px 12px;
+  border: 1px solid #e6b878;
+  border-radius: 6px;
+  background: linear-gradient(#693b27, #472519);
+  color: #fff0cd;
+  box-shadow: 0 3px 8px #29170eb3;
+  text-align: center;
+  pointer-events: none;
+}
+.intentInterruption small { font-size: 12px; }

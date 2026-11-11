@@ -13,6 +13,7 @@ import { BATTLE_STAT_LABELS } from "@/data/equipmentComparison";
 import { useNavigation } from "@/features/navigation/NavigationContext";
 import { GameDialog } from "@/features/ui/GameDialog";
 import type { BattleAction, BattleCombatant, BattleCombatantId, BattleGuardImpact, BattleMove, BattleMoveId, BattleOrderShiftLogEntry, BattleState, BattleStatKey, BattleStatusId } from "@/types/battle";
+import type { BattleIntentInterruption } from "@/features/coliseum/useColiseumIndividualTurns";
 import type { CreatureRecord } from "@/types/creature";
 import { useBattleOutcomeFade, type BattlePlaybackMotion, type useBattlePresentationController } from "./useBattlePresentationController";
 import { BattleResultLedger, type BattleResultLedgerData } from "./BattleResultLedger";
@@ -32,6 +33,7 @@ export type BattleArenaBProps = {
   selectedTarget: BattleUiTarget | null; activeActorId: BattleCombatantId | null;
   targetHandoff?: { defeatedId: BattleCombatantId; suggestedId: BattleCombatantId };
   enemyIntent?: BattleAction;
+  intentInterruption?: BattleIntentInterruption;
   completedCooldowns?: readonly BattleMoveId[];
   queuedActions?: ReadonlyMap<BattleCombatantId, BattleAction>; individualOrder?: readonly BattleCombatantId[]; presentation: Presentation;
   roundOrderShift?: BattleRoundOrderShift;
@@ -41,6 +43,34 @@ export type BattleArenaBProps = {
   usedTonic: boolean; usedRevival: boolean; aidRestricted?: boolean;
   resultLedger?: BattleResultLedgerData; complete: boolean; recording: boolean; result: ReactNode; message: string; rules?: ReactNode;
 };
+
+function EnemyIntentEffects({ state, action }: { state: BattleState; action: BattleAction }) {
+  const projections = previewBattleAction(state, action);
+  const effectsByTarget = new Map<BattleCombatantId, typeof projections>();
+  for (const effect of projections) {
+    const targetEffects = effectsByTarget.get(effect.targetId);
+    if (targetEffects) targetEffects.push(effect);
+    else effectsByTarget.set(effect.targetId, [effect]);
+  }
+  const showTargetNames = effectsByTarget.size > 1 || [...effectsByTarget.keys()].some(id => !action.targetIds.includes(id));
+  return <span className={s.enemyIntentEffects} data-enemy-intent-effects>
+    {[...effectsByTarget].map(([id, effects]) => <span key={id} className={s.enemyIntentEffectGroup}>
+      {showTargetNames && <b>{state.combatants[id].name}</b>}
+      {effects.map((effect, index) => {
+        const status = effect.statusApplication?.stack;
+        const cleared = effect.cleansedStatuses?.map(id => getBattleStatusGlossary(id).label);
+        const description = status && status.status !== "guarded"
+          ? `${getBattleStatusGlossary(status.status).label} · ${status.duration} ${status.duration === 1 ? "round" : "rounds"}`
+          : cleared?.length ? `Clear ${cleared.join(", ")}` : effect.description.replace("1 round(s)", "1 round").replace(" round(s)", " rounds");
+        return <span key={index}>
+          {effect.damageBreakdown && "Est. "}{description}
+          {effect.requiresHit && effect.hitChance < 100 && ` · ${effect.hitChance}% hit`}
+          {effect.effectChance < 100 && ` · ${effect.effectChance}%${effect.requiresHit ? " if hit" : " chance"}`}
+        </span>;
+      })}
+    </span>)}
+  </span>;
+}
 
 function artwork(source: CreatureRecord | undefined, full = false) {
   if (!source) return FALLBACK;
@@ -993,6 +1023,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
     </div>
   </div>;
   const enemyIntent = !popup && !complete && !resolving ? props.enemyIntent : undefined;
+  const interruptedIntent = !popup && !complete ? props.intentInterruption : undefined;
   const orderDialogOpen = popup === "order" || popup === "order-inspect";
   const roundEndForecast: BattleRoundEndForecastWithOrder | undefined = orderDialogOpen && !complete && !resolving && state.outcome === "ongoing"
     ? individual ? getBattleRoundEndForecastWithOrder(state) : { rows: getBattleRoundEndForecast(state) }
@@ -1064,9 +1095,16 @@ export function BattleArenaB(props: BattleArenaBProps) {
             <small>{intent.targetIds.length
               ? `Target${intent.targetIds.length > 1 ? "s" : ""} · ${intent.targetIds.map(targetId => state.combatants[targetId].name).join(", ")}`
               : "Battlefield"}</small>
+            {intentOpen && <EnemyIntentEffects state={state} action={intent}/>}
           </b>}
         </button>;
       })}{individual && !orderEntries.length && <span className={s.orderEmpty} role="status">{emptyOrderLabel}</span>}</div>
+      <div className={s.intentInterruption} role="status" data-enemy-intent-interruption={interruptedIntent ? "" : undefined}>
+        {interruptedIntent && <>
+          <strong>Plan interrupted</strong>
+          <small>{state.combatants[interruptedIntent.enemyId].name} · {getBattleMove(interruptedIntent.moveId).name}</small>
+        </>}
+      </div>
     </section>
     {slowedOrderComparison}
     <section className={s.field} aria-label="3 versus 3 battle stage">
