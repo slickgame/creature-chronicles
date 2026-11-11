@@ -1127,6 +1127,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         {interruptedIntent && <>
           <strong>Plan interrupted</strong>
           <small>{state.combatants[interruptedIntent.enemyId].name} · {getBattleMove(interruptedIntent.moveId).name}</small>
+          <small data-intent-interruption-reason>{interruptedIntent.reason}</small>
         </>}
       </div>
     </section>

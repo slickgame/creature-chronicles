@@ -21,14 +21,25 @@ export type BattleIntentInterruption = {
   enemyId: BattleCombatantId;
   moveId: BattleMoveId;
   playerId: BattleCombatantId;
+  reason: string;
 };
 
-function canKeepEnemyIntent(state: BattleState, action: BattleAction) {
+function getEnemyIntentInterruption(state: BattleState, action: BattleAction): string | undefined {
   const enemy = state.combatants[action.actorId];
-  if (!enemy || enemy.isFainted || hasBattleStatus(enemy, "stun")) return false;
+  if (!enemy) return "Enemy unavailable";
+  if (enemy.isFainted) return `${enemy.name} was knocked out`;
+  if (hasBattleStatus(enemy, "stun")) return `${enemy.name} is stunned`;
+
   const validation = validateBattleAction(state, action);
-  return validation.valid && validation.normalizedTargetIds.length === action.targetIds.length &&
-    validation.normalizedTargetIds.every(id => action.targetIds.includes(id));
+  if (validation.valid && validation.normalizedTargetIds.length === action.targetIds.length &&
+      validation.normalizedTargetIds.every(id => action.targetIds.includes(id))) return;
+
+  const taunt = validation.issues.find(issue => issue.code === "taunt-target-enforced");
+  if (taunt) return taunt.message;
+  const knockedOut = action.targetIds.map(id => state.combatants[id]).filter(target => target?.isFainted);
+  if (knockedOut.length === 1) return `${knockedOut[0].name} was knocked out`;
+  if (knockedOut.length > 1) return "Planned targets were knocked out";
+  return validation.issues[0]?.message ?? "Available targets changed";
 }
 
 export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, presentation, onResolved }: {
@@ -95,8 +106,11 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
 
     committedEnemyAction.current = action && activeActorId ? enemyIntent : undefined;
     if (action && activeActorId) {
-      const interrupted = resolved.state.outcome === "ongoing" && enemyIntent && !canKeepEnemyIntent(resolved.state, enemyIntent);
-      setInterruption(interrupted ? { enemyId: enemyIntent.actorId, moveId: enemyIntent.moveId, playerId: activeActorId } : undefined);
+      const reason = resolved.state.outcome === "ongoing" && enemyIntent
+        ? getEnemyIntentInterruption(resolved.state, enemyIntent) : undefined;
+      setInterruption(reason && enemyIntent
+        ? { enemyId: enemyIntent.actorId, moveId: enemyIntent.moveId, playerId: activeActorId, reason }
+        : undefined);
     }
 
     presentation.play(buildBattlePlaybackEvents(resolved.frames, { staggerMultiTarget: true }), [actorId]);
@@ -128,7 +142,7 @@ export function useColiseumIndividualTurns({ state, enabled, aiDifficulty, prese
     let action: BattleAction | undefined;
     if (actor.sideId === "enemy" && !hasBattleStatus(actor, "stun")) {
       const committed = committedEnemyAction.current;
-      if (committed?.actorId === actorId && canKeepEnemyIntent(state, committed)) action = committed;
+      if (committed?.actorId === actorId && !getEnemyIntentInterruption(state, committed)) action = committed;
       action ??= buildBattleAiPlan(state, "enemy", aiDifficulty).actions.find(entry => entry.actorId === actorId);
     }
     takeTurn(action);
