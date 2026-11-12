@@ -184,3 +184,97 @@
   .window[data-forge-window="receipt"] > footer { gap: 8px; }
   .window[data-forge-window="receipt"] > footer button:first-child { white-space: nowrap; }
 }
+
+.window[data-forge-window="comparison"] {
+  width: min(650px, 100%);
+}
+
+.compareHeader, .compareSets {
+  display: grid;
+  gap: 8px;
+}
+
+.compareFor select {
+  min-width: 0;
+}
+
+.compareItem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  font-size: 15px;
+}
+
+.compareItem span {
+  color: #e3d4ac;
+}
+
+.compareViews {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+}
+
+.compareViews button[aria-pressed="true"] {
+  background-image: url('/images/ui/forge-slate-v2/frames/button-primary.svg');
+}
+
+.compareTable td:last-child,
+.compareSetEffect {
+  font-weight: bold;
+}
+
+.compareSets {
+  grid-template-columns: repeat(auto-fit, minmax(min(235px, 100%), 1fr));
+}
+
+.window .compareSetTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+}
+
+.compareSetTitle img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.compareSetTitle strong {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.compareSetEffect[data-delta="1"] { color: #9ce0ac; }
+.compareSetEffect[data-delta="-1"] { color: #ffb59d; }
+
+@media (max-width: 650px) {
+  .compareFor { font-size: 14px; }
+  .compareItem { font-size: 14px; }
+  .window .compareViews button { padding-inline: 5px; }
+}
+
+@media (max-height: 550px) and (orientation: landscape) {
+  .window[data-forge-window="comparison"] {
+    gap: 6px;
+    padding: 7px 11px;
+  }
+
+  .window[data-forge-window="comparison"] .windowBody { gap: 6px; }
+
+  .compareHeader {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+  }
+
+  .compareHeader .compareFor { gap: 5px; font-size: 14px; }
+  .compareHeader select { min-height: 30px; padding-inline: 4px; }
+  .compareItem { display: grid; }
+  .window .compareViews button { min-height: 30px; padding-block: 4px; }
+  .window .compareTable :is(th, td) { padding-block: 4px; }
+  .compareSets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .compareSets .setChange { padding: 7px; gap: 4px; }
+  .compareSets article:only-child { grid-column: 1 / -1; }
+}
