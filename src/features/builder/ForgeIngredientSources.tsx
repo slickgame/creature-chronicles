@@ -9,6 +9,8 @@ import {GameDialog} from '@/features/ui/GameDialog';
 import {ForgeIcon, ForgeWindow} from './ForgeWindow';
 import s from './ForgeGallery.module.css';
 
+const sourceArt = '/images/ui/forge-gallery-v1/';
+
 type Props = {
   initialResource: ResourceId;
   ingredients: [ResourceId, number][];
@@ -40,10 +42,13 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
     return {id, reserved, usable, missing: Math.max(0, required - usable)};
   });
   const active = options.find(({id}) => id === selected) ?? options[0];
+  const visibleOptions = options.slice(page * pageSize, (page + 1) * pageSize);
+  const activeOnPage = visibleOptions.some(({id}) => id === active.id);
   const resource = RESOURCES[active.id];
   const recipe = RECIPES.find(({id}) => id === active.id);
   const site = Object.entries(SITES).find(([, entry]) => entry.resource === active.id);
   const facility = recipe?.facility ? FACILITIES[recipe.facility].name : null;
+  const facilityLabel = recipe?.facility === 'furnace' ? 'Furnace' : facility;
   const facilityStatus = recipe?.facility ? (farm.facilities[recipe.facility] ? 'Built' : 'Not built') : null;
   const count = quantity ?? Math.max(1, Math.min(active.missing, 20));
   const cost = count * resource.price;
@@ -71,7 +76,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
     <>
       <ForgeWindow title={title} marker="ingredient-sources" onClose={onClose} backLabel={backLabel}>
         <div className={s.ingredientItem}>
-          <img src={item.iconPath} alt=""/>
+          <div className={s.ingredientItemArt}><img src={item.iconPath} alt=""/></div>
           <h3>{item.name} +0</h3>
         </div>
         {review ? (
@@ -93,10 +98,16 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
           <>
             <div className={s.ingredientNavigation}>
               <div className={s.ingredientPicker} role="group" aria-label="Ingredients">
-                {options.slice(page * pageSize, (page + 1) * pageSize).map(({id, missing}) => (
+                {visibleOptions.map(({id, missing, usable, reserved}) => (
                   <button key={id} aria-pressed={id === active.id} onClick={() => selectIngredient(id)}>
-                    <img src={getResourceArt(id)} alt=""/>
-                    <span>{RESOURCES[id].name}<small>{missing ? `${missing} missing` : 'Covered'}</small></span>
+                    {getResourceArt(id) && <img src={getResourceArt(id)} alt=""/>}
+                    <span className={s.ingredientChipText}>
+                      <strong>{RESOURCES[id].name}</strong>
+                      <small>
+                        <span>{missing ? `${missing} missing` : 'Covered'}</span>
+                        {id === active.id && <><span>{usable} usable</span><span>{reserved} reserved</span></>}
+                      </small>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -108,20 +119,22 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
                 </nav>
               )}
             </div>
-            <p className={s.ingredientStock}><strong>{resource.name}</strong> · {active.missing} missing · {active.usable} usable · {active.reserved} reserved</p>
+            {!activeOnPage && <p className={s.ingredientStock}><strong>{resource.name}</strong> · {active.missing} missing · {active.usable} usable · {active.reserved} reserved</p>}
+            <div className={s.ingredientSourceCard}>
             <div className={s.ingredientRoutes} role="group" aria-label="Ingredient sources">
               <button aria-pressed={route === 'buy'} onClick={() => setRoute('buy')}>
                 Buy from Pella<small>{resource.price > 0 ? `${cost} Gold for ${count}` : 'Unavailable'}</small>
               </button>
               <button aria-pressed={route === 'produce'} onClick={() => setRoute('produce')}>
-                Produce at ranch<small>{facility ? `${facility} · ${facilityStatus}` : site?.[1].name ?? 'Unavailable'}</small>
+                Produce at ranch<small>{facility ? `${facilityLabel} · ${facilityStatus}` : site?.[1].name ?? 'Unavailable'}</small>
               </button>
             </div>
             {route === 'buy' ? (
               <section className={s.ingredientPanel} aria-label="Purchase details">
-                <div className={s.ingredientPanelArt}><ForgeIcon name="coin"/></div>
+                <img className={s.ingredientStall} src={`${sourceArt}pella-market-stall.webp`} alt=""/>
                 <div className={s.ingredientPanelDetails}>
-                  <p>{resource.price > 0 ? `${resource.price} Gold each` : 'Pella does not sell this ingredient.'}</p>
+                  <h3>Buy from Pella</h3>
+                  <p>{resource.price > 0 ? `${resource.name} — ${resource.price} Gold each` : 'Pella does not sell this ingredient.'}</p>
                   {resource.price > 0 && (
                     <>
                       <div className={s.ingredientOrder}>
@@ -141,23 +154,28 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
               </section>
             ) : (
               <section className={s.ingredientPanel} aria-label="Production details">
-                <div className={s.ingredientPanelArt}><ForgeIcon name="craft"/></div>
+                
                 <div className={s.ingredientPanelDetails}>
-                  {facility && <p><strong>{facility}</strong> · {facilityStatus}</p>}
+                  <h3>Produce at ranch</h3>
+                  {facility && <div className={s.ingredientFacility}>
+                    {recipe?.facility === 'furnace' && <img src={`${sourceArt}iron-furnace.webp`} alt=""/>}
+                    <p><strong>{facilityLabel} · {facilityStatus}</strong></p>
+                  </div>}
                   {recipe ? (
                     <div className={s.ingredientFormula}>
                       {(Object.entries(recipe.inputs) as [ResourceId, number][]).map(([id, amount]) => (
                         <span key={id}><img src={getResourceArt(id)} alt=""/>{amount} {RESOURCES[id].name}</span>
                       ))}
-                      <span>→ <img src={getResourceArt(active.id)} alt=""/>{recipe.output} × {resource.name}</span>
+                      <span>→ <img src={getResourceArt(active.id)} alt=""/>{recipe.output} {active.id === 'iron' && recipe.output === 1 ? 'Iron ingot' : resource.name}</span>
                     </div>
                   ) : <p>{site ? `Gather at ${site[1].name}.` : 'No ranch source is available.'}</p>}
                   {(recipe || site) && <button className={s.primary} onClick={() => setProduction(productionSection)}>
-                    {facility ? `Open ${facility} recipe` : recipe ? 'Open recipe' : 'Open work location'}
+                    {facility ? `Open ${facilityLabel} recipe` : recipe ? 'Open recipe' : 'Open work location'}
                   </button>}
                 </div>
               </section>
             )}
+            </div>
           </>
         )}
       </ForgeWindow>
