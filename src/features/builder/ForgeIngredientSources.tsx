@@ -6,6 +6,7 @@ import {getResourceArt} from '@/data/resourceArt';
 import {useGameContext} from '@/state/GameProvider';
 import {ProductionBook} from '@/features/resources/ProductionBook';
 import {GameDialog} from '@/features/ui/GameDialog';
+import {ForgeFurnace} from './ForgeFurnace';
 import {ForgeIcon, ForgeWindow} from './ForgeWindow';
 import s from './ForgeGallery.module.css';
 
@@ -32,7 +33,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
   const [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
   const [quantity, setQuantity] = useState<number>();
   const [anchor, setAnchor] = useState(() => Math.max(0, ingredients.findIndex(([id]) => id === initialResource)));
-  const [production, setProduction] = useState<'Gathering' | 'Kitchen' | 'Workbench' | null>(null);
+  const [production, setProduction] = useState<'Gathering' | 'Kitchen' | 'Workbench' | 'furnace' | null>(null);
   const busy = useRef(false);
   const pageSize = compact ? 2 : 4;
   const page = Math.floor(anchor / pageSize);
@@ -225,7 +226,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
                       <span>→ <img src={getResourceArt(active.id)} alt=""/>{recipe.output} {active.id === 'iron' && recipe.output === 1 ? 'Iron ingot' : resource.name}</span>
                     </div>
                   ) : <p>{site ? `Gather at ${site[1].name}.` : 'No ranch source is available.'}</p>}
-                  {(recipe || site) && <button className={s.primary} onClick={() => setProduction(productionSection)}>
+                  {(recipe || site) && <button className={s.primary} onClick={() => setProduction(active.id === 'iron' ? 'furnace' : productionSection)}>
                     {facility ? `Open ${facilityLabel} recipe` : recipe ? 'Open recipe' : 'Open work location'}
                   </button>}
                 </div>
@@ -235,7 +236,8 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
           </>
         )}
       </ForgeWindow>
-      {production && (
+      {production === 'furnace' && <ForgeFurnace item={item} missing={active.missing} onClose={() => setProduction(null)}/>}
+      {production && production !== 'furnace' && (
         <GameDialog fullScreen title={`${resource.name} · Production`} onClose={() => setProduction(null)}>
           <ProductionBook section={production} onSection={setProduction} initialSelection={recipe ? active.id : site?.[0]} onBack={() => setProduction(null)}/>
         </GameDialog>

@@ -714,3 +714,92 @@
   .purchaseReceiptVendor { border: 0; }
   .purchaseReceipt .purchaseLedger { grid-column: 1/-1; }
 }
+
+.dialogStage[data-forge-stage="forge-furnace"] {
+  background: url('/images/ui/locations-v2/builder-yard.webp') center/cover;
+}
+.window[data-forge-window="forge-furnace"] {
+  width: min(970px,100%);
+  padding: 18px 24px;
+  border: 1px solid #d4ad68;
+  border-radius: 18px;
+  background: linear-gradient(#0a1a24f9,#0b202bf9), url('/images/ui/forge-slate-v2/textures/slate.webp') center/500px;
+  box-shadow: inset 0 0 0 2px #b88e4438, 0 8px 28px #0008;
+}
+.window[data-forge-window="forge-furnace"] > header { position: relative; justify-content: center; }
+.window[data-forge-window="forge-furnace"] > header button { position: absolute; right: 0; top: 0; }
+.window[data-forge-window="forge-furnace"] .windowBody { overflow: auto; align-content: start; }
+.furnaceContext,.furnaceCrafter,.furnaceLedger,.furnaceResource {
+  border: 1px solid #c49c5b;
+  border-radius: 12px;
+  background: linear-gradient(110deg,#132c39,#0c1e29);
+}
+.furnaceContext { display: flex; align-items: center; gap: 10px; padding: 4px 10px; }
+.furnaceContext img { width: 52px; height: 45px; object-fit: contain; }
+.furnaceContext strong { font-size: 24px; }
+.furnaceGrid { display: grid; grid-template-columns: 42% minmax(0,1fr); gap: 12px; }
+.furnaceCrafter,.furnaceLedger { padding: 12px; display: grid; gap: 8px; align-content: center; }
+.furnaceArt { width: 100%; height: 245px; object-fit: contain; background: radial-gradient(ellipse,#704a2b55,transparent 68%); }
+.window button.furnaceWorker { justify-content: start; padding: 6px 9px; text-align: left; }
+.furnaceWorker img:first-child,.furnaceRoster button > img { width: 50px; height: 50px; object-fit: cover; border: 1px solid #bd9b60; border-radius: 6px; }
+.furnaceWorker small,.furnaceRoster small,.furnaceResource small { display: block; font-size: 13px; }
+.furnaceWorker b { margin-left: auto; white-space: nowrap; color: #ffe198; }
+.furnaceBatches,.furnaceResource { display: flex; align-items: center; gap: 9px; }
+.furnaceBatches { justify-content: space-between; }
+.furnaceResource { padding: 6px 10px; }
+.furnaceResource img { width: 37px; height: 37px; object-fit: contain; }
+.furnaceResource b { margin-left: auto; }
+.furnaceResource[data-short="true"] { border-color: #f0a389; }
+.furnaceResource[data-output] { border-color: #7ff0d8; background: linear-gradient(#14625f,#0c393d); box-shadow: inset 0 0 6px #6ff4d060; }
+.furnaceYield { text-align: center; color: #d4ae65; line-height: 1; font-size: 23px; }
+.furnaceActions { display: flex; width: 100%; gap: 8px; justify-content: center; }
+.furnaceActions button { flex: 1; max-width: 450px; }
+.furnaceRoster { display: grid; gap: 6px; }
+.window .furnaceRoster > button { text-align: left; justify-content: start; }
+.window .furnaceRoster > button[aria-pressed="true"] { border: 1px solid #7ff0d8; border-radius: 7px; }
+
+@media (max-width:650px) and (orientation:portrait) {
+  .window[data-forge-window="forge-furnace"] { padding: 8px; gap: 6px; }
+  .window[data-forge-window="forge-furnace"] .windowBody { gap: 5px; }
+  .furnaceContext { padding: 3px 5px; gap: 5px; font-size: 12px; }
+  .furnaceContext strong { font-size: 16px; }
+  .furnaceContext img { width: 35px; height: 29px; }
+  .furnaceGrid { grid-template-columns: 1fr; gap: 5px; }
+  .furnaceCrafter,.furnaceLedger { padding: 5px; gap: 4px; }
+  .furnaceArt { height: 91px; }
+  .furnaceWorker img:first-child,.furnaceRoster button > img { width: 35px; height: 35px; }
+  .furnaceResource { padding: 3px 6px; font-size: 15px; }
+  .furnaceResource img { width: 25px; height: 25px; }
+  .furnaceYield { font-size: 16px; }
+  .furnaceActions { display: grid; grid-template-columns: 1fr; gap: 4px; }
+}
+@media (max-height:550px) and (orientation:landscape) {
+  .window[data-forge-window="forge-furnace"] { padding: 5px 9px; gap: 4px; }
+  .window[data-forge-window="forge-furnace"] .windowBody { gap: 4px; }
+  .window[data-forge-window="forge-furnace"] button { min-height: 26px; padding-block: 2px; }
+  .window[data-forge-window="forge-furnace"] .quoteTitle p { display: none; }
+  .furnaceContext { font-size: 13px; padding: 2px 6px; }
+  .furnaceContext strong { font-size: 17px; }
+  .furnaceContext img { width: 34px; height: 24px; }
+  .furnaceGrid { gap: 5px; }
+  .furnaceArt { height: 88px; }
+  .furnaceCrafter,.furnaceLedger { gap: 4px; padding: 5px; }
+  .furnaceResource { padding: 2px 5px; font-size: 13px; }
+  .furnaceResource img { width: 22px; height: 22px; }
+  .furnaceWorker img:first-child,.furnaceRoster button > img { width: 32px; height: 32px; }
+  .furnaceYield { font-size: 14px; }
+}
+
+.furnaceResource b { text-align: right; white-space: nowrap; }
+.furnaceResource b small { display: inline; font-weight: normal; }
+@media (min-width:651px) and (min-height:551px) {
+  .furnaceLedger { padding: 16px; gap: 12px; font-size: 21px; }
+  .furnaceResource img { width: 43px; height: 43px; }
+  .furnaceResource b small { font-size: 16px; }
+  .furnaceArt { height: 275px; }
+}
+@media (max-width:650px) and (orientation:portrait) {
+  .furnaceArt { height: 79px; }
+  .window[data-forge-window="forge-furnace"] .quoteTitle p { font-size: 19px; }
+  .window[data-forge-window="forge-furnace"] .quoteTitle h2 { font-size: 26px; margin-top: 0; }
+}
