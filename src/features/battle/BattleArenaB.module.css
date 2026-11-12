@@ -2321,35 +2321,39 @@
   .arena .tokens .compactIntentTargets > span > span { font: inherit; }
 }
 @media (max-width: 600px) and (max-height: 650px) and (orientation: portrait) {
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field {
+  .arena[data-individual="true"]:has([data-intent-open] .enemyIntentTip:not([data-compact-targets])) {
+    --enemy-intent-space: 78px;
+  }
+  .arena[data-individual="true"]:has([data-intent-open]) .field {
+    margin-top: var(--enemy-intent-space);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: repeat(2, minmax(0, 1fr));
     gap: 4px;
   }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-side][data-slot] {
+  .arena[data-individual="true"]:has([data-intent-open]) .field > .figure[data-side][data-slot] {
     position: relative;
     inset: auto;
     width: 100%;
     height: 100%;
     grid-row: 1;
   }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-side="player"][data-slot] { grid-row: 2; }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-slot="0"] { grid-column: 1; }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-slot="1"] { grid-column: 2; }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-slot="2"] { grid-column: 3; }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .nameplate {
+  .arena[data-individual="true"]:has([data-intent-open]) .field > .figure[data-side="player"][data-slot] { grid-row: 2; }
+  .arena[data-individual="true"]:has([data-intent-open]) .field > .figure[data-slot="0"] { grid-column: 1; }
+  .arena[data-individual="true"]:has([data-intent-open]) .field > .figure[data-slot="1"] { grid-column: 2; }
+  .arena[data-individual="true"]:has([data-intent-open]) .field > .figure[data-slot="2"] { grid-column: 3; }
+  .arena[data-individual="true"]:has([data-intent-open]) .nameplate {
     gap: 1px;
     padding-block: 0;
   }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .nameplate .meter {
+  .arena[data-individual="true"]:has([data-intent-open]) .nameplate .meter {
     height: 11px;
   }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .nameplate > strong:has(> .intentBadge) {
+  .arena[data-individual="true"]:has([data-intent-open]) .nameplate > strong:has(> .intentBadge) {
     gap: 1px 2px;
     font-size: 10px;
   }
-  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .intentBadge {
+  .arena[data-individual="true"]:has([data-intent-open]) .intentBadge {
     padding: 0 3px;
     gap: 2px;
   }
