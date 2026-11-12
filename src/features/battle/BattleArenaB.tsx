@@ -100,9 +100,13 @@ function EnemyIntentBadge({ effects, opposing }: { effects: BattleActionEffectPr
     : effects.some(effect => effect.effectType === "guard" || effect.statusApplication?.stack.status === "guarded") ? "guard"
     : "support";
   const labels = { incoming: "Incoming", healing: "Healing", guard: "Guard", support: "Support" };
+  const status = effects.flatMap(effect => effect.statusApplication ? [effect.statusApplication] : []).find(application => application.stack.status !== "guarded");
+  const cleanse = effects.find(effect => effect.cleansedStatuses?.length && effect.effectChance > 0)?.cleansedStatuses?.[0];
+  const statusLabel = status && `${status.effectChance < 100 ? `${status.effectChance}% ` : ""}${getBattleStatusGlossary(status.stack.status).label}`;
+  const effectLabel = statusLabel || (cleanse ? `Clear ${getBattleStatusGlossary(cleanse).label}` : undefined);
   const icons = { incoming: "⚔", healing: "+", guard: "⛨", support: "✦" };
-  return <span className={s.intentBadge} data-enemy-intent-badge={kind}>
-    <span aria-hidden="true">{icons[kind]}</span>{labels[kind]}
+  return <span className={s.intentBadge} data-enemy-intent-badge={kind} title={status?.requiresHit ? `${effectLabel} if hit` : effectLabel}>
+    <span aria-hidden="true">{icons[kind]}</span>{effectLabel ?? labels[kind]}
   </span>;
 }
 
@@ -1006,15 +1010,15 @@ export function BattleArenaB(props: BattleArenaBProps) {
     return projectionById.get(id)?.battleEnergyAfter ??
       (id === activeActorId && previewMove?.usable ? state.combatants[id].currentBattleEnergy - previewMove.move.battleEnergyCost : undefined);
   }
-  function guardFor(id: string): GuardDisplay | undefined {
+  function guardFor(id: string, projection: BattleActionEffectPreview | null | undefined = projectionById.get(id), move = previewMove?.move): GuardDisplay | undefined {
     if (!individual || state.combatants[id].isFainted) return undefined;
     const active = getBattleGuardedStatus(state.combatants[id]);
-    const projected = projectionById.get(id)?.guardedAfter;
+    const projected = projection?.guardedAfter;
     if (projected && (!active || projected.damageReductionPercent !== active.damageReductionPercent || projected.duration !== active.duration)) {
       return { ...projected, mode: "preview" };
     }
     if (active) {
-      const breaksOnHit = projected === null && previewMove?.move.tags.includes("guard_break");
+      const breaksOnHit = projected === null && move?.tags.includes("guard_break");
       return { ...active, mode: breaksOnHit ? "breaking" : "active" };
     }
     return undefined;
@@ -1061,6 +1065,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
   const intentEffectsByTarget = useMemo(() => enemyIntent && intentOpen
     ? groupEnemyIntentEffects(state, enemyIntent)
     : new Map<BattleCombatantId, BattleActionEffectPreview[]>(), [enemyIntent, intentOpen, state]);
+  const intentMove = intentOpen && enemyIntent ? getBattleMove(enemyIntent.moveId) : undefined;
   const intentActorSide = enemyIntent && state.combatants[enemyIntent.actorId]?.sideId;
   const interruptedIntent = !popup && !complete ? props.intentInterruption : undefined;
   const orderDialogOpen = popup === "order" || popup === "order-inspect";
@@ -1161,16 +1166,28 @@ export function BattleArenaB(props: BattleArenaBProps) {
       </div>}
       {!individual && <><span className={s.teamLabel} data-side="player">YOUR TEAM</span><span className={s.teamLabel} data-side="enemy">OPPONENTS</span></>}{combatants.map(c=>{
       const selected=target?.battleCombatantId===c.battleCombatantId,acting=highlight===c.battleCombatantId;
-      const forecast = forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
+      const forecast = !intentOpen && forecastById.size > 1 ? forecastById.get(c.battleCombatantId) : undefined;
       const forecastId = `forecast-${c.battleCombatantId}`;
-      const allyForecast = allyForecastById.get(c.battleCombatantId);
+      const allyForecast = intentOpen ? undefined : allyForecastById.get(c.battleCombatantId);
       const intentEffects = intentEffectsByTarget.get(c.battleCombatantId);
-      const guard = guardFor(c.battleCombatantId);
+      const intentProjection = intentEffects?.at(-1);
+      const hpAfter = intentOpen ? intentProjection?.hpAfter : projectionById.get(c.battleCombatantId)?.hpAfter;
+      const beAfter = intentOpen
+        ? intentProjection?.battleEnergyAfter ?? (c.battleCombatantId === enemyIntent?.actorId
+          ? c.currentBattleEnergy - (intentMove?.battleEnergyCost ?? 0) : undefined)
+        : energyAfter(c.battleCombatantId);
+      const guard = intentOpen
+        ? guardFor(c.battleCombatantId, intentProjection ?? null, intentMove)
+        : guardFor(c.battleCombatantId);
       const allyGuard = allyForecast?.guarded ? guard : undefined;
       const showAllyEffects = allyForecast && (allyGuard || allyForecast.cleanses.size > 0);
-      const healthForecast: HealthForecast | undefined = forecast || allyForecast
-        ? { id: `${forecastId}-hp`, kind: forecast ? "attack" : allyForecast?.heals ? "heal" : "support" }
-        : undefined;
+      const healthForecast: HealthForecast | undefined = intentEffects?.some(effect => effect.damageBreakdown)
+        ? { id: `${forecastId}-hp`, kind: "attack" }
+        : intentEffects?.some(effect => effect.effectType === "heal")
+          ? { id: `${forecastId}-hp`, kind: "heal" }
+          : forecast || allyForecast
+            ? { id: `${forecastId}-hp`, kind: forecast ? "attack" : allyForecast?.heals ? "heal" : "support" }
+            : undefined;
       const groupedIndex = currentEvent?.targetOutcomes?.findIndex(outcome => outcome.targetId === c.battleCombatantId) ?? -1;
       const grouped = groupedIndex >= 0 ? currentEvent?.targetOutcomes?.[groupedIndex] : undefined;
       const event = grouped && currentEvent ? {
@@ -1207,7 +1224,7 @@ export function BattleArenaB(props: BattleArenaBProps) {
         isAreaRecipient ? areaScopeId : undefined,
         floorMarker === "suggestion" ? handoffAnnouncementId : undefined,
       ].filter(Boolean).join(" ");
-      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving ? !!resolvingTarget : isSelectedTarget} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={healthForecast ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}
+      return <article key={c.battleCombatantId} data-combatant-id={c.battleCombatantId} className={s.figure} data-side={c.sideId} data-slot={c.slotIndex} data-selected={resolving ? !!resolvingTarget : isSelectedTarget} data-valid-target={!resolving&&(!!healthForecast||validTargets.includes(c.battleCombatantId))} data-area-forecast={!intentOpen && healthForecast ? "" : undefined} data-intent-projection={intentEffects || (intentOpen && c.battleCombatantId === enemyIntent?.actorId) ? "" : undefined} data-ally-forecast={allyForecast ? "" : undefined} data-active={acting} data-fainted={c.isFainted} data-event={acting&&resolving&&event?.kind==="attack"?"attack":affected&&event?.kind!=="attack"?event?.kind:""}
         data-action-source={actionSource ? "" : undefined} data-action-target={actionTarget}>
         <button className={s.figureButton} aria-label={`Select ${c.name}`} aria-pressed={floorTargeting ? selected : undefined}
           aria-describedby={targetDescriptions || undefined} disabled={resolving||c.isFainted&&c.sideId==="enemy"}
@@ -1236,10 +1253,10 @@ export function BattleArenaB(props: BattleArenaBProps) {
               {intentEffects && !c.isFainted &&
                 <EnemyIntentBadge effects={intentEffects} opposing={c.sideId !== intentActorSide}/>}
             </strong>
-            <HealthMeter value={c.currentHp} max={c.maxHp} after={projectionById.get(c.battleCombatantId)?.hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!(allyGuard || guardResult)}/>
+            <HealthMeter value={c.currentHp} max={c.maxHp} after={hpAfter} guard={guard} forecast={healthForecast} allyGuard={!!(allyGuard || guardResult)}/>
             {forecast && <TargetForecastOdds id={forecastId} forecast={forecast}/>}
             {allyForecast && allyForecastRows > 0 && <AllyForecastEffects id={forecastId} cleanses={allyForecast.cleanses} guard={allyGuard} rows={allyForecastRows}/>}
-            <Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={energyAfter(c.battleCombatantId)} recovery={affected ? energyRecovery : undefined}/>
+            <Meter label="BE" value={c.currentBattleEnergy} max={c.maxBattleEnergy} after={beAfter} recovery={affected ? energyRecovery : undefined}/>
             {c.isFainted&&<small>K.O.</small>}
           </span>
         </button>
