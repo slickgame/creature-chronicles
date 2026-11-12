@@ -44,7 +44,7 @@ function ConfirmedEquipmentAction({request,onClose}:{request:EquipmentActionRequ
  if(receipt&&donorReceipt)return <EquipmentTransferWindow key="transfer-receipt" donor={donorReceipt} recipient={receipt} completed note={rewardNote} onClose={onClose}/>;
  if(receipt)return <EquipmentResultWindow key="saved-receipt" snapshot={receipt} completed note={rewardNote} onClose={onClose}/>;
  if(review.donorSnapshot)return <EquipmentTransferWindow key="transfer-review" donor={review.donorSnapshot} recipient={review.snapshot} blocker={blocker} confirmDisabled={!confirmReady} onClose={onClose} onConfirm={confirm}/>;
- if(request.kind==='remove')return <EquipmentResultWindow key="removal-review" snapshot={review.snapshot} blocker={blocker} onClose={onClose} onConfirm={confirm}/>;
+ if(request.kind==='remove')return <EquipmentResultWindow key="removal-review" snapshot={review.snapshot} blocker={blocker} confirmDisabled={!confirmReady} onClose={onClose} onConfirm={confirm}/>;
  if(blocker)return <GameDialog title="Equipment changed" onClose={onClose}><p role="alert">{blocker}</p><button onClick={onClose}>Close and review again</button></GameDialog>;
  return <EquipmentAssignment save={save} copyId={request.equipmentId} creatureId={request.creatureId} confirmation confirmDisabled={!confirmReady} onSelect={()=>{}} onClose={onClose} onReview={()=>{}} onConfirm={confirm}/>;
 }
