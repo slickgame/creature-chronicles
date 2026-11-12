@@ -13,7 +13,7 @@ import {EQUIPMENT_SETS} from '@/data/equipmentRules';
 import {EQUIPMENT_SLOT_LABELS,getBattleOutfitterStock} from '@/data/battleOutfitter';
 import {useGameContext} from '@/state/GameProvider';
 import {useNavigation} from '@/features/navigation/NavigationContext';
-import {IngredientCounter} from './IngredientCounter';
+import {ForgeIngredientSources} from './ForgeIngredientSources';
 import {ForgeCreatureComparison} from './ForgeCreatureComparison';
 import {ForgeWindow,ForgeIcon,FORGE_ART} from './ForgeWindow';
 import s from './ForgeGallery.module.css';
@@ -64,7 +64,6 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
  <div className={s.workGrid}><section className={s.gallery} aria-label="Recipes" onPointerLeave={()=>setTooltipId(null)}><header className={s.boardHeader}><h2>Recipes</h2></header><div className={s.recipes}>{BLACKSMITH_RECIPES.map(r=>{const q=getBlacksmithQuote(save,r.id)!;return <button key={r.id} className={s.recipeCard} aria-label={`Select ${q.item.name}`} aria-pressed={recipe.id===r.id} aria-describedby={tooltipId===r.id?'forge-item-tooltip':undefined} data-recipe={r.id} onPointerEnter={e=>{if(e.pointerType==='mouse'&&!phone)setTooltipId(r.id);}} onFocus={()=>{if(!phone&&matchMedia('(hover: hover)').matches)setTooltipId(r.id);}} onBlur={()=>setTooltipId(null)} onClick={()=>{setRecipeId(r.id);}}>{tileArt(q.item)}</button>;})}</div>{tooltipQuote?<section id="forge-item-tooltip" className={s.tooltip} role="tooltip">{facts(tooltipQuote.item)}</section>:null}</section>
  <aside className={s.selection} aria-label="Selected recipe"><header className={s.detailHeading}><h2>{item.name}</h2><button className={s.info} aria-label="Full item details" onClick={()=>show('output')}><ForgeIcon name="info"/></button></header><div className={s.hero}><button className={s.itemArt} aria-label={`Inspect ${item.name}`} onClick={()=>show('output')}>{tileArt(item)}</button></div>{mainStat}<div className={s.summary}><p className={s.itemDescription}>{item.description}</p><p className={s.owned}>Owned: {getBattleOutfitterStock(save,item)}</p></div><div className={s.requirements}><div className={s.compactMaterials}>{action('Materials & labor','materials','materials')}</div><div className={s.inlineMaterials}><h3>Required materials</h3>{materialRows}{labor}</div></div><button className={s.priceLink} onClick={()=>show('routes')}>Outfitter price: {item.costGold} Gold ›</button><footer className={s.boardFooter}><div>{action('Compare','comparison','compare')}<button className={s.primary} disabled={!quote.canCraft} onClick={review}><ForgeIcon name="craft"/>Craft</button></div><p className={s.availability} role="status">{quote.canCraft?'Guaranteed · Goes to inventory':`Needed: ${quote.reason}`}</p></footer></aside></div>
  </section></div></section>
- {source?<IngredientCounter key={source} appearance="forge" resourceId={source} needed={Math.max(1,quote.missingInputs[source]??1)} onClose={()=>setSource(null)}/>:null}
  {popup==='output'?<ForgeWindow title="Crafted equipment" marker="output" onClose={()=>setPopup(null)} page={outputPage} pages={outputPages} onPage={setPage}>{itemHero}{outputPage<statPages?<><div className={s.stats}>{statRows.slice(outputPage*3,outputPage*3+3).map(st=><div className={s.stat} key={st.key}><span>{st.main?'Main · ':''}{BATTLE_STAT_LABELS[st.key]}</span><strong>+{st.value}</strong></div>)}</div><p className={s.note}>{stats.substats.length}/4 starting substats · {getBattleOutfitterStock(save,item)} owned. Added to inventory, not equipped.</p></>:<div className={s.outputFacts}><p>{item.description}</p><p>{stats.setId?EQUIPMENT_SETS[stats.setId].description:'No equipment set.'}</p><p>{stats.passive??'No passive effect.'}</p></div>}<div className={s.toolgrid}>{action('Materials & labor','materials','materials')}{action('Cost breakdown','cost','coin')}<button onClick={()=>setGuide(true)}>Slot rules & rolls</button></div></ForgeWindow>:null}
  {popup==='materials'?<ForgeWindow title="Materials & labor" marker="materials" onClose={()=>setPopup(null)}><h2>{item.name}</h2><div className={s.reviewCosts}>{materialRows}{labor}</div><p className={s.notice}>Only usable ingredients can be spent. Reserved stock stays protected.</p><button className={s.primary} disabled={!quote.canCraft} onClick={review}>Review crafting</button></ForgeWindow>:null}
  {popup==='cost'?<ForgeWindow title="Cost breakdown" marker="cost" onClose={()=>setPopup(null)}><h2>Materials & labor</h2>{costs}</ForgeWindow>:null}
@@ -102,7 +101,7 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
       <summary>Full recipe value <strong>{quote.totalValue} Gold</strong></summary>
       <p>Includes {quote.materialValue} Gold in materials and {recipe.laborGold} Gold in labor. Crafting uses materials from your stock. Buy any missing ingredients separately at Trade.</p>
      </details>
-     <button className={s.primary} onClick={()=>show('materials')}>Ingredient sources</button>
+     <button className={s.primary} onClick={()=>{show('materials');setSource(inputs.find(([id])=>quote.missingInputs[id])?.[0]??inputs[0][0]);}}>Ingredient sources</button>
     </section>
     <section className={s.quoteCard} aria-labelledby="forge-buy-quote">
      <h3 id="forge-buy-quote">Buy at Outfitter</h3>
@@ -116,6 +115,7 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
   </ForgeWindow>
  ):null}
  {popup==='talk'?<ForgeWindow title="A word with Iona" marker="talk" onClose={()=>setPopup(null)}><div className={s.dialogue}><img src={BLACKSMITH.portrait} alt="Iona Flint"/><div><p>“Petra builds the places you come home to. I make the pieces you take out into the world.”</p><p>Bring refined Iron ingots, not ore. Ingredient cards show where to buy or produce them. Every pattern has fixed stats and an exact labor fee.</p></div></div></ForgeWindow>:null}
+ {source?<ForgeIngredientSources initialResource={source} compact={phone||short} ingredients={inputs} item={item} onClose={()=>setSource(null)} backLabel={popup==='review'?'Back to crafting review':popup==='materials'?'Back to materials':'Back to forge'}/>:null}
  {guide?<EquipmentGuide item={item} onClose={()=>setGuide(false)}/>:null}
  </main>;
 }
