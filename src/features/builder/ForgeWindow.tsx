@@ -8,7 +8,7 @@ export function ForgeIcon({name}:{name:string}){const sculpted=['craft','coin','
 export function ForgeWindow({title,marker,onClose,children,footerAction,page=0,pages=1,onPage}:{title:string;marker:string;onClose:()=>void;children:ReactNode;footerAction?:ReactNode;page?:number;pages?:number;onPage?:(page:number)=>void}){
  return <GameDialog fullScreen title={title} onClose={onClose}><main className={s.dialogStage} data-forge-stage={marker}><section className={s.window} data-forge-window={marker}>
  <header>
- {marker==='routes'?<div className={s.quoteTitle}><p>Creature Chronicles</p><p>Iona’s Forge</p><h2>{title}</h2></div>:<h2>{title}</h2>}<button aria-label={`Close ${title}`} onClick={onClose}><ForgeIcon name="close"/></button></header>
+ {marker==='routes'?<div className={s.quoteTitle}><p>Iona’s Forge</p><h2>{title}</h2></div>:<h2>{title}</h2>}<button aria-label={`Close ${title}`} onClick={onClose}><ForgeIcon name="close"/></button></header>
  <div className={s.windowBody}>{children}</div>
  {marker!=='review'?<footer><button onClick={onClose}><ForgeIcon name="back"/>Back to forge</button>{footerAction}{pages>1&&onPage?<nav className={s.pager} aria-label="Detail pages"><button aria-label="Previous details" disabled={!page} onClick={()=>onPage(page-1)}><ForgeIcon name="back"/></button><span>{page+1}/{pages}</span><button aria-label="Next details" disabled={page+1>=pages} onClick={()=>onPage(page+1)}><ForgeIcon name="next"/></button></nav>:null}</footer>:null}
  </section></main></GameDialog>;

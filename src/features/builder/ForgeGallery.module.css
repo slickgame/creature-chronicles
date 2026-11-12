@@ -306,8 +306,7 @@
 
 .quoteTitle { text-align: center; font-weight: bold; }
 .quoteTitle p,.quoteCard .quoteTotal,.quoteValue p { line-height: 1.13; }
-.quoteTitle p:first-child { font-size: 17px; }
-.quoteTitle p:nth-child(2) { font-size: 37px; }
+.quoteTitle p { font-size: 37px; }
 .window .quoteTitle h2 { font-size: 43px; margin-top: 3px; }
 
 .window[data-forge-window="routes"] .windowBody {
@@ -373,8 +372,7 @@
 @media (max-width: 600px) and (orientation: portrait) {
   .window[data-forge-window="routes"] { padding: 8px 9px; gap: 8px; }
   .window[data-forge-window="routes"] .windowBody { gap: 8px; }
-  .quoteTitle p:first-child { font-size: 12px; }
-  .quoteTitle p:nth-child(2) { font-size: 23px; }
+  .quoteTitle p { font-size: 23px; }
   .window .quoteTitle h2 { font-size: 28px; }
   .quoteItem { gap: 10px; margin-inline: 0; }
   .quoteItem .itemArt { width: 50px; height: 50px; }
@@ -396,8 +394,7 @@
 @media (max-height: 550px) and (orientation: landscape) {
   .window[data-forge-window="routes"] { border-radius: 8px; padding: 4px 9px; gap: 4px; }
   .window[data-forge-window="routes"] .windowBody { gap: 5px; }
-  .quoteTitle p:first-child { display: none; }
-  .quoteTitle p:nth-child(2) { font-size: 13px; }
+  .quoteTitle p { font-size: 13px; }
   .window .quoteTitle h2 { font-size: 23px; margin-top: 0; }
   .quoteItem { gap: 8px; margin-inline: 0; }
   .quoteItem .itemArt { width: 36px; height: 36px; }
