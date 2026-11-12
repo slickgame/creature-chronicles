@@ -62,6 +62,11 @@
   .warning, .inventory { padding: 4px 6px; }
   .inventory > [data-equipment-glyph] { font-size: 13px; }
   .inventory strong { font-size: 12px; }
+  .book[data-equipment-result][data-completed=false] footer > button:last-child {
+    gap: 4px;
+    font-size: 13px;
+  }
+  .book[data-equipment-result][data-completed=false] footer [data-equipment-glyph] { font-size: 11px; }
 }
 
 @media (max-width: 700px) and (max-height: 400px) and (orientation: landscape) {
