@@ -2273,7 +2273,7 @@
   .arena[data-individual="true"]:has([data-intent-open]) {
     --enemy-intent-space: 92px;
   }
-  .arena[data-individual="true"]:has(.figure[data-side="enemy"] .intentBadge) > .field {
+  .arena[data-individual="true"]:has(.figure[data-side="enemy"] .intentBadge, [data-intent-open] [data-compact-targets]) > .field {
     margin-top: var(--enemy-intent-space);
   }
   .arena[data-individual="true"]:has([data-intent-open]) .figureButton:has(.intentBadge) .marker {
@@ -2338,12 +2338,19 @@
   .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-slot="0"] { grid-column: 1; }
   .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-slot="1"] { grid-column: 2; }
   .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .field > .figure[data-slot="2"] { grid-column: 3; }
+  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .nameplate {
+    gap: 1px;
+    padding-block: 0;
+  }
+  .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .nameplate .meter {
+    height: 11px;
+  }
   .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .nameplate > strong:has(> .intentBadge) {
     gap: 1px 2px;
     font-size: 10px;
   }
   .arena[data-individual="true"]:has([data-intent-open] [data-compact-targets]) .intentBadge {
-    padding-inline: 3px;
+    padding: 0 3px;
     gap: 2px;
   }
 }
