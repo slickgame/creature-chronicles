@@ -17,7 +17,9 @@ import {
   getColiseumC2Division,
   getColiseumC2Encounter,
   getColiseumC2Progress,
+  recordColiseumC2BattleResult,
   type ColiseumC2EncounterId,
+  type ColiseumCombatPerformanceMap,
   type ColiseumHistoryEntryV2,
 } from "@/data/coliseumC2";
 import {
@@ -35,7 +37,7 @@ import {
   getTalentDefinition,
   normalizeTalentInstances,
 } from "@/data/talents/talentDefinitions";
-import type { BattleMoveId } from "@/types/battle";
+import type { BattleMoveId, BattleOutcome } from "@/types/battle";
 import type {
   AbilityGrade,
   CreatureAbility,
@@ -377,6 +379,32 @@ export function syncColiseumC3Rewards(save: GameSave): ColiseumC3Result {
     ok: true,
     changed: true,
     message: marksAdded > 0 ? `Coliseum rewards synchronized: +${marksAdded} Marks${newHistory.length ? ` across ${newHistory.length} award entries` : ""}.` : "Coliseum result ledger synchronized.",
+  };
+}
+
+export function prepareColiseumCircuitResult(
+  save: GameSave,
+  encounterId: ColiseumC2EncounterId,
+  outcome: BattleOutcome,
+  roundCount: number,
+  teamCreatureIds: CreatureId[],
+  performance: ColiseumCombatPerformanceMap,
+  resultId: string,
+) {
+  const result = recordColiseumC2BattleResult(save, encounterId, outcome, roundCount, teamCreatureIds, performance, resultId);
+  if (result.duplicate) return { ...result, bonusLabel: undefined };
+
+  const synced = syncColiseumC3Rewards(result.save);
+  const award = synced.state.awardHistory.find((entry) => entry.sourceResultId === resultId);
+  if (!award?.marks) return { ...result, save: synced.save, bonusLabel: undefined };
+
+  const marks = `+${award.marks} ${award.marks === 1 ? "Mark" : "Marks"}`;
+  const bonusLabel = award.lootLabel === "No bonus loot" ? marks : `${marks} • ${award.lootLabel}`;
+  return {
+    ...result,
+    save: synced.save,
+    bonusLabel,
+    message: `${result.message} Coliseum bonus: ${bonusLabel}.`,
   };
 }
 

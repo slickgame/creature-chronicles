@@ -16,3 +16,12 @@
 }
 
 .screen .team figcaption { color: #3d2c18; text-shadow: none; }
+
+.rewardSummary {
+  display: grid;
+  gap: 2px;
+}
+.rewardSummary small {
+  font-size: .8em;
+  line-height: 1.25;
+}
