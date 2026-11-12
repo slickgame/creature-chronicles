@@ -7,3 +7,12 @@
 .screen .ledger,.screen .ledger :is(h2,p,strong,span){color:#3d2c18;text-shadow:none}
 .screen .ledger h2{color:#3d2c18!important;text-shadow:none!important}
 .screen dialog :is(h2,h3,p):not([data-order-shift-card] > h3){color:#3d2c18!important;text-shadow:none!important}
+
+@media (max-width: 600px) and (max-height: 620px) {
+  .screen {
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 318px) 49px;
+  }
+  .screen > header p { margin-top: 3px; }
+}
+
+.screen .team figcaption { color: #3d2c18; text-shadow: none; }
