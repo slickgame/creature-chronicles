@@ -55,7 +55,7 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
   if(!save||!quote||!copy||busy.current)return;busy.current=true;setUpgradeReceipt(null);
   const result=enhanceEquipment(save,copy.id,reviewLevel);
   let report=result.message;
-  if(result.ok){const persisted=saveCurrentGame(result.save),upgraded=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:quote.item.name,art:quote.item.iconPath,slot:quote.item.equipmentSlot,level:upgraded.level,cost:quote.cost,before:quote.before,after:equipmentStats(quote.item,upgraded)});const g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(g||gp)report+=` Goal rewards: +${g} Gold, +${gp} GP.`;}
+  if(result.ok){const persisted=saveCurrentGame(result.save),upgraded=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:quote.item.name,art:quote.item.iconPath,slot:quote.item.equipmentSlot,level:upgraded.level,cost:quote.cost,goalGold:Math.max(0,persisted.currencies.gold-result.save.currencies.gold),before:quote.before,after:equipmentStats(quote.item,upgraded)});const g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(g||gp)report+=` Goal rewards: +${g} Gold, +${gp} GP.`;}
   setMessage(report);setPopup('report');
  }
  return <main className={styles.screen} data-equipment-upgrades>

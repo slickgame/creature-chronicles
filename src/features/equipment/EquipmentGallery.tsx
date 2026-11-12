@@ -78,7 +78,7 @@ export function EquipmentGallery({onClose,initialCreatureId='',initialSlot='all'
   if(!fresh||quoteKey(fresh)!==quoteKey(review)){setNotice('This piece changed. Review its current upgrade again.');setReview(null);return;}
   busy.current=true;
   const result=enhanceEquipment(now,review.copy.id,review.copy.level);
-  if(result.ok){const persisted=game.saveCurrentGame(result.save);latest.current=persisted;const updated=getEquipmentCopies(persisted).find(c=>c.id===review.copy.id)!;setUpgradeReceipt({name:review.item.name,art:review.item.iconPath,slot:review.item.equipmentSlot,level:updated.level,cost:review.cost,before:review.before,after:equipmentStats(review.item,updated)});}
+  if(result.ok){const persisted=game.saveCurrentGame(result.save);latest.current=persisted;const updated=getEquipmentCopies(persisted).find(c=>c.id===review.copy.id)!;setUpgradeReceipt({name:review.item.name,art:review.item.iconPath,slot:review.item.equipmentSlot,level:updated.level,cost:review.cost,goalGold:Math.max(0,persisted.currencies.gold-result.save.currencies.gold),before:review.before,after:equipmentStats(review.item,updated)});}
   else setNotice(result.message);
   setReview(null);busy.current=false;
  }

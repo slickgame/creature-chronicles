@@ -7,7 +7,7 @@ import {EQUIPMENT_SLOT_LABELS,type EquipmentSlot} from '@/data/battleOutfitter';
 import {BATTLE_STAT_LABELS} from '@/data/equipmentComparison';
 import type {equipmentStats} from '@/data/equipmentEnhancement';
 import s from './UpgradeLedger.module.css';
-export type UpgradeReceipt={name:string;art?:string;slot?:EquipmentSlot;level:number;cost:number;before:ReturnType<typeof equipmentStats>;after:ReturnType<typeof equipmentStats>};
+export type UpgradeReceipt={name:string;art?:string;slot?:EquipmentSlot;level:number;cost:number;goalGold?:number;before:ReturnType<typeof equipmentStats>;after:ReturnType<typeof equipmentStats>};
 export function UpgradeSuccess({receipt,gold,onClose}:{receipt:UpgradeReceipt;gold:number;onClose:()=>void}){
  const {before,after,level}=receipt;const reward=after.milestones.find(m=>m.level===level);
  const prior=reward?before.substats.find(stat=>stat.key===reward.key)?.value??0:0;
@@ -18,7 +18,7 @@ export function UpgradeSuccess({receipt,gold,onClose}:{receipt:UpgradeReceipt;go
  <dl className={s.substats} aria-label="Saved substats">{after.substats.filter(stat=>stat.key!==reward?.key).map(stat=>{const previous=before.substats.find(old=>old.key===stat.key)?.value??0;return <div key={stat.key}><dt><EquipmentStatIcon name={stat.key}/>{BATTLE_STAT_LABELS[stat.key]}</dt><dd>{previous===stat.value?`+${stat.value}`:previous} <span>→</span> +{stat.value}</dd></div>;})}</dl>
  <div className={s.reward} data-revealed={!!reward}>{reward?<EquipmentStatIcon name={reward.key}/>:<ForgeIcon name="upgrade"/>}<div><strong>{reward?`${reward.added?'New':'Improved'}: ${BATTLE_STAT_LABELS[reward.key]}`:'Substats unchanged'}</strong><small>{reward?`${prior} → ${prior+reward.amount} (+${reward.amount})`:level===15?'Maximum level reached':`Next ${after.substats.length>=4?'random increase':'mystery'} at +${Math.min(15,Math.ceil((level+1)/3)*3)}`}</small></div></div>
  <p className={s.limit}>{after.substats.length} / 4 substats · Result saved to this piece. Rarity and power grade unchanged.</p>
- <div className={s.cost}><ForgeIcon name="coin"/><div><strong>{receipt.cost} Gold paid</strong><small>Current balance: {gold.toLocaleString('en-US')} Gold</small></div></div>
+ <div className={s.cost}><ForgeIcon name="coin"/><div><strong>{receipt.cost} Gold paid</strong>{!!receipt.goalGold&&<small>Ranch goal rewards: +{receipt.goalGold.toLocaleString('en-US')} Gold</small>}<small>Current balance: {gold.toLocaleString('en-US')} Gold</small></div></div>
  <footer><button onClick={onClose}>Continue</button></footer>
  </section></main></GameDialog>;
 }
