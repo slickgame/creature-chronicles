@@ -11,6 +11,10 @@ import s from './ForgeGallery.module.css';
 
 const sourceArt = '/images/ui/forge-gallery-v1/';
 
+type PurchaseReceipt =
+  | {ok: true; count: number; paid: number; balance: number; reward: number}
+  | {ok: false; message: string};
+
 type Props = {
   initialResource: ResourceId;
   ingredients: [ResourceId, number][];
@@ -25,7 +29,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
   const [selected, setSelected] = useState(initialResource);
   const [route, setRoute] = useState<'buy' | 'produce'>('buy');
   const [review, setReview] = useState(false);
-  const [receipt, setReceipt] = useState('');
+  const [receipt, setReceipt] = useState<PurchaseReceipt | null>(null);
   const [quantity, setQuantity] = useState<number>();
   const [anchor, setAnchor] = useState(() => Math.max(0, ingredients.findIndex(([id]) => id === initialResource)));
   const [production, setProduction] = useState<'Gathering' | 'Kitchen' | 'Workbench' | null>(null);
@@ -65,34 +69,86 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
     if (!save || !canBuy || busy.current) return;
     busy.current = true;
     const result = tradeResource(save, active.id, count);
-    if (result.ok) saveCurrentGame(result.save);
-    setReceipt(result.message);
+    if (result.ok) {
+      const persisted = saveCurrentGame(result.save);
+      setReceipt({
+        ok: true,
+        count,
+        paid: cost,
+        balance: persisted.currencies.gold,
+        reward: persisted.currencies.gold - result.save.currencies.gold,
+      });
+    } else {
+      setReceipt({ok: false, message: result.message});
+    }
     setReview(false);
     setQuantity(undefined);
   }
 
-  const title = review ? 'Review ingredient purchase' : receipt ? 'Ingredient purchase' : 'Ingredient sources';
+  const title = review ? 'Ingredient purchase review' : receipt ? 'Purchase receipt' : 'Ingredient sources';
+  const remaining = options.filter(({id, missing}) => id !== active.id && missing > 0);
+  const transactionFooter = review ? (
+    <div className={s.purchaseActions}>
+      <button onClick={() => setReview(false)}>Cancel</button>
+      <button className={s.primary} disabled={!canBuy} onClick={confirmPurchase}>Confirm purchase</button>
+    </div>
+  ) : receipt ? (
+    <div className={s.purchaseActions} data-receipt>
+      <button className={s.primary} onClick={() => setReceipt(null)}>Continue sourcing</button>
+      <button onClick={onClose}>{backLabel}</button>
+    </div>
+  ) : undefined;
+
   return (
     <>
-      <ForgeWindow title={title} marker="ingredient-sources" onClose={onClose} backLabel={backLabel}>
-        <div className={s.ingredientItem}>
-          <div className={s.ingredientItemArt}><img src={item.iconPath} alt=""/></div>
-          <h3>{item.name} +0</h3>
-        </div>
+      <ForgeWindow title={title} marker="ingredient-sources" onClose={review ? () => setReview(false) : onClose} backLabel={backLabel} footer={transactionFooter}>
+        {!receipt && (
+          <div className={s.ingredientItem}>
+            <div className={s.ingredientItemArt}><img src={item.iconPath} alt=""/></div>
+            <h3>{item.name} +0</h3>
+          </div>
+        )}
         {review ? (
-          <section className={s.ingredientPanel}>
-            <h3>Buy {count} × {resource.name}</h3>
-            <p>Total <strong>{cost} Gold</strong></p>
-            <p>Gold balance {save.currencies.gold} → {save.currencies.gold - cost}</p>
-            <div className={s.actions}>
-              <button onClick={() => setReview(false)}>Cancel purchase</button>
-              <button className={s.primary} disabled={!canBuy} onClick={confirmPurchase}>Confirm purchase</button>
+          <section className={s.purchaseReview} aria-label="Purchase details">
+            <figure className={s.purchaseVendor}>
+              <img src={`${sourceArt}pella-market-stall.webp`} alt=""/>
+              <figcaption>Purchase from Pella</figcaption>
+            </figure>
+            <div className={s.purchaseDetails}>
+              <h3>Review purchase</h3>
+              <div className={s.purchaseLine}>
+                <span>{getResourceArt(active.id) && <img src={getResourceArt(active.id)} alt=""/>}<strong>{resource.name}</strong></span>
+                <span>{count} × {resource.price} Gold</span>
+                <strong>{cost} Gold</strong>
+              </div>
+              <dl className={s.purchaseLedger}>
+                <div><dt>Total</dt><dd><ForgeIcon name="coin"/>{cost} Gold</dd></div>
+                <div><dt>Balance</dt><dd>{save.currencies.gold} → {save.currencies.gold - cost} Gold</dd></div>
+                <div><dt>Reserved</dt><dd>{active.reserved}</dd></div>
+              </dl>
             </div>
           </section>
         ) : receipt ? (
-          <section className={s.ingredientPanel}>
-            <p role="status">{receipt}</p>
-            <button className={s.primary} onClick={() => setReceipt('')}>Continue sourcing</button>
+          <section className={s.purchaseReceipt}>
+            {receipt.ok ? (
+              <>
+                <div className={s.purchaseSuccess} role="status"><span aria-hidden="true">✓</span><h3>Success</h3></div>
+                <div className={s.purchaseReceiptVendor}><img src={`${sourceArt}pella-market-stall.webp`} alt=""/><strong>Purchased from Pella</strong></div>
+                <dl className={s.purchaseLedger}>
+                  <div><dt>{getResourceArt(active.id) && <img src={getResourceArt(active.id)} alt=""/>}{resource.name} added</dt><dd>{receipt.count}</dd></div>
+                  <div><dt><ForgeIcon name="coin"/>Gold paid</dt><dd>{receipt.paid} Gold</dd></div>
+                  <div><dt><ForgeIcon name="coin"/>Balance</dt><dd>{receipt.balance} Gold</dd></div>
+                  {receipt.reward > 0 && <div><dt>Ranch goal reward</dt><dd>+{receipt.reward} Gold</dd></div>}
+                  <div><dt><img src={item.iconPath} alt=""/>{item.name}</dt><dd>{options.some(({missing}) => missing > 0) ? 'Materials still missing' : 'Materials covered'}</dd></div>
+                  {options.some(({missing}) => missing > 0) && (
+                    <div className={s.purchaseShortages}><dt>Ingredient status</dt><dd>
+                      <span>{resource.name} {active.missing ? `· ${active.missing} missing` : 'covered'}</span>
+                      {remaining.map(({id, missing}) => <span key={id}>{missing} {id === 'nails' && missing === 1 ? 'Nail' : RESOURCES[id].name} missing</span>)}
+                    </dd></div>
+                  )}
+                </dl>
+              </>
+            ) : <p role="status">{receipt.message}</p>}
           </section>
         ) : (
           <>
