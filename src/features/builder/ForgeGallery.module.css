@@ -33,7 +33,7 @@
 .activityTabs{display:flex;align-items:start;gap:4px}.activityTabs button{font-size:22px;min-height:49px;min-width:180px;background-image:url('/images/ui/forge-slate-v2/frames/tab.svg')}.activityTabs button:hover{background-image:url('/images/ui/forge-slate-v2/frames/tab-hover.svg')}.activityTabs button:active{background-image:url('/images/ui/forge-slate-v2/frames/tab-pressed.svg')}.activityTabs button.activeTab{background-image:url('/images/ui/forge-slate-v2/frames/tab-active.svg')}.activityTabs button.activeTab:hover{background-image:url('/images/ui/forge-slate-v2/frames/tab-active-hover.svg')}.activityTabs button.activeTab:active{background-image:url('/images/ui/forge-slate-v2/frames/tab-active-pressed.svg')}
 .activityTabs .icon{width:33px;height:33px}.phoneTitle,.activityTabs .phoneTalk{display:none}
 .workGrid{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(0,1fr);gap:8px;min-height:0}
-.gallery{position:relative;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:18px;align-content:start}
+.gallery{position:relative;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:18px;align-content:start}
 .recipes{display:grid;width:100%;max-width:494px;padding:5px;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;align-content:start}
 .screen button.recipeCard,.itemArt{position:relative;min-width:0;width:100%;aspect-ratio:1;background:#0b1823 url('/images/ui/forge-slate-v2/textures/slate.webp') center/cover;border:0;border-radius:6px;padding:0;display:block;isolation:isolate}
 .screen button.recipeCard:hover{background-image:url('/images/ui/forge-slate-v2/textures/slate.webp');filter:brightness(1.12)}
@@ -90,3 +90,97 @@
 
 /* Set identity mirrors the category anchor without changing tile geometry. */
 .setBadge{position:absolute;width:29%;height:29%;left:4%;bottom:4%;border:1px solid #d5ad5c;border-radius:50%;background:radial-gradient(circle at 35% 22%,#263540,#0b1823 72%);box-shadow:inset 0 0 0 1px #f6db8c44,0 1px 2px #0009;display:grid;place-items:center;pointer-events:none}.setBadge>img{width:100%;height:100%;object-fit:contain}
+
+.inlineMaterials {
+  display: grid;
+  gap: inherit;
+}
+
+.compactMaterials {
+  display: none;
+}
+
+@media (max-height: 550px), (max-width: 650px) and (max-height: 650px) {
+  .inlineMaterials { display: none; }
+  .compactMaterials { display: block; }
+}
+
+@media (max-width: 650px) and (max-height: 650px) {
+  .selection {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  }
+
+  .selection .itemDescription { display: none; }
+  .selection .requirements {
+    grid-column: 1;
+    align-self: center;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .selection .requirements button {
+    min-height: 34px;
+    padding: 4px 7px;
+    gap: 5px;
+    font-size: 14px;
+  }
+
+  .requirements .icon { width: 20px; height: 20px; }
+  .screen .selection .priceLink { grid-column: 2; align-self: center; }
+  .boardFooter { align-self: end; }
+}
+
+@media (max-width: 740px) and (max-height: 550px) and (orientation: landscape) {
+  .forge { grid-template-rows: 36px minmax(0, 1fr); }
+  .forgeHeader h1 { display: block; font-size: 24px; }
+  .phoneTitle, .host, .selection .hero { display: none; }
+  .forgeGrid { display: block; }
+  .board { height: 100%; grid-template-rows: 34px minmax(0, 1fr); }
+  .activityTabs button { min-height: 34px; font-size: 16px; }
+  .activityTabs .phoneTalk { display: inline-flex; min-width: 40px; }
+  .gallery { align-content: start; }
+  .selection { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto minmax(0, 1fr); }
+  .selection > .stat { grid-column: 1; grid-row: 2; }
+  .selection .summary { display: none; }
+  .selection .requirements, .screen .selection .priceLink { grid-column: 1; }
+  .boardFooter { align-self: end; }
+  .workGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .recipes {
+    grid-template-columns: repeat(3, minmax(0, 65px));
+    gap: 6px;
+  }
+
+  .window:is([data-forge-window="review"], [data-forge-window="receipt"]) {
+    padding: 8px 11px;
+    gap: 6px;
+  }
+
+  .window:is([data-forge-window="review"], [data-forge-window="receipt"]) .windowBody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .window[data-forge-window="review"] .reviewCosts {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .window[data-forge-window="review"] .actions {
+    grid-column: 1 / -1;
+  }
+
+  .window[data-forge-window="materials"] .reviewCosts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .window[data-forge-window="receipt"] > footer { gap: 8px; }
+  .window[data-forge-window="receipt"] > footer button:first-child { white-space: nowrap; }
+}
