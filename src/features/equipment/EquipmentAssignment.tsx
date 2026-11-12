@@ -15,7 +15,7 @@ import {EquipmentStatIcon} from './EquipmentStatIcon';
 import s from './EquipmentAssignment.module.css';
 
 export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirmDisabled=false,onSelect,onClose,onReview,onConfirm}:{save:GameSave;copyId:string;creatureId:string;confirmation:boolean;confirmDisabled?:boolean;onSelect:(id:string)=>void;onClose:()=>void;onReview:()=>void;onConfirm:()=>void}){
- const [search,setSearch]=useState(''),[page,setPage]=useState(0),[expanded,setExpanded]=useState(false),[statPage,setStatPage]=useState(0),[mobile,setMobile]=useState(false),[short,setShort]=useState(false),[desktopCapacity,setDesktopCapacity]=useState(5),[tab,setTab]=useState<'creature'|'equipment'|'changes'>(confirmation?'changes':'creature');
+ const [search,setSearch]=useState(''),[page,setPage]=useState(0),[expanded,setExpanded]=useState(false),[statPage,setStatPage]=useState(0),[mobile,setMobile]=useState(()=>typeof window!=="undefined"&&(innerWidth<=700||innerHeight<=550)),[short,setShort]=useState(()=>typeof window!=="undefined"&&innerHeight<=550),[desktopCapacity,setDesktopCapacity]=useState(()=>typeof window!=="undefined"&&innerHeight>=850?8:5),[tab,setTab]=useState<'creature'|'equipment'|'changes'>(confirmation?'changes':'creature');
  useEffect(()=>{const resize=()=>{setMobile(innerWidth<=700||innerHeight<=550);setShort(innerHeight<=550);setDesktopCapacity(innerHeight>=850?8:5);};const frame=requestAnimationFrame(resize);addEventListener('resize',resize);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',resize);};},[]);
  const copy=getEquipmentCopies(save).find(c=>c.id===copyId),item=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===copy?.itemId);
  const entry=getOwnedInventory(save).find(e=>e.id===copyId);

@@ -2,3 +2,63 @@
 @media(min-width:701px) and (max-width:1150px){.layout{grid-template-columns:minmax(150px,.65fr) minmax(230px,1fr) minmax(300px,1.3fr);gap:10px}.book{padding:18px}.portrait{height:125px!important}.portrait strong{font-size:22px}.gearPair h3{font-size:17px}.impact table{font-size:15px}.gearPanel,.impact{padding:10px}}
 @media(max-width:700px),(max-height:550px){.shell{padding:9px}.book{padding:16px;gap:10px;max-width:650px}.book h2{font-size:26px}.heading p{font-size:13px}.heading button{flex-shrink:0}.layout{display:block}.gearPair article>div{max-width:135px}.gearPair h3{font-size:18px}.gearPair p{font-size:13px}.book footer{flex-wrap:wrap;gap:7px}.book footer>span{order:-1;width:100%;text-align:center;font-size:12px}.book footer button{font-size:17px;flex:1}.book footer button:last-child{min-width:0}.impact table{font-size:15px}.impact th,.impact td{padding:6px 2px}.impact tbody th{gap:2px}.impact thead{font-size:12px}.sets{gap:6px;margin-top:8px}.sets small{font-size:12px}.sets>div{padding:6px}.warning{font-size:12px}.portrait{height:120px!important}.recipient{display:flex;align-items:center}.recipient>img{width:42%;height:180px}.recipient p{font-size:14px}.gearPanel,.impact{padding:10px}.statHeading h3{font-size:19px}.statHeading button{font-size:13px}.summary{font-size:11px}.pager{gap:12px}.pager button{min-height:36px}.sets h3{font-size:19px}}
 @media(max-height:550px){.book{max-width:1000px;padding:12px;gap:6px}.heading h2{font-size:23px}.heading p{display:none}.tabs{position:absolute;top:12px;right:65px;width:340px}.layout{min-height:180px}.candidates{grid-template-columns:1fr 1fr}.portrait{height:105px!important}.roster{grid-template-columns:1fr 2fr;align-items:center}.roster .pager{grid-column:1/-1}.gearPair{grid-template-columns:1fr 22px 1fr;max-width:470px}.gearPair article{grid-template-columns:90px 1fr;gap:5px;text-align:left}.gearPair article>div{grid-column:1;grid-row:1/4;width:90px}.gearPair h3,.gearPair p{grid-column:2}.gearPair h3{font-size:15px}.gearPanel{display:flex;gap:15px;align-items:center}.gearPanel .inventory{max-width:260px}.impact{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}.impact table{grid-column:1;grid-row:2/5}.impact .sets{grid-column:2;grid-row:1/5}.impact .warning{grid-column:1/-1}.impact .summary{display:none}.impact th,.impact td{padding:3px}.book[data-expanded=true] .impact table{grid-column:1/-1;grid-row:auto}.book[data-expanded=true] .impact .pager{grid-column:2;grid-row:1}.book footer>span{order:0;width:auto}.book footer{flex-wrap:nowrap}.book footer button{flex:0 1 auto}.recipient>img{height:140px;width:140px}}
+
+@media (max-width: 700px) and (max-height: 660px) {
+  .book[data-equipment-assignment] {
+    min-width: 0;
+    padding: 10px;
+    gap: 6px;
+  }
+  .book:is([data-equipment-assignment], [data-equipment-result]) .tabs {
+    position: static;
+    width: auto;
+    gap: 4px;
+  }
+  .book:is([data-equipment-assignment], [data-equipment-result]) .tabs button {
+    min-width: 0;
+    min-height: 32px;
+    padding: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .book[data-equipment-assignment] .layout { min-height: 0; }
+  .book[data-equipment-assignment] .roster { gap: 6px; }
+  .book[data-equipment-assignment] .portrait { height: 80px !important; }
+  .book[data-equipment-assignment] .portrait span { gap: 3px; padding: 5px; }
+  .book[data-equipment-assignment] .portrait strong { font-size: 18px; }
+  .book[data-equipment-assignment] .portrait small { font-size: 12px; }
+  .book[data-equipment-assignment] .recipient > img { height: 108px; }
+  .book[data-equipment-assignment] .impact table { font-size: 14px; }
+  .book[data-equipment-assignment] .impact thead { font-size: 11px; }
+  .book[data-equipment-assignment] .impact :is(th, td) { padding: 4px 2px; }
+  .book[data-equipment-assignment] .impact :is(th, td):not(:first-child) { white-space: nowrap; }
+  .book[data-equipment-assignment] .impact th > [data-equipment-glyph] { font-size: 11px; }
+  .book[data-equipment-assignment] .statHeading h3 { font-size: 16px; }
+  .book:is([data-equipment-assignment], [data-equipment-result]) footer button {
+    min-width: 0;
+    min-height: 38px;
+    padding: 5px 8px;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .book[data-equipment-assignment] footer [data-equipment-glyph] { font-size: 11px; }
+}
+
+@media (max-width: 700px) and (max-height: 400px) and (orientation: landscape) {
+  .book[data-equipment-assignment] .heading h2 { font-size: 21px; }
+  .book[data-equipment-assignment] .heading button { min-height: 30px; }
+  .book[data-equipment-assignment] .roster { grid-template-columns: minmax(0, .65fr) minmax(0, 2fr); }
+  .book[data-equipment-assignment] .candidates { gap: 5px; }
+  .book[data-equipment-assignment] .recipient { grid-column: 1 / -1; }
+  .book[data-equipment-assignment] .gearPanel { display: grid; gap: 5px; }
+  .book[data-equipment-assignment] .gearPanel[hidden] { display: none; }
+  .book[data-equipment-assignment] .gearPair { max-width: none; }
+  .book[data-equipment-assignment] .gearPanel .inventory {
+    max-width: none;
+    margin-top: 0 !important;
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  .book[data-equipment-assignment] .gearPair article { grid-template-columns: 60px minmax(0, 1fr); }
+  .book[data-equipment-assignment] .gearPair article > div { width: 60px; }
+}

@@ -37,3 +37,17 @@
 .grid{grid-template-rows:repeat(2,max-content);align-content:start}
 @media(max-width:950px) and (min-height:551px) and (max-height:780px){.details{gap:5px}.hero{grid-template-columns:64px minmax(0,1fr);gap:9px}.hero h2{font-size:21px}.hero p{font-size:12px}.hero>div{gap:4px}.owner{font-size:12px}.owner>img{width:22px;height:22px}.statPanel h3{font-size:17px;margin-bottom:1px}.mainStat{font-size:16px;padding:0 0 3px}.mainStat>span[data-equipment-glyph]{font-size:14px}.statPanel dl>div{min-height:24px;font-size:15px}.statPanel dt>span{font-size:12px}.identity>img{width:22px;height:22px}.book .identity .link{min-height:22px;font-size:13px}.identity{font-size:13px}.book .actions button{min-height:33px;padding:5px;font-size:14px}.book .note{font-size:10px}}
 @media(max-height:550px){.grid{grid-template-rows:max-content}}
+
+@media (max-width: 700px) and (max-height: 660px) {
+  .book[data-equipment-gallery][data-view=details] {
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+  .book[data-equipment-gallery][data-view=details] > :is(.tools, .categories) { display: none; }
+}
+
+@media (max-width: 700px) and (max-height: 420px) and (orientation: landscape) {
+  .book[data-equipment-gallery] .tools {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) auto minmax(0, 1fr);
+  }
+  .book[data-equipment-gallery] .details { align-content: start; }
+}
