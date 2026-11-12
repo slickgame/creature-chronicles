@@ -741,6 +741,12 @@ function invalidResult(save: GameSave, state: ColiseumC4State, message: string, 
   return { save, state, ok: false, changed: false, duplicate, message, xpSummaries: [] };
 }
 
+export function getColiseumC4NoRewardLabel(entry: ColiseumC4HistoryEntry): string {
+  if (entry.outcome !== "player_won") return "No challenge reward earned.";
+  if (entry.mode === "gauntlet" && entry.stageNumber < entry.stageCount) return "Rewards unlock after the final stage.";
+  return entry.mode === "daily" ? "Daily reward already claimed." : "Weekly reward already claimed.";
+}
+
 export function recordColiseumC4BattleResult(
   save: GameSave,
   challenge: ColiseumC4ChallengeDefinition,
@@ -910,7 +916,7 @@ export function recordColiseumC4BattleResult(
   const nextSave = writeC4State({ ...save, creatures }, state, flags);
   const xpLabel = xpSummaries.map((entry) => `${entry.creatureName} +${entry.xpGained} XP${entry.levelAfter > entry.levelBefore ? ` (Lv. ${entry.levelAfter})` : ""}`).join(" • ");
   const continuation = activeRun ? ` Stage ${activeRun.stageIndex + 1} is ready with 30% HP and 25% Battle Energy recovery.` : "";
-  const rewardLabel = rewardTier === "none" ? "No repeat reward." : `${rewardTier === "full" ? "Full" : "Repeat"} reward: ${lootPieces}.`;
+  const rewardLabel = rewardTier === "none" ? getColiseumC4NoRewardLabel(historyEntry) : `${rewardTier === "full" ? "Full" : "Repeat"} reward: ${lootPieces}.`;
   return {
     save: nextSave,
     state,
