@@ -54,6 +54,21 @@ function groupEnemyIntentEffects(state: BattleState, action: BattleAction) {
   return effectsByTarget;
 }
 
+function compactIntentEffect(effects: BattleActionEffectPreview[], currentHp: number) {
+  const damage = effects.reduce((sum, effect) => sum + (effect.damageBreakdown?.hpLost ?? 0), 0);
+  if (effects.some(effect => effect.damageBreakdown)) return `−${damage} HP if hit`;
+  const healing = effects.findLast(effect => effect.effectType === "heal");
+  if (healing) {
+    const restored = Math.max(0, healing.hpAfter - currentHp);
+    return restored ? `+${restored} HP` : "Full HP";
+  }
+  const guard = effects.find(effect => effect.guardedAfter &&
+    (effect.effectType === "guard" || effect.statusApplication?.stack.status === "guarded"));
+  if (guard?.guardedAfter) return `Guard −${guard.guardedAfter.damageReductionPercent}%`;
+  const status = effects.find(effect => effect.statusApplication)?.statusApplication?.stack;
+  return status ? getBattleStatusGlossary(status.status).label : getBattleEffectGlossary(effects[0].effectType).label;
+}
+
 function EnemyIntentEffects({ state, action, effectsByTarget }: {
   state: BattleState;
   action: BattleAction;
@@ -1114,11 +1129,17 @@ export function BattleArenaB(props: BattleArenaBProps) {
             {individual && <i>{stunned ? `${sideLabel} · Stunned` : sideLabel}</i>}
           </span>
           {individual && <OrderCrest ally={ally}/>}
-          {intent && <b className={s.enemyIntentTip} id={intentTipId} role="tooltip" hidden={!portraitIntentOpen} data-enemy-intent>
+          {intent && <b className={s.enemyIntentTip} id={intentTipId} role="tooltip" hidden={!portraitIntentOpen} data-enemy-intent data-compact-targets={intentEffectsByTarget.size > 1 ? "" : undefined}>
             {getBattleMove(intent.moveId).name}
             <small>{intent.targetIds.length
               ? `Target${intent.targetIds.length > 1 ? "s" : ""} · ${intent.targetIds.map(targetId => state.combatants[targetId].name).join(", ")}`
               : "Battlefield"}</small>
+            {portraitIntentOpen && intentEffectsByTarget.size > 1 && <span className={s.compactIntentTargets} data-compact-intent-targets>
+              {[...intentEffectsByTarget].map(([id, effects]) => <span key={id}>
+                <b>{state.combatants[id].name}</b>
+                <span>{compactIntentEffect(effects, state.combatants[id].currentHp)}</span>
+              </span>)}
+            </span>}
             {portraitIntentOpen && <EnemyIntentEffects state={state} action={intent} effectsByTarget={intentEffectsByTarget}/>}
           </b>}
         </button>;
