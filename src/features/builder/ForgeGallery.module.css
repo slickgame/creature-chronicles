@@ -278,3 +278,139 @@
   .compareSets .setChange { padding: 7px; gap: 4px; }
   .compareSets article:only-child { grid-column: 1 / -1; }
 }
+
+.dialogStage[data-forge-stage="routes"] {
+  background: linear-gradient(#06121b35,#06121b65), url('/images/ui/locations-v2/builder-yard.webp') center/cover;
+}
+
+.window[data-forge-window="routes"] {
+  width: min(960px, 100%);
+  border: 1px solid #c49c5b;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 2px #312d26, 0 5px 18px #0006;
+  background: linear-gradient(#081620f5,#0b1924f7), url('/images/ui/forge-slate-v2/textures/slate.webp') center/500px;
+  padding: 16px 22px;
+  gap: 16px;
+}
+
+.window[data-forge-window="routes"] > header {
+  position: relative;
+  justify-content: center;
+}
+
+.window[data-forge-window="routes"] > header button {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.quoteTitle { text-align: center; font-weight: bold; }
+.quoteTitle p,.quoteCard .quoteTotal,.quoteValue p { line-height: 1.13; }
+.quoteTitle p:first-child { font-size: 17px; }
+.quoteTitle p:nth-child(2) { font-size: 37px; }
+.window .quoteTitle h2 { font-size: 43px; margin-top: 3px; }
+
+.window[data-forge-window="routes"] .windowBody {
+  align-content: start;
+  gap: 14px;
+  overflow-y: auto;
+  scrollbar-color: #ad8c50 #0b1823;
+}
+
+.quoteItem {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-inline: 5%;
+  border: 1px solid #9b804a;
+  border-radius: 9px;
+  background: linear-gradient(110deg,#142b38,#0b1923);
+}
+
+.quoteItem .itemArt { flex: 0 0 auto; width: 86px; height: 86px; }
+.window .quoteItem h3 { font-size: 31px; }
+.quoteCards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+
+.quoteCard {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-width: 0;
+  padding: 12px 19px 17px;
+  border: 1px solid #c49c5b;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 2px #312d26, 0 5px 18px #0006;
+  background: linear-gradient(#162531e8,#0b1923f5), url('/images/ui/forge-slate-v2/textures/slate.webp') center/500px;
+}
+
+.window .quoteCard h3 { text-align: center; font-size: 29px; }
+.quotePrices { display: grid; gap: 4px; min-height: 65px; margin: 0; align-content: center; }
+.quotePrices > div,.quotePrices dd { display: flex; align-items: center; gap: 6px; }
+.quotePrices > div { justify-content: space-between; }
+.quotePrices dd { margin: 0; font-size: 21px; font-weight: bold; white-space: nowrap; }
+.quotePrices .icon { width: 27px; height: 27px; }
+
+.quoteCard .quoteTotal {
+  padding-top: 6px;
+  border-top: 1px solid #aa8a50;
+  color: #98f1db;
+  font-size: 31px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.quoteMissing { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.quoteMissing span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.quoteMissing img { width: 25px; height: 25px; object-fit: contain; }
+.quoteValue { font-size: 15px; }
+.quoteValue summary { cursor: pointer; padding-block: 4px; min-height: 0; line-height: 1.2; }
+.quoteValue strong { float: right; margin-left: 4px; }
+.quoteValue p { padding-top: 4px; }
+.window .quoteCard > button { margin-top: auto; width: 100%; }
+.window[data-forge-window="routes"] > footer { justify-content: center; }
+.window[data-forge-window="routes"] > footer button { min-width: min(240px,100%); }
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .window[data-forge-window="routes"] { padding: 8px 9px; gap: 8px; }
+  .window[data-forge-window="routes"] .windowBody { gap: 8px; }
+  .quoteTitle p:first-child { font-size: 12px; }
+  .quoteTitle p:nth-child(2) { font-size: 23px; }
+  .window .quoteTitle h2 { font-size: 28px; }
+  .quoteItem { gap: 10px; margin-inline: 0; }
+  .quoteItem .itemArt { width: 50px; height: 50px; }
+  .window .quoteItem h3 { font-size: 21px; }
+  .quoteCards { grid-template-columns: 1fr; gap: 6px; }
+  .quoteCard { padding: 6px 9px 8px; gap: 5px; }
+  .window .quoteCard h3 { font-size: 22px; line-height: 1.08; }
+  .quotePrices { min-height: 0; font-size: 14px; gap: 1px; }
+  .quotePrices dd { font-size: 16px; }
+  .quotePrices .icon { width: 20px; height: 20px; }
+  .quoteCard .quoteTotal { font-size: 24px; padding-top: 3px; }
+  .quoteMissing,.quoteStock,.quoteValue { font-size: 13px; }
+  .quoteMissing img { width: 19px; height: 19px; }
+  .quoteValue summary { padding-block: 2px; }
+  .window[data-forge-window="routes"] button { min-height: 34px; padding-block: 5px; }
+  .window[data-forge-window="routes"] > footer button { width: 100%; }
+}
+
+@media (max-height: 550px) and (orientation: landscape) {
+  .window[data-forge-window="routes"] { border-radius: 8px; padding: 4px 9px; gap: 4px; }
+  .window[data-forge-window="routes"] .windowBody { gap: 5px; }
+  .quoteTitle p:first-child { display: none; }
+  .quoteTitle p:nth-child(2) { font-size: 13px; }
+  .window .quoteTitle h2 { font-size: 23px; margin-top: 0; }
+  .quoteItem { gap: 8px; margin-inline: 0; }
+  .quoteItem .itemArt { width: 36px; height: 36px; }
+  .window .quoteItem h3 { font-size: 18px; }
+  .quoteCards { gap: 6px; }
+  .quoteCard { border-radius: 8px; padding: 3px 7px; gap: 2px; }
+  .window .quoteCard h3 { font-size: 20px; }
+  .quotePrices { min-height: 34px; font-size: 13px; gap: 0; }
+  .quotePrices dd { font-size: 15px; }
+  .quotePrices .icon { width: 17px; height: 17px; }
+  .quoteCard .quoteTotal { font-size: 22px; padding-top: 3px; }
+  .quoteMissing,.quoteStock,.quoteValue { font-size: 12px; }
+  .quoteMissing img { width: 16px; height: 16px; }
+  .quoteValue summary { padding-block: 2px; }
+  .window[data-forge-window="routes"] button { min-height: 30px; padding-block: 3px; }
+}

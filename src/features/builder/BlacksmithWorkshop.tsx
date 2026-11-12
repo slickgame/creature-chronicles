@@ -71,7 +71,50 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
  {popup==='review'?<ForgeWindow title="Review crafting" marker="review" onClose={()=>setPopup(null)}><div className={s.reviewHero}><img src={item.iconPath} alt=""/><div><h2>1 {item.name}<small className={s.slotLabel}>{slotLabel}</small></h2>{identity()}</div></div>{mainStat}<div className={s.reviewCosts}>{materialRows}{labor}</div><p className={s.notice}>{stale?'Supplies or crafting record changed. Cancel and review again.':'Adds 1 item to equipment inventory.'}</p><div className={s.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button className={s.primary} disabled={stale} onClick={confirm}>Confirm crafting</button></div></ForgeWindow>:null}
  {popup==='report'&&receipt?<ForgeWindow title="Iona’s Crafting Receipt" marker="receipt" onClose={()=>setPopup(null)} footerAction={receipt.copyId?<button onClick={()=>improve(receipt.copyId)}>Equip or improve this item</button>:null}><div className={s.reviewHero}><img src={receipt.ok?`${FORGE_ART}craft-seal.webp`:receipt.art} alt=""/><div><h2>{receipt.ok?'Craft complete':'Crafting unavailable'}</h2><h3>{receipt.name}{receipt.ok?' +0':''}<small className={s.slotLabel}>{receipt.slot}</small></h3></div></div><div className={s.success}><p role="status">{receipt.ok?'Added 1 finished item to equipment inventory.':receipt.message}</p>{receipt.ok?<p>Spent: {receipt.spent}.</p>:null}<strong>Balance: {receipt.gold} Gold</strong>{receipt.goalGold||receipt.goalGp?<small>Goal rewards: {[receipt.goalGold && `+${receipt.goalGold} Gold`, receipt.goalGp && `+${receipt.goalGp} GP`].filter(Boolean).join(' · ')}.</small>:null}</div></ForgeWindow>:null}
  {popup==='comparison'?<ForgeCreatureComparison save={save} creature={creature} item={item} slotLabel={slotLabel} short={short} onCreature={setCreatureId} onRules={()=>setGuide(true)} onClose={()=>setPopup(null)}/>:null}
- {popup==='routes'?<ForgeWindow title="Craft or buy?" marker="routes" onClose={()=>setPopup(null)} page={page} pages={2} onPage={setPage}>{page===0?<><div className={s.route}><h3>Ready-made at Outfitter</h3><strong>{item.costGold} Gold</strong><p>No ingredients charged by the shop.</p></div><div className={s.route}><h3>Craft using current stock</h3><strong>{recipe.laborGold} Gold labor + listed ingredients</strong><p>{quote.restockGold?`Missing: ${resourceList(quote.missingInputs)} · ${quote.restockGold} Gold at Trade.`:'Unreserved stock covers the materials.'}</p></div><p className={s.note}>Missing materials + labor need {quote.procurementGold} Gold. Buying ingredients is separate.</p></>:<><p className={s.notice}>Full recipe material value: {quote.materialValue} Gold; with labor: {quote.totalValue} Gold. Stored ingredients are still consumed.</p><p>Both routes produce the same +0 equipment. Iona uses her town forge; no farm forge unlock is needed.</p><button onClick={goToBattleOutfitter}>Visit Outfitter</button>{action('Ingredient sources','materials','source')}</>}</ForgeWindow>:null}
+ {popup==='routes'?(
+  <ForgeWindow title="Craft or buy?" marker="routes" onClose={()=>setPopup(null)}>
+   <div className={s.quoteItem}>
+    <div className={s.itemArt}>
+     <img className={s.gearArt} src={item.iconPath} alt=""/>
+     <img className={s.tileFrame} src="/images/ui/forge-slate-v2/frames/details.svg" alt=""/>
+    </div>
+    <h3>{item.name} +0</h3>
+   </div>
+   <div className={s.quoteCards}>
+    <section className={s.quoteCard} aria-labelledby="forge-craft-quote">
+     <h3 id="forge-craft-quote">Craft at Iona</h3>
+     <dl className={s.quotePrices}>
+      <div><dt>Crafting labor</dt><dd><ForgeIcon name="coin"/>{recipe.laborGold} Gold</dd></div>
+      {quote.restockGold>0&&(
+       <div><dt>Missing materials at Trade</dt><dd><ForgeIcon name="coin"/>{quote.restockGold} Gold</dd></div>
+      )}
+     </dl>
+     <p className={s.quoteTotal}>{quote.procurementGold} Gold to craft</p>
+     {quote.restockGold>0?(
+      <div className={s.quoteMissing}>
+       <strong>Missing</strong>
+       {(Object.entries(quote.missingInputs) as [ResourceId,number][]).map(([id,count])=>(
+        <span key={id}><img src={getResourceArt(id)} alt=""/>{count} {count===1&&id==='nails'?'Nail':RESOURCES[id].name}</span>
+       ))}
+      </div>
+     ):<p className={s.quoteStock}>Usable stock covers the materials.</p>}
+     <details className={s.quoteValue}>
+      <summary>Full recipe value <strong>{quote.totalValue} Gold</strong></summary>
+      <p>Includes {quote.materialValue} Gold in materials and {recipe.laborGold} Gold in labor. Crafting uses materials from your stock. Buy any missing ingredients separately at Trade.</p>
+     </details>
+     <button className={s.primary} onClick={()=>show('materials')}>Ingredient sources</button>
+    </section>
+    <section className={s.quoteCard} aria-labelledby="forge-buy-quote">
+     <h3 id="forge-buy-quote">Buy at Outfitter</h3>
+     <dl className={s.quotePrices}>
+      <div><dt>Ready-made at Outfitter</dt><dd><ForgeIcon name="coin"/>{item.costGold} Gold</dd></div>
+     </dl>
+     <p className={s.quoteTotal}>{item.costGold} Gold</p>
+     <button className={s.primary} onClick={goToBattleOutfitter}>Visit Outfitter</button>
+    </section>
+   </div>
+  </ForgeWindow>
+ ):null}
  {popup==='talk'?<ForgeWindow title="A word with Iona" marker="talk" onClose={()=>setPopup(null)}><div className={s.dialogue}><img src={BLACKSMITH.portrait} alt="Iona Flint"/><div><p>“Petra builds the places you come home to. I make the pieces you take out into the world.”</p><p>Bring refined Iron ingots, not ore. Ingredient cards show where to buy or produce them. Every pattern has fixed stats and an exact labor fee.</p></div></div></ForgeWindow>:null}
  {guide?<EquipmentGuide item={item} onClose={()=>setGuide(false)}/>:null}
  </main>;
