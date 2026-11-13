@@ -231,3 +231,31 @@
 @media(max-width:700px),(max-height:550px) {
  .book[data-picker=true] .tabs button { flex:1; }
 }
+
+.book[data-picker=true] .portrait {
+  isolation:isolate;
+  clip-path:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+}
+.book[data-picker=true] .portrait img {
+  position:absolute; inset:3px; width:calc(100% - 6px); height:calc(100% - 6px);
+  object-fit:cover; object-position:50% 25%;
+}
+.book[data-picker=true] .portrait span {
+  inset:auto 8% 5px;
+  padding:4px 6px;
+  background:var(--plaque-frame) center/100% 100% no-repeat;
+}
+.book[data-picker=true] .candidates>div:has(.portrait[aria-pressed=true]) {
+  filter:drop-shadow(0 0 5px #ffc254ad);
+}
+.book[data-picker=true] .portrait[aria-pressed=true]::after { filter:drop-shadow(0 0 4px #ffb63d) brightness(1.25); }
+.currentOwner { display:block; font-size:.78em; }
+.book[data-picker=true] .selectedRecipient img { object-position:50% 23%; }
+@media(min-width:701px) and (min-height:551px) {
+ .book[data-picker=true] .portrait { height:clamp(120px,19vh,173px)!important; }
+}
+@media(max-width:700px) and (orientation:portrait) {
+ .book[data-picker=true] .portrait { height:clamp(120px,25dvh,180px)!important; }
+ .book[data-picker=true] .portrait span { padding:4px; }
+ .book[data-picker=true] .portrait small { display:none; }
+}
