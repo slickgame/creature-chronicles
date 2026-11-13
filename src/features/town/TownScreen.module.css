@@ -84,3 +84,20 @@
  .header h1 { padding-inline:5px; font-size:18px; }
  .town .marker { font-size:12px; }
 }
+@media(max-width:700px) and (orientation:portrait) {
+ .header button,.district button { min-height:36px; }
+ .workspace { grid-template-rows:minmax(0,1fr) minmax(0,1fr); }
+ .services { grid-template-columns:repeat(2,minmax(0,1fr)); gap:3px; }
+ .services h3 { grid-column:1/-1; }
+ .services button { min-height:40px; padding:4px 5px; font-size:12px; gap:3px; }
+ .services img { width:20px; height:16px; }
+ .details .actions button { min-height:40px; }
+ .details { grid-template-rows:auto minmax(42px,1fr) auto auto auto; }
+}
+@media(max-height:430px) and (orientation:landscape) {
+ .details { grid-template-rows:auto minmax(32px,1fr) auto auto auto; }
+ .services { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .services h3 { grid-column:1/-1; }
+ .services button { padding-inline:4px; font-size:12px; gap:3px; }
+ .services img { width:20px; }
+}
