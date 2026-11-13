@@ -89,3 +89,89 @@
   .changes .setRow img { width: 18px; height: 18px; }
   .changes .setRow { padding: 2px; }
 }
+
+.reviewShell { padding:8px; overflow:hidden; background:linear-gradient(#06150d35,#06150d66),url('/images/ui/locations-v2/builder-yard.webp') center/cover; }
+.review {
+ width:min(1040px,100%); height:min(760px,100%); min-height:0;
+ grid-template-rows:auto auto minmax(0,1fr) auto; gap:10px; padding:16px 24px;
+ border:0; box-shadow:none; background:none;
+ --transfer-frame:url('/images/ui/forge-gallery-v1/swap-gilt-frame.webp');
+ border-image:var(--transfer-frame) 92 fill / 22px stretch;
+}
+.review:has(.reviewMessage) { grid-template-rows:auto auto minmax(0,1fr) auto auto; }
+.review::before { display:none; }
+.review header { text-align:center; }
+.review header h2,.handoffPortrait figcaption {
+ background:url('/images/ui/forge-gallery-v1/swap-forge-plaque.webp') center/100% 100% no-repeat;
+}
+.review header h2 { width:fit-content; max-width:100%; margin:auto; padding:9px 36px 15px; font-size:clamp(22px,4vw,38px); }
+.review header p { font-size:15px; }
+.handoff { display:grid; grid-template-columns:1fr minmax(0,.85fr) 44px 1fr; grid-template-rows:auto auto; gap:4px 10px; align-items:center; text-align:center; }
+.handoffPortrait { grid-row:1/3; margin:0; position:relative; min-width:0; height:clamp(115px,26dvh,224px); border-image:var(--transfer-frame) 92 fill / 14px stretch; }
+.handoffPortrait:last-of-type { grid-column:4; }
+.handoffPortrait img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 20%; padding:5px; }
+.handoffPortrait figcaption { position:absolute; bottom:1px; left:7%; right:7%; padding:5px 4px 8px; overflow-wrap:anywhere; font-weight:700; font-size:clamp(13px,2vw,24px); text-shadow:0 2px 3px #000; }
+.handoffItem { grid-column:2; min-width:0; display:grid; justify-items:center; gap:2px; font-size:clamp(14px,2vw,21px); }
+.handoffItem img { width:min(100%,154px); height:clamp(55px,16dvh,133px); object-fit:contain; padding:6px; border-image:var(--transfer-frame) 92 fill / 12px stretch; }
+.handoffArrow { grid-column:3; grid-row:1; width:100%; aspect-ratio:1; background:url('/images/ui/forge-gallery-v1/transfer-arrow.webp') center/contain no-repeat; }
+.replaced { grid-column:2/4; grid-row:2; display:flex; justify-content:center; align-items:center; gap:6px; padding:4px; border-image:var(--transfer-frame) 92 fill / 9px stretch; text-align:left; font-size:14px; }
+.replaced img { width:34px; height:34px; object-fit:contain; }
+.replaced small { display:block; color:#e1c38b; }
+.reviewColumns { min-height:0; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.reviewStats { min-width:0; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:3px; padding:8px 12px; border-image:var(--transfer-frame) 92 fill / 13px stretch; }
+.reviewStats h3 { font-size:20px; }
+.reviewStats h3 small { font-size:.72em; color:#e2c891; }
+.reviewScroll,.reviewSets { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-color:#b89056 #14231e; scrollbar-width:thin; }
+.reviewScroll { cursor:grab; user-select:none; }
+.reviewScroll:active { cursor:grabbing; }
+.reviewScroll:focus-visible,.reviewSets:focus-visible { outline:1px solid #f6ca7f; outline-offset:-1px; }
+.reviewScroll table { width:100%; border-spacing:0; font-size:16px; font-variant-numeric:tabular-nums; }
+.reviewScroll thead { position:sticky; top:0; background:#17312a; }
+.reviewScroll :is(th,td) { padding:4px 6px; text-align:right; border-bottom:1px solid #907a524f; }
+.reviewScroll th:first-child { text-align:left; }
+.reviewScroll tbody th { font-weight:400; }
+.reviewScroll tbody th > span { margin-right:6px; }
+.review [data-delta="1"] { color:#c0eb95; }
+.review [data-delta="-1"] { color:#ffad91; }
+.reviewSets { max-height:62px; border-top:1px solid #a2834b; font-size:13px; }
+.reviewSets > div { display:flex; align-items:center; gap:6px; padding:3px 0; }
+.reviewSets img { width:28px; height:28px; object-fit:contain; }
+.reviewSets small { margin-left:auto; border:1px solid currentColor; border-radius:3px; padding:1px 4px; white-space:nowrap; }
+.reviewMessage { font-size:13px; text-align:center; }
+.review footer { display:flex; justify-content:center; gap:8px; }
+.review footer button:last-child { background:url('/images/ui/forge-gallery-v1/swap-gold-button.webp') center/100% 100% no-repeat; color:#241304; }
+@media(max-width:700px) and (orientation:portrait) {
+ .review { padding:8px 10px; gap:5px; }
+ .review header h2 { padding:5px 15px 9px; }
+ .review header p { font-size:12px; }
+ .handoff { grid-template-columns:minmax(0,1fr) minmax(0,.85fr) 18px minmax(0,1fr); gap:3px; }
+ .handoffPortrait { grid-row:1; height:clamp(62px,15dvh,132px); }
+ .replaced { grid-column:1/-1; font-size:12px; padding:2px; }
+ .replaced img { width:24px; height:24px; }
+ .reviewColumns { grid-template-columns:1fr; grid-template-rows:repeat(2,minmax(0,1fr)); gap:5px; }
+ .reviewStats { padding:5px 8px; gap:1px; }
+ .reviewStats h3 { font-size:16px; }
+ .reviewScroll table { font-size:13px; }
+ .reviewScroll :is(th,td) { padding:2px 4px; }
+ .reviewSets { max-height:29px; font-size:12px; }
+ .reviewSets img { width:20px; height:20px; }
+ .review footer button { font-size:15px; padding:4px 10px; }
+}
+@media(max-height:450px) and (orientation:landscape) {
+ .review { padding:5px 10px; gap:4px; }
+ .review header h2 { font-size:21px; padding:4px 22px 7px; }
+ .review header p { font-size:11px; }
+ .handoff { grid-template-columns:1fr 1fr 26px 1fr; gap:2px 4px; }
+ .handoffPortrait { height:73px; }
+ .handoffItem { font-size:13px; }
+ .handoffItem img { height:35px; }
+ .replaced { font-size:11px; padding:2px; }
+ .replaced img { width:22px; height:22px; }
+ .reviewStats { padding:4px 7px; gap:1px; }
+ .reviewStats h3 { font-size:14px; }
+ .reviewScroll table,.reviewSets { font-size:11px; }
+ .reviewScroll :is(th,td) { padding:2px 3px; }
+ .reviewSets { max-height:26px; }
+ .reviewSets img { width:17px; height:17px; }
+ .review footer button { font-size:14px; min-height:32px; padding:3px 14px; }
+}
