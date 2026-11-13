@@ -80,3 +80,96 @@
   .book[data-equipment-result] .inventory { padding-block: 3px; }
   .book[data-equipment-result] footer button { min-height: 31px; }
 }
+
+.receiptShell { padding:8px; background:linear-gradient(#0a141c26,#091c2544),url('/images/ui/locations-v2/builder-yard.webp') center/cover; }
+.forgeReceipt {
+ width:min(920px,100%); max-height:100%; min-height:0; display:grid;
+ grid-template-rows:auto minmax(0,1fr) auto auto; gap:12px; padding:22px 26px 15px;
+ border-image:url('/images/ui/forge-gallery-v1/swap-gilt-frame.webp') 92 fill / 28px stretch;
+ color:#fff0d1;
+}
+.forgeReceipt :is(h2,h3,p) { margin:0; }
+.forgeReceipt header,.forgeReceipt footer { text-align:center; }
+.forgeReceipt header p { width:max-content; max-width:100%; margin:auto; padding:8px 40px 13px; font-size:24px; font-weight:bold; background:url('/images/ui/forge-gallery-v1/swap-forge-plaque.webp') center/100% 100%; }
+.forgeReceipt h2 { font-size:clamp(23px,4vw,40px); }
+.receiptLoadout { display:grid; grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr); gap:10px; min-height:0; }
+.receiptCreature,.receiptItem,.receiptSet {
+ border-image:url('/images/ui/forge-gallery-v1/swap-gilt-frame.webp') 92 fill / 14px stretch;
+ padding:8px; min-width:0;
+}
+.receiptCreature { position:relative; isolation:isolate; overflow:hidden; display:grid; align-items:end; min-height:0; }
+.receiptCreature img { position:absolute; inset:5px; width:calc(100% - 10px); height:calc(100% - 10px); object-fit:cover; object-position:50% 22%; z-index:-1; }
+.receiptCreature div { padding:8px; background:linear-gradient(transparent,#071a1cf5 40%); }
+.receiptCreature strong,.receiptItem strong { display:block; font-size:clamp(19px,2.8vw,33px); line-height:1.05; }
+.receiptItems { display:grid; grid-auto-rows:minmax(0,1fr); gap:8px; }
+.receiptItem { display:grid; align-items:center; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); gap:9px; }
+.receiptItem img { width:100%; height:clamp(65px,15vh,145px); object-fit:contain; border-radius:6px; background:radial-gradient(#30414a,#131f25); border:1px solid #918067; }
+.receiptItem[data-equipped=true] img { border-color:#ffe18c; box-shadow:0 0 6px #ffc550a0; }
+.receiptItem small,.receiptSet small { display:block; color:#e5d4ae; }
+.receiptItem[data-equipped=true] small,.receiptSet[data-status=active] small { color:#b9e89b; }
+.receiptSet[data-status=lost] small { color:#ffb09a; }
+.receiptSets h3 { display:flex; align-items:center; gap:10px; justify-content:center; font-size:24px; margin-bottom:5px; }
+.receiptSets h3::before,.receiptSets h3::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,transparent,#d2a663); }
+.receiptSets h3::after { transform:scaleX(-1); }
+.receiptSetGrid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
+.receiptSet { display:flex; align-items:center; gap:6px; padding:4px 7px; }
+.receiptSet img { width:clamp(28px,6vw,64px); height:auto; }
+.receiptNote { text-align:center; font-size:13px; }
+.forgeReceipt footer button {
+ width:min(310px,100%); min-height:53px; border:0; color:#fff0d1;
+ font:700 26px ForgeTinos,Georgia,serif;
+ background:url('/images/ui/forge-gallery-v1/receipt-continue.webp') center/100% 100%;
+ cursor:pointer;
+}
+@media(max-width:700px) and (orientation:portrait) {
+ .forgeReceipt { padding:12px; gap:6px; grid-template-rows:auto auto auto auto; border-image-width:17px; }
+ .forgeReceipt header p { font-size:17px; padding:5px 24px 8px; }
+ .receiptLoadout { grid-template-columns:1fr; gap:5px; }
+ .receiptCreature { min-height:64px; align-items:center; padding-left:80px; }
+ .receiptCreature img { width:64px; }
+ .receiptCreature div { padding:0; background:none; }
+ .receiptCreature small,.receiptItem small,.receiptSet small { font-size:12px; }
+ .receiptItems { gap:4px; }
+ .receiptItem img { height:62px; }
+ .receiptItem strong { font-size:17px; }
+ .receiptSets h3 { font-size:19px; }
+ .receiptSet { font-size:14px; }
+ .forgeReceipt footer button { min-height:43px; font-size:21px; }
+}
+@media(max-height:550px) and (orientation:landscape) {
+ .forgeReceipt { padding:7px 13px; gap:4px; grid-template-rows:auto auto auto auto; }
+ .forgeReceipt header p { font-size:16px; padding:4px 24px 6px; }
+ .forgeReceipt h2 { font-size:20px; }
+ .receiptLoadout { grid-template-columns:minmax(0,.55fr) minmax(0,1.45fr); gap:4px; }
+ .receiptItems { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+ .receiptItem { grid-template-columns:1fr; gap:2px; text-align:center; padding:5px; }
+ .receiptItem img { height:39px; }
+ .receiptItem strong { font-size:14px; }
+ .receiptSets h3 { font-size:17px; margin:0; }
+ .receiptSet { font-size:12px; }
+ .receiptSet img { width:25px; }
+ .forgeReceipt footer button { min-height:31px; font-size:17px; }
+}
+
+.receiptItem small,.receiptSet small:first-of-type {
+ width:fit-content; padding:2px 7px; margin-bottom:4px;
+ border:1px solid #9d8a6280; border-radius:4px;
+ background:linear-gradient(#35433d,#192926);
+}
+.receiptItem[data-equipped=true] small,.receiptSet[data-status=active] small:first-of-type {
+ background:linear-gradient(#324a26,#203b26); border-color:#89a95d;
+}
+.receiptSet[data-status=lost] small:first-of-type {
+ background:linear-gradient(#62392a,#382822); border-color:#a66c53;
+}
+.receiptSet strong { display:block; font-size:clamp(15px,2vw,24px); }
+.receiptSet small:last-child { margin-bottom:0; }
+.receiptItem strong::after {
+ content:''; display:block; margin-top:7px; width:min(120px,90%); height:1px;
+ background:linear-gradient(90deg,#dbab61,transparent);
+}
+@media(max-height:550px) and (orientation:landscape) {
+ .receiptItem small { margin-inline:auto; }
+ .receiptItem strong::after { margin:3px auto 0; }
+ .receiptSet strong { font-size:14px; }
+}

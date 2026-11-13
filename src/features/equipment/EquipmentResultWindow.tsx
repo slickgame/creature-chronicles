@@ -25,6 +25,37 @@ export function EquipmentResultWindow({snapshot,completed=false,blocker,confirmD
  const removing=snapshot.kind==='remove',title=completed?(removing?'Equipment removed':'Equipment equipped'):'Remove equipment?';
  const inventory=removing?`${snapshot.before?.item.name??'Equipment'} ${completed?'saved':'returns'} to inventory.`:snapshot.before?`${snapshot.before.item.name} returned to inventory.`:'Equipped into an empty slot.';
  const art=(gear:EquipmentChangeSnapshot['before'],label:string)=><article><h3>{label}</h3>{gear?<><UpgradeItemArt art={gear.item.iconPath} stats={equipmentStats(gear.item,gear.copy)} slot={gear.item.equipmentSlot}/><strong>{gear.item.name}</strong><small>{EQUIPMENT_SLOT_LABELS[snapshot.slot]} · {equipmentStats(gear.item,gear.copy).rarity} · +{gear.copy.level}</small></>:<><div className={s.empty}><img src={`/images/ui/forge-slate-v2/categories/${snapshot.slot}.webp`} alt=""/></div><strong>Empty</strong><small>{EQUIPMENT_SLOT_LABELS[snapshot.slot]} slot{completed?'':' after removal'}</small></>}</article>;
+ if(completed&&!removing){
+  const statuses=snapshot.sets.after.flatMap(after=>{
+   const before=snapshot.sets.current.find(set=>set.id===after.id);
+   const previous=before?.activations??0;
+   const change=after.activations-previous;
+   return after.count||previous?[{after,change}]:[];
+  }).sort((a,b)=>b.change-a.change||b.after.activations-a.after.activations);
+  const itemCard=(gear:EquipmentChangeSnapshot['before'],equipped:boolean)=>gear&&<article className={s.receiptItem} data-equipped={equipped}>
+   <img src={gear.item.iconPath} alt=""/>
+   <div><small>{equipped?'Equipped':'Returned to inventory'}</small><strong>{gear.item.name} +{gear.copy.level}</strong></div>
+  </article>;
+  return <GameDialog fullScreen title={title} onClose={onClose}><main className={`${a.shell} ${s.receiptShell}`}>
+   <section className={s.forgeReceipt} aria-label="Equipment receipt">
+    <header><p>Iona’s Forge</p><h2>Equipment Updated</h2></header>
+    <div className={s.receiptLoadout}>
+     <div className={s.receiptCreature}>{snapshot.portrait&&<img src={snapshot.portrait} alt="" onError={event=>{event.currentTarget.hidden=true;}}/>}<div><strong>{snapshot.name}</strong><small>Lv. {snapshot.level} · {snapshot.family}</small></div></div>
+     <div className={s.receiptItems}>{itemCard(snapshot.after,true)}{itemCard(snapshot.before,false)}</div>
+    </div>
+    <section className={s.receiptSets} aria-label="Set status">
+     <h3>Set Status</h3>
+     <div className={s.receiptSetGrid}>{statuses.map(({after,change})=><div key={after.id} className={s.receiptSet} data-status={change<0?'lost':after.activations?'active':'partial'}>
+      <img src={`/images/ui/forge-gallery-v1/receipt-set-${after.id}.webp`} alt=""/>
+      <div><strong>{after.name} {after.count}/{after.required}</strong><small>{change>0?'Bonus gained':change<0?(after.activations?'Bonus reduced':'Bonus lost'):after.activations?'Active':'Incomplete'}</small>{after.activations>0&&<small>{after.activations} active {after.activations===1?'bonus':'bonuses'}</small>}</div>
+     </div>)}</div>
+     {!statuses.length&&<p>No equipment sets.</p>}
+    </section>
+    {note&&<p className={s.receiptNote}>{note}</p>}
+    <footer><button disabled={!continueReady} onClick={onClose}>Continue</button></footer>
+   </section>
+  </main></GameDialog>;
+ }
  return <GameDialog fullScreen title={title} onClose={onClose}><main className={a.shell}><section className={`${a.book} ${s.book}`} data-equipment-result data-stat-capacity={viewport.capacity} data-compact={viewport.mobile} data-completed={completed} data-expanded={expanded}>
  <header className={a.heading}><div><h2>{title}</h2><p>{completed?`${snapshot.name}’s ${EQUIPMENT_SLOT_LABELS[snapshot.slot]} slot has been updated.`:`Remove this equipment from ${snapshot.name}?`}</p></div><button aria-label={`Close ${title}`} onClick={onClose}><ForgeIcon name="close"/></button></header>
  {viewport.mobile&&<nav className={a.tabs} aria-label="Equipment result sections"><button aria-pressed={tab==='equipment'} onClick={()=>setTab('equipment')}>Equipment</button><button aria-pressed={tab==='changes'} onClick={()=>setTab('changes')}>Changes</button></nav>}
