@@ -67,7 +67,26 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
  {popup==='output'?<ForgeWindow title="Crafted equipment" marker="output" onClose={()=>setPopup(null)} page={outputPage} pages={outputPages} onPage={setPage}>{itemHero}{outputPage<statPages?<><div className={s.stats}>{statRows.slice(outputPage*3,outputPage*3+3).map(st=><div className={s.stat} key={st.key}><span>{st.main?'Main · ':''}{BATTLE_STAT_LABELS[st.key]}</span><strong>+{st.value}</strong></div>)}</div><p className={s.note}>{stats.substats.length}/4 starting substats · {getBattleOutfitterStock(save,item)} owned. Added to inventory, not equipped.</p></>:<div className={s.outputFacts}><p>{item.description}</p><p>{stats.setId?EQUIPMENT_SETS[stats.setId].description:'No equipment set.'}</p><p>{stats.passive??'No passive effect.'}</p></div>}<div className={s.toolgrid}>{action('Materials & labor','materials','materials')}{action('Cost breakdown','cost','coin')}<button onClick={()=>setGuide(true)}>Slot rules & rolls</button></div></ForgeWindow>:null}
  {popup==='materials'?<ForgeWindow title="Materials & labor" marker="materials" onClose={()=>setPopup(null)}><h2>{item.name}</h2><div className={s.reviewCosts}>{materialRows}{labor}</div><p className={s.notice}>Only usable ingredients can be spent. Reserved stock stays protected.</p><button className={s.primary} disabled={!quote.canCraft} onClick={review}>Review crafting</button></ForgeWindow>:null}
  {popup==='cost'?<ForgeWindow title="Cost breakdown" marker="cost" onClose={()=>setPopup(null)}><h2>Materials & labor</h2>{costs}</ForgeWindow>:null}
- {popup==='review'?<ForgeWindow title="Review crafting" marker="review" onClose={()=>setPopup(null)}><div className={s.reviewHero}><img src={item.iconPath} alt=""/><div><h2>1 {item.name}<small className={s.slotLabel}>{slotLabel}</small></h2>{identity()}</div></div>{mainStat}<div className={s.reviewCosts}>{materialRows}{labor}</div><p className={s.notice}>{stale?'Supplies or crafting record changed. Cancel and review again.':'Adds 1 item to equipment inventory.'}</p><div className={s.actions}><button onClick={()=>setPopup(null)}>Cancel</button><button className={s.primary} disabled={stale} onClick={confirm}>Confirm crafting</button></div></ForgeWindow>:null}
+ {popup==='review'?<ForgeWindow title="Crafting confirmation" marker="review" onClose={()=>setPopup(null)}>
+   <div className={s.craftConfirmation}>
+     <section className={s.craftConfirmationHero}>
+       <div><h2>{item.name}</h2><p>Crafts 1</p></div>
+       <img src={item.iconPath} alt=""/>
+     </section>
+     <h3 className={s.craftCostsTitle}>Costs</h3>
+     <ul className={s.craftCostCards} style={{gridTemplateColumns:`repeat(${inputs.length + 1},minmax(0,1fr))`}}>
+       {inputs.map(([id, amount]) => <li key={id} title={`${usable(id)} usable · ${state.reserves[id]??0} reserved`}>
+         <img src={getResourceArt(id)} alt=""/><span><strong>{amount}</strong> {RESOURCES[id].name}</span>
+       </li>)}
+       <li><ForgeIcon name="coin"/><span><strong>{recipe.laborGold}</strong> Gold labor</span></li>
+     </ul>
+     {stale&&<p className={s.notice} role="status">Supplies or crafting record changed. Cancel and review again.</p>}
+     <div className={s.craftConfirmActions}>
+       <button onClick={()=>setPopup(null)}>Cancel</button>
+       <button className={s.primary} disabled={stale} onClick={confirm}>Confirm crafting</button>
+     </div>
+   </div>
+ </ForgeWindow>:null}
  {popup==='report'&&receipt?<ForgeWindow title="Iona’s Crafting Receipt" marker="receipt" onClose={()=>setPopup(null)} footerAction={receipt.copyId?<button onClick={()=>improve(receipt.copyId)}>Equip or improve this item</button>:null}><div className={s.reviewHero}><img src={receipt.ok?`${FORGE_ART}craft-seal.webp`:receipt.art} alt=""/><div><h2>{receipt.ok?'Craft complete':'Crafting unavailable'}</h2><h3>{receipt.name}{receipt.ok?' +0':''}<small className={s.slotLabel}>{receipt.slot}</small></h3></div></div><div className={s.success}><p role="status">{receipt.ok?'Added 1 finished item to equipment inventory.':receipt.message}</p>{receipt.ok?<p>Spent: {receipt.spent}.</p>:null}<strong>Balance: {receipt.gold} Gold</strong>{receipt.goalGold||receipt.goalGp?<small>Goal rewards: {[receipt.goalGold && `+${receipt.goalGold} Gold`, receipt.goalGp && `+${receipt.goalGp} GP`].filter(Boolean).join(' · ')}.</small>:null}</div></ForgeWindow>:null}
  {popup==='comparison'?<ForgeCreatureComparison save={save} creature={creature} item={item} slotLabel={slotLabel} short={short} onCreature={setCreatureId} onRules={()=>setGuide(true)} onClose={()=>setPopup(null)}/>:null}
  {popup==='routes'?(

@@ -936,3 +936,76 @@
   .furnaceReceiptActions { flex-direction:column; }
   .furnaceReceiptActions button:first-child { order:1; }
 }
+
+.dialogStage[data-forge-stage="review"] {
+  background: url('/images/ui/locations-v2/builder-yard.webp') center/cover;
+}
+.window[data-forge-window="review"]:has(.craftConfirmation) {
+  width:min(890px,100%); padding:18px 26px 24px; gap:14px;
+  border:3px double #dfb766; border-radius:22px;
+  background:linear-gradient(135deg,#0c2731,#061b24);
+}
+.window[data-forge-window="review"]:has(.craftConfirmation) > header { justify-content:center; position:relative; }
+.window[data-forge-window="review"]:has(.craftConfirmation) > header h2 { font-size:38px; }
+.window[data-forge-window="review"]:has(.craftConfirmation) > header button { position:absolute; right:0; top:0; }
+.window[data-forge-window="review"]:has(.craftConfirmation) .windowBody { overflow:auto; align-content:start; }
+.craftConfirmation { display:grid; gap:12px; }
+.craftConfirmationHero {
+  position:relative; display:flex; align-items:center; min-height:218px; overflow:hidden;
+  border:1px solid #dcb365; border-radius:16px; padding:20px 32px;
+  background:linear-gradient(90deg,#071a22ad,transparent 85%),url('/images/ui/forge-gallery-v1/receipt-workbench.webp') center/cover;
+}
+.craftConfirmationHero > div { z-index:1; max-width:55%; }
+.window .craftConfirmationHero h2 { font-size:38px; }
+.craftConfirmationHero p { font-size:24px; margin-top:6px; }
+.craftConfirmationHero img { position:absolute; right:6%; bottom:0; width:46%; height:100%; object-fit:contain; }
+.craftCostsTitle { display:flex; align-items:center; gap:14px; justify-content:center; }
+.craftCostsTitle::before,.craftCostsTitle::after { content:''; height:1px; background:linear-gradient(90deg,transparent,#dbb96f); flex:1; }
+.craftCostsTitle::after { transform:scaleX(-1); }
+.craftCostCards { display:grid; gap:14px; padding:0 3%; margin:0; list-style:none; }
+.craftCostCards li {
+  display:grid; justify-items:center; align-content:center; gap:5px; padding:10px 6px;
+  border:1px solid #dfb766; border-radius:15px; background:linear-gradient(145deg,#173640,#0d252f);
+  text-align:center; font-size:23px;
+}
+.craftCostCards img { width:108px; height:91px; object-fit:contain; }
+.craftCostCards strong { display:block; font-size:31px; line-height:1; }
+.craftConfirmActions { display:grid; grid-template-columns:0.9fr 1.1fr; gap:12px; padding-inline:3%; }
+.window .craftConfirmActions button { min-height:48px; font-size:22px; }
+@media (max-width:650px) and (orientation:portrait) {
+  .window[data-forge-window="review"]:has(.craftConfirmation) { padding:9px 10px; gap:8px; }
+  .window[data-forge-window="review"]:has(.craftConfirmation) > header h2 { font-size:clamp(18px,6.2vw,24px); padding-right:30px; }
+  .craftConfirmation { gap:8px; }
+  .craftConfirmationHero { min-height:135px; align-items:start; padding:12px; }
+  .craftConfirmationHero > div { max-width:86%; }
+  .window .craftConfirmationHero h2 { font-size:23px; }
+  .craftConfirmationHero p { font-size:17px; }
+  .craftConfirmationHero img { right:6%; height:80%; width:52%; }
+  .craftCostCards { grid-template-columns:1fr!important; padding:0 3px; gap:6px; }
+  .craftCostCards li { grid-template-columns:52px 1fr; align-items:center; justify-items:start; padding:4px 9px; text-align:left; font-size:17px; }
+  .craftCostCards img { width:46px; height:39px; }
+  .craftCostCards strong { display:inline; font-size:21px; }
+  .craftConfirmActions { grid-template-columns:1fr; gap:5px; padding:0 3px; }
+  .window .craftConfirmActions button { min-height:34px; font-size:16px; }
+}
+@media (max-height:550px) and (orientation:landscape) {
+  .window[data-forge-window="review"]:has(.craftConfirmation) { padding:6px 12px; gap:6px; }
+  .window[data-forge-window="review"]:has(.craftConfirmation) > header h2 { font-size:23px; }
+  .craftConfirmation { gap:5px; }
+  .craftConfirmationHero { min-height:84px; padding:8px 16px; }
+  .window .craftConfirmationHero h2 { font-size:24px; }
+  .craftConfirmationHero p { font-size:15px; }
+  .craftCostCards li { padding:4px; font-size:14px; }
+  .craftCostCards img { width:43px; height:35px; }
+  .craftCostCards strong { display:inline; font-size:16px; }
+  .window .craftConfirmActions button { min-height:31px; font-size:16px; }
+}
+@media (max-height:380px) and (orientation:landscape) {
+  .craftConfirmationHero { min-height:64px; }
+  .craftConfirmation { gap:3px; }
+}
+@media (max-height:380px) and (orientation:landscape) {
+  .craftConfirmationHero { min-height:56px; padding-block:4px; }
+  .craftCostCards img { height:25px; }
+  .craftCostCards li { gap:2px; }
+}
