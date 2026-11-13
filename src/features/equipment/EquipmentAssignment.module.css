@@ -225,8 +225,25 @@
 .book[data-picker=true] .gearStats dt small { margin-left:3px; }
 .book[data-picker=true] .portrait { background:#0c2830 radial-gradient(ellipse at 50% 30%,#29505a,transparent 74%)!important; }
 @media(min-width:701px) and (min-height:551px) {
- .book[data-picker=true] .layout { padding-inline:40px; gap:60px; }
- .book[data-picker=true] footer { padding-right:40px; }
+ .book[data-picker=true] .layout {
+   padding:24px 7% 8px;
+   column-gap:7%;
+ }
+ .book[data-picker=true] .layout::before { bottom:-78px; }
+ .book[data-picker=true] footer {
+   margin-left:7%;
+   margin-right:14%;
+   padding:0 0 16px;
+   min-width:0;
+ }
+ .book[data-picker=true] footer button {
+   min-width:0;
+   padding-inline:10px;
+   font-size:clamp(14px,1.65vw,19px);
+ }
+ .book[data-picker=true] footer>span { min-width:0; }
+ .book[data-picker=true] .roster input { min-width:0; }
+ .book[data-picker=true] .candidates>div { min-width:0; }
 }
 @media(max-width:700px),(max-height:550px) {
  .book[data-picker=true] .tabs button { flex:1; }
@@ -252,10 +269,27 @@
 .currentOwner { display:block; font-size:.78em; }
 .book[data-picker=true] .selectedRecipient img { object-position:50% 23%; }
 @media(min-width:701px) and (min-height:551px) {
- .book[data-picker=true] .portrait { height:clamp(120px,19vh,173px)!important; }
+ .book[data-picker=true] .portrait {
+   height:clamp(92px,17vh,140px)!important;
+ }
+ .book[data-picker=true] .portrait span { inset-inline:7%; }
+ .book[data-picker=true] .portrait strong { font-size:clamp(15px,1.7vw,20px); overflow-wrap:anywhere; }
 }
 @media(max-width:700px) and (orientation:portrait) {
  .book[data-picker=true] .portrait { height:clamp(120px,25dvh,180px)!important; }
  .book[data-picker=true] .portrait span { padding:4px; }
  .book[data-picker=true] .portrait small { display:none; }
+}
+@media(min-width:701px) and (min-height:551px) {
+ .book[data-picker=true] .layout::before { bottom:-100px; }
+ .book[data-picker=true] footer { margin-left:9%; margin-right:16%; }
+}
+@media(min-width:701px) and (min-height:551px) and (max-height:780px) {
+ .book[data-picker=true] .heading { padding-block:1px 3px; }
+ .book[data-picker=true] .heading h2 { font-size:26px; }
+ .book[data-picker=true] .layout { padding-block:19px 3px; }
+ .book[data-picker=true] .itemIntro img { width:75px; }
+ .book[data-picker=true] .gearPair article>div { width:58px; }
+ .book[data-picker=true] .gearStats>div { padding-block:2px; }
+ .book[data-picker=true] footer { padding-bottom:9px; }
 }
