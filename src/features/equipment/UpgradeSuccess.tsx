@@ -33,7 +33,7 @@ export function UpgradeSuccess({receipt,gold,onClose}:{receipt:UpgradeReceipt;go
     <div className={s.summary}>
      <div className={s.saved}>{receipt.art&&<img src={receipt.art} alt=""/>}<strong>{receipt.name} +{level}</strong></div>
      <div><span>Guaranteed gain</span><strong>{BATTLE_STAT_LABELS[after.main.key]} <em>+{after.main.value-before.main.value}</em></strong></div>
-     <div className={s.payment}><ForgeIcon name="coin"/><div><strong>{receipt.cost} Gold paid</strong>{!!receipt.goalGold&&<small>Ranch goal rewards: +{receipt.goalGold.toLocaleString('en-US')} Gold</small>}<span>Balance: {gold.toLocaleString('en-US')} Gold</span></div></div>
+     <div className={s.payment}><img src="/images/ui/forge-gallery-v1/receipt-coins.webp" alt=""/><div><strong>{receipt.cost} Gold paid</strong>{!!receipt.goalGold&&<small>Ranch goal rewards: +{receipt.goalGold.toLocaleString('en-US')} Gold</small>}<span>Balance: {gold.toLocaleString('en-US')} Gold</span></div></div>
     </div>
     {after.substats.length>0&&<details className={s.substats}><summary>Saved substats ({after.substats.length}/4)</summary><dl>{after.substats.map(stat=><div key={stat.key}><dt>{BATTLE_STAT_LABELS[stat.key]}</dt><dd>+{stat.value}</dd></div>)}</dl></details>}
     <footer><button onClick={onClose}>Continue</button></footer>

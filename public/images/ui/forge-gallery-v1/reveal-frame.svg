@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 680" preserveAspectRatio="none">
+ <defs>
+  <linearGradient id="gold" x2=".25" y2="1">
+   <stop stop-color="#fbe4a7"/><stop offset=".26" stop-color="#b78640"/><stop offset=".52" stop-color="#fae5a1"/><stop offset=".76" stop-color="#795226"/><stop offset="1" stop-color="#edc574"/>
+  </linearGradient>
+  <radialGradient id="slate"><stop stop-color="#173c3d"/><stop offset="1" stop-color="#081e22"/></radialGradient>
+  <path id="edge" d="M109 3H751Q781 53 830 67Q835 80 857 89V590Q834 599 830 617Q797 617 780 677H80Q63 617 30 617Q26 599 3 590V89Q25 80 30 67Q79 53 109 3Z"/>
+ </defs>
+ <use href="#edge" fill="url(#slate)" stroke="url(#gold)" stroke-width="4"/>
+ <use href="#edge" transform="translate(8 8) scale(.9814 .9765)" fill="none" stroke="#bb9a60" stroke-opacity=".56" stroke-width="1.5"/>
+</svg>
