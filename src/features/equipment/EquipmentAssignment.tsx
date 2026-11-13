@@ -24,6 +24,7 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
  const participant=participants.find(p=>p.participantId===creature?.creatureId);
  if(!copy||!item)return null;
  const comparison=creature?compareEquipment(save,creature,item,copy.id):null;
+ const allRows=comparison?.rows??[];
  const rows=comparison?.rows.filter(r=>r.delta!==0)??[];
  const sets=comparison?.sets.current.flatMap(before=>{const after=comparison.sets.after.find(a=>a.id===before.id);return after&&after.count!==before.count?[{before,after}]:[];}).sort((a,b)=>(a.after.activations-a.before.activations)-(b.after.activations-b.before.activations))??[];
  const lost=sets.filter(c=>c.after.activations<c.before.activations);
@@ -48,6 +49,41 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
    <dd>+{stat.value}</dd>
   </div>)}
  </dl>;
+ if(confirmation){
+  const incomingSet=comparison?.sets.after.find(set=>set.id===selectedStats.setId);
+  const outgoingSet=comparison?.sets.current.find(set=>set.id===equippedStats?.setId);
+  return <GameDialog fullScreen title={title} onClose={onClose}>
+   <main className={`${s.shell} ${s.swapShell}`}>
+    <section className={`${s.book} ${s.swap}`} data-gear-swap>
+     <header className={s.heading}><div><strong className={s.forgeTitle}>Iona’s Forge</strong><h2>Confirm equipment</h2></div><button aria-label="Close Confirm equipment" onClick={onClose}><ForgeIcon name="close"/></button></header>
+     <div className={s.swapContent}>
+      {participant&&<div className={s.swapRecipient}>{portrait(participant)}</div>}
+      <div className={s.swapPair} aria-label="Item stats">
+       <article>
+        <h3>Outgoing</h3>
+        {previous&&previousCopy&&equippedStats?<><UpgradeItemArt art={previous.iconPath} stats={equippedStats} slot={previous.equipmentSlot}/><strong>{previous.name} +{previousCopy.level}</strong><p>{outgoingSet?outgoingSet.name+' set':'No set'}</p>{gearStats(equippedStats)}<p>Returns to inventory</p></>:<p>Empty slot</p>}
+       </article>
+       <b className={s.arrow} aria-hidden="true">→</b>
+       <article>
+        <h3>Incoming</h3><UpgradeItemArt art={item.iconPath} stats={selectedStats} slot={item.equipmentSlot}/>
+        <strong>{item.name} +{copy.level}</strong>
+        <p>{incomingSet?incomingSet.name+' set':'No set'}</p>{gearStats(selectedStats)}
+       </article>
+      </div>
+      {lost.map(({before,after})=><p key={before.id} className={s.swapWarning} role="status"><strong>Set bonus lost · {before.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}</p>)}
+      {incomingSet&&<p className={s.swapSet}><strong>{incomingSet.name} after equipping</strong> · {incomingSet.count}/{incomingSet.required} · {incomingSet.activations?`${incomingSet.activations} active ${incomingSet.activations===1?'bonus':'bonuses'}`:'No active bonus'}<br/><small>{incomingSet.description}</small></p>}
+      <section className={s.swapStats} aria-label="Creature battle stats">
+       <h3>{participant?.displayName??'Creature'} · Battle stats</h3>
+       <table><thead><tr><th scope="col">Stat</th><th scope="col">Current</th><th scope="col">After</th><th scope="col">Change</th></tr></thead>
+       <tbody>{allRows.map(row=><tr key={row.key}><th scope="row"><EquipmentStatIcon name={row.key}/>{row.label}</th><td>{row.current}</td><td>{row.after}</td><td data-delta={Math.sign(row.delta)}>{row.delta>0?'+':''}{row.delta}</td></tr>)}</tbody></table>
+      </section>
+      {blocker&&<p className={s.warning}>{blocker}</p>}
+     </div>
+     <footer><button onClick={onClose}>Cancel</button><button disabled={!!blocker||confirmDisabled} onClick={onConfirm}>Confirm equip</button></footer>
+    </section>
+   </main>
+  </GameDialog>;
+ }
  return <GameDialog fullScreen title={title} onClose={onClose}><main className={s.shell}><section className={s.book} data-equipment-assignment data-expanded={expanded} data-picker={!confirmation}>
  <header className={s.heading}><div>{!confirmation&&<strong className={s.forgeTitle}>Iona’s Forge</strong>}<h2>{title}</h2><p>{copy.owner&&copy.owner!==creature?.creatureId?`Equipped by ${save.creatures?.find(c=>c.creatureId===copy.owner)?.nickname??'another creature'} · Review both creatures before transferring.`:confirmation?'Equip this item on the selected creature?':'Select a creature to preview this equipment.'}</p></div><button aria-label={`Close ${title}`} onClick={onClose}><ForgeIcon name="close"/></button></header>
  {(mobile||!confirmation)&&<nav className={s.tabs} aria-label="Equipment review sections">{(mobile?(['creature','equipment','changes'] as const):(['equipment','changes'] as const)).map(t=><button key={t} aria-pressed={tab===t} onClick={()=>setTab(t)}>{t==='creature'?'Creature':t==='equipment'?'Equipment':'Changes'}</button>)}</nav>}
