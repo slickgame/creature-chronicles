@@ -19,7 +19,7 @@ import {ForgeWindow,ForgeIcon,FORGE_ART} from './ForgeWindow';
 import s from './ForgeGallery.module.css';
 
 type Popup='review'|'report'|'talk'|'output'|'comparison'|'cost'|'routes'|'materials'|null;
-type Receipt={ok:boolean;message:string;name:string;slot:string;art:string;copyId:string;spent:string;gold:number;goalGold:number;goalGp:number};
+type Receipt={ok:boolean;message:string;name:string;slot:string;art:string;copyId:string;materials:[ResourceId,number][];laborGold:number;gold:number;goalGold:number;goalGp:number};
 export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0].id}:{onBack:()=>void;initialRecipeId?:typeof BLACKSMITH_RECIPES[number]['id']}){
  const {currentSave:save,saveCurrentGame,goToBattleOutfitter}=useGameContext();const {open}=useNavigation();
  const [recipeId,setRecipeId]=useState(initialRecipeId),[creatureId,setCreatureId]=useState(''),[popup,setPopup]=useState<Popup>(null),[page,setPage]=useState(0),[revision,setRevision]=useState(0),[source,setSource]=useState<ResourceId|null>(null),[upgradeOpen,setUpgradeOpen]=useState(false),[upgradeTarget,setUpgradeTarget]=useState(''),[phone,setPhone]=useState(false),[short,setShort]=useState(false),[guide,setGuide]=useState(false),[receipt,setReceipt]=useState<Receipt|null>(null);
@@ -43,7 +43,7 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
   if(!save||busy.current)return;busy.current=true;
   const beforeIds=new Set(getEquipmentCopies(save).map(c=>c.id));const result=craftBlacksmithEquipment(save,recipe.id,revision);
   const persisted=result.ok?saveCurrentGame(result.save):save;
-  setReceipt({ok:result.ok,message:result.message,name:item.name,slot:slotLabel,art:item.iconPath??'',copyId:result.ok?getEquipmentCopies(persisted,item.itemId).find(c=>!beforeIds.has(c.id))?.id??'':'',spent:`${resourceList(recipe.inputs)} + ${recipe.laborGold} Gold labor`,gold:persisted.currencies.gold,goalGold:result.ok?persisted.currencies.gold-result.save.currencies.gold:0,goalGp:result.ok?persisted.currencies.guildPoints-result.save.currencies.guildPoints:0});
+  setReceipt({ok:result.ok,message:result.message,name:item.name,slot:slotLabel,art:item.iconPath??'',copyId:result.ok?getEquipmentCopies(persisted,item.itemId).find(c=>!beforeIds.has(c.id))?.id??'':'',materials:inputs,laborGold:recipe.laborGold,gold:persisted.currencies.gold,goalGold:result.ok?persisted.currencies.gold-result.save.currencies.gold:0,goalGp:result.ok?persisted.currencies.guildPoints-result.save.currencies.guildPoints:0});
   setPage(0);setPopup('report');
  }
  const identity=(meta=stats)=><div className={s.identity}><span className={s.rarity} data-rarity={meta.rarity}>{meta.rarity}</span><span className={s.power}>Power {meta.powerGrade}</span><b className={s.enhancement}>+0</b></div>;
@@ -87,7 +87,25 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
      </div>
    </div>
  </ForgeWindow>:null}
- {popup==='report'&&receipt?<ForgeWindow title="Iona’s Crafting Receipt" marker="receipt" onClose={()=>setPopup(null)} footerAction={receipt.copyId?<button onClick={()=>improve(receipt.copyId)}>Equip or improve this item</button>:null}><div className={s.reviewHero}><img src={receipt.ok?`${FORGE_ART}craft-seal.webp`:receipt.art} alt=""/><div><h2>{receipt.ok?'Craft complete':'Crafting unavailable'}</h2><h3>{receipt.name}{receipt.ok?' +0':''}<small className={s.slotLabel}>{receipt.slot}</small></h3></div></div><div className={s.success}><p role="status">{receipt.ok?'Added 1 finished item to equipment inventory.':receipt.message}</p>{receipt.ok?<p>Spent: {receipt.spent}.</p>:null}<strong>Balance: {receipt.gold} Gold</strong>{receipt.goalGold||receipt.goalGp?<small>Goal rewards: {[receipt.goalGold && `+${receipt.goalGold} Gold`, receipt.goalGp && `+${receipt.goalGp} GP`].filter(Boolean).join(' · ')}.</small>:null}</div></ForgeWindow>:null}
+ {popup==='report'&&receipt?<ForgeWindow title="Iona’s Crafting Receipt" marker="receipt" onClose={()=>setPopup(null)}
+   footerAction={receipt.copyId?<button className={s.primary} onClick={()=>improve(receipt.copyId)}>Equip or improve this item</button>:null}>
+   {receipt.ok?<div className={s.craftConfirmation}>
+     <section className={s.craftConfirmationHero}>
+       <div><p className={s.craftComplete} role="status"><span aria-hidden="true">✓</span> Craft complete</p>
+         <h2>{receipt.name} +0</h2><p className={s.craftInventory}>Added to equipment inventory</p></div>
+       <img src={receipt.art} alt=""/>
+     </section>
+     <h3 className={s.craftCostsTitle}>Spent</h3>
+     <ul className={s.craftCostCards} style={{gridTemplateColumns:`repeat(${receipt.materials.length + 1},minmax(0,1fr))`}}>
+       {receipt.materials.map(([id,amount])=><li key={id}><img src={getResourceArt(id)} alt=""/><span><strong>{amount}</strong> {RESOURCES[id].name}</span></li>)}
+       <li><ForgeIcon name="coin"/><span><strong>{receipt.laborGold}</strong> Gold labor</span></li>
+     </ul>
+     <dl className={s.craftReceiptTotals}>
+       {Boolean(receipt.goalGold||receipt.goalGp)&&<div><span aria-hidden="true">✦</span><div><dt>Goal reward</dt><dd>{[receipt.goalGold && `+${receipt.goalGold} Gold`,receipt.goalGp && `+${receipt.goalGp} GP`].filter(Boolean).join(' · ')}</dd></div></div>}
+       <div><ForgeIcon name="coin"/><div><dt>Balance</dt><dd>{receipt.gold} Gold</dd></div></div>
+     </dl>
+   </div>:<div className={s.success}><h3>Crafting unavailable</h3><p role="status">{receipt.message}</p><strong>Balance: {receipt.gold} Gold</strong></div>}
+ </ForgeWindow>:null}
  {popup==='comparison'?<ForgeCreatureComparison save={save} creature={creature} item={item} slotLabel={slotLabel} short={short} onCreature={setCreatureId} onRules={()=>setGuide(true)} onClose={()=>setPopup(null)}/>:null}
  {popup==='routes'?(
   <ForgeWindow title="Craft or buy?" marker="routes" onClose={()=>setPopup(null)}>
