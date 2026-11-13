@@ -8,23 +8,28 @@ import {useGameContext} from '@/state/GameProvider';
 import {FORGE_ART, ForgeIcon, ForgeWindow} from './ForgeWindow';
 import s from './ForgeGallery.module.css';
 
-const ironRecipe = RECIPES.find(({id}) => id === 'iron')!;
-const inputs = Object.entries(ironRecipe.inputs) as [ResourceId, number][];
 const workersPerPage = 3;
 
 type Props = {
   item: {name: string; iconPath?: string};
+  resourceId: 'iron' | 'nails';
   missing: number;
-  shortages: {id: ResourceId; missing: number}[];
+  shortages: {id: ResourceId; missing: number; required: number}[];
   onClose: () => void;
 };
 
-export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
+export function ForgeFurnace({item, resourceId, missing, shortages, onClose}: Props) {
+  const recipe = RECIPES.find(({id}) => id === resourceId)!;
+  const inputs = Object.entries(recipe.inputs) as [ResourceId, number][];
+  const nails = resourceId === 'nails';
+  const name = nails ? 'Small forge' : 'Iron furnace';
+  const outputName = RESOURCES[resourceId].name;
+  const artwork = FORGE_ART + (nails ? 'small-forge.webp' : 'iron-furnace.webp');
   const {currentSave: save, saveCurrentGame} = useGameContext();
-  const [batches, setBatches] = useState(() => Math.min(20, Math.max(1, Math.ceil(missing / ironRecipe.output))));
+  const [batches, setBatches] = useState(() => Math.min(20, Math.max(1, Math.ceil(missing / recipe.output))));
   const [workerId, setWorkerId] = useState(() => {
     const creatures = save?.creatures ?? [];
-    return (save && creatures.find(creature => !recipeWorkerBlocker(save, 'iron', batches, creature)))?.creatureId
+    return (save && creatures.find(creature => !recipeWorkerBlocker(save, resourceId, batches, creature)))?.creatureId
       ?? creatures[0]?.creatureId ?? '';
   });
   const [view, setView] = useState<'recipe' | 'workers' | 'review' | 'receipt'>('recipe');
@@ -38,13 +43,16 @@ export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
   const farm = getFarmState(save);
   const workers = (save.creatures ?? []).map(creature => ({
     creature,
-    cost: recipePreview(save, 'iron', batches, creature)!.energy,
-    blocker: recipeWorkerBlocker(save, 'iron', batches, creature),
+    cost: recipePreview(save, resourceId, batches, creature)!.energy,
+    blocker: recipeWorkerBlocker(save, resourceId, batches, creature),
   }));
   const worker = workers.find(({creature}) => creature.creatureId === workerId) ?? workers.find(entry => !entry.blocker) ?? workers[0];
   const pages = Math.ceil(workers.length / workersPerPage);
   const page = Math.max(0, Math.min(workerPage, pages - 1));
-  const output = batches * ironRecipe.output;
+  const output = batches * recipe.output;
+  const ironRequired = shortages.find(entry => entry.id === 'iron')?.required ?? 0;
+  const ironUsable = Math.max(0, (farm.stock.iron ?? 0) - (farm.reserves.iron ?? 0));
+  const ironShortAfter = Math.max(0, ironRequired - (ironUsable - batches));
   const close = view === 'workers' || view === 'review' ? () => setView('recipe') : onClose;
 
   function confirm() {
@@ -55,13 +63,13 @@ export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
       return;
     }
     confirmed.current = true;
-    const result = craftResource(save, 'iron', batches, worker.creature.creatureId);
+    const result = craftResource(save, resourceId, batches, worker.creature.creatureId);
     if (result.ok) saveCurrentGame(result.save);
     setReceipt(result.ok ? {ok: true, crafter: worker.creature.nickname, energy: worker.cost, output} : {ok: false, message: result.message});
     setView('receipt');
   }
 
-  const title = view === 'workers' ? 'Choose a crafter' : view === 'review' ? 'Review production' : view === 'receipt' ? 'Production receipt' : 'Iron furnace';
+  const title = view === 'workers' ? 'Choose a crafter' : view === 'review' ? 'Review production' : view === 'receipt' ? 'Production receipt' : name;
   const footer = (
     <div className={s.furnaceActions}>
       {view === 'recipe' ? <>
@@ -80,7 +88,7 @@ export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
   );
 
   return (
-    <ForgeWindow title={title} marker="forge-furnace" onClose={close} footer={footer}>
+    <ForgeWindow title={title} marker="forge-furnace" subtitle={view === 'review' ? name : view === 'recipe' ? (nails ? 'Forge nails' : 'Smelt iron ingots') : undefined} onClose={close} footer={footer}>
       {view === 'workers' ? (
         <section className={s.furnaceRoster}>
           {workers.length === 0 && <p>No creature workers available.</p>}
@@ -104,15 +112,15 @@ export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
         receipt?.ok ? (
           <div className={s.furnaceReceipt}>
             <div className={s.furnaceReceiptBanner}>
-              <img src={`${FORGE_ART}iron-furnace.webp`} alt=""/>
-              <strong>Iron furnace</strong>
+              <img src={artwork} alt=""/>
+              <strong>{name}</strong>
             </div>
             <section className={s.furnaceLedger}>
               <div className={s.furnaceReceiptItem}><img src={item.iconPath} alt=""/><h3>{item.name}</h3></div>
               <ul className={s.furnaceShortages} aria-label="Recipe materials">
-                {!missing && <li data-covered>Iron ingots covered</li>}
+                {shortages.every(entry => !entry.missing) ? <li data-covered>Materials covered</li> : !missing && <li data-covered>{outputName} covered</li>}
                 {shortages.filter(entry => entry.missing > 0).map(({id, missing: amount}) => (
-                  <li key={id}>{amount} {id === 'nails' && amount === 1 ? 'Nail' : RESOURCES[id].name} still missing</li>
+                  <li key={id}>{amount} {amount === 1 && id === 'nails' ? 'Nail' : amount === 1 && id === 'iron' ? 'Iron ingot' : RESOURCES[id].name} still missing</li>
                 ))}
               </ul>
             </section>
@@ -123,16 +131,16 @@ export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
                 <div key={id}><dt><img src={getResourceArt(id)} alt=""/>{RESOURCES[id].name} used</dt><dd>{amount * batches}</dd></div>
               ))}
               <div><dt>Energy spent</dt><dd>{receipt.energy}</dd></div>
-              <div data-produced><dt><img src={getResourceArt('iron')} alt=""/>Iron ingots produced</dt><dd>{receipt.output}</dd></div>
+              <div data-produced><dt><img src={getResourceArt(resourceId)} alt=""/>{outputName} produced</dt><dd>{receipt.output}</dd></div>
             </dl>
           </div>
         ) : <section className={s.furnaceLedger}><p role="status">{receipt?.message}</p></section>
       ) : (
         <>
-          {view === 'recipe' && <div className={s.furnaceContext}><img src={item.iconPath} alt=""/><strong>{item.name}</strong><span>{missing ? `${missing} Iron ingots missing` : 'Iron ingots covered'}</span></div>}
+          {view === 'recipe' && <div className={s.furnaceContext}><img src={item.iconPath} alt=""/><strong>{item.name}</strong><span>{missing ? `${missing} ${missing === 1 && nails ? 'Nail' : outputName} missing` : `${outputName} covered`}</span></div>}
           <div className={s.furnaceGrid} data-review={view === 'review'}>
             <section className={s.furnaceCrafter}>
-              <img className={s.furnaceArt} src={`${FORGE_ART}iron-furnace.webp`} alt=""/>
+              <img className={s.furnaceArt} src={artwork} alt=""/>
               <button className={s.furnaceWorker} aria-label="Change crafter" onClick={() => {
                 setWorkerPage(Math.floor(Math.max(0, workers.indexOf(worker)) / workersPerPage));
                 setView('workers');
@@ -158,9 +166,11 @@ export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
                 </div>;
               })}
               <div className={s.furnaceYield} aria-hidden="true">↓</div>
-              <div className={s.furnaceResource} data-output><img src={getResourceArt('iron')} alt=""/><strong>Iron ingots</strong><b>{output} <small>({ironRecipe.output} per batch)</small></b></div>
-              {!farm.facilities.furnace && <p role="status">Build Iron furnace first.</p>}
-              {farm.facilities.furnace && worker?.blocker && <p role="status">{worker.blocker}</p>}
+              <div className={s.furnaceResource} data-output><img src={getResourceArt(resourceId)} alt=""/><strong>{outputName}</strong><b>{output} <small>({recipe.output} per batch)</small></b></div>
+              {worker?.blocker && <p role="status">{worker.blocker}</p>}
+              {nails && !worker?.blocker && ironRequired > 0 && ironShortAfter > 0 && (
+                <p role="status">{item.name} will still need {ironShortAfter} {ironShortAfter === 1 ? 'Iron ingot' : 'Iron ingots'}.</p>
+              )}
             </section>
           </div>
         </>

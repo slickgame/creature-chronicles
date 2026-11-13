@@ -44,7 +44,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
   const options = ingredients.map(([id, required]) => {
     const reserved = farm.reserves[id] ?? 0;
     const usable = Math.max(0, (farm.stock[id] ?? 0) - reserved);
-    return {id, reserved, usable, missing: Math.max(0, required - usable)};
+    return {id, required, reserved, usable, missing: Math.max(0, required - usable)};
   });
   const active = options.find(({id}) => id === selected) ?? options[0];
   const visibleOptions = options.slice(page * pageSize, (page + 1) * pageSize);
@@ -226,7 +226,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
                       <span>→ <img src={getResourceArt(active.id)} alt=""/>{recipe.output} {active.id === 'iron' && recipe.output === 1 ? 'Iron ingot' : resource.name}</span>
                     </div>
                   ) : <p>{site ? `Gather at ${site[1].name}.` : 'No ranch source is available.'}</p>}
-                  {(recipe || site) && <button className={s.primary} onClick={() => setProduction(active.id === 'iron' ? 'furnace' : productionSection)}>
+                  {(recipe || site) && <button className={s.primary} onClick={() => setProduction((active.id === 'iron' || active.id === 'nails') ? 'furnace' : productionSection)}>
                     {facility ? `Open ${facilityLabel} recipe` : recipe ? 'Open recipe' : 'Open work location'}
                   </button>}
                 </div>
@@ -236,7 +236,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
           </>
         )}
       </ForgeWindow>
-      {production === 'furnace' && <ForgeFurnace item={item} missing={active.missing} shortages={options} onClose={() => setProduction(null)}/>}
+      {production === 'furnace' && (active.id === 'iron' || active.id === 'nails') && <ForgeFurnace resourceId={active.id} item={item} missing={active.missing} shortages={options} onClose={() => setProduction(null)}/>}
       {production && production !== 'furnace' && (
         <GameDialog fullScreen title={`${resource.name} · Production`} onClose={() => setProduction(null)}>
           <ProductionBook section={production} onSection={setProduction} initialSelection={recipe ? active.id : site?.[0]} onBack={() => setProduction(null)}/>
