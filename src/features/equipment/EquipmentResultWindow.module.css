@@ -317,3 +317,19 @@
  .benchCompletion { padding:3px 7px; }
  .benchCompletion>div img { height:26px; }
 }
+.benchReceiptPortrait { position:relative; overflow:hidden; }
+.benchReceiptPortrait img { position:absolute; inset:5px; width:calc(100% - 10px); height:calc(100% - 10px); object-fit:cover; object-position:center 18%; }
+.benchReceiptPortrait figcaption { grid-row:2; z-index:1; }
+.bench[data-removal-receipt=true] .benchGear img {
+ background:radial-gradient(#29433b,#101c16); border:1px solid #c19d55;
+ border-radius:4px; padding:3px;
+}
+.bench[data-removal-receipt=true] .benchGear img,.bench[data-removal-receipt=true] .benchEmpty { width:clamp(38px,8vw,100px); height:clamp(38px,12dvh,100px); }
+.bench[data-removal-receipt=true] .benchEmpty { border-style:dashed; }
+@media(max-width:700px) and (orientation:portrait) {
+ .benchCompletion>div strong { font-size:15px; }
+ .bench[data-removal-receipt=true] .benchGear>div { align-items:center; }
+}
+@media(max-height:450px) and (orientation:landscape) {
+ .bench[data-removal-receipt=true] .benchGear img,.bench[data-removal-receipt=true] .benchEmpty { width:33px; height:30px; }
+}
