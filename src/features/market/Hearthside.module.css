@@ -191,3 +191,125 @@
 @media(min-width:601px) and (max-height:650px){.keeperPortrait{width:25px;height:25px;}.hearth .preview h2{padding:10px 28px 7px;font-size:16px;}}
 @media(max-width:600px){.hearth .resources{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.8fr) minmax(0,1fr) auto;gap:5px;}.hearth .resources strong{font-size:13px;}.hearth .resources>div{grid-template-columns:14px 1fr;gap:0 2px;}.hearth .resources>div>[aria-hidden]{width:14px;height:14px;}.hearth .resources button{font-size:11px;max-width:110px;}.hearth .resources span{font-size:10px;}}
 @media(min-width:901px) and (min-height:651px) and (max-height:800px){.hearth .details{gap:6px 10px;}.hearth .fee>strong{font-size:18px;padding:7px 16px;gap:3px;white-space:nowrap;}.hearth .fee>strong>[aria-hidden]{width:18px;height:18px;}.hearth .placement strong,.hearth .placement p,.hearth .fee p{font-size:12px;}.hearth .identity h2{font-size:23px;}}
+
+.gallery {
+ --hearth-frame:url('/images/ui/forge-gallery-v1/removal-bench-frame.webp');
+ height:100dvh; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto; gap:9px;
+ padding:10px clamp(10px,3vw,46px); background:#31271d url('/images/ui/adoption-gallery/hearth.webp') center/cover;
+ color:#fff0d0; font:16px/1.2 Georgia,serif; overflow:hidden;
+}
+.gallery * { box-sizing:border-box; min-width:0; }
+.gallery :is(h1,h2,p,dl,dd) { margin:0; }
+.gallery button {
+ color:inherit; font:700 15px/1.12 Georgia,serif; background:linear-gradient(#285243,#102d25);
+ border:1px solid #ccaa67; border-radius:8px; padding:6px 10px; min-height:36px; cursor:pointer;
+}
+.gallery button:focus-visible { outline:2px solid #fff1a4; outline-offset:2px; }
+.gallery button:disabled { opacity:.55; cursor:default; }
+.galleryHeader { display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px; }
+.galleryHeader h1 {
+ justify-self:center; text-align:center; color:#ffe3a5; font-size:clamp(22px,4vw,49px);
+ padding:14px clamp(22px,5vw,85px) 22px; text-shadow:0 2px 4px #100b06;
+ background:url('/images/ui/forge-gallery-v1/swap-forge-plaque.webp') center/100% 100%;
+}
+.galleryTop { display:flex; align-items:center; justify-content:space-between; gap:7px; }
+.gallerySteward,.balance,.galleryRoster,.galleryDetails { border-image:var(--hearth-frame) 60 fill / 15px stretch; }
+.gallerySteward { display:flex; align-items:center; gap:9px; padding:5px 9px; }
+.gallerySteward img { width:58px; height:60px; object-fit:cover; object-position:center 20%; }
+.gallerySteward div small { display:block; margin-top:2px; }
+.gallerySteward button { display:flex; align-items:center; gap:4px; }
+.balance { display:flex; align-items:center; gap:5px; padding:10px 14px; white-space:nowrap; }
+.galleryBody { display:grid; grid-template-columns:minmax(0,2fr) minmax(260px,1fr); min-height:0; gap:8px; }
+.galleryRoster { display:grid; grid-template-rows:auto minmax(0,1fr) auto; min-height:0; padding:12px; gap:8px; }
+.galleryRoster header { display:flex; justify-content:space-between; align-items:center; gap:6px; }
+.gallery h2 { color:#ffe5ab; font-size:clamp(20px,2.4vw,32px); }
+.galleryCarousel { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:6px; min-height:0; }
+.galleryCarousel > button { border-radius:50%; width:36px; padding:0; font-size:25px; }
+.galleryCards { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:8px; align-self:stretch; min-height:0; }
+.galleryCard {
+ display:grid; grid-template-rows:minmax(0,1fr) auto; min-height:0; padding:4px; gap:4px;
+ border:1px solid #b89857; border-radius:10px; background:#16332a; overflow:hidden;
+}
+.galleryCard[data-selected=true] { border-color:#ffe390; box-shadow:inset 0 0 0 1px #ffe390,0 0 8px #ffc84d; }
+.gallery button.gallerySelect { display:grid; grid-template-rows:minmax(0,1fr) auto; position:relative; overflow:hidden; padding:0; border:0; background:linear-gradient(#516746,#19372b); }
+.gallerySelect img { width:100%; height:100%; min-height:0; object-fit:contain; object-position:center bottom; }
+.gallerySelect span { display:grid; padding:5px; color:#fff1d4; background:#10271f; text-transform:capitalize; }
+.gallerySelect strong { font-size:clamp(16px,2vw,25px); overflow-wrap:anywhere; }
+.gallery .cardProfile { min-height:31px; }
+.galleryPage { text-align:center; color:#f4dcaa; font-size:13px; }
+.galleryDetails { display:grid; grid-template-rows:minmax(0,1fr) auto; grid-auto-rows:auto; min-height:0; gap:6px; padding:12px; }
+.galleryHero { display:grid; grid-template-rows:minmax(0,1fr) auto; text-align:center; overflow:hidden; border:1px solid #ad8b51; border-radius:7px; background:linear-gradient(#516749,#1a392e); }
+.galleryHero img { width:100%; height:100%; min-height:0; object-fit:contain; object-position:center bottom; }
+.galleryHero div { padding:5px; background:#10271f; text-transform:capitalize; }
+.requirements { border:1px solid #a5844e; border-radius:7px; background:#172f26; }
+.requirements div { display:flex; justify-content:space-between; gap:8px; align-items:center; padding:7px; }
+.requirements div+div { border-top:1px solid #9b85515c; }
+.requirements dt { color:#e0c898; }
+.requirements dd { text-align:right; font-weight:700; }
+.gallery .galleryPrimary { background:url('/images/ui/forge-gallery-v1/receipt-continue.webp') center/100% 100% no-repeat; padding-inline:24px; min-height:44px; }
+@media(max-width:700px) and (orientation:portrait) {
+ .gallery { padding:6px 8px; gap:4px; }
+ .galleryHeader h1 { font-size:clamp(19px,5vw,27px); padding:7px 14px 11px; }
+ .gallerySteward { padding:3px 5px; gap:4px; }
+ .gallerySteward img { width:34px; height:38px; }
+ .gallerySteward div small { font-size:10px; }
+ .gallerySteward strong,.balance { font-size:12px; }
+ .gallery .trustButton { display:none; }
+ .balance { padding:6px; }
+ .galleryBody { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) auto; gap:4px; }
+ .galleryRoster,.galleryDetails { padding:6px; gap:3px; }
+ .galleryHero { display:none; }
+ .galleryDetails { grid-template-rows:auto; }
+ .galleryRoster header small { display:none; }
+ .galleryRoster h2 { font-size:17px; }
+ .gallery button { font-size:12px; }
+ .galleryCarousel { gap:3px; }
+ .galleryCarousel > button { width:29px; min-height:32px; }
+ .requirements div { padding:4px 6px; font-size:12px; }
+ .gallery .galleryPrimary { min-height:36px; }
+}
+@media(max-height:480px) and (orientation:landscape) {
+ .gallery { padding:4px 7px; gap:3px; }
+ .galleryHeader h1 { font-size:23px; padding:5px 24px 8px; }
+ .gallerySteward { padding:2px 6px; }
+ .gallerySteward img { width:30px; height:33px; }
+ .gallery button { min-height:28px; font-size:12px; padding-block:3px; }
+ .galleryBody { grid-template-columns:minmax(0,1.5fr) minmax(200px,1fr); gap:4px; }
+ .galleryRoster,.galleryDetails { padding:5px; gap:3px; }
+ .galleryHero img { display:none; }
+ .galleryHero { grid-template-rows:auto; }
+ .gallery h2 { font-size:17px; }
+ .requirements div { font-size:12px; padding:3px 5px; }
+ .gallery .galleryPrimary { min-height:30px; }
+}
+.galleryHeader h1 {
+ background-image:url('/images/ui/adoption-gallery/plaque.webp');
+ padding-top:clamp(28px,5vh,48px);
+}
+.gallerySelect {
+ background:linear-gradient(0deg,#10271f88,#10271f18),url('/images/ui/adoption-gallery/hearth.webp') center/cover !important;
+}
+.gallerySelect img { grid-row:1; }
+.gallerySelect span { grid-row:2; }
+.gallerySelect img[hidden] { display:none; }
+@media(max-width:700px) and (orientation:portrait) {
+ .galleryHeader h1 { padding-top:20px; }
+ .galleryHeader nav { gap:3px; }
+ .galleryHeader nav button { padding-inline:5px; }
+}
+@media(max-height:480px) and (orientation:landscape) {
+ .galleryHeader h1 { padding-top:16px; }
+}
+.galleryHeader h1 { width:min(100%,670px); }
+.galleryHero { background:linear-gradient(#173e3060,#142e25c9),url('/images/ui/adoption-gallery/hearth.webp') center/cover; }
+.galleryDetails .warning { color:#ffd095; font-size:13px; }
+@media(max-width:700px) and (orientation:portrait) {
+ .galleryHeader { grid-template-columns:1fr; position:relative; }
+ .galleryHeader h1 { width:100%; font-size:clamp(21px,5.8vw,29px); padding:22px 18px 12px; }
+ .galleryHeader nav { justify-self:end; }
+ .galleryHeader nav button:first-child { display:none; }
+ .galleryHeader nav button { min-height:28px; }
+ .galleryRoster h2 { font-size:16px; }
+ .gallerySteward div small { white-space:normal; }
+ .balance { flex:none; }
+}
