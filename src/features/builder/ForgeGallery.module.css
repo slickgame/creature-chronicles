@@ -803,3 +803,33 @@
   .window[data-forge-window="forge-furnace"] .quoteTitle p { font-size: 19px; }
   .window[data-forge-window="forge-furnace"] .quoteTitle h2 { font-size: 26px; margin-top: 0; }
 }
+
+.furnaceGrid[data-review="true"] .furnaceBatches {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #b9975b;
+}
+.furnaceReceipt { display: grid; gap: 8px; width: min(500px,100%); margin-inline: auto; }
+.furnaceReceiptBanner,.furnaceReceiptItem,.furnaceReceiptRows dt { display: flex; align-items: center; gap: 8px; }
+.furnaceReceiptBanner { justify-content: center; border: 1px solid #c49c5b; border-radius: 10px; background: linear-gradient(#25404c,#10232e); font-size: 23px; }
+.furnaceReceiptBanner img { width: 96px; height: 68px; object-fit: contain; }
+.furnaceReceiptItem img { width: 37px; height: 29px; object-fit: contain; }
+.furnaceShortages { list-style: none; margin: 0; padding: 5px 0 0; border-top: 1px solid #b9975b; }
+.furnaceShortages li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }
+.furnaceShortages li::before { content: '!'; color: #ffe198; border: 1px solid; border-radius: 50%; width: 18px; text-align: center; }
+.furnaceShortages li[data-covered]::before { content: '✓'; color: #7ff0d8; }
+.furnaceReceiptRows { margin: 0; gap: 0; }
+.furnaceReceiptRows > div { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #8e784c; }
+.furnaceReceiptRows > div:last-child { border-bottom: 0; color: #9bf5df; }
+.furnaceReceiptRows img { width: 22px; height: 22px; object-fit: contain; }
+.furnaceReceiptRows dd { margin: 0; font-weight: bold; }
+@media (max-width:650px) {
+  .furnaceReceipt { font-size: 14px; gap: 5px; }
+  .furnaceReceiptBanner img { height: 51px; }
+}
+@media (max-height:550px) and (orientation:landscape) {
+  .furnaceReceipt { width: 100%; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 13px; align-items: start; }
+  .furnaceReceiptBanner { grid-column: 1/-1; }
+  .furnaceReceiptBanner img { height: 29px; }
+  .furnaceReceiptRows > div { padding: 2px 0; }
+  .furnaceReceiptRows img { height: 16px; }
+}

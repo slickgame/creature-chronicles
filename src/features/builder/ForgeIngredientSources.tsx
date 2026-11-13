@@ -236,7 +236,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
           </>
         )}
       </ForgeWindow>
-      {production === 'furnace' && <ForgeFurnace item={item} missing={active.missing} onClose={() => setProduction(null)}/>}
+      {production === 'furnace' && <ForgeFurnace item={item} missing={active.missing} shortages={options} onClose={() => setProduction(null)}/>}
       {production && production !== 'furnace' && (
         <GameDialog fullScreen title={`${resource.name} · Production`} onClose={() => setProduction(null)}>
           <ProductionBook section={production} onSection={setProduction} initialSelection={recipe ? active.id : site?.[0]} onBack={() => setProduction(null)}/>

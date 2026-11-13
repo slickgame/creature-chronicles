@@ -15,10 +15,11 @@ const workersPerPage = 3;
 type Props = {
   item: {name: string; iconPath?: string};
   missing: number;
+  shortages: {id: ResourceId; missing: number}[];
   onClose: () => void;
 };
 
-export function ForgeFurnace({item, missing, onClose}: Props) {
+export function ForgeFurnace({item, missing, shortages, onClose}: Props) {
   const {currentSave: save, saveCurrentGame} = useGameContext();
   const [batches, setBatches] = useState(() => Math.min(20, Math.max(1, Math.ceil(missing / ironRecipe.output))));
   const [workerId, setWorkerId] = useState(() => {
@@ -28,7 +29,7 @@ export function ForgeFurnace({item, missing, onClose}: Props) {
   });
   const [view, setView] = useState<'recipe' | 'workers' | 'review' | 'receipt'>('recipe');
   const [workerPage, setWorkerPage] = useState(0);
-  const [receipt, setReceipt] = useState<{message: string; ok: boolean}>();
+  const [receipt, setReceipt] = useState<{ok: false; message: string} | {ok: true; crafter: string; energy: number; output: number}>();
   const confirmed = useRef(false);
   const reviewedSave = useRef(save);
 
@@ -56,7 +57,7 @@ export function ForgeFurnace({item, missing, onClose}: Props) {
     confirmed.current = true;
     const result = craftResource(save, 'iron', batches, worker.creature.creatureId);
     if (result.ok) saveCurrentGame(result.save);
-    setReceipt({ok: result.ok, message: result.message});
+    setReceipt(result.ok ? {ok: true, crafter: worker.creature.nickname, energy: worker.cost, output} : {ok: false, message: result.message});
     setView('receipt');
   }
 
@@ -100,34 +101,55 @@ export function ForgeFurnace({item, missing, onClose}: Props) {
           </nav>}
         </section>
       ) : view === 'receipt' ? (
-        <section className={s.furnaceLedger}>
-          <h3>{receipt?.ok ? 'Production complete' : 'Production stopped'}</h3>
-          <p role="status">{receipt?.message}</p>
-          {receipt?.ok && <p>{missing ? `${missing} Iron ingots still missing for ${item.name}.` : `Iron ingots covered for ${item.name}.`}</p>}
-        </section>
+        receipt?.ok ? (
+          <div className={s.furnaceReceipt}>
+            <div className={s.furnaceReceiptBanner}>
+              <img src={`${FORGE_ART}iron-furnace.webp`} alt=""/>
+              <strong>Iron furnace</strong>
+            </div>
+            <section className={s.furnaceLedger}>
+              <div className={s.furnaceReceiptItem}><img src={item.iconPath} alt=""/><h3>{item.name}</h3></div>
+              <ul className={s.furnaceShortages} aria-label="Recipe materials">
+                {!missing && <li data-covered>Iron ingots covered</li>}
+                {shortages.filter(entry => entry.missing > 0).map(({id, missing: amount}) => (
+                  <li key={id}>{amount} {id === 'nails' && amount === 1 ? 'Nail' : RESOURCES[id].name} still missing</li>
+                ))}
+              </ul>
+            </section>
+            <dl className={`${s.furnaceLedger} ${s.furnaceReceiptRows}`}>
+              <div><dt>Crafter</dt><dd>{receipt.crafter}</dd></div>
+              <div><dt>Batches</dt><dd>{batches}</dd></div>
+              {inputs.map(([id, amount]) => (
+                <div key={id}><dt><img src={getResourceArt(id)} alt=""/>{RESOURCES[id].name} used</dt><dd>{amount * batches}</dd></div>
+              ))}
+              <div><dt>Energy spent</dt><dd>{receipt.energy}</dd></div>
+              <div data-produced><dt><img src={getResourceArt('iron')} alt=""/>Iron ingots produced</dt><dd>{receipt.output}</dd></div>
+            </dl>
+          </div>
+        ) : <section className={s.furnaceLedger}><p role="status">{receipt?.message}</p></section>
       ) : (
         <>
-          <div className={s.furnaceContext}><img src={item.iconPath} alt=""/><strong>{item.name}</strong><span>{missing ? `${missing} Iron ingots missing` : 'Iron ingots covered'}</span></div>
-          <div className={s.furnaceGrid}>
+          {view === 'recipe' && <div className={s.furnaceContext}><img src={item.iconPath} alt=""/><strong>{item.name}</strong><span>{missing ? `${missing} Iron ingots missing` : 'Iron ingots covered'}</span></div>}
+          <div className={s.furnaceGrid} data-review={view === 'review'}>
             <section className={s.furnaceCrafter}>
               <img className={s.furnaceArt} src={`${FORGE_ART}iron-furnace.webp`} alt=""/>
-              {view === 'recipe' ? <button className={s.furnaceWorker} aria-label="Change crafter" onClick={() => {
+              <button className={s.furnaceWorker} aria-label="Change crafter" onClick={() => {
                 setWorkerPage(Math.floor(Math.max(0, workers.indexOf(worker)) / workersPerPage));
                 setView('workers');
               }}>
                 {worker && <img src={getVariantDefinition(worker.creature.variantId).portraitPath} alt=""/>}
                 <span><small>Crafter</small><strong>{worker?.creature.nickname ?? 'Choose a crafter'}</strong></span>
                 {worker && <b>{worker.cost} Energy</b>}<ForgeIcon name="next"/>
-              </button> : <p><strong>{worker?.creature.nickname}</strong> · {worker?.cost} Energy</p>}
+              </button>
             </section>
             <section className={s.furnaceLedger}>
               <div className={s.furnaceBatches}>
-                <strong>Batches</strong>
+                {view === 'review' ? <span className={s.furnaceReceiptItem}><img src={item.iconPath} alt=""/><strong>{item.name}</strong></span> : <strong>Batches</strong>}
                 {view === 'recipe' ? <div className={s.ingredientStepper}>
                   <button aria-label="Decrease batches" disabled={batches === 1} onClick={() => setBatches(batches - 1)}>−</button>
                   <output aria-label="Recipe batches">{batches}</output>
                   <button aria-label="Increase batches" disabled={batches === 20} onClick={() => setBatches(batches + 1)}>+</button>
-                </div> : <b>{batches}</b>}
+                </div> : <b>{batches} {batches === 1 ? 'batch' : 'batches'}</b>}
               </div>
               {inputs.map(([id, amount]) => {
                 const usable = Math.max(0, (farm.stock[id] ?? 0) - (farm.reserves[id] ?? 0));
