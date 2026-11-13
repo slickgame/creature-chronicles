@@ -345,3 +345,88 @@ dialog.adoptionDialog {
  .adoptionSpread p { font-size:13px; }
  .adoptionSpread .requirements div { padding:3px 5px; font-size:12px; }
 }
+
+dialog.adoptionDialog {
+ padding:36px clamp(12px,3vw,29px) 20px;
+ background:#14271b;
+ border-image-width:23px;
+}
+.adoptionDialog > header {
+ margin:0 0 11px;
+ position:relative;
+ border-bottom:1px solid #a88749;
+}
+.adoptionDialog > header::before {
+ content:""; position:absolute; width:76px; height:40px; top:-34px; left:50%;
+ transform:translateX(-50%);
+ background:url('/images/ui/adoption-gallery/ledger-crest.webp') center/contain no-repeat;
+ pointer-events:none;
+}
+.adoptionDialog > header h2 { color:#ffe8b0; margin-inline:auto; font-size:clamp(21px,3.1vw,36px); }
+.adoptionSpread {
+ grid-template-columns:minmax(0,0.85fr) minmax(0,1.4fr);
+ padding:clamp(10px,2.3vw,22px); gap:clamp(9px,2vw,20px);
+ color:#262818; background:#ead4ab;
+ border-image:url('/images/ui/adoption-gallery/ledger-paper.webp') 85 fill / 19px stretch;
+ align-items:stretch;
+}
+.adoptionSpread figure {
+ grid-template-rows:minmax(0,1fr); height:auto; min-height:clamp(144px,32dvh,285px);
+ border:3px double #a88550; border-radius:4px;
+}
+.adoptionSpread figure img { position:absolute; inset:0; }
+.adoptionSpread .ledgerDetails { align-self:center; min-width:0; }
+.adoptionSpread .ledgerDetails h3 { font-size:clamp(23px,3.5vw,40px); color:#24351f; margin:0; overflow-wrap:anywhere; }
+.ledgerHeading { display:flex; align-items:center; flex-wrap:wrap; gap:5px 10px; }
+.ledgerStamp {
+ font-size:clamp(10px,1.4vw,14px); letter-spacing:.07em; text-transform:uppercase; font-weight:bold;
+ border:3px double #986728; border-radius:5px; padding:3px 5px; color:#805216;
+ transform:rotate(-4deg);
+}
+.adoptionSpread .settled { margin:8px 0 3px; padding:6px 8px; color:#253f24; background:#b6bd8d; font-weight:bold; }
+.adoptionSpread .settled::before { content:"✓"; margin-right:7px; }
+.adoptionSpread .requirements { margin:7px 0 0; border:0; border-top:1px solid #9c8054; border-radius:0; background:none; }
+.adoptionSpread .requirements div { border-bottom:1px solid #a484534f; padding:8px 0; }
+.adoptionSpread .requirements div+div { border-top:0; }
+.adoptionSpread .requirements dt { color:#493917; }
+.occupancy { display:grid; justify-items:end; gap:4px; }
+.slotMarks { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:3px; }
+.slotMarks > span { display:grid; place-items:center; width:15px; height:16px; font:700 15px/1 Georgia,serif; color:#304c29; }
+.slotMarks i { width:12px; height:13px; border:3px solid currentColor; border-bottom:0; border-radius:8px 8px 3px 3px; }
+.slotMarks [data-slot=empty] { opacity:.27; }
+.slotMarks [data-slot=pending] { color:#8a5b18; }
+.adoptionDialog footer { justify-content:center; gap:8px; }
+.adoptionDialog footer button { min-height:39px; }
+@media(max-width:560px) and (orientation:portrait) {
+ dialog.adoptionDialog { padding:32px 10px 12px; }
+ .adoptionSpread { grid-template-columns:1fr; gap:6px; padding:9px; }
+ .adoptionSpread figure { height:clamp(92px,24dvh,155px); min-height:0; }
+ .adoptionSpread .requirements div { padding:5px 0; }
+ .adoptionDialog footer button:last-child { padding-inline:15px; }
+}
+@media(max-height:430px) and (orientation:landscape) {
+ dialog.adoptionDialog { padding-top:25px; }
+ .adoptionDialog > header::before { top:-27px; height:27px; }
+ .adoptionSpread figure { min-height:126px; }
+ .adoptionSpread .requirements div { padding:4px 0; }
+}
+.slotMarks > span { filter:sepia(.55); }
+.slotMarks [data-slot=pending] { outline:1px dashed #9f6922; border-radius:3px; }
+.adoptionDialog > header {
+ background:transparent; position:relative; display:grid;
+ grid-template-columns:36px minmax(0,1fr) 36px; gap:5px; padding:3px 0 9px;
+}
+.adoptionDialog > header h2 { grid-column:2; text-align:center; line-height:1.12; }
+.adoptionDialog > header button {
+ grid-column:3; width:36px; min-height:36px; padding:0;
+ font-size:0; color:#ffe8b0; background:#263f28;
+}
+.adoptionDialog > header button::after { content:"×"; font-size:22px; }
+.adoptionDialog > header + div { padding:0; }
+.adoptionDialog footer button { padding-block:5px; }
+.adoptionDialog footer button:last-child { min-width:min(190px,56%); }
+@media(max-width:560px) and (orientation:portrait) {
+ .adoptionDialog > header h2 { font-size:19px; }
+ .adoptionDialog > header { margin-bottom:6px; grid-template-columns:30px minmax(0,1fr) 30px; }
+ .adoptionDialog > header button { width:30px; min-height:30px; }
+}

@@ -43,6 +43,27 @@ function ArrivalArt({listing, portrait=false}:{listing:MarketListing;portrait?:b
   }}/>;
 }
 
+const habitatSymbols: Record<MarketListing["family"], string> = {
+  equine: "∩", canine: "🐾", feline: "🐱", lapine: "🐇", bovine: "🐮",
+};
+
+function HabitatOccupancy({family, occupied, capacity, pending = false}: {
+  family: MarketListing["family"]; occupied: number; capacity: number; pending?: boolean;
+}) {
+  const visibleSlots = Math.min(capacity, 8);
+  return <span className={styles.occupancy}>
+    <span className={styles.slotMarks} aria-hidden="true">
+      {Array.from({length: visibleSlots}, (_, index) => (
+        <span key={index} data-slot={index < occupied ? "filled" : pending && index === occupied ? "pending" : "empty"}>
+          {family === "equine" ? <i /> : habitatSymbols[family]}
+        </span>
+      ))}
+      {capacity > visibleSlots && <small>+{capacity - visibleSlots}</small>}
+    </span>
+    <span>{occupied} / {capacity}{pending ? ` → ${occupied + 1} / ${capacity}` : ""} occupied</span>
+  </span>;
+}
+
 export function MarketScreen() {
   const { currentSave, saveCurrentGame, buyMarketCreature, rerollMarket, goToTown } = useGameContext();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -159,10 +180,10 @@ export function MarketScreen() {
     <footer><button onClick={goToTown}>← Back to Town</button></footer>
     {popup === "adopt" && selected ? <GameDialog title="Confirm Adoption" dialogClassName={styles.adoptionDialog} wide onClose={() => setPopup(null)}>
       <div className={styles.adoptionSpread}>
-        <figure><ArrivalArt listing={selected} portrait /><figcaption>{selected.displayName}</figcaption></figure>
-        <div><h3>Placement details</h3><dl className={styles.requirements}>
+        <figure><ArrivalArt listing={selected} portrait /></figure>
+        <div className={styles.ledgerDetails}><h3>{selected.displayName}</h3><dl className={styles.requirements}>
           <div><dt>Adoption fee</dt><dd>{price.toLocaleString()} Gold</dd></div>
-          <div><dt>{habitat?.name ?? "Required habitat"}</dt><dd>{habitat ? `${habitat.creatureIds.length} → ${habitat.creatureIds.length + 1} / ${habitat.capacity} occupied` : "Unavailable"}</dd></div>
+          <div><dt>{habitat?.name ?? "Required habitat"}</dt><dd>{habitat ? <HabitatOccupancy family={selected.family} occupied={habitat.creatureIds.length} capacity={habitat.capacity} pending={canAdopt} /> : "Unavailable"}</dd></div>
           <div><dt>Gold after adoption</dt><dd>{(save.currencies.gold - price).toLocaleString()} Gold</dd></div>
         </dl>
         {!quoteValid ? <p>The listing or fee changed. Close this window and review it again.</p> : !canAdopt ? <p>{shortage ? `Need ${shortage} more Gold. ` : ""}{status}</p> : null}</div>
@@ -171,10 +192,10 @@ export function MarketScreen() {
     </GameDialog> : null}
     {popup === "welcome" && selected && sold ? <GameDialog title="Welcome to the Ranch" dialogClassName={styles.adoptionDialog} wide onClose={() => setPopup(null)}>
       <div className={styles.adoptionSpread}>
-        <figure><ArrivalArt listing={selected} portrait /><figcaption>{selected.displayName}</figcaption></figure>
-        <div><h3>Adoption complete</h3><p role="status">{message}</p><dl className={styles.requirements}>
+        <figure><ArrivalArt listing={selected} portrait /></figure>
+        <div className={styles.ledgerDetails}><div className={styles.ledgerHeading}><h3>{selected.displayName}</h3><span className={styles.ledgerStamp}>Completed</span></div><p role="status" className={styles.settled}>{habitat ? `Settled in ${habitat.name}` : message}</p><dl className={styles.requirements}>
           <div><dt>Adoption fee paid</dt><dd>{quote?.price.toLocaleString()} Gold</dd></div>
-          {habitat && <div><dt>{habitat.name}</dt><dd>{habitat.creatureIds.length} / {habitat.capacity} occupied</dd></div>}
+          {habitat && <div><dt>Habitat capacity</dt><dd><HabitatOccupancy family={selected.family} occupied={habitat.creatureIds.length} capacity={habitat.capacity} /></dd></div>}
           <div><dt>Gold balance</dt><dd>{save.currencies.gold.toLocaleString()} Gold</dd></div>
         </dl></div>
       </div>
