@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type PointerEvent} from 'react';
 import {getBreedingParticipants} from '@/data/breeding';
 import {getOwnedInventory} from '@/data/inventoryCatalogue';
 import {equipmentRecipientBlocker} from '@/data/equipmentTransfer';
@@ -54,22 +54,24 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
   const incomingSet=comparison?.sets.after.find(set=>set.id===selectedStats.setId);
   const gained=sets.filter(({before,after})=>after.activations>before.activations);
   const outgoingSet=comparison?.sets.current.find(set=>set.id===equippedStats?.setId);
+  const scrollHandlers={
+   onPointerDown(event:PointerEvent<HTMLDivElement>){
+    const area=event.currentTarget;
+    if(event.pointerType!=='mouse'||event.button!==0||area.scrollHeight<=area.clientHeight||event.clientX>=area.getBoundingClientRect().left+area.clientWidth)return;
+    drag.current={id:event.pointerId,y:event.clientY,top:area.scrollTop};
+    area.setPointerCapture(event.pointerId);
+   },
+   onPointerMove(event:PointerEvent<HTMLDivElement>){
+    const start=drag.current;
+    if(start?.id===event.pointerId)event.currentTarget.scrollTop=start.top+start.y-event.clientY;
+   },
+   onLostPointerCapture(){drag.current=null;},
+  };
   return <GameDialog fullScreen title={title} onClose={onClose}>
    <main className={`${s.shell} ${s.swapShell}`}>
     <section className={`${s.book} ${s.swap}`} data-gear-swap>
      <header className={s.heading}><div><strong className={s.forgeTitle}>Iona’s Forge</strong><h2>Confirm equipment</h2>{participant&&<p>Review {participant.displayName}’s {item.equipmentSlot?EQUIPMENT_SLOT_LABELS[item.equipmentSlot].toLowerCase():'equipment'} swap.</p>}</div><button aria-label="Close Confirm equipment" onClick={onClose}><ForgeIcon name="close"/></button></header>
-     <div className={s.swapContent} tabIndex={0} role="region" aria-label="Gear swap details"
-      onPointerDown={event=>{
-       const area=event.currentTarget;
-       if(event.pointerType!=='mouse'||event.button!==0||area.scrollHeight<=area.clientHeight||event.clientX>=area.getBoundingClientRect().left+area.clientWidth)return;
-       drag.current={id:event.pointerId,y:event.clientY,top:area.scrollTop};
-       area.setPointerCapture(event.pointerId);
-      }}
-      onPointerMove={event=>{
-       const start=drag.current;
-       if(start?.id===event.pointerId)event.currentTarget.scrollTop=start.top+start.y-event.clientY;
-      }}
-      onLostPointerCapture={()=>{drag.current=null;}}>
+     <div className={s.swapContent}>
       {participant&&<div className={s.swapRecipient}>{portrait(participant)}</div>}
       <div className={s.swapPair} aria-label="Item stats">
        <article>
@@ -83,17 +85,24 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
         <p>{incomingSet?incomingSet.name+' set':'No set'}</p><h4>Item stats</h4>{gearStats(selectedStats)}
        </article>
       </div>
+      <section className={s.swapSets} aria-label="Set changes">
+       <h3>Set changes</h3>
+       <div {...scrollHandlers} className={s.swapScroll} role="region" aria-label="Scroll set changes" tabIndex={0}>
+       {!lost.length&&!gained.length&&<p>No set bonuses gained or lost.</p>}
       {lost.map(({before,after})=><p key={before.id} className={s.swapWarning} role="status"><img src={`/images/ui/forge-slate-v2/sets/sculpted/${before.id}.webp`} alt=""/><span><strong>Set bonus lost · {before.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}</span></p>)}
       {gained.map(({before,after})=><p key={after.id} className={s.swapGain} role="status"><img src={`/images/ui/forge-slate-v2/sets/sculpted/${after.id}.webp`} alt=""/><span><strong>Set bonus gained · {after.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}<br/><small>{after.description}</small></span></p>)}
       {incomingSet&&<p className={s.swapSet}><strong>{incomingSet.name} after equipping</strong> · {incomingSet.count}/{incomingSet.required} · {incomingSet.activations?`${incomingSet.activations} active ${incomingSet.activations===1?'bonus':'bonuses'}`:'No active bonus'}<br/><small>{incomingSet.description}</small></p>}
+       </div>
+      </section>
       <section className={s.swapStats} aria-label="Creature battle stats">
        <h3>{participant?.displayName??'Creature'} · Battle stats</h3>
+       <div {...scrollHandlers} className={s.swapScroll} role="region" aria-label="Scroll battle stats" tabIndex={0}>
        <table><thead><tr><th scope="col">Stat</th><th scope="col">Current</th><th scope="col">After</th><th scope="col">Change</th></tr></thead>
        <tbody>{allRows.map(row=><tr key={row.key}><th scope="row"><EquipmentStatIcon name={row.key}/>{row.label}</th><td>{row.current}</td><td>{row.after}</td><td data-delta={Math.sign(row.delta)}>{row.delta>0?'+':''}{row.delta}</td></tr>)}</tbody></table>
+       </div>
       </section>
-      {blocker&&<p className={s.warning}>{blocker}</p>}
      </div>
-     <footer><button onClick={onClose}>Cancel</button><button disabled={!!blocker||confirmDisabled} onClick={onConfirm}>Confirm equip</button></footer>
+     <footer>{blocker&&<p className={s.warning}>{blocker}</p>}<button onClick={onClose}>Cancel</button><button disabled={!!blocker||confirmDisabled} onClick={onConfirm}>Confirm equip</button></footer>
     </section>
    </main>
   </GameDialog>;

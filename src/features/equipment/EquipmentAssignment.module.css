@@ -412,3 +412,68 @@
  .swapPair article>div { width:min(110px,100%); }
  .swap .swapWarning img,.swapGain img { width:26px; height:26px; }
 }
+
+.book.swap { height:min(820px,100%); }
+.swapContent {
+ overflow:hidden; cursor:auto; user-select:auto; align-content:stretch;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ grid-template-rows:auto auto minmax(0,1fr);
+}
+.swapContent>.swapRecipient,.swapContent>.swapPair { grid-column:1/-1; }
+.swapContent>.swapRecipient { grid-row:1; display:flex; text-align:left; }
+.swapRecipient img { width:44px; height:44px; }
+.swapContent>.swapSets,.swapContent>.swapStats {
+ grid-column:auto; min-height:0; min-width:0; display:grid;
+ grid-template-rows:auto minmax(0,1fr);
+}
+.swapSets { background:var(--swap-frame) center/100% 100%,#102a2e; padding:7px 9px; }
+.swapScroll {
+ min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin;
+ cursor:grab; touch-action:pan-y; user-select:none;
+}
+.swapScroll:active { cursor:grabbing; }
+.swapScroll:focus-visible { outline:2px solid #e8be76; outline-offset:-2px; }
+.swapScroll p+p { margin-top:4px; }
+.swapStats thead th { position:sticky; top:0; background:#214246; }
+.swapPair article>div { width:min(155px,100%); }
+.swap footer>.warning { margin:0!important; }
+@media(max-width:700px) and (orientation:portrait) {
+ .swapContent { grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto minmax(0,.85fr) minmax(0,1.15fr); gap:4px; }
+ .swapPair article>div { width:65px; }
+ .swapPair article h3 small { display:inline; font-size:10px; }
+ .swapPair article>strong { font-size:14px; }
+ .swapPair article h4 { padding:0; margin:0; }
+ .swapPair .gearStats>div { padding:0; }
+ .swapPair .gearStats [data-equipment-glyph] { width:12px; height:12px; }
+ .swapSets,.swapStats { padding:4px 6px; }
+ .swapSets h3,.swapStats h3 { font-size:15px; margin:0 0 2px; }
+}
+@media(max-height:550px) and (orientation:landscape) {
+ .swap .heading p { display:none; }
+ .swapContent { grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); grid-template-rows:minmax(0,.9fr) minmax(0,1.1fr); gap:4px; }
+ .swapContent>.swapRecipient { display:none; }
+ .swapContent>.swapPair { grid-column:1; grid-row:1/3; align-self:start; }
+ .swapContent>.swapSets,.swapContent>.swapStats { grid-column:2; }
+ .swapPair article>div { width:54px; }
+ .swapPair article h3 { font-size:12px; }
+ .swapPair article h3 small { display:inline; }
+ .swapPair article>strong { font-size:14px; }
+ .swapPair .gearStats>div { padding:0; }
+ .swapSets,.swapStats { padding:4px 6px; }
+}
+@media(max-width:700px) and (orientation:portrait) {
+ .swapContent { grid-template-rows:auto auto minmax(60px,.85fr) minmax(74px,1.15fr); }
+ .swap .heading p { display:none; }
+ .swapRecipient { padding-block:4px; }
+ .swapRecipient img { width:32px; height:32px; }
+ .swapPair { gap:4px; }
+ .swapPair article { padding:4px 6px; gap:1px; }
+ .swapPair article h3 { width:100%; margin:0; padding:2px; font-size:13px; }
+ .swapPair article>div { width:54px; }
+ .swapPair article>p { font-size:12px; }
+ .swapPair .gearStats { font-size:11px; }
+ .swapPair .gearStats dt { display:block; line-height:1.15; }
+ .swapPair .gearStats dt small { display:block; }
+ .swapPair .gearStats [data-equipment-glyph] { display:none; }
+ .book.swap footer button { min-height:38px; padding:3px 6px; white-space:nowrap; font-size:16px; }
+}
