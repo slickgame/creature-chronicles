@@ -115,7 +115,7 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
   </ForgeWindow>
  ):null}
  {popup==='talk'?<ForgeWindow title="A word with Iona" marker="talk" onClose={()=>setPopup(null)}><div className={s.dialogue}><img src={BLACKSMITH.portrait} alt="Iona Flint"/><div><p>“Petra builds the places you come home to. I make the pieces you take out into the world.”</p><p>Bring refined Iron ingots, not ore. Ingredient cards show where to buy or produce them. Every pattern has fixed stats and an exact labor fee.</p></div></div></ForgeWindow>:null}
- {source?<ForgeIngredientSources initialResource={source} compact={phone||short} ingredients={inputs} item={item} onClose={()=>setSource(null)} backLabel={popup==='review'?'Back to crafting review':popup==='materials'?'Back to materials':'Back to forge'}/>:null}
+ {source?<ForgeIngredientSources initialResource={source} compact={phone||short} ingredients={inputs} item={item} crafting={{laborGold:recipe.laborGold,ready:quote.canCraft,reason:quote.reason,onReview:()=>{setSource(null);review();}}} onClose={()=>setSource(null)} backLabel={popup==='review'?'Back to crafting review':popup==='materials'?'Back to materials':'Back to forge'}/>:null}
  {guide?<EquipmentGuide item={item} onClose={()=>setGuide(false)}/>:null}
  </main>;
 }

@@ -17,6 +17,7 @@ type PurchaseReceipt =
   | {ok: false; message: string};
 
 type Props = {
+  crafting: {laborGold: number; ready: boolean; reason?: string; onReview: () => void};
   initialResource: ResourceId;
   ingredients: [ResourceId, number][];
   item: {name: string; iconPath?: string};
@@ -25,7 +26,7 @@ type Props = {
   compact: boolean;
 };
 
-export function ForgeIngredientSources({initialResource, ingredients, item, onClose, backLabel, compact}: Props) {
+export function ForgeIngredientSources({initialResource, ingredients, item, onClose, backLabel, compact, crafting}: Props) {
   const {currentSave: save, saveCurrentGame} = useGameContext();
   const [selected, setSelected] = useState(initialResource);
   const [route, setRoute] = useState<'buy' | 'produce'>('buy');
@@ -236,7 +237,7 @@ export function ForgeIngredientSources({initialResource, ingredients, item, onCl
           </>
         )}
       </ForgeWindow>
-      {production === 'furnace' && (active.id === 'iron' || active.id === 'nails') && <ForgeFurnace resourceId={active.id} item={item} missing={active.missing} shortages={options} onClose={() => setProduction(null)}/>}
+      {production === 'furnace' && (active.id === 'iron' || active.id === 'nails') && <ForgeFurnace resourceId={active.id} item={item} missing={active.missing} shortages={options} crafting={crafting} onClose={() => setProduction(null)}/>}
       {production && production !== 'furnace' && (
         <GameDialog fullScreen title={`${resource.name} · Production`} onClose={() => setProduction(null)}>
           <ProductionBook section={production} onSection={setProduction} initialSelection={recipe ? active.id : site?.[0]} onBack={() => setProduction(null)}/>

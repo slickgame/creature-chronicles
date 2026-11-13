@@ -14,11 +14,12 @@ type Props = {
   item: {name: string; iconPath?: string};
   resourceId: 'iron' | 'nails';
   missing: number;
+  crafting: {laborGold: number; ready: boolean; reason?: string; onReview: () => void};
   shortages: {id: ResourceId; missing: number; required: number}[];
   onClose: () => void;
 };
 
-export function ForgeFurnace({item, resourceId, missing, shortages, onClose}: Props) {
+export function ForgeFurnace({item, resourceId, missing, shortages, crafting, onClose}: Props) {
   const recipe = RECIPES.find(({id}) => id === resourceId)!;
   const inputs = Object.entries(recipe.inputs) as [ResourceId, number][];
   const nails = resourceId === 'nails';
@@ -83,7 +84,10 @@ export function ForgeFurnace({item, resourceId, missing, shortages, onClose}: Pr
         <button onClick={close}>Cancel</button>
         <button className={s.primary} disabled={!worker || Boolean(worker.blocker)} onClick={confirm}>Confirm production</button>
       </> : view === 'workers' ? <button onClick={close}>Back to furnace</button>
-        : <button className={s.primary} onClick={receipt?.ok ? onClose : () => setView('recipe')}>{receipt?.ok ? 'Back to ingredient sources' : 'Back to furnace'}</button>}
+        : receipt?.ok ? <div className={s.furnaceReceiptActions}>
+          <button onClick={onClose}>Back to ingredient sources</button>
+          <button className={s.primary} disabled={!crafting.ready} onClick={crafting.onReview}>Review crafting</button>
+        </div> : <button className={s.primary} onClick={() => setView('recipe')}>Back to furnace</button>}
     </div>
   );
 
@@ -110,12 +114,12 @@ export function ForgeFurnace({item, resourceId, missing, shortages, onClose}: Pr
         </section>
       ) : view === 'receipt' ? (
         receipt?.ok ? (
-          <div className={s.furnaceReceipt}>
+          <div className={`${s.furnaceReceipt} ${s.forgeReceiptSplit}`}>
             <div className={s.furnaceReceiptBanner}>
               <img src={artwork} alt=""/>
               <strong>{name}</strong>
             </div>
-            <section className={s.furnaceLedger}>
+            <section className={`${s.furnaceLedger} ${s.forgeReceiptHero}`}>
               <div className={s.furnaceReceiptItem}><img src={item.iconPath} alt=""/><h3>{item.name}</h3></div>
               <ul className={s.furnaceShortages} aria-label="Recipe materials">
                 {shortages.every(entry => !entry.missing) ? <li data-covered>Materials covered</li> : !missing && <li data-covered>{outputName} covered</li>}
@@ -123,6 +127,7 @@ export function ForgeFurnace({item, resourceId, missing, shortages, onClose}: Pr
                   <li key={id}>{amount} {amount === 1 && id === 'nails' ? 'Nail' : amount === 1 && id === 'iron' ? 'Iron ingot' : RESOURCES[id].name} still missing</li>
                 ))}
               </ul>
+              <img className={s.forgeReceiptSaber} src={item.iconPath} alt=""/>
             </section>
             <dl className={`${s.furnaceLedger} ${s.furnaceReceiptRows}`}>
               <div><dt>Crafter</dt><dd>{receipt.crafter}</dd></div>
@@ -133,6 +138,22 @@ export function ForgeFurnace({item, resourceId, missing, shortages, onClose}: Pr
               <div><dt>Energy spent</dt><dd>{receipt.energy}</dd></div>
               <div data-produced><dt><img src={getResourceArt(resourceId)} alt=""/>{outputName} produced</dt><dd>{receipt.output}</dd></div>
             </dl>
+            <section className={`${s.furnaceLedger} ${s.forgeReceiptRequirements}`}>
+              <h3>Crafting requirements</h3>
+              <dl className={s.forgeReceiptChecklist}>
+                {shortages.map(({id, required, missing: amount}) => (
+                  <div key={id} data-covered={!amount}>
+                    <dt><img src={getResourceArt(id)} alt=""/>{RESOURCES[id].name}</dt>
+                    <dd>{required - amount}/{required} <span aria-label={amount ? 'Missing' : 'Covered'}>{amount ? '!' : '✓'}</span></dd>
+                  </div>
+                ))}
+                <div data-covered={save.currencies.gold >= crafting.laborGold}>
+                  <dt><ForgeIcon name="coin"/>Labor</dt>
+                  <dd>{crafting.laborGold} Gold <span aria-label={save.currencies.gold >= crafting.laborGold ? 'Covered' : 'Missing'}>{save.currencies.gold >= crafting.laborGold ? '✓' : '!'}</span></dd>
+                </div>
+              </dl>
+              {!crafting.ready && <p>{crafting.reason}</p>}
+            </section>
           </div>
         ) : <section className={s.furnaceLedger}><p role="status">{receipt?.message}</p></section>
       ) : (

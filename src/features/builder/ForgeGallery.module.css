@@ -833,3 +833,52 @@
   .furnaceReceiptRows > div { padding: 2px 0; }
   .furnaceReceiptRows img { height: 16px; }
 }
+
+.forgeReceiptSplit { width: 100%; grid-template-columns: 1.07fr 1fr; gap: 8px 12px; }
+.forgeReceiptSplit > :nth-child(odd) { grid-column: 1; }
+.forgeReceiptSplit > :nth-child(even) { grid-column: 2; }
+.forgeReceiptSplit .furnaceReceiptBanner { min-height: 155px; background: radial-gradient(ellipse at bottom left,#634129,#10232e 72%); font-size: 28px; }
+.forgeReceiptSplit .furnaceReceiptBanner img { width: 44%; height: 153px; }
+.forgeReceiptHero { position: relative; align-content: start; overflow: hidden; }
+.forgeReceiptSaber { position: absolute; bottom: -12px; right: 8px; width: 49%; height: 82%; object-fit: contain; pointer-events: none; }
+.forgeReceiptHero .furnaceShortages { position: relative; z-index: 1; }
+.forgeReceiptRequirements { align-content: start; }
+.forgeReceiptRequirements h3 { color: #fff1cf; text-align: center; padding: 4px; background: linear-gradient(#245951,#11342f); border: 1px solid #c49c5b; border-radius: 7px; }
+.forgeReceiptChecklist { margin: 0; }
+.forgeReceiptChecklist > div { display:flex; justify-content:space-between; align-items:center; gap:6px; padding:4px 0; border-bottom:1px solid #8e784c; }
+.forgeReceiptChecklist > div:last-child { border-bottom:0; }
+.forgeReceiptChecklist dt { display:flex; align-items:center; gap:6px; }
+.forgeReceiptChecklist img { width:25px; height:25px; object-fit:contain; }
+.forgeReceiptChecklist dd { margin:0; font-weight:bold; white-space:nowrap; }
+.forgeReceiptChecklist [data-covered="true"] dd { color:#9bf5df; }
+.forgeReceiptChecklist dd span { display:inline-grid; place-items:center; width:1.2em; height:1.2em; border:1px solid currentColor; border-radius:50%; }
+.furnaceReceiptActions { display:flex; gap:8px; width:100%; }
+@media (max-width:650px) and (orientation:portrait) {
+  .forgeReceiptSplit { grid-template-columns:1fr; gap:4px; }
+  .forgeReceiptSplit > :nth-child(n) { grid-column:1; padding:4px 7px; gap:2px; }
+  .forgeReceiptSplit .furnaceReceiptBanner { min-height:0; font-size:20px; }
+  .forgeReceiptSplit .furnaceReceiptBanner img { width:56px; height:34px; }
+  .forgeReceiptSaber { display:none; }
+  .forgeReceiptSplit .furnaceReceiptRows > div { padding-block:2px; }
+  .forgeReceiptChecklist > div { padding-block:2px; }
+  .forgeReceiptChecklist img { width:18px; height:18px; }
+  .furnaceReceiptActions { flex-direction:column-reverse; gap:4px; }
+}
+@media (max-height:550px) and (orientation:landscape) {
+  .forgeReceiptSplit .furnaceReceiptBanner { grid-column:1; min-height:0; font-size:18px; }
+  .forgeReceiptSplit .furnaceReceiptBanner img { height:37px; }
+  .forgeReceiptSplit > :nth-child(n) { padding:4px 7px; gap:2px; }
+  .forgeReceiptChecklist img { height:16px; }
+  .forgeReceiptSaber { display:none; }
+}
+@media (max-width:650px) and (orientation:portrait) {
+  .forgeReceiptSplit .furnaceReceiptRows img { height:16px; }
+  .forgeReceiptSplit .furnaceReceiptRows > div { padding-block:1px; }
+  .forgeReceiptSplit .furnaceReceiptBanner img { height:27px; }
+  .forgeReceiptChecklist > div { padding-block:1px; }
+}
+@media (max-height:550px) and (orientation:landscape) {
+  .forgeReceiptSplit .furnaceReceiptRows > div { padding-block:0; }
+  .forgeReceiptSplit .furnaceReceiptBanner img { height:29px; }
+  .forgeReceiptChecklist > div { padding-block:1px; }
+}
