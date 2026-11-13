@@ -183,16 +183,16 @@
 
 /* The ribbon and the stat glyph have independent bounds. */
 .receipt .reveal[data-rolled=true] .medal {
-  position:relative; display:block; aspect-ratio:160 / 184;
+  position:relative; display:block; aspect-ratio:414 / 420;
   width:clamp(112px,11vw,156px); border:0; border-radius:0; box-shadow:none;
-  background:url('/images/ui/forge-gallery-v1/substat-medal.svg') center/contain no-repeat;
+  background:url('/images/ui/forge-gallery-v1/substat-medal.webp') center/contain no-repeat;
   filter:drop-shadow(0 0 9px #a3ffb08a);
   margin-block:-12px -20px;
 }
 .receipt .reveal[data-rolled=true] .medal::before,
 .receipt .reveal[data-rolled=true] .medal::after { content:none; }
 .medal .medalGlyph {
-  position:absolute; inset:24% 27% auto; height:36%;
+  position:absolute; inset:23% 32% auto; height:31%;
   display:grid; place-items:center; overflow:hidden;
 }
 .medalGlyph [data-equipment-glyph] { width:100%; height:100%; }
