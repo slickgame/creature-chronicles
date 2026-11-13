@@ -1014,50 +1014,96 @@
   background:url('/images/ui/locations-v2/builder-yard.webp') center/cover;
 }
 .window[data-forge-window="receipt"]:has(.craftConfirmation) {
-  width:min(940px,100%); padding:16px 24px; gap:12px;
-  border:3px double #dfb766; border-radius:22px;
-  background:linear-gradient(135deg,#0c2731,#061b24);
+  width:min(940px,100%); padding:16px 24px 20px; gap:16px;
+  border:3px double #dfb766; border-radius:26px;
+  background:linear-gradient(140deg,#0d2933,#041b24 78%);
 }
 .window[data-forge-window="receipt"]:has(.craftConfirmation) > header { position:relative; justify-content:center; }
-.window[data-forge-window="receipt"]:has(.craftConfirmation) > header h2 { font-size:36px; }
+.window[data-forge-window="receipt"]:has(.craftConfirmation) > header h2 { font-size:40px; }
 .window[data-forge-window="receipt"]:has(.craftConfirmation) > header button { position:absolute; right:0; top:0; }
-.window[data-forge-window="receipt"]:has(.craftConfirmation) .windowBody { overflow:auto; align-content:start; }
-.window[data-forge-window="receipt"] .craftConfirmationHero > div { max-width:68%; }
-.window .craftComplete { display:flex; align-items:center; gap:9px; color:#ffe9a8; font-weight:bold; font-style:italic; margin:0 0 8px; }
-.craftComplete span { border:1px solid #edc765; border-radius:50%; width:1.4em; text-align:center; background:#11503d; box-shadow:0 0 10px #4cba78a0; }
+.window[data-forge-window="receipt"]:has(.craftConfirmation) .windowBody { grid-template-columns:minmax(0,1fr); overflow:auto; align-content:start; }
+.window[data-forge-window="receipt"] .craftConfirmationHero {
+  min-height:254px; align-items:start; padding:16px 40px;
+  background-position:center;
+}
+.window[data-forge-window="receipt"] .craftConfirmationHero > div { max-width:72%; }
+.window[data-forge-window="receipt"] .craftConfirmationHero > img { right:10%; width:43%; height:94%; bottom:3%; }
+.window[data-forge-window="receipt"] .craftConfirmationHero h2 { font-size:44px; }
+.window .craftComplete {
+  display:flex; align-items:center; justify-content:center; gap:.38em; width:max-content; max-width:100%;
+  margin:0 auto 8px; font-size:32px; color:#ffe9a8; font-weight:bold; font-style:italic;
+  background:radial-gradient(ellipse at center,#08704875,transparent 68%);
+}
+.craftComplete span {
+  display:grid; place-items:center; flex:none; width:1.1em; aspect-ratio:1; line-height:1;
+  border:2px solid #edc765; border-radius:50%; background:linear-gradient(#20885e,#073d37);
+  box-shadow:0 0 9px #64f6a4b0, inset 0 0 6px #39c483; font-style:normal;
+}
+.craftConfirmationHero .craftComplete img {
+  position:static; width:1.03em; height:1.7em; object-fit:contain; flex:none;
+}
+.craftComplete img:last-child { transform:scaleX(-1); }
 .craftInventory { font-style:italic; }
-.craftReceiptTotals { display:flex; margin:0; padding:9px 0; border-block:1px solid #997c48; }
-.craftReceiptTotals > div { display:flex; justify-content:center; align-items:center; gap:8px; flex:1; }
-.craftReceiptTotals > div + div { border-left:1px solid #997c48; }
-.craftReceiptTotals > div > span { color:#efc65b; font-size:30px; }
-.craftReceiptTotals dd { margin:0; font-weight:bold; font-size:24px; }
-.window[data-forge-window="receipt"]:has(.craftConfirmation) > footer button { flex:1; }
+.window[data-forge-window="receipt"] .craftCostsTitle { font-size:26px; }
+.window[data-forge-window="receipt"] .craftCostCards li {
+  background:linear-gradient(145deg,#12333d,#08252e); min-height:176px;
+}
+.window[data-forge-window="receipt"] .craftCostCards strong { font-size:34px; }
+.craftReceiptTotals {
+  display:flex; margin:5px 0 0; padding:12px 0;
+  border-block:1px solid transparent;
+  border-image:linear-gradient(90deg,transparent,#d3ad62 18%,#d3ad62 82%,transparent) 1;
+}
+.craftReceiptTotals > div { display:flex; justify-content:center; align-items:center; gap:12px; flex:1; min-width:0; }
+.craftReceiptTotals > div + div { border-left:1px solid #d3ad62; }
+.craftReceiptTotals img { width:58px; height:52px; object-fit:contain; }
+.craftReceiptTotals dt { font-size:20px; }
+.craftReceiptTotals dd { margin:0; font-weight:bold; font-size:29px; }
+.craftReceiptTotals > div:has(+ div) dd { color:#ffdb78; }
+.window[data-forge-window="receipt"]:has(.craftConfirmation) > footer button { flex:1; min-height:56px; font-size:24px; }
 @media(max-width:650px) and (orientation:portrait) {
-  .window[data-forge-window="receipt"]:has(.craftConfirmation) { padding:9px; gap:7px; }
-  .window[data-forge-window="receipt"]:has(.craftConfirmation) > header h2 { font-size:clamp(17px,5.8vw,24px); padding-right:29px; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero { min-height:142px; padding:8px 11px; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero > div { max-width:100%; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero img { height:67%; }
-  .window[data-forge-window="receipt"] .craftInventory { font-size:14px; }
-  .craftReceiptTotals { font-size:14px; padding:5px 0; }
+  .window[data-forge-window="receipt"]:has(.craftConfirmation) { padding:10px; gap:8px; border-radius:20px; }
+  .window[data-forge-window="receipt"]:has(.craftConfirmation) > header h2 { font-size:clamp(19px,5.8vw,27px); padding-right:26px; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero {
+    min-height:clamp(144px,26dvh,247px); padding:8px 12px; background-position:63% center;
+  }
+  .window[data-forge-window="receipt"] .craftConfirmationHero > div { max-width:100%; width:100%; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero > img { right:9%; width:57%; height:64%; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero h2 { font-size:clamp(20px,6.4vw,29px); }
+  .window[data-forge-window="receipt"] .craftInventory { font-size:clamp(13px,4vw,17px); margin-top:3px; }
+  .window .craftComplete { font-size:clamp(16px,5.1vw,23px); margin-bottom:3px; }
+  .window[data-forge-window="receipt"] .craftCostsTitle { font-size:20px; }
+  .window[data-forge-window="receipt"] .craftCostCards li {
+    min-height:clamp(39px,6.7dvh,58px); grid-template-columns:29% 1fr; padding:2px 8px; gap:8px;
+  }
+  .window[data-forge-window="receipt"] .craftCostCards img {
+    justify-self:center; width:clamp(42px,13vw,62px); height:clamp(34px,6dvh,50px);
+  }
+  .window[data-forge-window="receipt"] .craftCostCards strong { font-size:22px; margin-right:4px; }
+  .craftReceiptTotals { margin-top:2px; padding:6px 0; }
+  .craftReceiptTotals > div { gap:6px; }
+  .craftReceiptTotals img { width:clamp(31px,10vw,45px); height:34px; }
+  .craftReceiptTotals dt { font-size:14px; }
   .craftReceiptTotals dd { font-size:18px; }
-  .window[data-forge-window="receipt"]:has(.craftConfirmation) > footer { flex-direction:column; gap:4px; }
-  .window[data-forge-window="receipt"]:has(.craftConfirmation) > footer button { width:100%; min-height:32px; }
+  .window[data-forge-window="receipt"]:has(.craftConfirmation) > footer { flex-direction:column; gap:6px; }
+  .window[data-forge-window="receipt"]:has(.craftConfirmation) > footer button { width:100%; min-height:35px; font-size:17px; }
 }
 @media(max-height:550px) and (orientation:landscape) {
-  .window[data-forge-window="receipt"]:has(.craftConfirmation) { padding:5px 10px; gap:5px; }
+  .window[data-forge-window="receipt"]:has(.craftConfirmation) { padding:6px 12px; gap:6px; }
   .window[data-forge-window="receipt"]:has(.craftConfirmation) > header h2 { font-size:22px; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero { min-height:80px; }
-  .window[data-forge-window="receipt"] .craftComplete { font-size:14px; margin-bottom:1px; }
-  .craftReceiptTotals { padding:2px 0; font-size:13px; }
-  .craftReceiptTotals dd { font-size:16px; }
-}
-@media(max-height:380px) and (orientation:landscape) {
-  .window[data-forge-window="receipt"] .craftConfirmation { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:4px 8px; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero { grid-row:span 3; align-items:flex-start; padding:7px; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero h2 { font-size:19px; }
-  .window[data-forge-window="receipt"] .craftConfirmationHero img { height:57%; width:62%; }
+  .window[data-forge-window="receipt"] .craftConfirmation { grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px 9px; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero { grid-row:span 3; min-height:95px; padding:7px; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero > div { max-width:100%; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero h2 { font-size:20px; }
+  .window[data-forge-window="receipt"] .craftConfirmationHero > img { height:59%; width:62%; }
+  .window[data-forge-window="receipt"] .craftComplete { font-size:15px; margin-bottom:2px; }
   .window[data-forge-window="receipt"] .craftCostCards { gap:4px; padding:0; }
-  .window[data-forge-window="receipt"] .craftCostCards li { font-size:12px; }
-  .window[data-forge-window="receipt"] .craftCostsTitle { font-size:16px; }
+  .window[data-forge-window="receipt"] .craftCostCards li { min-height:0; font-size:12px; }
+  .window[data-forge-window="receipt"] .craftCostCards strong,.window[data-forge-window="receipt"] .craftCostsTitle { font-size:16px; }
+  .craftReceiptTotals { padding:3px 0; margin-top:0; }
+  .craftReceiptTotals > div { gap:4px; }
+  .craftReceiptTotals img { width:23px; height:22px; }
+  .craftReceiptTotals dt { font-size:12px; }
+  .craftReceiptTotals dd { font-size:15px; }
+  .window[data-forge-window="receipt"]:has(.craftConfirmation) > footer button { min-height:35px; font-size:16px; }
 }

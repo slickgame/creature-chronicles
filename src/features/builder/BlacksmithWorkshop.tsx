@@ -91,7 +91,10 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
    footerAction={receipt.copyId?<button className={s.primary} onClick={()=>improve(receipt.copyId)}>Equip or improve this item</button>:null}>
    {receipt.ok?<div className={s.craftConfirmation}>
      <section className={s.craftConfirmationHero}>
-       <div><p className={s.craftComplete} role="status"><span aria-hidden="true">✓</span> Craft complete</p>
+       <div><p className={s.craftComplete} role="status"><img src="/images/ui/forge-gallery-v1/receipt-laurel.webp" alt=""/>
+         <span aria-hidden="true">✓</span> Craft complete
+         <img src="/images/ui/forge-gallery-v1/receipt-laurel.webp" alt=""/>
+       </p>
          <h2>{receipt.name} +0</h2><p className={s.craftInventory}>Added to equipment inventory</p></div>
        <img src={receipt.art} alt=""/>
      </section>
@@ -101,8 +104,8 @@ export function BlacksmithWorkshop({onBack,initialRecipeId=BLACKSMITH_RECIPES[0]
        <li><ForgeIcon name="coin"/><span><strong>{receipt.laborGold}</strong> Gold labor</span></li>
      </ul>
      <dl className={s.craftReceiptTotals}>
-       {Boolean(receipt.goalGold||receipt.goalGp)&&<div><span aria-hidden="true">✦</span><div><dt>Goal reward</dt><dd>{[receipt.goalGold && `+${receipt.goalGold} Gold`,receipt.goalGp && `+${receipt.goalGp} GP`].filter(Boolean).join(' · ')}</dd></div></div>}
-       <div><ForgeIcon name="coin"/><div><dt>Balance</dt><dd>{receipt.gold} Gold</dd></div></div>
+       {Boolean(receipt.goalGold||receipt.goalGp)&&<div><img src="/images/ui/forge-gallery-v1/receipt-gift.webp" alt=""/><div><dt>Goal reward</dt><dd>{[receipt.goalGold && `+${receipt.goalGold} Gold`,receipt.goalGp && `+${receipt.goalGp} GP`].filter(Boolean).join(' · ')}</dd></div></div>}
+       <div><img src="/images/ui/forge-gallery-v1/receipt-coins.webp" alt=""/><div><dt>Balance</dt><dd>{receipt.gold} Gold</dd></div></div>
      </dl>
    </div>:<div className={s.success}><h3>Crafting unavailable</h3><p role="status">{receipt.message}</p><strong>Balance: {receipt.gold} Gold</strong></div>}
  </ForgeWindow>:null}
