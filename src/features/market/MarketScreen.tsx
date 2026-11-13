@@ -19,7 +19,7 @@ import type { GameSave } from "@/types/save";
 import ui from "@/features/ui/InteriorShell.module.css";
 import styles from "./Hearthside.module.css";
 
-type Popup = "talk" | "trust" | "profile" | "adopt" | "refresh" | "result" | null;
+type Popup = "talk" | "trust" | "profile" | "adopt" | "refresh" | "result" | "welcome" | null;
 type Quote = { listingId: string; price: number } | null;
 function createMarketPreviewCreature(save: GameSave, listing: MarketListing): CreatureRecord {
   const variant = getVariantDefinition(listing.variantId);
@@ -99,7 +99,7 @@ export function MarketScreen() {
   }
   function adopt() {
     if (actionLock.current || !selected || !canAdopt || !quoteValid) return;
-    actionLock.current = true; setSelectedId(selected.listingId); setMessage(buyMarketCreature(selected.listingId)); setPopup("result");
+    actionLock.current = true; setSelectedId(selected.listingId); setMessage(buyMarketCreature(selected.listingId)); setPopup("welcome");
   }
   function refresh() {
     if (actionLock.current || !refreshValid || !save || save.currencies.gold < rerollCost) return;
@@ -157,9 +157,31 @@ export function MarketScreen() {
       </section>
     </div>
     <footer><button onClick={goToTown}>← Back to Town</button></footer>
-    {popup === "adopt" && selected ? <GameDialog title="Confirm Adoption" onClose={() => setPopup(null)}><h3>{selected.displayName}</h3><p>Adoption fee: <strong><RanchIcon name="gold" />{price.toLocaleString()} Gold</strong></p><p>{habitat?.name}: {habitat?.creatureIds.length} → {(habitat?.creatureIds.length ?? 0) + 1} / {habitat?.capacity}</p><p>Balance after fee: {(save.currencies.gold - price).toLocaleString()} Gold.</p>{!quoteValid ? <p>The listing or fee changed. Close this window and review it again.</p> : !canAdopt ? <p>{shortage ? `Need ${shortage} more Gold. ` : ""}{status}</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!canAdopt || !quoteValid} onClick={adopt}>Confirm Adoption</button></div></GameDialog> : null}
+    {popup === "adopt" && selected ? <GameDialog title="Confirm Adoption" dialogClassName={styles.adoptionDialog} wide onClose={() => setPopup(null)}>
+      <div className={styles.adoptionSpread}>
+        <figure><ArrivalArt listing={selected} portrait /><figcaption>{selected.displayName}</figcaption></figure>
+        <div><h3>Placement details</h3><dl className={styles.requirements}>
+          <div><dt>Adoption fee</dt><dd>{price.toLocaleString()} Gold</dd></div>
+          <div><dt>{habitat?.name ?? "Required habitat"}</dt><dd>{habitat ? `${habitat.creatureIds.length} → ${habitat.creatureIds.length + 1} / ${habitat.capacity} occupied` : "Unavailable"}</dd></div>
+          <div><dt>Gold after adoption</dt><dd>{(save.currencies.gold - price).toLocaleString()} Gold</dd></div>
+        </dl>
+        {!quoteValid ? <p>The listing or fee changed. Close this window and review it again.</p> : !canAdopt ? <p>{shortage ? `Need ${shortage} more Gold. ` : ""}{status}</p> : null}</div>
+      </div>
+      <footer><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" disabled={!canAdopt || !quoteValid} onClick={adopt}>Confirm Adoption</button></footer>
+    </GameDialog> : null}
+    {popup === "welcome" && selected && sold ? <GameDialog title="Welcome to the Ranch" dialogClassName={styles.adoptionDialog} wide onClose={() => setPopup(null)}>
+      <div className={styles.adoptionSpread}>
+        <figure><ArrivalArt listing={selected} portrait /><figcaption>{selected.displayName}</figcaption></figure>
+        <div><h3>Adoption complete</h3><p role="status">{message}</p><dl className={styles.requirements}>
+          <div><dt>Adoption fee paid</dt><dd>{quote?.price.toLocaleString()} Gold</dd></div>
+          {habitat && <div><dt>{habitat.name}</dt><dd>{habitat.creatureIds.length} / {habitat.capacity} occupied</dd></div>}
+          <div><dt>Gold balance</dt><dd>{save.currencies.gold.toLocaleString()} Gold</dd></div>
+        </dl></div>
+      </div>
+      <footer><button type="button" onClick={() => setPopup(null)}>Continue</button></footer>
+    </GameDialog> : null}
     {popup === "refresh" ? <GameDialog title="Refresh Arrivals" onClose={() => setPopup(null)}><p>Replace the current placement board with new arrivals for <strong>{rerollCost} Gold</strong>. The current listings will be replaced; creatures already adopted stay on your ranch.</p><p>Arrivals also restock automatically each week.</p><p>{save.currencies.gold < rerollCost ? `Need ${rerollCost - save.currencies.gold} more Gold.` : `Balance after fee: ${(save.currencies.gold - rerollCost).toLocaleString()} Gold.`}</p>{!refreshValid ? <p>The board or cost changed. Close this window and review the refresh again.</p> : null}<div className={ui.actionRow}><button type="button" data-initial-focus onClick={() => setPopup(null)}>Cancel</button><button type="button" className={ui.primary} disabled={!refreshValid || save.currencies.gold < rerollCost} onClick={refresh}>Confirm Refresh</button></div></GameDialog> : null}
-    {popup === "result" ? <GameDialog title="Hearth Update" onClose={() => setPopup(null)}><p role="status">{message}</p><p>Current Gold: <strong>{save.currencies.gold.toLocaleString()}</strong></p><button type="button" onClick={() => setPopup(null)}>Continue</button></GameDialog> : null}
+    {popup === "result" || (popup === "welcome" && !sold) ? <GameDialog title="Hearth Update" onClose={() => setPopup(null)}><p role="status">{message}</p><p>Current Gold: <strong>{save.currencies.gold.toLocaleString()}</strong></p><button type="button" onClick={() => setPopup(null)}>Continue</button></GameDialog> : null}
     {popup === "profile" && selected ? <GameDialog title={`${selected.displayName} · Full Profile`} wide onClose={() => setPopup(null)}><div className={styles.profile}><SharedCreatureDetail useGameplayArt creature={createMarketPreviewCreature(save, selected)} mode="full" showActions={false} dossier /></div></GameDialog> : null}
     {popup === "talk" ? <GameDialog title="Talk to Tamsin" onClose={() => setPopup(null)}><img className={styles.talkPortrait} src="/images/ui/adoption-gallery/tamsin.webp" alt="Tamsin Vale" /><h3>Placement Philosophy</h3><p>{trust.level >= 4 ? "I have a few contacts who only call when a placement is delicate. Keep showing me you can handle that responsibility, and I will let those cases reach your ranch first." : trust.level >= 2 ? "You are building a reputation here. The creatures you adopt are settling well enough that I can argue for better fees on your behalf." : "Start with steady care. I watch what happens after the adoption, not just whether you can pay the fee."}</p><p>Each listing represents a creature whose needs were screened, documented, and matched to a ranch that can support its family and temperament.</p><button type="button" onClick={() => setPopup("trust")}>Open Trust Ledger</button></GameDialog> : null}
     {popup === "trust" ? <GameDialog title="Trust & Welfare Ledger" onClose={() => setPopup(null)}><TrustLeaves level={trust.level} /><h3>{getNpcTrustSummary(save, "tamsin_vale")}</h3><p>Next: {getNpcNextUnlock(save, "tamsin_vale")}</p><dl className={styles.report}><div><dt>Hearth level</dt><dd>{getTotalTownUpgradeTiers(save, "market") + 1}</dd></div><div><dt>Board slots</dt><dd>{effects.marketListingCount}</dd></div><div><dt>Adoption discount</dt><dd>{Math.round((1 - getTamsinAdoptionFeeMultiplier(save)) * 100)}%</dd></div><div><dt>Special placement chance</dt><dd>{((effects.marketVariantChance + getTamsinSpecialPlacementBonus(save)) * 100).toFixed(2)}%</dd></div><div><dt>Refresh cost</dt><dd>{rerollCost} Gold</dd></div></dl><p>Successful adoptions grant 5 Trust; refreshing arrivals grants 1. Trust and town upgrades can improve fees, refresh costs and special placement chances.</p><p>Stat numbers and their letter grades are shown together. Full Profile contains the expanded stats, abilities and care details.</p></GameDialog> : null}

@@ -313,3 +313,35 @@
  .gallerySteward div small { white-space:normal; }
  .balance { flex:none; }
 }
+
+dialog.adoptionDialog {
+ color:#fff0d0; font-family:Georgia,serif; padding:12px;
+ background:#112820; border:1px solid #c5a367;
+ border-image:url('/images/ui/forge-gallery-v1/removal-bench-frame.webp') 60 fill / 18px stretch;
+}
+.adoptionDialog > header { color:#ffe3a5; }
+.adoptionSpread { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.15fr); gap:12px; align-items:center; }
+.adoptionSpread figure {
+ position:relative; display:grid; grid-template-rows:minmax(0,1fr) auto; margin:0; height:clamp(108px,36dvh,310px);
+ overflow:hidden; border:1px solid #ba9859; border-radius:8px;
+ background:linear-gradient(#183d2b35,#0c231ad9),url('/images/ui/adoption-gallery/hearth.webp') center/cover;
+}
+.adoptionSpread img { width:100%; height:100%; min-height:0; object-fit:contain; object-position:center bottom; }
+.adoptionSpread img[hidden] { display:none; }
+.adoptionSpread figcaption { grid-row:2; padding:6px; background:#112820; text-align:center; color:#ffe5ab; font-size:clamp(17px,3vw,26px); font-weight:bold; }
+.adoptionSpread h3 { margin:0 0 7px; color:#ffe5ab; }
+.adoptionSpread .requirements { margin:7px 0; }
+.adoptionDialog footer { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; margin-top:10px; }
+.adoptionDialog footer button:last-child {
+ color:#fff0d0; background:#1c4738 url('/images/ui/forge-gallery-v1/receipt-continue.webp') center/100% 100% no-repeat;
+ padding-inline:29px;
+}
+@media(max-width:560px) and (orientation:portrait) {
+ .adoptionSpread { grid-template-columns:1fr; gap:7px; }
+ .adoptionSpread figure { height:clamp(100px,28dvh,185px); }
+ .adoptionSpread .requirements div { padding:5px; font-size:13px; }
+}
+@media(max-height:430px) {
+ .adoptionSpread p { font-size:13px; }
+ .adoptionSpread .requirements div { padding:3px 5px; font-size:12px; }
+}
