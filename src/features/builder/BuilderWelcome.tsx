@@ -12,8 +12,8 @@ import { BLACKSMITH } from '@/data/blacksmith';
 import { useNavigation } from '@/features/navigation/NavigationContext';
 import yard from './YardCraftspeople.module.css';
 
-export function BuilderWelcome({ onClose, onPlans }: { onClose: () => void; onPlans: () => void }) {
-  const [host, setHost] = useState<'petra' | 'iona' | null>(null);
+export function BuilderWelcome({ onClose, onPlans, initialHost = null }: { onClose: () => void; onPlans: () => void; initialHost?: "petra" | null }) {
+  const [host, setHost] = useState<'petra' | 'iona' | null>(initialHost);
   const { open } = useNavigation();
   if (host === 'petra') return <PetraWelcome onClose={() => setHost(null)} onPlans={onPlans}/>;
   if (host === 'iona') return <BlacksmithWorkshop onBack={() => setHost(null)}/>;
@@ -25,7 +25,7 @@ export function BuilderWelcome({ onClose, onPlans }: { onClose: () => void; onPl
     </section>
   </main>;
 }
-function PetraWelcome({ onClose, onPlans }: { onClose: () => void; onPlans: () => void }) {
+function PetraWelcome({ onClose, onPlans, initialHost = null }: { onClose: () => void; onPlans: () => void; initialHost?: "petra" | null }) {
   const { currentSave: save, saveCurrentGame, goToSupplyDepot, goToRanchJobs } = useGameContext();
   const [popup, setPopup] = useState<"talk" | "requests" | null>(null);
   const [message, setMessage] = useState("");

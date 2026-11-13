@@ -7,6 +7,7 @@ import { getColiseumC3Summary } from "@/data/coliseumC3";
 import { getColiseumC4Summary, getColiseumC4WeeklyBoss } from "@/data/coliseumC4";
 import { getRoseLanternAccess } from "@/data/roseLantern";
 import { getTotalTownUpgradeTiers } from "@/data/upgrades";
+import { BlacksmithWorkshop } from "@/features/builder/BlacksmithWorkshop";
 import { BuilderYardPanel } from "@/features/builder/BuilderYardPanel";
 import { GameDialog } from "@/features/ui/GameDialog";
 import { formatGameDate, formatGold, formatGuildPoints } from "@/lib/formatters";
@@ -15,27 +16,40 @@ import { RoseLanternScreen } from "./RoseLanternScreen";
 import styles from "./TownScreen.module.css";
 
 const AUTO_OPEN = "creature-chronicles-open-builder-yard";
-const ART = "/images/ui/town-v1/";
-const ART_V2 = "/images/ui/town-v2/";
-const NPCS = "/images/npcs/town/";
 const LOCATIONS = [
-  { id: "adoption", scene: ART_V2 + "scene-adoption.webp", title: "Vale's Adoption Hearth", short: "Adoption Hearth", host: "Tamsin Vale", description: "Meet your next companion. Review new arrivals and adoption fees.", image: ART_V2 + "icon-adoption.webp", portrait: NPCS + "tamsin_vale_portrait.png" },
-  { id: "supply", scene: ART + "background.webp", title: "The Supply Depot", short: "Supply Depot", host: "Pella Mosswick", description: "Feed, materials & ranch supplies.", image: ART_V2 + "icon-supply.webp", portrait: NPCS + "pella_mosswick_portrait_v2.webp" },
-  { id: "builder", scene: ART_V2 + "scene-builder.webp", title: "Builder's Yard", short: "Builder's Yard", host: "Petra Hale & Iona Flint", description: "Construction with Petra. Equipment crafting with Iona.", image: ART + "builder.webp", portrait: null },
-  { id: "eggs", scene: ART_V2 + "scene-eggs.webp", title: "The Egg Atelier", short: "Egg Atelier", host: "Dr. Selene Virell", description: "Egg appraisal, incubation care & hatch improvements.", image: ART_V2 + "icon-eggs.webp", portrait: NPCS + "selene_virell_portrait.png" },
-  { id: "guild", scene: ART_V2 + "scene-guild.webp", title: "Guild Hall", short: "Guild Hall", host: "Contracts & town upgrades", description: "Fulfill requests, earn Guild Points and improve town services.", image: ART_V2 + "icon-guild.webp", portrait: null },
-  { id: "training", scene: ART_V2 + "scene-training.webp", title: "Training Grounds", short: "Training Grounds", host: "Rhea Flint", description: "Timed XP drills, stat coaching & trainer upgrades.", image: ART_V2 + "icon-training.webp", portrait: NPCS + "rhea_flint_portrait.png" },
-  { id: "outfitter", scene: ART_V2 + "scene-outfitter.webp", title: "Battle Outfitter", short: "Battle Outfitter", host: "Daria Voss", description: "Equipment, move training & combat supplies.", image: ART_V2 + "icon-outfitter.webp", portrait: NPCS + "daria_voss_portrait.png" },
-  { id: "coliseum", scene: ART_V2 + "scene-coliseum.webp", title: "Coliseum", short: "Coliseum", host: "Battles & challenges", description: "Challenge the circuit and take on rotating trials.", image: ART + "coliseum.webp", portrait: null },
-  { id: "rose", scene: ART_V2 + "scene-rose.webp", title: "The Rose Lantern", short: "Rose Lantern", host: "Adults-only social house", description: "Optional social visits, hospitality work & town intelligence.", image: ART + "rose.webp", portrait: null },
+  { id: "adoption", title: "Vale's Adoption Hearth", short: "Adoption Hearth", host: "Tamsin Vale", description: "Meet your next companion. Review new arrivals and adoption fees." },
+  { id: "supply", title: "The Supply Depot", short: "Supply Depot", host: "Pella Mosswick", description: "Feed, materials & ranch supplies." },
+  { id: "builder", title: "Builder's Yard", short: "Builder's Yard", host: "Petra Hale & Iona Flint", description: "Construction with Petra. Equipment crafting with Iona." },
+  { id: "eggs", title: "The Egg Atelier", short: "Egg Atelier", host: "Dr. Selene Virell", description: "Egg appraisal, incubation care & hatch improvements." },
+  { id: "guild", title: "Guild Hall", short: "Guild Hall", host: "Contracts & town upgrades", description: "Fulfill requests, earn Guild Points and improve town services." },
+  { id: "training", title: "Training Grounds", short: "Training Grounds", host: "Rhea Flint", description: "Timed XP drills, stat coaching & trainer upgrades." },
+  { id: "outfitter", title: "Battle Outfitter", short: "Battle Outfitter", host: "Daria Voss", description: "Equipment, move training & combat supplies." },
+  { id: "coliseum", title: "Coliseum", short: "Coliseum", host: "Battles & challenges", description: "Challenge the circuit and take on rotating trials." },
+  { id: "rose", title: "The Rose Lantern", short: "Rose Lantern", host: "Adults-only social house", description: "Optional social visits, hospitality work & town intelligence." },
 ] as const;
 type LocationId = typeof LOCATIONS[number]["id"];
-type Modal = "builder" | "rose" | "details" | null;
+type Modal = "builder" | "petra" | "forge" | "rose" | "details" | null;
+const MAP = "/images/ui/town-map/";
+const DISTRICTS = [
+  { name: "Market Square", art: "market.webp", stops: ["builder", "outfitter", "coliseum", "supply"] },
+  { name: "Civic Quarter", art: "civic.webp", stops: ["adoption", "eggs", "guild", "training", "rose"] },
+] as const satisfies readonly { name: string; art: string; stops: readonly LocationId[] }[];
+const MARKS: Record<LocationId, string> = {
+  builder: "⚒", outfitter: "◆", coliseum: "⚔", supply: "⚖",
+  adoption: "♥", eggs: "◈", guild: "✦", training: "◎", rose: "✿",
+};
+const POSITIONS = [[25,32], [75,32], [25,73], [75,73], [50,91]] as const;
+const PREVIEWS: Partial<Record<LocationId, string>> = {
+  builder: "/images/ui/locations-v2/builder-yard.webp",
+  outfitter: "/images/ui/outfitter-v1/background.webp",
+  coliseum: "/images/ui/coliseum-v1/background.webp",
+  supply: "/images/ui/forge-gallery-v1/pella-market-stall.webp",
+};
 
 export function TownScreen() {
   const { open } = useNavigation();
   const { currentSave: save, goToMainMenu, goToRanch, goToMarket, goToSupplyDepot, goToEggAtelier, goToGuildHall, goToTrainingGrounds, goToBattleOutfitter, goToBattleDebug } = useGameContext();
-  const [selectedId, setSelectedId] = useState<LocationId>("supply");
+  const [selectedId, setSelectedId] = useState<LocationId>("builder");
   const [page, setPage] = useState(0);
   const [modal, setModal] = useState<Modal>(null);
   useEffect(() => {
@@ -44,14 +58,6 @@ export function TownScreen() {
     setSelectedId("builder");
     setModal("builder");
   }, []);
-  useEffect(() => {
-    // Warm the visible page and its neighbor so selecting a service is responsive.
-    const start = page * 3;
-    for (const location of LOCATIONS.slice(start, Math.min(start + 6, LOCATIONS.length))) {
-      const image = new Image();
-      image.src = location.scene;
-    }
-  }, [page]);
   if (!save) return <main className={styles.emptyScreen}><h1>No active save</h1><p>Load or create a save before entering town.</p><button onClick={goToMainMenu}>Return to Main Menu</button></main>;
   const selected = LOCATIONS.find(location => location.id === selectedId)!;
   const progress = getColiseumC2Progress(save);
@@ -80,34 +86,55 @@ export function TownScreen() {
   }
   function changePage(next: number) {
     setPage(next);
-    setSelectedId(LOCATIONS[next * 3].id);
+    setSelectedId(DISTRICTS[next].stops[0]);
   }
+  if (modal === "forge") return <BlacksmithWorkshop backLabel="Town Square" onBack={() => setModal(null)} />;
   if (modal === "rose") return <RoseLanternScreen onClose={() => setModal(null)} />;
-  if (modal === "builder") return <BuilderYardPanel onClose={() => setModal(null)} />;
-  return <main className={styles.town} style={{ backgroundImage: `url("${selected.scene}")` }} data-town-location={selectedId}>
+  if (modal === "builder" || modal === "petra") return <BuilderYardPanel initialHost={modal === "petra" ? "petra" : undefined} onClose={() => setModal(null)} />;
+  const district = DISTRICTS[page];
+  const position = POSITIONS[district.stops.findIndex(id => id === selectedId)] ?? POSITIONS[0];
+  return <main className={styles.town} data-town-location={selectedId}>
     <header className={styles.header}>
+      <button onClick={goToRanch}>← Back to Ranch</button>
       <h1>Town Square</h1>
-      <nav aria-label="Town navigation"><button onClick={goToRanch}>← Ranch</button><button data-navigation-launcher onClick={() => open("menu")}>☰ Menu</button></nav>
+      <button data-navigation-launcher onClick={() => open("menu")}>Menu</button>
     </header>
-    <section className={styles.resources} aria-label="Town resources">
-      <span><img src="/images/ui/icons/icon_town_map.png" alt="" />{formatGameDate(save.dayState.weekday, save.dayState.month, save.dayState.dayOfMonth)}</span>
-      <span><img src="/images/ui/currency/icon_currency_gold.png" alt="" /><strong>{formatGold(save.currencies.gold)}</strong></span>
-      <span><img src="/images/ui/icons/icon_guild_points.png" alt="" /><strong>{formatGuildPoints(save.currencies.guildPoints)}</strong></span>
-    </section>
-    <section className={styles.workspace} aria-label="Selected destination">
-      <div className={styles.scene} aria-hidden="true"><span className={styles.sign}>{selected.short}</span></div>
+    <div className={styles.workspace}>
+      <section className={styles.mapPanel} aria-label={district.name}>
+        <div className={styles.map} style={{ backgroundImage: `url("${MAP}${district.art}")` }}>
+          <nav aria-label="Town destinations">
+            {district.stops.map((id, index) => {
+              const location = LOCATIONS.find(entry => entry.id === id)!;
+              const [left, top] = POSITIONS[index];
+              return <button key={id} className={styles.marker} style={{left: `${left}%`, top: `${top}%`}}
+                aria-pressed={selectedId === id} aria-label={`Select ${location.short}`}
+                onClick={() => setSelectedId(id)}><span aria-hidden="true">{MARKS[id]}</span> {location.short}</button>;
+            })}
+          </nav>
+        </div>
+        <nav className={styles.district} aria-label="Town districts">
+          <strong>{district.name}</strong>
+          <button onClick={() => changePage(1-page)}>{page === 0 ? "Civic Quarter →" : "← Market Square"}</button>
+        </nav>
+      </section>
       <article className={styles.details} aria-labelledby="town-destination-title">
-        <h2 id="town-destination-title">{selected.title}</h2>
-        <div className={styles.portrait}><img src={selected.portrait ?? selected.image} alt={selected.portrait ? selected.host : selected.title} /></div>
-        <div className={styles.copy} aria-live="polite"><h3>{selected.host}</h3><p>{selected.description}</p>{status && <p className={styles.status}>{status}</p>}</div>
-        <div className={styles.actions}><button className={styles.visit} onClick={visit}>Visit {selected.short} <span aria-hidden="true">›</span></button><button className={styles.more} onClick={() => setModal("details")} aria-label={`Details for ${selected.title}`}>Details</button></div>
+        <h2 id="town-destination-title"><span aria-hidden="true">{MARKS[selectedId]}</span> {selected.title}</h2>
+        <div key={selectedId} className={styles.preview} style={{backgroundImage: `url("${MAP}${district.art}")`, backgroundPosition: `${position[0]}% ${position[1]}%`}}>
+          {PREVIEWS[selectedId] && <img src={PREVIEWS[selectedId]} alt="" />}
+        </div>
+        <div className={styles.copy} aria-live="polite"><strong>{selected.host}</strong><p>{selected.description}</p>{status && <small>{status}</small>}</div>
+        {selectedId === "builder" && <div className={styles.services}>
+          <h3>Services</h3>
+          <button onClick={() => setModal("forge")}><img src="/images/ui/forge-gallery-v1/transfer-receipt-crest.webp" alt="" />Iona’s Forge <span aria-hidden="true">›</span></button>
+          <button onClick={() => setModal("petra")}>Petra’s Workshop <span aria-hidden="true">›</span></button>
+        </div>}
+        <div className={styles.actions}><button className={styles.visit} onClick={visit}>Visit {selected.short}</button><button onClick={() => setModal("details")} aria-label={`Details for ${selected.title}`}>Details</button></div>
       </article>
-    </section>
-    <nav className={styles.dock} aria-label="Town destinations">
-      <button className={styles.arrow} aria-label="Previous destinations" disabled={page === 0} onClick={() => changePage(page - 1)}>‹</button>
-      <div className={styles.tiles}>{LOCATIONS.slice(page * 3, page * 3 + 3).map(location => <button key={location.id} aria-pressed={selectedId === location.id} aria-label={`Select ${location.short}`} onClick={() => setSelectedId(location.id)}><img src={location.image} alt="" /><span>{location.short}</span>{selectedId === location.id && <b className={styles.check} aria-hidden="true">✓</b>}</button>)}</div>
-      <div className={styles.paging}><span aria-live="polite">{page + 1} / 3</span><button className={styles.arrow} aria-label="Next destinations" disabled={page === 2} onClick={() => changePage(page + 1)}>›</button></div>
-    </nav>
+    </div>
+    <footer className={styles.resources} aria-label="Town resources">
+      <span>{formatGameDate(save.dayState.weekday, save.dayState.month, save.dayState.dayOfMonth)}</span>
+      <span>{formatGold(save.currencies.gold)}</span><span>{formatGuildPoints(save.currencies.guildPoints)}</span>
+    </footer>
     {modal === "details" && <GameDialog title={selected.title} onClose={() => setModal(null)}><div className={styles.dialogCopy}><h3>{selected.host}</h3><p>{selected.description}</p>{status && <p>{status}</p>}{selectedId === "rose" && <p>{rose.reason}</p>}{selectedId === "coliseum" && <><p>{c3.marks} Marks · {c4.weeklyScore} Weekly Score</p><p>{c4.activeRun ? `Gauntlet stage ${c4.activeRun.stageIndex + 1} waiting` : `${boss.name} · ${c4.bossClaimed ? "reward claimed" : "reward available"}`}</p></>}</div></GameDialog>}
   </main>;
 }

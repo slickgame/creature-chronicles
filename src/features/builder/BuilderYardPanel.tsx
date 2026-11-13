@@ -16,7 +16,7 @@ const CATEGORIES = ["Land", "Habitats", "Security", "Future Plans"] as const;
 type Category = typeof CATEGORIES[number];
 const LABELS = { built: "Complete", building: "Under construction", planned: "Future plan", locked: "Requires another project", available: "Ready to plan" };
 
-export function BuilderYardPanel({ onClose }: { onClose: () => void; embedded?: boolean }) {
+export function BuilderYardPanel({ onClose, initialHost }: { onClose: () => void; embedded?: boolean; initialHost?: "petra" }) {
   const { currentSave: save, saveCurrentGame, goToSupplyDepot } = useGameContext();
   const { open } = useNavigation();
   const [view, setView] = useState<"welcome" | "plans">("welcome");
@@ -52,7 +52,7 @@ export function BuilderYardPanel({ onClose }: { onClose: () => void; embedded?: 
     {!project.planned && <><dl className={styles.costs}><div><dt>Gold</dt><dd>{project.costGold}</dd></div><div><dt>Supplies</dt><dd>{resourceList(project.costResources)}</dd></div><div><dt>Build time</dt><dd>{project.durationDays ?? 1} ranch day{(project.durationDays ?? 1) > 1 ? "s" : ""}</dd></div></dl>{!!project.predatorPressure && <p>Once complete: +{project.predatorPressure} predator pressure from expanded land.</p>}</>}
     <p>{reason}</p><p>Unreserved supplies: {resourceList(Object.fromEntries(Object.keys(project.costResources).map(id => [id, Math.max(0, (stock.stock[id as keyof typeof stock.stock] ?? 0) - (stock.reserves[id as keyof typeof stock.reserves] ?? 0))])))}</p>
   </>;
-  if (view === "welcome") return <BuilderWelcome onClose={onClose} onPlans={() => setView("plans")} />;
+  if (view === "welcome") return <BuilderWelcome onClose={onClose} initialHost={initialHost} onPlans={() => setView("plans")} />;
   return <main className={styles.yard} data-builder-yard>
     <header className={styles.header}><button onClick={() => setView("welcome")}>‹ Builder’s Yard</button><div><small>Petra Hale · Master Builder</small><h1>Builder’s Yard</h1></div><button data-navigation-launcher onClick={() => open("menu")}>Menu</button></header>
     <div className={styles.resources}><span>{save.currencies.gold} Gold</span><span>{stock.stock.wood ?? 0} Wood · {stock.stock.planks ?? 0} Planks</span><span>{completed.length} completed</span></div>
