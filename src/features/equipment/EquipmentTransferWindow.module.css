@@ -175,3 +175,7 @@
  .reviewSets img { width:17px; height:17px; }
  .review footer button { font-size:14px; min-height:32px; padding:3px 14px; }
 }
+@media(max-width:700px) and (orientation:portrait) {
+ .handoffItem img { height:clamp(44px,11dvh,84px); }
+ .handoffPortrait img { object-position:center top; }
+}

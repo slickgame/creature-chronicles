@@ -31,7 +31,7 @@ function ReviewStats({snapshot,role}:{snapshot:EquipmentChangeSnapshot;role:stri
  const sets=snapshot.sets.after.flatMap(after=>{
   const before=snapshot.sets.current.find(set=>set.id===after.id);
   return before&&before.count!==after.count?[{before,after}]:[];
- });
+ }).sort((a,b)=>Math.abs(b.after.activations-b.before.activations)-Math.abs(a.after.activations-a.before.activations));
  return <section className={s.reviewStats} aria-label={`${snapshot.name} ${role} stats`}>
   <h3>{snapshot.name} <small>· {role}</small></h3>
   <div className={s.reviewScroll} role="region" aria-label={`Scroll ${role.toLowerCase()} battle stats`} tabIndex={0}
