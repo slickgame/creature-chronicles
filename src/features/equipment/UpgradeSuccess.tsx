@@ -24,7 +24,7 @@ export function UpgradeSuccess({receipt,gold,onClose}:{receipt:UpgradeReceipt;go
      <div className={s.item}><h3>{receipt.name}</h3><b>+{before.level} → <em>+{level}</em></b></div>
      <div className={s.mainStat}><span><EquipmentStatIcon name={after.main.key}/>{BATTLE_STAT_LABELS[after.main.key]}</span><b>{before.main.value} → <em>{after.main.value}</em></b></div>
      <div className={s.reveal} data-rolled={Boolean(reward)}>
-      <div className={s.medal}>{reward?<EquipmentStatIcon name={reward.key}/>:<ForgeIcon name="upgrade"/>}</div>
+      <div className={s.medal}>{reward?<span className={s.medalGlyph}><EquipmentStatIcon name={reward.key}/></span>:<ForgeIcon name="upgrade"/>}</div>
       <div>
        {reward?<><p>{reward.added?'New substat':'Substat improved'}</p><strong>{BATTLE_STAT_LABELS[reward.key]} <em>+{reward.amount}</em></strong>{!reward.added&&<small>{prior} → {prior+reward.amount}</small>}</>:<><strong>Substats unchanged</strong><small>{level===15?'Maximum level reached':`Next ${after.substats.length>=4?'random increase':'mystery'} at +${Math.min(15,Math.ceil((level+1)/3)*3)}`}</small></>}
       </div>

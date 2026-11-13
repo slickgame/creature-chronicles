@@ -180,3 +180,31 @@
  .summary>div { padding-block:2px; }
  .receipt .heading p { font-size:18px; }
 }
+
+/* The ribbon and the stat glyph have independent bounds. */
+.receipt .reveal[data-rolled=true] .medal {
+  position:relative; display:block; aspect-ratio:160 / 184;
+  width:clamp(112px,11vw,156px); border:0; border-radius:0; box-shadow:none;
+  background:url('/images/ui/forge-gallery-v1/substat-medal.svg') center/contain no-repeat;
+  filter:drop-shadow(0 0 9px #a3ffb08a);
+  margin-block:-12px -20px;
+}
+.receipt .reveal[data-rolled=true] .medal::before,
+.receipt .reveal[data-rolled=true] .medal::after { content:none; }
+.medal .medalGlyph {
+  position:absolute; inset:24% 27% auto; height:36%;
+  display:grid; place-items:center; overflow:hidden;
+}
+.medalGlyph [data-equipment-glyph] { width:100%; height:100%; }
+.reveal[data-rolled=true] {
+  background:url('/images/ui/forge-slate-v2/frames/details.svg') center/100% 100%,
+    radial-gradient(ellipse at 16% 50%,#177c68,#073639 65%,#08282c);
+}
+.reveal[data-rolled=true]::before { opacity:.72; }
+@media(max-width:650px) and (orientation:portrait) {
+ .receipt .reveal[data-rolled=true] .medal { width:clamp(72px,23vw,99px); margin-block:-7px -13px; }
+ .reveal[data-rolled=true] { gap:7px; }
+}
+@media(max-height:550px) and (orientation:landscape) {
+ .receipt .reveal[data-rolled=true] .medal { width:55px; margin-block:-2px -6px; }
+}
