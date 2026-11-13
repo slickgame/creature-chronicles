@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {getBreedingParticipants} from '@/data/breeding';
 import {getOwnedInventory} from '@/data/inventoryCatalogue';
 import {equipmentRecipientBlocker} from '@/data/equipmentTransfer';
@@ -15,6 +15,7 @@ import {EquipmentStatIcon} from './EquipmentStatIcon';
 import s from './EquipmentAssignment.module.css';
 
 export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirmDisabled=false,onSelect,onClose,onReview,onConfirm}:{save:GameSave;copyId:string;creatureId:string;confirmation:boolean;confirmDisabled?:boolean;onSelect:(id:string)=>void;onClose:()=>void;onReview:()=>void;onConfirm:()=>void}){
+ const drag=useRef<{id:number;y:number;top:number}|null>(null);
  const [search,setSearch]=useState(''),[page,setPage]=useState(0),[expanded,setExpanded]=useState(false),[statPage,setStatPage]=useState(0),[mobile,setMobile]=useState(()=>typeof window!=="undefined"&&(innerWidth<=700||innerHeight<=550)),[short,setShort]=useState(()=>typeof window!=="undefined"&&innerHeight<=550),[desktopCapacity,setDesktopCapacity]=useState(()=>typeof window!=="undefined"&&innerHeight>=850?8:5),[tab,setTab]=useState<'creature'|'equipment'|'changes'>(confirmation?'changes':'equipment');
  useEffect(()=>{const resize=()=>{setMobile(innerWidth<=700||innerHeight<=550);setShort(innerHeight<=550);setDesktopCapacity(innerHeight>=850?8:5);};const frame=requestAnimationFrame(resize);addEventListener('resize',resize);return()=>{cancelAnimationFrame(frame);removeEventListener('resize',resize);};},[]);
  const copy=getEquipmentCopies(save).find(c=>c.id===copyId),item=BATTLE_OUTFITTER_ITEMS.find(i=>i.itemId===copy?.itemId);
@@ -56,8 +57,19 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
   return <GameDialog fullScreen title={title} onClose={onClose}>
    <main className={`${s.shell} ${s.swapShell}`}>
     <section className={`${s.book} ${s.swap}`} data-gear-swap>
-     <header className={s.heading}><div><strong className={s.forgeTitle}>Iona’s Forge</strong><h2>Confirm equipment</h2></div><button aria-label="Close Confirm equipment" onClick={onClose}><ForgeIcon name="close"/></button></header>
-     <div className={s.swapContent}>
+     <header className={s.heading}><div><strong className={s.forgeTitle}>Iona’s Forge</strong><h2>Confirm equipment</h2>{participant&&<p>Review {participant.displayName}’s {item.equipmentSlot?EQUIPMENT_SLOT_LABELS[item.equipmentSlot].toLowerCase():'equipment'} swap.</p>}</div><button aria-label="Close Confirm equipment" onClick={onClose}><ForgeIcon name="close"/></button></header>
+     <div className={s.swapContent} tabIndex={0} role="region" aria-label="Gear swap details"
+      onPointerDown={event=>{
+       const area=event.currentTarget;
+       if(event.pointerType!=='mouse'||event.button!==0||area.scrollHeight<=area.clientHeight||event.clientX>=area.getBoundingClientRect().left+area.clientWidth)return;
+       drag.current={id:event.pointerId,y:event.clientY,top:area.scrollTop};
+       area.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={event=>{
+       const start=drag.current;
+       if(start?.id===event.pointerId)event.currentTarget.scrollTop=start.top+start.y-event.clientY;
+      }}
+      onLostPointerCapture={()=>{drag.current=null;}}>
       {participant&&<div className={s.swapRecipient}>{portrait(participant)}</div>}
       <div className={s.swapPair} aria-label="Item stats">
        <article>
@@ -71,8 +83,8 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
         <p>{incomingSet?incomingSet.name+' set':'No set'}</p><h4>Item stats</h4>{gearStats(selectedStats)}
        </article>
       </div>
-      {lost.map(({before,after})=><p key={before.id} className={s.swapWarning} role="status"><strong>Set bonus lost · {before.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}</p>)}
-      {gained.map(({before,after})=><p key={after.id} className={s.swapGain} role="status"><strong>Set bonus gained · {after.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}<br/><small>{after.description}</small></p>)}
+      {lost.map(({before,after})=><p key={before.id} className={s.swapWarning} role="status"><img src={`/images/ui/forge-slate-v2/sets/sculpted/${before.id}.webp`} alt=""/><span><strong>Set bonus lost · {before.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}</span></p>)}
+      {gained.map(({before,after})=><p key={after.id} className={s.swapGain} role="status"><img src={`/images/ui/forge-slate-v2/sets/sculpted/${after.id}.webp`} alt=""/><span><strong>Set bonus gained · {after.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}<br/><small>{after.description}</small></span></p>)}
       {incomingSet&&<p className={s.swapSet}><strong>{incomingSet.name} after equipping</strong> · {incomingSet.count}/{incomingSet.required} · {incomingSet.activations?`${incomingSet.activations} active ${incomingSet.activations===1?'bonus':'bonuses'}`:'No active bonus'}<br/><small>{incomingSet.description}</small></p>}
       <section className={s.swapStats} aria-label="Creature battle stats">
        <h3>{participant?.displayName??'Creature'} · Battle stats</h3>
