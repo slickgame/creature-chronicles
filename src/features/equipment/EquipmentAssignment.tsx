@@ -51,6 +51,7 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
  </dl>;
  if(confirmation){
   const incomingSet=comparison?.sets.after.find(set=>set.id===selectedStats.setId);
+  const gained=sets.filter(({before,after})=>after.activations>before.activations);
   const outgoingSet=comparison?.sets.current.find(set=>set.id===equippedStats?.setId);
   return <GameDialog fullScreen title={title} onClose={onClose}>
    <main className={`${s.shell} ${s.swapShell}`}>
@@ -60,17 +61,18 @@ export function EquipmentAssignment({save,copyId,creatureId,confirmation,confirm
       {participant&&<div className={s.swapRecipient}>{portrait(participant)}</div>}
       <div className={s.swapPair} aria-label="Item stats">
        <article>
-        <h3>Outgoing</h3>
-        {previous&&previousCopy&&equippedStats?<><UpgradeItemArt art={previous.iconPath} stats={equippedStats} slot={previous.equipmentSlot}/><strong>{previous.name} +{previousCopy.level}</strong><p>{outgoingSet?outgoingSet.name+' set':'No set'}</p>{gearStats(equippedStats)}<p>Returns to inventory</p></>:<p>Empty slot</p>}
+        <h3>Outgoing <small>· To inventory</small></h3>
+        {previous&&previousCopy&&equippedStats?<><UpgradeItemArt art={previous.iconPath} stats={equippedStats} slot={previous.equipmentSlot}/><strong>{previous.name} +{previousCopy.level}</strong><p>{outgoingSet?outgoingSet.name+' set':'No set'}</p><h4>Item stats</h4>{gearStats(equippedStats)}</>:<p>Empty slot</p>}
        </article>
        <b className={s.arrow} aria-hidden="true">→</b>
        <article>
-        <h3>Incoming</h3><UpgradeItemArt art={item.iconPath} stats={selectedStats} slot={item.equipmentSlot}/>
+        <h3>Incoming <small>· Equip</small></h3><UpgradeItemArt art={item.iconPath} stats={selectedStats} slot={item.equipmentSlot}/>
         <strong>{item.name} +{copy.level}</strong>
-        <p>{incomingSet?incomingSet.name+' set':'No set'}</p>{gearStats(selectedStats)}
+        <p>{incomingSet?incomingSet.name+' set':'No set'}</p><h4>Item stats</h4>{gearStats(selectedStats)}
        </article>
       </div>
       {lost.map(({before,after})=><p key={before.id} className={s.swapWarning} role="status"><strong>Set bonus lost · {before.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}</p>)}
+      {gained.map(({before,after})=><p key={after.id} className={s.swapGain} role="status"><strong>Set bonus gained · {after.name}</strong> {before.count}/{before.required} → {after.count}/{after.required}<br/><small>{after.description}</small></p>)}
       {incomingSet&&<p className={s.swapSet}><strong>{incomingSet.name} after equipping</strong> · {incomingSet.count}/{incomingSet.required} · {incomingSet.activations?`${incomingSet.activations} active ${incomingSet.activations===1?'bonus':'bonuses'}`:'No active bonus'}<br/><small>{incomingSet.description}</small></p>}
       <section className={s.swapStats} aria-label="Creature battle stats">
        <h3>{participant?.displayName??'Creature'} · Battle stats</h3>

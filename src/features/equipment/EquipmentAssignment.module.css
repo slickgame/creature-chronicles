@@ -339,3 +339,48 @@
  .swapStats :is(th,td) { padding:3px 2px; }
  .swapStats [data-equipment-glyph] { width:14px; height:14px; }
 }
+
+.book.swap {
+ --swap-frame:url('/images/ui/forge-slate-v2/frames/details.svg');
+ width:min(1140px,100%); border:0; border-radius:0; box-shadow:none;
+ background:var(--swap-frame) center/100% 100%,linear-gradient(145deg,#102e32ef,#061a1ef7);
+ padding:16px 22px;
+}
+.swap .forgeTitle {
+ width:max-content; max-width:100%; margin:0 auto 5px; padding:4px 26px;
+ background:url('/images/ui/forge-gallery-v1/ledger-plaque.svg') center/100% 100%;
+}
+.swap .heading { border-bottom:1px solid #b28b4b75; padding-bottom:7px; }
+.swapRecipient,.swapPair article,.swapStats,.swapSet,.swap .swapWarning,.swapGain {
+ border:0; border-radius:0; background:var(--swap-frame) center/100% 100%,linear-gradient(145deg,#193b3c,#071d21);
+ padding:9px 12px;
+}
+.swapPair article:last-child { box-shadow:none; }
+.swapPair article>div { width:min(170px,100%); aspect-ratio:2 / 1; }
+.swapPair article>div>img:first-child { object-fit:contain; }
+.swapPair article h3 {
+ padding:3px 8px; font-size:17px;
+ background:url('/images/ui/forge-gallery-v1/ledger-plaque.svg') center/100% 100%;
+}
+.swapPair article:last-child h3 { background:linear-gradient(#f9dc98,#ba8541); border-radius:4px; color:#241707; }
+.swapPair h4 { font:700 13px ForgeTinos,Georgia,serif; margin:3px 0 0; color:#ead096; }
+.swap .swapWarning { background:var(--swap-frame) center/100% 100%,linear-gradient(#654119,#3d210e); }
+.swapGain { color:#bef4d1!important; }
+.swapStats thead { background:#214246; }
+.swapStats tbody tr:nth-child(even) { background:#14363975; }
+.swapStats [data-delta="0"] { color:#d5cbbb; }
+@media(min-width:851px) and (min-height:651px) {
+ .swapContent { grid-template-columns:minmax(155px,.65fr) minmax(0,2.5fr); column-gap:12px; }
+ .swapContent>* { grid-column:2; }
+ .swapContent>.swapRecipient { grid-column:1; grid-row:1; align-self:start; display:grid; justify-items:center; text-align:center; }
+ .swapRecipient img { width:min(100%,132px); height:120px; }
+ .swapRecipient strong { font-size:23px; }
+ .swapStats :is(th,td) { padding-block:2px; }
+}
+@media(max-width:850px),(max-height:650px) {
+ .book.swap { padding:8px 9px; }
+ .swapPair article>div { width:min(94px,100%); }
+ .swapPair article h3 { font-size:14px; }
+ .swapPair article h3 small { display:block; }
+ .swapRecipient,.swapPair article,.swapStats,.swapSet,.swap .swapWarning,.swapGain { padding:6px 8px; }
+}
