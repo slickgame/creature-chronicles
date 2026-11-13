@@ -18,13 +18,7 @@ export function UpgradeReview({quote,gold,stale,onClose,onConfirm}:{quote:NonNul
      <h2>Review Upgrade Confirmation</h2>
      <button aria-label="Cancel upgrade" onClick={onClose}><ForgeIcon name="close"/></button>
     </header>
-    <picture className={s.art}>
-     {quote.item.itemId==='duelist_grips'&&<>
-      <source media="(max-width:650px) and (orientation:portrait)" srcSet="/images/ui/forge-gallery-v1/review-duelist-phone.webp"/>
-      <source srcSet="/images/ui/forge-gallery-v1/review-duelist-desktop.webp"/>
-     </>}
-     <img src={quote.item.iconPath} data-illustrated={quote.item.itemId==='duelist_grips'} alt=""/>
-    </picture>
+    <div className={s.art}><img src={quote.item.iconPath} alt=""/></div>
     <div className={s.details}>
      <div className={s.line}><EquipmentStatIcon name="physicalPower"/><h3>{quote.item.name}</h3><b>+{quote.copy.level} → <em>+{next}</em></b></div>
      <div className={s.line}><EquipmentStatIcon name={quote.after.main.key}/><div><strong>Guaranteed gain</strong><br/>{BATTLE_STAT_LABELS[quote.after.main.key]}</div><b>{quote.before.main.value} → <em>{quote.after.main.value}</em></b></div>
