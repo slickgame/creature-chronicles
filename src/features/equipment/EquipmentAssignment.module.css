@@ -477,3 +477,49 @@
  .swapPair .gearStats [data-equipment-glyph] { display:none; }
  .book.swap footer button { min-height:38px; padding:3px 6px; white-space:nowrap; font-size:16px; }
 }
+
+/* Slice the illustrated frame so the corner relief keeps its proportions. */
+.book.swap {
+ --gilt-panel:url('/images/ui/forge-gallery-v1/swap-gilt-frame.webp');
+ --gilt-border:var(--gilt-panel) 92 fill / 18px stretch;
+ background:none; border-image:var(--gilt-panel) 92 fill / 29px stretch;
+}
+.swap :is(.swapRecipient,.swapPair article,.swapSets,.swapStats) {
+ background:none; border-image:var(--gilt-border);
+}
+.swap .swapPair article:last-child { box-shadow:0 0 8px #e9af522f; }
+.swap .forgeTitle {
+ background:url('/images/ui/forge-gallery-v1/swap-forge-plaque.webp') center/100% 100% no-repeat;
+ min-width:min(285px,100%); padding:11px 20px 14px;
+}
+.swap .heading h2::before,.swap .heading h2::after {
+ content:'◆'; display:inline-block; vertical-align:middle; font-size:.33em; margin-inline:10px; color:#e6bd77;
+}
+.swap .swapWarning,.swap .swapGain,.swap .swapSet {
+ background:none; border-image:var(--gilt-panel) 92 / 12px stretch;
+}
+.swap .swapWarning { background:linear-gradient(120deg,#623914,#33200e); }
+.swap .swapGain { background:linear-gradient(120deg,#174938,#0b2826); }
+.swap .swapSet { background:#102b30; }
+.swapPair article h3 { text-shadow:0 1px 2px #000; }
+.swapPair article:last-child h3 { text-shadow:none; }
+.swap .swapScroll { scrollbar-color:#aa8045 #0b2125; }
+@media(max-width:850px),(max-height:650px) {
+ .book.swap { --gilt-border:var(--gilt-panel) 92 fill / 11px stretch; border-image-width:16px; }
+ .swap .forgeTitle { min-width:min(180px,100%); padding:5px 15px 7px; }
+}
+.book.swap footer button:last-child,.swapPair article:last-child h3 {
+ background:url('/images/ui/forge-gallery-v1/swap-gold-button.webp') center/100% 100% no-repeat;
+ border:0; color:#291809;
+}
+.book.swap footer button { padding-inline:24px; }
+@media(max-width:700px) {
+ .book.swap footer button { padding-inline:10px; }
+}
+.swapStats thead th { white-space:nowrap; font-size:clamp(11px,1.25vw,16px); }
+.swap .heading h2 { white-space:nowrap; }
+.swapPair article>div>img:first-child { transform:scale(1.25); }
+@media(max-width:420px) and (orientation:portrait) {
+ .swap .heading h2::before,.swap .heading h2::after { margin-inline:4px; }
+ .swap .heading h2 { font-size:clamp(17px,5.1vw,22px); }
+}
