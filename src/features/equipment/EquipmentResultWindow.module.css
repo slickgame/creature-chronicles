@@ -173,3 +173,108 @@
  .receiptItem strong::after { margin:3px auto 0; }
  .receiptSet strong { font-size:14px; }
 }
+
+.benchShell { padding:8px; overflow:hidden; background:linear-gradient(#0a171427,#071b165f),url('/images/ui/locations-v2/builder-yard.webp') center/cover; }
+.bench {
+ --bench-frame:url('/images/ui/forge-gallery-v1/removal-bench-frame.webp');
+ width:min(1080px,100%); height:min(770px,100%); min-height:0;
+ grid-template-rows:auto auto minmax(0,1fr) auto; padding:15px 22px; gap:9px;
+ background:none; border:0; box-shadow:none; border-image:var(--bench-frame) 60 fill / 20px stretch;
+}
+.bench:has([role=alert]) { grid-template-rows:auto auto minmax(0,1fr) auto auto; }
+.bench::before { display:none; }
+.bench header,.bench footer { text-align:center; }
+.bench header strong { display:inline-block; padding:7px 38px 12px; font-size:24px; background:url('/images/ui/forge-gallery-v1/swap-forge-plaque.webp') center/100% 100%; color:#ffe0a1; }
+.bench header h2 { font-size:clamp(22px,3vw,38px); }
+.bench header p { color:#e0dfcb; font-size:14px; }
+.benchHero,.benchGear>div,.benchSets,.benchStats { border-image:var(--bench-frame) 60 fill / 13px stretch; }
+.benchHero { display:grid; grid-template-columns:minmax(0,27fr) minmax(0,73fr); gap:7px 12px; padding:8px; }
+.benchPortrait { grid-row:1/4; width:100%; height:clamp(150px,25dvh,234px); object-fit:contain; object-position:center bottom; border-image:var(--bench-frame) 60 fill / 12px stretch; padding:4px; }
+.benchIdentity,.benchGear,.benchInventory { grid-column:2; }
+.benchIdentity h3,.benchEffects h3 { color:#ffe2ac; }
+.benchIdentity p,.benchGear small,.benchInventory,.benchStats>small { font:400 12px/1.3 system-ui,sans-serif; color:#d3dbce; }
+.benchGear { display:grid; grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr); align-items:stretch; gap:6px; }
+.benchGear>div { display:flex; align-items:center; padding:5px 8px; gap:8px; min-width:0; overflow-wrap:anywhere; }
+.benchGear img { width:clamp(28px,6vw,80px); height:clamp(30px,9dvh,75px); object-fit:contain; flex:none; }
+.benchGear>div:last-child img { opacity:.45; }
+.benchGear small { display:block; }
+.benchGear i { background:url('/images/ui/forge-gallery-v1/transfer-arrow.webp') center/contain no-repeat; }
+.bench .benchInventory { display:flex; align-items:center; gap:6px; padding:4px 7px; border-top:1px solid #bc98557a; }
+.benchEffects { min-height:0; display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:9px; }
+.benchSets,.benchStats { min-width:0; min-height:0; padding:8px 12px; }
+.benchSets { overflow:auto; }
+.benchStats { display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:3px; }
+.benchEffects h3 { text-align:center; font-size:20px; }
+.benchSet { display:flex; justify-content:center; align-items:center; gap:12px; padding:6px 0; }
+.benchSet img { width:clamp(38px,7vw,82px); height:auto; }
+.benchSet p { font-size:20px; }
+.bench [data-lost=true] { color:#ffa789; }
+.benchScroll { overflow:auto; overscroll-behavior:contain; scrollbar-color:#ba9358 #11261d; }
+.benchScroll table { width:100%; border-spacing:0; font-variant-numeric:tabular-nums; }
+.benchScroll thead { position:sticky; top:0; background:#18342b; }
+.benchScroll :is(th,td) { padding:4px 6px; border-bottom:1px solid #ac946047; text-align:right; }
+.benchScroll th:first-child { text-align:left; }
+.benchScroll tbody th { font-weight:400; }
+.benchScroll tbody th>span { margin-right:5px; }
+.benchStats>small { text-align:center; }
+.bench footer { display:flex; justify-content:center; gap:8px; }
+.bench footer button:last-child { background:url('/images/ui/forge-gallery-v1/receipt-continue.webp') center/100% 100% no-repeat; padding-inline:28px; }
+@media(max-width:700px) and (orientation:portrait) {
+ .bench { padding:8px 10px; gap:5px; }
+ .bench header strong { font-size:16px; padding:4px 25px 8px; }
+ .bench header p { font-size:12px; }
+ .benchHero { grid-template-columns:54px minmax(0,1fr); gap:4px; padding:5px; }
+ .benchPortrait { grid-row:1; height:48px; object-fit:cover; object-position:center top; }
+ .benchGear,.benchInventory { grid-column:1/-1; }
+ .benchGear { grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr); gap:3px; font-size:13px; }
+ .benchGear>div { padding:4px 5px; gap:4px; }
+ .benchEffects { grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr); gap:5px; }
+ .benchSets,.benchStats { padding:5px 8px; }
+ .benchEffects h3 { font-size:16px; }
+ .benchSet { padding:2px; gap:6px; font-size:14px; }
+ .benchSet p { font-size:16px; }
+ .benchScroll table { font-size:13px; }
+ .bench footer button { font-size:15px; }
+}
+@media(max-height:450px) and (orientation:landscape) {
+ .bench { padding:6px 10px; gap:4px; }
+ .bench header strong { font-size:15px; padding:3px 23px 6px; }
+ .bench header h2 { font-size:21px; }
+ .bench header p { font-size:11px; }
+ .benchHero { gap:2px 7px; padding:4px; }
+ .benchPortrait { height:88px; }
+ .benchIdentity h3,.benchEffects h3 { font-size:15px; }
+ .benchGear { font-size:13px; }
+ .benchGear img { height:27px; }
+ .bench .benchInventory { padding:1px 4px; font-size:11px; }
+ .benchSets,.benchStats { padding:4px 7px; }
+ .benchScroll table { font-size:12px; }
+ .benchScroll :is(th,td) { padding:2px 4px; }
+ .bench footer button { min-height:30px; font-size:14px; padding-block:3px; }
+}
+.benchEmpty {
+ display:grid; place-items:center; flex:none; width:clamp(28px,6vw,80px); height:clamp(30px,9dvh,75px);
+ background:#14241c; border:1px solid #8c896d55; border-radius:4px; font-size:clamp(18px,3vw,32px);
+}
+.benchEmpty > span { opacity:.42; }
+.benchScroll { cursor:grab; user-select:none; }
+.benchScroll:active { cursor:grabbing; }
+.benchScroll:focus-visible { outline:1px solid #e9c584; outline-offset:-1px; }
+.bench header h2 { display:flex; align-items:center; justify-content:center; gap:12px; }
+.bench header h2::before,.bench header h2::after { content:''; width:clamp(10px,6vw,72px); height:1px; background:linear-gradient(90deg,transparent,#d4aa60); }
+.bench header h2::after { transform:scaleX(-1); }
+@media(max-height:450px) and (orientation:landscape) { .benchEmpty { height:27px; } }
+.bench footer button:last-child { white-space:nowrap; }
+@media(max-width:700px) and (orientation:portrait) {
+ .bench footer button:last-child { padding-inline:17px; }
+}
+@media(max-height:450px) and (orientation:landscape) {
+ .bench header { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:0 7px; }
+ .bench header p { grid-column:2; }
+ .benchPortrait { height:68px; }
+ .benchGear>div { padding-block:2px; }
+ .benchGear img,.benchEmpty { height:23px; }
+ .benchSet { gap:6px; padding:3px 0; }
+ .benchSet img { width:36px; }
+ .benchSet p { font-size:16px; }
+}
