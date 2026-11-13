@@ -20,3 +20,102 @@
 @media(max-width:700px) and (max-height:780px){.layout{grid-template-rows:250px minmax(0,1fr)}}
 
 .equipActions{display:grid;gap:5px;align-content:center}.equipActions>button{min-height:36px}.equipActions>button:last-child:not(:first-child){font-size:14px;padding:4px 12px;}
+
+/* The selected item stays in view while the inventory tray is browsed. */
+.composition { grid-template-rows:auto auto minmax(0,1fr); max-width:1200px; gap:8px; }
+.header { align-items:center; gap:6px; padding:4px 10px; border:1px solid #cba45d; border-radius:8px; background:#071c26ed; }
+.header>button,.wallet { margin:0; }
+.title { display:flex; justify-content:center; align-items:center; gap:10px; padding:0; }
+.title .openPicker { display:none; }
+.layout { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; gap:8px; }
+.details { grid-template-columns:minmax(0, .88fr) minmax(0, 1.12fr); grid-template-rows:minmax(0,1fr) auto; gap:10px; padding:12px; border-radius:12px; }
+.item { grid-column:1; grid-row:1/3; position:relative; isolation:isolate; display:grid; grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) auto; gap:0; min-height:0; overflow:hidden; border:1px solid #cba45d; border-radius:9px; background:linear-gradient(#07141b28,#06161d 95%),url('/images/ui/forge-gallery-v1/receipt-workbench.webp') center/cover; text-align:center; }
+.screen button.showcaseArt { width:100%; min-height:0; padding:4px; background:none; }
+.screen button.showcaseArt img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 7px 10px #000c); }
+.itemName { display:grid; justify-items:center; padding:0 8px 10px; }
+.itemName h2 { font-size:clamp(21px,3vw,37px); }
+.itemName .rarity,.itemName .ownership { background:#081e2a; border:1px solid #a88b4b; border-radius:6px; padding:3px 8px; margin:3px 0 0; }
+.rarity[data-rarity="Heroic"] { background:#43295b; }
+.rarity[data-rarity="Legendary"] { background:#61411c; }
+.statPanel { border-radius:8px; padding:8px 14px; }
+.stats thead th:last-child { background:linear-gradient(90deg,#0d4a43,#11644e); }
+.stats td:last-child { background:#17725b21; }
+.cost { display:flex; justify-content:center; align-items:center; gap:12px; border:1px solid #b18b4b; border-radius:8px; background:#0d2934; text-align:center; padding:6px; }
+.cost>span { flex:1; font-size:14px; }
+.cost>span+span { border-left:1px solid #a88b4b; }
+.cost strong { display:block; font-size:23px; }
+.inventory { padding:8px 12px; border-radius:10px; }
+.trayContents { min-width:0; display:grid; gap:5px; }
+.controls { display:flex; align-items:end; flex-wrap:wrap; gap:5px 8px; }
+.controls label { flex:1; min-width:105px; display:grid; gap:2px; font-size:13px; }
+.controls select { width:100%; min-width:0; min-height:33px; border:1px solid #a88b4b; border-radius:5px; padding:3px 4px; background:#0c2632; color:#fff0cf; font:inherit; font-size:15px; }
+.screen .controls button,.screen .trayRow>button { min-height:34px; min-width:34px; padding:4px 8px; font-size:16px; }
+.trayRow { display:flex; align-items:center; gap:5px; }
+.trayRow .copyList { width:100%; grid-template-columns:repeat(8,minmax(0,86px)); grid-template-rows:none; gap:7px; justify-items:start; }
+.screen .trayRow button.tile { width:100%; height:auto; }
+.trayCount { font-size:13px; }
+.footer { justify-content:flex-end; padding:4px 8px; gap:6px; border-radius:8px; }
+.screen .footer button { min-height:44px; }
+.screen .footer .primary { min-height:48px; min-width:190px; font-size:23px; }
+.footer .primary span { font-size:.8em; }
+.screen .picker { background:#09232e; color:#fff0cf; border-color:#cba45d; }
+.picker>header { background:#0b2531; padding:6px 10px; border-color:#a88b4b; }
+.picker>div { padding:8px 10px; }
+.picker .trayRow .copyList { grid-template-columns:repeat(3,minmax(0,68px)); justify-content:center; }
+@media(max-width:700px), (max-height:550px) {
+ .layout { grid-template-rows:minmax(0,1fr) auto; }
+ .layout>.inventory { display:none; }
+ .title .openPicker { display:inline-flex; min-width:0; min-height:34px; padding:4px 9px; font-size:15px; }
+ .title h1 { font-size:clamp(19px,4.8vw,25px); }
+ .header h2 { font-size:clamp(15px,4.2vw,21px); text-align:center; }
+ .wallet { font-size:14px; gap:3px; }
+ .wallet>img { width:19px; height:19px; }
+ .header>button { padding:4px 7px; min-height:36px; }
+ .controls label { min-width:83px; }
+ .controls select { min-height:34px; }
+}
+@media(max-width:700px) and (orientation:portrait) {
+ .screen { padding:5px; }
+ .composition,.layout { gap:5px; }
+ .header { padding:3px 4px; }
+ .title { justify-content:space-between; gap:3px; }
+ .details { grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr) auto auto; gap:5px; padding:6px; }
+ .item { grid-column:auto; grid-row:auto; }
+ .itemName { padding-bottom:5px; }
+ .itemName .rarity,.itemName .ownership { padding:1px 5px; }
+ .cost { grid-row:2; padding:3px; }
+ .cost>span { font-size:12px; }
+ .cost strong { font-size:18px; }
+ .statPanel { padding:3px 6px; }
+ .footer { display:grid; grid-template-columns:repeat(auto-fit,minmax(0,1fr)); padding:3px; }
+ .screen .footer button { padding:3px; min-height:42px; font-size:15px; }
+ .screen .footer .primary { min-width:0; min-height:42px; font-size:16px; }
+}
+@media(max-height:550px) and (orientation:landscape) {
+ .screen { padding:4px 7px; }
+ .composition,.layout { gap:4px; }
+ .header { padding:0 5px; }
+ .title .openPicker { min-height:28px; }
+ .details { padding:4px; gap:4px 7px; }
+ .statPanel { padding:1px 6px; }
+ .stats { font-size:12px; }
+ .stats th,.stats td { padding:1px 2px; }
+ .stats tbody th { min-height:16px; }
+ .mystery { padding-top:2px; font-size:10px; }
+ .cost { padding:1px 4px; }
+ .cost>span { font-size:11px; }
+ .cost strong { font-size:15px; }
+ .screen .footer button,.screen .footer .primary { min-height:34px; font-size:16px; }
+ .picker .trayRow .copyList { grid-template-columns:repeat(6,minmax(0,56px)); }
+}
+.screen button.showcaseArt { position:relative; overflow:hidden; }
+.screen button.showcaseArt img { position:absolute; inset:4%; width:92%; height:92%; }
+.itemName { position:relative; background:linear-gradient(transparent,#06161dd9 40%); }
+@media(max-width:360px) {
+ .header h2 { white-space:nowrap; font-size:14px; }
+ .header>button { font-size:12px; gap:3px; white-space:nowrap; }
+}
+.screen button.showcaseArt { align-self:stretch; }
+.screen .picker { border:2px solid #cba45d; border-image:none; border-radius:12px; }
+.picker>header h2 { font-size:24px; }
+.screen .picker>header button { white-space:nowrap; min-height:36px; font-size:15px; }
