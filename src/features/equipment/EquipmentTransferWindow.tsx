@@ -20,7 +20,7 @@ function ReceiptSetCard({snapshot}:{snapshot:EquipmentChangeSnapshot}){
  const sets=changedSets(snapshot);
  return <section className={s.receiptSetCard} aria-label={`${snapshot.name} set bonuses`}>
   {snapshot.portrait&&<img className={s.receiptThumbnail} src={snapshot.portrait} alt=""/>}
-  <div className={s.receiptSetContent} role="region" aria-label={`${snapshot.name} set changes`} tabIndex={sets.length>1?0:undefined}>
+  <div className={s.receiptSetContent}>
    <h3>{snapshot.name}</h3>
    {sets.map(({before,after})=>{
     const delta=Math.sign(after.activations-before.activations);

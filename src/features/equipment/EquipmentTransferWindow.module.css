@@ -152,3 +152,48 @@
  .receiptInventory img { width:34px; height:24px; }
  .receiptInventory strong { font-size:15px; }
 }
+
+@font-face {
+ font-family:ForgeTinos;
+ src:url('/images/ui/forge-slate-v2/fonts/Tinos-Bold.woff') format('woff');
+ font-weight:700;
+ font-display:swap;
+}
+.receipt header h2 {
+ width:min(510px,100%);
+ padding:10px clamp(26px,6vw,70px) 16px;
+ font-size:clamp(19px,3vw,32px);
+ line-height:1.05;
+ color:#ffe7b4;
+ text-shadow:0 2px 2px #130d08;
+}
+.receipt .loadoutLabel {
+ background:none;
+ color:#d6b984;
+ font:600 11px/1.35 system-ui,sans-serif;
+ letter-spacing:.14em;
+ text-transform:uppercase;
+}
+.receiptGear h3,.receiptInventory strong { overflow-wrap:anywhere; color:#ffe7b4; }
+.receiptOwners { font-size:clamp(15px,2vw,22px); overflow-wrap:anywhere; }
+.receiptOwners small,.receiptInventory small,.receiptSetContent p {
+ font:400 12px/1.35 system-ui,sans-serif;
+ color:#c9d6cc;
+}
+.receiptSetContent { min-width:0; max-height:none; overflow:visible; }
+.receiptSetContent h3 { line-height:1.12; overflow-wrap:anywhere; margin-bottom:2px; }
+.receiptSetLine { min-width:0; font:400 13px/1.25 system-ui,sans-serif; }
+.receiptSetLine > span { overflow-wrap:anywhere; }
+.receiptSetLine + .receiptSetLine { margin-top:2px; padding-top:3px; border-top:1px solid #907a524f; }
+.receiptSetLine img { width:30px; height:30px; }
+.receiptSetLine small { font-size:11px; margin-top:0; color:#c9d6cc; font-variant-numeric:tabular-nums; }
+@media(max-width:700px) and (orientation:portrait) {
+ .receipt header h2 { padding:7px 34px 12px; }
+ .receiptSetLine { font-size:12px; }
+ .receiptSetLine img { width:25px; height:25px; }
+}
+@media(max-height:450px) and (orientation:landscape) {
+ .receipt header h2 { padding:5px 35px 8px; font-size:19px; }
+ .receiptOwners small,.receiptInventory small,.receiptSetLine { font-size:11px; }
+ .receiptSetLine img { width:20px; height:20px; }
+}
