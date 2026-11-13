@@ -20,7 +20,7 @@ import { EquipmentGuide } from './EquipmentGuide';
 import styles from './EquipmentUpgrades.module.css';
 
 const slots = Object.entries(EQUIPMENT_SLOT_LABELS) as [EquipmentSlot, string][];
-const equipmentItems = new Map(BATTLE_OUTFITTER_ITEMS.map(item => [item.itemId, item]));
+const equipmentItems = new Map<string, (typeof BATTLE_OUTFITTER_ITEMS)[number]>(BATTLE_OUTFITTER_ITEMS.map(item => [item.itemId, item]));
 type EquipmentSort = 'inventory' | 'name' | 'level' | 'rarity';
 
 export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId = "", initialCreatureId = "", returnLabel = "Back"}:{onBack:()=>void;embedded?:boolean;initialEquipmentId?:string;initialCreatureId?:string;returnLabel?:string}){
@@ -85,6 +85,9 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
   if(result.ok){const persisted=saveCurrentGame(result.save),upgraded=getEquipmentCopies(persisted).find(c=>c.id===copy.id)!;setUpgradeReceipt({name:quote.item.name,art:quote.item.iconPath,slot:quote.item.equipmentSlot,level:upgraded.level,cost:quote.cost,goalGold:Math.max(0,persisted.currencies.gold-result.save.currencies.gold),before:quote.before,after:equipmentStats(quote.item,upgraded)});const g=persisted.currencies.gold-result.save.currencies.gold,gp=persisted.currencies.guildPoints-result.save.currencies.guildPoints;if(g||gp)report+=` Goal rewards: +${g} Gold, +${gp} GP.`;}
   setMessage(report);setPopup('report');
  }
+ const milestone = quote && copy && (quote.maxed ? 'Maximum improvement reached' :
+  (copy.level + 1) % 3 === 0 ? (quote.before.substats.length >= 4 ? 'Random substat increase on confirm' : 'New substat on confirm') :
+  `${quote.before.substats.length >= 4 ? 'Next substat increase' : 'New substat'} at +${Math.ceil((copy.level + 1) / 3) * 3}.`);
  const inventory = <div className={styles.trayContents}>
   <div className={styles.controls}>
    <label>Category<select aria-label="Category" value={slot ?? ''} onChange={event=>{setSlot((event.target.value || null) as EquipmentSlot|null);resetPage();}}><option value="">All categories</option>{slots.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
@@ -107,22 +110,30 @@ export function EquipmentUpgrades({onBack, embedded = false, initialEquipmentId 
  </div>;
  return <main className={styles.screen} data-equipment-upgrades>
  <div className={styles.composition}>
-  <header className={styles.header}><button onClick={onBack}><ForgeIcon name="back"/>{returnLabel}</button><h2>Iona’s Forge</h2><div className={styles.wallet}><ForgeIcon name="coin"/>{save.currencies.gold.toLocaleString('en-US')} Gold{!embedded&&<button aria-label="Menu" data-navigation-launcher onClick={()=>open('menu')}><ForgeIcon name="menu"/></button>}</div></header>
-  <div className={styles.title}><h1>Improve equipment</h1><button className={styles.openPicker} onClick={()=>{setHoverId(null);setPicker(true);}}>Your equipment{hasFilters?' · Filtered':''}</button></div>
+  <header className={styles.header}><h2>Iona’s Forge</h2><div className={styles.wallet}><ForgeIcon name="coin"/>{save.currencies.gold.toLocaleString('en-US')} Gold{!embedded&&<button aria-label="Menu" data-navigation-launcher onClick={()=>open('menu')}><ForgeIcon name="menu"/></button>}</div></header>
+  <div className={styles.title}>
+   <button className={styles.returnButton} onClick={onBack}><ForgeIcon name="back"/>{returnLabel}</button>
+   <h1>Improve equipment</h1>
+   <button className={styles.openPicker} onClick={()=>{setHoverId(null);setPicker(true);}}><EquipmentStatIcon name="inventory"/>Your equipment{hasFilters?' · Filtered':''}</button>
+  </div>
   <div className={styles.layout}>
    <section className={styles.details} aria-label="Selected equipment">{quote&&copy?<>
     <div className={styles.item}>
      <button className={styles.showcaseArt} aria-label={`Inspect ${quote.item.name}`} onClick={()=>setPopup('stats')}><img src={quote.item.iconPath} alt=""/></button>
      <div className={styles.itemName}><h2>{quote.item.name} +{copy.level}</h2><p className={styles.rarity} data-rarity={quote.before.rarity}>{quote.before.rarity} · {EQUIPMENT_SLOT_LABELS[quote.item.equipmentSlot!]}</p><p className={styles.ownership}><EquipmentStatIcon name={copy.owner?'equip':'inventory'}/>{copy.owner?`Worn by ${owner?.nickname ?? 'creature'}`:'In inventory'}</p></div>
     </div>
-    <div className={styles.statPanel}><table className={styles.stats}><thead><tr><th aria-label="Stat"/><th>Current (+{copy.level})</th><th aria-label="Change"/><th>{quote.maxed?'Maximum':`Next (+${copy.level+1})`}</th></tr></thead><tbody><tr><th><EquipmentStatIcon name={quote.before.main.key}/>{BATTLE_STAT_LABELS[quote.before.main.key]}</th><td>{quote.before.main.value}</td><td>→</td><td className={styles.gain}>{quote.after.main.value}</td></tr>{Array.from({length:4},(_,i)=>{const stat=quote.before.substats[i];return <tr key={i} className={!stat?styles.emptyRow:undefined}><th>{stat?<><EquipmentStatIcon name={stat.key}/>{BATTLE_STAT_LABELS[stat.key]}</>:'Empty substat'}</th><td>{stat?`+${stat.value}`:'—'}</td><td>→</td><td>{stat?`+${stat.value}`:'—'}</td></tr>;})}</tbody></table><p className={styles.mystery}>{quote.maxed?'Maximum improvement reached':(copy.level+1)%3===0?`${quote.before.substats.length>=4?'Random substat increase':'Mystery substat'} · Revealed after payment`:`Substats unchanged · Next ${quote.before.substats.length>=4?'random increase':'mystery'} at +${Math.ceil((copy.level+1)/3)*3}`}</p></div>
-    <div className={styles.cost}><span>Improve cost <strong>{quote.maxed?'Maximum +15':`${quote.cost} Gold`}</strong></span>{!quote.maxed&&<span>{quote.canUpgrade?'Gold balance':'More Gold needed'} <strong>{quote.canUpgrade?`${save.currencies.gold.toLocaleString('en-US')} → ${(save.currencies.gold-quote.cost).toLocaleString('en-US')}`:`${quote.cost-save.currencies.gold}`}</strong></span>}</div>
+    <div className={styles.statPanel}><table className={styles.stats}><thead><tr><th aria-label="Stat"/><th>Current (+{copy.level})</th><th aria-label="Change"/><th>{quote.maxed?'Maximum':`Next (+${copy.level+1})`}</th></tr></thead><tbody><tr><th><EquipmentStatIcon name={quote.before.main.key}/>{BATTLE_STAT_LABELS[quote.before.main.key]}</th><td>{quote.before.main.value}</td><td>→</td><td className={styles.gain}>{quote.after.main.value}</td></tr>{Array.from({length:4},(_,i)=>{const stat=quote.before.substats[i];return <tr key={i} className={!stat?styles.emptyRow:undefined}><th>{stat?<><EquipmentStatIcon name={stat.key}/>{BATTLE_STAT_LABELS[stat.key]}</> :<><span aria-hidden="true">✦</span>Empty substat</>}</th><td>{stat?`+${stat.value}`:'—'}</td><td>→</td><td>{stat?`+${stat.value}`:'—'}</td></tr>;})}</tbody></table></div>
+    <div className={styles.mystery}><span aria-hidden="true">✦</span> {milestone}</div>
+    <div className={styles.cost}>
+     <span>Improve cost <strong>{quote.maxed?'Maximum +15':<><ForgeIcon name="coin"/>{quote.cost} Gold</>}</strong></span>
+     {!quote.maxed&&<span>{quote.canUpgrade?'Gold balance':'More Gold needed'} <strong>{quote.canUpgrade?<>{save.currencies.gold.toLocaleString('en-US')} → <b>{(save.currencies.gold-quote.cost).toLocaleString('en-US')}</b></>:`${quote.cost-save.currencies.gold}`}</strong></span>}
+    </div>
    </>:<div className={styles.empty}><h2>No equipment yet</h2><p>Buy equipment at the Outfitter, craft it with Iona, or earn gear in the Coliseum.</p></div>}</section>
    <aside className={styles.inventory} aria-label="Your equipment">{!picker&&inventory}</aside>
    {quote&&copy&&<footer className={styles.footer}>
     <button onClick={()=>setEquipmentAction({kind:'equip',equipmentId:copy.id,creatureId:creature?.creatureId??''})}>{copy.owner?'Transfer':'Equip'}</button>
     {copy.owner&&<button onClick={()=>setEquipmentAction({kind:'remove',equipmentId:copy.id,creatureId:copy.owner!})}>Remove</button>}
-    <button className={styles.primary} disabled={!quote.canUpgrade} onClick={review}>Improve{!quote.maxed&&<span>· {quote.cost} Gold</span>}</button>
+    <button className={styles.primary} disabled={!quote.canUpgrade} onClick={review}>Improve{!quote.maxed&&<span><ForgeIcon name="coin"/>{quote.cost} Gold</span>}</button>
    </footer>}
   </div>
  </div>
