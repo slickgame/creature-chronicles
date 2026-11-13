@@ -28,14 +28,18 @@ function createMarketPreviewCreature(save: GameSave, listing: MarketListing): Cr
 }
 
 function ArrivalArt({listing, portrait=false}:{listing:MarketListing;portrait?:boolean}){
-  const fallback=gameplayArt(listing,true);
-  const familyArt=`/images/ui/adoption-gallery/${listing.family}.webp`;
-  return <img key={listing.variantId} src={gameplayArt(listing,portrait)} alt="" onError={event=>{
-    const image=event.currentTarget;
-    const source=image.getAttribute("src");
-    if(source!==fallback&&source!==familyArt) image.src=fallback;
-    else if(source!==familyArt) image.src=familyArt;
-    else image.hidden=true;
+  const variant = getVariantDefinition(listing.variantId);
+  const sources = Array.from(new Set([
+    gameplayArt(listing, portrait),
+    gameplayArt(listing, !portrait),
+    variant.portraitPath,
+    variant.profilePath,
+  ].filter(Boolean)));
+  return <img key={listing.variantId} src={sources[0]} alt="" onError={event => {
+    const image = event.currentTarget;
+    const next = sources[sources.indexOf(image.getAttribute("src") ?? "") + 1];
+    if (next) image.src = next;
+    else image.hidden = true;
   }}/>;
 }
 
