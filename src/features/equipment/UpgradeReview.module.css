@@ -118,3 +118,28 @@
  .totals { padding-block:1px; }
  .totals :is(img,span) { width:15px; height:15px; }
 }
+
+/* The illustrated saber uses the original desktop and phone compositions. */
+.art img[data-illustrated="true"] { inset:0; width:100%; height:100%; object-fit:cover; transform:none; filter:none; }
+.workbench .plaque {
+  border:3px double #e5be77; border-radius:34px 34px 20px 20px;
+  box-shadow:0 0 0 2px #142c29,0 4px 10px #0009;
+  background:linear-gradient(#263e37,#0a2429);
+}
+.heading h2::before,.heading h2::after { content:'◆'; display:inline-block; color:#e4bd70; font-size:.38em; vertical-align:middle; margin-inline:12px; }
+.heading { border-image:linear-gradient(90deg,transparent,#c5a06a 50%,transparent) 1; }
+@media(min-width:651px) and (min-height:551px) {
+ .workbench.workbench { width:min(1130px,92vw); }
+ .art { min-height:clamp(350px,49vh,480px); }
+ .details { grid-template-rows:auto auto auto 1fr auto auto; }
+ .details:has([role="status"]) { grid-template-rows:auto; }
+ .line { padding:10px 16px; }
+ .line h3 { font-size:clamp(23px,2.4vw,34px); }
+ .details .totals { align-content:center; }
+ .workbench.workbench footer button { min-height:55px; font-size:23px; }
+}
+@media(max-width:650px) and (orientation:portrait) {
+ .shell.shell { background:linear-gradient(165deg,#102e32,#071c21 75%); }
+ .heading h2::before,.heading h2::after { display:none; }
+ .workbench .plaque { padding-block:5px; }
+}
