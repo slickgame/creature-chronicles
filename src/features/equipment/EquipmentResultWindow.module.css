@@ -278,3 +278,42 @@
  .benchSet img { width:36px; }
  .benchSet p { font-size:16px; }
 }
+
+.bench [hidden] { display:none; }
+.bench[data-removal-receipt=true] { width:min(960px,100%); grid-template-rows:auto minmax(0,1fr) auto auto; }
+.bench[data-removal-receipt=true][data-show-stats=true] { grid-template-rows:auto minmax(0,1fr) auto; }
+.benchEmblem { display:flex; justify-content:center; align-items:center; gap:8px; }
+.benchEmblem:has(img)::before,.benchEmblem:has(img)::after { content:''; width:min(100px,19%); height:1px; background:linear-gradient(90deg,transparent,#d4aa60); }
+.benchEmblem::after { transform:scaleX(-1); }
+.benchEmblem img { height:clamp(30px,6dvh,60px); }
+.bench[data-removal-receipt=true] .benchHero { grid-template-columns:minmax(0,38fr) minmax(0,62fr); min-height:0; padding:0; border-image:none; }
+.benchReceiptPortrait { display:grid; grid-template-rows:minmax(0,1fr) auto; margin:0; padding:5px; min-height:0; border-image:var(--bench-frame) 60 fill / 15px stretch; text-align:center; }
+.benchReceiptPortrait img { width:100%; height:100%; min-height:0; object-fit:contain; object-position:center bottom; }
+.benchReceiptPortrait figcaption { color:#ffe0a1; font-weight:700; font-size:clamp(16px,3vw,27px); overflow-wrap:anywhere; background:url('/images/ui/forge-gallery-v1/swap-forge-plaque.webp') center/100% 100%; padding:4px 16px 8px; }
+.bench[data-removal-receipt=true] .benchGear { grid-column:2; grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) 25px minmax(0,1fr); min-height:0; gap:3px; padding:8px; border-image:var(--bench-frame) 60 fill / 14px stretch; font-size:clamp(14px,2.6vw,28px); }
+.bench[data-removal-receipt=true] .benchGear i { transform:rotate(90deg); width:25px; justify-self:center; }
+.benchCompletion { display:grid; grid-template-columns:minmax(0,26fr) minmax(0,74fr); align-items:center; padding:8px 14px; border-image:var(--bench-frame) 60 fill / 15px stretch; }
+.benchCompletion>div { display:grid; justify-items:center; color:#ffe0a1; }
+.benchCompletion>div img { width:clamp(42px,9vw,90px); height:clamp(32px,7dvh,68px); object-fit:contain; }
+.benchCompletion ul { display:grid; gap:3px; list-style:none; margin:0; padding:2px 0 2px 12px; border-left:1px solid #caa45c83; font:400 clamp(12px,1.6vw,16px)/1.25 system-ui,sans-serif; }
+.benchCompletion li { display:flex; align-items:center; gap:5px; }
+.benchCompletion li::before { content:'◇'; color:#e9bd72; }
+.benchCompletion li:has(img)::before { content:none; }
+.benchCompletion li img { width:19px; height:19px; flex:none; }
+.bench[data-removal-receipt=true] .benchEffects { grid-template: minmax(0,1fr) / minmax(0,1fr); }
+.bench[data-removal-receipt=true] footer button:last-child { background:transparent url('/images/ui/forge-slate-v2/frames/button-secondary.svg') center/100% 100% no-repeat; }
+.bench footer .benchContinue { min-width:min(280px,55%); background:url('/images/ui/forge-gallery-v1/receipt-continue.webp') center/100% 100% no-repeat; }
+@media(max-width:700px) and (orientation:portrait) {
+ .bench[data-removal-receipt=true] footer { flex-direction:column; align-items:center; gap:3px; }
+ .bench[data-removal-receipt=true] footer button { min-height:36px; }
+ .bench[data-removal-receipt=true] footer .benchContinue { width:80%; }
+ .benchCompletion { grid-template-columns:minmax(0,32fr) minmax(0,68fr); padding:6px; }
+ .benchCompletion ul { padding-left:6px; }
+}
+@media(max-height:450px) and (orientation:landscape) {
+ .bench[data-removal-receipt=true] .benchEmblem img { height:22px; }
+ .bench[data-removal-receipt=true] .benchGear { grid-template-rows:minmax(0,1fr) 13px minmax(0,1fr); padding:4px; }
+ .bench[data-removal-receipt=true] .benchGear i { width:13px; }
+ .benchCompletion { padding:3px 7px; }
+ .benchCompletion>div img { height:26px; }
+}

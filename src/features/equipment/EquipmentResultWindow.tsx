@@ -26,25 +26,36 @@ export function EquipmentResultWindow({snapshot,completed=false,blocker,confirmD
  const removing=snapshot.kind==='remove',title=completed?(removing?'Equipment removed':'Equipment equipped'):'Remove equipment?';
  const inventory=removing?`${snapshot.before?.item.name??'Equipment'} ${completed?'saved':'returns'} to inventory.`:snapshot.before?`${snapshot.before.item.name} returned to inventory.`:'Equipped into an empty slot.';
  const art=(gear:EquipmentChangeSnapshot['before'],label:string)=><article><h3>{label}</h3>{gear?<><UpgradeItemArt art={gear.item.iconPath} stats={equipmentStats(gear.item,gear.copy)} slot={gear.item.equipmentSlot}/><strong>{gear.item.name}</strong><small>{EQUIPMENT_SLOT_LABELS[snapshot.slot]} · {equipmentStats(gear.item,gear.copy).rarity} · +{gear.copy.level}</small></>:<><div className={s.empty}><img src={`/images/ui/forge-slate-v2/categories/${snapshot.slot}.webp`} alt=""/></div><strong>Empty</strong><small>{EQUIPMENT_SLOT_LABELS[snapshot.slot]} slot{completed?'':' after removal'}</small></>}</article>;
- if(removing&&!completed){
+ if(removing){
   const gear=snapshot.before;
   const slot=EQUIPMENT_SLOT_LABELS[snapshot.slot];
+  const emblem=sets[0]?.after.id;
   return <GameDialog fullScreen title={title} onClose={onClose}>
    <main className={`${a.shell} ${s.benchShell}`}>
-    <section className={`${a.book} ${s.bench}`}>
-     <header><strong>Iona’s Forge</strong><h2>Gear Removal Review</h2><p>Review the changes before removing gear from {snapshot.name}.</p></header>
-     <div className={s.benchHero}>
-      {snapshot.portrait&&<img className={s.benchPortrait} src={snapshot.portrait} alt=""/>}
-      <div className={s.benchIdentity}><h3>{snapshot.name}</h3><p>Lv. {snapshot.level} · {snapshot.family}</p></div>
+    <section className={`${a.book} ${s.bench}`} data-removal-receipt={completed} data-show-stats={expanded}>
+     <header><strong>Iona’s Forge</strong><h2>{completed?'Gear Removal Receipt':'Gear Removal Review'}</h2>{completed?<div className={s.benchEmblem}>{emblem&&<img src={`/images/ui/forge-gallery-v1/receipt-set-${emblem}.webp`} alt=""/>}</div>:<p>Review the changes before removing gear from {snapshot.name}.</p>}</header>
+     <div className={s.benchHero} hidden={completed&&expanded}>
+      {completed?<figure className={s.benchReceiptPortrait}>{snapshot.portrait&&<img src={snapshot.portrait} alt=""/>}<figcaption>{snapshot.name}</figcaption></figure>:snapshot.portrait&&<img className={s.benchPortrait} src={snapshot.portrait} alt=""/>}
+      <div className={s.benchIdentity} hidden={completed}><h3>{snapshot.name}</h3><p>Lv. {snapshot.level} · {snapshot.family}</p></div>
       <div className={s.benchGear}>
        <div>{gear&&<img src={gear.item.iconPath} alt=""/>}<span><strong>{gear?.item.name??'Equipment'}{gear&&` +${gear.copy.level}`}</strong><small>{slot}</small></span></div>
        <i aria-hidden="true"/>
-       <div><span className={s.benchEmpty}><EquipmentStatIcon name="equip"/></span><span><strong>Empty slot</strong><small>{slot}</small></span></div>
+       <div><span className={s.benchEmpty}><EquipmentStatIcon name="equip"/></span><span><strong>{completed?`${slot} slot empty`:'Empty slot'}</strong>{!completed&&<small>{slot}</small>}</span></div>
       </div>
-      <p className={s.benchInventory}><EquipmentStatIcon name="inventory"/> Returns to inventory with upgrades intact.</p>
+      <p className={s.benchInventory} hidden={completed}><EquipmentStatIcon name="inventory"/> Returns to inventory with upgrades intact.</p>
      </div>
-     <div className={s.benchEffects}>
-      <section className={s.benchSets}><h3>Set Bonus Change</h3>
+     {completed&&!expanded&&<section className={s.benchCompletion} aria-label="Removal results">
+      <div><img src="/images/ui/forge-gallery-v1/removal-completed.webp" alt=""/><strong>Completed</strong></div>
+      <ul><li>Returned to inventory</li><li>Upgrades intact</li>
+       {sets.map(({before,after})=><li key={after.id}>
+        <img src={`/images/ui/forge-gallery-v1/receipt-set-${after.id}.webp`} alt=""/>
+        <span>{after.name} <b data-lost={after.activations<before.activations}>{after.activations<before.activations?'bonus lost':after.activations?'bonus remains active':'set incomplete'}</b> · {before.count}/{before.required} → {after.count}/{after.required}</span>
+       </li>)}
+       {note&&<li>{note}</li>}
+      </ul>
+     </section>}
+     <div className={s.benchEffects} hidden={completed&&!expanded}>
+      <section className={s.benchSets} hidden={completed}><h3>Set Bonus Change</h3>
        {sets.map(({before,after})=><div className={s.benchSet} key={after.id}>
         <img src={`/images/ui/forge-gallery-v1/receipt-set-${after.id}.webp`} alt=""/>
         <div><strong>{after.name} <small>({after.required}-piece)</small></strong><p>{before.count}/{before.required} → <b data-lost={after.activations<before.activations}>{after.count}/{after.required}</b></p><small>{after.activations<before.activations?'Set bonus will be lost':after.activations?'Set bonus remains active':'Set remains incomplete'}</small></div>
@@ -61,7 +72,7 @@ export function EquipmentResultWindow({snapshot,completed=false,blocker,confirmD
         }}
         onPointerMove={event=>{if(benchDrag.current)event.currentTarget.scrollTop=benchDrag.current.top+benchDrag.current.y-event.clientY;}}
         onLostPointerCapture={()=>{benchDrag.current=null;}}>
-        <table><thead><tr><th scope="col">Stat</th><th scope="col">Current</th><th scope="col">After</th></tr></thead>
+        <table><thead><tr><th scope="col">Stat</th><th scope="col">{completed?'Before':'Current'}</th><th scope="col">{completed?'Saved':'After'}</th></tr></thead>
          <tbody>{snapshot.rows.map(row=><tr key={row.key}><th scope="row"><EquipmentStatIcon name={row.key}/>{row.label}</th><td>{row.current}</td><td data-lost={row.delta<0}>{row.after}</td></tr>)}</tbody>
         </table>
        </div>
@@ -69,7 +80,10 @@ export function EquipmentResultWindow({snapshot,completed=false,blocker,confirmD
       </section>
      </div>
      {blocker&&<p role="alert">{blocker}</p>}
-     <footer><button onClick={onClose}>Cancel</button><button disabled={!!blocker||confirmDisabled} onClick={onConfirm}>Confirm removal</button></footer>
+     <footer>{completed?<>
+      <button className={s.benchContinue} disabled={!continueReady} onClick={onClose}>Continue</button>
+      <button aria-expanded={expanded} onClick={()=>setExpanded(value=>!value)}>{expanded?'Back to receipt':'Battle stats'}</button>
+     </>:<><button onClick={onClose}>Cancel</button><button disabled={!!blocker||confirmDisabled} onClick={onConfirm}>Confirm removal</button></>}</footer>
     </section>
    </main>
   </GameDialog>;
