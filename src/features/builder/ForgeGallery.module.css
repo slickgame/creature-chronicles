@@ -882,3 +882,57 @@
   .forgeReceiptSplit .furnaceReceiptBanner img { height:29px; }
   .forgeReceiptChecklist > div { padding-block:1px; }
 }
+
+/* The receipt groups the furnace and equipment into two continuous panels. */
+.window[data-forge-window="forge-furnace"]:has(.forgeReceiptSplit) {
+  border: 3px double #e4b665;
+  border-radius: 22px;
+  background: linear-gradient(135deg,#0c2530,#061a23);
+  box-shadow: inset 0 0 0 2px #172d36, 0 9px 30px #0009;
+}
+.window[data-forge-window="forge-furnace"]:has(.forgeReceiptSplit) > header h2 { font-size: 39px; }
+.forgeReceiptSplit > * { border-color: #d1a35b; }
+.forgeReceiptSplit .furnaceReceiptBanner {
+  background: linear-gradient(#09192255,#07182199), url('/images/ui/locations-v2/builder-yard.webp') center 45%/cover;
+}
+.forgeReceiptHero {
+  background: linear-gradient(110deg,#071d28e8,transparent 76%), url('/images/ui/forge-gallery-v1/receipt-workbench.webp') center/cover;
+}
+.forgeReceiptRequirements h3 {
+  background: url('/images/ui/forge-slate-v2/frames/button-primary.svg') center/100% 100% no-repeat;
+  border: 0;
+}
+.receiptEnergy { display:inline-grid; place-items:center; width:22px; color:#ffd56e; font:bold 26px/1 Georgia,serif; }
+.furnaceReceiptActions button { flex:1; }
+
+@media (min-width:651px) and (min-height:551px) {
+  .window[data-forge-window="forge-furnace"]:has(.forgeReceiptSplit) { width:min(1050px,100%); }
+  .forgeReceiptSplit { row-gap:0; grid-template-rows:234px auto; font-size:21px; }
+  .forgeReceiptSplit > :nth-child(-n+2) { border-radius:15px 15px 0 0; border-bottom:0; }
+  .forgeReceiptSplit > :nth-child(n+3) { border-radius:0 0 15px 15px; }
+  .forgeReceiptSplit .furnaceReceiptBanner { font-size:32px; gap:12px; }
+  .forgeReceiptSplit .furnaceReceiptBanner img { width:51%; height:224px; }
+  .forgeReceiptHero { padding:18px 20px; }
+  .window .forgeReceiptHero h3 { font-size:32px; }
+  .forgeReceiptHero .furnaceReceiptItem img { display:none; }
+  .forgeReceiptSaber { right:1%; bottom:0; width:69%; height:88%; }
+  .forgeReceiptSplit .furnaceLedger { padding-inline:16px; }
+  .forgeReceiptSplit .furnaceReceiptRows > div,.forgeReceiptChecklist > div { min-height:36px; }
+  .forgeReceiptRequirements { position:relative; padding-top:23px; }
+  .forgeReceiptRequirements h3 { position:absolute; top:-16px; left:6%; right:6%; padding:6px 10px; font-size:22px; }
+  .furnaceReceiptActions button { min-height:49px; font-size:21px; }
+}
+@media (max-width:650px) {
+  .window[data-forge-window="forge-furnace"]:has(.forgeReceiptSplit) > header h2 { font-size:22px; }
+  .forgeReceiptSplit .furnaceReceiptBanner,.forgeReceiptHero { background:linear-gradient(#143541,#0a222e); }
+  .receiptEnergy { font-size:17px; width:16px; }
+}
+@media (max-width:650px) and (orientation:portrait) {
+  .forgeReceiptSplit { row-gap:0; }
+  .forgeReceiptSplit .furnaceReceiptBanner { border-radius:10px 10px 0 0; }
+  .forgeReceiptHero { border-radius:0; border-block:0; }
+  .forgeReceiptSplit .furnaceReceiptRows { border-radius:0 0 10px 10px; }
+  .forgeReceiptRequirements { margin-top:6px; }
+  .furnaceReceiptActions { flex-direction:column; }
+  .furnaceReceiptActions button:first-child { order:1; }
+}

@@ -135,7 +135,7 @@ export function ForgeFurnace({item, resourceId, missing, shortages, crafting, on
               {inputs.map(([id, amount]) => (
                 <div key={id}><dt><img src={getResourceArt(id)} alt=""/>{RESOURCES[id].name} used</dt><dd>{amount * batches}</dd></div>
               ))}
-              <div><dt>Energy spent</dt><dd>{receipt.energy}</dd></div>
+              <div><dt><span className={s.receiptEnergy} aria-hidden="true">ϟ</span>Energy spent</dt><dd>{receipt.energy}</dd></div>
               <div data-produced><dt><img src={getResourceArt(resourceId)} alt=""/>{outputName} produced</dt><dd>{receipt.output}</dd></div>
             </dl>
             <section className={`${s.furnaceLedger} ${s.forgeReceiptRequirements}`}>
